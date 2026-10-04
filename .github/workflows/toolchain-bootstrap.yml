@@ -40,7 +40,6 @@ on:
       - "analysis/generated/snes2asm-symbols.yml"
       - "analysis/generated/da65-symbols-bank-*.info"
       - "tests/test_bootstrap_toolchain.py"
-      - ".github/workflows/toolchain-bootstrap.yml"
   workflow_dispatch:
 
 concurrency:
@@ -50,6 +49,7 @@ concurrency:
 jobs:
   contract:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Verify per-tool trigger snapshots
@@ -75,6 +75,7 @@ jobs:
 
   build-smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:

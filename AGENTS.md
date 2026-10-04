@@ -13,6 +13,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
+| GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, then the affected workflow files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
 | Frontend / menu / screen-flow / UI-state work | `docs/UI-STATE-MAP.md`, `analysis/ui-state-map.yml`, then `analysis/ui-capture-manifest.json`; for 2P/VS input coverage also read `docs/TWO-PLAYER-FIXTURE-PLAN.md` |
@@ -53,6 +54,7 @@ At present the critical path is: first native/reference divergence → semantic 
 10. Do not weaken a deterministic validation guard to make a failure disappear. Fix the underlying assumption, dependency, or harness.
 11. Use the cheapest check that answers the current iteration question. GitHub Actions is execution infrastructure, not automatically research evidence.
 12. Do not add a recurring workflow merely because a one-off experiment used CI. Durable checks need a durable repository invariant.
+   For trigger/concurrency/timeout/build/artifact rules, follow `docs/CI-WORKFLOW-BEST-PRACTICES.md`.
 13. Keep provider-specific instruction files thin. Shared rules live here.
 14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
 15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.

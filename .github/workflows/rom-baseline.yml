@@ -13,7 +13,6 @@ on:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "snesrecomp"
-      - ".github/workflows/rom-baseline.yml"
 
 concurrency:
   group: rom-baseline-${{ github.ref }}

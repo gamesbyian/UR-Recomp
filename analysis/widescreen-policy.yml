@@ -43,7 +43,7 @@ probe:
 
 display_binding:
   authentic_candidate:
-    id: community-7x6-full
+    id: uniracers-7x6-full
     source_width_pixels: 256
     active_height_pixels: 224
     pixel_aspect: "7:6"
@@ -51,18 +51,20 @@ display_binding:
     pixel_aspect_evidence: analysis/display-reference-geometry.json
     crop_top: 0
     crop_bottom: 0
-    overscan_status: preservation-evidence-backed-historical-visibility-unresolved
+    overscan_status: accepted-full-224-preservation
     overscan_evidence: analysis/display-active-height-evidence.json
-    status: provisional
-    rationale: "The official USA manual supports 7:6 horizontal correction. Canonical framebuffer evidence also proves a centered 216-line crop discards distinct rendered information in representative menu, transition and race scenes, so 216 cannot be treated as a content-neutral cleanup. Historical CRT visibility remains unresolved, keeping the combined Authentic transform provisional."
+    title_final_logical_transform: true
+    status: evidence-backed
+    rationale: "Authentic logical geometry is fixed at full 256x224 with 7:6 horizontal correction. Official-manual evidence supports the 4:3/7:6 display family, and canonical framebuffer evidence proves centered 216-line cropping discards rendered information in representative menu, transition and race scenes. Period-CRT edge loss remains a display-treatment concern rather than a destructive logical-raster crop."
   first_16x9_candidate:
     target_display_aspect: "16:9"
-    source_geometry: community-7x6-full
+    source_geometry: uniracers-7x6-full
     exact_symmetric_margin: "128/3"
     materializer_margin_pixels: 48
     provider: live-course-runtime
     provider_validated_capacity_margin_pixels: 72
-    runtime_selector: authentic-16x9-candidate
+    runtime_selector: authentic-16x9
+    compatibility_runtime_selector: authentic-16x9-candidate
     diagnostic_margin_override: URRECOMP_WS_MARGIN
     host_viewport_binding: native-widescreen-prepare-frame
     host_viewport_margin_pixels: 43
@@ -70,8 +72,13 @@ display_binding:
     host_logical_height_pixels: 224
     host_display_aspect_at_candidate_par: "57:32"
     host_display_aspect_error_percent_vs_16x9: 0.1953125
-    status: provisional
-    rationale: "Derived mechanically from the preferred Authentic candidate; no new guest descriptor lane is implied."
+    output_horizontal_fit_correction: "512/513"
+    fixed_center_active_width_fraction_of_16x9_output: "3/4"
+    scene_selector: URRECOMP_WS_SCENE
+    scene_selector_binding_status: diagnostic-host-only
+    title_final_logical_view: true
+    status: evidence-backed
+    rationale: "Derived mechanically from the accepted full-224 7:6 Authentic transform. The host exposes +43 source pixels per side / 342x224 while the strip-granular provider prepares +48 per side. No new guest descriptor lane is implied."
 
 aspect_policies:
   - id: stock-4x3
@@ -83,36 +90,54 @@ aspect_policies:
     target_display_aspect: "16:9"
     pixel_aspect: "7:6"
     overscan: "full-224"
+    host_viewport_margin_pixels: 43
     derived_margin_pixels: 48
     provider: live-course-runtime
-    status: provisional
+    status: evidence-backed
 
 scenes:
   - id: title-frontend
     class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
     evidence_status: provisional
-    fixture: unresolved
-    rationale: "Treat the original frontend as centered fixed presentation until a deterministic probe demonstrates intentional world expansion or edge anchoring."
+    fixture: ui-startup-timeline
+    rationale: "Keep the original frontend centered at Authentic 256x224 inside widescreen output unless a deterministic probe demonstrates intentional world expansion or edge anchoring."
+  - id: pre-race
+    class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
+    evidence_status: provisional
+    fixture: ui-pre-race-timing
+    rationale: "Pre-race presentation remains conservatively centered; widening world backing is not sufficient evidence to expand scripted setup composition."
   - id: representative-one-player-race
     class: mixed
+    host_composition: widened-342x224
+    host_widen: true
     evidence_status: evidence-backed
     fixture: dragster-representative-race
     rationale: "Authoritative simulation/activation remains stock while camera-facing preparation and presentation may widen; the retained +8 admission test proves adjacent future-column preparation without moving gameplay/camera state."
   - id: results
     class: fixed-center
+    host_composition: centered-256x224
+    host_widen: false
     evidence_status: provisional
-    fixture: unresolved
+    fixture: result-screens-probe
     rationale: "Preserve the recognizable original results presentation centered by default; no retained evidence yet requires expanded world presentation."
   - id: two-player-race
     class: mixed
+    host_composition: widened-342x224
+    host_widen: true
     evidence_status: evidence-backed
     fixture: ordinary-two-player-first-race
     rationale: "Retained 2P evidence establishes independent authoritative player state plus split-screen camera/OAM presentation boundaries, so widening must preserve stock activation while composing presentation per viewport."
   - id: vs-mode
     class: mixed
+    host_composition: centered-256x224-until-proven
+    host_widen: false
     evidence_status: provisional
-    fixture: unresolved
-    rationale: "Principal VS simulation fidelity is closed, but a dedicated event-relative Widescreen fixture has not yet proved that its presentation policy matches ordinary 2P."
+    fixture: vs-first-race
+    rationale: "Principal VS simulation fidelity is closed, but a dedicated event-relative Widescreen fixture has not yet proved that its presentation policy matches ordinary 2P. The host therefore fails closed to centered Authentic width until that discriminator closes."
 
 next_discriminator:
   id: vs-widescreen-policy
@@ -131,3 +156,5 @@ notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."
   - "Do not widen gameplay activation semantics merely because presentation width increases."
   - "The +8 preparation/runtime-hook lane may proceed independently of this scene-policy classification."
+  - "Host output composition is explicit: widened Authentic race scenes expose 342x224 at 7:6 PAR and use a final horizontal fit correction of 512/513 to land on exact 16:9 output; fixed-center scenes retain 256x224 at 7:6 PAR, occupying 3/4 of a 16:9 output width when fit to full height."
+  - "URRECOMP_WS_SCENE is currently a diagnostic host-only selector. Runtime scene classification must be bound from an evidence-backed host presentation seam before this becomes shipping behavior."

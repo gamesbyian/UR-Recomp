@@ -8,7 +8,11 @@ on:
       - "tests/unit/test_course_presentation_contract.py"
       - "analysis/generated/dessyreqt-course-landmarks.json"
       - "reference/roms/retail/Uniracers_USA.sfc"
-      - ".github/workflows/course-presentation-contract.yml"
+
+concurrency:
+  group: course-presentation-contract-${{ github.ref }}
+  # This workflow may commit generated evidence; queue writes rather than cancel them.
+  cancel-in-progress: false
 
 permissions:
   contents: write

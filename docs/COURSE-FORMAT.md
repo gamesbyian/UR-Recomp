@@ -196,6 +196,21 @@ Generated corpus:
 - `analysis/generated/course-resource-list-manifest.json`
 - `analysis/generated/course-resource-list-manifest.md`
 
+Regenerate both artifacts with `python3 tools/analyze_course_resource_lists.py`.
+Use `python3 tools/analyze_course_resource_lists.py --check` for a read-only
+corpus-to-artifact consistency check; parser, fingerprint, renumbering, and
+preserved-ROM regression coverage lives in
+`tests/unit/test_analyze_course_resource_lists.py`.
+
+The same manifest is also the single machine-readable owner for tracked
+course-header and resource-list differences relative to USA retail. It records
+no tracked-field differences for the legacy beta or PAL prototype; Europe
+retail changes Switcher's first coordinate pair and appends resource `0x22` to
+Down+Up and Vertical. `build_consolidated_knowledge.py` derives the normalized
+resource-catalog summary from these exact deltas and the decoded-stream hashes
+in `rnc-stream-manifest.json`, rather than restating stream numbers or expected
+edit forms as independent mutable facts.
+
 Derived closeout:
 - `analysis/generated/checkpoint-resource-family-2026-10-01.md`
 

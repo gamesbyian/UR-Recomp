@@ -6,10 +6,11 @@ on:
     paths:
       - "tests/input/object-liveness-dragster.script"
       - "tools/summarize_object_liveness_probe.py"
-      - ".github/workflows/object-liveness-dragster.yml"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
       - "tools/patches/snes9x-snesref-debug-exports.patch"
 
 concurrency:

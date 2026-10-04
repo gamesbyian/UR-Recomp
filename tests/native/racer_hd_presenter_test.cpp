@@ -112,6 +112,120 @@ int main() {
     assert(reversed_bottom_min_lx == 30);
     assert(reversed_bottom_max_lx == 33);
 
+    // Frame 1217 has a distinct synchronized context but a byte-identical
+    // P1 stock raster, so it must resolve to the exact same reviewed authored
+    // sampler as frame 1218 rather than inventing another visual pose.
+    RacerCompositionState reused_context{
+        0x0540, 0x0542, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* reused =
+        find_racer_registration_for_state(0x0540, reused_context);
+    assert(reused != nullptr);
+    assert(
+        is_authored_0540_p1_companion_0d2c_with_p2_0542_registration(
+            *reused
+        )
+    );
+    for (int y = 0; y < kRacerHdAssetSize; y += 7) {
+        for (int x = 0; x < kRacerHdAssetSize; x += 7) {
+            assert(
+                sample_racer_hd_asset(*reused, x, y, false, false) ==
+                sample_racer_hd_asset(*reversed, x, y, false, false)
+            );
+        }
+    }
+
+    // Frames 1215-1216 are one repeated exact state and therefore share one
+    // newly authored pose. The sampled gameplay silhouette must match the
+    // recovered envelope and contact before any enlarged-art judgement.
+    RacerCompositionState repeated_057f_context{
+        0x057F, 0x0542, 0x0D4A, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* repeated_057f =
+        find_racer_registration_for_state(0x057F, repeated_057f_context);
+    assert(repeated_057f != nullptr);
+    assert(is_authored_057f_p1_companion_0d4a_registration(*repeated_057f));
+    assert(
+        sample_racer_hd_asset(*repeated_057f, 132, 120, false, false) !=
+        sample_racer_hd_contract_candidate(132, 120, false, false)
+    );
+
+    int repeated_min_lx = kRacerHdLogicalSize;
+    int repeated_min_ly = kRacerHdLogicalSize;
+    int repeated_max_lx = -1;
+    int repeated_max_ly = -1;
+    int repeated_bottom_min_lx = kRacerHdLogicalSize;
+    int repeated_bottom_max_lx = -1;
+    int repeated_opaque = 0;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*repeated_057f, sx, sy, false, false) == 0) {
+                continue;
+            }
+            ++repeated_opaque;
+            if (lx < repeated_min_lx) repeated_min_lx = lx;
+            if (ly < repeated_min_ly) repeated_min_ly = ly;
+            if (lx > repeated_max_lx) repeated_max_lx = lx;
+            if (ly > repeated_max_ly) repeated_max_ly = ly;
+            if (ly == 38) {
+                if (lx < repeated_bottom_min_lx) repeated_bottom_min_lx = lx;
+                if (lx > repeated_bottom_max_lx) repeated_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(repeated_min_lx == 22);
+    assert(repeated_min_ly == 2);
+    assert(repeated_max_lx == 41);
+    assert(repeated_max_ly == 38);
+    assert(repeated_bottom_min_lx == 31);
+    assert(repeated_bottom_max_lx == 34);
+    assert(repeated_bottom_min_lx + repeated_bottom_max_lx == 65);
+    assert(repeated_opaque == 321);
+
+    // Frames 1213-1214 and 1205-1206 share the exact 057E/0543 state and
+    // therefore one authored pose. Lock the recovered gameplay envelope and
+    // contact before judging the enlarged asset.
+    RacerCompositionState repeated_057e_context{
+        0x057E, 0x0543, 0x0D49, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* repeated_057e =
+        find_racer_registration_for_state(0x057E, repeated_057e_context);
+    assert(repeated_057e != nullptr);
+    assert(is_authored_057e_p1_with_p2_0543_registration(*repeated_057e));
+
+    int repeated_057e_min_lx = kRacerHdLogicalSize;
+    int repeated_057e_min_ly = kRacerHdLogicalSize;
+    int repeated_057e_max_lx = -1;
+    int repeated_057e_max_ly = -1;
+    int repeated_057e_bottom_min_lx = kRacerHdLogicalSize;
+    int repeated_057e_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*repeated_057e, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < repeated_057e_min_lx) repeated_057e_min_lx = lx;
+            if (ly < repeated_057e_min_ly) repeated_057e_min_ly = ly;
+            if (lx > repeated_057e_max_lx) repeated_057e_max_lx = lx;
+            if (ly > repeated_057e_max_ly) repeated_057e_max_ly = ly;
+            if (ly == 38) {
+                if (lx < repeated_057e_bottom_min_lx) repeated_057e_bottom_min_lx = lx;
+                if (lx > repeated_057e_bottom_max_lx) repeated_057e_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(repeated_057e_min_lx == 21);
+    assert(repeated_057e_min_ly == 2);
+    assert(repeated_057e_max_lx == 42);
+    assert(repeated_057e_max_ly == 38);
+    assert(repeated_057e_bottom_min_lx == 32);
+    assert(repeated_057e_bottom_max_lx == 35);
+    assert(repeated_057e_bottom_min_lx + repeated_057e_bottom_max_lx == 67);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

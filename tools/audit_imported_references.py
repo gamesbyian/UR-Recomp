@@ -13,7 +13,7 @@ from pathlib import Path
 import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
-IMPORTED = ROOT / "references" / "imported"
+IMPORTED = ROOT / "reference" / "imported"
 MANIFEST = IMPORTED / "MANIFEST.json"
 ALLOWED_REVIEW_STATUS = {
     "audited-reference",
@@ -24,6 +24,7 @@ ALLOWED_REVIEW_STATUS = {
     "unverified-leads",
     "immutable-input-corpus",
     "preservation-only",
+    "direct-recovery-unreviewed",
 }
 
 

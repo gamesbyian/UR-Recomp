@@ -12,8 +12,8 @@ on:
       - "tests/input/race-finish-dragster.script"
       - "tools/summarize_paired_player_slots.py"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
-      - ".github/workflows/race-finish-differential.yml"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/_global.json"
 
 concurrency:
   group: race-finish-differential-${{ github.ref }}

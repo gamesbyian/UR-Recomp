@@ -11,7 +11,6 @@ on:
       - "third_party/manifest.json"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain.json"
       - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/patches/snesrecomp-live-display-mode.patch"
       - "tools/toolchain-entries/_global.json"
@@ -22,31 +21,8 @@ on:
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
-      - ".github/workflows/native-build-smoke.yml"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
-      - "tests/input/ui-options-route.script"
-      - "tests/input/ui-main-branches.script"
-      - "tests/input/ui-vs-handoff.script"
-      - "tests/input/ui-ending-shortcut.script"
-      - "tests/input/ui-attract-route.script"
-      - "tests/input/ui-pause-route.script"
-      - "tests/input/ui-options-submenus.script"
-      - "tests/input/ui-erase-confirm.script"
-      - "tests/input/ui-league-table.script"
-      - "tests/input/ui-race-result-route.script"
-      - "tests/input/ui-stunt-result-route.script"
-      - "tests/input/ui-records-explore.script"
-      - "tests/input/ui-rename-editor-explore.script"
-      - "tests/input/ui-circuit-result-route.script"
-      - "tests/input/ui-records-submenus.script"
-      - "tests/input/ui-record-high.script"
-      - "tests/input/ui-record-player.script"
-      - "tests/input/ui-record-group.script"
-      - "tests/input/ui-startup-timeline.script"
-      - "tests/input/ui-define-player-explore.script"
-      - "tests/input/ui-pre-race-timing.script"
-      - "tests/input/ui-name-league-route.script"
 
 concurrency:
   group: native-build-smoke-${{ github.ref }}
@@ -285,7 +261,7 @@ jobs:
           report=json.loads(pathlib.Path(sys.argv[1]).read_text())
           assert report["framebuffer_geometry"] == [256, 224], report["framebuffer_geometry"]
           by_id={row["id"]:row for row in report["candidates"]}
-          assert by_id["community-7x6-full"]["derived_16x9"]["materializer_margin_pixels"] == 48
+          assert by_id["uniracers-7x6-full"]["derived_16x9"]["materializer_margin_pixels"] == 48
           assert by_id["raw-square-full"]["derived_16x9"]["materializer_margin_pixels"] == 72
           assert by_id["raw-square-216"]["derived_16x9"]["materializer_margin_pixels"] == 64
           print("DISPLAY_GEOMETRY_REVIEW_READY candidates=", len(by_id))

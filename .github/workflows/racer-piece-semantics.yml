@@ -13,6 +13,10 @@ on:
       - "analysis/data/presentation-assets.json"
       - ".github/workflows/racer-piece-semantics.yml"
 
+concurrency:
+  group: racer-piece-semantics-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 

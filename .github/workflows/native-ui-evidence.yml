@@ -17,7 +17,6 @@ on:
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
-      - ".github/workflows/native-ui-evidence.yml"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
       - "tests/input/ui-options-route.script"

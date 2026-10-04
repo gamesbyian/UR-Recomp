@@ -180,7 +180,7 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 3
+          assert len(authored) == 6
           authored_by_id = {rep["representation_id"]: rep for rep in authored}
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
@@ -228,7 +228,55 @@ jobs:
           assert reversed_review["alpha_union_pixels"] == 365
           assert abs(reversed_review["alpha_iou"] - 0.7397260273972602) < 1e-12
 
-          for rep in (baseline, predecessor, reversed):
+          reused = authored_by_id[
+              "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference"
+          ]
+          reused_candidate = reused["art_review"]["authored_candidate"]
+          assert reused_candidate["approval_status"] == (
+              "accepted context-safe reuse of motion-reviewed frame-1218 asset; not approved shipping art"
+          )
+          reused_review = reused_candidate["gameplay_scale_review"]
+          assert reused_review == reversed_review
+          assert reused["stock_evidence"]["rgba_sha256"] == reversed["stock_evidence"]["rgba_sha256"]
+          assert reused_candidate["rgba_sha256"] == reversed_candidate["rgba_sha256"]
+
+          repeated = authored_by_id[
+              "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference"
+          ]
+          repeated_candidate = repeated["art_review"]["authored_candidate"]
+          assert repeated_candidate["approval_status"] == (
+              "motion-reviewed repeated temporal pose; not approved shipping art"
+          )
+          assert repeated["observed_frames_in_window"] == [1215, 1216]
+          repeated_review = repeated_candidate["gameplay_scale_review"]
+          assert repeated_review["stock_alpha_bounds"] == [22, 2, 41, 38]
+          assert repeated_review["candidate_alpha_bounds"] == [22, 2, 41, 38]
+          assert repeated_review["candidate_contact_x2_y2"] == [65, 76]
+          assert repeated_review["stock_opaque_pixels"] == 327
+          assert repeated_review["candidate_opaque_pixels"] == 321
+          assert repeated_review["alpha_intersection_pixels"] == 264
+          assert repeated_review["alpha_union_pixels"] == 384
+          assert abs(repeated_review["alpha_iou"] - 0.6875) < 1e-12
+
+          repeated_057e = authored_by_id[
+              "ordinary-racer-0x057E-p1-with-p2-0543-reference"
+          ]
+          repeated_057e_candidate = repeated_057e["art_review"]["authored_candidate"]
+          assert repeated_057e_candidate["approval_status"] == (
+              "motion-reviewed repeated temporal pose; not approved shipping art"
+          )
+          assert repeated_057e["observed_frames_in_window"] == [1205, 1206, 1213, 1214]
+          repeated_057e_review = repeated_057e_candidate["gameplay_scale_review"]
+          assert repeated_057e_review["stock_alpha_bounds"] == [21, 2, 42, 38]
+          assert repeated_057e_review["candidate_alpha_bounds"] == [21, 2, 42, 38]
+          assert repeated_057e_review["candidate_contact_x2_y2"] == [67, 76]
+          assert repeated_057e_review["stock_opaque_pixels"] == 325
+          assert repeated_057e_review["candidate_opaque_pixels"] == 331
+          assert repeated_057e_review["alpha_intersection_pixels"] == 251
+          assert repeated_057e_review["alpha_union_pixels"] == 405
+          assert abs(repeated_057e_review["alpha_iou"] - 0.6197530864197531) < 1e-12
+
+          for rep in (baseline, predecessor, reversed, reused, repeated, repeated_057e):
               candidate_path = (
                   pathlib.Path(sys.argv[1]).parent
                   / rep["art_review"]["authored_candidate"]["png"]

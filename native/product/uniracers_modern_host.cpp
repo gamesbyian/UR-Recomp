@@ -762,6 +762,8 @@ bool cycle_output_resolution_setting() {
     return true;
 }
 
+void refresh_run_ghost_playback_trace();
+
 bool cycle_widescreen_setting() {
     if (!modern_mode()) return false;
 
@@ -789,6 +791,48 @@ bool cycle_widescreen_setting() {
     return true;
 }
 
+bool cycle_ghost_target_setting() {
+    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
+        g_profile_state_path.empty()) {
+        return false;
+    }
+
+    auto candidate = *g_profile_state;
+    switch (candidate.ghost_target) {
+    case ur::product::CompletedRunGhostTarget::Off:
+        candidate.ghost_target =
+            ur::product::CompletedRunGhostTarget::Previous;
+        break;
+    case ur::product::CompletedRunGhostTarget::Previous:
+        candidate.ghost_target =
+            ur::product::CompletedRunGhostTarget::PersonalBest;
+        break;
+    case ur::product::CompletedRunGhostTarget::PersonalBest:
+        candidate.ghost_target = ur::product::CompletedRunGhostTarget::Off;
+        break;
+    }
+
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        product_diagnostic("UR_RUN_GHOST TARGET_SAVE_FAILED");
+        return false;
+    }
+
+    g_profile_state = candidate;
+    refresh_run_ghost_playback_trace();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_GHOST TARGET_SELECTED target=%s\n",
+            ur::product::completed_run_ghost_target_name(
+                g_profile_state->ghost_target));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool activate_options_selection() {
     switch (ur_modern_options_menu_selected(&g_options_menu)) {
     case UR_MODERN_OPTIONS_FOCUS_PAUSE:
@@ -803,6 +847,8 @@ bool activate_options_selection() {
         return cycle_output_resolution_setting();
     case UR_MODERN_OPTIONS_WIDESCREEN:
         return cycle_widescreen_setting();
+    case UR_MODERN_OPTIONS_GHOST:
+        return cycle_ghost_target_setting();
     }
     return false;
 }
@@ -1984,7 +2030,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 159;
+            const int options_h = 174;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -2039,6 +2085,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char presentation_row[32];
             char resolution_row[40];
             char widescreen_row[32];
+            char ghost_row[32];
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -2065,6 +2112,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 g_product_state.settings.widescreen_mode ==
                         ur::product::HostWidescreenMode::Authentic16x9
                     ? "16:9" : "ORIGINAL");
+            std::snprintf(
+                ghost_row, sizeof(ghost_row), "%c GHOST    %s",
+                selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
+                ur::product::completed_run_ghost_target_name(
+                    active_run_ghost_target()));
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);
@@ -2093,10 +2145,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, x + 8, options_y + 102,
                 widescreen_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 122,
+                pixels, stride, height, x + 8, options_y + 117,
+                ghost_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 137,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 142,
+                pixels, stride, height, x + 8, options_y + 157,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

@@ -290,9 +290,22 @@ jobs:
           ROOT="$RUNNER_TEMP/widescreen-product"
           LOG="$ROOT/run.log"
           DUMPS="$ROOT/dumps"
+          STATE="$ROOT/host-state-v6.txt"
           mkdir -p "$DUMPS"
+          cat >"$STATE" <<'STATEEOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          display_mode=windowed
+          vsync=on
+          presentation_fps=game
+          output_resolution=native
+          widescreen=16x9
+          STATEEOF
 
-          URRECOMP_WS_VIEW=authentic-16x9 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
           URRECOMP_WS_NATIVE_TRACE=1 \
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           SDL_AUDIODRIVER=dummy \
@@ -300,6 +313,7 @@ jobs:
             >"$LOG" 2>&1
 
           cat "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*widescreen=16x9" "$LOG"
           grep -q "URWS_PREP_EXT margin=48" "$LOG"
           grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$LOG"
 

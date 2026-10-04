@@ -120,12 +120,28 @@ jobs:
             if [ "$kind" = x ] || [ "$kind" = control ]; then
               trace_args=(env "SNESRECOMP_WRAM_TRACE_FILE=$RUNNER_TEMP/native-rotation-${kind}-wram.jsonl")
             fi
-            mkdir -p "$dumps"
-            "${trace_args[@]}" env SNESRECOMP_DUMP_DIR="$dumps" SDL_AUDIODRIVER=dummy \
-              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$script" \
-              >"$log" 2>&1
+            local cwd="$RUNNER_TEMP/native-rotation-${kind}-cwd"
+            mkdir -p "$dumps" "$cwd"
+            # Concurrent cases must not share the exe-anchored saves/ and
+            # mods/ state: an explicit --config keeps each in its own cwd.
+            for f in config.ini keybinds.ini rom.cfg; do
+              if [ -f "$(dirname "$EXE")/$f" ]; then cp "$(dirname "$EXE")/$f" "$cwd/"; fi
+            done
+            (cd "$cwd" && "${trace_args[@]}" env SNESRECOMP_DUMP_DIR="$dumps" SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --config "$cwd/config.ini" --script "$script" \
+              >"$log" 2>&1)
             test -s "$dumps/rotation-settle.wram.bin"
           }
+
+          # Seed the exe-anchored config.ini once, sequentially, so every
+          # isolated case below reads the same generated defaults.
+          if [ ! -f "$(dirname "$EXE")/config.ini" ]; then
+            printf 'quit\n' >"$RUNNER_TEMP/native-rotation-seed.script"
+            SDL_AUDIODRIVER=dummy timeout 60s xvfb-run -a "$EXE" "$ROM" \
+              --script "$RUNNER_TEMP/native-rotation-seed.script" \
+              >"$RUNNER_TEMP/native-rotation-seed.log" 2>&1 || true
+          fi
+          test -f "$(dirname "$EXE")/config.ini"
 
           pids=()
           for kind in left right control x; do

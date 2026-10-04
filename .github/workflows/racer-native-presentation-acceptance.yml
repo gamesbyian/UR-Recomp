@@ -310,7 +310,7 @@ jobs:
           ]
           repeated_candidate = repeated["art_review"]["authored_candidate"]
           assert repeated_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
+              "motion-reviewed repeated temporal pose; not approved shipping art"
           )
           assert repeated["observed_frames_in_window"] == [1215, 1216]
           repeated_review = repeated_candidate["gameplay_scale_review"]

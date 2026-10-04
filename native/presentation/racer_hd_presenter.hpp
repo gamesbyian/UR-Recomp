@@ -166,6 +166,22 @@ constexpr bool is_authored_057d_p1_with_p2_0543_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0540_p2_baseline_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0540 &&
+           s.p1_primary == 0x0541 &&
+           s.p2_primary == 0x0540 &&
+           s.p1_companion == 0x0D0D &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr std::uint32_t authored_red_frame_color(
     int x,
     int y
@@ -177,6 +193,17 @@ constexpr std::uint32_t authored_red_frame_color(
     if (light > 300) return 0xFF3434C9u;
     if (light > 260) return 0xFF2525A3u;
     return 0xFF181878u;
+}
+
+constexpr std::uint32_t authored_blue_frame_color(
+    int x,
+    int y
+) noexcept {
+    const int light = (255 - x) + (255 - y);
+    if (light > 335) return 0xFFE87353u;
+    if (light > 300) return 0xFFC94D34u;
+    if (light > 260) return 0xFFA33A25u;
+    return 0xFF782818u;
 }
 
 constexpr std::uint32_t authored_metal_color(
@@ -624,6 +651,56 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     return 0;
 }
 
+constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    const int wheel_cx = 128;
+    const int wheel_cy = 120;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 35 * 35 && wr2 >= 25 * 25;
+    const bool rim = wr2 < 25 * 25 && wr2 >= 22 * 22;
+    const bool hub = wr2 <= 5 * 5;
+
+    const int fork_center = 126 - (y - 60) / 11;
+    const bool fork = y >= 60 && y <= 117 && x >= fork_center - 5 && x <= fork_center + 5;
+    const bool crank = y >= 116 && y <= 123 && x >= 111 && x <= 140;
+    const bool pedal = y >= 113 && y <= 118 && x >= 141 && x <= 145;
+
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 22;
+    const bool seat =
+        (seat_dx * seat_dx) * 12 * 12 +
+            (seat_dy * seat_dy) * 35 * 35 <=
+            35 * 35 * 12 * 12 &&
+        y >= 12 && y <= 36;
+
+    const bool neck = y >= 30 && y <= 60 && x >= 124 && x <= 132;
+    const int crown_dx = x - 134;
+    const int crown_dy = y - 60;
+    const bool crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+
+    if (hub || rim || crank || pedal) return authored_metal_color(x, y);
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) return authored_blue_frame_color(x, y);
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -633,6 +710,9 @@ constexpr std::uint32_t sample_racer_hd_asset(
 ) noexcept {
     if (is_first_authored_remastered_registration(registration)) {
         return sample_racer_hd_authored_0541_p1(x, y, hflip, vflip);
+    }
+    if (is_authored_0540_p2_baseline_registration(registration)) {
+        return sample_racer_hd_authored_0540_p2_baseline(x, y, hflip, vflip);
     }
     if (is_authored_0541_p1_companion_0d2d_registration(registration)) {
         return sample_racer_hd_authored_0541_p1_companion_0d2d(

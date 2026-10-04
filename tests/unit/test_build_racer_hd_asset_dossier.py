@@ -8,6 +8,7 @@ from tools.build_racer_hd_asset_dossier import (
     FIFTH_AUTHORED_REPRESENTATION_ID,
     SIXTH_AUTHORED_REPRESENTATION_ID,
     SEVENTH_AUTHORED_REPRESENTATION_ID,
+    EIGHTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
@@ -16,6 +17,7 @@ from tools.build_racer_hd_asset_dossier import (
     build_fourth_authored_candidate_rgba,
     build_fifth_authored_candidate_rgba,
     build_sixth_authored_candidate_rgba,
+    build_seventh_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -27,6 +29,7 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_057f_p1_companion_0d4a_rgba,
     sample_authored_057e_p1_with_p2_0543_rgba,
     sample_authored_057d_p1_with_p2_0543_rgba,
+    sample_authored_0540_p2_baseline_rgba,
     transition_context,
 )
 
@@ -330,6 +333,32 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [33, 36])
+
+    def test_eighth_registration_authors_p2_baseline(self):
+        self.assertEqual(
+            EIGHTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p2-sync-reference",
+        )
+        self.assertEqual(len(build_seventh_authored_candidate_rgba()), 256 * 256 * 4)
+
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_0540_p2_baseline_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [23, 3, 40, 38],
+        )
+        bottom = [x for x, y in occupied if y == 38]
+        self.assertEqual([min(bottom), max(bottom)], [30, 33])
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

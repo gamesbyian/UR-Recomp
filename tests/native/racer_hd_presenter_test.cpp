@@ -267,6 +267,47 @@ int main() {
     assert(repeated_057d_bottom_max_lx == 36);
     assert(repeated_057d_bottom_min_lx + repeated_057d_bottom_max_lx == 69);
 
+    // P2 baseline now has its own authored Remastered asset rather than the
+    // generic contract placeholder. Lock its exact stock envelope/contact.
+    RacerCompositionState p2_baseline_context{
+        0x0541, 0x0540, 0x0D0D, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* p2_baseline =
+        find_racer_registration_for_state(0x0540, p2_baseline_context);
+    assert(p2_baseline != nullptr);
+    assert(is_authored_0540_p2_baseline_registration(*p2_baseline));
+
+    int p2_baseline_min_lx = kRacerHdLogicalSize;
+    int p2_baseline_min_ly = kRacerHdLogicalSize;
+    int p2_baseline_max_lx = -1;
+    int p2_baseline_max_ly = -1;
+    int p2_baseline_bottom_min_lx = kRacerHdLogicalSize;
+    int p2_baseline_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*p2_baseline, sx, sy, false, false) == 0) {
+                continue;
+            }
+            if (lx < p2_baseline_min_lx) p2_baseline_min_lx = lx;
+            if (ly < p2_baseline_min_ly) p2_baseline_min_ly = ly;
+            if (lx > p2_baseline_max_lx) p2_baseline_max_lx = lx;
+            if (ly > p2_baseline_max_ly) p2_baseline_max_ly = ly;
+            if (ly == 38) {
+                if (lx < p2_baseline_bottom_min_lx) p2_baseline_bottom_min_lx = lx;
+                if (lx > p2_baseline_bottom_max_lx) p2_baseline_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(p2_baseline_min_lx == 23);
+    assert(p2_baseline_min_ly == 3);
+    assert(p2_baseline_max_lx == 40);
+    assert(p2_baseline_max_ly == 38);
+    assert(p2_baseline_bottom_min_lx == 30);
+    assert(p2_baseline_bottom_max_lx == 33);
+    assert(p2_baseline_bottom_min_lx + p2_baseline_bottom_max_lx == 63);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

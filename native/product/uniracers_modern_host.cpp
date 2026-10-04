@@ -41,6 +41,8 @@ bool g_display_caps_reported;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
+// Acceptance-only capability probe. Ordinary product code must consume the
+// normalized host contract rather than SDL display identifiers or mode lists.
 void report_display_capabilities_once() {
     if (g_display_caps_reported ||
         !std::getenv("UR_DISPLAY_CAPS_DIAGNOSTICS")) {

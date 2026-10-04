@@ -16,7 +16,7 @@ from pathlib import Path
 PROTECTED_SECTIONS = ("slot1", "slot2", "race_progress", "camera_and_viewport")
 
 
-def analyze(control: dict, widened: dict) -> dict:
+def analyze(control: dict, widened: dict, provider_activity: dict | None = None) -> dict:
     if list(control) != list(widened):
         raise ValueError(f"checkpoint mismatch: {list(control)} != {list(widened)}")
 
@@ -49,16 +49,35 @@ def analyze(control: dict, widened: dict) -> dict:
             }
         )
 
+    provider_observed = None
+    if provider_activity is not None:
+        provider_observed = bool(provider_activity.get("plus8_preparation_hook_observed"))
+
+    if not accepted:
+        classification = "distinct-vs-semantic-exception-required"
+        promotion_ready = False
+    elif provider_observed is False:
+        classification = "distinct-vs-preparation-path-required"
+        promotion_ready = False
+    elif provider_observed is True:
+        classification = "ordinary-2p-mixed-compatible"
+        promotion_ready = True
+    else:
+        classification = "semantic-only-provider-unmeasured"
+        promotion_ready = False
+
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "fixture": "vs-first-race",
         "control_margin_pixels_per_side": 0,
         "candidate_margin_pixels_per_side": 8,
         "protected_sections": list(PROTECTED_SECTIONS),
         "rows": rows,
         "semantic_activation_preserved": accepted,
-        "classification": "ordinary-2p-mixed-compatible" if accepted else "distinct-vs-exception-required",
-        "accepted": accepted,
+        "plus8_preparation_hook_observed": provider_observed,
+        "classification": classification,
+        "promotion_ready": promotion_ready,
+        "evidence_complete": provider_activity is not None,
     }
 
 
@@ -66,20 +85,24 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("control_json", type=Path)
     ap.add_argument("widened_json", type=Path)
+    ap.add_argument("--provider-activity-json", type=Path)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
 
+    provider_activity = (
+        json.loads(args.provider_activity_json.read_text(encoding="utf-8"))
+        if args.provider_activity_json else None
+    )
     report = analyze(
         json.loads(args.control_json.read_text(encoding="utf-8")),
         json.loads(args.widened_json.read_text(encoding="utf-8")),
+        provider_activity,
     )
     payload = json.dumps(report, indent=2) + "\n"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(payload, encoding="utf-8")
     print(payload, end="")
-    if not report["accepted"]:
-        raise SystemExit("VS +8 protected state diverged from stock")
     return 0
 
 

@@ -1,6 +1,5 @@
 #include "host_profile_state.hpp"
 
-#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstdint>
@@ -9,8 +8,14 @@
 using namespace ur::product;
 
 int main() {
-    HostProfileState state;
-    state.profile_id = "profile.alpha";
+    const auto default_state = make_default_host_profile_state("profile.alpha");
+    assert(default_state);
+    assert(default_state->profile_id == "profile.alpha");
+    assert(default_state->autosave_generation == 0);
+    assert(!default_state->stock_sram);
+    assert(!make_default_host_profile_state("bad/profile"));
+
+    HostProfileState state = *default_state;
 
     std::array<std::uint8_t, kStockSramBytes> source{};
     for (std::size_t i = 0; i < source.size(); ++i) {
@@ -29,7 +34,6 @@ int main() {
     assert(!encoded.empty());
     const auto decoded = decode_host_profile_state(encoded);
     assert(decoded);
-    assert(!decoded.migrated);
     assert(*decoded.state == state);
 
     std::array<std::uint8_t, kStockSramBytes> restored{};
@@ -40,22 +44,12 @@ int main() {
                restored.size()) == HostProfileTransferStatus::Applied);
     assert(restored == source);
 
-    std::string legacy = "UR-HOST-PROFILE/0\nprofile=profile.alpha\nstock_sram=";
-    legacy.append(encoded.substr(encoded.find("stock_sram=") + 11));
-    const auto migrated = decode_host_profile_state(legacy);
-    assert(migrated);
-    assert(migrated.migrated);
-    assert(migrated.state->profile_id == "profile.alpha");
-    assert(migrated.state->autosave_generation == 0);
-    assert(migrated.state->stock_sram == state.stock_sram);
-
     const auto malformed = decode_host_profile_state(
         "UR-HOST-PROFILE/1\nprofile=profile.alpha\ngeneration=1\nstock_sram=xyz\n");
     assert(!malformed);
 
     HostProfileState authentic;
     authentic.profile_id = "profile.authentic";
-    const auto before = source;
     assert(capture_stock_sram_for_profile(
                ExecutionMode::Authentic,
                authentic,
@@ -73,7 +67,6 @@ int main() {
                authentic_target.data(),
                authentic_target.size()) == HostProfileTransferStatus::RejectedByPolicy);
     assert(authentic_target == authentic_before);
-    assert(source == before);
 
     HostProfileState empty;
     empty.profile_id = "profile.empty";

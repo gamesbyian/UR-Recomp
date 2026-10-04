@@ -40,8 +40,11 @@
     {
       "value": "0x00",
       "state_id": "DEMO",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "analysis/generated/attract-cycle.json",
+      "fixture": "attract-cycle",
+      "capture": "attract-demo-race",
+      "note": "0x00 is the generic in-race value; the demo is distinguished by entry from the title after the 503-frame idle, with in-race 1 and the split-screen camera on"
     },
     {
       "value": "0x84",
@@ -191,8 +194,10 @@
     {
       "value": "0x5B",
       "state_id": "ENDING",
-      "status": "historical",
-      "source": "reference/imported/tas-bots/uniracers-tabletop-bot-2014.lua"
+      "status": "verified",
+      "source": "analysis/generated/tour-award-ending-probe.json",
+      "fixture": "tour-award-ending",
+      "capture": "ending-whodunnit"
     },
     {
       "value": "0x57",

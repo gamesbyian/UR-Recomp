@@ -2168,3 +2168,129 @@ The movie's advance input takes each result directly to TRACK_SELECT `0xF6`, so 
 **Consequences:** the policy feature reverts to the `unfinished-tour-session-loss` redesign candidate. PROJECT-PLAN, UI-STATE-MAP, WORK-QUEUE, the knowledge page and SYMBOLS are corrected. `tools/probe_tour_progress_persistence.py` remains a valid regression for stat persistence only.
 
 **Next discriminator:** find the in-session tour state (which tracks are complete) in WRAM. Win one Crawler track, reload, win a second, and check whether the tour medal is awarded after five wins spanning a power cycle.
+
+**Follow-up (bounded):** `0x10A9` is the other per-race SRAM counter. It stays 0 across the two losses and gains 1 per movie win (1/2/3/4). Seeding it to 4 in a formatted save and replaying the movie's first winning Dragster race takes it to 5, but awards no Crawler medal (`0x069C` stays 0, tier 0). The game proceeds to NOW PLAYING for the next track. `0x10A9` is therefore a persisted wins counter, not the tour-completion gate. Tour completion depends on other, plausibly in-session, state, so whether an unfinished tour survives power-off remains open.
+
+### R-2026-10-04-UI-20 — Unfinished tour progress is battery-backed but wiped at rider select
+
+**Status:** reproduced locally (reference harness) plus static decode; answers the open question in R-2026-10-03-UI-19  
+**Date:** 2026-10-04  
+**Area:** SRAM | progression | product policy
+
+**Observation (static, Nitrodon bank 80/83 listings):** the 1P result handler `83:879A` checks the race outcome through the per-mode dispatch at `83:88F7` (mode `0x074B & 3`). A qualifying result sets SRAM `0x1075 + $CE` to 1 (`83:87F5`), where `$CE` is `5*tour_row + track`. It then sums the five flags of the tour row `0x1075 + 5*$D0` (`83:8805`). A sum of 5 branches to `83:881B`, which clears that row (`83:895B`), increments the medal cell and recomputes tiers. A non-qualifying result sets bit `0x1000` of `0x0742` instead. The tour-entry path `80:BBA3` zeroes all 50 flags `0x1075-0x10A6` as soon as a rider is confirmed (`80:BBC1`). Leaving TRACK_SELECT back to TOUR_SELECT keeps the row unless the medal cell differs from SRAM `0x10D1`, in which case `83:8957` clears it. `0x10D1` is the medal snapshot taken when the tour is confirmed (`80:E6BF`), and TRACK_SELECT uses it for the BRONZE/SILVER/GOLD run label (`80:E8F0`). The flags lie outside the `0x073C` checksum range (`0x05E8-0x073B`).
+
+**Observation (runtime, `tools/probe_tour_progress_persistence.py`):** in the movie baseline the Crawler row fills `10000 → 11000 → 11100` as Dragster, Zoom Zoo and Bowl are won. Reloading the saves taken after the second and third win boots with those flags intact, but they are all zero by the first race of the reloaded session, after the rider is confirmed. All seven checks pass.
+
+**Interpretation:** stock keeps the in-progress tour in battery SRAM, but every route into 1P tour play goes through rider select, which discards it. In practice an unfinished tour is lost on power-off. Changing rider mid-session loses it too. Backing out to TOUR_SELECT and re-entering the same tour within a session keeps it. The loss is a side effect of the entry flow; no mechanic depends on it.
+
+**Consequences:** the `unfinished-tour-session-loss` policy feature is updated with this evidence. The decision stays a product call, but the premise in PROJECT-PLAN is now confirmed. A modern resume feature can reuse the stock table: skip the `80:BBC1` wipe when the same rider resumes, rather than adding a parallel store.
+
+**Next discriminator (optional):** replay a five-win tour to observe the `83:881B` award directly, and confirm at runtime that leaving to TOUR_SELECT keeps the row.
+
+### R-2026-10-04-UI-21 — Rider stats layout, FAILED field, VS tally and play mode
+
+**Status:** static decode pinned to ROM bytes, plus one runtime run  
+**Date:** 2026-10-04  
+**Area:** SRAM | records | VS
+
+**Observation (static):** the result bookkeeping routine `80:C775` sets the stat offsets `0x073E = 8*rider(0x0748)` and `0x0740 = 8*rider(0x0749)`, then dispatches on the mode bits of `0x074B`. Race and circuit modes increment PLAYED (`+0`) for both racers and WON (`+2`) for the faster one (both on a tie). For the slower racer they either submit a track-record candidate or, if the time or best lap is ≥ 60000, increment `+4`. Stunt mode compares scores, has no `+4` path and adds the score to `+6`. P2 updates are skipped when `0x0749 ≥ 16` (CPU). WON also increments `0x10A9` (P1) or `0x10AB` (P2). VS entry (`80:BD05`) zeroes both counters and sets `0x10AD = 2`; 1P tour entry sets `0x10AD = 1`. Player Scores (`83:97DA`) walks 16 records with stride 8 and computes LOST as PLAYED − WON.
+
+**Observation (runtime):** after the clean-save VS route `tests/input/two-player-p1-win.input` (dual-controller snesref, dump after the result screen), MIKE has `[1,1,0,0]` and the idle P2 ANDREW has `[1,0,1,0]` at `0x0238`. The opponent result is 60000, and `0x10A9`/`0x10AB`/`0x10AD` = 1/0/2.
+
+**Interpretation:** `+4` is FAILED (did not finish), LOST is derived, and `0x10A9`/`0x10AB` are the VS head-to-head tally. This explains R-2026-10-03-UI-19's observation that `0x10A9` counts 1P wins without gating the tour.
+
+**Consequences:** `tools/extract_progression_sram_semantics.py` pins 11 decoded routines to ROM bytes and optionally checks the VS dump (`--vs-sram`), producing `analysis/generated/progression-sram-semantics.json`. SYMBOLS and the knowledge page are updated. Modern Player Scores and VS-tally UI can read these fields directly.
+
+**Addendum (track-records group 9, static, bounded):** no decoded writer of `$CE` reaches indices 45–49. Tour confirm clamps `$D0` to ≤ 8 (`80:E69D`), the VS next-track cursor `0x067E,X` wraps at 44 (`80:AFF1`), and the attract demo track counter `0x10C8` (battery-backed) wraps at 40 (`80:949C`). Group 9 of `Save_TrackRecords` is therefore probably unused padding. The record insert at `80:C9C6` shifts ranks down through `+0x64` / `+0xC8`, confirming 50 words per rank.
+
+### R-2026-10-04-UI-22 — ENDING reached; tour award paths; the splash cheat (Up, Left, Up, R, A)
+
+**Status:** reproduced locally (snesref, input plus labelled diagnostic pokes); closes the last Tier 1 UI gap and supersedes the open part of R-2026-10-03-UI-12  
+**Date:** 2026-10-04  
+**Area:** UI | progression | secrets
+
+**Observation (static):** after `83:8805` finds five set tour flags, `83:881B` increments the medal cell. Bronze and silver call `83:AEF6`. Reaching gold, or completing a tour already at gold, dispatches through the per-tour table `83:88FD` (Crawler `83:C49C` … Sprinter `83:BED0`, Hunter `83:AB9A`). `83:AB9A` is the ending: full-screen mode-1 pages (assets `0x68/0x6E/0x6B` then `0x69/0x6F/0x6C`, or `0x67/0x6D/0x6A` when SRAM `0x10D0` ≠ 0), each held 1200 frames or until a button (`83:AC1F`), then credits. Separately, `80:F549` (the UNIRACERS title splash, 110 frames, called on every pass through `80:885B`) compares the held pad with the table `80:F602` = Up, Left, Up, R, A without resetting on mismatch. A full match copies the tiers `0x10D3` to `0x10E3`, sets all 16 tiers to 3 and sets `0x10D0` = 1. On entry, if `0x10D0` is set, the routine copies the backup back and clears it.
+
+**Observation (runtime, `tools/probe_tour_award_and_ending.py`, 47 checks):**
+- The cheat on a formatted save gives tiers `[3]*16` and `0x10D0` = 1 at the main menu. A no-input control stays at tier 0, and rebooting the cheat save restores the tiers. On an unformatted save the post-splash format wipes the unlock.
+- With four Crawler flags seeded mid-race, the movie's Dragster win clears the row and raises the medal: 0→1 plays the short medal scene, 2→3 plays a longer two-unicycle gold scene. Neither reaches `0x5B`.
+- Booking the same win as Hunter track 4 with the Hunter medal at 2 (pinned `$CE`/`$D0` and stored track bytes) plays DAILY NEWS "AMAZING — New Uni wins despite dirty tactics", then NATIONAL GOSSIP "SPEEDKING — Fastest unicycle steals victory in style". The WHODUNNIT developer credits follow with `$9F` = 0x5B (stale 0x99 during the pages), then the title (`0x84`).
+- With `0x10D0` = 1 the single page is DAILY NEWS "CHEAT! — New champion banned after shock win".
+
+**Interpretation:** ENDING = 0x5B is confirmed and is reached by winning Hunter gold. The public "title-screen ending shortcut" is most likely a garbled report of the real splash cheat, which unlocks every tour (Hunter included) for one power-on and marks the run, so a cheated finish gets the CHEAT! front page. The per-tour gold routines are distinct reward scenes, not yet catalogued.
+
+**Consequences:** the UI map, transition contract (`splash-cheat-main`, `hunter-gold-ending`, `ending-splash`), menu index (0x5B verified), fixtures (`tour-award-ending`), coverage (no Tier 1 gaps) and the policy feature `ending-sequence-and-shortcut` are updated. `tools/patches/snesrecomp-sram-poke.patch` adds the `spoke OFFSET HEX` script command; apply it after the dual-controller patch.
+
+**Limits:** the award and ending runs rely on pokes, because no committed input wins five tracks or Hunter. Page timings without input are not catalogued (per-tour gold scenes: see addendum). Native and Mesen runs are pending.
+
+**Addendum (per-tour gold scenes):** booking the win as the last track of each of the other seven tours (same pinning) gives eight distinct gold vignettes. Each is a short side-on scene of the rider's unicycle on a track with a tour-specific prop: a pink creature, a green worm, coloured blocks, a "10t" weight, a crowd of unicycles, a bicycle and so on. Each lasts about 300–500 frames after the result is dismissed and returns to TOUR_SELECT (`0x6D`). Dispatch: Crawler `83:C49C`, Jumper `83:BB80`, Shuffler `83:B1EB`, Bounder `83:B7D2`, Walker `83:B506`, Runner `83:C715`, Hopper `83:C11E`, Sprinter `83:BED0`. The probe now checks all nine tours.
+
+**Addendum (forbidden names in League naming, static):** the scanner's only long entry call (`JSL 83:84D9` at `80:A4A3`) sits in the OK path of the shared name editor `80:A1E3`. Exactly two places enter that editor: `80:9E7C` under the title "WHAT IS YOUR LEAGUE CALLED" and `80:D47E` under "WHAT IS YOUR PLAYER CALLED". League names are therefore filtered by the same substring rule. `tools/extract_forbidden_name_table.py` pins both facts to ROM bytes; the League path is not replayed.
+
+### R-2026-10-04-UI-23 — Frontend sound-effect identity from the WRAM sound queue
+
+**Status:** reproduced locally (snesref); static decode of the queue  
+**Date:** 2026-10-04  
+**Area:** UI | audio
+
+**Observation (static):** `82:8000` (JSL, A = `hhll`) appends to a 16-entry ring in WRAM: low bytes at `7E:2006+i`, high bytes at `7E:2016+i`, write index `7E:2002`. `82:8035` later sends the queued entries to the APU ports. The ROM has 159 literal call sites:
+- op `02nn` plays sound effect `nn` (ids 1–0x1F);
+- op `08vv` is a volume/priority word sent first;
+- ops `06`/`0B` take values in the music range, with `03`, `07` and `01` as further controls.
+
+Bank 80 frontend wrappers: `B13F` 1, `B12A` 2, `B0EB`/`B169` 3, `B115` 4, `B100` 6. Bank 83 holds one wrapper per id (`83:A286-A4BD`) for scenes.
+
+**Observation (runtime, `tools/probe_menu_sfx_ids.py`, 6 checks):**
+- cursor moves on the main menu, rider, tour and track selects and in the name editor: `087F 0203` (SFX 3);
+- forward slides (main→rider, tour→track): `084F 0202` (SFX 2);
+- back slides: `084F 0201` (SFX 1);
+- rider confirm: `083F 0204` then the slide (SFX 4, 2);
+- name-editor letter and delete: `083F 0206` (SFX 6);
+- name OK: SFX 4, plus SFX 1 when the name is saved and the screen slides back. A forbidden name gets SFX 4 alone and stays in the editor.
+
+**Consequences:** the menu visual-language contract now names its sounds by driver id, and a modern menu can trigger the same ids. The bank-83 scene sounds and the sample data behind each id remain unmapped.
+
+### R-2026-10-04-UI-24 — UI model evidence gaps closed (DEMO menu value, forbidden-name capture)
+
+**Status:** reproduced locally (snesref)  
+**Date:** 2026-10-04  
+**Area:** UI
+
+**Observation:** a dump 1500 frames after MAIN_MENU with no input lands mid first demo race. There `$9F` = 0x00, in-race (`0x0313`) = 1 and the split-screen camera enable (`0x0DDB`) = 1. The historical 2014 bot label DEMO = 0x00 therefore holds, with the caveat that 0x00 is the generic in-race value. The attract script now dumps `attract-demo-race`, and `analysis/generated/attract-cycle.json` is unchanged. The name-entry probe now also dumps `name-forbidden-rejected` for names it expects to be rejected.
+
+**Consequences:** the menu index marks 0x00/DEMO verified, and FORBIDDEN_NAME_REJECTION has a capture contract. `analysis/generated/ui-state-coverage.md` reports no Tier 1 gaps and no remaining evidence gaps.
+
+### R-2026-10-04-UI-25 — Native target omits the finish time on result screens; native VS challenger route otherwise matches
+
+**Status:** reproduced locally (snesref vs generated native target, same scripts and inputs)  
+**Date:** 2026-10-04  
+**Area:** native fidelity | UI | VS
+
+**Method:** build the generated `UniracersSNESRecomp` target exactly as `.github/workflows/two-player-reference.yml` does, then run `tools/compare_engine_screen_text.py`. It replays `tests/input/ui-race-result-route.script` and the VS challenger route on both engines and compares the BG2 text decoded at each checkpoint. A small adapter in `extract_menu_visual_language.py` reads the native `regs.json` schema.
+
+**Observation:**
+- **Race result:** on the 1P race result (`0x99`) and the VS result (`0xF9`), native leaves the player's finish time blank; snesref shows `0:28.56` / `0:28.76`. The SRAM result word is identical (2856 / 2876). The rest of the decoded text matches at all six checkpoints.
+- **Where it fails:** dense dumps show the time formatter `83:8C7B` building the same `_0:28.56` string at `$00FF-$0107` on native (frame 272 after the race end). The 8×2 BG2 tilemap cells for the time field (`0x1171-0x1178`, `0x1191-0x1198`) end as `0x004C` natively instead of `0x3CCE 0x3CA9 0x3CCC …` (palette-7 small-font glyphs).
+- **VS route:** native also passes all seven VS challenger checks (result, champions, PICK CHALLENGER driven by the loser, track choice, NOW PLAYING).
+
+**Interpretation:** the native fault lies between the formatter and the tilemap. The candidates are the print of the `$00FF`-based string by `80:C6BA` (`LDX #$00FF; JSR $C3AB`), whose first byte sits at the direct-page/page-1 boundary, or a later fill of those cells. It is not a race or result-state divergence. The earlier `p1_finished_p2_no_time` check in `probe_vs_challenger.py` passed on native only because it accepted any text after MIKE; it now requires an `m:ss.cc` time.
+
+**Consequences:** a concrete P0 lead is added to WORK-QUEUE item 3. The native part of `multiplayer_behavioral_verification` is recorded, but the dependency stays open for Mesen.
+
+**Addendum (narrowing, same session):**
+- **Shadow buffer, not VRAM:** per-frame native dumps show the result tilemap built in the WRAM shadow at `7E:0200` and DMA'd in one go. snesref writes the time glyphs at `7E:04E2-04F1`, while native leaves `004C` there. The fault is therefore in printing into the shadow buffer, not in the VRAM upload.
+- **Where the print runs:** the generated C (`src/gen/bank80_v2.c`) compiles `80:C3AB` (`bank_80_C3AB_M1X0`) but none of its command handlers. Handler `0xF1` (`80:C6AA`, time) therefore runs on the interpreter bridge: it calls the formatter `83:8C7B` (whose native output is correct), then re-enters the parser with `LDX #$00FF; JSR $C3AB` from inside an outer `C3AB` dispatch. "NO TIME" is printed through `83:8BC9`, not through a nested parser call, and renders correctly.
+- **Hypothesis:** nested re-entry of the recompiled text parser from an interpreted handler (host-return/stack-context bookkeeping) drops the inner string. To test it, trace `bank_80_C3AB_M1X0` entries and its writes to `7E:04E2` around the result build, or force the `0xF1` handler path to stay interpreted.
+
+**Addendum (root cause, framework):** the hypothesis above is refined and confirmed. The result-row template (`80:8C20`, copied to `$011F` by the WRAM MVN trampoline at `$0199`) prints the time through handler `0xF1`. That handler runs on the interpreter and calls the compiled `bank_80_C3AB_M1X0` through the bridge's paired-call bounce (`interp_bridge.c`, `cpu_dispatch_pc_paired`).
+
+Evidence, in order:
+- `SNESRECOMP_INTERP_PCTRACE=1` shows MIKE's row executing `JSR $C3AB` at `80:C6BD` at the end of a long interpreter session (step 3053). The next session starts at the return address `80:C6C0` (step=1), with nothing executed in between.
+- A local diagnostic print at the compiled entry never fires for that row, while it fires for the three NO TIME rows.
+- `SNESRECOMP_TRAP_YIELD=80C3AB-80C3AB` shows exactly one deadline yield at that entry: `f3274 resume=$80C3AB S=$01EF deadline=1 depth=2`.
+
+So when the LLE master deadline lands on the prologue of a bounced compiled callee at bridge depth 2, the unwind is recorded with resume `80:C3AB`, but execution resumes at the caller's return address and the call is skipped. The bug is timing-dependent (it hits whichever print happens to straddle the deadline), so other one-off missing UI updates may share this cause.
+
+**Owner:** pinned snesrecomp runner (`runner/src/snes/interp_bridge.c` deadline-unwind path for paired bounces), not the game code. Reproduce with `tools/compare_engine_screen_text.py` plus the trap-yield variable above.
+
+The VS result shows the same signature during its result build (`SNESRECOMP_TRAP_YIELD` on the VS challenger route: `f3798 resume=$80C3AB S=$01EF deadline=1 depth=2`).

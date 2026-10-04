@@ -1,0 +1,249 @@
+{
+ "schema_version": 1,
+ "purpose": "Decoded BG2 frontend text parity, snesref vs generated native target, per checkpoint.",
+ "cases": {
+  "race-result": {
+   "script": "tests/input/ui-race-result-route.script",
+   "input": null,
+   "snesref": {
+    "race-results": [
+     "DRAGSTER",
+     "COMPLETE",
+     "PLAYER     TIME",
+     "MIKE",
+     "0:28.56",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME"
+    ]
+   },
+   "native": {
+    "race-results": [
+     "DRAGSTER",
+     "COMPLETE",
+     "PLAYER     TIME",
+     "MIKE",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME"
+    ]
+   },
+   "comparison": {
+    "race-results": {
+     "match": false,
+     "missing_on_native": [
+      "0:28.56"
+     ],
+     "extra_on_native": []
+    }
+   }
+  },
+  "vs-challenger": {
+   "script": "tests/input/vs-challenger-route-observe.script",
+   "input": "tests/input/vs-challenger-route.input",
+   "snesref": {
+    "vsc-result": [
+     "DRAGSTER",
+     "COMPLETE",
+     "PLAYER     TIME",
+     "MIKE",
+     "0:28.76",
+     "ANDREW",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME"
+    ],
+    "vsc-champions": [
+     "VS CHAMPIONS",
+     "PLAYER  UNI  WINS TODAY  (%)",
+     "MIKE",
+     "1",
+     "1 100%",
+     "ANDREW",
+     "0",
+     "0   0%",
+     "MARTIN",
+     "0",
+     "0   0%",
+     "MELISSA",
+     "0",
+     "0   0%",
+     "AMY",
+     "0",
+     "0   0%",
+     "MALCOLM",
+     "0",
+     "0   0%",
+     "MICHELLE",
+     "0",
+     "0   0%",
+     "COLIN",
+     "0",
+     "0   0%"
+    ],
+    "vsc-pick-challenger": [
+     "PICK CHALLENGER",
+     "MIKE",
+     "ANDREW",
+     "MARTIN",
+     "MELISSA",
+     "AMY",
+     "MALCOLM",
+     "MICHELLE",
+     "COLIN",
+     "DAVE",
+     "TONY",
+     "CAROL",
+     "CRAIG",
+     "KEN",
+     "ROBBIE",
+     "ALICE",
+     "STEVE"
+    ],
+    "vsc-track-choice": [
+     "NEXT TRACK",
+     "SAME TRACK",
+     "SELECT TRACK",
+     "SELECT TOUR",
+     "QUIT"
+    ],
+    "vsc-next": [
+     "NOW PLAYING",
+     "MIKE   (9:59.99)",
+     "VS",
+     "ANDREW   (9:59.99)",
+     "OVER 3 LAPS ON ZOOM ZOO",
+     "RECORD: SOMEONE",
+     "R E",
+     "ACE",
+     "XIT"
+    ]
+   },
+   "native": {
+    "vsc-result": [
+     "DRAGSTER",
+     "COMPLETE",
+     "PLAYER     TIME",
+     "MIKE",
+     "ANDREW",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME",
+     "SOMEONE",
+     "NO TIME"
+    ],
+    "vsc-champions": [
+     "VS CHAMPIONS",
+     "PLAYER  UNI  WINS TODAY  (%)",
+     "MIKE",
+     "1",
+     "1 100%",
+     "ANDREW",
+     "0",
+     "0   0%",
+     "MARTIN",
+     "0",
+     "0   0%",
+     "MELISSA",
+     "0",
+     "0   0%",
+     "AMY",
+     "0",
+     "0   0%",
+     "MALCOLM",
+     "0",
+     "0   0%",
+     "MICHELLE",
+     "0",
+     "0   0%",
+     "COLIN",
+     "0",
+     "0   0%"
+    ],
+    "vsc-pick-challenger": [
+     "PICK CHALLENGER",
+     "MIKE",
+     "ANDREW",
+     "MARTIN",
+     "MELISSA",
+     "AMY",
+     "MALCOLM",
+     "MICHELLE",
+     "COLIN",
+     "DAVE",
+     "TONY",
+     "CAROL",
+     "CRAIG",
+     "KEN",
+     "ROBBIE",
+     "ALICE",
+     "STEVE"
+    ],
+    "vsc-track-choice": [
+     "NEXT TRACK",
+     "SAME TRACK",
+     "SELECT TRACK",
+     "SELECT TOUR",
+     "QUIT"
+    ],
+    "vsc-next": [
+     "NOW PLAYING",
+     "MIKE   (9:59.99)",
+     "VS",
+     "ANDREW   (9:59.99)",
+     "OVER 3 LAPS ON ZOOM ZOO",
+     "RECORD: SOMEONE",
+     "R E",
+     "ACE",
+     "XIT"
+    ]
+   },
+   "comparison": {
+    "vsc-result": {
+     "match": false,
+     "missing_on_native": [
+      "0:28.76"
+     ],
+     "extra_on_native": []
+    },
+    "vsc-champions": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "vsc-pick-challenger": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "vsc-track-choice": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    },
+    "vsc-next": {
+     "match": true,
+     "missing_on_native": [],
+     "extra_on_native": []
+    }
+   }
+  }
+ },
+ "mismatches": [
+  "race-result/race-results",
+  "vs-challenger/vsc-result"
+ ],
+ "all_match": false
+}

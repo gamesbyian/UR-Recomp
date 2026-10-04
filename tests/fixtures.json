@@ -895,7 +895,9 @@
       "engines": [
         "snesref-snes9x"
       ],
-      "checkpoints": [],
+      "checkpoints": [
+        "attract-demo-race"
+      ],
       "compare_surfaces": [
         "low-wram-trace",
         "menu-state-fields"
@@ -1063,7 +1065,9 @@
       "engines": [
         "snesref-snes9x"
       ],
-      "checkpoints": [],
+      "checkpoints": [
+        "name-forbidden-rejected"
+      ],
       "compare_surfaces": [
         "framebuffer",
         "sram",
@@ -1074,6 +1078,33 @@
       ],
       "status": "validated",
       "validation": "analysis/generated/name-entry-probe.json (4 checks)"
+    },
+    {
+      "id": "tour-award-ending",
+      "input_script": "tests/input/splash-cheat.script",
+      "purpose": "tools/probe_tour_award_and_ending.py: splash cheat (this script, plus no-input control and reboot restore) and four award runs over the Dessyreqt movie's first Dragster win with diagnostic SRAM/track-index pokes: bronze, Crawler gold, Hunter gold (ENDING) and Hunter gold with the cheat flag (CHEAT! ending). Checkpoint splash-cheat-main is this script's dump; tour-gold-scene is each gold run's first dump after the result; ending-whodunnit is the probe's first Hunter-run dump with $9F = 0x5B.",
+      "engines": [
+        "snesref-snes9x"
+      ],
+      "checkpoints": [
+        "splash-cheat-main",
+        "tour-gold-scene",
+        "ending-whodunnit"
+      ],
+      "compare_surfaces": [
+        "framebuffer",
+        "sram",
+        "menu-state-fields"
+      ],
+      "semantic_fields": [
+        "7E:009F currentMenu",
+        "77:10D0 cheatFlag",
+        "77:10D3 tiers",
+        "77:069C medal matrix",
+        "77:1075 tour flags"
+      ],
+      "status": "validated",
+      "validation": "analysis/generated/tour-award-ending-probe.json (47 checks). Needs snesref with tools/patches/snesrecomp-dual-controller-input.patch then tools/patches/snesrecomp-sram-poke.patch."
     }
   ]
 }

@@ -19,9 +19,10 @@ Core frontend addresses (see `docs/SYMBOLS.md` for confidence):
 **Confirmed** working model:
 
 ```
-boot -> title (0x84) -> MAIN_MENU
+boot -> title (0x84; Up, Left, Up, R, A here = all tours for this power-on) -> MAIN_MENU
   idle 503 frames -> title -> split-screen two-player demo race (~2190 frames) -> title -> MAIN_MENU
 1P: rider -> tour -> track -> NOW PLAYING -> race -> result (0x99 / 0xBC / 0x2F->0x18) -> TRACK_SELECT
+      5th tour flag: medal +1 -> medal scene (bronze/silver) or per-tour gold scene; Hunter gold -> newspaper pages -> WHODUNNIT (0x5B) -> title
 VS: P1 rider -> P2 rider -> tour -> track (0x91) -> NOW PLAYING -> race -> 0xF9
       decided: VS CHAMPIONS (0xD3) -> PICK CHALLENGER (0x3F, loser's pad) -> track choice (0x5A) -> NOW PLAYING
       drawn:   REMATCH (0xB7) -> NOW PLAYING

@@ -55,11 +55,12 @@
       "id": "ending-sequence-and-shortcut",
       "states": [
         "ENDING",
-        "SPLASH"
+        "SPLASH",
+        "TOUR_REWARD_SCENE"
       ],
       "class": "presentation_artifact",
       "modern": "preserve",
-      "rationale": "The ending is a reward presentation and the title-screen chord is a secret; secrets and advanced discoveries stay intentionally opaque. The chord itself is not yet locally verified."
+      "rationale": "The tour reward scenes (medal scene, eight per-tour gold vignettes) and the ending (newspaper pages, WHODUNNIT credits, for Hunter gold) are reward presentations, and the Up-Left-Up-R-A splash cheat (all tours for one power-on, marked by the CHEAT! front page) is a stock secret; both stay intentionally opaque (R-2026-10-04-UI-22). The public Down+L+R+B chord does not exist as described."
     },
     {
       "id": "menu-visual-language",
@@ -200,8 +201,8 @@
       ],
       "class": "administrative",
       "modern": "redesign_candidate",
-      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silvia and Goldwyn stay as named opponents regardless.",
-      "decision_gate": "Decide final modern medal/progression policy after original thresholds/state are mapped (WORK-QUEUE Phase 9)."
+      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silvia and Goldwyn stay as named opponents regardless. Stock state is now mapped: each completed tour run (five qualifying results, SRAM 0x1075 flags) raises that rider's medal cell by one step, the next run's opponent is 17 + medal (Bronsen/Silvia/Goldwyn), gold plays the tour's reward scene and Hunter gold the ending; tiers follow the main-tour thresholds (4+ medals of any kind -> 1, 6+ silver or better -> 2, all 8 gold -> 3) (R-2026-10-04-UI-20, UI-22).",
+      "decision_gate": "Product call on modern medal/progression policy (WORK-QUEUE Phase 9); the stock rules it must keep reproducible are mapped in analysis/generated/tour-award-ending-probe.json and tier-opponent-probe.json."
     },
     {
       "id": "unfinished-tour-session-loss",
@@ -212,8 +213,8 @@
       ],
       "class": "administrative",
       "modern": "redesign_candidate",
-      "rationale": "Losing unfinished tour progress at power-off may be a storage-era constraint. The earlier counter-persistence result was a lifetime Player Scores stat, not tour progress (R-2026-10-03-UI-19), so stock behavior is unknown. Modern per-event/tour persistence is planned unless testing shows the constraint is mechanically meaningful.",
-      "decision_gate": "Locate the in-session tour state and test whether a tour completed across a power cycle still awards its medal."
+      "rationale": "Stock keeps per-track tour completion flags in battery SRAM (0x1075 + 5*tour_row + track), but confirming a rider zeroes them (80:BBC1), so an unfinished tour is lost at power-off and on any rider change (R-2026-10-04-UI-20). The loss is a side effect of the entry flow and no mechanic depends on it. Modern per-tour resume is planned and can reuse the stock flag table instead of a parallel store.",
+      "decision_gate": "Product call: offer resume (keep the 0x1075 row when the same rider re-enters the tour) or keep stock loss; stock behavior is established by tools/probe_tour_progress_persistence.py."
     },
     {
       "id": "pre-race-now-playing-card",
@@ -373,7 +374,7 @@
       ],
       "class": "administrative",
       "modern": "redesign_decided",
-      "rationale": "Modern mode accepts forbidden names: the stock detection rule (71-word table at 83:85C5, case-insensitive substring match by 83:84DD; analysis/generated/forbidden-name-table.json) triggers a COOL NAME! acknowledgement and then the name is kept. Stock shows an inline NOT COOL ENOUGH message and keeps the editor open (analysis/generated/name-entry-probe.json); that rejection remains authentic/reference behavior only.",
+      "rationale": "Modern mode accepts forbidden names: the stock detection rule (71-word table at 83:85C5, case-insensitive substring match by 83:84DD; analysis/generated/forbidden-name-table.json) triggers a COOL NAME! acknowledgement and then the name is kept. Stock shows an inline NOT COOL ENOUGH message and keeps the editor open (analysis/generated/name-entry-probe.json); that rejection remains authentic/reference behavior only. The same stock check covers player and League names (one shared editor).",
       "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
     }
   ]

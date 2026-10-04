@@ -1,0 +1,579 @@
+{
+ "schema_version": 1,
+ "question": "What do tour completion, gold, Hunter gold and the splash cheat do in stock?",
+ "harness": "snesref (dual-controller + sram-poke patches) + pinned snes9x-libretro",
+ "diagnostic_pokes": "award runs seed tour flags/medal in SRAM mid-race; Hunter runs pin $CE=44/$D0=8 and the stored track bytes (see docstring)",
+ "cheat": {
+  "sequence": [
+   "up",
+   "left",
+   "up",
+   "r",
+   "a"
+  ],
+  "window": "UNIRACERS title splash (80:F549, 110 frames)",
+  "effect": "every rider tier 3 for this power-on; tiers restored and 0x10D0 cleared on the next pass through the splash",
+  "observed": {
+   "cheat": {
+    "menu": 215,
+    "tiers": [
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3,
+     3
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 1,
+    "medals": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "tour_flags": [
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "fb_sha1": "683997fdc4e2"
+   },
+   "cheat_control": {
+    "menu": 215,
+    "tiers": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 0,
+    "medals": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "tour_flags": [
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "fb_sha1": "683997fdc4e2"
+   },
+   "cheat_reboot": {
+    "menu": 215,
+    "tiers": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "tier_backup": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0
+    ],
+    "cheat_flag": 0,
+    "medals": [
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     0,
+     2
+    ],
+    "tour_flags": [
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ],
+     [
+      0,
+      0,
+      0,
+      0,
+      0
+     ]
+    ],
+    "fb_sha1": "683997fdc4e2"
+   }
+  }
+ },
+ "gold_scenes": "reaching gold dispatches 83:88FD by tour row: Crawler 83:C49C, Jumper 83:BB80, Shuffler 83:B1EB, Bounder 83:B7D2, Walker 83:B506, Runner 83:C715, Hopper 83:C11E, Sprinter 83:BED0 (short side-on vignette with a tour-specific prop, then TOUR_SELECT), Hunter 83:AB9A (ending)",
+ "ending": {
+  "trigger": "Hunter medal reaching gold (83:88FD entry 8 -> 83:AB9A)",
+  "pages": {
+   "normal": "DAILY NEWS 'AMAZING' then NATIONAL GOSSIP 'SPEEDKING'",
+   "cheat": "DAILY NEWS 'CHEAT!'"
+  },
+  "credits": "WHODUNNIT developer portraits, $9F = 0x5B, then title 0x84",
+  "observed_menu_changes": {
+   "bronze": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 1
+    }
+   ],
+   "gold_crawler": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3402,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_jumper": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3502,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_shuffler": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3502,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_bounder": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3402,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_walker": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3502,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_runner": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3402,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_hopper": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3602,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "gold_sprinter": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 3502,
+     "menu": "0x6d",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "ending": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 0,
+     "medal": 3
+    },
+    {
+     "frame": 4502,
+     "menu": "0x5b",
+     "cheat_flag": 0,
+     "medal": 3
+    }
+   ],
+   "ending_cheat": [
+    {
+     "frame": 2950,
+     "menu": "0x99",
+     "cheat_flag": 1,
+     "medal": 3
+    },
+    {
+     "frame": 3202,
+     "menu": "0x5b",
+     "cheat_flag": 1,
+     "medal": 3
+    }
+   ]
+  }
+ },
+ "checks": {
+  "cheat_sets_every_tier_to_3": true,
+  "cheat_backs_up_previous_tiers": true,
+  "no_sequence_no_unlock": true,
+  "next_boot_restores_tiers": true,
+  "bronze_medal_incremented": true,
+  "bronze_tour_flags_cleared": true,
+  "bronze_no_ending": true,
+  "gold_crawler_medal_incremented": true,
+  "gold_crawler_tour_flags_cleared": true,
+  "gold_crawler_no_ending": true,
+  "gold_crawler_returns_to_tour_select": true,
+  "gold_jumper_medal_incremented": true,
+  "gold_jumper_tour_flags_cleared": true,
+  "gold_jumper_no_ending": true,
+  "gold_jumper_returns_to_tour_select": true,
+  "gold_shuffler_medal_incremented": true,
+  "gold_shuffler_tour_flags_cleared": true,
+  "gold_shuffler_no_ending": true,
+  "gold_shuffler_returns_to_tour_select": true,
+  "gold_bounder_medal_incremented": true,
+  "gold_bounder_tour_flags_cleared": true,
+  "gold_bounder_no_ending": true,
+  "gold_bounder_returns_to_tour_select": true,
+  "gold_walker_medal_incremented": true,
+  "gold_walker_tour_flags_cleared": true,
+  "gold_walker_no_ending": true,
+  "gold_walker_returns_to_tour_select": true,
+  "gold_runner_medal_incremented": true,
+  "gold_runner_tour_flags_cleared": true,
+  "gold_runner_no_ending": true,
+  "gold_runner_returns_to_tour_select": true,
+  "gold_hopper_medal_incremented": true,
+  "gold_hopper_tour_flags_cleared": true,
+  "gold_hopper_no_ending": true,
+  "gold_hopper_returns_to_tour_select": true,
+  "gold_sprinter_medal_incremented": true,
+  "gold_sprinter_tour_flags_cleared": true,
+  "gold_sprinter_no_ending": true,
+  "gold_sprinter_returns_to_tour_select": true,
+  "ending_medal_incremented": true,
+  "ending_tour_flags_cleared": true,
+  "ending_reaches_ending_menu": true,
+  "ending_cheat_medal_incremented": true,
+  "ending_cheat_tour_flags_cleared": true,
+  "ending_cheat_reaches_ending_menu": true,
+  "gold_scenes_differ_per_tour": true,
+  "cheat_flag_changes_ending_page": true
+ },
+ "all_checks_pass": true
+}

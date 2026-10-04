@@ -8,8 +8,8 @@ original tables rather than inventing a parallel store.
 Recovered layout (battery SRAM, 8 KiB image offsets):
 - ``0x0422 + 2*i``: 150 little-endian words, ``i = 50*rank + 5*tour_row + track``;
   rank 0/1/2 are the GOLD/SILVER/BRONZE rows of the Track Records screen (1st,
-  2nd and 3rd best), tour_row follows the medal matrix (Crawler 0 ... Hunter 8,
-  group 9 unidentified), track is the position within the tour (stunt is 2).
+  2nd and 3rd best), tour_row follows the medal matrix (Crawler 0 ... Hunter 8;
+  group 9 is probably unused, R-2026-10-04-UI-21 addendum), track is the position within the tour (stunt is 2).
 - values: race = finish time and circuit = best lap, both in 1/100 s (default
   60000 = 10:00.00, shown as NO TIME); stunt = score (default 0).
 - ``0x054E``: 16-bit sum of the 150 words.
@@ -137,7 +137,7 @@ def main() -> int:
                    "checksum": "0x054E = 16-bit sum of the 150 record words",
                    "holders": "0x0550 + (50*rank + 5*tour_row + track), rider index (16 = someone)",
                    "ranks": "0/1/2 = GOLD/SILVER/BRONZE rows on Track Records = 1st/2nd/3rd best",
-                   "tour_row": "medal-matrix order (Crawler 0, Jumper 1, Shuffler 2 ... Hunter 8); group 9 unidentified",
+                   "tour_row": "medal-matrix order (Crawler 0, Jumper 1, Shuffler 2 ... Hunter 8); group 9 probably unused (no decoded writer reaches it)",
                    "values": "race: finish time, circuit: best lap (1/100 s, 60000 = NO TIME); stunt: score (0 = none)",
                    "last_race_slots": "0x0618 / 0x061A hold the last race's P1 / opponent result value"},
         "observed": {"first_run": filled(after1), "second_run": filled(after2), "tas_after_bowl": filled(tas_sram)},

@@ -1,0 +1,115 @@
+{
+ "schema_version": 1,
+ "purpose": "Stock meaning of progression and rider-stat battery fields for modern save UX.",
+ "rom": "reference/roms/retail/Uniracers_USA.sfc",
+ "layout": {
+  "rider_stats": {
+   "base": "0x0230",
+   "stride": 8,
+   "count": 16,
+   "index": "rider 0..15",
+   "fields": {
+    "+0": "PLAYED",
+    "+2": "WON",
+    "+4": "FAILED (did not finish: time or best lap >= 60000)",
+    "+6": "SCORE (cumulative stunt points)"
+   },
+   "derived": "LOST = PLAYED - WON; screen percentages are count*100/PLAYED",
+   "counted": "P1 always; P2 only when its rider index (0x0749) < 16, so CPU opponents are not counted"
+  },
+  "tour_flags": {
+   "base": "0x1075",
+   "size": 50,
+   "index": "5*tour_row + track",
+   "set": "qualifying 1P result",
+   "cleared": "row on medal award; all on rider confirm"
+  },
+  "tour_medal_snapshot": {
+   "offset": "0x10D1",
+   "meaning": "medal cell at tour confirm; drives the run label and the keep-row test on leaving TRACK_SELECT"
+  },
+  "play_mode": {
+   "offset": "0x10AD",
+   "values": {
+    "0": "none / exited",
+    "1": "1P tour",
+    "2": "VS"
+   }
+  },
+  "vs_tally": {
+   "offsets": [
+    "0x10A9",
+    "0x10AB"
+   ],
+   "meaning": "P1 / P2 win counts, zeroed on VS entry and shown on VS track select; 0x10A9 also counts 1P wins harmlessly"
+  }
+ },
+ "evidence": {
+  "stats_offset_is_rider_times_8": {
+   "at": "80:C776",
+   "meaning": "0x073E = 8 * P1 rider (0x0748), 0x0740 = 8 * P2 rider (0x0749)"
+  },
+  "played_is_offset_0": {
+   "at": "80:CA63",
+   "meaning": "INC 0x0230 + offset"
+  },
+  "won_is_offset_2_and_bumps_vs_tally": {
+   "at": "80:CA72",
+   "meaning": "INC 0x0232 + offset, then INC 0x10A9 (P1 side; P2 uses 0x10AB at 80:CAB4)"
+  },
+  "failed_is_offset_4": {
+   "at": "80:CA8A",
+   "meaning": "INC 0x0234 + offset; called when the loser's time/best lap is >= 60000 (80:C7EF, 80:C8D7)"
+  },
+  "player_scores_reads_16_riders": {
+   "at": "83:97DA",
+   "meaning": "X=0, Y=15 loop over 0x0230,X; LOST = PLAYED - WON (SBC 0x0232,X), not stored"
+  },
+  "player_scores_stride_8": {
+   "at": "83:985B",
+   "meaning": "X += 8 per rider"
+  },
+  "tour_flag_set_and_row_sum": {
+   "at": "83:87F5",
+   "meaning": "0x1075 + $CE = 1, sum 0x1075 + 5*$D0 .. +4, >= 5 -> medal award at 83:881B"
+  },
+  "tour_award_clears_row": {
+   "at": "83:895B",
+   "meaning": "zero 0x1075 + 5*$D0 .. +4"
+  },
+  "rider_confirm_wipes_all_tour_flags": {
+   "at": "80:BBC1",
+   "meaning": "zero 0x1075 .. 0x10A6 (50 bytes) on 1P rider confirm"
+  },
+  "tour_confirm_snapshots_medal": {
+   "at": "80:E6B7",
+   "meaning": "0x10D1 = medal cell (16*$D0 + rider) when the tour is confirmed"
+  },
+  "vs_entry_resets_tally_and_sets_mode": {
+   "at": "80:BD05",
+   "meaning": "0x10A9 = 0x10AB = 0, 0x10AD = 2 on VS entry (1P tour entry writes 0x10AD = 1 at 80:BBD6)"
+  }
+ },
+ "checks": {
+  "stats_offset_is_rider_times_8": true,
+  "played_is_offset_0": true,
+  "won_is_offset_2_and_bumps_vs_tally": true,
+  "failed_is_offset_4": true,
+  "player_scores_reads_16_riders": true,
+  "player_scores_stride_8": true,
+  "tour_flag_set_and_row_sum": true,
+  "tour_award_clears_row": true,
+  "rider_confirm_wipes_all_tour_flags": true,
+  "tour_confirm_snapshots_medal": true,
+  "vs_entry_resets_tally_and_sets_mode": true,
+  "vs_p1_winner_counts_played_and_won": true,
+  "vs_p2_timeout_counts_played_and_failed": true,
+  "vs_tally_and_mode": true
+ },
+ "all_checks_pass": true,
+ "runtime_checks": {
+  "vs_p1_winner_counts_played_and_won": true,
+  "vs_p2_timeout_counts_played_and_failed": true,
+  "vs_tally_and_mode": true
+ }
+}

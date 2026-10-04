@@ -273,9 +273,17 @@
       "id": "splash-ending",
       "from": "SPLASH",
       "to": "ENDING",
-      "trigger": "Down+L+R+B shortcut lead",
+      "trigger": "Down+L+R+B shortcut lead (not reproduced; probably a garbled report of the Up-Left-Up-R-A unlock)",
       "status": "hypothesis",
       "probe": "ui-ending-shortcut"
+    },
+    {
+      "id": "splash-cheat-main",
+      "from": "SPLASH",
+      "to": "MAIN_MENU",
+      "trigger": "Up, Left, Up, R, A during the title splash: every tier 3 for this power-on",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "main-erase",
@@ -302,6 +310,30 @@
       "status": "verified",
       "fixture": "ui-race-result-route",
       "source_note": "Harvested native frame after A is the Crawler PICK TRACK screen at currentMenu 0xF6; prior POST_RESULT_DECISION label was disproven for this route."
+    },
+    {
+      "id": "race-result-tour-reward",
+      "from": "RESULT_RACE",
+      "to": "TOUR_REWARD_SCENE",
+      "trigger": "result sets the fifth tour flag: medal +1 (bronze/silver medal scene, or per-tour gold vignette)",
+      "status": "verified",
+      "probe": "tour-award-ending"
+    },
+    {
+      "id": "tour-reward-tour-select",
+      "from": "TOUR_REWARD_SCENE",
+      "to": "TOUR_SELECT",
+      "trigger": "scene completes",
+      "status": "verified",
+      "probe": "tour-award-ending"
+    },
+    {
+      "id": "hunter-gold-ending",
+      "from": "RESULT_RACE",
+      "to": "ENDING",
+      "trigger": "result completes the Hunter tour and its medal reaches gold (83:88FD -> 83:AB9A)",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "circuit-result-post",
@@ -348,11 +380,12 @@
       "status": "documented"
     },
     {
-      "id": "ending-main",
+      "id": "ending-splash",
       "from": "ENDING",
-      "to": "MAIN_MENU",
-      "trigger": "sequence completion/advance",
-      "status": "hypothesis"
+      "to": "SPLASH",
+      "trigger": "each newspaper page times out (1200 frames) or a button; a button on WHODUNNIT returns to the title",
+      "status": "verified",
+      "probe": "tour-award-ending"
     },
     {
       "id": "erase-cancel-main",
@@ -654,7 +687,7 @@
       "provider_pr": 31,
       "transport_format": "start:duration:p1-mask[:p2-mask]",
       "transport_status": "complete",
-      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation.",
+      "integration_note": "PR #31 already provides the shared P1/P2 transport across native, snesref, and Mesen. This dependency now tracks only behavioral proof: P2-only causality, P1->P2 rider-selection handoff, stable multiplayer checkpoints, and deeper VS navigation. Native (2026-10-04, local generated target): the VS challenger route passes all seven probe_vs_challenger checks and decoded text matches snesref at every checkpoint except the missing result finish time (R-2026-10-04-UI-25). Mesen remains unrun.",
       "note": "2P entry/back and VS_SELECT plus the visual P1->P2 VS handoff are locally reproduced. Remaining acceptance work is P2-only causality/confirmation, 2P handoff through TOUR_SELECT, deeper VS challenger/track checkpoints, and multiplayer gameplay/split-screen evidence. 2026-10-03: VS_CHALLENGER (0x3F) and VS_CHALLENGE_TRACK (0x5A) are now reproduced on snesref (dual-controller patch) after a decided VS race (tools/probe_vs_challenger.py, analysis/generated/vs-challenger-probe.json); native-recomp and Mesen confirmation of that route remain."
     }
   },
@@ -701,7 +734,8 @@
         "PLAYER_NAME_EDITOR",
         "DEFINE_LEAGUE",
         "NAME_LEAGUE",
-        "ERASE_ALL_CONFIRM"
+        "ERASE_ALL_CONFIRM",
+        "TOUR_REWARD_SCENE"
       ]
     },
     "3": {

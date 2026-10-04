@@ -303,6 +303,34 @@
       }
     },
     {
+      "tag": "tour-gold-scene",
+      "state_id": "TOUR_REWARD_SCENE",
+      "variant": "gold-per-tour",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {}
+    },
+    {
+      "tag": "ending-whodunnit",
+      "state_id": "ENDING",
+      "variant": "credits",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {
+        "current_menu": "0x5B"
+      }
+    },
+    {
+      "tag": "splash-cheat-main",
+      "state_id": "MAIN_MENU",
+      "variant": "splash-cheat-active",
+      "source_fixture": "tour-award-ending",
+      "required": false,
+      "expect": {
+        "current_menu": "0xD7"
+      }
+    },
+    {
       "tag": "ui-attract-main-start",
       "state_id": "MAIN_MENU",
       "variant": "attract-idle-start",
@@ -320,6 +348,18 @@
       "discover": [
         "current_menu"
       ]
+    },
+    {
+      "tag": "attract-demo-race",
+      "state_id": "DEMO",
+      "variant": "split-screen demo race",
+      "source_fixture": "attract-cycle",
+      "required": false,
+      "expect": {
+        "current_menu": "0x00",
+        "in_race": "0x01",
+        "multiplayer_camera_enable": "0x01"
+      }
     },
     {
       "tag": "ui-pause-before",
@@ -1412,6 +1452,14 @@
         "current_menu": "0x5A"
       },
       "note": "Stale 009F after the Track Records exit; the visible screen is the RECORDS list."
+    },
+    {
+      "tag": "name-forbidden-rejected",
+      "state_id": "FORBIDDEN_NAME_REJECTION",
+      "variant": "NOT COOL ENOUGH inline message",
+      "source_fixture": "name-entry-probe",
+      "required": false,
+      "expect": {}
     }
   ]
 }

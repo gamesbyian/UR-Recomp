@@ -1,0 +1,242 @@
+{
+ "schema_version": 1,
+ "purpose": "Stock sound-effect id per frontend UI event, read from the WRAM sound-command ring.",
+ "mechanism": "82:8000 queues 16-bit sound commands at 7E:2006/7E:2016 (index 7E:2002); 02nn = play SFX nn, 08vv precedes it",
+ "events": {
+  "main_cursor_down": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0xD7"
+  },
+  "main_cursor_up": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0xD7"
+  },
+  "main_confirm_1p_slide": {
+   "commands": [
+    "084F",
+    "0202"
+   ],
+   "sfx": [
+    2
+   ],
+   "menu_after": "0x3C"
+  },
+  "rider_cursor_right": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0x3C"
+  },
+  "rider_cursor_left": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0x3C"
+  },
+  "rider_confirm": {
+   "commands": [
+    "083F",
+    "0204",
+    "084F",
+    "0202"
+   ],
+   "sfx": [
+    4,
+    2
+   ],
+   "menu_after": "0x6D"
+  },
+  "tour_cursor_down": {
+   "commands": [
+    "087F",
+    "0203",
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3,
+    3
+   ],
+   "menu_after": "0x6D"
+  },
+  "tour_cursor_up": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0x6D"
+  },
+  "tour_confirm": {
+   "commands": [
+    "084F",
+    "0202"
+   ],
+   "sfx": [
+    2
+   ],
+   "menu_after": "0xF6"
+  },
+  "track_cursor_down": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0xF6"
+  },
+  "track_back_to_tour": {
+   "commands": [
+    "084F",
+    "0201"
+   ],
+   "sfx": [
+    1
+   ],
+   "menu_after": "0x6D"
+  },
+  "tour_back_to_rider": {
+   "commands": [
+    "084F",
+    "0201"
+   ],
+   "sfx": [
+    1
+   ],
+   "menu_after": "0x3C"
+  },
+  "rider_back_to_main": {
+   "commands": [
+    "084F",
+    "0201"
+   ],
+   "sfx": [
+    1
+   ],
+   "menu_after": "0xD7"
+  },
+  "editor_cursor_right": {
+   "commands": [
+    "087F",
+    "0203"
+   ],
+   "sfx": [
+    3
+   ],
+   "menu_after": "0x0C"
+  },
+  "editor_type_letter": {
+   "commands": [
+    "083F",
+    "0206"
+   ],
+   "sfx": [
+    6
+   ],
+   "menu_after": "0x0D"
+  },
+  "editor_delete": {
+   "commands": [
+    "083F",
+    "0206"
+   ],
+   "sfx": [
+    6
+   ],
+   "menu_after": "0x0E"
+  },
+  "forbidden_ok": {
+   "commands": [
+    "083F",
+    "0204"
+   ],
+   "sfx": [
+    4
+   ],
+   "menu_after": "0x11"
+  },
+  "valid_ok": {
+   "commands": [
+    "083F",
+    "0204",
+    "084F",
+    "0201"
+   ],
+   "sfx": [
+    4,
+    1
+   ],
+   "menu_after": "0x57"
+  }
+ },
+ "sfx_to_events": {
+  "1": [
+   "track_back_to_tour",
+   "tour_back_to_rider",
+   "rider_back_to_main",
+   "valid_ok"
+  ],
+  "2": [
+   "main_confirm_1p_slide",
+   "rider_confirm",
+   "tour_confirm"
+  ],
+  "3": [
+   "main_cursor_down",
+   "main_cursor_up",
+   "rider_cursor_right",
+   "rider_cursor_left",
+   "tour_cursor_down",
+   "tour_cursor_down",
+   "tour_cursor_up",
+   "track_cursor_down",
+   "editor_cursor_right"
+  ],
+  "4": [
+   "rider_confirm",
+   "forbidden_ok",
+   "valid_ok"
+  ],
+  "6": [
+   "editor_type_letter",
+   "editor_delete"
+  ]
+ },
+ "checks": {
+  "cursor_moves_play_sfx_3": true,
+  "forward_slides_play_sfx_2": true,
+  "rider_confirm_plays_sfx_4_then_slide": true,
+  "back_slides_play_sfx_1": true,
+  "editor_keys_play_sfx_6": true,
+  "name_ok_plays_sfx_4_and_saving_slides_back": true
+ },
+ "all_checks_pass": true,
+ "limits": [
+  "Sound identity is the driver's command id, not a decoded sample; the APU sample bank is not mapped.",
+  "Scene and in-race sounds (bank 83 wrappers 83:A286-A4BD, bank 81/82/83 direct sites) are not covered."
+ ]
+}

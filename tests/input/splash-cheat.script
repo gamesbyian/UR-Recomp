@@ -1,0 +1,18 @@
+# Splash cheat (80:F549): Up, Left, Up, R, A during the UNIRACERS title splash
+# (frames ~283-393 from power-on). Use on a formatted save; an unformatted one is
+# formatted after the splash and loses the unlock. tools/probe_tour_award_and_ending.py.
+wait 300
+press up 3
+wait 3
+press left 3
+wait 3
+press up 3
+wait 3
+press r 3
+wait 3
+press a 3
+wait 3
+until 009F == D7 3000
+wait 20
+dump splash-cheat-main
+quit

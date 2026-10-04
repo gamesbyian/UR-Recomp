@@ -238,8 +238,20 @@ class Dump:
         self.oam = Path(f"{p}.oam.bin").read_bytes()
         self.wram = Path(f"{p}.wram.bin").read_bytes()
         regs = json.loads(Path(f"{p}.regs.json").read_text())
+        if "fillram" not in regs:
+            regs = native_regs_as_snesref(regs)
         self.fillram = regs["fillram"]
         self.ppu = regs["ppu"]
+
+
+def native_regs_as_snesref(regs: dict) -> dict:
+    """Map the native recomp host's regs.json (bgsc/bg_tile_adr/hscroll/vscroll)
+    onto the snesref fields this module reads (fillram 2107-210C, ppu.bg[].hofs/vofs)."""
+    fill = {f"{0x2107 + i:04X}": f"{v:02X}" for i, v in enumerate(regs["bgsc"])}
+    fill["210B"] = f"{regs['bg_tile_adr'] & 0xFF:02X}"
+    fill["210C"] = f"{(regs['bg_tile_adr'] >> 8) & 0xFF:02X}"
+    bgs = [{"hofs": h, "vofs": v} for h, v in zip(regs["hscroll"], regs["vscroll"])]
+    return {"fillram": fill, "ppu": {"bg": bgs}}
 
 
 def series(directory: Path, name: str) -> list[Dump]:

@@ -93,7 +93,8 @@ def main() -> int:
             run = Path(td) / name
             run.mkdir()
             script = run / "s.script"
-            script.write_text("\n".join(route_prefix() + plan_moves(name) + ["wait 90", "dump name-result", "quit"]) + "\n")
+            extra = ["dump name-forbidden-rejected"] if fnt.is_forbidden(name, words) else []
+            script.write_text("\n".join(route_prefix() + plan_moves(name) + ["wait 90", "dump name-result"] + extra + ["quit"]) + "\n")
             env = dict(os.environ, SNESREF_HEADLESS="1", SNESREF_FAST="1", SNESREF_WRAM_FILL="0",
                        SNESREF_SCRIPT=str(script), SNESREF_DUMP_DIR=str(run))
             with open(run / "snesref.log", "w") as log:

@@ -18,6 +18,7 @@ void ur_uniracers_modern_system_overlay(
     size_t pitch,
     int width,
     int height);
+double ur_uniracers_modern_presentation_hz(double display_refresh);
 
 #ifdef __cplusplus
 }

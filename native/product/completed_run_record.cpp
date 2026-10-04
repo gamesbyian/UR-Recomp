@@ -173,7 +173,9 @@ std::string encode_completed_run_record(const CompletedRunRecord& record) {
     return body + "checksum " + checksum_hex(body) + "\n";
 }
 
-std::string encode_completed_run_input_file(\n    const CompletedRunRecord& record,\n    std::uint64_t frame_offset) {
+std::string encode_completed_run_input_file(
+    const CompletedRunRecord& record,
+    std::uint64_t frame_offset) {
     std::string detail;
     if (!validate_completed_run_record(record, &detail)) return {};
     std::ostringstream out;

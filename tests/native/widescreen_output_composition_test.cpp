@@ -55,6 +55,18 @@ int main() {
     assert(remastered_fixed.center_logical_view);
     assert(!remastered_fixed.expose_added_world);
 
+    const HostOutputViewport wide_1080{0, 0, 1920, 1080};
+    const HostOutputViewport fixed_1080{240, 0, 1440, 1080};
+    const HostOutputViewport wide_1280x1024{0, 152, 1280, 720};
+    const HostOutputViewport fixed_1280x1024{160, 152, 960, 720};
+    const HostOutputViewport empty_viewport{};
+
+    assert(resolve_output_viewport(original_wide, 1920, 1080) == wide_1080);
+    assert(resolve_output_viewport(original_fixed, 1920, 1080) == fixed_1080);
+    assert(resolve_output_viewport(original_wide, 1280, 1024) == wide_1280x1024);
+    assert(resolve_output_viewport(original_fixed, 1280, 1024) == fixed_1280x1024);
+    assert(resolve_output_viewport(original_fixed, 0, 1080) == empty_viewport);
+
     HostWidescreenSceneState scene{};
     assert(observe_widescreen_scene(&scene, 0x00, 0xD7) ==
            HostSceneComposition::FixedCenter);

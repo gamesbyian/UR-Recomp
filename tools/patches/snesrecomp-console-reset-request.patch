@@ -20,7 +20,7 @@
 +}
  
  /* The last field actually presented, kept so an overlay can freeze the guest
-@@ -4011,4 +4025,36 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+@@ -4011,4 +4025,35 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
      }
      if (!running)
        break;
@@ -30,10 +30,10 @@
 +
 +      /* Re-enter through the framework's full-machine initialization path:
 +       * persist authoritative SRAM, discard the old machine, clear
-+       * title-owned session stickies, build a fresh machine, reload SRAM,
-+       * then invoke only the title-owned hardware-reset hook. SnesInit has
-+       * already reset the fresh machine and host pacing, so resetting the
-+       * runtime again here would double-reset freshly initialized state. */
++       * title-owned session stickies, build a fresh machine, reload SRAM, then
++       * invoke the framework's complete reset contract on that fresh machine.
++       * Mode 1 preserves SRAM while resetting CPU/PPU/APU/pacing and calls
++       * the title-owned hardware_reset hook after the hardware reset. */
 +      snes_runahead_shutdown();
 +      snes_rewind_shutdown();
 +      if (g_rtl_game_info && g_rtl_game_info->session_reset)
@@ -44,8 +44,7 @@
 +        Die("session reboot failed to initialize the guest");
 +      debug_server_set_ram(snes->ram, 0x20000);
 +      RtlReadSram();
-+      if (g_rtl_game_info && g_rtl_game_info->hardware_reset)
-+        g_rtl_game_info->hardware_reset();
++      RtlReset(1);
 +      g_input_state = 0;
 +      g_gamepad[0].axis_buttons = 0;
 +      g_gamepad[1].axis_buttons = 0;

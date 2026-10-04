@@ -132,6 +132,8 @@ The immediate frame-1219 P2 `0540` representation under the distinct `0D2D` sync
 
 Frame 1218 P2 `0541` is the next actual P2 visual change. Its authored blue-player asset derives from the reviewed P2 baseline by the exact one-logical-pixel leftward displacement required to match stock envelope `[22,3]..[39,38]` and contact `[61,76]`. Native run `37169795518` is green; artifact `11290901577` records 250/372 alpha intersection/union (IoU `0.6720430108`). Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
+Frame 1217 P2 `0542` is the next distinct stock pose, with envelope `[21,4]..[40,38]` and contact `[59,76]`. The retained dossier proves its stock raster is byte-identical to the frames-1215–1216 P2 `0542` state under the distinct `057F/0D4A` context, so one authored asset now covers all three occurrences under separate exact guards. Candidate/native acceptance remains pending.
+
 ## Reconstruction decision policy
 
 Reference generation and final-art selection are different jobs.

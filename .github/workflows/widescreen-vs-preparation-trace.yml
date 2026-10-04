@@ -9,6 +9,10 @@ on:
       - "tools/instrument_snesref_vs_preparation_writes.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
+      - "analysis/widescreen-vs-preparation-seam.json"
+      - "analysis/widescreen-policy.yml"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-preparation-trace-${{ github.ref }}
@@ -181,6 +185,37 @@ jobs:
               json.dumps(out,indent=2)+"\n"
           )
           print(json.dumps(by_addr,indent=2))
+          PY
+
+      - name: Verify retained VS preparation seam
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          retained=json.loads(Path("analysis/widescreen-vs-preparation-seam.json").read_text())
+          exact=json.loads(Path("analysis/generated/vs-preparation-exact-writers.json").read_text())
+          observed=exact["writer_counts_by_address"]
+
+          expected={
+              "7E:0505": {"81:B128":123, "81:B16A":26},
+              "7E:0507": {"81:B22D":55, "81:B26F":28},
+              "7E:052B": {"81:B156":27, "81:B173":26},
+              "7E:052D": {"81:B25B":29, "81:B278":28},
+          }
+          for retained_addr, pcs in expected.items():
+              raw_addr="0x"+retained_addr.split(":")[1]
+              got={k.replace("0x","").upper():v for k,v in observed[raw_addr].items()}
+              for pc,count in pcs.items():
+                  key=pc.replace(":","").upper()
+                  assert got.get(key)==count, (retained_addr,pc,count,got.get(key))
+              assert retained["exact_writer_counts"][retained_addr] == pcs
+
+          assert retained["vs_horizontal_scheduler"]["player1"]["full_primary_count_words"] == 8
+          assert retained["vs_horizontal_scheduler"]["player2"]["full_primary_count_words"] == 8
+          assert retained["shared_descriptor_builder"]["ready_flag_store"] == "81:ACF7"
+          print("VS_PREPARATION_SEAM_RETAINED_EVIDENCE_MATCH")
           PY
 
       - name: Upload VS preparation trace

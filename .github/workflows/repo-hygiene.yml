@@ -1,0 +1,30 @@
+name: Repository hygiene
+
+on:
+  pull_request:
+    paths:
+      - "AGENTS.md"
+      - "docs/README.md"
+      - "docs/SYMBOLS.md"
+      - "docs/PERIODIC-REPOSITORY-HYGIENE.md"
+      - "docs/TOOL-INTEROPERABILITY.md"
+      - "reference/**"
+      - "analysis/generated/symbols.json"
+      - "analysis/generated/*-symbols*"
+      - "third_party/**"
+      - "tools/**"
+      - ".github/workflows/repo-hygiene.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: repo-hygiene-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check repository boundaries and generated surfaces
+        run: python3 tools/check_repo_hygiene.py

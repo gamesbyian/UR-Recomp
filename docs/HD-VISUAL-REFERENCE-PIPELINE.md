@@ -126,7 +126,9 @@ The next retained visual change is already registered rather than newly searched
 
 The next actual retained visual change is P1 `057D/0543 + 0D48/0000`, repeated across frames `1207–1212`. One authored asset covers the six-frame run, matching stock envelope `[21,3]..[43,38]` and contact `[69,76]`. Native run `37164968261` is green and artifact `11289251993` records 246/397 alpha intersection/union (IoU `0.6196473552`).
 
-The P1 review strip is now saturated across the retained 1205–1220 window. The canonical frame-1220 P2 `0540` representation is now the first authored blue-player motion-reviewed asset, replacing the generic contract candidate for that exact live synchronized state. It matches stock envelope `[23,3]..[40,38]` and contact `[63,76]`; native run `37166854227` is green and artifact `11290145680` records 266/361 alpha intersection/union (IoU `0.7368421053`). Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
+The P1 review strip is now saturated across the retained 1205–1220 window. The canonical frame-1220 P2 `0540` representation is now the first authored blue-player motion-reviewed asset, replacing the generic contract candidate for that exact live synchronized state. It matches stock envelope `[23,3]..[40,38]` and contact `[63,76]`; native run `37166854227` is green and artifact `11290145680` records 266/361 alpha intersection/union (IoU `0.7368421053`).
+
+The immediate frame-1219 P2 `0540` representation under the distinct `0D2D` synchronized context has byte-identical stock pixels to frame 1220. The pipeline therefore keeps the two registrations distinct but reuses the reviewed P2 authored asset, with CI locking both stock and authored hashes; native acceptance remains pending. Recovered gameplay-scale envelope/contact and temporal continuity remain acceptance constraints, while smooth geometry/material interpretation stays free inside those constraints.
 
 ## Reconstruction decision policy
 

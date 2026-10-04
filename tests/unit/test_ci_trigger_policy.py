@@ -39,6 +39,19 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"post-merge side effects. offenders={offenders}",
         )
 
+    def test_pull_requests_are_path_scoped(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            pull_request = _block(text, "pull_request")
+            if pull_request and "    paths:\n" not in pull_request:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic pull requests must be path-scoped: {offenders}",
+        )
+
     def test_main_pushes_are_path_scoped(self):
         offenders = []
         for path in sorted(WORKFLOWS.glob("*.yml")):

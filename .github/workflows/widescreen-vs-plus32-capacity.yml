@@ -80,7 +80,7 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus32"
           mkdir -p "$ROOT"
           for margin in 0 32; do
             OUT="$ROOT/$margin"
@@ -123,7 +123,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus32"
           mkdir -p analysis/generated
           CHECKPOINTS=(
             --checkpoint vs-race-1240
@@ -218,11 +218,11 @@ jobs:
           name: widescreen-vs-plus32-capacity
           path: |
             analysis/generated/widescreen-vs-plus32-capacity.json
-            ${{ runner.temp }}/widescreen-vs-plus24/0/state.json
-            ${{ runner.temp }}/widescreen-vs-plus24/32/state.json
-            ${{ runner.temp }}/widescreen-vs-plus24/0/run.log
-            ${{ runner.temp }}/widescreen-vs-plus24/32/run.log
-            ${{ runner.temp }}/widescreen-vs-plus24/0/frames/frame_001340.bmp
-            ${{ runner.temp }}/widescreen-vs-plus24/32/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-plus32/0/state.json
+            ${{ runner.temp }}/widescreen-vs-plus32/32/state.json
+            ${{ runner.temp }}/widescreen-vs-plus32/0/run.log
+            ${{ runner.temp }}/widescreen-vs-plus32/32/run.log
+            ${{ runner.temp }}/widescreen-vs-plus32/0/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-plus32/32/frames/frame_001340.bmp
           if-no-files-found: warn
           retention-days: 7

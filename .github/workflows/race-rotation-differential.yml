@@ -106,25 +106,38 @@ jobs:
           set -euo pipefail
           EXE="$RUNNER_TEMP/native/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          for kind in left right control x; do
+          run_native_case() {
+            local kind="$1"
+            local script
             if [ "$kind" = x ]; then
-              SCRIPT="$GITHUB_WORKSPACE/tests/input/race-zflip-x.script"
+              script="$GITHUB_WORKSPACE/tests/input/race-zflip-x.script"
             else
-              SCRIPT="$GITHUB_WORKSPACE/tests/input/race-rotation-${kind}.script"
+              script="$GITHUB_WORKSPACE/tests/input/race-rotation-${kind}.script"
             fi
-            DUMPS="$RUNNER_TEMP/native-rotation-${kind}-dumps"
-            LOG="$RUNNER_TEMP/native-rotation-${kind}.log"
-            TRACE_ARGS=()
+            local dumps="$RUNNER_TEMP/native-rotation-${kind}-dumps"
+            local log="$RUNNER_TEMP/native-rotation-${kind}.log"
+            local trace_args=()
             if [ "$kind" = x ] || [ "$kind" = control ]; then
-              TRACE_ARGS=(env "SNESRECOMP_WRAM_TRACE_FILE=$RUNNER_TEMP/native-rotation-${kind}-wram.jsonl")
+              trace_args=(env "SNESRECOMP_WRAM_TRACE_FILE=$RUNNER_TEMP/native-rotation-${kind}-wram.jsonl")
             fi
-            mkdir -p "$DUMPS"
-            "${TRACE_ARGS[@]}" env SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
-              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-              >"$LOG" 2>&1
-            cat "$LOG"
-            test -s "$DUMPS/rotation-settle.wram.bin"
+            mkdir -p "$dumps"
+            "${trace_args[@]}" env SNESRECOMP_DUMP_DIR="$dumps" SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$script" \
+              >"$log" 2>&1
+            test -s "$dumps/rotation-settle.wram.bin"
+          }
+
+          pids=()
+          for kind in left right control x; do
+            run_native_case "$kind" &
+            pids+=("$!")
           done
+          failed=0
+          for pid in "${pids[@]}"; do
+            if ! wait "$pid"; then failed=1; fi
+          done
+          for kind in left right control x; do cat "$RUNNER_TEMP/native-rotation-${kind}.log"; done
+          test "$failed" -eq 0
 
       - name: Run reference rotation intervention and control
         shell: bash
@@ -133,28 +146,41 @@ jobs:
           EXE="$GITHUB_WORKSPACE/.tools/src/snesrecomp/build-snesref/snesref"
           CORE="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          for kind in left right control x; do
+          run_reference_case() {
+            local kind="$1"
+            local script
             if [ "$kind" = x ]; then
-              SCRIPT="$GITHUB_WORKSPACE/tests/input/race-zflip-x.script"
+              script="$GITHUB_WORKSPACE/tests/input/race-zflip-x.script"
             else
-              SCRIPT="$GITHUB_WORKSPACE/tests/input/race-rotation-${kind}.script"
+              script="$GITHUB_WORKSPACE/tests/input/race-rotation-${kind}.script"
             fi
-            DUMPS="$RUNNER_TEMP/reference-rotation-${kind}-dumps"
-            LOG="$RUNNER_TEMP/reference-rotation-${kind}.log"
-            TRACE_ARGS=()
+            local dumps="$RUNNER_TEMP/reference-rotation-${kind}-dumps"
+            local log="$RUNNER_TEMP/reference-rotation-${kind}.log"
+            local trace_args=()
             if [ "$kind" = x ] || [ "$kind" = control ]; then
-              TRACE_ARGS=(env "SNESREF_TRACE_FILE=$RUNNER_TEMP/reference-rotation-${kind}-wram.jsonl")
+              trace_args=(env "SNESREF_TRACE_FILE=$RUNNER_TEMP/reference-rotation-${kind}-wram.jsonl")
             fi
-            mkdir -p "$DUMPS"
-            "${TRACE_ARGS[@]}" env SNESREF_HEADLESS=1 \
+            mkdir -p "$dumps"
+            "${trace_args[@]}" env SNESREF_HEADLESS=1 \
             SNESREF_FAST=1 \
             SNESREF_WRAM_FILL=0 \
-            SNESREF_SCRIPT="$SCRIPT" \
-            SNESREF_DUMP_DIR="$DUMPS" \
-              "$EXE" "$CORE" "$ROM" >"$LOG" 2>&1
-            cat "$LOG"
-            test -s "$DUMPS/rotation-settle.wram.bin"
+            SNESREF_SCRIPT="$script" \
+            SNESREF_DUMP_DIR="$dumps" \
+              "$EXE" "$CORE" "$ROM" >"$log" 2>&1
+            test -s "$dumps/rotation-settle.wram.bin"
+          }
+
+          pids=()
+          for kind in left right control x; do
+            run_reference_case "$kind" &
+            pids+=("$!")
           done
+          failed=0
+          for pid in "${pids[@]}"; do
+            if ! wait "$pid"; then failed=1; fi
+          done
+          for kind in left right control x; do cat "$RUNNER_TEMP/reference-rotation-${kind}.log"; done
+          test "$failed" -eq 0
 
       - name: Summarize rotation semantics
         shell: bash

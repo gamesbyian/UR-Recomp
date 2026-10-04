@@ -386,14 +386,23 @@ constexpr std::uint32_t authored_saddle_color(
     int x,
     int y,
     int seat_cx,
-    int seat_cy
+    int seat_cy,
+    int radius_y
 ) noexcept {
     const int dx = x - seat_cx;
     const int dy = y - seat_cy;
     const int directional = -(dx + dy);
-    const bool underside = dy >= 6;
-    if (directional > 28 && !underside) return 0xFF454D52u;
-    if (underside) return 0xFF181E21u;
+    const int upper_shell = -(radius_y / 4);
+    const int underside_start = radius_y / 4;
+    const int lower_lip = radius_y / 2;
+
+    // Model a stable layered seat volume inside the existing silhouette:
+    // softly lit upper shell, darker sidewall, recessed underside and a
+    // narrow lower lip. No occupied pixels are added or removed.
+    if (dy <= upper_shell && directional > 18) return 0xFF454D52u;
+    if (dy >= lower_lip) return 0xFF111719u;
+    if (dy >= underside_start) return 0xFF1D2529u;
+    if (directional > 28) return 0xFF384045u;
     return 0xFF262D31u;
 }
 
@@ -678,7 +687,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
         return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 128, 22);
+        return authored_saddle_color(x, y, 128, 22, 18);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 132, 60, false);
@@ -761,7 +770,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
         return authored_saddle_mount_color(y, 30);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 23);
+        return authored_saddle_color(x, y, 130, 23, 13);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 132, 60, false);
@@ -849,7 +858,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
         return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 22);
+        return authored_saddle_color(x, y, 130, 22, 12);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 134, 60, false);
@@ -942,7 +951,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
         return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 120, 22);
+        return authored_saddle_color(x, y, 120, 22, 14);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 136, 60, false);
@@ -1035,7 +1044,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
         return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 116, 22);
+        return authored_saddle_color(x, y, 116, 22, 14);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 140, 60, false);
@@ -1126,7 +1135,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 112, 26);
+        return authored_saddle_color(x, y, 112, 26, 14);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 144, 60, false);
@@ -1197,7 +1206,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
         return authored_saddle_mount_color(y, 29);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 22);
+        return authored_saddle_color(x, y, 130, 22, 12);
     }
     if (crown) return authored_frame_junction_color(x, y, 134, 60, true);
     if (fork || frame_brace || neck) return authored_blue_frame_color(x, y);
@@ -1284,7 +1293,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 26);
+        return authored_saddle_color(x, y, 130, 26, 12);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 130, 60, true);
@@ -1367,7 +1376,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
         return authored_saddle_mount_color(y, 33);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 26);
+        return authored_saddle_color(x, y, 130, 26, 14);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 126, 60, true);
@@ -1447,7 +1456,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
         return authored_saddle_mount_color(y, 37);
     }
     if (seat) {
-        return authored_saddle_color(x, y, 130, 30);
+        return authored_saddle_color(x, y, 130, 30, 12);
     }
     if (crown) {
         return authored_frame_junction_color(x, y, 124, 60, true);

@@ -80,6 +80,10 @@ Profile writes use a temporary sibling file and replace the destination only aft
 
 The native acceptance helper is deliberately process-oriented: one invocation writes a Modern profile, a fresh invocation reloads and restores the exact SRAM bytes, another decodes a real legacy global host-state profile selection and proves missing-profile defaulting, another proves malformed profile state defaults in memory while the bad file is preserved, and an Authentic invocation proves resolve/capture/save are all inert. This lands the durable seam needed for autosave/resume without yet choosing when the shipping host should capture or reapply guest SRAM. That lifecycle decision belongs to the next product slice, not to the storage codec.
 
+The runtime ownership step is now explicit as well. `native/product/host_profile_runtime.{hpp,cpp}` maps execution mode plus the active opaque profile ID to the framework save namespace. The ordinary desktop host binds that decision through `SnesDesktopHostGame.after_config`, which executes before ROM initialization and the framework's `RtlReadSram()`. Authentic mode and Modern sessions without an active profile reset to the framework's ordinary `saves` root. A Modern active profile selects `saves/profiles/<profile-id>` (with `UR_PROFILE_SAVE_ROOT` reserved as a deterministic development/acceptance override) and asks the framework to create that root before guest SRAM is loaded.
+
+This reuses SNESRecomp's existing `RtlSetSaveRoot()` contract, already designed for isolated content/netplay save namespaces, rather than copying bytes into guest SRAM after startup. Consequently profile A, profile B and Authentic do not share the same cartridge SRAM backing file. The guest still owns the exact 8 KiB contents and all medal/checksum/tour semantics; the host only chooses which profile-owned backing namespace the framework opens. This is the required isolation boundary before any Modern tour-resume repair can be allowed to write the otherwise stock-owned tour-flag table.
+
 ## Authentic versus Modern policy
 
 `ExecutionMode::Authentic` is the regression/reference policy. In this mode:

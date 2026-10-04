@@ -186,7 +186,7 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             self.assertTrue((out / "live-hd.png").is_file())
             html = (out / "index.html").read_text()
             self.assertIn("2 exact guards → 1 unique poses", html)
-            self.assertIn("Authored at gameplay footprint", html)
+            self.assertIn("After · gameplay footprint", html)
             self.assertIn("Live split-screen reference", html)
             self.assertIn("Alpha mismatch", html)
             self.assertIn('x="2" y="3"', html)

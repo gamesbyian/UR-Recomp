@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -64,6 +64,9 @@ typedef struct SnesDesktopHostFrameStats {
+@@ -64,4 +64,6 @@ typedef struct SnesDesktopHostFrameStats {
    double run_seconds;        /* since the main loop started */
    double guest_seconds;      /* wall time RtlRunFrame took for this frame */
    int audio_output_rate;     /* device rate, 0 when audio is disabled */
@@ -9,7 +9,7 @@
  } SnesDesktopHostFrameStats;
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3820,10 +3820,10 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3820,10 +3820,11 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
      if (game->before_run_frame) game->before_run_frame();
      g_audio_producer_active = paced_realtime && g_audio_device != 0;
 +    const uint32 resolved_controller_word =

@@ -4,10 +4,10 @@ namespace ur::title {
 namespace {
 
 constexpr std::size_t kWramTourRow = 0x00D0;
-constexpr std::size_t kWramRiderIndex = 0x017D;
+constexpr std::size_t kSramRiderIndex = 0x0748;
 constexpr std::size_t kSramMedalBase = 0x069C;
 constexpr std::size_t kSramTourFlagsBase = 0x1075;
-constexpr std::size_t kWramPlayMode = 0x10AD;
+constexpr std::size_t kSramPlayMode = 0x10AD;
 constexpr std::uint8_t kTourPlayMode = 1;
 constexpr std::size_t kRiderCount = 16;
 constexpr std::size_t kTourCount = 9;
@@ -51,15 +51,16 @@ std::optional<TourProgress> observe_tour_progress(
     const std::uint8_t* sram,
     std::size_t sram_size) noexcept {
     if (!wram || !sram ||
-        wram_size <= kWramPlayMode) {
+        wram_size <= kWramTourRow ||
+        sram_size <= kSramPlayMode) {
         return std::nullopt;
     }
-    if (wram[kWramPlayMode] != kTourPlayMode) {
+    if (sram[kSramPlayMode] != kTourPlayMode) {
         return std::nullopt;
     }
 
     TourProgress out;
-    out.rider_index = wram[kWramRiderIndex];
+    out.rider_index = sram[kSramRiderIndex];
     out.tour_row = wram[kWramTourRow];
     if (out.rider_index >= kRiderCount || out.tour_row >= kTourCount) {
         return std::nullopt;

@@ -69,6 +69,11 @@ class WidescreenProductParityTests(unittest.TestCase):
         ok = compare_wram(self.root / "a.bin", self.root / "b.bin")
         self.assertEqual(ok["lane_differences"], 2)
         self.assertEqual(ok["leaked_bytes"], 0)
+        b[0x0069] = 4      # documented run-variant accumulator
+        (self.root / "b.bin").write_bytes(b)
+        variant = compare_wram(self.root / "a.bin", self.root / "b.bin")
+        self.assertEqual(variant["leaked_bytes"], 0)
+        self.assertEqual(variant["run_variant_differences"], ["0x00069"])
         b[0x2049] = 3      # BG1 scroll HDMA table: presentation leak
         (self.root / "b.bin").write_bytes(b)
         leak = compare_wram(self.root / "a.bin", self.root / "b.bin")

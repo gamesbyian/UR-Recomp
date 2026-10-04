@@ -82,6 +82,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "uniracers_modern_host.cpp",
             "uniracers_restart_policy.cpp",
             "uniracers_run_data.cpp",
+            "uniracers_ws_margins.c",
         ):
             self.assertIn(name, patched)
         self.assertIn("# UR_MODERN_PRODUCT_HOST", patched)

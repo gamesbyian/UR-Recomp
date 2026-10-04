@@ -97,6 +97,21 @@ static int ur_ws_native_margin(void) {
   return ur_ws_native_margin_cache;
 }
 
+/* URRECOMP_WS_GUEST_LANE=0 keeps the second pass (materializer calibration
+ * and traces) but never exposes its payload to the descriptor lane, so the
+ * guest VRAM ring is written exactly as in stock. The product sets it: its
+ * margins are presented host-side (native/title/uniracers_ws_margins.c),
+ * and the lane's hypothetical-camera column can clobber visible stock rows
+ * (R-2026-10-04-UI-29). Probes leave it unset to keep the accepted lane. */
+static int ur_ws_native_guest_lane_cache = -1;
+static int ur_ws_native_guest_lane(void) {
+  if (ur_ws_native_guest_lane_cache < 0) {
+    const char *s = getenv("URRECOMP_WS_GUEST_LANE");
+    ur_ws_native_guest_lane_cache = (s && strcmp(s, "0") == 0) ? 0 : 1;
+  }
+  return ur_ws_native_guest_lane_cache;
+}
+
 static int ur_ws_native_trace(void) {
   if (ur_ws_native_trace_cache < 0) {
     const char *s = getenv("URRECOMP_WS_NATIVE_TRACE");
@@ -440,7 +455,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       }
     }
 
-    if (p1_valid) {
+    if (p1_valid && ur_ws_native_guest_lane()) {
       ur_ws_native_write16(cpu, 0x0509, p1_second_edge);
       ur_ws_native_write16(cpu, 0x052f, p1_second_count);
       memcpy(cpu->ram + p1_dst, ur_ws_native_vs_p1_future_payload, 16);
@@ -455,7 +470,7 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
                 (unsigned)p1_second_edge, (unsigned)p1_second_count,
                 (unsigned)p1_dst);
     }
-    if (p2_valid) {
+    if (p2_valid && ur_ws_native_guest_lane()) {
       ur_ws_native_write16(cpu, 0x050b, p2_second_edge);
       ur_ws_native_write16(cpu, 0x0531, p2_second_count);
       memcpy(cpu->ram + p2_dst, ur_ws_native_vs_p2_future_payload, 16);
@@ -531,11 +546,13 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       second_edge == 0xffff || second_count != 16)
     return;
 
-  ur_ws_native_write16(cpu, 0x0509, second_edge);
-  ur_ws_native_write16(cpu, 0x052f, second_count);
-  memcpy(cpu->ram + 0x0453, ur_ws_native_future_payload,
-         sizeof(ur_ws_native_future_payload));
-  ur_ws_native_payload_live = 1;
+  if (ur_ws_native_guest_lane()) {
+    ur_ws_native_write16(cpu, 0x0509, second_edge);
+    ur_ws_native_write16(cpu, 0x052f, second_count);
+    memcpy(cpu->ram + 0x0453, ur_ws_native_future_payload,
+           sizeof(ur_ws_native_future_payload));
+    ur_ws_native_payload_live = 1;
+  }
 
   const int margin = ur_ws_native_margin();
   ur_ws_native_shadow_live_count = 0;

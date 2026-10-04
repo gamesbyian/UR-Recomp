@@ -2399,4 +2399,20 @@ Until then, use historical movies event-relatively, as WORK-QUEUE P0 item 1 alre
 
 **Second finding:** the host-owned "+16..+72" columns (`ur_ws_native_shadow_payload`, `ur_ws_native_vs_shadow_payload`) are computed and traced but **never consumed**. Margins beyond the +8 lane show whatever the 512-px VRAM ring holds. "Validated capacity through +72" (and VS through +48) therefore means the materializer can *compute* calibrated columns, not that the product *presents* them.
 
-**Next:** present the materialized columns through the framework's world-keyed `ws_shadow` store (`WsShadowPrefillTile`/`ForceTile`, already used by other titles for exactly this case), and retire the guest VRAM lane so the stock ring is never written. Gate it with the parity oracle at the race-start checkpoint plus a margin-correctness check. Do not promote VS to world-expand until that holds.
+**Follow-up (same day, same PR):** the margins are now presented host-side, and the product no longer writes the guest lane.
+
+- **Course mapping.** Every BG1 tilemap entry is a pure function of its 16-px course cell in the live `$7F` tables. Offline, all 255 visible entries match at both 1P checkpoints, with BG1 world = scroll + (832, 544) px (cell offset 52, 34). `native/title/uniracers_ws_margins.c` derives that offset at runtime by matching the live view, failing closed on ambiguity or mismatch. It then registers BG1 in the framework's world-keyed `ws_shadow` store and prefills margin cells from course data.
+- **Guest lane switch.** The product sets `URRECOMP_WS_GUEST_LANE=0`, so the hook keeps its second pass for calibration and traces but never exposes the payload. Probes are unchanged.
+
+**Result (local, 1P route frames 1030-1945):**
+- all 916 race frames are centre-identical to stock, up from 716;
+- the parity oracle accepts both the race-start and after-scroll checkpoints;
+- the presenter calibrated once (offset 52, 34) and never lost lock;
+- the margins show continuous course art;
+- VS (still centred) is now stock-identical in pixels and WRAM at 1240/1340/1620.
+
+Native smoke gates all of this.
+
+**Still open:**
+- **Split-screen.** Ordinary 2P and VS carry two BG1 scroll origins per frame (top and bottom viewports), which one world-keyed `ws_shadow` layer cannot hold. Ordinary 2P margins therefore remain unpresented (stale ring content beyond the stock view), and VS stays centred. A per-viewport presenter is the next Widescreen step.
+- **Run-variant byte.** `$0069` (82:8082 accumulator) is classified as run-variant per R-SEED-018 and excluded from the leak count.

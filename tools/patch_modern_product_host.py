@@ -130,6 +130,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + "\n"
         + f'    "{title_dir}/uniracers_restart_policy.cpp"\n'
         + f'    "{title_dir}/uniracers_run_data.cpp"\n'
+        + f'    "{title_dir}/uniracers_ws_margins.c"\n'
         + ")\n"
     )
 

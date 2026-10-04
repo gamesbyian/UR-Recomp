@@ -25,6 +25,11 @@ on:
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
+      - "native/title/uniracers_ws_margins.*"
+      - "tests/native/uniracers_ws_margins_test.c"
+      - "tests/unit/test_uniracers_ws_margins_c.py"
+      - "tests/input/vs-first-race.input"
+      - "tests/input/vs-first-race-observe.script"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-exit-frontend-results.script"
@@ -354,7 +359,8 @@ jobs:
           # The widened view may add side columns only: its authored 256-wide
           # centre must equal the matched Original-view frame, and guest WRAM
           # may differ only inside the guest +8 lane.
-          python3 -m unittest tests.unit.test_check_widescreen_product_parity
+          python3 -m unittest tests.unit.test_check_widescreen_product_parity \
+            tests.unit.test_uniracers_ws_margins_c
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
@@ -382,8 +388,46 @@ jobs:
           python3 tools/check_widescreen_product_parity.py \
             --stock-dumps "$ROOT/dumps" \
             --wide-dumps "$RUNNER_TEMP/widescreen-product/dumps" \
+            --checkpoint ws-product-race \
             --checkpoint ws-product-after-scroll \
             --out "$RUNNER_TEMP/widescreen-product-parity.json"
+
+          # Margins are presented host-side from the course model, which must
+          # lock onto the live view and hold it for the whole route.
+          WIDE_LOG="$RUNNER_TEMP/widescreen-product/run.log"
+          grep -q "URWS_MARGINS CALIBRATED" "$WIDE_LOG"
+          if grep -q "URWS_MARGINS LOST" "$WIDE_LOG"; then
+            grep "URWS_MARGINS" "$WIDE_LOG"
+            echo "::error::Widescreen margin presenter lost its course calibration"
+            exit 1
+          fi
+
+          # VS stays centred, and the product never writes the guest lane, so
+          # the persisted 16:9 setting must leave VS frames and WRAM stock.
+          VS_INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
+          VS_SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
+          for view in original 16x9; do
+            OUT="$RUNNER_TEMP/widescreen-product-vs-$view"
+            mkdir -p "$OUT/dumps"
+            sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_HOST_STATE_PATH="$OUT/state.txt" \
+            URRECOMP_WS_NATIVE_TRACE=1 \
+            SNESRECOMP_INPUT_FILE="$VS_INPUT" \
+            SNESRECOMP_DUMP_DIR="$OUT/dumps" \
+            SDL_AUDIODRIVER=dummy \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$VS_SCRIPT" \
+              >"$OUT/run.log" 2>&1
+          done
+          grep -q "URWS_VS_MATERIALIZER margin=48 player=1 calibrated=1" \
+            "$RUNNER_TEMP/widescreen-product-vs-16x9/run.log"
+          python3 tools/check_widescreen_product_parity.py \
+            --stock-dumps "$RUNNER_TEMP/widescreen-product-vs-original/dumps" \
+            --wide-dumps "$RUNNER_TEMP/widescreen-product-vs-16x9/dumps" \
+            --checkpoint vs-race-1240 \
+            --checkpoint vs-race-1340 \
+            --checkpoint vs-race-1620 \
+            --out "$RUNNER_TEMP/widescreen-product-vs-parity.json"
 
       - name: Build display-geometry review
         shell: bash

@@ -30,6 +30,13 @@ except ModuleNotFoundError:
 # P1/P2 staging as well).
 ALLOWED_WRAM_RANGES = ((0x0399, 0x03E0), (0x0433, 0x04B6))
 
+# Bytes that differ between otherwise matched native runs regardless of
+# Widescreen. They are reported, never counted as leaks.
+#   $0069: accumulator written by 82:8082 through the $0063 long pointer;
+#          already run-variant between matched native routes before any
+#          input divergence (RESEARCH-LEDGER R-SEED-018).
+RUN_VARIANT_WRAM = (0x0069,)
+
 
 def read_bmp(path: Path) -> tuple[int, int, list[bytes]]:
     raw = path.read_bytes()
@@ -94,16 +101,20 @@ def compare_wram(stock: Path, wide: Path) -> dict[str, Any]:
     b = wide.read_bytes()
     leaks = []
     lane = 0
+    run_variant = []
     for addr in range(min(len(a), len(b))):
         if a[addr] == b[addr]:
             continue
         if allowed(addr):
             lane += 1
+        elif addr in RUN_VARIANT_WRAM:
+            run_variant.append(addr)
         else:
             leaks.append(addr)
     return {
         "sizes": [len(a), len(b)],
         "lane_differences": lane,
+        "run_variant_differences": [f"0x{x:05X}" for x in run_variant],
         "leaked_bytes": len(leaks),
         "first_leaks": [f"0x{x:05X}" for x in leaks[:16]],
     }

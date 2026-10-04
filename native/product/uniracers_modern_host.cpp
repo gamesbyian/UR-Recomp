@@ -103,6 +103,7 @@ bool modern_mode() {
 }
 
 void ensure_product_state();
+void product_diagnostic(const char* message);
 void apply_profile_save_root() {
     ensure_product_state();
 

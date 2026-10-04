@@ -1,5 +1,6 @@
 #include "completed_run_store.hpp"
 
+#include <algorithm>
 #include <chrono>
 #include <filesystem>
 #include <iomanip>

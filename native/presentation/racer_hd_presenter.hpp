@@ -1089,6 +1089,8 @@ void racer_hd_prepare_frame(
     int* frame_h
 ) noexcept;
 
+int racer_hd_presentation_scale() noexcept;
+
 void racer_hd_begin_sim_frame(unsigned number) noexcept;
 
 int racer_hd_draw_frame(

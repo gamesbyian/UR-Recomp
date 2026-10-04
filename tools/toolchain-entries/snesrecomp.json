@@ -71,7 +71,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-console-reset-request.patch",
-      "sha256": "624be318ed2a4857147ab46144893925505c2c43b32080a811b31abb06e3ce07"
+      "sha256": "b217cd813fa28211bbd4c07060ed6179cdc45cd42c499ffa02de3d2b28ef5d9e"
     }
   ],
   "purpose": "Pinned SNESRecomp framework staged from the repository-owned source archive. UR-Recomp's permanent native build uses host SDL2, disables SDL3 source fetching, carries narrow project patches for exact neutral controller-stream replay and modern host integration, exposes the existing host-owned pause gate and live renderer VSync and desktop display-mode policy plus normalized active-monitor mode enumeration/application for modern product settings, adds an optional title-owned presentation-density callback for host-only HD composition, and exposes the framework's guest-frame APU timing lock needed by deterministic host-owned race restart. It also exposes a deferred full-session reboot seam that durably publishes SRAM and rebuilds the guest through title session_reset, snes_free + SnesInit, and RtlReadSram.",

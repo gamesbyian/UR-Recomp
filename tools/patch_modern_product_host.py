@@ -121,6 +121,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "completed_run_capture.cpp",
         "completed_run_comparison.cpp",
         "completed_run_store.cpp",
+        "completed_run_ghost.cpp",
         "session_control.cpp",
         "session_runtime_adapter.cpp",
         "race_restart_anchor.cpp",

@@ -205,6 +205,27 @@ jobs:
             tail -n 12 "$PRESENTS"
           fi
 
+      - name: Desktop output-mode capability acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/display-caps.log"
+
+          UR_DISPLAY_CAPS_DIAGNOSTICS=1 \
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_RUN_FRAMES=5 \
+          timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -Eq "UR_DISPLAY_CAPS modes=[1-9][0-9]* " "$LOG"
+          grep -q "native_ok=1" "$LOG"
+          grep -q "first_ok=1" "$LOG"
+          grep -q "apply_ok=1" "$LOG"
+          grep -Eq "native=[1-9][0-9]*x[1-9][0-9]*@[0-9]+" "$LOG"
+          grep -Eq "first=[1-9][0-9]*x[1-9][0-9]*@[0-9]+" "$LOG"
+
       - name: Deterministic native input route
         shell: bash
         run: |

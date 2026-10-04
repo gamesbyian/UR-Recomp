@@ -166,6 +166,38 @@ constexpr bool is_authored_057d_p1_with_p2_0543_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0543_p2_057d_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0543 &&
+           s.p1_primary == 0x057D &&
+           s.p2_primary == 0x0543 &&
+           s.p1_companion == 0x0D48 &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
+constexpr bool is_authored_0543_p2_057e_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0543 &&
+           s.p1_primary == 0x057E &&
+           s.p2_primary == 0x0543 &&
+           s.p1_companion == 0x0D49 &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr bool is_authored_0542_p2_companion_0d2c_registration(
     const RacerRegistration& registration
 ) noexcept {
@@ -902,6 +934,67 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     return 0;
 }
 
+constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
+    int x,
+    int y,
+    bool hflip,
+    bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) {
+        return 0;
+    }
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    const int wheel_cx = 116;
+    const int wheel_cy = 120;
+    const int wx = x - wheel_cx;
+    const int wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 36 * 36 && wr2 >= 25 * 25;
+    const bool rim = wr2 < 25 * 25 && wr2 >= 22 * 22;
+    const bool hub = wr2 <= 5 * 5;
+
+    const int fork_center = 116 - (y - 60) / 11;
+    const bool fork =
+        y >= 60 && y <= 117 &&
+        x >= fork_center - 5 && x <= fork_center + 5;
+    const bool crank =
+        y >= 116 && y <= 123 &&
+        x >= 101 && x <= 130;
+    const bool pedal =
+        y >= 113 && y <= 118 &&
+        x >= 131 && x <= 135;
+
+    const int seat_dx = x - 130;
+    const int seat_dy = y - 30;
+    const bool seat =
+        (seat_dx * seat_dx) * 12 * 12 +
+            (seat_dy * seat_dy) * 35 * 35 <=
+            35 * 35 * 12 * 12 &&
+        y >= 16 && y <= 40;
+
+    const bool neck =
+        y >= 30 && y <= 60 &&
+        x >= 114 && x <= 122;
+    const int crown_dx = x - 124;
+    const int crown_dy = y - 60;
+    const bool crown =
+        crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+
+    if (hub || rim || crank || pedal) return authored_metal_color(x, y);
+    if (seat) {
+        const int seat_light = (255 - x) + (255 - y);
+        return seat_light > 350 ? 0xFF41474Bu : 0xFF20272Bu;
+    }
+    if (fork || neck || crown) return authored_blue_frame_color(x, y);
+    if (tire) {
+        const int tire_light = (255 - x) + (255 - y);
+        return tire_light > 310 ? 0xFF353C40u : 0xFF171D20u;
+    }
+    return 0;
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -931,6 +1024,12 @@ constexpr std::uint32_t sample_racer_hd_asset(
         is_authored_0542_p2_companion_0d4a_registration(registration)
     ) {
         return sample_racer_hd_authored_0542_p2(x, y, hflip, vflip);
+    }
+    if (
+        is_authored_0543_p2_057d_registration(registration) ||
+        is_authored_0543_p2_057e_registration(registration)
+    ) {
+        return sample_racer_hd_authored_0543_p2(x, y, hflip, vflip);
     }
     if (is_authored_0541_p1_companion_0d2d_registration(registration)) {
         return sample_racer_hd_authored_0541_p1_companion_0d2d(

@@ -68,6 +68,9 @@ static uint16 ur_ws_native_vs_p2_payload_addr = 0;
 static unsigned ur_ws_native_vs_p1_payload_len = 0;
 static unsigned ur_ws_native_vs_p2_payload_len = 0;
 static int ur_ws_native_vs_payload_live = 0;
+static uint8 ur_ws_native_vs_shadow_payload[2][16];
+static uint16 ur_ws_native_vs_shadow_edge[2];
+static int ur_ws_native_vs_materializer_match[2];
 #define UR_WS_NATIVE_MAX_HOST_COLUMNS 8u
 static uint8 ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32];
 static uint16 ur_ws_native_shadow_edge[UR_WS_NATIVE_MAX_HOST_COLUMNS];
@@ -148,6 +151,90 @@ static int ur_ws_native_vertical_fine_y(CpuState *cpu) {
   return candidate;
 }
 
+static int ur_ws_native_vs_vertical_fine_y(CpuState *cpu, unsigned player) {
+  const uint16 camy = ur_ws_native_read16(cpu, player ? 0x041f : 0x041d);
+  const uint16 edgey = ur_ws_native_read16(cpu, player ? 0x050f : 0x050d);
+  const uint16 county =
+      (uint16)(ur_ws_native_read16(cpu, player ? 0x0535 : 0x0533) +
+               ur_ws_native_read16(cpu, player ? 0x0539 : 0x0537));
+  if (edgey == 0xffff || county == 0)
+    return (int)(camy >> 4);
+
+  const uint16 phase = (uint16)(((edgey & 0x001fu) + 2u) & 0x001fu);
+  const uint16 approx = (uint16)((camy + 4u) >> 4);
+  int candidate = (int)((approx & 0xffe0u) | phase);
+  while (candidate - (int)approx > 16)
+    candidate -= 32;
+  while ((int)approx - candidate > 16)
+    candidate += 32;
+  return candidate;
+}
+
+/* Split-screen uses 8-word vertical strips. Depth 0 reproduces the accepted
+ * second A59E pass from the exact direction-dependent source coordinate;
+ * depth 1 is the first host-owned deeper course column. The accepted +8
+ * payload calibrates this live-course materializer in the same frame before
+ * any deeper column is admitted as evidence. */
+static int ur_ws_native_vs_column_from_course_adjusted(
+    CpuState *cpu, unsigned player, int depth, int y_adjust,
+    uint8 out[16]) {
+  const uint16 camx = ur_ws_native_read16(cpu, player ? 0x041b : 0x0419);
+  const int16 velocity =
+      (int16)ur_ws_native_read16(cpu, player ? 0x04f7 : 0x04f5);
+  const uint16 coarse_width = ur_ws_native_read16(cpu, 0x04f1);
+  const uint16 coarse_height = ur_ws_native_read16(cpu, 0x04f3);
+  const uint16 world_mask = ur_ws_native_read16(cpu, 0x0d49);
+  if (!coarse_width || !coarse_height || velocity == 0)
+    return 0;
+
+  /* A59E's split-screen horizontal payload path is direction-dependent.
+   * Positive motion prepares from cameraX + $0100 (wrapped by $0D49);
+   * negative motion prepares from cameraX. B27F then samples the 16-pixel
+   * course cell derived from that coordinate. Deeper host capacity advances
+   * one live course column farther in the same motion direction. */
+  uint16 source_px = camx;
+  if (velocity > 0)
+    source_px = (uint16)((camx + 0x0100u) & world_mask);
+
+  const int fine_width = (int)coarse_width * 4;
+  const int fine_height = (int)coarse_height * 4;
+  int fine_x = (int)(source_px >> 4) + (velocity > 0 ? depth : -depth);
+  while (fine_x < 0)
+    fine_x += fine_width;
+  while (fine_x >= fine_width)
+    fine_x -= fine_width;
+
+  const int fine_y0 = ur_ws_native_vs_vertical_fine_y(cpu, player) + y_adjust;
+
+  for (unsigned j = 0; j < 8; j++) {
+    const int fine_y = fine_y0 + (int)j;
+    uint16 word = 0;
+    if (fine_y >= 0 && fine_y < fine_height) {
+      const uint16 sector_x = (uint16)(fine_x >> 2);
+      const uint16 sector_y = (uint16)(fine_y >> 2);
+      const uint32 coarse_index =
+          (uint32)sector_y * (uint32)coarse_width + (uint32)sector_x;
+      const uint16 record = ur_ws_native_read16_bank(
+          cpu, 0x7f, (uint16)(0x000f + coarse_index * 2u));
+      const uint16 local =
+          (uint16)(((fine_y & 3) * 4) + (fine_x & 3));
+      const uint32 fine_addr =
+          0x800fu + (uint32)record * 32u + (uint32)local * 2u;
+      if (fine_addr <= 0xfffeu)
+        word = ur_ws_native_read16_bank(cpu, 0x7f, (uint16)fine_addr);
+    }
+    out[j * 2] = (uint8)(word & 0xff);
+    out[j * 2 + 1] = (uint8)(word >> 8);
+  }
+  return 1;
+}
+
+static int ur_ws_native_vs_column_from_course(CpuState *cpu, unsigned player,
+                                               int depth, uint8 out[16]) {
+  return ur_ws_native_vs_column_from_course_adjusted(
+      cpu, player, depth, 0, out);
+}
+
 /* Materialize one arbitrary vertical 16-cell strip directly from the live
  * course presentation tables. 7F:000F is the u16 coarse-sector index;
  * 7F:800F contains 32-byte / 4x4 fine records of packed surface words.
@@ -224,7 +311,7 @@ static int ur_ws_native_should_prepare(CpuState *cpu) {
         ur_ws_native_read16(cpu, 0x052d) == 8;
     /* The recovered VS seam is proven only for one adjacent strip. Deeper
      * split-screen materialization remains a separate discriminator. */
-    return margin == 8 && (p1 || p2);
+    return (margin == 8 || margin == 16) && (p1 || p2);
   }
 
   return ur_ws_native_read16(cpu, 0x0505) != 0xffff &&
@@ -296,6 +383,56 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
     ur_ws_native_vs_p1_payload_len = 0;
     ur_ws_native_vs_p2_payload_len = 0;
     ur_ws_native_vs_payload_live = 0;
+    ur_ws_native_vs_materializer_match[0] = 0;
+    ur_ws_native_vs_materializer_match[1] = 0;
+
+    if (p1_valid) {
+      uint8 calibrated[16];
+      if (ur_ws_native_vs_column_from_course(cpu, 0, 0, calibrated) &&
+          memcmp(calibrated, ur_ws_native_vs_p1_future_payload, 16) == 0)
+        ur_ws_native_vs_materializer_match[0] = 1;
+    }
+    if (p2_valid) {
+      uint8 calibrated[16];
+      if (ur_ws_native_vs_column_from_course(cpu, 1, 0, calibrated) &&
+          memcmp(calibrated, ur_ws_native_vs_p2_future_payload, 16) == 0)
+        ur_ws_native_vs_materializer_match[1] = 1;
+    }
+
+    if (ur_ws_native_trace()) {
+      for (unsigned player = 0; player < 2; player++) {
+        const int valid = player ? p2_valid : p1_valid;
+        const int matched = ur_ws_native_vs_materializer_match[player];
+        const uint8 *accepted =
+            player ? ur_ws_native_vs_p2_future_payload
+                   : ur_ws_native_vs_p1_future_payload;
+        if (!valid || matched)
+          continue;
+        int found_depth = -99;
+        int found_y = 0;
+        uint8 candidate[16];
+        for (int depth = -2; depth <= 3 && found_depth == -99; depth++) {
+          for (int yadj = -4; yadj <= 4; yadj++) {
+            if (ur_ws_native_vs_column_from_course_adjusted(
+                    cpu, player, depth, yadj, candidate) &&
+                memcmp(candidate, accepted, 16) == 0) {
+              found_depth = depth;
+              found_y = yadj;
+              break;
+            }
+          }
+        }
+        fprintf(stderr,
+                "URWS_VS_CALIBRATION_SEARCH margin=%d player=%u camx=%u camy=%u depth=%d yadj=%d accepted=",
+                ur_ws_native_margin(), player + 1u,
+                (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
+                (unsigned)ur_ws_native_read16(cpu, player ? 0x041f : 0x041d),
+                found_depth, found_y);
+        for (unsigned j = 0; j < 16; j++)
+          fprintf(stderr, "%02X", (unsigned)accepted[j]);
+        fprintf(stderr, "\n");
+      }
+    }
 
     if (p1_valid) {
       ur_ws_native_write16(cpu, 0x0509, p1_second_edge);
@@ -306,7 +443,8 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       ur_ws_native_vs_payload_live = 1;
       if (ur_ws_native_trace())
         fprintf(stderr,
-                "URWS_VS_PREP margin=8 player=1 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                "URWS_VS_PREP margin=%d player=1 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                ur_ws_native_margin(),
                 (unsigned)ur_ws_native_read16(cpu, 0x0419),
                 (unsigned)p1_second_edge, (unsigned)p1_second_count,
                 (unsigned)p1_dst);
@@ -320,11 +458,47 @@ static void ur_ws_native_finish_second_pass(CpuState *cpu, RecompReturn result) 
       ur_ws_native_vs_payload_live = 1;
       if (ur_ws_native_trace())
         fprintf(stderr,
-                "URWS_VS_PREP margin=8 player=2 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                "URWS_VS_PREP margin=%d player=2 camx=%u edge=%04X count=%u payload_addr=%04X\n",
+                ur_ws_native_margin(),
                 (unsigned)ur_ws_native_read16(cpu, 0x041b),
                 (unsigned)p2_second_edge, (unsigned)p2_second_count,
                 (unsigned)p2_dst);
     }
+    if (ur_ws_native_trace()) {
+      if (p1_valid)
+        fprintf(stderr, "URWS_VS_MATERIALIZER margin=%d player=1 calibrated=%d\n",
+                ur_ws_native_margin(), ur_ws_native_vs_materializer_match[0]);
+      if (p2_valid)
+        fprintf(stderr, "URWS_VS_MATERIALIZER margin=%d player=2 calibrated=%d\n",
+                ur_ws_native_margin(), ur_ws_native_vs_materializer_match[1]);
+    }
+
+    if (ur_ws_native_margin() >= 16) {
+      for (unsigned player = 0; player < 2; player++) {
+        const int valid = player ? p2_valid : p1_valid;
+        const uint16 first_edge = player ? p2_second_edge : p1_second_edge;
+        if (!valid || !ur_ws_native_vs_materializer_match[player])
+          continue;
+        if (!ur_ws_native_vs_column_from_course(
+                cpu, player, 1, ur_ws_native_vs_shadow_payload[player]))
+          continue;
+        ur_ws_native_vs_shadow_edge[player] =
+            (uint16)((first_edge & 0xffe0u) |
+                     ((first_edge + 1u) & 0x001fu));
+        if (ur_ws_native_trace()) {
+          fprintf(stderr,
+                  "URWS_VS_SHADOW16 provider=course-runtime player=%u camx=%u edge=%04X count=8 payload=",
+                  player + 1u,
+                  (unsigned)ur_ws_native_read16(cpu, player ? 0x041b : 0x0419),
+                  (unsigned)ur_ws_native_vs_shadow_edge[player]);
+          for (unsigned j = 0; j < 16; j++)
+            fprintf(stderr, "%02X",
+                    (unsigned)ur_ws_native_vs_shadow_payload[player][j]);
+          fprintf(stderr, "\n");
+        }
+      }
+    }
+
     ur_ws_native_payload_live = ur_ws_native_vs_payload_live;
     return;
   }
@@ -455,8 +629,9 @@ static void ur_ws_native_cleanup_previous_payload(CpuState *cpu) {
   ur_ws_native_payload_live = 0;
   if (ur_ws_native_trace()) {
     if (ur_ws_native_vs_payload_live)
-      fprintf(stderr, "URWS_VS_CLEANUP margin=8 p1=%u p2=%u\n",
-              ur_ws_native_vs_p1_payload_len, ur_ws_native_vs_p2_payload_len);
+      fprintf(stderr, "URWS_VS_CLEANUP margin=%d p1=%u p2=%u\n",
+              ur_ws_native_margin(), ur_ws_native_vs_p1_payload_len,
+              ur_ws_native_vs_p2_payload_len);
     else if (ur_ws_native_margin() == 8)
       fprintf(stderr, "URWS_CLEANUP margin=8\n");
     else if (ur_ws_native_margin() == 16)
@@ -593,6 +768,7 @@ def apply(gen_dir: Path) -> dict:
             "margin0_control": True,
             "margin8_hook": True,
             "vs_margin8_supported": True,
+            "vs_margin16_capacity_probe": True,
             "margin16_supported": True,
             "margin24_supported": True,
         "margin64_supported": True,
@@ -646,6 +822,7 @@ def apply(gen_dir: Path) -> dict:
         "margin0_control": True,
         "margin8_hook": True,
         "vs_margin8_supported": True,
+        "vs_margin16_capacity_probe": True,
         "margin16_supported": True,
         "margin24_supported": True,
             "margin64_supported": True,

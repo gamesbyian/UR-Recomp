@@ -140,23 +140,26 @@ scenes:
     evidence: analysis/widescreen-vs-policy-evidence.json
     accepted_probe_margin_pixels_per_side: 8
     accepted_probe_geometry: 272x224
+    validated_host_capacity_margin_pixels_per_side: 16
+    validated_host_capacity_geometry: 288x224
+    capacity_evidence: analysis/widescreen-vs-plus16-capacity-evidence.json
     full_authentic_16x9_ready: false
-    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620. The recovered mirrored 8-word schedulers feed the shared descriptor/NMI transport, and the dedicated second-pass provider now supplies one adjacent 8-word strip independently for both viewports: run 37169184941 observes both providers only in the +8 run while the host widens from 256x224 to 272x224. This admits +8 as presentation-only evidence, but final Authentic 16:9 remains centered because +48 per-viewport backing is not yet proven."
+    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620. The recovered mirrored 8-word schedulers feed the shared descriptor/NMI transport, and the dedicated second-pass provider now supplies one adjacent 8-word strip independently for both viewports: run 37169184941 observes both providers only in the +8 run while the host widens from 256x224 to 272x224. This admits +8 as presentation-only evidence. Follow-up live-course calibration proves one additional host-owned column at +16 for every observed P1/P2 preparation event with exact protected state, but final Authentic 16:9 remains centered because +48 per-viewport backing is not yet proven."
 
 next_discriminator:
-  id: vs-deeper-strip-provider
-  goal: "Extend the accepted VS +8 presentation provider beyond one adjacent 8-word strip per viewport without changing authoritative state."
+  id: vs-plus24-capacity
+  goal: "Extend the now-calibrated VS live-course capacity model from +16 to +24 without changing authoritative state."
   method:
-    - "Treat run 37169184941 and analysis/widescreen-vs-policy-evidence.json as the +8 admission baseline."
-    - "Keep the recovered P1/P2 8-word scheduler and shared descriptor/NMI transport unchanged; add only host-owned backing required for the next deeper margin."
-    - "Derive deeper payloads from live course presentation state independently for both viewports. Do not alter $0505/$0507 camera edges, $04F5/$04F7 velocities, racer state, activation, or progression."
-    - "Advance one margin step at a time and reuse the four protected VS checkpoints before considering +48 / final Authentic 16:9 composition."
+    - "Treat analysis/widescreen-vs-plus16-capacity-evidence.json and run 37173339590 as the +16 capacity baseline."
+    - "Keep the accepted +8 second-pass descriptor lane unchanged. Generate only host-owned deeper course columns from the exact direction-aware source coordinate recovered from A59E."
+    - "Require the live-course materializer to reproduce every accepted +8 P1/P2 payload event before admitting deeper capacity."
+    - "Advance one additional course column per viewport and compare matched stock/+24 protected checkpoints before any final +48 promotion."
   success:
-    - "The next deeper margin supplies deterministic additional backing for both VS viewports."
+    - "Every observed P1/P2 accepted payload event remains materializer-calibrated with zero misses."
+    - "The +24 candidate yields deterministic next-deeper host-owned payloads for both viewports."
     - "Protected racer/progress/camera-view state remains exact against stock."
-    - "No future-stock oracle or new guest-owned descriptor lane is introduced."
   stop_or_split:
-    - "If deeper backing cannot be derived from live course state per viewport, retain centered final VS composition and record +8 as the accepted diagnostic ceiling."
+    - "If calibration or +24 protected-state parity fails, retain +16 as the evidence-backed VS capacity ceiling and do not extrapolate to +48."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."

@@ -118,7 +118,8 @@ bool validate_completed_run_record(const CompletedRunRecord& record, std::string
             (input.p2_mask & ~0x0fffu) ||
             (!input.p1_mask && !input.p2_mask) ||
             input.start_frame > std::numeric_limits<std::uint64_t>::max() - input.duration ||
-            (!first && input.start_frame < previous_end)) {
+            (!first && input.start_frame < previous_end) ||
+            input.end_frame() > record.frame_count) {
             fail_detail(detail, "invalid or overlapping input run");
             return false;
         }
@@ -156,6 +157,7 @@ std::string encode_completed_run_record(const CompletedRunRecord& record) {
     payload << "course " << record.provenance.course_id << "\n";
     payload << "mode " << record.provenance.mode << "\n";
     payload << "elapsed_ticks60 " << record.elapsed_ticks60 << "\n";
+    payload << "frame_count " << record.frame_count << "\n";
     payload << "terminal_digest "
             << (record.terminal_simulation_digest.empty() ? "-" : record.terminal_simulation_digest)
             << "\n";
@@ -217,7 +219,7 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text) {
     std::string line;
     bool saw_header = false, saw_end = false;
     bool game = false, rom = false, build = false, course = false, mode = false;
-    bool elapsed = false, terminal = false;
+    bool elapsed = false, frame_count = false, terminal = false;
     while (std::getline(in, line)) {
         if (line.empty()) continue;
         std::istringstream row(line);
@@ -260,7 +262,7 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text) {
         std::string a, b, c, d, extra;
         if (key == "game" || key == "rom_sha256" || key == "build_compat" ||
             key == "course" || key == "mode" || key == "elapsed_ticks60" ||
-            key == "terminal_digest") {
+            key == "frame_count" || key == "terminal_digest") {
             if (!(row >> a) || (row >> extra)) {
                 result.status = RunRecordLoadStatus::Malformed;
                 result.detail = "malformed scalar";
@@ -274,6 +276,9 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text) {
             else if (key == "elapsed_ticks60") {
                 if (elapsed || !parse_u64(a, record.elapsed_ticks60)) goto malformed;
                 elapsed = true;
+            } else if (key == "frame_count") {
+                if (frame_count || !parse_u64(a, record.frame_count)) goto malformed;
+                frame_count = true;
             } else {
                 if (terminal) goto duplicate;
                 record.terminal_simulation_digest = a == "-" ? "" : a;
@@ -314,7 +319,7 @@ malformed:
     }
 
     if (!saw_header || !saw_end || !game || !rom || !build || !course ||
-        !mode || !elapsed || !terminal) {
+        !mode || !elapsed || !frame_count || !terminal) {
         result.status = RunRecordLoadStatus::Malformed;
         result.detail = "missing required field";
         return result;

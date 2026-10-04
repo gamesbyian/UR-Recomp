@@ -2320,3 +2320,11 @@ The VS result shows the same signature during its result build (`SNESRECOMP_TRAP
 - `tools/compare_engine_screen_text.py` now also covers `ui-records-explore`, `ui-records-submenus`, `ui-league-table` and `ui-name-league-route`. Together with the race-result and VS cases, all 36 checkpoints match snesref (`analysis/generated/native-screen-text-parity.json`).
 
 **Not covered:** `ui-stunt-result-route` and `ui-circuit-result-route` are native-calibrated (`turbo`, timed finishes) and time out on snesref, so they are not cross-engine text cases.
+
+**Addendum (full-state sweep, same 36 checkpoints):** a bounded follow-up compared raw VRAM, CGRAM, OAM and the framebuffer at every parity checkpoint. Snes9x dumps RGB565, so pixels were compared in 5-bit space with ±1 tolerance.
+- **VRAM:** byte-identical at all frontend checkpoints except one (`ui-record-group-back`, 16 bytes). The VS route has two diff regions, both outside the displayed BG data. Words `0x0DAC–0x0EB2` lie in an area no BG map or character base uses in Mode 3 with `BGxSC=02/13` and `NBA=23`. Words `0x7000+` are the second OBJ name table (`OBSEL=0x63`).
+- **Pixels:** every remaining difference is a phase of an animated element:
+  - the rotating arrow cursor (a constant 7 OAM bytes; about 400–700 pixels);
+  - the checkerboard palette cycle (8 CGRAM bytes; about 10–16k pixels);
+  - the background scroll (`ui-record-high-back`).
+- **Conclusion:** checkpoint frames differ by a small animation phase between the engines, consistent with the known host-frame anchoring offset. No content or state divergence was found. This stops here: further frame-alignment work would not change a fidelity verdict, unless a future check needs exact frontend frame identity.

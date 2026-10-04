@@ -975,13 +975,14 @@ void reconcile_tour_resume() {
     const bool settled_progress_surface =
         g_ram[0x009F] == 0xF6 ||
         g_surface == UR_UNIRACERS_RESTART_RESULTS;
-    const auto updated = settled_progress_surface
-        ? ur::title::observe_tour_progress(
-              g_ram,
-              0x20000,
-              g_sram,
-              static_cast<std::size_t>(g_sram_size))
-        : std::nullopt;
+    std::optional<ur::title::TourProgress> updated;
+    if (settled_progress_surface) {
+        updated = ur::title::observe_tour_progress(
+            g_ram,
+            0x20000,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size));
+    }
     if (updated && ur::title::valid_unfinished_tour_progress(*updated)) {
         const auto continuation = product_continuation(*updated);
         if (!g_profile_state->tour_continuation ||

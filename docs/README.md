@@ -21,6 +21,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`TOOLCHAIN.md`](TOOLCHAIN.md) | Research/development tool roles, installation policy, and selection guidance |
 | [`AI-ASSISTED-REVERSE-ENGINEERING.md`](AI-ASSISTED-REVERSE-ENGINEERING.md) | Imported AI/agent reverse-engineering workflow practices, evidence/oracle rules, and adoption guidance |
 | [`TOOL-INTEROPERABILITY.md`](TOOL-INTEROPERABILITY.md) | Tool input/output formats, verified handoffs, adapter seams, and efficient multi-tool chains |
+| [`MESEN-CDL-ADAPTER-CONTRACT.md`](MESEN-CDL-ADAPTER-CONTRACT.md) | Bounded fail-closed contract for translating Mesen CDL coverage into project-owned normalized semantics |
 | [`TOOLING-AUDIT-CLOSEOUT.md`](TOOLING-AUDIT-CLOSEOUT.md) | Remaining tooling-audit scope, priority order, transfer/defer rules, and closure condition |
 | [`THIRD-PARTY-CODE-AUDIT.md`](THIRD-PARTY-CODE-AUDIT.md) | Review status, defects, adaptation rules and promotion checklist for imported executable/source artifacts |
 | [`PERIODIC-REPOSITORY-HYGIENE.md`](PERIODIC-REPOSITORY-HYGIENE.md) | Recurring repository entropy-control procedure |
@@ -49,3 +50,4 @@ Large histories and imported sources are drill-down material, not required orien
 
 - `PLATFORM-TARGETS.md` — shipping/feasibility target matrix and host portability rules.
 - `SWITCH-HOMEBREW-PORT.md` — public-toolchain Nintendo Switch homebrew feasibility plan.
+- `WEB-HOST-FEASIBILITY.md` — bounded WebAssembly/browser host feasibility contract.

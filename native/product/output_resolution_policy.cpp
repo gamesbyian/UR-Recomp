@@ -80,6 +80,46 @@ std::vector<HostOutputResolution> build_output_resolution_choices(
     return choices;
 }
 
+HostOutputResolution select_supported_output_resolution(
+    const HostOutputResolution& requested,
+    const std::vector<HostOutputResolution>& choices) noexcept {
+    if (valid_output_resolution(requested)) {
+        const auto match = std::find(
+            choices.begin(),
+            choices.end(),
+            requested);
+        if (match != choices.end()) {
+            return *match;
+        }
+    }
+    return HostOutputResolution::native();
+}
+
+HostOutputResolution cycle_output_resolution(
+    const HostOutputResolution& current,
+    const std::vector<HostOutputResolution>& choices,
+    int delta) noexcept {
+    if (choices.empty()) {
+        return HostOutputResolution::native();
+    }
+
+    const HostOutputResolution normalized =
+        select_supported_output_resolution(current, choices);
+    auto it = std::find(choices.begin(), choices.end(), normalized);
+    std::size_t index =
+        it == choices.end()
+            ? 0u
+            : static_cast<std::size_t>(it - choices.begin());
+
+    if (delta > 0) {
+        index = (index + 1u) % choices.size();
+    } else if (delta < 0) {
+        index = (index + choices.size() - 1u) % choices.size();
+    }
+
+    return choices[index];
+}
+
 std::optional<HostOutputMode> resolve_fullscreen_output_mode(
     const HostOutputResolution& resolution,
     const std::vector<HostOutputMode>& modes,

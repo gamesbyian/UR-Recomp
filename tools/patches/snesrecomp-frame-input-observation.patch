@@ -9,7 +9,7 @@
  } SnesDesktopHostFrameStats;
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3820,10 +3820,11 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3928,10 +3928,11 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
      if (game->before_run_frame) game->before_run_frame();
      g_audio_producer_active = paced_realtime && g_audio_device != 0;
 +    const uint32 resolved_controller_word =
@@ -24,7 +24,7 @@
        else
          runahead_captured = true;   /* it rasterised the speculated frame */
      }
-@@ -3844,6 +3844,7 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3952,6 +3952,7 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
          .run_seconds = now - run_start,
          .guest_seconds = now - guest_start,
          .audio_output_rate = audio_output_rate,

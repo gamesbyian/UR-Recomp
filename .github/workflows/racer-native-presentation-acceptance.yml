@@ -180,7 +180,7 @@ jobs:
               rep for rep in dossier["representations"]
               if rep["art_review"]["authored_candidate"] is not None
           ]
-          assert len(authored) == 8
+          assert len(authored) == 9
           authored_by_id = {rep["representation_id"]: rep for rep in authored}
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
@@ -293,6 +293,22 @@ jobs:
           assert p2_baseline_review["alpha_union_pixels"] == 361
           assert abs(p2_baseline_review["alpha_iou"] - 0.7368421052631579) < 1e-12
 
+          p2_reused = authored_by_id[
+              "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference"
+          ]
+          p2_reused_candidate = p2_reused["art_review"]["authored_candidate"]
+          assert p2_reused_candidate["approval_status"] == (
+              "accepted context-safe reuse of motion-reviewed P2 baseline; not approved shipping art"
+          )
+          assert p2_reused_candidate["reuse_source_representation_id"] == (
+              "ordinary-racer-0x0540-p2-sync-reference"
+          )
+          assert p2_reused["stock_evidence"]["rgba_sha256"] == p2_baseline["stock_evidence"]["rgba_sha256"]
+          assert p2_reused["stock_evidence"]["png_sha256"] == p2_baseline["stock_evidence"]["png_sha256"]
+          assert p2_reused_candidate["rgba_sha256"] == p2_baseline_candidate["rgba_sha256"]
+          assert p2_reused_candidate["png_sha256"] == p2_baseline_candidate["png_sha256"]
+          assert p2_reused_candidate["gameplay_scale_review"] == p2_baseline_review
+
           repeated_057d = authored_by_id[
               "ordinary-racer-0x057D-p1-adjacent-reference"
           ]
@@ -311,7 +327,7 @@ jobs:
           assert repeated_057d_review["alpha_union_pixels"] == 397
           assert abs(repeated_057d_review["alpha_iou"] - 0.6196473551637279) < 1e-12
 
-          for rep in (baseline, p2_baseline, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
+          for rep in (baseline, p2_baseline, p2_reused, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
               candidate_path = (
                   pathlib.Path(sys.argv[1]).parent
                   / rep["art_review"]["authored_candidate"]["png"]

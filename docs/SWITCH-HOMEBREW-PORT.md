@@ -130,6 +130,16 @@ The host is intentionally a non-simulating skeleton. It owns the framework's tru
 
 This result closes the executable-link question: no Switch-only simulation fork is needed to combine the canonical guest and authoritative runtime into a real NRO. Gate S2 remains open for the materially harder proof: initialize the canonical ROM/runtime on Switch, execute deterministic fixture checkpoints, and match the retained event-relative simulation digests.
 
+### Gate S1.97 — canonical initialization/execution hardware probe
+
+**Build closed; hardware execution pending.** Run `37243544919` successfully regenerated the canonical Uniracers guest, embedded the verified USA ROM, linked the authoritative runtime + digest support with zero undefined symbols, and packaged the bounded S2 execution probe as a real NRO.
+
+Accepted probe NRO SHA-256: `d3f3439516379af0cac3b9d48c4118483c0dc359919d8f428c6a8fc483a3ef46`.
+
+On hardware the probe calls `RtlRegisterGame(&kGameInfo)`, then `SnesInit`, then runs exactly 120 no-input frames through `RtlRunFrame(0)`. It records the framework's existing partitioned simulation digests at frames 0, 1, 60 and 120 into `ur-recomp-s2-execution-report.txt`.
+
+CI proves generation, compilation, ROM embedding, complete link and packaging only. It does **not** prove that initialization or frame execution succeeded on Switch hardware, and it makes no deterministic-parity claim until a hardware report is compared with the retained desktop reference.
+
 ### Gate S2 — authoritative simulation
 
 Link the same generated/recompiled simulation used by desktop.

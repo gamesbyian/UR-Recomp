@@ -82,6 +82,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
     title_dir = (product_root / "native" / "title").as_posix()
     product_sources = [
         "output_resolution_policy.cpp",
+        "widescreen_output_composition.cpp",
         "host_product_state.cpp",
         "host_product_store.cpp",
         "session_control.cpp",

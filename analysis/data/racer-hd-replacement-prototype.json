@@ -241,10 +241,23 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057d_p1_with_p2_0543",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "gameplay-scale motion-review candidate; native acceptance pending",
+        "approval_status": "motion-reviewed repeated temporal pose; not approved shipping art",
         "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
-        "intent": "Represent frames 1207-1212 as one repeated P1 pose, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,3]..[43,38] and contact [69,76]."
+        "intent": "Represent frames 1207-1212 as one repeated P1 pose, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,3]..[43,38] and contact [69,76].",
+        "native_acceptance_run": 37164968261,
+        "native_acceptance_artifact_id": 11289251993,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [21, 3, 43, 38],
+          "candidate_alpha_bounds": [21, 3, 43, 38],
+          "candidate_contact_x2_y2": [69, 76],
+          "stock_opaque_pixels": 321,
+          "candidate_opaque_pixels": 322,
+          "alpha_intersection_pixels": 246,
+          "alpha_union_pixels": 397,
+          "alpha_iou": 0.6196473551637279
+        }
       }
     },
     {

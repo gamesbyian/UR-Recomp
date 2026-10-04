@@ -65,6 +65,8 @@ int main() {
     assert(ghosts.has(CompletedRunGhostKind::PersonalBest));
     assert(ghosts.record(CompletedRunGhostKind::Previous)->elapsed_ticks60 == 1150);
     assert(ghosts.record(CompletedRunGhostKind::PersonalBest)->elapsed_ticks60 == 1100);
+    assert(ghosts.stored(CompletedRunGhostKind::Previous)->path == "run-4.urrun");
+    assert(ghosts.stored(CompletedRunGhostKind::PersonalBest)->path == "run-2.urrun");
 
     const auto previous_start =
         ghosts.input_at(CompletedRunGhostKind::Previous, 0);
@@ -84,6 +86,7 @@ int main() {
     assert(!ghosts.has(CompletedRunGhostKind::Previous));
     assert(!ghosts.has(CompletedRunGhostKind::PersonalBest));
     assert(ghosts.record(CompletedRunGhostKind::Previous) == nullptr);
+    assert(ghosts.stored(CompletedRunGhostKind::Previous) == nullptr);
 
     return 0;
 }

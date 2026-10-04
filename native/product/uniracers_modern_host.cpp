@@ -10,6 +10,8 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
+#include "completed_run_ghost_trace.hpp"
+#include "completed_run_ghost_world_sample.hpp"
 #include "completed_run_record.hpp"
 #include "completed_run_store.hpp"
 #include "focus_pause_policy.hpp"
@@ -65,6 +67,7 @@ bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunGhostState g_run_ghosts;
+ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
 bool g_run_capture_previous_active;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
@@ -1191,9 +1194,28 @@ bool begin_run_record_capture(uint64_t host_frame) {
         return false;
     }
     refresh_run_ghosts(provenance);
+    (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
     return true;
+}
+
+void observe_run_ghost_trace_sample() {
+    if (!g_run_capture.capturing() ||
+        !g_run_ghost_trace_capture.capturing() ||
+        g_run_capture.captured_frames() == 0) {
+        return;
+    }
+
+    const std::uint64_t race_frame =
+        g_run_capture.captured_frames() - 1u;
+    const auto sample =
+        ur::product::read_completed_run_ghost_world_sample(
+            g_ram, 0x20000u, race_frame);
+    if (!sample || !g_run_ghost_trace_capture.observe(*sample)) {
+        g_run_ghost_trace_capture.abort_attempt();
+        product_diagnostic("UR_RUN_GHOST_TRACE SAMPLE_DISABLED");
+    }
 }
 
 void observe_run_record_split() {
@@ -1217,6 +1239,7 @@ void complete_run_record_capture() {
     if (ticks60 < 0) {
         product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
         g_run_capture.abort_attempt();
+        g_run_ghost_trace_capture.abort_attempt();
         return;
     }
 
@@ -1226,8 +1249,12 @@ void complete_run_record_capture() {
         g_run_capture.complete(static_cast<uint64_t>(ticks60));
     if (!record) {
         product_diagnostic("UR_RUN_RECORD FINALIZE_REJECTED");
+        g_run_ghost_trace_capture.abort_attempt();
         return;
     }
+
+    const auto ghost_trace =
+        g_run_ghost_trace_capture.complete(*record);
 
     std::string detail;
     std::string stored_path;
@@ -1269,22 +1296,39 @@ void complete_run_record_capture() {
         }
     }
 
+    bool ghost_trace_written = false;
+    if (ghost_trace) {
+        std::string trace_detail;
+        ghost_trace_written =
+            ur::product::save_completed_run_ghost_trace_file(
+                stored_path + ".urghost", *ghost_trace, &trace_detail);
+        if (!ghost_trace_written && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RUN_GHOST_TRACE SAVE_FAILED detail=%s\n",
+                trace_detail.c_str());
+            std::fflush(stderr);
+        }
+    }
+
     std::fprintf(
         stderr,
-        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d\n",
+        "UR_RUN_RECORD CAPTURED path=%s course=%s elapsed_ticks60=%llu origin_frame=%llu inputs=%zu splits=%zu replay_input=%d ghost_trace=%d\n",
         stored_path.c_str(),
         record->provenance.course_id.c_str(),
         static_cast<unsigned long long>(record->elapsed_ticks60),
         static_cast<unsigned long long>(g_run_capture_origin_frame),
         record->inputs.size(),
         record->splits.size(),
-        replay_written ? 1 : 0);
+        replay_written ? 1 : 0,
+        ghost_trace_written ? 1 : 0);
     std::fflush(stderr);
 }
 
 void rearm_run_capture_after_retry() {
     if (!g_run_capture.capturing()) return;
     g_run_capture.abort_attempt();
+    g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
     g_run_capture_previous_active = false;
     product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
@@ -1579,6 +1623,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
     if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
         (void)g_run_capture.observe_guest_frame(stats->controller_word);
+        observe_run_ghost_trace_sample();
     }
     if (stats && !g_run_capture_previous_active && run_active) {
         (void)begin_run_record_capture(stats->frame);
@@ -1592,6 +1637,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (decision.retire_attempt && g_run_capture.capturing()) {
         g_run_capture.abort_attempt();
+        g_run_ghost_trace_capture.abort_attempt();
     }
     g_run_capture_previous_active = run_active;
 

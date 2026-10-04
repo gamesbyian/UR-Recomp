@@ -43,7 +43,7 @@ Escalate to a Switch-specific renderer only if measured performance or unsupport
 
 ### Gate S0 — compile-only host probe
 
-**Implemented; awaiting/maintaining cross-build acceptance.** The repository-owned probe lives under `platform/switch/s0_probe/`, with its machine-readable scope in `analysis/switch-s0-contract.json` and validator in `tools/check_switch_s0_probe.py`.
+**Closed for compile/link/package feasibility.** Run `37238310723` passed the repository contract, toolchain discovery, libnx+SDL2 compile/link, ELF/NACP/NRO packaging, metadata capture and artifact upload in the pinned devkitPro container. The repository-owned probe lives under `platform/switch/s0_probe/`, with its machine-readable scope in `analysis/switch-s0-contract.json` and validator in `tools/check_switch_s0_probe.py`.
 
 The probe:
 - compiles with the dated devkitPro Switch toolchain container;
@@ -52,7 +52,7 @@ The probe:
 - contains no Uniracers ROM, generated guest code, SNESRecomp runtime or modern-product implementation;
 - retains compiler/package versions, NRO size/digest and linker map metadata as bounded CI evidence.
 
-The workflow is `.github/workflows/switch-s0-compile-probe.yml`. It runs automatically only when the S0 contract itself changes and remains manually dispatchable. A green cross-build closes S0's compile/link/package requirement only; it makes no hardware-runtime claim.
+The workflow is `.github/workflows/switch-s0-compile-probe.yml`. It runs automatically only when the S0 contract itself changes and remains manually dispatchable. That green cross-build closes S0's compile/link/package requirement only; it makes no hardware-runtime claim. Reopen S0 only if the pinned public toolchain or probe contract regresses.
 
 Exit: deterministic CI/local cross-build recipe and retained compiler/link metadata.
 

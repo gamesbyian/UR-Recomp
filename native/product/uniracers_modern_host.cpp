@@ -38,6 +38,7 @@ bool g_quit_confirm_visible;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
+unsigned g_exit_frontend_acceptance_surface_frames;
 uint32_t g_exit_frontend_expected_sram;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
@@ -450,7 +451,16 @@ void maybe_run_exit_frontend_acceptance() {
     const bool wants_results =
         std::strcmp(mode, "results") == 0 &&
         g_surface == UR_UNIRACERS_RESTART_RESULTS;
-    if (!wants_active && !wants_results) return;
+    if (!wants_active && !wants_results) {
+        g_exit_frontend_acceptance_surface_frames = 0;
+        return;
+    }
+
+    // The script must first observe and retain the same semantic surface.
+    // Waiting 90 guest frames keeps this CI-only trigger behind the script's
+    // 60-frame settled active-race checkpoint and comfortably behind the
+    // results dump, rather than rebooting underneath their prerequisite waits.
+    if (++g_exit_frontend_acceptance_surface_frames < 90) return;
 
     g_exit_frontend_acceptance_fired = true;
     const UrModernSessionResult pause_result = ur_modern_session_pause(g_session);

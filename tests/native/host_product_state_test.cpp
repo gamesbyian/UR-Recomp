@@ -24,6 +24,7 @@ int main() {
         "vsync=on\n"
         "presentation_fps=game\n"
         "output_resolution=native\n"
+        "widescreen=original\n"
         "internal_render_scale=4x\n";
     assert(encode_host_product_state(defaults) == expected_defaults);
 
@@ -36,6 +37,7 @@ int main() {
     customized.settings.presentation_fps_mode = HostPresentationFpsMode::Fps120;
     customized.settings.output_resolution =
         HostOutputResolution::explicit_size(1920, 1080);
+    customized.settings.widescreen_mode = HostWidescreenMode::Authentic16x9;
     customized.settings.internal_render_scale = HostInternalRenderScale::X2;
     const std::string encoded = encode_host_product_state(customized);
     assert(encoded ==
@@ -47,6 +49,7 @@ int main() {
         "vsync=adaptive\n"
         "presentation_fps=120\n"
         "output_resolution=1920x1080\n"
+        "widescreen=16x9\n"
         "internal_render_scale=2x\n");
 
     const auto decoded = decode_host_product_state(encoded);
@@ -71,12 +74,16 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(sparse_v6.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(sparse_v6.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(sparse_v6.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
     const std::string normalized_sparse =
         encode_host_product_state(*sparse_v6.state);
     assert(normalized_sparse.find(
         "output_resolution=native\n") != std::string::npos);
+    assert(normalized_sparse.find(
+        "widescreen=original\n") != std::string::npos);
     assert(normalized_sparse.find(
         "internal_render_scale=4x\n") != std::string::npos);
 
@@ -87,6 +94,7 @@ int main() {
         "vibration_enabled=0\n"
         "display_mode=fullscreen\n"
         "output_resolution=1280x720\n"
+        "widescreen=16x9\n"
         "internal_render_scale=3x\n");
     assert(partial_v6);
     assert(partial_v6.state->settings.display_mode == HostDisplayMode::Fullscreen);
@@ -95,6 +103,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(partial_v6.state->settings.output_resolution ==
            HostOutputResolution::explicit_size(1280, 720));
+    assert(partial_v6.state->settings.widescreen_mode ==
+           HostWidescreenMode::Authentic16x9);
     assert(partial_v6.state->settings.internal_render_scale ==
            HostInternalRenderScale::X3);
 
@@ -110,6 +120,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v1.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v1.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(legacy_v1.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
 
@@ -126,6 +138,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v2.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v2.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(legacy_v2.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
 
@@ -141,6 +155,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v3.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v3.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(legacy_v3.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
 
@@ -157,6 +173,8 @@ int main() {
            HostPresentationFpsMode::Game);
     assert(legacy_v4.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v4.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(legacy_v4.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
 
@@ -173,6 +191,8 @@ int main() {
            HostPresentationFpsMode::Fps144);
     assert(legacy_v5.state->settings.output_resolution ==
            HostOutputResolution::native());
+    assert(legacy_v5.state->settings.widescreen_mode ==
+           HostWidescreenMode::Original);
     assert(legacy_v5.state->settings.internal_render_scale ==
            HostInternalRenderScale::X4);
     assert(encode_host_product_state(*legacy_v5.state).find("UR-HOST-STATE/6\n") == 0);
@@ -196,6 +216,7 @@ int main() {
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=0x1080\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920x0\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ndisplay_mode=windowed\nvsync=on\npresentation_fps=game\noutput_resolution=1920x1080x60\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\nwidescreen=magic\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=0x\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=5x\n"));
     static_assert(internal_render_scale_value(HostInternalRenderScale::X1) == 1);

@@ -41,6 +41,7 @@ bool g_product_state_initialized;
 std::string g_product_state_path;
 std::optional<ur::product::HostProfileState> g_profile_state;
 std::string g_profile_state_path;
+bool g_profile_state_writable;
 UrModernPauseMenu g_pause_menu;
 UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
@@ -147,9 +148,16 @@ void apply_profile_save_root() {
         *g_product_state.active_profile_id);
     if (resolved) {
         g_profile_state = *resolved.state;
+        g_profile_state_writable =
+            resolved.status !=
+            ur::product::HostProfileResolveStatus::DefaultedMalformed;
+        if (!g_profile_state_writable) {
+            product_diagnostic("UR_PROFILE_STATE MALFORMED_READ_ONLY");
+        }
     } else {
         g_profile_state.reset();
         g_profile_state_path.clear();
+        g_profile_state_writable = false;
         product_diagnostic("UR_PROFILE_STATE LOAD_FAILED");
     }
 
@@ -873,8 +881,8 @@ bool profile_snapshot_matches_live_sram(
 bool save_active_profile_state(
     const std::optional<ur::product::HostTourContinuation>& continuation,
     const char* diagnostic) {
-    if (!modern_mode() || !g_profile_state || g_profile_state_path.empty() ||
-        !g_sram ||
+    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
+        g_profile_state_path.empty() || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
     }
@@ -964,11 +972,16 @@ void reconcile_tour_resume() {
     // Capture only real unfinished stock progress. A five-track completion is
     // intentionally invalid here because stock awards the medal and clears the
     // row; zero flags carry no continuation.
-    const auto updated = ur::title::observe_tour_progress(
-        g_ram,
-        0x20000,
-        g_sram,
-        static_cast<std::size_t>(g_sram_size));
+    const bool settled_progress_surface =
+        g_ram[0x009F] == 0xF6 ||
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    const auto updated = settled_progress_surface
+        ? ur::title::observe_tour_progress(
+              g_ram,
+              0x20000,
+              g_sram,
+              static_cast<std::size_t>(g_sram_size))
+        : std::nullopt;
     if (updated && ur::title::valid_unfinished_tour_progress(*updated)) {
         const auto continuation = product_continuation(*updated);
         if (!g_profile_state->tour_continuation ||

@@ -1122,16 +1122,38 @@ jobs:
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
 
+          RESULTS_STATE="$RUNNER_TEMP/exit-frontend-results-host-state.txt"
+          RESULTS_ROOT="$RUNNER_TEMP/exit-frontend-results-profile"
+          rm -rf "$RESULTS_ROOT"
+          mkdir -p "$RESULTS_ROOT"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            "$RESULTS_ROOT/save.srm"
+          cat >"$RESULTS_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=exit.results
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
           run_exit_case() {
             local NAME="$1"
             local MODE="$2"
             local SCRIPT="$3"
             local LOG="$RUNNER_TEMP/exit-frontend-${NAME}.log"
             local DUMPS="$RUNNER_TEMP/exit-frontend-${NAME}-dumps"
+            local EXTRA_ENV=()
             rm -rf "$DUMPS"
             mkdir -p "$DUMPS"
 
+            if [ "$NAME" = "results-pause" ]; then
+              EXTRA_ENV+=(
+                "UR_HOST_STATE_PATH=$RESULTS_STATE"
+                "UR_PROFILE_SAVE_ROOT=$RESULTS_ROOT"
+              )
+            fi
+
             set +e
+            env "${EXTRA_ENV[@]}" \
             SDL_AUDIODRIVER=dummy \
             UR_PRODUCT_DIAGNOSTICS=1 \
             UR_EXIT_FRONTEND_ACCEPTANCE="$MODE" \
@@ -1184,7 +1206,32 @@ jobs:
           done
           test "$failed" -eq 0
 
-          echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved"
+          grep -q "UR_PROFILE_AUTOSAVE RESULT" \
+            "$RUNNER_TEMP/exit-frontend-results-pause.log"
+          test -s "$RESULTS_ROOT/host-profile.txt"
+          python3 - "$RESULTS_ROOT/host-profile.txt" <<'PY'
+          from pathlib import Path
+          import sys
+
+          lines = Path(sys.argv[1]).read_text().splitlines()
+          fields = dict(line.split("=", 1) for line in lines[1:] if "=" in line)
+          generation = int(fields["generation"])
+          mirror = fields["stock_sram"]
+          if generation < 1:
+              raise SystemExit(f"result autosave generation did not advance: {generation}")
+          if len(mirror) != 8192 * 2:
+              raise SystemExit(f"result autosave SRAM mirror length is {len(mirror)}")
+          if fields.get("tour_resume", ""):
+              raise SystemExit(
+                  "non-qualifying hand-driven result unexpectedly created a tour continuation")
+          print(
+              "UR_PROFILE_AUTOSAVE_ACCEPTED",
+              f"generation={generation}",
+              f"mirror_bytes={len(mirror)//2}",
+          )
+          PY
+
+          echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved_result_autosaved"
 
       - name: Modern pause Quit to Desktop acceptance
         shell: bash

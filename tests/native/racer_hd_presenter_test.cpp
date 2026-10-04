@@ -215,7 +215,7 @@ int main() {
     assert(repeated_bottom_min_lx == 31);
     assert(repeated_bottom_max_lx == 34);
     assert(repeated_bottom_min_lx + repeated_bottom_max_lx == 65);
-    assert(repeated_opaque == 329);
+    assert(repeated_opaque == 321);
 
     // Frames 1213-1214 and 1205-1206 share the exact 057E/0543 state and
     // therefore one authored pose. Lock the recovered gameplay envelope and

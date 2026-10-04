@@ -108,8 +108,8 @@ jobs:
             echo "P2 live-course calibration missed at least one accepted +8 payload" >&2
             exit 1
           fi
-          grep -q "URWS_VS_SHADOW16 provider=course-runtime player=1" "$ROOT/16/run.log"
-          grep -q "URWS_VS_SHADOW16 provider=course-runtime player=2" "$ROOT/16/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player=1 depth=1" "$ROOT/16/run.log"
+          grep -q "URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player=2 depth=1" "$ROOT/16/run.log"
 
       - name: Compare protected state and geometry
         shell: bash
@@ -201,7 +201,7 @@ jobs:
                   log,
               )
               shadows=len(re.findall(
-                  rf"URWS_VS_SHADOW16 provider=course-runtime player={player}",
+                  rf"URWS_VS_SHADOW_EXT provider=course-runtime margin=16 player={player} depth=1",
                   log,
               ))
               assert vals

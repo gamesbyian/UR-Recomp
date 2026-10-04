@@ -754,7 +754,10 @@ def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> di
 
     bottom_y = max(y for _, y in candidate)
     bottom_x = [x for x, y in candidate if y == bottom_y]
-    intersection = len(candidate & stock)
+    overlap = candidate & stock
+    stock_only = sorted(stock - candidate, key=lambda p: (p[1], p[0]))
+    candidate_only = sorted(candidate - stock, key=lambda p: (p[1], p[0]))
+    intersection = len(overlap)
     union = len(candidate | stock)
     return {
         "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
@@ -766,6 +769,10 @@ def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> di
         "alpha_intersection_pixels": intersection,
         "alpha_union_pixels": union,
         "alpha_iou": intersection / union,
+        "stock_only_pixel_count": len(stock_only),
+        "candidate_only_pixel_count": len(candidate_only),
+        "stock_only_pixels": [list(point) for point in stock_only],
+        "candidate_only_pixels": [list(point) for point in candidate_only],
     }
 
 

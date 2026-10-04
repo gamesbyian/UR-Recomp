@@ -23,6 +23,7 @@ CompletedRunRecord make_record() {
         "race-1p",
     };
     record.elapsed_ticks60 = 1713;
+    record.frame_count = 168;
     record.splits = {{"half", 856}, {"finish", 1713}};
     record.inputs = recorder.inputs();
     return record;
@@ -57,6 +58,7 @@ int main(int argc, char** argv) {
             return 3;
         }
         if (loaded.record->elapsed_ticks60 != 1713 ||
+            loaded.record->frame_count != 168 ||
             loaded.record->splits.size() != 2 ||
             run_record_input_at(*loaded.record, 0).first != 0x080 ||
             run_record_input_at(*loaded.record, 120).first != 0x081 ||

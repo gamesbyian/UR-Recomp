@@ -13,8 +13,20 @@ FIELD_ANCHOR = '    .game_info           = &kGameInfo,\n'
 
 
 def patch_main_text(source: str) -> str:
-    if "ur_uniracers_modern_after_run_frame" in source:
+    if "ur_uniracers_modern_presentation_hz" in source:
         return source
+    if "ur_uniracers_modern_after_run_frame" in source:
+        overlay_anchor = (
+            "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
+        )
+        if overlay_anchor not in source:
+            raise ValueError("existing modern host overlay field not found")
+        return source.replace(
+            overlay_anchor,
+            overlay_anchor
+            + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n",
+            1,
+        )
     if INCLUDE_ANCHOR not in source:
         raise ValueError("generated host include anchor not found")
     if FIELD_ANCHOR not in source:

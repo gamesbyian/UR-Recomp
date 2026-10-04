@@ -73,6 +73,8 @@ def check(root: Path = ROOT) -> list[str]:
         errors.append("S1 Makefile must use libnx switch_rules")
     if "sdl2-config --libs" not in makefile:
         errors.append("S1 Makefile must link Switch SDL2")
+    if "-lm" not in makefile:
+        errors.append("S1 Makefile must retain libm after SDL2/Mesa static libraries")
 
     non_claims = contract.get("non_claims", [])
     if len(non_claims) < 5:

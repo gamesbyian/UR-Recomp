@@ -27,6 +27,8 @@ namespace {
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
+ur::product::HostPresentationFpsMode g_live_presentation_fps_mode =
+    ur::product::HostPresentationFpsMode::Game;
 bool g_product_state_initialized;
 std::string g_product_state_path;
 UrModernPauseMenu g_pause_menu;
@@ -97,6 +99,45 @@ int vsync_mode_value(ur::product::HostVSyncMode mode) {
     }
 }
 
+const char* presentation_fps_mode_name(
+    ur::product::HostPresentationFpsMode mode) {
+    switch (mode) {
+    case ur::product::HostPresentationFpsMode::Fps60:
+        return "60";
+    case ur::product::HostPresentationFpsMode::Fps90:
+        return "90";
+    case ur::product::HostPresentationFpsMode::Fps120:
+        return "120";
+    case ur::product::HostPresentationFpsMode::Fps144:
+        return "144";
+    case ur::product::HostPresentationFpsMode::Native:
+        return "native";
+    case ur::product::HostPresentationFpsMode::Game:
+    default:
+        return "game";
+    }
+}
+
+double presentation_fps_target(
+    ur::product::HostPresentationFpsMode mode,
+    double display_refresh) {
+    switch (mode) {
+    case ur::product::HostPresentationFpsMode::Fps60:
+        return 60.0;
+    case ur::product::HostPresentationFpsMode::Fps90:
+        return 90.0;
+    case ur::product::HostPresentationFpsMode::Fps120:
+        return 120.0;
+    case ur::product::HostPresentationFpsMode::Fps144:
+        return 144.0;
+    case ur::product::HostPresentationFpsMode::Native:
+        return display_refresh > 0.0 ? display_refresh : 60.0;
+    case ur::product::HostPresentationFpsMode::Game:
+    default:
+        return 0.0;
+    }
+}
+
 bool apply_vsync_setting(const ur::product::HostSettings& settings) {
     if (!modern_mode()) return false;
     if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
@@ -109,6 +150,35 @@ bool apply_vsync_setting(const ur::product::HostSettings& settings) {
             "UR_VSYNC APPLIED mode=%s host=%d\n",
             vsync_mode_name(settings.vsync_mode),
             snesrecomp_desktop_get_vsync());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool apply_presentation_fps_setting(
+    const ur::product::HostSettings& settings) {
+    if (!modern_mode()) return false;
+
+    g_live_presentation_fps_mode = settings.presentation_fps_mode;
+    snesrecomp_desktop_request_clock_reset();
+
+    // A decoupled presentation clock must own pacing rather than blocking in
+    // the driver. Re-applying the semantic VSync setting lets SNESRecomp's
+    // VSyncInterval() select the correct live swap interval for this mode.
+    if (!snesrecomp_desktop_set_vsync(vsync_mode_value(settings.vsync_mode))) {
+        product_diagnostic("UR_PRESENTATION_FPS APPLY_FAILED");
+        return false;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PRESENTATION_FPS APPLIED mode=%s target=%.0f decoupled=%d\n",
+            presentation_fps_mode_name(settings.presentation_fps_mode),
+            presentation_fps_target(settings.presentation_fps_mode, 0.0),
+            settings.presentation_fps_mode ==
+                    ur::product::HostPresentationFpsMode::Game
+                ? 0 : 1);
         std::fflush(stderr);
     }
     return true;

@@ -290,13 +290,20 @@ def authored_saddle_mount_contains(
 ) -> bool:
     """Mirror the native saddle/post clamp without adding occupied pixels."""
     mount_cx = (neck_min_x + neck_max_x) // 2
-    radius_x = ((neck_max_x - neck_min_x) // 2) + 2
+    radius_x = ((neck_max_x - neck_min_x) // 2) + 1
     dx = x - mount_cx
     dy = y - mount_y
     return (
-        dx * dx * 9 + dy * dy * radius_x * radius_x
-        <= radius_x * radius_x * 9
+        dx * dx * 4 + dy * dy * radius_x * radius_x
+        <= radius_x * radius_x * 4
     )
+
+
+def authored_saddle_mount_rgba(y: int, mount_y: int) -> bytes:
+    """Restrained two-tone metal shared with the native clamp treatment."""
+    if y < mount_y:
+        return _rgba32(217, 213, 208)
+    return _rgba32(159, 153, 142)
 
 
 def authored_wheel_spokes(
@@ -402,7 +409,7 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 29)
     if seat:
         return authored_saddle_rgba(x, y, 128, 22)
     if crown:
@@ -458,7 +465,7 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 30)
     if seat:
         return authored_saddle_rgba(x, y, 130, 23)
     if crown:
@@ -515,7 +522,7 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 29)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
     if crown:
@@ -575,7 +582,7 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 29)
     if seat:
         return authored_saddle_rgba(x, y, 120, 22)
     if crown:
@@ -635,7 +642,7 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 29)
     if seat:
         return authored_saddle_rgba(x, y, 116, 22)
     if crown:
@@ -695,7 +702,7 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 33)
     if seat:
         return authored_saddle_rgba(x, y, 112, 26)
     if crown:
@@ -752,7 +759,7 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 29)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
     if crown:
@@ -802,7 +809,7 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 33)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
     if crown:
@@ -856,7 +863,7 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 33)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
     if crown:
@@ -910,7 +917,7 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if saddle_mount:
-        return authored_metal_rgba(x, y)
+        return authored_saddle_mount_rgba(y, 37)
     if seat:
         return authored_saddle_rgba(x, y, 130, 30)
     if crown:

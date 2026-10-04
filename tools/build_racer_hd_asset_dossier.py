@@ -281,6 +281,24 @@ def authored_frame_junction_rgba(
     return _rgba32(201, 52, 52)
 
 
+def authored_saddle_mount_contains(
+    x: int,
+    y: int,
+    neck_min_x: int,
+    neck_max_x: int,
+    mount_y: int,
+) -> bool:
+    """Mirror the native saddle/post clamp without adding occupied pixels."""
+    mount_cx = (neck_min_x + neck_max_x) // 2
+    radius_x = ((neck_max_x - neck_min_x) // 2) + 2
+    dx = x - mount_cx
+    dy = y - mount_y
+    return (
+        dx * dx * 9 + dy * dy * radius_x * radius_x
+        <= radius_x * radius_x * 9
+    )
+
+
 def authored_wheel_spokes(
     x: int,
     y: int,
@@ -372,6 +390,10 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 128, 22, 30, 18, 12, 32)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 128, 136, 29)
+    )
     crown_dx = x - 132
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10
@@ -379,6 +401,8 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 128, 22)
     if crown:
@@ -422,6 +446,10 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 130, 23, 32, 13, 8, 34)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 128, 136, 30)
+    )
     crown_dx = x - 132
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 10 * 10
@@ -429,6 +457,8 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 23)
     if crown:
@@ -472,6 +502,10 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 124, 132, 29)
+    )
     crown_dx = x - 134
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -480,6 +514,8 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
     if crown:
@@ -526,6 +562,10 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 120, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 128, 136, 29)
+    )
     crown_dx = x - 136
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -534,6 +574,8 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 120, 22)
     if crown:
@@ -580,6 +622,10 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 116, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 132 and x <= 140
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 132, 140, 29)
+    )
     crown_dx = x - 140
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -588,6 +634,8 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 116, 22)
     if crown:
@@ -634,6 +682,10 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 112, 26, 28, 14, 12, 40)
 
     neck = y >= 30 and y <= 60 and x >= 136 and x <= 144
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 136, 144, 33)
+    )
     crown_dx = x - 144
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -642,6 +694,8 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 112, 26)
     if crown:
@@ -685,6 +739,10 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 12, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 124, 132, 29)
+    )
     crown_dx = x - 134
     crown_dy = y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
@@ -693,6 +751,8 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 22)
     if crown:
@@ -731,12 +791,18 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     seat_dx, seat_dy = x - 130, y - 26
     seat = authored_saddle_contains(x, y, 130, 26, 30, 12, 12, 40)
     neck = y >= 30 and y <= 60 and x >= 120 and x <= 128
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 120, 128, 33)
+    )
     crown_dx, crown_dy = x - 130, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
     frame_brace = authored_frame_brace(x, y, 130, 60, wheel_cx, wheel_cy)
     wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
     if crown:
@@ -777,6 +843,10 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 130, 26, 35, 14, 16, 40)
 
     neck = y >= 30 and y <= 60 and x >= 116 and x <= 124
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 116, 124, 33)
+    )
     crown_dx, crown_dy = x - 126, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
     frame_brace, wheel_spokes = authored_p2_structural_detail(
@@ -785,6 +855,8 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 26)
     if crown:
@@ -825,6 +897,10 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     seat = authored_saddle_contains(x, y, 130, 30, 35, 12, 16, 40)
 
     neck = y >= 30 and y <= 60 and x >= 114 and x <= 122
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 114, 122, 37)
+    )
     crown_dx, crown_dy = x - 124, y - 60
     crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
     frame_brace, wheel_spokes = authored_p2_structural_detail(
@@ -833,6 +909,8 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
 
     if hub or rim or crank or pedal or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_metal_rgba(x, y)
     if seat:
         return authored_saddle_rgba(x, y, 130, 30)
     if crown:

@@ -12,6 +12,10 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
+      - "analysis/widescreen-vs-plus16-capacity-evidence.json"
+      - "analysis/widescreen-policy.yml"
+      - "docs/WIDESCREEN-RECONNAISSANCE.md"
+      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-plus16-capacity-${{ github.ref }}
@@ -176,6 +180,39 @@ jobs:
               raise SystemExit("VS +16 protected state diverged")
           if not geometry_ok:
               raise SystemExit("VS +16 host geometry diverged")
+          PY
+
+      - name: Verify retained +16 capacity evidence
+        run: |
+          python3 - "$RUNNER_TEMP/widescreen-vs-plus16/16/run.log" <<'PY'
+          import json, pathlib, re, sys
+          retained=json.loads(pathlib.Path("analysis/widescreen-vs-plus16-capacity-evidence.json").read_text())
+          generated=json.loads(pathlib.Path("analysis/generated/widescreen-vs-plus16-capacity.json").read_text())
+          log=pathlib.Path(sys.argv[1]).read_text(errors="replace")
+
+          assert generated["capacity_classification"] == retained["capacity_classification"]
+          assert generated["protected_state_equal_at_all_checkpoints"] is retained["protected_state_equal_at_all_checkpoints"]
+          assert generated["control_frame_geometry"] == retained["control_frame_geometry"]
+          assert generated["plus16_frame_geometry"] == retained["plus16_frame_geometry"]
+
+          for player in (1,2):
+              vals=re.findall(
+                  rf"URWS_VS_MATERIALIZER margin=16 player={player} calibrated=(\\d)",
+                  log,
+              )
+              shadows=len(re.findall(
+                  rf"URWS_VS_SHADOW16 provider=course-runtime player={player}",
+                  log,
+              ))
+              assert vals
+              assert "0" not in vals
+              assert len(vals) == retained["calibration"][f"player{player}_events"]
+              assert vals.count("1") == retained["calibration"][f"player{player}_matches"]
+              assert shadows == retained["plus16_host_shadow_events"][f"player{player}"]
+
+          assert retained["guest_descriptor_promotion"] is False
+          assert retained["full_authentic_16x9_ready"] is False
+          print("VS_PLUS16_RETAINED_EVIDENCE_MATCH")
           PY
 
       - name: Upload compact +16 evidence

@@ -6,8 +6,8 @@ This document owns the first deliberately narrow Modern-mode continuation path f
 
 The implementation relies only on already-promoted progression facts:
 
-- one-player tour mode is runtime WRAM byte `0x10AD == 1`;
-- the selected rider index is the established runtime rider value at WRAM `0x017D`, valid for selectable riders `0..15`;
+- one-player tour mode is battery SRAM byte `0x10AD == 1`;
+- the selected P1 rider index is battery SRAM byte `0x0748`, valid for selectable riders `0..15`;
 - the selected tour row is the established runtime value at WRAM `0x00D0`, valid for rows `0..8`;
 - the active medal generation is the stock medal cell `0x069C + 16*tour + rider`, value `0..3`;
 - in-tour qualification progress is exactly five stock bytes at `0x1075 + 5*tour`;

@@ -96,7 +96,20 @@ jobs:
             test -s "$OUT/dumps/vs-race-1620.wram.bin"
             test -s "$OUT/frames/frame_001340.bmp"
           done
-          grep -q "URWS_PREP margin=8" "$ROOT/8/run.log"
+          python3 - "$ROOT/0/run.log" "$ROOT/8/run.log" analysis/generated/widescreen-vs-provider-activity.json <<'PY'
+          import json, pathlib, sys
+          control=pathlib.Path(sys.argv[1]).read_text(errors="replace")
+          widened=pathlib.Path(sys.argv[2]).read_text(errors="replace")
+          out={
+              "schema_version":1,
+              "control_preparation_hook_observed":"URWS_PREP margin=8" in control,
+              "plus8_preparation_hook_observed":"URWS_PREP margin=8" in widened,
+              "plus8_primary_trace_observed":"URWS_PRIMARY margin=8" in widened,
+          }
+          pathlib.Path(sys.argv[3]).parent.mkdir(parents=True,exist_ok=True)
+          pathlib.Path(sys.argv[3]).write_text(json.dumps(out,indent=2)+"\n")
+          print(json.dumps(out,indent=2))
+          PY
 
       - name: Compare VS protected state and viewport
         shell: bash
@@ -118,6 +131,7 @@ jobs:
           done
           python3 tools/analyze_widescreen_vs_policy.py \
             "$ROOT/0/state.json" "$ROOT/8/state.json" \
+            --provider-activity-json analysis/generated/widescreen-vs-provider-activity.json \
             --json-out analysis/generated/widescreen-vs-policy.json
 
           python3 - "$ROOT/0/frames/frame_001340.bmp" \
@@ -154,6 +168,7 @@ jobs:
           path: |
             analysis/generated/widescreen-vs-policy.json
             analysis/generated/widescreen-vs-policy-frame.json
+            analysis/generated/widescreen-vs-provider-activity.json
             ${{ runner.temp }}/widescreen-vs-policy/0/state.json
             ${{ runner.temp }}/widescreen-vs-policy/8/state.json
             ${{ runner.temp }}/widescreen-vs-policy/0/state.txt

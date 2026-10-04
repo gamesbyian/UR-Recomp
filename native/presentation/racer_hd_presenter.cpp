@@ -30,6 +30,7 @@ constexpr std::size_t kOverlayBytes =
 
 std::array<std::uint8_t, kOverlayBytes> g_obj_overlay{};
 bool g_frame_active = false;
+int g_internal_render_scale = kRacerHdDensityScale;
 unsigned g_logged_state_transitions = 0;
 const RacerRegistration* g_last_logged_p1_registration = nullptr;
 const RacerRegistration* g_last_logged_p2_registration = nullptr;
@@ -108,36 +109,26 @@ void draw_asset(
     const int out_w = kBaseWidth * scale;
     const int out_h = kBaseHeight * scale;
 
-    if (scale == kRacerHdDensityScale) {
-        for (int sy = 0; sy < kRacerHdAssetSize; ++sy) {
-            const int dy = origin_y + sy;
-            if (dy < 0 || dy >= out_h) continue;
-            auto* row = reinterpret_cast<std::uint32_t*>(
-                dst + static_cast<std::size_t>(dy) * pitch
-            );
-            for (int sx = 0; sx < kRacerHdAssetSize; ++sx) {
-                const int dx = origin_x + sx;
-                if (dx < 0 || dx >= out_w) continue;
-                const std::uint32_t px = sample_racer_hd_asset(
-                    registration, sx, sy, placement.hflip, placement.vflip
-                );
-                if ((px >> 24) != 0) row[dx] = px;
-            }
-        }
-        return;
-    }
+    if (!valid_racer_hd_internal_render_scale(scale)) return;
 
-    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
-        const int dy = static_cast<int>(placement.y_raw_8bit) + ly;
-        if (dy < 0 || dy >= kBaseHeight) continue;
+    const int scaled_asset_size = kRacerHdLogicalSize * scale;
+    for (int oy = 0; oy < scaled_asset_size; ++oy) {
+        const int dy = origin_y + oy;
+        if (dy < 0 || dy >= out_h) continue;
         auto* row = reinterpret_cast<std::uint32_t*>(
             dst + static_cast<std::size_t>(dy) * pitch
         );
-        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
-            const int dx = static_cast<int>(placement.x_signed) + lx;
-            if (dx < 0 || dx >= kBaseWidth) continue;
-            const std::uint32_t px =
-                sample_racer_hd_presented_pixel(registration, placement, dx, dy);
+        for (int ox = 0; ox < scaled_asset_size; ++ox) {
+            const int dx = origin_x + ox;
+            if (dx < 0 || dx >= out_w) continue;
+            const std::uint32_t px = sample_racer_hd_scaled_asset(
+                registration,
+                ox,
+                oy,
+                scale,
+                placement.hflip,
+                placement.vflip
+            );
             if ((px >> 24) != 0) row[dx] = px;
         }
     }
@@ -158,8 +149,18 @@ void racer_hd_prepare_frame(
     (void)frame_h;
 }
 
+bool racer_hd_set_internal_render_scale(int scale) noexcept {
+    if (!valid_racer_hd_internal_render_scale(scale)) return false;
+    g_internal_render_scale = scale;
+    return true;
+}
+
+int racer_hd_internal_render_scale() noexcept {
+    return g_internal_render_scale;
+}
+
 int racer_hd_presentation_scale() noexcept {
-    return env_enabled() && g_frame_active ? kRacerHdDensityScale : 1;
+    return env_enabled() && g_frame_active ? g_internal_render_scale : 1;
 }
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept {
@@ -277,7 +278,7 @@ int racer_hd_draw_frame(
     const int scale = racer_hd_presentation_scale();
     if (frame_w != kBaseWidth ||
         frame_h != kBaseHeight ||
-        scale != kRacerHdDensityScale ||
+        !valid_racer_hd_internal_render_scale(scale) ||
         pitch < static_cast<std::size_t>(frame_w * scale) * 4) {
         return 0;
     }

@@ -96,6 +96,14 @@ jobs:
           grep -q "URWS_VS_PREP margin=16 player=2" "$ROOT/16/run.log"
           grep -q "URWS_VS_MATERIALIZER margin=16 player=1 calibrated=1" "$ROOT/16/run.log"
           grep -q "URWS_VS_MATERIALIZER margin=16 player=2 calibrated=1" "$ROOT/16/run.log"
+          if grep -q "URWS_VS_MATERIALIZER margin=16 player=1 calibrated=0" "$ROOT/16/run.log"; then
+            echo "P1 live-course calibration missed at least one accepted +8 payload" >&2
+            exit 1
+          fi
+          if grep -q "URWS_VS_MATERIALIZER margin=16 player=2 calibrated=0" "$ROOT/16/run.log"; then
+            echo "P2 live-course calibration missed at least one accepted +8 payload" >&2
+            exit 1
+          fi
           grep -q "URWS_VS_SHADOW16 provider=course-runtime player=1" "$ROOT/16/run.log"
           grep -q "URWS_VS_SHADOW16 provider=course-runtime player=2" "$ROOT/16/run.log"
 

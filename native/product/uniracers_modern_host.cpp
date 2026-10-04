@@ -490,6 +490,7 @@ bool activate_pause_selection() {
         return true;
     }
     if (selected == UR_MODERN_PAUSE_EXIT_FRONTEND) {
+        product_diagnostic("UR_EXIT_FRONTEND SELECTED");
         return dispatch(UR_MODERN_PAUSE_ACTIVATE);
     }
     if (selected == UR_MODERN_PAUSE_RUN_DATA) {

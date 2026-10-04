@@ -2356,3 +2356,24 @@ The VS result shows the same signature during its result build (`SNESRECOMP_TRAP
 - the framework gains a per-opcode cycle-exact AOT charge mode that can be A/B'd cheaply.
 
 Until then, use historical movies event-relatively, as WORK-QUEUE P0 item 1 already directs. The circuit and stunt result screens should be text-compared natively through a native-driven route, not through the movie.
+
+### R-2026-10-04-UI-28 — persisted Widescreen reaches the +48 provider and full-width evidence
+
+**Status:** confirmed (local SDL3 run; CI `native-build-smoke` "Shipping Widescreen composition acceptance")  
+**Date:** 2026-10-04  
+**Area:** Widescreen | evidence tooling
+
+**Observation:** with `widescreen=16x9` persisted and no `URRECOMP_WS_*` env, the product widened the active 1P race to 342x224 (`prepare_frame` 342, `native_widescreen_enabled` 1). The acceptance still failed for two reasons:
+- **Provider margin stayed at 0.** The generated hook resolved it only from `URRECOMP_WS_MARGIN`/`URRECOMP_WS_VIEW`, so no `URWS_PREP_EXT margin=48` appeared.
+- **Dumps were cropped to 256.** The framework `dump` command (`write_fb`) always cropped to the centred 256 columns, so race dumps stayed 256x224.
+
+**Change:**
+- **Hook margin.** With no diagnostic selector, the hook margin now follows the host's live raster (`g_ws_extra`, framework `widescreen.h`): `ceil8(extra)`, capped at +72. The 16:9 race (+43) resolves to +48, and stock 256 frames stay at 0. The env selectors keep their exact prior meaning.
+- **Dump width.** `tools/patches/snesrecomp-native-widescreen-state-dump.patch` keeps the whole presented field in native-widescreen dumps (`256 + 2*extra`, BMP rows 4-byte padded, `info.json` `fb_width` truthful). Stock dumps (`extra == 0`) are byte-identical.
+
+**Evidence:** product acceptance script, persisted v6 state:
+- dumps: frontend 256x224, race and after-scroll 342x224;
+- traces: 638 `URWS_PREP_EXT margin=48` and 3190 `URWS_SHADOW_EXT provider=course-runtime margin=48` lines;
+- the after-scroll frame shows clean course art across the full width.
+
+**Propagation:** none of the widescreen probe workflows read `.fb.*` from `dump` (they use `--framedump`), and parity tools run at `extra == 0`. Margin changes at scene boundaries (frontend 0 → race +48) are now live; reopen if a race-entry frame shows unprepared edge columns before the first scroll.

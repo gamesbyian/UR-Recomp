@@ -1,0 +1,51 @@
+--- a/runner/src/state_dump.c
++++ b/runner/src/state_dump.c
+@@ -42,17 +42,21 @@
+ 
+ static int write_fb(const char *dir, const char *tag, const uint8_t *pixels,
+                     int pitch, int x0, int h) {
+-  const int w = 256;
++  /* x0 is the per-side native widescreen extension. Retain the whole
++   * presented field (256 + 2*x0) so evidence shows what the player saw;
++   * stock frames (x0 == 0) are byte-identical to the authentic 256 dump. */
++  const int w = 256 + 2 * (x0 > 0 ? x0 : 0);
+   uint8_t *raw = (uint8_t *)malloc((size_t)w * h * 4);
+   if (!raw) return -1;
+   for (int y = 0; y < h; y++)
+-    memcpy(raw + (size_t)y * w * 4, pixels + (size_t)y * pitch + (size_t)x0 * 4,
++    memcpy(raw + (size_t)y * w * 4, pixels + (size_t)y * pitch,
+            (size_t)w * 4);
+   int rc = write_blob(dir, tag, ".fb.bgrx", raw, (size_t)w * h * 4);
+ 
+   FILE *f = open_out(dir, tag, ".fb.bmp", "wb");
+   if (f) {
+-    const int row = w * 3;
++    /* BMP rows are 4-byte aligned; widened widths need padding. */
++    const int row = (w * 3 + 3) & ~3;
+     uint8_t hdr[54] = { 'B', 'M' };
+     put_le32(hdr + 2, 54u + (uint32_t)(row * h));
+     put_le32(hdr + 10, 54);
+@@ -63,7 +67,7 @@
+     put_le16(hdr + 28, 24);
+     put_le32(hdr + 34, (uint32_t)(row * h));
+     fwrite(hdr, 1, sizeof(hdr), f);
+-    uint8_t *line = (uint8_t *)malloc((size_t)row);
++    uint8_t *line = (uint8_t *)calloc(1, (size_t)row);
+     for (int y = h - 1; y >= 0 && line; y--) {
+       const uint8_t *s = raw + (size_t)y * w * 4;
+       for (int x = 0; x < w; x++) {
+@@ -200,11 +204,12 @@
+ 
+   FILE *f = open_out(dir, tag, ".info.json", "w");
+   if (f) {
+-    fprintf(f, "{\"frame\": %u, \"fb_width\": 256, \"fb_height\": %d, "
++    fprintf(f, "{\"frame\": %u, \"fb_width\": %d, \"fb_height\": %d, "
+                "\"pixel_format\": \"BGRX8888\", \"source\": \"snesrecomp\", "
+                "\"layer_mask\": %u, \"sram_size\": %u, "
+                "\"master_clock\": %llu, \"vpos\": %u, \"hpos\": %u}\n",
+-            frame, pixels ? height : 0, g_snes_ppu_dbg_layer_mask,
++            frame, 256 + 2 * (pixels && x0 > 0 ? x0 : 0), pixels ? height : 0,
++            g_snes_ppu_dbg_layer_mask,
+             g_snes && g_snes->cart ? g_snes->cart->ramSize : 0,
+             (unsigned long long)g_cpu.master_cycles,
+             g_snes ? (unsigned)g_snes->vPos : 0u,

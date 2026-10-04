@@ -27,4 +27,40 @@ HostOutputCompositionPlan resolve_16x9_output_composition(
     return plan;
 }
 
+void reset_widescreen_scene_state(HostWidescreenSceneState* state) noexcept {
+    if (state) {
+        state->race_mode = HostRacePresentationMode::Unknown;
+    }
+}
+
+HostSceneComposition observe_widescreen_scene(
+    HostWidescreenSceneState* state,
+    std::uint8_t race_active_state,
+    std::uint8_t frontend_state) noexcept {
+    if (state && race_active_state != 0x01) {
+        switch (frontend_state) {
+        case 0x3C:
+            state->race_mode = HostRacePresentationMode::OnePlayer;
+            break;
+        case 0x3D:
+            state->race_mode = HostRacePresentationMode::TwoPlayer;
+            break;
+        case 0x3E:
+            state->race_mode = HostRacePresentationMode::Vs;
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (race_active_state != 0x01 || !state) {
+        return HostSceneComposition::FixedCenter;
+    }
+
+    return state->race_mode == HostRacePresentationMode::OnePlayer ||
+           state->race_mode == HostRacePresentationMode::TwoPlayer
+        ? HostSceneComposition::WorldExpand
+        : HostSceneComposition::FixedCenter;
+}
+
 }  // namespace ur::product

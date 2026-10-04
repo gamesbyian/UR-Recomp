@@ -84,7 +84,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_capture.cpp",
             "completed_run_comparison.cpp",
             "completed_run_store.cpp",
-            "modern_session_c_api.cpp"
+            "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",
             "modern_options_menu.cpp",

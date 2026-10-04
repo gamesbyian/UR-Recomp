@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -398,6 +398,13 @@ static int g_rewind_hotkey;
+@@ -398,6 +398,12 @@ static int g_rewind_hotkey;
  static int g_open_launcher_hotkey;   /* in_game_launcher only */
  static uint64_t g_state_generation;
 +static int g_console_reset_requested;
@@ -12,7 +12,7 @@
  
  /* The last field actually presented, kept so an overlay can freeze the guest
   * and still have something to draw behind itself. Sized like g_my_pixels. */
-@@ -4011,6 +4018,12 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+@@ -4011,6 +4017,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
      }
      if (!running)
        break;
@@ -25,7 +25,7 @@
       * a headless screenshot can show the bar. */
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -226,6 +226,12 @@ int snesrecomp_desktop_set_display_mode(int mode);
+@@ -226,6 +226,11 @@ int snesrecomp_desktop_set_display_mode(int mode);
  int snesrecomp_desktop_get_display_mode(void);
  
 +/* Queue the framework's existing ConsoleReset() path for the next safe host

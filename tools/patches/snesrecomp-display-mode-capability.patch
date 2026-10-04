@@ -1,0 +1,156 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -409,6 +409,111 @@ int snesrecomp_desktop_get_display_mode(void) {
+   return g_config.fullscreen <= 2 ? (int)g_config.fullscreen : 0;
+ }
+ 
++static void OutputModeFromSdl(
++    const SDL_DisplayMode *mode,
++    SnesDesktopOutputMode *out) {
++  out->width = mode->w;
++  out->height = mode->h;
++#if SNESRECOMP_SDL3
++  out->refresh_millihz =
++      mode->refresh_rate > 0.0f ? (int)(mode->refresh_rate * 1000.0f + 0.5f) : 0;
++#else
++  out->refresh_millihz = mode->refresh_rate > 0 ? mode->refresh_rate * 1000 : 0;
++#endif
++}
++
++int snesrecomp_desktop_output_mode_count(void) {
++  if (!g_window) return 0;
++#if SNESRECOMP_SDL3
++  SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
++  if (!display) return 0;
++  int count = 0;
++  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &count);
++  if (!modes) return 0;
++  SDL_free(modes);
++  return count;
++#else
++  int display = SDL_GetWindowDisplayIndex(g_window);
++  if (display < 0) return 0;
++  int count = SDL_GetNumDisplayModes(display);
++  return count > 0 ? count : 0;
++#endif
++}
++
++int snesrecomp_desktop_get_output_mode(
++    int index,
++    SnesDesktopOutputMode *out) {
++  if (!g_window || !out || index < 0) return 0;
++#if SNESRECOMP_SDL3
++  SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
++  if (!display) return 0;
++  int count = 0;
++  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &count);
++  if (!modes || index >= count) {
++    if (modes) SDL_free(modes);
++    return 0;
++  }
++  OutputModeFromSdl(modes[index], out);
++  SDL_free(modes);
++  return 1;
++#else
++  int display = SDL_GetWindowDisplayIndex(g_window);
++  if (display < 0) return 0;
++  SDL_DisplayMode mode;
++  if (SDL_GetDisplayMode(display, index, &mode) != 0) return 0;
++  OutputModeFromSdl(&mode, out);
++  return 1;
++#endif
++}
++
++int snesrecomp_desktop_get_native_output_mode(
++    SnesDesktopOutputMode *out) {
++  if (!g_window || !out) return 0;
++#if SNESRECOMP_SDL3
++  SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
++  if (!display) return 0;
++  const SDL_DisplayMode *mode = SDL_GetDesktopDisplayMode(display);
++  if (!mode) return 0;
++  OutputModeFromSdl(mode, out);
++  return 1;
++#else
++  int display = SDL_GetWindowDisplayIndex(g_window);
++  if (display < 0) return 0;
++  SDL_DisplayMode mode;
++  if (SDL_GetDesktopDisplayMode(display, &mode) != 0) return 0;
++  OutputModeFromSdl(&mode, out);
++  return 1;
++#endif
++}
++
++int snesrecomp_desktop_set_output_mode(
++    const SnesDesktopOutputMode *want) {
++  if (!g_window || !want || want->width <= 0 || want->height <= 0)
++    return 0;
++#if SNESRECOMP_SDL3
++  SDL_DisplayID display = SDL_GetDisplayForWindow(g_window);
++  if (!display) return 0;
++  int count = 0;
++  SDL_DisplayMode **modes = SDL_GetFullscreenDisplayModes(display, &count);
++  if (!modes) return 0;
++  const SDL_DisplayMode *selected = NULL;
++  for (int i = 0; i < count; ++i) {
++    SnesDesktopOutputMode candidate;
++    OutputModeFromSdl(modes[i], &candidate);
++    if (candidate.width == want->width &&
++        candidate.height == want->height &&
++        candidate.refresh_millihz == want->refresh_millihz) {
++      selected = modes[i];
++      break;
++    }
++  }
++  const bool ok = selected && SDL_SetWindowFullscreenMode(g_window, selected);
++  SDL_free(modes);
++  return ok ? 1 : 0;
++#else
++  int display = SDL_GetWindowDisplayIndex(g_window);
++  if (display < 0) return 0;
++  const int count = SDL_GetNumDisplayModes(display);
++  for (int i = 0; i < count; ++i) {
++    SDL_DisplayMode mode;
++    if (SDL_GetDisplayMode(display, i, &mode) != 0) continue;
++    SnesDesktopOutputMode candidate;
++    OutputModeFromSdl(&mode, &candidate);
++    if (candidate.width == want->width &&
++        candidate.height == want->height &&
++        candidate.refresh_millihz == want->refresh_millihz)
++      return SDL_SetWindowDisplayMode(g_window, &mode) == 0 ? 1 : 0;
++  }
++  return 0;
++#endif
++}
++
+ /* Set by the hotkeys; consumed once in the frame loop. */
+ static int g_savestate_menu_hotkey;
+ static int g_rewind_hotkey;
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -226,5 +226,22 @@ int snesrecomp_desktop_set_display_mode(int mode);
+ int snesrecomp_desktop_get_display_mode(void);
+ 
++/* Active-monitor fullscreen capability. The host normalizes SDL2/SDL3 mode
++ * enumeration so title/product code never depends on SDL's version-specific
++ * display identifiers or mode ownership rules. refresh_millihz is zero when
++ * the platform does not report a refresh rate. The setter accepts only an
++ * exact mode returned by this API; it configures the mode used by exclusive
++ * fullscreen and does not itself change the window's fullscreen state. */
++typedef struct SnesDesktopOutputMode {
++  int width;
++  int height;
++  int refresh_millihz;
++} SnesDesktopOutputMode;
++int snesrecomp_desktop_output_mode_count(void);
++int snesrecomp_desktop_get_output_mode(
++    int index,
++    SnesDesktopOutputMode *out);
++int snesrecomp_desktop_get_native_output_mode(
++    SnesDesktopOutputMode *out);
++int snesrecomp_desktop_set_output_mode(
++    const SnesDesktopOutputMode *mode);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);

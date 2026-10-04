@@ -143,17 +143,11 @@ scenes:
     rationale: "VS uses the same split-screen BG1 band structure as ordinary 2P and widens through the same per-viewport course-model margin presenter. Matched Original/16:9 product runs keep the centred 256 columns pixel-identical and guest WRAM confined to the guest-lane ranges at checkpoints 1240/1340/1620 (R-2026-10-04-UI-30). The earlier +8..+48 VS capacity files remain historical evidence that the materializer computes calibrated columns; they never measured presentation."
 
 next_discriminator:
-  id: widescreen-sprite-margins
-  goal: "Decide whether objects and opponents entering the right-hand widened margin must be presented before stock would show them."
-  evidence_so_far: "Left margin is already correct: on the 1P widescreen-product-acceptance route the CPU opponent sits 1..43 px left of the stock view for frames 1606-1796 (191/916 race frames), and the widened frames draw it there, because the game emits 9-bit negative OAM X and the wide renderer honours it. A racer 1..43 px right of the view would need OAM X 256..298, which 9-bit OAM aliases to the far left, so right-margin presentation depends on the game's projection/culling in Race_BuildRacerOAMState (82:ACA5); no retained route has the opponent leading inside that band yet."
-  method:
-    - "Use the stock-parity oracle (tools/check_widescreen_product_parity.py) as the fixed guard: the authored 256 columns and guest WRAM must not change."
-    - "Find or record a route where the opponent leads the camera by 1..43 px, then check whether the widened frame shows it in the right margin."
-    - "Coordinate with the Racer HD presenter lane (native/presentation/racer_hd_presenter.hpp) before adding any host OAM extension: both own racer sprite composition."
-  success:
-    - "A per-object decision (present via host OAM extension, or accept culling) backed by matched-route evidence."
-  stop_or_split:
-    - "If margin omissions are rare and cosmetic, record them and keep the current BG-only margin presentation."
+  id: none-open-for-race-margins
+  decided: widescreen-sprite-margins
+  decision: "Accept stock racer culling at the right edge; keep BG-only host margin presentation."
+  evidence: "Left margin needs nothing: on the 1P acceptance route the CPU opponent spends 191/916 race frames 1..43 px left of the view and is drawn there via 9-bit negative OAM X. Right margin is rare and transient: frames 1000-6000 of the two-player-p1-win route put a racer 1..43 px right of the other viewport on only 3 consecutive frames (1350-1352, race-start camera transition, ~14 px/frame). BG2 needs nothing either: its 64x64 8x8 tilemap (BG2SC $73) is static across the race (0/4096 words change between race start and after-scroll), so VRAM wrap is world wrap."
+  reopen_when: "A retained route shows a racer or gameplay object sustained inside the right margin band, or the Racer HD presenter lane introduces host OAM composition that can extend culling cheaply."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."

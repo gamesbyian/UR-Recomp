@@ -2440,5 +2440,10 @@ Native smoke gates all of this.
 - **1P:** race start and after-scroll remain accepted.
 - **Visual:** both viewports show continuous course art in both margins, with no seam at the split.
 
-**Open:** objects the game culls at the 256-pixel edge are still absent from the margins. That decision is the next discriminator in `analysis/widescreen-policy.yml`.
+**Margin layers and sprites (same day):**
+- **BG2.** The backdrop needs no host presentation. Its 64×64 8×8 tilemap (BG2SC `$73`) is static across the race: 0 of 4096 words change between race start and after-scroll. Its VRAM wrap is therefore its world wrap.
+- **Left-margin sprites.** Racers need no work. The 1P opponent spends 191 of 916 race frames 1–43 px left of the view and is drawn there through 9-bit negative OAM X.
+- **Right-margin sprites.** Presence there is rare and transient: 3 consecutive frames (1350–1352, the race-start camera transition) in frames 1000–6000 of `two-player-p1-win`.
+
+**Decision:** accept stock right-edge culling. Reopen criteria are recorded in `analysis/widescreen-policy.yml`.
 

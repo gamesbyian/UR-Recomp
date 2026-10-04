@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"
       - "tools/replay_input_via_lua.py"
@@ -51,7 +51,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/extract_smv_input.py \
-            references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
+            reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
             --input-out "$RUNNER_TEMP/wip-2008.input" \
             --sram-out "$RUNNER_TEMP/wip-2008.srm" \
             --sram-size 8192 \

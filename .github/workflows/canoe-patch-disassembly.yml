@@ -12,7 +12,7 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
       - name: Inventory patch against canonical ROM
         run: |
-          python3 tools/analyze_canoe_ips.py             references/imported/patches/uniracers_canoe.ips             --rom "reference/roms/retail/Uniracers_USA.sfc"             --json-out canoe-patch-analysis.json
+          python3 tools/analyze_canoe_ips.py             reference/imported/patches/uniracers_canoe.ips             --rom "reference/roms/retail/Uniracers_USA.sfc"             --json-out canoe-patch-analysis.json
       - name: Assert mechanical patch reconstruction
         shell: bash
         run: |
@@ -37,7 +37,7 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           from tools.analyze_canoe_ips import parse_ips
-          rows=parse_ips(Path("references/imported/patches/uniracers_canoe.ips").read_bytes())
+          rows=parse_ips(Path("reference/imported/patches/uniracers_canoe.ips").read_bytes())
           payload=next(bytes.fromhex(r["data_hex"]) for r in rows if r["offset"] == 0x1FFF00)
           Path("canoe-handler.bin").write_bytes(payload)
           PY

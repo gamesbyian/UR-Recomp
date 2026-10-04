@@ -12,7 +12,7 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patches/beetle-bsnes-ur-recomp.patch"
       - "third_party/src/beetle-bsnes-libretro/**"
-      - "references/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "tools/extract_smv_input.py"
       - "snesrecomp"
 
@@ -42,7 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/extract_smv_input.py \
-            references/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
+            reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv \
             --input-out "$RUNNER_TEMP/ignored.input" \
             --sram-out "$RUNNER_TEMP/reference.srm" \
             --sram-size 8192 \

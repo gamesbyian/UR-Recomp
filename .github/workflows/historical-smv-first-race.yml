@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "references/imported/tas-bots/dessyreqt-4250-submission.smv"
+      - "reference/imported/tas-bots/dessyreqt-4250-submission.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "tools/extract_smv_input.py"
       - "tools/summarize_wram_trace_checkpoints.py"
@@ -52,7 +52,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/extract_smv_input.py \
-            references/imported/tas-bots/dessyreqt-4250-submission.smv \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
             --input-out "$RUNNER_TEMP/dessyreqt-4250.input" \
             --sram-out "$RUNNER_TEMP/dessyreqt-4250.srm" \
             --sram-size 8192 \

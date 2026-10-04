@@ -50,7 +50,8 @@ int main(int argc, char** argv) {
     }
 
     if (mode == "verify") {
-        const auto loaded = load_completed_run_record_file(path, &target());
+        const auto playback_target = target();
+        const auto loaded = load_completed_run_record_file(path, &playback_target);
         if (!loaded.loaded()) {
             std::cerr << loaded.detail << "\n";
             return 3;

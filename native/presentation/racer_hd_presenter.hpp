@@ -449,6 +449,24 @@ constexpr bool authored_saddle_contains(
     return true;
 }
 
+constexpr bool authored_saddle_mount_contains(
+    int x,
+    int y,
+    int neck_min_x,
+    int neck_max_x,
+    int mount_y
+) noexcept {
+    // A compact clamp is carved entirely from already-occupied saddle/neck
+    // pixels by callers. It therefore adds mechanical attachment/readability
+    // without changing alpha, silhouette or the recovered contact anchors.
+    const int mount_cx = (neck_min_x + neck_max_x) / 2;
+    const int radius_x = ((neck_max_x - neck_min_x) / 2) + 2;
+    const int dx = x - mount_cx;
+    const int dy = y - mount_y;
+    return dx * dx * 9 + dy * dy * radius_x * radius_x <=
+           radius_x * radius_x * 9;
+}
+
 constexpr bool authored_wheel_spokes(
     int x,
     int y,
@@ -576,6 +594,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 128 && x <= 136;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 128, 136, 29
+        );
     const int crown_dx = x - 132;
     const int crown_dy = y - 60;
     const bool crown =
@@ -585,6 +608,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 128, 22);
@@ -645,6 +671,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 128 && x <= 136;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 128, 136, 30
+        );
     const int crown_dx = x - 132;
     const int crown_dy = y - 60;
     const bool crown =
@@ -654,6 +685,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 23);
@@ -715,6 +749,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 124 && x <= 132;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 124, 132, 29
+        );
     const int crown_dx = x - 134;
     const int crown_dy = y - 60;
     const bool crown =
@@ -728,6 +767,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 22);
@@ -794,6 +836,11 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 128 && x <= 136;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 128, 136, 29
+        );
     const int crown_dx = x - 136;
     const int crown_dy = y - 60;
     const bool crown =
@@ -807,6 +854,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 120, 22);
@@ -873,6 +923,11 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 132 && x <= 140;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 132, 140, 29
+        );
     const int crown_dx = x - 140;
     const int crown_dy = y - 60;
     const bool crown =
@@ -886,6 +941,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 116, 22);
@@ -950,6 +1008,11 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 136 && x <= 144;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 136, 144, 33
+        );
     const int crown_dx = x - 144;
     const int crown_dy = y - 60;
     const bool crown =
@@ -963,6 +1026,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 112, 26);
@@ -1010,6 +1076,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
     );
 
     const bool neck = y >= 30 && y <= 60 && x >= 124 && x <= 132;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 124, 132, 29
+        );
     const int crown_dx = x - 134;
     const int crown_dy = y - 60;
     const bool crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
@@ -1021,6 +1092,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
     );
 
     if (hub || rim || crank || pedal || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
+    }
     if (seat) {
         return authored_saddle_color(x, y, 130, 22);
     }
@@ -1080,6 +1154,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 120 && x <= 128;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 120, 128, 33
+        );
     const int crown_dx = x - 130;
     const int crown_dy = y - 60;
     const bool crown =
@@ -1093,6 +1172,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 26);
@@ -1153,6 +1235,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 116 && x <= 124;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 116, 124, 33
+        );
     const int crown_dx = x - 126;
     const int crown_dy = y - 60;
     const bool crown =
@@ -1162,6 +1249,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 26);
@@ -1219,6 +1309,11 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const bool neck =
         y >= 30 && y <= 60 &&
         x >= 114 && x <= 122;
+    const bool saddle_mount =
+        (seat || neck) &&
+        authored_saddle_mount_contains(
+            x, y, 114, 122, 37
+        );
     const int crown_dx = x - 124;
     const int crown_dy = y - 60;
     const bool crown =
@@ -1228,6 +1323,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
 
     if (hub || rim || crank || pedal || wheel_spokes) {
         return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_mount) {
+        return authored_metal_color(x, y);
     }
     if (seat) {
         return authored_saddle_color(x, y, 130, 30);

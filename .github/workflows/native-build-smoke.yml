@@ -29,6 +29,7 @@ on:
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-exit-frontend-results.script"
       - "tests/input/modern-exit-frontend-active.script"
+      - "tests/input/widescreen-product-acceptance.script"
 
 concurrency:
   group: native-build-smoke-${{ github.ref }}
@@ -278,6 +279,50 @@ jobs:
             exit 1
           fi
           echo "INPUT_ROUTE_RESULT=reached_race"
+
+      - name: Shipping Widescreen composition acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/widescreen-product-acceptance.script"
+          ROOT="$RUNNER_TEMP/widescreen-product"
+          LOG="$ROOT/run.log"
+          DUMPS="$ROOT/dumps"
+          mkdir -p "$DUMPS"
+
+          URRECOMP_WS_VIEW=authentic-16x9 \
+          URRECOMP_WS_NATIVE_TRACE=1 \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SDL_AUDIODRIVER=dummy \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "URWS_PREP_EXT margin=48" "$LOG"
+          grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$LOG"
+
+          python3 - "$DUMPS/ws-product-main-menu.fb.bmp" \
+            "$DUMPS/ws-product-race.fb.bmp" \
+            "$DUMPS/ws-product-after-scroll.fb.bmp" <<'PY'
+          import pathlib, struct, sys
+
+          def dims(path):
+              raw=pathlib.Path(path).read_bytes()
+              if raw[:2] != b"BM" or len(raw) < 26:
+                  raise SystemExit(f"{path}: not a retained BMP")
+              return struct.unpack_from("<i", raw, 18)[0], abs(struct.unpack_from("<i", raw, 22)[0])
+
+          frontend=dims(sys.argv[1])
+          race=dims(sys.argv[2])
+          after=dims(sys.argv[3])
+          print("WIDESCREEN_PRODUCT", "frontend=", frontend, "race=", race, "after=", after)
+          if frontend != (256, 224):
+              raise SystemExit(f"fixed frontend widened unexpectedly: {frontend}")
+          if race != (342, 224) or after != (342, 224):
+              raise SystemExit(f"active 1P race did not hold accepted 342x224 view: {race} {after}")
+          PY
 
       - name: Build display-geometry review
         shell: bash

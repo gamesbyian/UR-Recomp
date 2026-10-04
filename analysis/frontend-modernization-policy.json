@@ -201,7 +201,7 @@
       ],
       "class": "administrative",
       "modern": "redesign_candidate",
-      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silvia and Goldwyn stay as named opponents regardless. Stock state is now mapped: each completed tour run (five qualifying results, SRAM 0x1075 flags) raises that rider's medal cell by one step, the next run's opponent is 17 + medal (Bronsen/Silvia/Goldwyn), gold plays the tour's reward scene and Hunter gold the ending; tiers follow the 4/6/8-medal thresholds (R-2026-10-04-UI-20, UI-22).",
+      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silvia and Goldwyn stay as named opponents regardless. Stock state is now mapped: each completed tour run (five qualifying results, SRAM 0x1075 flags) raises that rider's medal cell by one step, the next run's opponent is 17 + medal (Bronsen/Silvia/Goldwyn), gold plays the tour's reward scene and Hunter gold the ending; tiers follow the main-tour thresholds (4+ medals of any kind -> 1, 6+ silver or better -> 2, all 8 gold -> 3) (R-2026-10-04-UI-20, UI-22).",
       "decision_gate": "Product call on modern medal/progression policy (WORK-QUEUE Phase 9); the stock rules it must keep reproducible are mapped in analysis/generated/tour-award-ending-probe.json and tier-opponent-probe.json."
     },
     {

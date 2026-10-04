@@ -662,7 +662,9 @@ jobs:
               # Reverse tail-row navigation is invariant to Restart visibility:
               # Resume <- Quit Desktop <- Exit Frontend.
               xdotool key Up
+              sleep 0.15
               xdotool key Up
+              sleep 0.15
               xdotool key Return
 
               for _ in $(seq 1 300); do

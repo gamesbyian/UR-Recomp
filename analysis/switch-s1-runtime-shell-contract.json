@@ -8,7 +8,8 @@
   "probe": {
     "source": "platform/switch/s1_runtime_shell/source/main.c",
     "output": "platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro",
-    "report_path": "ur-recomp-s1-capability-report.txt"
+    "report_path": "ur-recomp-s1-capability-report.txt",
+    "report_schema": "UR-SWITCH-S1/1"
   },
   "capabilities": {
     "lifecycle": {
@@ -61,5 +62,20 @@
     "CI does not prove storage write permission",
     "CI does not prove suspend/resume",
     "No Uniracers guest simulation is linked"
-  ]
+  ],
+  "hardware_acceptance": {
+    "evaluator": "tools/evaluate_switch_s1_report.py",
+    "required_observations": [
+      "clean lifecycle exit",
+      "both handheld and console operation modes observed",
+      "display initialized",
+      "audio device opened",
+      "storage write/read/delete round trip succeeded",
+      "input observed",
+      "Pro Controller style observed",
+      "handheld style observed",
+      "Joy-Con style observed",
+      "background and foreground lifecycle events observed"
+    ]
+  }
 }

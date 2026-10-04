@@ -449,12 +449,15 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     crank = y >= 116 and y <= 123 and x >= 119 and x <= 148
     pedal = y >= 113 and y <= 118 and x >= 149 and x <= 153
 
-    seat_dx = x - 124
+    # True-density review showed the old saddle carried a broad block of
+    # authored-only mass to the right. Shift/narrow the same smooth ellipse
+    # while preserving the recovered whole-pose envelope and contact.
+    seat_dx = x - 116
     seat_dy = y - 22
     seat = (
         (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 39 * 39
-        <= 39 * 39 * 14 * 14
+        + (seat_dy * seat_dy) * 32 * 32
+        <= 32 * 32 * 14 * 14
         and y >= 8 and y <= 36
     )
 
@@ -503,12 +506,15 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     crank = y >= 116 and y <= 123 and x >= 123 and x <= 152
     pedal = y >= 113 and y <= 118 and x >= 153 and x <= 157
 
-    seat_dx = x - 120
+    # The 057D mismatch map shows the same right-heavy saddle mass as 057E.
+    # Shift left and narrow it without changing the stock-derived envelope or
+    # the wheel-supplied contact anchor.
+    seat_dx = x - 112
     seat_dy = y - 26
     seat = (
         (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 35 * 35
-        <= 35 * 35 * 14 * 14
+        + (seat_dy * seat_dy) * 28 * 28
+        <= 28 * 28 * 14 * 14
         and y >= 12 and y <= 40
     )
 

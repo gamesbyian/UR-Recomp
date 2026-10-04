@@ -277,6 +277,111 @@ jobs:
 
           echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_byte_stable_beta_content_isolated_authentic_default"
 
+      - name: Modern unfinished-tour resume acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          CAPTURE_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script"
+          RESUME_SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
+          ROOT="$RUNNER_TEMP/tour-resume-profile"
+          CAPTURE_LOG="$RUNNER_TEMP/tour-resume-capture.log"
+          RESUME_LOG="$RUNNER_TEMP/tour-resume-restore.log"
+          DUMPS="$RUNNER_TEMP/tour-resume-dumps"
+          rm -rf "$ROOT" "$DUMPS"
+          mkdir -p "$ROOT" "$DUMPS"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            "$ROOT/save.srm"
+
+          cat >"$STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=resume.alpha
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
+          timeout 150s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_HOST_STATE_PATH="'"$STATE"'"
+            export UR_PROFILE_SAVE_ROOT="'"$ROOT"'"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$CAPTURE_SCRIPT"'" >"'"$CAPTURE_LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 1400); do
+              if grep -q "UR_TOUR_RESUME CAPTURED" "'"$CAPTURE_LOG"'" 2>/dev/null; then
+                break
+              fi
+              kill -0 "$PID" 2>/dev/null || {
+                cat "'"$CAPTURE_LOG"'"
+                exit 1
+              }
+              sleep 0.1
+            done
+            grep -q "UR_TOUR_RESUME CAPTURED" "'"$CAPTURE_LOG"'"
+            test -s "'"$ROOT"'/host-profile.txt"
+            grep -Eq "^tour_resume=[0-9]+:[0-9]+:[0-3]:[01]{5}$" \
+              "'"$ROOT"'/host-profile.txt"
+
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+          '
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_PROFILE_SAVE_ROOT="$ROOT" \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$RESUME_SCRIPT" \
+            >"$RESUME_LOG" 2>&1
+          RESUME_STATUS=$?
+          set -e
+          if [ "$RESUME_STATUS" -ne 0 ] && [ "$RESUME_STATUS" -ne 124 ]; then
+            cat "$RESUME_LOG"
+            exit "$RESUME_STATUS"
+          fi
+
+          grep -q "UR_TOUR_RESUME APPLIED" "$RESUME_LOG"
+          test -s "$DUMPS/tracks-ready.wram.bin"
+          test -s "$DUMPS/race-entered.wram.bin"
+
+          python3 - "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
+          import pathlib
+          import sys
+
+          profile = pathlib.Path(sys.argv[1]).read_text().splitlines()
+          sram = pathlib.Path(sys.argv[2]).read_bytes()
+          resume = next(line.split("=", 1)[1] for line in profile
+                        if line.startswith("tour_resume="))
+          rider, tour, medal, flags = resume.split(":")
+          tour = int(tour)
+          expected = bytes(int(ch) for ch in flags)
+          actual = sram[0x1075 + 5 * tour:0x1075 + 5 * tour + 5]
+          if actual != expected:
+              raise SystemExit(
+                  f"restored tour flags mismatch: expected={list(expected)} actual={list(actual)}")
+          if not 0 < sum(actual) < 5:
+              raise SystemExit(f"continuation is not unfinished progress: {list(actual)}")
+          print(
+              "UR_TOUR_RESUME_FILE",
+              f"rider={rider}",
+              f"tour={tour}",
+              f"medal={medal}",
+              f"flags={flags}",
+          )
+          PY
+
+          echo "== capture diagnostics =="
+          grep "UR_TOUR_RESUME" "$CAPTURE_LOG"
+          echo "== resume diagnostics =="
+          grep "UR_TOUR_RESUME" "$RESUME_LOG"
+          echo "UR_TOUR_RESUME_RESULT=real_result_captured_fresh_process_restored_stock_flags"
+
       - name: Native boot smoke
         shell: bash
         run: |

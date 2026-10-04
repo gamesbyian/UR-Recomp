@@ -27,6 +27,7 @@ CompletedRunRecord representative_dragster_run() {
         "race-1p",
     };
     record.elapsed_ticks60 = 1713;
+    record.frame_count = 300;
     record.terminal_simulation_digest =
         "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789";
     record.splits = {{"start", 0}, {"mid", 840}, {"finish", 1713}};

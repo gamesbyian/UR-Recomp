@@ -8,7 +8,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class HostProfileStoreCppTests(unittest.TestCase):
-    def test_process_restart_migration_recovery_and_authentic_inertness(self):
+    def test_process_restart_legacy_default_recovery_and_authentic_inertness(self):
         with tempfile.TemporaryDirectory() as tmp:
             exe = pathlib.Path(tmp) / "host-profile-store-acceptance"
             state = pathlib.Path(tmp) / "profile.state"
@@ -32,7 +32,13 @@ class HostProfileStoreCppTests(unittest.TestCase):
                 cwd=ROOT,
                 check=True,
             )
-            for mode in ("save", "load", "old", "malformed", "authentic"):
+            for mode in (
+                "save",
+                "load",
+                "legacy-host-default",
+                "malformed",
+                "authentic",
+            ):
                 subprocess.run([str(exe), mode, str(state)], cwd=ROOT, check=True)
 
 

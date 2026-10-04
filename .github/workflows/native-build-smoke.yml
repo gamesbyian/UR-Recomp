@@ -89,12 +89,14 @@ jobs:
 
           python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
             "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
             --cmake "$ROOT/CMakeLists.txt"
           grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_key_down" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_gamepad_button" "$ROOT/src/main.c"
           grep -q "ur_uniracers_modern_system_overlay" "$ROOT/src/main.c"
           grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "\.session_reset = &GameSessionReset" "$ROOT/src/game_rtl.c"
 
           cmake -S "$ROOT" -B "$ROOT/build" \
             -DCMAKE_BUILD_TYPE=Release \

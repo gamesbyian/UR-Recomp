@@ -10,6 +10,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 INCLUDE_ANCHOR = '#include "snesrecomp_rom_identity.h"  /* generated from rom_identity.txt */\n'
 FIELD_ANCHOR = '    .game_info           = &kGameInfo,\n'
+GAME_INFO_ANCHOR = 'const RtlGameInfo kGameInfo = {\n'
+SAVE_PREFIX_ANCHOR = '    .save_name_prefix = "save",\n'
 
 
 def patch_main_text(source: str) -> str:
@@ -32,6 +34,24 @@ def patch_main_text(source: str) -> str:
         + "    .system_key_down       = &ur_uniracers_modern_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n"
         + "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n",
+        1,
+    )
+
+
+def patch_game_rtl_text(source: str) -> str:
+    """Wire the scaffold's existing title session-reset hook into RtlGameInfo."""
+    if ".session_reset = &GameSessionReset" in source:
+        return source
+    if GAME_INFO_ANCHOR not in source or SAVE_PREFIX_ANCHOR not in source:
+        raise ValueError("generated game_rtl session-reset anchors not found")
+    source = source.replace(
+        GAME_INFO_ANCHOR,
+        "void GameSessionReset(void);\n\n" + GAME_INFO_ANCHOR,
+        1,
+    )
+    return source.replace(
+        SAVE_PREFIX_ANCHOR,
+        SAVE_PREFIX_ANCHOR + "    .session_reset = &GameSessionReset,\n",
         1,
     )
 
@@ -83,11 +103,16 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("main_c", type=Path)
+    parser.add_argument("--game-rtl", type=Path, required=True)
     parser.add_argument("--cmake", type=Path, required=True)
     args = parser.parse_args()
 
     args.main_c.write_text(
         patch_main_text(args.main_c.read_text(encoding="utf-8")),
+        encoding="utf-8",
+    )
+    args.game_rtl.write_text(
+        patch_game_rtl_text(args.game_rtl.read_text(encoding="utf-8")),
         encoding="utf-8",
     )
     args.cmake.write_text(

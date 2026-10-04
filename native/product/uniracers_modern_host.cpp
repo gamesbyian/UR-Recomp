@@ -465,6 +465,17 @@ bool dispatch(UrModernPauseAction action) {
            result == UR_MODERN_SESSION_NO_OP;
 }
 
+void diagnose_pause_selection() {
+    if (!std::getenv("UR_PRODUCT_DIAGNOSTICS") || !g_session) return;
+    const int restart = ur_modern_session_restart_available(g_session);
+    std::fprintf(
+        stderr,
+        "UR_PAUSE_SELECTION selected=%d restart=%d\n",
+        static_cast<int>(ur_modern_pause_menu_selected(&g_pause_menu, restart)),
+        restart);
+    std::fflush(stderr);
+}
+
 bool activate_pause_selection() {
     if (!ensure_session() || !paused()) return false;
     const int restart = ur_modern_session_restart_available(g_session);
@@ -627,10 +638,14 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return dispatch(UR_MODERN_PAUSE_TOGGLE) ? 1 : 0;
     }
     if (paused() && key == SDLK_UP) {
-        return dispatch(UR_MODERN_PAUSE_PREVIOUS) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_PREVIOUS);
+        diagnose_pause_selection();
+        return handled ? 1 : 0;
     }
     if (paused() && key == SDLK_DOWN) {
-        return dispatch(UR_MODERN_PAUSE_NEXT) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_NEXT);
+        diagnose_pause_selection();
+        return handled ? 1 : 0;
     }
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return activate_pause_selection() ? 1 : 0;
@@ -684,10 +699,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (!paused()) return 0;
 
     if (button == kGamepadBtn_DpadUp) {
-        return dispatch(UR_MODERN_PAUSE_PREVIOUS) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_PREVIOUS);
+        diagnose_pause_selection();
+        return handled ? 1 : 0;
     }
     if (button == kGamepadBtn_DpadDown) {
-        return dispatch(UR_MODERN_PAUSE_NEXT) ? 1 : 0;
+        const bool handled = dispatch(UR_MODERN_PAUSE_NEXT);
+        diagnose_pause_selection();
+        return handled ? 1 : 0;
     }
     if (button == kGamepadBtn_A) {
         return activate_pause_selection() ? 1 : 0;

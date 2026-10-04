@@ -37,6 +37,7 @@ void save_case(const std::string& path) {
                state,
                data.data(),
                data.size()) == HostProfileTransferStatus::Applied);
+    state.ghost_target = CompletedRunGhostTarget::PersonalBest;
     assert(save_host_profile_state_file(
                ExecutionMode::Modern,
                path,
@@ -50,6 +51,7 @@ void load_case(const std::string& path) {
         ExecutionMode::Modern, path, "profile.alpha");
     assert(loaded.loaded());
     assert(loaded.state->autosave_generation == 1);
+    assert(loaded.state->ghost_target == CompletedRunGhostTarget::PersonalBest);
 
     std::array<std::uint8_t, kStockSramBytes> restored{};
     assert(restore_stock_sram_from_profile(
@@ -58,7 +60,7 @@ void load_case(const std::string& path) {
                restored.data(),
                restored.size()) == HostProfileTransferStatus::Applied);
     assert(restored == fixture());
-    std::cout << "PROFILE_ACCEPTANCE fresh_process_load_ok\n";
+    std::cout << "PROFILE_ACCEPTANCE fresh_process_load_ok ghost_target=personal-best\n";
 }
 
 void legacy_host_default_case(const std::string& path) {
@@ -81,7 +83,8 @@ void legacy_host_default_case(const std::string& path) {
     assert(resolved.state->profile_id == "profile.alpha");
     assert(resolved.state->autosave_generation == 0);
     assert(!resolved.state->stock_sram);
-    std::cout << "PROFILE_ACCEPTANCE legacy_host_defaulted\n";
+    assert(resolved.state->ghost_target == CompletedRunGhostTarget::Off);
+    std::cout << "PROFILE_ACCEPTANCE legacy_host_defaulted ghost_target=off\n";
 }
 
 void malformed_case(const std::string& path) {

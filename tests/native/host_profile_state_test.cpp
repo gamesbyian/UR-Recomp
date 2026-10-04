@@ -13,6 +13,7 @@ int main() {
     assert(default_state->profile_id == "profile.alpha");
     assert(default_state->autosave_generation == 0);
     assert(!default_state->stock_sram);
+    assert(default_state->ghost_target == CompletedRunGhostTarget::Off);
     assert(!make_default_host_profile_state("bad/profile"));
 
     HostProfileState state = *default_state;
@@ -37,6 +38,7 @@ int main() {
     continuation.qualified = {1, 0, 1, 0, 0};
     assert(valid_tour_continuation(continuation));
     state.tour_continuation = continuation;
+    state.ghost_target = CompletedRunGhostTarget::PersonalBest;
 
     const std::string encoded = encode_host_profile_state(state);
     assert(!encoded.empty());
@@ -44,6 +46,9 @@ int main() {
     assert(decoded);
     assert(*decoded.state == state);
     assert(!decoded.migrated);
+    assert(decoded.state->ghost_target == CompletedRunGhostTarget::PersonalBest);
+    assert(encoded.rfind("UR-HOST-PROFILE/3\n", 0) == 0);
+    assert(encoded.find("ghost_target=personal-best\n") != std::string::npos);
 
     const auto legacy = decode_host_profile_state(
         "UR-HOST-PROFILE/1\n"
@@ -54,8 +59,21 @@ int main() {
     assert(legacy.migrated);
     assert(legacy.state->autosave_generation == 7);
     assert(!legacy.state->tour_continuation);
+    assert(legacy.state->ghost_target == CompletedRunGhostTarget::Off);
     assert(encode_host_profile_state(*legacy.state).rfind(
-               "UR-HOST-PROFILE/2\n", 0) == 0);
+               "UR-HOST-PROFILE/3\n", 0) == 0);
+
+    const auto legacy_v2 = decode_host_profile_state(
+        "UR-HOST-PROFILE/2\n"
+        "profile=profile.alpha\n"
+        "generation=8\n"
+        "stock_sram=\n"
+        "tour_resume=3:4:1:10100\n");
+    assert(legacy_v2);
+    assert(legacy_v2.migrated);
+    assert(legacy_v2.state->autosave_generation == 8);
+    assert(legacy_v2.state->tour_continuation);
+    assert(legacy_v2.state->ghost_target == CompletedRunGhostTarget::Off);
 
     HostTourContinuation no_progress = continuation;
     no_progress.qualified = {0, 0, 0, 0, 0};
@@ -78,6 +96,15 @@ int main() {
     const auto malformed = decode_host_profile_state(
         "UR-HOST-PROFILE/1\nprofile=profile.alpha\ngeneration=1\nstock_sram=xyz\n");
     assert(!malformed);
+
+    const auto invalid_ghost = decode_host_profile_state(
+        "UR-HOST-PROFILE/3\n"
+        "profile=profile.alpha\n"
+        "generation=1\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=fastest\n");
+    assert(!invalid_ghost);
 
     HostProfileState authentic;
     authentic.profile_id = "profile.authentic";

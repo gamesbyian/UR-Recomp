@@ -1,17 +1,12 @@
 #pragma once
 
 #include "completed_run_ghost.hpp"
+#include "completed_run_ghost_target.hpp"
 
 #include <optional>
 #include <string_view>
 
 namespace ur::product {
-
-enum class CompletedRunGhostTarget {
-    Off,
-    Previous,
-    PersonalBest,
-};
 
 struct CompletedRunGhostSelection {
     CompletedRunGhostTarget target = CompletedRunGhostTarget::Off;

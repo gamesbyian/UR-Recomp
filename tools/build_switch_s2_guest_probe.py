@@ -26,6 +26,8 @@ def validate_bundle(bundle: Path, contract: dict) -> tuple[list[Path], list[str]
         project / "src/game_rtl.c",
         project / "src/host_contract.c",
         project / "src/gen_stubs.c",
+        project / "src/game_rtl.h",
+        project / "src/variables.h",
         project / "recomp/funcs.h",
         framework / "runner/src/common_cpu_infra.h",
         framework / "runner/src/common_rtl.h",

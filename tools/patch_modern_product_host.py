@@ -16,7 +16,16 @@ SAVE_PREFIX_ANCHOR = '    .save_name_prefix = "save",\n'
 
 def patch_main_text(source: str) -> str:
     if "ur_uniracers_modern_compute_viewport" in source:
-        return source
+        if "ur_uniracers_modern_after_config" in source:
+            return source
+        if FIELD_ANCHOR not in source:
+            raise ValueError("generated host game_info field not found")
+        return source.replace(
+            FIELD_ANCHOR,
+            FIELD_ANCHOR
+            + "    .after_config          = &ur_uniracers_modern_after_config,\n",
+            1,
+        )
 
     widescreen_fields = (
         "    .native_widescreen      = 1,\n"
@@ -59,6 +68,7 @@ def patch_main_text(source: str) -> str:
     return source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
+        + "    .after_config          = &ur_uniracers_modern_after_config,\n"
         + "    .after_run_frame       = &ur_uniracers_modern_after_run_frame,\n"
         + "    .system_key_down       = &ur_uniracers_modern_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n"
@@ -106,6 +116,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "host_product_store.cpp",
         "host_profile_state.cpp",
         "host_profile_store.cpp",
+        "host_profile_runtime.cpp",
         "session_control.cpp",
         "session_runtime_adapter.cpp",
         "race_restart_anchor.cpp",

@@ -11,9 +11,10 @@
 +++ b/runner/src/desktop/host_main.c
 @@ -3869,11 +3869,11 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
      bool runahead_captured = false;
-     {
+-    {
 -      const uint32 word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
-+      const uint32 resolved_controller_word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
++    const uint32 resolved_controller_word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
++    {
        if (lua_bridge_active)
 -        RtlRunFrame(word);
 -      else if (g_turbo || !snes_runahead_run_frame(word))

@@ -42,28 +42,32 @@ int main() {
     const auto native_selected = resolve_fullscreen_output_mode(
         HostOutputResolution::native(), modes, native);
     assert(native_selected);
-    assert(*native_selected == HostOutputMode{1920, 1080, 59940});
+    const HostOutputMode expected_native{1920, 1080, 59940};
+    assert(*native_selected == expected_native);
 
     const auto explicit_selected = resolve_fullscreen_output_mode(
         HostOutputResolution::explicit_size(1920, 1080),
         modes,
         HostOutputMode{2560, 1440, 60000});
     assert(explicit_selected);
-    assert(*explicit_selected == HostOutputMode{1920, 1080, 60000});
+    const HostOutputMode expected_explicit{1920, 1080, 60000};
+    assert(*explicit_selected == expected_explicit);
 
     const auto nearest_refresh = resolve_fullscreen_output_mode(
         HostOutputResolution::explicit_size(1280, 720),
         modes,
         HostOutputMode{2560, 1440, 100000});
     assert(nearest_refresh);
-    assert(*nearest_refresh == HostOutputMode{1280, 720, 120000});
+    const HostOutputMode expected_nearest{1280, 720, 120000};
+    assert(*nearest_refresh == expected_nearest);
 
     const auto unknown_refresh = resolve_fullscreen_output_mode(
         HostOutputResolution::explicit_size(1920, 1080),
         modes,
         HostOutputMode{1920, 1080, 0});
     assert(unknown_refresh);
-    assert(*unknown_refresh == HostOutputMode{1920, 1080, 120000});
+    const HostOutputMode expected_unknown_refresh{1920, 1080, 120000};
+    assert(*unknown_refresh == expected_unknown_refresh);
 
     assert(!resolve_fullscreen_output_mode(
         HostOutputResolution::explicit_size(3840, 2160),

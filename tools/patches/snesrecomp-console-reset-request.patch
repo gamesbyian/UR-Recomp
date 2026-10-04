@@ -1,0 +1,38 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -398,6 +398,13 @@ static int g_rewind_hotkey;
+ static int g_open_launcher_hotkey;   /* in_game_launcher only */
+ static uint64_t g_state_generation;
++static int g_console_reset_requested;
++
++int snesrecomp_desktop_request_console_reset(void) {
++  g_console_reset_requested = 1;
++  return 1;
++}
+ 
+ /* The last field actually presented, kept so an overlay can freeze the guest
+  * and still have something to draw behind itself. Sized like g_my_pixels. */
+@@ -4011,6 +4018,12 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **a
+     }
+     if (!running)
+       break;
++    if (g_console_reset_requested) {
++      g_console_reset_requested = 0;
++      ConsoleReset();
++    }
+     OverlaySelftestPadMainTick(frameCtr);
+     /* SNESRECOMP_VOLUME_DEMO=<frame>: press VolumeDown once at that frame, so
+      * a headless screenshot can show the bar. */
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -226,6 +226,12 @@ int snesrecomp_desktop_set_display_mode(int mode);
+ int snesrecomp_desktop_get_display_mode(void);
+ 
++/* Queue the framework's existing ConsoleReset() path for the next safe host
++ * loop boundary. The reset preserves cartridge SRAM and performs the same
++ * GameReset reconciliation as the Reset hotkey/script command. */
++int snesrecomp_desktop_request_console_reset(void);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);

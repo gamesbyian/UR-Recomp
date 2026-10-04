@@ -37,6 +37,7 @@ bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
+uint32_t g_exit_frontend_expected_sram;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -359,18 +360,15 @@ bool exit_to_frontend() {
     const int source_surface = static_cast<int>(g_surface);
     const uint32_t before_sram = current_sram_digest();
 
-    // Use the framework's real console-reset lifecycle. Mode bit 0 preserves
-    // cartridge SRAM while the guest hardware, WRAM, pacing and audio state
-    // are reset and the title-owned hardware_reset hook is invoked.
-    RtlReset(1);
-    const uint32_t after_sram = current_sram_digest();
-    if (before_sram != after_sram) {
-        product_diagnostic("UR_EXIT_FRONTEND SRAM_CHANGED_UNEXPECTEDLY");
+    // Queue the framework's existing ConsoleReset() path. The host consumes
+    // this request only after the current SDL event callback has returned,
+    // then performs RtlReset(1) + GameReset at its own safe loop boundary.
+    if (!snesrecomp_desktop_request_console_reset()) {
+        product_diagnostic("UR_EXIT_FRONTEND RESET_REQUEST_FAILED");
         return false;
     }
+    g_exit_frontend_expected_sram = before_sram;
 
-    snesrecomp_desktop_request_clock_reset();
-    reconcile_presentation();
     g_options_visible = false;
     g_controls_visible = false;
     g_run_data_visible = false;
@@ -387,7 +385,7 @@ bool exit_to_frontend() {
             stderr,
             "UR_EXIT_FRONTEND REQUESTED source=%d sram=%08X\n",
             source_surface,
-            static_cast<unsigned>(after_sram));
+            static_cast<unsigned>(before_sram));
         std::fflush(stderr);
     }
     return true;
@@ -549,6 +547,13 @@ extern "C" void ur_uniracers_modern_after_run_frame(
 
     if (g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
+        const uint32_t current_sram = current_sram_digest();
+        if (current_sram != g_exit_frontend_expected_sram) {
+            product_diagnostic("UR_EXIT_FRONTEND SRAM_CHANGED_UNEXPECTEDLY");
+            g_exit_frontend_waiting_for_main = false;
+            g_exit_frontend_waiting_for_usable = false;
+            return;
+        }
         g_exit_frontend_waiting_for_main = false;
         g_exit_frontend_waiting_for_usable = true;
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {

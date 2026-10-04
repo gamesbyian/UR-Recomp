@@ -149,6 +149,25 @@ jobs:
               > "$RUNNER_TEMP/racer-$stem-semantic-trace.txt"
           done
 
+          # Build the exact pre-PR authored strip with the base revision of
+          # the dossier sampler. This makes visual review a reproducible
+          # before/after comparison instead of a memory-based judgment.
+          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
+          git show "${{ github.event.pull_request.base.sha }}:tools/build_racer_hd_asset_dossier.py" \
+            > tools/build_racer_hd_asset_dossier_base.py
+          python3 tools/build_racer_hd_asset_dossier_base.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-semantic-trace.json" \
+            --window-start 1205 \
+            --window-end 1220 \
+            --output-dir "$RUNNER_TEMP/racer-hd-baseline-dossier" \
+            > "$RUNNER_TEMP/racer-hd-baseline-dossier.txt"
+          rm tools/build_racer_hd_asset_dossier_base.py
+          python3 tools/build_racer_pose_equivalence.py \
+            "$RUNNER_TEMP/racer-hd-baseline-dossier/manifest.json" \
+            --out "$RUNNER_TEMP/racer-hd-baseline-dossier/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-baseline-pose-equivalence.txt"
+
           python3 tools/build_racer_hd_asset_dossier.py \
             "$ROM" \
             --trace "$RUNNER_TEMP/racer-hd-semantic-trace.json" \
@@ -175,6 +194,8 @@ jobs:
             --original-frame "$ORIGINAL_A_SHOT" \
             --hd-frame "$HD_SHOT" \
             --readiness "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" \
+            --baseline-dossier "$RUNNER_TEMP/racer-hd-baseline-dossier/manifest.json" \
+            --baseline-equivalence "$RUNNER_TEMP/racer-hd-baseline-dossier/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-review-packet.txt"
 
           python3 - "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" "$RUNNER_TEMP/racer-hd-asset-dossier/review/review-manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" <<'PY'
@@ -231,16 +252,22 @@ jobs:
           assert readiness["shipping_ready"] is False
           assert readiness["counts"] == {
               "approved": 0,
-              "needs_refinement": 2,
+              "needs_refinement": 0,
               "rejected": 0,
               "unreviewed": 0,
-              "changed_since_review": 8,
+              "changed_since_review": 10,
               "unauthored": 0,
               "authored_conflicts": 0,
           }
           assert review_packet["shipping_readiness"] == {
               "shipping_ready": False,
               "counts": readiness["counts"],
+          }
+          assert review_packet["baseline_comparison"] == {
+              "pose_count": 10,
+              "matched_pose_count": 10,
+              "copied_authored_png_count": 10,
+              "changed_authored_pose_count": 10,
           }
           assert review_packet["live_reference"]["original_dimensions"] == [256, 224]
           assert review_packet["live_reference"]["hd_dimensions"] == [1024, 896]
@@ -794,6 +821,9 @@ jobs:
             ${{ runner.temp }}/racer-hd-semantic-trace.txt
             ${{ runner.temp }}/racer-hd-asset-dossier/
             ${{ runner.temp }}/racer-hd-asset-dossier.txt
+            ${{ runner.temp }}/racer-hd-baseline-dossier/
+            ${{ runner.temp }}/racer-hd-baseline-dossier.txt
+            ${{ runner.temp }}/racer-hd-baseline-pose-equivalence.txt
             ${{ runner.temp }}/racer-hd-pose-equivalence.txt
             ${{ runner.temp }}/racer-hd-review-packet.txt
             ${{ runner.temp }}/racer-hd-shipping-readiness.txt

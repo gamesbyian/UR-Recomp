@@ -1,9 +1,9 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "authority": "analysis/widescreen-policy.yml",
   "fixture": "vs-first-race",
-  "workflow_run_id": 37165123984,
-  "workflow_artifact_id": 11289077614,
+  "workflow_run_id": 37169184941,
+  "workflow_artifact_id": 11290043339,
   "control_margin_pixels_per_side": 0,
   "candidate_margin_pixels_per_side": 8,
   "checkpoints": [
@@ -21,8 +21,14 @@
   "protected_state_equal_at_all_checkpoints": true,
   "control_frame_geometry": [256, 224],
   "plus8_frame_geometry": [272, 224],
+  "control_vs_player1_provider_observed": false,
+  "control_vs_player2_provider_observed": false,
+  "plus8_vs_player1_provider_observed": true,
+  "plus8_vs_player2_provider_observed": true,
+  "plus8_preparation_hook_observed": true,
   "ordinary_race_primary_trace_observed_in_plus8_vs": false,
-  "ordinary_race_preparation_hook_observed_in_plus8_vs": false,
-  "classification": "distinct-vs-preparation-path-required",
-  "policy_consequence": "Keep VS host widening disabled by default. The ordinary 1P/2P preparation provider is not active on the VS race path; recover the VS-specific presentation preparation seam before widening VS."
+  "classification": "ordinary-2p-mixed-compatible",
+  "promotion_ready_at_plus8": true,
+  "full_authentic_16x9_ready": false,
+  "policy_consequence": "Accept the dedicated VS +8 presentation provider as semantically safe for both viewports. Keep final Authentic 16:9 VS composition centered until deeper per-viewport strips are proven from live course state; do not extrapolate the +8 proof to +48."
 }

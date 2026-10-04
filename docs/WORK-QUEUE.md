@@ -394,7 +394,7 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 Implemented: typed/versioned/checksummed host run artifacts; strong replay provenance; exact guest-timer tick conversion; exact resolved controller-word observation at the RtlRunFrame boundary; immutable-header course identity for all 45 USA courses; live Modern 1P attempt capture with Retry re-arming; append-only per-profile local storage; previous-run and fastest-compatible PB selection seams; exact finish/split delta comparison; direct export to canonical deterministic controller-input grammar; fresh-process record reload; and a dedicated two-process native Dragster capture/replay acceptance.
 
-Next: consume the compatible previous/PB records as presentation-only ghost state, then add the records/replay browser and richer split presentation. Do not add a second simulation model or grant ghost/replay data gameplay authority. See COMPLETED-RUN-RECORDS.md.
+Next: derive/render presentation-only ghost state from the now-bound previous/PB records, then add the records/replay browser and richer split presentation. Do not add a second simulation model or grant ghost/replay data gameplay authority. See COMPLETED-RUN-RECORDS.md.
 
 
 ## Ghost selection follow-on (2026-10-04)

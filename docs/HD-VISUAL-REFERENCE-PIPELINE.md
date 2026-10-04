@@ -138,6 +138,8 @@ The next retained P2 visual change is `0543`. The two in-window exact contexts r
 
 With both racers authored across the full 1205–1220 retained window, sequence-level acceptance is now closed rather than inferred from per-pose review. `analysis/data/racer-hd-replacement-prototype.json` owns the exact 16-frame P1/P2 motion-review order. `tools/check_racer_hd_temporal_coherence.py` samples the real authored 4x generators at gameplay pixel centres, requires exact per-frame stock bounds/contact, exact stillness on stock-static/reuse edges, preserved motion on dynamic edges, and an evidence-bounded 0.75–2.25 authored/stock changed-pixel ratio. Run `37174986502` / artifact `11292529288` is green with 21 static and 9 dynamic player-edges across the two sequences, all accepted.
 
+The next runtime step is now the actual density handoff. The authored assets are 4× (256×256 per 64×64 racer), but the accepted first presenter sampled them back to one logical pixel on a 256×224 host surface. A candidate host-only presentation-density seam now keeps guest/PPU geometry at 256×224, asks the pinned SNESRecomp presenter for a 4× destination only while an exact Racer HD replacement is active, nearest-expands the untouched stock background, and composites authored racer pixels directly at full 4× density. Original/mismatch/unregistered frames remain on the ordinary 1× path. Native screenshot acceptance must prove 1024×896 output plus real within-block authored detail before this is promoted.
+
 ## Reconstruction decision policy
 
 Reference generation and final-art selection are different jobs.

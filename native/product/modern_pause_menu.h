@@ -12,6 +12,7 @@ typedef enum UrModernPauseItem {
     UR_MODERN_PAUSE_RUN_DATA = 4,
     UR_MODERN_PAUSE_QUIT = 5,
     UR_MODERN_PAUSE_OPTIONS = 6,
+    UR_MODERN_PAUSE_EXIT_FRONTEND = 7,
 } UrModernPauseItem;
 
 typedef struct UrModernPauseMenu {

@@ -2,17 +2,6 @@ name: Bottom-edge cross-core regression
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "tools/summarize_presentation_geometry.py"
-      - "tests/input/reach-first-race.script"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/patches/beetle-bsnes-ur-recomp.patch"
   pull_request:
     paths:
       - "tools/summarize_presentation_geometry.py"

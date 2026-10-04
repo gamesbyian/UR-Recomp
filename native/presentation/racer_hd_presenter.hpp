@@ -352,10 +352,9 @@ constexpr std::uint32_t authored_rubber_color(
     const int dx = x - wheel_cx;
     const int dy = y - wheel_cy;
     const int directional = -(dx + dy);
-    const int tread = ((x * 3 + y * 5) >> 3) & 0x03;
-    if (directional > 34 && tread != 0) return 0xFF40494Eu;
-    if (tread == 1 && dy > 8) return 0xFF20282Cu;
-    return 0xFF151B1Eu;
+    if (directional > 34) return 0xFF343C40u;
+    if (directional < -36) return 0xFF151A1Du;
+    return 0xFF20272Au;
 }
 
 constexpr std::uint32_t authored_saddle_color(
@@ -367,9 +366,7 @@ constexpr std::uint32_t authored_saddle_color(
     const int dx = x - seat_cx;
     const int dy = y - seat_cy;
     const int directional = -(dx + dy);
-    const bool center_seam = (dx >= -2 && dx <= 1 && dy >= -7 && dy <= 8);
     const bool underside = dy >= 6;
-    if (center_seam) return 0xFF596167u;
     if (directional > 28 && !underside) return 0xFF454D52u;
     if (underside) return 0xFF181E21u;
     return 0xFF262D31u;
@@ -395,6 +392,39 @@ constexpr bool authored_segment_contains(
     return cross * cross <= half_width * half_width * length2;
 }
 
+constexpr bool authored_saddle_contains(
+    int x,
+    int y,
+    int seat_cx,
+    int seat_cy,
+    int radius_x,
+    int radius_y,
+    int min_y,
+    int max_y
+) noexcept {
+    if (y < min_y || y > max_y) return false;
+    const int dx = x - seat_cx;
+    const int dy = y - seat_cy;
+    const int lhs =
+        dx * dx * radius_y * radius_y +
+        dy * dy * radius_x * radius_x;
+    const int rhs =
+        radius_x * radius_x * radius_y * radius_y;
+    if (lhs > rhs) return false;
+
+    // Keep a broad rear cushion but taper the forward third into a saddle
+    // nose. This detail exists at true 4x density and survives runtime flips.
+    const int nose_start = radius_x / 3;
+    if (dx > nose_start) {
+        const int run = radius_x - nose_start;
+        const int remaining = radius_x - dx;
+        const int nose_half_height =
+            (radius_y / 4) + (remaining * radius_y * 3) / (4 * run);
+        if (dy < -nose_half_height || dy > nose_half_height) return false;
+    }
+    return true;
+}
+
 constexpr bool authored_wheel_spokes(
     int x,
     int y,
@@ -402,15 +432,15 @@ constexpr bool authored_wheel_spokes(
     int wheel_cy
 ) noexcept {
     return authored_segment_contains(
-               x, y, wheel_cx - 22, wheel_cy, wheel_cx + 22, wheel_cy, 2
+               x, y, wheel_cx - 22, wheel_cy, wheel_cx + 22, wheel_cy, 1
            ) ||
            authored_segment_contains(
                x, y, wheel_cx - 11, wheel_cy - 19,
-               wheel_cx + 11, wheel_cy + 19, 2
+               wheel_cx + 11, wheel_cy + 19, 1
            ) ||
            authored_segment_contains(
                x, y, wheel_cx + 11, wheel_cy - 19,
-               wheel_cx - 11, wheel_cy + 19, 2
+               wheel_cx - 11, wheel_cy + 19, 1
            );
 }
 
@@ -513,9 +543,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
     // pilot started five logical pixels too low when sampled for gameplay.
     const int seat_dx = x - 128;
     const int seat_dy = y - 22;
-    const bool seat =
-        ((seat_dx * seat_dx) * 11 + (seat_dy * seat_dy) * 30 <= 30 * 30 * 11) &&
-        y >= 12 && y <= 32;
+    const bool seat = authored_saddle_contains(
+        x, y, 128, 22, 30, 18, 12, 32
+    );
 
     // Colored upper frame/neck. Geometry is still smooth and authored, but its
     // sampled footprint follows the stock representation's scale and posture.
@@ -581,11 +611,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 23;
-    const bool seat =
-        (seat_dx * seat_dx) * 13 * 13 +
-            (seat_dy * seat_dy) * 32 * 32 <=
-            32 * 32 * 13 * 13 &&
-        y >= 8 && y <= 34;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 23, 32, 13, 8, 34
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -650,11 +678,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 22;
-    const bool seat =
-        (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 12 * 12 &&
-        y >= 8 && y <= 36;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 22, 35, 12, 8, 36
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -728,11 +754,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     // in this bridge pose. Shift/narrow it without touching envelope/contact.
     const int seat_dx = x - 120;
     const int seat_dy = y - 22;
-    const bool seat =
-        (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 32 * 32 <=
-            32 * 32 * 14 * 14 &&
-        y >= 8 && y <= 36;
+    const bool seat = authored_saddle_contains(
+        x, y, 120, 22, 32, 14, 8, 36
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -806,11 +830,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
     // the same smooth object-local form.
     const int seat_dx = x - 116;
     const int seat_dy = y - 22;
-    const bool seat =
-        (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 32 * 32 <=
-            32 * 32 * 14 * 14 &&
-        y >= 8 && y <= 36;
+    const bool seat = authored_saddle_contains(
+        x, y, 116, 22, 32, 14, 8, 36
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -882,11 +904,9 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     // exact recovered contact anchor.
     const int seat_dx = x - 112;
     const int seat_dy = y - 26;
-    const bool seat =
-        (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 28 * 28 <=
-            28 * 28 * 14 * 14 &&
-        y >= 12 && y <= 40;
+    const bool seat = authored_saddle_contains(
+        x, y, 112, 26, 28, 14, 12, 40
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -943,11 +963,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 22;
-    const bool seat =
-        (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 12 * 12 &&
-        y >= 12 && y <= 36;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 22, 35, 12, 12, 36
+    );
 
     const bool neck = y >= 30 && y <= 60 && x >= 124 && x <= 132;
     const int crown_dx = x - 134;
@@ -1012,11 +1030,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
     // stock-derived envelope/contact through the wheel/fork structure.
     const int seat_dx = x - 130;
     const int seat_dy = y - 26;
-    const bool seat =
-        (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 30 * 30 <=
-            30 * 30 * 12 * 12 &&
-        y >= 12 && y <= 40;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 26, 30, 12, 12, 40
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -1084,11 +1100,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 26;
-    const bool seat =
-        (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 14 * 14 &&
-        y >= 16 && y <= 40;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 26, 35, 14, 16, 40
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&
@@ -1149,11 +1163,9 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
 
     const int seat_dx = x - 130;
     const int seat_dy = y - 30;
-    const bool seat =
-        (seat_dx * seat_dx) * 12 * 12 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 12 * 12 &&
-        y >= 16 && y <= 40;
+    const bool seat = authored_saddle_contains(
+        x, y, 130, 30, 35, 12, 16, 40
+    );
 
     const bool neck =
         y >= 30 && y <= 60 &&

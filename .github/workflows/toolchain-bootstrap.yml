@@ -20,26 +20,6 @@ on:
       - "analysis/generated/da65-symbols-bank-*.info"
       - "tests/test_bootstrap_toolchain.py"
       - ".github/workflows/toolchain-bootstrap.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "tools/bootstrap_toolchain.py"
-      - "tools/install_pure_python_tool.py"
-      - "tools/validate_island.py"
-      - "tools/toolchain.json"
-      - "tools/export_toolchain_entries.py"
-      - "tools/toolchain-entries/**"
-      - "third_party/**"
-      - "tools/tool_interop.json"
-      - "tools/validate_tool_interop.py"
-      - "tools/export_symbol_adapters.py"
-      - "tools/run_fixture_mesen.py"
-      - "tests/test_mesen_fixture_adapter.py"
-      - "analysis/generated/symbols.json"
-      - "analysis/generated/snes2asm-symbols.yml"
-      - "analysis/generated/da65-symbols-bank-*.info"
-      - "tests/test_bootstrap_toolchain.py"
   workflow_dispatch:
 
 concurrency:

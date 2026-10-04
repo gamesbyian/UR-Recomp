@@ -401,17 +401,17 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     rim = wr2 < 25 * 25 and wr2 >= 22 * 22
     hub = wr2 <= 5 * 5
 
-    fork_center = 138 - (y - 60) // 11
+    fork_center = 134 - (y - 60) // 11
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
     crank = y >= 116 and y <= 123 and x >= 123 and x <= 152
     pedal = y >= 113 and y <= 118 and x >= 153 and x <= 157
 
-    seat_dx = x - 124
+    seat_dx = x - 120
     seat_dy = y - 26
     seat = (
         (seat_dx * seat_dx) * 14 * 14
-        + (seat_dy * seat_dy) * 39 * 39
-        <= 39 * 39 * 14 * 14
+        + (seat_dy * seat_dy) * 35 * 35
+        <= 35 * 35 * 14 * 14
         and y >= 12 and y <= 40
     )
 

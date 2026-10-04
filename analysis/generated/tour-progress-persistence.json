@@ -6,7 +6,7 @@
     "layout": "SRAM 0x1075 + 5*tour_row + track, 50 bytes, 1 = track qualified in the current tour run",
     "set": "83:87F5 on a qualifying 1P result",
     "award": "83:8805 sums the tour row; 5 -> 83:881B clears the row and increments the medal cell",
-    "cleared": "80:BBC1 zeroes all 50 when a rider is confirmed; 83:8957 clears the row when TRACK_SELECT is left back to TOUR_SELECT unless the medal cell equals SRAM 0x10D1 (unidentified)",
+    "cleared": "80:BBC1 zeroes all 50 when a rider is confirmed; leaving TRACK_SELECT for TOUR_SELECT keeps the row unless the medal cell differs from SRAM 0x10D1 (medal snapshot taken at tour confirm, 80:E6BF), in which case 83:8957 clears it",
     "checksum": "not covered by the 0x073C medal checksum (0x05E8-0x073B)"
   },
   "harness": "snesref + pinned snes9x-libretro, historical Dessyreqt 2014 movie input, anchored SRAM",
@@ -286,7 +286,7 @@
   "limits": [
     "Only won races were observed; whether a lost race changes the counter is untested.",
     "The flags survive in battery SRAM but are zeroed at rider select, so a resumed tour starts empty; the medal award after five qualifying results is statically decoded, not replayed across a reload.",
-    "The 0x10D1 comparison on leaving TRACK_SELECT is not decoded.",
+    "Keeping the row when leaving TRACK_SELECT for TOUR_SELECT is a static decode, not replayed.",
     "Counter semantics beyond 'advances once per won tour race and persists' are not promoted."
   ]
 }

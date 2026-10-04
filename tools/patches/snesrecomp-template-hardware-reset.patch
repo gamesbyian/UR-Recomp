@@ -1,0 +1,30 @@
+--- a/tools/new_project/templates/game_rtl.c.in
++++ b/tools/new_project/templates/game_rtl.c.in
+@@ -189,12 +189,27 @@
+     }
+ }
+ 
++/* Console reset (RtlReset): the machine is reset underneath a live session, so
++ * the host-side boot latch must drop too. Without this the next frame resumes
++ * the pre-reset main-loop PC against freshly reset hardware -- a black screen.
++ * Clear the bridge's last LLE resume PC as well, or a run that returns without
++ * publishing a new one would restore the stale PC. */
++/* Defined in interp_bridge.c; not exported by its header at this pin. */
++void interp_bridge_set_lle_resume_pc(uint32_t pc);
++
++static void GameHardwareReset(void)
++{
++    g_resume_pc = 0;
++    interp_bridge_set_lle_resume_pc(0);
++}
++
+ const RtlGameInfo kGameInfo = {
+     .title = "@CATALOG_SLUG@",
+     .initialize = NULL,
+     .run_frame = &GameRunOneFrame,
+     .draw_ppu_frame = &GameDrawPpuFrame,
+     .save_name_prefix = "save",
++    .hardware_reset = &GameHardwareReset,
+ };
+ 
+ void GameSessionReset(void)

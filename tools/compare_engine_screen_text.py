@@ -9,6 +9,8 @@ visual-language decoder at each named checkpoint.
 Cases (``CASES``):
 - ``race-result``: ``tests/input/ui-race-result-route.script`` (1P Dragster finish).
 - ``vs-challenger``: ``tests/input/vs-challenger-route.input`` with its observe script.
+- Records / League frontend routes (every ``dump`` in the script). Native-calibrated
+  routes that use ``turbo`` or race to a timed finish are not cross-engine cases.
 
 Native runs use the generated ``UniracersSNESRecomp`` target exactly as the
 two-player CI workflow does (fresh ``saves`` directory, ``--script``,
@@ -37,6 +39,13 @@ CASES = {
                       "input": "tests/input/vs-challenger-route.input",
                       "checkpoints": ["vsc-result", "vsc-champions", "vsc-pick-challenger", "vsc-track-choice", "vsc-next"]},
 }
+# Frontend routes that replay identically on both engines. Their reset-separated
+# probes depend on the template hardware_reset patch; without it native wedges.
+for _route in ("ui-records-explore", "ui-records-submenus", "ui-league-table", "ui-name-league-route"):
+    _script = f"tests/input/{_route}.script"
+    CASES[_route] = {"script": _script, "input": None,
+                     "checkpoints": [ln.split()[1] for ln in (ROOT / _script).read_text().splitlines()
+                                     if ln.startswith("dump ")]}
 
 
 def compare(ref: dict[str, list[str]], native: dict[str, list[str]]) -> dict:

@@ -364,7 +364,7 @@ MAIN_MENU --VS--> first VS screen --X--> MAIN_MENU
 MAIN_MENU --LEAGUE--> first League screen --X--> MAIN_MENU
 ```
 
-The original multi-branch fixture uses scripted console resets between branches. The successful native artifact captured the first 2P branch, then the runtime crashed during reset before VS/League could execute. That is a harness/reset limitation, not evidence that the later game branches are absent.
+The original multi-branch fixture uses scripted console resets between branches. Before 2026-10-04, native runs captured only the first 2P branch, because the runtime crashed during the reset before VS or League could execute. This was a harness/reset limitation, not evidence that the later branches are absent. It is now fixed (R-2026-10-04-UI-26): with `snesrecomp-reset-null-spc-player.patch` and `snesrecomp-template-hardware-reset.patch`, every reset-separated UI script captures all of its dumps natively. Branch labels still come from the atlas classifier, not from the script's intent.
 
 `tests/input/ui-vs-handoff.script` now provides a reset-free, selectedOption-guarded VS route in its own process. It targets the locally established `0x3E` P1/P2 handoff and captures the SRAM ownership discriminator. The recovered bot's later VS phases at `0x3F` and `0x5A` remain queued behind real P2 confirmation. League remains open: the earlier nominal League probe actually landed in VS because rapid menu inputs were swallowed, and its labels have explicitly not been promoted as League evidence.
 

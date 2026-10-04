@@ -197,7 +197,7 @@ jobs:
 
           for player in (1,2):
               vals=re.findall(
-                  rf"URWS_VS_MATERIALIZER margin=16 player={player} calibrated=(\\d)",
+                  rf"URWS_VS_MATERIALIZER margin=16 player={player} calibrated=(\d)",
                   log,
               )
               shadows=len(re.findall(

@@ -281,12 +281,17 @@ jobs:
           ]
           p2_baseline_candidate = p2_baseline["art_review"]["authored_candidate"]
           assert p2_baseline_candidate["approval_status"] == (
-              "gameplay-scale motion-review candidate; native acceptance pending"
+              "motion-reviewed P2 baseline; not approved shipping art"
           )
           p2_baseline_review = p2_baseline_candidate["gameplay_scale_review"]
           assert p2_baseline_review["stock_alpha_bounds"] == [23, 3, 40, 38]
           assert p2_baseline_review["candidate_alpha_bounds"] == [23, 3, 40, 38]
           assert p2_baseline_review["candidate_contact_x2_y2"] == [63, 76]
+          assert p2_baseline_review["stock_opaque_pixels"] == 323
+          assert p2_baseline_review["candidate_opaque_pixels"] == 304
+          assert p2_baseline_review["alpha_intersection_pixels"] == 266
+          assert p2_baseline_review["alpha_union_pixels"] == 361
+          assert abs(p2_baseline_review["alpha_iou"] - 0.7368421052631579) < 1e-12
 
           repeated_057d = authored_by_id[
               "ordinary-racer-0x057D-p1-adjacent-reference"

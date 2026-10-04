@@ -76,6 +76,7 @@ std::optional<ur::product::CompletedRunGhostTrace> g_run_ghost_playback_trace;
 std::optional<ur::product::CompletedRunGhostPresentationFrame>
     g_run_ghost_presentation_frame;
 bool g_run_capture_previous_active;
+bool g_run_ghost_draw_reported;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
 UrUniracersRestartPolicyState g_title_policy;
@@ -1105,6 +1106,27 @@ const char* run_record_capture_override_path() {
     return path && *path ? path : nullptr;
 }
 
+const char* run_ghost_acceptance_record_path() {
+    if (!run_record_capture_override_path()) return nullptr;
+    const char* path = std::getenv("UR_RUN_GHOST_ACCEPTANCE_RECORD");
+    return path && *path ? path : nullptr;
+}
+
+ur::product::CompletedRunGhostTarget active_run_ghost_target() {
+    if (run_record_capture_override_path()) {
+        const char* value = std::getenv("UR_RUN_GHOST_ACCEPTANCE_TARGET");
+        if (value && *value) {
+            const auto parsed =
+                ur::product::parse_completed_run_ghost_target(value);
+            if (parsed) return *parsed;
+        }
+        return ur::product::CompletedRunGhostTarget::Off;
+    }
+    return g_profile_state
+        ? g_profile_state->ghost_target
+        : ur::product::CompletedRunGhostTarget::Off;
+}
+
 bool run_record_capture_enabled() {
     return modern_mode() &&
            g_widescreen_scene_state.race_mode ==
@@ -1139,9 +1161,21 @@ void refresh_run_ghosts(
     const ur::product::RunRecordProvenance& provenance) {
     g_run_ghosts.clear();
 
-    // Acceptance capture writes an explicit artifact outside the ordinary
-    // profile catalog. Keep that plumbing isolated from product ghost state.
-    if (run_record_capture_override_path()) return;
+    // Acceptance capture writes explicit artifacts outside the ordinary
+    // profile catalog. An optional exact source record may be bound only when
+    // the capture override is active, keeping this plumbing isolated from
+    // ordinary profile ghost state.
+    if (run_record_capture_override_path()) {
+        const char* source_path = run_ghost_acceptance_record_path();
+        if (!source_path) return;
+        const auto loaded =
+            ur::product::load_completed_run_record_file(source_path);
+        if (!loaded.loaded()) return;
+        const auto target = playback_target_for(provenance);
+        g_run_ghosts.bind(
+            {{std::string(source_path), *loaded.record}}, target);
+        return;
+    }
 
     const std::string directory = default_run_record_directory();
     if (directory.empty()) return;
@@ -1173,10 +1207,11 @@ void refresh_run_ghosts(
 void refresh_run_ghost_playback_trace() {
     g_run_ghost_playback_trace.reset();
     g_run_ghost_presentation_frame.reset();
-    if (!modern_mode() || !g_profile_state) return;
+    if (!modern_mode()) return;
 
+    const auto ghost_target = active_run_ghost_target();
     const auto selection = ur::product::select_completed_run_ghost_target(
-        g_run_ghosts, g_profile_state->ghost_target);
+        g_run_ghosts, ghost_target);
     if (!selection.active() || !selection.kind) return;
 
     const auto loaded = ur::product::load_selected_completed_run_ghost_trace(
@@ -1187,7 +1222,7 @@ void refresh_run_ghost_playback_trace() {
                 stderr,
                 "UR_RUN_GHOST_TRACE PLAYBACK_UNAVAILABLE target=%s detail=%s\n",
                 ur::product::completed_run_ghost_target_name(
-                    g_profile_state->ghost_target),
+                    ghost_target),
                 loaded.detail.c_str());
             std::fflush(stderr);
         }
@@ -1200,7 +1235,7 @@ void refresh_run_ghost_playback_trace() {
             stderr,
             "UR_RUN_GHOST_TRACE PLAYBACK_BOUND target=%s samples=%zu\n",
             ur::product::completed_run_ghost_target_name(
-                g_profile_state->ghost_target),
+                ghost_target),
             g_run_ghost_playback_trace->samples.size());
         std::fflush(stderr);
     }
@@ -1252,6 +1287,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
     }
     refresh_run_ghosts(provenance);
     refresh_run_ghost_playback_trace();
+    g_run_ghost_draw_reported = false;
     (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
@@ -1902,15 +1938,29 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 if (logical_width > 256) {
                     frame.screen_x += (logical_width - 256) / 2;
                 }
-                (void)ur::presentation::draw_completed_run_ghost_racer(
-                    dst,
-                    pitch,
-                    logical_width,
-                    224,
-                    scale,
-                    frame,
-                    *selected.registration,
-                    128);
+                const bool drew =
+                    ur::presentation::draw_completed_run_ghost_racer(
+                        dst,
+                        pitch,
+                        logical_width,
+                        224,
+                        scale,
+                        frame,
+                        *selected.registration,
+                        128);
+                if (drew && !g_run_ghost_draw_reported &&
+                    std::getenv("UR_RUN_GHOST_DRAW_DIAGNOSTICS")) {
+                    g_run_ghost_draw_reported = true;
+                    std::fprintf(
+                        stderr,
+                        "UR_RUN_GHOST DRAWN race_frame=%llu semantic=%04X x=%d y=%d scale=%d\n",
+                        static_cast<unsigned long long>(frame.race_frame),
+                        static_cast<unsigned>(frame.semantic_frame_id),
+                        frame.screen_x,
+                        frame.screen_y,
+                        scale);
+                    std::fflush(stderr);
+                }
             }
         }
     }

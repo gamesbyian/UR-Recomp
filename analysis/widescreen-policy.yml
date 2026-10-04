@@ -144,10 +144,12 @@ scenes:
 
 next_discriminator:
   id: widescreen-sprite-margins
-  goal: "Decide whether objects and opponents entering the widened margins must be presented before stock would show them."
+  goal: "Decide whether objects and opponents entering the right-hand widened margin must be presented before stock would show them."
+  evidence_so_far: "Left margin is already correct: on the 1P widescreen-product-acceptance route the CPU opponent sits 1..43 px left of the stock view for frames 1606-1796 (191/916 race frames), and the widened frames draw it there, because the game emits 9-bit negative OAM X and the wide renderer honours it. A racer 1..43 px right of the view would need OAM X 256..298, which 9-bit OAM aliases to the far left, so right-margin presentation depends on the game's projection/culling in Race_BuildRacerOAMState (82:ACA5); no retained route has the opponent leading inside that band yet."
   method:
     - "Use the stock-parity oracle (tools/check_widescreen_product_parity.py) as the fixed guard: the authored 256 columns and guest WRAM must not change."
-    - "Measure on matched 1P/2P/VS routes whether OAM entries the game culls at the 256-pixel edge are visible content the margins now omit."
+    - "Find or record a route where the opponent leads the camera by 1..43 px, then check whether the widened frame shows it in the right margin."
+    - "Coordinate with the Racer HD presenter lane (native/presentation/racer_hd_presenter.hpp) before adding any host OAM extension: both own racer sprite composition."
   success:
     - "A per-object decision (present via host OAM extension, or accept culling) backed by matched-route evidence."
   stop_or_split:

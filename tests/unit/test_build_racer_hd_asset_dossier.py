@@ -156,6 +156,8 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(sample_authored_0541_p1_rgba(123, 122), bytes((224, 221, 216, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(123, 90), bytes((42, 39, 32, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((49, 45, 38, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(118, 28), bytes((41, 37, 29, 255)))
+        self.assertEqual(sample_authored_0541_p1_rgba(118, 31), bytes((25, 23, 17, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((232, 83, 83, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(132, 30), bytes((159, 153, 142, 255)))
         # Refinement pass 1 restores stock-supported internal structure with

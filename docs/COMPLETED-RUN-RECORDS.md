@@ -1,6 +1,6 @@
 # Completed Run Records and Ghost Foundation
 
-Status: foundation implemented; production race-completion capture and ghost rendering remain follow-ons.
+Status: completed-run capture/replay foundation merged; previous-run/PB ghost selection is now host-owned presentation state, while actual ghost rendering remains a follow-on.
 
 ## Ownership
 
@@ -63,3 +63,10 @@ Current production eligibility is deliberately narrower than the file format: Cr
 ## Replay-equivalence note
 
 `frame_count` remains persisted because it is useful lifecycle metadata for the captured attempt, but it is not an input to replay and is not required to match across fresh-process replay. The retained Dragster acceptance evidence showed identical provenance, `elapsed_ticks60`, all four split IDs/ticks, and all 65 RLE input runs while the host-observed active-race lifecycle window differed by one frame (2290 vs 2289). That one-frame lifecycle observation difference does not alter the guest input stream or authoritative timing, so deterministic replay acceptance treats it as diagnostic metadata rather than simulation equivalence.
+
+
+## Presentation-only ghost selection
+
+`native/product/completed_run_ghost.{hpp,cpp}` is the first consumer of the persisted catalog. At an eligible Modern 1P race-entry edge, the host loads compatible records from the active profile namespace and binds two immutable selections: the most recent compatible run and the fastest compatible personal best. The state owns copies of those records and exposes race-relative controller lookup only.
+
+This is intentionally one layer short of drawing a ghost. The ghost state has no guest-memory pointer, no simulator callback, no WRAM writer, and no authority over controller input submitted to the real racer. A future renderer may read the selected record and its race-relative input/state projection, but gameplay continues to come exclusively from the authoritative guest simulation. Retry clears and rebinds this presentation state at the next race-entry edge. Deterministic acceptance capture overrides remain isolated from the ordinary profile ghost catalog.

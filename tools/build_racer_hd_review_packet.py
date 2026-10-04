@@ -91,6 +91,27 @@ def build_review_manifest(dossier: dict, equivalence: dict) -> dict:
     }
 
 
+def alpha_diff_svg(review: dict) -> str:
+    stock_only = review.get("stock_only_pixels", [])
+    candidate_only = review.get("candidate_only_pixels", [])
+    cells = []
+    for x, y in stock_only:
+        cells.append(
+            f'<rect x="{x}" y="{y}" width="1" height="1" class="stock-only"/>'
+        )
+    for x, y in candidate_only:
+        cells.append(
+            f'<rect x="{x}" y="{y}" width="1" height="1" class="candidate-only"/>'
+        )
+    return (
+        '<svg class="alpha-diff" viewBox="0 0 64 64" '
+        'xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">'
+        '<rect width="64" height="64" class="diff-bg"/>'
+        + ''.join(cells)
+        + '</svg>'
+    )
+
+
 def render_html(manifest: dict, live: dict | None, readiness: dict | None = None) -> str:
     readiness_by_pose = {
         pose["pose_id"]: pose
@@ -118,6 +139,9 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
         )
         shipping_status = shipping.get("review_status", "unreviewed")
         blockers = ", ".join(shipping.get("blocker_codes", [])) or "none"
+        diff_svg = alpha_diff_svg(review)
+        stock_only_count = review.get("stock_only_pixel_count", "n/a")
+        candidate_only_count = review.get("candidate_only_pixel_count", "n/a")
         cards.append(f"""
 <section class="pose">
   <h2>{html.escape(pose["pose_id"])} · {html.escape(pose["player"])}</h2>
@@ -130,6 +154,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
     <figure><img class="asset stock" src="{html.escape(stock_href)}"><figcaption>Stock 1×</figcaption></figure>
     <figure><img class="asset large" src="{html.escape(nearest_href)}"><figcaption>Stock nearest 4×</figcaption></figure>
     {authored_panels}
+    <figure>{diff_svg}<figcaption>Alpha mismatch · stock-only {stock_only_count} · authored-only {candidate_only_count}</figcaption></figure>
   </div>
 </section>""")
 
@@ -180,6 +205,10 @@ figcaption {{ margin-top: 6px; color: #bbb; font-size: 12px; }}
 .large {{ width: 256px; height: 256px; image-rendering: auto; }}
 .gameplay {{ width: 64px; height: 64px; image-rendering: auto; }}
 .frame {{ width: 256px; height: 224px; object-fit: fill; image-rendering: auto; }}
+.alpha-diff {{ width: 256px; height: 256px; border: 1px solid #555; }}
+.diff-bg {{ fill: #202020; }}
+.stock-only {{ fill: #ff5b5b; }}
+.candidate-only {{ fill: #55d8ff; }}
 .missing {{ width: 256px; height: 120px; display: grid; place-items: center; background: #311; }}
 </style>
 </head>

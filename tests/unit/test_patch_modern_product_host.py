@@ -83,6 +83,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_record.cpp",
             "completed_run_capture.cpp",
             "completed_run_comparison.cpp",
+            "completed_run_presentation.cpp",
             "completed_run_store.cpp",
             "completed_run_ghost.cpp",
             "completed_run_ghost_policy.cpp",

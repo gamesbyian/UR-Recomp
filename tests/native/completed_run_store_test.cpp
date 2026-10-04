@@ -1,4 +1,5 @@
 #include "completed_run_store.hpp"
+#include "completed_run_capture.hpp"
 
 #include <cassert>
 #include <filesystem>

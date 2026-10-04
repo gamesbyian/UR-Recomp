@@ -81,7 +81,9 @@ bool compatible_for_playback(const CompletedRunRecord& record, const RunPlayback
 
 std::string encode_completed_run_record(const CompletedRunRecord& record);
 /* Emit the existing deterministic INPUT_FILE grammar verbatim. */
-std::string encode_completed_run_input_file(\n    const CompletedRunRecord& record,\n    std::uint64_t frame_offset = 0);
+std::string encode_completed_run_input_file(
+    const CompletedRunRecord& record,
+    std::uint64_t frame_offset = 0);
 RunRecordLoadResult decode_completed_run_record(const std::string& text);
 bool save_completed_run_record_file(const std::string& path, const CompletedRunRecord& record, std::string* detail = nullptr);
 RunRecordLoadResult load_completed_run_record_file(const std::string& path, const RunPlaybackTarget* target = nullptr);

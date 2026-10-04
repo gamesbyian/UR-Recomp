@@ -184,6 +184,79 @@ jobs:
           grep -q "PROFILE_ACCEPTANCE authentic_inert" "$LOG"
           echo "UR_PROFILE_PERSISTENCE_RESULT=restart_legacy_default_recovery_authentic_inert"
 
+      - name: Modern profile save-root isolation acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ALPHA_STATE="$RUNNER_TEMP/profile-alpha-host-state.txt"
+          BETA_STATE="$RUNNER_TEMP/profile-beta-host-state.txt"
+          ALPHA_ROOT="$RUNNER_TEMP/profile-alpha-saves"
+          BETA_ROOT="$RUNNER_TEMP/profile-beta-saves"
+          AUTH_ROOT="$RUNNER_TEMP/profile-authentic-ignored"
+          mkdir -p "$ALPHA_ROOT" "$BETA_ROOT" "$AUTH_ROOT"
+
+          cat >"$ALPHA_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=alpha
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+          cat >"$BETA_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=beta
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
+          run_case() {
+            local NAME="$1"
+            local STATE="$2"
+            local ROOT="$3"
+            local MODE="$4"
+            local LOG="$RUNNER_TEMP/profile-root-$NAME.log"
+
+            set +e
+            SDL_AUDIODRIVER=dummy \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_HOST_STATE_PATH="$STATE" \
+            UR_PROFILE_SAVE_ROOT="$ROOT" \
+            UR_EXECUTION_MODE="$MODE" \
+            SNESRECOMP_RUN_FRAMES=1 \
+            timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+            local STATUS=$?
+            set -e
+            if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]; then
+              cat "$LOG"
+              exit "$STATUS"
+            fi
+            cat "$LOG"
+          }
+
+          run_case alpha-first "$ALPHA_STATE" "$ALPHA_ROOT" modern
+          run_case alpha-restart "$ALPHA_STATE" "$ALPHA_ROOT" modern
+          run_case beta "$BETA_STATE" "$BETA_ROOT" modern
+          run_case authentic "$ALPHA_STATE" "$AUTH_ROOT" authentic
+
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=alpha root=$ALPHA_ROOT" \
+            "$RUNNER_TEMP/profile-root-alpha-first.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=alpha root=$ALPHA_ROOT" \
+            "$RUNNER_TEMP/profile-root-alpha-restart.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=beta root=$BETA_ROOT" \
+            "$RUNNER_TEMP/profile-root-beta.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT AUTHENTIC_DEFAULT root=saves" \
+            "$RUNNER_TEMP/profile-root-authentic.log"
+          if grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED" "$RUNNER_TEMP/profile-root-authentic.log"; then
+            echo "::error::Authentic mode applied a Modern profile save root"
+            exit 1
+          fi
+          test -d "$ALPHA_ROOT"
+          test -d "$BETA_ROOT"
+          test "$ALPHA_ROOT" != "$BETA_ROOT"
+
+          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_stable_beta_isolated_authentic_default"
+
       - name: Native boot smoke
         shell: bash
         run: |

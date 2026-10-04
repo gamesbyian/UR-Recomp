@@ -3,6 +3,11 @@
 # Race, Circuit, Stunt, Race, Circuit.
 # Dessyreqt recovered stuntResults currentMenu = 0x18. Treat that as a target
 # discriminator, not a promoted fact until captured locally.
+# Known limitation (2026-10-04): with no input the BOWL event never concludes on
+# either native or snesref. The timer reaches 0:00:0, then idle hint text scrolls
+# and B/A/X/Y/L/R/right presses after expiry do not end it either. The Dessyreqt
+# movie's active run does end at expiry (reference frames 8620->11867), so
+# capturing 0x2F/0x18 needs a route that performs stunts, not an idle wait.
 
 until 009F == D7 3600
 wait 60

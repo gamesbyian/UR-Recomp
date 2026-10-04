@@ -10,6 +10,7 @@ extern "C" {
 struct SnesDesktopHostFrameStats;
 struct SnesDisplayViewport;
 
+void ur_uniracers_modern_after_config(void);
 void ur_uniracers_modern_after_run_frame(
     const struct SnesDesktopHostFrameStats* stats);
 int ur_uniracers_modern_system_key_down(int key, int mod, int repeat);

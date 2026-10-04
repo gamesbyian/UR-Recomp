@@ -298,7 +298,7 @@ jobs:
           ]
           p2_reused_candidate = p2_reused["art_review"]["authored_candidate"]
           assert p2_reused_candidate["approval_status"] == (
-              "context-safe P2 baseline reuse candidate; native acceptance pending"
+              "accepted context-safe reuse of motion-reviewed P2 baseline; not approved shipping art"
           )
           assert p2_reused_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0540-p2-sync-reference"

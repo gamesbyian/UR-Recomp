@@ -14,7 +14,7 @@
  "word_table_sha256": "5f36ff0acb1584e9073171d425cc3db05a28bff4519c199bba24b238a16b47bd",
  "rule": "case-insensitive substring: a name is forbidden if any table word occurs at any position of the stored lowercase name",
  "rule_evidence": "static decode of 83:84DD (outer INC $04 over name offsets until FF, inner loop over 71 pointers) and 83:8779 (prefix compare); runtime-confirmed for player names by tools/probe_name_entry.py (SONIC, XSEGAX, BASSIST rejected; ZED accepted)",
- "open": "whether League names (NAME_LEAGUE) use the same check is not traced",
+ "applies_to": "player and League names: the only scanner call (80:A4A3) is in the shared name editor 80:A1E3, entered from 80:9E7C ('WHAT IS YOUR LEAGUE CALLED') and 80:D47E ('WHAT IS YOUR PLAYER CALLED'); League path static only",
  "words_committed": false,
  "words_note": "Derive with tools/extract_forbidden_name_table.words_from_rom(); the list contains profanity plus 'sega' and 'sonic'.",
  "checks": {
@@ -23,7 +23,9 @@
   "pointer_table_is_contiguous_words": true,
   "word_table_ends_immediately_before_matcher": true,
   "default_racer_names_are_not_forbidden": true,
-  "publicly_reported_examples_are_forbidden": true
+  "publicly_reported_examples_are_forbidden": true,
+  "scanner_has_one_caller_in_shared_editor": true,
+  "shared_editor_serves_player_and_league_names": true
  },
  "all_checks_pass": true
 }

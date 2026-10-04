@@ -654,8 +654,8 @@ states:
         confidence: inferred
       - event: "blacklisted name accepted"
         to: FORBIDDEN_NAME_REJECTION
-        confidence: low
-        note: "Secondary historical source says the name filter also applies to team names; locally unverified."
+        confidence: medium
+        note: "Statically confirmed: the only forbidden-name scanner call (80:A4A3) is in the shared name editor 80:A1E3, which also serves WHAT IS YOUR LEAGUE CALLED (80:9E7C); League path not yet replayed (analysis/generated/forbidden-name-table.json)."
 
   - id: ENDING
     family: ending

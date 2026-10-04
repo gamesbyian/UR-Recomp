@@ -40,6 +40,10 @@ MATCHER = 0x8779
 # Opcode signatures (hand-decoded, 8-bit A with SEP #$20 context).
 MATCHER_SIGNATURE = bytes.fromhex("08e220485abd0000c9fff009d90000d00ae8c880f07a6828e202607a6828c20260")
 SCANNER_CALL = bytes.fromhex("aabf378583aa207987")  # TAX / LDA 83:8537,X / TAX / JSR $8779
+SCANNER_ENTRY_LONG = bytes.fromhex("22d98483")    # JSL 83:84D9 (JSR $84DD; RTL)
+EDITOR_OK_CHECK = 0xA4A3                          # 80:A4A3, in the shared name editor's OK path
+EDITOR_ENTRY_CALL = bytes.fromhex("20e3a1")       # JSR $A1E3 (shared name editor, X = buffer)
+EDITOR_CALLERS = {0x9E7C: "WHAT IS YOUR LEAGUE CALLED", 0xD47E: "WHAT IS YOUR PLAYER CALLED"}
 
 
 def lorom(bank: int, addr: int) -> int:
@@ -63,6 +67,14 @@ def is_forbidden(name: str, words: list[bytes]) -> bool:
     return any(word in stored for word in words)
 
 
+def find_all(rom: bytes, needle: bytes) -> list[int]:
+    out, i = [], rom.find(needle)
+    while i >= 0:
+        out.append(i)
+        i = rom.find(needle, i + 1)
+    return out
+
+
 def analyze(rom: bytes) -> dict:
     words = words_from_rom(rom)
     first = lorom(BANK, rom[lorom(BANK, POINTER_TABLE)] | rom[lorom(BANK, POINTER_TABLE) + 1] << 8)
@@ -80,6 +92,9 @@ def analyze(rom: bytes) -> dict:
             is_forbidden(n, words) for n in ("mike", "andrew", "martin", "melissa", "amy", "malcolm", "michelle", "colin",
                                              "dave", "tony", "carol", "craig", "ken", "robbie", "alice", "steve")),
         "publicly_reported_examples_are_forbidden": is_forbidden("sonic", words) and is_forbidden("sega", words),
+        "scanner_has_one_caller_in_shared_editor": find_all(rom, SCANNER_ENTRY_LONG) == [lorom(0x80, EDITOR_OK_CHECK)],
+        "shared_editor_serves_player_and_league_names": sorted(
+            o for o in find_all(rom, EDITOR_ENTRY_CALL) if o < 0x8000) == sorted(lorom(0x80, a) for a in EDITOR_CALLERS),
     }
     return {
         "schema_version": 1,
@@ -94,7 +109,7 @@ def analyze(rom: bytes) -> dict:
         "word_table_sha256": hashlib.sha256(blob).hexdigest(),
         "rule": "case-insensitive substring: a name is forbidden if any table word occurs at any position of the stored lowercase name",
         "rule_evidence": "static decode of 83:84DD (outer INC $04 over name offsets until FF, inner loop over 71 pointers) and 83:8779 (prefix compare); runtime-confirmed for player names by tools/probe_name_entry.py (SONIC, XSEGAX, BASSIST rejected; ZED accepted)",
-        "open": "whether League names (NAME_LEAGUE) use the same check is not traced",
+        "applies_to": "player and League names: the only scanner call (80:A4A3) is in the shared name editor 80:A1E3, entered from 80:9E7C ('WHAT IS YOUR LEAGUE CALLED') and 80:D47E ('WHAT IS YOUR PLAYER CALLED'); League path static only",
         "words_committed": False,
         "words_note": "Derive with tools/extract_forbidden_name_table.words_from_rom(); the list contains profanity plus 'sega' and 'sonic'.",
         "checks": checks,

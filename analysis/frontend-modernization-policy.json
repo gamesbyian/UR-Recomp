@@ -373,7 +373,7 @@
       ],
       "class": "administrative",
       "modern": "redesign_decided",
-      "rationale": "Modern mode accepts forbidden names: the stock detection rule (71-word table at 83:85C5, case-insensitive substring match by 83:84DD; analysis/generated/forbidden-name-table.json) triggers a COOL NAME! acknowledgement and then the name is kept. Stock shows an inline NOT COOL ENOUGH message and keeps the editor open (analysis/generated/name-entry-probe.json); that rejection remains authentic/reference behavior only.",
+      "rationale": "Modern mode accepts forbidden names: the stock detection rule (71-word table at 83:85C5, case-insensitive substring match by 83:84DD; analysis/generated/forbidden-name-table.json) triggers a COOL NAME! acknowledgement and then the name is kept. Stock shows an inline NOT COOL ENOUGH message and keeps the editor open (analysis/generated/name-entry-probe.json); that rejection remains authentic/reference behavior only. The same stock check covers player and League names (one shared editor).",
       "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
     }
   ]

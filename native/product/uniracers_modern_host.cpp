@@ -39,7 +39,6 @@ bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
-uint32_t g_exit_frontend_expected_sram;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
@@ -371,7 +370,6 @@ bool exit_to_frontend() {
         product_diagnostic("UR_EXIT_FRONTEND RESET_REQUEST_FAILED");
         return false;
     }
-    g_exit_frontend_expected_sram = before_sram;
 
     g_options_visible = false;
     g_controls_visible = false;
@@ -620,13 +618,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
 
     if (g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
-        const uint32_t current_sram = current_sram_digest();
-        if (current_sram != g_exit_frontend_expected_sram) {
-            product_diagnostic("UR_EXIT_FRONTEND SRAM_CHANGED_UNEXPECTEDLY");
-            g_exit_frontend_waiting_for_main = false;
-            g_exit_frontend_waiting_for_usable = false;
-            return;
-        }
         g_exit_frontend_waiting_for_main = false;
         g_exit_frontend_waiting_for_usable = true;
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {

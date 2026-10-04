@@ -636,20 +636,18 @@ jobs:
             test "$STATUS" -eq 0
             grep -q "UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER" "$LOG"
             grep -q "UR_EXIT_FRONTEND REQUESTED" "$LOG"
+            grep -q "UR_SESSION_REBOOT_SRAM_RESTORED digest=" "$LOG"
             grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
             grep -q "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C" "$LOG"
             test -s "$DUMPS/exit-frontend-ready.wram.bin"
             test -s "$DUMPS/exit-frontend-usable.wram.bin"
 
             local BEFORE
-            local READY
-            local USABLE
+            local RESTORED
             BEFORE=$(grep "UR_EXIT_FRONTEND REQUESTED" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
-            READY=$(grep "UR_EXIT_FRONTEND FRONTEND_READY" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
-            USABLE=$(grep "UR_EXIT_FRONTEND FRONTEND_USABLE" "$LOG" | tail -n1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')
+            RESTORED=$(grep "UR_SESSION_REBOOT_SRAM_RESTORED" "$LOG" | tail -n1 | sed -E 's/.*digest=([0-9A-F]+).*/\1/')
             test -n "$BEFORE"
-            test "$BEFORE" = "$READY"
-            test "$BEFORE" = "$USABLE"
+            test "$BEFORE" = "$RESTORED"
 
             if grep -q "UR_PAUSE_QUIT REQUESTED" "$LOG"; then
               echo "::error::Exit to Frontend crossed into Quit Desktop"

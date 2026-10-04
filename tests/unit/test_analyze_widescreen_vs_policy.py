@@ -17,8 +17,11 @@ class WidescreenVsPolicyTests(unittest.TestCase):
     def test_accepts_presentation_only_difference(self):
         control = {"vs-race-1240": checkpoint(vram_count=1)}
         widened = {"vs-race-1240": checkpoint(vram_count=2)}
-        report = analyze(control, widened)
-        self.assertTrue(report["accepted"])
+        report = analyze(
+            control, widened, {"plus8_preparation_hook_observed": True}
+        )
+        self.assertTrue(report["semantic_activation_preserved"])
+        self.assertTrue(report["promotion_ready"])
         self.assertEqual(report["classification"], "ordinary-2p-mixed-compatible")
         self.assertTrue(report["rows"][0]["protected_equal"])
         self.assertIn("vram_update_lists", report["rows"][0]["presentation_differences"])
@@ -26,10 +29,24 @@ class WidescreenVsPolicyTests(unittest.TestCase):
     def test_rejects_camera_or_gameplay_difference(self):
         control = {"vs-race-1240": checkpoint(camera=10)}
         widened = {"vs-race-1240": checkpoint(camera=11)}
-        report = analyze(control, widened)
-        self.assertFalse(report["accepted"])
-        self.assertEqual(report["classification"], "distinct-vs-exception-required")
+        report = analyze(
+            control, widened, {"plus8_preparation_hook_observed": True}
+        )
+        self.assertFalse(report["semantic_activation_preserved"])
+        self.assertFalse(report["promotion_ready"])
+        self.assertEqual(report["classification"], "distinct-vs-semantic-exception-required")
         self.assertIn("camera_and_viewport", report["rows"][0]["protected_differences"])
+
+    def test_preserved_state_without_provider_requires_distinct_preparation_path(self):
+        control = {"vs-race-1240": checkpoint()}
+        widened = {"vs-race-1240": checkpoint()}
+        report = analyze(
+            control, widened, {"plus8_preparation_hook_observed": False}
+        )
+        self.assertTrue(report["semantic_activation_preserved"])
+        self.assertFalse(report["promotion_ready"])
+        self.assertTrue(report["evidence_complete"])
+        self.assertEqual(report["classification"], "distinct-vs-preparation-path-required")
 
     def test_rejects_checkpoint_mismatch(self):
         with self.assertRaisesRegex(ValueError, "checkpoint mismatch"):

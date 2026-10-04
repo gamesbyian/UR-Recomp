@@ -15,8 +15,24 @@ SAVE_PREFIX_ANCHOR = '    .save_name_prefix = "save",\n'
 
 
 def patch_main_text(source: str) -> str:
-    if "ur_uniracers_modern_presentation_hz" in source:
+    if "ur_uniracers_modern_compute_viewport" in source:
         return source
+
+    widescreen_fields = (
+        "    .native_widescreen      = 1,\n"
+        "    .native_widescreen_enabled = &ur_uniracers_modern_native_widescreen_enabled,\n"
+        "    .prepare_frame          = &ur_uniracers_modern_prepare_frame,\n"
+        "    .compute_viewport       = &ur_uniracers_modern_compute_viewport,\n"
+    )
+
+    if "ur_uniracers_modern_presentation_hz" in source:
+        anchor = (
+            "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
+        )
+        if anchor not in source:
+            raise ValueError("existing modern host presentation field not found")
+        return source.replace(anchor, anchor + widescreen_fields, 1)
+
     if "ur_uniracers_modern_after_run_frame" in source:
         overlay_anchor = (
             "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
@@ -26,7 +42,8 @@ def patch_main_text(source: str) -> str:
         return source.replace(
             overlay_anchor,
             overlay_anchor
-            + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n",
+            + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
+            + widescreen_fields,
             1,
         )
     if INCLUDE_ANCHOR not in source:
@@ -46,7 +63,8 @@ def patch_main_text(source: str) -> str:
         + "    .system_key_down       = &ur_uniracers_modern_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n"
         + "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
-        + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n",
+        + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
+        + widescreen_fields,
         1,
     )
 
@@ -83,6 +101,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
     product_sources = [
         "output_resolution_policy.cpp",
         "output_resolution_runtime_policy.cpp",
+        "widescreen_output_composition.cpp",
         "host_product_state.cpp",
         "host_product_store.cpp",
         "session_control.cpp",

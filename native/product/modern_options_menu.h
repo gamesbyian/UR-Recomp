@@ -10,6 +10,7 @@ typedef enum UrModernOptionsItem {
     UR_MODERN_OPTIONS_VSYNC = 2,
     UR_MODERN_OPTIONS_PRESENTATION_FPS = 3,
     UR_MODERN_OPTIONS_OUTPUT_RESOLUTION = 4,
+    UR_MODERN_OPTIONS_WIDESCREEN = 5,
 } UrModernOptionsItem;
 
 typedef struct UrModernOptionsMenu {

@@ -120,6 +120,16 @@ After internal guest/runtime references were resolved, 101 external symbols rema
 
 The next reduction step is therefore to add the required non-desktop framework support translation units to the collapse before designing a Switch host adapter. Do not treat the raw 101-symbol list as 101 Switch APIs.
 
+### Gate S1.95 — full guest/runtime Switch executable link
+
+**Closed.** Run `37242319162` produced the first Nintendo Switch NRO that contains the freshly generated canonical Uniracers guest, the accepted authoritative SNES runtime floor, required portable framework support modules, and a Switch-owned host contract. The final AArch64 executable link has zero undefined symbols and `elf2nro` packaged it successfully.
+
+Accepted NRO SHA-256: `884e25ddcc12acb2ca761e0b129a676336b6e30a5a07f040d2741602693626fc`.
+
+The host is intentionally a non-simulating skeleton. It owns the framework's true host seams (fatal handling, APU serialization contract, optional SPC interception, frame-present hook, save-directory creation, window-scale no-op, Widescreen globals and breadcrumb logging) but does not call `SnesInit` or `RtlRunFrame`. It opens no audio thread; therefore its no-op APU lock is valid only for this single-threaded link/boot probe and must be replaced before simulation + audio are enabled.
+
+This result closes the executable-link question: no Switch-only simulation fork is needed to combine the canonical guest and authoritative runtime into a real NRO. Gate S2 remains open for the materially harder proof: initialize the canonical ROM/runtime on Switch, execute deterministic fixture checkpoints, and match the retained event-relative simulation digests.
+
 ### Gate S2 — authoritative simulation
 
 Link the same generated/recompiled simulation used by desktop.

@@ -17,7 +17,7 @@ concurrency:
 jobs:
   trace-writers:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -80,7 +80,8 @@ jobs:
           p.write_text(s)
           PY
 
-          cmake -S "$PROJECT" -B "$PROJECT/build-trace" \
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
+          cmake -S "$PROJECT" -B "$PROJECT/build-trace" -DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ENABLE_TRACE=ON
           cmake --build "$PROJECT/build-trace" -j2

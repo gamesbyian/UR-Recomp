@@ -1,0 +1,176 @@
+name: Windows native build and boot smoke
+
+# Windows x64 is the primary consumer target (docs/PLATFORM-TARGETS.md). This
+# gate proves that the same repository-owned framework stage, patch stack,
+# generation path and modern product host build on Windows against the
+# canonical SDL3 backend (repository-owned SDL 3.4.10 source, no download),
+# then boots the canonical ROM to the main menu and replays the race-result
+# route headlessly. The Visual Studio ClangCL toolset is used because the
+# framework relies on GCC/Clang attributes that MSVC's cl.exe rejects.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-native-smoke.yml"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/patch_modern_product_host.py"
+      - "tools/check_result_screen_time.py"
+      - "native/product/**"
+      - "native/title/**"
+  push:
+    branches: [main]
+    paths:
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
+      - "third_party/cargo/snesrecomp-analyzer/**"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
+      - "tools/patch_modern_product_host.py"
+      - "native/product/**"
+      - "native/title/**"
+
+concurrency:
+  group: windows-native-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    timeout-minutes: 75
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Project patches are hash-pinned; Windows Git's autocrlf would rewrite them.
+      - name: Keep checkout bytes exact
+        run: git config --global core.autocrlf false
+
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify canonical ROM
+        run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage repository-owned SNESRecomp framework
+        run: |
+          set -euo pipefail
+          python tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -f .tools/src/snesrecomp/runner/runner.cmake
+
+      - name: Scaffold and generate
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-recomp-build"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          python "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
+          grep -q "hardware_reset = &GameHardwareReset" "$ROOT/src/game_rtl.c"
+
+      - name: Configure and build (Visual Studio, ClangCL, SDL3)
+        run: |
+          set -euo pipefail
+          # CMake embeds these paths in generated scripts; backslashes in
+          # D:\a\... would be parsed as escapes, so pass mixed (C:/...) form.
+          WS="$(cygpath -m "$GITHUB_WORKSPACE")"
+          FRAMEWORK="$WS/.tools/src/snesrecomp"
+          ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
+          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" --config Release --parallel 4
+          EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
+          test -n "$EXE"
+          echo "EXE=$EXE" >> "$GITHUB_ENV"
+          ls -la "$(dirname "$EXE")"
+
+      - name: Boot to main menu
+        run: |
+          set -euo pipefail
+          DUMPS="$RUNNER_TEMP/boot-dumps"
+          mkdir -p "$DUMPS"
+          printf 'until 009F == D7 3600\nwait 30\ndump boot-main-menu\nquit\n' > "$RUNNER_TEMP/boot.script"
+          rm -rf "$(dirname "$EXE")/saves"
+          set +e
+          SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy SNESRECOMP_DUMP_DIR="$DUMPS" \
+            timeout 300 "$EXE" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$RUNNER_TEMP/boot.script" >"$RUNNER_TEMP/boot.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/boot.log"
+          test "$RC" -eq 0
+          python - "$DUMPS/boot-main-menu.wram.bin" <<'PY'
+          import pathlib, sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          assert wram[0x9F] == 0xD7, f"main menu not reached: $9F=0x{wram[0x9F]:02X}"
+          print("WINDOWS_BOOT_MAIN_MENU ok")
+          PY
+
+      - name: Race-result route prints the finish time
+        run: |
+          set -euo pipefail
+          DUMPS="$RUNNER_TEMP/race-result-dumps"
+          mkdir -p "$DUMPS"
+          rm -rf "$(dirname "$EXE")/saves"
+          set +e
+          SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy SNESRECOMP_DUMP_DIR="$DUMPS" \
+            timeout 600 "$EXE" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --script "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script" \
+            >"$RUNNER_TEMP/race-result.log" 2>&1
+          RC=$?
+          set -e
+          tail -n 40 "$RUNNER_TEMP/race-result.log"
+          test "$RC" -eq 0
+          cd tools
+          python check_result_screen_time.py --dump-dir "$DUMPS" --checkpoint race-results
+
+      - name: Upload Windows evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-smoke
+          path: |
+            ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/boot-dumps/
+            ${{ runner.temp }}/race-result-dumps/race-results.*
+          if-no-files-found: warn
+          retention-days: 7

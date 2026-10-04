@@ -66,6 +66,29 @@ Shared expectations:
 
 The canonical simulation rate remains fixed to the original game. No platform may reinterpret a user-selected display FPS as a request to change physics, timers, AI, RNG, stunt windows, replay timing or records.
 
+## SDL backend policy
+
+**SDL3 is UR-Recomp's canonical desktop host backend. SDL2 exists only as a compatibility/platform fallback, and new cross-platform product code must not be designed against the SDL2 API.**
+
+This follows the pinned SNESRecomp framework, whose `runner.cmake` already defaults to SDL3 and keeps SDL2 as an explicit fallback (`SNESRECOMP_SDL_BACKEND`). The host layer (display modes, fullscreen, VSync, output resolution, pause UI, controller handling, presentation timing) is still under active construction. Moving now avoids accumulating glue against an API the project already expects to replace.
+
+| Lane | Backend |
+| --- | --- |
+| Windows x64 reference build | SDL3 |
+| Modern macOS | SDL3 |
+| Linux CI / native engineering builds | SDL3, unless a check deliberately exercises the SDL2 fallback |
+| Web | whatever Emscripten/framework path proves appropriate; it does not dictate desktop architecture |
+| Switch homebrew | SDL2 may remain a platform-specific adapter (homebrew ecosystems lag) |
+| macOS High Sierra | SDL2 if required by that separate legacy lane |
+| PS5 / other homebrew | decided per platform later |
+
+Implementation rules:
+- **SDL source:** SDL3 comes from the repository-owned, hash-pinned SDL 3.4.10 source archive (`third_party/archives/SDL3-3.4.10.tar.gz`). It is byte-identical to the framework pin. Stage it with `python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only` and pass `-DSNESRECOMP_SDL_BACKEND=SDL3 -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR=<repo>/.tools/src/sdl3/SDL3-3.4.10`. With a local source dir supplied, the build makes no network fetch; the network audit's `sdl3-repo-source` lane traces this.
+- **Version differences:** SDL2/SDL3 API differences stay inside framework/host shims (`desktop/sdl_compat.h` and the dual-path host patches). Product code (`native/product/`) speaks normalized host contracts, not SDL version-specific types.
+- **Workflow coverage:** every workflow that builds the native game uses SDL3 from the repository source; this was migrated on 2026-10-04. Builds that previously went through `setup_project.sh --build` (framework defaults, i.e. a network SDL3 fetch) now configure explicitly. The SDL2 fallback keeps compile coverage through the network audit's `sdl2-system` lane.
+- **snesref exception:** `libsdl2-dev` remains installed where workflows build `snesref`. That reference-emulator harness is a separate framework tool whose CMake requires SDL2; it is not the desktop host.
+- **Equivalence evidence (2026-10-04):** guest state is backend-independent. On the race-result route, the SDL3 and SDL2 builds produce byte-identical WRAM, VRAM, CGRAM and SRAM. The SDL3 build matches snesref at all 36 text-parity checkpoints.
+
 ## Reference platform policy
 
 Windows x64 is the primary consumer/reference packaging target.

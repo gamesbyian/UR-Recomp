@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "tool": "sdl3",
+  "upstream_url": "https://github.com/libsdl-org/SDL.git",
+  "upstream_tag": "release-3.4.10",
+  "upstream_revision": "8e37db5e797b6167f3a00d697d816a684bd259c7",
+  "archive_path": "third_party/archives/SDL3-3.4.10.tar.gz",
+  "archive_sha256": "12b34280415ec8418c864408b93d008a20a6530687ee613d60bfbd20411f2785",
+  "archive_bytes": 15606216,
+  "archive_entries": 2181,
+  "archive_origin": "https://github.com/libsdl-org/SDL/releases/download/release-3.4.10/SDL3-3.4.10.tar.gz (unmodified upstream release asset)",
+  "retrieved": "2026-10-04",
+  "license": "Zlib",
+  "license_path": "third_party/provenance/sdl3-LICENSE.txt",
+  "framework_pin_match": "Identical version and SHA-256 to SNESRecomp cd5875c runner.cmake SNESRECOMP_SDL3_FETCH_VERSION/SNESRECOMP_SDL3_FETCH_SHA256.",
+  "consumer": "SNESRECOMP_SDL3_SOURCE_DIR=<staged>/SDL3-3.4.10 with SNESRECOMP_SDL_BACKEND=SDL3; the framework builds it statically, so no configure-time download occurs."
+}

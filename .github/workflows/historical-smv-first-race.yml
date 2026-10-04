@@ -48,7 +48,7 @@ permissions:
 jobs:
   replay:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
 
@@ -196,11 +196,12 @@ jobs:
             --generate \
             --no-build
           PROJ="$ROOT/UniracersSNESRecomp"
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$PROJ" -B "$PROJ/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$PROJ/build" -j2
           test -x "$PROJ/build/UniracersSNESRecomp"
 

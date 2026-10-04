@@ -31,7 +31,7 @@ concurrency:
 jobs:
   acceptance:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -88,11 +88,12 @@ jobs:
           ROOT="$TMP/UniracersSNESRecomp"
           python3 tools/apply_native_racer_presentation_probe.py "$ROOT"
 
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$ROOT" -B "$ROOT/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
             -DUR_RECOMP_SOURCE_ROOT="$GITHUB_WORKSPACE"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"

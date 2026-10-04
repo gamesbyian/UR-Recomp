@@ -1,0 +1,14 @@
+{
+  "artifacts": [],
+  "build": [],
+  "group": "host",
+  "headless": {
+    "note": "Source-only staging (--clone-only). The SNESRecomp CMake build compiles SDL3 as a static library inside the game build; there is no separate install step.",
+    "status": "manual"
+  },
+  "id": "sdl3",
+  "install_mode": "manual",
+  "purpose": "Canonical desktop host backend for the native game target: exact SDL 3.4.10 source matching the SNESRecomp framework pin. Staged offline from the repository-owned archive and consumed through SNESRECOMP_SDL3_SOURCE_DIR; the framework compiles it statically into the game executable.",
+  "revision": "8e37db5e797b6167f3a00d697d816a684bd259c7",
+  "url": "https://github.com/libsdl-org/SDL.git"
+}

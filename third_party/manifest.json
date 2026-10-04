@@ -266,6 +266,19 @@
       "license_path": null,
       "notes": "Pinned public helper-tool source reference for future NRO/homebrew build needs; do not add to default toolchain until required.",
       "provenance_path": "third_party/platform/switch/pins.json"
+    },
+    {
+      "id": "sdl3",
+      "mode": "archive",
+      "upstream_url": "https://github.com/libsdl-org/SDL.git",
+      "revision": "8e37db5e797b6167f3a00d697d816a684bd259c7",
+      "source_path": null,
+      "archive_path": "third_party/archives/SDL3-3.4.10.tar.gz",
+      "source_sha256": "12b34280415ec8418c864408b93d008a20a6530687ee613d60bfbd20411f2785",
+      "license_spdx": "Zlib",
+      "license_path": "third_party/provenance/sdl3-LICENSE.txt",
+      "notes": "Exact unmodified SDL 3.4.10 release tarball, byte-identical to the SNESRecomp framework's pinned SDL3 fetch. UR-Recomp's canonical desktop host backend (docs/PLATFORM-TARGETS.md); staged offline and passed through SNESRECOMP_SDL3_SOURCE_DIR so builds never reach the FetchContent URL.",
+      "provenance_path": "third_party/provenance/sdl3.json"
     }
   ]
 }

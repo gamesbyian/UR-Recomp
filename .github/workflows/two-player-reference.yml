@@ -22,7 +22,7 @@ concurrency:
 jobs:
   two-player-reference:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
@@ -31,7 +31,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev xvfb
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev xvfb libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -55,7 +55,8 @@ jobs:
           mkdir -p "$ROOT"
           SNESRECOMP_ROOT="$FRAMEWORK" sh "$FRAMEWORK/tools/new_project/setup_project.sh"             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             --dir "$ROOT"             --name "Uniracers"             --players 2             --yes             --no-ci             --no-fetch-boxart             --no-recomp-ui             --no-netplay             --no-github             --no-submodules             --generate             --no-build
           PROJ="$ROOT/UniracersSNESRecomp"
-          cmake -S "$PROJ" -B "$PROJ/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL2             -DSNESRECOMP_SDL3_FETCH=OFF
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
+          cmake -S "$PROJ" -B "$PROJ/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL3             -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$PROJ/build" -j2
 
       - name: Replay ordinary 2P fixture in Snes9x

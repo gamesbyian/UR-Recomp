@@ -20,7 +20,7 @@ concurrency:
 jobs:
   offline-native-build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
 
@@ -97,11 +97,12 @@ jobs:
               --no-build
 
           ROOT="$TMP/UniracersSNESRecomp"
+          python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
           cmake -S "$ROOT" -B "$ROOT/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
           OFFLINE

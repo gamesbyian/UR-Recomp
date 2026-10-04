@@ -38,6 +38,8 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
       - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "third_party/archives/SDL3-3.4.10.tar.gz"
+      - "tools/toolchain-entries/sdl3.json"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "third_party/manifest.json"
       - "tools/bootstrap_toolchain.py"
@@ -68,7 +70,7 @@ concurrency:
 jobs:
   build-and-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 22
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -78,7 +80,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            cmake ninja-build pkg-config xvfb xdotool libsdl2-dev \
+            cmake ninja-build pkg-config xvfb xdotool \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
@@ -91,6 +93,9 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          # Canonical desktop backend (docs/PLATFORM-TARGETS.md): exact SDL3 source, staged offline.
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
           test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
@@ -144,8 +149,9 @@ jobs:
           cmake -S "$ROOT" -B "$ROOT/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
-            -DSNESRECOMP_SDL_BACKEND=SDL2 \
-            -DSNESRECOMP_SDL3_FETCH=OFF
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
 

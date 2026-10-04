@@ -1,6 +1,6 @@
 # SNESRecomp islandization scope
 
-Status: C1 framework ownership, C2 network audit, and C4 analyzer Cargo closure are complete. C3 SDL3 policy is the next P0-C tranche; C5 optional features remain deferred.
+Status: C1 framework ownership, C2 network audit, C3 SDL3 source policy and C4 analyzer Cargo closure are complete; C5 optional features remain deferred.
 
 This note maps the exact dependency surface of UR-Recomp's pinned SNESRecomp revision before any source migration. It is deliberately narrower than a generic SNESRecomp packaging plan: the goal is to make the framework pieces UR-Recomp actually needs reconstructible offline without silently importing optional network/UI/tooling features.
 
@@ -138,6 +138,12 @@ Therefore the next closure order is evidence-driven: close the native analyzer C
 
 C2 proved this is a runtime/backend dependency, not the generation-time network blocker. System SDL2 already completes the full generated Uniracers native build offline. The default SDL3 path still needs an explicit host-SDL3 or repository-owned-source decision.
 
+**Resolved (2026-10-04): option 2, a repository-owned exact source archive.**
+- **Why not host SDL3:** measured on the reference platforms, neither the Ubuntu 24.04 runners nor Windows ship an SDL3 development package.
+- **The archive:** `third_party/archives/SDL3-3.4.10.tar.gz` is the unmodified upstream release asset (`release-3.4.10`, commit `8e37db5e`, Zlib), with the same SHA-256 as the framework pin. It is staged by `bootstrap_toolchain.py --offline --tool sdl3 --clone-only` and passed through `SNESRECOMP_SDL3_SOURCE_DIR`.
+- **Network proof:** the `sdl3-repo-source` audit lane must complete a full build with zero observed network attempts. It replaced the `sdl3-fetch-off` classification lane; `sdl2-system` remains as fallback coverage.
+- **Policy owner:** `docs/PLATFORM-TARGETS.md` ("SDL backend policy").
+
 
 
 Resolve the first demonstrated SDL3 dependency either as a documented host prerequisite or exact local SDL3 source/archive. Force `SNESRECOMP_SDL3_FETCH=OFF` in the offline gate unless a local `SNESRECOMP_SDL3_SOURCE_DIR` is explicitly supplied.
@@ -165,7 +171,7 @@ Only after the baseline build is green:
 
 ## Immediate next experiment
 
-C4 is complete. Resolve C3 SDL3 policy next, then migrate the permanent native build smoke away from recursive SNESRecomp submodule checkout.
+C3 and C4 are complete. The permanent native build smoke stages the framework archive and SDL3 source offline.
 
 The safest first artifact is an exact source archive or mechanically materialized tree of `cd5875c...`, accompanied by:
 

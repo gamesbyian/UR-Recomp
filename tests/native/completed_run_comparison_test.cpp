@@ -25,6 +25,12 @@ CompletedRunRecord run(std::uint64_t finish, std::uint64_t split) {
 }  // namespace
 
 int main() {
+    assert(exact_run_timing_delta_ticks60(844, 850) == -6);
+    assert(exact_run_timing_delta_ticks60(861, 850) == 11);
+    assert(exact_run_timing_delta_ticks60(850, 850) == 0);
+    assert(!exact_run_timing_delta_ticks60(
+        std::numeric_limits<std::uint64_t>::max(), 0));
+
     const auto pb = run(1713, 850);
     const auto ahead = run(1707, 844);
     const auto behind = run(1725, 861);

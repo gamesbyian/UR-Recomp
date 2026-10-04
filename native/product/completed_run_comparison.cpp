@@ -5,7 +5,19 @@
 namespace ur::product {
 namespace {
 
-std::optional<std::int64_t> exact_delta(
+RunPlaybackTarget target_for(const CompletedRunRecord& record) {
+    return {
+        record.provenance.game_id,
+        record.provenance.rom_sha256,
+        record.provenance.build_compat_id,
+        record.provenance.course_id,
+        record.provenance.mode,
+    };
+}
+
+}  // namespace
+
+std::optional<std::int64_t> exact_run_timing_delta_ticks60(
     std::uint64_t current,
     std::uint64_t target) {
     if (current >= target) {
@@ -25,18 +37,6 @@ std::optional<std::int64_t> exact_delta(
     return -static_cast<std::int64_t>(diff);
 }
 
-RunPlaybackTarget target_for(const CompletedRunRecord& record) {
-    return {
-        record.provenance.game_id,
-        record.provenance.rom_sha256,
-        record.provenance.build_compat_id,
-        record.provenance.course_id,
-        record.provenance.mode,
-    };
-}
-
-}  // namespace
-
 std::optional<CompletedRunTimingComparison> compare_completed_run_timing(
     const CompletedRunRecord& current,
     const CompletedRunRecord& target) {
@@ -50,7 +50,8 @@ std::optional<CompletedRunTimingComparison> compare_completed_run_timing(
 
     CompletedRunTimingComparison comparison;
     const auto finish_delta =
-        exact_delta(current.elapsed_ticks60, target.elapsed_ticks60);
+        exact_run_timing_delta_ticks60(
+            current.elapsed_ticks60, target.elapsed_ticks60);
     if (!finish_delta) return std::nullopt;
     comparison.finish_delta_ticks60 = *finish_delta;
 
@@ -58,7 +59,8 @@ std::optional<CompletedRunTimingComparison> compare_completed_run_timing(
     for (std::size_t i = 0; i < current.splits.size(); ++i) {
         if (current.splits[i].id != target.splits[i].id) return std::nullopt;
         const auto delta =
-            exact_delta(current.splits[i].ticks60, target.splits[i].ticks60);
+            exact_run_timing_delta_ticks60(
+                current.splits[i].ticks60, target.splits[i].ticks60);
         if (!delta) return std::nullopt;
         comparison.splits.push_back({
             current.splits[i].id,

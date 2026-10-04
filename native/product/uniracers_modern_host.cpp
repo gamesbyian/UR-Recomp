@@ -360,10 +360,12 @@ bool exit_to_frontend() {
     const int source_surface = static_cast<int>(g_surface);
     const uint32_t before_sram = current_sram_digest();
 
-    // Queue the framework's existing ConsoleReset() path. The host consumes
-    // this request only after the current SDL event callback has returned,
-    // then performs RtlReset(1) + GameReset at its own safe loop boundary.
-    if (!snesrecomp_desktop_request_console_reset()) {
+    // Queue a full host-owned session rebuild. The request durably publishes
+    // current cartridge SRAM before it can succeed; the host consumes it only
+    // after the SDL callback returns, then rebuilds the guest through the same
+    // snes_free + SnesInit + RtlReadSram lifecycle used for framework session
+    // replacement. No guest PC, WRAM menu byte or progression state is forged.
+    if (!snesrecomp_desktop_request_session_reboot()) {
         product_diagnostic("UR_EXIT_FRONTEND RESET_REQUEST_FAILED");
         return false;
     }

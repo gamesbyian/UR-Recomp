@@ -182,6 +182,10 @@ std::string encode_completed_run_input_file(
     if (!validate_completed_run_record(record, &detail)) return {};
     std::ostringstream out;
     for (const auto& input : record.inputs) {
+        if (input.start_frame >
+            std::numeric_limits<std::uint64_t>::max() - frame_offset) {
+            return {};
+        }
         out << (input.start_frame + frame_offset) << ":" << input.duration << ":"
             << std::hex << std::uppercase << input.p1_mask << ":"
             << input.p2_mask << std::dec << "\n";

@@ -7,10 +7,13 @@
     "container": "devkitpro/devkita64:20260219",
     "container_policy": "Use a dated devkitPro image tag in CI; do not use latest.",
     "required_environment": [
-      "DEVKITPRO",
-      "DEVKITA64",
-      "PORTLIBS"
-    ]
+      "DEVKITPRO"
+    ],
+    "derived_paths": {
+      "DEVKITA64": "$DEVKITPRO/devkitA64",
+      "PORTLIBS": "$DEVKITPRO/portlibs/switch",
+      "LIBNX": "$DEVKITPRO/libnx"
+    }
   },
   "link_contract": {
     "required_headers": [

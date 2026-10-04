@@ -11,6 +11,7 @@ extern "C" {
 #include "focus_pause_policy.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
+#include "host_profile_runtime.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
@@ -42,6 +43,7 @@ bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_display_caps_reported;
+bool g_profile_sram_reported;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -103,6 +105,46 @@ bool modern_mode() {
 }
 
 void ensure_product_state();
+void product_diagnostic(const char* message);
+void apply_profile_save_root() {
+    ensure_product_state();
+
+    const char* override_root = std::getenv("UR_PROFILE_SAVE_ROOT");
+    const auto decision = ur::product::resolve_host_profile_save_root(
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        g_product_state.active_profile_id,
+        override_root ? std::string_view(override_root) : std::string_view{});
+
+    if (decision.status == ur::product::HostProfileSaveRootStatus::Rejected) {
+        RtlSetSaveRoot(nullptr);
+        product_diagnostic("UR_PROFILE_SAVE_ROOT REJECTED_DEFAULT");
+        return;
+    }
+
+    if (!decision.isolated()) {
+        RtlSetSaveRoot(nullptr);
+        if (modern_mode()) {
+            product_diagnostic("UR_PROFILE_SAVE_ROOT NO_PROFILE_DEFAULT root=saves");
+        } else {
+            product_diagnostic("UR_PROFILE_SAVE_ROOT AUTHENTIC_DEFAULT root=saves");
+        }
+        return;
+    }
+
+    RtlSetSaveRoot(decision.save_root.c_str());
+    RtlEnsureSaveDir();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PROFILE_SAVE_ROOT APPLIED profile=%s root=%s\n",
+            g_product_state.active_profile_id
+                ? g_product_state.active_profile_id->c_str() : "",
+            RtlSaveRoot());
+        std::fflush(stderr);
+    }
+}
+
 
 const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
     return mode == ur::product::HostWidescreenMode::Authentic16x9
@@ -1034,6 +1076,10 @@ bool activate_pause_selection() {
 
 }  // namespace
 
+extern "C" void ur_uniracers_modern_after_config(void) {
+    apply_profile_save_root();
+}
+
 extern "C" int ur_uniracers_modern_native_widescreen_enabled(void) {
     return authentic_16x9_view_enabled() &&
            g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand
@@ -1104,6 +1150,18 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats*) {
     report_display_capabilities_once();
     if (!ensure_session()) return;
+
+    if (!g_profile_sram_reported &&
+        std::getenv("UR_PROFILE_SRAM_DIAGNOSTICS")) {
+        g_profile_sram_reported = true;
+        std::fprintf(
+            stderr,
+            "UR_PROFILE_SRAM LOADED root=%s digest=%08X size=%d\n",
+            RtlSaveRoot(),
+            static_cast<unsigned>(current_sram_digest()),
+            g_sram_size);
+        std::fflush(stderr);
+    }
 
     const UrUniracersRestartDecision decision =
         ur_uniracers_restart_policy_observe(

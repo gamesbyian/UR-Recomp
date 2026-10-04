@@ -23,10 +23,12 @@ class ModernProductHostPatchTests(unittest.TestCase):
         )
         patched = patch_main_text(source)
         self.assertIn('#include "uniracers_modern_host.h"', patched)
+        self.assertIn("ur_uniracers_modern_after_config", patched)
         self.assertIn("ur_uniracers_modern_after_run_frame", patched)
         self.assertIn("ur_uniracers_modern_system_key_down", patched)
         self.assertIn("ur_uniracers_modern_system_gamepad_button", patched)
         self.assertIn("ur_uniracers_modern_system_overlay", patched)
+        self.assertIn("ur_uniracers_modern_after_config", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertIn(".native_widescreen      = 1,", patched)
         self.assertIn("ur_uniracers_modern_native_widescreen_enabled", patched)
@@ -75,6 +77,9 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "widescreen_output_composition.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
+            "host_profile_state.cpp",
+            "host_profile_store.cpp",
+            "host_profile_runtime.cpp",
             "modern_session_c_api.cpp",
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",

@@ -160,6 +160,130 @@ jobs:
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
           echo "Selected game target: $EXE"
 
+      - name: Modern profile persistence acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/host-profile-store-acceptance"
+          STATE="$RUNNER_TEMP/profile-alpha.state"
+          LOG="$RUNNER_TEMP/profile-persistence.log"
+          rm -f "$STATE" "$STATE.tmp" "$LOG"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/host_product_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/output_resolution_policy.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_store.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/host_profile_store_acceptance.cpp" \
+            -o "$EXE"
+
+          "$EXE" save "$STATE" | tee -a "$LOG"
+          "$EXE" load "$STATE" | tee -a "$LOG"
+          "$EXE" legacy-host-default "$STATE" | tee -a "$LOG"
+          "$EXE" malformed "$STATE" | tee -a "$LOG"
+          "$EXE" authentic "$STATE" | tee -a "$LOG"
+
+          grep -q "PROFILE_ACCEPTANCE saved generation=1" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE fresh_process_load_ok" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE legacy_host_defaulted" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE malformed_defaulted_preserved" "$LOG"
+          grep -q "PROFILE_ACCEPTANCE authentic_inert" "$LOG"
+          echo "UR_PROFILE_PERSISTENCE_RESULT=restart_legacy_default_recovery_authentic_inert"
+
+      - name: Modern profile save-root isolation acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ALPHA_STATE="$RUNNER_TEMP/profile-alpha-host-state.txt"
+          BETA_STATE="$RUNNER_TEMP/profile-beta-host-state.txt"
+          ALPHA_ROOT="$RUNNER_TEMP/profile-alpha-saves"
+          BETA_ROOT="$RUNNER_TEMP/profile-beta-saves"
+          AUTH_ROOT="$RUNNER_TEMP/profile-authentic-ignored"
+          mkdir -p "$ALPHA_ROOT" "$BETA_ROOT" "$AUTH_ROOT"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            "$ALPHA_ROOT/save.srm"
+          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm" \
+            "$BETA_ROOT/save.srm"
+
+          cat >"$ALPHA_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=alpha
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+          cat >"$BETA_STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=beta
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
+          run_case() {
+            local NAME="$1"
+            local STATE="$2"
+            local ROOT="$3"
+            local MODE="$4"
+            local LOG="$RUNNER_TEMP/profile-root-$NAME.log"
+
+            set +e
+            SDL_AUDIODRIVER=dummy \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_HOST_STATE_PATH="$STATE" \
+            UR_PROFILE_SAVE_ROOT="$ROOT" \
+            UR_PROFILE_SRAM_DIAGNOSTICS=1 \
+            UR_EXECUTION_MODE="$MODE" \
+            SNESRECOMP_RUN_FRAMES=1 \
+            timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+            local STATUS=$?
+            set -e
+            if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]; then
+              cat "$LOG"
+              exit "$STATUS"
+            fi
+            cat "$LOG"
+          }
+
+          run_case alpha-first "$ALPHA_STATE" "$ALPHA_ROOT" modern
+          run_case alpha-restart "$ALPHA_STATE" "$ALPHA_ROOT" modern
+          run_case beta "$BETA_STATE" "$BETA_ROOT" modern
+          run_case authentic "$ALPHA_STATE" "$AUTH_ROOT" authentic
+
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=alpha root=$ALPHA_ROOT" \
+            "$RUNNER_TEMP/profile-root-alpha-first.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=alpha root=$ALPHA_ROOT" \
+            "$RUNNER_TEMP/profile-root-alpha-restart.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=beta root=$BETA_ROOT" \
+            "$RUNNER_TEMP/profile-root-beta.log"
+          grep -Fq "UR_PROFILE_SAVE_ROOT AUTHENTIC_DEFAULT root=saves" \
+            "$RUNNER_TEMP/profile-root-authentic.log"
+          if grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED" "$RUNNER_TEMP/profile-root-authentic.log"; then
+            echo "::error::Authentic mode applied a Modern profile save root"
+            exit 1
+          fi
+          test -d "$ALPHA_ROOT"
+          test -d "$BETA_ROOT"
+          test "$ALPHA_ROOT" != "$BETA_ROOT"
+
+          ALPHA_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-alpha-first.log" | tail -n1)
+          ALPHA_RESTART_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-alpha-restart.log" | tail -n1)
+          BETA_DIGEST=$(sed -n 's/.*UR_PROFILE_SRAM LOADED .*digest=\([0-9A-F]*\).*/\1/p' \
+            "$RUNNER_TEMP/profile-root-beta.log" | tail -n1)
+          test -n "$ALPHA_DIGEST"
+          test -n "$BETA_DIGEST"
+          test "$ALPHA_DIGEST" = "$ALPHA_RESTART_DIGEST"
+          test "$ALPHA_DIGEST" != "$BETA_DIGEST"
+          grep -q "UR_PROFILE_SRAM LOADED root=$ALPHA_ROOT .* size=8192" \
+            "$RUNNER_TEMP/profile-root-alpha-first.log"
+          grep -q "UR_PROFILE_SRAM LOADED root=$BETA_ROOT .* size=8192" \
+            "$RUNNER_TEMP/profile-root-beta.log"
+
+          echo "UR_PROFILE_SAVE_ROOT_RESULT=alpha_restart_byte_stable_beta_content_isolated_authentic_default"
+
       - name: Native boot smoke
         shell: bash
         run: |

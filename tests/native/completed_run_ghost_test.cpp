@@ -16,7 +16,7 @@ CompletedRunRecord make_record(
     CompletedRunRecord record;
     record.provenance = {
         "uniracers-usa",
-        "rom",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "build",
         course,
         "race-1p",
@@ -34,7 +34,7 @@ CompletedRunRecord make_record(
 RunPlaybackTarget target() {
     return {
         "uniracers-usa",
-        "rom",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         "build",
         "course:01",
         "race-1p",

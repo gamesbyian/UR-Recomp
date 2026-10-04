@@ -133,6 +133,18 @@ A smoke workflow should answer a bounded question quickly. Rich screenshot atlas
 
 When a fast gate grows, split evidence collection out before raising the timeout.
 
+## Parameterized experiment harnesses
+
+When a research sequence differs only by a numeric depth, margin, frame range or other monotonic parameter, prefer one parameterized harness over sibling workflows. A new workflow is justified by a new invariant or execution substrate, not merely a new parameter value.
+
+For accepted capacity-style experiments, test the product-relevant endpoint once monotonicity is established. If the endpoint fails, localize the first failing value with the same harness. This avoids paying full setup/build cost for every intermediate rung.
+
+## Structured evidence contracts
+
+Human-oriented log lines are diagnostic output, not a durable machine API. New or generalized evidence gates should emit the common envelope in `analysis/evidence-envelope.schema.json` through `tools/evidence_contract.py` where practical. Keep subsystem-specific metrics, but express pass/fail conditions as named typed assertions.
+
+Prefer validators that consume structured evidence plus raw logs only where the underlying runtime has not yet gained structured emission. Do not clone grep fragments across successive experiment workflows.
+
 ## Artifacts and logs
 
 Upload the smallest artifact set needed to diagnose or reproduce a failure.
@@ -202,7 +214,7 @@ Key findings and actions:
 - the SMV tooling regression now cancels superseded automatic runs.
 - a follow-up post-merge audit removed workflow-self paths from main-push trigger sets across the suite; workflow edits are now validated pre-merge where PR validation exists, or explicitly via manual dispatch for push-only research/evidence jobs.
 
-Remaining expensive workflows are retained because they test distinct runtime/evidence seams. Optimize them further only from measured job timing or duplicated-build evidence, not by weakening coverage.
+Remaining expensive workflows are retained because they test distinct runtime/evidence seams. Optimize them further only from measured job timing or duplicated-build evidence, not by weakening coverage. Use the manual `CI runtime report` workflow and `tools/report_ci_runtime.py` to rank recent workflows by measured wall time before another broad optimization pass.
 
 ## Periodic maintenance
 

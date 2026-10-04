@@ -215,6 +215,8 @@ The next capacity step is now closed at **+16** without adding another guest des
 
 The same direction-aware model is now closed at **+24**. PR #354 run `37175014114` keeps the accepted +8 guest descriptor lane unchanged and supplies two host-owned deeper course columns per viewport. Calibration remains exact on **84/84 P1 events** and **27/27 P2 events**, with both depth-1 and depth-2 shadows present on every calibrated event. Matched stock/+24 checkpoints retain exact racer, race-progress and camera/view state, while the host surface expands from 256×224 to **304×224**. Canonical evidence is `analysis/widescreen-vs-plus24-capacity-evidence.json`. This raises the evidence-backed VS host-capacity ceiling to +24 only; final +48 Authentic 16:9 backing remains unproven.
 
+The model is now closed at **+32** as well. PR #359 run `37175550131` preserves zero calibration misses across **84/84 P1** and **27/27 P2** accepted payload events while adding a third host-owned depth per viewport. Depths 1, 2 and 3 are present on every calibrated event, stock/+32 protected state remains exact, and host geometry is 256×224 versus **320×224**. Canonical evidence is `analysis/widescreen-vs-plus32-capacity-evidence.json`. This is still a backing-capacity result only; +48 remains the threshold for final Authentic 16:9 VS composition.
+
 The native reconnaissance host accepts `URRECOMP_WS_SCENE` solely as a deterministic diagnostic selector for this composition policy. It deliberately does not read WRAM or infer guest state. Shipping scene selection still needs an evidence-backed host presentation seam; until then, the selector proves the composition contract without turning provisional scene recognition into runtime truth.
 
 ## Information-exposure measurement

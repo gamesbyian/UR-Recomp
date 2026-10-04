@@ -9,11 +9,19 @@
  } SnesDesktopHostFrameStats;
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3928,10 +3928,11 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3938,16 +3938,17 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+     double profile_start = ProfileStart();
+     double guest_start = MonotonicSeconds();
      if (game->before_run_frame) game->before_run_frame();
      g_audio_producer_active = paced_realtime && g_audio_device != 0;
 +    const uint32 resolved_controller_word =
 +        inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
+     /* Run-ahead owns the whole frame when it is on: it advances the guest
+      * once and speculates N further, so calling RtlRunFrame as well would
+      * double-advance. It declines (returns 0) during netplay and whenever
+      * the machine cannot snapshot, which is why this is a fallback rather
+      * than a branch. Never during turbo: speculating about frames that are
+      * being skipped costs work for a picture nobody is reading. */
      bool runahead_captured = false;
      {
 -      const uint32 word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
@@ -24,7 +32,9 @@
        else
          runahead_captured = true;   /* it rasterised the speculated frame */
      }
-@@ -3952,6 +3952,7 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+@@ -3962,8 +3963,9 @@ int SnesDesktopHostRun(const SnesDesktopHostGame *game, int argc, char **argv) {
+       SnesDesktopHostFrameStats st = {
+         .frame = frameCtr,
          .run_seconds = now - run_start,
          .guest_seconds = now - guest_start,
          .audio_output_rate = audio_output_rate,

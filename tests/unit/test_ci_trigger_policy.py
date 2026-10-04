@@ -39,6 +39,32 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"post-merge side effects. offenders={offenders}",
         )
 
+    def test_main_pushes_are_path_scoped(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            push = _block(text, "push")
+            if _pushes_main(text) and "    paths:\n" not in push:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic main pushes must be path-scoped: {offenders}",
+        )
+
+    def test_automatic_workflows_declare_concurrency(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if automatic and not re.search(r"(?m)^concurrency:\s*$", text):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic workflows must cancel or serialize by ref: {offenders}",
+        )
+
     def test_main_push_allowlist_is_evidence_writing(self):
         for name in MAIN_PUSH_ALLOWLIST:
             path = WORKFLOWS / name

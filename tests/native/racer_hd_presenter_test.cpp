@@ -326,6 +326,45 @@ int main() {
         }
     }
 
+    // Frame 1218 P2 is the first distinct authored P2 pose after the 0540
+    // baseline/reuse pair. Its stock contact advances one logical pixel left.
+    RacerCompositionState p2_predecessor_context{
+        0x0540, 0x0541, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
+    };
+    const auto* p2_predecessor =
+        find_racer_registration_for_state(0x0541, p2_predecessor_context);
+    assert(p2_predecessor != nullptr);
+    assert(is_authored_0541_p2_predecessor_registration(*p2_predecessor));
+
+    int p2_predecessor_min_lx = kRacerHdLogicalSize;
+    int p2_predecessor_min_ly = kRacerHdLogicalSize;
+    int p2_predecessor_max_lx = -1;
+    int p2_predecessor_max_ly = -1;
+    int p2_predecessor_bottom_min_lx = kRacerHdLogicalSize;
+    int p2_predecessor_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*p2_predecessor, sx, sy, false, false) == 0) continue;
+            if (lx < p2_predecessor_min_lx) p2_predecessor_min_lx = lx;
+            if (ly < p2_predecessor_min_ly) p2_predecessor_min_ly = ly;
+            if (lx > p2_predecessor_max_lx) p2_predecessor_max_lx = lx;
+            if (ly > p2_predecessor_max_ly) p2_predecessor_max_ly = ly;
+            if (ly == 38) {
+                if (lx < p2_predecessor_bottom_min_lx) p2_predecessor_bottom_min_lx = lx;
+                if (lx > p2_predecessor_bottom_max_lx) p2_predecessor_bottom_max_lx = lx;
+            }
+        }
+    }
+    assert(p2_predecessor_min_lx == 22);
+    assert(p2_predecessor_min_ly == 3);
+    assert(p2_predecessor_max_lx == 39);
+    assert(p2_predecessor_max_ly == 38);
+    assert(p2_predecessor_bottom_min_lx == 29);
+    assert(p2_predecessor_bottom_max_lx == 32);
+    assert(p2_predecessor_bottom_min_lx + p2_predecessor_bottom_max_lx == 61);
+
     // Object-local H/V reflection remains a post-selection presentation
     // transform for authored art.
     const std::uint32_t pedal =

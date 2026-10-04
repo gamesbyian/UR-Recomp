@@ -17,6 +17,7 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         self.assertIn(".prepare_frame", patched)
         self.assertIn(".begin_sim_frame", patched)
         self.assertIn(".draw_frame", patched)
+        self.assertIn(".presentation_scale", patched)
         self.assertEqual(patch_main(patched), patched)
 
     def test_cmake_patch_targets_generated_game(self):
@@ -34,6 +35,7 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         body = PROBE_CPP.replace("extern std::uint8_t g_ram[0x20000];", "")
         self.assertIn("select_racer_presentation_from_wram", PROBE_CPP)
         self.assertIn("racer_hd_draw_frame", PROBE_CPP)
+        self.assertIn("racer_hd_presentation_scale", PROBE_CPP)
         self.assertIn("UR_RACER_PRESENTATION_TRACE", PROBE_CPP)
         self.assertIn("frame >= 1180u && frame <= 1620u", PROBE_CPP)
         self.assertNotIn("if (passed) return;", PROBE_CPP)

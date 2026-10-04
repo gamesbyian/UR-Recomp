@@ -666,6 +666,72 @@ def build_tenth_authored_candidate_rgba() -> bytes:
     )
 
 
+def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
+    """Return authored RGBA plus the expected generator and native sampler."""
+    rid = entry["representation_id"]
+    if rid == FIRST_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_first_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541_p1",
+        )
+    if rid == SECOND_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_second_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_second_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541_p1_companion_0d2d",
+        )
+    if rid in (THIRD_AUTHORED_REPRESENTATION_ID, FOURTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_third_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540_p1_predecessor",
+        )
+    if rid == FIFTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fourth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fourth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057f_p1_companion_0d4a",
+        )
+    if rid == SIXTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fifth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057e_p1_with_p2_0543",
+        )
+    if rid == SEVENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_sixth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057d_p1_with_p2_0543",
+        )
+    if rid in (EIGHTH_AUTHORED_REPRESENTATION_ID, NINTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_seventh_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540_p2_baseline",
+        )
+    if rid == TENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_eighth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541_p2_predecessor",
+        )
+    if rid in (ELEVENTH_AUTHORED_REPRESENTATION_ID, TWELFTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_ninth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0542_p2",
+        )
+    if rid in (THIRTEENTH_AUTHORED_REPRESENTATION_ID, FOURTEENTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_tenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0543_p2",
+        )
+    raise ValueError(f"unsupported authored candidate registration: {rid}")
+
+
 def gameplay_sampled_alpha_review(authored_rgba: bytes, stock_rgba: bytes) -> dict:
     candidate = set()
     stock = set()
@@ -848,94 +914,9 @@ def build_dossier(
         authored_candidate = None
         authored_meta = entry.get("authored_candidate")
         if authored_meta is not None:
-            if rid == FIRST_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_first_authored_candidate_rgba"
-                )
-                authored_rgba = build_first_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0541_p1"
-            elif rid == SECOND_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_second_authored_candidate_rgba"
-                )
-                authored_rgba = build_second_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0541_p1_companion_0d2d"
-            elif rid in (
-                THIRD_AUTHORED_REPRESENTATION_ID,
-                FOURTH_AUTHORED_REPRESENTATION_ID,
-            ):
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_third_authored_candidate_rgba"
-                )
-                authored_rgba = build_third_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0540_p1_predecessor"
-            elif rid == FIFTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_fourth_authored_candidate_rgba"
-                )
-                authored_rgba = build_fourth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_057f_p1_companion_0d4a"
-            elif rid == SIXTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_fifth_authored_candidate_rgba"
-                )
-                authored_rgba = build_fifth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_057e_p1_with_p2_0543"
-            elif rid == SEVENTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_sixth_authored_candidate_rgba"
-                )
-                authored_rgba = build_sixth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_057d_p1_with_p2_0543"
-            elif rid == EIGHTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_seventh_authored_candidate_rgba"
-                )
-                authored_rgba = build_seventh_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0540_p2_baseline"
-            elif rid == NINTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_seventh_authored_candidate_rgba"
-                )
-                authored_rgba = build_seventh_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0540_p2_baseline"
-            elif rid == TENTH_AUTHORED_REPRESENTATION_ID:
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_eighth_authored_candidate_rgba"
-                )
-                authored_rgba = build_eighth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0541_p2_predecessor"
-            elif rid in (
-                ELEVENTH_AUTHORED_REPRESENTATION_ID,
-                TWELFTH_AUTHORED_REPRESENTATION_ID,
-            ):
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_ninth_authored_candidate_rgba"
-                )
-                authored_rgba = build_ninth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0542_p2"
-            elif rid in (
-                THIRTEENTH_AUTHORED_REPRESENTATION_ID,
-                FOURTEENTH_AUTHORED_REPRESENTATION_ID,
-            ):
-                expected_generator = (
-                    "tools/build_racer_hd_asset_dossier.py::"
-                    "build_tenth_authored_candidate_rgba"
-                )
-                authored_rgba = build_tenth_authored_candidate_rgba()
-                native_sampler = "sample_racer_hd_authored_0543_p2"
-            else:
-                raise ValueError(f"unsupported authored candidate registration: {rid}")
+            authored_rgba, expected_generator, native_sampler = (
+                authored_candidate_rgba_for_entry(entry)
+            )
             if authored_meta.get("artifact_generator") != expected_generator:
                 raise ValueError(f"unsupported authored candidate generator for {rid}")
             authored_png = encode_png_rgba(W * 4, H * 4, authored_rgba)

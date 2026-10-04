@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
 
       - name: Stage framework and SDL3
         shell: bash

@@ -301,18 +301,13 @@ jobs:
           set -euo pipefail
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          CAPTURE_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-exit-frontend-results.script"
-          RESUME_SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
           STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
           ROOT="$RUNNER_TEMP/tour-resume-profile"
-          CAPTURE_LOG="$RUNNER_TEMP/tour-resume-capture.log"
-          RESUME_LOG="$RUNNER_TEMP/tour-resume-restore.log"
-          CAPTURE_DUMPS="$RUNNER_TEMP/tour-resume-capture-dumps"
-          RESUME_DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
-          rm -rf "$ROOT" "$CAPTURE_DUMPS" "$RESUME_DUMPS"
-          mkdir -p "$ROOT" "$CAPTURE_DUMPS" "$RESUME_DUMPS"
-          cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
-            "$ROOT/save.srm"
+          LOG="$RUNNER_TEMP/tour-resume-restore.log"
+          DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
+          rm -rf "$ROOT" "$DUMPS"
+          mkdir -p "$ROOT" "$DUMPS"
 
           cat >"$STATE" <<'EOF'
           UR-HOST-STATE/6
@@ -321,54 +316,50 @@ jobs:
           vibration_enabled=1
           EOF
 
-          timeout 150s xvfb-run -a bash -c '
-            set -euo pipefail
-            export SDL_AUDIODRIVER=dummy
-            export UR_PRODUCT_DIAGNOSTICS=1
-            export UR_HOST_STATE_PATH="'"$STATE"'"
-            export UR_PROFILE_SAVE_ROOT="'"$ROOT"'"
-            export SNESRECOMP_DUMP_DIR="'"$CAPTURE_DUMPS"'"
-            "'"$EXE"'" "'"$ROM"'" --script "'"$CAPTURE_SCRIPT"'" >"'"$CAPTURE_LOG"'" 2>&1 &
-            PID=$!
+          # R-2026-10-04-UI-20 already proves that battery-backed unfinished
+          # flags survive boot and that stock rider confirmation wipes all 50.
+          # Build the smallest exact fixture from the canonical clean SRAM:
+          # Crawler/rider 0, medal generation 0, tracks 0+1 qualified.
+          python3 - \
+            "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            "$ROOT/save.srm" "$ROOT/host-profile.txt" <<'PY'
+          from pathlib import Path
+          import sys
 
-            for _ in $(seq 1 1400); do
-              if grep -q "UR_TOUR_RESUME CAPTURED" "'"$CAPTURE_LOG"'" 2>/dev/null; then
-                break
-              fi
-              kill -0 "$PID" 2>/dev/null || {
-                cat "'"$CAPTURE_LOG"'"
-                exit 1
-              }
-              sleep 0.1
-            done
-            grep -q "UR_TOUR_RESUME CAPTURED" "'"$CAPTURE_LOG"'"
-            test -s "'"$ROOT"'/host-profile.txt"
-            grep -Eq "^tour_resume=[0-9]+:[0-9]+:[0-3]:[01]{5}$" \
-              "'"$ROOT"'/host-profile.txt"
+          source, sram_path, profile_path = map(Path, sys.argv[1:])
+          sram = bytearray(source.read_bytes())
+          if len(sram) != 8192:
+              raise SystemExit(f"unexpected clean SRAM size: {len(sram)}")
+          rider = 0
+          tour = 0
+          medal = sram[0x069C + 16 * tour + rider]
+          if medal != 0:
+              raise SystemExit(f"clean fixture medal is not zero: {medal}")
+          flags = bytes((1, 1, 0, 0, 0))
+          sram[0x1075:0x107A] = flags
+          sram_path.write_bytes(sram)
+          profile_path.write_text(
+              "UR-HOST-PROFILE/2\n"
+              "profile=resume.alpha\n"
+              "generation=1\n"
+              f"stock_sram={bytes(sram).hex()}\n"
+              f"tour_resume={rider}:{tour}:{medal}:11000\n"
+          )
+          print("UR_TOUR_RESUME_FIXTURE rider=0 tour=0 medal=0 flags=11000")
+          PY
 
-            kill "$PID" 2>/dev/null || true
-            wait "$PID" 2>/dev/null || true
-          '
-
-          set +e
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$STATE" \
           UR_PROFILE_SAVE_ROOT="$ROOT" \
-          SNESRECOMP_DUMP_DIR="$RESUME_DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$RESUME_SCRIPT" \
-            >"$RESUME_LOG" 2>&1
-          RESUME_STATUS=$?
-          set -e
-          if [ "$RESUME_STATUS" -ne 0 ]; then
-            cat "$RESUME_LOG"
-            echo "::error::Fresh-process tour-resume route did not finish cleanly (status $RESUME_STATUS)"
-            exit 1
-          fi
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$LOG" 2>&1
 
-          grep -q "UR_TOUR_RESUME APPLIED" "$RESUME_LOG"
-          test -s "$RESUME_DUMPS/tracks-ready.wram.bin"
-          test -s "$RESUME_DUMPS/race-entered.wram.bin"
+          grep -q "UR_TOUR_RESUME APPLIED" "$LOG"
+          test -s "$DUMPS/rider-select-ready.wram.bin"
+          test -s "$DUMPS/tracks-ready.wram.bin"
+          test -s "$DUMPS/race-entered.wram.bin"
 
           python3 - "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
           import pathlib
@@ -396,11 +387,8 @@ jobs:
           )
           PY
 
-          echo "== capture diagnostics =="
-          grep "UR_TOUR_RESUME" "$CAPTURE_LOG"
-          echo "== resume diagnostics =="
-          grep "UR_TOUR_RESUME" "$RESUME_LOG"
-          echo "UR_TOUR_RESUME_RESULT=real_result_captured_fresh_process_restored_stock_flags"
+          grep "UR_TOUR_RESUME" "$LOG"
+          echo "UR_TOUR_RESUME_RESULT=stock_rider_wipe_then_fresh_process_restore"
 
       - name: Native boot smoke
         shell: bash

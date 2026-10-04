@@ -389,3 +389,10 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 
 - **Modern pause UI follow-through:** keyboard pause/retry and the first post-compose overlay are merged. The current controller slice adds a deterministic two-row pause-menu model and a normalized title gamepad hook: Start toggles pause, D-pad navigates Resume/Restart, A activates, B cancels. Native acceptance must prove the Restart row is selectable only after the accepted anchor is armed and that the controller path remains presentation/host control rather than guest input.
+
+
+## Completed-run records foundation (2026-10-04)
+
+Implemented: typed/versioned host run-record codec; checksum/corruption handling; playback compatibility rejection; exact guest-timer tick conversion; representative 1P record persistence/reload; direct export to canonical deterministic controller-input grammar.
+
+Next: wire live input observation and authoritative race-completion finalization into the production desktop host, then prove a captured record re-drives the native race in a fresh process before adding PB/previous-run selection or ghost rendering. See COMPLETED-RUN-RECORDS.md.

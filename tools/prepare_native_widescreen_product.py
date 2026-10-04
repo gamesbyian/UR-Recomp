@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Promote the accepted Widescreen preparation provider into a generated product.
 
-A freshly scaffolded project has already emitted its default AOT set. Widescreen
-needs the accepted race-frame root before generation, then the validated
-presentation hook applied to that regenerated output. Keep those two operations
-together so every shipping native workflow gets the same fail-closed contract.
+A freshly scaffolded project owns its seed CFG but has not emitted AOT yet.
+Widescreen adds the accepted race-frame root before the single generation pass,
+then applies the validated presentation hook to that output. Keep those two
+operations together so every shipping native workflow gets the same fail-closed
+contract without paying for a throwaway first generation.
 """
 from __future__ import annotations
 

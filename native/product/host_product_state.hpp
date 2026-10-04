@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "output_resolution_policy.hpp"
+
 namespace ur::product {
 
 enum class ExecutionMode : std::uint8_t {
@@ -52,18 +54,21 @@ struct HostSettings {
     HostVSyncMode vsync_mode = HostVSyncMode::On;
     HostPresentationFpsMode presentation_fps_mode =
         HostPresentationFpsMode::Game;
+    HostOutputResolution output_resolution =
+        HostOutputResolution::native();
 
     bool operator==(const HostSettings& other) const noexcept {
         return vibration_enabled == other.vibration_enabled &&
                pause_on_focus_loss == other.pause_on_focus_loss &&
                display_mode == other.display_mode &&
                vsync_mode == other.vsync_mode &&
-               presentation_fps_mode == other.presentation_fps_mode;
+               presentation_fps_mode == other.presentation_fps_mode &&
+               output_resolution == other.output_resolution;
     }
 };
 
 struct HostProductState {
-    static constexpr std::uint32_t schema_version = 5;
+    static constexpr std::uint32_t schema_version = 6;
 
     std::optional<std::string> active_profile_id;
     HostSettings settings{};

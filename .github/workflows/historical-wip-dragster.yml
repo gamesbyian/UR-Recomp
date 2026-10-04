@@ -2,7 +2,7 @@ name: Historical 2008 Dragster replay
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     paths:
       - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
       - "reference/roms/retail/Uniracers_USA.sfc"
@@ -17,10 +17,27 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patches/snesrecomp-desktop-lua-bridge.patch"
       - "snesrecomp"
-
+      - ".github/workflows/historical-wip-dragster.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "tools/extract_smv_input.py"
+      - "tools/replay_input_via_lua.py"
+      - "tools/summarize_wram_trace_checkpoints.py"
+      - "tools/compose_historical_replay_result.py"
+      - "tools/compose_historical_reference_result.py"
+      - "tests/input/historical-2008-wip.input"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tools/toolchain-entries/_global.json"
+      - "tools/patches/snesrecomp-desktop-lua-bridge.patch"
+      - "snesrecomp"
 concurrency:
   group: historical-wip-dragster-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 permissions:
   contents: write

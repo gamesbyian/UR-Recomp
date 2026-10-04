@@ -1,3 +1,22 @@
+--- a/runner/lua.cmake
++++ b/runner/lua.cmake
+@@ -1,6 +1,7 @@
+ # Opt-in, independently of the trace debugger. No Lua download in normal builds.
+ option(SNESRECOMP_ENABLE_LUA "Build opt-in local TCP Lua scripting" OFF)
+ if(SNESRECOMP_ENABLE_LUA)
++    add_compile_definitions(SNESRECOMP_ENABLE_LUA=1)
+     if(POLICY CMP0135)
+         cmake_policy(SET CMP0135 NEW)
+     endif()
+@@ -20,5 +21,7 @@ if(SNESRECOMP_ENABLE_LUA)
+     else()
+         target_link_libraries(snesrecomp_lua PRIVATE m)
+     endif()
+     list(APPEND SNESRECOMP_RUNNER_LIBRARIES snesrecomp_lua)
++else()
++    add_compile_definitions(SNESRECOMP_ENABLE_LUA=0)
+ endif()
++
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
 @@ -40,6 +40,7 @@
@@ -8,38 +27,36 @@
  
  #include "snes/ppu.h"
  #include "snes/msu1.h"
-@@ -3277,6 +3278,30 @@ error_reading:;
+@@ -3277,6 +3278,28 @@ error_reading:;
    // Connect debug server to SNES RAM
    debug_server_set_ram(snes->ram, 0x20000);
  
 +  int lua_bridge_active = 0;
-+  const char *lua_port_env = getenv("SNESRECOMP_LUA_PORT");
-+  if (lua_port_env && lua_port_env[0]) {
 +#if SNESRECOMP_ENABLE_LUA
++  long lua_port = 4380;
++  const char *lua_port_env = HostGetenv("LUA_PORT");
++  if (lua_port_env) {
 +    char *end = NULL;
-+    long lua_port = strtol(lua_port_env, &end, 0);
-+    if (!end || *end != '\0' || lua_port < 1 || lua_port > 65535) {
-+      fprintf(stderr, "[lua] invalid SNESRECOMP_LUA_PORT='%s'\n", lua_port_env);
++    lua_port = strtol(lua_port_env, &end, 0);
++    if (!end || *end != '\0' || lua_port < 0 || lua_port > 65535) {
++      fprintf(stderr, "[lua] invalid Lua bridge port '%s'\n", lua_port_env);
 +      return 1;
 +    }
++  }
++  if (lua_port > 0) {
 +    if (lua_bridge_init(snes->ram, 0x20000, kRom, kRom_SIZE, (int)lua_port) != 0) {
 +      fprintf(stderr, "[lua] failed to start bridge on 127.0.0.1:%ld\n", lua_port);
 +      return 1;
 +    }
 +    lua_bridge_active = 1;
 +    host_report_breadcrumb("lua bridge listening: 127.0.0.1:%ld", lua_port);
-+#else
-+    fprintf(stderr,
-+            "[lua] SNESRECOMP_LUA_PORT requested but this build has "
-+            "SNESRECOMP_ENABLE_LUA=0\n");
-+    return 1;
-+#endif
 +  }
++#endif
 +
    FrameBlendConfigure();
    /* Run-ahead (config.ini [General] RunAhead, the launcher's Display cycle):
     * 0 disables; 1 is the useful setting for most titles. Offline only --
-@@ -3487,6 +3512,7 @@ error_reading:;
+@@ -3487,6 +3510,7 @@ error_reading:;
      /* Inert unless SNESRECOMP_CRASH_TEST is set — support drill for the
       * whole crash-capture pipeline (minidump + report + crash copy). */
      host_report_crash_test_tick();
@@ -47,7 +64,7 @@
  
      double event_profile_start = ProfileStart();
      while (SDL_PollEvent(&event)) {
-@@ -3547,6 +3573,12 @@ error_reading:;
+@@ -3547,6 +3571,12 @@ error_reading:;
        SDL_Delay(16);
        continue;
      }
@@ -60,7 +77,7 @@
  
      // Clear gamepad inputs when joypad directional inputs to avoid wonkiness
      if (g_input_state & 0xf0)
-@@ -3820,6 +3852,7 @@ error_reading:;
+@@ -3820,6 +3850,7 @@ error_reading:;
        break;
      }
      inputs |= debug_server_get_controller_inputs();
@@ -68,7 +85,7 @@
      g_profile_frame = frameCtr + 1;
      if (profile_requested && !g_profile && g_profile_frame >= profile_first) {
        g_profile = true;
-@@ -3838,11 +3871,14 @@ error_reading:;
+@@ -3838,11 +3869,14 @@ error_reading:;
      bool runahead_captured = false;
      {
        const uint32 word = inputs | GetActiveControllers() | debug_server_get_controller_active_mask();
@@ -84,7 +101,7 @@
      ApplyScriptForcePokes();
      snes_osd_note_frame();
      ProfileEnd(kProfileGuest, profile_start);
-@@ -3915,6 +3951,7 @@ error_reading:;
+@@ -3915,6 +3949,7 @@ error_reading:;
      }
    }
  

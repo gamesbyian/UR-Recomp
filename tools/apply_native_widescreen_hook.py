@@ -84,9 +84,11 @@ static int ur_ws_native_margin(void) {
       ur_ws_native_margin_cache = atoi(margin);
     } else {
       const char *view = getenv("URRECOMP_WS_VIEW");
+      if (!view || !*view)
+        return 0;
       ur_ws_native_margin_cache =
-          (view && (strcmp(view, "authentic-16x9") == 0 ||
-                    strcmp(view, "authentic-16x9-candidate") == 0)) ? 48 : 0;
+          (strcmp(view, "authentic-16x9") == 0 ||
+           strcmp(view, "authentic-16x9-candidate") == 0) ? 48 : 0;
     }
   }
   return ur_ws_native_margin_cache;

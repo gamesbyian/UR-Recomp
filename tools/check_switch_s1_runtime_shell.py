@@ -15,7 +15,8 @@ def check(root: Path = ROOT) -> list[str]:
     source_path = root / "platform/switch/s1_runtime_shell/source/main.c"
     makefile_path = root / "platform/switch/s1_runtime_shell/Makefile"
     workflow_path = root / ".github/workflows/switch-s1-runtime-shell.yml"
-    for path in (contract_path, source_path, makefile_path, workflow_path):
+    evaluator_path = root / "tools/evaluate_switch_s1_report.py"
+    for path in (contract_path, source_path, makefile_path, workflow_path, evaluator_path):
         if not path.is_file():
             errors.append(f"missing S1 runtime-shell file: {path.relative_to(root)}")
     if errors:
@@ -58,6 +59,8 @@ def check(root: Path = ROOT) -> list[str]:
         if token in combined:
             errors.append(f"S1 shell must remain guest/product independent: {token}")
 
+    if contract.get("hardware_acceptance", {}).get("evaluator") != "tools/evaluate_switch_s1_report.py":
+        errors.append("S1 contract must name the canonical hardware evaluator")
     if "hardware-observation-only" not in source:
         errors.append("S1 report must label itself hardware-observation-only")
     if "pull_request:" not in workflow or "workflow_dispatch:" not in workflow:

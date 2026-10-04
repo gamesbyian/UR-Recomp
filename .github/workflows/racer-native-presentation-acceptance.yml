@@ -314,13 +314,18 @@ jobs:
           ]
           p2_predecessor_candidate = p2_predecessor["art_review"]["authored_candidate"]
           assert p2_predecessor_candidate["approval_status"] == (
-              "gameplay-scale P2 temporal-neighbor candidate; native acceptance pending"
+              "motion-reviewed P2 temporal neighbor; not approved shipping art"
           )
           p2_predecessor_review = p2_predecessor_candidate["gameplay_scale_review"]
           assert p2_predecessor["observed_frames_in_window"] == [1218]
           assert p2_predecessor_review["stock_alpha_bounds"] == [22, 3, 39, 38]
           assert p2_predecessor_review["candidate_alpha_bounds"] == [22, 3, 39, 38]
           assert p2_predecessor_review["candidate_contact_x2_y2"] == [61, 76]
+          assert p2_predecessor_review["stock_opaque_pixels"] == 318
+          assert p2_predecessor_review["candidate_opaque_pixels"] == 304
+          assert p2_predecessor_review["alpha_intersection_pixels"] == 250
+          assert p2_predecessor_review["alpha_union_pixels"] == 372
+          assert abs(p2_predecessor_review["alpha_iou"] - 0.6720430107526881) < 1e-12
 
           repeated_057d = authored_by_id[
               "ordinary-racer-0x057D-p1-adjacent-reference"

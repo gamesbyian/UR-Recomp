@@ -43,7 +43,8 @@ UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 
 // Acceptance-only capability probe. Ordinary product code must consume the
 // normalized host contract rather than SDL display identifiers or mode lists.
-// The probe also verifies exact-mode and index validation fail closed.
+// The probe also verifies exact-mode and index validation fail closed before
+// output resolution is allowed to become a persisted product setting.
 void report_display_capabilities_once() {
     if (g_display_caps_reported ||
         !std::getenv("UR_DISPLAY_CAPS_DIAGNOSTICS")) {

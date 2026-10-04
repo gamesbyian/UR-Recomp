@@ -12,18 +12,6 @@ on:
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/beetle-bsnes-libretro.json"
       - "tools/toolchain-entries/_global.json"
-  push:
-    branches:
-      - main
-    paths:
-      - "tests/input/title-transition-recon.script"
-      - "tools/summarize_title_transition.py"
-      - "analysis/generated/title-transition-reference-summary.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-
 concurrency:
   group: title-transition-cross-core-${{ github.ref }}
   cancel-in-progress: true

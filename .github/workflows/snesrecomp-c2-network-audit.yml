@@ -2,20 +2,6 @@ name: SNESRecomp C2 baseline network audit
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - "tools/audit_network_trace.py"
-      - "tests/unit/test_audit_network_trace.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/_global.json"
-      - "third_party/manifest.json"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
-      - "third_party/archives/SDL3-3.4.10.tar.gz"
-      - "tools/toolchain-entries/sdl3.json"
-      - "third_party/cargo/snesrecomp-analyzer/**"
   pull_request:
     paths:
       - "tools/audit_network_trace.py"

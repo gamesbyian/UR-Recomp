@@ -31,38 +31,8 @@ on:
       - "tests/input/modern-exit-frontend-active.script"
       - "tests/input/widescreen-product-acceptance.script"
       - ".github/workflows/native-build-smoke.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "tools/toolchain-entries/sdl3.json"
-      - "third_party/cargo/snesrecomp-analyzer/**"
-      - "third_party/manifest.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/patches/snesrecomp-live-vsync.patch"
-      - "tools/patches/snesrecomp-live-display-mode.patch"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/patch_modern_product_host.py"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/apply_native_widescreen_hook.py"
-      - "tools/patches/snesrecomp-dynamic-native-widescreen.patch"
-      - "tools/build_display_geometry_review.py"
-      - "tools/analyze_display_active_height.py"
-      - "tests/unit/test_analyze_display_active_height.py"
-      - "analysis/display-geometry-candidates.json"
-      - "native/product/**"
-      - "native/title/uniracers_restart_policy.*"
-      - "tests/input/reach-first-race.script"
-      - "tests/input/modern-focus-pause.script"
-      - "tests/input/modern-exit-frontend-results.script"
-      - "tests/input/modern-exit-frontend-active.script"
-      - "tests/input/widescreen-product-acceptance.script"
 concurrency:
   group: native-build-smoke-${{ github.ref }}
   cancel-in-progress: true

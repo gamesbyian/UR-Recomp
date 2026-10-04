@@ -7,13 +7,6 @@ on:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "snesrecomp"
       - ".github/workflows/rom-baseline.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "snesrecomp"
-
 concurrency:
   group: rom-baseline-${{ github.ref }}
   cancel-in-progress: true

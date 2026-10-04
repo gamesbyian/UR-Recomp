@@ -26,32 +26,6 @@ on:
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tools/toolchain-entries/_global.json"
       - ".github/workflows/race-rotation-differential.yml"
-  push:
-    branches:
-      - main
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
-      - "third_party/cargo/snesrecomp-analyzer/**"
-      - "third_party/src/snes9x-libretro/**"
-      - "third_party/manifest.json"
-      - "tests/input/race-rotation-left.script"
-      - "tests/input/race-rotation-right.script"
-      - "tests/input/race-rotation-control.script"
-      - "tests/input/race-zflip-x.script"
-      - "tools/summarize_player_checkpoints.py"
-      - "tools/summarize_usjo8_checkpoints.py"
-      - "tests/test_summarize_usjo8_checkpoints.py"
-      - "tools/extract_wram_transitions.py"
-      - "tests/test_extract_wram_transitions.py"
-      - "tools/summarize_paired_player_slots.py"
-      - "tools/compare_wram_checkpoints.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-
 concurrency:
   group: race-rotation-differential-${{ github.ref }}
   cancel-in-progress: true

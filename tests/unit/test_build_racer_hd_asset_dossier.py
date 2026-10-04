@@ -445,6 +445,14 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
         )
         self.assertEqual(len(build_ninth_authored_candidate_rgba()), 256 * 256 * 4)
+        self.assertEqual(
+            sample_authored_0542_p2_rgba(132, 84),
+            bytes((52, 77, 201, 255)),
+        )
+        self.assertEqual(
+            sample_authored_0542_p2_rgba(126, 110),
+            bytes((217, 213, 208, 255)),
+        )
         occupied = []
         for ly in range(64):
             for lx in range(64):
@@ -470,6 +478,14 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             "ordinary-racer-0x0543-p2-with-p1-057E-reference",
         )
         self.assertEqual(len(build_tenth_authored_candidate_rgba()), 256 * 256 * 4)
+        self.assertEqual(
+            sample_authored_0543_p2_rgba(130, 88),
+            bytes((52, 77, 201, 255)),
+        )
+        self.assertEqual(
+            sample_authored_0543_p2_rgba(122, 110),
+            bytes((217, 213, 208, 255)),
+        )
         occupied = []
         for ly in range(64):
             for lx in range(64):

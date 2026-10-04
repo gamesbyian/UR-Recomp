@@ -166,6 +166,22 @@ constexpr bool is_authored_057d_p1_with_p2_0543_registration(
            s.p2_companion_gate_word == 0x0000;
 }
 
+constexpr bool is_authored_0540_p2_companion_0d2d_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0540 &&
+           s.p1_primary == 0x0541 &&
+           s.p2_primary == 0x0540 &&
+           s.p1_companion == 0x0D2D &&
+           s.p2_companion == 0x0000 &&
+           s.p1_selector == 0 &&
+           s.p2_selector == 0 &&
+           s.p1_companion_gate_word == 0x0001 &&
+           s.p2_companion_gate_word == 0x0000;
+}
+
 constexpr bool is_authored_0540_p2_baseline_registration(
     const RacerRegistration& registration
 ) noexcept {
@@ -712,6 +728,12 @@ constexpr std::uint32_t sample_racer_hd_asset(
         return sample_racer_hd_authored_0541_p1(x, y, hflip, vflip);
     }
     if (is_authored_0540_p2_baseline_registration(registration)) {
+        return sample_racer_hd_authored_0540_p2_baseline(x, y, hflip, vflip);
+    }
+    if (is_authored_0540_p2_companion_0d2d_registration(registration)) {
+        // Frame 1219 P2 is byte-identical to the reviewed frame-1220 P2
+        // raster. Preserve its exact synchronized identity while reusing the
+        // same authored blue-player representation.
         return sample_racer_hd_authored_0540_p2_baseline(x, y, hflip, vflip);
     }
     if (is_authored_0541_p1_companion_0d2d_registration(registration)) {

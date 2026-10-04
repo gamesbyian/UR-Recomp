@@ -152,8 +152,9 @@ jobs:
           # Build the exact pre-PR authored strip with the base revision of
           # the dossier sampler. This makes visual review a reproducible
           # before/after comparison instead of a memory-based judgment.
-          git fetch --no-tags --depth=1 origin "${{ github.event.pull_request.base.sha }}"
-          git show "${{ github.event.pull_request.base.sha }}:tools/build_racer_hd_asset_dossier.py" \
+          git fetch --no-tags --depth=1 origin "$GITHUB_BASE_REF"
+          BASE_SHA="$(git rev-parse FETCH_HEAD)"
+          git show "$BASE_SHA:tools/build_racer_hd_asset_dossier.py" \
             > tools/build_racer_hd_asset_dossier_base.py
           python3 tools/build_racer_hd_asset_dossier_base.py \
             "$ROM" \

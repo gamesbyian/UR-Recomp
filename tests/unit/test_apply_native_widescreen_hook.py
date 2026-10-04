@@ -101,6 +101,8 @@ class NativeWidescreenHookTests(unittest.TestCase):
             self.assertIn("ur_ws_native_shadow_payload[UR_WS_NATIVE_MAX_HOST_COLUMNS][32]",w)
             self.assertIn("margin < 8 || margin > 72 || (margin & 7) != 0",w)
             self.assertIn('getenv("URRECOMP_WS_VIEW")',w)
+            self.assertIn("if (!view || !*view)",w)
+            self.assertIn("return 0;",w)
             self.assertIn('strcmp(view, "authentic-16x9") == 0',w)
             self.assertIn('strcmp(view, "authentic-16x9-candidate") == 0',w)
             self.assertIn("? 48 : 0",w)

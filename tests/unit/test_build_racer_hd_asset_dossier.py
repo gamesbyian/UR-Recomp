@@ -9,6 +9,7 @@ from tools.build_racer_hd_asset_dossier import (
     SIXTH_AUTHORED_REPRESENTATION_ID,
     SEVENTH_AUTHORED_REPRESENTATION_ID,
     EIGHTH_AUTHORED_REPRESENTATION_ID,
+    NINTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
@@ -359,6 +360,30 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         )
         bottom = [x for x, y in occupied if y == 38]
         self.assertEqual([min(bottom), max(bottom)], [30, 33])
+
+    def test_ninth_registration_reuses_p2_baseline_asset(self):
+        self.assertEqual(
+            NINTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference",
+        )
+        rgba = build_seventh_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        occupied = []
+        for ly in range(64):
+            for lx in range(64):
+                sx = lx * 4 + 2
+                sy = ly * 4 + 2
+                if sample_authored_0540_p2_baseline_rgba(sx, sy)[3] != 0:
+                    occupied.append((lx, ly))
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [23, 3, 40, 38],
+        )
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

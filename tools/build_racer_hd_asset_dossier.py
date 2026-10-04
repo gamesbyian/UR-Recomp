@@ -95,6 +95,9 @@ SEVENTH_AUTHORED_REPRESENTATION_ID = (
 EIGHTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0540-p2-sync-reference"
 )
+NINTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -737,6 +740,13 @@ def build_dossier(
                 authored_rgba = build_sixth_authored_candidate_rgba()
                 native_sampler = "sample_racer_hd_authored_057d_p1_with_p2_0543"
             elif rid == EIGHTH_AUTHORED_REPRESENTATION_ID:
+                expected_generator = (
+                    "tools/build_racer_hd_asset_dossier.py::"
+                    "build_seventh_authored_candidate_rgba"
+                )
+                authored_rgba = build_seventh_authored_candidate_rgba()
+                native_sampler = "sample_racer_hd_authored_0540_p2_baseline"
+            elif rid == NINTH_AUTHORED_REPRESENTATION_ID:
                 expected_generator = (
                     "tools/build_racer_hd_asset_dossier.py::"
                     "build_seventh_authored_candidate_rgba"

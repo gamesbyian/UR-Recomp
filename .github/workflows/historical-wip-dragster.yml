@@ -132,7 +132,6 @@ jobs:
           ROOT="$RUNNER_TEMP/native"
           LUA_PATCH="$GITHUB_WORKSPACE/tools/patches/snesrecomp-desktop-lua-bridge.patch"
           git -C snesrecomp apply --check "$LUA_PATCH"
-          git -C snesrecomp apply "$LUA_PATCH"
           sh snesrecomp/tools/new_project/setup_project.sh \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --dir "$ROOT" \
@@ -148,6 +147,10 @@ jobs:
             --no-build \
             --snesrecomp-ref cd5875cbdaf19f5e324272b1f8051d671fce9215
           PROJ="$ROOT/UniracersSNESRecomp"
+          # setup_project.sh materializes its own pinned SNESRecomp checkout.
+          # Patch that checkout, not only this repository's submodule.
+          git -C "$PROJ/snesrecomp" apply --check "$LUA_PATCH"
+          git -C "$PROJ/snesrecomp" apply "$LUA_PATCH"
           cmake -S "$PROJ" -B "$PROJ/build" \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ENABLE_LUA=ON

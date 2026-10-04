@@ -75,8 +75,9 @@ jobs:
           cp "$PROJECT/src/game_rtl.c" "$BUNDLE/project/src/"
           cp "$PROJECT/src/host_contract.c" "$BUNDLE/project/src/"
           cp "$PROJECT/src/gen_stubs.c" "$BUNDLE/project/src/"
+          cp "$PROJECT/src/"*.h "$BUNDLE/project/src/"
           cp -R "$PROJECT/src/gen" "$BUNDLE/project/src/"
-          cp "$PROJECT/recomp/funcs.h" "$BUNDLE/project/recomp/"
+          cp "$PROJECT/recomp/"*.h "$BUNDLE/project/recomp/"
           cp -R "$FRAMEWORK/runner/src" "$BUNDLE/framework/runner/"
           python3 tools/build_switch_s2_guest_probe.py \
             --bundle "$BUNDLE" \

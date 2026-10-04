@@ -1,0 +1,69 @@
+name: Switch S1 runtime shell
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "platform/switch/s1_runtime_shell/**"
+      - "analysis/switch-s1-runtime-shell-contract.json"
+      - "tools/check_switch_s1_runtime_shell.py"
+      - "tests/unit/test_switch_s1_runtime_shell.py"
+      - "tools/evaluate_switch_s1_report.py"
+      - "tests/unit/test_evaluate_switch_s1_report.py"
+      - ".github/workflows/switch-s1-runtime-shell.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: switch-s1-runtime-shell-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  cross-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    container:
+      image: devkitpro/devkita64:20260219
+
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Validate S1 scope
+        run: |
+          set -eu
+          python3 tools/check_switch_s1_runtime_shell.py
+          python3 -m unittest tests.unit.test_switch_s1_runtime_shell tests.unit.test_evaluate_switch_s1_report
+
+      - name: Build hardware capability shell
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          make -C platform/switch/s1_runtime_shell -j2
+          test -s platform/switch/s1_runtime_shell/ur-recomp-switch-s1.elf
+          test -s platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nacp
+          test -s platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro
+          sha256sum platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro
+
+      - name: Retain package metadata
+        run: |
+          set -eu
+          . "$DEVKITPRO/switchvars.sh"
+          mkdir -p switch-s1-evidence
+          {
+            echo "container=devkitpro/devkita64:20260219"
+            echo "gcc_version=$(aarch64-none-elf-gcc -dumpfullversion -dumpversion)"
+            echo "sdl2_version=$(sdl2-config --version)"
+            echo "nro_sha256=$(sha256sum platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro | awk '{print $1}')"
+            echo "nro_size=$(wc -c < platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro)"
+            echo "hardware_acceptance=not_run_in_ci"
+          } > switch-s1-evidence/build-metadata.txt
+          cp platform/switch/s1_runtime_shell/ur-recomp-switch-s1.map switch-s1-evidence/ 2>/dev/null || true
+
+      - name: Upload S1 compile evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: switch-s1-runtime-shell-build
+          path: switch-s1-evidence/
+          retention-days: 14

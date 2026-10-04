@@ -1,0 +1,36 @@
+# Fresh-process replay route for a captured Dragster run.
+# Frontend navigation remains semantic/event-relative. Race driving comes only
+# from INPUT_FILE exported by the completed-run record capture.
+
+until 009F == D7 3600
+wait 60
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+press a 2
+
+until 009F == F6 1200
+wait 60
+press a 2
+
+until 009F != F6 1200
+wait 60
+until 009F == 16 1200
+wait 60
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump replay-race-entered
+
+# No race input is scripted here. The captured run's canonical INPUT_FILE
+# stream owns the race attempt from this point.
+until 009F == 99 12000
+wait 30
+dump replay-race-results
+quit

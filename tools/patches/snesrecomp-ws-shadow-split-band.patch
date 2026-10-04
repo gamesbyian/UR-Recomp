@@ -1,0 +1,161 @@
+--- a/runner/src/snes/ws_shadow.h
++++ b/runner/src/snes/ws_shadow.h
+@@ -25,6 +25,18 @@
+  * scanline-wrapped Y back to world Y. Defaults to the SetWorld values. */
+ void WsShadowSetScroll(int layer, uint32_t scrollX, uint32_t scrollY);
+ 
++/* Split-screen: a second world/scroll origin for scanlines >= firstLine
++ * (the PPU's own line numbering, as passed to WsShadowSetLine). Both bands
++ * share the layer's world-keyed store, so the split is only valid when both
++ * viewports show the same world. Registered per frame like SetWorld; a
++ * frame without this call renders the whole layer from one origin. */
++void WsShadowSetSplit(int layer, int firstLine, uint32_t worldX,
++                      uint32_t worldY, uint32_t scrollX, uint32_t scrollY);
++
++/* The renderer announces the scanline it is drawing so margin lookups and
++ * the origin accessors below select the split band that owns it. */
++void WsShadowSetLine(int line);
++
+ void WsShadowSetBlankTile(int layer, int blankEntry);
+ 
+ // Periodic-fold mode: for layers whose content is horizontally periodic
+--- a/runner/src/snes/ws_shadow.c
++++ b/runner/src/snes/ws_shadow.c
+@@ -18,6 +18,14 @@
+ typedef struct WsShadowLayer {
+   bool registered;
+   bool active;
++  /* Optional split-screen band: lines >= splitLine use the split origin. */
++  bool splitRegistered;
++  bool splitActive;
++  int splitLine;
++  uint32_t splitWorldX;
++  uint32_t splitWorldY;
++  uint32_t splitScrollX;
++  uint32_t splitScrollY;
+   bool wide;
+   bool fold;      /* periodic fold enabled (composes with world history) */
+   bool worldSet;  /* WsShadowSetWorld called this frame */
+@@ -77,6 +85,26 @@
+ } WsShadowLayer;
+ 
+ static WsShadowLayer s_layers[kLayers];
++static int s_currentLine = -1;
++
++void WsShadowSetLine(int line) { s_currentLine = line; }
++
++static bool UseSplit(const WsShadowLayer *layer) {
++  return layer->splitActive && s_currentLine >= layer->splitLine;
++}
++
++void WsShadowSetSplit(int layerIndex, int firstLine, uint32_t worldX,
++                      uint32_t worldY, uint32_t scrollX, uint32_t scrollY) {
++  if (layerIndex < 0 || layerIndex >= kLayers)
++    return;
++  WsShadowLayer *layer = &s_layers[layerIndex];
++  layer->splitRegistered = true;
++  layer->splitLine = firstLine;
++  layer->splitWorldX = worldX;
++  layer->splitWorldY = worldY;
++  layer->splitScrollX = scrollX;
++  layer->splitScrollY = scrollY;
++}
+ 
+ /* Always-on margin lookup accounting (see WsShadowTile). Never armed. */
+ static WsShadowMarginStat s_marginStats[kLayers];
+@@ -172,6 +200,8 @@
+     layer->validCount = 0;
+     layer->registered = false;
+     layer->active = false;
++    layer->splitRegistered = false;
++    layer->splitActive = false;
+     layer->fold = false;
+     layer->worldSet = false;
+     layer->haveLastOrigin = false;
+@@ -963,6 +993,8 @@
+     WsShadowLayer *layer = &s_layers[i];
+     layer->active = layer->registered;
+     layer->registered = false;
++    layer->splitActive = layer->active && layer->splitRegistered;
++    layer->splitRegistered = false;
+     if (!layer->active)
+       continue;
+ 
+@@ -1300,13 +1332,17 @@
+    * period inferred from a feature-free native window can no longer
+    * paint filler over known feature cells. */
+   const uint32_t shift = layer->tileShift ? layer->tileShift : 3;
+-  int32_t worldX = (int32_t)layer->worldX + screenX;
++  const bool split = UseSplit(layer);
++  const uint32_t originX = split ? layer->splitWorldX : layer->worldX;
++  const uint32_t originY = split ? layer->splitWorldY : layer->worldY;
++  const uint32_t scrollY = split ? layer->splitScrollY : layer->scrollY;
++  int32_t worldX = (int32_t)originX + screenX;
+   int32_t worldY =
+       layer->retainHistory
+-          ? (int32_t)(((wrappedY - layer->scrollY) & 0x3ff) +
+-                      (layer->scrollY & ((1u << shift) - 1)))
+-          : (int32_t)(layer->worldY +
+-                      ((wrappedY - layer->scrollY) & 0x3ff));
++          ? (int32_t)(((wrappedY - scrollY) & 0x3ff) +
++                      (scrollY & ((1u << shift) - 1)))
++          : (int32_t)(originY +
++                      ((wrappedY - scrollY) & 0x3ff));
+   if (layer->entries && worldX >= 0 && worldY >= 0) {
+     uint16_t entry;
+     const bool hit = GetEntry(layer, (uint32_t)worldX >> shift,
+@@ -1369,32 +1405,37 @@
+ uint32_t WsShadowWorldX(int layerIndex) {
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return 0;
+-  return s_layers[layerIndex].worldX;
++  const WsShadowLayer *layer = &s_layers[layerIndex];
++  return UseSplit(layer) ? layer->splitWorldX : layer->worldX;
+ }
+ 
+ uint32_t WsShadowWorldY(int layerIndex) {
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return 0;
+-  return s_layers[layerIndex].worldY;
++  const WsShadowLayer *layer = &s_layers[layerIndex];
++  return UseSplit(layer) ? layer->splitWorldY : layer->worldY;
+ }
+ 
+ uint32_t WsShadowPresentWorldY(int layerIndex, int screenX) {
+   (void)screenX;
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return 0;
+-  if (s_layers[layerIndex].retainHistory)
+-    return s_layers[layerIndex].scrollY;
+-  return s_layers[layerIndex].worldY;
++  const WsShadowLayer *layer = &s_layers[layerIndex];
++  if (layer->retainHistory)
++    return layer->scrollY;
++  return UseSplit(layer) ? layer->splitWorldY : layer->worldY;
+ }
+ 
+ uint32_t WsShadowScrollX(int layerIndex) {
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return 0;
+-  return s_layers[layerIndex].scrollX;
++  const WsShadowLayer *layer = &s_layers[layerIndex];
++  return UseSplit(layer) ? layer->splitScrollX : layer->scrollX;
+ }
+ 
+ uint32_t WsShadowScrollY(int layerIndex) {
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return 0;
+-  return s_layers[layerIndex].scrollY;
++  const WsShadowLayer *layer = &s_layers[layerIndex];
++  return UseSplit(layer) ? layer->splitScrollY : layer->scrollY;
+ }
+--- a/runner/src/snes/ppu.c
++++ b/runner/src/snes/ppu.c
+@@ -2235,6 +2235,7 @@
+ }
+ 
+ static void PpuDrawBackgrounds(Ppu *ppu, int y, bool sub) {
++  WsShadowSetLine(y);
+   // Top 4 bits contain the prio level, and bottom 4 bits the layer type.
+   // SPRITE_PRIO_TO_PRIO can be used to convert from obj prio to this prio.
+   //  15: BG3 tiles with priority 1 if bit 3 of $2105 is set

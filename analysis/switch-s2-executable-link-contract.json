@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "gate": "S2-executable-link",
+  "purpose": "Produce a real Switch NRO containing canonical Uniracers guest objects plus authoritative SNES runtime/support objects behind a minimal non-simulating Switch host.",
+  "support_sources": [
+    "runner/src/audio_trace.c",
+    "runner/src/ppu_dma_trace.c",
+    "runner/src/sha256.c",
+    "runner/src/mod_audio.c",
+    "runner/src/framedump.c",
+    "runner/src/snes_runahead.c"
+  ],
+  "host_source": "platform/switch/s2_link_probe/source/main.c",
+  "host_contract": {
+    "definitions": [
+      "Die",
+      "RtlApuLock",
+      "RtlApuUnlock",
+      "g_spc_player",
+      "RtlDrawPpuFrame",
+      "MkDir",
+      "ChangeWindowScale",
+      "g_ws_active",
+      "g_ws_extra",
+      "g_new_ppu",
+      "host_report_breadcrumb"
+    ],
+    "threading": "single-threaded probe; no audio device/thread is created, so no-op APU lock is valid only for this non-simulating link skeleton"
+  },
+  "acceptance": [
+    "canonical guest objects compile",
+    "authoritative runtime-floor objects compile",
+    "portable framework support objects compile",
+    "final AArch64 executable link resolves all symbols against host shim and Switch/newlib/libm",
+    "elf2nro emits a non-empty NRO",
+    "the probe does not call SnesInit or RtlRunFrame"
+  ],
+  "non_claims": [
+    "The NRO does not start the Uniracers simulation",
+    "The NRO does not initialize audio delivery",
+    "The NRO does not prove frame presentation",
+    "The NRO does not prove deterministic parity",
+    "Gate S2 remains open until authoritative simulation executes and matches retained checkpoints"
+  ]
+}

@@ -133,24 +133,25 @@ scenes:
     rationale: "Retained 2P evidence establishes independent authoritative player state plus split-screen camera/OAM presentation boundaries, so widening must preserve stock activation while composing presentation per viewport."
   - id: vs-mode
     class: mixed
-    host_composition: centered-256x224-until-proven
+    host_composition: centered-256x224-until-vs-provider
     host_widen: false
-    evidence_status: provisional
+    evidence_status: evidence-backed
     fixture: vs-first-race
-    rationale: "Principal VS simulation fidelity is closed, but a dedicated event-relative Widescreen fixture has not yet proved that its presentation policy matches ordinary 2P. The host therefore fails closed to centered Authentic width until that discriminator closes."
+    evidence: analysis/widescreen-vs-policy-evidence.json
+    rationale: "Matched stock/+8 native VS runs preserve both racer slots, race progress and all tracked camera/view state at checkpoints 1240/1340/1440/1620, and the host viewport widens from 256x224 to 272x224. However, neither the ordinary race primary trace nor accepted +8 preparation hook executes on the VS path. VS therefore requires a distinct presentation-preparation seam before host widening can be enabled."
 
 next_discriminator:
-  id: vs-widescreen-policy
-  goal: "Determine whether VS satisfies the ordinary-2P mixed policy or requires a distinct scene exception."
+  id: vs-preparation-path
+  goal: "Recover the VS-specific presentation preparation seam that can supply widened split-screen backing without altering authoritative state."
   method:
-    - "Retain one deterministic VS fixture with semantic/event-relative anchors."
-    - "Compare stock 4:3 against the smallest accepted widened presentation margin without changing authoritative simulation/activation."
-    - "Classify camera/view composition, preparation/streaming and UI behavior independently."
+    - "Reuse the retained vs-first-race stock/+8 fixture and the negative provider evidence from run 37165123984."
+    - "Trace the VS race-frame presentation/preparation call path and compare it with the ordinary 1P/2P A59A/A59E seam."
+    - "Identify the smallest VS-only host/presentation hook that can prepare one adjacent strip per viewport while preserving the already-proven protected-state equality."
   success:
-    - "Authoritative VS state remains event-relative equal while widened presentation follows the ordinary-2P ownership boundaries."
-    - "Promote vs-mode from provisional to evidence-backed mixed."
+    - "A deterministic VS +8 run observes the recovered preparation provider and retains exact racer/progress/camera-view equality against stock."
+    - "Only then may vs-mode host_widen become true and share the ordinary 2P mixed composition policy."
   stop_or_split:
-    - "If VS differs, record the smallest concrete presentation exception instead of broadening the policy class speculatively."
+    - "If VS uses a fundamentally different split-screen backing model, record a dedicated VS provider instead of forcing the ordinary race materializer onto it."
 
 notes:
   - "Evidence-backed scene policies may guide implementation; provisional policies remain explicit hypotheses."

@@ -124,6 +124,43 @@ const char* presentation_fps_mode_name(
     return nullptr;
 }
 
+bool parse_internal_render_scale(
+    std::string_view text,
+    HostInternalRenderScale& out) noexcept {
+    if (text == "1x") {
+        out = HostInternalRenderScale::X1;
+        return true;
+    }
+    if (text == "2x") {
+        out = HostInternalRenderScale::X2;
+        return true;
+    }
+    if (text == "3x") {
+        out = HostInternalRenderScale::X3;
+        return true;
+    }
+    if (text == "4x") {
+        out = HostInternalRenderScale::X4;
+        return true;
+    }
+    return false;
+}
+
+const char* internal_render_scale_name(
+    HostInternalRenderScale scale) noexcept {
+    switch (scale) {
+    case HostInternalRenderScale::X1:
+        return "1x";
+    case HostInternalRenderScale::X2:
+        return "2x";
+    case HostInternalRenderScale::X3:
+        return "3x";
+    case HostInternalRenderScale::X4:
+        return "4x";
+    }
+    return nullptr;
+}
+
 bool parse_positive_int(std::string_view text, int& out) noexcept {
     if (text.empty()) return false;
     int value = 0;
@@ -213,8 +250,10 @@ std::string encode_host_product_state(const HostProductState& state) {
         presentation_fps_mode_name(state.settings.presentation_fps_mode);
     const std::string output_resolution =
         output_resolution_name(state.settings.output_resolution);
+    const char* internal_render_scale =
+        internal_render_scale_name(state.settings.internal_render_scale);
     if (!display_mode || !vsync_mode || !presentation_fps ||
-        output_resolution.empty()) {
+        output_resolution.empty() || !internal_render_scale) {
         return {};
     }
 
@@ -231,6 +270,7 @@ std::string encode_host_product_state(const HostProductState& state) {
     out << "vsync=" << vsync_mode << '\n';
     out << "presentation_fps=" << presentation_fps << '\n';
     out << "output_resolution=" << output_resolution << '\n';
+    out << "internal_render_scale=" << internal_render_scale << '\n';
     return out.str();
 }
 
@@ -288,7 +328,7 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     };
     static constexpr std::string_view allowed_v6[] = {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
-        "presentation_fps", "output_resolution"
+        "presentation_fps", "output_resolution", "internal_render_scale"
     };
 
     const std::string_view* required = required_v6_core;
@@ -373,6 +413,14 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
             output_resolution->second,
             state.settings.output_resolution)) {
         return {std::nullopt, "invalid host output resolution"};
+    }
+    const auto internal_render_scale = fields.find("internal_render_scale");
+    if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
+        !legacy_v5 && internal_render_scale != fields.end() &&
+        !parse_internal_render_scale(
+            internal_render_scale->second,
+            state.settings.internal_render_scale)) {
+        return {std::nullopt, "invalid host internal render scale"};
     }
 
     return {state, {}};

@@ -199,6 +199,7 @@ int main() {
         find_racer_registration_for_state(0x057E, repeated_057e_context);
     assert(repeated_057e != nullptr);
     assert(is_authored_057e_p1_with_p2_0543_registration(*repeated_057e));
+    assert(sample_racer_hd_asset(*repeated_057e, 150, 22, false, false) == 0);
 
     int repeated_057e_min_lx = kRacerHdLogicalSize;
     int repeated_057e_min_ly = kRacerHdLogicalSize;
@@ -240,6 +241,7 @@ int main() {
         find_racer_registration_for_state(0x057D, repeated_057d_context);
     assert(repeated_057d != nullptr);
     assert(is_authored_057d_p1_with_p2_0543_registration(*repeated_057d));
+    assert(sample_racer_hd_asset(*repeated_057d, 146, 26, false, false) == 0);
 
     int repeated_057d_min_lx = kRacerHdLogicalSize;
     int repeated_057d_min_ly = kRacerHdLogicalSize;

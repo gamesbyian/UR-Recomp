@@ -230,10 +230,10 @@ jobs:
           assert readiness["shipping_ready"] is False
           assert readiness["counts"] == {
               "approved": 0,
-              "needs_refinement": 6,
+              "needs_refinement": 4,
               "rejected": 0,
               "unreviewed": 0,
-              "changed_since_review": 4,
+              "changed_since_review": 6,
               "unauthored": 0,
               "authored_conflicts": 0,
           }
@@ -328,7 +328,7 @@ jobs:
           ]
           repeated_057e_candidate = repeated_057e["art_review"]["authored_candidate"]
           assert repeated_057e_candidate["approval_status"] == (
-              "motion-reviewed repeated temporal pose; not approved shipping art"
+              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
           )
           assert repeated_057e["observed_frames_in_window"] == [1205, 1206, 1213, 1214]
           repeated_057e_review = repeated_057e_candidate["gameplay_scale_review"]
@@ -336,10 +336,10 @@ jobs:
           assert repeated_057e_review["candidate_alpha_bounds"] == [21, 2, 42, 38]
           assert repeated_057e_review["candidate_contact_x2_y2"] == [67, 76]
           assert repeated_057e_review["stock_opaque_pixels"] == 325
-          assert repeated_057e_review["candidate_opaque_pixels"] == 331
-          assert repeated_057e_review["alpha_intersection_pixels"] == 251
-          assert repeated_057e_review["alpha_union_pixels"] == 405
-          assert abs(repeated_057e_review["alpha_iou"] - 0.6197530864197531) < 1e-12
+          assert repeated_057e_review["candidate_opaque_pixels"] == 317
+          assert repeated_057e_review["alpha_intersection_pixels"] == 252
+          assert repeated_057e_review["alpha_union_pixels"] == 390
+          assert abs(repeated_057e_review["alpha_iou"] - 0.6461538461538462) < 1e-12
 
           p2_baseline = authored_by_id[
               "ordinary-racer-0x0540-p2-sync-reference"
@@ -465,7 +465,7 @@ jobs:
           ]
           repeated_057d_candidate = repeated_057d["art_review"]["authored_candidate"]
           assert repeated_057d_candidate["approval_status"] == (
-              "motion-reviewed repeated temporal pose; not approved shipping art"
+              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
           )
           assert repeated_057d["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
           repeated_057d_review = repeated_057d_candidate["gameplay_scale_review"]
@@ -473,10 +473,10 @@ jobs:
           assert repeated_057d_review["candidate_alpha_bounds"] == [21, 3, 43, 38]
           assert repeated_057d_review["candidate_contact_x2_y2"] == [69, 76]
           assert repeated_057d_review["stock_opaque_pixels"] == 321
-          assert repeated_057d_review["candidate_opaque_pixels"] == 322
+          assert repeated_057d_review["candidate_opaque_pixels"] == 310
           assert repeated_057d_review["alpha_intersection_pixels"] == 246
-          assert repeated_057d_review["alpha_union_pixels"] == 397
-          assert abs(repeated_057d_review["alpha_iou"] - 0.6196473551637279) < 1e-12
+          assert repeated_057d_review["alpha_union_pixels"] == 385
+          assert abs(repeated_057d_review["alpha_iou"] - 0.638961038961039) < 1e-12
 
           for rep in (baseline, p2_baseline, p2_reused, p2_predecessor, p2_0542, p2_0542_reuse, p2_0543, p2_0543_reuse, predecessor, reversed, reused, repeated, repeated_057e, repeated_057d):
               candidate_path = (

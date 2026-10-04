@@ -707,12 +707,15 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
 
     // Widen only the upper silhouette enough to recover the stock x=21 edge.
     // The wheel supplies x=42 and the recovered [67,76] contact anchor.
-    const int seat_dx = x - 124;
+    // True-density review showed the old saddle carrying excess mass on
+    // the right. Preserve the pose envelope/contact while shifting/narrowing
+    // the same smooth object-local form.
+    const int seat_dx = x - 116;
     const int seat_dy = y - 22;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 39 * 39 <=
-            39 * 39 * 14 * 14 &&
+            (seat_dy * seat_dy) * 32 * 32 <=
+            32 * 32 * 14 * 14 &&
         y >= 8 && y <= 36;
 
     const bool neck =
@@ -776,12 +779,15 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         y >= 113 && y <= 118 &&
         x >= 153 && x <= 157;
 
-    const int seat_dx = x - 120;
+    // The 057D mismatch map shows the same right-heavy saddle mass as
+    // 057E. Shift left and narrow it while the wheel continues to own the
+    // exact recovered contact anchor.
+    const int seat_dx = x - 112;
     const int seat_dy = y - 26;
     const bool seat =
         (seat_dx * seat_dx) * 14 * 14 +
-            (seat_dy * seat_dy) * 35 * 35 <=
-            35 * 35 * 14 * 14 &&
+            (seat_dy * seat_dy) * 28 * 28 <=
+            28 * 28 * 14 * 14 &&
         y >= 12 && y <= 40;
 
     const bool neck =

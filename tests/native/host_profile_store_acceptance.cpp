@@ -2,9 +2,11 @@
 
 #include <array>
 #include <cassert>
+#include <cstdio>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
+#include <iterator>
 #include <string>
 
 using namespace ur::product;
@@ -17,6 +19,13 @@ std::array<std::uint8_t, kStockSramBytes> fixture() {
         data[i] = static_cast<std::uint8_t>((i * 29u + 7u) & 0xffu);
     }
     return data;
+}
+
+std::string read_all(const std::string& path) {
+    std::ifstream in(path, std::ios::binary);
+    return std::string(
+        std::istreambuf_iterator<char>(in),
+        std::istreambuf_iterator<char>());
 }
 
 void save_case(const std::string& path) {
@@ -40,7 +49,6 @@ void load_case(const std::string& path) {
     const auto loaded = load_host_profile_state_file(
         ExecutionMode::Modern, path, "profile.alpha");
     assert(loaded.loaded());
-    assert(!loaded.migrated);
     assert(loaded.state->autosave_generation == 1);
 
     std::array<std::uint8_t, kStockSramBytes> restored{};
@@ -53,29 +61,27 @@ void load_case(const std::string& path) {
     std::cout << "PROFILE_ACCEPTANCE fresh_process_load_ok\n";
 }
 
-void old_case(const std::string& path) {
-    HostProfileState legacy;
-    legacy.profile_id = "profile.alpha";
-    legacy.stock_sram = fixture();
-    std::string encoded = encode_host_profile_state(legacy);
-    const auto header_end = encoded.find('\n');
-    const auto generation = encoded.find("generation=");
-    const auto generation_end = encoded.find('\n', generation);
-    encoded.replace(0, header_end, "UR-HOST-PROFILE/0");
-    encoded.erase(generation, generation_end - generation + 1);
+void legacy_host_default_case(const std::string& path) {
+    std::remove(path.c_str());
+    const auto legacy_host = decode_host_product_state(
+        "UR-HOST-STATE/1\n"
+        "profile=profile.alpha\n"
+        "pause_on_focus_loss=1\n"
+        "vibration_enabled=1\n");
+    assert(legacy_host);
+    assert(legacy_host.state->active_profile_id);
+    assert(*legacy_host.state->active_profile_id == "profile.alpha");
 
-    {
-        std::ofstream out(path, std::ios::binary | std::ios::trunc);
-        out << encoded;
-    }
-
-    const auto loaded = load_host_profile_state_file(
-        ExecutionMode::Modern, path, "profile.alpha");
-    assert(loaded.loaded());
-    assert(loaded.migrated);
-    assert(loaded.state->autosave_generation == 0);
-    assert(loaded.state->stock_sram == legacy.stock_sram);
-    std::cout << "PROFILE_ACCEPTANCE old_state_migrated\n";
+    const auto resolved = resolve_host_profile_state_file(
+        ExecutionMode::Modern,
+        path,
+        *legacy_host.state->active_profile_id);
+    assert(resolved);
+    assert(resolved.status == HostProfileResolveStatus::DefaultedMissing);
+    assert(resolved.state->profile_id == "profile.alpha");
+    assert(resolved.state->autosave_generation == 0);
+    assert(!resolved.state->stock_sram);
+    std::cout << "PROFILE_ACCEPTANCE legacy_host_defaulted\n";
 }
 
 void malformed_case(const std::string& path) {
@@ -86,18 +92,25 @@ void malformed_case(const std::string& path) {
                "generation=nope\n"
                "stock_sram=1234\n";
     }
-    const auto loaded = load_host_profile_state_file(
+    const std::string before = read_all(path);
+    const auto resolved = resolve_host_profile_state_file(
         ExecutionMode::Modern, path, "profile.alpha");
-    assert(loaded.status == HostProfileLoadStatus::Rejected);
-    assert(!loaded.state);
-    std::cout << "PROFILE_ACCEPTANCE malformed_rejected\n";
+    assert(resolved);
+    assert(resolved.status == HostProfileResolveStatus::DefaultedMalformed);
+    assert(resolved.state->profile_id == "profile.alpha");
+    assert(resolved.state->autosave_generation == 0);
+    assert(!resolved.state->stock_sram);
+    assert(!resolved.error.empty());
+    assert(read_all(path) == before);
+    std::cout << "PROFILE_ACCEPTANCE malformed_defaulted_preserved\n";
 }
 
 void authentic_case(const std::string& path) {
-    const auto loaded = load_host_profile_state_file(
+    const std::string before = read_all(path);
+    const auto resolved = resolve_host_profile_state_file(
         ExecutionMode::Authentic, path, "profile.alpha");
-    assert(loaded.status == HostProfileLoadStatus::Rejected);
-    assert(!loaded.state);
+    assert(!resolved);
+    assert(resolved.status == HostProfileResolveStatus::RejectedByPolicy);
 
     HostProfileState state;
     state.profile_id = "profile.alpha";
@@ -111,6 +124,7 @@ void authentic_case(const std::string& path) {
                ExecutionMode::Authentic,
                path,
                state) == HostProfileSaveStatus::Rejected);
+    assert(read_all(path) == before);
     std::cout << "PROFILE_ACCEPTANCE authentic_inert\n";
 }
 
@@ -125,8 +139,8 @@ int main(int argc, char** argv) {
         save_case(path);
     } else if (mode == "load") {
         load_case(path);
-    } else if (mode == "old") {
-        old_case(path);
+    } else if (mode == "legacy-host-default") {
+        legacy_host_default_case(path);
     } else if (mode == "malformed") {
         malformed_case(path);
     } else if (mode == "authentic") {

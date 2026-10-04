@@ -76,7 +76,7 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           INPUT="$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/vs-first-race-observe.script"
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus16"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
           mkdir -p "$ROOT"
           for margin in 0 24; do
             OUT="$ROOT/$margin"
@@ -117,7 +117,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          ROOT="$RUNNER_TEMP/widescreen-vs-plus16"
+          ROOT="$RUNNER_TEMP/widescreen-vs-plus24"
           mkdir -p analysis/generated
           CHECKPOINTS=(
             --checkpoint vs-race-1240
@@ -165,7 +165,7 @@ jobs:
               "fixture":"vs-first-race",
               "candidate_margin_pixels_per_side":24,
               "control_frame_geometry":control_dim,
-              "plus16_frame_geometry":wide_dim,
+              "plus24_frame_geometry":wide_dim,
               "protected_sections":list(protected),
               "rows":rows,
               "protected_state_equal_at_all_checkpoints":accepted,
@@ -212,11 +212,11 @@ jobs:
           name: widescreen-vs-plus24-capacity
           path: |
             analysis/generated/widescreen-vs-plus24-capacity.json
-            ${{ runner.temp }}/widescreen-vs-plus16/0/state.json
-            ${{ runner.temp }}/widescreen-vs-plus16/24/state.json
-            ${{ runner.temp }}/widescreen-vs-plus16/0/run.log
-            ${{ runner.temp }}/widescreen-vs-plus16/24/run.log
-            ${{ runner.temp }}/widescreen-vs-plus16/0/frames/frame_001340.bmp
-            ${{ runner.temp }}/widescreen-vs-plus16/24/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-plus24/0/state.json
+            ${{ runner.temp }}/widescreen-vs-plus24/24/state.json
+            ${{ runner.temp }}/widescreen-vs-plus24/0/run.log
+            ${{ runner.temp }}/widescreen-vs-plus24/24/run.log
+            ${{ runner.temp }}/widescreen-vs-plus24/0/frames/frame_001340.bmp
+            ${{ runner.temp }}/widescreen-vs-plus24/24/frames/frame_001340.bmp
           if-no-files-found: warn
           retention-days: 7

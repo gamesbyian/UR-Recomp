@@ -657,7 +657,20 @@ jobs:
 
               xdotool windowfocus "$WIN"
               xdotool key Escape
-              sleep 0.2
+              for _ in $(seq 1 100); do
+                grep -q "UR_PAUSE_STATE paused=" "$LOG" && break
+                sleep 0.05
+              done
+              grep -q "UR_PAUSE_STATE paused=" "$LOG"
+              PAUSED=$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")
+              if [ "$PAUSED" != "1" ]; then
+                xdotool key Escape
+                for _ in $(seq 1 100); do
+                  [ "$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")" = "1" ] && break
+                  sleep 0.05
+                done
+              fi
+              test "$(grep "UR_PAUSE_STATE paused=" "$LOG" | tail -n1 | sed -E "s/.*paused=([01]).*/\1/")" = "1"
 
               # Reverse tail-row navigation is invariant to Restart visibility:
               # Resume <- Quit Desktop <- Exit Frontend. Wait for the host to

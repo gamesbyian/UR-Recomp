@@ -6,3 +6,6 @@ GLOBAL {
 SEGMENT { START $8000; END $FFFF; NAME "bank_03"; };
 
 LABEL { NAME "Text_HandleFCPositionControl"; ADDR $8971; };
+LABEL { NAME "CartridgeMemorySelfTest"; ADDR $8AF7; };
+LABEL { NAME "RacerPresentation_ResolveFramePointer"; ADDR $F296; };
+LABEL { NAME "RacerPresentation_DecodePackedFramePair"; ADDR $F2BB; };

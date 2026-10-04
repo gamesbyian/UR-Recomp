@@ -1,23 +1,71 @@
 # Generated from analysis/generated/symbols.json.
 # Add structural decoders separately; this file only seeds known labels/memory.
 labels:
+  Interrupt_LongVector73: 0x584
+  Interrupt_LongVector53: 0x599
+  Main_StateDispatchLoop: 0x881
   Text_TestCharacterMetadataBit7: 0xC41
+  Reset_Entry: 0x11D1
+  Fatal_GamePakNotFound: 0x14EB
+  Frontend_TextCommandStream: 0x43AB
+  Frontend_TextCommandDispatch: 0x43C8
+  Race_HandleCheckpointFinish: 0x8050
+  Course_SampleRuntimeSurface: 0x8B95
+  Race_UpdateCameraAndPrepareVramStrips: 0xA52F
+  Race_FilterVramUpdateListsByCameraWindow: 0xAA40
+  Race_BuildCameraVramDmaDescriptors: 0xAB88
   RNC1_Unpack: 0xB8F1
   RNC1_MakeHuffTail: 0xBB60
   RNC1_ReadWordLoROMSafe: 0xBB6F
   HUD_QueueMessage: 0xC5AF
   APU_UploadBlockById_Wrapper: 0x1007E
   APU_ResolveBlockPointer: 0x1012A
+  Race_UpdateRacersFrame: 0x109B9
   Stunt_FinalizeAndScoreAirTricks: 0x11A42
   Player_ApplyVerticalAcceleration: 0x12968
   Input_DecodePlayer1Buttons: 0x12A6E
+  Race_BuildRacerOAMState: 0x12CA5
+  PPU_LoadPaletteAssetToCGRAM: 0x13180
+  PPU_LoadAssetToVRAM: 0x131D8
+  PPU_ConsumeCameraVramDmaDescriptors: 0x1519B
+  PPU_EmitFilteredVramUpdateLists: 0x1537F
+  Race_LoadPresentationAssets: 0x1602E
+  Course_LoadAndMaterialize: 0x16165
   Text_HandleFCPositionControl: 0x18971
+  CartridgeMemorySelfTest: 0x18AF7
+  RacerPresentation_ResolveFramePointer: 0x1F296
+  RacerPresentation_DecodePackedFramePair: 0x1F2BB
 memory:
+  Save_PlayerNameTable: 0x77000C
+  Save_RiderStats: 0x770230
+  Save_TrackRecords: 0x770422
+  Save_TrackRecordsChecksum: 0x77054E
+  Save_TrackRecordHolders: 0x770550
+  Progress_MedalMatrix: 0x77069C
+  Progress_BlockChecksum: 0x77073C
+  Player1_StuntScore: 0x7707BB
+  Player2_StuntScore: 0x770825
+  Progress_TourTrackFlags: 0x771075
+  Save_VsWinTally: 0x7710A9
+  Save_PlayMode: 0x7710AD
+  Progress_SplashCheatActive: 0x7710D0
+  Progress_TourEntryMedal: 0x7710D1
+  Progress_UnicycleTier: 0x7710D3
+  Progress_UnicycleTierMirror: 0x7710FD
   Frontend_SelectedRow: 0x7E000E
   Frontend_SelectedOption: 0x7E009B
   Frontend_CurrentMenu: 0x7E009F
+  Frontend_SelectedTourRow: 0x7E00D0
+  P1_RiderIndex: 0x7E017D
+  Race_LoopParityPhase: 0x7E0302
+  Race_LoopModulo3Phase: 0x7E0304
   Race_ActiveState: 0x7E0313
   Player1_FacingAtTakeoff: 0x7E033B
+  CameraVramDmaSource: 0x7E0399
+  CameraVramDmaSize: 0x7E03A9
+  CameraVramDmaReady: 0x7E03B9
+  CameraVramDmaDestination: 0x7E03C9
+  CameraVramDmaVmain: 0x7E03D9
   Player1_XPosition: 0x7E0411
   Player2_XPosition: 0x7E0413
   Player1_YPosition: 0x7E0415
@@ -35,14 +83,29 @@ memory:
   Player1_CameraXSpeed: 0x7E04F5
   Player2_CameraXSpeed: 0x7E04F7
   Player1_AirTime: 0x7E0545
+  Player2_AirTime: 0x7E0547
   Player1_FacedDirection: 0x7E0BA1
   Player2_FacedDirection: 0x7E0BA3
   Frontend_SelectedColumn: 0x7E0C63
+  Player1_MessageQueue: 0x7E0CBB
+  Player1_MessageQueueReadIndex: 0x7E0CE1
+  Player1_MessageQueueWriteIndex: 0x7E0CE3
+  Player2_MessageQueue: 0x7E0CE5
+  Player2_MessageQueueWriteIndex: 0x7E0D0D
   Player1_ZRotationState: 0x7E0DFD
+  RaceTimer_MinutesDigit: 0x7E0E0F
+  RaceTimer_TensSecondsDigit: 0x7E0E13
+  RaceTimer_SecondsDigit: 0x7E0E17
+  RaceTimer_TenthsDigit: 0x7E0E1B
+  RaceTimer_SubTick: 0x7E0E1F
   Player1_LapsRemaining: 0x7E0EF1
+  CurrentPlayer_CollisionContactWord: 0x7E0F09
+  CurrentPlayer_PitchAngleWorking: 0x7E0F49
   CurrentPlayer_PitchScratch: 0x7E0F49
+  CurrentPlayer_AngularVelocityWorking: 0x7E0F4B
   CurrentPlayer_ZRotationWorking: 0x7E0F57
   CurrentPlayer_HalfTwistCount: 0x7E0F61
+  CurrentPlayer_RacerPresentationId: 0x7E0F97
   CurrentPlayer_XVelocityWorking: 0x7E0F9F
   CurrentPlayer_YVelocityWorking: 0x7E0FA1
   Player1_ArrowDirection: 0x7E0FCB
@@ -61,8 +124,13 @@ memory:
   Player2_FlipCount: 0x7E11FF
   Player1_RollQuarterProgress: 0x7E1201
   Player1_FlipQuarterProgress: 0x7E1205
-  Stunt_CurrentScore: 0x7E12AF
+  Player1_StuntScoreDisplayCache: 0x7E12AF
   Race_ReverseControls: 0x7E132B
   Player1_StuntAirLatch: 0x7E1361
-  Camera_ScreenXPosition: 0x7E1509
+  Player1_ScreenX: 0x7E1509
+  Player1_ScreenY: 0x7E150A
+  Player2_ScreenX: 0x7E150D
+  Player2_ScreenY: 0x7E150E
+  Course_RuntimeObjectMap: 0x7EC000
   Course_ActiveDecodedPayload: 0x7F0000
+  Course_ResourceListCursor: 0x7F000B

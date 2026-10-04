@@ -9,6 +9,9 @@ import sys
 ROM_EXTENSIONS = {".sfc", ".smc", ".fig", ".swc", ".rom"}
 SAVE_TRACE_EXTENSIONS = {".srm", ".state", ".sav"}
 ROM_PREFIX = "reference/roms/"
+# Provenance-managed imported evidence (reference/catalog.yml) may preserve
+# original save files, e.g. the Dessyreqt SRAM snapshots cited by the ledger.
+IMPORTED_EVIDENCE_PREFIX = "reference/imported/"
 FORBIDDEN_PREFIXES = (
     "private/",
     "generated/",
@@ -64,7 +67,7 @@ def main() -> int:
         if suffix in ROM_EXTENSIONS and not path.startswith(ROM_PREFIX):
             bad.append((path, "ROM/cartridge image outside intentional reference/roms boundary"))
 
-        if suffix in SAVE_TRACE_EXTENSIONS:
+        if suffix in SAVE_TRACE_EXTENSIONS and not path.startswith(IMPORTED_EVIDENCE_PREFIX):
             bad.append((path, "save/state artifact should not be tracked"))
 
         if path.startswith(FORBIDDEN_PREFIXES):

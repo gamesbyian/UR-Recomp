@@ -5,10 +5,73 @@
   "entries": [
     {
       "kind": "function",
+      "address": "`80:91D1` (USA)",
+      "name": "Reset_Entry",
+      "confidence": 5,
+      "evidence_/_notes": "Reset vector `80:8858` jumps here. The routine executes `CLC; XCE`, establishes 8-bit A / 16-bit index mode, disables interrupts, then tail-jumps to `80:91DC` for stack/direct-page, PPU/CPU register and WRAM initialization before entering the normal startup chain."
+    },
+    {
+      "kind": "function",
+      "address": "`83:8AF7` (USA)",
+      "name": "CartridgeMemorySelfTest",
+      "confidence": 5,
+      "evidence_/_notes": "Called during startup at `80:886D`. It probes mirrored/available memory through `77:0000/1FFF`; success restores the original byte and `RTL`s, while failure deliberately tail-jumps to `80:94EB`."
+    },
+    {
+      "kind": "function",
+      "address": "`80:94EB` (USA)",
+      "name": "Fatal_GamePakNotFound",
+      "confidence": 5,
+      "evidence_/_notes": "Failure target of `CartridgeMemorySelfTest`. Its stream at `80:9505` uses resolved frontend controls `F9/FC/FF` around the literal `game_pak_not_found`, proving normal return from the `80:C3AB` call on this path."
+    },
+    {
+      "kind": "function",
+      "address": "`80:8881` (USA)",
+      "name": "Main_StateDispatchLoop",
+      "confidence": 5,
+      "evidence_/_notes": "Repeated top-level loop. After housekeeping it indexes state `$9B`, loads one of six handler addresses from the word table at `80:88B2`, pushes synthetic return `80:88AD` with `PER`, and `JMP ($005D)`s to the selected mode handler. Returning handlers land at `80:88AE` and branch back to `80:8881`."
+    },
+    {
+      "kind": "function",
+      "address": "`80:C3AB` (USA)",
+      "name": "Frontend_TextCommandStream",
+      "confidence": 4,
+      "evidence_/_notes": "Nitrodon bank-80 disassembly shows a byte-command parser with control bytes `>= 0xEE`, text/layout handlers, and returns through `80:C440`; bounded historical replay tracing executes this interpreter during frontend transition construction."
+    },
+    {
+      "kind": "function",
+      "address": "`80:C3C8` (USA)",
+      "name": "Frontend_TextCommandDispatch",
+      "confidence": 5,
+      "evidence_/_notes": "Exact instruction `JMP ($005D)`. Canonical-ROM decoding maps valid commands `FF..EF` to 17 concrete bank-80 handlers at `80:C3CB`; run `36795810324` proves live execution. `EE` is a boundary escape/sentinel whose computed next word is not a valid ROM handler, leaving only a range-proof invariant rather than unknown targets. See `analysis/generated/frontend-text-command-dispatch.md`."
+    },
+    {
+      "kind": "function",
+      "address": "`00:8584` / `80:8584` mirror",
+      "name": "Interrupt_LongVector73",
+      "confidence": 4,
+      "evidence_/_notes": "Exact `JMP [$0073]`. The only explicit complete 24-bit construction found in banks 80-83 is `82:D73B-D742`, which sets `$73:$75 = 80:85A4` while interrupts are disabled during interrupt/HDMA setup."
+    },
+    {
+      "kind": "function",
+      "address": "`00:8599` / `80:8599` mirror",
+      "name": "Interrupt_LongVector53",
+      "confidence": 4,
+      "evidence_/_notes": "Exact `JMP [$0053]`. Complete paired assignments set `$53:$55` to `80:F60C`, `80:8610`, or `80:85A5`; the same vector is invoked by wrapper `80:B0DE`. See `analysis/generated/remaining-indirect-vector-map.md`."
+    },
+    {
+      "kind": "function",
+      "address": "`01:8B95` (USA)",
+      "name": "Course_SampleRuntimeSurface",
+      "confidence": 4,
+      "evidence_/_notes": "Common per-racer 383-byte routine called from both player paths after collision/contact-shape construction and before later collision handling. It transforms course-relative state and samples both materialized runtime planes at `7E:C000` and `7E:A000/A001`. Full four-ROM structure is proven: PAL prototype and Europe at shift -32; legacy beta byte-identical. Exact meanings of individual surface values remain intentionally open."
+    },
+    {
+      "kind": "function",
       "address": "`01:C5AF` (USA)",
       "name": "HUD_QueueMessage",
-      "confidence": 4,
-      "evidence_/_notes": "Nitrodon's annotated stunt disassembly shows this long-call target receiving message IDs for Wipeout (`0x0E`), Head Bounce (`0x10`), Tabletop (`0x11`), flip/roll/twist/Z-flip result messages, and praise messages. Exact queue/render split still needs local call-graph validation."
+      "confidence": 5,
+      "evidence_/_notes": "Long-entry wrapper for `81:C5B3`, the confirmed per-player 32-entry message-ring enqueue routine. P1 uses storage `0CBB+` with indices `0CE1/0CE3`; P2 uses `0CE5+` with `0D0B/0D0D`. Stunt finalization calls this with wipeout/head-bounce/tabletop/trick/praise IDs. Cross-build correspondence: PAL prototype `81:C590`; Europe retail `81:C59C`, independently corroborated by two coherent direct callers."
     },
     {
       "kind": "function",
@@ -22,14 +85,14 @@
       "address": "`02:A968` (USA)",
       "name": "Player_ApplyVerticalAcceleration",
       "confidence": 4,
-      "evidence_/_notes": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented."
+      "evidence_/_notes": "Nitrodon's bank-82 annotation is directly supported by the instruction flow: current-player Y velocity is capped below `0x0200`, upward motion receives +19, downward acceleration is `19 - Yvel/32`, the result is added to Y velocity, and current-player Y coordinate is incremented. Structural equivalents: PAL prototype `82:A959` (strong, 91.2% byte similarity); Europe retail `82:A96F` (supported, 89.7%), with projected operands following established regional WRAM-motion families."
     },
     {
       "kind": "function",
       "address": "`02:AA6E` (USA)",
       "name": "Input_DecodePlayer1Buttons",
       "confidence": 4,
-      "evidence_/_notes": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`."
+      "evidence_/_notes": "Nitrodon's bank-82 listing shows raw controller words `$030D/$030F` decoded into explicit A/X/L/R/B/Y/select/start flags and normalized vertical/horizontal direction fields at `$0311/$0315`. Structural equivalents: PAL prototype `82:AA5F` (strong, 98.8% byte similarity) and Europe retail `82:AA75` (strong, 84.6%); Europe coherently shifts the controller-state block by +4 (`030D→0311` through `0335→0339`)."
     },
     {
       "kind": "function",
@@ -78,15 +141,193 @@
       "address": "`00:8C41` (USA)",
       "name": "Text_TestCharacterMetadataBit7",
       "confidence": 4,
-      "evidence_/_notes": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag."
+      "evidence_/_notes": "Shared helper reached from four text/layout loops including `03:8998`, `00:C4CB`, and `00:C510`. It indexes the byte table at `00:C6F8` by character code and tests bit 7. Printable-table inspection shows uppercase A-Z in the low half while lowercase a-z, digits and much punctuation usually carry bit 7; therefore this is a verified character-metadata class test, not yet a proven glyph-width flag. Structural equivalents: Europe retail `80:8C41` (supported, 84.6% byte similarity) and PAL prototype `80:8C3C` (strong, 92.3%)."
+    },
+    {
+      "kind": "function",
+      "address": "`82:E165` (USA)",
+      "name": "Course_LoadAndMaterialize",
+      "confidence": 5,
+      "evidence_/_notes": "Course-load orchestration called from race setup at `82:DE0F`. It selects the course resource from `77:074A`, invokes the generic resource loader with destination bank `$7F` so the RNC path decodes into `7F:0000`, then parses that payload into VRAM and runtime structures including `7E:A000` and `7E:C000`. This matches the independently verified active decoded-course payload."
+    },
+    {
+      "kind": "function",
+      "address": "`82:89B9` (USA)",
+      "name": "Race_UpdateRacersFrame",
+      "confidence": 5,
+      "evidence_/_notes": "Frame-level racer orchestration. It marshals player 1 persistent state/input into the shared `$0Fxx` current-player workspace, runs collision/stunt/physics helpers including `Stunt_FinalizeAndScoreAirTricks` and `Player_ApplyVerticalAcceleration`, writes results back to player-1 slots, then conditionally repeats the same pipeline for player 2 before returning at `82:9384`."
+    },
+    {
+      "kind": "function",
+      "address": "`82:ACA5` (USA)",
+      "name": "Race_BuildRacerOAMState",
+      "confidence": 5,
+      "evidence_/_notes": "Per-frame racer sprite/OAM composition, long-entry wrapper at `82:ACA1`, called from the race loop at `83:CD77` after racer simulation/state fetch. It projects both racers relative to camera/viewport bounds, writes screen-coordinate and sprite-attribute state under `$1501-$1510`, and constructs high-OAM control bytes at `7E:20A2/20A3`; later `82:D2xx-D34F` code commits assembled OAM data to `$2104`."
+    },
+    {
+      "kind": "function",
+      "address": "`81:AA40` (USA)",
+      "name": "Race_FilterVramUpdateListsByCameraWindow",
+      "confidence": 5,
+      "evidence_/_notes": "Filters the two compact race VRAM update lists against camera/window edge classes. List A uses count `$0DCD`, destinations `$0D8D+2*i`, selectors `$0D6D+i`, and camera inputs `$0505/$050D/$04F5`; list B mirrors this at `$0DCF/$0DAD/$0D7D` with `$0507/$050F/$04F7`. Matching an edge clears the selector/eligibility byte; destination words remain intact."
+    },
+    {
+      "kind": "function",
+      "address": "`82:D37F` (USA)",
+      "name": "PPU_EmitFilteredVramUpdateLists",
+      "confidence": 5,
+      "evidence_/_notes": "Direct hardware consumer for the two filtered update lists. Iterates each count in reverse, writes destination words from `$0D8D/$0DAD` to `$2116`, indexes the 16-bit data table at `7E:2132` from selector bytes `$0D6D/$0D7D`, applies `XBA`, and stores the result through `$2118`. This is the presentation-emission seam, not gameplay activation."
+    },
+    {
+      "kind": "function",
+      "address": "`81:A52F` (USA)",
+      "name": "Race_UpdateCameraAndPrepareVramStrips",
+      "confidence": 5,
+      "evidence_/_notes": "Race-frame camera update body called through long wrapper `81:A52B` from `83:CD55`. It advances camera position from `$04F5/$04F9`, derives entering-edge/ring coordinates and strip counts, then calls `81:AB88` at `81:A59A` to materialize pending VRAM-strip DMA descriptors."
+    },
+    {
+      "kind": "function",
+      "address": "`81:AB88` (USA)",
+      "name": "Race_BuildCameraVramDmaDescriptors",
+      "confidence": 5,
+      "evidence_/_notes": "Converts camera-derived edge coordinates (`$0505/$0509/$050D/$0511`) and split counts (`$052B/$052F/$0533/$0537`) into up to eight DMA descriptor slots. Each slot records a ready flag, low-WRAM source, byte count, VRAM destination and VMAIN mode in `$03B9/$0399/$03A9/$03C9/$03D9 + 2*n`. Run `36966728136` observes horizontal slot 2 preparing one 32-byte entering column during steady rightward scroll."
+    },
+    {
+      "kind": "function",
+      "address": "`82:D19B` (USA)",
+      "name": "PPU_ConsumeCameraVramDmaDescriptors",
+      "confidence": 5,
+      "evidence_/_notes": "NMI-side consumer reached from `80:87E1 -> 82:D197`. It scans the camera-strip descriptor ready flags in reverse slot order, clears each active flag, programs `$2116`, DMA source `$4302`, size `$4305` and `$2115`, then triggers channel 0 through `$420B` to B-bus `$2118`. In the retained Dragster scroll, steady horizontal descriptors are consumed in the same guest frame in which `81:AB88` builds them."
+    },
+    {
+      "kind": "function",
+      "address": "`82:B180` (USA)",
+      "name": "PPU_LoadPaletteAssetToCGRAM",
+      "confidence": 5,
+      "evidence_/_notes": "Writes the caller-supplied CGRAM start index X to `$2121`, resolves asset A through the five-byte table rooted at `82:B32F`, and streams the resolved payload to `$2122`. Race setup uses this path for racer palette assets `0x06 + selector`; the representative 2P fixture resolves exact assets `0x06/0x07`."
+    },
+    {
+      "kind": "function",
+      "address": "`82:B1D8` (USA)",
+      "name": "PPU_LoadAssetToVRAM",
+      "confidence": 4,
+      "evidence_/_notes": "Resolves asset A through the five-byte table at `82:B32F` and streams or dispatches the resource into caller-selected VRAM destination X. Race presentation setup at `82:E02E` uses this path for exact OBJ graphics assets `0x7F` → VRAM `$0000` and `0x80` → `$1000`; both are raw in the USA ROM and round-trip byte-for-byte as 75 and 30 native 4bpp tiles."
+    },
+    {
+      "kind": "function",
+      "address": "`82:E02E` (USA)",
+      "name": "Race_LoadPresentationAssets",
+      "confidence": 4,
+      "evidence_/_notes": "Race presentation setup for the proven racer family. Loads OBJ graphics resources `0x7F/0x80` to VRAM `$0000/$1000`, other race graphics resources to `$2000/$7000`, shared palettes, and player-colour palette assets `0x06 + selector` into OBJ CGRAM slots. Exact racer graphics/palette provenance is retained in `analysis/generated/racer-presentation-family.json`."
+    },
+    {
+      "kind": "function",
+      "address": "`83:F296` (USA)",
+      "name": "RacerPresentation_ResolveFramePointer",
+      "confidence": 5,
+      "evidence_/_notes": "Maps a 16-bit racer presentation ID to the three-byte table at `20:8000 + id*3`; the first two bytes are the source address and the third is added to bank base `0x23`. Exact ROM-backed round trips for fixture IDs `0540/0542/0544/057E` are recorded in `analysis/generated/racer-presentation-family.json`."
+    },
+    {
+      "kind": "function",
+      "address": "`83:F2BB` (USA)",
+      "name": "RacerPresentation_DecodePackedFramePair",
+      "confidence": 4,
+      "evidence_/_notes": "Consumes frame pointers resolved by `83:F296`, interprets mask/header fields and packed 16-bit words, and feeds the race-render tile/presentation construction path. Remaining packed-word meanings are intentionally left for on-demand renderer work."
+    },
+    {
+      "kind": "function",
+      "address": "`81:8050` (USA)",
+      "name": "Race_HandleCheckpointFinish",
+      "confidence": 5,
+      "evidence_/_notes": "Runtime course-object code `0x14` dispatches here through `81:8320`. The handler gates on per-player `$119D/$119F`, snapshots race time, decrements `$0EF1/$0EF3` laps, and advances `$1199/$119B`. Run `36801728342` dynamically reproduces identical progression through stock Dragster results. Cross-build correspondence: PAL prototype `81:8050`; Europe retail `81:8050`, independently confirmed by the relocated object-code `0x14` dispatch table. Comparative analyzer evidence shows Europe retail alone contracts the frame-normalization sub-block at `81:8102` from the 22-byte USA/beta/PAL-prototype shape to 8 bytes, after which the handler continues at a -14-byte shift."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0BAD` / `7E:0BAF",
+      "name": "Player1/2_AngularVelocity",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "Persistent paired angular-velocity slots. `81:8D9C-8D9F` copies P1 `0BAD` into shared `0F4B` and `81:8E11-8E14` writes it back; the P2 bridge mirrors the same relation with `0BAF` at `81:8EF6-8EF9` / `81:8F65-8F68`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0FE9` / `7E:0FEB",
+      "name": "Player1/2_RacerPresentationId",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "Persistent per-racer presentation/frame identities. The player-state bridge copies each through current-player working state during simulation; `83:F0BB` reads them directly and `83:F296` resolves each ID into the packed racer presentation stream. Retained ordinary-2P checkpoints observe IDs `0542/0540` at frame 1220 and `057E/0544` at frame 1420."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F97",
+      "name": "CurrentPlayer_RacerPresentationId",
+      "width": "16-bit working value",
+      "confidence": 5,
+      "notes": "Shared current-player presentation ID. Player 1 copies `0FE9→0F97→0FE9`; player 2 copies `0FEB→0F97→0FEB`; `83:ED2F` updates the working identity during the common racer pass."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F49",
+      "name": "CurrentPlayer_PitchAngleWorking",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Shared current-player pitch/orientation workspace. The player-state marshal loads it from persistent P1 `04C7` or P2 `04C9`; stunt finalization reads it to track quadrant transitions."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F4B",
+      "name": "CurrentPlayer_AngularVelocityWorking",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Shared current-player angular-velocity workspace. The bank-81 player-state bridge round-trips persistent `0BAD/0BAF` through this slot for the common simulation pass. Distinct from `0F4D`, which is a separate per-frame rotation delta used by stunt logic."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0E0F",
+      "name": "RaceTimer_MinutesDigit",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Shared race/stunt timer minutes digit. Count-up path `81:C74A-C74E` increments it; stunt countdown `81:C83A-C83E` decrements it. Finish handling snapshots it for the active player at `81:80BE-C1`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0E13",
+      "name": "RaceTimer_TensSecondsDigit",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Timer tens-of-seconds digit, range 0-5 in normal operation. Count-up carries here at `81:C738-C747`; countdown borrows through it at `81:C82B-C837`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0E17",
+      "name": "RaceTimer_SecondsDigit",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Timer ones-of-seconds digit, range 0-9. Count-up and countdown mutate it at `81:C723-C735` and `81:C819-C828`; finish handling includes it in the active-player time snapshot."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0E1B",
+      "name": "RaceTimer_TenthsDigit",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Timer tenths digit, range 0-9. The count-up path increments it after six sub-ticks; stunt countdown decrements it after six sub-ticks."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0E1F",
+      "name": "RaceTimer_SubTick",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Six-step timer phase. Both timer directions advance this field and roll it at 6 before changing the tenths digit, giving the timer its 1/10-second cadence."
     },
     {
       "kind": "ram",
       "address": "7E:009F",
       "name": "Frontend_CurrentMenu",
       "width": "8-bit",
-      "confidence": 5,
-      "notes": "Verified in both native and Snes9x/snesref deterministic runs: `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing screen, then `0x00` after race entry."
+      "confidence": 4,
+      "notes": "Stable deterministic checkpoints correlate `0xD7` main menu, `0x3C` one-player rider select, `0x6D` first one-player tours page, `0xF6` one-player track select, `0x16` now-playing, then `0x00` after race entry. Do not treat it as continuously semantic: bank-80 text/layout handlers also reuse DP `$9F` as a tile/text position accumulator during frontend construction."
     },
     {
       "kind": "ram",
@@ -94,23 +335,167 @@
       "name": "Frontend_SelectedOption",
       "width": "8-bit",
       "confidence": 4,
-      "notes": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy."
+      "notes": "Recovered bot uses it for main-menu/tour selection. Native captures show `0x00` at clean main menu and first tours page, consistent with bot policy. On TOUR_SELECT it holds the medal-matrix tour row (Crawler 0, Jumper 1, Shuffler 2 … Hunter 8). Down steps it by 2 because even rows are the left column; confirmed on page `0x6D` (`00→02`) and on the nine-tour page `0x10` (`00→08`, HUNTER)."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:00D0",
+      "name": "Frontend_SelectedTourRow",
+      "width": "8-bit",
+      "confidence": 4,
+      "notes": "Tour row used by `83:9EB4` medal indexing (`16 * D0 + rider`). The tier probe reads `0` for Crawler, `2` for Shuffler and `8` for Hunter on TRACK_SELECT after confirming the matching `$009B`."
     },
     {
       "kind": "ram",
       "address": "7E:000E",
       "name": "Frontend_SelectedRow",
       "width": "8-bit",
-      "confidence": 3,
-      "notes": "Recovered bot label; native route captures row `0x00` through the verified clean frontend route. Exact semantics outside these menus not yet tested."
+      "confidence": 4,
+      "notes": "Recovered bot label. On PLAYER_SELECT_P1 the reference harness steps it `0x00..0x07` down the eight rider rows; confirming row r selects rider `2r + column`. Exact semantics outside these menus not yet tested."
     },
     {
       "kind": "ram",
       "address": "7E:0C63",
       "name": "Frontend_SelectedColumn",
       "width": "8-bit",
-      "confidence": 3,
-      "notes": "Recovered bot label; native captures change with frontend scene/selection. Rider-select ready state captures `0x06`, matching the bot's left-column target value."
+      "confidence": 4,
+      "notes": "Recovered bot label; native captures change with frontend scene/selection. On PLAYER_SELECT_P1 `0x06` is the left column and `0x07` the right; other screens reuse it (e.g. `0xFD` after confirm)."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:017D",
+      "name": "P1_RiderIndex",
+      "width": "8-bit",
+      "confidence": 4,
+      "notes": "Player-one rider identity 0..15, written on PLAYER_SELECT_P1 confirm as `2 * row + column` (confirmed for MIKE 0, ANDREW 1, MARTIN 2, AMY 4, STEVE 15). It is the medal-matrix column and selects in-race palette asset `0x06 + index`; `$017F` is the P2 counterpart. Preset table: `analysis/generated/legacy-cast-presets.json`."
+    },
+    {
+      "kind": "ram",
+      "address": "77:000C..",
+      "name": "Save_PlayerNameTable",
+      "width": "16-byte records",
+      "confidence": 5,
+      "notes": "Player-name records copied from ROM `83:800C` at format: indices 0..15 racers, 16 `someone`, 17 `bronsen`, 18 `silvia`, 19 `goldwyn`, 20 `anti-uni`, then League slots. Default records are 8 chars `_`-padded + `FF FF`; RENAME PLAYER writes lowercase chars + `FF` (`analysis/generated/name-entry-probe.json`)."
+    },
+    {
+      "kind": "ram",
+      "address": "77:0230..02AF",
+      "name": "Save_RiderStats",
+      "width": "16 × 8 bytes",
+      "confidence": 5,
+      "notes": "Per-rider lifetime stats at `0x0230 + 8*rider`: +0 PLAYED, +2 WON, +4 FAILED (did not finish: time or best lap ≥ 60000), +6 SCORE (cumulative stunt points). LOST is derived as PLAYED − WON. P2 is counted only when its rider index is < 16, so CPU opponents are not counted. Static (`80:C775`, `83:97DA`) plus runtime: rider 0 (R-2026-10-03-UI-19) and a VS timeout (R-2026-10-04-UI-21). `analysis/generated/progression-sram-semantics.json`."
+    },
+    {
+      "kind": "ram",
+      "address": "77:0422..054D",
+      "name": "Save_TrackRecords",
+      "width": "150 × 16-bit",
+      "confidence": 5,
+      "notes": "`0x0422 + 2*(50*rank + 5*tour_row + track)`. Rank 0/1/2 = GOLD/SILVER/BRONZE rows (1st/2nd/3rd best). Race = finish time and circuit = best lap (1/100 s; 60000 = NO TIME); stunt = score (0 = none). `analysis/generated/track-records-sram.json`."
+    },
+    {
+      "kind": "ram",
+      "address": "77:054E",
+      "name": "Save_TrackRecordsChecksum",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "16-bit sum of the 150 `Save_TrackRecords` words."
+    },
+    {
+      "kind": "ram",
+      "address": "77:0550..05E5",
+      "name": "Save_TrackRecordHolders",
+      "width": "150 × 8-bit",
+      "confidence": 5,
+      "notes": "Holder rider index per record (same index as `Save_TrackRecords`; 16 = `someone`)."
+    },
+    {
+      "kind": "ram",
+      "address": "77:0618` / `77:061A",
+      "name": "Save_LastRaceResultP1` / `Save_LastRaceResultP2",
+      "width": "16-bit",
+      "confidence": 4,
+      "notes": "Last race result value for P1 / the opponent (time in 1/100 s, circuit total, or stunt score), rewritten every race."
+    },
+    {
+      "kind": "ram",
+      "address": "77:069C..072B",
+      "name": "Progress_MedalMatrix",
+      "width": "9 × 16 × 8-bit",
+      "confidence": 5,
+      "notes": "SRAM-backed medal matrix. `83:9EB4` computes `16*tour + unicycle`; the result path at `83:8823-8838` increments the selected cell and saturates at 3. Rows 0..8 are Crawler, Jumper, Shuffler, Bounder, Walker, Runner, Hopper, Sprinter, Hunter. Values are 0 none, 1 bronze, 2 silver, 3 gold."
+    },
+    {
+      "kind": "ram",
+      "address": "77:073C",
+      "name": "Progress_BlockChecksum",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "`83:90F4` sums 170 16-bit words across SRAM `05E8..073B` and stores the result here. The entire medal matrix lies inside this protected range."
+    },
+    {
+      "kind": "ram",
+      "address": "77:1075..10A6",
+      "name": "Progress_TourTrackFlags",
+      "width": "50 × 8-bit",
+      "confidence": 5,
+      "notes": "One flag per track, `0x1075 + 5*tour_row + track` (`$CE`): set by a qualifying 1P result (`83:87F5`); a full row of 5 awards the medal and is cleared (`83:8805`/`881B`/`895B`). Zeroed when a rider is confirmed (`80:BBC1`), so unfinished tours do not survive a power cycle. Outside the `0x073C` checksum (R-2026-10-04-UI-20)."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10A9` / `77:10AB",
+      "name": "Save_VsWinTally",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "P1 / P2 win counts, zeroed on VS entry (`80:BD05`) and shown on VS track select. `0x10A9` also counts 1P wins, harmlessly. Not the tour gate (R-2026-10-04-UI-21)."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10AD",
+      "name": "Save_PlayMode",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "1 = 1P tour (`80:BBD6`), 2 = VS (`80:BD12`), 0 = exited. Gates the tour-progress paths."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10D0",
+      "name": "Progress_SplashCheatActive",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Set by the Up-Left-Up-R-A splash cheat (`80:F549`); selects the CHEAT! ending page (`83:ABB3`); cleared, and tiers restored from `0x10E3`, on the next splash pass (R-2026-10-04-UI-22)."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10D1",
+      "name": "Progress_TourEntryMedal",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Medal cell snapshot when a tour is confirmed (`80:E6BF`). Drives the BRONZE/SILVER/GOLD run label; leaving TRACK_SELECT keeps the tour flags only if the medal is unchanged."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10D3..10E2` / `77:10E3..10F2",
+      "name": "Progress_RiderTier` / `Progress_RiderTierBackup",
+      "width": "16 × 8-bit each",
+      "confidence": 5,
+      "notes": "Per-rider tier 0-3 from the medal thresholds (`83:9F49`); 3 opens the nine-tour page with Hunter. The splash cheat copies tiers to the backup and sets all to 3."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10D3..10E2",
+      "name": "Progress_UnicycleTier",
+      "width": "16 × 8-bit",
+      "confidence": 5,
+      "notes": "Derived per-unicycle progression tier. After a medal result, `83:885D-88C9` scans that unicycle through the first eight tour rows and writes tier 1 for 4 medals, tier 2 for 6 silver-or-better medals, or tier 3 for 8 gold medals through `83:9F49`. The recovered all-silver/no-Hunter and with-Hunter snapshots independently match tier values 2 and 3."
+    },
+    {
+      "kind": "ram",
+      "address": "77:10FD..110C",
+      "name": "Progress_UnicycleTierMirror",
+      "width": "16 × 8-bit",
+      "confidence": 4,
+      "notes": "`83:9F81` writes the same derived tier and index as `Progress_UnicycleTier`. Exact downstream distinction between the two tables remains open."
     },
     {
       "kind": "ram",
@@ -122,11 +507,115 @@
     },
     {
       "kind": "ram",
+      "address": "7E:0302",
+      "name": "Race_LoopParityPhase",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Race-loop code at `83:CC94-CC9A` computes `1 - $0302` and stores it back every loop iteration, so the byte alternates `0/1`. Racer-update branches at `82:8C3B` (P1) and `82:9122` (P2), plus common physics at `82:A39C/A3A4`, use this parity to choose alternating work. This is the former fixture label `phase2`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0304",
+      "name": "Race_LoopModulo3Phase",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "Race-loop code at `83:CC87-CC91` increments the byte and wraps `3 -> 0` every loop iteration. This is the former fixture label `phase3`; use it with `$0302` when diagnosing intra-frame race-loop alignment."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:1199` / `7E:119B",
+      "name": "Player1/2_NextCheckpoint",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "Nitrodon's map and `Race_HandleCheckpointFinish` identify the paired checkpoint slots. Run `36801728342` matches native/reference progression `0 → 1 → 3 → 1` across the deterministic Dragster route and results."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:119D` / `7E:119F",
+      "name": "Player1/2_FinishGate",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "Nitrodon's map reports zero as the state in which the finish line may be crossed; `Race_HandleCheckpointFinish` gates on and mutates the slots. Run `36801728342` matches native/reference `0 → 1 → 0 → 1` phase changes through the stock finish."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0EF1` / `7E:0EF3",
+      "name": "Player1/2_LapsRemaining",
+      "width": "16-bit each",
+      "confidence": 5,
+      "notes": "Paired lap counters. Race setup initializes them at `82:DBF7/DBFA`; `Race_HandleCheckpointFinish` reads, decrements and stores the active player's counter at `81:819E-81A2`."
+    },
+    {
+      "kind": "ram",
       "address": "7F:0000",
       "name": "Course_ActiveDecodedPayload",
       "width": "variable / stream-sized",
       "confidence": 5,
       "notes": "Confirmed by run 36514985916: active Dragster decoded stream 1 matches 33,814/33,815 bytes from this address; only decoded byte 11 is runtime-mutated."
+    },
+    {
+      "kind": "ram",
+      "address": "7F:000B",
+      "name": "Course_ResourceListCursor",
+      "width": "16-bit offset into active decoded payload",
+      "confidence": 5,
+      "notes": "`Course_LoadAndMaterialize` reads this word as an offset from `7F:0000`, increments it once per resource ID consumed, and stops on `FF`. Dragster initializes it to `0x840F` and finishes at `0x8416`, exactly explaining the historical `0x0F→0x16` low-byte mutation."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:C000+",
+      "name": "Course_RuntimeObjectMap",
+      "width": "byte map / indexed runtime structure",
+      "confidence": 5,
+      "notes": "Authoritative course behavior plane materialized during course load. `81:82E6` derives an index from `CurrentPlayer_CollisionContactWord` (`$0F09`), reads an object byte, clears bit 0, and dispatches through a bounded behavior jump table. Runtime object code `0x14` selects the confirmed checkpoint/finish handler. Camera position and the `$0DCD/$0DCF` VRAM-update lists do not participate in this activation decision. Exact dimensions/layout remain to be mapped."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:03B9..03C7",
+      "name": "CameraVramDmaReady",
+      "width": "8 × 16-bit slots",
+      "confidence": 5,
+      "notes": "Ready flags for the camera-derived VRAM-strip descriptor queue. `81:ACB1` sets the selected slot to 1; NMI consumer `82:D19B..D2D0` clears the flag immediately before emission."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0399..03A7",
+      "name": "CameraVramDmaSource",
+      "width": "8 × 16-bit slots",
+      "confidence": 5,
+      "notes": "Low-WRAM source addresses for camera-strip DMA descriptors. In the representative single-view horizontal path, slot 2 uses `$0433`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:03A9..03B7",
+      "name": "CameraVramDmaSize",
+      "width": "8 × 16-bit slots",
+      "confidence": 5,
+      "notes": "Byte counts for camera-strip DMA descriptors. Steady horizontal slot 2 uses `$0020`, one 16-word column; vertical row descriptors use count-derived sizes such as `$0022`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:03C9..03D7",
+      "name": "CameraVramDmaDestination",
+      "width": "8 × 16-bit slots",
+      "confidence": 5,
+      "notes": "VRAM destinations for camera-strip DMA descriptors. For the single-view horizontal slot, `81:AB88` stores `$0C00 + $0505`; run `36966728136` observes the 32-column ring wrap `$0D9F -> $0D80`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:03D9..03E7",
+      "name": "CameraVramDmaVmain",
+      "width": "8 × 16-bit slots; low byte emitted",
+      "confidence": 5,
+      "notes": "VMAIN modes for camera-strip DMA descriptors. Horizontal column slot 2 uses `$81` (VRAM increment 32 after the high-byte write); the complementary row path uses `$80`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0F09",
+      "name": "CurrentPlayer_CollisionContactWord",
+      "width": "16-bit working slot",
+      "confidence": 5,
+      "notes": "Collision/contact result consumed by the course-object dispatcher. `81:82E6` computes C000 index `(($0F09 & $03F0) >> 2) + (($0F09 & $000F) >> 1)`. The collision resolver clears and reconstructs the value from gathered candidates; racer marshaling persists it through `$0E95/$0E97`. This is the gameplay activation boundary for the representative checkpoint/finish object family, distinct from camera-driven presentation preparation."
     },
     {
       "kind": "ram",
@@ -150,7 +639,7 @@
       "name": "Player1_XSpeed",
       "width": "signed 16-bit",
       "confidence": 5,
-      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases."
+      "notes": "Effective recovered-bot word key `xSpeed`; bot explicitly sign-converts it. Race-acceleration run 36512546762 changes it identically from 0 to +447 under Right input while X position increases. Cross-build equivalents proven by racer-update dataflow: PAL prototype `7E:04B7`; Europe retail `7E:04BB`."
     },
     {
       "kind": "ram",
@@ -158,7 +647,7 @@
       "name": "Player1_YSpeed",
       "width": "signed 16-bit",
       "confidence": 5,
-      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly."
+      "notes": "Effective recovered-bot word key `ySpeed`; bot sign-converts it. In run 36514981164 sustained B changes it causally from 0 in the matched control to -21 while player 1 is airborne; native and Snes9x match exactly. Cross-build equivalents proven by racer-update dataflow: PAL prototype `7E:04BB`; Europe retail `7E:04BF`."
     },
     {
       "kind": "ram",
@@ -167,6 +656,14 @@
       "width": "16-bit slot; low byte observed",
       "confidence": 5,
       "notes": "Dynamic run 36514981164 causally changes the low byte from 0 to 9 under sustained B while Y position/speed enter the airborne trajectory. Nitrodon's WRAM map identifies the slot as time in air with a 9-frame maximum, and bank-82 stunt code reads it as a word (`LDA $0545,Y`). Historical bots read only the low byte."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0547",
+      "name": "Player2_AirTime",
+      "width": "16-bit slot",
+      "confidence": 4,
+      "notes": "`Race_UpdateRacersFrame` copies this into shared current-player air-time `$0F29` for the P2 pass, exactly parallel to verified P1 `$0545`; the common stunt pipeline consumes the shared value."
     },
     {
       "kind": "ram",
@@ -237,8 +734,8 @@
       "address": "7E:11CD",
       "name": "CurrentPlayer_BoostMeterWorking",
       "width": "16-bit",
-      "confidence": 4,
-      "notes": "Nitrodon's map distinguishes this shared current-player boost meter from stable player slots at `$11CF/$11D1`. Bank-82 code zeroes it on wipeout, subtracts 16 in an off-screen penalty path, clamps computed boost to `0x0180`, and feeds half the value into velocity limiting. USJO v8 reads only its low byte as a zero/nonzero gate."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` proves this is the shared boost workspace: P1 `11CF → 11CD` at `82:8BA2-8BA5` and `11CD → 11CF` at `82:8CF1-8CF4`; P2 `11D1 → 11CD` at `82:8EB1-8EB4` and `11CD → 11D1` at `82:91D9-91DC`. Movement/stunt code then mutates the working value."
     },
     {
       "kind": "ram",
@@ -277,64 +774,64 @@
       "address": "7E:0FEF",
       "name": "CurrentPlayer_Index",
       "width": "16-bit selector",
-      "confidence": 4,
-      "notes": "Nitrodon's map records `0 = player 1`, `2 = player 2`. Bank-82 stunt/movement code repeatedly loads it into X/Y to index paired 16-bit player slots."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` explicitly stores `0` before the P1 simulation pass at `82:8C22-8C24` and `2` before the P2 pass at `82:910C-910E`; stunt/movement code then uses it to index paired player slots."
     },
     {
       "kind": "ram",
       "address": "7E:11CF",
       "name": "Player1_BoostMeter",
       "width": "16-bit",
-      "confidence": 4,
-      "notes": "Nitrodon's map identifies the stable player-1 boost slot, distinct from shared current-player working `$11CD`. Local copy-in/copy-out path should still be named explicitly."
+      "confidence": 5,
+      "notes": "Persistent P1 boost slot. `Race_UpdateRacersFrame` copies `11CF → 11CD` before the common P1 simulation pass and writes `11CD → 11CF` afterward. Independently, the P1 message consumer at `81:C167-C17D` applies nonnegative per-message rewards from the signed word table at `81:C4AA` directly to `11CF`, closing the delayed stunt-reward path. Cross-build equivalents: PAL prototype `7E:11D3` ↔ working `7E:11D1`; Europe retail `7E:11D9` ↔ working `7E:11D7`."
     },
     {
       "kind": "ram",
       "address": "7E:11D1",
       "name": "Player2_BoostMeter",
       "width": "16-bit",
-      "confidence": 4,
-      "notes": "Nitrodon's map identifies the paired player-2 boost slot."
+      "confidence": 5,
+      "notes": "Persistent P2 boost slot. `Race_UpdateRacersFrame` copies `11D1 → 11CD` before the common P2 simulation pass and writes `11CD → 11D1` afterward. The mirrored P2 message consumer at `81:C2AA-C2BF` applies the same nonnegative per-message reward table directly to `11D1`. Cross-build equivalents: PAL prototype `7E:11D5`; Europe retail `7E:11DB`, each recovered as the unique second boost slot paired with that build's shared boost workspace."
     },
     {
       "kind": "ram",
       "address": "7E:0413",
       "name": "Player2_XPosition",
       "width": "16-bit",
-      "confidence": 4,
-      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X position; paired structure with verified player-1 `$0411` and the existing player-2 pitch/copy routines supports the assignment. Dynamic 2P causal validation remains desirable."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` copies this into the same DP/current-player X-position slot used by verified P1 `$0411` and writes the simulated value back after the P2 pass; recovered Dessyreqt tools independently use the same address. Cross-build equivalents recovered from the same bidirectional relation: PAL prototype `7E:0413`; Europe retail `7E:0417`."
     },
     {
       "kind": "ram",
       "address": "7E:0417",
       "name": "Player2_YPosition",
       "width": "16-bit",
-      "confidence": 4,
-      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y position; it is the paired word after verified player-1 `$0415`. Dynamic 2P causal validation remains desirable."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` copies this into the same DP/current-player Y-position slot used by verified P1 `$0415` and writes the simulated value back after the P2 pass; recovered Dessyreqt tools independently use the same address. Cross-build equivalents: PAL prototype `7E:0417`; Europe retail `7E:041B`."
     },
     {
       "kind": "ram",
       "address": "7E:04B9",
       "name": "Player2_XSpeed",
       "width": "signed 16-bit",
-      "confidence": 4,
-      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 X speed, paired with verified player-1 `$04B7`."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` maps this to shared `CurrentPlayer_XVelocityWorking` `$0F9F` before the P2 simulation pass and writes it back afterward; Dessyreqt independently labels the same field. Cross-build equivalents recovered from the same relation: PAL prototype `7E:04B9`; Europe retail `7E:04BD`."
     },
     {
       "kind": "ram",
       "address": "7E:04BD",
       "name": "Player2_YSpeed",
       "width": "signed 16-bit",
-      "confidence": 4,
-      "notes": "Dessyreqt's recovered Tabletop bot and `Races2.wch` use this as player-2 Y speed, paired with verified player-1 `$04BB`."
+      "confidence": 5,
+      "notes": "`Race_UpdateRacersFrame` maps this to shared `CurrentPlayer_YVelocityWorking` `$0FA1` before the P2 simulation pass and writes it back afterward; Dessyreqt independently labels the same field. Cross-build equivalents: PAL prototype `7E:04BD`; Europe retail `7E:04C1`."
     },
     {
       "kind": "ram",
       "address": "7E:0BA3",
       "name": "Player2_FacedDirection",
       "width": "8-bit",
-      "confidence": 3,
-      "notes": "Independently present in Nitrodon's WRAM map and Dessyreqt's recovered Tabletop bot as player-2 facing; historical convention is 1 = right, 0 = left."
+      "confidence": 4,
+      "notes": "`Race_UpdateRacersFrame` copies this into the same shared `$0F47` slot used by P1 facing and writes it back after the P2 pass; Nitrodon and Dessyreqt independently identify the field."
     },
     {
       "kind": "ram",
@@ -443,10 +940,26 @@
     {
       "kind": "ram",
       "address": "7E:12AF",
-      "name": "Stunt_CurrentScore",
+      "name": "Player1_StuntScoreDisplayCache",
       "width": "16-bit",
-      "confidence": 3,
-      "notes": "Nitrodon's map identifies the current score on stunt tracks. Score update semantics remain to be traced."
+      "confidence": 5,
+      "notes": "Bank 81 proves this is a display-side cache rather than the score accumulator: `81:C37F` loads backing score `77:07BB`, `C383` compares it with `12AF`, `C388` stores a changed value, then `C38B-C3E7` decomposes it into decimal display digits. P1 queue consumption mutates `77:07BB` directly."
+    },
+    {
+      "kind": "ram",
+      "address": "77:07BB",
+      "name": "Player1_StuntScore",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "Backing P1 stunt-track score. The P1 message consumer adds a per-message reward byte at `81:C13D-C141`; the display path reads this value at `81:C37F` and mirrors changes into `7E:12AF`. Initialized with the surrounding race/stunt state in bank 82."
+    },
+    {
+      "kind": "ram",
+      "address": "77:0825",
+      "name": "Player2_StuntScore",
+      "width": "16-bit",
+      "confidence": 5,
+      "notes": "P2 counterpart of `77:07BB`. The mirrored P2 message consumer adds the reward at `81:C282-C286`; the display path reads it at `81:C3EA`."
     },
     {
       "kind": "ram",
@@ -459,18 +972,82 @@
     {
       "kind": "ram",
       "address": "7E:1509",
-      "name": "Camera_ScreenXPosition",
+      "name": "Player1_ScreenX",
       "width": "8-bit",
-      "confidence": 3,
-      "notes": "Historical TAS watch list labels this “Screen X Position.” Not consumed by v8; local camera/unit semantics still need validation."
+      "confidence": 5,
+      "notes": "`Race_BuildRacerOAMState` computes this from P1 world X `0411` relative to camera X `0419`, after viewport scaling/culling and wrap masking. Offscreen fallback stores `0x70`. This corrects the older generic TAS label “Screen X Position.”"
+    },
+    {
+      "kind": "ram",
+      "address": "7E:150A",
+      "name": "Player1_ScreenY",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "`Race_BuildRacerOAMState` stores projected P1 Y here from `0415 - 041D`; offscreen fallback stores `0x70`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:150D",
+      "name": "Player2_ScreenX",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "P2 counterpart of `1509`, projected from `0413` relative to camera `0419` through the same horizontal policy."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:150E",
+      "name": "Player2_ScreenY",
+      "width": "8-bit",
+      "confidence": 5,
+      "notes": "P2 counterpart of `150A`, projected from `0417 - 041D`; offscreen fallback stores `0x70`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0CBB..0CDA",
+      "name": "Player1_MessageQueue",
+      "width": "32 × 8-bit ring",
+      "confidence": 5,
+      "notes": "`81:C5B3` appends P1 messages at index `0CE3` with 5-bit wrap; `0CE1` is the opposing queue index. Dessyreqt v14a independently parses this ring for pending stunt credit."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0CE1",
+      "name": "Player1_MessageQueueReadIndex",
+      "width": "8-bit, low 5 bits",
+      "confidence": 4,
+      "notes": "Opposing P1 ring index used by enqueue/full checks and historical v14a queue traversal. Exact consumer naming should be verified at the dequeue site."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0CE3",
+      "name": "Player1_MessageQueueWriteIndex",
+      "width": "8-bit, low 5 bits",
+      "confidence": 5,
+      "notes": "`81:C5B3` writes at this index, then increments it modulo 32."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0CE5..0D04",
+      "name": "Player2_MessageQueue",
+      "width": "32 × 8-bit ring",
+      "confidence": 5,
+      "notes": "P2 ring used by the same enqueue routine; write index `0D0D`, opposing index `0D0B`."
+    },
+    {
+      "kind": "ram",
+      "address": "7E:0D0D",
+      "name": "Player2_MessageQueueWriteIndex",
+      "width": "8-bit, low 5 bits",
+      "confidence": 5,
+      "notes": "P2 enqueue index; incremented modulo 32 by `81:C5B3`."
     },
     {
       "kind": "ram",
       "address": "7E:0BA1",
       "name": "Player1_FacedDirection",
       "width": "8-bit",
-      "confidence": 2,
-      "notes": "Recovered bot: 1 = right, 0 = left. Not yet independently validated."
+      "confidence": 4,
+      "notes": "`Race_UpdateRacersFrame` copies this into shared `$0F47` for the P1 pass and writes it back afterward; recovered bot semantics give 1 = right, 0 = left. Exact value convention still lacks an isolated causal test."
     },
     {
       "kind": "ram",

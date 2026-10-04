@@ -2447,3 +2447,31 @@ Native smoke gates all of this.
 
 **Decision:** accept stock right-edge culling. Reopen criteria are recorded in `analysis/widescreen-policy.yml`.
 
+
+### R-2026-10-04-UI-31 — 4:3 regression mode: the Widescreen presentation layer is bit-identical when off; the AOT seed shifts tier timing
+
+**Status:** confirmed (local builds; gated by `.github/workflows/widescreen-4x3-regression.yml`)  
+**Date:** 2026-10-04  
+**Area:** Widescreen | determinism
+
+**Question:** with Widescreen off (Original view), does the shipping product leave the authentic path bit-identical?
+
+**Method:** four builds from one framework checkout, each run on the same deterministic routes with per-frame `--framedump` (framebuffer BMP plus WRAM image per frame) and the script's checkpoint dumps:
+- **plain:** scaffold `--generate`, no seed, no hook, no product host. Nothing is AOT-rooted, so the program runs almost entirely in the interpreter tier.
+- **seed:** the Widescreen AOT seed (`RaceFrameOrchestratorLoop` at `03:CBCC`) plus generation, with no hook and no host. This is `prepare_native_widescreen_product.py --regression-baseline`.
+- **hook:** seed plus the presentation hook, no host.
+- **product:** the shipping product in Original view.
+
+**Results:**
+- **plain vs plain:** identical across all 1,946 frames, including the master clock at every checkpoint. The route is deterministic.
+- **seed vs hook vs product:** bit-identical on the 1P acceptance route (1,946 frames), VS (1,620 frames) and ordinary 2P (1,620 frames). Every framebuffer, every WRAM image, and all checkpoint FB/WRAM/VRAM/OAM/CGRAM/registers/master-clock dumps match. Neither the hook (second pass with full WRAM restore, `URRECOMP_WS_GUEST_LANE=0`), nor the margins presenter, nor the split-band framework patch (inert unless `WsShadowSetSplit` is registered), nor the modern host changes any emulated state or authored pixel when off.
+- **plain vs seed:** not identical.
+  - WRAM first differs at frame 443, in two stack-residue bytes (`$01E3/$01E4`).
+  - By frame 506 the master clock is 516 cycles ahead.
+  - The menu inputs then land one frame apart, so the race starts at frame 1045 instead of 1044.
+  - Framebuffers stay equal under a one-frame shift for most of the race.
+  - The cause is the AOT root itself. Seeding compiles banks 03/81/82/83 to AOT code (about 9 MB of generated C versus about 1 MB). AOT and interpreter tiers account cycles and stack residue differently. The cause is not any Widescreen presentation behaviour.
+
+**Interpretation:** the shipping authentic path is the seeded AOT program, so the 4:3 regression contract is "the seeded program with and without the Widescreen presentation layer". That contract holds bit-exactly. The plain-vs-seed shift is a framework tier-accuracy property; this project does not establish which tier is closer to hardware. Emulator cores already differ at this scale (VALIDATION.md cross-core baseline). Reopen if a hardware-timing question depends on menu-frame alignment, or if AOT coverage changes.
+
+**Gate:** `widescreen-4x3-regression.yml` builds the seed-only baseline and the product, runs the 1P, VS and two-player routes in Original view, and requires `tools/check_framedump_identity.py` to find every frame and checkpoint file identical.

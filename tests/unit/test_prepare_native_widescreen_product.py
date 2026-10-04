@@ -82,5 +82,35 @@ class PrepareNativeWidescreenProductTests(unittest.TestCase):
                     )
 
 
+    def test_regression_baseline_seeds_and_generates_without_hook(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            framework = root / "framework"
+            project = root / "project"
+            rom = root / "game.sfc"
+            framework.mkdir()
+            (framework / "snesrecomp_cli.py").write_text("# stub\n")
+            (project / "recomp").mkdir(parents=True)
+            rom.write_bytes(b"rom")
+            calls = []
+
+            def fake_run(command, check):
+                calls.append(command)
+                (project / "src/gen").mkdir(parents=True)
+
+            with mock.patch.object(
+                MOD, "ensure_seed", return_value={"symbols": True, "bank03": True}
+            ) as seed, mock.patch.object(MOD, "apply_widescreen_hook") as apply:
+                report = MOD.prepare(
+                    framework, project, rom, run=fake_run, regression_baseline=True
+                )
+
+            seed.assert_called_once_with((project / "recomp").resolve())
+            apply.assert_not_called()
+            self.assertEqual(len(calls), 1)
+            self.assertTrue(report["regression_baseline"])
+            self.assertFalse(report["product_ready"])
+
+
 if __name__ == "__main__":
     unittest.main()

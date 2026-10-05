@@ -454,9 +454,6 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
 
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
     pedal = authored_pedal_contains(x, y, 138, 150)
-
-    seat_dx = x - 128
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 128, 22, 30, 18, 12, 32)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -514,9 +511,6 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 4 and x <= fork_center + 4
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
     pedal = authored_pedal_contains(x, y, 138, 150)
-
-    seat_dx = x - 130
-    seat_dy = y - 23
     seat = authored_saddle_contains(x, y, 130, 23, 32, 13, 8, 34)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -574,9 +568,6 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
     pedal = authored_pedal_contains(x, y, 141, 145)
-
-    seat_dx = x - 130
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
@@ -639,8 +630,6 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     # The bridge pose still carried a small right-heavy saddle block in the
     # true-density mismatch map. Shift/narrow without touching its recovered
     # outer envelope or wheel contact.
-    seat_dx = x - 120
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 120, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -703,8 +692,6 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # True-density review showed the old saddle carried a broad block of
     # authored-only mass to the right. Shift/narrow the same smooth ellipse
     # while preserving the recovered whole-pose envelope and contact.
-    seat_dx = x - 116
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 116, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 132 and x <= 140
@@ -767,8 +754,6 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # The 057D mismatch map shows the same right-heavy saddle mass as 057E.
     # Shift left and narrow it without changing the stock-derived envelope or
     # the wheel-supplied contact anchor.
-    seat_dx = x - 112
-    seat_dy = y - 26
     seat = authored_saddle_contains(x, y, 112, 26, 28, 14, 12, 40)
 
     neck = y >= 30 and y <= 60 and x >= 136 and x <= 144
@@ -827,9 +812,6 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
     pedal = authored_pedal_contains(x, y, 141, 145)
-
-    seat_dx = x - 130
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 12, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132

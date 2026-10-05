@@ -554,6 +554,79 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "Useful because it turns real historical failure symptoms into bounded robustness tests for the modern save/profile layer."
+    },
+    {
+      "id": "orange-track-escape-glitches",
+      "value": "high",
+      "cost": "medium",
+      "status": "ready",
+      "source_ids": [
+        "peaso-uniracers-glitches-2010",
+        "orangestar-uniracers-faq-2001"
+      ],
+      "question": "What is the orange fallback/recovery track space, and which collision/state transitions allow the player to enter, bypass, or escape it?",
+      "next_discriminator": "Reproduce the three player-described escape families on canonical runtime: vertical-jump floor penetration, seat-impact escape at orange-zone arrows, and turnaround-zone bypass. Capture course position, collision mode, track-piece identity, camera/screen state and finishability before/after each transition. Determine whether 'orange track' is ordinary authored recovery geometry, a generic fallback path, or a distinct engine state.",
+      "deliverables": [
+        "reproducible input traces for each confirmed escape family",
+        "orange-track geometry/state classification",
+        "collision/state transition trace across normal -> fallback -> normal or broken state",
+        "fixture for at least one recoverable escape and one non-finishable/corrupted path if canonical behavior confirms them",
+        "documentation separating player terminology from engine-confirmed semantics"
+      ],
+      "tags": [
+        "collision",
+        "course-geometry",
+        "glitch",
+        "fallback-track",
+        "camera",
+        "finish-state",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High-value because the source describes concrete, reproducible geometry escapes that can expose hidden recovery-track and collision-state semantics."
+    },
+    {
+      "id": "race-handicap-semantics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "tasvideos-uniracers-topic",
+        "gamefaqs-uniracers-ntsc-records"
+      ],
+      "question": "How exactly does the stock handicap/rubberband system depend on racer separation, screen position, opponent class, and circuit/race mode?",
+      "next_discriminator": "Use deterministic traces that intentionally fall behind then recover, measuring racer speed/boost, opponent state, screen-X position and lap time against matched no-handicap controls. Reproduce the historical strategy of letting Bronzen get ahead for unusually fast circuit laps and distinguish player handicap from camera/scroll effects.",
+      "deliverables": [
+        "handicap activation/deactivation thresholds",
+        "player/opponent speed effect matrix",
+        "interaction with screen position and scrolling",
+        "validated or rejected historical low-time strategy",
+        "fixture guarding handicap semantics"
+      ],
+      "tags": [
+        "ai",
+        "handicap",
+        "rubberband",
+        "speed",
+        "screen-position",
+        "circuits",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Core racing behavior repeatedly mentioned by competitive players and reviews; inexpensive deterministic measurement can resolve it."
     }
   ],
   "acquisition_policy": {

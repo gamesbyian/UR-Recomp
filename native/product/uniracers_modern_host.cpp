@@ -636,9 +636,25 @@ void observe_recent_course_identity() {
     if (!course.valid || course.course_index < 1 || course.course_index > 45) {
         return;
     }
-    g_recent_course_track_id =
+
+    const auto track_id =
         static_cast<std::uint8_t>(course.course_index - 1);
-    g_recent_course_profile_key = active_profile_key();
+    const std::string profile_key = active_profile_key();
+    const bool changed =
+        !g_recent_course_track_id ||
+        *g_recent_course_track_id != track_id ||
+        g_recent_course_profile_key != profile_key;
+
+    g_recent_course_track_id = track_id;
+    g_recent_course_profile_key = profile_key;
+    if (changed && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_FAST_NAV RECENT_OBSERVED track=%u profile_context=%s\n",
+            static_cast<unsigned>(track_id),
+            profile_key.empty() ? "none" : "named");
+        std::fflush(stderr);
+    }
 }
 
 ur::product::FastNavigationContext fast_navigation_context() {

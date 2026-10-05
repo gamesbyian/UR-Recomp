@@ -457,7 +457,8 @@
         "tasvideos-usjo",
         "libretro-uniracers-cheats",
         "cabbagery-uniracers-mechanics-2024",
-        "tasvideos-tabletop-nondecay-video"
+        "tasvideos-tabletop-nondecay-video",
+        "tas-halamantariel-course-videos-2009"
       ],
       "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
       "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero. Treat Tabletop as an explicit exception to the usual repeat-score halving rule and verify repeated identical-duration Tabletop scores.",
@@ -471,7 +472,8 @@
         "source conflict notes where player recollections disagree",
         "Tabletop duration-scoring and stunt-timer overrun fixture",
         "Tabletop repeat-score non-decay fixture",
-        "Tabletop exception to repeat-score halving"
+        "Tabletop exception to repeat-score halving",
+        "course-video timing/screen-state sanity checks for Zoom Zoo, Bowl, Switcher and Monster"
       ],
       "tags": [
         "community-research",
@@ -796,7 +798,8 @@
       "cost": "low",
       "status": "ready",
       "source_ids": [
-        "tasvideos-uniracers-topic"
+        "tasvideos-uniracers-topic",
+        "tas-twisting-fallthrough-observation"
       ],
       "question": "What exact collision/geometry condition allows the player to fall through the track on Bounder - Jumpover, as reported by early TAS researchers?",
       "next_discriminator": "Use the TASVideos report to localize the search to Bounder - Jumpover. Reproduce the fall-through on canonical runtime, then capture position, velocity, orientation, track-piece/collision state, screen position and recovery behavior around the failure frame. Compare the resulting state to the red/yellow recovery-track and other geometry-escape experiments before deciding whether it is the same collision family.",
@@ -804,7 +807,8 @@
         "minimal Jumpover fall-through input trace",
         "failure-frame collision/state capture",
         "comparison against recovery-track/orange-track escape family",
-        "deterministic regression fixture if reproducible"
+        "deterministic regression fixture if reproducible",
+        "twisting-state correlation check at failure frame"
       ],
       "tags": [
         "collision",
@@ -863,7 +867,8 @@
       "cost": "low",
       "status": "ready",
       "source_ids": [
-        "gamefaqs-uniracers-ntsc-records"
+        "gamefaqs-uniracers-ntsc-records",
+        "tas-twisting-fallthrough-observation"
       ],
       "question": "What collision/timing condition allows the repeatable unmarked skip through the second large loop on Walker - Ping Pong, and is it the same engine failure family as Jumpover fall-throughs?",
       "next_discriminator": "Use Wump's record-thread description to localize the skip to the second large loop on Walker - Ping Pong. Search deterministic timing around the loop entry/exit, capture position, velocity, orientation, track-piece and collision state across successful and failed attempts, and compare against Bounder - Jumpover fall-through and the intended red/yellow recovery-track system.",
@@ -871,7 +876,8 @@
         "minimal Ping Pong loop-skip input trace",
         "successful-vs-failed collision timing comparison",
         "classification relative to marked shortcuts, Jumpover fall-through and recovery-track escapes",
-        "deterministic fixture if reproducible"
+        "deterministic fixture if reproducible",
+        "twisting-state correlation check at failure frame"
       ],
       "tags": [
         "collision",
@@ -930,7 +936,8 @@
       "cost": "low",
       "status": "ready",
       "source_ids": [
-        "tasvideos-uniracers-topic"
+        "tasvideos-uniracers-topic",
+        "tas-halamantariel-wip-smv-2008"
       ],
       "question": "What exact input/state rules permit simultaneous roll-twist and flip-twist recognition, including flat-ground starts, buffered inputs, landing-angle misclassification, and turbo-controller claims?",
       "next_discriminator": "Reproduce the TAS-thread techniques on canonical runtime: roll-twist by holding roll while releasing twist after one completed twist; back-forward twist input without the twist button; flip-twist variants; and the reported case where exact landing orientation credits a roll as a flip. Compare normal controller timing to high-frequency/turbo-style input without assuming turbo is required.",
@@ -959,6 +966,40 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "High leverage because several experienced players independently describe subtle input/state behavior that directly affects movement, scoring and speed."
+    },
+    {
+      "id": "historical-tas-input-recovery",
+      "value": "high",
+      "cost": "low",
+      "status": "acquisition-needed",
+      "source_ids": [
+        "tas-halamantariel-wip-smv-2008",
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "Can the publicly shared historical Uniracers SMV input movies be recovered and converted into deterministic project-owned input traces for fidelity testing?",
+      "next_discriminator": "Attempt automated retrieval of the preserved microstorage SMV URL and mirrors/archives for Halamantariel's historical speedruns directory. If recovered, fingerprint the file, identify emulator/movie format version, convert inputs into the project's deterministic trace format, and validate at least one race against known published time. If unavailable, preserve exact URLs/filenames and close as archival-only rather than repeatedly hunting.",
+      "deliverables": [
+        "recovered SMV hash/provenance or explicit retrieval dead end",
+        "SMV format/version identification",
+        "converted project-owned deterministic input trace if recoverable",
+        "one validated historical course replay fixture"
+      ],
+      "tags": [
+        "tas",
+        "smv",
+        "input-movie",
+        "determinism",
+        "archival",
+        "fixtures"
+      ],
+      "artifact_need": {
+        "kind": "SMV input movie",
+        "state": "historical-link",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "P1",
+      "acquisition_judgment": "Potentially high leverage because exact historical inputs can replace prose hypotheses with deterministic replay fixtures."
     }
   ],
   "acquisition_policy": {

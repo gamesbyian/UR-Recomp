@@ -1,6 +1,6 @@
 # Ghost Presentation Trace Seam
 
-Status: authoritative world-state sampling, live Modern 1P capture, strict checksummed trace persistence and exact ordinary-1P live-camera projection are implemented; renderer attachment remains the follow-on.
+Status: authoritative world-state sampling, live Modern 1P capture, strict checksummed trace persistence, exact ordinary-1P live-camera projection, and the first visible presentation-only renderer attachment are implemented.
 
 ## Purpose
 
@@ -49,11 +49,17 @@ The trace representation preserves these rules:
 
 Filesystem round-trip persistence is covered by focused native acceptance. `CompletedRunGhostTraceCapture` supplies the host-independent lifecycle seam: it begins with a race attempt, accepts strictly increasing race-relative samples, aborts cleanly, and finalizes only against a validated completed-run record whose frame window contains every sample. The Modern host now calls that lifecycle from the authoritative 1P capture boundary and writes the sibling trace only after the corresponding completed-run artifact finalizes successfully. Trace-save failure remains presentation-only and never invalidates the run artifact.
 
-`completed_run_ghost_projection.*` now implements the ordinary-1P coordinate/culling portion of `Race_BuildRacerOAMState` exactly from the retained historical world sample plus the current live camera/viewport context (`0419/041D`, `03ED`, `0421/0423`, `0D49`). It emulates the original 65816 sign-flag comparisons rather than substituting approximate signed arithmetic, and fails closed for the alternate `$0DDB` projection path. The remaining rendering step can therefore consume an exact live-camera screen projection and select art from the existing semantic racer-presentation path.
+`completed_run_ghost_projection.*` now implements the ordinary-1P coordinate/culling portion of `Race_BuildRacerOAMState` exactly from the retained historical world sample plus the current live camera/viewport context (`0419/041D`, `03ED`, `0421/0423`, `0D49`). It emulates the original 65816 sign-flag comparisons rather than substituting approximate signed arithmetic, and fails closed for the alternate `$0DDB` projection path. Focused acceptance now also holds one retained world sample constant while moving the live camera and verifies that screen projection follows the live camera rather than any historical screen coordinate.
 
 
 ## Selected-artifact provenance
 
 `CompletedRunGhostState` retains the selected `StoredRunRecord`, including its immutable artifact path, while preserving the existing record-only accessor. `load_selected_completed_run_ghost_trace()` therefore resolves the sibling `.urghost` from the exact selected Previous/PB artifact and revalidates its checksum binding against that record before exposing trace samples. No filename guessing from course IDs or timing metadata is required.
 
-The remaining renderer boundary is narrow: resolve the user's strict Off/Previous/PB target, load the corresponding bound trace, select its sample for the current race-relative presentation frame, project that sample through `completed_run_ghost_projection.*`, and hand the retained synchronized composition plus semantic ID and authoritative H/V transform bits to the established racer selector/presentation layer. `completed_run_ghost_frame.*` now packages exactly that renderer-ready presentation frame and fails closed when either the historical sample is missing or the live viewport culls it.
+## Visible Modern 1P renderer attachment
+
+The Modern host now resolves the user's strict Off/Previous/PB target at race entry, loads only the checksum-bound sibling trace for that exact selected artifact, selects the trace sample for the current race-relative frame, projects it through the current live camera, and hands the retained synchronized composition plus semantic ID and authoritative H/V transform bits to the existing Racer-HD selector. Unregistered or composition-mismatched poses fail closed instead of inventing a second pose system.
+
+`completed_run_ghost_raster.*` is a host-owned RGBA compositor. It receives only a renderer-ready ghost frame, an already-resolved Racer-HD registration, and a typed render style; it has no guest-memory, controller, simulation, PPU or OAM write surface. The first treatment is deliberately simple semi-transparency. The style object is the extension point for later opacity/color/style polish without widening gameplay authority.
+
+The ordinary generated Modern host draws this compositor only during Modern active 1P races. Authentic mode is inert. Missing, corrupt, stale, unsupported or projection-incompatible trace data produces no presentation frame and therefore no draw. The fresh-process completed-run replay acceptance enables the ghost renderer, requires an actual `UR_RUN_GHOST DRAWN` event, and still requires replay-authoritative provenance, timing, splits and controller input to match the no-ghost captured run.

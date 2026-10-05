@@ -1,6 +1,6 @@
 # Completed Run Records and Ghost Foundation
 
-Status: completed-run capture/replay foundation merged; previous-run/PB ghost selection is now host-owned presentation state, while actual ghost rendering remains a follow-on.
+Status: completed-run capture/replay, Previous/PB selection, checksum-bound presentation traces, live-camera projection, and the first visible Modern 1P ghost renderer are implemented.
 
 ## Ownership
 
@@ -30,9 +30,9 @@ The explicit schema version and separate build compatibility id allow future cod
 
 tests/native/completed_run_record_test.cpp and tests/unit/test_completed_run_record_cpp.py prove a representative 1P Dragster-style input stream can be captured as authoritative per-frame controller words, compressed into canonical runs, serialized to a typed/versioned artifact, reloaded across a filesystem boundary, reproduced frame-for-frame, exported verbatim to the existing deterministic INPUT_FILE grammar, and rejected on corruption, future schema mismatch and course incompatibility. The run-data contract also tests exact timer conversion.
 
-## Next presentation seam
+## Visible presentation seam
 
-Live capture, deterministic replay, durable selection, and profile-scoped previous/PB binding are now established. The next narrow step is to derive enough presentation state from a selected record to draw a non-authoritative ghost through an existing host presentation seam. That work must remain downstream of the authoritative guest simulation and must not add a second gameplay model, write guest state, or route ghost input into the live racer.
+The first visual ghost is now attached downstream of authoritative simulation. A selected Previous/PB record resolves its exact checksum-bound `.urghost` trace, looks up the current race-relative sample, projects retained world state through the current live camera, selects the existing Racer-HD semantic representation, and blends that host-owned asset into the Modern presentation surface. No second simulation, guest-memory write or ghost controller-submission path exists.
 
 
 ## Resolved-input observation seam
@@ -67,7 +67,7 @@ Current production eligibility is deliberately narrower than the file format: Cr
 
 `native/product/completed_run_ghost.{hpp,cpp}` is the first consumer of the persisted catalog. At an eligible Modern 1P race-entry edge, the host loads compatible records from the active profile namespace and binds two immutable selections: the most recent compatible run and the fastest compatible personal best. The state owns copies of those records and exposes race-relative controller lookup only.
 
-This is intentionally one layer short of drawing a ghost. The ghost state has no guest-memory pointer, no simulator callback, no WRAM writer, and no authority over controller input submitted to the real racer. A future renderer may read the selected record and its race-relative input/state projection, but gameplay continues to come exclusively from the authoritative guest simulation. Retry clears and rebinds this presentation state at the next race-entry edge. Deterministic acceptance capture overrides remain isolated from the ordinary profile ghost catalog.
+The ghost state has no guest-memory pointer, no simulator callback, no WRAM writer, and no authority over controller input submitted to the real racer. The renderer consumes only the immutable selected record/trace projection and host-owned presentation assets; gameplay continues to come exclusively from the authoritative guest simulation. Retry clears and rebinds this presentation state at the next race-entry edge. Deterministic acceptance capture overrides remain isolated from the ordinary profile ghost catalog.
 
 ## Authoritative ghost presentation traces
 
@@ -75,4 +75,4 @@ A renderable ghost now has a durable presentation-evidence path that remains sep
 
 `native/product/completed_run_ghost_trace.*` owns a strict versioned/checksummed `.urghost` sidecar. Each trace is bound to the exact completed-run artifact checksum, rejects stale/corrupt/malformed evidence independently, and can disappear or fail without invalidating the replay record. The Modern 1P capture lifecycle starts trace collection with the run recorder, aborts it on Retry/attempt retirement, and after successful run finalization writes a sibling `.urrun.urghost` file when the trace validates. Trace persistence never changes deterministic replay equivalence and does not make `frame_count` authoritative.
 
-The next rendering step is now bounded: load the selected previous/PB record's matching trace, project its world sample for the current race-relative presentation frame through the established live-camera path, and draw via the existing semantic racer presentation machinery. Missing trace data must simply make that visual ghost unavailable.
+That bounded rendering step is now implemented for Modern 1P races. Missing or incompatible trace data simply makes the visual ghost unavailable. The first renderer uses the existing Racer-HD registration selector and a typed host-only render style with semi-transparent blending; unsupported semantic/composition states fail closed. Fresh-process replay acceptance requires a real ghost draw while preserving the same replay-authoritative provenance, elapsed time, splits and controller stream as the no-ghost capture, so the presentation path remains downstream of gameplay authority.

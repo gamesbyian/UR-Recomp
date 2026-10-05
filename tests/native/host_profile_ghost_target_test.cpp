@@ -1,4 +1,5 @@
 #include "host_profile_ghost_target.hpp"
+#include "host_profile_store.hpp"
 
 #include <array>
 #include <cassert>

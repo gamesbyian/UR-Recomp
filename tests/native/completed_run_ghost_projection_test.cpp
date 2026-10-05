@@ -17,7 +17,7 @@ void write_le16(
 }
 
 CompletedRunGhostWorldSample sample(std::uint16_t x, std::uint16_t y) {
-    return {0, x, y, 0, 0x0541, 1, 0x66};
+    return {0, x, y, 0, 0x0541, 1, 0x66, {}};
 }
 
 }  // namespace
@@ -31,6 +31,7 @@ int main() {
     write_le16(wram, 0x0423, 0x00E1); // 225
     write_le16(wram, 0x0D49, 0x00FF);
     wram[0x0DDB] = 0;
+    const auto guest_before_projection = wram;
 
     const auto context =
         read_completed_run_ghost_projection_context(
@@ -45,6 +46,22 @@ int main() {
     assert(center->screen_x == 88);
     assert(center->screen_y == 59);
     assert(!center->oam_x_high);
+
+    // The historical sample stays fixed while the live camera diverges. The
+    // projected screen position must follow the current camera, not a retained
+    // historical OAM/screen coordinate.
+    const auto retained = sample(1088, 859);
+    auto diverged_camera = *context;
+    diverged_camera.camera_x = 1040;
+    diverged_camera.camera_y = 820;
+    const auto diverged =
+        project_completed_run_ghost_sample(retained, diverged_camera);
+    assert(diverged);
+    assert(diverged->screen_x == 48);
+    assert(diverged->screen_y == 39);
+    assert(retained.world_x == 1088);
+    assert(retained.world_y == 859);
+    assert(wram == guest_before_projection);
 
     const auto left =
         project_completed_run_ghost_sample(sample(990, 790), *context);

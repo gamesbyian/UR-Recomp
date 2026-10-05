@@ -1994,7 +1994,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         scale,
                         frame,
                         *selected.registration,
-                        128);
+                        ur::presentation::CompletedRunGhostRenderStyle{128});
                 if (drew && !g_run_ghost_draw_reported &&
                     std::getenv("UR_RUN_GHOST_DRAW_DIAGNOSTICS")) {
                     g_run_ghost_draw_reported = true;

@@ -57,12 +57,12 @@ bool draw_completed_run_ghost_racer(
     int scale,
     const ur::product::CompletedRunGhostPresentationFrame& frame,
     const RacerRegistration& registration,
-    std::uint8_t opacity
+    CompletedRunGhostRenderStyle style
 ) noexcept {
     if (dst == nullptr ||
         frame_w <= 0 ||
         frame_h <= 0 ||
-        opacity == 0 ||
+        style.opacity == 0 ||
         !valid_racer_hd_internal_render_scale(scale) ||
         pitch < static_cast<std::size_t>(frame_w * scale) * 4u ||
         registration.semantic_frame_id != frame.semantic_frame_id) {
@@ -95,7 +95,7 @@ bool draw_completed_run_ghost_racer(
                 frame.vflip
             );
             if ((src >> 24) == 0) continue;
-            row[dx] = blend_pixel(row[dx], src, opacity);
+            row[dx] = blend_pixel(row[dx], src, style.opacity);
             drew = true;
         }
     }

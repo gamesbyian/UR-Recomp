@@ -51,6 +51,7 @@ jobs:
           python3 tools/probe_racer_hd_fallback_family.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
             --json-out "$RUNNER_TEMP/racer-hd-next-family-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-next-family-probe" \
             | tee "$RUNNER_TEMP/racer-hd-next-family-probe.txt"
 
       - name: Install native build dependencies
@@ -1282,6 +1283,7 @@ jobs:
             ${{ runner.temp }}/racer-hd-fallback-frequency.txt
             ${{ runner.temp }}/racer-hd-next-family-probe.json
             ${{ runner.temp }}/racer-hd-next-family-probe.txt
+            ${{ runner.temp }}/racer-hd-next-family-probe/
             ${{ runner.temp }}/racer-hd-frequency-family-dossier/
             ${{ runner.temp }}/racer-hd-frequency-family-dossier.txt
             ${{ runner.temp }}/racer-hd-frequency-family-pose-equivalence.txt

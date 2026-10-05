@@ -34,6 +34,12 @@ from prototype_racer_hd_replacement import (
     nearest_rgba,
     object_flip_pivot_x2_y2,
 )
+from probe_racer_hd_fallback_family import (
+    palette_normalized_rgba,
+    palette_role_indices,
+)
+from extract_racer_presentation_family import rgba_palette
+
 
 
 RESOLVED_VISUAL_LANGUAGE = {
@@ -178,6 +184,13 @@ THIRTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
 )
 THIRTY_SIXTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0540-p2-fifth-family-057C-reference"
+)
+
+THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0544-p1-frequency-0578-reference"
+)
+THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0578-p2-frequency-0544-reference"
 )
 
 
@@ -1254,6 +1267,77 @@ def build_twelfth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0544_p1_frequency_rgba(x: int, y: int) -> bytes:
+    """Reuse the approved 0544 geometry with only the proven player-color swap."""
+    return recolor_authored_frame_rgba(
+        sample_authored_0544_p2_rgba(x, y),
+        blue_frame=False,
+    )
+
+
+def build_twentieth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0544_p1_frequency_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def sample_authored_0578_p2_frequency_rgba(x: int, y: int) -> bytes:
+    """Author the measured 0578 P2 pose from the exact 1280-1286 stock reference."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx, wheel_cy = 155, 111
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 26 * 26
+    rim = wr2 < 26 * 26 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+
+    wheel_spokes = (
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1)
+        or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
+        or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
+    )
+    seat = authored_segment_contains(x, y, 70, 27, 111, 47, 8)
+    neck = authored_segment_contains(x, y, 108, 45, 124, 61, 5)
+    fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3)
+    crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
+    pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
+    crown_dx, crown_dy = x - 121, y - 58
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if seat:
+        return authored_saddle_rgba(x, y, 91, 32, 12)
+    if neck and y < 53:
+        return authored_saddle_mount_rgba(y, 49)
+    if crown:
+        return authored_frame_junction_rgba(
+            x, y, 121, 58, True, fork or frame_brace or neck
+        )
+    if neck or fork or frame_brace:
+        return authored_blue_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twenty_first_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0578_p2_frequency_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -1269,6 +1353,23 @@ def recolor_authored_frame_rgba(pixel: bytes, *, blue_frame: bool) -> bytes:
     """Swap only approved colored-frame material; preserve alpha/neutral materials."""
     table = _RED_TO_BLUE_FRAME_RGBA if blue_frame else _BLUE_TO_RED_FRAME_RGBA
     return table.get(pixel, pixel)
+
+
+def normalize_authored_frame_rgba(rgba: bytes) -> bytes:
+    """Normalize only the authored red/blue frame material to stable role tokens."""
+    red_values = list(_RED_TO_BLUE_FRAME_RGBA.keys())
+    blue_values = list(_RED_TO_BLUE_FRAME_RGBA.values())
+    mapping: dict[bytes, bytes] = {}
+    for index, (red, blue) in enumerate(zip(red_values, blue_values), start=1):
+        token = bytes((index, 0, 0, 255))
+        mapping[red] = token
+        mapping[blue] = token
+    out = bytearray(rgba)
+    for i in range(0, len(out), 4):
+        token = mapping.get(bytes(out[i:i + 4]))
+        if token is not None:
+            out[i:i + 4] = token
+    return bytes(out)
 
 
 def sample_authored_0543_p1_third_family_rgba(x: int, y: int) -> bytes:
@@ -1371,6 +1472,12 @@ def build_eighteenth_authored_candidate_rgba() -> bytes:
 def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
     """Return authored RGBA plus the expected generator and native sampler."""
     rid = entry["representation_id"]
+    authored_meta = entry.get("authored_candidate") or {}
+    reused_from = authored_meta.get("reused_from_representation_id")
+    if reused_from and reused_from != rid:
+        proxy = dict(entry)
+        proxy["representation_id"] = reused_from
+        return authored_candidate_rgba_for_entry(proxy)
     if rid == FIRST_AUTHORED_REPRESENTATION_ID:
         return (
             build_first_authored_candidate_rgba(),
@@ -1532,6 +1639,18 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_nineteenth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_nineteenth_authored_candidate_rgba",
             "sample_racer_hd_authored_057c_p1_fifth_family",
+        )
+    if rid == THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twentieth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twentieth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0544_p1_frequency",
+        )
+    if rid == THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twenty_first_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twenty_first_authored_candidate_rgba",
+            "sample_racer_hd_authored_0578_p2_frequency",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 
@@ -1724,6 +1843,74 @@ def build_dossier(
         }
         authored_candidate = None
         authored_meta = entry.get("authored_candidate")
+        reuse_proof = None
+        palette_reuse_proof = None
+        if authored_meta is not None and authored_meta.get("reused_from_representation_id"):
+            source_id = authored_meta["reused_from_representation_id"]
+            source_entry = entries.get(source_id)
+            if source_entry is None:
+                raise ValueError(f"{rid} reuse source is not registered: {source_id}")
+            if source_entry["player"] != entry["player"]:
+                raise ValueError(f"{rid} reuse source crosses players: {source_id}")
+            source_stock = build_stock_rgba(rom, source_entry)
+            if source_stock != stock:
+                raise ValueError(
+                    f"{rid} reuse source stock RGBA differs from target: {source_id}"
+                )
+            source_authored, _source_generator, _source_sampler = (
+                authored_candidate_rgba_for_entry(source_entry)
+            )
+            reuse_proof = {
+                "source_representation_id": source_id,
+                "same_player": True,
+                "stock_rgba_byte_identical": True,
+                "stock_rgba_sha256": sha256(stock),
+                "source_stock_rgba_sha256": sha256(source_stock),
+                "source_authored_rgba_sha256": sha256(source_authored),
+            }
+        if authored_meta is not None and authored_meta.get("palette_reused_from_representation_id"):
+            source_id = authored_meta["palette_reused_from_representation_id"]
+            source_entry = entries.get(source_id)
+            if source_entry is None:
+                raise ValueError(f"{rid} palette reuse source is not registered: {source_id}")
+            source_stock = build_stock_rgba(rom, source_entry)
+            roles = palette_role_indices(rom)
+            declared_roles = authored_meta.get("palette_normalization_role_indices")
+            if declared_roles != roles:
+                raise ValueError(
+                    f"{rid} palette role declaration drift: {declared_roles} != {roles}"
+                )
+            target_palette = rgba_palette(
+                rom, int(entry["palette_asset_id"], 16)
+            )
+            source_palette = rgba_palette(
+                rom, int(source_entry["palette_asset_id"], 16)
+            )
+            target_normalized = palette_normalized_rgba(stock, target_palette, roles)
+            source_normalized = palette_normalized_rgba(source_stock, source_palette, roles)
+            if target_normalized != source_normalized:
+                raise ValueError(
+                    f"{rid} palette-normalized stock differs from source: {source_id}"
+                )
+            normalized_hash = sha256(target_normalized)
+            if normalized_hash != authored_meta.get("palette_normalized_stock_sha256"):
+                raise ValueError(
+                    f"{rid} palette-normalized stock hash drift: {normalized_hash}"
+                )
+            source_authored, _source_generator, _source_sampler = (
+                authored_candidate_rgba_for_entry(source_entry)
+            )
+            palette_reuse_proof = {
+                "source_representation_id": source_id,
+                "cross_player": source_entry["player"] != entry["player"],
+                "normalized_role_indices": roles,
+                "stock_normalized_byte_identical": True,
+                "normalized_stock_sha256": normalized_hash,
+                "source_stock_rgba_sha256": sha256(source_stock),
+                "target_stock_rgba_sha256": sha256(stock),
+                "source_authored_rgba_sha256": sha256(source_authored),
+                "authored_transform": "tools/build_racer_hd_asset_dossier.py::recolor_authored_frame_rgba",
+            }
         if authored_meta is not None:
             authored_rgba, expected_generator, native_sampler = (
                 authored_candidate_rgba_for_entry(entry)
@@ -1731,6 +1918,25 @@ def build_dossier(
             if authored_meta.get("artifact_generator") != expected_generator:
                 raise ValueError(f"unsupported authored candidate generator for {rid}")
             authored_png = encode_png_rgba(W * 4, H * 4, authored_rgba)
+            if palette_reuse_proof is not None:
+                source_id = palette_reuse_proof["source_representation_id"]
+                source_entry = entries[source_id]
+                source_authored, _source_generator, _source_sampler = (
+                    authored_candidate_rgba_for_entry(source_entry)
+                )
+                target_authored_normalized = normalize_authored_frame_rgba(authored_rgba)
+                source_authored_normalized = normalize_authored_frame_rgba(source_authored)
+                if target_authored_normalized != source_authored_normalized:
+                    raise ValueError(
+                        f"{rid} normalized authored output differs from palette source: {source_id}"
+                    )
+                palette_reuse_proof["authored_normalized_byte_identical"] = True
+                palette_reuse_proof["normalized_authored_sha256"] = sha256(
+                    target_authored_normalized
+                )
+                palette_reuse_proof["target_authored_rgba_sha256"] = sha256(
+                    authored_rgba
+                )
             assets[rid]["authored_candidate"] = authored_png
             authored_candidate = {
                 **authored_meta,
@@ -1801,6 +2007,8 @@ def build_dossier(
                 ),
                 "evidence_packet_ready": True,
                 "authored_candidate": authored_candidate,
+                "reuse_proof": reuse_proof,
+                "palette_reuse_proof": palette_reuse_proof,
                 "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
                 "pending_decisions": list(PENDING_ART_DECISIONS),
                 "visual_language_authority": "docs/HD-ART-DIRECTION.md",

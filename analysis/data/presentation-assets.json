@@ -2401,6 +2401,104 @@
             "source": "dense native post-guest-frame trace identifies the 057C recovery edge; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
           }
         ]
+      },
+      "fallback_frequency_measurement": {
+        "status": "measured expansion active",
+        "retained_report": "analysis/generated/racer-hd-fallback-frequency-2026-10-05.json",
+        "source": {
+          "workflow_run": 37264523402,
+          "artifact_id": 11325937178,
+          "route": "two-player-first-race-observe.script + two-player-first-race.input",
+          "trace_window": [
+            1180,
+            1620
+          ]
+        },
+        "before": {
+          "player_frame_observations": 882,
+          "hd_selected_player_frames": 150,
+          "original_fallback_player_frames": 732,
+          "hd_coverage_fraction": 0.17006802721088435
+        },
+        "expansions": [
+          {
+            "state": "0x0540/0x0543 + 0x0D2C/0x0000 sel 0/0 gate 0x0001/0x0000",
+            "observed_frames": [
+              1354,
+              1355,
+              1356,
+              1390,
+              1418,
+              1450
+            ],
+            "independent_episodes": 4,
+            "player_fallback_frames_removed": 12,
+            "after": {
+              "player_frame_observations": 882,
+              "hd_selected_player_frames": 162,
+              "original_fallback_player_frames": 720,
+              "hd_coverage_fraction": 0.1836734693877551,
+              "fallback_burden_removed_fraction": 0.01639344262295082,
+              "absolute_coverage_gain_percentage_points": 1.360544217687075
+            },
+            "approval_manifest": "analysis/data/racer-hd-art-approval-1354-1356.json"
+          },
+          {
+            "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+            "observed_frames": [
+              1280,
+              1281,
+              1282,
+              1283,
+              1285,
+              1286
+            ],
+            "independent_episodes": 2,
+            "player_fallback_frames_removed": 12,
+            "after": {
+              "player_frame_observations": 882,
+              "hd_selected_player_frames": 174,
+              "original_fallback_player_frames": 708,
+              "hd_coverage_fraction": 0.19727891156462585,
+              "fallback_burden_removed_fraction": 0.016666666666666666,
+              "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+              "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+            },
+            "approval_manifest": "analysis/data/racer-hd-art-approval-1280-1286.json",
+            "reuse_basis": "P1 0544 palette-normalized canonical geometry reuse; P2 0578 one distinct reviewed pose"
+          }
+        ],
+        "current_after": {
+          "player_frame_observations": 882,
+          "hd_selected_player_frames": 174,
+          "original_fallback_player_frames": 708,
+          "hd_coverage_fraction": 0.19727891156462585,
+          "fallback_burden_removed_fraction": 0.016666666666666666,
+          "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+          "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+        },
+        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it.",
+        "next_ranked_discriminator": {
+          "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+          "observed_frames": [
+            1401,
+            1402,
+            1403,
+            1404,
+            1405,
+            1406
+          ],
+          "independent_episodes": 1,
+          "player_fallback_frames": 12,
+          "requires_new_pose_count": 2,
+          "disposition": "stop-before-new-art",
+          "next_concrete_discriminator": "Resume only if a broader representative Windows route shows this state/family recurring enough to justify two new poses, or if new equivalence evidence lowers its art cost. Otherwise leave it on fail-closed Original."
+        },
+        "continuation_disposition": {
+          "status": "stop-before-new-art",
+          "reason": "The highest remaining measured state requires two novel poses for a single six-frame episode and 12 player-fallback frames. This is not currently worth shipping relative to the reuse-heavy expansions already admitted.",
+          "next_concrete_discriminator": "Resume only if a broader representative Windows route shows this state/family recurring enough to justify two new poses, or if new equivalence evidence lowers its art cost. Otherwise leave it on fail-closed Original."
+        }
       }
     }
   ]

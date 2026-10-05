@@ -118,6 +118,16 @@ def presentation():
             },
         ],
         "current_after":fallback["current_after"],
+        "next_ranked_discriminator":{
+            "state":fallback["next_ranked_discriminator"]["state"],
+            "observed_frames":fallback["next_ranked_discriminator"]["frames"],
+            "independent_episodes":fallback["next_ranked_discriminator"]["episode_count"],
+            "player_fallback_frames":fallback["next_ranked_discriminator"]["player_fallback_frames"],
+            "requires_new_pose_count":2,
+            "disposition":fallback["next_ranked_discriminator"]["disposition"],
+            "next_concrete_discriminator":fallback["continuation_disposition"]["next_concrete_discriminator"],
+        },
+        "continuation_disposition":fallback["continuation_disposition"],
         "admission_rule":"Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it.",
     }
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[family]}

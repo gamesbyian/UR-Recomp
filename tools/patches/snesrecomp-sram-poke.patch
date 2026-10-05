@@ -1,15 +1,27 @@
 --- a/tools/snesref/frontend.cpp
 +++ b/tools/snesref/frontend.cpp
-@@ -920,7 +920,7 @@
+@@ -916,11 +916,12 @@
+ //   press <b[+b|,b...]> [N]    hold for N frames (default 1)
+ //   poke <addr> <hex>          write WRAM bytes on one frame
+ //   pokefor <addr> <hex> N     write WRAM bytes on N frames
++//   spoke <offset> <hex>        write battery SRAM bytes at zero guest frames
+ //   forcepoke <addr> <hex>     write WRAM bytes every frame from the next on
+ //   loadstate N / reset        loadstate: ignored with a warning; reset: retro_reset
+ //   until <addr> <op> <hex> [timeout]    op == or !=, 8-bit WRAM byte
+ //   until16 <addr> <op> <hex> [timeout]  16-bit little-endian
+ //   dump <tag>                 write state of the frame just completed
+ //   quit                       exit 0
+ // Hold-type commands (press/poke/pokefor/forcepoke/loadstate/reset) run for
  // their hold frames and are followed by ONE idle frame. until (when true),
- // dump and quit take zero frames; a false until costs one idle frame per
+-// dump and quit take zero frames; a false until costs one idle frame per
++// spoke, dump and quit take zero frames; a false until costs one idle frame per
  // re-check. Timeout (default 36000 frames) -> error, exit code 3.
 -enum ScriptOp { SC_PRESS, SC_POKE, SC_FORCEPOKE, SC_LOADSTATE, SC_RESET, SC_UNTIL, SC_DUMP, SC_QUIT };
 +enum ScriptOp { SC_PRESS, SC_POKE, SC_SPOKE, SC_FORCEPOKE, SC_LOADSTATE, SC_RESET, SC_UNTIL, SC_DUMP, SC_QUIT };
  struct ScriptCmd {
      ScriptOp op;
      int line;
-@@ -1027,6 +1027,9 @@
+@@ -1027,6 +1028,9 @@
                  if (nt < 4) bad = true; else e.hold = atoi(tok[3]);
                  if (e.hold < 1) e.hold = 1;
              }
@@ -19,16 +31,36 @@
          } else if (!strcmp(cmd, "loadstate")) {
              e.op = SC_LOADSTATE;
          } else if (!strcmp(cmd, "reset")) {
-@@ -1140,6 +1143,12 @@
+@@ -1115,6 +1119,17 @@
+                 }
+                 g_sc_waited++;
+                 return 0;
+             }
++            case SC_SPOKE: {
++                uint8_t* sram =
++                    (uint8_t*)p_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
++                size_t sram_sz =
++                    p_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
++                if (sram && c.addr + c.bytes.size() <= sram_sz)
++                    memcpy(sram + c.addr, c.bytes.data(), c.bytes.size());
++                printf("script f=%u %s\n", g_frame, c.text.c_str());
++                fflush(stdout);
++                script_advance();
++                continue;
++            }
+             case SC_DUMP:
+                 do_dump(c.text.c_str() + 5);
+                 script_advance();
+@@ -1140,6 +1155,6 @@
                  case SC_POKE:
                      if (ram && c.addr + c.bytes.size() <= ram_n) memcpy(ram + c.addr, c.bytes.data(), c.bytes.size());
                      return 0;
-+                case SC_SPOKE: {
-+                    uint8_t* sram = (uint8_t*)p_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
-+                    size_t sram_sz = p_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
-+                    if (sram && c.addr + c.bytes.size() <= sram_sz) memcpy(sram + c.addr, c.bytes.data(), c.bytes.size());
-+                    return 0;
-+                }
+-                case SC_SPOKE: {
+-                    uint8_t* sram = (uint8_t*)p_retro_get_memory_data(RETRO_MEMORY_SAVE_RAM);
+-                    size_t sram_sz = p_retro_get_memory_size(RETRO_MEMORY_SAVE_RAM);
+-                    if (sram && c.addr + c.bytes.size() <= sram_sz) memcpy(sram + c.addr, c.bytes.data(), c.bytes.size());
+-                    return 0;
+-                }
                  case SC_FORCEPOKE:
                      g_force_pokes.push_back({ c.addr, c.bytes });
                      return 0;

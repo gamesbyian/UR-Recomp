@@ -584,6 +584,7 @@ void advance_practice_route(uint64_t next_frame) {
     if (!g_practice_active) return;
 
     const int active_track_id = authoritative_active_track_id();
+    const auto launch_before = g_practice_launch;
     const auto step = ur::product::advance_quick_practice_launch(
         g_practice_launch,
         ur::product::QuickPracticeLaunchObservation{
@@ -592,7 +593,7 @@ void advance_practice_route(uint64_t next_frame) {
             g_ram[0x0313] == 0x01,
             active_track_id,
         });
-    const auto expected_track_id = g_practice_launch.target.track_id;
+    const auto expected_track_id = launch_before.target.track_id;
     g_practice_launch = step.state;
 
     if (step.route_violation || step.course_mismatch) {
@@ -611,10 +612,15 @@ void advance_practice_route(uint64_t next_frame) {
         // accepted Practice restore + frontend reboot lifecycle so SRAM/profile
         // state remains isolated and fail closed.
         if (!exit_to_frontend()) {
+            // The raw race byte can precede the validated restart surface by a
+            // frame. Preserve the prior launch state so the next observation
+            // retries the same fail-closed recovery instead of stranding
+            // Practice in an Idle-but-active limbo.
+            g_practice_launch = launch_before;
             product_diagnostic(
                 step.route_violation
-                    ? "UR_PRACTICE ROUTE_VIOLATION_EXIT_FAILED"
-                    : "UR_PRACTICE COURSE_MISMATCH_EXIT_FAILED");
+                    ? "UR_PRACTICE ROUTE_VIOLATION_EXIT_RETRY"
+                    : "UR_PRACTICE COURSE_MISMATCH_EXIT_RETRY");
         }
         return;
     }

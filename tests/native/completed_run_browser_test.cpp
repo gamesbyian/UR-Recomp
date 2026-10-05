@@ -58,7 +58,8 @@ int main(int argc, char** argv) {
     write_record(
         root / "run-0000000000000000-0003.urrun", run(1713));
     write_record(
-        root / "run-0000000000000000-0004.urrun", run(1750));
+        root / "run-0000000000000000-0004.urrun",
+        run(1750, "course:01", 850));
     write_record(
         root / "run-0000000000000000-0005.urrun",
         run(900, "course:02"));
@@ -102,7 +103,7 @@ int main(int argc, char** argv) {
     assert(browser.selected()->personal_best_delta_text == "+0:00.37/60");
     assert(browser.selected()->personal_best_splits.size() == 2);
     assert(browser.selected()->personal_best_splits[0].id == "checkpoint-1");
-    assert(browser.selected()->personal_best_splits[0].delta_text == "+0:00.00/60");
+    assert(browser.selected()->personal_best_splits[0].delta_text == "+0:00.10/60");
 
     assert(browser.move(1));
     assert(browser.selected()->chronological_order == 3);

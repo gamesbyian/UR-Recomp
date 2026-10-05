@@ -123,15 +123,21 @@ def _run_case(
         SNESREF_SCRIPT=str(script),
         SNESREF_DUMP_DIR=str(run),
     )
-    with open(run / "snesref.log", "w") as log:
-        subprocess.run(
+    log_path = run / "snesref.log"
+    with open(log_path, "w") as log:
+        completed = subprocess.run(
             [str(snesref), str(core), str(rom)],
             env=env,
             cwd=run,
             stdout=log,
             stderr=subprocess.STDOUT,
-            check=True,
+            check=False,
         )
+    if completed.returncode != 0:
+        print(f"challenge probe case failed: {run.name} status={completed.returncode}")
+        print(log_path.read_text(errors="replace"))
+        raise RuntimeError(
+            f"snesref case {run.name} failed with status {completed.returncode}")
     return tier.observe(run, rom.read_bytes())
 
 

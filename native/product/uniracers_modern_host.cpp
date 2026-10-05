@@ -4179,7 +4179,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         if (g_controls_visible) {
-            const int controls_h = 225;
+            const int controls_h = 220;
             const int controls_y = (height - controls_h) / 2;
             std::array<std::string, 12> key_label_storage{};
             std::array<std::string_view, 12> key_labels{};

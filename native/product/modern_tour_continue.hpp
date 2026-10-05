@@ -15,12 +15,15 @@ enum class ModernTourContinueStage {
     Ready,
 };
 
+constexpr std::uint32_t kModernTourContinueMaxObservations = 3600;
+
 struct ModernTourContinueState {
     ModernTourContinueStage stage = ModernTourContinueStage::Idle;
     std::uint8_t tour_row = 0;
     std::uint8_t tour_option = 0;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
+    std::uint32_t observations_remaining = 0;
 };
 
 struct ModernTourContinueObservation {
@@ -33,6 +36,7 @@ struct ModernTourContinueStep {
     ModernTourContinueState state{};
     QuickPracticeMenuInput input = QuickPracticeMenuInput::None;
     bool track_select_ready = false;
+    bool timed_out = false;
 };
 
 constexpr ModernTourContinueState begin_modern_tour_continue(
@@ -43,6 +47,7 @@ constexpr ModernTourContinueState begin_modern_tour_continue(
     state.stage = ModernTourContinueStage::AwaitMain;
     state.tour_row = tour_row;
     state.tour_option = kQuickPracticeTourOptions[tour_row];
+    state.observations_remaining = kModernTourContinueMaxObservations;
     return state;
 }
 
@@ -54,6 +59,12 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     out.state = state;
 
     if (state.stage == ModernTourContinueStage::Idle) return out;
+    if (state.observations_remaining == 0) {
+        out.state = {};
+        out.timed_out = true;
+        return out;
+    }
+    --out.state.observations_remaining;
     if (observation.in_race) {
         out.state = {};
         return out;

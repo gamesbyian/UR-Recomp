@@ -64,6 +64,19 @@ constexpr bool quick_practice_launch_owns_player_input(
            state.stage != QuickPracticeLaunchStage::Active;
 }
 
+// When a host-side effect requested by one observation (input transport or
+// abort/reboot request) fails, retry the same semantic state on the next host
+// frame but still consume that observation from the bounded routing budget.
+constexpr QuickPracticeLaunchState quick_practice_launch_retry_state(
+    QuickPracticeLaunchState state
+) noexcept {
+    if (quick_practice_launch_owns_player_input(state) &&
+        state.observations_remaining > 0) {
+        --state.observations_remaining;
+    }
+    return state;
+}
+
 constexpr QuickPracticeLaunchInput launch_input_from_menu_input(
     QuickPracticeMenuInput input
 ) noexcept {

@@ -411,22 +411,43 @@ constexpr std::uint32_t authored_frame_junction_color(
     int y,
     int crown_x,
     int crown_y,
-    bool blue_frame
+    bool blue_frame,
+    bool member_overlap
 ) noexcept {
-    // A compact object-local collar makes the fork/frame meeting point read
-    // as one forged part without changing the recovered pose silhouette.
+    // Model the crown as one forged transition rather than a round collar
+    // sitting on top of separate members. The upper-left shoulder catches the
+    // object-local key light, the centre stays on the frame body value, and
+    // the lower/right throat compresses into shadow where fork and brace
+    // visually merge. This changes material only, never the recovered alpha
+    // envelope, contact anchor, or member geometry.
     const int dx = x - crown_x;
     const int dy = y - crown_y;
     const int radial2 = dx * dx + dy * dy;
-    const bool highlight = dx <= 1 && dy <= 1 && radial2 >= 18;
-    const bool shadow = dx >= 2 || dy >= 4;
+    const bool shoulder_highlight =
+        dy <= -1 && dx <= 2 && radial2 >= 12;
+    const bool integrated_throat =
+        dy >= 1 && (dx >= -2 || radial2 <= 20);
+    const bool outer_shadow =
+        dx >= 4 || dy >= 5;
+
+    // Where the known neck/fork/brace geometry crosses the crown, let the
+    // member's own baked frame shading continue through the joint. This
+    // removes the remaining "round collar pasted over members" read while
+    // preserving the crown's exact occupied silhouette.
+    if (member_overlap) {
+        return blue_frame
+            ? authored_blue_frame_color(x, y)
+            : authored_red_frame_color(x, y);
+    }
     if (blue_frame) {
-        if (highlight) return 0xFFE87353u;
-        if (shadow) return 0xFF782818u;
+        if (shoulder_highlight) return 0xFFE87353u;
+        if (outer_shadow) return 0xFF782818u;
+        if (integrated_throat) return 0xFF963323u;
         return 0xFFC94D34u;
     }
-    if (highlight) return 0xFF5353E8u;
-    if (shadow) return 0xFF181878u;
+    if (shoulder_highlight) return 0xFF5353E8u;
+    if (outer_shadow) return 0xFF181878u;
+    if (integrated_throat) return 0xFF232396u;
     return 0xFF3434C9u;
 }
 
@@ -651,8 +672,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
 
     // The saddle is restored to the stock top-of-silhouette band. The original
     // pilot started five logical pixels too low when sampled for gameplay.
-    const int seat_dx = x - 128;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 128, 22, 30, 18, 12, 32
     );
@@ -690,7 +709,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
         return authored_saddle_color(x, y, 128, 22, 18);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 132, 60, false);
+        return authored_frame_junction_color(x, y, 132, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -735,9 +754,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const bool pedal = authored_pedal_contains(
         x, y, 138, 150
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 23;
     const bool seat = authored_saddle_contains(
         x, y, 130, 23, 32, 13, 8, 34
     );
@@ -773,7 +789,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
         return authored_saddle_color(x, y, 130, 23, 13);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 132, 60, false);
+        return authored_frame_junction_color(x, y, 132, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -819,9 +835,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
     const bool pedal = authored_pedal_contains(
         x, y, 141, 145
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 130, 22, 35, 12, 8, 36
     );
@@ -861,7 +874,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
         return authored_saddle_color(x, y, 130, 22, 12);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 134, 60, false);
+        return authored_frame_junction_color(x, y, 134, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -913,8 +926,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     // wheel supplies the recovered right envelope/contact.
     // True-density mismatch review showed a small right-heavy saddle block
     // in this bridge pose. Shift/narrow it without touching envelope/contact.
-    const int seat_dx = x - 120;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 120, 22, 32, 14, 8, 36
     );
@@ -954,7 +965,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
         return authored_saddle_color(x, y, 120, 22, 14);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 136, 60, false);
+        return authored_frame_junction_color(x, y, 136, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -1006,8 +1017,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
     // True-density review showed the old saddle carrying excess mass on
     // the right. Preserve the pose envelope/contact while shifting/narrowing
     // the same smooth object-local form.
-    const int seat_dx = x - 116;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 116, 22, 32, 14, 8, 36
     );
@@ -1047,7 +1056,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
         return authored_saddle_color(x, y, 116, 22, 14);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 140, 60, false);
+        return authored_frame_junction_color(x, y, 140, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -1097,8 +1106,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     // The 057D mismatch map shows the same right-heavy saddle mass as
     // 057E. Shift left and narrow it while the wheel continues to own the
     // exact recovered contact anchor.
-    const int seat_dx = x - 112;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 112, 26, 28, 14, 12, 40
     );
@@ -1138,7 +1145,7 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
         return authored_saddle_color(x, y, 112, 26, 14);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 144, 60, false);
+        return authored_frame_junction_color(x, y, 144, 60, false, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_red_frame_color(x, y);
@@ -1176,9 +1183,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
     const bool pedal = authored_pedal_contains(
         x, y, 141, 145
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 130, 22, 35, 12, 12, 36
     );
@@ -1208,7 +1212,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
     if (seat) {
         return authored_saddle_color(x, y, 130, 22, 12);
     }
-    if (crown) return authored_frame_junction_color(x, y, 134, 60, true);
+    if (crown) return authored_frame_junction_color(x, y, 134, 60, true, fork || frame_brace || neck);
     if (fork || frame_brace || neck) return authored_blue_frame_color(x, y);
     if (tire) {
         return authored_rubber_color(x, y, wheel_cx, wheel_cy);
@@ -1255,8 +1259,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
     // The P2 0541 transition pose is over-broad on the left/top at true
     // density. Shift right/down and narrow the saddle while preserving the
     // stock-derived envelope/contact through the wheel/fork structure.
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 130, 26, 30, 12, 12, 40
     );
@@ -1296,7 +1298,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
         return authored_saddle_color(x, y, 130, 26, 12);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 130, 60, true);
+        return authored_frame_junction_color(x, y, 130, 60, true, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_blue_frame_color(x, y);
@@ -1341,9 +1343,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const bool pedal = authored_pedal_contains(
         x, y, 133, 137
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 130, 26, 35, 14, 16, 40
     );
@@ -1379,7 +1378,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
         return authored_saddle_color(x, y, 130, 26, 14);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 126, 60, true);
+        return authored_frame_junction_color(x, y, 126, 60, true, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_blue_frame_color(x, y);
@@ -1421,9 +1420,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const bool pedal = authored_pedal_contains(
         x, y, 131, 135
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 30;
     const bool seat = authored_saddle_contains(
         x, y, 130, 30, 35, 12, 16, 40
     );
@@ -1459,7 +1455,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
         return authored_saddle_color(x, y, 130, 30, 12);
     }
     if (crown) {
-        return authored_frame_junction_color(x, y, 124, 60, true);
+        return authored_frame_junction_color(x, y, 124, 60, true, fork || frame_brace || neck);
     }
     if (fork || frame_brace || neck) {
         return authored_blue_frame_color(x, y);

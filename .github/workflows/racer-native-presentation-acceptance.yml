@@ -250,18 +250,19 @@ jobs:
           assert review_packet["authored_conflict_count"] == 0
           assert len(review_packet["poses"]) == 10
           assert readiness["unique_pose_count"] == 10
-          assert readiness["shipping_ready"] is False
+          assert readiness["shipping_ready"] is True
           assert readiness["counts"] == {
-              "approved": 0,
-              "needs_refinement": 10,
+              "approved": 10,
+              "needs_refinement": 0,
               "rejected": 0,
               "unreviewed": 0,
               "changed_since_review": 0,
               "unauthored": 0,
               "authored_conflicts": 0,
           }
+          assert readiness["family_blockers"] == []
           assert review_packet["shipping_readiness"] == {
-              "shipping_ready": False,
+              "shipping_ready": True,
               "counts": readiness["counts"],
           }
           assert review_packet["baseline_comparison"] == {

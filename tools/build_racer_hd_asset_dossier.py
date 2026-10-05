@@ -319,23 +319,35 @@ def authored_frame_junction_rgba(
     crown_x: int,
     crown_y: int,
     blue_frame: bool,
+    member_overlap: bool,
 ) -> bytes:
-    """Mirror the native forged crown/junction material exactly."""
+    """Mirror the native integrated forged crown/junction material exactly."""
     dx = x - crown_x
     dy = y - crown_y
     radial2 = dx * dx + dy * dy
-    highlight = dx <= 1 and dy <= 1 and radial2 >= 18
-    shadow = dx >= 2 or dy >= 4
+    shoulder_highlight = dy <= -1 and dx <= 2 and radial2 >= 12
+    integrated_throat = dy >= 1 and (dx >= -2 or radial2 <= 20)
+    outer_shadow = dx >= 4 or dy >= 5
+    if member_overlap:
+        return (
+            authored_blue_frame_rgba(x, y)
+            if blue_frame
+            else authored_red_frame_rgba(x, y)
+        )
     if blue_frame:
-        if highlight:
+        if shoulder_highlight:
             return _rgba32(83, 115, 232)
-        if shadow:
+        if outer_shadow:
             return _rgba32(24, 40, 120)
+        if integrated_throat:
+            return _rgba32(35, 51, 150)
         return _rgba32(52, 77, 201)
-    if highlight:
+    if shoulder_highlight:
         return _rgba32(232, 83, 83)
-    if shadow:
+    if outer_shadow:
         return _rgba32(120, 24, 24)
+    if integrated_throat:
+        return _rgba32(150, 35, 35)
     return _rgba32(201, 52, 52)
 
 
@@ -449,9 +461,6 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
 
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
     pedal = authored_pedal_contains(x, y, 138, 150)
-
-    seat_dx = x - 128
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 128, 22, 30, 18, 12, 32)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -475,7 +484,7 @@ def sample_authored_0541_p1_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 128, 22, 18)
     if crown:
-        return authored_frame_junction_rgba(x, y, 132, 60, False)
+        return authored_frame_junction_rgba(x, y, 132, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -509,9 +518,6 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 4 and x <= fork_center + 4
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 138)
     pedal = authored_pedal_contains(x, y, 138, 150)
-
-    seat_dx = x - 130
-    seat_dy = y - 23
     seat = authored_saddle_contains(x, y, 130, 23, 32, 13, 8, 34)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -535,7 +541,7 @@ def sample_authored_0541_p1_companion_0d2d_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 23, 13)
     if crown:
-        return authored_frame_junction_rgba(x, y, 132, 60, False)
+        return authored_frame_junction_rgba(x, y, 132, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -569,9 +575,6 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
     pedal = authored_pedal_contains(x, y, 141, 145)
-
-    seat_dx = x - 130
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
@@ -596,7 +599,7 @@ def sample_authored_0540_p1_predecessor_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 22, 12)
     if crown:
-        return authored_frame_junction_rgba(x, y, 134, 60, False)
+        return authored_frame_junction_rgba(x, y, 134, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -634,8 +637,6 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     # The bridge pose still carried a small right-heavy saddle block in the
     # true-density mismatch map. Shift/narrow without touching its recovered
     # outer envelope or wheel contact.
-    seat_dx = x - 120
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 120, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 128 and x <= 136
@@ -660,7 +661,7 @@ def sample_authored_057f_p1_companion_0d4a_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 120, 22, 14)
     if crown:
-        return authored_frame_junction_rgba(x, y, 136, 60, False)
+        return authored_frame_junction_rgba(x, y, 136, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -698,8 +699,6 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # True-density review showed the old saddle carried a broad block of
     # authored-only mass to the right. Shift/narrow the same smooth ellipse
     # while preserving the recovered whole-pose envelope and contact.
-    seat_dx = x - 116
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 116, 22, 32, 14, 8, 36)
 
     neck = y >= 30 and y <= 60 and x >= 132 and x <= 140
@@ -724,7 +723,7 @@ def sample_authored_057e_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 116, 22, 14)
     if crown:
-        return authored_frame_junction_rgba(x, y, 140, 60, False)
+        return authored_frame_junction_rgba(x, y, 140, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -762,8 +761,6 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     # The 057D mismatch map shows the same right-heavy saddle mass as 057E.
     # Shift left and narrow it without changing the stock-derived envelope or
     # the wheel-supplied contact anchor.
-    seat_dx = x - 112
-    seat_dy = y - 26
     seat = authored_saddle_contains(x, y, 112, 26, 28, 14, 12, 40)
 
     neck = y >= 30 and y <= 60 and x >= 136 and x <= 144
@@ -788,7 +785,7 @@ def sample_authored_057d_p1_with_p2_0543_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 112, 26, 14)
     if crown:
-        return authored_frame_junction_rgba(x, y, 144, 60, False)
+        return authored_frame_junction_rgba(x, y, 144, 60, False, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_red_frame_rgba(x, y)
     if tire:
@@ -822,9 +819,6 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
     crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 141)
     pedal = authored_pedal_contains(x, y, 141, 145)
-
-    seat_dx = x - 130
-    seat_dy = y - 22
     seat = authored_saddle_contains(x, y, 130, 22, 35, 12, 12, 36)
 
     neck = y >= 30 and y <= 60 and x >= 124 and x <= 132
@@ -849,7 +843,7 @@ def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 22, 12)
     if crown:
-        return authored_frame_junction_rgba(x, y, 134, 60, True)
+        return authored_frame_junction_rgba(x, y, 134, 60, True, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
@@ -903,7 +897,7 @@ def sample_authored_0541_p2_predecessor_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 26, 12)
     if crown:
-        return authored_frame_junction_rgba(x, y, 130, 60, True)
+        return authored_frame_junction_rgba(x, y, 130, 60, True, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
@@ -961,7 +955,7 @@ def sample_authored_0542_p2_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 26, 14)
     if crown:
-        return authored_frame_junction_rgba(x, y, 126, 60, True)
+        return authored_frame_junction_rgba(x, y, 126, 60, True, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:
@@ -1019,7 +1013,7 @@ def sample_authored_0543_p2_rgba(x: int, y: int) -> bytes:
     if seat:
         return authored_saddle_rgba(x, y, 130, 30, 12)
     if crown:
-        return authored_frame_junction_rgba(x, y, 124, 60, True)
+        return authored_frame_junction_rgba(x, y, 124, 60, True, fork or frame_brace or neck)
     if fork or frame_brace or neck:
         return authored_blue_frame_rgba(x, y)
     if tire:

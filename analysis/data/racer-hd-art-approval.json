@@ -2,111 +2,86 @@
   "schema_version": 1,
   "family": "ordinary-racer",
   "review_basis": {
-    "workflow_run": 37240816113,
-    "artifact_id": 11316723429,
+    "workflow_run": 37248763308,
+    "artifact_id": 11319814239,
     "temporal_window": [
       1205,
       1220
     ],
     "review_surface": "racer-hd-asset-dossier/review/index.html",
-    "disposition": "Seventh sequence-level refinement adds proportion-aware saddle shell, sidewall, recessed underside, and lower-lip treatment while preserving every measured alpha bound, contact anchor, occupancy count, and IoU value from the reviewed drivetrain head. Combined with the earlier saddle/post clamp, saddle-volume-attachment is closed for this strip. Frame-junction-modeling is the only remaining shared art blocker; none of the ten unique poses is shipping-ready yet."
+    "disposition": "Eighth sequence-level review closes frame-junction-modeling. The shared forged-crown treatment now carries the known neck/fork/brace members continuously through the crown, removing the residual round-collar read across all ten unique poses. Review of the regenerated true-4x family and live 1024x896 split-screen capture found the change coherent at detail scale and quiet at gameplay scale. All ten reviewed alpha masks are unchanged from the prior accepted strip, preserving exact envelopes, recovered contact anchors, temporal occupancy metrics and byte-identical pose reuse. Together with the previously closed saddle-volume-attachment work, the authored 1205-1220 strip has no remaining shared art blocker and all ten unique poses are approved as shipping art for the current Remastered family."
   },
-  "family_blockers": [
-    {
-      "code": "frame-junction-modeling",
-      "description": "Shared crown collars improve fork/frame continuity and corrected P2 centers align material with geometry, but several intersections still read as simplified members meeting a collar rather than fully integrated high-resolution hardware."
-    }
-  ],
+  "family_blockers": [],
   "decisions": [
     {
       "authored_source_representation_id": "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "0ec386424fdc343d4521122f8a39ddd4ac34b4e748b3c530e345e6fc6c1ab566"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "5da253bab6aad9cc8e4f21311ef857ad58d18ee18ff1443f6574e762b29aa1be"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057D-p1-adjacent-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "fc37a129f0ce8d9325cdf623d8fcbae922bd134fe690d87de73e854b9ce19c47"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "0f698f67e61c9a7a04a4c207808c38a44adce835cc45b00cd100fa8af4e867e0"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "59511bfcb6a180e2c719fcfb99a2c83bf1a2f5a71b0dbf581ebcb57f0887d5da"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "f544db8eab17b53f68186f799d2e655b3f2fbda7c9e6615944da0cf2401031e8"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "8017e4719cff149c257554ff94776afd57183d1b91dab9582d97ce7ee37a8912"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "074443de293a95e4bd7b0d1efe98d1beb252aa6e835a293312eb4e76dac3cc0c"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-companion-0D2D-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "e1a7743e2578927e52ffbb08447625b787dcc9616d8a94b4eeb7ffda98a84f91"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "1b7439ac1aad7fdc2361b06adb915b0c98a60d674f47402daaf346c0fa64b870"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p1-sync-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "0cbee20ccf8be5ae3b9ff51f5d07f5c0133b89425e7aaabd2238a5cd134fa6ca"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "d1e9344eeee78bbd1d05fb7a780dbb977e91e76fb16d66b49c283e3adfaa4f71"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "f9b655baa1c4aae6a98cc78ffbc0e207664660a2a567b4ba9ca3eaf1b44bbf62"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "b8245cbe72cbf2c8d591c5ef51bd55c9f12802fa092b4f76f6c9e8dc0597e442"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "022cd46b7139320009d916684869b75bcc8a133420d597f478164238b51d0195"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "f4253fd3a78484b18c18c79fd764e87d6f7444b6658ad2c5738d8d9486e1d484"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "ec7464aef6cbee47d186da412e6b752ce43982adcd3acd04dde7da416a6eb063"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "39175a57accedc5399f50fe7a0ffc675d0977bc9c83d127964f6109f55a3379b"
     },
     {
       "authored_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "frame-junction-modeling"
-      ],
-      "reviewed_authored_rgba_sha256": "e664586d2ad288cd61e87cf5f4b02fc3d95e801a24747eb367b10942d5470ca6"
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927"
     }
   ]
 }

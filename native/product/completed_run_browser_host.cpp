@@ -404,6 +404,10 @@ void draw_browser(
                 entry.course_id.rfind("course:", 0) == 0
                     ? "C" + entry.course_id.substr(7)
                     : entry.course_id;
+            const std::string date =
+                entry.date_text.size() == 10
+                    ? entry.date_text.substr(5)
+                    : entry.date_text;
             std::snprintf(
                 line, sizeof(line), "%c #%03zu %s %s %s%s",
                 g_browser.selected_index() &&
@@ -411,15 +415,23 @@ void draw_browser(
                     ? '>' : ' ',
                 entry.chronological_order,
                 course.c_str(),
-                entry.date_text.c_str(),
+                date.c_str(),
                 entry.time_text.c_str(),
                 tags.c_str());
         } else {
+            const std::string course =
+                entry.course_id.rfind("course:", 0) == 0
+                    ? "C" + entry.course_id.substr(7)
+                    : entry.course_id;
+            const std::string date =
+                entry.date_text.size() == 10
+                    ? entry.date_text.substr(5)
+                    : entry.date_text;
             std::snprintf(
                 line, sizeof(line), "  #%03zu %s %s %s",
                 entry.chronological_order,
-                entry.date_text.c_str(),
-                entry.course_id.c_str(),
+                date.c_str(),
+                course.c_str(),
                 ur::product::completed_run_browser_status_name(
                     entry.status));
         }

@@ -121,6 +121,43 @@ int main(int argc, char** argv) {
     assert(!browser.entries()[1].personal_best_delta_ticks60);
     assert(browser.entries()[1].personal_best_delta_text == "--");
 
+    CompletedRunRecordsBrowser records_browser;
+    const RunRecordsScope records_scope{
+        "uniracers-usa",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "native-sim-v1",
+        "race-1p",
+    };
+    assert(records_browser.refresh(root.string(), records_scope));
+    assert(records_browser.view() == CompletedRunRecordsView::Courses);
+    assert(records_browser.index().total_completed_runs == 5);
+    assert(records_browser.index().courses.size() == 2);
+    assert(records_browser.selected_course());
+    assert(records_browser.selected_course()->course_id == "course:01");
+    assert(records_browser.selected_course()->statistics.completed_runs == 4);
+    assert(records_browser.selected_course()->statistics.personal_best_text ==
+           "0:28.33/60");
+
+    assert(records_browser.move(1));
+    assert(records_browser.selected_course()->course_id == "course:02");
+    assert(records_browser.move(1));
+    assert(records_browser.selected_course()->course_id == "course:01");
+    assert(records_browser.move(-1));
+    assert(records_browser.selected_course()->course_id == "course:02");
+    assert(records_browser.move(1));
+
+    assert(records_browser.open_selected_course());
+    assert(records_browser.view() == CompletedRunRecordsView::Runs);
+    assert(records_browser.selected_run());
+    assert(records_browser.selected_run()->is_previous);
+    const auto first_run_path = records_browser.selected_run()->path;
+    assert(records_browser.move(1));
+    assert(records_browser.selected_run());
+    assert(records_browser.selected_run()->path != first_run_path);
+    assert(records_browser.back_to_courses());
+    assert(records_browser.view() == CompletedRunRecordsView::Courses);
+    assert(!records_browser.selected_run_index());
+
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Corrupt)) == "CORRUPT");
     assert(std::string(completed_run_browser_status_name(

@@ -66,6 +66,15 @@ def summarize(
     stored_checksum = after_poke_sram[tier.CHECKSUM_AT] | (
         after_poke_sram[tier.CHECKSUM_AT + 1] << 8)
     outcome = classify(control, variant)
+    changed = [
+        {
+            "offset": f"0x{i:04X}",
+            "before": a,
+            "after": b,
+        }
+        for i, (a, b) in enumerate(zip(before_sram, after_poke_sram))
+        if a != b
+    ]
     checks = {
         "control_is_bronze_bronsen": (
             control["tier_label"] == "BRONZE"
@@ -75,10 +84,8 @@ def summarize(
         "stock_confirm_snapshot_was_zero": before_sram[SNAPSHOT] == 0,
         "variant_snapshot_is_gold_generation": after_poke_sram[SNAPSHOT] == 2,
         "only_snapshot_changed_by_host_poke": (
-            [
-                i for i, (a, b) in enumerate(zip(before_sram, after_poke_sram))
-                if a != b
-            ] == [SNAPSHOT]
+            len(changed) == 1 and
+            changed[0]["offset"] == f"0x{SNAPSHOT:04X}"
         ),
         "persistent_medal_remains_zero": (
             after_poke_sram[tier.MEDAL_CELL] == 0
@@ -99,6 +106,7 @@ def summarize(
         "transient_10d1_2": variant,
         "classification": outcome,
         "candidate_is_full_generation_seam": outcome == "full-generation-seam",
+        "zero_frame_sram_changes": changed,
         "checks": checks,
         "all_integrity_checks_pass": all(checks.values()),
     }

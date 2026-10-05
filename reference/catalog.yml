@@ -1060,3 +1060,12 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public GameFAQs review; preserve claims and provenance only."
     relevance: "Independent early-player claim that larger tricks produce larger speed boosts, corroborating OrangeStar and conflicting with later fixed-boost recollections. Useful specifically as evidence for the boost-semantics discriminator."
+
+
+  - id: gamehacking-org-uniracers
+    title: "GameHacking.org Uniracers code corpus"
+    type: cheat_code_and_ram_anchor
+    url: "https://gamehacking.org/game/45291"
+    retrieved: "2026-10-05"
+    rights: "Public cheat-code database; preserve codes and provenance as research leads. Confirm semantics locally before promotion."
+    relevance: "Adds state probes not obvious in older mirrors, including jump-in-midair, qualifying-score RAM, lap quick-win state, explicit timer RAM, speed modifiers, stunt-classification patches and unsafe arbitrary-course selection. Useful for localizing jump eligibility, race completion and score/progression state."

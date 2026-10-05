@@ -5,6 +5,21 @@
 using namespace ur::product;
 
 int main() {
+    assert(unique_remaining_tour_slot({1, 1, 1, 1, 0}) ==
+           std::optional<std::uint8_t>{4});
+    assert(unique_remaining_tour_slot({1, 0, 1, 1, 1}) ==
+           std::optional<std::uint8_t>{1});
+    assert(!unique_remaining_tour_slot({1, 1, 0, 0, 1}));
+    assert(!unique_remaining_tour_slot({1, 1, 1, 1, 1}));
+    assert(!unique_remaining_tour_slot({0, 0, 0, 0, 0}));
+
+    assert(unique_next_track_id(0, {1, 1, 1, 1, 0}) ==
+           std::optional<std::uint8_t>{4});
+    assert(unique_next_track_id(8, {1, 1, 1, 1, 0}) ==
+           std::optional<std::uint8_t>{44});
+    assert(!unique_next_track_id(9, {1, 1, 1, 1, 0}));
+    assert(!unique_next_track_id(2, {1, 1, 0, 0, 1}));
+
     FastNavigationContext ctx{};
     ctx.modern_mode = true;
 

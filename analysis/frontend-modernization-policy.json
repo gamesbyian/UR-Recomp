@@ -48,8 +48,8 @@
       ],
       "class": "presentation_artifact",
       "modern": "preserve_and_augment",
-      "rationale": "Baseline requirement: preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase.",
-      "policy_source": "docs/WORK-QUEUE.md#baseline-modern-product-requirements"
+      "rationale": "Modern preserves the original attract/demo cycle by default. A future Local Showcase using strong local completed runs may be offered only as an explicit optional attract mode; it does not silently replace the stock presentation artifact.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "ending-sequence-and-shortcut",
@@ -111,9 +111,9 @@
         "MAIN_MENU"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "The five-entry 1P/2P/VS/LEAGUE/OPTIONS structure is navigation depth, not a mechanic. Modern practice/free-play, recent track and fast local multiplayer entry points may regroup it.",
-      "decision_gate": "Modern frontend information architecture: practice/free-play route and fast local multiplayer join/setup."
+      "modern": "redesign_decided",
+      "rationale": "Modern uses task-oriented top-level navigation: Play, Practice, Multiplayer, Records, Options. Profile identity is handled above/beside this hub rather than hidden in Options. Authentic/reference mode retains the stock five-entry structure.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "racer-roster-presets",
@@ -124,8 +124,8 @@
       ],
       "class": "presentation_artifact",
       "modern": "preserve_and_augment",
-      "rationale": "Every named/color-coded unicycle remains an exact preset and may also serve as AI/ghost/tournament cast; player-created racers are added beside them. Exact preset data (index, default name, grid slot, medal column, ROM palette) is analysis/generated/legacy-cast-presets.json.",
-      "policy_source": "docs/PROJECT-PLAN.md#racer-identity-and-legacy-cast"
+      "rationale": "Every named/color-coded unicycle remains an exact selectable preset. Modern does not invent new canonical personalities for the 16 classic racers. Bronsen, Silvia, Goldwyn and ANTI-UNI remain the canonical stock opponent identities; recorded ghosts reflect the profile/racer that produced them. Optional later CPU/tournament reuse is content reuse, not new canon.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "racer-as-save-slot",
@@ -148,9 +148,9 @@
         "VS_SELECT"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Sequential P1-then-P2 selector handoff and the claimed-rider exclusion boundary follow from racers being save slots and one shared selector. Modern simultaneous join may replace it; the authentic handoff remains a Tier 1 fidelity oracle.",
-      "decision_gate": "Fast local multiplayer join/setup design after the modern racer/profile model exists."
+      "modern": "redesign_decided",
+      "rationale": "Modern local multiplayer uses simultaneous independent join/racer selection. Shared-selector sequencing and claimed-rider exclusion are cartridge-era administration, not gameplay rules. Authentic/reference mode preserves the stock sequential handoff. Modern may allow duplicate classic presets, with player/viewport identity providing disambiguation.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "vs-challenge-rules",
@@ -200,9 +200,9 @@
         "POST_RESULT_DECISION"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Mandatory Bronze then Silver then Gold re-clears of the same tour are content-padding repetition. Performance-based awarding or selectable challenge tiers are the candidates; Bronsen, Silvia and Goldwyn stay as named opponents regardless. Stock state is now mapped: each completed tour run (five qualifying results, SRAM 0x1075 flags) raises that rider's medal cell by one step, the next run's opponent is 17 + medal (Bronsen/Silvia/Goldwyn), gold plays the tour's reward scene and Hunter gold the ending; tiers follow the main-tour thresholds (4+ medals of any kind -> 1, 6+ silver or better -> 2, all 8 gold -> 3) (R-2026-10-04-UI-20, UI-22).",
-      "decision_gate": "Product call on modern medal/progression policy (WORK-QUEUE Phase 9); the stock rules it must keep reproducible are mapped in analysis/generated/tour-award-ending-probe.json and tier-opponent-probe.json."
+      "modern": "redesign_decided",
+      "rationale": "Modern removes mandatory Bronze→Silver→Gold re-clears. The player selects a challenge tier; completing a higher tier satisfies lower tiers. Canonical thresholds and Bronsen/Silvia/Goldwyn opponent identities remain authoritative. Authentic/reference mode preserves sequential stock progression.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-progression-policy"
     },
     {
       "id": "unfinished-tour-session-loss",
@@ -212,9 +212,9 @@
         "POST_RESULT_DECISION"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Stock keeps per-track tour completion flags in battery SRAM (0x1075 + 5*tour_row + track), but confirming a rider zeroes them (80:BBC1), so an unfinished tour is lost at power-off and on any rider change (R-2026-10-04-UI-20). The loss is a side effect of the entry flow and no mechanic depends on it. Modern per-tour resume is planned and can reuse the stock flag table instead of a parallel store.",
-      "decision_gate": "Product call: offer resume (keep the 0x1075 row when the same rider re-enters the tour) or keep stock loss; stock behavior is established by tools/probe_tour_progress_persistence.py."
+      "modern": "redesign_decided",
+      "rationale": "Modern autosaves and resumes unfinished tours per profile. The current tour, completed events and selected racer/profile survive process exit and rider re-entry. Explicit Resume Tour and Restart Tour actions replace stock accidental loss; Authentic/reference mode retains stock behavior.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-progression-policy"
     },
     {
       "id": "pre-race-now-playing-card",
@@ -275,9 +275,9 @@
         "VS_CHALLENGE_TRACK"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Stock 1P results (race/circuit/stunt) drop straight to TRACK_SELECT. Stock VS already offers NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT after a decided race and an automatic REMATCH after a draw (R-2026-10-03-UI-10). The modern rematch/next-event affordance can therefore reuse VS's own choice set and visual grammar for 1P instead of inventing one.",
-      "decision_gate": "Fast navigation affordances design; candidate is to extend the stock VS track-choice set to 1P results."
+      "modern": "redesign_decided",
+      "rationale": "Modern preserves the stock result ritual, then offers contextual Next Event, Retry, Track Select, Tour Select and Records actions. Tour play emphasizes Next Event; Practice emphasizes Retry. This extends the stock VS navigation vocabulary rather than inventing a separate interaction language.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "league-standings-presentation",
@@ -298,9 +298,9 @@
         "NAME_LEAGUE"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Persistent multi-league player management (up to six leagues of up to eight unicycles) is cartridge-era bureaucracy. A simplified modern tournament path is the candidate replacement.",
-      "decision_gate": "Prototype a simplified modern League/tournament path (WORK-QUEUE Phase 9)."
+      "modern": "redesign_decided",
+      "rationale": "Modern replaces persistent cartridge-era multi-league administration with a Local Tournament setup flow: participants, event/track pool and format, with an active tournament persisted automatically. Round-robin/points league is the default format and original League standings remain available as a presentation view. Authentic/reference mode retains stock League.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "destructive-controller-chords",
@@ -320,9 +320,9 @@
         "OPTIONS_MENU"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "OPTIONS groups Records with player/league administration rather than settings. Modern settings are host-owned already; the hub may be regrouped once racer/profile and records surfaces exist.",
-      "decision_gate": "Modern racer/profile model and unified records surface."
+      "modern": "redesign_decided",
+      "rationale": "Modern Options is settings-only: Video, Audio, Controls, Accessibility and Gameplay/Convenience. Records and profile administration live on their own product surfaces. Authentic/reference mode keeps the original Options grouping.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "records-silos",
@@ -330,9 +330,9 @@
         "RECORDS"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Four separate score/record screens behind a menu are a storage-era silo layout. A unified modern records surface may embed them as views.",
-      "decision_gate": "Unified records/statistics surface design (WORK-QUEUE Phase 9)."
+      "modern": "redesign_decided",
+      "rationale": "Modern provides one Records browser with Tracks, Racers/Profiles, Runs/Replays and Multiplayer/Tournament views. Original record tables remain available as Classic Tables or embedded views. Track pages may combine stock records, PB/previous run, medal targets, ghost selection and replay launch.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "record-table-presentations",
@@ -363,9 +363,9 @@
         "NAME_LEAGUE"
       ],
       "class": "administrative",
-      "modern": "redesign_candidate",
-      "rationale": "Controller-only grid entry and fixed name lengths are hardware-era constraints. Keyboard entry and localization-ready text are the candidates.",
-      "decision_gate": "Modern racer/profile model, practical keyboard support and localization-ready text architecture."
+      "modern": "redesign_decided",
+      "rationale": "Modern uses native keyboard text entry plus a controller-friendly on-screen keyboard. Host profile/racer names may exceed stock field limits; when a guest-compatible name is required, derive a deterministic compatible alias/truncation. Authentic/reference mode preserves the stock alphabet grid.",
+      "policy_source": "docs/PROJECT-PLAN.md#modern-frontend-product-policy"
     },
     {
       "id": "forbidden-name-rejection",

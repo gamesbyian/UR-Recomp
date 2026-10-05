@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "purpose": "Bound callable entries into the stock tour-confirm generation-writer neighborhood.",
+  "target_range": "80:E680-E6BF",
+  "writer": "80:E6BF STA.l $77:10D1",
+  "call_targets": [
+    "80:E6A2"
+  ],
+  "calls": [
+    {
+      "source_cpu": "80:C28F",
+      "source_offset": "0x00428F",
+      "kind": "JSR",
+      "target_cpu": "80:E6A2",
+      "target_offset": "0x0066A2",
+      "source_bytes": "20 a2 e6",
+      "target_window_start": "0x006682",
+      "target_window_hex": "e7 d0 8f 85 9b 20 69 b1 c9 0a d0 07 a9 09 20 da c1 85 9b 20 69 b1 82 79 ff a5 9b c9 09 d0 04 a9 08 85 9b 20 da c1 a5 9b 85 d0 a9 55 8d 00 0c 8d 01 0c 8d 02 0c 22 b4 9e 83 bf 9c 06 77 8f d1 10"
+    }
+  ],
+  "acceptance": {
+    "workflow_run_id": 37374506869,
+    "result": "single-callable-entry",
+    "interpretation": "80:E6A2 is the sole direct call target in the bounded writer neighborhood and is the candidate AOT root for the stock generation snapshot writer."
+  }
+}

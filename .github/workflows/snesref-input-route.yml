@@ -1,7 +1,9 @@
 name: snesref deterministic input route
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: snesref-input-route-${{ github.ref }}
   cancel-in-progress: true
 

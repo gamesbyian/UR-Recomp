@@ -1,7 +1,9 @@
 name: Synchronized racer composition proof
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: racer-composition-mesen-${{ github.ref }}
   cancel-in-progress: true
 

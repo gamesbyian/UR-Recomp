@@ -1,7 +1,9 @@
 name: targeted WRAM store-site scan
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: targeted-wram-store-scan-${{ github.ref }}
   cancel-in-progress: true
 

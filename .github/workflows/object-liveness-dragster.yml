@@ -1,7 +1,9 @@
 name: Dragster object liveness probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: object-liveness-dragster-${{ github.ref }}
   cancel-in-progress: true
 

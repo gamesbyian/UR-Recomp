@@ -1,7 +1,9 @@
 name: trace race-entry WRAM writers
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: trace-race-wram-writers-${{ github.ref }}
   cancel-in-progress: true
 

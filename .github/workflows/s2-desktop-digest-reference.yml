@@ -1,7 +1,9 @@
 name: S2 desktop digest reference
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: read
 
 concurrency:

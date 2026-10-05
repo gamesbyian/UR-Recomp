@@ -1,7 +1,9 @@
 name: VS preparation writer trace
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-vs-preparation-trace-${{ github.ref }}
   cancel-in-progress: true
 

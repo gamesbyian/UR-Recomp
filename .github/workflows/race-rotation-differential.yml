@@ -1,7 +1,9 @@
 name: airborne rotation native/reference differential
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: race-rotation-differential-${{ github.ref }}
   cancel-in-progress: true
 

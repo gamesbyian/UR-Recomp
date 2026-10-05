@@ -1,7 +1,9 @@
 name: Course presentation contract sample
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: course-presentation-contract-sample-${{ github.ref }}
   # This workflow may commit generated evidence; queue writes rather than cancel them.
   cancel-in-progress: false

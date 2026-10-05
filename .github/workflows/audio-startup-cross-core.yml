@@ -1,7 +1,9 @@
 name: Audio startup cross-core regression
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: audio-startup-cross-core-${{ github.ref }}
   cancel-in-progress: true
 

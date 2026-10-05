@@ -1,7 +1,9 @@
 name: TCRF unused-content ROM reconciliation
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: tcrf-unused-content-reconcile-${{ github.ref }}
   cancel-in-progress: true
 

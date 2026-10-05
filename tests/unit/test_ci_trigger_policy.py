@@ -222,6 +222,19 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
 
 
+    def test_workflow_dispatch_has_a_yaml_boundary(self):
+        offenders = []
+        bad = re.compile(r"workflow_dispatch:(?:jobs:|permissions:|concurrency:|env:)")
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            if bad.search(path.read_text()):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"workflow_dispatch must be separated from the next top-level key: {offenders}",
+        )
+
+
     def test_main_push_allowlist_is_evidence_writing(self):
         for name in MAIN_PUSH_ALLOWLIST:
             path = WORKFLOWS / name

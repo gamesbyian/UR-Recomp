@@ -1,7 +1,9 @@
 name: Quick Practice track selection probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: quick-practice-track-selection-${{ github.ref }}
   cancel-in-progress: true
 

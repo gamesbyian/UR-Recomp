@@ -1,7 +1,9 @@
 name: RNC static integration classification
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: rnc-static-integration-${{ github.ref }}
   cancel-in-progress: false
 

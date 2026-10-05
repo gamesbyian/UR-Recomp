@@ -1,7 +1,9 @@
 name: Dragster deterministic finish differential
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: race-finish-differential-${{ github.ref }}
   cancel-in-progress: true
 

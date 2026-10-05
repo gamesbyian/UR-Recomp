@@ -1,7 +1,9 @@
 name: SNESRecomp C2 baseline network audit
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: snesrecomp-c2-network-audit-${{ github.ref }}
   cancel-in-progress: true
 

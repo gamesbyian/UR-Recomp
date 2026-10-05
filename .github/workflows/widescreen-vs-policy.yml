@@ -1,7 +1,9 @@
 name: VS Widescreen scene policy
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-vs-policy-${{ github.ref }}
   cancel-in-progress: true
 

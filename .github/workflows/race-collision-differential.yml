@@ -1,7 +1,9 @@
 name: collision candidate native/reference differential
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: race-collision-differential-${{ github.ref }}
   cancel-in-progress: true
 

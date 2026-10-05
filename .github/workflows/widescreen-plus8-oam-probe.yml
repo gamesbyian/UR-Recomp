@@ -1,7 +1,9 @@
 name: +8 Widescreen OAM boundary probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-plus8-oam-${{ github.ref }}
   cancel-in-progress: true
 

@@ -1,7 +1,9 @@
 name: independent libretro reference route
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: independent-reference-route-${{ github.ref }}
   cancel-in-progress: true
 

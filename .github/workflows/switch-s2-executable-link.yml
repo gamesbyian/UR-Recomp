@@ -1,7 +1,9 @@
 name: Switch S2 executable link
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: read
 
 concurrency:

@@ -1,7 +1,9 @@
 name: Window XOR seam reconnaissance
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: window-xor-recon-${{ github.ref }}
   cancel-in-progress: true
 

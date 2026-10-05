@@ -1,7 +1,9 @@
 name: Course header cadence
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: write
 
 concurrency:

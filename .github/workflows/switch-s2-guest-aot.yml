@@ -1,7 +1,9 @@
 name: Switch S2 guest AOT portability
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: read
 
 concurrency:

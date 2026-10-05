@@ -1,0 +1,63 @@
+name: Challenge award AOT probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/challenge-award-aot-probe-2026-10-05
+    paths:
+      - ".github/workflows/challenge-award-aot-probe.yml"
+      - "tools/extract_generated_challenge_award.py"
+      - "tests/unit/test_extract_generated_challenge_award.py"
+      - "tools/seed_native_widescreen_aot.py"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/patch_challenge_generation_writer.py"
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify extractor
+        run: python3 -m unittest tests.unit.test_extract_generated_challenge_award
+
+      - name: Stage SNESRecomp
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+
+      - name: Generate bounded award AOT
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/challenge-award"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" --name "Uniracers" --players 2 \
+              --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out "$RUNNER_TEMP/challenge-award-prepare.json"
+          mkdir -p analysis/generated
+          python3 tools/extract_generated_challenge_award.py \
+            "$ROOT/src/gen" \
+            --out analysis/generated/generated-challenge-award.json
+
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: challenge-award-aot-probe
+          path: |
+            analysis/generated/generated-challenge-award.json
+            ${{ runner.temp }}/challenge-award-prepare.json
+          if-no-files-found: warn
+          retention-days: 7

@@ -7,6 +7,7 @@ on:
       - "tools/apply_native_racer_presentation_probe.py"
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
+      - "tools/probe_racer_hd_fallback_family.py"
       - "tools/build_racer_hd_asset_dossier.py"
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
@@ -21,6 +22,7 @@ on:
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/unit/test_summarize_racer_semantic_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
+      - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
       - "tests/native/racer_oam_placement_test.cpp"
@@ -49,6 +51,15 @@ jobs:
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Probe next measured fallback family reuse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/probe_racer_hd_fallback_family.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-probe.json" \
+            | tee "$RUNNER_TEMP/racer-hd-next-family-probe.txt"
 
       - name: Verify selector, placement, and orientation contracts
         shell: bash
@@ -1269,6 +1280,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-fifth-family-shipping-readiness.txt
             ${{ runner.temp }}/racer-hd-fallback-frequency.json
             ${{ runner.temp }}/racer-hd-fallback-frequency.txt
+            ${{ runner.temp }}/racer-hd-next-family-probe.json
+            ${{ runner.temp }}/racer-hd-next-family-probe.txt
             ${{ runner.temp }}/racer-hd-frequency-family-dossier/
             ${{ runner.temp }}/racer-hd-frequency-family-dossier.txt
             ${{ runner.temp }}/racer-hd-frequency-family-pose-equivalence.txt

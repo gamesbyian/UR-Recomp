@@ -4,7 +4,77 @@
 
 using namespace ur::product;
 
+
+static void prove_all_tracks_reach_race() {
+    for (std::uint8_t track = 0; track < 45; ++track) {
+        auto state = begin_quick_practice_launch(
+            quick_practice_target_for_track(track));
+        QuickPracticeLaunchObservation observation{0xD7, 0, false};
+
+        bool reached = false;
+        for (int guard = 0; guard < 64 && !reached; ++guard) {
+            const auto step = advance_quick_practice_launch(state, observation);
+            state = step.state;
+
+            switch (step.input) {
+            case QuickPracticeLaunchInput::Up:
+                if (observation.selected_option > 0) {
+                    --observation.selected_option;
+                }
+                break;
+            case QuickPracticeLaunchInput::Down:
+                ++observation.selected_option;
+                break;
+            case QuickPracticeLaunchInput::Left:
+                if (observation.selected_option > 0) {
+                    --observation.selected_option;
+                }
+                break;
+            case QuickPracticeLaunchInput::Right:
+                ++observation.selected_option;
+                break;
+            case QuickPracticeLaunchInput::Accept:
+                switch (state.stage) {
+                case QuickPracticeLaunchStage::AwaitRider:
+                    observation = {0x3C, 0, false};
+                    break;
+                case QuickPracticeLaunchStage::AwaitTour:
+                    observation = {0x6D, 0, false};
+                    break;
+                case QuickPracticeLaunchStage::AwaitTrack:
+                    observation = {0xF6, 0, false};
+                    break;
+                case QuickPracticeLaunchStage::AwaitNowPlaying:
+                    observation = {0x16, observation.selected_option, false};
+                    break;
+                case QuickPracticeLaunchStage::AwaitRace:
+                    observation.in_race = true;
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case QuickPracticeLaunchInput::None:
+                break;
+            }
+
+            if (state.waiting_for_selection_change) {
+                // The synthetic guest applies direction input immediately.
+                // Feed the changed selection back on the next iteration.
+            }
+            if (state.stage == QuickPracticeLaunchStage::Active ||
+                step.race_ready) {
+                reached = true;
+            }
+        }
+
+        assert(reached);
+        assert(state.stage == QuickPracticeLaunchStage::Active);
+    }
+}
+
 int main() {
+    prove_all_tracks_reach_race();
     const auto target = quick_practice_target_for_track(12); // Shuffler / slot 3.
     auto state = begin_quick_practice_launch(target);
     assert(state.stage == QuickPracticeLaunchStage::AwaitMain);

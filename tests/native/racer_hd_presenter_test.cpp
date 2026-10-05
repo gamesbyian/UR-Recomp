@@ -59,7 +59,7 @@ int main() {
         0x0541, 0x0540, 0x0D2D, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* companion =
-        find_racer_registration_for_state(0x0541, companion_context);
+        find_racer_registration_for_state(0x0541, companion_context, 1);
     assert(companion != nullptr);
     assert(companion != registration);
     assert(!is_first_authored_remastered_registration(*companion));
@@ -106,7 +106,7 @@ int main() {
         0x0540, 0x0541, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* reversed =
-        find_racer_registration_for_state(0x0540, reversed_context);
+        find_racer_registration_for_state(0x0540, reversed_context, 1);
     assert(reversed != nullptr);
     assert(is_authored_0540_p1_predecessor_registration(*reversed));
     assert(
@@ -151,7 +151,7 @@ int main() {
         0x0540, 0x0542, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* reused =
-        find_racer_registration_for_state(0x0540, reused_context);
+        find_racer_registration_for_state(0x0540, reused_context, 1);
     assert(reused != nullptr);
     assert(
         is_authored_0540_p1_companion_0d2c_with_p2_0542_registration(
@@ -174,7 +174,7 @@ int main() {
         0x057F, 0x0542, 0x0D4A, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* repeated_057f =
-        find_racer_registration_for_state(0x057F, repeated_057f_context);
+        find_racer_registration_for_state(0x057F, repeated_057f_context, 1);
     assert(repeated_057f != nullptr);
     assert(is_authored_057f_p1_companion_0d4a_registration(*repeated_057f));
     assert(sample_racer_hd_asset(*repeated_057f, 156, 22, false, false) == 0);
@@ -224,7 +224,7 @@ int main() {
         0x057E, 0x0543, 0x0D49, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* repeated_057e =
-        find_racer_registration_for_state(0x057E, repeated_057e_context);
+        find_racer_registration_for_state(0x057E, repeated_057e_context, 1);
     assert(repeated_057e != nullptr);
     assert(is_authored_057e_p1_with_p2_0543_registration(*repeated_057e));
     assert(sample_racer_hd_asset(*repeated_057e, 150, 22, false, false) == 0);
@@ -266,7 +266,7 @@ int main() {
         0x057D, 0x0543, 0x0D48, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* repeated_057d =
-        find_racer_registration_for_state(0x057D, repeated_057d_context);
+        find_racer_registration_for_state(0x057D, repeated_057d_context, 1);
     assert(repeated_057d != nullptr);
     assert(is_authored_057d_p1_with_p2_0543_registration(*repeated_057d));
     assert(sample_racer_hd_asset(*repeated_057d, 146, 26, false, false) == 0);
@@ -308,7 +308,7 @@ int main() {
         0x0541, 0x0540, 0x0D0D, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_baseline =
-        find_racer_registration_for_state(0x0540, p2_baseline_context);
+        find_racer_registration_for_state(0x0540, p2_baseline_context, 2);
     assert(p2_baseline != nullptr);
     assert(is_authored_0540_p2_baseline_registration(*p2_baseline));
 
@@ -349,7 +349,7 @@ int main() {
         0x0541, 0x0540, 0x0D2D, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_reuse =
-        find_racer_registration_for_state(0x0540, p2_reuse_context);
+        find_racer_registration_for_state(0x0540, p2_reuse_context, 2);
     assert(p2_reuse != nullptr);
     assert(is_authored_0540_p2_companion_0d2d_registration(*p2_reuse));
     for (int y = 0; y < kRacerHdAssetSize; y += 7) {
@@ -367,7 +367,7 @@ int main() {
         0x0540, 0x0541, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_predecessor =
-        find_racer_registration_for_state(0x0541, p2_predecessor_context);
+        find_racer_registration_for_state(0x0541, p2_predecessor_context, 2);
     assert(p2_predecessor != nullptr);
     assert(is_authored_0541_p2_predecessor_registration(*p2_predecessor));
     assert(sample_racer_hd_asset(*p2_predecessor, 94, 22, false, false) == 0);
@@ -408,7 +408,7 @@ int main() {
         0x0540, 0x0542, 0x0D2C, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_0542 =
-        find_racer_registration_for_state(0x0542, p2_0542_context);
+        find_racer_registration_for_state(0x0542, p2_0542_context, 2);
     assert(p2_0542 != nullptr);
     assert(is_authored_0542_p2_companion_0d2c_registration(*p2_0542));
     assert(sample_racer_hd_asset(*p2_0542, 132, 84, false, false) != 0);
@@ -418,7 +418,7 @@ int main() {
         0x057F, 0x0542, 0x0D4A, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_0542_reuse =
-        find_racer_registration_for_state(0x0542, p2_0542_reuse_context);
+        find_racer_registration_for_state(0x0542, p2_0542_reuse_context, 2);
     assert(p2_0542_reuse != nullptr);
     assert(is_authored_0542_p2_companion_0d4a_registration(*p2_0542_reuse));
 
@@ -460,7 +460,7 @@ int main() {
         0x057D, 0x0543, 0x0D48, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_0543 =
-        find_racer_registration_for_state(0x0543, p2_0543_context);
+        find_racer_registration_for_state(0x0543, p2_0543_context, 2);
     assert(p2_0543 != nullptr);
     assert(is_authored_0543_p2_057d_registration(*p2_0543));
     assert(sample_racer_hd_asset(*p2_0543, 130, 88, false, false) != 0);
@@ -470,7 +470,7 @@ int main() {
         0x057E, 0x0543, 0x0D49, 0x0000, 0, 0, 0x0001, 0x0000
     };
     const auto* p2_0543_reuse =
-        find_racer_registration_for_state(0x0543, p2_0543_reuse_context);
+        find_racer_registration_for_state(0x0543, p2_0543_reuse_context, 2);
     assert(p2_0543_reuse != nullptr);
     assert(is_authored_0543_p2_057e_registration(*p2_0543_reuse));
 
@@ -568,7 +568,8 @@ int main() {
     const auto selected = select_racer_presentation(
         GraphicsPack::Remastered,
         0x0541,
-        registration->composition
+        registration->composition,
+        1
     );
     assert(selected.uses_replacement());
     assert(selected.registration == registration);

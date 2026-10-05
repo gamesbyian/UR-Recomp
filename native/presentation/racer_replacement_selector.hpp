@@ -100,13 +100,15 @@ const RacerRegistration* find_racer_registration(std::uint16_t semantic_frame_id
 
 const RacerRegistration* find_racer_registration_for_state(
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept;
 
 SelectionResult select_racer_presentation(
     GraphicsPack requested_pack,
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept;
 
 }  // namespace ur::presentation

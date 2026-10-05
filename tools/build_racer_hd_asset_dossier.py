@@ -137,6 +137,24 @@ TWENTY_FIRST_AUTHORED_REPRESENTATION_ID = (
 TWENTY_SECOND_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0541-p2-third-family-recovery-0D2D-reference"
 )
+TWENTY_THIRD_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p1-fourth-family-entry-reference"
+)
+TWENTY_FOURTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057F-p2-fourth-family-entry-0D2A-reference"
+)
+TWENTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p1-fourth-family-hold-reference"
+)
+TWENTY_SIXTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+)
+TWENTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0541-p1-fourth-family-exit-reference"
+)
+TWENTY_EIGHTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057F-p2-fourth-family-exit-0D2A-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1226,6 +1244,43 @@ def build_sixteenth_authored_candidate_rgba() -> bytes:
     )
 
 
+
+def sample_authored_0540d0c_p2_fourth_family_rgba(x: int, y: int) -> bytes:
+    # The fourth-family 0540+0D0C stock pose is a close companion-context
+    # variant of the approved 0540+0D2C pose with the same envelope/contact.
+    # Preserve the reviewed geometry/material treatment and transpose only the
+    # player frame palette; family-local stock review decides shipping fitness.
+    return recolor_authored_frame_rgba(
+        sample_authored_0540_p1_predecessor_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def sample_authored_057fd2a_p2_fourth_family_rgba(x: int, y: int) -> bytes:
+    # Likewise start from the approved 057F bridge pose. The 0D2A companion
+    # context differs slightly from 0D4A stock geometry, but shares the same
+    # recovered envelope/contact and is reviewed against its own stock raster.
+    return recolor_authored_frame_rgba(
+        sample_authored_057f_p1_companion_0d4a_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def build_seventeenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0540d0c_p2_fourth_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def build_eighteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_057fd2a_p2_fourth_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
 def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
     """Return authored RGBA plus the expected generator and native sampler."""
     rid = entry["representation_id"]
@@ -1330,6 +1385,30 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_sixteenth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_sixteenth_authored_candidate_rgba",
             "sample_racer_hd_authored_0541d2d_p2_third_family",
+        )
+    if rid in (TWENTY_THIRD_AUTHORED_REPRESENTATION_ID, TWENTY_FIFTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_third_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540_p1_predecessor",
+        )
+    if rid in (TWENTY_FOURTH_AUTHORED_REPRESENTATION_ID, TWENTY_EIGHTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_eighteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_eighteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057fd2a_p2_fourth_family",
+        )
+    if rid == TWENTY_SIXTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_seventeenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_seventeenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540d0c_p2_fourth_family",
+        )
+    if rid == TWENTY_SEVENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_first_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541_p1",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

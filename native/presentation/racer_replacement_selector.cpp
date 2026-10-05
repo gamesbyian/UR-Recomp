@@ -706,6 +706,156 @@ constexpr RacerRegistration kRegistrations[] = {
         true,
         true,
     },
+    {
+        0x0540,
+        1,
+        {
+            0x0540,
+            0x057F,
+            0x0D0C,
+            0x0D2A,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {63, 76},
+        true,
+        true,
+    },
+    {
+        0x057F,
+        2,
+        {
+            0x0540,
+            0x057F,
+            0x0D0C,
+            0x0D2A,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x07,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {65, 76},
+        true,
+        true,
+    },
+    {
+        0x0540,
+        1,
+        {
+            0x0540,
+            0x0540,
+            0x0D0C,
+            0x0D0C,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {63, 76},
+        true,
+        true,
+    },
+    {
+        0x0540,
+        2,
+        {
+            0x0540,
+            0x0540,
+            0x0D0C,
+            0x0D0C,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x07,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {63, 76},
+        true,
+        true,
+    },
+    {
+        0x0541,
+        1,
+        {
+            0x0541,
+            0x057F,
+            0x0D0D,
+            0x0D2A,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {61, 76},
+        true,
+        true,
+    },
+    {
+        0x057F,
+        2,
+        {
+            0x0541,
+            0x057F,
+            0x0D0D,
+            0x0D2A,
+            0,
+            0,
+            0x0001,
+            0x0001,
+        },
+        0x07,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {65, 76},
+        true,
+        true,
+    },
 };
 
 }  // namespace
@@ -721,10 +871,12 @@ const RacerRegistration* find_racer_registration(std::uint16_t semantic_frame_id
 
 const RacerRegistration* find_racer_registration_for_state(
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept {
     for (const auto& registration : kRegistrations) {
         if (registration.semantic_frame_id == semantic_frame_id &&
+            registration.player == player &&
             composition_equal(registration.composition, live_state)) {
             return &registration;
         }
@@ -735,7 +887,8 @@ const RacerRegistration* find_racer_registration_for_state(
 SelectionResult select_racer_presentation(
     GraphicsPack requested_pack,
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept {
     if (requested_pack == GraphicsPack::Original) {
         return {
@@ -758,7 +911,7 @@ SelectionResult select_racer_presentation(
     }
 
     const RacerRegistration* registration =
-        find_racer_registration_for_state(semantic_frame_id, live_state);
+        find_racer_registration_for_state(semantic_frame_id, live_state, player);
     if (registration == nullptr) {
         return {
             requested_pack,

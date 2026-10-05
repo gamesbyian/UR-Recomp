@@ -54,6 +54,10 @@ int main() {
 
     assert(catalog.entries[0].time_text == "0:30.00/60");
     assert(catalog.entries[1].time_text == "0:28.33/60");
+    assert(catalog.entries[0].personal_best_delta_ticks60 == 87);
+    assert(catalog.entries[0].personal_best_delta_text == "+0:01.27/60");
+    assert(catalog.entries[1].personal_best_delta_ticks60 == 0);
+    assert(catalog.entries[1].personal_best_delta_text == "+0:00.00/60");
 
     // Canonical equal-PB policy keeps the most recently supplied equal time.
     assert(catalog.personal_best_entry && *catalog.personal_best_entry == 2);
@@ -64,6 +68,8 @@ int main() {
     // an unfiltered mixed-domain directory.
     assert(catalog.previous_entry && *catalog.previous_entry == 3);
     assert(catalog.entries[3].is_previous);
+    assert(catalog.entries[3].personal_best_delta_ticks60 == 37);
+    assert(catalog.entries[3].personal_best_delta_text == "+0:00.37/60");
 
     const auto stats = present_run_data_statistics(catalog);
     assert(stats.completed_runs == 4);

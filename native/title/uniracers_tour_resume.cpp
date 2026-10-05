@@ -45,6 +45,45 @@ bool valid_unfinished_tour_progress(const TourProgress& value) noexcept {
     return count > 0 && count < kTourTrackCount;
 }
 
+bool tour_resume_source_matches_sram(
+    const TourProgress& continuation,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept {
+    if (!valid_unfinished_tour_progress(continuation) || !sram ||
+        sram_size <= kSramPlayMode) {
+        return false;
+    }
+    if (sram[kSramPlayMode] != kTourPlayMode ||
+        sram[kSramRiderIndex] != continuation.rider_index) {
+        return false;
+    }
+
+    const auto medal =
+        medal_offset(continuation.rider_index, continuation.tour_row);
+    const auto flags = flags_offset(continuation.tour_row);
+    if (medal >= sram_size || flags + kTourTrackCount > sram_size ||
+        sram[medal] != continuation.medal_value) {
+        return false;
+    }
+    for (std::size_t i = 0; i < kTourTrackCount; ++i) {
+        if (sram[flags + i] != continuation.qualified[i]) return false;
+    }
+    return true;
+}
+
+bool tour_qualification_row_empty(
+    std::uint8_t tour_row,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept {
+    if (tour_row >= kTourCount || !sram) return false;
+    const auto flags = flags_offset(tour_row);
+    if (flags + kTourTrackCount > sram_size) return false;
+    for (std::size_t i = 0; i < kTourTrackCount; ++i) {
+        if (sram[flags + i] != 0) return false;
+    }
+    return true;
+}
+
 std::optional<TourProgress> observe_tour_progress(
     const std::uint8_t* wram,
     std::size_t wram_size,

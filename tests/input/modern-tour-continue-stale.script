@@ -1,0 +1,7 @@
+# Modern Continue Tour must fail closed when persisted continuation metadata
+# disagrees with its own persisted stock SRAM source.
+
+until 009F == D7 3600
+wait 120
+dump tour-continue-stale-main
+quit

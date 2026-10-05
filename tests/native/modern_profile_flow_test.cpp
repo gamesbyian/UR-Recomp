@@ -103,6 +103,12 @@ int main(int argc, char** argv) {
         std::array<std::uint8_t, kStockSramBytes> b_sram{};
         a_sram.fill(0x11); b_sram.fill(0x22);
         a->stock_sram = a_sram; b->stock_sram = b_sram;
+        a->tour_continuation =
+            HostTourContinuation{0, 1, 0, {1, 0, 1, 0, 0}};
+        b->tour_continuation =
+            HostTourContinuation{15, 6, 2, {0, 1, 0, 1, 0}};
+        assert(valid_tour_continuation(*a->tour_continuation));
+        assert(valid_tour_continuation(*b->tour_continuation));
         a->ghost_target = CompletedRunGhostTarget::Previous;
         b->ghost_target = CompletedRunGhostTarget::PersonalBest;
         assert(save_host_profile_state_file(ExecutionMode::Modern, a_path, *a) == HostProfileSaveStatus::Saved);
@@ -129,6 +135,17 @@ int main(int argc, char** argv) {
     assert(a.state->racer_identity && a.state->racer_identity->name == "SONIC");
     assert(b.state->racer_identity && b.state->racer_identity->rider_index == 15);
     assert((*a.state->stock_sram)[0] == 0x11 && (*b.state->stock_sram)[0] == 0x22);
+    assert(a.state->tour_continuation);
+    assert(b.state->tour_continuation);
+    assert(a.state->tour_continuation->rider_index == 0);
+    assert(a.state->tour_continuation->tour_row == 1);
+    assert((a.state->tour_continuation->qualified ==
+            std::array<std::uint8_t, 5>{1, 0, 1, 0, 0}));
+    assert(b.state->tour_continuation->rider_index == 15);
+    assert(b.state->tour_continuation->tour_row == 6);
+    assert((b.state->tour_continuation->qualified ==
+            std::array<std::uint8_t, 5>{0, 1, 0, 1, 0}));
+    assert(a.state->tour_continuation != b.state->tour_continuation);
     assert(a.state->ghost_target == CompletedRunGhostTarget::Previous);
     assert(b.state->ghost_target == CompletedRunGhostTarget::PersonalBest);
 
@@ -179,6 +196,10 @@ int main(int argc, char** argv) {
     assert(profile_catalog_authorizes_state(*cat2, *reloaded.state));
     assert((*reloaded.state->stock_sram)[0] == 0x11);
     assert((*b.state->stock_sram)[0] == 0x22);
+    assert(reloaded.state->tour_continuation ==
+           a.state->tour_continuation);
+    assert(b.state->tour_continuation->rider_index == 15);
+    assert(b.state->tour_continuation->tour_row == 6);
 
     assert(!decode_host_profile_catalog(
         "UR-PROFILE-CATALOG/1\n"

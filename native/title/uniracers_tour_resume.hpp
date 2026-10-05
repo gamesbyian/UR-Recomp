@@ -34,6 +34,16 @@ enum class TourResumeApplyStatus : std::uint8_t {
 
 bool valid_unfinished_tour_progress(const TourProgress& value) noexcept;
 
+bool tour_resume_source_matches_sram(
+    const TourProgress& continuation,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept;
+
+bool tour_qualification_row_empty(
+    std::uint8_t tour_row,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept;
+
 std::optional<TourProgress> observe_tour_progress(
     const std::uint8_t* wram,
     std::size_t wram_size,

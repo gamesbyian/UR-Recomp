@@ -43,9 +43,47 @@ int main() {
     assert(valid_unfinished_tour_progress(*observed));
 
     const TourProgress continuation = *observed;
+    assert(tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+
+    // Unrelated battery bytes are outside the continuation contract. Stock
+    // boot is free to touch them without suppressing a valid resume.
+    const auto unrelated_before = sram[0x0200];
+    sram[0x0200] ^= 0x5a;
+    assert(tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x0200] = unrelated_before;
+
+    // Persisted continuation metadata must agree with its own SRAM source.
+    auto stale_source = continuation;
+    stale_source.medal_value = 2;
+    assert(!tour_resume_source_matches_sram(
+        stale_source, sram.data(), sram.size()));
+    stale_source = continuation;
+    stale_source.qualified[1] = 1;
+    assert(!tour_resume_source_matches_sram(
+        stale_source, sram.data(), sram.size()));
+
+    sram[0x0748] = 2;
+    assert(!tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x0748] = 3;
+    sram[0x10AD] = 2;
+    assert(!tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x10AD] = 1;
+
+    assert(!tour_qualification_row_empty(
+        continuation.tour_row, sram.data(), sram.size()));
+    assert(!tour_qualification_row_empty(
+        9, sram.data(), sram.size()));
+    assert(!tour_qualification_row_empty(
+        continuation.tour_row, nullptr, sram.size()));
 
     // Model stock rider confirmation wiping all 50 in-tour flags.
     for (std::size_t i = 0; i < 50; ++i) sram[0x1075 + i] = 0;
+    assert(tour_qualification_row_empty(
+        continuation.tour_row, sram.data(), sram.size()));
     assert(apply_tour_resume(
                continuation,
                wram.data(),

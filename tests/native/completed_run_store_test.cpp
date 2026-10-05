@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -50,9 +51,29 @@ int main(int argc, char** argv) {
     const auto best = select_fastest_compatible_run(plain, target());
     assert(best && plain[*best].elapsed_ticks60 == 1713);
 
+    auto other_course = run(1600);
+    other_course.provenance.course_id = "course:02";
+    std::string path3;
+    assert(append_completed_run_record(
+        dir.string(), other_course, &path3, &detail));
+
+    {
+        std::ofstream bad(dir / "run-9999999999999999-9999.urrun");
+        bad << "not a completed run\n";
+    }
+
+    const auto all_valid = load_valid_run_records(dir.string());
+    assert(all_valid.size() == 3);
+    assert(all_valid[0].path == path1);
+    assert(all_valid[1].path == path2);
+    assert(all_valid[2].path == path3);
+    assert(all_valid[2].record.provenance.course_id == "course:02");
+
     auto wrong = target();
     wrong.course_id = "course:02";
-    assert(load_compatible_run_records(dir.string(), wrong).empty());
+    const auto course2 = load_compatible_run_records(dir.string(), wrong);
+    assert(course2.size() == 1);
+    assert(course2[0].record.elapsed_ticks60 == 1600);
 
     return 0;
 }

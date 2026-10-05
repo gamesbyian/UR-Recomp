@@ -1,21 +1,7 @@
 name: Window XOR seam reconnaissance
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/window-xor-recon.yml"
-      - "tools/summarize_window_seam.py"
-      - "tests/input/reach-first-race.script"
-      - "tests/input/vs-first-race.input"
-      - "tests/input/vs-first-race-observe.script"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/patches/snes9x-snesref-debug-exports.patch"
-      - "snesrecomp"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: window-xor-recon-${{ github.ref }}
   cancel-in-progress: true
 

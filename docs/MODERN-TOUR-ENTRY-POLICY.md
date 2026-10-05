@@ -33,6 +33,20 @@ Restart is intentionally not implemented as "clear the five flags." Stock rider 
 
 If the route is cancelled, times out, changes profile/context, enters an unexpected race, or reaches TRACK_SELECT with a non-empty row, the continuation remains intact.
 
+## Player-facing action model
+
+`native/product/modern_tour_action_menu.hpp` is the host-agnostic action surface for this policy. It uses the existing `UrModernHostNavigationAction` vocabulary rather than physical keyboard/gamepad bindings.
+
+For a valid unfinished Modern tour it exposes:
+
+1. **Resume Tour**;
+2. **Restart Tour**;
+3. **Back**.
+
+Restart opens a confirmation state and requires a second explicit confirm. Back cancels confirmation without discarding continuation. The context is revalidated when the second confirm arrives, so a profile/source change while the confirmation is open fails closed. If continuation is absent/stale or execution is Authentic, only Back exists.
+
+The model emits typed `ModernTourEntryIntent` values; it does not route menus, mutate progression or persist anything.
+
 ## Acceptance contract
 
 Pure coverage proves:

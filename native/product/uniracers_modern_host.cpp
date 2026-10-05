@@ -2087,6 +2087,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char resolution_row[40];
             char widescreen_row[32];
             char ghost_row[32];
+            const auto ghost_target = active_run_ghost_target();
+            const std::string ghost_status =
+                ur::product::completed_run_ghost_target_status_label(
+                    g_run_ghosts, ghost_target);
             std::snprintf(
                 focus_row, sizeof(focus_row), "%c %s",
                 selected == UR_MODERN_OPTIONS_FOCUS_PAUSE ? '>' : ' ',
@@ -2116,8 +2120,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::snprintf(
                 ghost_row, sizeof(ghost_row), "%c GHOST    %s",
                 selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
-                ur::product::completed_run_ghost_target_label(
-                    active_run_ghost_target()));
+                ghost_status.c_str());
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,
                 0xE0202020u);

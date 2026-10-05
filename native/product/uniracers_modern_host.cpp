@@ -2864,6 +2864,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int repeat) {
     if (repeat || !ensure_session()) return 0;
 
+    if (practice_routing()) {
+        // Host-owned stock-menu routing is exclusive until the requested
+        // Practice race has been authoritatively validated. Do not allow the
+        // same physical keyboard input to perturb guest menu selection.
+        return 1;
+    }
     if (modern_mode() && key == SDLK_F1) {
         g_onboarding_visible = true;
         g_onboarding_manual_open = true;
@@ -2875,12 +2881,6 @@ extern "C" int ur_uniracers_modern_system_key_down(
             key == SDLK_ESCAPE) {
             (void)dismiss_onboarding();
         }
-        return 1;
-    }
-    if (practice_routing()) {
-        // Host-owned stock-menu routing is exclusive until the requested
-        // Practice race has been authoritatively validated. Do not allow the
-        // same physical keyboard input to perturb guest menu selection.
         return 1;
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&

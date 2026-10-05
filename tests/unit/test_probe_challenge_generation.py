@@ -40,9 +40,12 @@ class ChallengeGenerationProbeTests(unittest.TestCase):
         sram[tier.CHECKSUM_AT] = value & 0xFF
         sram[tier.CHECKSUM_AT + 1] = value >> 8
 
+        before = bytearray(sram)
+        before[probe.SNAPSHOT] = 0
         report = probe.summarize(
             obs("BRONZE", 17, "BRONSEN"),
             obs("GOLD", 19, "GOLDWYN"),
+            bytes(before),
             bytes(sram))
         self.assertEqual(report["classification"], "full-generation-seam")
         self.assertTrue(report["candidate_is_full_generation_seam"])

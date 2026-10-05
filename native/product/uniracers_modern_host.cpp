@@ -38,8 +38,6 @@ extern "C" {
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
-#include "quick_practice_catalog.hpp"
-#include "quick_practice_input_mask.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"

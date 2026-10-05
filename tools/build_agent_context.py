@@ -64,7 +64,12 @@ def matching_json_entries(
         if isinstance(value, dict):
             for key, child in value.items():
                 child_path = f"{path}.{key}" if path else str(key)
-                if isinstance(child, (dict, list)):
+                if isinstance(child, list):
+                    # Lists are containers, not context entries: descend so one
+                    # matching member does not pull unrelated siblings into the packet.
+                    if walk(child, child_path):
+                        return True
+                elif isinstance(child, dict):
                     if matches(child, str(key)) and add(child_path, child):
                         return True
                     if len(json.dumps(child, sort_keys=True, ensure_ascii=True)) > max_entry_chars:

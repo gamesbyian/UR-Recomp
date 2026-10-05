@@ -5,6 +5,7 @@
 #include <cstdint>
 #include <optional>
 #include <string>
+#include <vector>
 
 namespace ur::product {
 
@@ -47,6 +48,18 @@ struct RunTimingPanelPresentation {
     bool comparison_available = false;
 };
 
+struct RunTimingSplitRowPresentation {
+    std::string id;
+    std::string current_text;
+    std::string target_text;
+    std::string delta_text;
+};
+
+struct RunTimingSplitTablePresentation {
+    std::string target_label;
+    std::vector<RunTimingSplitRowPresentation> rows;
+};
+
 /* Exact display form for the authoritative 60 Hz clock.
  * Example: 1713 ticks -> "0:28.33/60". */
 std::string format_run_ticks60(std::uint64_t ticks60);
@@ -84,5 +97,13 @@ bool should_present_run_timing(
     bool modern_execution,
     bool supported_timed_run,
     bool race_or_results_surface) noexcept;
+
+/* Build an exact ordered split table only when current and target records are
+ * valid and playback-compatible and expose the same split identities. This is
+ * shared results/records presentation, not a ranking or timing authority. */
+std::optional<RunTimingSplitTablePresentation> present_run_split_table(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord& target,
+    RunDataTargetKind kind);
 
 }  // namespace ur::product

@@ -478,7 +478,19 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x_reuse",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057e_p1_with_p2_0543",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Frame 1305 reuses the shipping-approved 057E P1 art because its deterministic stock RGBA is byte-identical to the approved 057E/0543+0D49 pose.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "reuse_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference"
+      }
     },
     {
       "semantic_frame_id": "0x0544",
@@ -542,7 +554,18 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0544_p2",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_twelfth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Author frame-1305 P2 0544 with stock envelope [19,5]..[41,38] and contact [55,76].",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json"
+      }
     },
     {
       "semantic_frame_id": "0x057E",
@@ -811,7 +834,18 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057e_p1_companion_0d69",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eleventh_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Author the distinct frame-1306 0D69 P1 pose with stock envelope [22,2]..[42,38] and contact [67,76].",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json"
+      }
     },
     {
       "semantic_frame_id": "0x0544",
@@ -875,7 +909,19 @@
         "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
         "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
       },
-      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset."
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x_reuse",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0544_p2",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_twelfth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Frame 1306 retains its exact guard while reusing P2 0544 because stock RGBA is byte-identical across 1305-1306.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "reuse_source_representation_id": "ordinary-racer-0x0544-p2-sync-reference"
+      }
     },
     {
       "semantic_frame_id": "0x057D",

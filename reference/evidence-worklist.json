@@ -846,6 +846,40 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "Cheap and useful because player testimony conflicts with FAQ/review claims that colors differ only cosmetically."
+    },
+    {
+      "id": "ping-pong-unmarked-loop-skip",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-uniracers-ntsc-records"
+      ],
+      "question": "What collision/timing condition allows the repeatable unmarked skip through the second large loop on Walker - Ping Pong, and is it the same engine failure family as Jumpover fall-throughs?",
+      "next_discriminator": "Use Wump's record-thread description to localize the skip to the second large loop on Walker - Ping Pong. Search deterministic timing around the loop entry/exit, capture position, velocity, orientation, track-piece and collision state across successful and failed attempts, and compare against Bounder - Jumpover fall-through and the intended red/yellow recovery-track system.",
+      "deliverables": [
+        "minimal Ping Pong loop-skip input trace",
+        "successful-vs-failed collision timing comparison",
+        "classification relative to marked shortcuts, Jumpover fall-through and recovery-track escapes",
+        "deterministic fixture if reproducible"
+      ],
+      "tags": [
+        "collision",
+        "shortcut",
+        "glitch",
+        "ping-pong",
+        "loop",
+        "records",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High value because the historical competitive community regarded it as repeatable, distinct from marked shortcuts, and important enough to annotate in recordkeeping."
     }
   ],
   "acquisition_policy": {

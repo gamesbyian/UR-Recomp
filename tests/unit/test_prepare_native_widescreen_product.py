@@ -41,20 +41,34 @@ class PrepareNativeWidescreenProductTests(unittest.TestCase):
                 calls.append(command)
                 (project / "src/gen").mkdir(parents=True)
 
+            generated_source = project / "src/gen/bank_00.c"
+            def fake_challenge_hook(generated):
+                self.assertEqual(generated, (project / "src/gen").resolve())
+                generated_source.write_text("/* challenge hook */\n")
+                return generated_source
+
             with mock.patch.object(
                 MOD, "ensure_seed", return_value={"symbols": True, "bank03": True}
             ) as seed, mock.patch.object(
                 MOD,
                 "apply_widescreen_hook",
                 return_value={"changed": True, "margin72_supported": True},
-            ) as apply:
+            ) as apply, mock.patch.object(
+                MOD,
+                "patch_challenge_generation_writer",
+                side_effect=fake_challenge_hook,
+            ) as challenge:
                 report = MOD.prepare(framework, project, rom, run=fake_run)
 
             seed.assert_called_once_with((project / "recomp").resolve())
             apply.assert_called_once_with((project / "src/gen").resolve())
+            challenge.assert_called_once_with((project / "src/gen").resolve())
             self.assertEqual(len(calls), 1)
             self.assertTrue(report["product_ready"])
             self.assertTrue(report["hook"]["margin72_supported"])
+            self.assertEqual(
+                report["challenge_generation_writer"],
+                "src/gen/bank_00.c")
 
     def test_prepare_fails_closed_when_capacity_contract_regresses(self):
         with tempfile.TemporaryDirectory() as td:
@@ -72,6 +86,10 @@ class PrepareNativeWidescreenProductTests(unittest.TestCase):
                  mock.patch.object(
                      MOD, "apply_widescreen_hook",
                      return_value={"changed": True, "margin72_supported": False},
+                 ), \
+                 mock.patch.object(
+                     MOD, "patch_challenge_generation_writer",
+                     return_value=(project / "src/gen/bank_00.c"),
                  ):
                 with self.assertRaisesRegex(ValueError, "retain \+72 capacity"):
                     MOD.prepare(
@@ -100,13 +118,18 @@ class PrepareNativeWidescreenProductTests(unittest.TestCase):
 
             with mock.patch.object(
                 MOD, "ensure_seed", return_value={"symbols": True, "bank03": True}
-            ) as seed, mock.patch.object(MOD, "apply_widescreen_hook") as apply:
+            ) as seed, mock.patch.object(
+                MOD, "apply_widescreen_hook"
+            ) as apply, mock.patch.object(
+                MOD, "patch_challenge_generation_writer"
+            ) as challenge:
                 report = MOD.prepare(
                     framework, project, rom, run=fake_run, regression_baseline=True
                 )
 
             seed.assert_called_once_with((project / "recomp").resolve())
             apply.assert_not_called()
+            challenge.assert_not_called()
             self.assertEqual(len(calls), 1)
             self.assertTrue(report["regression_baseline"])
             self.assertFalse(report["product_ready"])

@@ -460,7 +460,7 @@
         "tasvideos-tabletop-nondecay-video"
       ],
       "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
-      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero.",
+      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero. Treat Tabletop as an explicit exception to the usual repeat-score halving rule and verify repeated identical-duration Tabletop scores.",
       "deliverables": [
         "cross-source mechanics concordance table",
         "deterministic stunt-score and repeat-decay fixture",
@@ -470,7 +470,8 @@
         "name-filter substring behavior fixture",
         "source conflict notes where player recollections disagree",
         "Tabletop duration-scoring and stunt-timer overrun fixture",
-        "Tabletop repeat-score non-decay fixture"
+        "Tabletop repeat-score non-decay fixture",
+        "Tabletop exception to repeat-score halving"
       ],
       "tags": [
         "community-research",
@@ -502,16 +503,20 @@
         "arqade-uniracers-straightaway-speed",
         "tasvideos-usjo",
         "flymaggott-dragster-fliptwist-video",
-        "gamefaqs-starscream-boost-review"
+        "gamefaqs-starscream-boost-review",
+        "tasvideos-uniracers-topic"
       ],
       "question": "Does race-speed boost scale with stunt complexity/count, or is each successful stunt effectively a fixed boost with apparent differences coming from landing quality, timing, offscreen depletion, or combo structure?",
-      "next_discriminator": "Build deterministic same-course traces comparing single Twist, single Roll, Flip, Roll+Twist, Double Flip, and Flip City from matched pre-jump state. Measure resulting speed/boost state frame-by-frame through landing and for a fixed post-landing window, both onscreen and offscreen. Separate stunt-score value from race-speed boost and landing penalty.",
+      "next_discriminator": "Build deterministic same-course traces comparing single Twist, single Roll, Flip, Roll+Twist, Double Flip, and Flip City from matched pre-jump state. Measure resulting speed/boost state frame-by-frame through landing and for a fixed post-landing window, both onscreen and offscreen. Separate stunt-score value from race-speed boost and landing penalty. Validate TAS-era numeric claims explicitly: peak speed 640, no positive midair speed change, boost increment when the stunt text registers, and stored-boost behavior arising because boost is not consumed while airborne.",
       "deliverables": [
         "frame-level boost/speed comparison matrix",
         "landing-quality penalty characterization",
         "onscreen/offscreen depletion comparison",
         "resolved source-conflict note with canonical behavior",
-        "video-aligned flip-twist boost trace"
+        "video-aligned flip-twist boost trace",
+        "peak-speed 640 verification",
+        "midair acceleration/no-acceleration verification",
+        "stunt-registration frame versus boost-increment frame alignment"
       ],
       "tags": [
         "boost",
@@ -918,6 +923,42 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "Useful because it connects a remembered player pain point to specific track-state and boost behavior already under investigation."
+    },
+    {
+      "id": "roll-twist-input-semantics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "What exact input/state rules permit simultaneous roll-twist and flip-twist recognition, including flat-ground starts, buffered inputs, landing-angle misclassification, and turbo-controller claims?",
+      "next_discriminator": "Reproduce the TAS-thread techniques on canonical runtime: roll-twist by holding roll while releasing twist after one completed twist; back-forward twist input without the twist button; flip-twist variants; and the reported case where exact landing orientation credits a roll as a flip. Compare normal controller timing to high-frequency/turbo-style input without assuming turbo is required.",
+      "deliverables": [
+        "frame-exact roll-twist input recipe",
+        "flip-twist input/state recipe",
+        "landing-angle stunt-classification boundary",
+        "normal-versus-high-frequency input comparison",
+        "deterministic stunt-recognition fixture"
+      ],
+      "tags": [
+        "stunts",
+        "input",
+        "roll",
+        "twist",
+        "flip",
+        "recognition",
+        "timing",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High leverage because several experienced players independently describe subtle input/state behavior that directly affects movement, scoring and speed."
     }
   ],
   "acquisition_policy": {

@@ -29,7 +29,7 @@ Authentic mode remains stock-sequential: medal generation advances at most one s
 
 Hunter remains discovery content and canonical Gold-only once legitimately available. The retained stock probe shows a GOLD label and ANTI-UNI regardless of Hunter medal state, so Modern does not invent Bronze/Silver Hunter variants. This policy does not expose Hunter eligibility requirements or create a checklist for secret progression.
 
-`native/product/modern_challenge_tier_policy.hpp` encodes only this semantic algebra. It has no SRAM/WRAM or runtime write interface.
+`native/product/modern_challenge_tier_policy.hpp` encodes only this semantic algebra. It has no SRAM/WRAM or runtime write interface. Forged/out-of-range tier values fail closed: they are not selectable, do not resolve an opponent, and cannot grant completion.
 
 `native/product/modern_challenge_tier_selector.hpp` turns that policy into a host-navigation-ready selector without duplicating progression rules in UI code. Ordinary tours expose Bronze/Silver/Gold and default to the next stock-sequential tier (or Gold once already complete). Hunter collapses to one Gold choice. Authentic, unavailable tours and invalid medal state expose no selector.
 

@@ -100,6 +100,67 @@ If a plan paragraph requires repeated append-only updates after every successful
 
 The v1-v5 codecs retain their strict historical field sets. Version 6 is the stable additive envelope: its administrative core remains required, any number of explicitly known additive keys may be absent and receive typed defaults, and unknown keys still fail closed. Add future optional settings by extending that known-key/defaulting set; reserve a new schema version for an actual grammar or compatibility change. Runtime-specific adapters remain explicit.
 
+## Agent-throughput model
+
+The implementation workforce is autonomous agents, so optimize for **independent runnable work**, not for minimizing the number of simultaneously open branches. Dependency correctness still matters, but unrelated product slices should proceed concurrently by default.
+
+### Keep a ready queue, not one next task
+
+Maintain at least **three independent Windows-x64-ready tasks** whenever the roadmap contains that much useful work. A ready task must already have:
+
+- one player-visible or release-facing outcome;
+- the owning files/surfaces named;
+- dependencies that are already satisfied or explicitly outside the branch;
+- one bounded acceptance path an agent can run without inventing new research;
+- a stop condition that prevents the task expanding into adjacent archaeology;
+- no requirement to wait for another agent merely to discover what to do next.
+
+When fewer than three tasks are ready, the highest-leverage planning work is to decompose the next blocked product requirement until more independent leaves exist. Do not spend an agent on speculative research while a shippable requirement can be decomposed into parallel leaves.
+
+### Parallel lanes and collision budget
+
+Prefer parallel work whose write sets are naturally disjoint. Current Windows product work should normally be decomposable across lanes such as:
+
+- profile/progression lifecycle;
+- controls/rebinding/accessibility;
+- run/timing/statistics presentation;
+- Quick Practice/navigation/rematch;
+- Racer HD family coverage;
+- display/presentation policy;
+- packaging/release acceptance;
+- tooling/validator consolidation.
+
+Two agents may read the same authority and evidence. They should not both redesign the same central runtime/menu file unless one task is explicitly the integration owner. Shared hotspots such as `uniracers_modern_host.*`, central pause/frontend navigation, host-state schema files and high-fan-out workflow files should have **one integration owner at a time**. Other agents should land leaf models, pure policies, tests, catalogs and adapters that the integration owner can consume.
+
+Do not serialize independent leaf work merely because all leaves eventually connect to one host. Build stable narrow interfaces first, then integrate completed leaves in a short reconciliation pass.
+
+### Task size for autonomous agents
+
+Default to a task that can become **one coherent PR with one acceptance story**. Avoid both extremes:
+
+- tiny PRs that split one inference/feature boundary into bookkeeping;
+- broad “finish subsystem” prompts that cause an agent to rediscover requirements, touch many shared surfaces and stall.
+
+A good agent task usually owns one of: a pure policy/model, one product surface, one bounded runtime adapter, one acceptance harness, one asset family, or one release gate. If the prompt needs several independent “and then” clauses, split it unless those steps share one unavoidable inference boundary.
+
+### No CI babysitting
+
+An agent should run the cheapest relevant local/static/narrow acceptance it can, push the PR, record the expected gate, and move to another useful task. Do not spend an agent turn repeatedly polling GitHub Actions. Reconcile CI opportunistically when returning to the branch, or in a dedicated integration/CI lane that can repair failures across several recently landed PRs.
+
+A red workflow is a blocking task only when it reveals a real regression or prevents integration. Queue delay, runner delay and already-superseded runs are not engineering work.
+
+### Integrate in batches
+
+When several independent PRs target disjoint surfaces, prefer a short integration sweep after they are ready rather than serially merging one and waiting for its entire CI fan-out before starting the next. Rebase/reconcile only where Git reports a real overlap. After a batch reaches `main`, fix the resulting current-main CI state rather than preserving obsolete intermediate branch states.
+
+### Precompute the work packet
+
+Fresh agents should not spend their first substantial pass rereading the whole repository. Extend `analysis/agent-context-lanes.json` and `tools/build_agent_context.py` so each recurring lane can produce the minimum authority packet: current boundary, relevant files, current tests/evidence, active neighboring branches, prohibited reopenings and exact acceptance commands. When the same orientation instructions appear in two prompts, move them into the lane packet.
+
+### Prefer product completion over research utilization
+
+An available research tool or known unknown is not a reason to occupy an agent. Assign research only when its output changes a queued product decision, unblocks an implementation, or creates a reusable acceptance surface that will remove repeated work. Otherwise spend the agent on a ready shipping leaf.
+
 ## Agent context
 
 Use:

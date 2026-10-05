@@ -183,13 +183,16 @@
       "status_note": "Archival tail: only a small public IPS mirror remains to find (was status archival-tail).",
       "source_ids": [
         "romhack-uncensored",
-        "retroachievements-uniracers-1295"
+        "retroachievements-uniracers-1295",
+        "reddit-uniracers-blacklist-extraction-2019",
+        "reddit-original-dev-banned-list-2026"
       ],
       "question": "Where is the forbidden-name data and what code consumes it?",
-      "next_discriminator": "Recover the small public IPS patch if a mirror survives, use the IPS analyzer to locate the overwritten list, then trace local readers only if the result is implementation-relevant.",
+      "next_discriminator": "First attempt to recover the exact rejected-name table directly from the canonical ROM, using the 2019 dual independent extraction reports as evidence that the table is plainly extractable. Cross-check recovered contents against the Uncensored patch, RetroAchievements behavior, and the original-developer 2026 provenance comment. Only then trace the reader routine if implementation-relevant.",
       "deliverables": [
         "forbidden-name data range",
-        "optional reader routine symbol if cheaply recoverable"
+        "optional reader routine symbol if cheaply recoverable",
+        "exact canonical rejected-name table with extraction script"
       ],
       "tags": [
         "rom-hack",
@@ -453,7 +456,8 @@
         "speedrun-uniracers-community",
         "tasvideos-usjo",
         "libretro-uniracers-cheats",
-        "cabbagery-uniracers-mechanics-2024"
+        "cabbagery-uniracers-mechanics-2024",
+        "tasvideos-tabletop-nondecay-video"
       ],
       "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
       "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero.",
@@ -465,7 +469,8 @@
         "Mega stunt recognition fixture",
         "name-filter substring behavior fixture",
         "source conflict notes where player recollections disagree",
-        "Tabletop duration-scoring and stunt-timer overrun fixture"
+        "Tabletop duration-scoring and stunt-timer overrun fixture",
+        "Tabletop repeat-score non-decay fixture"
       ],
       "tags": [
         "community-research",
@@ -880,6 +885,39 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "High value because the historical competitive community regarded it as repeatable, distinct from marked shortcuts, and important enough to annotate in recordkeeping."
+    },
+    {
+      "id": "twist-track-boost-friction",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "reddit-original-dev-banned-list-2026",
+        "boost-semantics-conflict"
+      ],
+      "question": "How does twist-derived boost interact with twist-track sections that punish or redirect jumping, and is the resulting friction purely level design or tied to distinct track-state rules?",
+      "next_discriminator": "Use the 2026 original-developer thread's player recollection as a design-friction lead. Identify twist-track sections where jumping is disadvantageous or causes rollback, then compare grounded twist-track traversal against jump-and-twist traversal while tracing boost, position, rollback/recovery state and camera. Do not infer intended design rationale beyond observable behavior.",
+      "deliverables": [
+        "twist-track jump-vs-grounded traversal comparison",
+        "boost/rollback state trace",
+        "classification as level-design constraint versus distinct track-state mechanic"
+      ],
+      "tags": [
+        "twist",
+        "boost",
+        "track-semantics",
+        "level-design",
+        "player-friction",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful because it connects a remembered player pain point to specific track-state and boost behavior already under investigation."
     }
   ],
   "acquisition_policy": {

@@ -82,6 +82,10 @@ That sequence would let the stock reward path observe the wrong generation and c
 
 This makes completion a separate seam from challenge initialization. The current pure `ModernChallengeCommitPlan` is the host/product authorization boundary only; it is not permission for a post-hoc SRAM edit.
 
+`native/product/modern_challenge_award_policy.hpp` now describes the preferred stock-owned hook contract. Once a commit plan is authorized, the selected completion tier maps to the **effective previous medal that stock should increment**: Bronze → 0, Silver → 1, Gold → 2. The hook must revalidate the actual persisted medal against the commit plan, but it should substitute only the value consumed by the stock award calculation. Stock then remains responsible for storing the resulting 1/2/3 medal, recomputing its checksum, deriving unlock tiers and selecting the canonical medal/gold/ending presentation.
+
+For example, a profile with persistent medal 0 that legitimately completes a selected Gold tour authorizes an effective previous value 2; the stock transaction still performs the authoritative `2 -> 3` award. Until the exact callsite seam is validated, this remains pure policy rather than generated-code authority.
+
 ## Cheapest next discriminator
 
 Do not reopen generic progression archaeology. The missing question is narrow:

@@ -1,7 +1,9 @@
 name: TCRF boot graphic VRAM probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: tcrf-boot-vram-${{ github.ref }}
   cancel-in-progress: true
 

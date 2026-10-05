@@ -34,6 +34,12 @@ from prototype_racer_hd_replacement import (
     nearest_rgba,
     object_flip_pivot_x2_y2,
 )
+from probe_racer_hd_fallback_family import (
+    palette_normalized_rgba,
+    palette_role_indices,
+)
+from extract_racer_presentation_family import rgba_palette
+
 
 
 RESOLVED_VISUAL_LANGUAGE = {
@@ -1349,6 +1355,23 @@ def recolor_authored_frame_rgba(pixel: bytes, *, blue_frame: bool) -> bytes:
     return table.get(pixel, pixel)
 
 
+def normalize_authored_frame_rgba(rgba: bytes) -> bytes:
+    """Normalize only the authored red/blue frame material to stable role tokens."""
+    red_values = list(_RED_TO_BLUE_FRAME_RGBA.keys())
+    blue_values = list(_RED_TO_BLUE_FRAME_RGBA.values())
+    mapping: dict[bytes, bytes] = {}
+    for index, (red, blue) in enumerate(zip(red_values, blue_values), start=1):
+        token = bytes((index, 0, 0, 255))
+        mapping[red] = token
+        mapping[blue] = token
+    out = bytearray(rgba)
+    for i in range(0, len(out), 4):
+        token = mapping.get(bytes(out[i:i + 4]))
+        if token is not None:
+            out[i:i + 4] = token
+    return bytes(out)
+
+
 def sample_authored_0543_p1_third_family_rgba(x: int, y: int) -> bytes:
     return recolor_authored_frame_rgba(
         sample_authored_0543_p2_rgba(x, y),
@@ -1821,6 +1844,7 @@ def build_dossier(
         authored_candidate = None
         authored_meta = entry.get("authored_candidate")
         reuse_proof = None
+        palette_reuse_proof = None
         if authored_meta is not None and authored_meta.get("reused_from_representation_id"):
             source_id = authored_meta["reused_from_representation_id"]
             source_entry = entries.get(source_id)
@@ -1844,6 +1868,49 @@ def build_dossier(
                 "source_stock_rgba_sha256": sha256(source_stock),
                 "source_authored_rgba_sha256": sha256(source_authored),
             }
+        if authored_meta is not None and authored_meta.get("palette_reused_from_representation_id"):
+            source_id = authored_meta["palette_reused_from_representation_id"]
+            source_entry = entries.get(source_id)
+            if source_entry is None:
+                raise ValueError(f"{rid} palette reuse source is not registered: {source_id}")
+            source_stock = build_stock_rgba(rom, source_entry)
+            roles = palette_role_indices(rom)
+            declared_roles = authored_meta.get("palette_normalization_role_indices")
+            if declared_roles != roles:
+                raise ValueError(
+                    f"{rid} palette role declaration drift: {declared_roles} != {roles}"
+                )
+            target_palette = rgba_palette(
+                rom, int(entry["palette_asset_id"], 16)
+            )
+            source_palette = rgba_palette(
+                rom, int(source_entry["palette_asset_id"], 16)
+            )
+            target_normalized = palette_normalized_rgba(stock, target_palette, roles)
+            source_normalized = palette_normalized_rgba(source_stock, source_palette, roles)
+            if target_normalized != source_normalized:
+                raise ValueError(
+                    f"{rid} palette-normalized stock differs from source: {source_id}"
+                )
+            normalized_hash = sha256(target_normalized)
+            if normalized_hash != authored_meta.get("palette_normalized_stock_sha256"):
+                raise ValueError(
+                    f"{rid} palette-normalized stock hash drift: {normalized_hash}"
+                )
+            source_authored, _source_generator, _source_sampler = (
+                authored_candidate_rgba_for_entry(source_entry)
+            )
+            palette_reuse_proof = {
+                "source_representation_id": source_id,
+                "cross_player": source_entry["player"] != entry["player"],
+                "normalized_role_indices": roles,
+                "stock_normalized_byte_identical": True,
+                "normalized_stock_sha256": normalized_hash,
+                "source_stock_rgba_sha256": sha256(source_stock),
+                "target_stock_rgba_sha256": sha256(stock),
+                "source_authored_rgba_sha256": sha256(source_authored),
+                "authored_transform": "tools/build_racer_hd_asset_dossier.py::recolor_authored_frame_rgba",
+            }
         if authored_meta is not None:
             authored_rgba, expected_generator, native_sampler = (
                 authored_candidate_rgba_for_entry(entry)
@@ -1851,6 +1918,25 @@ def build_dossier(
             if authored_meta.get("artifact_generator") != expected_generator:
                 raise ValueError(f"unsupported authored candidate generator for {rid}")
             authored_png = encode_png_rgba(W * 4, H * 4, authored_rgba)
+            if palette_reuse_proof is not None:
+                source_id = palette_reuse_proof["source_representation_id"]
+                source_entry = entries[source_id]
+                source_authored, _source_generator, _source_sampler = (
+                    authored_candidate_rgba_for_entry(source_entry)
+                )
+                target_authored_normalized = normalize_authored_frame_rgba(authored_rgba)
+                source_authored_normalized = normalize_authored_frame_rgba(source_authored)
+                if target_authored_normalized != source_authored_normalized:
+                    raise ValueError(
+                        f"{rid} normalized authored output differs from palette source: {source_id}"
+                    )
+                palette_reuse_proof["authored_normalized_byte_identical"] = True
+                palette_reuse_proof["normalized_authored_sha256"] = sha256(
+                    target_authored_normalized
+                )
+                palette_reuse_proof["target_authored_rgba_sha256"] = sha256(
+                    authored_rgba
+                )
             assets[rid]["authored_candidate"] = authored_png
             authored_candidate = {
                 **authored_meta,
@@ -1922,6 +2008,7 @@ def build_dossier(
                 "evidence_packet_ready": True,
                 "authored_candidate": authored_candidate,
                 "reuse_proof": reuse_proof,
+                "palette_reuse_proof": palette_reuse_proof,
                 "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
                 "pending_decisions": list(PENDING_ART_DECISIONS),
                 "visual_language_authority": "docs/HD-ART-DIRECTION.md",

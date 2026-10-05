@@ -2152,6 +2152,253 @@
             "geometry_workflow_run": 37261333361,
             "geometry_artifact_id": 11325236028,
             "source": "dense native post-guest-frame trace identifies the exit state; exact ROM geometry measured by Racer HD prototype run 37261333361"
+          },
+          {
+            "checkpoint": "native-dense-trace-1261-through-1262",
+            "workflow_run": 37262830488,
+            "artifact_id": 11325635550,
+            "frames": [
+              1261,
+              1262
+            ],
+            "ids": {
+              "p1_primary": "0x057E",
+              "p2_primary": "0x0542",
+              "p1_companion": "0x0D49",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  67,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  2,
+                  42,
+                  38
+                ],
+                "alpha_sha256": "2c27413177bb816f60a62d2293ee8f394001d7527f1ef2fd42affdac1482348d"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  59,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  4,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "24fd071dfd989174b52ed9c2b6d0e9e2e8494c109fc2a5e7ecd2b9a15d11e40a"
+              }
+            },
+            "geometry_workflow_run": 37263957234,
+            "geometry_artifact_id": 11324494911,
+            "source": "dense native post-guest-frame trace identifies the repeated staircase entry; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
+          },
+          {
+            "checkpoint": "native-dense-trace-1263-through-1264",
+            "workflow_run": 37262830488,
+            "artifact_id": 11325635550,
+            "frames": [
+              1263,
+              1264
+            ],
+            "ids": {
+              "p1_primary": "0x057D",
+              "p2_primary": "0x0541",
+              "p1_companion": "0x0D48",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  69,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  3,
+                  43,
+                  38
+                ],
+                "alpha_sha256": "5dc59c657ddcf0ade69a864f6a27e7c4202c8c1a856ad58bd8ab4bc0c909100e"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  61,
+                  76
+                ],
+                "alpha_bounds": [
+                  22,
+                  3,
+                  39,
+                  38
+                ],
+                "alpha_sha256": "8648eec934fb1e53316d1633a9e802a728e746ddc969d2d492adb25a209c4ea4"
+              }
+            },
+            "geometry_workflow_run": 37263957234,
+            "geometry_artifact_id": 11324494911,
+            "source": "dense native post-guest-frame trace identifies the 057D/0541 staircase step; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
+          },
+          {
+            "checkpoint": "native-dense-trace-1265-through-1266",
+            "workflow_run": 37262830488,
+            "artifact_id": 11325635550,
+            "frames": [
+              1265,
+              1266
+            ],
+            "ids": {
+              "p1_primary": "0x057D",
+              "p2_primary": "0x0540",
+              "p1_companion": "0x0D48",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  69,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  3,
+                  43,
+                  38
+                ],
+                "alpha_sha256": "5dc59c657ddcf0ade69a864f6a27e7c4202c8c1a856ad58bd8ab4bc0c909100e"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  63,
+                  76
+                ],
+                "alpha_bounds": [
+                  23,
+                  3,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "df2b36efd0bfd862eb2f1a5f6c101d167989861b61c33d3ee26aedd35782f9a2"
+              }
+            },
+            "geometry_workflow_run": 37263957234,
+            "geometry_artifact_id": 11324494911,
+            "source": "dense native post-guest-frame trace identifies the highest-frequency remaining 057D/0540 step; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
+          },
+          {
+            "checkpoint": "native-dense-trace-1267",
+            "workflow_run": 37262830488,
+            "artifact_id": 11325635550,
+            "frames": [
+              1267
+            ],
+            "ids": {
+              "p1_primary": "0x057C",
+              "p2_primary": "0x0540",
+              "p1_companion": "0x0D47",
+              "p2_companion": "0x0000"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0001",
+              "p2": "0x0000"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  71,
+                  76
+                ],
+                "alpha_bounds": [
+                  20,
+                  3,
+                  44,
+                  38
+                ],
+                "alpha_sha256": "201d65fb685ee7b666ac987fb312ceb82a221478d51b236c2a6952cb6dcbb68d"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  63,
+                  76
+                ],
+                "alpha_bounds": [
+                  23,
+                  3,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "df2b36efd0bfd862eb2f1a5f6c101d167989861b61c33d3ee26aedd35782f9a2"
+              }
+            },
+            "geometry_workflow_run": 37263957234,
+            "geometry_artifact_id": 11324494911,
+            "source": "dense native post-guest-frame trace identifies the 057C recovery edge; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
           }
         ]
       }

@@ -1101,18 +1101,6 @@ sources:
     relevance: "Demonstrates the TAS discovery that Tabletop is exceptional among stunt types because its score does not halve on repeated use. High-value scoring-rule edge case."
 
 
-  - id: tas-halamantariel-wip-smv-2008
-    title: "Halamantariel Uniracers WIP SMV"
-    type: deterministic_input_movie
-    url: "http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
-    author: "Halamantariel"
-    published: "2008-03-12"
-    retrieved: "2026-10-05"
-    status: "historical direct link; current file availability unconfirmed"
-    rights: "Third-party input movie; preserve provenance and derived observations. Mirror only if retrieval and redistribution are appropriate."
-    relevance: "Exact historical TAS input stream offered publicly for improvement. Potential deterministic fixture source for stunt timing, screen-position and lap-time behavior if recoverable."
-
-
   - id: tas-halamantariel-course-videos-2009
     title: "Halamantariel Uniracers TAS course video set"
     type: competitive_mechanics_video_set

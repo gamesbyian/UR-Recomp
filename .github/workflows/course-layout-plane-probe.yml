@@ -1,14 +1,7 @@
 name: Course layout plane probe
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "tools/rnc_method1.py"
-      - "tools/analyze_course_layout_planes.py"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: write
 
 concurrency:

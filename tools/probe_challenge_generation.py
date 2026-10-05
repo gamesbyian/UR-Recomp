@@ -60,10 +60,11 @@ def summarize(
     control: dict,
     variant: dict,
     before_sram: bytes,
+    after_poke_sram: bytes,
     variant_sram: bytes,
 ) -> dict:
-    stored_checksum = variant_sram[tier.CHECKSUM_AT] | (
-        variant_sram[tier.CHECKSUM_AT + 1] << 8)
+    stored_checksum = after_poke_sram[tier.CHECKSUM_AT] | (
+        after_poke_sram[tier.CHECKSUM_AT + 1] << 8)
     outcome = classify(control, variant)
     checks = {
         "control_is_bronze_bronsen": (
@@ -72,16 +73,19 @@ def summarize(
             and control["card_opponent_name"] == "BRONSEN"
         ),
         "stock_confirm_snapshot_was_zero": before_sram[SNAPSHOT] == 0,
-        "variant_snapshot_is_gold_generation": variant_sram[SNAPSHOT] == 2,
-        "only_snapshot_changed_before_track_dump": (
+        "variant_snapshot_is_gold_generation": after_poke_sram[SNAPSHOT] == 2,
+        "only_snapshot_changed_by_host_poke": (
             [
-                i for i, (a, b) in enumerate(zip(before_sram, variant_sram))
+                i for i, (a, b) in enumerate(zip(before_sram, after_poke_sram))
                 if a != b
             ] == [SNAPSHOT]
         ),
-        "persistent_medal_remains_zero": variant_sram[tier.MEDAL_CELL] == 0,
+        "persistent_medal_remains_zero": (
+            after_poke_sram[tier.MEDAL_CELL] == 0
+            and variant_sram[tier.MEDAL_CELL] == 0
+        ),
         "persistent_medal_checksum_still_valid": (
-            tier.checksum(variant_sram) == stored_checksum
+            tier.checksum(after_poke_sram) == stored_checksum
         ),
         "variant_reaches_race": variant["in_race"] == 1,
     }
@@ -176,9 +180,11 @@ def main() -> int:
             args.core,
             args.rom)
         before_sram = _dump_sram(variant_run, "tier-before")
+        after_poke_sram = _dump_sram(variant_run, "tier-after-poke")
         variant_sram = _dump_sram(variant_run, "tier-track")
 
-        report = summarize(control, variant, before_sram, variant_sram)
+        report = summarize(
+            control, variant, before_sram, after_poke_sram, variant_sram)
         args.out.parent.mkdir(parents=True, exist_ok=True)
         args.out.write_text(json.dumps(report, indent=2) + "\n")
         print(json.dumps(report, indent=2))

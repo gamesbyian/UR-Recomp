@@ -113,6 +113,18 @@ THIRTEENTH_AUTHORED_REPRESENTATION_ID = (
 FOURTEENTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0543-p2-with-p1-057E-reference"
 )
+FIFTEENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057E-p1-sync-reference"
+)
+SIXTEENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057E-p1-companion-0D69-reference"
+)
+SEVENTEENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0544-p2-sync-reference"
+)
+EIGHTEENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0544-p2-with-p1-companion-0D69-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1029,6 +1041,102 @@ def build_tenth_authored_candidate_rgba() -> bytes:
     )
 
 
+
+def sample_authored_057e_p1_companion_0d69_rgba(x: int, y: int) -> bytes:
+    """Author the distinct 1306 P1 companion pose in the approved material language."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+    wheel_cx, wheel_cy = 136, 120
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 35 * 35 and wr2 >= 25 * 25
+    rim = wr2 < 25 * 25 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+    fork_center = 134 - (y - 60) // 11
+    fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 149)
+    pedal = authored_pedal_contains(x, y, 149, 153)
+    seat = authored_saddle_contains(x, y, 120, 22, 32, 14, 8, 36)
+    neck = y >= 30 and y <= 60 and x >= 132 and x <= 140
+    saddle_mount = (seat or neck) and authored_saddle_mount_contains(x, y, 132, 140, 29)
+    crown_dx, crown_dy = x - 140, y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 140, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_saddle_mount_rgba(y, 29)
+    if seat:
+        return authored_saddle_rgba(x, y, 120, 22, 14)
+    if crown:
+        return authored_frame_junction_rgba(x, y, 140, 60, False, fork or frame_brace or neck)
+    if fork or frame_brace or neck:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_eleventh_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_057e_p1_companion_0d69_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def sample_authored_0544_p2_rgba(x: int, y: int) -> bytes:
+    """Author the shared 0544 P2 pose used by both 1305-1306 guards."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+    wheel_cx, wheel_cy = 112, 120
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 25 * 25
+    rim = wr2 < 25 * 25 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+    fork_center = 112 - (y - 60) // 11
+    fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 127)
+    pedal = authored_pedal_contains(x, y, 127, 131)
+    seat = authored_saddle_contains(x, y, 134, 32, 35, 12, 16, 44)
+    neck = y >= 30 and y <= 60 and x >= 110 and x <= 118
+    saddle_mount = (seat or neck) and authored_saddle_mount_contains(x, y, 110, 118, 39)
+    crown_dx, crown_dy = x - 120, y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace, wheel_spokes = authored_p2_structural_detail(x, y, 112, 120)
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_saddle_mount_rgba(y, 39)
+    if seat:
+        return authored_saddle_rgba(x, y, 134, 32, 12)
+    if crown:
+        return authored_frame_junction_rgba(x, y, 120, 60, True, fork or frame_brace or neck)
+    if fork or frame_brace or neck:
+        return authored_blue_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twelfth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0544_p2_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
     """Return authored RGBA plus the expected generator and native sampler."""
     rid = entry["representation_id"]
@@ -1091,6 +1199,24 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_tenth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
             "sample_racer_hd_authored_0543_p2",
+        )
+    if rid == FIFTEENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fifth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057e_p1_with_p2_0543",
+        )
+    if rid == SIXTEENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_eleventh_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_eleventh_authored_candidate_rgba",
+            "sample_racer_hd_authored_057e_p1_companion_0d69",
+        )
+    if rid in (SEVENTEENTH_AUTHORED_REPRESENTATION_ID, EIGHTEENTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_twelfth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twelfth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0544_p2",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 
@@ -1414,8 +1540,11 @@ def build_dossier(
             ),
             "authored_shipping_approval_externalized": all(
                 rep["art_review"]["authored_candidate"] is not None
-                and rep["art_review"]["shipping_approval_source"]
-                == "analysis/data/racer-hd-art-approval.json"
+                and isinstance(rep["art_review"]["shipping_approval_source"], str)
+                and rep["art_review"]["shipping_approval_source"].startswith(
+                    "analysis/data/racer-hd-art-approval"
+                )
+                and rep["art_review"]["shipping_approval_source"].endswith(".json")
                 for rep in representations
             ),
             "ready_for_art_review": True,

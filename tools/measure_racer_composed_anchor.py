@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -78,6 +79,8 @@ def measure(
         "alpha_bounds": alpha_bounds(rgba, 64, 64),
         "flip_pivot_x2_y2": object_flip_pivot_x2_y2(64, 64),
         "wheel_contact_x2_y2": alpha_contact_anchor_x2_y2(rgba, 64, 64),
+        "rgba_sha256": hashlib.sha256(rgba).hexdigest(),
+        "opaque_pixel_count": sum(1 for i in range(3, len(rgba), 4) if rgba[i] != 0),
     }
 
 

@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37257283393,
+    "artifact_id": 11323366532,
+    "temporal_window": [
+      1305,
+      1306
+    ],
+    "review_surface": "racer-hd-second-family-dossier/review/index.html",
+    "disposition": "Reviewed the complete contiguous 1305-1306 ordinary-race family at true 4x and gameplay scale. Frame 1305 P1 reuses the already-approved 057E asset only under a byte-identical stock-pose proof. The distinct 0D69 P1 pose and shared P2 0544 pose preserve exact stock envelopes and contact anchors, remain coherent with the approved Racer HD material/crown/fork language, and pass the sequence-level temporal gate. P1 changes dynamically at 13 authored alpha pixels versus 14 stock pixels (ratio 0.929); P2 remains byte-static across the companion transition. No family-level art blockers remain."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057E-p1-sync-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "074443de293a95e4bd7b0d1efe98d1beb252aa6e835a293312eb4e76dac3cc0c"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057E-p1-companion-0D69-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "e1a1500947cdba881887fa3ee956ab37fb05cf3de6ad203d516002ded86b5e71"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0544-p2-sync-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "330134f435eebbf24490dd48c216542c3f7a34551ed5229eac734e93b7004b0c"
+    }
+  ]
+}

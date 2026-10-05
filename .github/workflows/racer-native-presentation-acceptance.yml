@@ -200,6 +200,78 @@ jobs:
             --baseline-equivalence "$RUNNER_TEMP/racer-hd-baseline-dossier/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-review-packet.txt"
 
+          # Build the next complete ordinary-race Racer HD family from the
+          # real contiguous guest transition at frames 1305-1306.
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-semantic-trace.json" \
+            --window-start 1305 \
+            --window-end 1306 \
+            --output-dir "$RUNNER_TEMP/racer-hd-second-family-dossier" \
+            > "$RUNNER_TEMP/racer-hd-second-family-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/manifest.json" \
+            --out "$RUNNER_TEMP/racer-hd-second-family-dossier/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-second-family-pose-equivalence.txt"
+
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-057e-0544.json \
+            --out "$RUNNER_TEMP/racer-hd-second-family-dossier/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-second-family-shipping-readiness.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-057e-0544 \
+            --json-out "$RUNNER_TEMP/racer-hd-second-family-temporal.json" \
+            > "$RUNNER_TEMP/racer-hd-second-family-temporal.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/manifest.json" \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/pose-equivalence.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-second-family-dossier/review" \
+            --readiness "$RUNNER_TEMP/racer-hd-second-family-dossier/shipping-readiness.json" \
+            > "$RUNNER_TEMP/racer-hd-second-family-review-packet.txt"
+
+          python3 - \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/manifest.json" \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/pose-equivalence.json" \
+            "$RUNNER_TEMP/racer-hd-second-family-temporal.json" \
+            "$RUNNER_TEMP/racer-hd-second-family-dossier/shipping-readiness.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          equivalence = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[4]).read_text())
+          assert dossier["temporal_window"]["start"] == 1305
+          assert dossier["temporal_window"]["end"] == 1306
+          assert dossier["temporal_window"]["frame_count"] == 2
+          assert dossier["validation"]["authored_shipping_approval_externalized"] is True
+          assert dossier["validation"]["registered_anchors_match_rederived_stock"] is True
+          assert equivalence["semantic_representation_count"] == 4
+          assert equivalence["unique_stock_pose_count"] == 3
+          assert equivalence["semantic_registrations_collapsed_by_visual_equivalence"] == 1
+          assert equivalence["worklist"]["unauthored_pose_count"] == 0
+          assert equivalence["worklist"]["conflicting_authored_pose_count"] == 0
+          assert readiness["shipping_ready"] is True
+          assert readiness["unique_pose_count"] == 3
+          assert readiness["counts"]["approved"] == 3
+          assert readiness["counts"]["unreviewed"] == 0
+          assert readiness["counts"]["changed_since_review"] == 0
+          assert temporal["window"] == [1305, 1306]
+          assert temporal["sequence_key"] == "ordinary-race-057e-0544"
+          assert all(temporal["validation"].values())
+          p1 = temporal["sequences"]["p1"]["pairs"][0]
+          p2 = temporal["sequences"]["p2"]["pairs"][0]
+          assert p1["transition_class"] == "dynamic"
+          assert p1["dynamic_edge_preserved"] is True
+          assert p2["transition_class"] == "static"
+          assert p2["static_edge_preserved"] is True
+          print("UR_RACER_SECOND_FAMILY_REVIEW PASS poses=3 frames=1305-1306")
+          PY
+
           python3 - "$RUNNER_TEMP/racer-hd-asset-dossier/manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" "$RUNNER_TEMP/racer-hd-asset-dossier/review/review-manifest.json" "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" <<'PY'
           import json, pathlib, sys
           dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
@@ -733,6 +805,8 @@ jobs:
           grep -F "frame=1302 semantic=0542 viewport=top slot=99" "$HD_LOG"
           grep -F "frame=1302 semantic=057D viewport=bottom slot=97" "$HD_LOG"
           grep -F "frame=1302 semantic=0542 viewport=bottom slot=96" "$HD_LOG"
+          grep -F "UR_RACER_PRESENTATION_TRACE frame=1305 p1_primary=057E p2_primary=0544 p1_companion=0D49 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0001 p2_gate=0000" "$HD_LOG"
+          grep -F "UR_RACER_PRESENTATION_TRACE frame=1306 p1_primary=057E p2_primary=0544 p1_companion=0D69 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0001 p2_gate=0000" "$HD_LOG"
           grep -F "frame=1306 semantic=057E viewport=top slot=98" "$HD_LOG"
           grep -F "frame=1306 semantic=0544 viewport=top slot=99" "$HD_LOG"
           grep -F "frame=1306 semantic=057E viewport=bottom slot=97" "$HD_LOG"
@@ -829,5 +903,12 @@ jobs:
             ${{ runner.temp }}/racer-hd-pose-equivalence.txt
             ${{ runner.temp }}/racer-hd-review-packet.txt
             ${{ runner.temp }}/racer-hd-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-second-family-dossier/
+            ${{ runner.temp }}/racer-hd-second-family-dossier.txt
+            ${{ runner.temp }}/racer-hd-second-family-pose-equivalence.txt
+            ${{ runner.temp }}/racer-hd-second-family-temporal.json
+            ${{ runner.temp }}/racer-hd-second-family-temporal.txt
+            ${{ runner.temp }}/racer-hd-second-family-review-packet.txt
+            ${{ runner.temp }}/racer-hd-second-family-shipping-readiness.txt
           if-no-files-found: warn
           retention-days: 7

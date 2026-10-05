@@ -1371,6 +1371,12 @@ def build_eighteenth_authored_candidate_rgba() -> bytes:
 def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
     """Return authored RGBA plus the expected generator and native sampler."""
     rid = entry["representation_id"]
+    authored_meta = entry.get("authored_candidate") or {}
+    reused_from = authored_meta.get("reused_from_representation_id")
+    if reused_from and reused_from != rid:
+        proxy = dict(entry)
+        proxy["representation_id"] = reused_from
+        return authored_candidate_rgba_for_entry(proxy)
     if rid == FIRST_AUTHORED_REPRESENTATION_ID:
         return (
             build_first_authored_candidate_rgba(),

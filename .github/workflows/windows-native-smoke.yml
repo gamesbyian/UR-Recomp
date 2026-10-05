@@ -141,7 +141,14 @@ jobs:
             --output "$PACKAGE" \
             --source-revision "$GITHUB_SHA"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64.zip"
+          python tools/assemble_windows_package.py archive \
+            --package "$PACKAGE" \
+            --output "$ARCHIVE"
+          python tools/assemble_windows_package.py verify-archive \
+            --archive "$ARCHIVE"
           echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+          echo "PACKAGE_ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
           test -f "$PACKAGE/UniracersSNESRecomp.exe"
           test -f "$PACKAGE/Uniracers_USA.sfc"
           test -f "$PACKAGE/rom.cfg"
@@ -153,11 +160,15 @@ jobs:
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/package-boot-dumps"
           CALLER="$RUNNER_TEMP/package-launch-cwd"
+          EXTRACT="$RUNNER_TEMP/package-extracted"
           SCRIPT="$RUNNER_TEMP/package-boot.script"
-          mkdir -p "$DUMPS" "$CALLER"
+          mkdir -p "$DUMPS" "$CALLER" "$EXTRACT"
+          python -m zipfile -e "$PACKAGE_ARCHIVE" "$EXTRACT"
+          TEST_PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
+          test -f "$TEST_PACKAGE/PACKAGE-MANIFEST.json"
           printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
 
-          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
           SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
           DUMPS_WIN="$(cygpath -w "$DUMPS")"
 
@@ -183,12 +194,15 @@ jobs:
           print("WINDOWS_PACKAGE_BOOT_MAIN_MENU ok")
           PY
 
-          test -f "$PACKAGE/config.ini"
-          test -f "$PACKAGE/keybinds.ini"
+          test -f "$TEST_PACKAGE/config.ini"
+          test -f "$TEST_PACKAGE/keybinds.ini"
           test ! -e "$CALLER/config.ini"
           test ! -e "$CALLER/keybinds.ini"
           grep -Fq "Config/saves anchored to" "$RUNNER_TEMP/package-boot.log"
-          grep -Fq "$(cygpath -w "$PACKAGE")" "$RUNNER_TEMP/package-boot.log"
+          grep -Fq "$(cygpath -w "$TEST_PACKAGE")" "$RUNNER_TEMP/package-boot.log"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          python tools/assemble_windows_package.py verify-archive \
+            --archive "$PACKAGE_ARCHIVE"
           echo "WINDOWS_PACKAGE_STATE_ANCHOR ok"
 
       - name: Boot to main menu
@@ -235,7 +249,7 @@ jobs:
         run: |
           set -euo pipefail
           BROKEN="$RUNNER_TEMP/UR-Recomp-Windows-x64-broken"
-          cp -R "$PACKAGE" "$BROKEN"
+          cp -R "$TEST_PACKAGE" "$BROKEN"
           rm "$BROKEN/Uniracers_USA.sfc"
           BROKEN_WIN="$(cygpath -w "$BROKEN")"
 
@@ -260,7 +274,8 @@ jobs:
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/
-            ${{ runner.temp }}/UR-Recomp-Windows-x64/
+            ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
+            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
           if-no-files-found: warn
           retention-days: 7
 
@@ -269,6 +284,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ur-recomp-windows-x64-portable
-          path: ${{ runner.temp }}/UR-Recomp-Windows-x64/
+          path: ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
           if-no-files-found: error
           retention-days: 7

@@ -232,14 +232,18 @@ jobs:
           set -euo pipefail
           test -f "$PACKAGE_USER_DATA/config.ini"
           test -f "$PACKAGE_USER_DATA/keybinds.ini"
-          mkdir -p "$PACKAGE_USER_DATA/runs/default"
+          mkdir -p "$PACKAGE_USER_DATA/runs/default" "$PACKAGE_USER_DATA/saves/profile-default"
+          printf 'modern-settings-upgrade-marker\n' > "$PACKAGE_USER_DATA/host-state-v1.txt"
           printf 'profile-catalog-upgrade-marker\n' > "$PACKAGE_USER_DATA/profiles-v1.txt"
+          printf 'profile-state-upgrade-marker\n' > "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt"
           printf 'run-upgrade-marker\n' > "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun"
           printf '# package-refresh-binding-marker\n' >> "$PACKAGE_USER_DATA/keybinds.ini"
           printf '# package-refresh-settings-marker\n' >> "$PACKAGE_USER_DATA/config.ini"
 
           CONFIG_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          MODERN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
+          PROFILE_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
 
           rm -rf "$TEST_PACKAGE"
@@ -247,9 +251,13 @@ jobs:
 
           CONFIG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          MODERN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
+          PROFILE_AFTER="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
           test "$CONFIG_BEFORE" = "$CONFIG_AFTER"
           test "$KEYBINDS_BEFORE" = "$KEYBINDS_AFTER"
+          test "$MODERN_BEFORE" = "$MODERN_AFTER"
+          test "$PROFILE_BEFORE" = "$PROFILE_AFTER"
           test "$RUN_BEFORE" = "$RUN_AFTER"
           grep -Fq "profile-catalog-upgrade-marker" "$PACKAGE_USER_DATA/profiles-v1.txt"
           test ! -e "$TEST_PACKAGE/config.ini"
@@ -354,25 +362,78 @@ jobs:
           cd tools
           python check_result_screen_time.py --dump-dir "$DUMPS" --checkpoint race-results
 
-      - name: Missing-package-payload startup error
+      - name: Representative package startup diagnostics
         run: |
           set -euo pipefail
-          BROKEN="$RUNNER_TEMP/UR-Recomp-Windows-x64-broken"
-          cp -R "$TEST_PACKAGE" "$BROKEN"
-          rm "$BROKEN/Uniracers_USA.sfc"
-          BROKEN_WIN="$(cygpath -w "$BROKEN")"
 
+          BROKEN_ROM="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-rom"
+          cp -R "$TEST_PACKAGE" "$BROKEN_ROM"
+          rm "$BROKEN_ROM/Uniracers_USA.sfc"
+          BROKEN_ROM_WIN="$(cygpath -w "$BROKEN_ROM")"
           set +e
           powershell.exe -NoProfile -Command \
-            "& '${BROKEN_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
+            "& '${BROKEN_ROM_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-rom.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-missing-rom.log"
           test "$RC" -eq 2
-          grep -Fq "UR-Recomp cannot start: required file missing: Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/package-missing-rom.log"
-          echo "WINDOWS_PACKAGE_MISSING_PAYLOAD_ERROR ok"
+          grep -Fq "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log"
+
+          BROKEN_DATA="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-runtime"
+          cp -R "$TEST_PACKAGE" "$BROKEN_DATA"
+          rm -rf "$BROKEN_DATA/mods"
+          BROKEN_DATA_WIN="$(cygpath -w "$BROKEN_DATA")"
+          set +e
+          powershell.exe -NoProfile -Command \
+            "& '${BROKEN_DATA_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
+            >"$RUNNER_TEMP/package-missing-runtime.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-missing-runtime.log"
+          test "$RC" -eq 2
+          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log"
+
+          BAD_ROOT="$RUNNER_TEMP/not-a-user-data-directory"
+          printf 'not a directory\n' > "$BAD_ROOT"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          BAD_ROOT_WIN="$(cygpath -w "$BAD_ROOT")"
+          set +e
+          UR_RECOMP_USER_DATA_ROOT="$BAD_ROOT_WIN" \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-unwritable-root.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-unwritable-root.log"
+          test "$RC" -eq 3
+          grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-unwritable-root.log"
+
+          BAD_IMAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64-invalid-rom"
+          INVALID_USER="$RUNNER_TEMP/package-invalid-rom-user-data"
+          cp -R "$TEST_PACKAGE" "$BAD_IMAGE"
+          python - "$BAD_IMAGE/Uniracers_USA.sfc" <<'PY'
+          import pathlib, sys
+          path = pathlib.Path(sys.argv[1])
+          data = bytearray(path.read_bytes())
+          data[0] ^= 0xFF
+          path.write_bytes(data)
+          PY
+          BAD_IMAGE_WIN="$(cygpath -w "$BAD_IMAGE")"
+          INVALID_USER_WIN="$(cygpath -w "$INVALID_USER")"
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$INVALID_USER_WIN" \
+            timeout 60 powershell.exe -NoProfile -Command \
+              "& '${BAD_IMAGE_WIN}\\run-uniracers.cmd' --no-launcher; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-invalid-rom.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-invalid-rom.log"
+          test "$RC" -ne 0
+          grep -Fq "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log"
+          echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
       - name: Upload Windows evidence
         if: always()

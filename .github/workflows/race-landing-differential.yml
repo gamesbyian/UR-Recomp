@@ -1,20 +1,7 @@
 name: landing transition native/reference differential
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/race-landing-timeline.script"
-      - "tools/summarize_player_checkpoints.py"
-      - "tools/compare_wram_checkpoints.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: race-landing-differential-${{ github.ref }}
   cancel-in-progress: true
 

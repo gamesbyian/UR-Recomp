@@ -373,3 +373,17 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 The durable run foundation and first player-facing consumption paths are shipped. Typed/versioned/checksummed `.urrun` artifacts persist per profile, export through the canonical deterministic input grammar, reload in a fresh process, and drive the Local Runs browser/replay path. Checksum-bound `.urghost` sidecars can render Previous or Personal Best in Modern 1P through the live camera and existing Racer-HD semantic selector without guest-memory, controller, collision or second-simulation authority. Corrupt/incompatible data fails closed. Remaining work is richer split/target presentation and local-management polish, not another records or ghost data model. See `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `GHOST-PRESENTATION-TRACE.md`.
 
+## Regional presentation: Uniracers / Unirally easter egg
+
+Owning plan: `docs/REGIONAL-PRESENTATION.md`.
+
+- [x] Add typed `RegionalPresentation::{NorthAmerica,Europe}` plus a pure secret recognizer for keyboard `PAL` / `NTSC` and controller Left Left Left L A / Right Right Right R A with timeout/context/text-entry/Authentic gating.
+- [x] Persist the regional value through the existing additive host-state v6 envelope and prove store-level PAL -> save -> fresh load -> profile change -> NTSC -> save -> fresh load. The state is global and profile-independent.
+- [x] Add `tools/analyze_regional_retail_static.py` and a retained workflow artifact that independently verifies retail ROM identity, the 38/45 identical RNC result, changed streams 4/16/20/26/27/35/36, course-name mapping, resource-list deltas, Switcher header delta and candidate printable-string differences.
+- [ ] Wire production platform events/title-surface observation into the semantic matcher without introducing a second input map; dispatch the existing host-state save path only on `SaveRequired`.
+- [ ] Run matched USA-retail vs Europe-retail framebuffer captures across boot/title, top-level menus, mode entry, racer/tour/track selection, representative results/records and reachable award/ending surfaces. Classify every visible delta.
+- [ ] Extract and provenance-bind the exact USA Uniracers and Europe Unirally title-logo assets, including palette/layout/animation dependencies, then bind the first shipping regional consumer.
+- [ ] Complete the seven changed-course structural/visual classification. Visual-only deltas may become regional presentation; collision/topology/spawn/timing differences remain canonical-USA behavior.
+- [ ] Compare regional audio/SPC content and matched title/menu/race output where static identity is insufficient. Do not create a regional audio branch without proven content differences.
+- [ ] Cross-check printable-string candidates from the static analyzer against framebuffer captures; rendered differences become requirements, internal/header strings do not.
+- [ ] Run representative title/frontend traces through the live secret-input path and prove no accidental activation or swallowed ordinary navigation.

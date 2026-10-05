@@ -144,6 +144,16 @@ Native review run `37261958454` / artifact `11325277378` records gameplay-scale 
 
 This family also exposed and fixed a selector correctness issue: semantic ID alone is insufficient when both players may use the same ID under one synchronized composition. Racer-HD selection now includes player identity, and previously accidental cross-player borrowing fails closed to Original. The four unique fourth-family poses are shipping-approved by exact authored RGBA hash in `analysis/data/racer-hd-art-approval-1230-1239.json`; later pixel changes fail closed through the standard readiness join.
 
+## Fifth shipping-approved ordinary-race family
+
+The next measured fallback-reduction target is the seven-frame ordinary-race staircase at frames `1261`-`1267`: `057E/0542 + 0D49/0000` for frames `1261`-`1262`, `057D/0541 + 0D48/0000` for `1263`-`1264`, `057D/0540 + 0D48/0000` for `1265`-`1266`, and `057C/0540 + 0D47/0000` at `1267`. All four states use selectors `0000/0000` and companion gates `0001/0000`. The `057D/0540 + 0D48/0000` step was the highest-frequency exact ordinary-race composition still falling back to Original in the retained trace, so this family was selected by player-visible product value rather than semantic adjacency.
+
+Exact ROM measurement in run `37263957234` / artifact `11324494911` proves that eight exact semantic registrations collapse to six unique same-player visual poses. Five are exact stock-RGBA matches to already shipping-approved art: P1 `057E+0D49`, P1 `057D+0D48`, P2 `0542`, P2 `0541`, and P2 `0540`. Only P1 `057C+0D47` requires genuinely new authored geometry. That new pose continues the approved `057E -> 057D` motion language and preserves the measured stock envelope `[20,3]..[44,38]`, contact `[71,76]`, 320 candidate opaque pixels versus 325 stock, and 231 sampled overlapping alpha pixels over a 414-pixel union (IoU `0.5579710145`).
+
+Native review run `37264523402` / artifact `11325937178` proves the complete seven-frame family at true 4x. All six unique poses preserve exact stock envelopes and recovered contact anchors. Static retained edges remain byte-static. Dynamic motion remains bounded and directionally faithful: P1 `057E -> 057D` changes 118 authored pixels versus 98 stock (ratio `1.2040816327`), P1 `057D -> 057C` changes 113 versus 106 (ratio `1.0660377358`), P2 `0542 -> 0541` changes 116 versus 89 (ratio `1.3033707865`), and P2 `0541 -> 0540` changes 128 versus 93 (ratio `1.3763440860`). All remain inside the accepted `0.75`-`2.25` temporal band.
+
+The six unique poses are hash-bound shipping-approved in `analysis/data/racer-hd-art-approval-1261-1267.json`, with zero family blockers. Frame `1388` remains deliberately fail-closed: its `057F/0543 + 0D6A/0000` state is retained for semantic/prototype evidence but has no approved authored art, so native acceptance explicitly forbids an HD draw there rather than mistaking registration evidence for shipping-art availability.
+
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 
 Reference provenance:

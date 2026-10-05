@@ -39,6 +39,27 @@ For moving gameplay art, preserve:
 
 For the unicycle in particular, wheel-ground contact and stable frame-to-frame geometry are release criteria, not polish.
 
+
+## Racer equivalence and canonical authoring
+
+Racer replacement art must be deduplicated by proved visual identity before new geometry is authored. Runtime state identity, player identity, palette identity and visual-geometry identity are separate concepts.
+
+Use this hierarchy, in order:
+
+1. **Exact-raster equivalence.** If two registered states for the same palette reconstruct to byte-identical stock RGBA, they own one authored asset. Keep separate semantic/runtime guards, but do not redraw or refine the pose twice.
+2. **Palette-normalized equivalence.** If two stock racers become byte-identical after only the proven racer-color palette roles are normalized, they own one canonical geometry/material asset plus deterministic palette application. Do not independently author, upscale or refine red/blue/color variants of that pose.
+3. **Distinct visual pose.** Author separate geometry only when the stock evidence fails both exact-raster and palette-normalized equivalence.
+
+Palette normalization must be conservative. It may replace only palette roles proven to encode racer color. Alpha, silhouette, neutral hardware, rubber, saddle, spatial shading structure and every non-color material role remain part of the geometry/material identity. A semantic-frame ID match alone is not proof of equivalence.
+
+For a palette-equivalent family, the canonical authored pose owns all non-color decisions: geometry, antialiasing/coverage, wheel and frame structure, saddle, hardware, material boundaries, baked-light placement and micro-detail. Color variants are derived from that same pose through a versioned deterministic palette/material transform. This is the required production path even when independently authored variants would look approximately identical.
+
+Acceptance must be exact rather than perceptual. Render every declared palette variant at authored density, normalize the approved racer-color values back to canonical material roles, and require the normalized outputs to be byte-identical. Any differing alpha, neutral-material pixel, edge coverage, highlight placement or geometry is a failure. Fuzzy image similarity is useful for review but is not sufficient to prove palette equivalence.
+
+Approval should follow the same ownership model. Exact-raster aliases inherit the unique pose approval. Palette variants inherit geometry/material approval only through the proved canonical pose plus the exact reviewed palette transform/version; changing canonical geometry or the transform invalidates the affected derived review evidence. This prevents a color-only variant from quietly becoming a second fork of the artwork.
+
+The existing `recolor_authored_frame_pixel()` path demonstrates the intended runtime shape for known red/blue variants. New families should prefer canonical-pose-plus-palette derivation whenever the stock evidence proves that relationship. Existing independently authored variants should be migrated opportunistically once palette-normalized equivalence is measured, without reopening already approved art merely for stylistic revision.
+
 ## Racer source-production constraint
 
 The original unicycle imagery was not authored as pixel art from first principles. The project’s developer-history evidence identifies Martin Good as the CG artist responsible for the unicycle renders and records Robbie Graham describing a highly detailed **3D source model rendered down into very small 2D game frames**, with many pedal/wheel phases plus stunt rotation, tilt/stretch and saddle motion. Dedicated Unicycle Compression and A0 plotting tools independently fit that production model.

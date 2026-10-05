@@ -1,15 +1,7 @@
 name: targeted WRAM store-site scan
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "tools/find_wram_store_sites.py"
-      - ".github/workflows/targeted-wram-store-scan.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: targeted-wram-store-scan-${{ github.ref }}
   cancel-in-progress: true
 

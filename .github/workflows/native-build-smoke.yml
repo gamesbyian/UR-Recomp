@@ -1628,12 +1628,10 @@ jobs:
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
-          KEYBINDS="$(dirname "$EXE")/keybinds.ini"
           FIRST_LOG="$RUNNER_TEMP/pause-controls-edit.log"
           SECOND_LOG="$RUNNER_TEMP/pause-controls-reload.log"
           FIRST_DUMPS="$RUNNER_TEMP/pause-controls-edit-dumps"
           SECOND_DUMPS="$RUNNER_TEMP/pause-controls-reload-dumps"
-          rm -f "$KEYBINDS"
           rm -rf "$FIRST_DUMPS" "$SECOND_DUMPS"
           mkdir -p "$FIRST_DUMPS" "$SECOND_DUMPS"
 
@@ -1672,7 +1670,20 @@ jobs:
             done
             grep -q "UR_PAUSE_CONTROLS OPENED" "'"$FIRST_LOG"'"
 
+            # Establish a known baseline through the same player-facing
+            # authority instead of assuming where the framework stores its file.
+            xdotool key r
+            for _ in $(seq 1 100); do
+              grep -q "UR_CONTROLS command=4 .*applied=1" "'"$FIRST_LOG"'" &&
+                grep -q "UR_CONTROLS BINDINGS a=X b=Z x=S y=A " "'"$FIRST_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_CONTROLS BINDINGS a=X b=Z x=S y=A " "'"$FIRST_LOG"'"
+
             # Real player-facing capture edits A and persists immediately.
+            # F3 is also a global Modern shortcut, so accepting it here proves
+            # the Controls modal owns keyboard input while capture is active.
             xdotool key Return
             xdotool key F3
             for _ in $(seq 1 100); do
@@ -1699,9 +1710,6 @@ jobs:
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true
           '
-
-          test -s "$KEYBINDS"
-          grep -Eq '^a[[:space:]]*=[[:space:]]*F3$' "$KEYBINDS"
 
           # A separate executable process must reload the saved framework file.
           timeout 90s xvfb-run -a bash -c '

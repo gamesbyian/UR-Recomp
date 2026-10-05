@@ -138,4 +138,11 @@ RunTimingPanelPresentation present_run_timing_panel(
     return panel;
 }
 
+bool should_present_run_timing(
+    bool modern_execution,
+    bool supported_timed_run,
+    bool race_or_results_surface) noexcept {
+    return modern_execution && supported_timed_run && race_or_results_surface;
+}
+
 }  // namespace ur::product

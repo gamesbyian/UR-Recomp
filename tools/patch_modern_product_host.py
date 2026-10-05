@@ -191,6 +191,9 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "modern_pause_menu.cpp",
         "modern_pause_input.cpp",
         "modern_options_menu.cpp",
+        "modern_controls_rebind.cpp",
+        "modern_controls_binding_authority.cpp",
+        "modern_controls_presenter.cpp",
         "uniracers_modern_host.cpp",
     ]
     source_lines = "\n".join(

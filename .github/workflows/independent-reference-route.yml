@@ -1,22 +1,7 @@
 name: independent libretro reference route
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/reach-first-race.script"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "third_party/manifest.json"
-      - "third_party/src/beetle-bsnes-libretro/**"
-      - "tools/compare_wram_checkpoints.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: independent-reference-route-${{ github.ref }}
   cancel-in-progress: true
 

@@ -595,20 +595,26 @@ void advance_practice_route(uint64_t next_frame) {
     const auto expected_track_id = g_practice_launch.target.track_id;
     g_practice_launch = step.state;
 
-    if (step.course_mismatch) {
+    if (step.route_violation || step.course_mismatch) {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_PRACTICE COURSE_MISMATCH expected=%u actual=%d\n",
+                step.route_violation
+                    ? "UR_PRACTICE ROUTE_VIOLATION expected=%u actual=%d stage_bypassed=1\n"
+                    : "UR_PRACTICE COURSE_MISMATCH expected=%u actual=%d\n",
                 static_cast<unsigned>(expected_track_id),
                 active_track_id);
             std::fflush(stderr);
         }
-        // A target-aware Practice launch must never silently bless a different
-        // stock course. Reuse the accepted Practice restore + frontend reboot
-        // lifecycle so SRAM/profile state remains isolated and fail closed.
+        // A target-aware Practice launch must never silently bless an attract
+        // race, bypassed frontend route, or different stock course. Reuse the
+        // accepted Practice restore + frontend reboot lifecycle so SRAM/profile
+        // state remains isolated and fail closed.
         if (!exit_to_frontend()) {
-            product_diagnostic("UR_PRACTICE COURSE_MISMATCH_EXIT_FAILED");
+            product_diagnostic(
+                step.route_violation
+                    ? "UR_PRACTICE ROUTE_VIOLATION_EXIT_FAILED"
+                    : "UR_PRACTICE COURSE_MISMATCH_EXIT_FAILED");
         }
         return;
     }

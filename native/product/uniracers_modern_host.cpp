@@ -195,6 +195,7 @@ void product_diagnostic(const char* message);
 bool paused();
 bool restart_surface();
 bool dispatch(UrModernPauseAction action);
+bool abort_practice_route_to_frontend(const char* diagnostic);
 void rearm_run_capture_after_retry();
 uint32_t current_sram_digest();
 void apply_profile_save_root() {

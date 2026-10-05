@@ -47,7 +47,11 @@ def write_launcher(path: Path) -> None:
         "@echo off\r\n"
         "setlocal\r\n"
         "cd /d \"%~dp0\"\r\n"
-        f"\"{EXE_NAME}\" \"{ROM_NAME}\" %*\r\n",
+        f"if not exist \"{EXE_NAME}\" (echo UR-Recomp cannot start: required file missing: {EXE_NAME} 1>&2 & exit /b 2)\r\n"
+        f"if not exist \"{ROM_NAME}\" (echo UR-Recomp cannot start: required file missing: {ROM_NAME} 1>&2 & exit /b 2)\r\n"
+        "if not exist \"rom.cfg\" (echo UR-Recomp cannot start: required file missing: rom.cfg 1>&2 & exit /b 2)\r\n"
+        f"\"{EXE_NAME}\" \"{ROM_NAME}\" %*\r\n"
+        "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8",
         newline="",
     )

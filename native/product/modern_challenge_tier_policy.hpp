@@ -44,12 +44,15 @@ constexpr std::optional<ModernChallengeTier> stock_next_challenge_tier(
 constexpr bool modern_challenge_tier_selectable(
     ExecutionMode mode,
     bool tour_available,
-    ModernChallengeTier requested) noexcept {
+    ModernChallengeTier requested,
+    bool hunter_tour = false) noexcept {
     const auto value = challenge_tier_medal_value(requested);
-    return mode == ExecutionMode::Modern &&
-           tour_available &&
-           value >= challenge_tier_medal_value(ModernChallengeTier::Bronze) &&
-           value <= challenge_tier_medal_value(ModernChallengeTier::Gold);
+    if (mode != ExecutionMode::Modern || !tour_available ||
+        value < challenge_tier_medal_value(ModernChallengeTier::Bronze) ||
+        value > challenge_tier_medal_value(ModernChallengeTier::Gold)) {
+        return false;
+    }
+    return !hunter_tour || requested == ModernChallengeTier::Gold;
 }
 
 constexpr CanonicalChallengeOpponent canonical_challenge_opponent(

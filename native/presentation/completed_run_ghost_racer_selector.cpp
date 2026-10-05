@@ -20,7 +20,8 @@ SelectionResult select_completed_run_ghost_racer_presentation(
     return select_racer_presentation(
         requested_pack,
         frame.semantic_frame_id,
-        composition);
+        composition,
+        1);
 }
 
 }  // namespace ur::presentation

@@ -26,7 +26,7 @@
  }
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -199,5 +199,18 @@
+@@ -199,4 +199,17 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
 +  /* Optional title-owned normalized physical gamepad-button seam. Called

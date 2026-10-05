@@ -1,0 +1,40 @@
+name: Regional retail static analysis
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tools/analyze_regional_retail_static.py"
+      - "tests/unit/test_analyze_regional_retail_static.py"
+      - "analysis/data/course-corpus.json"
+      - "analysis/data/course-resource-catalog.json"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Unirally_Europe.sfc"
+      - ".github/workflows/regional-retail-static-analysis.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify analyzer contract
+        run: python3 -m unittest tests.unit.test_analyze_regional_retail_static
+
+      - name: Generate retained regional inventory
+        run: |
+          mkdir -p analysis/out/regional-retail
+          python3 tools/analyze_regional_retail_static.py \
+            --json-out analysis/out/regional-retail/retail-regional-static-diff.json \
+            --md-out analysis/out/regional-retail/retail-regional-static-diff.md
+
+      - name: Upload regional inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: regional-retail-static-analysis
+          path: analysis/out/regional-retail/
+          if-no-files-found: error

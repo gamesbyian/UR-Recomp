@@ -7,6 +7,7 @@ on:
       - "native/product/uniracers_modern_host.*"
       - "native/product/modern_controls_*"
       - "tests/native/modern_controls_*"
+      - "tools/patch_modern_product_host.py"
       - "tests/input/modern-main-menu.script"
       - "tests/input/modern-practice-route.script"
       - "tests/input/modern-fast-repeat-results.script"

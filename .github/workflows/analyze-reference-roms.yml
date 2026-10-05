@@ -1,18 +1,5 @@
 name: Analyze reference ROMs
 on:
-  push:
-    paths:
-      - "tools/analyze_reference_roms.py"
-      - "tools/inventory_reference_roms.py"
-      - "tools/compare_reference_roms.py"
-      - "tools/rnc_method1.py"
-      - "tools/analyze_rnc_streams.py"
-      - "tools/inspect_rnc_payloads.py"
-      - "tools/find_rnc_decoder_signature.py"
-      - "tools/map_rnc_code_refs.py"
-      - "tools/trace_rnc_loader_seeds.py"
-      - "tools/analyze_course_header_cadence.py"
-      - "reference/roms/**"
   workflow_dispatch:
 permissions:
   contents: write

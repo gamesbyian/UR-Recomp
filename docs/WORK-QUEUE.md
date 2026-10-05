@@ -21,7 +21,7 @@ Keep at least three of these in agent-ready form when possible. If a lane must t
 
 ## Platform portability guardrail
 
-Windows x64 is the primary eventual consumer build, with macOS, Web, Switch homebrew and PS5 host ports planned behind the same simulation/product interfaces. While current Widescreen, HD and modern-product work continues, reject new desktop-only assumptions when an equally small portable seam exists. Do not divert the active critical path into full ports yet; the immediate platform task is bounded reconnaissance and compile-only feasibility, beginning with the public Switch devkitPro/libnx/SDL2 stack documented in `SWITCH-HOMEBREW-PORT.md`.
+Windows x64 is the primary consumer/reference build. macOS, Web, Switch homebrew and PS5 remain later peer/feasibility targets behind the same simulation/product interfaces. Reject new desktop-only assumptions when an equally small portable seam exists, but **do not assign agents to secondary-platform reconnaissance, compile feasibility or port implementation while unfinished Windows x64 baseline requirements remain**. Platform-specific plans remain reference material for future work, not active queue authorization.
 
 SDL3 is the canonical desktop host backend; SDL2 is fallback-only (`PLATFORM-TARGETS.md`, "SDL backend policy"). Do not write new product/host glue against SDL2-only APIs.
 

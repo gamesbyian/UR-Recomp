@@ -1730,6 +1730,30 @@ def build_dossier(
         }
         authored_candidate = None
         authored_meta = entry.get("authored_candidate")
+        reuse_proof = None
+        if authored_meta is not None and authored_meta.get("reused_from_representation_id"):
+            source_id = authored_meta["reused_from_representation_id"]
+            source_entry = entries.get(source_id)
+            if source_entry is None:
+                raise ValueError(f"{rid} reuse source is not registered: {source_id}")
+            if source_entry["player"] != entry["player"]:
+                raise ValueError(f"{rid} reuse source crosses players: {source_id}")
+            source_stock = build_stock_rgba(rom, source_entry)
+            if source_stock != stock:
+                raise ValueError(
+                    f"{rid} reuse source stock RGBA differs from target: {source_id}"
+                )
+            source_authored, _source_generator, _source_sampler = (
+                authored_candidate_rgba_for_entry(source_entry)
+            )
+            reuse_proof = {
+                "source_representation_id": source_id,
+                "same_player": True,
+                "stock_rgba_byte_identical": True,
+                "stock_rgba_sha256": sha256(stock),
+                "source_stock_rgba_sha256": sha256(source_stock),
+                "source_authored_rgba_sha256": sha256(source_authored),
+            }
         if authored_meta is not None:
             authored_rgba, expected_generator, native_sampler = (
                 authored_candidate_rgba_for_entry(entry)
@@ -1807,6 +1831,7 @@ def build_dossier(
                 ),
                 "evidence_packet_ready": True,
                 "authored_candidate": authored_candidate,
+                "reuse_proof": reuse_proof,
                 "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
                 "pending_decisions": list(PENDING_ART_DECISIONS),
                 "visual_language_authority": "docs/HD-ART-DIRECTION.md",

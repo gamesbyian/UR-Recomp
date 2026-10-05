@@ -29,6 +29,10 @@ public:
     RegionalPresentation current() const noexcept {
         return matcher_.current();
     }
+    bool text_pending() const noexcept { return matcher_.text_pending(); }
+    bool controller_pending() const noexcept {
+        return matcher_.controller_pending();
+    }
 
     RegionalPresentationUpdate feed_text(
         HostProductState& state,

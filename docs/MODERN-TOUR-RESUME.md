@@ -39,7 +39,7 @@ Profile schemas v1-v3 remain readable. Identity-less historical profiles retain 
 
 Every settled stock results surface is a Modern autosave boundary. The framework's ordinary `RtlTryWriteSram()` first durably publishes the authoritative profile-local cartridge save, including records, stats and any medal update; the profile metadata is then atomically replaced with an exact 8 KiB SRAM mirror. When one through four qualification flags remain, that same commit carries the unfinished-tour continuation. A completed five-track row carries no continuation because stock has already awarded the medal and cleared the row.
 
-On a later process, a valid active Modern profile with a byte-identical live/persisted SRAM snapshot exposes a compact **F3 Continue Tour** affordance on the settled stock main menu. Continue does not reconstruct guest state. A pure host route reuses the proven stock menu policy and injects only ordinary discrete directional/confirm inputs through the existing deterministic input path:
+On a later process, a valid active Modern profile exposes a compact **F3 Continue Tour** affordance on the settled stock main menu only when its live SRAM is byte-identical to the persisted snapshot and the persisted rider, tour, medal generation and five qualification flags agree with that SRAM through the title-owned read-only preflight. Continue does not reconstruct guest state. A pure host route reuses the proven stock menu policy and injects only ordinary discrete directional/confirm inputs through the existing deterministic input path:
 
 `MAIN_MENU (D7) -> RIDER_SELECT (3C) -> saved TOUR_SELECT option (6D) -> TRACK_SELECT (F6)`.
 

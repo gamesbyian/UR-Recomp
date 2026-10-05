@@ -29,7 +29,8 @@ Restart is intentionally not implemented as "clear the five flags." Stock rider 
 2. route through ordinary stock MAIN_MENU -> RIDER_SELECT -> saved TOUR_SELECT -> TRACK_SELECT inputs;
 3. suppress the existing Resume restore for that route;
 4. observe settled TRACK_SELECT and an empty stock qualification row;
-5. only then retire the profile-local continuation metadata.
+5. ask the title-owned `tour_qualification_row_empty()` predicate for proof of the stock wipe, keeping SRAM offsets out of product code;
+6. only then retire the profile-local continuation metadata.
 
 If the route is cancelled, times out, changes profile/context, enters an unexpected race, or reaches TRACK_SELECT with a non-empty row, the continuation remains intact.
 
@@ -58,6 +59,7 @@ Pure coverage proves:
 - all nine tours use the same stock route for confirmed Restart;
 - Restart carries no restore permission;
 - metadata retirement is permitted only after both settled TRACK_SELECT and an empty stock row;
+- the empty-row proof is provided by the title adapter rather than duplicated SRAM offsets in product/UI code;
 - Resume never permits Restart-style retirement.
 
 This is deliberately a stacked policy/model slice. Player-facing host wiring remains deferred until the current Continue/navigation host changes are reconciled. The later integration should be thin and should not add another course picker, another frontend router, or direct qualification-byte clearing.

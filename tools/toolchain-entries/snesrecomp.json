@@ -123,7 +123,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-mod-state-root.patch",
-      "sha256": "dc83e330f780d99dce9e87d41c9a1d41ea91907bec83c2437458cafc1188eb71"
+      "sha256": "4114db723e93a5c8d06e3a34c3da01471a3a30a629e6258b3398683c840d52f8"
     },
     {
       "path": "tools/patches/snesrecomp-user-rom-cache.patch",

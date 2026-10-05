@@ -5,6 +5,8 @@ on:
   pull_request:
     paths:
       - "native/product/uniracers_modern_host.*"
+      - "native/product/modern_controls_*"
+      - "tests/native/modern_controls_*"
       - "tests/input/modern-main-menu.script"
       - "tests/input/modern-practice-route.script"
       - "tests/input/modern-fast-repeat-results.script"
@@ -57,6 +59,37 @@ jobs:
           cmake -S "$ROOT" -B "$ROOT/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL3             -DSNESRECOMP_SDL3_FETCH=ON             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Prove controls edit, save and fresh-process reload
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-main-menu.script"
+
+          rm -f "$ROOT/build/keybinds.ini"
+          for MODE in write verify reset; do
+            LOG="$RUNNER_TEMP/controls-$MODE.log"
+            SDL_AUDIODRIVER=dummy \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_CONTROLS_PERSISTENCE_ACCEPTANCE="$MODE" \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
+            cat "$LOG"
+            grep -q "UR_CONTROLS_PERSISTENCE mode=$MODE result=PASS" "$LOG"
+          done
+
+          AUTH_LOG="$RUNNER_TEMP/controls-authentic.log"
+          SDL_AUDIODRIVER=dummy \
+          UR_EXECUTION_MODE=authentic \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_CONTROLS_PERSISTENCE_ACCEPTANCE=write \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+            >"$AUTH_LOG" 2>&1
+          cat "$AUTH_LOG"
+          ! grep -q "UR_CONTROLS_PERSISTENCE" "$AUTH_LOG"
 
       - name: Prove first-run onboarding and dismissal persistence
         shell: bash

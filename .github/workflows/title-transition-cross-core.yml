@@ -1,7 +1,9 @@
 name: Title transition cross-core regression
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: title-transition-cross-core-${{ github.ref }}
   cancel-in-progress: true
 

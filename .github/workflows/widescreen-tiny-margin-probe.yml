@@ -1,7 +1,9 @@
 name: Tiny-margin Widescreen Dragster probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-tiny-margin-${{ github.ref }}
   cancel-in-progress: true
 

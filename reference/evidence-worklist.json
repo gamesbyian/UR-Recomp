@@ -496,7 +496,8 @@
         "reddit-uniracers-boost-mechanics-2021",
         "arqade-uniracers-straightaway-speed",
         "tasvideos-usjo",
-        "flymaggott-dragster-fliptwist-video"
+        "flymaggott-dragster-fliptwist-video",
+        "gamefaqs-starscream-boost-review"
       ],
       "question": "Does race-speed boost scale with stunt complexity/count, or is each successful stunt effectively a fixed boost with apparent differences coming from landing quality, timing, offscreen depletion, or combo structure?",
       "next_discriminator": "Build deterministic same-course traces comparing single Twist, single Roll, Flip, Roll+Twist, Double Flip, and Flip City from matched pre-jump state. Measure resulting speed/boost state frame-by-frame through landing and for a fixed post-landing window, both onscreen and offscreen. Separate stunt-score value from race-speed boost and landing penalty.",

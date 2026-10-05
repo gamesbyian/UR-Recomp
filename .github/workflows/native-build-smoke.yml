@@ -40,6 +40,7 @@ on:
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-profile-panel-acceptance.script"
       - "tests/input/modern-exit-frontend-results.script"
+      - "tests/input/modern-fast-repeat-results.script"
       - "tests/input/modern-exit-frontend-active.script"
       - "tests/input/widescreen-product-acceptance.script"
       - "tools/check_widescreen_product_parity.py"
@@ -843,6 +844,75 @@ jobs:
           echo "== Personal Best selection diagnostics =="
           grep "UR_RUN_GHOST TARGET_SELECTED" "$SECOND_LOG"
           echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
+
+      - name: Modern completed-race one-action rematch acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-fast-repeat-results.script"
+          ROOT="$RUNNER_TEMP/fast-repeat-navigation"
+          LOG="$ROOT/run.log"
+          DUMPS="$ROOT/dumps"
+          rm -rf "$ROOT"
+          mkdir -p "$DUMPS"
+
+          timeout 120s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 900); do
+              [ -s "'"$DUMPS"'/race-results.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/race-results.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            xdotool key r
+
+            for _ in $(seq 1 300); do
+              [ -s "'"$DUMPS"'/fast-repeat-race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/fast-repeat-race-entered.wram.bin" ]
+            wait "$PID"
+          '
+
+          cat "$LOG"
+          grep -q "UR_FAST_NAV REMATCH" "$LOG"
+          grep -q "UR_FAST_NAV REPEAT_VERIFIED sram_equal=1 course_equal=1 practice=0" "$LOG"
+
+          python3 - "$DUMPS/race-results.wram.bin" "$DUMPS/fast-repeat-race-entered.wram.bin" <<'PY'
+          import pathlib
+          import sys
+
+          before = pathlib.Path(sys.argv[1]).read_bytes()
+          repeated = pathlib.Path(sys.argv[2]).read_bytes()
+          if repeated[0x0313] != 1:
+              raise SystemExit("rematch did not re-enter authoritative active race")
+          if before[0x00CE] != repeated[0x00CE]:
+              raise SystemExit(
+                  f"course changed across rematch: {before[0x00CE]:02X} -> {repeated[0x00CE]:02X}"
+              )
+          print(
+              "UR_FAST_REPEAT_RESULT=completed_race_rematch "
+              f"course={repeated[0x00CE]:02X} state_leakage=0"
+          )
+          PY
 
       - name: Shipping Widescreen composition acceptance
         shell: bash

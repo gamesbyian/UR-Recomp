@@ -71,6 +71,18 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                'if "%UR_RECOMP_USER_DATA_ROOT:~1,2%"==":\\\\" goto user_root_ready',
+                launcher,
+            )
+            self.assertIn(
+                'if "%UR_RECOMP_USER_DATA_ROOT:~0,2%"=="\\\\\\\\" goto user_root_ready',
+                launcher,
+            )
+            self.assertIn(
+                "UR_RECOMP_USER_DATA_ROOT must be an absolute Windows path",
+                launcher,
+            )
+            self.assertIn(
                 "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"",
                 launcher,
             )

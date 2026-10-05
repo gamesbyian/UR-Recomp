@@ -7,6 +7,7 @@ namespace ur::product {
 enum class FastNavigationCommand {
     RepeatAttempt,
     RecentCourse,
+    NextEvent,
 };
 
 enum class FastNavigationAction {
@@ -42,6 +43,11 @@ constexpr FastNavigationAction resolve_fast_navigation(
                 context.recent_course_profile_matches
             ? FastNavigationAction::LaunchRecentPractice
             : FastNavigationAction::None;
+    case FastNavigationCommand::NextEvent:
+        // No current product state identifies exactly one next stock event.
+        // Keep this explicit so later continuation work must opt in by adding
+        // an authoritative derivation rather than inheriting an assumption.
+        return FastNavigationAction::None;
     }
     return FastNavigationAction::None;
 }

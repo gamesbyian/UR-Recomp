@@ -320,6 +320,7 @@ void return_to_browser(
             (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
         }
         (void)refresh_browser();
+        g_records_browser_visible = false;
         g_browser_visible = true;
         diagnostic("UR_RUN_BROWSER REPLAY_RETURNED");
         const char* acceptance = std::getenv("UR_RUN_BROWSER_ACCEPTANCE");
@@ -477,6 +478,12 @@ void draw_records_browser(
             if (*selected >= static_cast<std::size_t>(row_count)) {
                 first = *selected - static_cast<std::size_t>(row_count) + 1;
             }
+        }
+
+        if (g_records_browser.index().courses.empty()) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 42,
+                "NO RUNS RECORDED YET", 0xFFFFFFFFu, 1);
         }
 
         for (int row = 0; row < row_count; ++row) {

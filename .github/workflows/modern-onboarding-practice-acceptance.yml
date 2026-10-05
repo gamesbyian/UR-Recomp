@@ -12,7 +12,6 @@ on:
       - "tests/input/modern-practice-cancel.script"
       - "tests/input/modern-recent-course-practice.script"
       - ".github/workflows/modern-onboarding-practice-acceptance.yml"
-      - "docs/MODERN-PRODUCT-LAYER.md"
 
 concurrency:
   group: modern-onboarding-practice-${{ github.ref }}

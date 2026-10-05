@@ -1,0 +1,6 @@
+# Authentic mode must ignore the Modern Continue Tour acceptance trigger.
+
+until 009F == D7 3600
+wait 120
+dump tour-continue-authentic-main
+quit

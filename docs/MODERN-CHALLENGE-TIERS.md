@@ -53,6 +53,22 @@ For Crawler, the stock thresholds are Bronze **68**, Silver **137**, Gold **270*
 
 The generated/runtime callsite integration for `83:9EEB` remains gated until its execution-tier ownership is proven, just like the `80:E6A2` snapshot writer.
 
+## Selected-tour lifecycle
+
+`native/product/modern_challenge_tour_context.hpp` now ties the three Modern seams to one immutable selection authority. A context is created only for an available ordinary tour in Modern mode and records:
+
+- rider;
+- tour row;
+- persistent medal at tour start;
+- selected Bronze/Silver/Gold tier;
+- canonical generation 0/1/2.
+
+The context supplies the same generation plan to both tour-confirm initialization and every stunt `QUALIFY` lookup. It also derives the existing commit/stock-award override only after the selected tier was actually completed and the stock tour-award boundary was reached.
+
+If mode, rider, tour or persistent medal no longer matches the captured context, the context is stale and must not authorize any title substitution. Hunter deliberately has no ordinary selected-tier context.
+
+This keeps selected-tier state as product policy rather than hiding it independently inside each title hook. When player-facing direct tier selection is eventually enabled, unfinished-tour persistence must carry this selected-tier identity alongside the existing Modern tour continuation; until then no profile schema change is required.
+
 ## Completion commit policy
 
 `native/product/modern_challenge_commit_policy.hpp` defines the only product-level circumstances under which a selected tier may request persistent progression. Selection, launch and ordinary race completion are not commit authority by themselves.

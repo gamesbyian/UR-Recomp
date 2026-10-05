@@ -70,15 +70,15 @@ bool append_completed_run_record(
     return false;
 }
 
-std::vector<StoredRunRecord> load_compatible_run_records(
-    const std::string& directory,
-    const RunPlaybackTarget& target) {
+std::vector<StoredRunRecord> load_valid_run_records(
+    const std::string& directory) {
     std::vector<StoredRunRecord> out;
     std::error_code ec;
     if (!fs::exists(directory, ec) || ec) return out;
 
     std::vector<fs::path> paths;
-    for (fs::directory_iterator it(directory, ec), end; !ec && it != end; it.increment(ec)) {
+    for (fs::directory_iterator it(directory, ec), end;
+         !ec && it != end; it.increment(ec)) {
         if (!it->is_regular_file()) continue;
         if (it->path().extension() == ".urrun") paths.push_back(it->path());
     }
@@ -86,10 +86,25 @@ std::vector<StoredRunRecord> load_compatible_run_records(
 
     std::sort(paths.begin(), paths.end());
     for (const auto& path : paths) {
-        auto loaded = load_completed_run_record_file(path.string(), &target);
+        auto loaded = load_completed_run_record_file(path.string());
         if (loaded.loaded()) {
             out.push_back({path.string(), std::move(*loaded.record)});
         }
+    }
+    return out;
+}
+
+std::vector<StoredRunRecord> load_compatible_run_records(
+    const std::string& directory,
+    const RunPlaybackTarget& target) {
+    std::vector<StoredRunRecord> out;
+    auto valid = load_valid_run_records(directory);
+    out.reserve(valid.size());
+
+    for (auto& stored : valid) {
+        std::string detail;
+        if (!compatible_for_playback(stored.record, target, &detail)) continue;
+        out.push_back(std::move(stored));
     }
     return out;
 }

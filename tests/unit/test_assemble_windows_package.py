@@ -57,7 +57,32 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                "UR-Recomp cannot start: required file missing: Uniracers_USA.sfc",
+                "UR-STARTUP-ROM-MISSING: packaged ROM is missing",
+                launcher,
+            )
+            self.assertIn("UR-STARTUP-RUNTIME-DATA", launcher)
+            self.assertIn("UR-STARTUP-SAVE-ROOT", launcher)
+            self.assertIn(
+                "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",
+                launcher,
+            )
+            self.assertIn(
+                "set \"SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%\"",
+                launcher,
+            )
+            self.assertIn(
+                'if exist "config.ini" if not exist '
+                '"%UR_RECOMP_USER_DATA_ROOT%\\config.ini"',
+                launcher,
+            )
+            self.assertIn(
+                'if exist "keybinds.ini" if not exist '
+                '"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini"',
+                launcher,
+            )
+            self.assertIn(
+                'if exist "saves\\" if not exist '
+                '"%UR_RECOMP_USER_DATA_ROOT%\\saves\\"',
                 launcher,
             )
             self.assertIn("exit /b %ERRORLEVEL%", launcher)

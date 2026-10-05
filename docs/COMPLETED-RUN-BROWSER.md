@@ -6,7 +6,7 @@ Status: first usable Windows x64 Modern product browser implemented. Switch is o
 
 During a supported Modern one-player timed Race context, pause the game and open **Local Runs** with **Ctrl+B** on keyboard or **X** on a gamepad. The browser is host-owned and profile-scoped.
 
-The list is newest-first and shows the stored chronological order, course, local run date derived from the canonical store timestamp, exact 60 Hz finish time, and **PB** / **PREV** status when those canonical selectors apply. Corrupt, malformed, unsupported-version, I/O-failed, and playback-incompatible `.urrun` artifacts remain visible as disabled rows instead of disappearing into the valid list.
+The list is newest-first and shows the stored chronological order, course, local run date derived from the canonical store timestamp, exact 60 Hz finish time, and **PB** / **PREV** status when those canonical selectors apply. The selected playable run also shows an exact signed **VS PB** finish delta using the shared completed-run presentation model; missing/incompatible PB data remains `--`. Corrupt, malformed, unsupported-version, I/O-failed, and playback-incompatible `.urrun` artifacts remain visible as disabled rows instead of disappearing into the valid list.
 
 Up/Down or the D-pad moves among playable records while skipping disabled rows. Enter/A launches the selected run. Escape/B returns to the existing paused product surface.
 

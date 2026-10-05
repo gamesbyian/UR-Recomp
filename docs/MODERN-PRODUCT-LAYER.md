@@ -238,6 +238,20 @@ Practice is non-progressing Modern product state. At launch, the host snapshots 
 
 The dedicated native acceptance requires first-run visibility/dismissal persistence, rendered live keyboard/controller binding diagnostics, stock-input-driven launch into authoritative active-race state, byte-identical pre/post-practice SRAM digests, clean return to main menu, absence of profile autosave during practice, and complete Authentic inertness. Intermediate menu IDs are diagnostic rather than mandatory because stock transitions can cross them between host observation boundaries.
 
+## Fast repeat and recent-course navigation
+
+Ordinary Windows play now reuses the existing Restart and Quick Practice authorities for the highest-value repeat paths instead of adding another race launcher.
+
+- On a validated results surface, **R / controller X** is a one-action Rematch. If the completed attempt is Quick Practice, the same action is presented as **Repeat Practice**. Both dispatch the already-accepted rollback-backed Restart command, so the stock-initialized race anchor, current course and Practice/non-Practice persistence policy are preserved.
+- **Ctrl+R** remains the direct Restart shortcut on any validated restart surface.
+- While a race is active, the host may remember a **Recent Course** only after `ur_uniracers_identify_course()` validates the live course. At the settled Modern main menu, **F6 / controller Y** can relaunch that validated course as non-progressing Quick Practice. The host supplies only a `QuickPracticeTarget`; `QuickPracticeLaunchState` then drives the proven stock menu route with normalized directional/confirm input. No course/menu/progression byte is written directly.
+- Recent Course is deliberately process-local and fail-closed. Missing or invalid course identity exposes no launch action. A course already observed authoritatively may be repeated even if it is normally hidden from the generic picker, because this affordance does not reveal an unseen course.
+- Product-navigation presses and releases are consumed before guest controller dispatch. Authentic mode neither exposes nor consumes these shortcuts.
+
+The native rematch acceptance completes a stock race, invokes the real one-action results shortcut, re-enters the authoritative active-race lifecycle and requires both the live SRAM digest and validated course identity to remain equal across the repeat.
+
+**Next Event remains deferred.** The current product still lacks a single host-owned, authoritative tour/event-continuation state above stock SRAM. Until that continuation layer can derive exactly one valid next event, the safe behavior is to expose no Next Event shortcut rather than infer progression from presentation or write stock state directly.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:

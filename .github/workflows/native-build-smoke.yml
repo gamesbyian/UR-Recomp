@@ -1648,6 +1648,35 @@ jobs:
           cat "$LOG"
           echo "UR_PAUSE_RUN_DATA_RESULT=authoritative_timer_opened_and_closed"
 
+          AUTH_LOG="$RUNNER_TEMP/timing-hud-authentic.log"
+          AUTH_DUMPS="$RUNNER_TEMP/timing-hud-authentic-dumps"
+          rm -rf "$AUTH_DUMPS"
+          mkdir -p "$AUTH_DUMPS"
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_EXECUTION_MODE=authentic
+            export UR_TIMING_HUD_DIAGNOSTICS=all
+            export SNESRECOMP_DUMP_DIR="'"$AUTH_DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$AUTH_LOG"'" 2>&1 &
+            PID=$!
+            for _ in $(seq 1 600); do
+              [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ]
+            sleep 0.3
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+          '
+          cat "$AUTH_LOG"
+          if grep -q "UR_TIMING_HUD " "$AUTH_LOG"; then
+            echo "::error::Authentic execution exposed the Modern timing HUD"
+            exit 1
+          fi
+          echo "UR_TIMING_HUD_AUTHENTIC_RESULT=inert"
+
       - name: Modern Exit to Frontend acceptance
         shell: bash
         run: |

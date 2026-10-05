@@ -2867,7 +2867,8 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
-        return begin_practice() ? 1 : 0;
+        (void)begin_practice();
+        return 1;
     }
     if (modern_mode() && key == SDLK_F6 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
@@ -2936,8 +2937,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return activate_pause_selection() ? 1 : 0;
     }
-    if (key == SDLK_r && (mod & KMOD_CTRL)) {
-        return repeat_current_attempt() ? 1 : 0;
+    if (modern_mode() && key == SDLK_r && (mod & KMOD_CTRL) &&
+        restart_surface()) {
+        (void)repeat_current_attempt();
+        return 1;
     }
     if (modern_mode() && key == SDLK_r &&
         g_surface == UR_UNIRACERS_RESTART_RESULTS) {

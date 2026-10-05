@@ -98,6 +98,7 @@ bool g_practice_active;
 bool g_practice_acceptance_fired;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
+std::string g_recent_course_profile_key;
 std::optional<std::uint32_t> g_fast_repeat_sram_before;
 std::optional<std::uint8_t> g_fast_repeat_course_before;
 std::vector<uint8_t> g_practice_sram_snapshot;
@@ -590,6 +591,18 @@ void advance_practice_route(uint64_t next_frame) {
     }
 }
 
+std::string active_profile_key() {
+    ensure_product_state();
+    return g_product_state.active_profile_id
+        ? *g_product_state.active_profile_id
+        : std::string{};
+}
+
+bool recent_course_available_for_active_profile() {
+    return g_recent_course_track_id &&
+           g_recent_course_profile_key == active_profile_key();
+}
+
 void observe_recent_course_identity() {
     if (!modern_mode() || !g_ram || g_ram[0x0313] != 0x01) return;
     const UrUniracersCourseIdentity course =
@@ -599,6 +612,7 @@ void observe_recent_course_identity() {
     }
     g_recent_course_track_id =
         static_cast<std::uint8_t>(course.course_index - 1);
+    g_recent_course_profile_key = active_profile_key();
 }
 
 ur::product::FastNavigationContext fast_navigation_context() {
@@ -608,7 +622,7 @@ ur::product::FastNavigationContext fast_navigation_context() {
         g_session && ur_modern_session_restart_available(g_session),
         g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7,
         g_practice_active,
-        g_recent_course_track_id.has_value(),
+        recent_course_available_for_active_profile(),
     };
 }
 
@@ -637,6 +651,7 @@ bool launch_recent_course_practice() {
             ur::product::FastNavigationCommand::RecentCourse,
             fast_navigation_context()) !=
         ur::product::FastNavigationAction::LaunchRecentPractice ||
+        !recent_course_available_for_active_profile() ||
         !g_recent_course_track_id) {
         return false;
     }
@@ -3188,6 +3203,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     }
 
     if (modern_mode() && !g_practice_active &&
+        recent_course_available_for_active_profile() &&
         g_recent_course_track_id && g_ram[0x0313] != 0x01 &&
         g_ram[0x009F] == 0xD7) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);

@@ -81,9 +81,13 @@ class FrontendModernizationPolicyTests(unittest.TestCase):
         self.assertIn("no heading anchor", proc.stdout)
 
     def test_candidate_redesign_needs_decision_gate(self) -> None:
-        proc = self._mutated(
-            lambda p: self._feature(p, "records-silos").pop("decision_gate")
-        )
+        def make_candidate_without_gate(policy: dict) -> None:
+            feature = self._feature(policy, "records-silos")
+            feature["modern"] = "redesign_candidate"
+            feature.pop("policy_source", None)
+            feature.pop("decision_gate", None)
+
+        proc = self._mutated(make_candidate_without_gate)
         self.assertEqual(proc.returncode, 1)
         self.assertIn("requires decision_gate", proc.stdout)
 

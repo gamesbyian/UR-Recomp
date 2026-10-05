@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "producer": "tools/measure_widescreen_exposure.py",
+  "ledger": "R-2026-10-05-UI-33",
+  "capture": {
+    "view": "16x9 (342x224)",
+    "obj_only": "SNESRECOMP_LAYER_MASK=0x10",
+    "no_obj": "SNESRECOMP_LAYER_MASK=0x0f"
+  },
+  "routes": {
+    "one-player": {
+      "route": "tests/input/widescreen-product-acceptance.script frames 1000-1950",
+      "outcome": "accepted",
+      "objects": {
+        "frames": 946,
+        "counts": {
+          "margin_only_left": 197,
+          "extends_left": 135
+        },
+        "per_sprite": {
+          "0:margin_only_left": 197,
+          "99:extends_left": 135
+        },
+        "margin_only_boxes": {
+          "0:left": [
+            {
+              "frame": 1409,
+              "box": [
+                -32,
+                0,
+                0,
+                32
+              ],
+              "margin_px": 2
+            },
+            {
+              "frame": 1410,
+              "box": [
+                -32,
+                0,
+                0,
+                32
+              ],
+              "margin_px": 6
+            },
+            {
+              "frame": 1411,
+              "box": [
+                -32,
+                0,
+                0,
+                32
+              ],
+              "margin_px": 6
+            },
+            {
+              "frame": 1412,
+              "box": [
+                -32,
+                0,
+                0,
+                32
+              ],
+              "margin_px": 6
+            }
+          ]
+        },
+        "margin_only_regions": {
+          "0:left": [
+            -32,
+            0,
+            0,
+            32
+          ]
+        }
+      },
+      "composite": {
+        "frames": 916,
+        "obj_in_margin_frames": 135,
+        "margin_only_region_visible_frames": {}
+      },
+      "course_lookahead": {
+        "0x0419": {
+          "frames": 945,
+          "moving_frames": 757,
+          "median_px_per_frame": 15,
+          "max_px_per_frame": 16,
+          "lead_frames_at_median": 2.87
+        }
+      }
+    },
+    "two-player-p1-win": {
+      "route": "tests/input/two-player-p1-win{.input,-observe.script} frames 1100-4100",
+      "outcome": "accepted",
+      "objects": {
+        "frames": 2966,
+        "counts": {
+          "extends_right": 2
+        },
+        "per_sprite": {
+          "99:extends_right": 2
+        },
+        "margin_only_boxes": {},
+        "margin_only_regions": {}
+      },
+      "composite": {
+        "frames": 3001,
+        "obj_in_margin_frames": 2,
+        "margin_only_region_visible_frames": {}
+      },
+      "course_lookahead": {
+        "0x0419": {
+          "frames": 3000,
+          "moving_frames": 1777,
+          "median_px_per_frame": 14,
+          "max_px_per_frame": 16,
+          "lead_frames_at_median": 3.07
+        },
+        "0x041B": {
+          "frames": 3000,
+          "moving_frames": 11,
+          "median_px_per_frame": 16,
+          "max_px_per_frame": 16,
+          "lead_frames_at_median": 2.69
+        }
+      }
+    }
+  }
+}

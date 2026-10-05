@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -4607,4 +4607,7 @@
+@@ -4607,10 +4607,22 @@
  static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
 +  if (g_game->system_gamepad_button &&
 +      g_game->system_gamepad_button(button, pressed))
@@ -8,14 +8,39 @@
    if (!!(gi->modifiers & (1 << button)) == pressed)
      return;
    gi->modifiers ^= 1 << button;
+   if (pressed)
+     gi->last_cmd[button] = FindCmdForGamepadButton(button + gi->index * kGamepadBtn_Count, gi->modifiers);
++  /* Some title-owned product gestures need the player's semantic SNES
++   * controls, not the physical SDL button. Keep the older raw-button seam
++   * above for host shortcuts, then expose only mapped P1 controller commands
++   * here. Press and release use the same remembered command so a title that
++   * consumes a press can consume its matching release as well. */
++  if (g_game->system_gamepad_control &&
++      gi->last_cmd[button] >= kKeys_Controls &&
++      gi->last_cmd[button] <= kKeys_Controls_Last &&
++      g_game->system_gamepad_control(
++          (int)(gi->last_cmd[button] - kKeys_Controls), pressed))
++    return;
+   if (gi->last_cmd[button] != 0)
+     SetPadButtonOrFallthrough(gi->last_cmd[button], pressed);
+ }
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -199,4 +199,8 @@
+@@ -199,4 +199,17 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
-+  /* Optional title-owned normalized gamepad-button seam. Called before the
-+   * configured GamepadMap/guest mapping. Return nonzero to consume. */
++  /* Optional title-owned normalized physical gamepad-button seam. Called
++   * before the configured GamepadMap/guest mapping. Return nonzero to
++   * consume. Existing title shortcuts may intentionally use this surface. */
 +  int (*system_gamepad_button)(int button, int pressed);
++
++  /* Optional title-owned semantic P1 SNES-control seam. Called after the
++   * configured GamepadMap resolves a physical button to one of the twelve
++   * kKeys_Controls entries and before that mapped control reaches the guest.
++   * control is the stable 0..11 offset in the order
++   * Up,Down,Left,Right,Select,Start,A,B,X,Y,L,R.
++   * Return nonzero to consume both product gestures and their releases. */
++  int (*system_gamepad_control)(int control, int pressed);
 +
    /* Optional post-compose title overlay. Runs after the title frame and frame
     * blend, before the framework OSD/screenshot path. Presentation-only. */

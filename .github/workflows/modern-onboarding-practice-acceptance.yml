@@ -380,8 +380,11 @@ jobs:
             ${{ runner.temp }}/onboarding-second.log
             ${{ runner.temp }}/practice.log
             ${{ runner.temp }}/fast-rematch.log
+            ${{ runner.temp }}/fast-rematch-dumps/
             ${{ runner.temp }}/practice-repeat.log
+            ${{ runner.temp }}/practice-repeat-dumps/
             ${{ runner.temp }}/recent-course.log
+            ${{ runner.temp }}/recent-course-dumps/
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

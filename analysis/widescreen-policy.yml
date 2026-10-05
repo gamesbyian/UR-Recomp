@@ -142,6 +142,42 @@ scenes:
     margin_presentation: host-course-model-per-viewport
     rationale: "VS uses the same split-screen BG1 band structure as ordinary 2P and widens through the same per-viewport course-model margin presenter. Matched Original/16:9 product runs keep the centred 256 columns pixel-identical and guest WRAM confined to the guest-lane ranges at checkpoints 1240/1340/1620 (R-2026-10-04-UI-30). The earlier +8..+48 VS capacity files remain historical evidence that the materializer computes calibrated columns; they never measured presentation."
 
+domain_widths:
+  # Shipped 16:9 race (342x224, +43 per side over a +48 provider) per horizontal domain.
+  simulation_activation:
+    width_pixels: 256
+    owner: guest
+    status: evidence-backed
+    rule: "Guest simulation, activation and AI run exactly as stock; nothing widens them."
+    evidence: "R-2026-10-04-UI-31 (Widescreen-off product frame-identical to the seeded baseline); R-2026-10-04-UI-29/30 (16:9 guest WRAM confined to the guest-lane ranges at every parity checkpoint)."
+  preparation_streaming:
+    width_pixels: 256
+    owner: guest
+    host_margin_source: course-model
+    status: evidence-backed
+    rule: "The guest streams its 32x32 BG1 ring for the stock view only (URRECOMP_WS_GUEST_LANE=0 in the product). Margin tiles come from the course tables at $7F:000F/$7F:800F, never from extra guest DMA."
+    evidence: "R-2026-10-04-UI-29 (guest +8 lane clobbered visible rows; disabled); native/title/uniracers_ws_margins.c."
+  render_culling:
+    width_pixels: 342
+    owner: host-ppu
+    status: evidence-backed
+    rule: "BG1 margins are host-presented per viewport band and BG2 wraps statically. Sprites keep stock culling: left-margin sprites draw through 9-bit negative X, and the right margin shows only sprites already crossing the stock edge."
+    evidence: "R-2026-10-04-UI-30 (bands, BG2 static, right-edge cull decision); R-2026-10-05-UI-32 (sprite-rip hidden copies keep >=69 px clearance); R-2026-10-05-UI-33 (no margin-only object reaches the picture)."
+  camera_composition:
+    width_pixels: 256
+    owner: guest
+    composition: centred
+    status: evidence-backed
+    rule: "The guest camera is unchanged. The widened frame centres the authored 256 columns at offset 43, and the margins are added symmetrically."
+    evidence: "tools/check_widescreen_product_parity.py (centre equals Original at 1P/VS/2P checkpoints); R-2026-10-05-UI-33 (course lead about 3 frames each way)."
+  ui_composition:
+    width_pixels: 256
+    owner: guest
+    composition: centred-in-stock-columns
+    status: evidence-backed
+    rule: "HUD and race UI stay where the guest draws them, inside the centred stock columns. Frontend, pre-race and results scenes stay fixed-centre at 256x224."
+    evidence: "scenes in this file (title/frontend/pre-race/results fixed-center); native/product/widescreen_output_composition.cpp."
+
 next_discriminator:
   id: none-open-for-race-margins
   decided: widescreen-sprite-margins

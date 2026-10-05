@@ -250,7 +250,7 @@ Ordinary Windows play now reuses the existing Restart and Quick Practice authori
 
 The focused native acceptance now covers all three fast-navigation slices. Rematch completes a stock race, invokes the real one-action results shortcut, re-enters the authoritative active-race lifecycle and requires both the live SRAM digest and validated course identity to remain equal across the repeat. Repeat Practice does the same inside isolated Practice and additionally requires no profile autosave. Recent Course observes a live authoritative course, returns through the existing Exit Frontend lifecycle in the same process, invokes the real F6 shortcut from settled MAIN_MENU, and requires the resulting isolated Practice race to identify as the same course.
 
-**Next Event remains deferred.** The current product still lacks a single host-owned, authoritative tour/event-continuation state above stock SRAM. Until that continuation layer can derive exactly one valid next event, the safe behavior is to expose no Next Event shortcut rather than infer progression from presentation or write stock state directly.
+**Next Event remains deferred.** The proven progression state can identify an unfinished tour and which events in that row have qualified, but it does not identify exactly one uniquely correct next event. A continuation route may therefore return the player to the stock tour/track choice without authorizing automatic event selection. Until exactly one valid event can be derived from authoritative product/progression state, the safe behavior is to expose no Next Event shortcut rather than infer intent from presentation, ordering, or guest-state writes.
 
 ## Extension points
 

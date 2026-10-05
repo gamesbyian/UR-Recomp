@@ -53,8 +53,8 @@ At present the Windows x64 product path is **not** the old fidelity → Widescre
 9. Preserve exact provenance for imported artifacts: source, retrieval date, original filename, hashes/revision, container relationship, and rights/licensing status where known.
 10. Do not weaken a deterministic validation guard to make a failure disappear. Fix the underlying assumption, dependency, or harness.
 11. Use the cheapest check that answers the current iteration question. GitHub Actions is execution infrastructure, not automatically research evidence.
-12. Do not add a recurring workflow merely because a one-off experiment used CI. Durable checks need a durable repository invariant.
-   For trigger/concurrency/timeout/build/artifact rules, follow `docs/CI-WORKFLOW-BEST-PRACTICES.md`.
+12. Do not add a recurring workflow merely because a one-off experiment used CI. New workflows are manual by default; automatic execution must protect a current durable invariant and use the smallest true invalidation paths. When the question closes, make the workflow manual-only or delete it unless it has become a shipping gate.
+   For creation, promotion, retirement, trigger/concurrency/timeout/build/artifact rules, follow `docs/CI-WORKFLOW-BEST-PRACTICES.md`.
 13. Keep provider-specific instruction files thin. Shared rules live here.
 14. Keep mandatory reading small. Repository growth is acceptable; mandatory-context growth is expensive.
 15. Terminology: `Widescreen` and `HD Presentation` name specific features only. Never use `widescreen`, `HD`, or combinations such as `widescreen/HD` as shorthand for the project, its architecture, or its overall goal.
@@ -67,7 +67,7 @@ At present the Windows x64 product path is **not** the old fidelity → Widescre
 21. Reserve workflow `if: always()` for diagnostics, artifact upload, cleanup and summaries. Assertions that consume an upstream artifact should normally run only after the producer succeeds, so the root cause stays singular and visible.
 22. Keep end-to-end UI navigation coupled to semantic menu models, not copied cursor-count folklore. If a menu row is inserted/reordered, update every dependent E2E route in the same change; prefer semantic controller/view-model tests for ordering and keep literal keyboard navigation to one outer acceptance route.
 23. Policy/schema validator tests must synthesize the invalid state they are testing. Do not rely on a current production feature remaining in a temporary status such as `redesign_candidate`.
-24. On a CI-heavy branch, avoid pushing a rapid chain of tiny commits through the same high-fan-out paths when one coherent completed edit can be published once. Cancellation is useful for superseded work, but repeated cancellation before any useful result is an agent-throughput failure.
+24. On a CI-heavy branch, avoid pushing a rapid chain of tiny commits through the same high-fan-out paths when one coherent completed edit can be published once. Cancellation is useful for superseded work, but repeated cancellation before any useful result is an agent-throughput failure. Before accepting high fan-out as normal, audit whether each triggered workflow still deserves to be automatic.
 
 25. Imported executable code is raw material, not a trusted dependency. Preserve provenance, but normalize useful behavior into project-owned tools and add regression coverage before depending on it.
 26. Two-player fixture work is a required fidelity dependency. If touching shared input grammar or engine adapters, preserve or advance `docs/TWO-PLAYER-FIXTURE-PLAN.md`; do not let one-player coverage silently stand in for multiplayer coverage.
@@ -85,6 +85,12 @@ At present the Windows x64 product path is **not** the old fidelity → Widescre
 38. Treat exact semantic identity and production identity separately. If deterministic evidence proves multiple semantic states have byte-identical presentation, preserve their semantic guards but reuse the visual asset/work product.
 39. Keep `WORK-QUEUE.md` current-state oriented. Move long run histories and repeated measurements to the owning evidence/subsystem surface; `tools/check_work_queue_density.py` is an advisory entropy detector.
 40. Prefer a lane context packet from `tools/build_agent_context.py` over repeatedly pasting large authority lists into agent prompts. The generated packet is derived orientation, never a competing authority.
+
+41. Before creating or editing a workflow, classify it: durable PR validation, final-main regression, reproducible analysis, manual research, retained diagnostic instrument, or obsolete experiment. Do not merge an unclassified workflow.
+42. Automatic CI is an explicit budget, not a default. Deferred-platform work, branch-specific probes, historical replay, archaeology, capacity sweeps, comparison studies and closed research stay manual unless a current shipping invariant specifically promotes them.
+43. Avoid duplicate builds. If several acceptance slices use the same native candidate, prefer one build feeding multiple checks over a matrix or sibling workflows that each rebuild it. Keep separate builds only when their toolchain/configuration identity is itself the invariant.
+44. Workflow retirement is part of finishing research. When a conclusion is promoted, remove branch-only triggers, manualize or delete the probe, and update `tests/unit/test_ci_trigger_policy.py` when the boundary should remain enforced.
+45. After broad workflow edits, validate YAML structure and inspect the merged-head Actions fan-out. A workflow filename appearing as a failed run name is a strong signal that GitHub could not parse the workflow definition.
 
 ## Research before reinvention
 

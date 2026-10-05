@@ -64,7 +64,12 @@ def matching_json_entries(
         if isinstance(value, dict):
             for key, child in value.items():
                 child_path = f"{path}.{key}" if path else str(key)
-                if isinstance(child, (dict, list)):
+                if isinstance(child, list) and any(isinstance(item, (dict, list)) for item in child):
+                    # Keep record lists element-addressed (`key[i]`) so only the
+                    # matching records are extracted, not their siblings.
+                    if walk(child, child_path):
+                        return True
+                elif isinstance(child, (dict, list)):
                     if matches(child, str(key)) and add(child_path, child):
                         return True
                     if len(json.dumps(child, sort_keys=True, ensure_ascii=True)) > max_entry_chars:

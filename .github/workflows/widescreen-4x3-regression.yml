@@ -22,6 +22,8 @@ on:
       - "native/title/**"
       - "tools/check_framedump_identity.py"
       - "tests/unit/test_check_framedump_identity.py"
+      - "tools/check_split_sprite_rip_margin.py"
+      - "tests/unit/test_check_split_sprite_rip_margin.py"
       - "tests/input/widescreen-product-acceptance.script"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
@@ -54,7 +56,7 @@ jobs:
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Comparison tool tests
-        run: python3 -m unittest tests.unit.test_check_framedump_identity tests.unit.test_prepare_native_widescreen_product
+        run: python3 -m unittest tests.unit.test_check_framedump_identity tests.unit.test_check_split_sprite_rip_margin tests.unit.test_prepare_native_widescreen_product
 
       - name: Stage repository-owned SNESRecomp framework
         shell: bash
@@ -160,12 +162,19 @@ jobs:
               --baseline-dumps "$r-baseline/dumps" --candidate-dumps "$r-product/dumps" \
               --min-frames "$min_frames" \
               --out "$RUNNER_TEMP/evidence/$route-4x3-identity.json" | tail -n 40
+            if [ -n "${5:-}" ]; then
+              # Split-screen sprite ripping hides sprite copies at X - 256; they
+              # must stay out of the 43 px margin the widened view exposes.
+              python3 tools/check_split_sprite_rip_margin.py --route "$route" \
+                --frames "$r-product/frames" --min-split-frames "$5" \
+                --out "$RUNNER_TEMP/evidence/$route-sprite-rip-margin.json" | tail -n 30
+            fi
             rm -rf "$r-baseline/frames" "$r-product/frames"
           }
 
           compare_route one-player "$IN/widescreen-product-acceptance.script" "" 1900
-          compare_route vs "$IN/vs-first-race-observe.script" "$IN/vs-first-race.input" 1600
-          compare_route two-player "$IN/two-player-first-race-observe.script" "$IN/two-player-first-race.input" 1600
+          compare_route vs "$IN/vs-first-race-observe.script" "$IN/vs-first-race.input" 1600 500
+          compare_route two-player "$IN/two-player-first-race-observe.script" "$IN/two-player-first-race.input" 1600 500
           echo "WIDESCREEN_4X3_REGRESSION bit-identical routes=3"
 
       - name: Upload evidence

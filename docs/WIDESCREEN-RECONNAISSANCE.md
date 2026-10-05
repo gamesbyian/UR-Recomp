@@ -257,7 +257,7 @@ Widescreen reconnaissance is incomplete without:
 - authentic sprite-ripping path;
 - 4:3 fallback comparison.
 
-The purpose is to determine whether stock-PPU widening remains viable for final split-screen presentation or whether host composition should eventually draw the two logical viewport sprite sets directly.
+The purpose is to determine whether stock-PPU widening remains viable for final split-screen presentation or whether host composition should eventually draw the two logical viewport sprite sets directly. **Answered (R-2026-10-05-UI-32):** stock-PPU widening remains viable. At the accepted 43 px margin, the rip's hidden copies keep ≥69 px clearance, so no host sprite composition is needed for the authentic path.
 
 
 ## Reverse-engineering admission rule

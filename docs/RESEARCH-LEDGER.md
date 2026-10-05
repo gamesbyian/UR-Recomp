@@ -2475,3 +2475,27 @@ Native smoke gates all of this.
 **Interpretation:** the shipping authentic path is the seeded AOT program, so the 4:3 regression contract is "the seeded program with and without the Widescreen presentation layer". That contract holds bit-exactly. The plain-vs-seed shift is a framework tier-accuracy property; this project does not establish which tier is closer to hardware. Emulator cores already differ at this scale (VALIDATION.md cross-core baseline). Reopen if a hardware-timing question depends on menu-frame alignment, or if AOT coverage changes.
 
 **Gate:** `widescreen-4x3-regression.yml` builds the seed-only baseline and the product, runs the 1P, VS and two-player routes in Original view, and requires `tools/check_framedump_identity.py` to find every frame and checkpoint file identical.
+
+### R-2026-10-05-UI-32 — Split-screen sprite ripping survives Widescreen: hidden copies keep ≥69 px clearance from the margin
+
+**Status:** confirmed (local runs; gated in `.github/workflows/widescreen-4x3-regression.yml`)  
+**Date:** 2026-10-05  
+**Area:** Widescreen | split-screen | OAM
+
+**Question:** the split screen hides each viewport's copy of sprites 96–99 by rewriting high-OAM byte `$18` through HDMA (`$A5` from line 0, `$5A` from line 112). A hidden copy carries X bit 8 with the small size (OBSEL `$83`: 32×32 / 64×64) and is drawn at X − 256. Stock clips it at the screen edge, but 16:9 exposes 43 px left of it. Does a hidden copy ever reach the margin?
+
+**Method:** `tools/check_split_sprite_rip_margin.py` reads every frame's OAM shadow (`$1381` low table, `$1581` high table, matching hardware OAM at checkpoints). For each split frame (shadow byte `$18` ∈ {`$A5`, `$5A`}), it finds sprites 96–99 whose 32 lines intersect the band that hides them, and compares each hidden copy's right edge with −43.
+
+**Evidence:**
+
+| Route | Split frames | Hidden copies | Leaks |
+|---|---|---|---|
+| VS first race | 588 | 502 | 0 |
+| Two-player first race | 588 | 502 | 0 |
+| Two-player P1-win | 6,969 | 13,561 | 0 |
+| VS challenger | 3,013 | 5,649 | 0 |
+
+- Every hidden copy has low X ≤ 112: parked sprites at (48, 48) and (112, 112), plus copies straddling the split at X 96–111. Their right edge is at most −112, which leaves 69 px clearance beyond the margin edge.
+- The authored picture with the rip active is already covered: centre parity on the VS and two-player checkpoints (UI-30) and the 4:3 frame identity (UI-31).
+
+**Interpretation:** stock-PPU widening remains viable for split-screen presentation. The authentic rip path needs no host sprite composition at the accepted 16:9 margin, and the original raster trick stays in force unchanged. Reopen if the margin grows past 112 px per side (where X = 112 hidden copies would enter it) or a route shows hidden-copy X above 181.

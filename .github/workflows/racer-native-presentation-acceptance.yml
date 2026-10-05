@@ -41,14 +41,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install native build dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config xvfb libsdl2-dev \
-            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
-            libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev \
-            libpulse-dev libxss-dev libxtst-dev
-
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
@@ -60,6 +52,14 @@ jobs:
             "reference/roms/retail/Uniracers_USA.sfc" \
             --json-out "$RUNNER_TEMP/racer-hd-next-family-probe.json" \
             | tee "$RUNNER_TEMP/racer-hd-next-family-probe.txt"
+
+      - name: Install native build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build pkg-config xvfb libsdl2-dev \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev \
+            libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify selector, placement, and orientation contracts
         shell: bash

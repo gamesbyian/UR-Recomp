@@ -1,0 +1,87 @@
+# Real native Quick Practice repeat acceptance.
+# The host enters Quick Practice through the established stock-menu router.
+# This script supplies only race inputs after authoritative race entry, reaches
+# stock results, then waits for the workflow to press the player-facing R
+# shortcut. The repeated attempt must re-enter through Restart, not a forged
+# course or progression write.
+
+until 009F == D7 3600
+dump practice-repeat-main
+until 0313 == 01 3600
+wait 60
+dump practice-repeat-first-race
+
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+
+until 009F == 99 600
+dump practice-repeat-results
+# The workflow presses R only after this dump exists.
+until 0313 == 01 1800
+wait 60
+dump practice-repeat-second-race
+quit

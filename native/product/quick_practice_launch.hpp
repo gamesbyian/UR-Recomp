@@ -54,6 +54,13 @@ struct QuickPracticeLaunchStep {
     bool route_violation = false;
 };
 
+constexpr bool quick_practice_launch_owns_player_input(
+    const QuickPracticeLaunchState& state
+) noexcept {
+    return state.stage != QuickPracticeLaunchStage::Idle &&
+           state.stage != QuickPracticeLaunchStage::Active;
+}
+
 constexpr QuickPracticeLaunchInput launch_input_from_menu_input(
     QuickPracticeMenuInput input
 ) noexcept {

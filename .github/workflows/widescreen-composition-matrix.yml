@@ -1,7 +1,9 @@
 name: +8 Widescreen composition edge trace
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-composition-trace-${{ github.ref }}
   cancel-in-progress: true
 

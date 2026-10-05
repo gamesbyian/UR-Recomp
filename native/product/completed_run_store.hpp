@@ -28,6 +28,12 @@ std::vector<StoredRunRecord> load_compatible_run_records(
     const std::string& directory,
     const RunPlaybackTarget& target);
 
+/* Load every valid completed-run artifact in filename order, without applying
+ * a course-specific playback target. Invalid/corrupt artifacts remain excluded
+ * from authoritative statistics; inspection UIs may enumerate them separately. */
+std::vector<StoredRunRecord> load_valid_run_records(
+    const std::string& directory);
+
 std::optional<std::size_t> select_previous_run(
     const std::vector<StoredRunRecord>& records);
 

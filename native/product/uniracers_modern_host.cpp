@@ -597,6 +597,17 @@ void advance_practice_route(uint64_t next_frame) {
     const auto expected_track_id = launch_before.target.track_id;
     g_practice_launch = step.state;
 
+    if (step.timed_out) {
+        // Preserve the timed-out routing state until the reboot request is
+        // accepted. If the request fails transactionally, the next host frame
+        // retries the same fail-closed abort rather than releasing guest input.
+        g_practice_launch = launch_before;
+        if (!abort_practice_route_to_frontend("UR_PRACTICE ROUTE_TIMEOUT")) {
+            product_diagnostic("UR_PRACTICE ROUTE_TIMEOUT_EXIT_RETRY");
+        }
+        return;
+    }
+
     if (step.route_violation || step.course_mismatch) {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
@@ -609,13 +620,12 @@ void advance_practice_route(uint64_t next_frame) {
             std::fflush(stderr);
         }
         // A target-aware Practice launch must never silently bless an attract
-        // race, bypassed frontend route, or different stock course. Reuse the
-        // accepted Practice restore + frontend reboot lifecycle so SRAM/profile
-        // state remains isolated and fail closed.
-        if (!exit_to_frontend()) {
-            // exit_to_frontend() is transactional for Practice. If the reboot
-            // request is rejected, the live disposable SRAM/root and launch
-            // bookkeeping are restored exactly and this recovery can retry.
+        // race, bypassed frontend route, or different stock course.
+        g_practice_launch = launch_before;
+        if (!abort_practice_route_to_frontend(
+                step.route_violation
+                    ? "UR_PRACTICE ROUTE_VIOLATION_ABORTED"
+                    : "UR_PRACTICE COURSE_MISMATCH_ABORTED")) {
             product_diagnostic(
                 step.route_violation
                     ? "UR_PRACTICE ROUTE_VIOLATION_EXIT_RETRY"
@@ -636,6 +646,10 @@ void advance_practice_route(uint64_t next_frame) {
     }
     const auto stage_before = g_practice_launch.stage;
     if (!queue_practice_input(next_frame, step.input)) {
+        // The state machine advances when it *requests* an input. If transport
+        // fails, restore the prior state so the same semantic input is retried
+        // instead of pretending the stock menu consumed an edge it never saw.
+        g_practice_launch = launch_before;
         product_diagnostic("UR_PRACTICE INPUT_FAILED");
         return;
     }
@@ -2925,8 +2939,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (practice_routing()) {
         // Host-owned stock-menu routing is exclusive until the requested
-        // Practice race has been authoritatively validated. Do not allow the
-        // same physical keyboard input to perturb guest menu selection.
+        // Practice race has been authoritatively validated. Escape is the one
+        // explicit cancellation affordance; every other edge is consumed.
+        if (key == SDLK_ESCAPE) {
+            (void)abort_practice_route_to_frontend(
+                "UR_PRACTICE ROUTE_CANCELLED");
+        }
         return 1;
     }
     if (modern_mode() && key == SDLK_F1) {
@@ -3035,7 +3053,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (practice_routing()) {
         // Consume both press and release edges while the host owns stock-menu
-        // traversal. Once Active, normal race controls are guest-owned again.
+        // traversal. B/Start cancel the route safely; once Active, normal race
+        // controls are guest-owned again.
+        if (pressed &&
+            (button == kGamepadBtn_B || button == kGamepadBtn_Start)) {
+            (void)abort_practice_route_to_frontend(
+                "UR_PRACTICE ROUTE_CANCELLED");
+        }
         return 1;
     }
 

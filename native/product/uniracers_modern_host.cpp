@@ -2550,11 +2550,14 @@ void draw_run_timing_hud(
         pixels, stride, height, x + 7, y + 36,
         comparison_row, 0xFFFFFFFFu, 1);
 
-    if (std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
+    if (const char* timing_diagnostics =
+            std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
         bool& reported = results
             ? g_run_timing_results_diag_reported
             : g_run_timing_race_diag_reported;
-        if (!reported) {
+        const bool log_every_frame =
+            std::strcmp(timing_diagnostics, "all") == 0;
+        if (log_every_frame || !reported) {
             reported = true;
             std::fprintf(
                 stderr,

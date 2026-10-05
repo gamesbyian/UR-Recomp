@@ -223,6 +223,13 @@ bool CompletedRunBrowser::refresh(
             if (!delta) continue;
             entry.personal_best_delta_ticks60 = delta->delta_ticks60;
             entry.personal_best_delta_text = delta->delta_text;
+            const auto split_table = present_run_split_table(
+                *entry.record,
+                *personal_best,
+                RunDataTargetKind::PersonalBest);
+            if (split_table) {
+                entry.personal_best_splits = split_table->rows;
+            }
         }
     }
 

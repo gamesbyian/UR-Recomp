@@ -2490,10 +2490,12 @@ void draw_run_timing_hud(
     size_t pitch,
     int width,
     int height) {
-    if (!modern_mode() || !g_run_timing_supported || paused() ||
-        (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE &&
-         g_surface != UR_UNIRACERS_RESTART_RESULTS) ||
-        !dst || pitch < 4 || width <= 0 || height <= 0) {
+    const bool race_or_results =
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ||
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    if (!ur::product::should_present_run_timing(
+            modern_mode(), g_run_timing_supported, race_or_results) ||
+        paused() || !dst || pitch < 4 || width <= 0 || height <= 0) {
         return;
     }
 

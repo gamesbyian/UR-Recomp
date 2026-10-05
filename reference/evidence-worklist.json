@@ -484,6 +484,75 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "High leverage because multiple independent player/research communities describe overlapping mechanics; canonical reproduction can turn folklore into durable regression tests cheaply."
+    },
+    {
+      "id": "boost-semantics-conflict",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "reddit-uniracers-boost-mechanics-2021",
+        "arqade-uniracers-straightaway-speed",
+        "tasvideos-usjo"
+      ],
+      "question": "Does race-speed boost scale with stunt complexity/count, or is each successful stunt effectively a fixed boost with apparent differences coming from landing quality, timing, offscreen depletion, or combo structure?",
+      "next_discriminator": "Build deterministic same-course traces comparing single Twist, single Roll, Flip, Roll+Twist, Double Flip, and Flip City from matched pre-jump state. Measure resulting speed/boost state frame-by-frame through landing and for a fixed post-landing window, both onscreen and offscreen. Separate stunt-score value from race-speed boost and landing penalty.",
+      "deliverables": [
+        "frame-level boost/speed comparison matrix",
+        "landing-quality penalty characterization",
+        "onscreen/offscreen depletion comparison",
+        "resolved source-conflict note with canonical behavior"
+      ],
+      "tags": [
+        "boost",
+        "stunts",
+        "speed",
+        "landing",
+        "community-conflict",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High value because independent experienced-player sources disagree on a core racing mechanic. Cheap deterministic measurement should settle it."
+    },
+    {
+      "id": "sram-corruption-robustness",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-newo-sram-corruption"
+      ],
+      "question": "Which malformed SRAM states can reproduce historically reported name, score, palette, or startup corruption, and how should the modern host/profile layer fail safely around them?",
+      "next_discriminator": "Use known SRAM structure and existing profile/save tooling to generate bounded corruptions around racer identity, score tables, and nearby metadata. Reproduce only project-owned synthetic cases; do not assume the forum-reported battery/root-cause theory. Verify stock behavior where practical, then ensure modern Windows profile handling detects or contains malformed state without silently damaging unrelated profiles.",
+      "deliverables": [
+        "synthetic malformed-SRAM fixture set",
+        "stock-behavior observations for recoverable corruption classes",
+        "modern profile/save containment expectations",
+        "explicit separation of observed symptoms from unproven hardware/root-cause claims"
+      ],
+      "tags": [
+        "sram",
+        "save-data",
+        "robustness",
+        "profiles",
+        "corruption",
+        "windows"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful because it turns real historical failure symptoms into bounded robustness tests for the modern save/profile layer."
     }
   ],
   "acquisition_policy": {

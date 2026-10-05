@@ -1,7 +1,9 @@
 name: trace course-buffer writers
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: trace-course-buffer-writers-${{ github.ref }}
   cancel-in-progress: true
 

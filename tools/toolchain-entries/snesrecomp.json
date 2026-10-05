@@ -127,7 +127,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-user-rom-cache.patch",
-      "sha256": "6b6646fb1158a28fe7c208af10e2cc5d2886418763bc2b8197cad57f928ce05c"
+      "sha256": "093cb5686c9966d83e7373ee03020c506d5f7d64b2a01e5f31e901f07301cc5c"
     },
     {
       "path": "tools/patches/snesrecomp-user-netplay-identity.patch",

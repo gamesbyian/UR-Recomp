@@ -206,6 +206,33 @@ jobs:
             --archive "$PACKAGE_ARCHIVE"
           echo "WINDOWS_PACKAGE_STATE_ANCHOR ok"
 
+      - name: Extracted-package race-result acceptance
+        run: |
+          set -euo pipefail
+          DUMPS="$RUNNER_TEMP/package-race-result-dumps"
+          mkdir -p "$DUMPS"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script")"
+          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            timeout 600 cmd.exe //d //s //c \
+              "\"${PACKAGE_WIN}\\run-uniracers.cmd\" --script \"${SCRIPT_WIN}\"" \
+              >"$RUNNER_TEMP/package-race-result.log" 2>&1
+          RC=$?
+          set -e
+          tail -n 50 "$RUNNER_TEMP/package-race-result.log"
+          test "$RC" -eq 0
+          python tools/check_result_screen_time.py \
+            --dump-dir "$DUMPS" \
+            --checkpoint race-results
+          grep -Fq "Config/saves anchored to" "$RUNNER_TEMP/package-race-result.log"
+          grep -Fq "$PACKAGE_WIN" "$RUNNER_TEMP/package-race-result.log"
+          echo "WINDOWS_PACKAGE_RACE_RESULT ok"
+
       - name: Boot to main menu
         run: |
           set -euo pipefail
@@ -275,6 +302,7 @@ jobs:
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
             ${{ runner.temp }}/package-boot-dumps/
+            ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
           if-no-files-found: warn

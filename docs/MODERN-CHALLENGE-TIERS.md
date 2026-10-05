@@ -69,6 +69,8 @@ If mode, rider, tour or persistent medal no longer matches the captured context,
 
 This keeps selected-tier state as product policy rather than hiding it independently inside each title hook. When player-facing direct tier selection is eventually enabled, unfinished-tour persistence must carry this selected-tier identity alongside the existing Modern tour continuation; until then no profile schema change is required.
 
+`uniracers_challenge_completion_runtime.{hpp,cpp}` mirrors that lifecycle at the title boundary. The stunt-generation filter may be consulted repeatedly during one selected tour. The award filter is installed even for a lower/equal-tier replay so reaching the stock award boundary always retires the title context. A real award override is consumed exactly once. Any stale rider/tour/medal validation failure clears both filters immediately. With no armed context all bridge calls are exact stock pass-through.
+
 ## Completion commit policy
 
 `native/product/modern_challenge_commit_policy.hpp` defines the only product-level circumstances under which a selected tier may request persistent progression. Selection, launch and ordinary race completion are not commit authority by themselves.

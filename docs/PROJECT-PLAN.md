@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-03
+Last updated: 2026-10-05
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -612,7 +612,7 @@ At least one course is reproduced structurally from ROM data and matches indepen
 
 Understand what the SNES renderer is drawing well enough to replace presentation without changing animation decisions.
 
-**Current family-level status (2026-10-03):** the ordinary two-player race racer family has crossed this semantic-replacement gate. Authoritative presentation identity is read from guest state, duplicate primary IDs are disambiguated by full synchronized composition, stock geometry/pivot/contact anchors are reproducible from the canonical ROM, live placement/orientation comes independently from OAM, and the host-only replacement path now has exact fail-closed selection plus a continuous fully registered 16-frame window (`1205`–`1220`) in the deterministic two-player route. This does **not** close Phase E globally: track/background tiles, UI/fonts/effects, broader racer animation families, and approved final replacement art remain open.
+**Current family-level status (2026-10-05):** the ordinary two-player race racer family has crossed this semantic-replacement gate and its first retained Remastered motion strip is now shipping-art approved. Authoritative presentation identity is read from guest state, duplicate primary IDs are disambiguated by full synchronized composition, stock geometry/pivot/contact anchors are reproducible from the canonical ROM, live placement/orientation comes independently from OAM, and the host-only replacement path has exact fail-closed selection plus a continuous fully registered 16-frame window (`1205`–`1220`) in the deterministic two-player route. PR #442 closes the first strip at 10/10 unique poses approved with zero family art blockers under hash-bound review evidence. This does **not** close Phase E globally: track/background tiles, UI/fonts/effects, and broader racer animation families remain open.
 
 ### Asset extraction
 
@@ -668,7 +668,7 @@ The semantic asset identity established here must be shared by all three eventua
 
 For each presentation family, original rendered elements can be deterministically identified from authoritative game state and reproduced through an extraction/registration manifest.
 
-The ordinary-race racer family has passed this gate for the currently registered semantic window. Its exact `1205`–`1220` runtime window now also produces a generated approval dossier containing 14 observed representations, ROM-derived stock evidence, verified anchors and trace-derived temporal context. Its next work is no longer generic identity/placement archaeology: make final visual-language decisions against that packet, or deliberately select broader animation-family coverage when that coverage unlocks a specific art/product decision. Phase E as a whole remains open until the other required presentation families reach equivalent sufficiency.
+The ordinary-race racer family has passed this gate for the currently registered semantic window. Its exact `1205`–`1220` runtime window produces a generated approval dossier containing 14 observed representations, ROM-derived stock evidence, verified anchors and trace-derived temporal context; pose equivalence collapses those registrations to 10 unique same-player visual poses. PR #442 completes the batched true-density refinement and approves all 10 reviewed poses as shipping art, with zero family blockers and review decisions bound to exact authored RGBA hashes. Do not resume generic identity/placement archaeology or re-refine this strip without a concrete new product/art requirement. Broader animation-family coverage should be selected deliberately when it unlocks a specific product decision. Phase E as a whole remains open until the other required presentation families reach equivalent sufficiency.
 
 ## Phase F - Widescreen feature with stock art
 

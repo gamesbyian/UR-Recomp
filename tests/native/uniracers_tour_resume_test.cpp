@@ -46,6 +46,14 @@ int main() {
     assert(tour_resume_source_matches_sram(
         continuation, sram.data(), sram.size()));
 
+    // Unrelated battery bytes are outside the continuation contract. Stock
+    // boot is free to touch them without suppressing a valid resume.
+    const auto unrelated_before = sram[0x0200];
+    sram[0x0200] ^= 0x5a;
+    assert(tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x0200] = unrelated_before;
+
     // Persisted continuation metadata must agree with its own SRAM source.
     auto stale_source = continuation;
     stale_source.medal_value = 2;

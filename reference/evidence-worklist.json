@@ -627,6 +627,78 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "Core racing behavior repeatedly mentioned by competitive players and reviews; inexpensive deterministic measurement can resolve it."
+    },
+    {
+      "id": "league-and-medal-persistence-edge-cases",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-uniracers-cheats-secrets",
+        "gamefaqs-newo-sram-corruption"
+      ],
+      "question": "Which stock persistence/UI invariants are violated or intentionally tolerated by player-discovered medal-selection and league-deletion edge cases?",
+      "next_discriminator": "Reproduce the reported behaviors on canonical runtime: medal/opponent downgrade selection after earning higher medals, and creation of a one-player league by deleting the second racer after league setup. Capture SRAM diffs, menu state, league membership, record ownership and progression effects before/after each step. Decide whether modern profile/product layers should preserve, expose, normalize or safely contain these stock states.",
+      "deliverables": [
+        "single-player league reproduction trace",
+        "medal/opponent selection exploit reproduction trace",
+        "SRAM/state diffs for both cases",
+        "modern host compatibility decision for each stock edge state"
+      ],
+      "tags": [
+        "sram",
+        "league",
+        "progression",
+        "ui",
+        "edge-case",
+        "profiles",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High product relevance because both claims touch persistence and profile semantics now being modernized."
+    },
+    {
+      "id": "legacy-cheat-code-localization",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "world-of-nintendo-uniracers-codes",
+        "libretro-uniracers-cheats",
+        "orangestar-uniracers-faq-2001"
+      ],
+      "question": "Which legacy Game Genie/PAR codes independently identify ROM/RAM locations for timer, speed, stunt classification, CPU start state, lead indicator and visual presentation?",
+      "next_discriminator": "Normalize the historical code sets, deduplicate against the imported libretro corpus, decode ROM patch addresses where possible, and test only codes that add a distinct state seam. Prioritize stunt classification, speed/timer, CPU-start, lead-indicator and FAE DINE behavior. Promote addresses only after canonical local reproduction.",
+      "deliverables": [
+        "deduplicated legacy-code concordance table",
+        "decoded ROM/RAM address map for unique codes",
+        "canonical behavior checks for unique state seams",
+        "explicit dead/duplicate/misdocumented classification"
+      ],
+      "tags": [
+        "cheats",
+        "game-genie",
+        "par",
+        "ram",
+        "rom",
+        "stunts",
+        "timer",
+        "reverse-engineering"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-existing-local-corpus",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful for cheap address localization but secondary to canonical runtime and existing libretro evidence."
     }
   ],
   "acquisition_policy": {

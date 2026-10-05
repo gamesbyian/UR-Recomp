@@ -885,3 +885,25 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public Stack Exchange content; summarize with provenance and respect upstream CC terms."
     relevance: "Documents experienced-player belief that Roll+Twist balances boost against landing cleanliness and suggests landing quality/friction can offset larger trick boost. Useful as a competing hypothesis for deterministic speed tests."
+
+
+  - id: unicyclist-forgotten-name-uniracers-2003
+    title: "Unicyclist.com forgotten-name discussion of the SNES unicycle game"
+    type: player_memory_and_discovery
+    url: "https://unicyclist.com/t/unicycle-video-game/54295"
+    authors_or_participants: ["unisteve", "Unispin", "Catboy", "Uniwheeler", "Unicyclist.com community"]
+    published: "2003-01-18"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "A useful example of players remembering the game by concept rather than title. Includes an experienced player claiming to have been 'pro' at it and independent descriptions of the stunt/racing feel. Useful mainly for tester discovery and terminology pivots."
+
+
+  - id: reddit-uniracers-modern-user-friction-2024
+    title: "Reddit Uniracers modern replay and usability observations"
+    type: player_usability_and_technical_discussion
+    url: "https://www.reddit.com/r/snes/comments/1h4c44t/what_do_you_think_of_uniracers/"
+    authors_or_participants: ["Rec0deD_88", "General_Freed", "GruelOmelettes", "Bdowns_770", "LdyRainicorn87", "worldmalone", "TheHytekShow", "cabbagery"]
+    published: "2024-12-01"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Contains modern replay observations directly relevant to UR-Recomp: view too close for track anticipation, difficulty remembering track-color cue semantics, strong multiplayer/records use, timing-based stunt play, and an external four-player netplay implementation."

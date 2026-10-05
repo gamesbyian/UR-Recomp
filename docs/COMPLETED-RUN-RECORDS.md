@@ -1,6 +1,6 @@
 # Completed Run Records and Ghost Foundation
 
-Status: completed-run capture/replay, Previous/PB selection, checksum-bound presentation traces, live-camera projection, and the first visible Modern 1P ghost renderer are implemented.
+Status: completed-run capture/replay, Previous/PB selection, checksum-bound presentation traces, live-camera projection, the first visible Modern 1P ghost renderer, and the first live/results timing-PB-split presentation slice are implemented.
 
 ## Ownership
 
@@ -19,6 +19,16 @@ The optional terminal digest is a validation oracle only. It does not grant host
 ## Timing
 
 ur_uniracers_run_data_ticks60() converts the established title timer digits to exact 60 Hz ticks: ticks60 = whole_seconds * 60 + tenths * 6 + sub_tick. This avoids host-wall-clock timing and keeps PB/split arithmetic aligned with authoritative guest timing.
+
+## Player-facing timing presentation
+
+The Windows x64 Modern host now consumes the same authoritative timing substrate directly during supported 1P timed Race play. A compact host overlay shows exact current time while racing and exact finish time on the stock results surface, alongside the already-selected compatible PB. Current elapsed time is deliberately not compared against a PB finish during ordinary mid-race frames. Signed comparison appears only when the guest crosses a named checkpoint already represented in the PB record, or at finish.
+
+The last exact checkpoint delta is retained as host presentation state until another checkpoint is observed. Missing PB data, missing matching split IDs, malformed targets, Authentic execution, unsupported event types and non-race/results surfaces fail closed to clear `--`/no-overlay states. The stock Uniracers result/score presentation remains visible underneath; no guest timer, cadence, physics, RNG or record authority changes.
+
+`completed_run_presentation.*` owns the reusable player-facing model so the later Records/statistics browser can consume the same exact formatting and delta semantics instead of cloning HUD logic. It exposes a complete ordered split-table presenter built strictly from `compare_completed_run_timing()`, plus a prepared post-run result summary that combines exact finish/PB/delta with compatible ordered split rows. Current, PB/Previous target and signed delta rows appear only when records are valid, playback-compatible and carry the same ordered split identities; a valid current run with no usable PB still yields an exact finish summary with explicit no-target state.
+
+Native acceptance binds the live HUD to the same authoritative WRAM timer digits used by the title adapter, verifies Authentic execution emits no timing HUD in the same race route, and reuses the established ordinary-2P race route to prove unsupported contexts remain inert. Focused C++ presentation tests independently cover no-PB, malformed-target, split/finish delta and availability-gate behavior.
 
 ## Format evolution and failure policy
 

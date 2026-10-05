@@ -373,12 +373,18 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         if (g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();
+        } else if (g_records_browser.view() ==
+                   ur::product::CompletedRunRecordsView::Runs) {
+            (void)g_records_browser.open_selected_run_detail();
         }
         return true;
     }
     if (ur_modern_host_navigation_is_back(action)) {
         if (g_records_browser.view() ==
-            ur::product::CompletedRunRecordsView::Runs) {
+            ur::product::CompletedRunRecordsView::Detail) {
+            (void)g_records_browser.back_to_runs();
+        } else if (g_records_browser.view() ==
+                   ur::product::CompletedRunRecordsView::Runs) {
             (void)g_records_browser.back_to_courses();
         } else {
             close_records_browser();
@@ -595,7 +601,8 @@ void draw_records_browser(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 26,
             "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
-    } else {
+    } else if (g_records_browser.view() ==
+               ur::product::CompletedRunRecordsView::Runs) {
         const auto* course = g_records_browser.selected_course();
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
@@ -660,6 +667,83 @@ void draw_records_browser(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 26,
             "ESC / B    COURSES", 0xFFFFFFFFu, 1);
+    } else {
+        const auto* course = g_records_browser.selected_course();
+        const auto* selected = g_records_browser.selected_run();
+        const auto summary = g_records_browser.selected_run_summary();
+        const std::string course_label =
+            course ? records_course_label(course->course_id) : "--";
+
+        char title[80];
+        std::snprintf(
+            title, sizeof(title), "RECORDS / %s / RUN", course_label.c_str());
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            title, 0xFFFFFFFFu, 1);
+
+        char run_label[64];
+        std::snprintf(
+            run_label, sizeof(run_label), "RUN #%03zu%s%s",
+            selected ? selected->source_index + 1 : 0u,
+            selected && selected->is_personal_best ? "  PB" : "",
+            selected && selected->is_previous ? "  PREV" : "");
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 22,
+            run_label, 0xFFFFFFFFu, 1);
+
+        char finish[80];
+        char pb[80];
+        char delta[80];
+        std::snprintf(
+            finish, sizeof(finish), "FINISH  %s",
+            summary ? summary->finish.clock_text.c_str() : "--");
+        std::snprintf(
+            pb, sizeof(pb), "PB      %s",
+            summary ? summary->finish.target_text.c_str() : "--");
+        std::snprintf(
+            delta, sizeof(delta), "DELTA   %s",
+            summary ? summary->finish.comparison_text.c_str() : "--");
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 47,
+            finish, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 62,
+            pb, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 77,
+            delta, 0xFFFFFFFFu, 1);
+
+        if (summary) {
+            int split_y = y + 97;
+            int shown = 0;
+            for (const auto& split : summary->splits) {
+                if (split.id == "finish" || shown >= 4) continue;
+                std::string label = split.id;
+                if (label.rfind("checkpoint-", 0) == 0) {
+                    label = "CP " + label.substr(11);
+                }
+                char split_line[96];
+                std::snprintf(
+                    split_line, sizeof(split_line), "%s  %s  %s",
+                    label.c_str(),
+                    split.current_text.c_str(),
+                    split.delta_text.c_str());
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, split_y,
+                    split_line, 0xFFFFFFFFu, 1);
+                split_y += 15;
+                ++shown;
+            }
+        }
+
+        if (records_selected_matches_current_course()) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 41,
+                "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
+        }
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 26,
+            "ESC / B    RUNS", 0xFFFFFFFFu, 1);
     }
 
     snes_ovl_draw_text(
@@ -880,8 +964,8 @@ extern "C" int ur_uniracers_product_system_key_down(
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
         if (key == SDLK_b && (mod & KMOD_CTRL) &&
-            g_records_browser.view() ==
-                ur::product::CompletedRunRecordsView::Runs &&
+            g_records_browser.view() !=
+                ur::product::CompletedRunRecordsView::Courses &&
             records_selected_matches_current_course()) {
             g_records_browser_visible = false;
             (void)open_browser();
@@ -953,8 +1037,8 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
         if (button == kGamepadBtn_X &&
-            g_records_browser.view() ==
-                ur::product::CompletedRunRecordsView::Runs &&
+            g_records_browser.view() !=
+                ur::product::CompletedRunRecordsView::Courses &&
             records_selected_matches_current_course()) {
             g_records_browser_visible = false;
             (void)open_browser();

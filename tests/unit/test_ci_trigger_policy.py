@@ -7,6 +7,13 @@ WORKFLOWS = Path(".github/workflows")
 MAIN_PUSH_ALLOWLIST = set()
 
 DORMANT_MANUAL_ONLY = {
+    "smv-tools.yml",
+    "racer-composition-mesen.yml",
+    "racer-asset-exact-roundtrip.yml",
+    "racer-hd-replacement-prototype.yml",
+    "object-activation-probe.yml",
+    "offline-core-smoke.yml",
+    "challenge-writer-entry-scan.yml",
     "analyze-reference-roms.yml",
     "audio-startup-cross-core.yml",
     "bottom-edge-cross-core.yml",
@@ -203,6 +210,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
         self.assertNotIn("matrix.shard", text)
         self.assertNotIn('"native/product/**"', text)
+
+
+    def test_onboarding_acceptance_does_not_trigger_on_docs_only(self):
+        text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        self.assertNotIn('"docs/MODERN-PRODUCT-LAYER.md"', _block(text, "pull_request"))
 
 
     def test_main_push_allowlist_is_evidence_writing(self):

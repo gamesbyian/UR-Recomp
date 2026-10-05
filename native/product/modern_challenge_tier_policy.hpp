@@ -37,6 +37,13 @@ constexpr std::uint8_t challenge_tier_medal_value(
     return static_cast<std::uint8_t>(tier);
 }
 
+constexpr std::optional<std::uint8_t> challenge_tier_generation(
+    ModernChallengeTier tier) noexcept {
+    if (!valid_modern_challenge_tier(tier)) return std::nullopt;
+    return static_cast<std::uint8_t>(
+        challenge_tier_medal_value(tier) - 1u);
+}
+
 constexpr std::optional<ModernChallengeTier> stock_next_challenge_tier(
     std::uint8_t current_medal) noexcept {
     if (!valid_stock_medal_value(current_medal) ||

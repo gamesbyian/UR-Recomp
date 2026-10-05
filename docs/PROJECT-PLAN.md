@@ -565,26 +565,13 @@ The symbol map includes the major gameplay, camera, course-loading, sprite-const
 
 Turn the 45 decoded payloads into a semantic course representation that can be rendered, inspected and eventually edited without changing game physics.
 
-### Immediate work
+### Current evidence boundary
 
-1. Trace the single known caller path into `RNC1_Unpack`.
-2. Identify how the game selects one of the 45 streams.
-3. Confirm stream ordinal against a known selected course at runtime.
-4. Follow the decompressed destination into its consumers.
-5. Test the historical `7E:2080` breadcrumb.
-6. Determine the role of the first decoded header words.
-7. Test, rather than assume, the historical:
-   - 256-wide claim;
-   - 64x64-block observation;
-   - 8x8 tile relationship.
-8. Separate:
-   - visual track layout;
-   - collision/physics;
-   - hazards;
-   - boosts;
-   - start/finish/checkpoints;
-   - metadata/theme;
-   - auxiliary dictionaries/tables.
+The current Windows product does **not** need another generic course-format discovery pass. All 45 Method-1 payloads are identified/decompressed; canonical course identity and selection are usable; the six fixed-area geometry families, representative coarse/fine spatial model, runtime materialization/resource ownership, checkpoint/finish-bearing cells and presentation lookup are sufficient for Quick Practice, Widescreen and current rendering work.
+
+Do not rediscover these facts from caller traces or historical breadcrumbs. Query `analysis/data/course-corpus.json`, `course-resource-catalog.json`, `COURSE-FORMAT.md` and the generated presentation contracts first.
+
+The genuinely deferred Phase-I/editor questions are narrower: exact serialized selector/index encoding where needed for writing new courses, remaining packed control-bit semantics, and any auxiliary dictionary/object semantics required to round-trip arbitrary custom content. Infer those from the existing 45-course corpus before collecting new runtime data; only add a probe when multiple plausible interpretations would produce different editor output.
 
 ### Independent validation
 
@@ -686,30 +673,11 @@ This separates geometry/camera problems from asset-resolution problems. Canonica
 
 Establish the 4:3 release gate before any Widescreen hook. With the Widescreen feature disabled, enhancement work must leave the authentic path bit-identical on defined deterministic captures.
 
-### F0 - reconnaissance before permanent widening
+### F0 - reconnaissance status
 
-Before changing game behavior, run a bounded widescreen reconnaissance pass on representative deterministic fixtures.
+This gate is closed for the supported 16:9 product. The project already has a bit-identical 4:3 regression path, a reusable `tools/widescreen_probe.py`, validated +48 host-owned backing for the shipped view, explicit scene/domain policy, object-exposure measurements, per-viewport 2P/VS acceptance and WRAM-confinement/stock-centre parity gates.
 
-Required preparation:
-
-1. study the pinned `wide-snes` reference by failure category rather than transplanting Super Mario World patches;
-2. establish a small reproducible bsnes-hd diagnostic preset matrix for per-BG widening, sprite clip/safe/unsafe behavior, window handling, overscan and pixel-aspect policy;
-3. build `tools/widescreen_probe.py` only after a deterministic capture route exists, reusing the shared fixture grammar rather than creating another replay format;
-4. probe increasing horizontal exposure margins (current matrix: +0, +8, +16, +24, +32, +48, +64, +72 source pixels where the runtime can express them);
-5. record the first margin/frame at which each rendering or game-state assumption fails.
-
-The probe should classify at least:
-
-- stale/unprepared background columns;
-- unintended tilemap wrap or authored-world overrun;
-- sprite disappearance, clipping or coordinate wrap;
-- newly exposed hidden sprites/objects;
-- object pop-in or late graphics preparation;
-- window/color-math/scanline-effect boundaries;
-- unfinished/offstage art;
-- scripted transition or reveal leakage.
-
-The purpose is to replace "widescreen looks wrong" with a machine-readable first-failure map.
+The original bsnes-hd/preset-matrix proposal is now optional diagnostic tooling, not unfinished Widescreen work. Do not repeat staged-margin sweeps or collect another generic first-failure map unless a new scene, wider aspect ratio or concrete rendering defect violates the accepted contract.
 
 ### Keep horizontal domains separate
 

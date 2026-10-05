@@ -366,28 +366,6 @@ bool onboarding_surface_active() {
     return g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
 }
 
-const char* gamepad_button_label(int button) {
-    switch (button) {
-    case kGamepadBtn_A: return "A";
-    case kGamepadBtn_B: return "B";
-    case kGamepadBtn_X: return "X";
-    case kGamepadBtn_Y: return "Y";
-    case kGamepadBtn_Back: return "BACK";
-    case kGamepadBtn_Start: return "START";
-    case kGamepadBtn_L1: return "L1";
-    case kGamepadBtn_R1: return "R1";
-    case kGamepadBtn_DpadUp: return "D-UP";
-    case kGamepadBtn_DpadDown: return "D-DOWN";
-    case kGamepadBtn_DpadLeft: return "D-LEFT";
-    case kGamepadBtn_DpadRight: return "D-RIGHT";
-    case kGamepadBtn_L2: return "L2";
-    case kGamepadBtn_R2: return "R2";
-    case kGamepadBtn_L3: return "L3";
-    case kGamepadBtn_R3: return "R3";
-    default: return "NONE";
-    }
-}
-
 std::string live_gamepad_binding_label(int control_offset) {
     // The title hook receives normalized SNES controls after the framework's
     // physical gamepad mapping. Describe that stable semantic surface here

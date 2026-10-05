@@ -231,6 +231,25 @@ jobs:
           cd tools
           python check_result_screen_time.py --dump-dir "$DUMPS" --checkpoint race-results
 
+      - name: Missing-package-payload startup error
+        run: |
+          set -euo pipefail
+          BROKEN="$RUNNER_TEMP/UR-Recomp-Windows-x64-broken"
+          cp -R "$PACKAGE" "$BROKEN"
+          rm "$BROKEN/Uniracers_USA.sfc"
+          BROKEN_WIN="$(cygpath -w "$BROKEN")"
+
+          set +e
+          cmd.exe //d //s //c "\"${BROKEN_WIN}\\run-uniracers.cmd\"" \
+            >"$RUNNER_TEMP/package-missing-rom.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-missing-rom.log"
+          test "$RC" -eq 2
+          grep -Fq "UR-Recomp cannot start: required file missing: Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/package-missing-rom.log"
+          echo "WINDOWS_PACKAGE_MISSING_PAYLOAD_ERROR ok"
+
       - name: Upload Windows evidence
         if: always()
         uses: actions/upload-artifact@v4

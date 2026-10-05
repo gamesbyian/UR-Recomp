@@ -1,17 +1,7 @@
 name: Historical Snes9x medal capture
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/progression-gameplay-acceptance-2026-10-02
-    paths:
-      - "tools/capture_first_medal.lua"
-      - "tools/patch_historical_snes9x151.py"
-      - "analysis/data/progression-model.json"
-      - "tools/analyze_progression_sram_acceptance.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: historical-snes9x-medal-${{ github.ref }}
   cancel-in-progress: true
 

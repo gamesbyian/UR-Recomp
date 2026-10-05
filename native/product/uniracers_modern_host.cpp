@@ -1787,20 +1787,26 @@ bool profile_snapshot_matches_live_sram(
 }
 
 bool tour_continue_available() {
-    return modern_mode() &&
-           !g_practice_active &&
-           !paused() &&
-           g_ram &&
-           g_ram[0x0313] != 0x01 &&
-           g_ram[0x009F] == 0xD7 &&
-           g_profile_state &&
-           g_profile_state_writable &&
-           g_profile_state->tour_continuation &&
-           ur::product::valid_tour_continuation(
-               *g_profile_state->tour_continuation) &&
-           profile_snapshot_matches_live_sram(*g_profile_state) &&
+    if (!modern_mode() || g_practice_active || paused() || !g_ram ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
+        !g_profile_state || !g_profile_state_writable ||
+        !g_profile_state->tour_continuation ||
+        !g_profile_state->stock_sram ||
+        !ur::product::valid_tour_continuation(
+            *g_profile_state->tour_continuation) ||
+        !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    const auto continuation =
+        title_continuation(*g_profile_state->tour_continuation);
+    return ur::title::tour_resume_source_matches_sram(
+               continuation,
+               g_profile_state->stock_sram->data(),
+               g_profile_state->stock_sram->size()) &&
            ur::title::tour_resume_source_matches_sram(
-               title_continuation(*g_profile_state->tour_continuation),
+               continuation,
                g_sram,
                static_cast<std::size_t>(g_sram_size));
 }

@@ -1,19 +1,7 @@
 name: S2 desktop digest reference
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "native/reference/s2_desktop_digest_reference.c"
-      - "analysis/s2-desktop-digest-reference-contract.json"
-      - "tools/check_s2_desktop_digest_reference.py"
-      - "tests/unit/test_s2_desktop_digest_reference.py"
-      - "analysis/switch-s2-runtime-core-contract.json"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "tools/bootstrap_toolchain.py"
-      - ".github/workflows/s2-desktop-digest-reference.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

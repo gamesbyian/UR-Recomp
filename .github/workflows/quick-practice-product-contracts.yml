@@ -1,0 +1,38 @@
+name: Quick Practice product contracts
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/quick_practice_*.hpp"
+      - "tests/native/quick_practice_*_test.cpp"
+      - "tests/unit/test_quick_practice_*_cpp.py"
+      - "tests/unit/test_quick_practice_catalog_corpus.py"
+      - ".github/workflows/quick-practice-product-contracts.yml"
+
+concurrency:
+  group: quick-practice-product-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Run Quick Practice product contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            tests.unit.test_quick_practice_route_cpp \
+            tests.unit.test_quick_practice_catalog_cpp \
+            tests.unit.test_quick_practice_catalog_corpus \
+            tests.unit.test_quick_practice_picker_cpp \
+            tests.unit.test_quick_practice_selection_cpp \
+            tests.unit.test_quick_practice_selection_view_cpp \
+            tests.unit.test_quick_practice_launch_cpp \
+            tests.unit.test_quick_practice_availability_cpp \
+            tests.unit.test_quick_practice_input_mask_cpp

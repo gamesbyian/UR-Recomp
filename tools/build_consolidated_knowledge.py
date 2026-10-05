@@ -95,7 +95,7 @@ def presentation():
     family["fallback_frequency_measurement"] = {
         "status":"measured expansion active",
         "retained_report":"analysis/generated/racer-hd-fallback-frequency-2026-10-05.json",
-        "source":fallback["source"],
+        "source":{"workflow_run":fallback["source"]["workflow_run"],"artifact_id":fallback["source"]["artifact_id"],"route":fallback["source"]["route"],"trace_window":fallback["source"]["trace_window"]},
         "before":fallback["before"],
         "selected_exact_state":{
             "composition":{

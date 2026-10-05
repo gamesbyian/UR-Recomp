@@ -34,7 +34,8 @@ constexpr std::optional<std::uint8_t> unique_remaining_tour_slot(
     std::optional<std::uint8_t> remaining;
     unsigned qualified_count = 0;
     for (std::uint8_t slot = 0; slot < qualified.size(); ++slot) {
-        if (qualified[slot]) {
+        if (qualified[slot] > 1) return std::nullopt;
+        if (qualified[slot] == 1) {
             ++qualified_count;
             continue;
         }

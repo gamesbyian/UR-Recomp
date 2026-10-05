@@ -18,6 +18,8 @@ struct RunDataCatalogEntry {
     std::string time_text;
     bool is_previous = false;
     bool is_personal_best = false;
+    std::optional<std::int64_t> personal_best_delta_ticks60;
+    std::string personal_best_delta_text = "--";
 };
 
 struct RunDataCatalog {

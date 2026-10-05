@@ -49,6 +49,7 @@ struct RunRecordsCourseIndexEntry {
     std::string course_id;
     RunDataCatalog catalog;
     RunDataStatisticsPresentation statistics;
+    std::vector<StoredRunRecord> records;
 };
 
 struct RunRecordsIndex {

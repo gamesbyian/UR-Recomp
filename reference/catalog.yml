@@ -810,3 +810,14 @@ sources:
     embedded_author: "Justaguy95"
     rights: "File-specific redistribution/license status not established; preserve as research reference and do not treat as shipping audio."
     relevance: "Independent fan reconstruction of the game's instrument/sample mappings. Useful for BRR loop/tuning/instrument-group comparisons against ROM-derived audio, but not an authority."
+
+
+  - id: cabbagery-uniracers-mechanics-2024
+    title: "cabbagery Uniracers mechanics recollection"
+    type: player_mechanics_testimony
+    url: "https://www.reddit.com/r/snes/comments/1h4c44t/what_do_you_think_of_uniracers/"
+    author: "cabbagery"
+    published: "2024-12-01"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit comment; preserve claims and provenance only. Do not redistribute user-authored text beyond brief quotation where needed."
+    relevance: "Detailed firsthand claims about Hunter crossing effects, Hunter multiplayer availability, Anti-Uni/endgame progression, stunt scoring, top-three record persistence after racer deletion, and forbidden-name behavior. Treat every mechanical claim as provisional until reproduced against the canonical ROM/runtime."

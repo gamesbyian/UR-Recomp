@@ -13,6 +13,7 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/patches/snesrecomp-live-display-mode.patch"
+      - "tools/patches/snesrecomp-presentation-scale.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/prepare_native_widescreen_product.py"
@@ -1208,7 +1209,8 @@ jobs:
             # Enter Options, toggle Focus Pause, then navigate to the
             # host-owned Display row, advance through Borderless to Fullscreen,
             # move to VSync and select Adaptive, set Presentation FPS to 120,
-            # choose the first explicit active-monitor Output Resolution, then
+            # choose the first explicit active-monitor Output Resolution,
+            # cycle Internal Render Scale from its 4x default to 1x, then
             # enable the persisted 16:9 Widescreen view.
             xdotool key Down
             xdotool key Down
@@ -1219,18 +1221,27 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'"
+            # Focus Pause: On -> Off.
             xdotool key Return
+            # Display: Windowed -> Borderless -> Fullscreen.
             xdotool key Down
             xdotool key Return
             xdotool key Return
+            # VSync: On -> Adaptive.
             xdotool key Down
             xdotool key Return
+            # Presentation FPS: Game -> 60 -> 90 -> 120.
             xdotool key Down
             xdotool key Return
             xdotool key Return
             xdotool key Return
+            # Output Resolution: Native -> first explicit monitor mode.
             xdotool key Down
             xdotool key Return
+            # Internal Render Scale: 4x -> 1x.
+            xdotool key Down
+            xdotool key Return
+            # Widescreen: Original -> 16:9.
             xdotool key Down
             xdotool key Return
 
@@ -1250,6 +1261,7 @@ jobs:
             grep -q "^display_mode=fullscreen$" "'"$STATE"'"
             grep -q "^vsync=adaptive$" "'"$STATE"'"
             grep -q "^presentation_fps=120$" "'"$STATE"'"
+            grep -q "^internal_render_scale=1x$" "'"$STATE"'"
             grep -q "^widescreen=16x9$" "'"$STATE"'"
             RESOLUTION=$(sed -n "s/^output_resolution=//p" "'"$STATE"'")
             test -n "$RESOLUTION"
@@ -1260,6 +1272,7 @@ jobs:
             grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "'"$SAVE_LOG"'"
             grep -q "UR_OUTPUT_RESOLUTION SELECTED value=$RESOLUTION" "'"$SAVE_LOG"'"
             grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "'"$SAVE_LOG"'"
+            grep -q "UR_RENDER_SCALE APPLIED scale=1x" "'"$SAVE_LOG"'"
             grep -q "UR_WIDESCREEN SELECTED mode=16x9" "'"$SAVE_LOG"'"
             grep -q "UR_HOST_STATE SAVED" "'"$SAVE_LOG"'"
             kill "$PID" 2>/dev/null || true
@@ -1275,11 +1288,12 @@ jobs:
             exit "$LOAD_STATUS"
           fi
           RESOLUTION=$(sed -n "s/^output_resolution=//p" "$STATE")
-          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=$RESOLUTION widescreen=16x9" "$LOAD_LOG"
+          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=$RESOLUTION widescreen=16x9 internal_render_scale=1x" "$LOAD_LOG"
           grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
           grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "$LOAD_LOG"
           grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"
           grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "$LOAD_LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOAD_LOG"
 
           set +e
           SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_EXECUTION_MODE=authentic           UR_HOST_STATE_PATH="$STATE"           timeout 6s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
@@ -1314,6 +1328,10 @@ jobs:
             echo "::error::Authentic mode touched modern Widescreen policy"
             exit 1
           fi
+          if grep -q "UR_RENDER_SCALE" "$AUTH_LOG"; then
+            echo "::error::Authentic mode touched modern Internal Render Scale policy"
+            exit 1
+          fi
 
           echo "== saved host state =="
           cat "$STATE"
@@ -1323,7 +1341,7 @@ jobs:
           cat "$LOAD_LOG"
           echo "== authentic diagnostics =="
           cat "$AUTH_LOG"
-          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_widescreen_saved_loaded_and_authentic_inert"
+          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_render_scale_widescreen_saved_loaded_and_authentic_inert"
 
       - name: Modern Output Resolution rollback acceptance
         shell: bash

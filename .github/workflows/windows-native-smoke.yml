@@ -194,6 +194,7 @@ jobs:
           test ! -e "$CALLER/keybinds.ini"
           grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-boot.log"
           grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-boot.log"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
           python tools/assemble_windows_package.py verify-archive \
             --archive "$PACKAGE_ARCHIVE"
@@ -226,6 +227,7 @@ jobs:
             --checkpoint race-results
           grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-race-result.log"
           grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-race-result.log"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
           echo "WINDOWS_PACKAGE_RACE_RESULT ok"
 
       - name: Package refresh preserves user data

@@ -21,17 +21,27 @@ class NativeWidescreenAotSeedTests(unittest.TestCase):
                 encoding="utf-8",
             )
             first=MOD.ensure_seed(cfg)
-            self.assertEqual(first, {"symbols": True, "bank03": True})
+            self.assertEqual(
+                first, {"symbols": True, "bank00": True, "bank03": True})
             st=symbols.read_text(encoding="utf-8")
+            bank0=(cfg/"bank00.cfg").read_text(encoding="utf-8")
             bank3=(cfg/"bank03.cfg").read_text(encoding="utf-8")
+            self.assertIn(
+                "func TourConfirmGenerationSnapshot E6A2", bank0)
+            self.assertIn(
+                'name = "TourConfirmGenerationSnapshot"', st)
+            self.assertIn('addr = "E6A2"', st)
+            self.assertIn('bank = 0', st)
             self.assertIn("func RaceFrameOrchestratorLoop CBCC", bank3)
             self.assertIn('name = "RaceFrameOrchestratorLoop"', st)
             self.assertIn('addr = "CBCC"', st)
             self.assertIn('bank = 3', st)
 
             second=MOD.ensure_seed(cfg)
-            self.assertEqual(second, {"symbols": False, "bank03": False})
+            self.assertEqual(
+                second, {"symbols": False, "bank00": False, "bank03": False})
             self.assertEqual(st,symbols.read_text(encoding="utf-8"))
+            self.assertEqual(bank0,(cfg/"bank00.cfg").read_text(encoding="utf-8"))
             self.assertEqual(bank3,(cfg/"bank03.cfg").read_text(encoding="utf-8"))
 
 if __name__=="__main__":

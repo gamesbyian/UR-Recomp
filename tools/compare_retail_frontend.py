@@ -6,14 +6,18 @@ import argparse
 import json
 import os
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+TOOLS_DIR = Path(__file__).resolve().parent
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
 
 from compare_framebuffers import compare_frames
 import extract_menu_visual_language as mvl
 import probe_tier_opponents as tier
-
-ROOT = Path(__file__).resolve().parents[1]
 
 CASES = {
     "startup-main": {

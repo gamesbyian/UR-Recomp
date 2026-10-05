@@ -69,4 +69,8 @@ ModernControlsCommand modern_controls_capture_key(
     ModernControlsRebindState* state,
     int key_scancode) noexcept;
 
+bool modern_controls_action_for_snes_control(
+    int control,
+    ModernControlsAction* action) noexcept;
+
 }  // namespace ur::product

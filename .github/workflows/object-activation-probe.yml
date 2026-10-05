@@ -1,7 +1,9 @@
 name: Dragster object activation probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: object-activation-probe-${{ github.ref }}
   cancel-in-progress: true
 

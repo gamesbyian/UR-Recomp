@@ -93,6 +93,54 @@ Do not allow two writer runs to race the same branch.
 
 Manual-only, read-only probes may omit concurrency when duplicate runs are intentionally independent, but adding a group is still preferred when duplicate execution has no evidentiary value.
 
+## Failure triage and recent-run interpretation
+
+Review CI by **root cause**, not by the color count in the Actions list.
+
+When auditing recent health:
+
+1. inspect roughly the last 5-10 runs of each active automatic workflow when that history exists;
+2. treat `cancelled` runs caused by a newer commit on the same branch as superseded work, not failures;
+3. look at the newest relevant run on the current branch/head before spending time on an older red run;
+4. inspect failed **job and step names first**, then the bounded log/artifact for that step;
+5. classify the failure before editing code: product/runtime regression, stale test assumption, UI/harness navigation coupling, orchestration/cascade failure, runner/toolchain failure, or known evidence gap;
+6. fix the owning assumption/harness and then verify the latest current-head result. Do not rerun every historical red.
+
+A branch with six cancelled runs followed by one green run has one useful result, not a 14% pass rate. Cancellation volume is still an efficiency signal: it may mean agents are pushing tiny CI-triggering commits faster than useful gates can finish.
+
+### Do not manufacture secondary failures
+
+Use `if: always()` only for diagnostics, artifact upload, cleanup and summaries that are explicitly safe when upstream work never ran.
+
+A validation step that consumes an artifact produced by an earlier step should normally use default success semantics. If the producer is skipped or fails, the consumer should be skipped rather than emit a second misleading error such as "missing screenshot." The **first failing invariant** should remain visually obvious.
+
+If diagnostic collection must run after failure, make missing producer artifacts informational in that diagnostic path and keep the original failed step as the job's root cause.
+
+### Keep UI acceptance semantic
+
+Host UI evolves quickly. Avoid encoding menu structure as repeated literal cursor counts in shell snippets.
+
+Prefer, in order:
+
+- semantic input/selection APIs or pure product-controller tests;
+- a shared row enum/model queried by the test harness;
+- one bounded end-to-end keyboard/controller route that is updated in the same change as the menu;
+- literal `xdotool key Down` counts only at the outermost acceptance edge.
+
+When an Options row is inserted, all end-to-end routes that navigate below it must be treated as dependents. Do not copy comments such as "seventh row" into multiple workflows and hope they stay synchronized.
+
+### Test rules, not today's example object
+
+Validator/unit tests for policy schemas should construct the invalid state they intend to reject. Do not depend on a live production feature remaining a `redesign_candidate`, deprecated field, legacy schema, or other temporary state merely so the test has an example.
+
+For example, a test that proves "`redesign_candidate` requires `decision_gate`" should mutate a fixture into that state and then remove the gate. Settling the real product policy must not make the validator test crash before it reaches the assertion.
+
+### Avoid one subsystem masking the rest of a smoke gate
+
+A smoke job with many serial product acceptances can turn one local failure into dozens of skipped checks. Keep build/boot/basic-route identity near the front and consider moving volatile product-specific end-to-end flows to focused workflows once they become independently valuable.
+
+Skipped downstream checks after the first failure are **unknown**, not failed and not passed. When deciding whether a merge introduced multiple regressions, do not count skipped steps as evidence either way.
+
 ## Timeouts
 
 Every job that invokes an emulator, native executable, compiler toolchain, networked diagnostic, or external process must have an explicit `timeout-minutes`.
@@ -215,6 +263,24 @@ Key findings and actions:
 - a follow-up post-merge audit removed workflow-self paths from main-push trigger sets across the suite; workflow edits are now validated pre-merge where PR validation exists, or explicitly via manual dispatch for push-only research/evidence jobs.
 
 Remaining expensive workflows are retained because they test distinct runtime/evidence seams. Optimize them further only from measured job timing or duplicated-build evidence, not by weakening coverage. Use the manual `CI runtime report` workflow and `tools/report_ci_runtime.py` to rank recent workflows by measured wall time before another broad optimization pass.
+
+## Recent-run failure-pattern audit — 2026-10-05
+
+The repository currently contains **102 workflow files**. A 1,000-run recent-history sample covered 30 workflow names; the remainder were dormant/manual or did not occur in that window. In the latest 10-run window per represented workflow, only two workflow families had actual failures:
+
+- **Native build and boot smoke:** 6 failures among its latest 10 sampled runs, with the other four cancelled as superseded. The failures were not one repeating engine defect: four were the Modern profile-panel end-to-end assertion, one was Ghost Options navigation coupled to a now-stale row count, and one was a Widescreen stock-centre parity rejection. Several failures also produced a misleading second "missing frame-300 screenshot" error because the validator used `if: always()` after the boot producer had been skipped.
+- **Project tooling unit tests:** 3 failures among its latest 10 sampled runs; all three came from the same stale validator-test assumption after `records-silos` changed from `redesign_candidate` to `redesign_decided`. The test was corrected to synthesize the candidate state explicitly, and the next run passed.
+
+The dominant non-green pattern across high-frequency workflows was **cancellation churn**, especially while one agent made several CI-triggering commits seconds apart. Widescreen capacity, onboarding/practice, native UI evidence, completed-run replay and Racer HD acceptance were generally green when allowed to finish.
+
+Operational conclusions:
+
+- diagnose from the latest completed current-head run and first failed step;
+- do not count superseded cancellations as regressions;
+- avoid pushing a chain of tiny commits through high-fan-out workflow paths when one coherent commit can represent the same completed edit;
+- keep product-UI E2E navigation synchronized with the semantic menu model;
+- reserve `always()` for diagnostics/cleanup, not dependent assertions;
+- split volatile product acceptance out of the general smoke gate when serial coupling begins hiding unrelated checks.
 
 ## Periodic maintenance
 

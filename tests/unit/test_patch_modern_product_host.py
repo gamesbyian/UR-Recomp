@@ -85,6 +85,8 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "widescreen_output_composition.cpp",
             "host_product_state.cpp",
             "host_product_store.cpp",
+            "regional_presentation_secret.cpp",
+            "regional_presentation_runtime.cpp",
             "modern_racer_identity.cpp",
             "clean_stock_sram.cpp",
             "host_profile_catalog.cpp",

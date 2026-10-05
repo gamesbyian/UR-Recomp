@@ -51,6 +51,8 @@ def classify(control: dict, variant: dict) -> str:
         return "full-generation-seam"
     if label == "GOLD" and opponent == 17:
         return "label-only-seam"
+    if label == "BRONZE" and opponent == 19:
+        return "opponent-generation-seam-label-precomputed"
     if label == "BRONZE" and opponent == 17:
         return "no-effect"
     return "mixed-or-unexpected"

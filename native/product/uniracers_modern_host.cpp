@@ -1887,10 +1887,12 @@ bool begin_tour_continue() {
         for (const auto flag : continuation.qualified) completed += flag;
         std::fprintf(
             stderr,
-            "UR_TOUR_CONTINUE STARTED rider=%u tour=%u completed=%u\n",
+            "UR_TOUR_CONTINUE STARTED rider=%u tour=%u completed=%u menu=%02X race=%u\n",
             static_cast<unsigned>(continuation.rider_index),
             static_cast<unsigned>(continuation.tour_row),
-            completed);
+            completed,
+            static_cast<unsigned>(g_ram[0x009F]),
+            static_cast<unsigned>(g_ram[0x0313]));
         std::fflush(stderr);
     }
     return true;

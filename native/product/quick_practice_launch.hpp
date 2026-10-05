@@ -30,6 +30,9 @@ struct QuickPracticeLaunchObservation {
     std::uint8_t menu_id = 0;
     std::uint8_t selected_option = 0;
     bool in_race = false;
+    // Canonical zero-based Quick Practice track id from the authoritative
+    // decoded-course identity, or -1 while identity is not yet available.
+    int active_track_id = -1;
 };
 
 struct QuickPracticeLaunchState {
@@ -43,6 +46,7 @@ struct QuickPracticeLaunchStep {
     QuickPracticeLaunchState state{};
     QuickPracticeLaunchInput input = QuickPracticeLaunchInput::None;
     bool race_ready = false;
+    bool course_mismatch = false;
 };
 
 constexpr QuickPracticeLaunchInput launch_input_from_menu_input(
@@ -79,6 +83,16 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     if (state.stage == QuickPracticeLaunchStage::Idle) return out;
 
     if (observation.in_race) {
+        // Active-race state alone is insufficient for a target-aware launch.
+        // Wait for the authoritative decoded-course identity, then accept only
+        // the requested course. A different valid course fails closed.
+        if (observation.active_track_id < 0) return out;
+        if (observation.active_track_id !=
+            static_cast<int>(out.state.target.track_id)) {
+            out.state = {};
+            out.course_mismatch = true;
+            return out;
+        }
         out.state.stage = QuickPracticeLaunchStage::Active;
         out.state.waiting_for_selection_change = false;
         out.race_ready = true;

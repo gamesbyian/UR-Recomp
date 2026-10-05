@@ -26,11 +26,26 @@ struct RunDataCatalog {
     std::optional<std::size_t> personal_best_entry;
 };
 
+struct RunDataStatisticsPresentation {
+    std::size_t completed_runs = 0;
+    std::string personal_best_text = "--";
+    std::string previous_text = "--";
+    std::string previous_vs_pb_text = "--";
+    bool personal_best_available = false;
+    bool previous_available = false;
+    bool previous_comparison_available = false;
+};
+
 /* Build presentation metadata over an already compatibility-filtered store
  * catalog. Selection delegates to the canonical previous/PB selectors; this
  * layer adds no new ranking or replay rules. */
 RunDataCatalog build_run_data_catalog(
     const std::vector<StoredRunRecord>& records,
     const RunPlaybackTarget& target);
+
+/* Prepare compact per-target statistics from the canonical catalog. This adds
+ * no alternate selection rule: PB and Previous come only from catalog flags. */
+RunDataStatisticsPresentation present_run_data_statistics(
+    const RunDataCatalog& catalog);
 
 }  // namespace ur::product

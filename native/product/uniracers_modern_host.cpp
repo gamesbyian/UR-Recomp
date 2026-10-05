@@ -100,7 +100,6 @@ bool g_onboarding_visible;
 bool g_onboarding_manual_open;
 bool g_onboarding_acceptance_fired;
 bool g_binding_diagnostics_reported;
-bool g_controls_persistence_acceptance_fired;
 std::string g_onboarding_seen_path;
 
 bool g_practice_active;
@@ -209,7 +208,6 @@ bool modern_mode() {
 
 void ensure_product_state();
 void ensure_profile_catalog();
-void maybe_run_controls_persistence_acceptance();
 void product_diagnostic(const char* message);
 bool paused();
 bool restart_surface();
@@ -1911,7 +1909,6 @@ bool ensure_session() {
     ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
     g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     if (g_session && modern_mode()) {
-        maybe_run_controls_persistence_acceptance();
         (void)apply_display_mode_setting(g_product_state.settings);
         (void)apply_output_resolution_setting(g_product_state.settings);
         (void)apply_presentation_fps_setting(g_product_state.settings);
@@ -2753,6 +2750,24 @@ ur::product::ModernControlsBindingAuthority live_controls_authority() {
     };
 }
 
+void diagnose_controls_bindings() {
+    if (!std::getenv("UR_PRODUCT_DIAGNOSTICS")) return;
+    std::array<std::string, 12> labels{};
+    for (int i = 0; i < ur::product::modern_control_binding_count(); ++i) {
+        labels[static_cast<std::size_t>(i)] =
+            uppercase_keybind_label(keybinds_get_button(1, i));
+    }
+    std::fprintf(
+        stderr,
+        "UR_CONTROLS BINDINGS a=%s b=%s x=%s y=%s l=%s r=%s "
+        "start=%s select=%s up=%s down=%s left=%s right=%s\n",
+        labels[0].c_str(), labels[1].c_str(), labels[2].c_str(),
+        labels[3].c_str(), labels[4].c_str(), labels[5].c_str(),
+        labels[6].c_str(), labels[7].c_str(), labels[8].c_str(),
+        labels[9].c_str(), labels[10].c_str(), labels[11].c_str());
+    std::fflush(stderr);
+}
+
 bool apply_live_controls_command(
     const ur::product::ModernControlsCommand& command) {
     const bool applied = ur::product::apply_modern_controls_command(
@@ -2767,6 +2782,7 @@ bool apply_live_controls_command(
             applied ? 1 : 0);
         std::fflush(stderr);
     }
+    if (applied) diagnose_controls_bindings();
     return applied;
 }
 
@@ -2784,50 +2800,6 @@ bool handle_controls_action(ur::product::ModernControlsAction action) {
         (void)apply_live_controls_command(command);
     }
     return true;
-}
-
-void maybe_run_controls_persistence_acceptance() {
-    if (g_controls_persistence_acceptance_fired || !modern_mode()) return;
-    const char* mode = std::getenv("UR_CONTROLS_PERSISTENCE_ACCEPTANCE");
-    if (!mode || !*mode) return;
-    g_controls_persistence_acceptance_fired = true;
-
-    bool ok = false;
-    if (std::strcmp(mode, "write") == 0) {
-        ok = apply_live_controls_command({
-                 ur::product::ModernControlsCommandKind::ApplyCapturedKey,
-                 ur::product::ModernControlBinding::A,
-                 static_cast<int>(SDL_SCANCODE_F9)}) &&
-             apply_live_controls_command({
-                 ur::product::ModernControlsCommandKind::ApplyCapturedKey,
-                 ur::product::ModernControlBinding::B,
-                 static_cast<int>(SDL_SCANCODE_F9)}) &&
-             apply_live_controls_command({
-                 ur::product::ModernControlsCommandKind::ClearBinding,
-                 ur::product::ModernControlBinding::X,
-                 0});
-    } else if (std::strcmp(mode, "verify") == 0) {
-        ok = keybinds_get_button(1, 0) == SDL_SCANCODE_F9 &&
-             keybinds_get_button(1, 1) == SDL_SCANCODE_F9 &&
-             keybinds_get_button(1, 2) == SDL_SCANCODE_UNKNOWN;
-    } else if (std::strcmp(mode, "reset") == 0) {
-        ok = apply_live_controls_command({
-            ur::product::ModernControlsCommandKind::ResetPlayer,
-            ur::product::ModernControlBinding::A,
-            0});
-    }
-
-    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-        std::fprintf(
-            stderr,
-            "UR_CONTROLS_PERSISTENCE mode=%s result=%s a=%d b=%d x=%d\n",
-            mode,
-            ok ? "PASS" : "FAIL",
-            static_cast<int>(keybinds_get_button(1, 0)),
-            static_cast<int>(keybinds_get_button(1, 1)),
-            static_cast<int>(keybinds_get_button(1, 2)));
-        std::fflush(stderr);
-    }
 }
 
 bool handle_controls_key(int key) {
@@ -3014,6 +2986,7 @@ bool activate_pause_selection() {
         g_controls_rebind = {};
         g_controls_visible = true;
         product_diagnostic("UR_PAUSE_CONTROLS OPENED");
+        diagnose_controls_bindings();
         return true;
     }
     if (selected == UR_MODERN_PAUSE_EXIT_FRONTEND) {

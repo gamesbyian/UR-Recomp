@@ -186,6 +186,7 @@ jobs:
             "$RUNNER_TEMP/racer-hd-asset-dossier/pose-equivalence.json" \
             --decisions analysis/data/racer-hd-art-approval.json \
             --out "$RUNNER_TEMP/racer-hd-asset-dossier/shipping-readiness.json" \
+            --require-shipping-ready \
             > "$RUNNER_TEMP/racer-hd-shipping-readiness.txt"
 
           python3 tools/build_racer_hd_review_packet.py \

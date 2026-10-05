@@ -12,7 +12,6 @@ on:
       - "analysis/widescreen-vs-preparation-seam.json"
       - "analysis/widescreen-policy.yml"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-preparation-trace-${{ github.ref }}

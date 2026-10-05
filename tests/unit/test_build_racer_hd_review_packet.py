@@ -100,6 +100,13 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             readiness.write_text(json.dumps({
                 "shipping_ready": True,
                 "unique_pose_count": 1,
+                "review_basis": {
+                    "workflow_run": 123,
+                    "artifact_id": 456,
+                    "temporal_window": [1205, 1220],
+                    "review_surface": "review/index.html",
+                },
+                "family_blockers": [],
                 "counts": {
                     "approved": 1,
                     "needs_refinement": 0,
@@ -131,6 +138,19 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             self.assertEqual(pose["shipping_blocker_codes"], [])
             self.assertEqual(pose["reviewed_authored_rgba_sha256"], "art")
             self.assertTrue(manifest["shipping_readiness"]["shipping_ready"])
+            self.assertEqual(
+                manifest["shipping_readiness"]["review_basis"]["workflow_run"],
+                123,
+            )
+            self.assertEqual(
+                manifest["shipping_readiness"]["family_blockers"],
+                [],
+            )
+            html = (out / "index.html").read_text()
+            self.assertIn("workflow run 123", html)
+            self.assertIn("artifact 456", html)
+            self.assertIn("window 1205–1220", html)
+            self.assertIn("review/index.html", html)
 
     def test_packet_copies_baseline_assets_for_before_after_review(self):
         with tempfile.TemporaryDirectory() as tmp:

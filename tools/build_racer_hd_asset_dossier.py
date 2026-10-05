@@ -155,6 +155,30 @@ TWENTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
 TWENTY_EIGHTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x057F-p2-fourth-family-exit-0D2A-reference"
 )
+TWENTY_NINTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057E-p1-fifth-family-0542-reference"
+)
+THIRTIETH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0542-p2-fifth-family-057E-reference"
+)
+THIRTY_FIRST_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057D-p1-fifth-family-0541-reference"
+)
+THIRTY_SECOND_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0541-p2-fifth-family-057D-reference"
+)
+THIRTY_THIRD_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057D-p1-fifth-family-0540-reference"
+)
+THIRTY_FOURTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p2-fifth-family-057D-reference"
+)
+THIRTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x057C-p1-fifth-family-0540-reference"
+)
+THIRTY_SIXTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p2-fifth-family-057C-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -843,6 +867,69 @@ def build_sixth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_057c_p1_fifth_family_rgba(x: int, y: int) -> bytes:
+    """Continue the reviewed 057E->057D motion strip into the 057C stock pose."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    # Stock advances the wheel-contact centre one logical pixel right again:
+    # 057E [67,76] -> 057D [69,76] -> 057C [71,76].
+    wheel_cx = 144
+    wheel_cy = 120
+    wx = x - wheel_cx
+    wy = y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 35 * 35 and wr2 >= 25 * 25
+    rim = wr2 < 25 * 25 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+
+    fork_center = 138 - (y - 60) // 11
+    fork = y >= 60 and y <= 117 and x >= fork_center - 5 and x <= fork_center + 5
+    crank = authored_crank_contains(x, y, wheel_cx, wheel_cy, 157)
+    pedal = authored_pedal_contains(x, y, 157, 161)
+
+    # Continue the leftward saddle progression from 057D so the authored
+    # envelope reaches the measured stock x=20 edge while the wheel reaches
+    # x=44. The rest of the material hierarchy is unchanged.
+    seat = authored_saddle_contains(x, y, 108, 26, 28, 14, 12, 40)
+    neck = y >= 30 and y <= 60 and x >= 140 and x <= 148
+    saddle_mount = (
+        (seat or neck)
+        and authored_saddle_mount_contains(x, y, 140, 148, 33)
+    )
+    crown_dx = x - 148
+    crown_dy = y - 60
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    frame_brace = authored_frame_brace(x, y, 148, 60, wheel_cx, wheel_cy)
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
+
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_mount:
+        return authored_saddle_mount_rgba(y, 33)
+    if seat:
+        return authored_saddle_rgba(x, y, 108, 26, 14)
+    if crown:
+        return authored_frame_junction_rgba(x, y, 148, 60, False, fork or frame_brace or neck)
+    if fork or frame_brace or neck:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_nineteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_057c_p1_fifth_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 def sample_authored_0540_p2_baseline_rgba(x: int, y: int) -> bytes:
     """Mirror the first authored P2 baseline representation exactly."""
     if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
@@ -1409,6 +1496,42 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_first_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
             "sample_racer_hd_authored_0541_p1",
+        )
+    if rid == TWENTY_NINTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fifth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057e_p1_with_p2_0543",
+        )
+    if rid == THIRTIETH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_ninth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0542_p2",
+        )
+    if rid in (THIRTY_FIRST_AUTHORED_REPRESENTATION_ID, THIRTY_THIRD_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_sixth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057d_p1_with_p2_0543",
+        )
+    if rid == THIRTY_SECOND_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_eighth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541_p2_predecessor",
+        )
+    if rid in (THIRTY_FOURTH_AUTHORED_REPRESENTATION_ID, THIRTY_SIXTH_AUTHORED_REPRESENTATION_ID):
+        return (
+            build_seventh_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540_p2_baseline",
+        )
+    if rid == THIRTY_FIFTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_nineteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_nineteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_057c_p1_fifth_family",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

@@ -1,17 +1,7 @@
 name: Exact racer asset roundtrip
 
 on:
-  push:
-    branches:
-      - chatgpt/racer-asset-roundtrip-2026-10-02
-  pull_request:
-    paths:
-      - ".github/workflows/racer-asset-exact-roundtrip.yml"
-      - "tools/extract_racer_asset_roundtrip.py"
-      - "tests/unit/test_extract_racer_asset_roundtrip.py"
-      - "analysis/evidence/racer-presentation-observed-states.json"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-
+  workflow_dispatch:
 concurrency:
   group: racer-asset-roundtrip-${{ github.ref }}
   cancel-in-progress: true

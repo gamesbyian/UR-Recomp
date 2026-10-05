@@ -2237,5 +2237,44 @@
         "dynamic_ratio_max": 1.4943820224719102
       }
     }
+  },
+  "motion_review_sequences": {
+    "ordinary-race-057e-0544": {
+      "status": "authored candidate sequence-level motion gate; shipping approval remains hash-bound and external",
+      "window_start": 1305,
+      "window_end": 1306,
+      "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
+      "acceptance": {
+        "require_all_frames_authored": true,
+        "require_exact_stock_bounds": true,
+        "require_exact_contact_anchor": true,
+        "require_static_edges_remain_static": true,
+        "require_dynamic_edges_remain_dynamic": true,
+        "dynamic_transition_ratio_min": 0.75,
+        "dynamic_transition_ratio_max": 2.25,
+        "rationale": "Reuse the accepted first-family transition-size band for this contiguous ordinary-race family; frame 1305 to 1306 is a real retained guest transition with dynamic P1 companion composition and byte-static P2 stock art."
+      },
+      "frames": [
+        {
+          "frame": 1305,
+          "p1_representation_id": "ordinary-racer-0x057E-p1-sync-reference",
+          "p2_representation_id": "ordinary-racer-0x0544-p2-sync-reference"
+        },
+        {
+          "frame": 1306,
+          "p1_representation_id": "ordinary-racer-0x057E-p1-companion-0D69-reference",
+          "p2_representation_id": "ordinary-racer-0x0544-p2-with-p1-companion-0D69-reference"
+        }
+      ],
+      "trace_basis": {
+        "source": "deterministic native racer semantic trace",
+        "retained_frames": [
+          1305,
+          1306
+        ],
+        "frame_1305": "057E/0544 + 0D49/0000",
+        "frame_1306": "057E/0544 + 0D69/0000"
+      }
+    }
   }
 }

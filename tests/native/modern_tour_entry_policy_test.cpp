@@ -42,6 +42,20 @@ int main() {
     assert(!restart.restore_continuation_at_track_select);
     assert(restart.retire_continuation_after_stock_wipe);
 
+    // Restart does not discard host continuation merely because the player
+    // confirmed it. Retirement is allowed only after the stock route reaches
+    // TRACK_SELECT and the stock qualification row is observed empty.
+    assert(!modern_tour_entry_may_retire_continuation(
+        restart, false, false));
+    assert(!modern_tour_entry_may_retire_continuation(
+        restart, true, false));
+    assert(!modern_tour_entry_may_retire_continuation(
+        restart, false, true));
+    assert(modern_tour_entry_may_retire_continuation(
+        restart, true, true));
+    assert(!modern_tour_entry_may_retire_continuation(
+        resume, true, true));
+
     ModernTourEntryContext authentic = valid;
     authentic.mode = ExecutionMode::Authentic;
     assert(!modern_tour_entry_actions(authentic).resume_available);

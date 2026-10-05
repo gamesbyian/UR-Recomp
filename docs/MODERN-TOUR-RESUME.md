@@ -18,7 +18,9 @@ The runtime rider/tour values are used only after the frontend has reached a sem
 
 ## Profile representation
 
-Profile-local cartridge saves use the flat framework-creatable namespace `saves/profile-<profile-id>`. The pinned framework only creates `saves` plus one leaf, so a deeper `saves/profiles/<id>` path is deliberately avoided on first run.\n\nHost profile schema v2 adds one optional unfinished-tour continuation:
+Profile-local cartridge saves use the flat framework-creatable namespace `saves/profile-<profile-id>`. The pinned framework only creates `saves` plus one leaf, so a deeper `saves/profiles/<id>` path is deliberately avoided on first run.
+
+The current host profile schema is v4. The unfinished-tour field was introduced in v2 and remains one optional typed continuation alongside the later ghost-target and racer-identity fields:
 
 - rider index;
 - tour row;
@@ -27,7 +29,7 @@ Profile-local cartridge saves use the flat framework-creatable namespace `saves/
 
 A continuation is valid only when rider, tour and medal are in their proven ranges and exactly one through four flags are set. Zero flags carry no progress. Five flags are not representable as an unfinished continuation because stock owns the award-and-clear transition.
 
-Profile schema v1 remains readable. A v1 profile deterministically migrates in memory with no tour continuation and canonical re-save writes v2.
+Profile schemas v1-v3 remain readable. Identity-less historical profiles retain their established progression/resume migration behavior; current canonical re-save writes v4. Profiles that claim a Modern racer identity must also satisfy the authoritative catalog + exact SRAM-snapshot invariant introduced by PR #465 before they can become writable/active.
 
 ## Runtime ownership
 

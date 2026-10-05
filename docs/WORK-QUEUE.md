@@ -373,3 +373,17 @@ Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and exp
 
 The durable run foundation and first player-facing consumption paths are shipped. Typed/versioned/checksummed `.urrun` artifacts persist per profile, export through the canonical deterministic input grammar, reload in a fresh process, and drive the Local Runs browser/replay path. Checksum-bound `.urghost` sidecars can render Previous or Personal Best in Modern 1P through the live camera and existing Racer-HD semantic selector without guest-memory, controller, collision or second-simulation authority. Corrupt/incompatible data fails closed. Remaining work is richer split/target presentation and local-management polish, not another records or ghost data model. See `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `GHOST-PRESENTATION-TRACE.md`.
 
+## Regional presentation: Uniracers / Unirally easter egg
+
+Owning plan: `docs/REGIONAL-PRESENTATION.md`.
+
+- [ ] Run matched USA-retail vs Europe-retail frontend framebuffer captures across boot/title, top-level menus, mode entry, racer/tour/track selection, representative results/records, and reachable award/ending surfaces. Retain exact ROM/core/frame provenance and classify every visible delta.
+- [ ] Extract and provenance-bind the exact USA Uniracers and Europe Unirally title-logo assets, including palette/layout/animation dependencies, so HD work can share one semantic regional-logo family without hand-redrawing.
+- [ ] Investigate only the seven known changed course payloads: Switcher, Last One, Jumpover, Down+Up, Highroad, Hairpin Hill and Vertical. Determine whether each delta is visual-only or affects collision/topology/spawn/timing; specifically identify resource `0x22` well enough to classify the Down+Up/Vertical additions.
+- [ ] Compare regional audio/SPC content and title/menu/race audio where static identity is insufficient. Do not create a regional audio branch unless a content difference is proven.
+- [ ] Extract/aligned user-visible text/legal candidates and cross-check them against framebuffer evidence; do not promote cartridge-header/internal strings as presentation differences.
+- [ ] Add a pure secret-input recognizer: keyboard `PAL` / `NTSC`; controller Left Left Left L A / Right Right Right R A; title-surface gating, timeout/reset, wrong-order/overlap tests, no swallowed ordinary navigation, Authentic inertness.
+- [ ] Add typed `RegionalPresentation::{NorthAmerica,Europe}` state. Internal naming must avoid implying PAL timing/simulation authority.
+- [ ] Bind the first shipping consumer to exact title branding only after the logo provenance experiment closes. Keep NorthAmerica the default.
+- [ ] Add further frontend regional consumers only when explicitly supported by retained evidence.
+- [ ] Consider course-local Europe presentation deltas only if the seven-course experiment proves them visual-only. Never use the easter egg to alter authoritative race topology or timing.

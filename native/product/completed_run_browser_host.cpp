@@ -571,7 +571,7 @@ void draw_records_browser(
 
     snes_ovl_draw_text(
         pixels, stride, height, x + 8, y + panel_h - 11,
-        "CTRL+R / Y  CLOSE", 0xFFFFFFFFu, 1);
+        "F8 / Y      CLOSE", 0xFFFFFFFFu, 1);
 }
 
 void draw_browser(
@@ -723,7 +723,7 @@ void draw_browser_hint(
     const int stride = static_cast<int>(pitch / 4u);
     snes_ovl_draw_text(
         pixels, stride, height, 8, height - 28,
-        "CTRL+R / Y  RECORDS", 0xFFFFFFFFu, 1);
+        "F8 / Y      RECORDS", 0xFFFFFFFFu, 1);
     snes_ovl_draw_text(
         pixels, stride, height, 8, height - 13,
         "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
@@ -785,7 +785,7 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_ESCAPE) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
-        if (key == SDLK_r && (mod & KMOD_CTRL)) {
+        if (key == SDLK_F8) {
             close_records_browser();
             return 1;
         }
@@ -809,7 +809,7 @@ extern "C" int ur_uniracers_product_system_key_down(
         return 1;
     }
 
-    if (key == SDLK_r && (mod & KMOD_CTRL) &&
+    if (key == SDLK_F8 &&
         snesrecomp_desktop_is_paused()) {
         (void)open_records_browser();
         return 1;

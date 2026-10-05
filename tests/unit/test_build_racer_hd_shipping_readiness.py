@@ -6,6 +6,7 @@ from tools.build_racer_hd_shipping_readiness import build_shipping_readiness
 class RacerHdShippingReadinessTest(unittest.TestCase):
     def equivalence(self):
         return {
+            "schema_version": 1,
             "family": "ordinary-racer",
             "source_temporal_window": {"start": 1, "end": 2},
             "pose_groups": [
@@ -32,7 +33,12 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
             ],
         }
 
-    def decisions(self, a="needs-refinement", c="approved"):
+    def decisions(
+        self,
+        a="needs-refinement",
+        c="approved",
+        family_blockers=None,
+    ):
         def row(source, status):
             return {
                 "authored_source_representation_id": source,
@@ -42,10 +48,62 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
                 "blocker_codes": ["coarse"] if status == "needs-refinement" else [],
             }
         return {
-            "review_basis": {"artifact_id": 1},
-            "family_blockers": [{"code": "coarse"}],
+            "schema_version": 1,
+            "family": "ordinary-racer",
+            "review_basis": {
+                "workflow_run": 1,
+                "artifact_id": 1,
+                "temporal_window": [1, 2],
+                "review_surface": "review/index.html",
+            },
+            "family_blockers": (
+                [{"code": "coarse"}]
+                if family_blockers is None and a == "needs-refinement"
+                else (family_blockers or [])
+            ),
             "decisions": [row("a", a), row("c", c)],
         }
+
+    def test_schema_versions_must_match_supported_contract(self):
+        equivalence = self.equivalence()
+        equivalence["schema_version"] = 2
+        with self.assertRaisesRegex(ValueError, "pose-equivalence schema version"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+        decisions = self.decisions()
+        decisions["schema_version"] = 2
+        with self.assertRaisesRegex(ValueError, "art-approval schema version"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_decisions_must_be_a_list(self):
+        decisions = self.decisions()
+        decisions["decisions"] = {}
+        with self.assertRaisesRegex(ValueError, "decisions must be a list"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_decision_rows_and_pose_groups_must_be_objects_in_lists(self):
+        decisions = self.decisions()
+        decisions["decisions"][0] = "not-an-object"
+        with self.assertRaisesRegex(ValueError, "art decision must be an object"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+        equivalence = self.equivalence()
+        equivalence["pose_groups"] = {}
+        with self.assertRaisesRegex(ValueError, "pose_groups must be a list"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+        equivalence = self.equivalence()
+        equivalence["pose_groups"][0] = "not-an-object"
+        with self.assertRaisesRegex(ValueError, "pose group must be an object"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+    def test_equivalence_temporal_bounds_must_be_ordered_integers(self):
+        for start, end in ((None, 2), (1, None), (3, 2), (True, 2)):
+            equivalence = self.equivalence()
+            equivalence["source_temporal_window"] = {"start": start, "end": end}
+            with self.subTest(start=start, end=end):
+                with self.assertRaisesRegex(ValueError, "invalid temporal bounds"):
+                    build_shipping_readiness(equivalence, self.decisions())
 
     def test_readiness_is_owned_per_unique_pose_not_guard(self):
         result = build_shipping_readiness(
@@ -68,6 +126,57 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         self.assertTrue(result["shipping_ready"])
         self.assertEqual(result["counts"]["approved"], 2)
 
+    def test_family_blocker_prevents_shipping_even_when_every_pose_is_approved(self):
+        result = build_shipping_readiness(
+            self.equivalence(),
+            self.decisions(
+                a="approved",
+                c="approved",
+                family_blockers=[{"code": "shared-structure"}],
+            ),
+        )
+        self.assertEqual(result["counts"]["approved"], 2)
+        self.assertEqual(result["family_blockers"], [{"code": "shared-structure"}])
+        self.assertFalse(result["shipping_ready"])
+
+    def test_approval_family_must_match_equivalence_family(self):
+        decisions = self.decisions()
+        decisions["family"] = "other-family"
+        with self.assertRaisesRegex(ValueError, "does not match equivalence family"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_approval_temporal_window_must_match_equivalence_window(self):
+        decisions = self.decisions()
+        decisions["review_basis"]["temporal_window"] = [1, 3]
+        with self.assertRaisesRegex(ValueError, "does not match equivalence window"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_missing_approval_temporal_window_fails_closed(self):
+        decisions = self.decisions()
+        del decisions["review_basis"]["temporal_window"]
+        with self.assertRaisesRegex(ValueError, "does not match equivalence window"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_review_basis_requires_workflow_run_artifact_and_surface(self):
+        for field, expected in (
+            ("workflow_run", "positive workflow_run"),
+            ("artifact_id", "positive artifact_id"),
+            ("review_surface", "review_surface"),
+        ):
+            decisions = self.decisions()
+            del decisions["review_basis"][field]
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, expected):
+                    build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_review_basis_ids_must_be_positive_integers(self):
+        for field in ("workflow_run", "artifact_id"):
+            decisions = self.decisions()
+            decisions["review_basis"][field] = 0
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, f"positive {field}"):
+                    build_shipping_readiness(self.equivalence(), decisions)
+
     def test_unreviewed_pose_prevents_shipping(self):
         decisions = self.decisions()
         decisions["decisions"] = decisions["decisions"][:1]
@@ -87,6 +196,24 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         decisions = self.decisions(a="approved")
         decisions["decisions"][0]["shipping_art_approved"] = False
         with self.assertRaisesRegex(ValueError, "disagrees with status"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_approved_pose_cannot_retain_blocker_codes(self):
+        decisions = self.decisions(a="approved", c="approved")
+        decisions["decisions"][0]["blocker_codes"] = ["stale-blocker"]
+        with self.assertRaisesRegex(ValueError, "approved but still carries blocker"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_reviewed_hash_must_be_lowercase_sha256_hex(self):
+        decisions = self.decisions()
+        decisions["decisions"][0]["reviewed_authored_rgba_sha256"] = "G" * 64
+        with self.assertRaisesRegex(ValueError, "lowercase hexadecimal"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_blocker_codes_must_be_a_list(self):
+        decisions = self.decisions()
+        decisions["decisions"][0]["blocker_codes"] = "coarse"
+        with self.assertRaisesRegex(ValueError, "blocker_codes must be a list"):
             build_shipping_readiness(self.equivalence(), decisions)
 
     def test_stale_extra_decision_is_rejected(self):

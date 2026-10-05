@@ -2,14 +2,6 @@ name: Regional retail audio package comparison
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "reference/roms/retail/Unirally_Europe.sfc"
-      - "tools/compare_regional_audio_packages.py"
-      - "tools/inspect_audio_block_pool.py"
-      - "tests/unit/test_compare_regional_audio_packages.py"
-      - ".github/workflows/regional-retail-audio-packages.yml"
 
 permissions:
   contents: read

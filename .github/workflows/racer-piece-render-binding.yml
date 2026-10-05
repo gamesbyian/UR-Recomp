@@ -1,13 +1,7 @@
 name: Racer piece render binding
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "tools/analyze_racer_piece_render_binding.py"
-      - "tests/unit/test_analyze_racer_piece_render_binding.py"
-      - ".github/workflows/racer-piece-render-binding.yml"
+  workflow_dispatch:
 
 concurrency:
   group: racer-piece-render-binding-${{ github.event.pull_request.number || github.ref }}

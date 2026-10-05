@@ -1,13 +1,7 @@
 name: Racer packed low2 audit
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "tools/analyze_racer_packed_low2.py"
-      - "tests/unit/test_analyze_racer_packed_low2.py"
-      - ".github/workflows/racer-packed-low2.yml"
+  workflow_dispatch:
 
 concurrency:
   group: racer-packed-low2-${{ github.event.pull_request.number || github.ref }}

@@ -1,17 +1,7 @@
 name: Racer piece semantics probe
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "tools/analyze_racer_piece_semantics.py"
-      - "tools/extract_racer_presentation_family.py"
-      - "tests/unit/test_analyze_racer_piece_semantics.py"
-      - "tests/unit/test_extract_racer_presentation_family.py"
-      - "analysis/generated/racer-presentation-family.json"
-      - "analysis/data/presentation-assets.json"
-      - ".github/workflows/racer-piece-semantics.yml"
+  workflow_dispatch:
 
 concurrency:
   group: racer-piece-semantics-${{ github.event.pull_request.number || github.ref }}

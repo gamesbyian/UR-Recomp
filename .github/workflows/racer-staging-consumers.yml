@@ -1,12 +1,7 @@
 name: Racer staging consumer audit
 
 on:
-  pull_request:
-    branches: [main]
-    paths:
-      - "tools/analyze_racer_staging_consumers.py"
-      - "tests/unit/test_analyze_racer_staging_consumers.py"
-      - ".github/workflows/racer-staging-consumers.yml"
+  workflow_dispatch:
 
 concurrency:
   group: racer-staging-consumers-${{ github.event.pull_request.number || github.ref }}

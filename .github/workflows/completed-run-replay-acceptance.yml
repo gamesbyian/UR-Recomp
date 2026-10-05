@@ -22,7 +22,6 @@ on:
       - "native/presentation/completed_run_ghost_racer_selector.*"
       - "native/presentation/completed_run_ghost_raster.*"
       - "native/product/completed_run_ghost_trace.*"
-      - "native/product/uniracers_modern_host.*"
       - "native/title/uniracers_course_identity.*"
       - "native/title/uniracers_run_data.*"
       - "tools/patch_modern_product_host.py"

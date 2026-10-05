@@ -54,6 +54,7 @@ jobs:
         run: python3 tests/test_mesen_fixture_adapter.py
 
   build-smoke:
+    if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     strategy:

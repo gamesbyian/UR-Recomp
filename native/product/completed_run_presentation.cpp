@@ -145,4 +145,27 @@ bool should_present_run_timing(
     return modern_execution && supported_timed_run && race_or_results_surface;
 }
 
+std::optional<RunTimingSplitTablePresentation> present_run_split_table(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord& target,
+    RunDataTargetKind kind) {
+    const auto comparison = compare_completed_run_timing(current, target);
+    if (!comparison) return std::nullopt;
+
+    RunTimingSplitTablePresentation table;
+    table.target_label =
+        kind == RunDataTargetKind::PersonalBest ? "PB" : "PREVIOUS";
+    table.rows.reserve(comparison->splits.size());
+
+    for (const auto& split : comparison->splits) {
+        table.rows.push_back({
+            split.id,
+            format_run_ticks60(split.current_ticks60),
+            format_run_ticks60(split.target_ticks60),
+            format_run_delta_ticks60(split.delta_ticks60),
+        });
+    }
+    return table;
+}
+
 }  // namespace ur::product

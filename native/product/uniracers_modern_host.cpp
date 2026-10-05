@@ -113,6 +113,7 @@ std::string g_practice_original_save_root;
 std::string g_practice_input_path;
 
 ur::product::ModernTourContinueState g_tour_continue;
+std::string g_tour_continue_profile_id;
 std::string g_tour_continue_input_path;
 bool g_tour_continue_acceptance_fired;
 
@@ -1813,6 +1814,7 @@ bool tour_continue_routing() {
 
 void cancel_tour_continue(const char* diagnostic) {
     g_tour_continue = {};
+    g_tour_continue_profile_id.clear();
     if (diagnostic) product_diagnostic(diagnostic);
 }
 
@@ -1826,6 +1828,7 @@ bool begin_tour_continue() {
         ur::product::ModernTourContinueStage::Idle) {
         return false;
     }
+    g_tour_continue_profile_id = g_profile_state->profile_id;
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         unsigned completed = 0;
@@ -1846,6 +1849,8 @@ void advance_tour_continue_route(uint64_t next_frame) {
 
     if (!modern_mode() || !g_profile_state ||
         !g_profile_state_writable ||
+        g_tour_continue_profile_id.empty() ||
+        g_profile_state->profile_id != g_tour_continue_profile_id ||
         !g_profile_state->tour_continuation ||
         !ur::product::valid_tour_continuation(
             *g_profile_state->tour_continuation) ||
@@ -1883,6 +1888,7 @@ void advance_tour_continue_route(uint64_t next_frame) {
         // TRACK_SELECT belongs to the stock frontend. Release all host routing
         // authority immediately so the player chooses the next event normally.
         g_tour_continue = {};
+        g_tour_continue_profile_id.clear();
     }
 }
 

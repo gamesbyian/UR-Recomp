@@ -1,7 +1,9 @@
 name: Evaluate reduced da65 closure
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: cc65-da65-closure-eval-${{ github.ref }}
   cancel-in-progress: true
 

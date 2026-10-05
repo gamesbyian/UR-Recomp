@@ -82,19 +82,70 @@
     "absolute_coverage_gain_percentage_points": 1.360544217687075
   },
   "continuation_disposition": {
-    "status": "stop-before-new-art",
-    "next_ranked_state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
-    "frames": [
-      1280,
-      1281,
-      1282,
-      1283,
-      1285,
-      1286
-    ],
-    "episode_count": 2,
-    "player_frames": 12,
-    "reason": "This tied-maximum state remains meaningful, but P2 semantic frame 0x0578 has no registered shipping pose and the current retained evidence does not prove it equivalent to an approved canonical geometry. P1 0x0544 is likewise not registered for P1. Do not manufacture per-state art from adjacency.",
-    "next_concrete_discriminator": "Run one bounded deterministic stock-composition extraction for the exact 1280-1286 state, then compare each player raster first by exact RGBA and then by palette-normalized geometry against approved same-player canonical poses. Admit the family only if that proof supplies reusable geometry or a genuinely distinct pose justified by the measured 12-player-frame burden."
+    "status": "measurement-loop-ready",
+    "reason": "The second measured family is shipping-approved under exact provenance and temporal gates. Re-rank the remaining unsupported exact states from the same retained route before choosing any further family.",
+    "next_concrete_discriminator": "Re-run fallback-frequency ranking with both measured families registered; choose the highest remaining exact state by player-fallback frames then recurrence. Stop if its bounded equivalence/art cost is not justified by observed burden."
+  },
+  "second_expansion": {
+    "selected_exact_state": {
+      "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+      "frames": [
+        1280,
+        1281,
+        1282,
+        1283,
+        1285,
+        1286
+      ],
+      "episode_count": 2,
+      "player_frames_removed": 12,
+      "selection_basis": "Tied for maximum remaining player-visible fallback burden. Bounded discriminator proved P1 0544 is palette-normalized geometry-equivalent to the shipping P2 0544 pose, while P2 0578 is one genuinely new pose.",
+      "p1_reuse": {
+        "source_representation_id": "ordinary-racer-0x0544-p2-sync-reference",
+        "normalized_stock_sha256": "f78818b7924ce450ceca6d425f11e520388db635a77e6fec9a30236e960b82e4",
+        "normalized_authored_sha256": "1979cc827edac87de49e7a0cdb1c49bfc7e3bdec86642faf2ab26da2dc33f6fc"
+      },
+      "p2_new_pose": {
+        "authored_rgba_sha256": "c2a76550ed07481f22ba832a75170c4609fd2b1bd45d748d5c2d8f90a1d66201",
+        "stock_alpha_bounds": [
+          17,
+          5,
+          47,
+          36
+        ],
+        "contact_x2_y2": [
+          77,
+          72
+        ],
+        "alpha_iou": 0.6731843575418994
+      },
+      "approval_manifest": "analysis/data/racer-hd-art-approval-1280-1286.json",
+      "review_workflow_run": 37390149923,
+      "review_artifact_id": 11381001561
+    },
+    "before": {
+      "player_frame_observations": 882,
+      "hd_selected_player_frames": 162,
+      "original_fallback_player_frames": 720,
+      "hd_coverage_fraction": 0.1836734693877551
+    },
+    "after": {
+      "player_frame_observations": 882,
+      "hd_selected_player_frames": 174,
+      "original_fallback_player_frames": 708,
+      "hd_coverage_fraction": 0.19727891156462585,
+      "fallback_burden_removed_fraction": 0.016666666666666666,
+      "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+      "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+    }
+  },
+  "current_after": {
+    "player_frame_observations": 882,
+    "hd_selected_player_frames": 174,
+    "original_fallback_player_frames": 708,
+    "hd_coverage_fraction": 0.19727891156462585,
+    "fallback_burden_removed_fraction": 0.016666666666666666,
+    "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
   }
 }

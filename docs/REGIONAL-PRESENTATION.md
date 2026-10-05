@@ -101,17 +101,28 @@ The profile must not become an implicit permission to fork arbitrary UI, gamepla
 
 Default to **NorthAmerica / Uniracers** on first launch.
 
-The regional presentation selection should be host-owned and may persist with ordinary Modern administrative state once implemented. It is not profile progression and should not be stored in guest SRAM.
+The regional presentation selection is host-owned global product state, not profile progression and not guest SRAM. On every platform build with a supported durable host-storage mechanism, the selected regional presentation **must persist across clean game shutdown and a later relaunch**. A player who discovers and selects Unirally should therefore continue to see Unirally on the next launch until they enter the NTSC code, and vice versa.
+
+Persistence is platform-capability-aware rather than desktop-specific:
+
+- desktop builds should use the established durable host-state store;
+- console/mobile/web or future ports should use the platform adapter's normal durable product-state mechanism when one exists;
+- a platform that genuinely has no durable writable host storage may fall back to session-only regional state without blocking the feature;
+- transient storage failure must not mutate guest state or invent a different gameplay identity.
+
+The setting is global to the installation/user product state, not per Modern profile. Changing racer/profile must not change regional presentation.
 
 Acceptance requirements:
 
 - switching does not mutate guest SRAM;
 - switching does not change run-record identity or PB comparability;
-- switching survives a fresh process if persistence is enabled;
-- Authentic mode ignores the Modern regional-presentation setting;
-- malformed/unknown persisted values fall back safely to NorthAmerica.
+- on persistence-capable builds, switching survives a clean shutdown and fresh process;
+- a fresh installation/no stored value defaults to NorthAmerica;
+- Authentic mode ignores the Modern regional-presentation setting even when it is durably stored;
+- malformed/unknown persisted values fail safely to NorthAmerica;
+- persistence failure leaves the currently running presentation well-defined and does not grant any guest authority.
 
-If persistence would make the easter egg too discoverable through config inspection, a later implementation may deliberately choose session-only state. That is a product decision, not a semantic blocker.
+The hidden nature of the easter egg is not a reason to avoid persistence. Config-file discoverability is secondary to preserving the user's chosen regional identity.
 
 ## Secret-input contract
 

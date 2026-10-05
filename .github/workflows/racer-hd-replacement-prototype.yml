@@ -1,22 +1,7 @@
 name: Racer HD replacement prototype
 
 on:
-  pull_request:
-    branches:
-      - main
-    paths:
-      - "analysis/data/racer-hd-replacement-prototype.json"
-      - "analysis/generated/racer-presentation-family.json"
-      - "analysis/data/presentation-assets.json"
-      - "tools/prototype_racer_hd_replacement.py"
-      - "tools/measure_racer_composed_anchor.py"
-      - "tools/check_racer_hd_temporal_coherence.py"
-      - "tools/build_racer_hd_asset_dossier.py"
-      - "tools/extract_racer_presentation_family.py"
-      - "tests/unit/test_racer_hd_replacement_prototype.py"
-      - "tests/unit/test_racer_hd_temporal_coherence.py"
-      - ".github/workflows/racer-hd-replacement-prototype.yml"
-
+  workflow_dispatch:
 permissions:
   contents: read
 

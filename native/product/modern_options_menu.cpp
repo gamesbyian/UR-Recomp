@@ -8,7 +8,7 @@ extern "C" void ur_modern_options_menu_move(
     UrModernOptionsMenu* menu,
     int delta) {
     if (!menu || delta == 0) return;
-    const int count = 7;
+    const int count = 8;
     int selected = menu->selected;
     if (selected < 0 || selected >= count) selected = 0;
     selected = (selected + (delta > 0 ? 1 : -1) + count) % count;
@@ -29,6 +29,8 @@ extern "C" UrModernOptionsItem ur_modern_options_menu_selected(
         return UR_MODERN_OPTIONS_PRESENTATION_FPS;
     case UR_MODERN_OPTIONS_OUTPUT_RESOLUTION:
         return UR_MODERN_OPTIONS_OUTPUT_RESOLUTION;
+    case UR_MODERN_OPTIONS_RENDER_SCALE:
+        return UR_MODERN_OPTIONS_RENDER_SCALE;
     case UR_MODERN_OPTIONS_WIDESCREEN:
         return UR_MODERN_OPTIONS_WIDESCREEN;
     case UR_MODERN_OPTIONS_GHOST:

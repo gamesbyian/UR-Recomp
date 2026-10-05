@@ -13,8 +13,10 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/patches/snesrecomp-live-display-mode.patch"
+      - "tools/patches/snesrecomp-presentation-scale.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
+      - "tools/check_ppm.py"
       - "tools/prepare_native_widescreen_product.py"
       - "tools/seed_native_widescreen_aot.py"
       - "tools/apply_native_widescreen_hook.py"
@@ -22,6 +24,7 @@ on:
       - "tools/build_display_geometry_review.py"
       - "tools/analyze_display_active_height.py"
       - "tests/unit/test_analyze_display_active_height.py"
+      - "tests/unit/test_check_ppm.py"
       - "analysis/display-geometry-candidates.json"
       - "native/product/**"
       - "native/title/uniracers_restart_policy.*"
@@ -441,35 +444,7 @@ jobs:
             echo "::error::Expected frame-300 diagnostic screenshot was not produced"
             exit 1
           fi
-          python3 - "$SHOT" <<'PY'
-          import hashlib
-          import pathlib
-          import sys
-
-          p = pathlib.Path(sys.argv[1])
-          raw = p.read_bytes()
-          with p.open("rb") as f:
-              magic = f.readline().strip()
-              dims = f.readline().strip().split()
-              maxv = f.readline().strip()
-              pixels = f.read()
-          if magic != b"P6" or len(dims) != 2 or maxv != b"255":
-              raise SystemExit(f"unexpected PPM header: {magic!r} {dims!r} {maxv!r}")
-          w, h = map(int, dims)
-          expected = w * h * 3
-          if len(pixels) != expected:
-              raise SystemExit(f"PPM payload length {len(pixels)} != {expected}")
-          nonblack = sum(any(pixels[i+j] for j in range(3)) for i in range(0, len(pixels), 3))
-          colors = len({pixels[i:i+3] for i in range(0, len(pixels), 3)})
-          print(f"screenshot={p}")
-          print(f"dimensions={w}x{h}")
-          print(f"sha256={hashlib.sha256(raw).hexdigest()}")
-          print(f"unique_rgb={colors}")
-          print(f"nonblack_pixels={nonblack}/{w*h} ({nonblack/(w*h):.3%})")
-          print(f"channel_min={min(pixels)} channel_max={max(pixels)}")
-          if colors < 2:
-              raise SystemExit("captured frame is a single flat color")
-          PY
+          python3 tools/check_ppm.py "$SHOT" --min-colors 2
           if [ -s "$PRESENTS" ]; then
             echo "== final present-log rows =="
             tail -n 12 "$PRESENTS"
@@ -1000,7 +975,8 @@ jobs:
             # Enter Options, toggle Focus Pause, then navigate to the
             # host-owned Display row, advance through Borderless to Fullscreen,
             # move to VSync and select Adaptive, set Presentation FPS to 120,
-            # choose the first explicit active-monitor Output Resolution, then
+            # choose the first explicit active-monitor Output Resolution,
+            # cycle Internal Render Scale from its 4x default to 1x, then
             # enable the persisted 16:9 Widescreen view.
             xdotool key Down
             xdotool key Down
@@ -1011,18 +987,27 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'"
+            # Focus Pause: On -> Off.
             xdotool key Return
+            # Display: Windowed -> Borderless -> Fullscreen.
             xdotool key Down
             xdotool key Return
             xdotool key Return
+            # VSync: On -> Adaptive.
             xdotool key Down
             xdotool key Return
+            # Presentation FPS: Game -> 60 -> 90 -> 120.
             xdotool key Down
             xdotool key Return
             xdotool key Return
             xdotool key Return
+            # Output Resolution: Native -> first explicit monitor mode.
             xdotool key Down
             xdotool key Return
+            # Internal Render Scale: 4x -> 1x.
+            xdotool key Down
+            xdotool key Return
+            # Widescreen: Original -> 16:9.
             xdotool key Down
             xdotool key Return
 
@@ -1042,6 +1027,7 @@ jobs:
             grep -q "^display_mode=fullscreen$" "'"$STATE"'"
             grep -q "^vsync=adaptive$" "'"$STATE"'"
             grep -q "^presentation_fps=120$" "'"$STATE"'"
+            grep -q "^internal_render_scale=1x$" "'"$STATE"'"
             grep -q "^widescreen=16x9$" "'"$STATE"'"
             RESOLUTION=$(sed -n "s/^output_resolution=//p" "'"$STATE"'")
             test -n "$RESOLUTION"
@@ -1052,6 +1038,7 @@ jobs:
             grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "'"$SAVE_LOG"'"
             grep -q "UR_OUTPUT_RESOLUTION SELECTED value=$RESOLUTION" "'"$SAVE_LOG"'"
             grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "'"$SAVE_LOG"'"
+            grep -q "UR_RENDER_SCALE APPLIED scale=1x" "'"$SAVE_LOG"'"
             grep -q "UR_WIDESCREEN SELECTED mode=16x9" "'"$SAVE_LOG"'"
             grep -q "UR_HOST_STATE SAVED" "'"$SAVE_LOG"'"
             kill "$PID" 2>/dev/null || true
@@ -1067,11 +1054,12 @@ jobs:
             exit "$LOAD_STATUS"
           fi
           RESOLUTION=$(sed -n "s/^output_resolution=//p" "$STATE")
-          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=$RESOLUTION widescreen=16x9" "$LOAD_LOG"
+          grep -q "UR_HOST_STATE LOADED pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=$RESOLUTION widescreen=16x9 internal_render_scale=1x" "$LOAD_LOG"
           grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
           grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "$LOAD_LOG"
           grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"
           grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "$LOAD_LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOAD_LOG"
 
           set +e
           SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_EXECUTION_MODE=authentic           UR_HOST_STATE_PATH="$STATE"           timeout 6s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
@@ -1106,6 +1094,10 @@ jobs:
             echo "::error::Authentic mode touched modern Widescreen policy"
             exit 1
           fi
+          if grep -q "UR_RENDER_SCALE" "$AUTH_LOG"; then
+            echo "::error::Authentic mode touched modern Internal Render Scale policy"
+            exit 1
+          fi
 
           echo "== saved host state =="
           cat "$STATE"
@@ -1115,7 +1107,59 @@ jobs:
           cat "$LOAD_LOG"
           echo "== authentic diagnostics =="
           cat "$AUTH_LOG"
-          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_widescreen_saved_loaded_and_authentic_inert"
+          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_render_scale_widescreen_saved_loaded_and_authentic_inert"
+
+      - name: Internal Render Scale compositor acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.exe.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          STATE="$RUNNER_TEMP/render-scale-2x.state"
+          SHOT="$RUNNER_TEMP/render-scale-2x.ppm"
+          LOG="$RUNNER_TEMP/render-scale-2x.log"
+          DUMPS="$RUNNER_TEMP/render-scale-2x-dumps"
+          mkdir -p "$DUMPS"
+          cat > "$STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          display_mode=windowed
+          vsync=on
+          presentation_fps=game
+          output_resolution=native
+          widescreen=original
+          internal_render_scale=2x
+          EOF
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_RACER_HD=1 \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SNESRECOMP_INPUT_FILE="$INPUT" \
+          SNESRECOMP_SCREENSHOT="$SHOT" \
+          SNESRECOMP_SCREENSHOT_FRAME=1220 \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
+          STATUS=$?
+          set -e
+          cat "$LOG"
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::2x compositor route exited with status $STATUS"
+            exit "$STATUS"
+          fi
+
+          grep -q "UR_HOST_STATE LOADED .*internal_render_scale=2x" "$LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=2x" "$LOG"
+          grep -q "UR_RACER_HD_DRAW PASS .*output_scale=2" "$LOG"
+          test -s "$SHOT"
+          python3 tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2
+          echo "UR_RENDER_SCALE_FRAME PASS dimensions=512x448 scale=2"
 
       - name: Modern Output Resolution rollback acceptance
         shell: bash
@@ -1617,6 +1661,10 @@ jobs:
             ${{ runner.temp }}/host-state-save.log
             ${{ runner.temp }}/host-state-load.log
             ${{ runner.temp }}/host-state-authentic.log
+            ${{ runner.temp }}/render-scale-2x.state
+            ${{ runner.temp }}/render-scale-2x.log
+            ${{ runner.temp }}/render-scale-2x.ppm
+            ${{ runner.temp }}/render-scale-2x-dumps/
             ${{ runner.temp }}/pause-controls.log
             ${{ runner.temp }}/pause-run-data.log
             ${{ runner.temp }}/exit-frontend-active-race.log

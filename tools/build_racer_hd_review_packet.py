@@ -11,25 +11,15 @@ from pathlib import Path
 
 try:
     from tools.build_racer_hd_asset_dossier import encode_png_rgba
+    from tools.check_ppm import inspect_ppm
 except ModuleNotFoundError:  # direct tools/... execution
     from build_racer_hd_asset_dossier import encode_png_rgba
+    from check_ppm import inspect_ppm
 
 
 def read_ppm(path: Path) -> tuple[int, int, bytes]:
-    data = path.read_bytes()
-    if not data.startswith(b"P6\n"):
-        raise ValueError(f"{path} is not a binary P6 PPM")
-    header, payload = data.split(b"\n255\n", 1)
-    lines = header.splitlines()
-    if len(lines) < 2:
-        raise ValueError(f"{path} has an incomplete PPM header")
-    width, height = map(int, lines[1].split())
-    expected = width * height * 3
-    if len(payload) != expected:
-        raise ValueError(
-            f"{path} payload length {len(payload)} != expected {expected}"
-        )
-    return width, height, payload
+    summary = inspect_ppm(path)
+    return summary.width, summary.height, summary.payload
 
 
 def ppm_to_png(path: Path) -> tuple[bytes, list[int]]:

@@ -33,6 +33,8 @@ RunDataCatalog build_run_data_catalog(
             format_run_ticks60(records[i].record.elapsed_ticks60),
             false,
             false,
+            std::nullopt,
+            "--",
         });
     }
 

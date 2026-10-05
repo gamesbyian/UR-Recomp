@@ -16,6 +16,7 @@ until 009F == F6 1200
 wait 60
 dump tier-before
 spoke 10D1 02
+dump tier-after-poke
 wait 1
 dump tier-track
 press a 2

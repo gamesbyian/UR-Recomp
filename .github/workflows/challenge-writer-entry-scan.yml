@@ -1,16 +1,7 @@
 name: Challenge writer entry scan
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/challenge-writer-entry-scan-2026-10-05
-    paths:
-      - ".github/workflows/challenge-writer-entry-scan.yml"
-      - "tools/scan_challenge_writer_entry.py"
-      - "tests/unit/test_scan_challenge_writer_entry.py"
-
-jobs:
+  workflow_dispatch:jobs:
   scan:
     runs-on: ubuntu-latest
     timeout-minutes: 5

@@ -1,16 +1,7 @@
 name: Quick Practice track selection probe
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tests/input/quick-practice-*.script"
-      - "native/product/quick_practice_route.hpp"
-      - "tests/native/quick_practice_route_test.cpp"
-      - "tests/unit/test_quick_practice_route_cpp.py"
-      - ".github/workflows/quick-practice-track-selection.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: quick-practice-track-selection-${{ github.ref }}
   cancel-in-progress: true
 

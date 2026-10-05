@@ -53,12 +53,25 @@ def build_shipping_readiness(
         if status not in ALLOWED_STATUSES:
             raise ValueError(f"unsupported art decision status {status!r} for {source}")
         reviewed_hash = row.get("reviewed_authored_rgba_sha256")
-        if not isinstance(reviewed_hash, str) or len(reviewed_hash) != 64:
-            raise ValueError(f"{source} lacks a reviewed authored RGBA SHA-256")
+        if (
+            not isinstance(reviewed_hash, str)
+            or len(reviewed_hash) != 64
+            or any(ch not in "0123456789abcdef" for ch in reviewed_hash)
+        ):
+            raise ValueError(
+                f"{source} lacks a lowercase hexadecimal reviewed authored RGBA SHA-256"
+            )
         approved = bool(row.get("shipping_art_approved", False))
         if approved != (status == "approved"):
             raise ValueError(
                 f"{source} shipping_art_approved disagrees with status {status}"
+            )
+        blocker_codes = row.get("blocker_codes", [])
+        if not isinstance(blocker_codes, list):
+            raise ValueError(f"{source} blocker_codes must be a list")
+        if status == "approved" and blocker_codes:
+            raise ValueError(
+                f"{source} is approved but still carries blocker codes"
             )
         by_source[source] = row
 

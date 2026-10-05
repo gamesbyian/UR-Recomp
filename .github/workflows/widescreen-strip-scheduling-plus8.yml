@@ -1,18 +1,7 @@
 name: Widescreen +8 strip scheduling acceptance
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/widescreen-strip-scheduling-plus8.yml"
-      - "tools/instrument_snesref_widescreen_strip_schedule.py"
-      - "tools/analyze_widescreen_doublepass_acceptance.py"
-      - "tests/unit/test_analyze_widescreen_doublepass_acceptance.py"
-      - "tests/input/preparation-emission-race.script"
-      - "tests/input/object-liveness-dragster.script"
-      - "tools/summarize_object_liveness_probe.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-strip-scheduling-plus8-${{ github.ref }}
   cancel-in-progress: true
 

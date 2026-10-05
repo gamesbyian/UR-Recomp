@@ -186,15 +186,26 @@ Use the manual `CI runtime report` workflow before undertaking another repositor
 
 This intentionally avoids automatic scheduling. The profiler should not become background CI tax.
 
-### Automatic-trigger and sharding policy
+### Automatic-trigger and build-sharing policy
 
-Pure validation runs should execute on `pull_request`, not repeat on the merge commit. A `push` trigger for `main` is reserved for work that is meaningfully post-merge, such as persisting canonical evidence. `tests/unit/test_ci_trigger_policy.py` enforces that rule and keeps the explicit evidence-writing exceptions small.
+Treat automatic CI as scarce execution budget. A workflow may be useful and still belong behind `workflow_dispatch`.
 
-Automatic `push`/merge workflows must remain path-scoped to inputs that can change their result. A change to the canonical `snesrecomp` toolchain entry or one of its registered framework patches is intentionally treated as execution-affecting by the bootstrap gate plus the small native/reference canary set; that fan-out is not accidental merge tax. Do not add broad `push` triggers to manual research probes merely for visibility.
+Pure validation should normally run on `pull_request`; final integrated Windows package/boot validation is the deliberate exception and runs on `main` after merge. `tests/unit/test_ci_trigger_policy.py` enforces that Windows final-main boundary and rejects PR+main duplication for ordinary validation.
 
-Use `concurrency` on every automatic workflow. Superseded branch/PR runs should cancel. Evidence-writing workflows may serialize `main`, but should still cancel stale non-main runs with `cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}`.
+Closed research stays manual. This includes deferred Switch/S2 work, historical/reference archaeology, settled regional comparisons, closed Widescreen reconnaissance and capacity probes, and superseded challenge/Racer research. Reopen one explicitly when a concrete product counterexample or new decision needs it rather than making the whole family automatic again.
 
-Shard only independent expensive work. Current high-cost examples already using useful parallelism are Native UI capture (four shards), toolchain build-smoke (per-tool matrix), SNESRecomp C2 audit (backend matrix), and the independent Widescreen capacity probes. Long workflows such as the native Widescreen runtime hook and the 2P/VS reference replays intentionally reuse one generated/native build and then consume dependent evidence serially; do not duplicate that expensive build merely to claim sharding. If those become repeated merge-path costs, first split out a reusable build artifact, then fan independent replay/analysis jobs from that artifact.
+Use `concurrency` on every automatic workflow. Superseded branch/PR runs should cancel. Evidence-writing workflows may serialize when branch writes are genuinely required.
+
+Optimize build topology before sharding. Parallelism is useful only when it avoids waiting without multiplying the dominant setup/build cost. Current Native UI evidence deliberately performs one native build and runs its evidence slices from that candidate rather than rebuilding in four matrix shards. The full multi-tool bootstrap matrix is manual-only; ordinary PRs run the lightweight bootstrap/island/interoperability contract instead.
+
+Before adding a sibling workflow, ask:
+- can the existing harness take another parameter?
+- can one build feed several acceptance/evidence slices?
+- is a cheap unit/static contract sufficient for PRs with the expensive acceptance reserved for final integration or explicit dispatch?
+- does another automatic workflow already validate the same host/toolchain boundary?
+- what condition will retire this workflow from automatic execution?
+
+When a research branch closes, workflow cleanup is part of integration: remove branch-only triggers, manualize retained diagnostic harnesses, delete valueless experiments, and update the CI policy regression if the new boundary should be permanent.
 
 ## Integration-unit rule
 

@@ -122,6 +122,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "uniracers_run_data.cpp",
             "uniracers_ws_margins.c",
             "uniracers_tour_resume.cpp",
+            "uniracers_challenge_generation.cpp",
         ):
             self.assertIn(name, patched)
         self.assertIn('native/presentation', patched)

@@ -382,3 +382,66 @@ The one-shot harvest probed the exact known URLs before retirement:
 - USA manual: recovered successfully and promoted to A-019.
 
 These are route-specific negative results, not claims that the artifacts no longer exist elsewhere. Continue lateral searches, mirrors, filename searches and author/archive pivots according to the P0-P3 effort tiers above.
+
+
+## A-025 — GameHacking.org Uniracers code concordance
+
+Priority: P1 for unique state probes; acquisition complete  
+Status: normalized project-owned concordance committed 2026-10-05  
+Source: https://gamehacking.org/game/45291  
+Repository path: `reference/notes/gamehacking-uniracers-codes.md`
+
+The public GameHacking.org corpus overlaps heavily with the already-imported libretro cheat database, so a second raw cheat pack was not preserved. Instead, the project now records the distinct direct ROM/RAM writes and their relationship to the existing corpus.
+
+Highest-value unique probes include:
+- direct ROM writes corresponding to stunt-classification and CPU-start behavior;
+- a two-code `Jump in Midair` patch, useful for locating jump eligibility;
+- direct qualifying-score RAM writes;
+- an additional presentation/color-state write;
+- explicit RAM forms that independently corroborate laps-remaining and timer fields.
+
+The concordance also records conflicting historical descriptions for `7E:1B8D`, reinforcing the rule that cheat labels are leads until reproduced locally.
+
+No further acquisition from GameHacking.org is needed unless a distinct Uniracers code revision or author note appears.
+
+## A-026 — Sinister Translations Uniracers Spanish v1.00 patch
+
+Priority: P1  
+Status: original patch archive still not located after renewed 2026-10-05 search  
+Known identity: `Uniracers (U) [T+Spa100%_Sinister]` / Español v1.00 (100%) by Sinister Translations  
+Independent indexes:
+- https://dorando.emuverse.com/html/uniracers.html
+- https://nesninja.com/game/snes/uniracers
+
+Need judgment: **still worth acquiring if the original patch archive surfaces, but do not use a redistributed prepatched ROM as a substitute.** Current public searches expose multiple prepatched-ROM mirrors and catalog listings, but not the original IPS/archive. The Sayans patch already covers the critical localization archaeology, so Sinister remains corroborative rather than blocking.
+
+Manual-action boundary: no user action is currently required. If the exact original Sinister Translations patch archive/IPS is encountered, upload that archive or patch itself. Do not download/upload a prepatched Uniracers ROM for this purpose.
+
+## A-027 — Web video artifacts from community mechanics/glitch research
+
+Priority: metadata/derived-observation only by default  
+Status: identifiers and source pages indexed; raw-video acquisition intentionally deferred
+
+Relevant currently indexed videos include:
+- karmamachine rare PB-ruining glitch: YouTube ID `XI4QqEFrPQE`;
+- FlyMaggott 24.45 Dragster flip-twist demonstration: `ZEp9T0daxlw`;
+- NuAngel corrupted-save/crash video: `ZzrkUD8K8Ec`;
+- Halamantariel/Dessyreqt Tabletop non-decay demonstration: `GKRD251JMDA`;
+- additional historical TAS course videos in `reference/catalog.yml`.
+
+These are valuable as visual evidence, but full third-party video files are not presently necessary repository artifacts. Preserve stable IDs, provenance and project-owned observations. Acquire raw media only if a video becomes unavailable and its unique frames are essential to an active discriminator.
+
+## A-028 — Tamoketh UE4 Uniracers spiritual-successor artifacts
+
+Priority: P2 for source/Blueprints/measurements; P3 for ordinary video  
+Status: no downloadable source/demo located in renewed 2026-10-05 search
+
+Current surviving material confirms that TamokethMB rebuilt Crock, basic track adhesion, quarter/half-pipe behavior, loops/ceiling adhesion experiments and early stunt handling in UE4, and compared movement against the original. Public Epic/Reddit posts survive, but no source archive, Blueprint export, demo or measurement dataset has surfaced.
+
+Need judgment: preserve the author/project pivot, but do not acquire screenshots/videos merely for completeness. Source, Blueprint graphs, test-track geometry or explicit numeric measurements would be useful if they surface.
+
+## Current manual-download requests
+
+**None.**
+
+The only materially useful missing artifact for which manual upload could help is the **original Sinister Translations Uniracers Español v1.00 patch archive/IPS**. No trustworthy direct patch URL is currently known, so there is nothing specific the user needs to fetch now. If that exact patch file is found independently, upload it; avoid prepatched ROM distributions.

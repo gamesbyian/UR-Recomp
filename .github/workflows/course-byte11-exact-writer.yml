@@ -1,7 +1,9 @@
 name: Course byte11 exact writer PC
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: write
 
 concurrency:

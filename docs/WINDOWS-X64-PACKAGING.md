@@ -1,12 +1,14 @@
 # Windows x64 Portable Packaging
 
-Status: first consumer-package contract in progress. Windows x64 is the primary reference deliverable.
+Status: portable consumer-package lifecycle is shippable and acceptance-covered. Windows x64 is the primary reference deliverable; an installer remains deferred.
 
 ## Shipping format for the current milestone
 
 The first supported consumer package is a **portable extracted folder / ZIP**, not an installer.
 
-This is deliberate. The pinned desktop host currently anchors framework `config.ini`, `keybinds.ini` and cartridge save files to the executable directory. That is appropriate for a private portable build extracted somewhere writable, but it is not yet a safe basis for an installer under `Program Files`. A future installer must first redirect all mutable framework state to a per-user data root and prove migration/upgrade behavior.
+This is deliberate. The portable package now separates immutable package payload from mutable user state without introducing installer semantics. `run-uniracers.cmd` selects one user-data root, defaulting to `%APPDATA%\\gamesbyian\\UR-Recomp` and overridable with `UR_RECOMP_USER_DATA_ROOT`. The pinned framework consumes the same root through `SNESRECOMP_USER_DATA_DIR`, so framework config, keyboard bindings and relative cartridge/profile saves move together. Modern host settings, profile catalog/onboarding data, practice helpers and completed-run history consume the same product root. ROM and mod payload lookup remains executable/package-relative.
+
+Older portable folders are migrated deterministically on launch: package-local `config.ini`, `keybinds.ini` and `saves/` are copied only when the corresponding destination does not exist. Existing per-user state always wins, making migration idempotent and preventing an old extracted folder from overwriting newer settings or progress.
 
 The shipping artifact is a deterministic `UR-Recomp-Windows-x64.zip` with a single `UR-Recomp-Windows-x64/` root. The ZIP uses normalized timestamps/path metadata and is reproducible byte-for-byte from identical payload and source revision.
 
@@ -16,39 +18,38 @@ The portable package contains:
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - generated `rom.cfg`;
 - the staged `mods/` tree;
-- `run-uniracers.cmd`, which anchors launch to the extracted package directory, supplies the packaged ROM, checks the executable/ROM/`rom.cfg` are present, and returns a clear deterministic error if the package is incomplete;
-- `README.txt` with the writable-extraction requirement;
+- `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, supplies the packaged ROM, and emits stable startup diagnostic codes for package/root failures;
+- `README.txt` documenting the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with SHA-256 and size for every packaged payload file.
 
 `tools/assemble_windows_package.py` is the canonical assembler/verifier/archive producer. It removes stale output before assembly, fails closed on missing required inputs, writes deterministic metadata apart from the explicitly supplied source revision, verifies exact package contents against the manifest, writes a deterministic ZIP, and independently verifies every archived payload hash/size/path against the embedded manifest.
 
-## Clean-install acceptance
+## Clean-install and upgrade acceptance
 
-The Windows x64 workflow must validate the **assembled package**, not only the CMake build tree.
+The Windows x64 workflow validates the **assembled package**, not only the CMake build tree.
 
-Acceptance is:
+Acceptance now covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;
-2. assemble the portable package from the Release output;
-3. verify the clean package manifest, create the deterministic ZIP, and verify the archive independently;
-4. extract that ZIP to a fresh test directory and launch the extracted package from an unrelated working directory through `run-uniracers.cmd`;
-5. reach the stock main menu using only files inside the package plus the external acceptance script;
-6. drive the extracted package through the established deterministic race-result route and validate the authoritative finish-time checkpoint, proving the consumer artifact reaches real gameplay/results rather than merely initializing;
-7. prove first-run `config.ini` and `keybinds.ini` are created beside the packaged executable, not in the caller working directory;
-8. deliberately remove the packaged ROM and prove the launcher exits with code 2 plus a clear missing-file diagnostic rather than falling through to a cryptic runtime failure;
-9. re-extract the clean ZIP over the already-used portable folder and prove the actual generated `config.ini` and `keybinds.ini` remain byte-identical, establishing the first portable in-place upgrade contract;
-10. re-verify the untouched clean source package and ZIP after the extracted test copy has generated runtime state, proving the shipping artifact was not contaminated by acceptance;
-11. retain the deterministic ZIP as the consumer CI artifact for inspection.
+2. assemble and independently verify the clean package manifest and deterministic ZIP;
+3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
+4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
+5. prove fresh-run `config.ini`, `keybinds.ini` and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory;
+6. seed representative framework settings, Modern settings, bindings, profile catalog/profile state and completed-run data under that user root, replace the extracted package from the clean ZIP, and prove every seeded user-data artifact remains byte-identical;
+7. construct a legacy portable folder containing package-local config, bindings and save data, launch against an empty user root, and prove all three migrate successfully while the legacy source remains untouched;
+8. launch that legacy folder again after changing the migrated destination and prove destination-wins/idempotent migration does not overwrite newer user data;
+9. exercise representative startup failures for missing ROM, missing runtime payload, unusable user-data root and invalid ROM, requiring the stable diagnostic codes documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
+10. re-verify the clean source package/archive and retain the deterministic ZIP as the consumer CI artifact.
 
-The package must remain self-contained with respect to game/runtime payload. Build tools, repository source trees and checkout-relative paths are not allowed runtime dependencies.
+The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies.
 
 ## Save-location boundary
 
-For this portable milestone, executable-directory framework state is accepted **only because the package explicitly requires extraction to a user-writable directory**. Modern host profile metadata/run history can continue using the platform preference directory according to the existing product contracts.
+The portable package no longer requires a writable extraction directory for ordinary mutable state. The default Windows root is `%APPDATA%\\gamesbyian\\UR-Recomp`; `UR_RECOMP_USER_DATA_ROOT` exists as an explicit portable/testing override. The launcher exports that resolved root to the framework and Modern host rather than maintaining feature-specific locations.
 
-For the portable format, in-place upgrade means extracting a new package over the existing portable folder. Because mutable `config.ini` and `keybinds.ini` are not shipped inside the ZIP, Windows acceptance now proves a re-extract leaves the actual generated files byte-identical. This does not substitute for the separate per-user migration policy required by a future installer.
+Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. User-owned config, bindings, cartridge/profile saves, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.
 
-Do not call a Program Files installer supported until framework config/keybind/save placement has a proven per-user location and an upgrade/migration policy.
+An installer is still deferred. The storage/migration prerequisite is now satisfied, but installer selection, registration/uninstall behavior, signed release policy and installer-specific upgrade/rollback acceptance are separate work and must not be implied by the portable ZIP.
 
 ## Failure policy
 

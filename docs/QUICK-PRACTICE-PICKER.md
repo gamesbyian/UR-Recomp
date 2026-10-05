@@ -52,6 +52,9 @@ No guest state was written by those probes.
 
 The host patch is now thin at the launch boundary: `uniracers_modern_host.cpp` creates a validated target and advances `QuickPracticeLaunchState` from observed stock menu/race state. It emits only normalized menu input through the established relative-input runner. The remaining picker UI should stay above this same path rather than creating another router.
 
+The launch contract is now identity-safe rather than merely race-active-safe. Stock menu IDs are known to become visible before their first input-ready frame, so the reusable launch machine encodes the same 60-guest-frame settle window proven by the deterministic frontend fixtures before emitting its first input on each menu surface. It will not accept an active race unless the router has actually completed the expected MAIN_MENU → RIDER_SELECT → TOUR_SELECT → TRACK_SELECT → NOW_PLAYING sequence and the authoritative decoded-course identity matches the requested zero-based Quick Practice target. An attract/demo race, bypassed route, unknown course identity, or different valid course therefore cannot be silently promoted to a successful Practice launch; mismatches restore the isolated Practice state and return through the existing frontend reboot lifecycle.
+
+
 For the eventual full picker presentation:
 
 At the settled Modern main menu:

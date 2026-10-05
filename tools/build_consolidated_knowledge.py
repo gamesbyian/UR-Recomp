@@ -92,33 +92,33 @@ def presentation():
     fallback = load("analysis/generated/racer-hd-fallback-frequency-2026-10-05.json")
     selected = fallback["selected_next_family"]
     family = {"id":r["family"],"source":"analysis/generated/racer-presentation-family.json","replacement_key":r["replacement_key"],"frames":r["frames"],"graphics":r["graphics"],"palettes":r["palettes"],"observed_states":r["observed_states"],"roundtrip":r["roundtrip"],"evidence":evidence,"piece_semantics":r["piece_semantics"],"inferred_record_structure":inferred,"composition_contract":composition_contract}
+    second = fallback["second_expansion"]
     family["fallback_frequency_measurement"] = {
         "status":"measured expansion active",
         "retained_report":"analysis/generated/racer-hd-fallback-frequency-2026-10-05.json",
         "source":{"workflow_run":fallback["source"]["workflow_run"],"artifact_id":fallback["source"]["artifact_id"],"route":fallback["source"]["route"],"trace_window":fallback["source"]["trace_window"]},
         "before":fallback["before"],
-        "selected_exact_state":{
-            "composition":{
-                "p1_primary":"0x0540",
-                "p2_primary":"0x0543",
-                "p1_companion":"0x0D2C",
-                "p2_companion":"0x0000",
-                "p1_selector":0,
-                "p2_selector":0,
-                "p1_companion_gate_word":"0x0001",
-                "p2_companion_gate_word":"0x0000",
+        "expansions":[
+            {
+                "state":fallback["selected_next_family"]["state"],
+                "observed_frames":fallback["selected_next_family"]["frames"],
+                "independent_episodes":fallback["selected_next_family"]["episode_count"],
+                "player_fallback_frames_removed":fallback["selected_next_family"]["player_frames_removed"],
+                "after":fallback["after"],
+                "approval_manifest":"analysis/data/racer-hd-art-approval-1354-1356.json",
             },
-            "observed_frames":selected["frames"],
-            "independent_episodes":selected["episode_count"],
-            "player_fallback_frames":selected["player_frames_removed"],
-            "runtime_representation_ids":[
-                "ordinary-racer-0x0540-p1-frequency-0543-reference",
-                "ordinary-racer-0x0543-p2-frequency-0540-reference",
-            ],
-            "art_policy":"reuse only after same-player deterministic stock RGBA identity proof; inherited shipping art remains bound to the exact previously reviewed authored RGBA hashes",
-        },
-        "after":fallback["after"],
-        "admission_rule":"Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact stock equivalence permits it.",
+            {
+                "state":second["selected_exact_state"]["state"],
+                "observed_frames":second["selected_exact_state"]["frames"],
+                "independent_episodes":second["selected_exact_state"]["episode_count"],
+                "player_fallback_frames_removed":second["selected_exact_state"]["player_frames_removed"],
+                "after":second["after"],
+                "approval_manifest":second["selected_exact_state"]["approval_manifest"],
+                "reuse_basis":"P1 0544 palette-normalized canonical geometry reuse; P2 0578 one distinct reviewed pose",
+            },
+        ],
+        "current_after":fallback["current_after"],
+        "admission_rule":"Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it.",
     }
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[family]}
 

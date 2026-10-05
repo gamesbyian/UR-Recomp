@@ -567,16 +567,18 @@
       "status": "ready",
       "source_ids": [
         "peaso-uniracers-glitches-2010",
-        "orangestar-uniracers-faq-2001"
+        "orangestar-uniracers-faq-2001",
+        "original-manual-transcription"
       ],
-      "question": "What is the orange fallback/recovery track space, and which collision/state transitions allow the player to enter, bypass, or escape it?",
-      "next_discriminator": "Reproduce the three player-described escape families on canonical runtime: vertical-jump floor penetration, seat-impact escape at orange-zone arrows, and turnaround-zone bypass. Capture course position, collision mode, track-piece identity, camera/screen state and finishability before/after each transition. Determine whether 'orange track' is ordinary authored recovery geometry, a generic fallback path, or a distinct engine state.",
+      "question": "How does the stock red/yellow off-course recovery track work, and which collision/state transitions allow the player to enter, traverse, bypass, or escape it?",
+      "next_discriminator": "Treat the manual as primary intent evidence: red/yellow track is deliberately laid down to prevent unicycles falling forever when they are far off the normal course. Reproduce the three player-described escape families on canonical runtime: vertical-jump floor penetration, seat-impact escape at recovery-track arrows, and turnaround-zone bypass. Capture course position, collision mode, track-piece identity, camera/screen state, waypoint state and finishability before/after each transition. Distinguish intended recovery geometry from bugs that let the player bypass or corrupt it.",
       "deliverables": [
         "reproducible input traces for each confirmed escape family",
         "orange-track geometry/state classification",
         "collision/state transition trace across normal -> fallback -> normal or broken state",
         "fixture for at least one recoverable escape and one non-finishable/corrupted path if canonical behavior confirms them",
-        "documentation separating player terminology from engine-confirmed semantics"
+        "documentation separating player terminology from engine-confirmed semantics",
+        "manual-intent cross-check for red/yellow recovery geometry"
       ],
       "tags": [
         "collision",
@@ -640,7 +642,8 @@
       "status": "ready",
       "source_ids": [
         "gamefaqs-uniracers-cheats-secrets",
-        "gamefaqs-newo-sram-corruption"
+        "gamefaqs-newo-sram-corruption",
+        "tasvideos-uniracers-topic"
       ],
       "question": "Which stock persistence/UI invariants are violated or intentionally tolerated by player-discovered medal-selection and league-deletion edge cases?",
       "next_discriminator": "Reproduce the reported behaviors on canonical runtime: medal/opponent downgrade selection after earning higher medals, and creation of a one-player league by deleting the second racer after league setup. Capture SRAM diffs, menu state, league membership, record ownership and progression effects before/after each step. Decide whether modern profile/product layers should preserve, expose, normalize or safely contain these stock states.",
@@ -648,7 +651,8 @@
         "single-player league reproduction trace",
         "medal/opponent selection exploit reproduction trace",
         "SRAM/state diffs for both cases",
-        "modern host compatibility decision for each stock edge state"
+        "modern host compatibility decision for each stock edge state",
+        "TAS-documented Bronze-opponent/Silver-qualifier mismatch trace"
       ],
       "tags": [
         "sram",
@@ -773,6 +777,73 @@
       },
       "acquisition_tier": "P2",
       "acquisition_judgment": "Potentially useful for broadening both evidence and tester demographics, but should remain bounded unless it yields concrete mechanics or active-player material."
+    },
+    {
+      "id": "jumpover-fallthrough-glitch",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "What exact collision/geometry condition allows the player to fall through the track on Bounder - Jumpover, as reported by early TAS researchers?",
+      "next_discriminator": "Use the TASVideos report to localize the search to Bounder - Jumpover. Reproduce the fall-through on canonical runtime, then capture position, velocity, orientation, track-piece/collision state, screen position and recovery behavior around the failure frame. Compare the resulting state to the red/yellow recovery-track and other geometry-escape experiments before deciding whether it is the same collision family.",
+      "deliverables": [
+        "minimal Jumpover fall-through input trace",
+        "failure-frame collision/state capture",
+        "comparison against recovery-track/orange-track escape family",
+        "deterministic regression fixture if reproducible"
+      ],
+      "tags": [
+        "collision",
+        "glitch",
+        "jumpover",
+        "course-geometry",
+        "fall-through",
+        "tas",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High value because the report names an exact course and behavior, making this a cheap targeted collision discriminator."
+    },
+    {
+      "id": "racer-color-mechanical-equivalence",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "tasvideos-uniracers-topic",
+        "orangestar-uniracers-faq-2001"
+      ],
+      "question": "Are all 16 selectable Unis mechanically identical apart from presentation/save-slot identity, or do any color-specific timing differences exist?",
+      "next_discriminator": "Replay identical deterministic inputs from identical state with at least White, Orange, and two additional Uni colors. Compare frame-level position, orientation, stunt-recognition timing, twist/roll/flip completion, boost state and collision results. Treat the TAS-era White-vs-Orange twist-speed recollection as an unverified perception claim unless a divergence appears.",
+      "deliverables": [
+        "cross-color deterministic equivalence report",
+        "frame-level stunt-timing comparison",
+        "regression fixture asserting equivalence or documenting any confirmed exception"
+      ],
+      "tags": [
+        "racer-identity",
+        "color",
+        "physics",
+        "stunts",
+        "equivalence",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Cheap and useful because player testimony conflicts with FAQ/review claims that colors differ only cosmetically."
     }
   ],
   "acquisition_policy": {

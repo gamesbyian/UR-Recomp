@@ -1069,3 +1069,33 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public cheat-code database; preserve codes and provenance as research leads. Confirm semantics locally before promotion."
     relevance: "Adds state probes not obvious in older mirrors, including jump-in-midair, qualifying-score RAM, lap quick-win state, explicit timer RAM, speed modifiers, stunt-classification patches and unsafe arbitrary-course selection. Useful for localizing jump eligibility, race completion and score/progression state."
+
+
+  - id: reddit-original-dev-banned-list-2026
+    title: "Original Uniracers developer comments on banned-word list"
+    type: developer_primary_source
+    url: "https://www.reddit.com/r/todayilearned/comments/1vn2ka3/"
+    published: "2026-08-13"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit comments; preserve brief claims and provenance only."
+    relevance: "An original DMA/Rockstar North developer states they worked on Uniracers and helped create the banned-word list, providing primary-source provenance for the name-filter feature. Same thread contains a player complaint about twist-jump boost incentives conflicting with twist-track sections."
+
+
+  - id: reddit-uniracers-blacklist-extraction-2019
+    title: "Reddit Uniracers blacklist extraction discussion"
+    type: reverse_engineering_lead
+    url: "https://www.reddit.com/r/retrogaming/comments/do7yzd/"
+    published: "2019-10-28"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Two independent commenters report extracting the full rejected-name table from the ROM, one via a script. Strong lead for recovering exact table contents and extraction logic rather than relying on trial-and-error name testing."
+
+
+  - id: tasvideos-tabletop-nondecay-video
+    title: "TASVideos Tabletop non-decay demonstration"
+    type: competitive_mechanics_video
+    url: "https://www.youtube.com/watch?v=GKRD251JMDA"
+    authors_or_participants: ["Halamantariel", "Dessyreqt"]
+    retrieved: "2026-10-05"
+    rights: "Public video linked from TASVideos; preserve metadata and derived observations only."
+    relevance: "Demonstrates the TAS discovery that Tabletop is exceptional among stunt types because its score does not halve on repeated use. High-value scoring-rule edge case."

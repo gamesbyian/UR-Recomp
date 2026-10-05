@@ -1,0 +1,17 @@
+# Native Quick Practice routing-cancel acceptance.
+# The workflow presses F5 from settled Modern main, waits until the host-owned
+# route has reached stock rider select, then presses Escape. The host must
+# restore the Practice snapshot/root and reboot to Modern main without entering
+# a Practice race.
+
+until 009F == D7 3600
+wait 60
+dump practice-cancel-main
+
+until 009F == 3C 1800
+dump practice-cancel-routing
+
+until 009F == D7 1800
+wait 60
+dump practice-cancel-returned-main
+quit

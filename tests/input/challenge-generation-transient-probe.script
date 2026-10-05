@@ -1,0 +1,28 @@
+# Challenge-generation transient discriminator.
+# Start from medal-0 Crawler/MIKE SRAM. Let stock confirm the tour normally,
+# then substitute only the transient tour-confirm medal snapshot at 0x10D1.
+# Persistent medal/checksum state remains untouched.
+
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+spoke 10D1 02
+wait 1
+dump tier-track
+press a 2
+until 009F == 16 1200
+wait 60
+dump tier-card
+press a 2
+until 0313 == 01 1800
+wait 90
+dump tier-race
+quit

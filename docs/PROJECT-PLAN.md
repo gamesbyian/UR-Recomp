@@ -1300,3 +1300,13 @@ Do not preserve old task ordering merely because it once reflected active branch
 ### Completed-run record foundation (2026-10-04)
 
 The records/ghost substrate now includes strict versioned host artifacts, exact resolved guest-input capture, authoritative 60 Hz timing/splits, live course identity from the decoded-course header, append-only per-profile local persistence, previous-run/PB selection, checksum-bound presentation traces, current-camera projection, and direct export to the existing deterministic INPUT_FILE grammar. Modern 1P completion capture is wired to the production desktop host; Authentic, ordinary 2P, VS, unknown course identity and invalid timing fail closed. The first visible Modern 1P Previous/PB ghost renderer reuses existing Racer-HD semantic representation selection and remains presentation-only. A dedicated fresh-process native acceptance re-drives the captured Dragster input stream through the existing simulation, requires an actual ghost draw, and compares replay-authoritative metadata/input. Polished local ghost management and records/replay UI remain follow-ons; see COMPLETED-RUN-RECORDS.md.
+
+## Regional Uniracers / Unirally presentation easter egg
+
+Modern Windows x64 supports a planned hidden regional-presentation identity above the single canonical USA-derived gameplay runtime. At the accepted idle title surface, keyboard `PAL` / `NTSC` and controller **Left Left Left L A** / **Right Right Right R A** select Europe/Unirally or North America/Uniracers presentation.
+
+This is presentation policy only. It must not change guest cadence, physics, collision, timers, AI, RNG, progression, SRAM, run provenance or PB comparability. Europe retail is a comparative/reference source, not a second runtime.
+
+The selected regional presentation is global host-owned product state, not profile state. On every platform with supported durable host storage it must survive clean shutdown and relaunch; session-only fallback is allowed only where durable writable storage genuinely does not exist.
+
+The owning plan is `docs/REGIONAL-PRESENTATION.md`. The current implementation includes the typed regional state, pure keyboard/controller recognizer, schema-v6 additive persistence, fresh-store persistence/profile-independence acceptance, and a retained retail-static-analysis workflow. Remaining product integration is live title-surface/platform-event wiring, save dispatch in the host, exact title/logo asset binding, and completion of the framebuffer/audio/course-delta experiments.

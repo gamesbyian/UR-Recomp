@@ -1092,6 +1092,20 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
     return ur_uniracers_modern_system_gamepad_button(button, pressed);
 }
 
+extern "C" int ur_uniracers_product_system_gamepad_control(
+    int control,
+    int pressed) {
+    // Run/Records surfaces retain their existing raw-button ownership above
+    // the framework mapping. When they are not active, forward mapped SNES
+    // controls to the Modern host so Controls can honor GamepadMap rebinding.
+    if (g_replay_flow.active() ||
+        g_records_browser_visible ||
+        g_browser_visible) {
+        return 1;
+    }
+    return ur_uniracers_modern_system_gamepad_control(control, pressed);
+}
+
 extern "C" void ur_uniracers_product_system_overlay(
     uint8_t* dst,
     size_t pitch,

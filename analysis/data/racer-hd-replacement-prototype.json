@@ -2304,7 +2304,34 @@
         "intent": "Render the eight-frame 1244-1251 P1 0543 hold with the shipping-approved 0543 geometry and red-player frame material; exact stock alpha-mask identity with approved P2 0543 is proven by CI.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1244-1252.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1244-1252.json",
-        "geometry_equivalence_basis": "stock alpha_sha256 7ae33c4f78e7ae11aecdd7b10611b1ae8f0a481d9c459733326031b9257f5390 matches approved P2 0543"
+        "geometry_equivalence_basis": "stock alpha_sha256 7ae33c4f78e7ae11aecdd7b10611b1ae8f0a481d9c459733326031b9257f5390 matches approved P2 0543",
+        "native_acceptance_run": 37260097104,
+        "native_acceptance_artifact_id": 11324094193,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            20,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            57,
+            76
+          ],
+          "stock_opaque_pixels": 319,
+          "candidate_opaque_pixels": 316,
+          "alpha_intersection_pixels": 248,
+          "alpha_union_pixels": 387,
+          "alpha_iou": 0.6408268733850129
+        },
+        "refinement_basis": "1244-1252 reviewed cross-player geometry transposition; retain the approved opposite-player silhouette and neutral materials exactly while swapping only the established red/blue frame material"
       }
     },
     {
@@ -2380,7 +2407,34 @@
         "intent": "Render the eight-frame 1244-1251 P2 0540+0D2C hold with the shipping-approved 0540+0D2C geometry and blue-player frame material; exact stock alpha-mask identity with the approved P1 pose is proven by CI.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1244-1252.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1244-1252.json",
-        "geometry_equivalence_basis": "stock alpha_sha256 c1f303178367410a4b08d059ec24669122df1c27d4395d730312bdb8c86dd6f6 matches approved P1 0540+0D2C"
+        "geometry_equivalence_basis": "stock alpha_sha256 c1f303178367410a4b08d059ec24669122df1c27d4395d730312bdb8c86dd6f6 matches approved P1 0540+0D2C",
+        "native_acceptance_run": 37260097104,
+        "native_acceptance_artifact_id": 11324094193,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 330,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 274,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7345844504021448
+        },
+        "refinement_basis": "1244-1252 reviewed cross-player geometry transposition; retain the approved opposite-player silhouette and neutral materials exactly while swapping only the established red/blue frame material"
       }
     },
     {
@@ -2456,7 +2510,34 @@
         "intent": "Render frame 1252 P1 0542 recovery with the shipping-approved 0542 geometry and red-player frame material; exact stock alpha-mask identity with approved P2 0542 is proven by CI.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1244-1252.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1244-1252.json",
-        "geometry_equivalence_basis": "stock alpha_sha256 24fd071dfd989174b52ed9c2b6d0e9e2e8494c109fc2a5e7ecd2b9a15d11e40a matches approved P2 0542"
+        "geometry_equivalence_basis": "stock alpha_sha256 24fd071dfd989174b52ed9c2b6d0e9e2e8494c109fc2a5e7ecd2b9a15d11e40a matches approved P2 0542",
+        "native_acceptance_run": 37260097104,
+        "native_acceptance_artifact_id": 11324094193,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            4,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            59,
+            76
+          ],
+          "stock_opaque_pixels": 325,
+          "candidate_opaque_pixels": 316,
+          "alpha_intersection_pixels": 259,
+          "alpha_union_pixels": 382,
+          "alpha_iou": 0.6780104712041884
+        },
+        "refinement_basis": "1244-1252 reviewed cross-player geometry transposition; retain the approved opposite-player silhouette and neutral materials exactly while swapping only the established red/blue frame material"
       }
     },
     {
@@ -2532,7 +2613,34 @@
         "intent": "Render frame 1252 P2 0541+0D2D recovery with the shipping-approved 0541+0D2D geometry and blue-player frame material; exact stock alpha-mask identity with the approved P1 pose is proven by CI.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1244-1252.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1244-1252.json",
-        "geometry_equivalence_basis": "stock alpha_sha256 4c25b27b3e8fb92aed0fa1a93b9289be1fb68282132236a880b9c81bdc1994f9 matches approved P1 0541+0D2D"
+        "geometry_equivalence_basis": "stock alpha_sha256 4c25b27b3e8fb92aed0fa1a93b9289be1fb68282132236a880b9c81bdc1994f9 matches approved P1 0541+0D2D",
+        "native_acceptance_run": 37260097104,
+        "native_acceptance_artifact_id": 11324094193,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 274,
+          "alpha_intersection_pixels": 243,
+          "alpha_union_pixels": 358,
+          "alpha_iou": 0.6787709497206704
+        },
+        "refinement_basis": "1244-1252 reviewed cross-player geometry transposition; retain the approved opposite-player silhouette and neutral materials exactly while swapping only the established red/blue frame material"
       }
     }
   ],
@@ -2689,7 +2797,7 @@
       }
     },
     "ordinary-race-1244-1252-hold-recovery": {
-      "status": "authored candidate sequence-level motion gate; shipping approval remains hash-bound and external",
+      "status": "accepted authored sequence-level motion gate; shipping approval hash-bound in family ledger",
       "window_start": 1244,
       "window_end": 1252,
       "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
@@ -2763,6 +2871,22 @@
           1251,
           1252
         ]
+      },
+      "acceptance_run": 37260097104,
+      "acceptance_artifact_id": 11324094193,
+      "measured": {
+        "p1": {
+          "static_edges": 7,
+          "dynamic_edges": 1,
+          "dynamic_ratio_min": 1.0784313725490196,
+          "dynamic_ratio_max": 1.0784313725490196
+        },
+        "p2": {
+          "static_edges": 7,
+          "dynamic_edges": 1,
+          "dynamic_ratio_min": 1.4086021505376345,
+          "dynamic_ratio_max": 1.4086021505376345
+        }
       }
     }
   }

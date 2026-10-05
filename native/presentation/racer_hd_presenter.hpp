@@ -212,6 +212,56 @@ constexpr bool is_authored_0544_p2_0544_0d69_registration(
 }
 
 
+
+constexpr bool is_authored_fourth_family_entry_p1(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0540 &&
+           c.p1_primary == 0x0540 && c.p2_primary == 0x057F &&
+           c.p1_companion == 0x0D0C && c.p2_companion == 0x0D2A &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_fourth_family_entry_p2(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x057F &&
+           c.p1_primary == 0x0540 && c.p2_primary == 0x057F &&
+           c.p1_companion == 0x0D0C && c.p2_companion == 0x0D2A &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_fourth_family_hold_p1(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0540 &&
+           c.p1_primary == 0x0540 && c.p2_primary == 0x0540 &&
+           c.p1_companion == 0x0D0C && c.p2_companion == 0x0D0C &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_fourth_family_hold_p2(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x0540 &&
+           c.p1_primary == 0x0540 && c.p2_primary == 0x0540 &&
+           c.p1_companion == 0x0D0C && c.p2_companion == 0x0D0C &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_fourth_family_exit_p1(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0541 &&
+           c.p1_primary == 0x0541 && c.p2_primary == 0x057F &&
+           c.p1_companion == 0x0D0D && c.p2_companion == 0x0D2A &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_fourth_family_exit_p2(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x057F &&
+           c.p1_primary == 0x0541 && c.p2_primary == 0x057F &&
+           c.p1_companion == 0x0D0D && c.p2_companion == 0x0D2A &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0001 && c.p2_companion_gate_word == 0x0001;
+}
+
 constexpr bool is_authored_third_family_hold_p1(const RacerRegistration& registration) noexcept {
     const auto& c = registration.composition;
     return registration.player == 1 && registration.semantic_frame_id == 0x0543 &&
@@ -1668,6 +1718,22 @@ constexpr std::uint32_t sample_racer_hd_authored_0541d2d_p2_third_family(
     );
 }
 
+
+constexpr std::uint32_t sample_racer_hd_authored_0540d0c_p2_fourth_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0540_p1_predecessor(x, y, hflip, vflip), true
+    );
+}
+constexpr std::uint32_t sample_racer_hd_authored_057fd2a_p2_fourth_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_057f_p1_companion_0d4a(x, y, hflip, vflip), true
+    );
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -1713,6 +1779,20 @@ constexpr std::uint32_t sample_racer_hd_asset(
         return sample_racer_hd_authored_057f_p1_companion_0d4a(
             x, y, hflip, vflip
         );
+    }
+    if (is_authored_fourth_family_entry_p1(registration) ||
+        is_authored_fourth_family_hold_p1(registration)) {
+        return sample_racer_hd_authored_0540_p1_predecessor(x, y, hflip, vflip);
+    }
+    if (is_authored_fourth_family_entry_p2(registration) ||
+        is_authored_fourth_family_exit_p2(registration)) {
+        return sample_racer_hd_authored_057fd2a_p2_fourth_family(x, y, hflip, vflip);
+    }
+    if (is_authored_fourth_family_hold_p2(registration)) {
+        return sample_racer_hd_authored_0540d0c_p2_fourth_family(x, y, hflip, vflip);
+    }
+    if (is_authored_fourth_family_exit_p1(registration)) {
+        return sample_racer_hd_authored_0541_p1(x, y, hflip, vflip);
     }
     if (is_authored_third_family_hold_p1(registration)) {
         return sample_racer_hd_authored_0543_p1_third_family(x, y, hflip, vflip);

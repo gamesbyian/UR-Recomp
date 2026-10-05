@@ -119,6 +119,13 @@ std::optional<ur::product::RunPlaybackTarget> current_target() {
     };
 }
 
+bool records_selected_matches_current_course() {
+    const auto* selected = g_records_browser.selected_course();
+    const auto target = current_target();
+    return selected && target &&
+           selected->course_id == target->course_id;
+}
+
 bool refresh_records_browser() {
     const std::string directory = active_run_directory();
     if (directory.empty()) {
@@ -449,7 +456,7 @@ void draw_records_browser(
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 244 ? width - 12 : 236;
     const int row_count = 7;
-    const int panel_h = 39 + row_count * 15 + 45;
+    const int panel_h = 39 + row_count * 15 + 60;
     const int x = (width - panel_w) / 2;
     const int y = (height - panel_h) / 2;
 
@@ -577,8 +584,13 @@ void draw_records_browser(
             comparison, sizeof(comparison), "VS PB %s",
             selected ? selected->personal_best_delta_text.c_str() : "--");
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 41,
+            pixels, stride, height, x + 8, y + panel_h - 56,
             comparison, 0xFFFFFFFFu, 1);
+        if (records_selected_matches_current_course()) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 41,
+                "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 26,
             "ESC / B    COURSES", 0xFFFFFFFFu, 1);
@@ -800,6 +812,14 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_ESCAPE) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
+        if (key == SDLK_b && (mod & KMOD_CTRL) &&
+            g_records_browser.view() ==
+                ur::product::CompletedRunRecordsView::Runs &&
+            records_selected_matches_current_course()) {
+            g_records_browser_visible = false;
+            (void)open_browser();
+            return 1;
+        }
         if (key == SDLK_F8) {
             close_records_browser();
             return 1;
@@ -864,6 +884,14 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         }
         if (button == kGamepadBtn_B) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_X &&
+            g_records_browser.view() ==
+                ur::product::CompletedRunRecordsView::Runs &&
+            records_selected_matches_current_course()) {
+            g_records_browser_visible = false;
+            (void)open_browser();
+            return 1;
         }
         if (button == kGamepadBtn_Y) {
             close_records_browser();

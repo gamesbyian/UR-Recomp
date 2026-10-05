@@ -1,7 +1,9 @@
 name: landing transition native/reference differential
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: race-landing-differential-${{ github.ref }}
   cancel-in-progress: true
 

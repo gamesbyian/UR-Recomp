@@ -60,7 +60,7 @@ constexpr ModernChallengeTier selected_modern_challenge_tier(
               selector.selected < selector.count ? selector.selected : 0u];
 }
 
-constexpr ModernChallengeTierSelector navigate_modern_challenge_tier_selector(
+inline ModernChallengeTierSelector navigate_modern_challenge_tier_selector(
     ModernChallengeTierSelector selector,
     UrModernHostNavigationAction action) noexcept {
     if (selector.count <= 1) return selector;
@@ -79,7 +79,7 @@ constexpr ModernChallengeTierSelector navigate_modern_challenge_tier_selector(
     return selector;
 }
 
-constexpr bool confirm_modern_challenge_tier(
+inline bool confirm_modern_challenge_tier(
     const ModernChallengeTierSelector& selector,
     ExecutionMode mode,
     bool tour_available,

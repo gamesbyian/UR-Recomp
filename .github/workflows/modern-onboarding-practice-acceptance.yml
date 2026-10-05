@@ -108,7 +108,6 @@ jobs:
           grep -q "UR_PRACTICE RACE_READY" "$LOG"
           grep -q "UR_PRACTICE RESTORED" "$LOG"
           grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
-          grep -q "UR_FAST_NAV RECENT_OBSERVED track=0" "$LOG"
           grep -q "script .* dump practice-race-entered ok" "$LOG"
           grep -q "script .* dump practice-returned-main ok" "$LOG"
 
@@ -327,9 +326,17 @@ jobs:
 
           cat "$LOG"
           grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
-          grep -q "UR_FAST_NAV RECENT_PRACTICE track=0" "$LOG"
-          grep -q "UR_PRACTICE STARTED .* track=0" "$LOG"
+          grep -q "UR_FAST_NAV RECENT_OBSERVED track=" "$LOG"
+          grep -q "UR_FAST_NAV RECENT_PRACTICE track=" "$LOG"
+          grep -q "UR_PRACTICE STARTED .* track=" "$LOG"
           grep -q "UR_PRACTICE RACE_READY" "$LOG"
+
+          OBSERVED_TRACK="$(grep 'UR_FAST_NAV RECENT_OBSERVED track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          LAUNCHED_TRACK="$(grep 'UR_FAST_NAV RECENT_PRACTICE track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          PRACTICE_TRACK="$(grep 'UR_PRACTICE STARTED .* track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          test -n "$OBSERVED_TRACK"
+          test "$OBSERVED_TRACK" = "$LAUNCHED_TRACK"
+          test "$OBSERVED_TRACK" = "$PRACTICE_TRACK"
           ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
 
           python3 - \

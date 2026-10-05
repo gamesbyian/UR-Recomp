@@ -403,6 +403,44 @@
       },
       "acquisition_tier": "P3",
       "acquisition_judgment": "Context only; no fidelity dependency."
+    },
+    {
+      "id": "cabbagery-player-mechanics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "cabbagery-uniracers-mechanics-2024"
+      ],
+      "question": "Which detailed player-reported mechanics in cabbagery's 2024 recollection are accurate, and which can be promoted into durable behavioral fixtures or subsystem documentation?",
+      "next_discriminator": "Reproduce the claims independently against the canonical ROM/runtime in small slices: (1) enumerate Hunter path-crossing effects and trigger behavior; (2) verify Hunter unlock propagation into 2P/versus/league and whose progression state gates it; (3) verify top-three record persistence and identity/color mutation after overwriting a racer; (4) characterize stunt scoring on Downer and adjacent stunt courses using deterministic inputs; (5) map rejected-name behavior to the existing forbidden-name evidence; (6) verify Anti-Uni/Neon endgame gating. Promote only locally reproduced facts.",
+      "deliverables": [
+        "Hunter crossing-effect behavior matrix with deterministic reproduction",
+        "Hunter multiplayer unlock/gating observation",
+        "record-orphaning fixture covering racer overwrite and retained record value",
+        "bounded stunt-scoring characterization for Downer plus one comparison course",
+        "forbidden-name cross-check against existing ROM/achievement/patch evidence",
+        "Anti-Uni and Neon progression-gating observation",
+        "promoted symbols/tests/docs only for confirmed claims"
+      ],
+      "tags": [
+        "player-testimony",
+        "hunter",
+        "multiplayer",
+        "records",
+        "stunts",
+        "name-entry",
+        "progression",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High-value because the claims are concrete and cheaply falsifiable. Do not treat recollection as authority; use it to seed canonical-ROM/runtime experiments."
     }
   ],
   "acquisition_policy": {

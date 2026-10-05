@@ -1,0 +1,39 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -2979,6 +2979,14 @@ static void ReassignGamepads(void) {
+ }
+ 
+ #if defined(RECOMP_LAUNCHER)
++static const char *LauncherAssetRoot(void) {
++  static char root[1024];
++  if (!root[0] &&
++      !snesrecomp_exe_dir_path(".", root, sizeof(root)))
++    snprintf(root, sizeof(root), ".");
++  return root;
++}
++
+ /* What the launcher opens on: the live settings, and what this host offers.
+  * In session, netplay and Generate & rebuild are withheld -- the first would
+  * replace a session that is still alive, the second the binary running it. */
+@@ -3415,7 +3423,7 @@ static void RunInGameLauncher(bool *running, const char **exit_reason) {
+   char rom[1024];
+   rom[0] = '\0';
+-  int act = recomp_launcher_run_window(g_launcher_title, &ls, &gi, ".",
++  int act = recomp_launcher_run_window(g_launcher_title, &ls, &gi, LauncherAssetRoot(),
+                                        g_rom_path[0] ? g_rom_path : NULL,
+                                        rom, sizeof(rom));
+   recomp_launcher_set_preserve_sdl(0);
+@@ -3672,10 +3680,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+         if (!init_rom[0] && !snesrecomp_rom_cache_read(init_rom, sizeof(init_rom)))
+           init_rom[0] = '\0';
+ 
+-        /* cwd is anchored to the exe dir and recomp_ui.cmake stages assets to
+-         * <exe>/assets, so "." resolves assets correctly. */
++        /* Mutable state may be anchored outside the package. Launcher assets
++         * remain executable-relative so forced/first-run UI still works. */
+         int act = recomp_launcher_run_window(
+-            g_launcher_title, &ls, &gi, ".", init_rom[0] ? init_rom : NULL,
++            g_launcher_title, &ls, &gi, LauncherAssetRoot(), init_rom[0] ? init_rom : NULL,
+             rom_path_buf, sizeof(rom_path_buf));
+         host_report_breadcrumb("launcher: action=%d rom=%s", act,
+                                rom_path_buf[0] ? rom_path_buf : "(none)");

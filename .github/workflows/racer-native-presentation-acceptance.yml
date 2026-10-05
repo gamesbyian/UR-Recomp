@@ -790,6 +790,8 @@ jobs:
           grep -F "frame=1302 semantic=0542 viewport=top slot=99" "$HD_LOG"
           grep -F "frame=1302 semantic=057D viewport=bottom slot=97" "$HD_LOG"
           grep -F "frame=1302 semantic=0542 viewport=bottom slot=96" "$HD_LOG"
+          grep -F "UR_RACER_PRESENTATION_TRACE frame=1305 p1_primary=057E p2_primary=0544 p1_companion=0D49 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0001 p2_gate=0000" "$HD_LOG"
+          grep -F "UR_RACER_PRESENTATION_TRACE frame=1306 p1_primary=057E p2_primary=0544 p1_companion=0D69 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0001 p2_gate=0000" "$HD_LOG"
           grep -F "frame=1306 semantic=057E viewport=top slot=98" "$HD_LOG"
           grep -F "frame=1306 semantic=0544 viewport=top slot=99" "$HD_LOG"
           grep -F "frame=1306 semantic=057E viewport=bottom slot=97" "$HD_LOG"

@@ -99,4 +99,43 @@ std::optional<RunDataDeltaPresentation> present_run_finish_delta(
         "finish", current_ticks60, target.elapsed_ticks60, *delta);
 }
 
+RunTimingPanelPresentation present_run_timing_panel(
+    std::uint64_t current_ticks60,
+    const CompletedRunRecord* personal_best,
+    RunTimingPresentationPoint point,
+    const std::string& split_id) {
+    RunTimingPanelPresentation panel;
+    panel.clock_label =
+        point == RunTimingPresentationPoint::Finish ? "FINISH" : "TIME";
+    panel.clock_text = format_run_ticks60(current_ticks60);
+    panel.target_label = "PB";
+    panel.target_text = "--";
+    panel.comparison_label =
+        point == RunTimingPresentationPoint::Split ? "SPLIT" : "DELTA";
+    panel.comparison_text = "--";
+
+    if (!personal_best) return panel;
+
+    const auto target =
+        present_run_target(*personal_best, RunDataTargetKind::PersonalBest);
+    if (!target) return panel;
+
+    panel.target_available = true;
+    panel.target_text = target->time_text;
+
+    std::optional<RunDataDeltaPresentation> delta;
+    if (point == RunTimingPresentationPoint::Split && !split_id.empty()) {
+        delta = present_run_split_delta(
+            *personal_best, split_id, current_ticks60);
+    } else if (point == RunTimingPresentationPoint::Finish) {
+        delta = present_run_finish_delta(*personal_best, current_ticks60);
+    }
+
+    if (delta) {
+        panel.comparison_available = true;
+        panel.comparison_text = delta->delta_text;
+    }
+    return panel;
+}
+
 }  // namespace ur::product

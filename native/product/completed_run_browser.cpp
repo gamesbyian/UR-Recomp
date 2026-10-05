@@ -122,11 +122,47 @@ CompletedRunRecordsBrowser::selected_run() const noexcept {
     return &course->catalog.entries[*selected_run_];
 }
 
+const CompletedRunRecord*
+CompletedRunRecordsBrowser::selected_run_record() const noexcept {
+    const auto* course = selected_course();
+    const auto* entry = selected_run();
+    if (!course || !entry || entry->source_index >= course->records.size()) {
+        return nullptr;
+    }
+    return &course->records[entry->source_index].record;
+}
+
+std::optional<RunResultSummaryPresentation>
+CompletedRunRecordsBrowser::selected_run_summary() const {
+    const auto* course = selected_course();
+    const auto* current = selected_run_record();
+    if (!course || !current || !course->catalog.personal_best_entry ||
+        *course->catalog.personal_best_entry >=
+            course->catalog.entries.size()) {
+        return current
+            ? present_run_result_summary(*current, nullptr)
+            : std::nullopt;
+    }
+
+    const auto& pb_entry =
+        course->catalog.entries[*course->catalog.personal_best_entry];
+    if (pb_entry.source_index >= course->records.size()) {
+        return present_run_result_summary(*current, nullptr);
+    }
+    return present_run_result_summary(
+        *current,
+        &course->records[pb_entry.source_index].record);
+}
+
 bool CompletedRunRecordsBrowser::move(int delta) noexcept {
     if (delta == 0) {
         return view_ == CompletedRunRecordsView::Courses
             ? selected_course_.has_value()
             : selected_run_.has_value();
+    }
+
+    if (view_ == CompletedRunRecordsView::Detail) {
+        return selected_run_.has_value();
     }
 
     const int step = delta > 0 ? 1 : -1;
@@ -160,6 +196,21 @@ bool CompletedRunRecordsBrowser::open_selected_course() noexcept {
     if (*selected_run_ >= course->catalog.entries.size()) {
         selected_run_ = 0;
     }
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::open_selected_run_detail() noexcept {
+    if (view_ != CompletedRunRecordsView::Runs ||
+        !selected_run_record()) {
+        return false;
+    }
+    view_ = CompletedRunRecordsView::Detail;
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::back_to_runs() noexcept {
+    if (view_ != CompletedRunRecordsView::Detail) return false;
+    view_ = CompletedRunRecordsView::Runs;
     return true;
 }
 

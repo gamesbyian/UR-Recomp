@@ -810,3 +810,317 @@ sources:
     embedded_author: "Justaguy95"
     rights: "File-specific redistribution/license status not established; preserve as research reference and do not treat as shipping audio."
     relevance: "Independent fan reconstruction of the game's instrument/sample mappings. Useful for BRR loop/tuning/instrument-group comparisons against ROM-derived audio, but not an authority."
+
+
+  - id: cabbagery-uniracers-mechanics-2024
+    title: "cabbagery Uniracers mechanics recollection"
+    type: player_mechanics_testimony
+    url: "https://www.reddit.com/r/snes/comments/1h4c44t/what_do_you_think_of_uniracers/"
+    author: "cabbagery"
+    published: "2024-12-01"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit comment; preserve claims and provenance only. Do not redistribute user-authored text beyond brief quotation where needed."
+    relevance: "Detailed firsthand claims about Hunter crossing effects, Hunter multiplayer availability, Anti-Uni/endgame progression, stunt scoring, top-three record persistence after racer deletion, and forbidden-name behavior. Treat every mechanical claim as provisional until reproduced against the canonical ROM/runtime."
+
+
+  - id: orangestar-uniracers-faq-2001
+    title: "OrangeStar Uniracers FAQ/Walkthrough v3.0"
+    type: player_strategy_and_mechanics
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/faqs/9137"
+    author: "OrangeStar"
+    published: "2001-11-27"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs guide; preserve claims and provenance, not wholesale text."
+    relevance: "Detailed course-by-course strategy, Hunter/Anti-Uni effect inventory, stunt point table and repeat-score decay claim, track-color semantics, boost strategy, historical scores, and cheat-code leads that can be checked against canonical runtime behavior."
+
+
+  - id: protipoftheday-uniracers-techniques
+    title: "Pro Tip of the Day Uniracers technique notes"
+    type: player_experimentation
+    url: "https://protipoftheday.com/taxonomy/term/254.html"
+    author: "Will"
+    published: "2009-09-01/2010-02-08"
+    retrieved: "2026-10-05"
+    rights: "Public blog posts; preserve experimental claims and provenance only."
+    relevance: "Independent hands-on observations about Head Bounce/Tabletop Mega stunts and substring-based rejected-name behavior; useful corroboration and experiment seeds."
+
+
+  - id: speedrun-uniracers-community
+    title: "Speedrun.com Uniracers leaderboard and forum"
+    type: speedrunning_community_evidence
+    url: "https://www.speedrun.com/uniracers"
+    authors_or_participants: ["FlyHec", "KattaTonik_", "mrcab55", "Segastar", "karmamachine", "Uniracers speedrunning community"]
+    retrieved: "2026-10-05"
+    rights: "Public leaderboard/forum material; summarize with provenance."
+    relevance: "Current competitive corpus with hundreds of submitted runs, recent Hunter and course records, historical-PB comparisons, and player observations about screen-position/scrolling behavior affecting optimal times."
+
+
+  - id: gamefaqs-newo-sram-corruption
+    title: "GameFAQs Uniracers save corruption observations"
+    type: player_failure_observation
+    url: "https://gamefaqs.gamespot.com/boards/588824-uniracers/74957009"
+    authors_or_participants: ["newo", "NuAngel"]
+    published: "2017"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; preserve claims and provenance only."
+    relevance: "Reports observed SRAM corruption symptoms including mutated racer names, implausible stunt scores, menu palette corruption, and game lockup resolved by erasing save data. Useful for malformed-save robustness fixtures, not as proof of root cause."
+
+
+  - id: reddit-uniracers-boost-mechanics-2021
+    title: "Reddit Uniracers remake discussion with boost-mechanics claims"
+    type: player_mechanics_discussion
+    url: "https://www.reddit.com/r/gaming/comments/nh0g1c/"
+    published: "2021-05-20"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Contains a specific claim that stunt complexity affects stunt points but not race-speed boost, conflicting with other player guides/reviews. High-value discriminator for canonical boost semantics."
+
+
+  - id: arqade-uniracers-straightaway-speed
+    title: "Arqade Uniracers straightaway speed discussion"
+    type: player_mechanics_discussion
+    url: "https://gaming.stackexchange.com/questions/840/how-do-i-maximize-speed-on-a-straightaway-in-uniracers"
+    authors_or_participants: ["Mag Roader", "Jaydles"]
+    published: "2010-07-08"
+    retrieved: "2026-10-05"
+    rights: "Public Stack Exchange content; summarize with provenance and respect upstream CC terms."
+    relevance: "Documents experienced-player belief that Roll+Twist balances boost against landing cleanliness and suggests landing quality/friction can offset larger trick boost. Useful as a competing hypothesis for deterministic speed tests."
+
+
+  - id: unicyclist-forgotten-name-uniracers-2003
+    title: "Unicyclist.com forgotten-name discussion of the SNES unicycle game"
+    type: player_memory_and_discovery
+    url: "https://unicyclist.com/t/unicycle-video-game/54295"
+    authors_or_participants: ["unisteve", "Unispin", "Catboy", "Uniwheeler", "Unicyclist.com community"]
+    published: "2003-01-18"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "A useful example of players remembering the game by concept rather than title. Includes an experienced player claiming to have been 'pro' at it and independent descriptions of the stunt/racing feel. Useful mainly for tester discovery and terminology pivots."
+
+
+  - id: reddit-uniracers-modern-user-friction-2024
+    title: "Reddit Uniracers modern replay and usability observations"
+    type: player_usability_and_technical_discussion
+    url: "https://www.reddit.com/r/snes/comments/1h4c44t/what_do_you_think_of_uniracers/"
+    authors_or_participants: ["Rec0deD_88", "General_Freed", "GruelOmelettes", "Bdowns_770", "LdyRainicorn87", "worldmalone", "TheHytekShow", "cabbagery"]
+    published: "2024-12-01"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Contains modern replay observations directly relevant to UR-Recomp: view too close for track anticipation, difficulty remembering track-color cue semantics, strong multiplayer/records use, timing-based stunt play, and an external four-player netplay implementation."
+
+
+  - id: peaso-uniracers-glitches-2010
+    title: "Peaso Uniracers glitch notes"
+    type: player_glitch_research
+    url: "https://www.peaso.com/truco-153.html"
+    author: "Fran_friki"
+    published: "2010-10-19"
+    retrieved: "2026-10-05"
+    rights: "Public Spanish-language cheat/glitch writeup; preserve claims and provenance only."
+    relevance: "Detailed player-documented methods for leaving normal course geometry, entering the orange fallback/recovery track space, bypassing turnaround arrows, triggering invisible or corrupted track states, and producing unwinnable races. High-value collision/track-state experiment seed."
+
+
+  - id: gamefaqs-mathmurderer-stunt-qna
+    title: "GameFAQs stunt-course answer by MathMurderer"
+    type: competitive_player_mechanics
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/answers/299587-any-help-with-the-stunt-courses"
+    author: "MathMurderer"
+    published: "2017"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs answer; preserve claims and provenance only."
+    relevance: "Experienced-player confirmation of per-stunt repeat-score halving, specific point values, and early-course Head Bounce strategy. Useful independent cross-check against OrangeStar and TAS research."
+
+
+  - id: reddit-forgotten-name-not-cool-enough-2026
+    title: "Forgotten-game identification via 'not cool enough' name filter"
+    type: player_memory_and_discovery
+    url: "https://www.reddit.com/r/retrogaming/comments/1qauoga/trying_to_remember_a_classic/"
+    published: "2026-01-12"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "A recent player remembered the game solely through the rejected-swear-word/'not cool enough' behavior and confirmed ownership/affection after identification. Useful proof that distinctive behavioral memories can surface players who no longer remember the title."
+
+
+  - id: neogaf-unirally-lttp-2008
+    title: "NeoGAF LTTP Unirally/Uniracers discussion"
+    type: player_replay_and_remake_discussion
+    url: "https://www.neogaf.com/threads/lttp-unirally-uniracers-and-super-tennis.333523/"
+    authors_or_participants: ["Jazzem", "aeolist", "DNF"]
+    published: "2008-08-31"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "Replay impressions include concrete stunt/handling observations and explicit demand for a digital remake with course editor and online sharing."
+
+
+  - id: resetera-uniracers-remake-2020
+    title: "ResetEra Uniracers/Unirally retrospective and remake discussion"
+    type: player_remake_discussion
+    url: "https://www.resetera.com/threads/uniracers-unirally-1994-publisher-nintendo-developer-rockstar-games.236983/"
+    authors_or_participants: ["GabriocheXD", "Nanashrew"]
+    published: "2020-06-28"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "Contains explicit remake interest and concrete modernization ideas from longtime players."
+
+
+  - id: gamefaqs-uniracers-cheats-secrets
+    title: "GameFAQs Uniracers cheats, secrets and persistence exploits"
+    type: player_discovered_behavior
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/cheats"
+    authors_or_participants: ["MI4_REAL", "orange_star", "QuirkyOne", "GVaysse"]
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs contributor material; preserve claims and provenance only."
+    relevance: "Documents title-screen RAM wipe, ending shortcut, rejected-name cases, medal-selection downgrade exploit, and a single-player league state created by deleting a second racer after league setup. Useful for persistence/UI edge-case tests."
+
+
+  - id: world-of-nintendo-uniracers-codes
+    title: "Unofficial World of Nintendo Uniracers cheat/code corpus"
+    type: cheat_code_and_behavioral_anchor
+    url: "https://www.world-of-nintendo.com/super_nes/uniracers.shtml"
+    author_or_contributors: ["Brian Kent", "community contributors"]
+    retrieved: "2026-10-05"
+    rights: "Public legacy cheat/code page; preserve codes and provenance as research leads, not as authoritative semantics."
+    relevance: "Independent code corpus affecting CPU movement, timer, game speed, stunt classification, visual state, lead indicator and FAE DINE opponent-vomit behavior. Useful for code-localization and state-observability experiments."
+
+
+  - id: resetera-uniracers-99-remake-2025
+    title: "ResetEra faithful-remake discussion: Uniracers 99"
+    type: remake_interest_and_current_multiplayer_context
+    url: "https://www.resetera.com/threads/games-from-the-snes-era-that-deserve-a-faithful-remake.1302117/page-3"
+    author: "CursedOctopus"
+    published: "2025-09-19"
+    retrieved: "2026-10-05"
+    rights: "Public forum post; summarize with provenance."
+    relevance: "Recent explicit request for a faithful Uniracers revival ('Uniracers 99'), from a user who separately reported heavy college multiplayer play in 2026."
+
+
+  - id: speedrun-karmamachine-pb-ruining-glitch
+    title: "karmamachine PB Ruining Glitch"
+    type: speedrun_glitch_video_lead
+    url: "https://www.speedrun.com/uniracers/forums/0ba78"
+    author: "karmamachine"
+    published: "circa 2016"
+    retrieved: "2026-10-05"
+    video_id: "XI4QqEFrPQE"
+    rights: "Public Speedrun.com post with embedded YouTube video; preserve provenance and derived observations, not third-party video bytes unless separately permitted."
+    relevance: "Competitive runner reports a rare run-destroying glitch occurring for the first time in over 20 years of play, with an embedded video artifact. High-value rare-state lead because the visual evidence may permit exact scene/state classification even though the post does not explain the mechanism."
+
+
+  - id: brazil-lgd-retrogamer-uniracers-2017
+    title: "LGD Retrogamer Portuguese Uniracers gameplay"
+    type: brazilian_player_content
+    url: "https://www.youtube.com/watch?v=vrhhJ71oAiY"
+    author: "LGD Retrogamer"
+    published: "2017-02-04"
+    retrieved: "2026-10-05"
+    language: "pt-BR"
+    rights: "Public YouTube video; index metadata and observations only."
+    relevance: "Brazilian Portuguese gameplay coverage with detailed progression/opponent description and name-filter trivia. Useful primarily as a social-discovery pivot into the Brazilian Unirally/Uniracers audience noted by PAL players."
+
+
+  - id: brazil-jogovelho-uniracers-2026
+    title: "Jogo Velho Uniracers retrospective"
+    type: brazilian_retro_coverage
+    url: "https://jogovelho.com.br/uniracers-snes/"
+    published: "2026-07"
+    retrieved: "2026-10-05"
+    language: "pt-BR"
+    rights: "Public article; summarize with provenance."
+    relevance: "Recent Brazilian-language Uniracers coverage demonstrates a currently active regional audience and provides a pivot for locating commenters, players and creators with fresh familiarity."
+
+
+  - id: flymaggott-dragster-fliptwist-video
+    title: "FlyMaggott 24.45 Dragster flip-twist video"
+    type: competitive_mechanics_video
+    url: "https://www.youtube.com/watch?v=ZEp9T0daxlw"
+    author: "FlyMaggott"
+    published: "circa 2007"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube video linked from the GameFAQs PAL high-score thread; preserve metadata and derived observations only."
+    relevance: "Primary audiovisual artifact for the competitive flip-twist technique and the reported large deferred boost release at the end of a stunt chain. Useful for frame-level boost/scroll reconstruction."
+
+
+  - id: nuangel-sram-corruption-video
+    title: "NuAngel Uniracers corrupted-save/crash video"
+    type: player_failure_video
+    url: "https://www.youtube.com/watch?v=ZzrkUD8K8Ec"
+    author: "NuAngel"
+    published: "2017-02-10"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube video linked from GameFAQs; preserve metadata and derived observations only."
+    relevance: "Audiovisual evidence accompanying reports of malformed racer names and a crash resolved by clearing save data. Useful for classifying visible corrupted-SRAM symptoms before synthetic reproduction."
+
+
+  - id: gamefaqs-starscream-boost-review
+    title: "Starscream Uniracers review with stunt-boost claim"
+    type: player_mechanics_review
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/reviews/36130"
+    author: "Starscream"
+    published: "2002-06-27"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs review; preserve claims and provenance only."
+    relevance: "Independent early-player claim that larger tricks produce larger speed boosts, corroborating OrangeStar and conflicting with later fixed-boost recollections. Useful specifically as evidence for the boost-semantics discriminator."
+
+
+  - id: gamehacking-org-uniracers
+    title: "GameHacking.org Uniracers code corpus"
+    type: cheat_code_and_ram_anchor
+    url: "https://gamehacking.org/game/45291"
+    retrieved: "2026-10-05"
+    rights: "Public cheat-code database; preserve codes and provenance as research leads. Confirm semantics locally before promotion."
+    relevance: "Adds state probes not obvious in older mirrors, including jump-in-midair, qualifying-score RAM, lap quick-win state, explicit timer RAM, speed modifiers, stunt-classification patches and unsafe arbitrary-course selection. Useful for localizing jump eligibility, race completion and score/progression state."
+
+
+  - id: reddit-original-dev-banned-list-2026
+    title: "Original Uniracers developer comments on banned-word list"
+    type: developer_primary_source
+    url: "https://www.reddit.com/r/todayilearned/comments/1vn2ka3/"
+    published: "2026-08-13"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit comments; preserve brief claims and provenance only."
+    relevance: "An original DMA/Rockstar North developer states they worked on Uniracers and helped create the banned-word list, providing primary-source provenance for the name-filter feature. Same thread contains a player complaint about twist-jump boost incentives conflicting with twist-track sections."
+
+
+  - id: reddit-uniracers-blacklist-extraction-2019
+    title: "Reddit Uniracers blacklist extraction discussion"
+    type: reverse_engineering_lead
+    url: "https://www.reddit.com/r/retrogaming/comments/do7yzd/"
+    published: "2019-10-28"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Two independent commenters report extracting the full rejected-name table from the ROM, one via a script. Strong lead for recovering exact table contents and extraction logic rather than relying on trial-and-error name testing."
+
+
+  - id: tasvideos-tabletop-nondecay-video
+    title: "TASVideos Tabletop non-decay demonstration"
+    type: competitive_mechanics_video
+    url: "https://www.youtube.com/watch?v=GKRD251JMDA"
+    authors_or_participants: ["Halamantariel", "Dessyreqt"]
+    retrieved: "2026-10-05"
+    rights: "Public video linked from TASVideos; preserve metadata and derived observations only."
+    relevance: "Demonstrates the TAS discovery that Tabletop is exceptional among stunt types because its score does not halve on repeated use. High-value scoring-rule edge case."
+
+
+  - id: tas-halamantariel-course-videos-2009
+    title: "Halamantariel Uniracers TAS course video set"
+    type: competitive_mechanics_video_set
+    urls:
+      - "https://www.youtube.com/watch?v=jPtVU2dyEp8"
+      - "https://www.youtube.com/watch?v=6DhzIF0Pby0"
+      - "https://www.youtube.com/watch?v=lOccVduAvpY"
+      - "https://www.youtube.com/watch?v=Eho4rmeGU7Y"
+    author: "Halamantariel"
+    published: "2009-11/12"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube videos linked from TASVideos; preserve metadata and derived observations only."
+    relevance: "Course-specific TAS artifacts for Zoom Zoo, Bowl, Switcher and Monster with published lap times/scores. Useful for visual alignment, timing sanity checks and stunt/camera behavior."
+
+
+  - id: tas-twisting-fallthrough-observation
+    title: "TASVideos twisting-associated fall-through observation"
+    type: player_glitch_observation
+    url: "https://tasvideos.org/Forum/Topics/979?CurrentPage=7&Highlight=161056&PageSize=25&Sort=CreateTimestamp"
+    published: "2009-11"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; preserve claim and provenance only."
+    relevance: "A console player reports having fallen through the track at least four times and being in a twisting state every time. Useful as a hypothesis that orientation/stunt state contributes to collision fall-through."

@@ -179,17 +179,22 @@
       "id": "uncensored-name-list-patch",
       "value": "medium",
       "cost": "low",
-      "status": "archival-hunt",
+      "status": "closed-local",
       "status_note": "Archival tail: only a small public IPS mirror remains to find (was status archival-tail).",
       "source_ids": [
         "romhack-uncensored",
-        "retroachievements-uniracers-1295"
+        "retroachievements-uniracers-1295",
+        "reddit-uniracers-blacklist-extraction-2019",
+        "reddit-original-dev-banned-list-2026"
       ],
-      "question": "Where is the forbidden-name data and what code consumes it?",
-      "next_discriminator": "Recover the small public IPS patch if a mirror survives, use the IPS analyzer to locate the overwritten list, then trace local readers only if the result is implementation-relevant.",
+      "question": "Is there any remaining implementation-relevant uncertainty around the stock forbidden-name system?",
+      "next_discriminator": "None for core behavior. The canonical ROM table, 71-entry pointer structure, substring matcher, extraction script, and runtime rejection path are already recovered and reproduced. Keep the missing third-party Uncensored IPS as archival-only provenance; do not spend research effort unless it surfaces naturally.",
       "deliverables": [
-        "forbidden-name data range",
-        "optional reader routine symbol if cheaply recoverable"
+        "forbidden-name data range (landed)",
+        "exact canonical rejected-name table extraction script (landed)",
+        "substring matcher and scanner semantics (landed)",
+        "runtime NOT COOL ENOUGH rejection reproduction (landed)",
+        "Uncensored IPS only if recovered incidentally"
       ],
       "tags": [
         "rom-hack",
@@ -203,7 +208,7 @@
         "request": ""
       },
       "acquisition_tier": "P3",
-      "acquisition_judgment": "Archival tail. Existing local UI/ROM evidence can recover forbidden-name behavior if it ever becomes implementation-relevant; do not spend bespoke recovery effort."
+      "acquisition_judgment": "Core problem already solved locally on 2026-10-03. External extraction reports and the original-developer comment are corroborating provenance, not new implementation work."
     },
     {
       "id": "spc-audio-driver-and-unused-music",
@@ -403,6 +408,528 @@
       },
       "acquisition_tier": "P3",
       "acquisition_judgment": "Context only; no fidelity dependency."
+    },
+    {
+      "id": "cabbagery-player-mechanics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "cabbagery-uniracers-mechanics-2024"
+      ],
+      "question": "Which detailed player-reported mechanics in cabbagery's 2024 recollection are accurate, and which can be promoted into durable behavioral fixtures or subsystem documentation?",
+      "next_discriminator": "Reproduce the claims independently against the canonical ROM/runtime in small slices: (1) enumerate Hunter path-crossing effects and trigger behavior; (2) verify Hunter unlock propagation into 2P/versus/league and whose progression state gates it; (3) verify top-three record persistence and identity/color mutation after overwriting a racer; (4) characterize stunt scoring on Downer and adjacent stunt courses using deterministic inputs; (5) map rejected-name behavior to the existing forbidden-name evidence; (6) verify Anti-Uni/Neon endgame gating. Promote only locally reproduced facts.",
+      "deliverables": [
+        "Hunter crossing-effect behavior matrix with deterministic reproduction",
+        "Hunter multiplayer unlock/gating observation",
+        "record-orphaning fixture covering racer overwrite and retained record value",
+        "bounded stunt-scoring characterization for Downer plus one comparison course",
+        "forbidden-name cross-check against existing ROM/achievement/patch evidence",
+        "Anti-Uni and Neon progression-gating observation",
+        "promoted symbols/tests/docs only for confirmed claims"
+      ],
+      "tags": [
+        "player-testimony",
+        "hunter",
+        "multiplayer",
+        "records",
+        "stunts",
+        "name-entry",
+        "progression",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High-value because the claims are concrete and cheaply falsifiable. Do not treat recollection as authority; use it to seed canonical-ROM/runtime experiments."
+    },
+    {
+      "id": "community-mechanics-crosscheck",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "protipoftheday-uniracers-techniques",
+        "speedrun-uniracers-community",
+        "tasvideos-usjo",
+        "libretro-uniracers-cheats",
+        "cabbagery-uniracers-mechanics-2024",
+        "tasvideos-tabletop-nondecay-video",
+        "tas-halamantariel-course-videos-2009"
+      ],
+      "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
+      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero. Treat Tabletop as an explicit exception to the usual repeat-score halving rule and verify repeated identical-duration Tabletop scores.",
+      "deliverables": [
+        "cross-source mechanics concordance table",
+        "deterministic stunt-score and repeat-decay fixture",
+        "boost/offscreen depletion measurement",
+        "screen-position/scrolling timing discriminator",
+        "Mega stunt recognition fixture",
+        "name-filter substring behavior fixture",
+        "source conflict notes where player recollections disagree",
+        "Tabletop duration-scoring and stunt-timer overrun fixture",
+        "Tabletop repeat-score non-decay fixture",
+        "Tabletop exception to repeat-score halving",
+        "course-video timing/screen-state sanity checks for Zoom Zoo, Bowl, Switcher and Monster"
+      ],
+      "tags": [
+        "community-research",
+        "mechanics",
+        "stunts",
+        "boost",
+        "scrolling",
+        "hunter",
+        "name-entry",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-existing-local-evidence",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High leverage because multiple independent player/research communities describe overlapping mechanics; canonical reproduction can turn folklore into durable regression tests cheaply."
+    },
+    {
+      "id": "boost-semantics-conflict",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "reddit-uniracers-boost-mechanics-2021",
+        "arqade-uniracers-straightaway-speed",
+        "tasvideos-usjo",
+        "flymaggott-dragster-fliptwist-video",
+        "gamefaqs-starscream-boost-review",
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "How do already-confirmed stunt-message boost rewards translate into racer speed over time, especially across landing quality, airborne storage, offscreen depletion and the 0x0180 boost clamp?",
+      "next_discriminator": "Do not re-derive the stunt-message reward path: Nitrodon's recovered disassembly already confirms queued message consumption adds per-message boost to persistent P1/P2 boost state, and the current-player boost workspace/offscreen decrement/clamp paths are already mapped. Use deterministic same-state traces only to resolve the remaining game-facing relationship between boost units and speed: compare representative low/high reward stunts, clean versus poor landings, onscreen versus offscreen depletion, airborne storage, and approach to the 0x0180 clamp. Align the trace with the recovered message-consumer reward frame.",
+      "deliverables": [
+        "boost-unit to racer-speed response curve",
+        "landing-quality effect separated from boost reward",
+        "onscreen/offscreen depletion comparison",
+        "airborne stored-boost consumption behavior",
+        "0x0180 clamp game-facing interpretation",
+        "video-aligned flip-twist boost trace"
+      ],
+      "tags": [
+        "boost",
+        "stunts",
+        "speed",
+        "landing",
+        "community-conflict",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High value because independent experienced-player sources disagree on a core racing mechanic. Cheap deterministic measurement should settle it."
+    },
+    {
+      "id": "sram-corruption-robustness",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-newo-sram-corruption",
+        "nuangel-sram-corruption-video"
+      ],
+      "question": "Which malformed SRAM states can reproduce historically reported name, score, palette, or startup corruption, and how should the modern host/profile layer fail safely around them?",
+      "next_discriminator": "Use known SRAM structure and existing profile/save tooling to generate bounded corruptions around racer identity, score tables, and nearby metadata. Reproduce only project-owned synthetic cases; do not assume the forum-reported battery/root-cause theory. Verify stock behavior where practical, then ensure modern Windows profile handling detects or contains malformed state without silently damaging unrelated profiles.",
+      "deliverables": [
+        "synthetic malformed-SRAM fixture set",
+        "stock-behavior observations for recoverable corruption classes",
+        "modern profile/save containment expectations",
+        "explicit separation of observed symptoms from unproven hardware/root-cause claims",
+        "video-derived visible corruption symptom classification"
+      ],
+      "tags": [
+        "sram",
+        "save-data",
+        "robustness",
+        "profiles",
+        "corruption",
+        "windows"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful because it turns real historical failure symptoms into bounded robustness tests for the modern save/profile layer."
+    },
+    {
+      "id": "orange-track-escape-glitches",
+      "value": "high",
+      "cost": "medium",
+      "status": "ready",
+      "source_ids": [
+        "peaso-uniracers-glitches-2010",
+        "orangestar-uniracers-faq-2001",
+        "original-manual-transcription"
+      ],
+      "question": "How does the stock red/yellow off-course recovery track work, and which collision/state transitions allow the player to enter, traverse, bypass, or escape it?",
+      "next_discriminator": "Treat the manual as primary intent evidence: red/yellow track is deliberately laid down to prevent unicycles falling forever when they are far off the normal course. Reproduce the three player-described escape families on canonical runtime: vertical-jump floor penetration, seat-impact escape at recovery-track arrows, and turnaround-zone bypass. Capture course position, collision mode, track-piece identity, camera/screen state, waypoint state and finishability before/after each transition. Distinguish intended recovery geometry from bugs that let the player bypass or corrupt it.",
+      "deliverables": [
+        "reproducible input traces for each confirmed escape family",
+        "orange-track geometry/state classification",
+        "collision/state transition trace across normal -> fallback -> normal or broken state",
+        "fixture for at least one recoverable escape and one non-finishable/corrupted path if canonical behavior confirms them",
+        "documentation separating player terminology from engine-confirmed semantics",
+        "manual-intent cross-check for red/yellow recovery geometry"
+      ],
+      "tags": [
+        "collision",
+        "course-geometry",
+        "glitch",
+        "fallback-track",
+        "camera",
+        "finish-state",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High-value because the source describes concrete, reproducible geometry escapes that can expose hidden recovery-track and collision-state semantics."
+    },
+    {
+      "id": "race-handicap-semantics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "tasvideos-uniracers-topic",
+        "gamefaqs-uniracers-ntsc-records"
+      ],
+      "question": "How exactly does the stock handicap/rubberband system depend on racer separation, screen position, opponent class, and circuit/race mode?",
+      "next_discriminator": "Use deterministic traces that intentionally fall behind then recover, measuring racer speed/boost, opponent state, screen-X position and lap time against matched no-handicap controls. Reproduce the historical strategy of letting Bronzen get ahead for unusually fast circuit laps and distinguish player handicap from camera/scroll effects.",
+      "deliverables": [
+        "handicap activation/deactivation thresholds",
+        "player/opponent speed effect matrix",
+        "interaction with screen position and scrolling",
+        "validated or rejected historical low-time strategy",
+        "fixture guarding handicap semantics"
+      ],
+      "tags": [
+        "ai",
+        "handicap",
+        "rubberband",
+        "speed",
+        "screen-position",
+        "circuits",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Core racing behavior repeatedly mentioned by competitive players and reviews; inexpensive deterministic measurement can resolve it."
+    },
+    {
+      "id": "league-and-medal-persistence-edge-cases",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-uniracers-cheats-secrets",
+        "gamefaqs-newo-sram-corruption",
+        "tasvideos-uniracers-topic"
+      ],
+      "question": "Which stock persistence/UI invariants are violated or intentionally tolerated by player-discovered medal-selection and league-deletion edge cases?",
+      "next_discriminator": "Reproduce the reported behaviors on canonical runtime: medal/opponent downgrade selection after earning higher medals, and creation of a one-player league by deleting the second racer after league setup. Capture SRAM diffs, menu state, league membership, record ownership and progression effects before/after each step. Decide whether modern profile/product layers should preserve, expose, normalize or safely contain these stock states. Cross-check the medal exploit against caitsith2's TASVideos description, which specifically reports a Bronze-opponent/Silver-qualifier state mismatch after returning to Bronze from Silver selection.",
+      "deliverables": [
+        "single-player league reproduction trace",
+        "medal/opponent selection exploit reproduction trace",
+        "SRAM/state diffs for both cases",
+        "modern host compatibility decision for each stock edge state",
+        "TAS-documented Bronze-opponent/Silver-qualifier mismatch trace"
+      ],
+      "tags": [
+        "sram",
+        "league",
+        "progression",
+        "ui",
+        "edge-case",
+        "profiles",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High product relevance because both claims touch persistence and profile semantics now being modernized."
+    },
+    {
+      "id": "legacy-cheat-code-localization",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "world-of-nintendo-uniracers-codes",
+        "libretro-uniracers-cheats",
+        "orangestar-uniracers-faq-2001",
+        "gamehacking-org-uniracers"
+      ],
+      "question": "Which legacy Game Genie/PAR codes independently identify ROM/RAM locations for timer, speed, stunt classification, CPU start state, lead indicator and visual presentation?",
+      "next_discriminator": "Normalize the historical code sets, deduplicate against the imported libretro corpus, decode ROM patch addresses where possible, and test only codes that add a distinct state seam. Prioritize stunt classification, speed/timer, CPU-start, lead-indicator and FAE DINE behavior. Promote addresses only after canonical local reproduction. Include GameHacking.org's jump-in-midair, qualifying-score, lap quick-win and explicit timer codes; use them as localization probes, not behavioral truth.",
+      "deliverables": [
+        "deduplicated legacy-code concordance table",
+        "decoded ROM/RAM address map for unique codes",
+        "canonical behavior checks for unique state seams",
+        "explicit dead/duplicate/misdocumented classification",
+        "jump-eligibility and lap-completion state probes from unique codes"
+      ],
+      "tags": [
+        "cheats",
+        "game-genie",
+        "par",
+        "ram",
+        "rom",
+        "stunts",
+        "timer",
+        "reverse-engineering"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-existing-local-corpus",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful for cheap address localization but secondary to canonical runtime and existing libretro evidence."
+    },
+    {
+      "id": "pb-ruining-glitch-video",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "speedrun-karmamachine-pb-ruining-glitch"
+      ],
+      "question": "What rare runtime state caused karmamachine's recorded 'PB Ruining Glitch', and does it expose a collision, camera, race-state, or persistence edge case that should be preserved or contained?",
+      "next_discriminator": "Recover or inspect the embedded video using the preserved YouTube ID XI4QqEFrPQE, identify the exact course/scene and visible failure signature, then reproduce only if the state can be bounded. Correlate with existing orange-track/fall-through/collision leads before creating new mechanisms.",
+      "deliverables": [
+        "video-derived scene and symptom classification",
+        "course/state hypothesis linked to existing glitch families",
+        "reproduction trace if feasible",
+        "explicit duplicate-versus-distinct classification relative to orange-track and fall-through evidence"
+      ],
+      "tags": [
+        "speedrun",
+        "glitch",
+        "video",
+        "rare-state",
+        "collision",
+        "camera",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "video",
+        "state": "public-embedded",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "P1",
+      "acquisition_judgment": "High information value because the rare failure is visually recorded by a long-term competitive player; first step is classification, not blind reproduction."
+    },
+    {
+      "id": "brazilian-community-pivot",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "brazil-lgd-retrogamer-uniracers-2017",
+        "brazil-jogovelho-uniracers-2026",
+        "gamefaqs-uniracers-pal-records"
+      ],
+      "question": "Where is the Brazilian Uniracers/Unirally player activity remembered by PAL community members, and does it contain records, mechanics observations, videos, glitches or current tester candidates not represented in English-language sources?",
+      "next_discriminator": "Pivot from known Portuguese-language creators/articles into comments, related videos, forum posts and social handles using Portuguese terms for records, tricks, shortcuts, glitches, multiplayer and Super Nintendo. Promote only concrete mechanics evidence or identifiable current-player leads.",
+      "deliverables": [
+        "Brazilian player/community source map",
+        "new technical/mechanics sources if found",
+        "current tester leads with source provenance",
+        "explicit dead-end note if coverage remains article-only"
+      ],
+      "tags": [
+        "brazil",
+        "portuguese",
+        "community",
+        "tester-discovery",
+        "records",
+        "glitches"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-web",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "P2",
+      "acquisition_judgment": "Potentially useful for broadening both evidence and tester demographics, but should remain bounded unless it yields concrete mechanics or active-player material."
+    },
+    {
+      "id": "racer-color-mechanical-equivalence",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "tasvideos-uniracers-topic",
+        "orangestar-uniracers-faq-2001"
+      ],
+      "question": "Are all 16 selectable Unis mechanically identical apart from presentation/save-slot identity, or do any color-specific timing differences exist?",
+      "next_discriminator": "Replay identical deterministic inputs from identical state with at least White, Orange, and two additional Uni colors. Compare frame-level position, orientation, stunt-recognition timing, twist/roll/flip completion, boost state and collision results. Treat the TAS-era White-vs-Orange twist-speed recollection as an unverified perception claim unless a divergence appears.",
+      "deliverables": [
+        "cross-color deterministic equivalence report",
+        "frame-level stunt-timing comparison",
+        "regression fixture asserting equivalence or documenting any confirmed exception"
+      ],
+      "tags": [
+        "racer-identity",
+        "color",
+        "physics",
+        "stunts",
+        "equivalence",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Cheap and useful because player testimony conflicts with FAQ/review claims that colors differ only cosmetically."
+    },
+    {
+      "id": "ping-pong-unmarked-loop-skip",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "gamefaqs-uniracers-ntsc-records",
+        "tas-twisting-fallthrough-observation"
+      ],
+      "question": "What collision/timing condition allows the repeatable unmarked skip through the second large loop on Walker - Ping Pong, and is it the same engine failure family as Jumpover fall-throughs?",
+      "next_discriminator": "Use Wump's record-thread description to localize the skip to the second large loop on Walker - Ping Pong. Search deterministic timing around the loop entry/exit, capture position, velocity, orientation, track-piece and collision state across successful and failed attempts, and compare against the already recovered Dessyreqt Jumpover halfpipe SMVs/scripts and the intended red/yellow recovery-track system.",
+      "deliverables": [
+        "minimal Ping Pong loop-skip input trace",
+        "successful-vs-failed collision timing comparison",
+        "classification relative to marked shortcuts, Jumpover fall-through and recovery-track escapes",
+        "deterministic fixture if reproducible",
+        "twisting-state correlation check at failure frame"
+      ],
+      "tags": [
+        "collision",
+        "shortcut",
+        "glitch",
+        "ping-pong",
+        "loop",
+        "records",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High value because the historical competitive community regarded it as repeatable, distinct from marked shortcuts, and important enough to annotate in recordkeeping."
+    },
+    {
+      "id": "twist-track-boost-friction",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "reddit-original-dev-banned-list-2026",
+        "boost-semantics-conflict"
+      ],
+      "question": "How does twist-derived boost interact with twist-track sections that punish or redirect jumping, and is the resulting friction purely level design or tied to distinct track-state rules?",
+      "next_discriminator": "Use the 2026 original-developer thread's player recollection as a design-friction lead. Identify twist-track sections where jumping is disadvantageous or causes rollback, then compare grounded twist-track traversal against jump-and-twist traversal while tracing boost, position, rollback/recovery state and camera. Do not infer intended design rationale beyond observable behavior.",
+      "deliverables": [
+        "twist-track jump-vs-grounded traversal comparison",
+        "boost/rollback state trace",
+        "classification as level-design constraint versus distinct track-state mechanic"
+      ],
+      "tags": [
+        "twist",
+        "boost",
+        "track-semantics",
+        "level-design",
+        "player-friction",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "Useful because it connects a remembered player pain point to specific track-state and boost behavior already under investigation."
+    },
+    {
+      "id": "roll-twist-input-semantics",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "tasvideos-uniracers-topic",
+        "halamantariel-wip-smv-1674584940"
+      ],
+      "question": "What exact input/state rules permit simultaneous roll-twist and flip-twist recognition, including flat-ground starts, buffered inputs, landing-angle misclassification, and turbo-controller claims?",
+      "next_discriminator": "Reproduce the TAS-thread techniques on canonical runtime: roll-twist by holding roll while releasing twist after one completed twist; back-forward twist input without the twist button; flip-twist variants; and the reported case where exact landing orientation credits a roll as a flip. Compare normal controller timing to high-frequency/turbo-style input without assuming turbo is required.",
+      "deliverables": [
+        "frame-exact roll-twist input recipe",
+        "flip-twist input/state recipe",
+        "landing-angle stunt-classification boundary",
+        "normal-versus-high-frequency input comparison",
+        "deterministic stunt-recognition fixture"
+      ],
+      "tags": [
+        "stunts",
+        "input",
+        "roll",
+        "twist",
+        "flip",
+        "recognition",
+        "timing",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-local-runtime",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High leverage because several experienced players independently describe subtle input/state behavior that directly affects movement, scoring and speed."
     }
   ],
   "acquisition_policy": {
@@ -412,6 +939,14 @@
       "P1": "useful corroboration; pursue opportunistically or with cheap automation",
       "P2": "optional evidence; acquire if easy, never block",
       "P3": "archival tail; preserve lead, no bespoke recovery effort unless a new discriminator raises its value"
+    }
+  },
+  "deduplication_policy": {
+    "rule": "Before adding a new external-evidence lead, search the research ledger, reference notes, catalog, generated analysis surfaces and current worklist for the same artifact, mechanic, course/glitch, address, or behavioral question under alternate terminology.",
+    "statuses": {
+      "corroboration_only": "New source supports an already solved fact; add provenance to the existing source set but do not create a new work item.",
+      "discriminator_only": "New source adds a genuinely new test or conflicting claim; extend the existing work item.",
+      "new_lead": "Create a work item only when the repository lacks both the fact and a suitable active discriminator."
     }
   }
 }

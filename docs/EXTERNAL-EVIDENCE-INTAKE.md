@@ -88,3 +88,24 @@ The worklist currently emphasizes:
 - fan-recreation author pivots only where they may contain measurements, source, or technical experiments.
 
 Social demand for a remake/rerelease is useful primarily as a breadcrumb graph. Preserve it when replies expose authors, projects, files, or technical claims; otherwise keep it context-only rather than letting sentiment consume reverse-engineering time.
+
+
+## Deduplication preflight
+
+Before adding a new source-derived work item, check whether the repository has already solved, imported, or queued the same artifact or question under older terminology.
+
+At minimum search:
+
+- `docs/RESEARCH-LEDGER.md` for promoted or rejected conclusions;
+- `reference/notes/` for recovered historical artifacts and prior archaeology;
+- `reference/catalog.yml` for the same URL, filename, hash, author/project, or artifact;
+- `reference/evidence-worklist.json` for an existing discriminator covering the same mechanic or failure;
+- `analysis/generated/` and relevant tools/tests for already-landed extraction or reproduction work.
+
+Classify a new web hit before creating work:
+
+1. **Corroboration only:** it supports a fact already solved locally. Add provenance to the existing source set if useful; do not create another work item.
+2. **New discriminator:** it conflicts with, sharpens, or adds a distinct test to an open question. Extend the existing work item.
+3. **New lead:** create a new work item only when neither the fact nor a suitable discriminator already exists.
+
+A rediscovered artifact that is already imported, hashed, parsed, or replayed is not an acquisition lead. Update stale source metadata instead of adding a second identity for it.

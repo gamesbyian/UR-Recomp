@@ -101,7 +101,7 @@ jobs:
             "$ROOT/src/main.c" \
             --game-rtl "$ROOT/src/game_rtl.c" \
             --cmake "$ROOT/CMakeLists.txt"
-          grep -q "ur_uniracers_modern_after_run_frame" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
           grep -q "hardware_reset = &GameHardwareReset" "$ROOT/src/game_rtl.c"
 
       - name: Configure and build (Visual Studio, ClangCL, SDL3)

@@ -8,6 +8,7 @@ extern "C" {
 #include "desktop/config.h"
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
+#include "keybinds.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
 #include "completed_run_ghost_frame.hpp"
@@ -48,6 +49,17 @@ extern "C" {
 extern "C" void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
 
 namespace {
+
+std::string uppercase_keybind_label(SDL_Scancode scancode) {
+    if (scancode == SDL_SCANCODE_UNKNOWN) return "NONE";
+    const char* raw = SDL_GetScancodeName(scancode);
+    if (!raw || !raw[0]) return "NONE";
+    std::string out(raw);
+    for (char& ch : out) {
+        if (ch >= 'a' && ch <= 'z') ch = static_cast<char>(ch - 'a' + 'A');
+    }
+    return out;
+}
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
@@ -2161,8 +2173,48 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         if (g_controls_visible) {
-            const int controls_h = 99;
+            const int controls_h = 144;
             const int controls_y = (height - controls_h) / 2;
+            const KeyBinds* binds = keybinds_get();
+            const PlayerBinds fallback{};
+            const PlayerBinds& p1 = binds ? binds->p1 : fallback;
+            const std::string up = uppercase_keybind_label(p1.up);
+            const std::string down = uppercase_keybind_label(p1.down);
+            const std::string left = uppercase_keybind_label(p1.left);
+            const std::string right = uppercase_keybind_label(p1.right);
+            const std::string b = uppercase_keybind_label(p1.b);
+            const std::string y_key = uppercase_keybind_label(p1.y);
+            const std::string a = uppercase_keybind_label(p1.a);
+            const std::string x_key = uppercase_keybind_label(p1.x);
+            const std::string l = uppercase_keybind_label(p1.l);
+            const std::string r = uppercase_keybind_label(p1.r);
+            const std::string start = uppercase_keybind_label(p1.start);
+            const std::string select = uppercase_keybind_label(p1.select);
+            char up_down_row[64];
+            char left_right_row[64];
+            char by_row[64];
+            char ax_row[64];
+            char lr_row[64];
+            char start_select_row[72];
+            std::snprintf(
+                up_down_row, sizeof(up_down_row), "UP/DOWN  %s / %s",
+                up.c_str(), down.c_str());
+            std::snprintf(
+                left_right_row, sizeof(left_right_row), "LEFT/RIGHT  %s / %s",
+                left.c_str(), right.c_str());
+            std::snprintf(
+                by_row, sizeof(by_row), "B/Y      %s / %s",
+                b.c_str(), y_key.c_str());
+            std::snprintf(
+                ax_row, sizeof(ax_row), "A/X      %s / %s",
+                a.c_str(), x_key.c_str());
+            std::snprintf(
+                lr_row, sizeof(lr_row), "L/R      %s / %s",
+                l.c_str(), r.c_str());
+            std::snprintf(
+                start_select_row, sizeof(start_select_row),
+                "START/SEL  %s / %s", start.c_str(), select.c_str());
+
             snes_ovl_fill_rect(
                 pixels, stride, height, x, controls_y, panel_w, controls_h,
                 0xE0202020u);
@@ -2171,22 +2223,28 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 7,
-                "CONTROLS", 0xFFFFFFFFu, 1);
+                "CONTROLS - P1 KEYBOARD", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 22,
-                "MOVE   DPAD / ARROWS", 0xFFFFFFFFu, 1);
+                up_down_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 37,
-                "ACTION A / ENTER", 0xFFFFFFFFu, 1);
+                left_right_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 52,
-                "PAUSE  START / ESC", 0xFFFFFFFFu, 1);
+                by_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 67,
-                "BACK   B / ESC", 0xFFFFFFFFu, 1);
+                ax_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 82,
-                "CTRL+R RETRY", 0xFFFFFFFFu, 1);
+                lr_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 97,
+                start_select_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 117,
+                "ESC / B   BACK", 0xFFFFFFFFu, 1);
             return;
         }
 

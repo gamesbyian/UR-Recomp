@@ -1,0 +1,112 @@
+#include "completed_run_browser.hpp"
+
+#include <cassert>
+#include <filesystem>
+#include <fstream>
+#include <string>
+
+using namespace ur::product;
+
+namespace {
+
+CompletedRunRecord run(
+    std::uint64_t ticks,
+    const std::string& course = "course:01") {
+    CompletedRunRecord record;
+    record.provenance = {
+        "uniracers-usa",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "native-sim-v1",
+        course,
+        "race-1p",
+    };
+    record.elapsed_ticks60 = ticks;
+    record.frame_count = 2;
+    record.splits = {{"finish", ticks}};
+    record.inputs = {{0, 2, 0x100, 0}};
+    return record;
+}
+
+RunPlaybackTarget target() {
+    const auto p = run(1).provenance;
+    return {p.game_id, p.rom_sha256, p.build_compat_id, p.course_id, p.mode};
+}
+
+void write_record(
+    const std::filesystem::path& path,
+    const CompletedRunRecord& record) {
+    std::string detail;
+    assert(save_completed_run_record_file(path.string(), record, &detail));
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+    assert(argc == 2);
+
+    const std::filesystem::path root(argv[1]);
+    std::filesystem::create_directories(root);
+
+    write_record(
+        root / "run-0000000000000000-0001.urrun", run(1800));
+    write_record(
+        root / "run-0000000000000000-0002.urrun", run(1713));
+    write_record(
+        root / "run-0000000000000000-0003.urrun", run(1713));
+    write_record(
+        root / "run-0000000000000000-0004.urrun", run(1750));
+    write_record(
+        root / "run-0000000000000000-0005.urrun",
+        run(900, "course:02"));
+
+    std::string corrupt = encode_completed_run_record(run(1600));
+    assert(!corrupt.empty());
+    const auto checksum = corrupt.rfind("checksum ");
+    assert(checksum != std::string::npos);
+    corrupt[checksum + 9] = corrupt[checksum + 9] == '0' ? '1' : '0';
+    {
+        std::ofstream out(
+            root / "run-0000000000000000-0006.urrun",
+            std::ios::binary);
+        out << corrupt;
+    }
+
+    CompletedRunBrowser browser;
+    assert(browser.refresh(root.string(), target()));
+    assert(browser.size() == 6);
+    assert(browser.playable_count() == 4);
+
+    assert(browser.entries()[0].chronological_order == 6);
+    assert(browser.entries()[0].status ==
+           CompletedRunBrowserEntryStatus::Corrupt);
+    assert(!browser.entries()[0].playable());
+
+    assert(browser.entries()[1].chronological_order == 5);
+    assert(browser.entries()[1].status ==
+           CompletedRunBrowserEntryStatus::Incompatible);
+    assert(browser.entries()[1].course_id == "course:02");
+    assert(!browser.entries()[1].playable());
+
+    assert(browser.selected());
+    assert(browser.selected()->chronological_order == 4);
+    assert(browser.selected()->date_text.size() == 10);
+    assert(browser.selected()->date_text != "--");
+    assert(browser.selected()->is_previous);
+    assert(!browser.selected()->is_personal_best);
+    assert(browser.selected()->time_text == "0:29.10/60");
+
+    assert(browser.move(1));
+    assert(browser.selected()->chronological_order == 3);
+    assert(browser.selected()->is_personal_best);
+    assert(browser.selected()->time_text == "0:28.33/60");
+
+    assert(browser.move(-1));
+    assert(browser.selected()->chronological_order == 4);
+
+    assert(std::string(completed_run_browser_status_name(
+               CompletedRunBrowserEntryStatus::Corrupt)) == "CORRUPT");
+    assert(std::string(completed_run_browser_status_name(
+               CompletedRunBrowserEntryStatus::Incompatible)) == "INCOMPATIBLE");
+
+    return 0;
+}

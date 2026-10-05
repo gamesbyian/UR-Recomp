@@ -23,11 +23,12 @@ class ModernProductHostPatchTests(unittest.TestCase):
         )
         patched = patch_main_text(source)
         self.assertIn('#include "uniracers_modern_host.h"', patched)
+        self.assertIn('#include "completed_run_browser_host.h"', patched)
         self.assertIn("ur_uniracers_modern_after_config", patched)
-        self.assertIn("ur_uniracers_modern_after_run_frame", patched)
-        self.assertIn("ur_uniracers_modern_system_key_down", patched)
-        self.assertIn("ur_uniracers_modern_system_gamepad_button", patched)
-        self.assertIn("ur_uniracers_modern_system_overlay", patched)
+        self.assertIn("ur_uniracers_product_after_run_frame", patched)
+        self.assertIn("ur_uniracers_product_system_key_down", patched)
+        self.assertIn("ur_uniracers_product_system_gamepad_button", patched)
+        self.assertIn("ur_uniracers_product_system_overlay", patched)
         self.assertIn("ur_uniracers_modern_after_config", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertIn(".native_widescreen      = 1,", patched)
@@ -48,6 +49,10 @@ class ModernProductHostPatchTests(unittest.TestCase):
             '};\n'
         )
         patched = patch_main_text(source)
+        self.assertIn("ur_uniracers_product_after_run_frame", patched)
+        self.assertIn("ur_uniracers_product_system_key_down", patched)
+        self.assertIn("ur_uniracers_product_system_gamepad_button", patched)
+        self.assertIn("ur_uniracers_product_system_overlay", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertIn("ur_uniracers_modern_native_widescreen_enabled", patched)
         self.assertIn("ur_uniracers_modern_prepare_frame", patched)
@@ -85,6 +90,10 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_comparison.cpp",
             "completed_run_presentation.cpp",
             "completed_run_store.cpp",
+            "completed_run_catalog.cpp",
+            "completed_run_browser.cpp",
+            "completed_run_replay.cpp",
+            "completed_run_browser_host.cpp",
             "completed_run_ghost.cpp",
             "completed_run_ghost_policy.cpp",
             "completed_run_ghost_world_sample.cpp",

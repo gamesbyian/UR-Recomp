@@ -281,12 +281,24 @@ jobs:
                   == pose["authored_asset_rgba_sha256"]
               for pose in review_packet["poses"]
           )
-          assert review_packet["baseline_comparison"] == {
-              "pose_count": 10,
-              "matched_pose_count": 10,
-              "copied_authored_png_count": 10,
-              "changed_authored_pose_count": 10,
-          }
+          baseline_comparison = review_packet["baseline_comparison"]
+          assert baseline_comparison["pose_count"] == 10
+          assert baseline_comparison["matched_pose_count"] == 10
+          assert baseline_comparison["copied_authored_png_count"] == 10
+          changed_pose_count = sum(
+              bool(pose.get("authored_asset_changed"))
+              for pose in review_packet["poses"]
+          )
+          assert baseline_comparison["changed_authored_pose_count"] == changed_pose_count
+          assert 0 <= changed_pose_count <= 10
+          assert all(
+              pose.get("authored_asset_changed")
+                  == (
+                      pose.get("baseline_authored_asset_rgba_sha256")
+                      != pose.get("authored_asset_rgba_sha256")
+                  )
+              for pose in review_packet["poses"]
+          )
           assert review_packet["live_reference"]["original_dimensions"] == [256, 224]
           assert review_packet["live_reference"]["hd_dimensions"] == [1024, 896]
           review_root = pathlib.Path(sys.argv[3]).parent

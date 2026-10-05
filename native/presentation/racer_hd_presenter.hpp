@@ -413,20 +413,30 @@ constexpr std::uint32_t authored_frame_junction_color(
     int crown_y,
     bool blue_frame
 ) noexcept {
-    // A compact object-local collar makes the fork/frame meeting point read
-    // as one forged part without changing the recovered pose silhouette.
+    // Model the crown as one forged transition rather than a round collar
+    // sitting on top of separate members. The upper-left shoulder catches the
+    // object-local key light, the centre stays on the frame body value, and
+    // the lower/right throat compresses into shadow where fork and brace
+    // visually merge. This changes material only, never the recovered alpha
+    // envelope, contact anchor, or member geometry.
     const int dx = x - crown_x;
     const int dy = y - crown_y;
     const int radial2 = dx * dx + dy * dy;
-    const bool highlight = dx <= 1 && dy <= 1 && radial2 >= 18;
-    const bool shadow = dx >= 2 || dy >= 4;
+    const bool shoulder_highlight =
+        dy <= -1 && dx <= 2 && radial2 >= 12;
+    const bool integrated_throat =
+        dy >= 1 && (dx >= -2 || radial2 <= 20);
+    const bool outer_shadow =
+        dx >= 4 || dy >= 5;
     if (blue_frame) {
-        if (highlight) return 0xFFE87353u;
-        if (shadow) return 0xFF782818u;
+        if (shoulder_highlight) return 0xFFE87353u;
+        if (outer_shadow) return 0xFF782818u;
+        if (integrated_throat) return 0xFF963323u;
         return 0xFFC94D34u;
     }
-    if (highlight) return 0xFF5353E8u;
-    if (shadow) return 0xFF181878u;
+    if (shoulder_highlight) return 0xFF5353E8u;
+    if (outer_shadow) return 0xFF181878u;
+    if (integrated_throat) return 0xFF232396u;
     return 0xFF3434C9u;
 }
 

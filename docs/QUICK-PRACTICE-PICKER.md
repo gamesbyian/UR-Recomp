@@ -77,6 +77,7 @@ On confirm:
    - `g_ram[0x009F]` menu id;
    - `g_ram[0x009B]` stock menu selection;
    - `g_ram[0x0313] == 1` active-race state;
+   - the zero-based course id from `ur_uniracers_identify_course()`, or unavailable until the decoded live course is authoritative;
 6. if the launch machine emits an input, write one two-frame relative input entry using `quick_practice_runner_mask()`;
 7. arm it through the existing `snesrecomp_desktop_load_relative_input_file` /
    `snesrecomp_desktop_arm_relative_input` path;

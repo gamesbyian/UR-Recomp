@@ -93,9 +93,11 @@ jobs:
           MARKER="$RUNNER_TEMP/onboarding.seen"
           PRACTICE_ROOT="$RUNNER_TEMP/practice-save"
           PRACTICE_INPUT="$RUNNER_TEMP/practice-input.txt"
+          PRACTICE_RUN="$RUNNER_TEMP/practice-should-not-exist.urrun"
 
           mkdir -p "$PRACTICE_ROOT"
-          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_PRACTICE_ACCEPTANCE=1           UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT"           UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT"           UR_EXIT_FRONTEND_ACCEPTANCE=active             timeout 150s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-practice-route.script"               >"$LOG" 2>&1
+          rm -f "$PRACTICE_RUN" "$PRACTICE_RUN.input" "$PRACTICE_RUN.urghost"
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_PRACTICE_ACCEPTANCE=1           UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT"           UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT"           UR_RUN_RECORD_CAPTURE_PATH="$PRACTICE_RUN"           UR_EXIT_FRONTEND_ACCEPTANCE=active             timeout 150s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-practice-route.script"               >"$LOG" 2>&1
 
           cat "$LOG"
           grep -q "UR_PRACTICE STARTED" "$LOG"
@@ -111,6 +113,9 @@ jobs:
           test -n "$START_DIGEST"
           test "$START_DIGEST" = "$RESTORE_DIGEST"
           ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          test ! -e "$PRACTICE_RUN"
+          test ! -e "$PRACTICE_RUN.input"
+          test ! -e "$PRACTICE_RUN.urghost"
 
       - name: Prove Authentic mode remains inert
         shell: bash

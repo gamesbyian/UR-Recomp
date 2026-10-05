@@ -263,11 +263,11 @@ Do this from the verified original UI state map, not from memory or generic mode
 - [x] Design a modern racer/profile model that separates save/profile storage from racer identity and supports create/name/customize. Shipping Windows Modern now has an independent profile catalog, exact classic rider presets, create/select/rename, controller preset creation/selection, isolated SRAM/run/ghost namespaces, stock rider-select projection, and the original forbidden-name table retained only as the accepted **"COOL NAME!"** Easter egg.
 - [x] Preserve every classic named/color racer as an exact preset. `analysis/generated/legacy-cast-presets.json` already closes the factual corpus for all 16 racers: identity, select slot, medal column and exact race palette, with byte-exact icon/palette checks. Whether any classic racer is additionally exposed as a Modern AI opponent, ghost persona or tournament cast member is a **product-design choice**, not an unanswered data question.
 - [x] Bronsen, Silvia and Goldwyn are established stock named opponents, with ANTI-UNI as the Hunter exception; rider indices, palette assets and medal-tier selection are sufficiently proven for preservation. No broader opponent survey is required before Modern progression/tournament design.
-- [ ] Choose and prototype a simplified Modern League/tournament path while keeping the original flow reproducible in Authentic mode. The remaining question is product policy, not stock-data discovery.
-- [ ] Choose the Modern medal/challenge policy (stock sequential tiers, highest-earned tier, selectable challenge tier, or another explicit rule). Existing stock threshold/progression semantics are sufficient to make this decision; do not commission more SRAM archaeology merely to postpone it.
-- [~] Add modern per-event/tour persistence unless evidence shows the original session constraint is mechanically meaningful. The new host-owned profile substrate can atomically persist an exact per-profile 8 KiB stock-SRAM mirror behind Modern-only capture/restore policy, with versioned migration and Authentic inertness. Stock keeps the in-progress tour in battery SRAM `0x1075` flags but wipes them at rider select, so a true resume still needs a host-owned continuation record above that mirror (R-2026-10-04-UI-20).
+- [ ] Implement the decided Modern Local Tournament flow while keeping stock League reproducible in Authentic mode: choose participants, event/track pool and format; default to round-robin/points play; persist an active tournament automatically; reuse original League standings as a presentation view.
+- [ ] Implement the decided Modern medal/challenge policy: the player selects Bronze/Silver/Gold challenge tier; canonical thresholds/opponents remain unchanged; completing a higher tier satisfies all lower tiers. Authentic mode preserves mandatory stock Bronze→Silver→Gold sequencing.
+- [~] Implement decided Modern tour resume. Persist the current tour, completed-event state and selected racer/profile through the host-owned profile substrate, expose Resume Tour and Restart Tour, and survive process exit/rider re-entry without changing stock guest semantics. Authentic mode retains stock unfinished-tour loss.
 - [ ] Replace destructive controller-chord administration with explicit confirmed actions in modern mode while preserving the original behavior for reference.
-- [ ] Build the unified records/statistics surface from the already-decoded stock rider stats, VS tally, top-3 track records and completed-run/PB data. Additional stock-memory discovery is not a prerequisite; collect more only when a specific desired statistic lacks an authoritative source.
+- [ ] Build the decided unified Records browser from the already-decoded stock rider stats, VS tally, top-3 track records and completed-run/PB data. Organize it around Tracks, Racers/Profiles, Runs/Replays and Multiplayer/Tournament; retain the original tables as Classic Tables/embedded views. Additional stock-memory discovery is not a prerequisite.
 - [x] Make basic controls/status self-explanatory in-game without exposing secrets or advanced discoveries that are intentionally hidden. First-run Help plus F1 reopen now explains movement, jump, landing and stunt-to-speed behavior from live control bindings while deliberately preserving cheats, gold-tour vignettes, Hunter rewards and other advanced discoveries.
 - [ ] Record each intentional modern behavior change as product policy and keep it distinct from fidelity fixes/regressions.
 
@@ -285,25 +285,25 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [~] Practice/free-play: Quick Practice now has a canonical 45-course catalog, progression-aware availability, renderer-neutral picker/input models and authoritative arbitrary-course stock-menu routing. The Windows product can select and launch permitted courses without direct race-state writes while isolating/restoring SRAM and suppressing normal profile/run persistence. Faster repeat-attempt/rematch ergonomics remain.
 - [x] Concise onboarding/help for fundamental controls, landing and stunt-to-speed behavior, with live keyboard/controller binding labels, first-run dismissal plus F1 reopen, and deliberate preservation of secrets/advanced discovery.
 - [ ] Accessibility/input presentation options that do not alter authoritative simulation, including remapping, vibration control, readable text support and reduced flashing where applicable.
-- [ ] Fast local multiplayer join/setup, rematch and track rotation without legacy League bureaucracy.
+- [ ] Implement fast local multiplayer with simultaneous independent join/racer selection, duplicate classic presets allowed when desired, and clear player/viewport identity. Add rematch and track rotation without stock League bureaucracy; Authentic keeps the sequential selector.
 - [ ] Authentic/raw-pixel plus modern/HD presentation presets, with optional CRT/NTSC-style display choices where useful.
-- [~] Fast navigation affordances: direct Quick Practice and course selection now exist from the Modern frontend. Recent-track, one-action rematch and next-event shortcuts remain.
+- [~] Fast navigation affordances: direct Quick Practice/course selection exist. Implement the decided post-result action set: Next Event, Retry, Track Select, Tour Select and Records, contextually emphasizing Next Event in Tour play and Retry in Practice; recent-track remains.
 - [ ] Localization-ready text/UI architecture.
-- [~] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase. Stock behavior is measured in `analysis/generated/attract-cycle.json`: a 503-frame MAIN_MENU idle timeout, then title, then a ~2190-frame split-screen demo race on a course that advances per cycle, returning via the title; Start exits early. The showcase hook design remains.
+- [~] Preserve the original attract/demo cycle as the default in Modern and Authentic. Stock behavior is measured in `analysis/generated/attract-cycle.json`. A future Local Showcase sourced from strong local runs may be offered only as an explicit optional attract mode, never as a silent replacement.
 - [ ] Keep content/data boundaries friendly to future custom courses, local challenge packs and visual packs without making those all launch requirements.
 
 ### Decide when subsystem maturity allows
 
-- [ ] Evaluate expanded racer cosmetics beyond name/color and exact classic presets.
-- [ ] Evaluate a full replay viewer with scrub/frame-step/camera/HUD controls.
-- [ ] Evaluate photo/capture tooling.
+- [~] Expanded racer cosmetics are post-baseline optional content. Do not make them a Windows launch dependency; exact classic presets plus profile/racer identity are sufficient.
+- [~] Full replay-viewer editing controls are deferred until actual replay usage justifies them. Replay launch and ghosts are sufficient for baseline; pause/seek/frame-step/HUD toggles may follow.
+- [~] Photo/capture tooling is deferred indefinitely unless player demand or an art-review workflow makes it product-relevant.
 - [ ] Evaluate richer local statistics/telemetry views.
-- [ ] Evaluate achievements/challenges centered on mastery and discovery rather than grind.
-- [ ] Evaluate section/checkpoint-based practice starts after the course/state model is safe enough.
-- [ ] Evaluate a simplified local tournament/bracket mode.
-- [ ] Decide final modern medal/progression policy after original thresholds/state are mapped.
-- [ ] Evaluate a modern attract/demo reel sourced from strong local runs.
-- [ ] Evaluate user-facing mod/content-pack affordances beyond planned custom-course tooling.
+- [~] Achievements/challenges are post-baseline optional content. If added, keep them local and mastery/discovery-oriented; never make them progression authority.
+- [~] Section/checkpoint-based practice starts are a preferred post-baseline mastery feature once a safe authoritative start-state contract exists; prioritize them ahead of achievements/photo tooling when capacity permits.
+- [x] Local Tournament policy is decided: round-robin/points league is the default Modern format; bracket variants are optional later extensions.
+- [x] Modern medal/progression policy is decided: selectable canonical challenge tier, with higher-tier completion satisfying lower tiers; Authentic retains stock sequential clears.
+- [~] Local Showcase is an optional future attract mode; preserve the stock attract cycle as default.
+- [~] User-facing mod/content-pack affordances remain post-baseline. Keep interfaces/content boundaries friendly to them, but do not build a mod ecosystem before the Windows product is complete.
 
 ### Network/hosted-service non-goals
 

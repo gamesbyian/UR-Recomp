@@ -54,6 +54,7 @@ extern "C" {
 #include <cstdio>
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 extern "C" void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);

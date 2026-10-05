@@ -2,14 +2,6 @@ name: Switch shared-core portability
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "native/product/**"
-      - "native/title/**"
-      - "analysis/switch-shared-core-contract.json"
-      - "tools/build_switch_shared_core_probe.py"
-      - "tests/unit/test_switch_shared_core_portability.py"
-      - ".github/workflows/switch-shared-core-portability.yml"
 
 permissions:
   contents: read

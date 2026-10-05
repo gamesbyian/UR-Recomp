@@ -78,6 +78,39 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"automatic workflows must cancel or serialize by ref: {offenders}",
         )
 
+    def test_coordination_docs_never_trigger_automatic_ci(self):
+        forbidden = {
+            "docs/WORK-QUEUE.md",
+            "docs/PROJECT-PLAN.md",
+            "docs/SEMANTIC-SUFFICIENCY.md",
+        }
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            pull_request = _block(text, "pull_request")
+            push = _block(text, "push")
+            automatic_paths = "\n".join((pull_request, push))
+            matched = sorted(item for item in forbidden if item in automatic_paths)
+            if matched:
+                offenders.append((path.name, matched))
+        self.assertEqual(
+            offenders,
+            [],
+            "coordination/planning docs are not executable inputs and must not "
+            f"fan out CI when agents update them: {offenders}",
+        )
+
+    def test_deferred_switch_shared_core_is_manual_only(self):
+        path = WORKFLOWS / "switch-shared-core-portability.yml"
+        text = path.read_text()
+        self.assertIn("  workflow_dispatch:", text)
+        self.assertFalse(
+            _block(text, "pull_request"),
+            "Switch is deferred while Windows x64 is primary; shared-core "
+            "portability must be explicitly dispatched rather than triggered "
+            "by every native/product or native/title edit",
+        )
+
     def test_main_push_allowlist_is_evidence_writing(self):
         for name in MAIN_PUSH_ALLOWLIST:
             path = WORKFLOWS / name

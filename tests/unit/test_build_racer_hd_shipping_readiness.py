@@ -32,7 +32,12 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
             ],
         }
 
-    def decisions(self, a="needs-refinement", c="approved"):
+    def decisions(
+        self,
+        a="needs-refinement",
+        c="approved",
+        family_blockers=None,
+    ):
         def row(source, status):
             return {
                 "authored_source_representation_id": source,
@@ -42,8 +47,16 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
                 "blocker_codes": ["coarse"] if status == "needs-refinement" else [],
             }
         return {
-            "review_basis": {"artifact_id": 1},
-            "family_blockers": [{"code": "coarse"}],
+            "family": "ordinary-racer",
+            "review_basis": {
+                "artifact_id": 1,
+                "temporal_window": [1, 2],
+            },
+            "family_blockers": (
+                [{"code": "coarse"}]
+                if family_blockers is None and a == "needs-refinement"
+                else (family_blockers or [])
+            ),
             "decisions": [row("a", a), row("c", c)],
         }
 
@@ -67,6 +80,37 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         )
         self.assertTrue(result["shipping_ready"])
         self.assertEqual(result["counts"]["approved"], 2)
+
+    def test_family_blocker_prevents_shipping_even_when_every_pose_is_approved(self):
+        result = build_shipping_readiness(
+            self.equivalence(),
+            self.decisions(
+                a="approved",
+                c="approved",
+                family_blockers=[{"code": "shared-structure"}],
+            ),
+        )
+        self.assertEqual(result["counts"]["approved"], 2)
+        self.assertEqual(result["family_blockers"], [{"code": "shared-structure"}])
+        self.assertFalse(result["shipping_ready"])
+
+    def test_approval_family_must_match_equivalence_family(self):
+        decisions = self.decisions()
+        decisions["family"] = "other-family"
+        with self.assertRaisesRegex(ValueError, "does not match equivalence family"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_approval_temporal_window_must_match_equivalence_window(self):
+        decisions = self.decisions()
+        decisions["review_basis"]["temporal_window"] = [1, 3]
+        with self.assertRaisesRegex(ValueError, "does not match equivalence window"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_missing_approval_temporal_window_fails_closed(self):
+        decisions = self.decisions()
+        del decisions["review_basis"]["temporal_window"]
+        with self.assertRaisesRegex(ValueError, "does not match equivalence window"):
+            build_shipping_readiness(self.equivalence(), decisions)
 
     def test_unreviewed_pose_prevents_shipping(self):
         decisions = self.decisions()

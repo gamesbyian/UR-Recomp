@@ -40,6 +40,8 @@ public:
     static constexpr std::uint64_t input_timeout_ms = 1500;
 
     RegionalPresentation current() const noexcept { return current_; }
+    bool text_pending() const noexcept { return text_size_ != 0; }
+    bool controller_pending() const noexcept { return controller_size_ != 0; }
     void set_current(RegionalPresentation presentation) noexcept {
         current_ = presentation;
         reset();

@@ -55,6 +55,7 @@ static void prove_all_tracks_reach_race() {
                     break;
                 case QuickPracticeLaunchStage::AwaitRace:
                     observation.in_race = true;
+                    observation.active_track_id = track;
                     break;
                 default:
                     break;
@@ -128,7 +129,8 @@ int main() {
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitRace);
 
-    step = advance_quick_practice_launch(step.state, {0x00, 0, true});
+    step = advance_quick_practice_launch(
+        step.state, {0x00, 0, true, target.track_id});
     assert(step.input == QuickPracticeLaunchInput::None);
     assert(step.state.stage == QuickPracticeLaunchStage::Active);
     assert(step.race_ready);
@@ -136,9 +138,23 @@ int main() {
     // Active-race detection is authoritative even if an intermediate frontend
     // state was too brief to sample.
     state = begin_quick_practice_launch(quick_practice_target_for_track(0));
-    step = advance_quick_practice_launch(state, {0x00, 0, true});
+    step = advance_quick_practice_launch(state, {0x00, 0, true, -1});
+    assert(step.state.stage == QuickPracticeLaunchStage::AwaitMain);
+    assert(!step.race_ready);
+    assert(!step.course_mismatch);
+
+    // Once authoritative identity arrives, the exact requested course closes
+    // the route, while a different valid course fails closed.
+    step = advance_quick_practice_launch(state, {0x00, 0, true, 0});
     assert(step.state.stage == QuickPracticeLaunchStage::Active);
     assert(step.race_ready);
+    assert(!step.course_mismatch);
+
+    state = begin_quick_practice_launch(quick_practice_target_for_track(0));
+    step = advance_quick_practice_launch(state, {0x00, 0, true, 1});
+    assert(step.state.stage == QuickPracticeLaunchStage::Idle);
+    assert(!step.race_ready);
+    assert(step.course_mismatch);
 
     // Invalid targets fail closed.
     state = begin_quick_practice_launch({});

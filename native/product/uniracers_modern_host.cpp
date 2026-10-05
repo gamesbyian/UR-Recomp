@@ -1825,7 +1825,53 @@ void cancel_tour_continue(const char* diagnostic) {
 }
 
 bool begin_tour_continue() {
-    if (!tour_continue_available()) return false;
+    if (!tour_continue_available()) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            const bool has_profile = g_profile_state.has_value();
+            const bool has_continuation =
+                has_profile && g_profile_state->tour_continuation.has_value();
+            const bool has_snapshot =
+                has_profile && g_profile_state->stock_sram.has_value();
+            bool persisted_source_ok = false;
+            bool live_source_ok = false;
+            if (has_continuation && has_snapshot &&
+                ur::product::valid_tour_continuation(
+                    *g_profile_state->tour_continuation)) {
+                const auto continuation =
+                    title_continuation(*g_profile_state->tour_continuation);
+                persisted_source_ok =
+                    ur::title::tour_resume_source_matches_sram(
+                        continuation,
+                        g_profile_state->stock_sram->data(),
+                        g_profile_state->stock_sram->size());
+                if (g_sram &&
+                    g_sram_size ==
+                        static_cast<int>(ur::product::kStockSramBytes)) {
+                    live_source_ok =
+                        ur::title::tour_resume_source_matches_sram(
+                            continuation,
+                            g_sram,
+                            static_cast<std::size_t>(g_sram_size));
+                }
+            }
+            std::fprintf(
+                stderr,
+                "UR_TOUR_CONTINUE REJECTED modern=%d practice=%d paused=%d menu=%02X race=%u profile=%d writable=%d continuation=%d snapshot=%d persisted_source=%d live_source=%d\n",
+                modern_mode() ? 1 : 0,
+                g_practice_active ? 1 : 0,
+                paused() ? 1 : 0,
+                g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u,
+                g_ram ? static_cast<unsigned>(g_ram[0x0313]) : 0u,
+                has_profile ? 1 : 0,
+                g_profile_state_writable ? 1 : 0,
+                has_continuation ? 1 : 0,
+                has_snapshot ? 1 : 0,
+                persisted_source_ok ? 1 : 0,
+                live_source_ok ? 1 : 0);
+            std::fflush(stderr);
+        }
+        return false;
+    }
 
     const auto& continuation = *g_profile_state->tour_continuation;
     g_tour_continue =

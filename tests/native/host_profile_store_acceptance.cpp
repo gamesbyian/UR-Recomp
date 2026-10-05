@@ -50,6 +50,7 @@ void load_case(const std::string& path) {
     const auto loaded = load_host_profile_state_file(
         ExecutionMode::Modern, path, "profile.alpha");
     assert(loaded.loaded());
+    assert(host_profile_resolve_writable(HostProfileResolveStatus::Loaded));
     assert(loaded.state->autosave_generation == 1);
     assert(loaded.state->ghost_target == CompletedRunGhostTarget::PersonalBest);
 
@@ -80,6 +81,7 @@ void legacy_host_default_case(const std::string& path) {
         *legacy_host.state->active_profile_id);
     assert(resolved);
     assert(resolved.status == HostProfileResolveStatus::DefaultedMissing);
+    assert(!host_profile_resolve_writable(resolved.status));
     assert(resolved.state->profile_id == "profile.alpha");
     assert(resolved.state->autosave_generation == 0);
     assert(!resolved.state->stock_sram);
@@ -100,6 +102,7 @@ void malformed_case(const std::string& path) {
         ExecutionMode::Modern, path, "profile.alpha");
     assert(resolved);
     assert(resolved.status == HostProfileResolveStatus::DefaultedMalformed);
+    assert(!host_profile_resolve_writable(resolved.status));
     assert(resolved.state->profile_id == "profile.alpha");
     assert(resolved.state->autosave_generation == 0);
     assert(!resolved.state->stock_sram);
@@ -114,6 +117,8 @@ void authentic_case(const std::string& path) {
         ExecutionMode::Authentic, path, "profile.alpha");
     assert(!resolved);
     assert(resolved.status == HostProfileResolveStatus::RejectedByPolicy);
+    assert(!host_profile_resolve_writable(resolved.status));
+    assert(!host_profile_resolve_writable(HostProfileResolveStatus::IoError));
 
     HostProfileState state;
     state.profile_id = "profile.alpha";

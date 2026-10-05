@@ -2998,7 +2998,11 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
     if (modern_mode() && button == kGamepadBtn_X && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
-        return begin_practice() ? 1 : 0;
+        // This is a product-owned navigation button on the settled Modern
+        // frontend. Consume it even when Practice safely refuses to launch so
+        // the same physical edge cannot leak into the stock guest controller.
+        (void)begin_practice();
+        return 1;
     }
     if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {

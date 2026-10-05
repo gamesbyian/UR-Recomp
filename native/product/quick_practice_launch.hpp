@@ -36,6 +36,7 @@ struct QuickPracticeLaunchObservation {
 };
 
 constexpr std::uint16_t kQuickPracticeMenuSettleObservations = 60;
+constexpr std::uint32_t kQuickPracticeLaunchMaxObservations = 3600;
 
 struct QuickPracticeLaunchState {
     QuickPracticeLaunchStage stage = QuickPracticeLaunchStage::Idle;
@@ -44,6 +45,7 @@ struct QuickPracticeLaunchState {
     std::uint8_t selection_before_input = 0;
     bool menu_settled = false;
     std::uint16_t menu_settle_observations = 0;
+    std::uint32_t observations_remaining = 0;
 };
 
 struct QuickPracticeLaunchStep {
@@ -52,6 +54,7 @@ struct QuickPracticeLaunchStep {
     bool race_ready = false;
     bool course_mismatch = false;
     bool route_violation = false;
+    bool timed_out = false;
 };
 
 constexpr bool quick_practice_launch_owns_player_input(
@@ -82,6 +85,7 @@ constexpr QuickPracticeLaunchState begin_quick_practice_launch(
     if (!target.valid) return state;
     state.stage = QuickPracticeLaunchStage::AwaitMain;
     state.target = target;
+    state.observations_remaining = kQuickPracticeLaunchMaxObservations;
     return state;
 }
 
@@ -93,6 +97,14 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     out.state = state;
 
     if (state.stage == QuickPracticeLaunchStage::Idle) return out;
+    if (state.stage != QuickPracticeLaunchStage::Active) {
+        if (state.observations_remaining == 0) {
+            out.state = {};
+            out.timed_out = true;
+            return out;
+        }
+        --out.state.observations_remaining;
+    }
 
     if (observation.in_race) {
         // A target-aware launch must reach race state only after the router has

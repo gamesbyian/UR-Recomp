@@ -12,6 +12,7 @@ extern "C" {
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
+#include "quick_practice_catalog.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_modern_host.h"
 #include "uniracers_restart_policy.h"
@@ -37,6 +38,22 @@ bool g_one_player_context;
 std::uint64_t g_last_host_frame;
 unsigned g_browser_acceptance_active_frames;
 bool g_browser_acceptance_fired;
+
+std::string records_course_label(const std::string& course_id) {
+    if (course_id.size() == 9 &&
+        course_id.compare(0, 7, "course:") == 0 &&
+        course_id[7] >= '0' && course_id[7] <= '9' &&
+        course_id[8] >= '0' && course_id[8] <= '9') {
+        const int course_index =
+            (course_id[7] - '0') * 10 + (course_id[8] - '0');
+        if (course_index >= 1 && course_index <= 45) {
+            const auto* course = ur::product::quick_practice_course(
+                static_cast<std::uint8_t>(course_index - 1));
+            if (course) return std::string(course->name);
+        }
+    }
+    return course_id;
+}
 
 bool modern_mode() {
     const char* mode = std::getenv("UR_EXECUTION_MODE");
@@ -497,17 +514,15 @@ void draw_records_browser(
             const std::size_t index = first + static_cast<std::size_t>(row);
             if (index >= g_records_browser.index().courses.size()) break;
             const auto& course = g_records_browser.index().courses[index];
-            const std::string short_course =
-                course.course_id.rfind("course:", 0) == 0
-                    ? "C" + course.course_id.substr(7)
-                    : course.course_id;
+            const std::string course_label =
+                records_course_label(course.course_id);
             char line[96];
             std::snprintf(
-                line, sizeof(line), "%c %-4s %2zu  PB %s",
+                line, sizeof(line), "%c %-13s %2zu PB %s",
                 g_records_browser.selected_course_index() &&
                         *g_records_browser.selected_course_index() == index
                     ? '>' : ' ',
-                short_course.c_str(),
+                course_label.c_str(),
                 course.statistics.completed_runs,
                 course.statistics.personal_best_text.c_str());
             snes_ovl_draw_text(
@@ -529,13 +544,11 @@ void draw_records_browser(
             "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
     } else {
         const auto* course = g_records_browser.selected_course();
-        const std::string short_course =
-            course && course->course_id.rfind("course:", 0) == 0
-                ? "C" + course->course_id.substr(7)
-                : (course ? course->course_id : "--");
+        const std::string course_label =
+            course ? records_course_label(course->course_id) : "--";
         char title[64];
         std::snprintf(
-            title, sizeof(title), "RECORDS / %s", short_course.c_str());
+            title, sizeof(title), "RECORDS / %s", course_label.c_str());
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);

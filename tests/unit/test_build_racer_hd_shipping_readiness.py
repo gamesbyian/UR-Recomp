@@ -49,8 +49,10 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         return {
             "family": "ordinary-racer",
             "review_basis": {
+                "workflow_run": 1,
                 "artifact_id": 1,
                 "temporal_window": [1, 2],
+                "review_surface": "review/index.html",
             },
             "family_blockers": (
                 [{"code": "coarse"}]
@@ -111,6 +113,26 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         del decisions["review_basis"]["temporal_window"]
         with self.assertRaisesRegex(ValueError, "does not match equivalence window"):
             build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_review_basis_requires_workflow_run_artifact_and_surface(self):
+        for field, expected in (
+            ("workflow_run", "positive workflow_run"),
+            ("artifact_id", "positive artifact_id"),
+            ("review_surface", "review_surface"),
+        ):
+            decisions = self.decisions()
+            del decisions["review_basis"][field]
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, expected):
+                    build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_review_basis_ids_must_be_positive_integers(self):
+        for field in ("workflow_run", "artifact_id"):
+            decisions = self.decisions()
+            decisions["review_basis"][field] = 0
+            with self.subTest(field=field):
+                with self.assertRaisesRegex(ValueError, f"positive {field}"):
+                    build_shipping_readiness(self.equivalence(), decisions)
 
     def test_unreviewed_pose_prevents_shipping(self):
         decisions = self.decisions()

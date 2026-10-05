@@ -1,0 +1,124 @@
+name: Quick Practice track selection probe
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "tests/input/quick-practice-*.script"
+      - ".github/workflows/quick-practice-track-selection.yml"
+
+concurrency:
+  group: quick-practice-track-selection-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Build native product
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-quick-practice-track-probe"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/widescreen-product-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Prove Crawler track-list cursor contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-quick-practice-track-probe/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/crawler-slot5.log"
+
+          SDL_AUDIODRIVER=dummy UR_EXECUTION_MODE=authentic \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/quick-practice-crawler-slot5.script" \
+              >"$LOG" 2>&1
+          cat "$LOG"
+          grep -q "dump qp-crawler-track0 ok" "$LOG"
+          grep -q "dump qp-crawler-track1 ok" "$LOG"
+          grep -q "dump qp-crawler-track2 ok" "$LOG"
+          grep -q "dump qp-crawler-track3 ok" "$LOG"
+          grep -q "dump qp-crawler-track4 ok" "$LOG"
+          grep -q "dump qp-crawler-slot5-now-playing ok" "$LOG"
+
+      - name: Prove cross-tour plus track selection
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-quick-practice-track-probe/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/shuffler-slot3.log"
+
+          SDL_AUDIODRIVER=dummy UR_EXECUTION_MODE=authentic \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/quick-practice-shuffler-slot3.script" \
+              >"$LOG" 2>&1
+          cat "$LOG"
+          grep -q "dump qp-shuffler-tour ok" "$LOG"
+          grep -q "dump qp-shuffler-track2 ok" "$LOG"
+          grep -q "dump qp-shuffler-slot3-now-playing ok" "$LOG"
+
+      - name: Upload probe logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quick-practice-track-selection
+          path: |
+            ${{ runner.temp }}/crawler-slot5.log
+            ${{ runner.temp }}/shuffler-slot3.log
+          if-no-files-found: warn
+          retention-days: 7

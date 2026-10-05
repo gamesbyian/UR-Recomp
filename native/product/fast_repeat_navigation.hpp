@@ -22,6 +22,7 @@ struct FastNavigationContext {
     bool settled_main_menu = false;
     bool practice_active = false;
     bool recent_course_valid = false;
+    bool recent_course_profile_matches = false;
 };
 
 constexpr FastNavigationAction resolve_fast_navigation(
@@ -37,7 +38,8 @@ constexpr FastNavigationAction resolve_fast_navigation(
             : FastNavigationAction::None;
     case FastNavigationCommand::RecentCourse:
         return context.settled_main_menu && !context.practice_active &&
-                context.recent_course_valid
+                context.recent_course_valid &&
+                context.recent_course_profile_matches
             ? FastNavigationAction::LaunchRecentPractice
             : FastNavigationAction::None;
     }

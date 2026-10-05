@@ -78,7 +78,9 @@ press right 24
 press right+b 24
 press right 24
 
-until 009F == 99 600
+dump practice-repeat-terminal
+until 009F == 99 12000
+wait 30
 dump practice-repeat-results
 # The workflow presses R only after this dump exists.
 until 0313 == 01 1800

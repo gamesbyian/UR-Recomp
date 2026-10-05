@@ -566,6 +566,10 @@ jobs:
           if medal != 0:
               raise SystemExit(f"clean fixture medal is not zero: {medal}")
           flags = bytes((1, 1, 0, 0, 0))
+          # The continuation source contract includes stock one-player tour
+          # mode and rider identity as well as the medal generation/flags.
+          sram[0x10AD] = 1
+          sram[0x0748] = rider
           sram[0x1075:0x107A] = flags
           sram_path.write_bytes(sram)
           profile_path.write_text(

@@ -25,6 +25,13 @@ constexpr bool valid_stock_medal_value(std::uint8_t value) noexcept {
     return value <= static_cast<std::uint8_t>(ModernChallengeTier::Gold);
 }
 
+constexpr bool valid_modern_challenge_tier(
+    ModernChallengeTier tier) noexcept {
+    const auto value = static_cast<std::uint8_t>(tier);
+    return value >= static_cast<std::uint8_t>(ModernChallengeTier::Bronze) &&
+           value <= static_cast<std::uint8_t>(ModernChallengeTier::Gold);
+}
+
 constexpr std::uint8_t challenge_tier_medal_value(
     ModernChallengeTier tier) noexcept {
     return static_cast<std::uint8_t>(tier);
@@ -46,18 +53,18 @@ constexpr bool modern_challenge_tier_selectable(
     bool tour_available,
     ModernChallengeTier requested,
     bool hunter_tour = false) noexcept {
-    const auto value = challenge_tier_medal_value(requested);
     if (mode != ExecutionMode::Modern || !tour_available ||
-        value < challenge_tier_medal_value(ModernChallengeTier::Bronze) ||
-        value > challenge_tier_medal_value(ModernChallengeTier::Gold)) {
+        !valid_modern_challenge_tier(requested)) {
         return false;
     }
     return !hunter_tour || requested == ModernChallengeTier::Gold;
 }
 
-constexpr CanonicalChallengeOpponent canonical_challenge_opponent(
+constexpr std::optional<CanonicalChallengeOpponent>
+canonical_challenge_opponent(
     ModernChallengeTier tier,
     bool hunter_tour) noexcept {
+    if (!valid_modern_challenge_tier(tier)) return std::nullopt;
     if (hunter_tour) return CanonicalChallengeOpponent::AntiUni;
     switch (tier) {
     case ModernChallengeTier::Bronze:
@@ -67,7 +74,7 @@ constexpr CanonicalChallengeOpponent canonical_challenge_opponent(
     case ModernChallengeTier::Gold:
         return CanonicalChallengeOpponent::Goldwyn;
     }
-    return CanonicalChallengeOpponent::Bronsen;
+    return std::nullopt;
 }
 
 struct ModernChallengeCompletion {
@@ -88,6 +95,7 @@ constexpr ModernChallengeCompletion modern_challenge_completion(
     };
     if (mode != ExecutionMode::Modern ||
         !valid_stock_medal_value(current_medal) ||
+        !valid_modern_challenge_tier(selected) ||
         !challenge_completed) {
         return out;
     }

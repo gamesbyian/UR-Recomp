@@ -601,5 +601,51 @@ int main() {
             *registration, kRacerHdAssetSize, 0, false, false
         ) == 0
     );
+    RacerCompositionState frequency_0544_0578_context{
+        0x0544, 0x0578, 0x0000, 0x0D63, 0, 0, 0x0000, 0x0001
+    };
+    const auto* frequency_p1 =
+        find_racer_registration_for_state(0x0544, frequency_0544_0578_context, 1);
+    const auto* frequency_p2 =
+        find_racer_registration_for_state(0x0578, frequency_0544_0578_context, 2);
+    assert(frequency_p1 != nullptr);
+    assert(frequency_p2 != nullptr);
+    assert(is_authored_frequency_0544_p1_0578_registration(*frequency_p1));
+    assert(is_authored_frequency_0578_p2_0544_registration(*frequency_p2));
+
+    for (const auto* target : {frequency_p1, frequency_p2}) {
+        int min_lx = kRacerHdLogicalSize;
+        int min_ly = kRacerHdLogicalSize;
+        int max_lx = -1;
+        int max_ly = -1;
+        int bottom_min_lx = kRacerHdLogicalSize;
+        int bottom_max_lx = -1;
+        for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+            for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+                const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+                const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+                if (sample_racer_hd_asset(*target, sx, sy, false, false) == 0) continue;
+                if (lx < min_lx) min_lx = lx;
+                if (ly < min_ly) min_ly = ly;
+                if (lx > max_lx) max_lx = lx;
+                if (ly > max_ly) max_ly = ly;
+            }
+        }
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = max_ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*target, sx, sy, false, false) == 0) continue;
+            if (lx < bottom_min_lx) bottom_min_lx = lx;
+            if (lx > bottom_max_lx) bottom_max_lx = lx;
+        }
+        if (target == frequency_p1) {
+            assert(min_lx == 19 && min_ly == 5 && max_lx == 41 && max_ly == 38);
+            assert(bottom_min_lx + bottom_max_lx == 55);
+        } else {
+            assert(min_lx == 17 && min_ly == 5 && max_lx == 47 && max_ly == 36);
+            assert(bottom_min_lx + bottom_max_lx == 77);
+        }
+    }
+
     return 0;
 }

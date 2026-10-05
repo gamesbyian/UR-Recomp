@@ -30,6 +30,7 @@ extern "C" {
 #include "modern_tour_continue.hpp"
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
+#include "quick_practice_launch.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"

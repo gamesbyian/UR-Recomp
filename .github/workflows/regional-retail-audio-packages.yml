@@ -1,0 +1,43 @@
+name: Regional retail audio package comparison
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Unirally_Europe.sfc"
+      - "tools/compare_regional_audio_packages.py"
+      - "tools/inspect_audio_block_pool.py"
+      - "tests/unit/test_compare_regional_audio_packages.py"
+      - ".github/workflows/regional-retail-audio-packages.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify regional audio comparison contract
+        run: python3 -m unittest tests.unit.test_compare_regional_audio_packages
+
+      - name: Generate regional audio package comparison
+        run: |
+          mkdir -p analysis/out/regional-audio
+          python3 tools/compare_regional_audio_packages.py \
+            --usa-rom reference/roms/retail/Uniracers_USA.sfc \
+            --europe-rom reference/roms/retail/Unirally_Europe.sfc \
+            --json-out analysis/out/regional-audio/audio-package-comparison.json \
+            --md-out analysis/out/regional-audio/audio-package-comparison.md
+          cat analysis/out/regional-audio/audio-package-comparison.md
+
+      - name: Upload regional audio evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: regional-retail-audio-packages
+          path: analysis/out/regional-audio/
+          if-no-files-found: error
+          retention-days: 14

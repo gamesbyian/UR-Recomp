@@ -89,6 +89,38 @@ int main() {
     assert(finish_panel.comparison_available);
     assert(finish_panel.comparison_text == "+0:00.12/60");
 
+    auto current = record;
+    current.elapsed_ticks60 = 1725;
+    current.splits = {
+        {"checkpoint-1", 844},
+        {"finish", 1725},
+    };
+    const auto split_table = present_run_split_table(
+        current, record, RunDataTargetKind::PersonalBest);
+    assert(split_table);
+    assert(split_table->target_label == "PB");
+    assert(split_table->rows.size() == 2);
+    assert(split_table->rows[0].id == "checkpoint-1");
+    assert(split_table->rows[0].current_text == "0:14.04/60");
+    assert(split_table->rows[0].target_text == "0:14.10/60");
+    assert(split_table->rows[0].delta_text == "-0:00.06/60");
+    assert(split_table->rows[1].id == "finish");
+    assert(split_table->rows[1].delta_text == "+0:00.12/60");
+
+    auto incompatible_table_target = record;
+    incompatible_table_target.provenance.course_id = "course:02";
+    assert(!present_run_split_table(
+        current,
+        incompatible_table_target,
+        RunDataTargetKind::PersonalBest));
+
+    auto mismatched_split_target = record;
+    mismatched_split_target.splits[0].id = "other";
+    assert(!present_run_split_table(
+        current,
+        mismatched_split_target,
+        RunDataTargetKind::PersonalBest));
+
     const auto no_pb_panel = present_run_timing_panel(
         844, nullptr, RunTimingPresentationPoint::Live);
     assert(!no_pb_panel.target_available);

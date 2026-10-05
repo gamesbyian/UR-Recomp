@@ -28,6 +28,8 @@ The last exact checkpoint delta is retained as host presentation state until ano
 
 `completed_run_presentation.*` owns the reusable player-facing model so the later Records/statistics browser can consume the same exact formatting and delta semantics instead of cloning HUD logic.
 
+Native acceptance binds the live HUD to the same authoritative WRAM timer digits used by the title adapter, verifies Authentic execution emits no timing HUD in the same race route, and reuses the established ordinary-2P race route to prove unsupported contexts remain inert. Focused C++ presentation tests independently cover no-PB, malformed-target, split/finish delta and availability-gate behavior.
+
 ## Format evolution and failure policy
 
 Schema v1 is strict and self-identifying. Unknown fields, malformed values, duplicate required fields, overlapping inputs and checksum damage fail closed. A valid but unsupported future schema reports UnsupportedVersion. A valid record whose game/ROM/build/course/mode provenance does not match the playback target reports Incompatible.

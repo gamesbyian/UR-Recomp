@@ -12,6 +12,7 @@ namespace {
 constexpr std::string_view kHeaderV1 = "UR-HOST-PROFILE/1";
 constexpr std::string_view kHeaderV2 = "UR-HOST-PROFILE/2";
 constexpr std::string_view kHeaderV3 = "UR-HOST-PROFILE/3";
+constexpr std::string_view kHeaderV4 = "UR-HOST-PROFILE/4";
 
 int hex_value(char ch) noexcept {
     if (ch >= '0' && ch <= '9') return ch - '0';
@@ -177,7 +178,7 @@ std::string encode_host_profile_state(const HostProfileState& state) {
     const auto ghost_target = encode_ghost_target(state.ghost_target);
     if (ghost_target.empty()) return {};
 
-    out << kHeaderV3 << '\n';
+    out << kHeaderV4 << '\n';
     out << "profile=" << state.profile_id << '\n';
     out << "generation=" << state.autosave_generation << '\n';
     out << "stock_sram=";
@@ -186,6 +187,17 @@ std::string encode_host_profile_state(const HostProfileState& state) {
     out << "tour_resume=" << encode_tour_continuation(state.tour_continuation)
         << '\n';
     out << "ghost_target=" << ghost_target << '\n';
+    out << "racer_name=";
+    if (state.racer_identity) {
+        if (!valid_racer_identity(*state.racer_identity)) return {};
+        out << state.racer_identity->name;
+    }
+    out << '\n';
+    out << "racer_index=";
+    if (state.racer_identity) {
+        out << static_cast<unsigned>(state.racer_identity->rider_index);
+    }
+    out << '\n';
     return out.str();
 }
 
@@ -197,8 +209,9 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
     }
     const bool legacy_v1 = line == kHeaderV1;
     const bool legacy_v2 = line == kHeaderV2;
-    const bool current_v3 = line == kHeaderV3;
-    if (!legacy_v1 && !legacy_v2 && !current_v3) {
+    const bool legacy_v3 = line == kHeaderV3;
+    const bool current_v4 = line == kHeaderV4;
+    if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !current_v4) {
         return {std::nullopt, false, "unsupported or missing profile-state header"};
     }
 
@@ -217,13 +230,15 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
     }
 
     const std::size_t expected =
-        legacy_v1 ? 3u : (legacy_v2 ? 4u : 5u);
+        legacy_v1 ? 3u : (legacy_v2 ? 4u : (legacy_v3 ? 5u : 7u));
     if (fields.size() != expected ||
         fields.find("profile") == fields.end() ||
         fields.find("generation") == fields.end() ||
         fields.find("stock_sram") == fields.end() ||
         (!legacy_v1 && fields.find("tour_resume") == fields.end()) ||
-        (current_v3 && fields.find("ghost_target") == fields.end())) {
+        ((legacy_v3 || current_v4) && fields.find("ghost_target") == fields.end()) ||
+        (current_v4 && (fields.find("racer_name") == fields.end() ||
+                        fields.find("racer_index") == fields.end()))) {
         return {std::nullopt, false, "unexpected profile-state field set"};
     }
 
@@ -243,15 +258,33 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
             fields["tour_resume"], state->tour_continuation)) {
         return {std::nullopt, false, "invalid tour continuation"};
     }
-    if (current_v3) {
+    if (legacy_v3 || current_v4) {
         const auto ghost_target = decode_ghost_target(fields["ghost_target"]);
         if (!ghost_target) {
             return {std::nullopt, false, "invalid ghost target"};
         }
         state->ghost_target = *ghost_target;
     }
+    if (current_v4) {
+        const std::string& racer_name = fields["racer_name"];
+        const std::string& racer_index = fields["racer_index"];
+        if (racer_name.empty() != racer_index.empty()) {
+            return {std::nullopt, false, "incomplete racer identity"};
+        }
+        if (!racer_name.empty()) {
+            std::uint8_t index = 0;
+            if (!parse_unsigned(racer_index, index)) {
+                return {std::nullopt, false, "invalid racer index"};
+            }
+            HostRacerIdentity identity{racer_name, index};
+            if (!valid_racer_identity(identity)) {
+                return {std::nullopt, false, "invalid racer identity"};
+            }
+            state->racer_identity = std::move(identity);
+        }
+    }
 
-    return {state, legacy_v1 || legacy_v2, {}};
+    return {state, legacy_v1 || legacy_v2 || legacy_v3, {}};
 }
 
 HostProfileTransferStatus capture_stock_sram_for_profile(

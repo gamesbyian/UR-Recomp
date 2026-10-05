@@ -1,0 +1,47 @@
+# Product-enabling probe for direct Quick Practice track selection.
+# Drive only ordinary stock menu input. Never write guest state.
+
+until 009F == D7 3600
+wait 60
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+until 009B == 00 300
+press a 2
+
+until 009F == F6 1200
+wait 60
+until 009B == 00 300
+dump qp-crawler-track0
+
+press down 2
+until 009B == 01 600
+wait 20
+dump qp-crawler-track1
+
+press down 2
+until 009B == 02 600
+wait 20
+dump qp-crawler-track2
+
+press down 2
+until 009B == 03 600
+wait 20
+dump qp-crawler-track3
+
+press down 2
+until 009B == 04 600
+wait 20
+dump qp-crawler-track4
+press a 2
+
+until 009F == 16 1200
+wait 60
+until 00CE == 04 300
+dump qp-crawler-slot5-now-playing
+quit

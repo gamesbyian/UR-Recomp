@@ -2642,6 +2642,1226 @@
         },
         "refinement_basis": "1244-1252 reviewed cross-player geometry transposition; retain the approved opposite-player silhouette and neutral materials exactly while swapping only the established red/blue frame material"
       }
+    },
+    {
+      "semantic_frame_id": "0x0540",
+      "representation_id": "ordinary-racer-0x0540-p1-fourth-family-entry-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x0540",
+        "p2_primary": "0x057F",
+        "p1_companion": "0x0D0C",
+        "p2_companion": "0x0D2A",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            63,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p1_predecessor",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Use the reviewed red 0540 construction for the 1230/1238 P1 0540+0D0C pose; the family-local review compares it against this exact companion-context stock raster.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "same envelope/contact and near-identical stock silhouette to approved P1 0540+0D2C; no claim of byte-identical stock geometry",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x057F",
+      "representation_id": "ordinary-racer-0x057F-p2-fourth-family-entry-0D2A-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x0540",
+        "p2_primary": "0x057F",
+        "p1_companion": "0x0D0C",
+        "p2_companion": "0x0D2A",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            65,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057fd2a_p2_fourth_family",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighteenth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1230/1238 P2 057F+0D2A pose as the blue-player counterpart of the reviewed 057F bridge construction, retaining neutral materials and envelope/contact.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "approved 057F bridge art transposed to blue; exact 0D2A stock is independently reviewed",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            65,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 321,
+          "alpha_intersection_pixels": 259,
+          "alpha_union_pixels": 384,
+          "alpha_iou": 0.6744791666666666
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x0540",
+      "representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x0540",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D0C",
+        "p2_companion": "0x0D0C",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            63,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p1_predecessor",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Reuse the exact same authored red P1 pose across the seven-frame 0540+0D0C hold, matching the stock entry/hold RGBA identity.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P1",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x0540",
+      "representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x0540",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D0C",
+        "p2_companion": "0x0D0C",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            63,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540d0c_p2_fourth_family",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventeenth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the synchronized seven-frame P2 0540+0D0C hold as the blue counterpart of the reviewed P1 0540 construction.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "stock alpha mask is byte-identical to fourth-family P1 hold geometry; authored neutral materials are preserved while frame palette is transposed",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x0541",
+      "representation_id": "ordinary-racer-0x0541-p1-fourth-family-exit-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x0541",
+        "p2_primary": "0x057F",
+        "p1_companion": "0x0D0D",
+        "p2_companion": "0x0D2A",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            61,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed raster"
+        },
+        "native_draw_status": "ready through the accepted host draw-frame seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Reuse the shipping-approved P1 0541+0D0D authored pose at frame 1239; stock RGBA is byte-identical to the approved canonical P1 pose.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "exact stock RGBA identity proven in fourth-family measurement",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
+          "stock_opaque_pixels": 324,
+          "candidate_opaque_pixels": 271,
+          "alpha_intersection_pixels": 238,
+          "alpha_union_pixels": 357,
+          "alpha_iou": 0.6666666666666666
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x057F",
+      "representation_id": "ordinary-racer-0x057F-p2-fourth-family-exit-0D2A-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x0541",
+        "p2_primary": "0x057F",
+        "p1_companion": "0x0D0D",
+        "p2_companion": "0x0D2A",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            65,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057fd2a_p2_fourth_family",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighteenth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Reuse the same blue P2 057F+0D2A authored pose at frame 1239; stock RGBA is byte-identical to the 1230/1238 P2 entry pose.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
+        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P2",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            65,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 321,
+          "alpha_intersection_pixels": 259,
+          "alpha_union_pixels": 384,
+          "alpha_iou": 0.6744791666666666
+        }
+      }
+    },
+    {
+      "semantic_frame_id": "0x057E",
+      "representation_id": "ordinary-racer-0x057E-p1-fifth-family-0542-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x057E",
+        "p2_primary": "0x0542",
+        "p1_companion": "0x0D49",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            67,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057e_p1_with_p2_0543",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x057E P1 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P1 057E+0D49 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x0542",
+      "representation_id": "ordinary-racer-0x0542-p2-fifth-family-057E-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x057E",
+        "p2_primary": "0x0542",
+        "p1_companion": "0x0D49",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            59,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0542_p2",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x0542 P2 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P2 0542 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x057D",
+      "representation_id": "ordinary-racer-0x057D-p1-fifth-family-0541-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x057D",
+        "p2_primary": "0x0541",
+        "p1_companion": "0x0D48",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            69,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057d_p1_with_p2_0543",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x057D P1 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P1 057D+0D48 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x0541",
+      "representation_id": "ordinary-racer-0x0541-p2-fifth-family-057D-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x057D",
+        "p2_primary": "0x0541",
+        "p1_companion": "0x0D48",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            61,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p2_predecessor",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x0541 P2 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P2 0541 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x057D",
+      "representation_id": "ordinary-racer-0x057D-p1-fifth-family-0540-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x057D",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D48",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            69,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057d_p1_with_p2_0543",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x057D P1 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P1 057D+0D48 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x0540",
+      "representation_id": "ordinary-racer-0x0540-p2-fifth-family-057D-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x057D",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D48",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            63,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p2_baseline",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x0540 P2 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P2 0540 pose"
+      }
+    },
+    {
+      "semantic_frame_id": "0x057C",
+      "representation_id": "ordinary-racer-0x057C-p1-fifth-family-0540-reference",
+      "player": "p1",
+      "composition_guards": {
+        "p1_primary": "0x057C",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D47",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            71,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057c_p1_fifth_family",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_nineteenth_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x057C P1 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "new fifth-family authored pose continuing the reviewed 057E->057D motion strip; independently reviewed against exact 057C+0D47 stock"
+      }
+    },
+    {
+      "semantic_frame_id": "0x0540",
+      "representation_id": "ordinary-racer-0x0540-p2-fifth-family-057C-reference",
+      "player": "p2",
+      "composition_guards": {
+        "p1_primary": "0x057C",
+        "p2_primary": "0x0540",
+        "p1_companion": "0x0D47",
+        "p2_companion": "0x0000",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0001",
+        "p2_companion_gate_word": "0x0000"
+      },
+      "palette_asset_id": "0x07",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            63,
+            76
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P2 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam"
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a clearly provenance-labelled high-resolution substitute that preserves the source silhouette, palette, registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or composition guards do not match, render the deterministic Original asset.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p2_baseline",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "Render the 1261-1267 staircase 0x0540 P2 pose under its exact synchronized composition.",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "reuse_basis": "exact stock RGBA identity with the shipping-approved P2 0540 pose"
+      }
     }
   ],
   "motion_review_sequence": {
@@ -2887,6 +4107,170 @@
           "dynamic_ratio_min": 1.4086021505376345,
           "dynamic_ratio_max": 1.4086021505376345
         }
+      }
+    },
+    "ordinary-race-1230-1239-entry-hold-exit": {
+      "status": "accepted authored sequence-level motion gate; shipping approval hash-bound in family ledger",
+      "window_start": 1230,
+      "window_end": 1239,
+      "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
+      "acceptance": {
+        "require_all_frames_authored": true,
+        "require_exact_stock_bounds": true,
+        "require_exact_contact_anchor": true,
+        "require_static_edges_remain_static": true,
+        "require_dynamic_edges_remain_dynamic": true,
+        "dynamic_transition_ratio_min": 0.75,
+        "dynamic_transition_ratio_max": 2.25,
+        "rationale": "Preserve the real entry/hold/exit cadence. Static stock edges must remain static; dynamic stock edges use the established first-family transition-size band."
+      },
+      "frames": [
+        {
+          "frame": 1230,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-entry-reference",
+          "p2_representation_id": "ordinary-racer-0x057F-p2-fourth-family-entry-0D2A-reference"
+        },
+        {
+          "frame": 1231,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1232,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1233,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1234,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1235,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1236,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1237,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-hold-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference"
+        },
+        {
+          "frame": 1238,
+          "p1_representation_id": "ordinary-racer-0x0540-p1-fourth-family-entry-reference",
+          "p2_representation_id": "ordinary-racer-0x057F-p2-fourth-family-entry-0D2A-reference"
+        },
+        {
+          "frame": 1239,
+          "p1_representation_id": "ordinary-racer-0x0541-p1-fourth-family-exit-reference",
+          "p2_representation_id": "ordinary-racer-0x057F-p2-fourth-family-exit-0D2A-reference"
+        }
+      ],
+      "trace_basis": {
+        "source": "deterministic native racer semantic trace",
+        "retained_frames": [
+          1230,
+          1231,
+          1232,
+          1233,
+          1234,
+          1235,
+          1236,
+          1237,
+          1238,
+          1239
+        ]
+      },
+      "acceptance_run": 37261958454,
+      "acceptance_artifact_id": 11325277378,
+      "measured": {
+        "p1": {
+          "static_edges": 8,
+          "dynamic_edges": 1,
+          "dynamic_ratio_min": 1.4065934065934067,
+          "dynamic_ratio_max": 1.4065934065934067
+        },
+        "p2": {
+          "static_edges": 7,
+          "dynamic_edges": 2,
+          "dynamic_ratio_min": 1.4193548387096775,
+          "dynamic_ratio_max": 1.4193548387096775
+        }
+      }
+    },
+    "ordinary-race-1261-1267-staircase": {
+      "status": "authored candidate sequence-level motion gate; shipping approval remains hash-bound and external",
+      "window_start": 1261,
+      "window_end": 1267,
+      "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
+      "acceptance": {
+        "require_all_frames_authored": true,
+        "require_exact_stock_bounds": true,
+        "require_exact_contact_anchor": true,
+        "require_static_edges_remain_static": true,
+        "require_dynamic_edges_remain_dynamic": true,
+        "dynamic_transition_ratio_min": 0.75,
+        "dynamic_transition_ratio_max": 2.25,
+        "rationale": "Preserve the real 057E/057D/057C and 0542/0541/0540 staircase cadence while reusing exact approved stock-equivalent poses wherever proven."
+      },
+      "frames": [
+        {
+          "frame": 1261,
+          "p1_representation_id": "ordinary-racer-0x057E-p1-fifth-family-0542-reference",
+          "p2_representation_id": "ordinary-racer-0x0542-p2-fifth-family-057E-reference"
+        },
+        {
+          "frame": 1262,
+          "p1_representation_id": "ordinary-racer-0x057E-p1-fifth-family-0542-reference",
+          "p2_representation_id": "ordinary-racer-0x0542-p2-fifth-family-057E-reference"
+        },
+        {
+          "frame": 1263,
+          "p1_representation_id": "ordinary-racer-0x057D-p1-fifth-family-0541-reference",
+          "p2_representation_id": "ordinary-racer-0x0541-p2-fifth-family-057D-reference"
+        },
+        {
+          "frame": 1264,
+          "p1_representation_id": "ordinary-racer-0x057D-p1-fifth-family-0541-reference",
+          "p2_representation_id": "ordinary-racer-0x0541-p2-fifth-family-057D-reference"
+        },
+        {
+          "frame": 1265,
+          "p1_representation_id": "ordinary-racer-0x057D-p1-fifth-family-0540-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fifth-family-057D-reference"
+        },
+        {
+          "frame": 1266,
+          "p1_representation_id": "ordinary-racer-0x057D-p1-fifth-family-0540-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fifth-family-057D-reference"
+        },
+        {
+          "frame": 1267,
+          "p1_representation_id": "ordinary-racer-0x057C-p1-fifth-family-0540-reference",
+          "p2_representation_id": "ordinary-racer-0x0540-p2-fifth-family-057C-reference"
+        }
+      ],
+      "trace_basis": {
+        "source": "deterministic native racer semantic trace",
+        "retained_frames": [
+          1261,
+          1262,
+          1263,
+          1264,
+          1265,
+          1266,
+          1267
+        ]
       }
     }
   }

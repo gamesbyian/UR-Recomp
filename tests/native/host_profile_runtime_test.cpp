@@ -44,5 +44,18 @@ int main() {
         assert(d.save_root.empty());
         assert(!d.error.empty());
     }
+    {
+        const auto d = resolve_host_profile_save_root(
+            ExecutionMode::Modern, std::string("CON"));
+        assert(d.status == HostProfileSaveRootStatus::Rejected);
+        assert(!is_safe_profile_storage_id("CON"));
+        assert(!is_safe_profile_storage_id("nul.save"));
+        assert(!is_safe_profile_storage_id("COM1.profile"));
+        assert(!is_safe_profile_storage_id("LPT9"));
+        assert(!is_safe_profile_storage_id("alpha."));
+        assert(is_safe_profile_storage_id("alpha"));
+        assert(is_safe_profile_storage_id("ALPHA"));
+        assert(is_safe_profile_storage_id("profile.alpha"));
+    }
     return 0;
 }

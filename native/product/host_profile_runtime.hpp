@@ -14,6 +14,8 @@ enum class HostProfileSaveRootStatus {
     Rejected,
 };
 
+bool is_safe_profile_storage_id(std::string_view value) noexcept;
+
 struct HostProfileSaveRootDecision {
     HostProfileSaveRootStatus status = HostProfileSaveRootStatus::Rejected;
     std::string save_root;

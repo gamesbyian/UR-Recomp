@@ -41,6 +41,55 @@ def ppm_to_png(path: Path) -> tuple[bytes, list[int]]:
     return encode_png_rgba(width, height, bytes(rgba)), [width, height]
 
 
+def validate_readiness_for_manifest(manifest: dict, readiness: dict) -> None:
+    if readiness.get("family") != manifest.get("family"):
+        raise ValueError("shipping readiness family does not match review manifest")
+
+    readiness_window = readiness.get("source_temporal_window")
+    manifest_window = manifest.get("temporal_window")
+    if not isinstance(readiness_window, dict) or not isinstance(manifest_window, dict):
+        raise ValueError("shipping readiness or review manifest lacks a temporal window")
+    if (
+        readiness_window.get("start") != manifest_window.get("start")
+        or readiness_window.get("end") != manifest_window.get("end")
+    ):
+        raise ValueError(
+            "shipping readiness temporal window does not match review manifest"
+        )
+
+    if readiness.get("unique_pose_count") != manifest.get("unique_pose_count"):
+        raise ValueError("shipping readiness pose count does not match review manifest")
+
+    readiness_poses = readiness.get("poses")
+    if not isinstance(readiness_poses, list):
+        raise ValueError("shipping readiness poses must be a list")
+    by_id = {}
+    for pose in readiness_poses:
+        if not isinstance(pose, dict):
+            raise ValueError("shipping readiness pose rows must be objects")
+        pose_id = pose.get("pose_id")
+        if pose_id in by_id:
+            raise ValueError(f"duplicate shipping readiness pose {pose_id!r}")
+        by_id[pose_id] = pose
+
+    manifest_ids = {pose["pose_id"] for pose in manifest.get("poses", [])}
+    if set(by_id) != manifest_ids:
+        raise ValueError("shipping readiness pose IDs do not match review manifest")
+
+    for pose in manifest.get("poses", []):
+        shipping = by_id[pose["pose_id"]]
+        if shipping.get("player") != pose.get("player"):
+            raise ValueError(
+                f"shipping readiness player does not match {pose['pose_id']}"
+            )
+        if shipping.get("authored_asset_rgba_sha256") != pose.get(
+            "authored_asset_rgba_sha256"
+        ):
+            raise ValueError(
+                f"shipping readiness authored hash does not match {pose['pose_id']}"
+            )
+
+
 def build_review_manifest(dossier: dict, equivalence: dict) -> dict:
     reps = {
         rep["representation_id"]: rep
@@ -281,6 +330,8 @@ def build_review_packet(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     manifest = build_review_manifest(dossier, equivalence)
+    if readiness is not None:
+        validate_readiness_for_manifest(manifest, readiness)
 
     if (baseline_dossier_path is None) != (baseline_equivalence_path is None):
         raise ValueError("baseline dossier and equivalence must be supplied together")

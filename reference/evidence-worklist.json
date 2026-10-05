@@ -510,17 +510,15 @@
         "gamefaqs-starscream-boost-review",
         "tasvideos-uniracers-topic"
       ],
-      "question": "Does race-speed boost scale with stunt complexity/count, or is each successful stunt effectively a fixed boost with apparent differences coming from landing quality, timing, offscreen depletion, or combo structure?",
-      "next_discriminator": "Build deterministic same-course traces comparing single Twist, single Roll, Flip, Roll+Twist, Double Flip, and Flip City from matched pre-jump state. Measure resulting speed/boost state frame-by-frame through landing and for a fixed post-landing window, both onscreen and offscreen. Separate stunt-score value from race-speed boost and landing penalty. Validate TAS-era numeric claims explicitly: peak speed 640, no positive midair speed change, boost increment when the stunt text registers, and stored-boost behavior arising because boost is not consumed while airborne.",
+      "question": "How do already-confirmed stunt-message boost rewards translate into racer speed over time, especially across landing quality, airborne storage, offscreen depletion and the 0x0180 boost clamp?",
+      "next_discriminator": "Do not re-derive the stunt-message reward path: Nitrodon's recovered disassembly already confirms queued message consumption adds per-message boost to persistent P1/P2 boost state, and the current-player boost workspace/offscreen decrement/clamp paths are already mapped. Use deterministic same-state traces only to resolve the remaining game-facing relationship between boost units and speed: compare representative low/high reward stunts, clean versus poor landings, onscreen versus offscreen depletion, airborne storage, and approach to the 0x0180 clamp. Align the trace with the recovered message-consumer reward frame.",
       "deliverables": [
-        "frame-level boost/speed comparison matrix",
-        "landing-quality penalty characterization",
+        "boost-unit to racer-speed response curve",
+        "landing-quality effect separated from boost reward",
         "onscreen/offscreen depletion comparison",
-        "resolved source-conflict note with canonical behavior",
-        "video-aligned flip-twist boost trace",
-        "peak-speed 640 verification",
-        "midair acceleration/no-acceleration verification",
-        "stunt-registration frame versus boost-increment frame alignment"
+        "airborne stored-boost consumption behavior",
+        "0x0180 clamp game-facing interpretation",
+        "video-aligned flip-twist boost trace"
       ],
       "tags": [
         "boost",
@@ -903,7 +901,7 @@
       "status": "ready",
       "source_ids": [
         "tasvideos-uniracers-topic",
-        "tas-halamantariel-wip-smv-2008"
+        "halamantariel-wip-smv-1674584940"
       ],
       "question": "What exact input/state rules permit simultaneous roll-twist and flip-twist recognition, including flat-ground starts, buffered inputs, landing-angle misclassification, and turbo-controller claims?",
       "next_discriminator": "Reproduce the TAS-thread techniques on canonical runtime: roll-twist by holding roll while releasing twist after one completed twist; back-forward twist input without the twist button; flip-twist variants; and the reported case where exact landing orientation credits a roll as a flip. Compare normal controller timing to high-frequency/turbo-style input without assuming turbo is required.",

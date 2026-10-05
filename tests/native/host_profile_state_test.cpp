@@ -39,6 +39,7 @@ int main() {
     assert(valid_tour_continuation(continuation));
     state.tour_continuation = continuation;
     state.ghost_target = CompletedRunGhostTarget::PersonalBest;
+    state.racer_identity = HostRacerIdentity{"SONIC", 7};
 
     const std::string encoded = encode_host_profile_state(state);
     assert(!encoded.empty());
@@ -47,8 +48,13 @@ int main() {
     assert(*decoded.state == state);
     assert(!decoded.migrated);
     assert(decoded.state->ghost_target == CompletedRunGhostTarget::PersonalBest);
-    assert(encoded.rfind("UR-HOST-PROFILE/3\n", 0) == 0);
+    assert(decoded.state->racer_identity);
+    assert(decoded.state->racer_identity->name == "SONIC");
+    assert(decoded.state->racer_identity->rider_index == 7);
+    assert(encoded.rfind("UR-HOST-PROFILE/4\n", 0) == 0);
     assert(encoded.find("ghost_target=personal-best\n") != std::string::npos);
+    assert(encoded.find("racer_name=SONIC\n") != std::string::npos);
+    assert(encoded.find("racer_index=7\n") != std::string::npos);
 
     const auto legacy = decode_host_profile_state(
         "UR-HOST-PROFILE/1\n"
@@ -61,7 +67,7 @@ int main() {
     assert(!legacy.state->tour_continuation);
     assert(legacy.state->ghost_target == CompletedRunGhostTarget::Off);
     assert(encode_host_profile_state(*legacy.state).rfind(
-               "UR-HOST-PROFILE/3\n", 0) == 0);
+               "UR-HOST-PROFILE/4\n", 0) == 0);
 
     const auto legacy_v2 = decode_host_profile_state(
         "UR-HOST-PROFILE/2\n"
@@ -74,6 +80,30 @@ int main() {
     assert(legacy_v2.state->autosave_generation == 8);
     assert(legacy_v2.state->tour_continuation);
     assert(legacy_v2.state->ghost_target == CompletedRunGhostTarget::Off);
+    assert(!legacy_v2.state->racer_identity);
+
+    const auto legacy_v3 = decode_host_profile_state(
+        "UR-HOST-PROFILE/3\n"
+        "profile=profile.alpha\n"
+        "generation=9\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=previous\n");
+    assert(legacy_v3);
+    assert(legacy_v3.migrated);
+    assert(legacy_v3.state->ghost_target == CompletedRunGhostTarget::Previous);
+    assert(!legacy_v3.state->racer_identity);
+
+    const auto incomplete_identity = decode_host_profile_state(
+        "UR-HOST-PROFILE/4\n"
+        "profile=profile.alpha\n"
+        "generation=1\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=off\n"
+        "racer_name=MIKE\n"
+        "racer_index=\n");
+    assert(!incomplete_identity);
 
     HostTourContinuation no_progress = continuation;
     no_progress.qualified = {0, 0, 0, 0, 0};

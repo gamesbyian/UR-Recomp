@@ -10,7 +10,7 @@ The active roadmap should expose several runnable leaves at once. Unless an acti
 
 1. **Profile/progression continuation:** integrate controlled profile lifecycle capture/apply and host-owned tour/event continuation that survives the stock rider-select wipe. Keep the existing isolated save-root/profile contract intact.
 2. **Controls/accessibility:** expose practical title-level rebinding/hot-plug UX and the first non-simulation accessibility options using the framework's existing binding authority instead of duplicating controller state.
-3. **Timing/statistics presentation:** extend the existing immutable run-data/presentation substrate into useful in-race/results split, PB and target presentation, then the unified local records/statistics surface.
+3. **Timing/statistics presentation:** [~] the first Windows x64 player-facing slice now shows authoritative live/finish time, compatible PB, exact checkpoint/finish deltas, and selected Local Run vs PB through the shared completed-run presentation model. Continue into richer lap/split history and the unified local records/statistics surface without creating a second records model.
 4. **Fast repeat/navigation:** add one-action rematch/repeat-practice and recent/next-event affordances above the already-authoritative Quick Practice/menu-routing machinery.
 5. **Racer HD coverage:** choose the next animation family only from measured player-visible Original↔HD fallback frequency, then use the existing equivalence, dossier, temporal and approval pipeline without new archaeology.
 6. **Presentation polish:** close the remaining product-overlay/high-density composition policy and deterministic sampling/filter choices without changing guest geometry or simulation cadence.

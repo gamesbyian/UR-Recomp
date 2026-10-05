@@ -36,14 +36,17 @@ Acceptance is:
 6. drive the extracted package through the established deterministic race-result route and validate the authoritative finish-time checkpoint, proving the consumer artifact reaches real gameplay/results rather than merely initializing;
 7. prove first-run `config.ini` and `keybinds.ini` are created beside the packaged executable, not in the caller working directory;
 8. deliberately remove the packaged ROM and prove the launcher exits with code 2 plus a clear missing-file diagnostic rather than falling through to a cryptic runtime failure;
-9. re-verify the untouched clean source package and ZIP after the extracted test copy has generated runtime state, proving the shipping artifact was not contaminated by acceptance;
-10. retain the deterministic ZIP as the consumer CI artifact for inspection.
+9. re-extract the clean ZIP over the already-used portable folder and prove the actual generated `config.ini` and `keybinds.ini` remain byte-identical, establishing the first portable in-place upgrade contract;
+10. re-verify the untouched clean source package and ZIP after the extracted test copy has generated runtime state, proving the shipping artifact was not contaminated by acceptance;
+11. retain the deterministic ZIP as the consumer CI artifact for inspection.
 
 The package must remain self-contained with respect to game/runtime payload. Build tools, repository source trees and checkout-relative paths are not allowed runtime dependencies.
 
 ## Save-location boundary
 
 For this portable milestone, executable-directory framework state is accepted **only because the package explicitly requires extraction to a user-writable directory**. Modern host profile metadata/run history can continue using the platform preference directory according to the existing product contracts.
+
+For the portable format, in-place upgrade means extracting a new package over the existing portable folder. Because mutable `config.ini` and `keybinds.ini` are not shipped inside the ZIP, Windows acceptance now proves a re-extract leaves the actual generated files byte-identical. This does not substitute for the separate per-user migration policy required by a future installer.
 
 Do not call a Program Files installer supported until framework config/keybind/save placement has a proven per-user location and an upgrade/migration policy.
 

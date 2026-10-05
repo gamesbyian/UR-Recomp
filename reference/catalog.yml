@@ -1099,3 +1099,40 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public video linked from TASVideos; preserve metadata and derived observations only."
     relevance: "Demonstrates the TAS discovery that Tabletop is exceptional among stunt types because its score does not halve on repeated use. High-value scoring-rule edge case."
+
+
+  - id: tas-halamantariel-wip-smv-2008
+    title: "Halamantariel Uniracers WIP SMV"
+    type: deterministic_input_movie
+    url: "http://dehacked.2y.net/microstorage.php/info/1674584940/Uniracers%20%28U%29%20%5B%21%5D.smv"
+    author: "Halamantariel"
+    published: "2008-03-12"
+    retrieved: "2026-10-05"
+    status: "historical direct link; current file availability unconfirmed"
+    rights: "Third-party input movie; preserve provenance and derived observations. Mirror only if retrieval and redistribution are appropriate."
+    relevance: "Exact historical TAS input stream offered publicly for improvement. Potential deterministic fixture source for stunt timing, screen-position and lap-time behavior if recoverable."
+
+
+  - id: tas-halamantariel-course-videos-2009
+    title: "Halamantariel Uniracers TAS course video set"
+    type: competitive_mechanics_video_set
+    urls:
+      - "https://www.youtube.com/watch?v=jPtVU2dyEp8"
+      - "https://www.youtube.com/watch?v=6DhzIF0Pby0"
+      - "https://www.youtube.com/watch?v=lOccVduAvpY"
+      - "https://www.youtube.com/watch?v=Eho4rmeGU7Y"
+    author: "Halamantariel"
+    published: "2009-11/12"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube videos linked from TASVideos; preserve metadata and derived observations only."
+    relevance: "Course-specific TAS artifacts for Zoom Zoo, Bowl, Switcher and Monster with published lap times/scores. Useful for visual alignment, timing sanity checks and stunt/camera behavior."
+
+
+  - id: tas-twisting-fallthrough-observation
+    title: "TASVideos twisting-associated fall-through observation"
+    type: player_glitch_observation
+    url: "https://tasvideos.org/Forum/Topics/979?CurrentPage=7&Highlight=161056&PageSize=25&Sort=CreateTimestamp"
+    published: "2009-11"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; preserve claim and provenance only."
+    relevance: "A console player reports having fallen through the track at least four times and being in a twisting state every time. Useful as a hypothesis that orientation/stunt state contributes to collision fall-through."

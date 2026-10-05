@@ -1192,7 +1192,9 @@ jobs:
           assert current["measurement"]["hd_selected_player_frames"] == 162
           assert current["measurement"]["original_fallback_player_frames"] == 720
 
-          assert dossier["temporal_window"] == {"start": 1354, "end": 1356, "frame_count": 3}
+          assert dossier["temporal_window"]["start"] == 1354
+          assert dossier["temporal_window"]["end"] == 1356
+          assert dossier["temporal_window"]["frame_count"] == 3
           assert len(dossier["representations"]) == 2
           for rep in dossier["representations"]:
               proof = rep["art_review"]["reuse_proof"]

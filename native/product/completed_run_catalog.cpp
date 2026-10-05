@@ -143,6 +143,7 @@ RunRecordsIndex build_run_records_index(
             course_id,
             std::move(catalog),
             std::move(stats),
+            std::move(course_records),
         });
     }
 

@@ -8,6 +8,9 @@ int main() {
     assert(challenge_tier_medal_value(ModernChallengeTier::Bronze) == 1);
     assert(challenge_tier_medal_value(ModernChallengeTier::Silver) == 2);
     assert(challenge_tier_medal_value(ModernChallengeTier::Gold) == 3);
+    assert(challenge_tier_generation(ModernChallengeTier::Bronze) == 0);
+    assert(challenge_tier_generation(ModernChallengeTier::Silver) == 1);
+    assert(challenge_tier_generation(ModernChallengeTier::Gold) == 2);
 
     assert(stock_next_challenge_tier(0) == ModernChallengeTier::Bronze);
     assert(stock_next_challenge_tier(1) == ModernChallengeTier::Silver);
@@ -65,6 +68,8 @@ int main() {
         ExecutionMode::Modern, true, invalid_high));
     assert(!canonical_challenge_opponent(invalid_low, false));
     assert(!canonical_challenge_opponent(invalid_high, true));
+    assert(!challenge_tier_generation(invalid_low));
+    assert(!challenge_tier_generation(invalid_high));
 
     // Modern records the highest canonical tier actually completed. A direct
     // Gold completion therefore satisfies Bronze and Silver as well.

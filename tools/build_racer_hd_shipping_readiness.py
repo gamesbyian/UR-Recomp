@@ -36,8 +36,18 @@ def build_shipping_readiness(
         raise ValueError("equivalence surface lacks a source temporal window")
     if not isinstance(review_basis, dict):
         raise ValueError("approval ledger lacks a review basis")
+    start = source_window.get("start")
+    end = source_window.get("end")
+    if (
+        not isinstance(start, int)
+        or isinstance(start, bool)
+        or not isinstance(end, int)
+        or isinstance(end, bool)
+        or end < start
+    ):
+        raise ValueError("equivalence surface has invalid temporal bounds")
     reviewed_window = review_basis.get("temporal_window")
-    expected_window = [source_window.get("start"), source_window.get("end")]
+    expected_window = [start, end]
     if reviewed_window != expected_window:
         raise ValueError(
             f"approval temporal window {reviewed_window!r} does not match "
@@ -60,6 +70,8 @@ def build_shipping_readiness(
         raise ValueError("decisions must be a list")
     by_source: dict[str, dict[str, Any]] = {}
     for row in decision_rows:
+        if not isinstance(row, dict):
+            raise ValueError("each art decision must be an object")
         source = row["authored_source_representation_id"]
         if source in by_source:
             raise ValueError(f"duplicate art decision for {source}")
@@ -89,9 +101,15 @@ def build_shipping_readiness(
             )
         by_source[source] = row
 
+    pose_groups = equivalence.get("pose_groups", [])
+    if not isinstance(pose_groups, list):
+        raise ValueError("pose_groups must be a list")
+
     poses = []
     expected_sources: list[str] = []
-    for pose in equivalence.get("pose_groups", []):
+    for pose in pose_groups:
+        if not isinstance(pose, dict):
+            raise ValueError("each pose group must be an object")
         source = pose.get("authored_source_representation_id")
         if source is None:
             status = "unauthored"

@@ -31,8 +31,9 @@ class CompletedRunGhostTraceCppTests(unittest.TestCase):
                 cwd=ROOT,
                 check=True,
             )
-            trace = pathlib.Path(tmp) / "run.urghost"
-            subprocess.run([str(exe), str(trace)], cwd=ROOT, check=True)
+            run = pathlib.Path(tmp) / "run.urrun"
+            trace = pathlib.Path(str(run) + ".urghost")
+            subprocess.run([str(exe), str(run)], cwd=ROOT, check=True)
             self.assertTrue(trace.is_file())
 
 

@@ -26,6 +26,7 @@ from tools.build_racer_hd_asset_dossier import (
     THIRTY_FIFTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
+    authored_candidate_rgba_for_entry,
     build_first_authored_candidate_rgba,
     build_second_authored_candidate_rgba,
     build_third_authored_candidate_rgba,
@@ -317,6 +318,18 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         # Reuse deliberately has no fourth image generator: both exact
         # composition IDs consume the already-reviewed third authored asset.
         self.assertEqual(len(build_third_authored_candidate_rgba()), 256 * 256 * 4)
+
+    def test_generic_authored_asset_reuse_resolves_canonical_source(self):
+        entry = {
+            "representation_id": "measured-reuse",
+            "authored_candidate": {
+                "reused_from_representation_id": FOURTH_AUTHORED_REPRESENTATION_ID,
+            },
+        }
+        rgba, generator, sampler = authored_candidate_rgba_for_entry(entry)
+        self.assertEqual(rgba, build_third_authored_candidate_rgba())
+        self.assertIn("build_third_authored_candidate_rgba", generator)
+        self.assertEqual(sampler, "sample_racer_hd_authored_0540_p1_predecessor")
 
     def test_fifth_registration_authors_repeated_1215_1216_pose(self):
         self.assertEqual(

@@ -28,6 +28,7 @@ extern "C" {
 #include "modern_racer_identity.hpp"
 #include "modern_tour_continue.hpp"
 #include "quick_practice_catalog.hpp"
+#include "quick_practice_input_mask.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
@@ -470,23 +471,11 @@ std::string resolve_tour_continue_input_path() {
     return path;
 }
 
-std::uint16_t tour_continue_input_mask(
-    ur::product::QuickPracticeMenuInput input) {
-    switch (input) {
-    case ur::product::QuickPracticeMenuInput::Up: return 0x0010u;
-    case ur::product::QuickPracticeMenuInput::Down: return 0x0020u;
-    case ur::product::QuickPracticeMenuInput::Left: return 0x0040u;
-    case ur::product::QuickPracticeMenuInput::Right: return 0x0080u;
-    case ur::product::QuickPracticeMenuInput::Accept: return 0x0100u;
-    case ur::product::QuickPracticeMenuInput::None: return 0;
-    }
-    return 0;
-}
-
 bool queue_tour_continue_input(
     ur::product::QuickPracticeMenuInput input,
     uint64_t origin_frame) {
-    const std::uint16_t mask = tour_continue_input_mask(input);
+    const std::uint16_t mask = ur::product::quick_practice_runner_mask(
+        ur::product::launch_input_from_menu_input(input));
     if (mask == 0) return input == ur::product::QuickPracticeMenuInput::None;
 
     if (g_tour_continue_input_path.empty()) {

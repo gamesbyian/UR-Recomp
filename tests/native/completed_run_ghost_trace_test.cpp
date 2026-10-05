@@ -28,19 +28,21 @@ CompletedRunRecord run_record() {
 
 int main(int argc, char** argv) {
     assert(argc == 2);
-    const std::filesystem::path trace_path = argv[1];
+    const std::filesystem::path run_path = argv[1];
+    const std::filesystem::path trace_path =
+        std::filesystem::path(run_path.string() + ".urghost");
     const auto record = run_record();
     const std::string binding =
         completed_run_record_artifact_checksum(record);
     assert(binding.size() == 16);
 
     CompletedRunGhostTraceCapture capture;
-    assert(!capture.observe({0, 1, 1, 1, 1, 1, 0x40}));
+    assert(!capture.observe({0, 1, 1, 1, 1, 1, 0x40, {}}));
     assert(capture.begin_attempt());
     assert(capture.capturing());
     assert(capture.observe({0, 1088, 859, 0x0007, 0x0541, 1, 0x66, {0x0541, 0x0540, 0x0D0D, 0, 0, 0, 1, 0}}));
     assert(capture.observe({1, 1100, 850, 0x0009, 0x0540, 1, 0x66, {0x0540, 0x0541, 0x0D2C, 0, 0, 0, 1, 0}}));
-    assert(!capture.observe({1, 9999, 9999, 0, 0, 0, 0}));
+    assert(!capture.observe({1, 9999, 9999, 0, 0, 0, 0, {}}));
     assert(capture.observe({2, 1115, 840, 0x000B, 0x057D, 0, 0x26, {0x057D, 0x0543, 0x0D48, 0, 0, 0, 1, 0}}));
     assert(capture.sample_count() == 3);
 
@@ -100,7 +102,7 @@ int main(int argc, char** argv) {
 
     CompletedRunGhostState selected_state;
     selected_state.bind(
-        {{trace_path.string(), record}},
+        {{run_path.string(), record}},
         RunPlaybackTarget{
             record.provenance.game_id,
             record.provenance.rom_sha256,
@@ -114,6 +116,44 @@ int main(int argc, char** argv) {
     assert(selected_trace.loaded());
     assert(selected_trace.trace->samples.size() == trace.samples.size());
 
+    // Previous and PB must resolve through the exact selected artifact path,
+    // not merely whichever compatible sidecar happens to exist.
+    auto pb_record = record;
+    pb_record.elapsed_ticks60 = 100;
+    pb_record.splits = {{"finish", 100}};
+    CompletedRunGhostTrace pb_trace = trace;
+    pb_trace.run_artifact_checksum =
+        completed_run_record_artifact_checksum(pb_record);
+    pb_trace.samples[0].world_x = 1200;
+    const std::filesystem::path pb_run_path =
+        std::filesystem::path(run_path.string() + ".pb.urrun");
+    const std::filesystem::path pb_trace_path =
+        std::filesystem::path(pb_run_path.string() + ".urghost");
+    assert(save_completed_run_ghost_trace_file(
+        pb_trace_path.string(), pb_trace, &detail));
+
+    CompletedRunGhostState two_targets;
+    two_targets.bind(
+        {
+            {pb_run_path.string(), pb_record},
+            {run_path.string(), record},
+        },
+        RunPlaybackTarget{
+            record.provenance.game_id,
+            record.provenance.rom_sha256,
+            record.provenance.build_compat_id,
+            record.provenance.course_id,
+            record.provenance.mode,
+        });
+    const auto previous_trace = load_selected_completed_run_ghost_trace(
+        two_targets, CompletedRunGhostKind::Previous);
+    const auto personal_best_trace = load_selected_completed_run_ghost_trace(
+        two_targets, CompletedRunGhostKind::PersonalBest);
+    assert(previous_trace.loaded());
+    assert(personal_best_trace.loaded());
+    assert(previous_trace.trace->samples[0].world_x == 1088);
+    assert(personal_best_trace.trace->samples[0].world_x == 1200);
+
     CompletedRunGhostState empty_state;
     const auto no_selection =
         load_selected_completed_run_ghost_trace(
@@ -122,7 +162,7 @@ int main(int argc, char** argv) {
 
     CompletedRunGhostTraceCapture aborted;
     assert(aborted.begin_attempt());
-    assert(aborted.observe({0, 1, 2, 3, 4, 1, 0x40}));
+    assert(aborted.observe({0, 1, 2, 3, 4, 1, 0x40, {}}));
     aborted.abort_attempt();
     assert(!aborted.capturing());
     assert(aborted.sample_count() == 0);
@@ -130,7 +170,7 @@ int main(int argc, char** argv) {
 
     CompletedRunGhostTraceCapture too_long;
     assert(too_long.begin_attempt());
-    assert(too_long.observe({record.frame_count, 1, 2, 3, 4, 1, 0x40}));
+    assert(too_long.observe({record.frame_count, 1, 2, 3, 4, 1, 0x40, {}}));
     assert(!too_long.complete(record));
 
     auto unordered = trace;

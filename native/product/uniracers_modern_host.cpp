@@ -2503,9 +2503,20 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     const bool world_expanded =
         authentic_16x9_view_enabled() &&
         g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand;
+    // Product overlays currently draw in logical SNES coordinates. Keep them
+    // readable and correctly centred instead of handing physical 2x-4x
+    // dimensions to a logical-coordinate renderer. The HD compositor resumes
+    // as soon as the modal/hint surface is gone.
+    const bool logical_overlay_active =
+        g_onboarding_visible ||
+        (g_practice_active && g_practice_stage == PracticeStage::Active) ||
+        paused() ||
+        (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+         g_session && ur_modern_session_restart_available(g_session));
     return ur::product::resolve_internal_render_scale(
         modern_mode(),
         world_expanded,
+        logical_overlay_active,
         ur::presentation::racer_hd_presentation_scale());
 }
 

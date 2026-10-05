@@ -821,3 +821,35 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public Reddit comment; preserve claims and provenance only. Do not redistribute user-authored text beyond brief quotation where needed."
     relevance: "Detailed firsthand claims about Hunter crossing effects, Hunter multiplayer availability, Anti-Uni/endgame progression, stunt scoring, top-three record persistence after racer deletion, and forbidden-name behavior. Treat every mechanical claim as provisional until reproduced against the canonical ROM/runtime."
+
+
+  - id: orangestar-uniracers-faq-2001
+    title: "OrangeStar Uniracers FAQ/Walkthrough v3.0"
+    type: player_strategy_and_mechanics
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/faqs/9137"
+    author: "OrangeStar"
+    published: "2001-11-27"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs guide; preserve claims and provenance, not wholesale text."
+    relevance: "Detailed course-by-course strategy, Hunter/Anti-Uni effect inventory, stunt point table and repeat-score decay claim, track-color semantics, boost strategy, historical scores, and cheat-code leads that can be checked against canonical runtime behavior."
+
+
+  - id: protipoftheday-uniracers-techniques
+    title: "Pro Tip of the Day Uniracers technique notes"
+    type: player_experimentation
+    url: "https://protipoftheday.com/taxonomy/term/254.html"
+    author: "Will"
+    published: "2009-09-01/2010-02-08"
+    retrieved: "2026-10-05"
+    rights: "Public blog posts; preserve experimental claims and provenance only."
+    relevance: "Independent hands-on observations about Head Bounce/Tabletop Mega stunts and substring-based rejected-name behavior; useful corroboration and experiment seeds."
+
+
+  - id: speedrun-uniracers-community
+    title: "Speedrun.com Uniracers leaderboard and forum"
+    type: speedrunning_community_evidence
+    url: "https://www.speedrun.com/uniracers"
+    authors_or_participants: ["FlyHec", "KattaTonik_", "mrcab55", "Segastar", "karmamachine", "Uniracers speedrunning community"]
+    retrieved: "2026-10-05"
+    rights: "Public leaderboard/forum material; summarize with provenance."
+    relevance: "Current competitive corpus with hundreds of submitted runs, recent Hunter and course records, historical-PB comparisons, and player observations about screen-position/scrolling behavior affecting optimal times."

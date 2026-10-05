@@ -961,3 +961,34 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public forum discussion; summarize with provenance."
     relevance: "Contains explicit remake interest and concrete modernization ideas from longtime players."
+
+
+  - id: gamefaqs-uniracers-cheats-secrets
+    title: "GameFAQs Uniracers cheats, secrets and persistence exploits"
+    type: player_discovered_behavior
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/cheats"
+    authors_or_participants: ["MI4_REAL", "orange_star", "QuirkyOne", "GVaysse"]
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs contributor material; preserve claims and provenance only."
+    relevance: "Documents title-screen RAM wipe, ending shortcut, rejected-name cases, medal-selection downgrade exploit, and a single-player league state created by deleting a second racer after league setup. Useful for persistence/UI edge-case tests."
+
+
+  - id: world-of-nintendo-uniracers-codes
+    title: "Unofficial World of Nintendo Uniracers cheat/code corpus"
+    type: cheat_code_and_behavioral_anchor
+    url: "https://www.world-of-nintendo.com/super_nes/uniracers.shtml"
+    author_or_contributors: ["Brian Kent", "community contributors"]
+    retrieved: "2026-10-05"
+    rights: "Public legacy cheat/code page; preserve codes and provenance as research leads, not as authoritative semantics."
+    relevance: "Independent code corpus affecting CPU movement, timer, game speed, stunt classification, visual state, lead indicator and FAE DINE opponent-vomit behavior. Useful for code-localization and state-observability experiments."
+
+
+  - id: resetera-uniracers-99-remake-2025
+    title: "ResetEra faithful-remake discussion: Uniracers 99"
+    type: remake_interest_and_current_multiplayer_context
+    url: "https://www.resetera.com/threads/games-from-the-snes-era-that-deserve-a-faithful-remake.1302117/page-3"
+    author: "CursedOctopus"
+    published: "2025-09-19"
+    retrieved: "2026-10-05"
+    rights: "Public forum post; summarize with provenance."
+    relevance: "Recent explicit request for a faithful Uniracers revival ('Uniracers 99'), from a user who separately reported heavy college multiplayer play in 2026."

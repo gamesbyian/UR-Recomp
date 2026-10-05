@@ -64,6 +64,17 @@ constexpr int internal_render_scale_value(
     return static_cast<int>(scale);
 }
 
+constexpr HostInternalRenderScale next_internal_render_scale(
+    HostInternalRenderScale scale) noexcept {
+    switch (scale) {
+    case HostInternalRenderScale::X1: return HostInternalRenderScale::X2;
+    case HostInternalRenderScale::X2: return HostInternalRenderScale::X3;
+    case HostInternalRenderScale::X3: return HostInternalRenderScale::X4;
+    case HostInternalRenderScale::X4: return HostInternalRenderScale::X1;
+    }
+    return HostInternalRenderScale::X4;
+}
+
 struct HostSettings {
     bool vibration_enabled = true;
     bool pause_on_focus_loss = true;

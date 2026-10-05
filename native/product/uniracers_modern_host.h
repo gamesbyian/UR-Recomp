@@ -32,6 +32,11 @@ void ur_uniracers_modern_prepare_frame(
     int drawable_height,
     int* frame_width,
     int* frame_height);
+void ur_uniracers_modern_begin_sim_frame(unsigned frame_number);
+int ur_uniracers_modern_presentation_scale(void);
+int ur_uniracers_modern_draw_frame(
+    uint8_t* dst, size_t pitch, const uint8_t* field,
+    int frame_width, int frame_height, double alpha);
 void ur_uniracers_modern_compute_viewport(
     int frame_width,
     int frame_height,

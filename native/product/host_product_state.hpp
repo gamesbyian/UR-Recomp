@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "output_resolution_policy.hpp"
+#include "regional_presentation.hpp"
 
 namespace ur::product {
 
@@ -107,10 +108,14 @@ struct HostProductState {
     static constexpr std::uint32_t schema_version = 6;
 
     std::optional<std::string> active_profile_id;
+    // Hidden global product identity, independent of racer/profile and guest SRAM.
+    RegionalPresentation regional_presentation = RegionalPresentation::NorthAmerica;
     HostSettings settings{};
 
     bool operator==(const HostProductState& other) const noexcept {
-        return active_profile_id == other.active_profile_id && settings == other.settings;
+        return active_profile_id == other.active_profile_id &&
+               regional_presentation == other.regional_presentation &&
+               settings == other.settings;
     }
 };
 

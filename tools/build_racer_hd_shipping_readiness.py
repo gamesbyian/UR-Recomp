@@ -38,6 +38,13 @@ def build_shipping_readiness(
             f"approval temporal window {reviewed_window!r} does not match "
             f"equivalence window {expected_window!r}"
         )
+    for field in ("workflow_run", "artifact_id"):
+        value = review_basis.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise ValueError(f"approval review basis lacks a positive {field}")
+    review_surface = review_basis.get("review_surface")
+    if not isinstance(review_surface, str) or not review_surface.strip():
+        raise ValueError("approval review basis lacks a review_surface")
 
     family_blockers = decisions.get("family_blockers", [])
     if not isinstance(family_blockers, list):

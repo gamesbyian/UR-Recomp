@@ -42,7 +42,7 @@ constexpr ModernTourActionRow selected_modern_tour_action(
         menu.selected < menu.row_count ? menu.selected : 0u];
 }
 
-constexpr ModernTourActionMenu navigate_modern_tour_action_menu(
+inline ModernTourActionMenu navigate_modern_tour_action_menu(
     ModernTourActionMenu menu,
     UrModernHostNavigationAction action) noexcept {
     if (menu.row_count == 0) return menu;
@@ -70,7 +70,7 @@ struct ModernTourActionMenuResult {
     bool close_menu = false;
 };
 
-constexpr ModernTourActionMenuResult activate_modern_tour_action_menu(
+inline ModernTourActionMenuResult activate_modern_tour_action_menu(
     ModernTourActionMenu menu,
     ModernTourEntryContext context,
     UrModernHostNavigationAction action) noexcept {

@@ -2401,6 +2401,60 @@
             "source": "dense native post-guest-frame trace identifies the 057C recovery edge; exact ROM geometry and alpha hashes measured by Racer HD prototype run 37263957234"
           }
         ]
+      },
+      "fallback_frequency_measurement": {
+        "status": "measured expansion active",
+        "retained_report": "analysis/generated/racer-hd-fallback-frequency-2026-10-05.json",
+        "source": {
+          "workflow_run": 37264523402,
+          "artifact_id": 11325937178,
+          "route": "two-player-first-race-observe.script + two-player-first-race.input",
+          "trace_window": [
+            1180,
+            1620
+          ]
+        },
+        "before": {
+          "player_frame_observations": 882,
+          "hd_selected_player_frames": 150,
+          "original_fallback_player_frames": 732,
+          "hd_coverage_fraction": 0.17006802721088435
+        },
+        "selected_exact_state": {
+          "composition": {
+            "p1_primary": "0x0540",
+            "p2_primary": "0x0543",
+            "p1_companion": "0x0D2C",
+            "p2_companion": "0x0000",
+            "p1_selector": 0,
+            "p2_selector": 0,
+            "p1_companion_gate_word": "0x0001",
+            "p2_companion_gate_word": "0x0000"
+          },
+          "observed_frames": [
+            1354,
+            1355,
+            1356,
+            1390,
+            1418,
+            1450
+          ],
+          "independent_episodes": 4,
+          "player_fallback_frames": 12,
+          "runtime_representation_ids": [
+            "ordinary-racer-0x0540-p1-frequency-0543-reference",
+            "ordinary-racer-0x0543-p2-frequency-0540-reference"
+          ],
+          "art_policy": "reuse only after same-player deterministic stock RGBA identity proof; inherited shipping art remains bound to the exact previously reviewed authored RGBA hashes"
+        },
+        "after": {
+          "hd_selected_player_frames": 162,
+          "original_fallback_player_frames": 720,
+          "hd_coverage_fraction": 0.1836734693877551,
+          "absolute_coverage_gain_percentage_points": 1.360544217687075,
+          "baseline_fallback_burden_removed_fraction": 0.01639344262295082
+        },
+        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact stock equivalence permits it."
       }
     }
   ]

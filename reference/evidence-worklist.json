@@ -441,6 +441,49 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "High-value because the claims are concrete and cheaply falsifiable. Do not treat recollection as authority; use it to seed canonical-ROM/runtime experiments."
+    },
+    {
+      "id": "community-mechanics-crosscheck",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "orangestar-uniracers-faq-2001",
+        "protipoftheday-uniracers-techniques",
+        "speedrun-uniracers-community",
+        "tasvideos-usjo",
+        "libretro-uniracers-cheats",
+        "cabbagery-uniracers-mechanics-2024"
+      ],
+      "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
+      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion.",
+      "deliverables": [
+        "cross-source mechanics concordance table",
+        "deterministic stunt-score and repeat-decay fixture",
+        "boost/offscreen depletion measurement",
+        "screen-position/scrolling timing discriminator",
+        "Mega stunt recognition fixture",
+        "name-filter substring behavior fixture",
+        "source conflict notes where player recollections disagree"
+      ],
+      "tags": [
+        "community-research",
+        "mechanics",
+        "stunts",
+        "boost",
+        "scrolling",
+        "hunter",
+        "name-entry",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-prose-and-existing-local-evidence",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "closed-or-local",
+      "acquisition_judgment": "High leverage because multiple independent player/research communities describe overlapping mechanics; canonical reproduction can turn folklore into durable regression tests cheaply."
     }
   ],
   "acquisition_policy": {

@@ -38,6 +38,8 @@ bool g_one_player_context;
 std::uint64_t g_last_host_frame;
 unsigned g_browser_acceptance_active_frames;
 bool g_browser_acceptance_fired;
+unsigned g_records_browser_acceptance_active_frames;
+bool g_records_browser_acceptance_fired;
 
 std::string records_course_label(const std::string& course_id) {
     if (course_id.size() == 9 &&
@@ -93,7 +95,8 @@ std::string active_profile_id() {
 }
 
 std::string active_run_directory() {
-    if (std::getenv("UR_RUN_BROWSER_ACCEPTANCE")) {
+    if (std::getenv("UR_RUN_BROWSER_ACCEPTANCE") ||
+        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE")) {
         const char* override_directory =
             std::getenv("UR_RUN_BROWSER_DIRECTORY");
         if (override_directory && *override_directory) {
@@ -404,6 +407,56 @@ bool browser_navigation(UrModernHostNavigationAction action) {
         return true;
     }
     return true;
+}
+
+void maybe_run_records_browser_acceptance() {
+    if (g_records_browser_acceptance_fired || !modern_mode() ||
+        !std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE")) {
+        return;
+    }
+
+    const UrUniracersRestartSurface surface =
+        ur_uniracers_classify_restart_surface(
+            g_ram[0x0313], g_ram[0x009F]);
+    if (surface != UR_UNIRACERS_RESTART_ACTIVE_RACE ||
+        !g_one_player_context) {
+        g_records_browser_acceptance_active_frames = 0;
+        return;
+    }
+
+    if (++g_records_browser_acceptance_active_frames < 90) return;
+
+    g_records_browser_acceptance_fired = true;
+    const int pause_handled =
+        ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+    const bool opened = pause_handled && open_records_browser();
+    const bool drilled =
+        opened &&
+        records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM);
+    const bool current_course =
+        drilled && records_selected_matches_current_course();
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d current_course=%d courses=%zu runs=%zu\n",
+            pause_handled,
+            opened ? 1 : 0,
+            drilled ? 1 : 0,
+            current_course ? 1 : 0,
+            g_records_browser.index().courses.size(),
+            g_records_browser.index().total_completed_runs);
+        std::fflush(stderr);
+    }
+
+    const char* acceptance =
+        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE");
+    if (acceptance &&
+        std::strcmp(acceptance, "quit-after-open") == 0) {
+        SDL_Event event{};
+        event.type = SDL_QUIT;
+        (void)SDL_PushEvent(&event);
+    }
 }
 
 void maybe_run_browser_acceptance() {
@@ -778,6 +831,7 @@ extern "C" void ur_uniracers_product_after_run_frame(
     if (!g_replay_flow.active()) {
         ur_uniracers_modern_after_run_frame(stats);
         update_context_from_guest();
+        maybe_run_records_browser_acceptance();
         maybe_run_browser_acceptance();
         return;
     }

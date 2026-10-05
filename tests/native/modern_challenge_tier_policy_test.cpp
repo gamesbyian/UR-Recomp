@@ -27,6 +27,13 @@ int main() {
             ExecutionMode::Modern, false, tier));
     }
 
+    assert(!modern_challenge_tier_selectable(
+        ExecutionMode::Modern, true, ModernChallengeTier::Bronze, true));
+    assert(!modern_challenge_tier_selectable(
+        ExecutionMode::Modern, true, ModernChallengeTier::Silver, true));
+    assert(modern_challenge_tier_selectable(
+        ExecutionMode::Modern, true, ModernChallengeTier::Gold, true));
+
     assert(canonical_challenge_opponent(
                ModernChallengeTier::Bronze, false) ==
            CanonicalChallengeOpponent::Bronsen);

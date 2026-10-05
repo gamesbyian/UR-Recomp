@@ -20,6 +20,16 @@ import extract_menu_visual_language as mvl
 import probe_tier_opponents as tier
 
 CASES = {
+    "title-transition": {
+        "script": "tests/input/title-transition-recon.script",
+        "checkpoints": [
+            "boot-300",
+            "boot-360",
+            "boot-420",
+            "main-menu-first",
+            "main-menu-settled",
+        ],
+    },
     "startup-main": {
         "script": "tests/input/ui-startup-timeline.script",
         "checkpoints": ["ui-startup-main-menu"],

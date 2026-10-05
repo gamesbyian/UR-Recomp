@@ -52,8 +52,46 @@ jobs:
             "reference/roms/retail/Uniracers_USA.sfc" \
             --json-out "$RUNNER_TEMP/racer-hd-next-family-probe.json" \
             --output-dir "$RUNNER_TEMP/racer-hd-next-family-probe" \
+            --trace-out "$RUNNER_TEMP/racer-hd-next-family-trace.json" \
             | tee "$RUNNER_TEMP/racer-hd-next-family-probe.txt"
 
+      - name: Build next-family Racer HD review evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          DOSSIER="$RUNNER_TEMP/racer-hd-next-family-dossier"
+
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-next-family-trace.json" \
+            --window-start 1280 \
+            --window-end 1283 \
+            --output-dir "$DOSSIER" \
+            > "$RUNNER_TEMP/racer-hd-next-family-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$DOSSIER/manifest.json" \
+            --out "$DOSSIER/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-equivalence.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$DOSSIER/manifest.json" \
+            "$DOSSIER/pose-equivalence.json" \
+            --output-dir "$DOSSIER/review" \
+            > "$RUNNER_TEMP/racer-hd-next-family-review.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-1280-1283-frequency-hold \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-temporal-a.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-temporal-a.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-1285-1286-frequency-hold \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-temporal-b.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-temporal-b.txt"
       - name: Install native build dependencies
         run: |
           sudo apt-get update
@@ -1284,6 +1322,15 @@ jobs:
             ${{ runner.temp }}/racer-hd-next-family-probe.json
             ${{ runner.temp }}/racer-hd-next-family-probe.txt
             ${{ runner.temp }}/racer-hd-next-family-probe/
+            ${{ runner.temp }}/racer-hd-next-family-trace.json
+            ${{ runner.temp }}/racer-hd-next-family-dossier/
+            ${{ runner.temp }}/racer-hd-next-family-dossier.txt
+            ${{ runner.temp }}/racer-hd-next-family-equivalence.txt
+            ${{ runner.temp }}/racer-hd-next-family-review.txt
+            ${{ runner.temp }}/racer-hd-next-family-temporal-a.json
+            ${{ runner.temp }}/racer-hd-next-family-temporal-a.txt
+            ${{ runner.temp }}/racer-hd-next-family-temporal-b.json
+            ${{ runner.temp }}/racer-hd-next-family-temporal-b.txt
             ${{ runner.temp }}/racer-hd-frequency-family-dossier/
             ${{ runner.temp }}/racer-hd-frequency-family-dossier.txt
             ${{ runner.temp }}/racer-hd-frequency-family-pose-equivalence.txt

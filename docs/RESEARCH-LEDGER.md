@@ -2499,3 +2499,41 @@ Native smoke gates all of this.
 - The authored picture with the rip active is already covered: centre parity on the VS and two-player checkpoints (UI-30) and the 4:3 frame identity (UI-31).
 
 **Interpretation:** stock-PPU widening remains viable for split-screen presentation. The authentic rip path needs no host sprite composition at the accepted 16:9 margin, and the original raster trick stays in force unchanged. Reopen if the margin grows past 112 px per side (where X = 112 hidden copies would enter it) or a route shows hidden-copy X above 181.
+
+### R-2026-10-05-UI-33 — Widescreen information exposure: opponents only extend, track ahead about 3 frames early
+
+**Status:** confirmed (local runs; evidence `analysis/widescreen-exposure-evidence.json`)  
+**Date:** 2026-10-05  
+**Area:** Widescreen | fairness
+
+**Question:** what does the 16:9 race view tell the player that the matched 4:3 view does not?
+
+**Method:**
+- **Captures.** Each route was rendered three times in 16:9:
+  - sprites only (`SNESRECOMP_LAYER_MASK=0x10`);
+  - full composite;
+  - composite without sprites (`0x0f`).
+- **Analysis.** `tools/measure_widescreen_exposure.py` classifies each OAM-shadow sprite per frame (`$1381`/`$1581`, with the split-screen rip values for sprites 96–99) into one of two kinds:
+  - **margin-only:** the sprite lies wholly outside the stock 256 columns, so it is new information;
+  - **extends:** the sprite is already partly visible in 4:3.
+
+  A sprite counts only if it drew margin pixels. A full-vs-no-sprite diff then shows what reaches the final picture.
+- **Course lookahead.** The camera X speed converts the 43 px margin into lead frames.
+
+**Results:**
+
+| Route | Frames | Margin-only objects in final picture | Racer extends into margin | Course lead (median speed) |
+|---|---|---|---|---|
+| 1P acceptance race | 916–946 | 0 | left, 135 frames (sprite 99, CPU opponent) | 2.87 frames (15 px/frame) |
+| Two-player P1-win | 2,966–3,001 | 0 | right, 2 frames (sprite 99) | 3.07 frames (14 px/frame) |
+
+- **Parked slot 0.** One margin-only object exists: OAM slot 0, parked at X = 224 with X bit 8 (= −32), tile 0, priority 0. In stock it is clipped. In 16:9 it lies wholly in the left margin and draws a 4-pixel tile-0 speck at margin X≈26, lines 8–11, in 197 sprite-only frames. It is never visible in the composite: a priority-0 sprite sits behind BG1/BG2 in mode 1, and the static BG2 backdrop is opaque there.
+- **Opponents never surface early.** No route shows an opponent or object wholly in a margin. Racers only extend partly past the stock edge, so 16:9 never reveals an opponent that 4:3 hides.
+- **Course ahead.** The margin shows track about 3 frames (about 50 ms) earlier at race speed. It also shows the same amount behind.
+
+**Interpretation:** the 16:9 exposure is small and symmetric with stock information. There is no early opponent reveal, and the course lead is about 3 frames. No mitigation is needed.
+
+**Reopen if:**
+- the margin grows past 43 px;
+- a route shows a margin-only racer or event object in the composite;
+- BG2 stops being opaque behind the parked slot-0 position.

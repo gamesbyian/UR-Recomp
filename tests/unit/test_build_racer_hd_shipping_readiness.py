@@ -133,6 +133,24 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "disagrees with status"):
             build_shipping_readiness(self.equivalence(), decisions)
 
+    def test_approved_pose_cannot_retain_blocker_codes(self):
+        decisions = self.decisions(a="approved", c="approved")
+        decisions["decisions"][0]["blocker_codes"] = ["stale-blocker"]
+        with self.assertRaisesRegex(ValueError, "approved but still carries blocker"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_reviewed_hash_must_be_lowercase_sha256_hex(self):
+        decisions = self.decisions()
+        decisions["decisions"][0]["reviewed_authored_rgba_sha256"] = "G" * 64
+        with self.assertRaisesRegex(ValueError, "lowercase hexadecimal"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_blocker_codes_must_be_a_list(self):
+        decisions = self.decisions()
+        decisions["decisions"][0]["blocker_codes"] = "coarse"
+        with self.assertRaisesRegex(ValueError, "blocker_codes must be a list"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
     def test_stale_extra_decision_is_rejected(self):
         decisions = self.decisions()
         decisions["decisions"].append({

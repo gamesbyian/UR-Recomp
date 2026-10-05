@@ -121,6 +121,24 @@ int main() {
         mismatched_split_target,
         RunDataTargetKind::PersonalBest));
 
+    const auto result_summary =
+        present_run_result_summary(current, &record);
+    assert(result_summary);
+    assert(result_summary->finish.clock_label == "FINISH");
+    assert(result_summary->finish.clock_text == "0:28.45/60");
+    assert(result_summary->finish.target_text == "0:28.33/60");
+    assert(result_summary->finish.comparison_text == "+0:00.12/60");
+    assert(result_summary->splits.size() == 2);
+    assert(result_summary->splits[0].delta_text == "-0:00.06/60");
+    assert(result_summary->splits[1].delta_text == "+0:00.12/60");
+
+    const auto result_no_pb =
+        present_run_result_summary(current, nullptr);
+    assert(result_no_pb);
+    assert(result_no_pb->finish.clock_text == "0:28.45/60");
+    assert(!result_no_pb->finish.target_available);
+    assert(result_no_pb->splits.empty());
+
     const auto no_pb_panel = present_run_timing_panel(
         844, nullptr, RunTimingPresentationPoint::Live);
     assert(!no_pb_panel.target_available);
@@ -138,6 +156,7 @@ int main() {
     malformed.inputs[0].duration = 0;
     assert(!present_run_target(malformed, RunDataTargetKind::PersonalBest));
     assert(!present_run_finish_delta(malformed, 1));
+    assert(!present_run_result_summary(malformed, &record));
     const auto malformed_panel = present_run_timing_panel(
         1, &malformed, RunTimingPresentationPoint::Finish);
     assert(!malformed_panel.target_available);

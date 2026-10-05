@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37264523402,
+    "artifact_id": 11325937178,
+    "temporal_window": [
+      1261,
+      1267
+    ],
+    "review_surface": "racer-hd-fifth-family-dossier/review/index.html",
+    "disposition": "Reviewed the complete 1261-1267 ordinary-race staircase family at true 4x. Eight semantic registrations collapse to six unique stock poses. Five poses reuse already shipping-approved authored constructions after exact same-player ROM RGBA identity proofs; only P1 057C+0D47 is newly authored. All six preserve exact stock envelopes and contact anchors. Static retained edges remain static. Dynamic authored/stock alpha-change ratios are 1.2041 and 1.0660 for P1 and 1.3034 and 1.3763 for P2, all within the accepted 0.75-2.25 band. Visual and temporal review found no family-level blockers."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057D-p1-fifth-family-0540-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "0f698f67e61c9a7a04a4c207808c38a44adce835cc45b00cd100fa8af4e867e0"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057C-p1-fifth-family-0540-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "fe8bf5bca800fb72ed4a3e11afd138e15192ded1442fe9d9e65c4cd58da9ce7e"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057E-p1-fifth-family-0542-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "074443de293a95e4bd7b0d1efe98d1beb252aa6e835a293312eb4e76dac3cc0c"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0540-p2-fifth-family-057C-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "b8245cbe72cbf2c8d591c5ef51bd55c9f12802fa092b4f76f6c9e8dc0597e442"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0541-p2-fifth-family-057D-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "f4253fd3a78484b18c18c79fd764e87d6f7444b6658ad2c5738d8d9486e1d484"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0542-p2-fifth-family-057E-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "39175a57accedc5399f50fe7a0ffc675d0977bc9c83d127964f6109f55a3379b"
+    }
+  ]
+}

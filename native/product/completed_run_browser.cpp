@@ -85,6 +85,91 @@ struct InspectedArtifact {
 
 }  // namespace
 
+void CompletedRunRecordsBrowser::clear() noexcept {
+    index_ = {};
+    view_ = CompletedRunRecordsView::Courses;
+    selected_course_.reset();
+    selected_run_.reset();
+}
+
+bool CompletedRunRecordsBrowser::refresh(
+    const std::string& directory,
+    const RunRecordsScope& scope) {
+    clear();
+    const auto records = load_valid_run_records(directory);
+    index_ = build_run_records_index(records, scope);
+    if (!index_.courses.empty()) {
+        selected_course_ = 0;
+    }
+    return true;
+}
+
+const RunRecordsCourseIndexEntry*
+CompletedRunRecordsBrowser::selected_course() const noexcept {
+    if (!selected_course_ || *selected_course_ >= index_.courses.size()) {
+        return nullptr;
+    }
+    return &index_.courses[*selected_course_];
+}
+
+const RunDataCatalogEntry*
+CompletedRunRecordsBrowser::selected_run() const noexcept {
+    const auto* course = selected_course();
+    if (!course || !selected_run_ ||
+        *selected_run_ >= course->catalog.entries.size()) {
+        return nullptr;
+    }
+    return &course->catalog.entries[*selected_run_];
+}
+
+bool CompletedRunRecordsBrowser::move(int delta) noexcept {
+    if (delta == 0) {
+        return view_ == CompletedRunRecordsView::Courses
+            ? selected_course_.has_value()
+            : selected_run_.has_value();
+    }
+
+    const int step = delta > 0 ? 1 : -1;
+    if (view_ == CompletedRunRecordsView::Courses) {
+        if (!selected_course_ || index_.courses.empty()) return false;
+        const std::size_t count = index_.courses.size();
+        *selected_course_ = step > 0
+            ? (*selected_course_ + 1) % count
+            : (*selected_course_ == 0 ? count - 1 : *selected_course_ - 1);
+        selected_run_.reset();
+        return true;
+    }
+
+    const auto* course = selected_course();
+    if (!course || !selected_run_ || course->catalog.entries.empty()) {
+        return false;
+    }
+    const std::size_t count = course->catalog.entries.size();
+    *selected_run_ = step > 0
+        ? (*selected_run_ + 1) % count
+        : (*selected_run_ == 0 ? count - 1 : *selected_run_ - 1);
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::open_selected_course() noexcept {
+    const auto* course = selected_course();
+    if (!course || course->catalog.entries.empty()) return false;
+
+    view_ = CompletedRunRecordsView::Runs;
+    selected_run_ = course->catalog.previous_entry.value_or(0);
+    if (*selected_run_ >= course->catalog.entries.size()) {
+        selected_run_ = 0;
+    }
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::back_to_courses() noexcept {
+    if (view_ != CompletedRunRecordsView::Runs) return false;
+    view_ = CompletedRunRecordsView::Courses;
+    selected_run_.reset();
+    return true;
+}
+
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept {
     switch (status) {

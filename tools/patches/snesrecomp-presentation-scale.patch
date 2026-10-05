@@ -1,5 +1,22 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
+@@ -540,6 +540,6 @@ static uint64_t g_state_generation;
+ /* The last field actually presented, kept so an overlay can freeze the guest
+  * and still have something to draw behind itself. Sized like g_my_pixels. */
+-static uint8_t g_frozen_frame[kSnesDesktopMaxFrameWidth * 4 * 240];
++static uint8_t g_frozen_frame[kPpuBufWidth * 4 * 240 * 4 * 4];
+ static int g_frozen_w, g_frozen_h;
+ /* The simulated frame the next present shows. Read by SNESRECOMP_SCREENSHOT
+  * and by frame blending, which advances its kept frame once per simulated
+@@ -565,7 +565,7 @@ static RecompFrameBlend *g_blend;
+ static unsigned g_blend_frame;
+ /* Cached-memory staging frame: see DrawPpuFrameWithPerf. Same bound as the
+  * frozen-frame copy, which is the widest field this host presents. */
+-static uint8 g_blend_stage[kPpuBufWidth * 4 * 240];
++static uint8 g_blend_stage[kPpuBufWidth * 4 * 240 * 4 * 4];
+ #endif
+ static void FrameBlendConfigure(void) {
+ #if defined(SNESRECOMP_HOST_HAS_BLEND)
 @@ -1574,5 +1574,9 @@ static void DrawPpuFrameWithPerf(void) {
    double profile_start = ProfileStart();
    PreparePpuFrame();

@@ -15,6 +15,11 @@ CALLER_ADDR = "CBCC"
 CALLER_NAME = "RaceFrameOrchestratorLoop"
 CALLER_SYMBOL_MARKER = 'name = "RaceFrameOrchestratorLoop"'
 
+CHALLENGE_BANK = 0
+CHALLENGE_ADDR = "E6A2"
+CHALLENGE_NAME = "TourConfirmGenerationSnapshot"
+CHALLENGE_SYMBOL_MARKER = 'name = "TourConfirmGenerationSnapshot"'
+
 def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bool:
     text = path.read_text(encoding="utf-8") if path.exists() else prefix
     if marker in text:
@@ -35,9 +40,29 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
         f"bank = {CALLER_BANK}\nemit = true\n"
         "note = \"Trusted race-frame orchestrator entry containing 83:CD55 -> 81:A52B\"\n"
     )
+    challenge_marker = f"func {CHALLENGE_NAME} {CHALLENGE_ADDR}"
+    challenge_entry = (
+        "# UR-Recomp accepted tour-confirm challenge-generation writer seed.\n"
+        f"{challenge_marker}\n"
+    )
+    challenge_symbol_entry = (
+        f"\n[[func]]\nname = \"{CHALLENGE_NAME}\"\naddr = \"{CHALLENGE_ADDR}\"\n"
+        f"bank = {CHALLENGE_BANK}\nemit = true\n"
+        "note = \"Bounded call scan: 80:C28F JSR 80:E6A2; routine owns 80:E6BF STA.l $77:10D1\"\n"
+    )
+
     symbol_caller = _append_once(symbols, CALLER_SYMBOL_MARKER, caller_symbol_entry)
+    symbol_challenge = _append_once(
+        symbols, CHALLENGE_SYMBOL_MARKER, challenge_symbol_entry)
+    bank_challenge = cfg_dir / f"bank{CHALLENGE_BANK:02d}.cfg"
     return {
-        "symbols": symbol_caller,
+        "symbols": symbol_caller or symbol_challenge,
+        "bank00": _append_once(
+            bank_challenge,
+            challenge_marker,
+            challenge_entry,
+            prefix=f"bank = {CHALLENGE_BANK}\ntier_down_stubs\n",
+        ),
         "bank03": _append_once(
             bank_caller,
             caller_marker,

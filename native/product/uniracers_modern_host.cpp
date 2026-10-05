@@ -96,6 +96,7 @@ std::string g_onboarding_seen_path;
 
 bool g_practice_active;
 bool g_practice_acceptance_fired;
+bool g_practice_race_ready_reported;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
@@ -473,7 +474,7 @@ bool queue_practice_input(
         // Two frames is long enough for stock menu edge detection while
         // remaining one discrete normalized press.
         char line[32];
-        std::snprintf(line, sizeof(line), "0:2:%X\\n",
+        std::snprintf(line, sizeof(line), "0:2:%X\n",
             static_cast<unsigned>(mask));
         out << line;
         out.flush();
@@ -511,6 +512,7 @@ bool begin_practice(std::uint8_t track_id = 0) {
     RtlEnsureSaveDir();
 
     g_practice_active = true;
+    g_practice_race_ready_reported = false;
     g_practice_launch = ur::product::begin_quick_practice_launch(target);
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
@@ -543,6 +545,7 @@ bool restore_practice_profile_before_reboot() {
             : g_practice_original_save_root.c_str());
 
     g_practice_active = false;
+    g_practice_race_ready_reported = false;
     g_practice_launch = {};
     g_practice_sram_snapshot.clear();
     g_practice_original_save_root.clear();
@@ -570,17 +573,30 @@ void advance_practice_route(uint64_t next_frame) {
     g_practice_launch = step.state;
 
     if (step.race_ready) {
-        product_diagnostic("UR_PRACTICE RACE_READY");
+        if (!g_practice_race_ready_reported) {
+            g_practice_race_ready_reported = true;
+            product_diagnostic("UR_PRACTICE RACE_READY");
+        }
         return;
     }
     if (step.input == ur::product::QuickPracticeLaunchInput::None) {
         return;
     }
+    const auto stage_before = g_practice_launch.stage;
     if (!queue_practice_input(next_frame, step.input)) {
         product_diagnostic("UR_PRACTICE INPUT_FAILED");
         return;
     }
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        const char* compatibility_stage =
+            stage_before == ur::product::QuickPracticeLaunchStage::AwaitRider
+                ? "main"
+                : nullptr;
+        if (compatibility_stage) {
+            std::fprintf(
+                stderr, "UR_PRACTICE ACCEPT stage=%s\n",
+                compatibility_stage);
+        }
         std::fprintf(
             stderr,
             "UR_PRACTICE INPUT stage=%u input=%u selected=%u\n",

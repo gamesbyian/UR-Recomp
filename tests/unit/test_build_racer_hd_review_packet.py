@@ -98,6 +98,9 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             dossier.write_text(json.dumps(self.dossier()))
             equivalence.write_text(json.dumps(self.equivalence()))
             readiness.write_text(json.dumps({
+                "schema_version": 1,
+                "family": "ordinary-racer",
+                "source_temporal_window": {"start": 1, "end": 2},
                 "shipping_ready": True,
                 "unique_pose_count": 1,
                 "review_basis": {
@@ -118,6 +121,8 @@ class RacerHdReviewPacketTest(unittest.TestCase):
                 },
                 "poses": [{
                     "pose_id": "p1-pose-001",
+                    "player": "p1",
+                    "authored_asset_rgba_sha256": "art",
                     "review_status": "approved",
                     "shipping_art_approved": True,
                     "blocker_codes": [],
@@ -151,6 +156,96 @@ class RacerHdReviewPacketTest(unittest.TestCase):
             self.assertIn("artifact 456", html)
             self.assertIn("window 1205–1220", html)
             self.assertIn("review/index.html", html)
+
+    def test_packet_rejects_readiness_from_wrong_family_or_window(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dossier = root / "manifest.json"
+            equivalence = root / "equivalence.json"
+            readiness = root / "readiness.json"
+            dossier.write_text(json.dumps(self.dossier()))
+            equivalence.write_text(json.dumps(self.equivalence()))
+
+            base = {
+                "family": "ordinary-racer",
+                "source_temporal_window": {"start": 1, "end": 2},
+                "shipping_ready": True,
+                "unique_pose_count": 1,
+                "counts": {},
+                "review_basis": {},
+                "family_blockers": [],
+                "poses": [{
+                    "pose_id": "p1-pose-001",
+                    "player": "p1",
+                    "authored_asset_rgba_sha256": "art",
+                    "review_status": "approved",
+                    "shipping_art_approved": True,
+                    "blocker_codes": [],
+                }],
+            }
+
+            wrong_family = dict(base)
+            wrong_family["family"] = "other"
+            readiness.write_text(json.dumps(wrong_family))
+            with self.assertRaisesRegex(ValueError, "family does not match"):
+                build_review_packet(
+                    dossier, equivalence, root / "wrong-family",
+                    readiness_path=readiness,
+                )
+
+            wrong_window = dict(base)
+            wrong_window["source_temporal_window"] = {"start": 1, "end": 3}
+            readiness.write_text(json.dumps(wrong_window))
+            with self.assertRaisesRegex(ValueError, "temporal window does not match"):
+                build_review_packet(
+                    dossier, equivalence, root / "wrong-window",
+                    readiness_path=readiness,
+                )
+
+    def test_packet_rejects_readiness_pose_set_or_hash_mismatch(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dossier = root / "manifest.json"
+            equivalence = root / "equivalence.json"
+            readiness = root / "readiness.json"
+            dossier.write_text(json.dumps(self.dossier()))
+            equivalence.write_text(json.dumps(self.equivalence()))
+
+            base = {
+                "family": "ordinary-racer",
+                "source_temporal_window": {"start": 1, "end": 2},
+                "shipping_ready": True,
+                "unique_pose_count": 1,
+                "counts": {},
+                "review_basis": {},
+                "family_blockers": [],
+                "poses": [{
+                    "pose_id": "p1-pose-001",
+                    "player": "p1",
+                    "authored_asset_rgba_sha256": "art",
+                    "review_status": "approved",
+                    "shipping_art_approved": True,
+                    "blocker_codes": [],
+                }],
+            }
+
+            wrong_id = json.loads(json.dumps(base))
+            wrong_id["poses"][0]["pose_id"] = "stale-pose"
+            readiness.write_text(json.dumps(wrong_id))
+            with self.assertRaisesRegex(ValueError, "pose IDs do not match"):
+                build_review_packet(
+                    dossier, equivalence, root / "wrong-id",
+                    readiness_path=readiness,
+                )
+
+            wrong_hash = json.loads(json.dumps(base))
+            wrong_hash["poses"][0]["authored_asset_rgba_sha256"] = "stale"
+            readiness.write_text(json.dumps(wrong_hash))
+            with self.assertRaisesRegex(ValueError, "authored hash does not match"):
+                build_review_packet(
+                    dossier, equivalence, root / "wrong-hash",
+                    readiness_path=readiness,
+                )
 
     def test_packet_copies_baseline_assets_for_before_after_review(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -33,10 +33,11 @@ Acceptance is:
 3. verify the clean package manifest, create the deterministic ZIP, and verify the archive independently;
 4. extract that ZIP to a fresh test directory and launch the extracted package from an unrelated working directory through `run-uniracers.cmd`;
 5. reach the stock main menu using only files inside the package plus the external acceptance script;
-6. prove first-run `config.ini` and `keybinds.ini` are created beside the packaged executable, not in the caller working directory;
-7. deliberately remove the packaged ROM and prove the launcher exits with code 2 plus a clear missing-file diagnostic rather than falling through to a cryptic runtime failure;
-8. re-verify the untouched clean source package and ZIP after the extracted test copy has generated runtime state, proving the shipping artifact was not contaminated by acceptance;
-9. retain the deterministic ZIP as the consumer CI artifact for inspection.
+6. drive the extracted package through the established deterministic race-result route and validate the authoritative finish-time checkpoint, proving the consumer artifact reaches real gameplay/results rather than merely initializing;
+7. prove first-run `config.ini` and `keybinds.ini` are created beside the packaged executable, not in the caller working directory;
+8. deliberately remove the packaged ROM and prove the launcher exits with code 2 plus a clear missing-file diagnostic rather than falling through to a cryptic runtime failure;
+9. re-verify the untouched clean source package and ZIP after the extracted test copy has generated runtime state, proving the shipping artifact was not contaminated by acceptance;
+10. retain the deterministic ZIP as the consumer CI artifact for inspection.
 
 The package must remain self-contained with respect to game/runtime payload. Build tools, repository source trees and checkout-relative paths are not allowed runtime dependencies.
 

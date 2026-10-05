@@ -1,22 +1,7 @@
 name: LoROM SRAM mapping regression
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tests/input/sram-roundtrip.script"
-      - ".github/workflows/sram-mapping-probe.yml"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/patches/beetle-bsnes-ur-recomp.patch"
-      - "third_party/src/beetle-bsnes-libretro/**"
-      - "reference/imported/tas-bots/uniracers-2008-wip-microstorage.smv"
-      - "tools/extract_smv_input.py"
-      - "snesrecomp"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: sram-mapping-probe-${{ github.ref }}
   cancel-in-progress: true
 

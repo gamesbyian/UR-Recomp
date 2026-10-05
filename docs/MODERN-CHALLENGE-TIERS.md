@@ -68,6 +68,20 @@ The adapter must satisfy all of these constraints:
 
 The preferred implementation shape is a title-owned typed challenge adapter with the smallest possible input/output vocabulary, analogous to the existing tour-resume adapter. It should own all concrete stock addresses and checksum mechanics. Generic product policy should see only tier/opponent/completion semantics.
 
+### Completion/reward constraint
+
+The retained stock award path already closes an important implementation question: at `83:8823..8838` stock reads the persistent medal cell, increments it by exactly one, stores only values up to 3, then the later `83:88FD` dispatch selects ordinary medal presentation versus the per-tour gold vignette / Hunter ending based on the resulting stock progression state.
+
+Therefore a Modern Gold-selected tour begun from persistent medal 0 cannot be implemented as:
+
+1. run Gold semantics using a transient generation;
+2. let stock award Bronze `0 -> 1`;
+3. rewrite the saved medal to 3 afterward.
+
+That sequence would let the stock reward path observe the wrong generation and can skip the canonical gold vignette/ending. The completion adapter must instead make the **stock-owned award transaction itself resolve to the selected completed tier**, or provide an equivalently narrow hook before the reward dispatch while preserving stock checksum and derived-tier updates. Persistent completion must still remain ungranted before successful tour completion.
+
+This makes completion a separate seam from challenge initialization. The current pure `ModernChallengeCommitPlan` is the host/product authorization boundary only; it is not permission for a post-hoc SRAM edit.
+
 ## Cheapest next discriminator
 
 Do not reopen generic progression archaeology. The missing question is narrow:

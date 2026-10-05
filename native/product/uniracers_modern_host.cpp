@@ -98,6 +98,7 @@ std::string g_onboarding_seen_path;
 bool g_practice_active;
 bool g_practice_acceptance_fired;
 bool g_practice_race_ready_reported;
+int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
@@ -525,6 +526,7 @@ bool begin_practice(std::uint8_t track_id = 0) {
 
     g_practice_active = true;
     g_practice_race_ready_reported = false;
+    g_practice_cancel_gamepad_button = -1;
     g_practice_launch = ur::product::begin_quick_practice_launch(target);
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
@@ -3056,8 +3058,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         // Consume both press and release edges while the host owns stock-menu
         // traversal. B/Start cancel the route safely; once Active, normal race
         // controls are guest-owned again.
+        if (!pressed && button == g_practice_cancel_gamepad_button) {
+            g_practice_cancel_gamepad_button = -1;
+            return 1;
+        }
         if (pressed &&
             (button == kGamepadBtn_B || button == kGamepadBtn_Start)) {
+            g_practice_cancel_gamepad_button = button;
             (void)abort_practice_route_to_frontend(
                 "UR_PRACTICE ROUTE_CANCELLED");
         }
@@ -3089,6 +3096,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
 
     if (!pressed) {
+        if (button == g_practice_cancel_gamepad_button) {
+            g_practice_cancel_gamepad_button = -1;
+            return 1;
+        }
         const bool settled_main =
             modern_mode() && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
         const bool fast_nav_release =

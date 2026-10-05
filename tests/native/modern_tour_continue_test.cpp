@@ -60,5 +60,18 @@ int main() {
     assert(failed.state.stage == ModernTourContinueStage::Idle);
     assert(failed.input == QuickPracticeMenuInput::None);
 
+    state = begin_modern_tour_continue(2);
+    for (std::uint32_t i = 0; i < kModernTourContinueMaxObservations; ++i) {
+        const auto waiting = advance_modern_tour_continue(
+            state, {0x00, 0, false});
+        assert(!waiting.timed_out);
+        state = waiting.state;
+    }
+    const auto timed_out = advance_modern_tour_continue(
+        state, {0x00, 0, false});
+    assert(timed_out.timed_out);
+    assert(timed_out.state.stage == ModernTourContinueStage::Idle);
+    assert(timed_out.input == QuickPracticeMenuInput::None);
+
     return 0;
 }

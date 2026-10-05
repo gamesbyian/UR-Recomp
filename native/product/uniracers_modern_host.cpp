@@ -3397,6 +3397,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
         }
         return 1;
     }
+
+    // Controls is modal input ownership. In particular, capture must see keys
+    // such as F1/F3 before any global Modern shortcut can consume them.
+    if (g_controls_visible) {
+        return handle_controls_key(key) ? 1 : 0;
+    }
+
     if (modern_mode() && key == SDLK_F1) {
         g_onboarding_visible = true;
         g_onboarding_manual_open = true;
@@ -3443,10 +3450,6 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (g_quit_confirm_visible &&
         (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return request_desktop_quit() ? 1 : 0;
-    }
-
-    if (g_controls_visible) {
-        return handle_controls_key(key) ? 1 : 0;
     }
 
     if (g_options_visible) {

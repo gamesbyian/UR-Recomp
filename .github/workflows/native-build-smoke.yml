@@ -978,6 +978,7 @@ jobs:
               sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
               reset_saves
               UR_PRODUCT_DIAGNOSTICS=1 \
+              UR_TIMING_HUD_DIAGNOSTICS=all \
               UR_HOST_STATE_PATH="$OUT/state.txt" \
               URRECOMP_WS_NATIVE_TRACE=1 \
               SNESRECOMP_INPUT_FILE="$input" \
@@ -1012,6 +1013,14 @@ jobs:
           split_route two-player \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          for view in original 16x9; do
+            if grep -q "UR_TIMING_HUD " \
+                "$RUNNER_TEMP/widescreen-product-two-player-$view/run.log"; then
+              echo "::error::Unsupported ordinary 2P race exposed the 1P timing HUD"
+              exit 1
+            fi
+          done
+          echo "UR_TIMING_HUD_UNSUPPORTED_RESULT=two_player_inert"
           python3 tools/check_widescreen_product_parity.py \
             --stock-dumps "$RUNNER_TEMP/widescreen-product-two-player-original/dumps" \
             --wide-dumps "$RUNNER_TEMP/widescreen-product-two-player-16x9/dumps" \

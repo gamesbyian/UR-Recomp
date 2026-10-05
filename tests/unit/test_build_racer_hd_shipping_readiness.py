@@ -81,6 +81,30 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "decisions must be a list"):
             build_shipping_readiness(self.equivalence(), decisions)
 
+    def test_decision_rows_and_pose_groups_must_be_objects_in_lists(self):
+        decisions = self.decisions()
+        decisions["decisions"][0] = "not-an-object"
+        with self.assertRaisesRegex(ValueError, "art decision must be an object"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+        equivalence = self.equivalence()
+        equivalence["pose_groups"] = {}
+        with self.assertRaisesRegex(ValueError, "pose_groups must be a list"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+        equivalence = self.equivalence()
+        equivalence["pose_groups"][0] = "not-an-object"
+        with self.assertRaisesRegex(ValueError, "pose group must be an object"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+    def test_equivalence_temporal_bounds_must_be_ordered_integers(self):
+        for start, end in ((None, 2), (1, None), (3, 2), (True, 2)):
+            equivalence = self.equivalence()
+            equivalence["source_temporal_window"] = {"start": start, "end": end}
+            with self.subTest(start=start, end=end):
+                with self.assertRaisesRegex(ValueError, "invalid temporal bounds"):
+                    build_shipping_readiness(equivalence, self.decisions())
+
     def test_readiness_is_owned_per_unique_pose_not_guard(self):
         result = build_shipping_readiness(
             self.equivalence(),

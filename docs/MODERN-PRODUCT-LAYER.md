@@ -91,6 +91,25 @@ The acceptance standard is process-oriented: create/select/rename and classic-pr
 
 The host-state store may physically exist while Authentic mode is active, but its contents must be observationally inert with respect to guest behavior.
 
+## Modern product decisions
+
+These are settled product policy, not open research questions:
+
+- Modern's top-level information architecture is **Play / Practice / Multiplayer / Records / Options**. Options contains settings only.
+- profile identity/persistence is separate from racer identity and from guest SRAM slots;
+- local multiplayer uses simultaneous independent join/racer selection in Modern; Authentic keeps stock sequential selection;
+- Modern tour play supports host-owned Resume Tour / Restart Tour persistence;
+- Modern tour challenge is player-selectable Bronze/Silver/Gold using canonical stock thresholds/opponents, and higher-tier completion satisfies lower tiers;
+- secret/Hunter progression remains undisclosed discovery content;
+- the result ritual is preserved, then Modern adds Next Event / Retry / Track Select / Tour Select / Records actions;
+- stock League administration becomes Modern Local Tournament, defaulting to round-robin/points play while retaining original standings presentation;
+- one unified Records browser owns Tracks, Racers/Profiles, Runs/Replays and Multiplayer/Tournament views while retaining classic tables as views;
+- Modern text entry uses native keyboard input plus controller on-screen entry; guest-compatible names use a deterministic stock-width projection when needed;
+- all 16 classic racer presets remain exact, but no new canonical personalities are invented; Bronsen/Silvia/Goldwyn/ANTI-UNI retain their established opponent roles;
+- the original attract/demo cycle remains default; any Local Showcase is explicit and optional.
+
+These decisions live above the authoritative guest. None authorizes changing race physics, scoring, AI, canonical thresholds, secret conditions, timing or stock Authentic behavior.
+
 ## Ownership rules
 
 Keep these domains separate:

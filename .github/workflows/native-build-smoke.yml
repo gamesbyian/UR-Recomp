@@ -642,7 +642,6 @@ jobs:
           exit "$STATUS"
 
       - name: Validate captured frame
-        if: always()
         shell: bash
         run: |
           set -euo pipefail
@@ -784,8 +783,11 @@ jobs:
               done
               grep -q "UR_PAUSE_OPTIONS OPENED" "'"$log"'"
 
-              # Options starts at Focus Pause. Ghost is the seventh row.
-              for _ in 1 2 3 4 5 6; do xdotool key Down; done
+              # Options starts at Focus Pause. Ghost currently follows
+              # Display/VSync/FPS/Resolution/Render Scale/Widescreen.
+              # Keep this end-to-end route aligned with the semantic row enum;
+              # unit policy tests own the exact ordering contract.
+              for _ in 1 2 3 4 5 6 7; do xdotool key Down; done
               xdotool key Return
 
               for _ in $(seq 1 100); do

@@ -296,7 +296,11 @@ The policy-only phase has advanced into a tested product substrate on this branc
 - `regional_presentation_secret.{hpp,cpp}` implements the pure keyboard/controller recognizer with title-surface, Modern-mode, text-entry and timeout gating;
 - `regional_presentation_runtime.{hpp,cpp}` initializes recognition from host state and changes only `HostProductState::regional_presentation`, returning `SaveRequired` only for a real regional transition;
 - host-state schema v6 accepts `regional_presentation=north_america|europe` as a known additive field, so older/sparse v6 files default safely to NorthAmerica and canonical re-save writes the explicit value;
-- host-state/store tests cover Europe serialization/round-trip; standalone regional tests cover PAL/NTSC text, both controller codes, repeated-selection no-op, timeout, wrong-prefix recovery, Authentic/text-entry/off-title rejection and persisted-state initialization.
+- host-state/store tests cover Europe serialization/round-trip; standalone regional tests cover PAL/NTSC text, both controller codes, repeated-selection no-op, timeout, wrong-prefix recovery, Authentic/text-entry/off-title rejection and persisted-state initialization;
+- store-level acceptance now proves PAL -> durable save -> fresh load -> profile switch -> NTSC -> durable save -> fresh load, establishing global/profile-independent persistence;
+- `tools/analyze_regional_retail_static.py` independently verifies the exact retail identities, 38/45 RNC identity, all seven changed stream ordinals, course mapping, promoted resource/header deltas and candidate printable-string differences;
+- `regional-retail-static-analysis.yml` retains that exact static inventory as JSON/Markdown evidence;
+- `tools/compare_retail_frontend.py` plus `regional-retail-frontend-comparison.yml` now run the same semantic snesref UI routes against both retail ROMs and retain matched framebuffer/text differences plus route failures for interpretation.
 
 Still intentionally unwired:
 
@@ -304,7 +308,9 @@ Still intentionally unwired:
 - concrete title-surface observation in the production host;
 - save dispatch after `SaveRequired`;
 - title/logo rendering selection;
-- the evidence experiments below.
+- production consumption of the evidence experiments below.
+
+Experiment A/E now have reusable execution machinery; the next step is to inspect retained outputs, classify visible deltas, and promote only confirmed presentation differences.
 
 This keeps the active shared Modern host out of this PR until the current navigation/progression/controls branches are reconciled.
 

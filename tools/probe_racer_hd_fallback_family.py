@@ -238,13 +238,48 @@ def main() -> int:
     )
     parser.add_argument("--json-out", type=Path)
     parser.add_argument("--output-dir", type=Path)
+    parser.add_argument("--trace-out", type=Path)
     args = parser.parse_args()
 
+    registry = json.loads(args.registry.read_text(encoding="utf-8"))
     report = build_report(
         args.rom.read_bytes(),
-        json.loads(args.registry.read_text(encoding="utf-8")),
+        registry,
         args.output_dir,
     )
+    if args.trace_out:
+        ids = {
+            "p1": "ordinary-racer-0x0544-p1-frequency-0578-reference",
+            "p2": "ordinary-racer-0x0578-p2-frequency-0544-reference",
+        }
+        known = {entry["representation_id"] for entry in registry["entries"]}
+        if not all(rid in known for rid in ids.values()):
+            raise SystemExit("target family is not fully registered")
+        trace = {
+            "schema_version": 1,
+            "source": {
+                "kind": "retained-measured-fallback-family",
+                "fallback_report": "analysis/generated/racer-hd-fallback-frequency-2026-10-05.json",
+                "state": TARGET_STATE,
+                "frames": TARGET_FRAMES,
+            },
+            "registered_composition_coverage": {
+                "frames": [
+                    {
+                        "frame": frame,
+                        "fully_registered": True,
+                        "p1_representation_id": ids["p1"],
+                        "p2_representation_id": ids["p2"],
+                    }
+                    for frame in TARGET_FRAMES
+                ]
+            },
+        }
+        args.trace_out.parent.mkdir(parents=True, exist_ok=True)
+        args.trace_out.write_text(
+            json.dumps(trace, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

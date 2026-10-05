@@ -4,18 +4,18 @@
   "review_basis": {
     "workflow_run": 37390149923,
     "artifact_id": 11381001561,
-    "temporal_windows": [
-      [
-        1280,
-        1283
-      ],
+    "review_surface": "measured fallback-family deterministic dossier, pose-equivalence, review packet, palette-reuse proof, and two temporal holds",
+    "disposition": "P1 0544 reuses the shipping-approved P2 0544 geometry through a proven player-color-only transform. P2 0578 is one new authored pose reviewed against exact stock frames 1280-1286. Both remain bound to the exact authored hashes below.",
+    "temporal_window": [
+      1280,
+      1283
+    ],
+    "additional_temporal_windows": [
       [
         1285,
         1286
       ]
-    ],
-    "review_surface": "measured fallback-family deterministic dossier, pose-equivalence, review packet, palette-reuse proof, and two temporal holds",
-    "disposition": "P1 0544 reuses the shipping-approved P2 0544 geometry through a proven player-color-only transform. P2 0578 is one new authored pose reviewed against exact stock frames 1280-1286. Both remain bound to the exact authored hashes below."
+    ]
   },
   "family_blockers": [],
   "decisions": [

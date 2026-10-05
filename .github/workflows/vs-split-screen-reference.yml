@@ -1,7 +1,9 @@
 name: VS split-screen reference regression
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: vs-split-screen-reference-${{ github.ref }}
   cancel-in-progress: true
 

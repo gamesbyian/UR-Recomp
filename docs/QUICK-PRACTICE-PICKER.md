@@ -1,6 +1,6 @@
 # Quick Practice Track Picker Integration
 
-Status: product substrate implemented; Modern host/UI wiring pending until the active host lanes settle.
+Status: product substrate implemented; the Modern host now consumes the target-aware launch machine for default and validated Recent Course launches. The full generic picker presentation remains a separate UI completion step.
 
 ## Product goal
 
@@ -50,7 +50,12 @@ No guest state was written by those probes.
 
 ## Host integration shape
 
-After the active Modern host/profile/settings work is merged, keep the host patch thin.
+The host patch is now thin at the launch boundary: `uniracers_modern_host.cpp` creates a validated target and advances `QuickPracticeLaunchState` from observed stock menu/race state. It emits only normalized menu input through the established relative-input runner. The remaining picker UI should stay above this same path rather than creating another router.
+
+The launch contract is now identity-safe rather than merely race-active-safe. Stock menu IDs are known to become visible before their first input-ready frame, so the reusable launch machine encodes the same 60-guest-frame settle window proven by the deterministic frontend fixtures before emitting its first input on each menu surface. It will not accept an active race unless the router has actually completed the expected MAIN_MENU → RIDER_SELECT → TOUR_SELECT → TRACK_SELECT → NOW_PLAYING sequence and the authoritative decoded-course identity matches the requested zero-based Quick Practice target. An attract/demo race, bypassed route, unknown course identity, or different valid course therefore cannot be silently promoted to a successful Practice launch; mismatches restore the isolated Practice state and return through the existing frontend reboot lifecycle. While that stock-menu route is in flight, the host exclusively consumes keyboard/gamepad edges so incidental player input cannot perturb the menu cursor; guest control resumes only after the requested race has been validated. Routing is bounded to 3,600 host observations and can be cancelled explicitly with Escape or B/Start; timeout/cancel restores the Practice snapshot/root and returns to frontend instead of trapping input ownership indefinitely. Returning from Practice is transactional across SRAM/save-root restoration and the framework reboot request: if the reboot request fails, the live disposable Practice SRAM/root and router state are restored rather than leaving the host half-transitioned.
+
+
+For the eventual full picker presentation:
 
 At the settled Modern main menu:
 
@@ -72,12 +77,15 @@ On confirm:
    - `g_ram[0x009F]` menu id;
    - `g_ram[0x009B]` stock menu selection;
    - `g_ram[0x0313] == 1` active-race state;
+   - the zero-based course id from `ur_uniracers_identify_course()`, or unavailable until the decoded live course is authoritative;
 6. if the launch machine emits an input, write one two-frame relative input entry using `quick_practice_runner_mask()`;
 7. arm it through the existing `snesrecomp_desktop_load_relative_input_file` /
    `snesrecomp_desktop_arm_relative_input` path;
 8. when the launch machine reports Active, reuse the existing practice overlay and persistence suppression.
 
 Do not resurrect a second host-owned copy of tour/track routing.
+
+Fast repeat/navigation builds on the same rule. A course observed during an authoritative live race may be cached process-locally for the current Modern profile context as Recent Course. Named profiles never share the cache with one another, and the no-profile context is isolated from every named profile. F6 / controller Y at the settled Modern main menu converts that validated identity back to a `QuickPracticeTarget` and enters the same isolated Practice lifecycle. Completed Practice results use the existing rollback Restart anchor for one-action Repeat Practice; no relaunch routing is needed for that case.
 
 ## Persistence and secret boundaries
 

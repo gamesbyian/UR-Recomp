@@ -4,15 +4,32 @@
 
 using namespace ur::product;
 
+static QuickPracticeLaunchStep settle_menu(
+    QuickPracticeLaunchState state,
+    QuickPracticeLaunchObservation observation
+) {
+    QuickPracticeLaunchStep step{};
+    for (std::uint16_t i = 0; i < kQuickPracticeMenuSettleObservations; ++i) {
+        step = advance_quick_practice_launch(state, observation);
+        state = step.state;
+        if (i + 1 < kQuickPracticeMenuSettleObservations) {
+            assert(step.input == QuickPracticeLaunchInput::None);
+            assert(!step.race_ready);
+            assert(!step.course_mismatch);
+            assert(!step.route_violation);
+        }
+    }
+    return step;
+}
 
 static void prove_all_tracks_reach_race() {
     for (std::uint8_t track = 0; track < 45; ++track) {
         auto state = begin_quick_practice_launch(
             quick_practice_target_for_track(track));
-        QuickPracticeLaunchObservation observation{0xD7, 0, false};
+        QuickPracticeLaunchObservation observation{0xD7, 0, false, -1};
 
         bool reached = false;
-        for (int guard = 0; guard < 64 && !reached; ++guard) {
+        for (int guard = 0; guard < 2500 && !reached; ++guard) {
             const auto step = advance_quick_practice_launch(state, observation);
             state = step.state;
 
@@ -21,7 +38,8 @@ static void prove_all_tracks_reach_race() {
                 if (observation.menu_id == 0x6D) {
                     if (observation.selected_option >= 2) {
                         observation.selected_option =
-                            static_cast<std::uint8_t>(observation.selected_option - 2);
+                            static_cast<std::uint8_t>(
+                                observation.selected_option - 2);
                     }
                 } else if (observation.selected_option > 0) {
                     --observation.selected_option;
@@ -29,7 +47,8 @@ static void prove_all_tracks_reach_race() {
                 break;
             case QuickPracticeLaunchInput::Down:
                 observation.selected_option = static_cast<std::uint8_t>(
-                    observation.selected_option + (observation.menu_id == 0x6D ? 2 : 1));
+                    observation.selected_option +
+                    (observation.menu_id == 0x6D ? 2 : 1));
                 break;
             case QuickPracticeLaunchInput::Left:
                 if (observation.selected_option > 0) {
@@ -42,19 +61,20 @@ static void prove_all_tracks_reach_race() {
             case QuickPracticeLaunchInput::Accept:
                 switch (state.stage) {
                 case QuickPracticeLaunchStage::AwaitRider:
-                    observation = {0x3C, 0, false};
+                    observation = {0x3C, 0, false, -1};
                     break;
                 case QuickPracticeLaunchStage::AwaitTour:
-                    observation = {0x6D, 0, false};
+                    observation = {0x6D, 0, false, -1};
                     break;
                 case QuickPracticeLaunchStage::AwaitTrack:
-                    observation = {0xF6, 0, false};
+                    observation = {0xF6, 0, false, -1};
                     break;
                 case QuickPracticeLaunchStage::AwaitNowPlaying:
-                    observation = {0x16, observation.selected_option, false};
+                    observation = {
+                        0x16, observation.selected_option, false, -1};
                     break;
                 case QuickPracticeLaunchStage::AwaitRace:
-                    observation.in_race = true;
+                    observation = {0x00, 0, true, track};
                     break;
                 default:
                     break;
@@ -64,10 +84,8 @@ static void prove_all_tracks_reach_race() {
                 break;
             }
 
-            if (state.waiting_for_selection_change) {
-                // The synthetic guest applies direction input immediately.
-                // Feed the changed selection back on the next iteration.
-            }
+            assert(!step.course_mismatch);
+            assert(!step.route_violation);
             if (state.stage == QuickPracticeLaunchStage::Active ||
                 step.race_ready) {
                 reached = true;
@@ -80,81 +98,148 @@ static void prove_all_tracks_reach_race() {
 }
 
 int main() {
+    QuickPracticeLaunchState ownership{};
+    assert(!quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitMain;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitRider;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitTour;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitTrack;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitNowPlaying;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitRace;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::Active;
+    assert(!quick_practice_launch_owns_player_input(ownership));
+
+    QuickPracticeLaunchState retry_budget =
+        begin_quick_practice_launch(quick_practice_target_for_track(0));
+    retry_budget.observations_remaining = 2;
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 1);
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 0);
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 0);
+    retry_budget.stage = QuickPracticeLaunchStage::Active;
+    retry_budget.observations_remaining = 2;
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 2);
+
     prove_all_tracks_reach_race();
-    const auto target = quick_practice_target_for_track(12); // Shuffler / slot 3.
+
+    const auto target =
+        quick_practice_target_for_track(12);  // Shuffler / slot 3.
     auto state = begin_quick_practice_launch(target);
     assert(state.stage == QuickPracticeLaunchStage::AwaitMain);
 
-    auto step = advance_quick_practice_launch(state, {0xD7, 0, false});
+    auto step = settle_menu(state, {0xD7, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitRider);
+    state = step.state;
 
-    step = advance_quick_practice_launch(step.state, {0x3C, 0, false});
+    step = settle_menu(state, {0x3C, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitTour);
+    state = step.state;
 
-    step = advance_quick_practice_launch(step.state, {0x6D, 0, false});
+    step = settle_menu(state, {0x6D, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Down);
     assert(step.state.waiting_for_selection_change);
-    assert(step.state.selection_before_input == 0);
 
-    // The menu can remain on the same option for several host frames. Do not
-    // enqueue repeated Down pulses while the first stock input is settling.
-    auto held = advance_quick_practice_launch(step.state, {0x6D, 0, false});
+    auto held = advance_quick_practice_launch(
+        step.state, {0x6D, 0, false, -1});
     assert(held.input == QuickPracticeLaunchInput::None);
     assert(held.state.waiting_for_selection_change);
 
-    step = advance_quick_practice_launch(held.state, {0x6D, 2, false});
+    step = advance_quick_practice_launch(
+        held.state, {0x6D, 2, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitTrack);
-    assert(!step.state.waiting_for_selection_change);
+    state = step.state;
 
-    step = advance_quick_practice_launch(step.state, {0xF6, 0, false});
+    step = settle_menu(state, {0xF6, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Down);
     assert(step.state.waiting_for_selection_change);
 
-    held = advance_quick_practice_launch(step.state, {0xF6, 0, false});
+    held = advance_quick_practice_launch(
+        step.state, {0xF6, 0, false, -1});
     assert(held.input == QuickPracticeLaunchInput::None);
 
-    step = advance_quick_practice_launch(held.state, {0xF6, 1, false});
+    step = advance_quick_practice_launch(
+        held.state, {0xF6, 1, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Down);
     assert(step.state.waiting_for_selection_change);
 
-    step = advance_quick_practice_launch(step.state, {0xF6, 2, false});
+    step = advance_quick_practice_launch(
+        step.state, {0xF6, 2, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitNowPlaying);
+    state = step.state;
 
-    step = advance_quick_practice_launch(step.state, {0x16, 2, false});
+    step = settle_menu(state, {0x16, 2, false, -1});
     assert(step.input == QuickPracticeLaunchInput::Accept);
     assert(step.state.stage == QuickPracticeLaunchStage::AwaitRace);
 
-    step = advance_quick_practice_launch(step.state, {0x00, 0, true});
+    // Race-active without decoded-course identity waits rather than guessing.
+    step = advance_quick_practice_launch(
+        step.state, {0x00, 0, true, -1});
+    assert(step.state.stage == QuickPracticeLaunchStage::AwaitRace);
+    assert(!step.race_ready);
+    assert(!step.course_mismatch);
+    assert(!step.route_violation);
+
+    step = advance_quick_practice_launch(
+        step.state, {0x00, 0, true, target.track_id});
     assert(step.input == QuickPracticeLaunchInput::None);
     assert(step.state.stage == QuickPracticeLaunchStage::Active);
     assert(step.race_ready);
 
-    // Active-race detection is authoritative even if an intermediate frontend
-    // state was too brief to sample.
-    state = begin_quick_practice_launch(quick_practice_target_for_track(0));
-    step = advance_quick_practice_launch(state, {0x00, 0, true});
-    assert(step.state.stage == QuickPracticeLaunchStage::Active);
-    assert(step.race_ready);
+    // A race reached before the router has completed Now Playing is not a
+    // successful Practice launch, even if its course happens to match.
+    state = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    step = advance_quick_practice_launch(
+        state, {0x00, 0, true, 0});
+    assert(step.state.stage == QuickPracticeLaunchStage::Idle);
+    assert(!step.race_ready);
+    assert(step.route_violation);
+
+    // A different authoritative course after the correct frontend route also
+    // fails closed.
+    state = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    state.stage = QuickPracticeLaunchStage::AwaitRace;
+    step = advance_quick_practice_launch(
+        state, {0x00, 0, true, 1});
+    assert(step.state.stage == QuickPracticeLaunchStage::Idle);
+    assert(!step.race_ready);
+    assert(step.course_mismatch);
+    assert(!step.route_violation);
+
+    // A stalled route cannot own player input forever.
+    state = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    state.observations_remaining = 1;
+    step = advance_quick_practice_launch(
+        state, {0x00, 0, false, -1});
+    assert(!step.timed_out);
+    assert(step.state.observations_remaining == 0);
+    step = advance_quick_practice_launch(
+        step.state, {0x00, 0, false, -1});
+    assert(step.timed_out);
+    assert(step.state.stage == QuickPracticeLaunchStage::Idle);
+    assert(!quick_practice_launch_owns_player_input(step.state));
 
     // Invalid targets fail closed.
     state = begin_quick_practice_launch({});
     assert(state.stage == QuickPracticeLaunchStage::Idle);
-    step = advance_quick_practice_launch(state, {0xD7, 0, false});
+    step = advance_quick_practice_launch(
+        state, {0xD7, 0, false, -1});
     assert(step.input == QuickPracticeLaunchInput::None);
-
-    // Track cursor can move upward without repeating while the guest settles.
-    state = begin_quick_practice_launch(quick_practice_target_for_track(1));
-    state.stage = QuickPracticeLaunchStage::AwaitTrack;
-    step = advance_quick_practice_launch(state, {0xF6, 4, false});
-    assert(step.input == QuickPracticeLaunchInput::Up);
-    held = advance_quick_practice_launch(step.state, {0xF6, 4, false});
-    assert(held.input == QuickPracticeLaunchInput::None);
-    step = advance_quick_practice_launch(held.state, {0xF6, 3, false});
-    assert(step.input == QuickPracticeLaunchInput::Up);
 
     return 0;
 }

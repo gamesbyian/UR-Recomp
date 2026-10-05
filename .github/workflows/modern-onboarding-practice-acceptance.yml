@@ -7,6 +7,10 @@ on:
       - "native/product/uniracers_modern_host.*"
       - "tests/input/modern-main-menu.script"
       - "tests/input/modern-practice-route.script"
+      - "tests/input/modern-fast-repeat-results.script"
+      - "tests/input/modern-practice-repeat-results.script"
+      - "tests/input/modern-practice-cancel.script"
+      - "tests/input/modern-recent-course-practice.script"
       - ".github/workflows/modern-onboarding-practice-acceptance.yml"
       - "docs/MODERN-PRODUCT-LAYER.md"
 
@@ -82,6 +86,335 @@ jobs:
           grep -q "UR_ONBOARDING HIDDEN first_run=0" "$SECOND"
           ! grep -q "UR_ONBOARDING SHOWN" "$SECOND"
 
+      - name: Prove Quick Practice routing can cancel safely
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-practice-cancel.script"
+          LOG="$RUNNER_TEMP/practice-cancel.log"
+          DUMPS="$RUNNER_TEMP/practice-cancel-dumps"
+          MARKER="$RUNNER_TEMP/onboarding.seen"
+          PRACTICE_ROOT="$RUNNER_TEMP/practice-cancel-save"
+          PRACTICE_INPUT="$RUNNER_TEMP/practice-cancel-input.txt"
+
+          rm -rf "$DUMPS" "$PRACTICE_ROOT"
+          mkdir -p "$DUMPS" "$PRACTICE_ROOT"
+
+          timeout 120s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_ONBOARDING_STATE_PATH="'"$MARKER"'"
+            export UR_PRACTICE_SAVE_ROOT="'"$PRACTICE_ROOT"'"
+            export UR_PRACTICE_INPUT_PATH="'"$PRACTICE_INPUT"'"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/practice-cancel-main.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/practice-cancel-main.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            xdotool key F5
+
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ]
+            xdotool key Escape
+
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ]
+            wait "$PID"
+          '
+
+          cat "$LOG"
+          grep -q "UR_PRACTICE STARTED" "$LOG"
+          grep -q "UR_PRACTICE ROUTE_CANCELLED" "$LOG"
+          grep -q "UR_PRACTICE RESTORED" "$LOG"
+          grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+          ! grep -q "UR_PRACTICE RACE_READY" "$LOG"
+          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+
+          START_DIGEST="$(grep 'UR_PRACTICE STARTED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          test -n "$START_DIGEST"
+          test "$START_DIGEST" = "$RESTORE_DIGEST"
+
+          python3 - "$DUMPS/practice-cancel-routing.wram.bin" "$DUMPS/practice-cancel-returned-main.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+
+          routing = Path(sys.argv[1]).read_bytes()
+          returned = Path(sys.argv[2]).read_bytes()
+          if routing[0x009F] != 0x3C or routing[0x0313] == 1:
+              raise SystemExit("cancel was not issued during stock rider-select routing")
+          if returned[0x009F] != 0xD7 or returned[0x0313] == 1:
+              raise SystemExit("cancel did not return to settled Modern main menu")
+          print("UR_PRACTICE_CANCEL_RESULT=restored frontend=main race_entered=0")
+          PY
+      - name: Prove one-action completed-race rematch
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-fast-repeat-results.script"
+          LOG="$RUNNER_TEMP/fast-rematch.log"
+          DUMPS="$RUNNER_TEMP/fast-rematch-dumps"
+
+          rm -rf "$DUMPS"
+          mkdir -p "$DUMPS"
+
+          timeout 120s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 900); do
+              [ -s "'"$DUMPS"'/race-results.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/race-results.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            xdotool key r
+
+            for _ in $(seq 1 300); do
+              [ -s "'"$DUMPS"'/fast-repeat-race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/fast-repeat-race-entered.wram.bin" ]
+            wait "$PID"
+          '
+
+          cat "$LOG"
+          grep -q "UR_FAST_NAV REMATCH" "$LOG"
+          grep -q "UR_FAST_NAV REPEAT_VERIFIED sram_equal=1 course_equal=1 practice=0" "$LOG"
+
+          python3 - "$DUMPS/race-results.wram.bin" "$DUMPS/fast-repeat-race-entered.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+
+          before = Path(sys.argv[1]).read_bytes()
+          repeated = Path(sys.argv[2]).read_bytes()
+          if repeated[0x0313] != 1:
+              raise SystemExit("rematch did not re-enter authoritative active race")
+          if before[0x00CE] != repeated[0x00CE]:
+              raise SystemExit(
+                  f"course changed across rematch: "
+                  f"{before[0x00CE]:02X}->{repeated[0x00CE]:02X}")
+          print(
+              "UR_FAST_REPEAT_RESULT=completed_race_rematch "
+              f"course={repeated[0x00CE]:02X} state_leakage=0")
+          PY
+      - name: Prove one-action Quick Practice repeat preserves isolation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-practice-repeat-results.script"
+          LOG="$RUNNER_TEMP/practice-repeat.log"
+          DUMPS="$RUNNER_TEMP/practice-repeat-dumps"
+          MARKER="$RUNNER_TEMP/onboarding.seen"
+          PRACTICE_ROOT="$RUNNER_TEMP/practice-repeat-save"
+          PRACTICE_INPUT="$RUNNER_TEMP/practice-repeat-input.txt"
+
+          rm -rf "$DUMPS" "$PRACTICE_ROOT"
+          mkdir -p "$DUMPS" "$PRACTICE_ROOT"
+
+          timeout 150s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_ONBOARDING_STATE_PATH="'"$MARKER"'"
+            export UR_PRACTICE_ACCEPTANCE=1
+            export UR_PRACTICE_SAVE_ROOT="'"$PRACTICE_ROOT"'"
+            export UR_PRACTICE_INPUT_PATH="'"$PRACTICE_INPUT"'"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 900); do
+              [ -s "'"$DUMPS"'/practice-repeat-results.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/practice-repeat-results.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            xdotool key r
+
+            for _ in $(seq 1 300); do
+              [ -s "'"$DUMPS"'/practice-repeat-second-race.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/practice-repeat-second-race.wram.bin" ]
+            wait "$PID"
+          '
+
+          cat "$LOG"
+          grep -q "UR_FAST_NAV REPEAT_PRACTICE" "$LOG"
+          grep -q "UR_FAST_NAV REPEAT_VERIFIED sram_equal=1 course_equal=1 practice=1" "$LOG"
+          grep -q "script .* dump practice-repeat-results ok" "$LOG"
+          grep -q "script .* dump practice-repeat-second-race ok" "$LOG"
+          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+
+          python3 - \
+            "$DUMPS/practice-repeat-first-race.wram.bin" \
+            "$DUMPS/practice-repeat-second-race.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+
+          first = Path(sys.argv[1]).read_bytes()
+          second = Path(sys.argv[2]).read_bytes()
+          if first[0x0313] != 1 or second[0x0313] != 1:
+              raise SystemExit("Quick Practice repeat did not re-enter an active race")
+          if first[0x00CE] != second[0x00CE]:
+              raise SystemExit(
+                  f"Quick Practice repeat changed course identity byte: "
+                  f"{first[0x00CE]:02X}->{second[0x00CE]:02X}")
+          print(
+              "UR_PRACTICE_REPEAT_RESULT=one_action_repeat "
+              "same_course=1 state_leakage=0")
+          PY
+      - name: Prove Recent Course relaunch uses isolated Quick Practice
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-recent-course-practice.script"
+          LOG="$RUNNER_TEMP/recent-course.log"
+          DUMPS="$RUNNER_TEMP/recent-course-dumps"
+          PRACTICE_ROOT="$RUNNER_TEMP/recent-course-practice-save"
+          PRACTICE_INPUT="$RUNNER_TEMP/recent-course-practice-input.txt"
+
+          rm -rf "$DUMPS" "$PRACTICE_ROOT"
+          mkdir -p "$DUMPS" "$PRACTICE_ROOT"
+
+          timeout 150s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_EXIT_FRONTEND_ACCEPTANCE=active
+            export UR_PRACTICE_SAVE_ROOT="'"$PRACTICE_ROOT"'"
+            export UR_PRACTICE_INPUT_PATH="'"$PRACTICE_INPUT"'"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 900); do
+              [ -s "'"$DUMPS"'/recent-returned-main.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/recent-returned-main.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            xdotool key F6
+
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/recent-practice-race.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/recent-practice-race.wram.bin" ]
+            wait "$PID"
+          '
+
+          cat "$LOG"
+          grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+          grep -q "UR_FAST_NAV RECENT_OBSERVED track=" "$LOG"
+          grep -q "UR_FAST_NAV RECENT_PRACTICE track=" "$LOG"
+          grep -q "UR_PRACTICE STARTED .* track=" "$LOG"
+          grep -q "UR_PRACTICE RACE_READY" "$LOG"
+
+          OBSERVED_TRACK="$(grep 'UR_FAST_NAV RECENT_OBSERVED track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          LAUNCHED_TRACK="$(grep 'UR_FAST_NAV RECENT_PRACTICE track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          PRACTICE_TRACK="$(grep 'UR_PRACTICE STARTED .* track=' "$LOG" | tail -1 | sed -E 's/.*track=([0-9]+).*/\1/')"
+          test -n "$OBSERVED_TRACK"
+          test "$OBSERVED_TRACK" = "$LAUNCHED_TRACK"
+          test "$OBSERVED_TRACK" = "$PRACTICE_TRACK"
+          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+
+          python3 - \
+            "$DUMPS/recent-source-race.wram.bin" \
+            "$DUMPS/recent-returned-main.wram.bin" \
+            "$DUMPS/recent-practice-race.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+
+          source = Path(sys.argv[1]).read_bytes()
+          main = Path(sys.argv[2]).read_bytes()
+          repeated = Path(sys.argv[3]).read_bytes()
+          if source[0x0313] != 1 or repeated[0x0313] != 1:
+              raise SystemExit("Recent Course did not connect two authoritative races")
+          if main[0x009F] != 0xD7 or main[0x0313] == 1:
+              raise SystemExit("Recent Course shortcut was not launched from settled main menu")
+          if source[0x00CE] != repeated[0x00CE]:
+              raise SystemExit(
+                  f"Recent Course changed course identity byte: "
+                  f"{source[0x00CE]:02X}->{repeated[0x00CE]:02X}")
+          print(
+              "UR_RECENT_COURSE_RESULT=same_authoritative_course "
+              "isolated_practice=1 direct_state_write=0")
+          PY
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
         run: |
@@ -142,6 +475,14 @@ jobs:
             ${{ runner.temp }}/onboarding-first.log
             ${{ runner.temp }}/onboarding-second.log
             ${{ runner.temp }}/practice.log
+            ${{ runner.temp }}/practice-cancel.log
+            ${{ runner.temp }}/practice-cancel-dumps/
+            ${{ runner.temp }}/fast-rematch.log
+            ${{ runner.temp }}/fast-rematch-dumps/
+            ${{ runner.temp }}/practice-repeat.log
+            ${{ runner.temp }}/practice-repeat-dumps/
+            ${{ runner.temp }}/recent-course.log
+            ${{ runner.temp }}/recent-course-dumps/
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

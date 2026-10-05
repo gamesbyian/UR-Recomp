@@ -94,14 +94,23 @@ int main(int argc, char** argv) {
     assert(browser.selected()->is_previous);
     assert(!browser.selected()->is_personal_best);
     assert(browser.selected()->time_text == "0:29.10/60");
+    assert(browser.selected()->personal_best_delta_ticks60 == 37);
+    assert(browser.selected()->personal_best_delta_text == "+0:00.37/60");
 
     assert(browser.move(1));
     assert(browser.selected()->chronological_order == 3);
     assert(browser.selected()->is_personal_best);
     assert(browser.selected()->time_text == "0:28.33/60");
+    assert(browser.selected()->personal_best_delta_ticks60 == 0);
+    assert(browser.selected()->personal_best_delta_text == "+0:00.00/60");
 
     assert(browser.move(-1));
     assert(browser.selected()->chronological_order == 4);
+
+    assert(!browser.entries()[0].personal_best_delta_ticks60);
+    assert(browser.entries()[0].personal_best_delta_text == "--");
+    assert(!browser.entries()[1].personal_best_delta_ticks60);
+    assert(browser.entries()[1].personal_best_delta_text == "--");
 
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Corrupt)) == "CORRUPT");

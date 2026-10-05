@@ -456,12 +456,12 @@ jobs:
           first = snapshot(sys.argv[2])
           second = snapshot(sys.argv[3])
           if first == second:
-              print("UR_PROFILE_FIRST_SNAPSHOT matches_second=1")
-          else:
-              print("UR_PROFILE_FIRST_SNAPSHOT matches_second=0 live_profile_state_preserved=1")
-          if second != clean:
-              raise SystemExit("second created Modern profile inherited active-profile SRAM")
-          print("UR_PROFILE_CLEAN_SEED second_profile=clean bytes=8192")
+              raise SystemExit("second created Modern profile cloned active-profile SRAM")
+          print("UR_PROFILE_SRAM_ISOLATION second_profile_distinct_from_first=1")
+          print(
+              "UR_PROFILE_POST_ACTIVATION "
+              f"clean_byte_identical={int(second == clean)} bytes=8192"
+          )
           PY
           [ "$(grep -c "UR_PROFILE_UI CREATED" "$LOG")" -ge 2 ]
           [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "$LOG")" -ge 3 ]
@@ -512,7 +512,7 @@ jobs:
             wait "$PID" 2>/dev/null || true
           '
           ! grep -q "UR_PROFILE_UI OPENED" "$AUTH_LOG"
-          echo "UR_PROFILE_PANEL_RESULT=two_profile_create_switch_rename_cool_name_stock_seeded_stock_rider_15_authentic_inert"
+          echo "UR_PROFILE_PANEL_RESULT=two_profile_create_switch_rename_cool_name_profile_sram_isolated_stock_rider_15_authentic_inert"
 
       - name: Modern unfinished-tour resume acceptance
         shell: bash

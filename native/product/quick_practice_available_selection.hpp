@@ -68,6 +68,8 @@ quick_practice_available_selection_apply(
 
     if (!state.visible) return out;
 
+    const bool selection_was_launchable =
+        quick_practice_picker_launchable(state.picker, availability);
     out.state.picker =
         quick_practice_normalize_available_picker(state.picker, availability);
 
@@ -98,7 +100,8 @@ quick_practice_available_selection_apply(
         out.result = QuickPracticeSelectionResult::Updated;
         return out;
     case QuickPracticeSelectionCommand::Confirm:
-        if (!quick_practice_picker_launchable(out.state.picker, availability)) {
+        if (!selection_was_launchable ||
+            !quick_practice_picker_launchable(out.state.picker, availability)) {
             return out;
         }
         out.target = quick_practice_picker_target(out.state.picker);

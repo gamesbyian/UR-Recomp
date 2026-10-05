@@ -286,6 +286,10 @@ bool CompletedRunBrowser::refresh(
                 if (catalog_entry.path != item.path) continue;
                 entry.is_previous = catalog_entry.is_previous;
                 entry.is_personal_best = catalog_entry.is_personal_best;
+                entry.personal_best_delta_ticks60 =
+                    catalog_entry.personal_best_delta_ticks60;
+                entry.personal_best_delta_text =
+                    catalog_entry.personal_best_delta_text;
                 break;
             }
         }
@@ -303,11 +307,6 @@ bool CompletedRunBrowser::refresh(
     if (personal_best) {
         for (auto& entry : entries_) {
             if (!entry.playable() || !entry.record) continue;
-            const auto delta = present_run_finish_delta(
-                *personal_best, entry.record->elapsed_ticks60);
-            if (!delta) continue;
-            entry.personal_best_delta_ticks60 = delta->delta_ticks60;
-            entry.personal_best_delta_text = delta->delta_text;
             const auto split_table = present_run_split_table(
                 *entry.record,
                 *personal_best,

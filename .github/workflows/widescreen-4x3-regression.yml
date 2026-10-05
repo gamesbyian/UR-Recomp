@@ -157,10 +157,17 @@ jobs:
             run_route baseline "$route" "$script" "$input"
             run_route product "$route" "$script" "$input"
             local r="$RUNNER_TEMP/runs/$route"
+            local overlay_args=()
+            if [ "$route" = "one-player" ]; then
+              # Modern timing is intentionally composited over the stock 4:3
+              # picture. Keep every guest dump and every pixel outside its
+              # exact logical rectangle bit-identical.
+              overlay_args+=(--allow-bmp-overlay-rect 70,8,178,52)
+            fi
             python3 tools/check_framedump_identity.py --route "$route" \
               --baseline-frames "$r-baseline/frames" --candidate-frames "$r-product/frames" \
               --baseline-dumps "$r-baseline/dumps" --candidate-dumps "$r-product/dumps" \
-              --min-frames "$min_frames" \
+              --min-frames "$min_frames" "${overlay_args[@]}" \
               --out "$RUNNER_TEMP/evidence/$route-4x3-identity.json" | tail -n 40
             if [ -n "${5:-}" ]; then
               # Split-screen sprite ripping hides sprite copies at X - 256; they
@@ -175,7 +182,7 @@ jobs:
           compare_route one-player "$IN/widescreen-product-acceptance.script" "" 1900
           compare_route vs "$IN/vs-first-race-observe.script" "$IN/vs-first-race.input" 1600 500
           compare_route two-player "$IN/two-player-first-race-observe.script" "$IN/two-player-first-race.input" 1600 500
-          echo "WIDESCREEN_4X3_REGRESSION bit-identical routes=3"
+          echo "WIDESCREEN_4X3_REGRESSION stock_pixels_and_guest_state_preserved routes=3 host_overlay=timing_hud_exact_rect"
 
       - name: Upload evidence
         if: always()

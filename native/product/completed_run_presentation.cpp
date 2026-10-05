@@ -99,4 +99,99 @@ std::optional<RunDataDeltaPresentation> present_run_finish_delta(
         "finish", current_ticks60, target.elapsed_ticks60, *delta);
 }
 
+RunTimingPanelPresentation present_run_timing_panel(
+    std::uint64_t current_ticks60,
+    const CompletedRunRecord* personal_best,
+    RunTimingPresentationPoint point,
+    const std::string& split_id) {
+    RunTimingPanelPresentation panel;
+    panel.clock_label =
+        point == RunTimingPresentationPoint::Finish ? "FINISH" : "TIME";
+    panel.clock_text = format_run_ticks60(current_ticks60);
+    panel.target_label = "PB";
+    panel.target_text = "--";
+    panel.comparison_label =
+        point == RunTimingPresentationPoint::Split ? "SPLIT" : "DELTA";
+    panel.comparison_text = "--";
+
+    if (!personal_best) return panel;
+
+    const auto target =
+        present_run_target(*personal_best, RunDataTargetKind::PersonalBest);
+    if (!target) return panel;
+
+    panel.target_available = true;
+    panel.target_text = target->time_text;
+
+    std::optional<RunDataDeltaPresentation> delta;
+    if (point == RunTimingPresentationPoint::Split && !split_id.empty()) {
+        delta = present_run_split_delta(
+            *personal_best, split_id, current_ticks60);
+    } else if (point == RunTimingPresentationPoint::Finish) {
+        delta = present_run_finish_delta(*personal_best, current_ticks60);
+    }
+
+    if (delta) {
+        panel.comparison_available = true;
+        panel.comparison_text = delta->delta_text;
+    }
+    return panel;
+}
+
+bool should_present_run_timing(
+    bool modern_execution,
+    bool supported_timed_run,
+    bool race_or_results_surface) noexcept {
+    return modern_execution && supported_timed_run && race_or_results_surface;
+}
+
+std::optional<RunTimingSplitTablePresentation> present_run_split_table(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord& target,
+    RunDataTargetKind kind) {
+    const auto comparison = compare_completed_run_timing(current, target);
+    if (!comparison) return std::nullopt;
+
+    RunTimingSplitTablePresentation table;
+    table.target_label =
+        kind == RunDataTargetKind::PersonalBest ? "PB" : "PREVIOUS";
+    table.rows.reserve(comparison->splits.size());
+
+    for (const auto& split : comparison->splits) {
+        table.rows.push_back({
+            split.id,
+            format_run_ticks60(split.current_ticks60),
+            format_run_ticks60(split.target_ticks60),
+            format_run_delta_ticks60(split.delta_ticks60),
+        });
+    }
+    return table;
+}
+
+std::optional<RunResultSummaryPresentation> present_run_result_summary(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord* personal_best) {
+    std::string detail;
+    if (!validate_completed_run_record(current, &detail)) {
+        return std::nullopt;
+    }
+
+    RunResultSummaryPresentation summary;
+    summary.finish = present_run_timing_panel(
+        current.elapsed_ticks60,
+        personal_best,
+        RunTimingPresentationPoint::Finish);
+
+    if (!personal_best) return summary;
+
+    const auto splits = present_run_split_table(
+        current,
+        *personal_best,
+        RunDataTargetKind::PersonalBest);
+    if (splits) {
+        summary.splits = splits->rows;
+    }
+    return summary;
+}
+
 }  // namespace ur::product

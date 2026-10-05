@@ -17,6 +17,7 @@ import argparse
 import hashlib
 import json
 import re
+import struct
 from pathlib import Path
 from typing import Any
 
@@ -36,15 +37,61 @@ def _digest(path: Path) -> str:
     return h.hexdigest()
 
 
+def _bmp_digest_outside_rect(path: Path, rect: tuple[int, int, int, int]) -> str:
+    data = bytearray(path.read_bytes())
+    if len(data) < 54 or data[:2] != b"BM":
+        raise ValueError(f"not a BMP: {path}")
+    pixel_offset = struct.unpack_from("<I", data, 10)[0]
+    width = struct.unpack_from("<i", data, 18)[0]
+    height_raw = struct.unpack_from("<i", data, 22)[0]
+    bpp = struct.unpack_from("<H", data, 28)[0]
+    compression = struct.unpack_from("<I", data, 30)[0]
+    if width <= 0 or height_raw == 0 or bpp not in (24, 32) or compression != 0:
+        raise ValueError(f"unsupported BMP layout: {path}")
+    height = abs(height_raw)
+    bytes_per_pixel = bpp // 8
+    row_stride = ((width * bytes_per_pixel + 3) // 4) * 4
+    if pixel_offset + row_stride * height > len(data):
+        raise ValueError(f"truncated BMP pixels: {path}")
+
+    x, y, w, h = rect
+    x0 = max(0, x)
+    y0 = max(0, y)
+    x1 = min(width, x + max(0, w))
+    y1 = min(height, y + max(0, h))
+    for logical_y in range(y0, y1):
+        stored_y = logical_y if height_raw < 0 else height - 1 - logical_y
+        start = pixel_offset + stored_y * row_stride + x0 * bytes_per_pixel
+        end = pixel_offset + stored_y * row_stride + x1 * bytes_per_pixel
+        data[start:end] = b"\x00" * (end - start)
+    return hashlib.sha256(data).hexdigest()
+
+
 def _files(root: Path) -> dict[str, Path]:
     return {p.name: p for p in sorted(root.iterdir()) if p.is_file()}
 
 
-def compare_dirs(baseline: Path, candidate: Path) -> dict[str, Any]:
+def compare_dirs(
+    baseline: Path,
+    candidate: Path,
+    allowed_bmp_rect: tuple[int, int, int, int] | None = None,
+) -> dict[str, Any]:
     a = _files(baseline)
     b = _files(candidate)
     common = sorted(set(a) & set(b))
-    differing = [name for name in common if _digest(a[name]) != _digest(b[name])]
+    differing = []
+    masked_bmp_files = 0
+    for name in common:
+        if allowed_bmp_rect is not None and name.lower().endswith(".bmp"):
+            masked_bmp_files += 1
+            same = (
+                _bmp_digest_outside_rect(a[name], allowed_bmp_rect)
+                == _bmp_digest_outside_rect(b[name], allowed_bmp_rect)
+            )
+        else:
+            same = _digest(a[name]) == _digest(b[name])
+        if not same:
+            differing.append(name)
     frames = {int(m.group(1)) for name in common if (m := FRAME_RE.match(name))}
     first_frame = None
     for name in differing:
@@ -59,12 +106,21 @@ def compare_dirs(baseline: Path, candidate: Path) -> dict[str, Any]:
         "differing_files": len(differing),
         "first_differing": differing[:16],
         "first_differing_frame": first_frame,
+        "allowed_bmp_rect": list(allowed_bmp_rect) if allowed_bmp_rect else None,
+        "masked_bmp_files": masked_bmp_files,
     }
 
 
-def check(route: str, frames: tuple[Path, Path], dumps: tuple[Path, Path] | None,
-          min_frames: int) -> dict[str, Any]:
-    metrics: dict[str, Any] = {"frames": compare_dirs(*frames)}
+def check(
+    route: str,
+    frames: tuple[Path, Path],
+    dumps: tuple[Path, Path] | None,
+    min_frames: int,
+    allowed_bmp_rect: tuple[int, int, int, int] | None = None,
+) -> dict[str, Any]:
+    metrics: dict[str, Any] = {
+        "frames": compare_dirs(*frames, allowed_bmp_rect=allowed_bmp_rect)
+    }
     f = metrics["frames"]
     checks = [
         assertion(f"{route}-frame-coverage", f["frames_compared"] >= min_frames,
@@ -91,7 +147,10 @@ def check(route: str, frames: tuple[Path, Path], dumps: tuple[Path, Path] | None
         evidence_type="framedump-identity",
         producer="tools/check_framedump_identity.py",
         subject={"route": route},
-        inputs={"min_frames": min_frames},
+        inputs={
+            "min_frames": min_frames,
+            "allowed_bmp_rect": list(allowed_bmp_rect) if allowed_bmp_rect else None,
+        },
         metrics=metrics,
         assertions=checks,
     )
@@ -105,13 +164,33 @@ def main() -> int:
     parser.add_argument("--baseline-dumps", type=Path)
     parser.add_argument("--candidate-dumps", type=Path)
     parser.add_argument("--min-frames", type=int, default=1)
+    parser.add_argument(
+        "--allow-bmp-overlay-rect",
+        metavar="X,Y,W,H",
+        help="ignore framebuffer pixel differences only inside this host-owned BMP rectangle",
+    )
     parser.add_argument("--out", type=Path)
     args = parser.parse_args()
     if (args.baseline_dumps is None) != (args.candidate_dumps is None):
         parser.error("--baseline-dumps and --candidate-dumps go together")
+    allowed_bmp_rect = None
+    if args.allow_bmp_overlay_rect:
+        try:
+            values = tuple(int(part) for part in args.allow_bmp_overlay_rect.split(","))
+        except ValueError:
+            parser.error("--allow-bmp-overlay-rect must be X,Y,W,H integers")
+        if len(values) != 4 or values[2] <= 0 or values[3] <= 0:
+            parser.error("--allow-bmp-overlay-rect must be X,Y,W,H with positive W,H")
+        allowed_bmp_rect = values
+
     dumps = (args.baseline_dumps, args.candidate_dumps) if args.baseline_dumps else None
-    envelope = check(args.route, (args.baseline_frames, args.candidate_frames),
-                     dumps, args.min_frames)
+    envelope = check(
+        args.route,
+        (args.baseline_frames, args.candidate_frames),
+        dumps,
+        args.min_frames,
+        allowed_bmp_rect,
+    )
     rendered = json.dumps(envelope, indent=2) + "\n"
     if args.out:
         args.out.parent.mkdir(parents=True, exist_ok=True)

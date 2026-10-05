@@ -522,13 +522,16 @@ jobs:
           set -euo pipefail
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-acceptance.script"
+          AUTH_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-authentic.script"
           STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
           ROOT="$RUNNER_TEMP/tour-resume-profile"
           LOG="$RUNNER_TEMP/tour-resume-restore.log"
           DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
-          rm -rf "$ROOT" "$DUMPS"
-          mkdir -p "$ROOT" "$DUMPS"
+          AUTH_LOG="$RUNNER_TEMP/tour-resume-authentic.log"
+          AUTH_DUMPS="$RUNNER_TEMP/tour-resume-authentic-dumps"
+          rm -rf "$ROOT" "$DUMPS" "$AUTH_DUMPS"
+          mkdir -p "$ROOT" "$DUMPS" "$AUTH_DUMPS"
 
           cat >"$STATE" <<'EOF'
           UR-HOST-STATE/6
@@ -571,23 +574,38 @@ jobs:
 
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
           UR_HOST_STATE_PATH="$STATE" \
           UR_PROFILE_SAVE_ROOT="$ROOT" \
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
 
+          grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2" "$LOG"
+          grep -q "UR_TOUR_CONTINUE READY tour=0 menu=F6" "$LOG"
           grep -q "UR_TOUR_RESUME APPLIED" "$LOG"
-          test -s "$DUMPS/rider-select-ready.wram.bin"
-          test -s "$DUMPS/tracks-ready.wram.bin"
-          test -s "$DUMPS/race-entered.wram.bin"
+          test -s "$DUMPS/tour-continue-main-ready.wram.bin"
+          test -s "$DUMPS/tour-continue-track-ready.wram.bin"
 
-          python3 - "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
+          python3 - \
+            "$DUMPS/tour-continue-main-ready.wram.bin" \
+            "$DUMPS/tour-continue-track-ready.wram.bin" \
+            "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
           import pathlib
           import sys
 
-          profile = pathlib.Path(sys.argv[1]).read_text().splitlines()
-          sram = pathlib.Path(sys.argv[2]).read_bytes()
+          main = pathlib.Path(sys.argv[1]).read_bytes()
+          track = pathlib.Path(sys.argv[2]).read_bytes()
+          profile = pathlib.Path(sys.argv[3]).read_text().splitlines()
+          sram = pathlib.Path(sys.argv[4]).read_bytes()
+
+          if main[0x009F] != 0xD7 or main[0x0313] == 1:
+              raise SystemExit("Continue did not start from settled stock main menu")
+          if track[0x009F] != 0xF6 or track[0x0313] == 1:
+              raise SystemExit("Continue did not stop at stock TRACK_SELECT")
+          if track[0x00D0] != 0:
+              raise SystemExit(f"Continue reached wrong tour row: {track[0x00D0]}")
+
           resume = next(line.split("=", 1)[1] for line in profile
                         if line.startswith("tour_resume="))
           rider, tour, medal, flags = resume.split(":")
@@ -600,16 +618,42 @@ jobs:
           if not 0 < sum(actual) < 5:
               raise SystemExit(f"continuation is not unfinished progress: {list(actual)}")
           print(
-              "UR_TOUR_RESUME_FILE",
+              "UR_TOUR_CONTINUE_FILE",
               f"rider={rider}",
               f"tour={tour}",
               f"medal={medal}",
               f"flags={flags}",
+              "stopped_at_track_select=1",
           )
           PY
 
-          grep "UR_TOUR_RESUME" "$LOG"
-          echo "UR_TOUR_RESUME_RESULT=stock_rider_wipe_then_fresh_process_restore"
+          # The exact same host-side acceptance trigger must do nothing under
+          # Authentic policy. No profile metadata is loaded or applied there.
+          SDL_AUDIODRIVER=dummy \
+          UR_EXECUTION_MODE=authentic \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_PROFILE_SAVE_ROOT="$ROOT" \
+          SNESRECOMP_DUMP_DIR="$AUTH_DUMPS" \
+          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$AUTH_SCRIPT" \
+            >"$AUTH_LOG" 2>&1
+
+          ! grep -q "UR_TOUR_CONTINUE STARTED" "$AUTH_LOG"
+          ! grep -q "UR_TOUR_RESUME APPLIED" "$AUTH_LOG"
+          test -s "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin"
+          python3 - "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin" <<'PY'
+          import pathlib
+          import sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
+              raise SystemExit(
+                  f"Authentic Continue trigger was not inert: menu={wram[0x009F]:02X} race={wram[0x0313]}")
+          print("UR_TOUR_CONTINUE_AUTHENTIC inert=1 menu=D7")
+          PY
+
+          grep "UR_TOUR_" "$LOG"
+          echo "UR_TOUR_RESUME_RESULT=fresh_process_continue_to_stock_track_select_restore_authentic_inert"
 
       - name: Native boot smoke
         shell: bash

@@ -1873,6 +1873,10 @@ void advance_tour_continue_route(uint64_t next_frame) {
         cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_TIMEOUT");
         return;
     }
+    if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle) {
+        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_UNEXPECTED_RACE");
+        return;
+    }
 
     if (step.input != ur::product::QuickPracticeMenuInput::None &&
         !queue_tour_continue_input(step.input, next_frame)) {

@@ -105,10 +105,20 @@ def evaluate_transition(
     }
 
 
-def build_report(rom: bytes, registry: dict) -> dict:
-    review = registry.get("motion_review_sequence")
+def build_report(
+    rom: bytes,
+    registry: dict,
+    sequence_key: str | None = None,
+) -> dict:
+    if sequence_key is None:
+        review = registry.get("motion_review_sequence")
+        missing = "registry lacks motion_review_sequence"
+    else:
+        reviews = registry.get("motion_review_sequences")
+        review = reviews.get(sequence_key) if isinstance(reviews, dict) else None
+        missing = f"registry lacks motion_review_sequences[{sequence_key!r}]"
     if not isinstance(review, dict):
-        raise ValueError("registry lacks motion_review_sequence")
+        raise ValueError(missing)
 
     start = int(review["window_start"])
     end = int(review["window_end"])
@@ -191,7 +201,8 @@ def build_report(rom: bytes, registry: dict) -> dict:
     return {
         "schema_version": 2,
         "family": registry["family"],
-        "sequence_order": "explicit promoted motion_review_sequence frame order",
+        "sequence_key": sequence_key or "legacy-default",
+        "sequence_order": "explicit promoted motion-review frame order",
         "window": [start, end],
         "sampling": review["sampling"],
         "acceptance": acceptance,
@@ -218,11 +229,16 @@ def main() -> int:
         default=ROOT / "analysis/data/racer-hd-replacement-prototype.json",
     )
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument(
+        "--sequence-key",
+        help="named entry in registry.motion_review_sequences; omit for legacy default",
+    )
     args = ap.parse_args()
 
     report = build_report(
         args.rom.read_bytes(),
         json.loads(args.registry.read_text(encoding="utf-8")),
+        args.sequence_key,
     )
     if not all(report["validation"].values()):
         raise SystemExit(json.dumps(report, indent=2, sort_keys=True))

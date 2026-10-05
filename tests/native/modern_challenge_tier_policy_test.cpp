@@ -34,22 +34,37 @@ int main() {
     assert(modern_challenge_tier_selectable(
         ExecutionMode::Modern, true, ModernChallengeTier::Gold, true));
 
-    assert(canonical_challenge_opponent(
-               ModernChallengeTier::Bronze, false) ==
-           CanonicalChallengeOpponent::Bronsen);
-    assert(canonical_challenge_opponent(
-               ModernChallengeTier::Silver, false) ==
-           CanonicalChallengeOpponent::Silvia);
-    assert(canonical_challenge_opponent(
-               ModernChallengeTier::Gold, false) ==
-           CanonicalChallengeOpponent::Goldwyn);
+    const auto bronze_opponent = canonical_challenge_opponent(
+        ModernChallengeTier::Bronze, false);
+    const auto silver_opponent = canonical_challenge_opponent(
+        ModernChallengeTier::Silver, false);
+    const auto gold_opponent = canonical_challenge_opponent(
+        ModernChallengeTier::Gold, false);
+    assert(bronze_opponent &&
+           *bronze_opponent == CanonicalChallengeOpponent::Bronsen);
+    assert(silver_opponent &&
+           *silver_opponent == CanonicalChallengeOpponent::Silvia);
+    assert(gold_opponent &&
+           *gold_opponent == CanonicalChallengeOpponent::Goldwyn);
     for (const auto tier : {
              ModernChallengeTier::Bronze,
              ModernChallengeTier::Silver,
              ModernChallengeTier::Gold}) {
-        assert(canonical_challenge_opponent(tier, true) ==
-               CanonicalChallengeOpponent::AntiUni);
+        const auto opponent = canonical_challenge_opponent(tier, true);
+        assert(opponent &&
+               *opponent == CanonicalChallengeOpponent::AntiUni);
     }
+
+    const auto invalid_low = static_cast<ModernChallengeTier>(0);
+    const auto invalid_high = static_cast<ModernChallengeTier>(4);
+    assert(!valid_modern_challenge_tier(invalid_low));
+    assert(!valid_modern_challenge_tier(invalid_high));
+    assert(!modern_challenge_tier_selectable(
+        ExecutionMode::Modern, true, invalid_low));
+    assert(!modern_challenge_tier_selectable(
+        ExecutionMode::Modern, true, invalid_high));
+    assert(!canonical_challenge_opponent(invalid_low, false));
+    assert(!canonical_challenge_opponent(invalid_high, true));
 
     // Modern records the highest canonical tier actually completed. A direct
     // Gold completion therefore satisfies Bronze and Silver as well.
@@ -79,12 +94,19 @@ int main() {
     assert(result.resulting_medal == 3);
     assert(!result.changed);
 
-    // Failure never grants progression.
+    // Failure or an invalid tier never grants progression.
     result = modern_challenge_completion(
         ExecutionMode::Modern,
         1,
         ModernChallengeTier::Gold,
         false);
+    assert(result.resulting_medal == 1);
+    assert(!result.changed);
+    result = modern_challenge_completion(
+        ExecutionMode::Modern,
+        1,
+        invalid_high,
+        true);
     assert(result.resulting_medal == 1);
     assert(!result.changed);
 

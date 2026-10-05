@@ -2678,6 +2678,8 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
         g_onboarding_visible ||
+        tour_continue_available() ||
+        tour_continue_routing() ||
         (g_practice_active && g_practice_stage == PracticeStage::Active) ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
@@ -3291,6 +3293,21 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "COOL NAME!", 0xFFFFFFFFu, 1);
         }
         return;
+    }
+
+    if (modern_mode() && tour_continue_routing()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const char* hint = "CONTINUING TOUR  ESC / PAD B CANCEL";
+        const int hint_w = width < 300 ? width - 16 : 284;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, 15,
+            hint, 0xFFFFFFFFu, 1);
     }
 
     if (tour_continue_available()) {

@@ -1,21 +1,7 @@
 name: collision candidate native/reference differential
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/race-collision-overrotate.script"
-      - "tests/input/race-collision-control.script"
-      - "tools/summarize_paired_player_slots.py"
-      - "tools/compare_wram_checkpoints.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: race-collision-differential-${{ github.ref }}
   cancel-in-progress: true
 

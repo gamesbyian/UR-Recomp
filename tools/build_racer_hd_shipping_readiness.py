@@ -9,6 +9,9 @@ from pathlib import Path
 from typing import Any
 
 ALLOWED_STATUSES = {"approved", "needs-refinement", "rejected"}
+APPROVAL_TO_EQUIVALENCE_FAMILY = {
+    "ordinary-racer": "ordinary-race-racer-presentation",
+}
 
 
 def build_shipping_readiness(
@@ -24,10 +27,13 @@ def build_shipping_readiness(
     decision_family = decisions.get("family")
     if not isinstance(equivalence_family, str) or not equivalence_family:
         raise ValueError("equivalence surface lacks a family")
-    if decision_family != equivalence_family:
+    expected_equivalence_family = APPROVAL_TO_EQUIVALENCE_FAMILY.get(decision_family)
+    if expected_equivalence_family is None:
+        raise ValueError(f"unsupported approval family {decision_family!r}")
+    if equivalence_family != expected_equivalence_family:
         raise ValueError(
-            f"approval family {decision_family!r} does not match "
-            f"equivalence family {equivalence_family!r}"
+            f"approval family {decision_family!r} expects equivalence family "
+            f"{expected_equivalence_family!r}, got {equivalence_family!r}"
         )
 
     source_window = equivalence.get("source_temporal_window")

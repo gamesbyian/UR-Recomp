@@ -408,6 +408,32 @@ int main() {
         GraphicsPack::Remastered, 0x0542, p057f_p0542_context, 2
     ).registration == p2_057f_0542);
 
+    const RacerCompositionState synchronized_same_id_hold{
+        0x0540,
+        0x0540,
+        0x0D0C,
+        0x0D0C,
+        0,
+        0,
+        0x0001,
+        0x0001,
+    };
+    const auto* same_id_p1 =
+        find_racer_registration_for_state(0x0540, synchronized_same_id_hold, 1);
+    const auto* same_id_p2 =
+        find_racer_registration_for_state(0x0540, synchronized_same_id_hold, 2);
+    assert(same_id_p1 != nullptr);
+    assert(same_id_p2 != nullptr);
+    assert(same_id_p1 != same_id_p2);
+    assert(same_id_p1->player == 1);
+    assert(same_id_p2->player == 2);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, synchronized_same_id_hold, 1
+    ).registration == same_id_p1);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0540, synchronized_same_id_hold, 2
+    ).registration == same_id_p2);
+
     auto p057f_p0542_mismatch = p057f_p0542_context;
     p057f_p0542_mismatch.p1_companion = 0x0D49;
     assert(select_racer_presentation(

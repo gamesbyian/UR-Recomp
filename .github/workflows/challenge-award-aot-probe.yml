@@ -1,7 +1,9 @@
 name: Challenge award AOT probe
 
 on:
-  workflow_dispatch:jobs:
+  workflow_dispatch:
+
+jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 8

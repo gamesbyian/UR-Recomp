@@ -16,6 +16,7 @@ class ChallengeGenerationRefScanTests(unittest.TestCase):
         self.assertEqual(len(refs), 3)
         self.assertEqual(refs[0]["mnemonic"], "LDA.l")
         self.assertTrue(refs[0]["recognized_long_address_instruction"])
+        self.assertEqual(refs[0]["cpu_address"], "80:8002")
         self.assertEqual(refs[1]["mnemonic"], "STA.l")
         self.assertTrue(refs[1]["recognized_long_address_instruction"])
         self.assertIsNone(refs[2]["mnemonic"])

@@ -153,6 +153,8 @@ Reuse is fail-closed. A declaration of `reused_from_representation_id` must reso
 
 With those exact guards installed, the same route selects HD for 162/882 player-frames (18.37%) and falls back for 720, a 1.36 percentage-point coverage gain and removal of 12/732 = 1.64% of the measured fallback burden. Future expansion repeats this measurement after each accepted family. If the top unsupported state cannot pass semantic, equivalence, provenance, temporal and shipping gates, it remains Original rather than earning weaker acceptance.
 
+The immediate continuation candidate after that admission is the tied-maximum `0544/0578 + 0000/0D63` state at frames `1280–1283, 1285–1286`: 12 fallback player-frames across two episodes. It is not a shipping family yet. `0x0578` has no registered approved pose, and P1 `0x0544` has no same-player registration, so adjacency alone cannot authorize reuse. The next allowed experiment is one bounded deterministic stock-composition extraction for frames 1280–1286, followed first by exact RGBA comparison and then by the palette-normalized geometry proof below against approved same-player canonical poses. Only that discriminator may decide whether the state reuses existing geometry or merits one genuinely distinct authored pose; until then it stays on Original.
+
 ### Palette-normalized pose equivalence
 
 Exact RGBA equivalence is only the first deduplication layer. Racer color is a separate semantic input in the original game, so two stock sprites can encode the same pose and material structure while differing only in the racer-color palette. Treating those rasters as unrelated visual poses would duplicate authoring effort and permit red/blue variants to drift.

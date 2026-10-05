@@ -69,7 +69,9 @@ def build_review_manifest(dossier: dict, equivalence: dict) -> dict:
             "nearest_4x_png": source_rep["stock_evidence"]["nearest_4x_png"],
             "authored_png": candidate["png"] if candidate else None,
             "approval_status": candidate.get("approval_status") if candidate else None,
-            "shipping_art_approved": source_rep["art_review"]["shipping_art_approved"],
+            "shipping_approval_source": source_rep["art_review"].get(
+                "shipping_approval_source"
+            ),
             "gameplay_scale_review": (
                 candidate.get("gameplay_scale_review") if candidate else None
             ),
@@ -312,6 +314,23 @@ def build_review_packet(
         }
 
     if readiness is not None:
+        readiness_by_pose = {
+            pose["pose_id"]: pose for pose in readiness.get("poses", [])
+        }
+        for pose in manifest["poses"]:
+            shipping = readiness_by_pose.get(pose["pose_id"], {})
+            pose["shipping_review_status"] = shipping.get(
+                "review_status", "unreviewed"
+            )
+            pose["shipping_art_approved"] = bool(
+                shipping.get("shipping_art_approved", False)
+            )
+            pose["shipping_blocker_codes"] = list(
+                shipping.get("blocker_codes", [])
+            )
+            pose["reviewed_authored_rgba_sha256"] = shipping.get(
+                "reviewed_authored_rgba_sha256"
+            )
         manifest["shipping_readiness"] = {
             "shipping_ready": readiness["shipping_ready"],
             "counts": readiness["counts"],

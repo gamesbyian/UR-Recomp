@@ -214,11 +214,16 @@ jobs:
           }
           assert dossier["validation"]["ready_for_art_review"] is True
           assert dossier["validation"]["registered_anchors_match_rederived_stock"] is True
-          assert dossier["remaining_scope"]["shipping_art_approved"] is False
+          assert dossier["validation"]["candidate_status_is_contract_only"] is True
+          assert dossier["validation"]["authored_shipping_approval_externalized"] is True
+          assert dossier["remaining_scope"]["shipping_art_approval_source"].startswith(
+              "analysis/data/racer-hd-art-approval.json"
+          )
           assert dossier["representations"]
           assert all(
               rep["art_review"]["evidence_packet_ready"]
-              and not rep["art_review"]["shipping_art_approved"]
+              and rep["art_review"]["shipping_approval_source"]
+                  == "analysis/data/racer-hd-art-approval.json"
               and "lighting_space" in rep["art_review"]["resolved_decisions"]
               and "edge_treatment" in rep["art_review"]["resolved_decisions"]
               and "material_classes" in rep["art_review"]["resolved_decisions"]
@@ -265,6 +270,14 @@ jobs:
               "shipping_ready": True,
               "counts": readiness["counts"],
           }
+          assert all(
+              pose["shipping_review_status"] == "approved"
+              and pose["shipping_art_approved"] is True
+              and pose["shipping_blocker_codes"] == []
+              and pose["reviewed_authored_rgba_sha256"]
+                  == pose["authored_asset_rgba_sha256"]
+              for pose in review_packet["poses"]
+          )
           assert review_packet["baseline_comparison"] == {
               "pose_count": 10,
               "matched_pose_count": 10,
@@ -280,9 +293,7 @@ jobs:
 
           baseline = authored_by_id["ordinary-racer-0x0541-p1-sync-reference"]
           candidate = baseline["art_review"]["authored_candidate"]
-          assert candidate["approval_status"] == (
-              "true-density refinement pass 1: structural fork/spoke detail; still needs shipping-art refinement"
-          )
+          assert candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           review = candidate["gameplay_scale_review"]
           assert review["stock_alpha_bounds"] == [22, 3, 39, 38]
           assert review["candidate_alpha_bounds"] == [22, 3, 39, 38]
@@ -295,9 +306,7 @@ jobs:
               "ordinary-racer-0x0541-p1-companion-0D2D-reference"
           ]
           neighbor = predecessor["art_review"]["authored_candidate"]
-          assert neighbor["approval_status"] == (
-              "true-density refinement pass 1: shared structural fork/spoke detail; still needs shipping-art refinement"
-          )
+          assert neighbor["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           neighbor_review = neighbor["gameplay_scale_review"]
           assert neighbor_review["stock_alpha_bounds"] == [22, 2, 39, 38]
           assert neighbor_review["candidate_alpha_bounds"] == [22, 2, 39, 38]
@@ -310,9 +319,7 @@ jobs:
               "ordinary-racer-0x0540-p1-predecessor-reference"
           ]
           reversed_candidate = reversed["art_review"]["authored_candidate"]
-          assert reversed_candidate["approval_status"] == (
-              "motion-reviewed reversed predecessor; not approved shipping art"
-          )
+          assert reversed_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           reversed_review = reversed_candidate["gameplay_scale_review"]
           assert reversed_review["stock_alpha_bounds"] == [23, 2, 40, 38]
           assert reversed_review["candidate_alpha_bounds"] == [23, 2, 40, 38]
@@ -327,9 +334,7 @@ jobs:
               "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference"
           ]
           reused_candidate = reused["art_review"]["authored_candidate"]
-          assert reused_candidate["approval_status"] == (
-              "accepted context-safe reuse of motion-reviewed frame-1218 asset; not approved shipping art"
-          )
+          assert reused_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           reused_review = reused_candidate["gameplay_scale_review"]
           assert reused_review == reversed_review
           assert reused["stock_evidence"]["rgba_sha256"] == reversed["stock_evidence"]["rgba_sha256"]
@@ -339,9 +344,7 @@ jobs:
               "ordinary-racer-0x057f-p1-with-p2-0542-companion-0D4A-reference"
           ]
           repeated_candidate = repeated["art_review"]["authored_candidate"]
-          assert repeated_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement"
-          )
+          assert repeated_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert repeated["observed_frames_in_window"] == [1215, 1216]
           repeated_review = repeated_candidate["gameplay_scale_review"]
           assert repeated_review["stock_alpha_bounds"] == [22, 2, 41, 38]
@@ -357,9 +360,7 @@ jobs:
               "ordinary-racer-0x057E-p1-with-p2-0543-reference"
           ]
           repeated_057e_candidate = repeated_057e["art_review"]["authored_candidate"]
-          assert repeated_057e_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
-          )
+          assert repeated_057e_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert repeated_057e["observed_frames_in_window"] == [1205, 1206, 1213, 1214]
           repeated_057e_review = repeated_057e_candidate["gameplay_scale_review"]
           assert repeated_057e_review["stock_alpha_bounds"] == [21, 2, 42, 38]
@@ -375,9 +376,7 @@ jobs:
               "ordinary-racer-0x0540-p2-sync-reference"
           ]
           p2_baseline_candidate = p2_baseline["art_review"]["authored_candidate"]
-          assert p2_baseline_candidate["approval_status"] == (
-              "motion-reviewed P2 baseline; not approved shipping art"
-          )
+          assert p2_baseline_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           p2_baseline_review = p2_baseline_candidate["gameplay_scale_review"]
           assert p2_baseline_review["stock_alpha_bounds"] == [23, 3, 40, 38]
           assert p2_baseline_review["candidate_alpha_bounds"] == [23, 3, 40, 38]
@@ -392,9 +391,7 @@ jobs:
               "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference"
           ]
           p2_reused_candidate = p2_reused["art_review"]["authored_candidate"]
-          assert p2_reused_candidate["approval_status"] == (
-              "accepted context-safe reuse of motion-reviewed P2 baseline; not approved shipping art"
-          )
+          assert p2_reused_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert p2_reused_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0540-p2-sync-reference"
           )
@@ -408,9 +405,7 @@ jobs:
               "ordinary-racer-0x0541-p2-predecessor-reference"
           ]
           p2_predecessor_candidate = p2_predecessor["art_review"]["authored_candidate"]
-          assert p2_predecessor_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement"
-          )
+          assert p2_predecessor_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           p2_predecessor_review = p2_predecessor_candidate["gameplay_scale_review"]
           assert p2_predecessor["observed_frames_in_window"] == [1218]
           assert p2_predecessor_review["stock_alpha_bounds"] == [22, 3, 39, 38]
@@ -426,9 +421,7 @@ jobs:
               "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
           ]
           p2_0542_candidate = p2_0542["art_review"]["authored_candidate"]
-          assert p2_0542_candidate["approval_status"] == (
-              "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement"
-          )
+          assert p2_0542_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           p2_0542_review = p2_0542_candidate["gameplay_scale_review"]
           assert p2_0542["observed_frames_in_window"] == [1217]
           assert p2_0542_review["stock_alpha_bounds"] == [21, 4, 40, 38]
@@ -444,9 +437,7 @@ jobs:
               "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference"
           ]
           p2_0542_reuse_candidate = p2_0542_reuse["art_review"]["authored_candidate"]
-          assert p2_0542_reuse_candidate["approval_status"] == (
-              "context-safe reuse of refined P2 0542 asset; still needs shipping-art refinement"
-          )
+          assert p2_0542_reuse_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert p2_0542_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference"
           )
@@ -460,9 +451,7 @@ jobs:
               "ordinary-racer-0x0543-p2-adjacent-reference"
           ]
           p2_0543_candidate = p2_0543["art_review"]["authored_candidate"]
-          assert p2_0543_candidate["approval_status"] == (
-              "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement"
-          )
+          assert p2_0543_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           p2_0543_review = p2_0543_candidate["gameplay_scale_review"]
           assert p2_0543["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
           assert p2_0543_review["stock_alpha_bounds"] == [20, 4, 40, 38]
@@ -478,9 +467,7 @@ jobs:
               "ordinary-racer-0x0543-p2-with-p1-057E-reference"
           ]
           p2_0543_reuse_candidate = p2_0543_reuse["art_review"]["authored_candidate"]
-          assert p2_0543_reuse_candidate["approval_status"] == (
-              "context-safe reuse of refined P2 0543 asset; still needs shipping-art refinement"
-          )
+          assert p2_0543_reuse_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert p2_0543_reuse_candidate["reuse_source_representation_id"] == (
               "ordinary-racer-0x0543-p2-adjacent-reference"
           )
@@ -494,9 +481,7 @@ jobs:
               "ordinary-racer-0x057D-p1-adjacent-reference"
           ]
           repeated_057d_candidate = repeated_057d["art_review"]["authored_candidate"]
-          assert repeated_057d_candidate["approval_status"] == (
-              "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement"
-          )
+          assert repeated_057d_candidate["approval_status"] == "authored candidate; shipping status resolved by hash-bound approval ledger"
           assert repeated_057d["observed_frames_in_window"] == [1207, 1208, 1209, 1210, 1211, 1212]
           repeated_057d_review = repeated_057d_candidate["gameplay_scale_review"]
           assert repeated_057d_review["stock_alpha_bounds"] == [21, 3, 43, 38]

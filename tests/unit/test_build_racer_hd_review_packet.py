@@ -22,7 +22,6 @@ class RacerHdReviewPacketTest(unittest.TestCase):
                         "nearest_4x_png": "nearest-4x/a.png",
                     },
                     "art_review": {
-                        "shipping_art_approved": False,
                         "authored_candidate": {
                             "png": "authored-candidate/a.png",
                             "approval_status": "motion-reviewed",
@@ -43,7 +42,6 @@ class RacerHdReviewPacketTest(unittest.TestCase):
                         "nearest_4x_png": "nearest-4x/b.png",
                     },
                     "art_review": {
-                        "shipping_art_approved": False,
                         "authored_candidate": {
                             "png": "authored-candidate/b.png",
                             "approval_status": "motion-reviewed reuse",
@@ -90,6 +88,49 @@ class RacerHdReviewPacketTest(unittest.TestCase):
         self.assertEqual(pose["representation_ids"], ["a", "b"])
         self.assertEqual(pose["authored_png"], "authored-candidate/a.png")
         self.assertEqual(pose["gameplay_scale_review"]["alpha_iou"], 0.75)
+
+    def test_packet_shipping_status_comes_from_hash_bound_readiness(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            dossier = root / "manifest.json"
+            equivalence = root / "equivalence.json"
+            readiness = root / "readiness.json"
+            dossier.write_text(json.dumps(self.dossier()))
+            equivalence.write_text(json.dumps(self.equivalence()))
+            readiness.write_text(json.dumps({
+                "shipping_ready": True,
+                "unique_pose_count": 1,
+                "counts": {
+                    "approved": 1,
+                    "needs_refinement": 0,
+                    "rejected": 0,
+                    "unreviewed": 0,
+                    "changed_since_review": 0,
+                    "unauthored": 0,
+                    "authored_conflicts": 0,
+                },
+                "poses": [{
+                    "pose_id": "p1-pose-001",
+                    "review_status": "approved",
+                    "shipping_art_approved": True,
+                    "blocker_codes": [],
+                    "reviewed_authored_rgba_sha256": "art",
+                }],
+            }))
+
+            out = root / "review"
+            manifest = build_review_packet(
+                dossier,
+                equivalence,
+                out,
+                readiness_path=readiness,
+            )
+            pose = manifest["poses"][0]
+            self.assertEqual(pose["shipping_review_status"], "approved")
+            self.assertTrue(pose["shipping_art_approved"])
+            self.assertEqual(pose["shipping_blocker_codes"], [])
+            self.assertEqual(pose["reviewed_authored_rgba_sha256"], "art")
+            self.assertTrue(manifest["shipping_readiness"]["shipping_ready"])
 
     def test_packet_copies_baseline_assets_for_before_after_review(self):
         with tempfile.TemporaryDirectory() as tmp:

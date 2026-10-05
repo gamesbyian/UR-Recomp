@@ -907,3 +907,57 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public Reddit discussion; preserve claims and provenance only."
     relevance: "Contains modern replay observations directly relevant to UR-Recomp: view too close for track anticipation, difficulty remembering track-color cue semantics, strong multiplayer/records use, timing-based stunt play, and an external four-player netplay implementation."
+
+
+  - id: peaso-uniracers-glitches-2010
+    title: "Peaso Uniracers glitch notes"
+    type: player_glitch_research
+    url: "https://www.peaso.com/truco-153.html"
+    author: "Fran_friki"
+    published: "2010-10-19"
+    retrieved: "2026-10-05"
+    rights: "Public Spanish-language cheat/glitch writeup; preserve claims and provenance only."
+    relevance: "Detailed player-documented methods for leaving normal course geometry, entering the orange fallback/recovery track space, bypassing turnaround arrows, triggering invisible or corrupted track states, and producing unwinnable races. High-value collision/track-state experiment seed."
+
+
+  - id: gamefaqs-mathmurderer-stunt-qna
+    title: "GameFAQs stunt-course answer by MathMurderer"
+    type: competitive_player_mechanics
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/answers/299587-any-help-with-the-stunt-courses"
+    author: "MathMurderer"
+    published: "2017"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs answer; preserve claims and provenance only."
+    relevance: "Experienced-player confirmation of per-stunt repeat-score halving, specific point values, and early-course Head Bounce strategy. Useful independent cross-check against OrangeStar and TAS research."
+
+
+  - id: reddit-forgotten-name-not-cool-enough-2026
+    title: "Forgotten-game identification via 'not cool enough' name filter"
+    type: player_memory_and_discovery
+    url: "https://www.reddit.com/r/retrogaming/comments/1qauoga/trying_to_remember_a_classic/"
+    published: "2026-01-12"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "A recent player remembered the game solely through the rejected-swear-word/'not cool enough' behavior and confirmed ownership/affection after identification. Useful proof that distinctive behavioral memories can surface players who no longer remember the title."
+
+
+  - id: neogaf-unirally-lttp-2008
+    title: "NeoGAF LTTP Unirally/Uniracers discussion"
+    type: player_replay_and_remake_discussion
+    url: "https://www.neogaf.com/threads/lttp-unirally-uniracers-and-super-tennis.333523/"
+    authors_or_participants: ["Jazzem", "aeolist", "DNF"]
+    published: "2008-08-31"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "Replay impressions include concrete stunt/handling observations and explicit demand for a digital remake with course editor and online sharing."
+
+
+  - id: resetera-uniracers-remake-2020
+    title: "ResetEra Uniracers/Unirally retrospective and remake discussion"
+    type: player_remake_discussion
+    url: "https://www.resetera.com/threads/uniracers-unirally-1994-publisher-nintendo-developer-rockstar-games.236983/"
+    authors_or_participants: ["GabriocheXD", "Nanashrew"]
+    published: "2020-06-28"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; summarize with provenance."
+    relevance: "Contains explicit remake interest and concrete modernization ideas from longtime players."

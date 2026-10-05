@@ -4,7 +4,72 @@
 
 using namespace ur::product;
 
+static void prove_all_tours_reach_track_select() {
+    for (std::uint8_t tour = 0; tour < 9; ++tour) {
+        auto state = begin_modern_tour_continue(tour);
+        ModernTourContinueObservation observation{0xD7, 0, false};
+
+        bool reached = false;
+        for (int guard = 0; guard < 48 && !reached; ++guard) {
+            const auto step =
+                advance_modern_tour_continue(state, observation);
+            state = step.state;
+
+            switch (step.input) {
+            case QuickPracticeMenuInput::Up:
+                if (observation.selected_option >= 2) {
+                    observation.selected_option =
+                        static_cast<std::uint8_t>(
+                            observation.selected_option - 2);
+                }
+                break;
+            case QuickPracticeMenuInput::Down:
+                observation.selected_option =
+                    static_cast<std::uint8_t>(
+                        observation.selected_option + 2);
+                break;
+            case QuickPracticeMenuInput::Left:
+                if (observation.selected_option > 0) {
+                    --observation.selected_option;
+                }
+                break;
+            case QuickPracticeMenuInput::Right:
+                ++observation.selected_option;
+                break;
+            case QuickPracticeMenuInput::Accept:
+                switch (state.stage) {
+                case ModernTourContinueStage::AwaitRider:
+                    observation = {0x3C, 0, false};
+                    break;
+                case ModernTourContinueStage::AwaitTour:
+                    observation = {0x6D, 0, false};
+                    break;
+                case ModernTourContinueStage::AwaitTrack:
+                    observation = {0xF6, 0, false};
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case QuickPracticeMenuInput::None:
+                break;
+            }
+
+            if (step.track_select_ready ||
+                state.stage == ModernTourContinueStage::Ready) {
+                reached = true;
+            }
+        }
+
+        assert(reached);
+        assert(state.stage == ModernTourContinueStage::Ready);
+        assert(observation.menu_id == 0xF6);
+    }
+}
+
 int main() {
+    prove_all_tours_reach_track_select();
+
     {
         auto state = begin_modern_tour_continue(0);
         assert(state.stage == ModernTourContinueStage::AwaitMain);

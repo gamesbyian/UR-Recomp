@@ -1,6 +1,6 @@
 # Windows x64 Portable Packaging
 
-Status: portable consumer-package lifecycle is shippable and acceptance-covered. Windows x64 is the primary reference deliverable; an installer remains deferred.
+Status: portable consumer-package lifecycle implementation is complete and its focused package/unit contracts are covered. Full assembled-package Windows acceptance is specified but still awaits a clean run past current shared native-framework blockers. Windows x64 is the primary reference deliverable; an installer remains deferred.
 
 ## Shipping format for the current milestone
 
@@ -26,9 +26,9 @@ The portable package contains:
 
 ## Clean-install and upgrade acceptance
 
-The Windows x64 workflow validates the **assembled package**, not only the CMake build tree.
+The Windows x64 workflow is the authoritative end-to-end validator for the **assembled package**, not only the CMake build tree. Its package-lifecycle steps are implemented, but they must not be described as proven until a Windows run reaches and passes them after the current shared native-framework blockers are repaired.
 
-Acceptance now covers:
+The implemented acceptance sequence covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;
 2. assemble and independently verify the clean package manifest and deterministic ZIP;

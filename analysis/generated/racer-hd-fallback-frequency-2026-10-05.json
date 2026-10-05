@@ -5,7 +5,10 @@
     "artifact_id": 11325937178,
     "artifact_name": "native-racer-presentation-acceptance",
     "route": "two-player-first-race-observe.script + two-player-first-race.input",
-    "trace_window": [1180, 1620],
+    "trace_window": [
+      1180,
+      1620
+    ],
     "measurement_semantics": "post-guest-frame WRAM composition consumed by the native semantic selector"
   },
   "before": {
@@ -17,7 +20,14 @@
   "ranking_rule": "Exact synchronized states are ranked by fallback player-frames, then independent episode count, then frame hits.",
   "selected_next_family": {
     "state": "0x0540/0x0543 + 0x0D2C/0x0000 sel 0/0 gate 0x0001/0x0000",
-    "frames": [1354, 1355, 1356, 1390, 1418, 1450],
+    "frames": [
+      1354,
+      1355,
+      1356,
+      1390,
+      1418,
+      1450
+    ],
     "episode_count": 4,
     "player_frames_removed": 12,
     "selection_basis": "Tied for maximum fallback player-frames, but recurs across four separate episodes. Both player poses already have hash-bound shipping approval under other exact composition guards, so this family can expand coverage through proven reuse rather than new art."
@@ -25,19 +35,40 @@
   "other_tied_maximum_states": [
     {
       "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
-      "frames": [1280, 1281, 1282, 1283, 1285, 1286],
+      "frames": [
+        1280,
+        1281,
+        1282,
+        1283,
+        1285,
+        1286
+      ],
       "episode_count": 2,
       "player_frames": 12
     },
     {
       "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
-      "frames": [1401, 1402, 1403, 1404, 1405, 1406],
+      "frames": [
+        1401,
+        1402,
+        1403,
+        1404,
+        1405,
+        1406
+      ],
       "episode_count": 1,
       "player_frames": 12
     },
     {
       "state": "0x057C/0x0547 + 0x0D67/0x0000 sel 0/0 gate 0x0001/0x0000",
-      "frames": [1456, 1457, 1458, 1459, 1460, 1461],
+      "frames": [
+        1456,
+        1457,
+        1458,
+        1459,
+        1460,
+        1461
+      ],
       "episode_count": 1,
       "player_frames": 12
     }
@@ -49,5 +80,21 @@
     "hd_coverage_fraction": 0.1836734693877551,
     "fallback_burden_removed_fraction": 0.01639344262295082,
     "absolute_coverage_gain_percentage_points": 1.360544217687075
+  },
+  "continuation_disposition": {
+    "status": "stop-before-new-art",
+    "next_ranked_state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+    "frames": [
+      1280,
+      1281,
+      1282,
+      1283,
+      1285,
+      1286
+    ],
+    "episode_count": 2,
+    "player_frames": 12,
+    "reason": "This tied-maximum state remains meaningful, but P2 semantic frame 0x0578 has no registered shipping pose and the current retained evidence does not prove it equivalent to an approved canonical geometry. P1 0x0544 is likewise not registered for P1. Do not manufacture per-state art from adjacency.",
+    "next_concrete_discriminator": "Run one bounded deterministic stock-composition extraction for the exact 1280-1286 state, then compare each player raster first by exact RGBA and then by palette-normalized geometry against approved same-player canonical poses. Admit the family only if that proof supplies reusable geometry or a genuinely distinct pose justified by the measured 12-player-frame burden."
   }
 }

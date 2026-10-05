@@ -36,6 +36,9 @@ extern "C" {
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
+#include "modern_controls_binding_authority.hpp"
+#include "modern_controls_presenter.hpp"
+#include "modern_controls_rebind.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "uniracers_course_identity.h"
@@ -49,6 +52,7 @@ extern "C" {
 #include "../presentation/racer_hd_presenter.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -88,6 +92,7 @@ UrModernPauseMenu g_pause_menu;
 UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_controls_visible;
+ur::product::ModernControlsRebindState g_controls_rebind;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_onboarding_initialized;
@@ -2734,12 +2739,100 @@ void rearm_run_capture_after_retry() {
     product_diagnostic("UR_RUN_RECORD RETRY_REARMED");
 }
 
+ur::product::ModernControlsBindingAuthority live_controls_authority() {
+    return {
+        [](int button, int scancode) {
+            keybinds_set_button(
+                1, button, static_cast<SDL_Scancode>(scancode));
+        },
+        []() { keybinds_reset_player(1); },
+        []() { keybinds_save(); },
+    };
+}
+
+bool apply_live_controls_command(
+    const ur::product::ModernControlsCommand& command) {
+    const bool applied = ur::product::apply_modern_controls_command(
+        command, live_controls_authority());
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS") && command.actionable()) {
+        std::fprintf(
+            stderr,
+            "UR_CONTROLS command=%d binding=%d scancode=%d applied=%d\n",
+            static_cast<int>(command.kind),
+            static_cast<int>(command.binding),
+            command.key_scancode,
+            applied ? 1 : 0);
+        std::fflush(stderr);
+    }
+    return applied;
+}
+
+bool handle_controls_action(ur::product::ModernControlsAction action) {
+    if (!modern_mode() || !g_controls_visible) return false;
+    auto command = ur::product::modern_controls_handle_action(
+        &g_controls_rebind, action);
+    if (command.kind == ur::product::ModernControlsCommandKind::Close) {
+        g_controls_visible = false;
+        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        return true;
+    }
+    if (command.kind == ur::product::ModernControlsCommandKind::ClearBinding ||
+        command.kind == ur::product::ModernControlsCommandKind::ResetPlayer) {
+        (void)apply_live_controls_command(command);
+    }
+    return true;
+}
+
+bool handle_controls_key(int key) {
+    if (!modern_mode() || !g_controls_visible) return false;
+
+    if (g_controls_rebind.capturing) {
+        if (key == SDLK_ESCAPE) {
+            (void)ur::product::modern_controls_handle_action(
+                &g_controls_rebind, ur::product::ModernControlsAction::Back);
+            product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+            return true;
+        }
+        const SDL_Scancode scancode = snesrecomp_sdl_scancode_from_key(
+            static_cast<SDL_Keycode>(key));
+        auto command = ur::product::modern_controls_capture_key(
+            &g_controls_rebind, static_cast<int>(scancode));
+        if (!command.actionable()) return true;
+        if (!apply_live_controls_command(command)) {
+            g_controls_rebind.capturing = true;
+            product_diagnostic("UR_CONTROLS CAPTURE_APPLY_FAILED");
+        }
+        return true;
+    }
+
+    if (key == SDLK_UP) {
+        return handle_controls_action(ur::product::ModernControlsAction::Previous);
+    }
+    if (key == SDLK_DOWN) {
+        return handle_controls_action(ur::product::ModernControlsAction::Next);
+    }
+    if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+        return handle_controls_action(ur::product::ModernControlsAction::Confirm);
+    }
+    if (key == SDLK_DELETE || key == SDLK_BACKSPACE) {
+        return handle_controls_action(ur::product::ModernControlsAction::Clear);
+    }
+    if (key == SDLK_r) {
+        return handle_controls_action(ur::product::ModernControlsAction::Reset);
+    }
+    if (key == SDLK_ESCAPE) {
+        return handle_controls_action(ur::product::ModernControlsAction::Back);
+    }
+    return true;
+}
+
 void close_host_subview() {
     if (g_options_visible) {
         g_options_visible = false;
         product_diagnostic("UR_PAUSE_OPTIONS CLOSED");
     }
     if (g_controls_visible) {
+        g_controls_rebind.capturing = false;
         g_controls_visible = false;
         product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
     }
@@ -2871,6 +2964,7 @@ bool activate_pause_selection() {
     if (selected == UR_MODERN_PAUSE_CONTROLS) {
         g_options_visible = false;
         g_run_data_visible = false;
+        g_controls_rebind = {};
         g_controls_visible = true;
         product_diagnostic("UR_PAUSE_CONTROLS OPENED");
         return true;
@@ -3331,6 +3425,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return request_desktop_quit() ? 1 : 0;
     }
 
+    if (g_controls_visible) {
+        return handle_controls_key(key) ? 1 : 0;
+    }
+
     if (g_options_visible) {
         if (key == SDLK_UP) {
             ur_modern_options_menu_move(&g_options_menu, -1);
@@ -3498,6 +3596,32 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (g_quit_confirm_visible && button == kGamepadBtn_A) {
         return request_desktop_quit() ? 1 : 0;
+    }
+
+    if (g_controls_visible) {
+        if (!pressed) return 1;
+        if (g_controls_rebind.capturing) {
+            if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
+                (void)ur::product::modern_controls_handle_action(
+                    &g_controls_rebind, ur::product::ModernControlsAction::Back);
+                product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+            }
+            return 1;
+        }
+        if (button == kGamepadBtn_DpadUp) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Previous);
+        } else if (button == kGamepadBtn_DpadDown) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Next);
+        } else if (button == kGamepadBtn_A) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Confirm);
+        } else if (button == kGamepadBtn_X) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Clear);
+        } else if (button == kGamepadBtn_Y) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Reset);
+        } else if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
+            (void)handle_controls_action(ur::product::ModernControlsAction::Back);
+        }
+        return 1;
     }
 
     if (g_options_visible) {
@@ -4032,50 +4156,18 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         if (g_controls_visible) {
-            const int controls_h = 174;
+            const int controls_h = 225;
             const int controls_y = (height - controls_h) / 2;
-            const KeyBinds* binds = keybinds_get();
-            const PlayerBinds fallback{};
-            const PlayerBinds& p1 = binds ? binds->p1 : fallback;
-            const std::string left = uppercase_keybind_label(p1.left);
-            const std::string right = uppercase_keybind_label(p1.right);
-            const std::string b = uppercase_keybind_label(p1.b);
-            const std::string y_key = uppercase_keybind_label(p1.y);
-            const std::string a = uppercase_keybind_label(p1.a);
-            const std::string x_key = uppercase_keybind_label(p1.x);
-            const std::string l = uppercase_keybind_label(p1.l);
-            const std::string r = uppercase_keybind_label(p1.r);
-            const std::string start = uppercase_keybind_label(p1.start);
-            char move_row[128];
-            char jump_row[96];
-            char brake_row[96];
-            char ax_row[128];
-            char lr_row[128];
-            char start_row[96];
-            std::snprintf(
-                move_row, sizeof(move_row), "MOVE %s/%s   PAD %s/%s",
-                left.c_str(), right.c_str(),
-                live_gamepad_binding_label(2).c_str(),
-                live_gamepad_binding_label(3).c_str());
-            std::snprintf(
-                jump_row, sizeof(jump_row), "JUMP B  %s   PAD %s",
-                b.c_str(), live_gamepad_binding_label(7).c_str());
-            std::snprintf(
-                brake_row, sizeof(brake_row), "BRAKE Y %s   PAD %s",
-                y_key.c_str(), live_gamepad_binding_label(9).c_str());
-            std::snprintf(
-                ax_row, sizeof(ax_row), "STUNTS A/X %s/%s   PAD %s/%s",
-                a.c_str(), x_key.c_str(),
-                live_gamepad_binding_label(6).c_str(),
-                live_gamepad_binding_label(8).c_str());
-            std::snprintf(
-                lr_row, sizeof(lr_row), "STUNTS L/R %s/%s   PAD %s/%s",
-                l.c_str(), r.c_str(),
-                live_gamepad_binding_label(10).c_str(),
-                live_gamepad_binding_label(11).c_str());
-            std::snprintf(
-                start_row, sizeof(start_row), "PAUSE START %s   PAD %s",
-                start.c_str(), live_gamepad_binding_label(5).c_str());
+            std::array<std::string, 12> key_label_storage{};
+            std::array<std::string_view, 12> key_labels{};
+            for (int i = 0; i < ur::product::modern_control_binding_count(); ++i) {
+                key_label_storage[static_cast<std::size_t>(i)] =
+                    uppercase_keybind_label(keybinds_get_button(1, i));
+                key_labels[static_cast<std::size_t>(i)] =
+                    key_label_storage[static_cast<std::size_t>(i)];
+            }
+            const auto presentation = ur::product::present_modern_controls(
+                g_controls_rebind, key_labels);
 
             snes_ovl_fill_rect(
                 pixels, stride, height, x, controls_y, panel_w, controls_h,
@@ -4085,34 +4177,31 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 7,
-                "CONTROLS - LIVE P1 BINDINGS", 0xFFFFFFFFu, 1);
+                "CONTROLS - KEYBOARD P1", 0xFFFFFFFFu, 1);
+
+            int row_y = controls_y + 27;
+            for (const auto& row : presentation.rows) {
+                char row_text[128];
+                std::snprintf(
+                    row_text,
+                    sizeof(row_text),
+                    "%c %-6s  %-18s%s",
+                    row.selected ? '>' : ' ',
+                    row.control_label.c_str(),
+                    row.key_label.c_str(),
+                    row.capturing ? " <PRESS KEY>" : "");
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, row_y,
+                    row_text, 0xFFFFFFFFu, 1);
+                row_y += 13;
+            }
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 27,
-                move_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 188,
+                presentation.instruction.c_str(), 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 42,
-                jump_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 57,
-                brake_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 72,
-                ax_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 87,
-                lr_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 102,
-                start_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 122,
-                "LAND WHEEL-DOWN. CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 142,
-                "F5 / PAD X  QUICK PRACTICE FROM MAIN MENU", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 157,
-                "ESC / PAD B  BACK", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 205,
+                "PAD: UP/DOWN A=REBIND X=CLEAR Y=RESET B=BACK",
+                0xFFFFFFFFu, 1);
             return;
         }
 

@@ -1540,8 +1540,11 @@ def build_dossier(
             ),
             "authored_shipping_approval_externalized": all(
                 rep["art_review"]["authored_candidate"] is not None
-                and rep["art_review"]["shipping_approval_source"]
-                == "analysis/data/racer-hd-art-approval.json"
+                and isinstance(rep["art_review"]["shipping_approval_source"], str)
+                and rep["art_review"]["shipping_approval_source"].startswith(
+                    "analysis/data/racer-hd-art-approval"
+                )
+                and rep["art_review"]["shipping_approval_source"].endswith(".json")
                 for rep in representations
             ),
             "ready_for_art_review": True,

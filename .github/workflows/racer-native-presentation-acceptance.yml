@@ -8,6 +8,7 @@ on:
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
       - "tools/probe_racer_hd_fallback_family.py"
+      - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
@@ -124,6 +125,18 @@ jobs:
             --sequence-key ordinary-race-1285-1286-frequency-hold \
             --json-out "$RUNNER_TEMP/racer-hd-next-family-temporal-b.json" \
             > "$RUNNER_TEMP/racer-hd-next-family-temporal-b.txt"
+      - name: Probe next remaining measured Racer HD state
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATE='{"p1_primary":"0x0545","p2_primary":"0x057C","p1_companion":"0x0000","p2_companion":"0x0C27","p1_selector":0,"p2_selector":0,"p1_companion_gate_word":"0x0000","p2_companion_gate_word":"0x0001"}'
+          python3 tools/probe_racer_hd_state_reuse.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --state-json "$STATE" \
+            --frames "1401,1402,1403,1404,1405,1406" \
+            --json-out "$RUNNER_TEMP/racer-hd-next-ranked-state.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-next-ranked-state" \
+            > "$RUNNER_TEMP/racer-hd-next-ranked-state.txt"
       - name: Install native build dependencies
         run: |
           sudo apt-get update
@@ -1361,6 +1374,9 @@ jobs:
             ${{ runner.temp }}/racer-hd-next-family-equivalence.txt
             ${{ runner.temp }}/racer-hd-next-family-review.txt
             ${{ runner.temp }}/racer-hd-next-family-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-next-ranked-state.json
+            ${{ runner.temp }}/racer-hd-next-ranked-state.txt
+            ${{ runner.temp }}/racer-hd-next-ranked-state/
             ${{ runner.temp }}/racer-hd-next-family-temporal-a.json
             ${{ runner.temp }}/racer-hd-next-family-temporal-a.txt
             ${{ runner.temp }}/racer-hd-next-family-temporal-b.json

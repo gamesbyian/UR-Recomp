@@ -572,6 +572,7 @@ jobs:
           print("UR_TOUR_RESUME_FIXTURE rider=0 tour=0 medal=0 flags=11000")
           PY
 
+          set +e
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_TOUR_CONTINUE_ACCEPTANCE=1 \
@@ -580,6 +581,13 @@ jobs:
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
+          STATUS=$?
+          set -e
+          cat "$LOG"
+          if [ "$STATUS" -ne 0 ]; then
+            echo "::error::Modern Continue Tour native process failed with status $STATUS"
+            exit "$STATUS"
+          fi
 
           grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2" "$LOG"
           grep -q "UR_TOUR_CONTINUE READY tour=0 menu=F6" "$LOG"

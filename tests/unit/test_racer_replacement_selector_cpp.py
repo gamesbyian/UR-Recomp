@@ -82,7 +82,7 @@ int main() {{
         {hx(guards["p2_companion_gate_word"])},
     }};
     const auto* r = find_racer_registration_for_state(
-        {hx(entry["semantic_frame_id"])}, state
+        {hx(entry["semantic_frame_id"])}, state, {player}
     );
     assert(r != nullptr);
     assert(r->semantic_frame_id == {hx(entry["semantic_frame_id"])});

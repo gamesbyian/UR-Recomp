@@ -217,6 +217,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/MODERN-PRODUCT-LAYER.md"', _block(text, "pull_request"))
 
 
+    def test_local_multiplayer_contract_does_not_trigger_on_docs_only(self):
+        text = (WORKFLOWS / "local-multiplayer-product-contracts.yml").read_text()
+        self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
+
+
     def test_main_push_allowlist_is_evidence_writing(self):
         for name in MAIN_PUSH_ALLOWLIST:
             path = WORKFLOWS / name

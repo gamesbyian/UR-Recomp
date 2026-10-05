@@ -2106,7 +2106,10 @@ jobs:
             ${{ runner.temp }}/render-scale-2x.log
             ${{ runner.temp }}/render-scale-2x.ppm
             ${{ runner.temp }}/render-scale-2x-dumps/
-            ${{ runner.temp }}/pause-controls.log
+            ${{ runner.temp }}/pause-controls-edit.log
+            ${{ runner.temp }}/pause-controls-reload.log
+            ${{ runner.temp }}/pause-controls-edit-dumps/
+            ${{ runner.temp }}/pause-controls-reload-dumps/
             ${{ runner.temp }}/pause-run-data.log
             ${{ runner.temp }}/exit-frontend-active-race.log
             ${{ runner.temp }}/exit-frontend-active-race-dumps/

@@ -1,0 +1,36 @@
+# Cross-tour product-enabling probe for direct Quick Practice selection.
+# Shuffler is stock tour option 2; slot 3 is global course id 12 (0x0C).
+
+until 009F == D7 3600
+wait 60
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+until 009B == 00 300
+press down 2
+until 009B == 02 600
+wait 30
+dump qp-shuffler-tour
+press a 2
+
+until 009F == F6 1200
+wait 60
+until 009B == 00 300
+press down 2
+until 009B == 01 600
+press down 2
+until 009B == 02 600
+wait 20
+dump qp-shuffler-track2
+press a 2
+
+until 009F == 16 1200
+wait 60
+until 00CE == 0C 300
+dump qp-shuffler-slot3-now-playing
+quit

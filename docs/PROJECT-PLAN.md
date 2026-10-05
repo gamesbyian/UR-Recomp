@@ -133,20 +133,18 @@ Current implementation readiness and the next Windows x64 product gaps belong in
 
 ### Decide when the relevant subsystem is mature
 
-The following are desirable but should be evaluated when the underlying state model, renderer, frontend or course model is sufficiently understood. Do not force them early:
+The following are desirable but are **post-baseline optional features**, not unresolved baseline product policy:
 
 - expanded racer cosmetics beyond name/color and exact legacy presets;
 - full replay viewer with scrubbing, frame stepping, camera controls or HUD hiding;
 - photo/capture tools;
 - richer statistics such as stunt histories, heatmaps, streaks or aggregate telemetry;
 - achievements/challenges designed around mastery, secrets and unusual clean runs rather than grind;
-- section/checkpoint-based practice starts, if the course/state model can support them without corrupting normal simulation semantics;
-- a simplified local tournament/bracket mode replacing most legacy League administration;
-- modern medal/progression policy such as awarding the highest achieved tier immediately or making challenge tier selectable;
-- a modernized attract/demo reel sourced from especially strong local runs;
-- user-facing mod/content-pack affordances beyond the already planned custom-course tooling.
+- section/checkpoint-based practice starts once a safe authoritative start-state contract exists; prioritize this mastery feature ahead of photo mode/achievements when post-baseline capacity permits;
+- an optional Local Showcase attract mode sourced from strong local runs, while the stock attract cycle remains default;
+- user-facing mod/content-pack affordances beyond the planned custom-course/content boundaries.
 
-A later decision may promote any of these to must-do once implementation cost and fidelity impact are understood.
+Local Tournament and Modern medal/progression policy are no longer in this defer/decide-later set; their baseline behavior is fixed by the Modern frontend/progression policy below.
 
 ### Network and hosted-service policy
 

@@ -4,6 +4,85 @@
 
 using namespace ur::product;
 
+static void prove_restart_uses_same_stock_route_without_restore() {
+    const ModernTourEntryContext context{
+        ExecutionMode::Modern,
+        true,
+        true,
+        true,
+    };
+    const auto restart = resolve_modern_tour_entry(
+        context, ModernTourEntryIntent::Restart, true);
+    assert(restart.intent == ModernTourEntryIntent::Restart);
+    assert(restart.route_stock_frontend);
+    assert(!restart.restore_continuation_at_track_select);
+    assert(restart.retire_continuation_after_stock_wipe);
+
+    for (std::uint8_t tour = 0; tour < 9; ++tour) {
+        auto state = begin_modern_tour_entry(tour, restart);
+        assert(state.intent == ModernTourEntryIntent::Restart);
+        assert(!state.restore_continuation_at_track_select);
+        assert(state.retire_continuation_after_stock_wipe);
+
+        ModernTourContinueObservation observation{0xD7, 0, false};
+        bool reached = false;
+        for (int guard = 0; guard < 48 && !reached; ++guard) {
+            const auto step =
+                advance_modern_tour_continue(state, observation);
+            state = step.state;
+
+            switch (step.input) {
+            case QuickPracticeMenuInput::Up:
+                if (observation.selected_option >= 2) {
+                    observation.selected_option =
+                        static_cast<std::uint8_t>(
+                            observation.selected_option - 2);
+                }
+                break;
+            case QuickPracticeMenuInput::Down:
+                observation.selected_option =
+                    static_cast<std::uint8_t>(
+                        observation.selected_option + 2);
+                break;
+            case QuickPracticeMenuInput::Left:
+                if (observation.selected_option > 0) {
+                    --observation.selected_option;
+                }
+                break;
+            case QuickPracticeMenuInput::Right:
+                ++observation.selected_option;
+                break;
+            case QuickPracticeMenuInput::Accept:
+                switch (state.stage) {
+                case ModernTourContinueStage::AwaitRider:
+                    observation = {0x3C, 0, false};
+                    break;
+                case ModernTourContinueStage::AwaitTour:
+                    observation = {0x6D, 0, false};
+                    break;
+                case ModernTourContinueStage::AwaitTrack:
+                    observation = {0xF6, 0, false};
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case QuickPracticeMenuInput::None:
+                break;
+            }
+
+            reached = step.track_select_ready ||
+                      state.stage == ModernTourContinueStage::Ready;
+        }
+
+        assert(reached);
+        assert(state.stage == ModernTourContinueStage::Ready);
+        assert(state.intent == ModernTourEntryIntent::Restart);
+        assert(!state.restore_continuation_at_track_select);
+        assert(state.retire_continuation_after_stock_wipe);
+    }
+}
+
 static void prove_all_tours_reach_track_select() {
     for (std::uint8_t tour = 0; tour < 9; ++tour) {
         auto state = begin_modern_tour_continue(tour);
@@ -69,6 +148,7 @@ static void prove_all_tours_reach_track_select() {
 
 int main() {
     prove_all_tours_reach_track_select();
+    prove_restart_uses_same_stock_route_without_restore();
 
     {
         auto state = begin_modern_tour_continue(0);

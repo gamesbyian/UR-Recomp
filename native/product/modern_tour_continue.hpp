@@ -1,6 +1,7 @@
 #pragma once
 
 #include "quick_practice_route.hpp"
+#include "modern_tour_entry_policy.hpp"
 
 #include <cstdint>
 
@@ -19,8 +20,11 @@ constexpr std::uint32_t kModernTourContinueMaxObservations = 3600;
 
 struct ModernTourContinueState {
     ModernTourContinueStage stage = ModernTourContinueStage::Idle;
+    ModernTourEntryIntent intent = ModernTourEntryIntent::None;
     std::uint8_t tour_row = 0;
     std::uint8_t tour_option = 0;
+    bool restore_continuation_at_track_select = false;
+    bool retire_continuation_after_stock_wipe = false;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
     std::uint32_t observations_remaining = 0;
@@ -39,16 +43,39 @@ struct ModernTourContinueStep {
     bool timed_out = false;
 };
 
+constexpr ModernTourContinueState begin_modern_tour_entry(
+    std::uint8_t tour_row,
+    ModernTourEntryDecision decision
+) noexcept {
+    ModernTourContinueState state;
+    if (tour_row >= kQuickPracticeTourOptions.size() ||
+        !decision.route_stock_frontend ||
+        decision.intent == ModernTourEntryIntent::None) {
+        return state;
+    }
+    state.stage = ModernTourContinueStage::AwaitMain;
+    state.intent = decision.intent;
+    state.tour_row = tour_row;
+    state.tour_option = kQuickPracticeTourOptions[tour_row];
+    state.restore_continuation_at_track_select =
+        decision.restore_continuation_at_track_select;
+    state.retire_continuation_after_stock_wipe =
+        decision.retire_continuation_after_stock_wipe;
+    state.observations_remaining = kModernTourContinueMaxObservations;
+    return state;
+}
+
 constexpr ModernTourContinueState begin_modern_tour_continue(
     std::uint8_t tour_row
 ) noexcept {
-    ModernTourContinueState state;
-    if (tour_row >= kQuickPracticeTourOptions.size()) return state;
-    state.stage = ModernTourContinueStage::AwaitMain;
-    state.tour_row = tour_row;
-    state.tour_option = kQuickPracticeTourOptions[tour_row];
-    state.observations_remaining = kModernTourContinueMaxObservations;
-    return state;
+    return begin_modern_tour_entry(
+        tour_row,
+        {
+            ModernTourEntryIntent::Resume,
+            true,
+            true,
+            false,
+        });
 }
 
 constexpr ModernTourContinueStep advance_modern_tour_continue(

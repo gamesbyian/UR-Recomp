@@ -15,6 +15,29 @@ SAVE_PREFIX_ANCHOR = '    .save_name_prefix = "save",\n'
 
 
 def patch_main_text(source: str) -> str:
+    # The completed-run browser wraps only host callbacks that need to
+    # intercept product navigation/replay. The underlying Modern host remains
+    # the implementation for all ordinary behavior.
+    for original, wrapped in (
+        ("&ur_uniracers_modern_after_run_frame", "&ur_uniracers_product_after_run_frame"),
+        ("&ur_uniracers_modern_system_key_down", "&ur_uniracers_product_system_key_down"),
+        ("&ur_uniracers_modern_system_gamepad_button", "&ur_uniracers_product_system_gamepad_button"),
+        ("&ur_uniracers_modern_system_overlay", "&ur_uniracers_product_system_overlay"),
+    ):
+        source = source.replace(original, wrapped)
+
+    if (
+        "ur_uniracers_product_after_run_frame" in source
+        and '#include "uniracers_modern_host.h"\n' in source
+        and '#include "completed_run_browser_host.h"\n' not in source
+    ):
+        source = source.replace(
+            '#include "uniracers_modern_host.h"\n',
+            '#include "uniracers_modern_host.h"\n'
+            '#include "completed_run_browser_host.h"\n',
+            1,
+        )
+
     if "ur_uniracers_modern_after_config" not in source:
         if FIELD_ANCHOR not in source:
             raise ValueError("generated host game_info field not found")
@@ -43,9 +66,9 @@ def patch_main_text(source: str) -> str:
             raise ValueError("existing modern host presentation field not found")
         return source.replace(anchor, anchor + widescreen_fields, 1)
 
-    if "ur_uniracers_modern_after_run_frame" in source:
+    if "ur_uniracers_product_after_run_frame" in source:
         overlay_anchor = (
-            "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
+            "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"
         )
         if overlay_anchor not in source:
             raise ValueError("existing modern host overlay field not found")
@@ -63,16 +86,18 @@ def patch_main_text(source: str) -> str:
 
     source = source.replace(
         INCLUDE_ANCHOR,
-        INCLUDE_ANCHOR + '#include "uniracers_modern_host.h"\n',
+        INCLUDE_ANCHOR
+        + '#include "uniracers_modern_host.h"\n'
+        + '#include "completed_run_browser_host.h"\n',
         1,
     )
     return source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
-        + "    .after_run_frame       = &ur_uniracers_modern_after_run_frame,\n"
-        + "    .system_key_down       = &ur_uniracers_modern_system_key_down,\n"
-        + "    .system_gamepad_button = &ur_uniracers_modern_system_gamepad_button,\n"
-        + "    .system_overlay         = &ur_uniracers_modern_system_overlay,\n"
+        + "    .after_run_frame       = &ur_uniracers_product_after_run_frame,\n"
+        + "    .system_key_down       = &ur_uniracers_product_system_key_down,\n"
+        + "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
+        + "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"
         + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
         + widescreen_fields,
         1,
@@ -123,6 +148,10 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "completed_run_comparison.cpp",
         "completed_run_presentation.cpp",
         "completed_run_store.cpp",
+        "completed_run_catalog.cpp",
+        "completed_run_browser.cpp",
+        "completed_run_replay.cpp",
+        "completed_run_browser_host.cpp",
         "completed_run_ghost.cpp",
         "completed_run_ghost_policy.cpp",
         "completed_run_ghost_world_sample.cpp",

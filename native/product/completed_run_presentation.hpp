@@ -78,4 +78,11 @@ RunTimingPanelPresentation present_run_timing_panel(
     RunTimingPresentationPoint point,
     const std::string& split_id = {});
 
+/* Product-availability gate for the host timing surface. Authentic execution,
+ * unsupported event types, and non-race/results surfaces remain inert. */
+bool should_present_run_timing(
+    bool modern_execution,
+    bool supported_timed_run,
+    bool race_or_results_surface) noexcept;
+
 }  // namespace ur::product

@@ -63,6 +63,7 @@ def measure(
     rgba = rasterize_composed_player_rgba(
         rom, composition, player, palette_asset_id
     )
+    alpha = bytes(rgba[i] for i in range(3, len(rgba), 4))
     return {
         "player": player,
         "palette_asset_id": f"0x{palette_asset_id:02X}",
@@ -80,7 +81,8 @@ def measure(
         "flip_pivot_x2_y2": object_flip_pivot_x2_y2(64, 64),
         "wheel_contact_x2_y2": alpha_contact_anchor_x2_y2(rgba, 64, 64),
         "rgba_sha256": hashlib.sha256(rgba).hexdigest(),
-        "opaque_pixel_count": sum(1 for i in range(3, len(rgba), 4) if rgba[i] != 0),
+        "alpha_sha256": hashlib.sha256(alpha).hexdigest(),
+        "opaque_pixel_count": sum(1 for a in alpha if a != 0),
     }
 
 

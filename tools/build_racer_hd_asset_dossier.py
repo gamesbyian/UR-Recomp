@@ -125,6 +125,18 @@ SEVENTEENTH_AUTHORED_REPRESENTATION_ID = (
 EIGHTEENTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0544-p2-with-p1-companion-0D69-reference"
 )
+NINETEENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0543-p1-third-family-hold-reference"
+)
+TWENTIETH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0540-p2-third-family-hold-0D2C-reference"
+)
+TWENTY_FIRST_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0542-p1-third-family-recovery-reference"
+)
+TWENTY_SECOND_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0541-p2-third-family-recovery-0D2D-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1137,6 +1149,83 @@ def build_twelfth_authored_candidate_rgba() -> bytes:
     )
 
 
+
+_RED_TO_BLUE_FRAME_RGBA = {
+    _rgba32(232, 83, 83): _rgba32(83, 115, 232),
+    _rgba32(201, 52, 52): _rgba32(52, 77, 201),
+    _rgba32(163, 37, 37): _rgba32(37, 58, 163),
+    _rgba32(120, 24, 24): _rgba32(24, 40, 120),
+    _rgba32(150, 35, 35): _rgba32(35, 51, 150),
+}
+_BLUE_TO_RED_FRAME_RGBA = {blue: red for red, blue in _RED_TO_BLUE_FRAME_RGBA.items()}
+
+
+def recolor_authored_frame_rgba(pixel: bytes, *, blue_frame: bool) -> bytes:
+    """Swap only approved colored-frame material; preserve alpha/neutral materials."""
+    table = _RED_TO_BLUE_FRAME_RGBA if blue_frame else _BLUE_TO_RED_FRAME_RGBA
+    return table.get(pixel, pixel)
+
+
+def sample_authored_0543_p1_third_family_rgba(x: int, y: int) -> bytes:
+    return recolor_authored_frame_rgba(
+        sample_authored_0543_p2_rgba(x, y),
+        blue_frame=False,
+    )
+
+
+def sample_authored_0540d2c_p2_third_family_rgba(x: int, y: int) -> bytes:
+    return recolor_authored_frame_rgba(
+        sample_authored_0540_p1_predecessor_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def sample_authored_0542_p1_third_family_rgba(x: int, y: int) -> bytes:
+    return recolor_authored_frame_rgba(
+        sample_authored_0542_p2_rgba(x, y),
+        blue_frame=False,
+    )
+
+
+def sample_authored_0541d2d_p2_third_family_rgba(x: int, y: int) -> bytes:
+    return recolor_authored_frame_rgba(
+        sample_authored_0541_p1_companion_0d2d_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def build_thirteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0543_p1_third_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def build_fourteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0540d2c_p2_third_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def build_fifteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0542_p1_third_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def build_sixteenth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0541d2d_p2_third_family_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
     """Return authored RGBA plus the expected generator and native sampler."""
     rid = entry["representation_id"]
@@ -1217,6 +1306,30 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_twelfth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_twelfth_authored_candidate_rgba",
             "sample_racer_hd_authored_0544_p2",
+        )
+    if rid == NINETEENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_thirteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_thirteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0543_p1_third_family",
+        )
+    if rid == TWENTIETH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fourteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fourteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0540d2c_p2_third_family",
+        )
+    if rid == TWENTY_FIRST_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fifteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fifteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0542_p1_third_family",
+        )
+    if rid == TWENTY_SECOND_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_sixteenth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_sixteenth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0541d2d_p2_third_family",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

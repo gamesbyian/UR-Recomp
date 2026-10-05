@@ -211,6 +211,40 @@ constexpr bool is_authored_0544_p2_0544_0d69_registration(
            s.p1_companion_gate_word == 0x0001 && s.p2_companion_gate_word == 0x0000;
 }
 
+
+constexpr bool is_authored_third_family_hold_p1(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0543 &&
+           c.p1_primary == 0x0543 && c.p2_primary == 0x0540 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D2C &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_third_family_hold_p2(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x0540 &&
+           c.p1_primary == 0x0543 && c.p2_primary == 0x0540 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D2C &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_third_family_recovery_p1(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0542 &&
+           c.p1_primary == 0x0542 && c.p2_primary == 0x0541 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D2D &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
+constexpr bool is_authored_third_family_recovery_p2(const RacerRegistration& registration) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x0541 &&
+           c.p1_primary == 0x0542 && c.p2_primary == 0x0541 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D2D &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
+
 constexpr bool is_authored_057d_p1_with_p2_0543_registration(
     const RacerRegistration& registration
 ) noexcept {
@@ -1580,6 +1614,60 @@ constexpr std::uint32_t sample_racer_hd_authored_0544_p2(
     return 0;
 }
 
+
+constexpr std::uint32_t recolor_authored_frame_pixel(
+    std::uint32_t pixel,
+    bool blue_frame
+) noexcept {
+    if (blue_frame) {
+        switch (pixel) {
+            case 0xFF5353E8u: return 0xFFE87353u;
+            case 0xFF3434C9u: return 0xFFC94D34u;
+            case 0xFF2525A3u: return 0xFFA33A25u;
+            case 0xFF181878u: return 0xFF782818u;
+            case 0xFF232396u: return 0xFF963323u;
+            default: return pixel;
+        }
+    }
+    switch (pixel) {
+        case 0xFFE87353u: return 0xFF5353E8u;
+        case 0xFFC94D34u: return 0xFF3434C9u;
+        case 0xFFA33A25u: return 0xFF2525A3u;
+        case 0xFF782818u: return 0xFF181878u;
+        case 0xFF963323u: return 0xFF232396u;
+        default: return pixel;
+    }
+}
+
+constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0543_p2(x, y, hflip, vflip), false
+    );
+}
+constexpr std::uint32_t sample_racer_hd_authored_0540d2c_p2_third_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0540_p1_predecessor(x, y, hflip, vflip), true
+    );
+}
+constexpr std::uint32_t sample_racer_hd_authored_0542_p1_third_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0542_p2(x, y, hflip, vflip), false
+    );
+}
+constexpr std::uint32_t sample_racer_hd_authored_0541d2d_p2_third_family(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0541_p1_companion_0d2d(x, y, hflip, vflip), true
+    );
+}
+
 constexpr std::uint32_t sample_racer_hd_asset(
     const RacerRegistration& registration,
     int x,
@@ -1625,6 +1713,18 @@ constexpr std::uint32_t sample_racer_hd_asset(
         return sample_racer_hd_authored_057f_p1_companion_0d4a(
             x, y, hflip, vflip
         );
+    }
+    if (is_authored_third_family_hold_p1(registration)) {
+        return sample_racer_hd_authored_0543_p1_third_family(x, y, hflip, vflip);
+    }
+    if (is_authored_third_family_hold_p2(registration)) {
+        return sample_racer_hd_authored_0540d2c_p2_third_family(x, y, hflip, vflip);
+    }
+    if (is_authored_third_family_recovery_p1(registration)) {
+        return sample_racer_hd_authored_0542_p1_third_family(x, y, hflip, vflip);
+    }
+    if (is_authored_third_family_recovery_p2(registration)) {
+        return sample_racer_hd_authored_0541d2d_p2_third_family(x, y, hflip, vflip);
     }
     if (is_authored_057e_p1_0544_0d49_registration(registration)) {
         return sample_racer_hd_authored_057e_p1_with_p2_0543(x, y, hflip, vflip);

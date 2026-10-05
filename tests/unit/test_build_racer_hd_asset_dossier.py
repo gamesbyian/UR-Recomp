@@ -19,6 +19,10 @@ from tools.build_racer_hd_asset_dossier import (
     SIXTEENTH_AUTHORED_REPRESENTATION_ID,
     SEVENTEENTH_AUTHORED_REPRESENTATION_ID,
     EIGHTEENTH_AUTHORED_REPRESENTATION_ID,
+    NINETEENTH_AUTHORED_REPRESENTATION_ID,
+    TWENTIETH_AUTHORED_REPRESENTATION_ID,
+    TWENTY_FIRST_AUTHORED_REPRESENTATION_ID,
+    TWENTY_SECOND_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     build_first_authored_candidate_rgba,
@@ -33,6 +37,10 @@ from tools.build_racer_hd_asset_dossier import (
     build_tenth_authored_candidate_rgba,
     build_eleventh_authored_candidate_rgba,
     build_twelfth_authored_candidate_rgba,
+    build_thirteenth_authored_candidate_rgba,
+    build_fourteenth_authored_candidate_rgba,
+    build_fifteenth_authored_candidate_rgba,
+    build_sixteenth_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -50,6 +58,10 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_0543_p2_rgba,
     sample_authored_057e_p1_companion_0d69_rgba,
     sample_authored_0544_p2_rgba,
+    sample_authored_0543_p1_third_family_rgba,
+    sample_authored_0540d2c_p2_third_family_rgba,
+    sample_authored_0542_p1_third_family_rgba,
+    sample_authored_0541d2d_p2_third_family_rgba,
     transition_context,
 )
 
@@ -559,6 +571,59 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             )
             bottom = [x for x, y in occupied if y == 38]
             self.assertEqual([min(bottom), max(bottom)], expected_bottom)
+
+
+    def test_third_family_uses_exact_opposite_player_geometry(self):
+        self.assertEqual(
+            NINETEENTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0543-p1-third-family-hold-reference",
+        )
+        self.assertEqual(
+            TWENTIETH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0540-p2-third-family-hold-0D2C-reference",
+        )
+        self.assertEqual(
+            TWENTY_FIRST_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0542-p1-third-family-recovery-reference",
+        )
+        self.assertEqual(
+            TWENTY_SECOND_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0541-p2-third-family-recovery-0D2D-reference",
+        )
+        for built in (
+            build_thirteenth_authored_candidate_rgba(),
+            build_fourteenth_authored_candidate_rgba(),
+            build_fifteenth_authored_candidate_rgba(),
+            build_sixteenth_authored_candidate_rgba(),
+        ):
+            self.assertEqual(len(built), 256 * 256 * 4)
+
+        pairs = (
+            (sample_authored_0543_p1_third_family_rgba, sample_authored_0543_p2_rgba),
+            (sample_authored_0540d2c_p2_third_family_rgba, sample_authored_0540_p1_predecessor_rgba),
+            (sample_authored_0542_p1_third_family_rgba, sample_authored_0542_p2_rgba),
+            (sample_authored_0541d2d_p2_third_family_rgba, sample_authored_0541_p1_companion_0d2d_rgba),
+        )
+        for target, source in pairs:
+            for ly in range(64):
+                for lx in range(64):
+                    x, y = lx * 4 + 2, ly * 4 + 2
+                    self.assertEqual(target(x, y)[3], source(x, y)[3])
+
+        # Geometry and neutral materials remain identical, while frame color
+        # is deliberately swapped to the target player's established palette.
+        self.assertEqual(
+            sample_authored_0543_p1_third_family_rgba(130, 88),
+            bytes((163, 37, 37, 255)),
+        )
+        self.assertEqual(
+            sample_authored_0542_p1_third_family_rgba(132, 84),
+            bytes((163, 37, 37, 255)),
+        )
+        self.assertEqual(
+            sample_authored_0540d2c_p2_third_family_rgba(128, 84),
+            bytes((37, 58, 163, 255)),
+        )
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

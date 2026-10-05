@@ -27,7 +27,7 @@ For an available ordinary tour, Modern may let the player select Bronze, Silver 
 
 Authentic mode remains stock-sequential: medal generation advances at most one step per successful stock award.
 
-Hunter remains discovery content. This policy names ANTI-UNI only as the canonical Hunter opponent mapping already proven by retained evidence; it does not expose Hunter eligibility requirements or create a checklist for secret progression.
+Hunter remains discovery content and canonical Gold-only once legitimately available. The retained stock probe shows a GOLD label and ANTI-UNI regardless of Hunter medal state, so Modern does not invent Bronze/Silver Hunter variants. This policy does not expose Hunter eligibility requirements or create a checklist for secret progression.
 
 `native/product/modern_challenge_tier_policy.hpp` encodes only this semantic algebra. It has no SRAM/WRAM or runtime write interface.
 

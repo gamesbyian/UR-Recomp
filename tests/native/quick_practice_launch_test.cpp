@@ -206,6 +206,20 @@ int main() {
     assert(step.course_mismatch);
     assert(!step.route_violation);
 
+    // A stalled route cannot own player input forever.
+    state = begin_quick_practice_launch(
+        quick_practice_target_for_track(0));
+    state.observations_remaining = 1;
+    step = advance_quick_practice_launch(
+        state, {0x00, 0, false, -1});
+    assert(!step.timed_out);
+    assert(step.state.observations_remaining == 0);
+    step = advance_quick_practice_launch(
+        step.state, {0x00, 0, false, -1});
+    assert(step.timed_out);
+    assert(step.state.stage == QuickPracticeLaunchStage::Idle);
+    assert(!quick_practice_launch_owns_player_input(step.state));
+
     // Invalid targets fail closed.
     state = begin_quick_practice_launch({});
     assert(state.stage == QuickPracticeLaunchStage::Idle);

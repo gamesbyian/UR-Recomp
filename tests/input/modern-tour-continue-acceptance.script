@@ -1,0 +1,10 @@
+# Fresh-process Modern Continue Tour acceptance.
+# The host-side acceptance trigger fires on the first settled stock main-menu
+# observation. Launch-surface proof comes from the structured STARTED
+# diagnostic; this script proves the route reaches TRACK_SELECT and stops there.
+
+until 009F == F6 3600
+wait 60
+dump tour-continue-track-ready
+
+quit

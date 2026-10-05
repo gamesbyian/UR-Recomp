@@ -26,6 +26,9 @@ extern "C" {
 #include "host_profile_state.hpp"
 #include "host_profile_catalog.hpp"
 #include "modern_racer_identity.hpp"
+#include "modern_tour_continue.hpp"
+#include "quick_practice_catalog.hpp"
+#include "quick_practice_input_mask.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
@@ -108,6 +111,11 @@ PracticeStage g_practice_stage = PracticeStage::Idle;
 std::vector<uint8_t> g_practice_sram_snapshot;
 std::string g_practice_original_save_root;
 std::string g_practice_input_path;
+
+ur::product::ModernTourContinueState g_tour_continue;
+std::string g_tour_continue_profile_id;
+std::string g_tour_continue_input_path;
+bool g_tour_continue_acceptance_fired;
 
 bool g_display_caps_reported;
 bool g_profile_sram_reported;
@@ -454,6 +462,52 @@ std::string resolve_practice_input_path() {
     SDL_free(pref_path);
     path += "practice-input.txt";
     return path;
+}
+
+std::string resolve_tour_continue_input_path() {
+    const char* override_path = std::getenv("UR_TOUR_CONTINUE_INPUT_PATH");
+    if (override_path && *override_path) return override_path;
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "tour-continue-input.txt";
+    return path;
+}
+
+bool queue_tour_continue_input(
+    ur::product::QuickPracticeMenuInput input,
+    uint64_t origin_frame) {
+    const std::uint16_t mask = ur::product::quick_practice_runner_mask(
+        ur::product::launch_input_from_menu_input(input));
+    if (mask == 0) return input == ur::product::QuickPracticeMenuInput::None;
+
+    if (g_tour_continue_input_path.empty()) {
+        g_tour_continue_input_path = resolve_tour_continue_input_path();
+    }
+    if (g_tour_continue_input_path.empty()) return false;
+
+    {
+        std::ofstream out(
+            g_tour_continue_input_path,
+            std::ios::binary | std::ios::trunc);
+        if (!out) return false;
+        char encoded[32];
+        std::snprintf(
+            encoded, sizeof(encoded), "0:2:%X\n",
+            static_cast<unsigned>(mask));
+        out << encoded;
+        out.flush();
+        if (!out) return false;
+    }
+
+    if (!snesrecomp_desktop_load_relative_input_file(
+            g_tour_continue_input_path.c_str())) {
+        return false;
+    }
+    snesrecomp_desktop_arm_relative_input(origin_frame);
+    return true;
 }
 
 bool queue_practice_accept(uint64_t origin_frame) {
@@ -1736,6 +1790,175 @@ bool profile_snapshot_matches_live_sram(
         ur::product::kStockSramBytes) == 0;
 }
 
+bool tour_continue_available() {
+    if (!modern_mode() || g_practice_active || paused() || !g_ram ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
+        !g_profile_state || !g_profile_state_writable ||
+        !g_profile_state->tour_continuation ||
+        !g_profile_state->stock_sram ||
+        !ur::product::valid_tour_continuation(
+            *g_profile_state->tour_continuation) ||
+        !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    const auto continuation =
+        title_continuation(*g_profile_state->tour_continuation);
+    return ur::title::tour_resume_source_matches_sram(
+               continuation,
+               g_profile_state->stock_sram->data(),
+               g_profile_state->stock_sram->size()) &&
+           ur::title::tour_resume_source_matches_sram(
+               continuation,
+               g_sram,
+               static_cast<std::size_t>(g_sram_size));
+}
+
+bool tour_continue_routing() {
+    return g_tour_continue.stage !=
+               ur::product::ModernTourContinueStage::Idle &&
+           g_tour_continue.stage !=
+               ur::product::ModernTourContinueStage::Ready;
+}
+
+void cancel_tour_continue(const char* diagnostic) {
+    g_tour_continue = {};
+    g_tour_continue_profile_id.clear();
+    if (diagnostic) product_diagnostic(diagnostic);
+}
+
+bool begin_tour_continue() {
+    if (!tour_continue_available()) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            const bool has_profile = g_profile_state.has_value();
+            const bool has_continuation =
+                has_profile && g_profile_state->tour_continuation.has_value();
+            const bool has_snapshot =
+                has_profile && g_profile_state->stock_sram.has_value();
+            bool persisted_source_ok = false;
+            bool live_source_ok = false;
+            if (has_continuation && has_snapshot &&
+                ur::product::valid_tour_continuation(
+                    *g_profile_state->tour_continuation)) {
+                const auto continuation =
+                    title_continuation(*g_profile_state->tour_continuation);
+                persisted_source_ok =
+                    ur::title::tour_resume_source_matches_sram(
+                        continuation,
+                        g_profile_state->stock_sram->data(),
+                        g_profile_state->stock_sram->size());
+                if (g_sram &&
+                    g_sram_size ==
+                        static_cast<int>(ur::product::kStockSramBytes)) {
+                    live_source_ok =
+                        ur::title::tour_resume_source_matches_sram(
+                            continuation,
+                            g_sram,
+                            static_cast<std::size_t>(g_sram_size));
+                }
+            }
+            std::fprintf(
+                stderr,
+                "UR_TOUR_CONTINUE REJECTED modern=%d practice=%d paused=%d menu=%02X race=%u profile=%d writable=%d continuation=%d snapshot=%d persisted_source=%d live_source=%d\n",
+                modern_mode() ? 1 : 0,
+                g_practice_active ? 1 : 0,
+                paused() ? 1 : 0,
+                g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u,
+                g_ram ? static_cast<unsigned>(g_ram[0x0313]) : 0u,
+                has_profile ? 1 : 0,
+                g_profile_state_writable ? 1 : 0,
+                has_continuation ? 1 : 0,
+                has_snapshot ? 1 : 0,
+                persisted_source_ok ? 1 : 0,
+                live_source_ok ? 1 : 0);
+            std::fflush(stderr);
+        }
+        return false;
+    }
+
+    const auto& continuation = *g_profile_state->tour_continuation;
+    g_tour_continue =
+        ur::product::begin_modern_tour_continue(continuation.tour_row);
+    if (g_tour_continue.stage ==
+        ur::product::ModernTourContinueStage::Idle) {
+        return false;
+    }
+    g_tour_continue_profile_id = g_profile_state->profile_id;
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        unsigned completed = 0;
+        for (const auto flag : continuation.qualified) completed += flag;
+        std::fprintf(
+            stderr,
+            "UR_TOUR_CONTINUE STARTED rider=%u tour=%u completed=%u menu=%02X race=%u\n",
+            static_cast<unsigned>(continuation.rider_index),
+            static_cast<unsigned>(continuation.tour_row),
+            completed,
+            static_cast<unsigned>(g_ram[0x009F]),
+            static_cast<unsigned>(g_ram[0x0313]));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+void advance_tour_continue_route(uint64_t next_frame) {
+    if (!tour_continue_routing()) return;
+
+    if (!modern_mode() || !g_profile_state ||
+        !g_profile_state_writable ||
+        g_tour_continue_profile_id.empty() ||
+        g_profile_state->profile_id != g_tour_continue_profile_id ||
+        !g_profile_state->tour_continuation ||
+        !ur::product::valid_tour_continuation(
+            *g_profile_state->tour_continuation) ||
+        g_profile_state->tour_continuation->tour_row !=
+            g_tour_continue.tour_row) {
+        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");
+        return;
+    }
+
+    const auto step = ur::product::advance_modern_tour_continue(
+        g_tour_continue,
+        {
+            g_ram[0x009F],
+            g_ram[0x009B],
+            g_ram[0x0313] == 0x01,
+        });
+    g_tour_continue = step.state;
+
+    if (step.timed_out) {
+        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_TIMEOUT");
+        return;
+    }
+    if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle) {
+        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_UNEXPECTED_RACE");
+        return;
+    }
+
+    if (step.input != ur::product::QuickPracticeMenuInput::None &&
+        !queue_tour_continue_input(step.input, next_frame)) {
+        cancel_tour_continue("UR_TOUR_CONTINUE INPUT_FAILED");
+        return;
+    }
+
+    if (step.track_select_ready) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_TOUR_CONTINUE READY tour=%u menu=%02X\n",
+                static_cast<unsigned>(
+                    g_profile_state->tour_continuation->tour_row),
+                static_cast<unsigned>(g_ram[0x009F]));
+            std::fflush(stderr);
+        }
+        // TRACK_SELECT belongs to the stock frontend. Release all host routing
+        // authority immediately so the player chooses the next event normally.
+        g_tour_continue = {};
+        g_tour_continue_profile_id.clear();
+    }
+}
+
 bool save_active_profile_state(
     const std::optional<ur::product::HostTourContinuation>& continuation,
     const char* diagnostic) {
@@ -2629,6 +2852,8 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
         g_onboarding_visible ||
+        tour_continue_available() ||
+        tour_continue_routing() ||
         (g_practice_active && g_practice_stage == PracticeStage::Active) ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
@@ -2716,6 +2941,12 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_practice_acceptance_fired = true;
         (void)begin_practice();
     }
+    if (!g_tour_continue_acceptance_fired &&
+        std::getenv("UR_TOUR_CONTINUE_ACCEPTANCE") &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        g_tour_continue_acceptance_fired = true;
+        (void)begin_tour_continue();
+    }
     if (!g_onboarding_acceptance_fired &&
         std::getenv("UR_ONBOARDING_ACCEPTANCE") &&
         g_onboarding_visible && g_binding_diagnostics_reported &&
@@ -2725,6 +2956,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (stats) {
         advance_practice_route(stats->frame + 1u);
+        advance_tour_continue_route(stats->frame + 1u);
     }
 
     const bool run_active =
@@ -2815,6 +3047,15 @@ extern "C" int ur_uniracers_modern_system_key_down(
             (void)dismiss_onboarding();
         }
         return 1;
+    }
+    if (tour_continue_routing()) {
+        if (key == SDLK_ESCAPE) {
+            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
+        }
+        return 1;
+    }
+    if (modern_mode() && key == SDLK_F3) {
+        return begin_tour_continue() ? 1 : 0;
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
@@ -2917,6 +3158,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         } else if (button == kGamepadBtn_B ||
                    button == kGamepadBtn_Start) {
             (void)handle_profile_menu_key(SDLK_ESCAPE);
+        }
+        return 1;
+    }
+
+    if (tour_continue_routing()) {
+        if (pressed &&
+            (button == kGamepadBtn_B || button == kGamepadBtn_Start)) {
+            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
         }
         return 1;
     }
@@ -3218,6 +3467,56 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "COOL NAME!", 0xFFFFFFFFu, 1);
         }
         return;
+    }
+
+    if (modern_mode() && tour_continue_routing()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const char* hint = "CONTINUING TOUR  ESC / PAD B CANCEL";
+        const int hint_w = width < 300 ? width - 16 : 284;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, 15,
+            hint, 0xFFFFFFFFu, 1);
+    }
+
+    if (tour_continue_available()) {
+        const auto& continuation = *g_profile_state->tour_continuation;
+        const auto* course = ur::product::quick_practice_course(
+            static_cast<std::uint8_t>(continuation.tour_row * 5u));
+        unsigned completed = 0;
+        for (const auto flag : continuation.qualified) completed += flag;
+
+        char hint[128];
+        if (course) {
+            std::snprintf(
+                hint, sizeof(hint), "F3 CONTINUE %.*s  %u/5 COMPLETE",
+                static_cast<int>(course->tour_name.size()),
+                course->tour_name.data(),
+                completed);
+        } else {
+            std::snprintf(
+                hint, sizeof(hint), "F3 CONTINUE TOUR  %u/5 COMPLETE",
+                completed);
+        }
+
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int hint_w = width < 290 ? width - 16 : 274;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, height - 34, hint_w, 22,
+            0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, height - 34, hint_w, 22,
+            0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, height - 27,
+            hint, 0xFFFFFFFFu, 1);
     }
 
     if (modern_mode() && g_practice_active &&

@@ -608,26 +608,21 @@ jobs:
             exit "$STATUS"
           fi
 
-          grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2" "$LOG"
+          grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2 menu=D7 race=0" "$LOG"
           grep -q "UR_TOUR_CONTINUE READY tour=0 menu=F6" "$LOG"
           grep -q "UR_TOUR_RESUME APPLIED" "$LOG"
-          test -s "$DUMPS/tour-continue-main-ready.wram.bin"
           test -s "$DUMPS/tour-continue-track-ready.wram.bin"
 
           python3 - \
-            "$DUMPS/tour-continue-main-ready.wram.bin" \
             "$DUMPS/tour-continue-track-ready.wram.bin" \
             "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
           import pathlib
           import sys
 
-          main = pathlib.Path(sys.argv[1]).read_bytes()
-          track = pathlib.Path(sys.argv[2]).read_bytes()
-          profile = pathlib.Path(sys.argv[3]).read_text().splitlines()
-          sram = pathlib.Path(sys.argv[4]).read_bytes()
+          track = pathlib.Path(sys.argv[1]).read_bytes()
+          profile = pathlib.Path(sys.argv[2]).read_text().splitlines()
+          sram = pathlib.Path(sys.argv[3]).read_bytes()
 
-          if main[0x009F] != 0xD7 or main[0x0313] == 1:
-              raise SystemExit("Continue did not start from settled stock main menu")
           if track[0x009F] != 0xF6 or track[0x0313] == 1:
               raise SystemExit("Continue did not stop at stock TRACK_SELECT")
           if track[0x00D0] != 0:

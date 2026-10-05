@@ -9,7 +9,6 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "completed_run_browser.hpp"
-#include "completed_run_presentation.hpp"
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
@@ -442,25 +441,10 @@ void draw_browser(
     }
 
     char comparison[64];
-    std::snprintf(comparison, sizeof(comparison), "VS PB     --");
     const auto* selected = g_browser.selected();
-    const ur::product::CompletedRunBrowserEntry* personal_best = nullptr;
-    for (const auto& entry : g_browser.entries()) {
-        if (entry.playable() && entry.is_personal_best && entry.record) {
-            personal_best = &entry;
-            break;
-        }
-    }
-    if (selected && selected->playable() && selected->record &&
-        personal_best && personal_best->record) {
-        const auto delta = ur::product::present_run_finish_delta(
-            *personal_best->record, selected->record->elapsed_ticks60);
-        if (delta) {
-            std::snprintf(
-                comparison, sizeof(comparison),
-                "VS PB     %s", delta->delta_text.c_str());
-        }
-    }
+    std::snprintf(
+        comparison, sizeof(comparison), "VS PB     %s",
+        selected ? selected->personal_best_delta_text.c_str() : "--");
     snes_ovl_draw_text(
         pixels, stride, height, x + 8, y + panel_h - 41,
         comparison, 0xFFFFFFFFu, 1);

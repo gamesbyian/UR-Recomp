@@ -97,6 +97,8 @@ bool g_practice_active;
 bool g_practice_acceptance_fired;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
+std::optional<std::uint32_t> g_fast_repeat_sram_before;
+std::optional<std::uint8_t> g_fast_repeat_course_before;
 std::vector<uint8_t> g_practice_sram_snapshot;
 std::string g_practice_original_save_root;
 std::string g_practice_input_path;
@@ -618,6 +620,8 @@ bool repeat_current_attempt() {
     }
     const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
     if (handled) {
+        g_fast_repeat_sram_before = current_sram_digest();
+        g_fast_repeat_course_before = g_recent_course_track_id;
         rearm_run_capture_after_retry();
         product_diagnostic(
             g_practice_active
@@ -2622,6 +2626,26 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_ram[0x009F]);
     g_surface = decision.surface;
     observe_recent_course_identity();
+    if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
+        g_fast_repeat_sram_before) {
+        const bool sram_equal =
+            current_sram_digest() == *g_fast_repeat_sram_before;
+        const bool course_equal =
+            !g_fast_repeat_course_before ||
+            (g_recent_course_track_id &&
+             *g_recent_course_track_id == *g_fast_repeat_course_before);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_FAST_NAV REPEAT_VERIFIED sram_equal=%d course_equal=%d practice=%d\n",
+                sram_equal ? 1 : 0,
+                course_equal ? 1 : 0,
+                g_practice_active ? 1 : 0);
+            std::fflush(stderr);
+        }
+        g_fast_repeat_sram_before.reset();
+        g_fast_repeat_course_before.reset();
+    }
     g_widescreen_scene = ur::product::observe_widescreen_scene(
         &g_widescreen_scene_state,
         g_ram[0x0313],
@@ -2807,7 +2831,7 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (key == SDLK_r && (mod & KMOD_CTRL)) {
         return repeat_current_attempt() ? 1 : 0;
     }
-    if (key == SDLK_r &&
+    if (modern_mode() && key == SDLK_r &&
         g_surface == UR_UNIRACERS_RESTART_RESULTS) {
         (void)repeat_current_attempt();
         return 1;
@@ -3151,6 +3175,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "COOL NAME!", 0xFFFFFFFFu, 1);
         }
         return;
+    }
+
+    if (modern_mode() && !g_practice_active &&
+        g_recent_course_track_id && g_ram[0x0313] != 0x01 &&
+        g_ram[0x009F] == 0xD7) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const auto* course =
+            ur::product::quick_practice_course(*g_recent_course_track_id);
+        char hint[96];
+        std::snprintf(
+            hint, sizeof(hint), "F6 / PAD Y  RECENT: %s",
+            course ? course->name.data() : "COURSE");
+        snes_ovl_draw_text(
+            pixels, stride, height, 8, height - 13,
+            hint, 0xFFFFFFFFu, 1);
     }
 
     if (modern_mode() && g_practice_active &&

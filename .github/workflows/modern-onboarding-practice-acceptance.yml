@@ -108,6 +108,7 @@ jobs:
           grep -q "UR_PRACTICE RACE_READY" "$LOG"
           grep -q "UR_PRACTICE RESTORED" "$LOG"
           grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+          grep -q "UR_FAST_NAV RECENT_OBSERVED track=0" "$LOG"
           grep -q "script .* dump practice-race-entered ok" "$LOG"
           grep -q "script .* dump practice-returned-main ok" "$LOG"
 

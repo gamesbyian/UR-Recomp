@@ -710,10 +710,18 @@ bool repeat_current_attempt() {
         ur::product::FastNavigationAction::RestartAttempt) {
         return false;
     }
+
+    // Capture the completed/current attempt before Restart mutates volatile
+    // race state. The accepted Restart loader preserves current SRAM, so the
+    // subsequent active-race observation can prove that persistence boundary
+    // rather than merely comparing two post-restart samples.
+    const uint32_t sram_before = current_sram_digest();
+    const auto course_before = g_recent_course_track_id;
+
     const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
     if (handled) {
-        g_fast_repeat_sram_before = current_sram_digest();
-        g_fast_repeat_course_before = g_recent_course_track_id;
+        g_fast_repeat_sram_before = sram_before;
+        g_fast_repeat_course_before = course_before;
         rearm_run_capture_after_retry();
         product_diagnostic(
             g_practice_active

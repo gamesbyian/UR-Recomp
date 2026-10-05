@@ -1,5 +1,8 @@
 #include "completed_run_catalog.hpp"
 
+#include <algorithm>
+#include <map>
+
 namespace ur::product {
 
 RunDataCatalog build_run_data_catalog(
@@ -89,6 +92,50 @@ RunDataStatisticsPresentation present_run_data_statistics(
     }
 
     return stats;
+}
+
+RunRecordsIndex build_run_records_index(
+    const std::vector<StoredRunRecord>& records,
+    const RunRecordsScope& scope) {
+    std::map<std::string, std::vector<StoredRunRecord>> grouped;
+
+    for (const auto& stored : records) {
+        std::string detail;
+        if (!validate_completed_run_record(stored.record, &detail)) continue;
+        const auto& p = stored.record.provenance;
+        if (p.game_id != scope.game_id ||
+            p.rom_sha256 != scope.rom_sha256 ||
+            p.build_compat_id != scope.build_compat_id ||
+            p.mode != scope.mode) {
+            continue;
+        }
+        grouped[p.course_id].push_back(stored);
+    }
+
+    RunRecordsIndex index;
+    for (auto& pair : grouped) {
+        const auto& course_id = pair.first;
+        auto& course_records = pair.second;
+        const RunPlaybackTarget target{
+            scope.game_id,
+            scope.rom_sha256,
+            scope.build_compat_id,
+            course_id,
+            scope.mode,
+        };
+        auto catalog = build_run_data_catalog(course_records, target);
+        if (catalog.entries.empty()) continue;
+
+        index.total_completed_runs += catalog.entries.size();
+        auto stats = present_run_data_statistics(catalog);
+        index.courses.push_back({
+            course_id,
+            std::move(catalog),
+            std::move(stats),
+        });
+    }
+
+    return index;
 }
 
 }  // namespace ur::product

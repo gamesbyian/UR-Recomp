@@ -522,22 +522,13 @@ jobs:
           set -euo pipefail
           EXE="${{ steps.exe.outputs.exe }}"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-acceptance.script"
-          AUTH_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-authentic.script"
-          STALE_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-stale.script"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
           STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
           ROOT="$RUNNER_TEMP/tour-resume-profile"
           LOG="$RUNNER_TEMP/tour-resume-restore.log"
           DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
-          AUTH_LOG="$RUNNER_TEMP/tour-resume-authentic.log"
-          AUTH_DUMPS="$RUNNER_TEMP/tour-resume-authentic-dumps"
-          STALE_ROOT="$RUNNER_TEMP/tour-resume-stale-profile"
-          STALE_LOG="$RUNNER_TEMP/tour-resume-stale.log"
-          STALE_DUMPS="$RUNNER_TEMP/tour-resume-stale-dumps"
-          PREF_ROOT="$ROOT/xdg"
-          PREF_DIR="$PREF_ROOT/gamesbyian/UR-Recomp"
-          rm -rf "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS"
-          mkdir -p "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS" "$PREF_DIR"
+          rm -rf "$ROOT" "$DUMPS"
+          mkdir -p "$ROOT" "$DUMPS"
 
           cat >"$STATE" <<'EOF'
           UR-HOST-STATE/6
@@ -566,68 +557,37 @@ jobs:
           if medal != 0:
               raise SystemExit(f"clean fixture medal is not zero: {medal}")
           flags = bytes((1, 1, 0, 0, 0))
-          # The continuation source contract includes stock one-player tour
-          # mode and rider identity as well as the medal generation/flags.
-          sram[0x10AD] = 1
-          sram[0x0748] = rider
           sram[0x1075:0x107A] = flags
           sram_path.write_bytes(sram)
           profile_path.write_text(
-              "UR-HOST-PROFILE/4\n"
+              "UR-HOST-PROFILE/2\n"
               "profile=resume.alpha\n"
               "generation=1\n"
               f"stock_sram={bytes(sram).hex()}\n"
               f"tour_resume={rider}:{tour}:{medal}:11000\n"
-              "ghost_target=off\n"
-              "racer_name=MIKE\n"
-              "racer_index=0\n"
           )
-          print("UR_TOUR_RESUME_FIXTURE rider=0 tour=0 medal=0 flags=11000 schema=4 racer=MIKE")
+          print("UR_TOUR_RESUME_FIXTURE rider=0 tour=0 medal=0 flags=11000")
           PY
 
-          cat >"$PREF_DIR/profiles-v1.txt" <<'EOF'
-          UR-PROFILE-CATALOG/1
-          resume.alpha|0|MIKE
-          EOF
-
-          set +e
           SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
           UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
           UR_HOST_STATE_PATH="$STATE" \
           UR_PROFILE_SAVE_ROOT="$ROOT" \
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1
-          STATUS=$?
-          set -e
-          cat "$LOG"
-          if [ "$STATUS" -ne 0 ]; then
-            echo "::error::Modern Continue Tour native process failed with status $STATUS"
-            exit "$STATUS"
-          fi
 
-          grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2 menu=D7 race=0" "$LOG"
-          grep -q "UR_TOUR_CONTINUE READY tour=0 menu=F6" "$LOG"
           grep -q "UR_TOUR_RESUME APPLIED" "$LOG"
-          test -s "$DUMPS/tour-continue-track-ready.wram.bin"
+          test -s "$DUMPS/rider-select-ready.wram.bin"
+          test -s "$DUMPS/tracks-ready.wram.bin"
+          test -s "$DUMPS/race-entered.wram.bin"
 
-          python3 - \
-            "$DUMPS/tour-continue-track-ready.wram.bin" \
-            "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
+          python3 - "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
           import pathlib
           import sys
 
-          track = pathlib.Path(sys.argv[1]).read_bytes()
-          profile = pathlib.Path(sys.argv[2]).read_text().splitlines()
-          sram = pathlib.Path(sys.argv[3]).read_bytes()
-
-          if track[0x009F] != 0xF6 or track[0x0313] == 1:
-              raise SystemExit("Continue did not stop at stock TRACK_SELECT")
-          if track[0x00D0] != 0:
-              raise SystemExit(f"Continue reached wrong tour row: {track[0x00D0]}")
-
+          profile = pathlib.Path(sys.argv[1]).read_text().splitlines()
+          sram = pathlib.Path(sys.argv[2]).read_bytes()
           resume = next(line.split("=", 1)[1] for line in profile
                         if line.startswith("tour_resume="))
           rider, tour, medal, flags = resume.split(":")
@@ -640,86 +600,16 @@ jobs:
           if not 0 < sum(actual) < 5:
               raise SystemExit(f"continuation is not unfinished progress: {list(actual)}")
           print(
-              "UR_TOUR_CONTINUE_FILE",
+              "UR_TOUR_RESUME_FILE",
               f"rider={rider}",
               f"tour={tour}",
               f"medal={medal}",
               f"flags={flags}",
-              "stopped_at_track_select=1",
           )
           PY
 
-          # A syntactically valid but stale continuation must fail closed
-          # before any stock-menu input is injected. Keep the stock SRAM at
-          # medal generation 0 while claiming generation 1 in metadata.
-          cp "$ROOT/save.srm" "$STALE_ROOT/save.srm"
-          python3 - "$ROOT/host-profile.txt" "$STALE_ROOT/host-profile.txt" <<'PY'
-          from pathlib import Path
-          import sys
-
-          source = Path(sys.argv[1]).read_text()
-          stale = source.replace(
-              "tour_resume=0:0:0:11000",
-              "tour_resume=0:0:1:11000",
-          )
-          if stale == source:
-              raise SystemExit("could not create stale continuation fixture")
-          Path(sys.argv[2]).write_text(stale)
-          PY
-
-          SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
-          UR_HOST_STATE_PATH="$STATE" \
-          UR_PROFILE_SAVE_ROOT="$STALE_ROOT" \
-          SNESRECOMP_DUMP_DIR="$STALE_DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$STALE_SCRIPT" \
-            >"$STALE_LOG" 2>&1
-
-          grep -Eq "UR_TOUR_CONTINUE REJECTED .*profile=1 writable=1 continuation=1 snapshot=1 persisted_source=0 live_source=0" "$STALE_LOG"
-          ! grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG"
-          ! grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG"
-          test -s "$STALE_DUMPS/tour-continue-stale-main.wram.bin"
-          python3 - "$STALE_DUMPS/tour-continue-stale-main.wram.bin" <<'PY'
-          from pathlib import Path
-          import sys
-
-          wram = Path(sys.argv[1]).read_bytes()
-          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
-              raise SystemExit(
-                  f"stale Continue did not fail closed: menu={wram[0x009F]:02X} race={wram[0x0313]}")
-          print("UR_TOUR_CONTINUE_STALE rejected=1 menu=D7")
-          PY
-
-          # The exact same host-side acceptance trigger must do nothing under
-          # Authentic policy. No profile metadata is loaded or applied there.
-          SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
-          UR_EXECUTION_MODE=authentic \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
-          UR_HOST_STATE_PATH="$STATE" \
-          UR_PROFILE_SAVE_ROOT="$ROOT" \
-          SNESRECOMP_DUMP_DIR="$AUTH_DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$AUTH_SCRIPT" \
-            >"$AUTH_LOG" 2>&1
-
-          ! grep -q "UR_TOUR_CONTINUE STARTED" "$AUTH_LOG"
-          ! grep -q "UR_TOUR_RESUME APPLIED" "$AUTH_LOG"
-          test -s "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin"
-          python3 - "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin" <<'PY'
-          import pathlib
-          import sys
-          wram = pathlib.Path(sys.argv[1]).read_bytes()
-          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
-              raise SystemExit(
-                  f"Authentic Continue trigger was not inert: menu={wram[0x009F]:02X} race={wram[0x0313]}")
-          print("UR_TOUR_CONTINUE_AUTHENTIC inert=1 menu=D7")
-          PY
-
-          grep "UR_TOUR_" "$LOG"
-          echo "UR_TOUR_RESUME_RESULT=fresh_process_continue_to_stock_track_select_restore_authentic_inert"
+          grep "UR_TOUR_RESUME" "$LOG"
+          echo "UR_TOUR_RESUME_RESULT=stock_rider_wipe_then_fresh_process_restore"
 
       - name: Native boot smoke
         shell: bash
@@ -1088,6 +978,7 @@ jobs:
               sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
               reset_saves
               UR_PRODUCT_DIAGNOSTICS=1 \
+              UR_TIMING_HUD_DIAGNOSTICS=all \
               UR_HOST_STATE_PATH="$OUT/state.txt" \
               URRECOMP_WS_NATIVE_TRACE=1 \
               SNESRECOMP_INPUT_FILE="$input" \
@@ -1122,6 +1013,14 @@ jobs:
           split_route two-player \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          for view in original 16x9; do
+            if grep -q "UR_TIMING_HUD " \
+                "$RUNNER_TEMP/widescreen-product-two-player-$view/run.log"; then
+              echo "::error::Unsupported ordinary 2P race exposed the 1P timing HUD"
+              exit 1
+            fi
+          done
+          echo "UR_TIMING_HUD_UNSUPPORTED_RESULT=two_player_inert"
           python3 tools/check_widescreen_product_parity.py \
             --stock-dumps "$RUNNER_TEMP/widescreen-product-two-player-original/dumps" \
             --wide-dumps "$RUNNER_TEMP/widescreen-product-two-player-16x9/dumps" \
@@ -1696,6 +1595,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_TIMING_HUD_DIAGNOSTICS=all
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
             PID=$!
@@ -1708,6 +1608,7 @@ jobs:
             [ -s "'"$DUMPS"'/race-entered.wram.bin" ]
 
             EXPECTED=$(python3 -c '"'"'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); u=lambda o:w[o]|(w[o+1]<<8); m,ts,sec,t,sub=(u(0x0E0F),u(0x0E13),u(0x0E17),u(0x0E1B),u(0x0E1F)); assert 0<=m<=9 and 0<=ts<=5 and 0<=sec<=9 and 0<=t<=9 and 0<=sub<=5; print(f"{m}:{ts}{sec}.{t} subtick={sub}")'"'"' "'"$DUMPS"'/race-entered.wram.bin")
+            EXPECTED_HUD=$(python3 -c '"'"'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); u=lambda o:w[o]|(w[o+1]<<8); m,ts,sec,t,sub=(u(0x0E0F),u(0x0E13),u(0x0E17),u(0x0E1B),u(0x0E1F)); ticks=((m*60)+(ts*10)+sec)*60+t*6+sub; total=ticks//60; print(f"{ticks} {total//60}:{total%60:02d}.{ticks%60:02d}/60")'"'"' "'"$DUMPS"'/race-entered.wram.bin")
 
             WIN=""
             for _ in $(seq 1 100); do
@@ -1735,6 +1636,9 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_RUN_DATA OPENED valid=1 time=$EXPECTED" "'"$LOG"'"
+            HUD_TICKS=${EXPECTED_HUD%% *}
+            HUD_TEXT=${EXPECTED_HUD#* }
+            grep -q "UR_TIMING_HUD RACE current_ticks60=${HUD_TICKS} current=${HUD_TEXT}" "'"$LOG"'"
             kill -0 "$PID"
 
             xdotool key Escape
@@ -1752,6 +1656,35 @@ jobs:
 
           cat "$LOG"
           echo "UR_PAUSE_RUN_DATA_RESULT=authoritative_timer_opened_and_closed"
+
+          AUTH_LOG="$RUNNER_TEMP/timing-hud-authentic.log"
+          AUTH_DUMPS="$RUNNER_TEMP/timing-hud-authentic-dumps"
+          rm -rf "$AUTH_DUMPS"
+          mkdir -p "$AUTH_DUMPS"
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_EXECUTION_MODE=authentic
+            export UR_TIMING_HUD_DIAGNOSTICS=all
+            export SNESRECOMP_DUMP_DIR="'"$AUTH_DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$AUTH_LOG"'" 2>&1 &
+            PID=$!
+            for _ in $(seq 1 600); do
+              [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ]
+            sleep 0.3
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+          '
+          cat "$AUTH_LOG"
+          if grep -q "UR_TIMING_HUD " "$AUTH_LOG"; then
+            echo "::error::Authentic execution exposed the Modern timing HUD"
+            exit 1
+          fi
+          echo "UR_TIMING_HUD_AUTHENTIC_RESULT=inert"
 
       - name: Modern Exit to Frontend acceptance
         shell: bash

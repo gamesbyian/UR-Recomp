@@ -85,6 +85,142 @@ struct InspectedArtifact {
 
 }  // namespace
 
+void CompletedRunRecordsBrowser::clear() noexcept {
+    index_ = {};
+    view_ = CompletedRunRecordsView::Courses;
+    selected_course_.reset();
+    selected_run_.reset();
+}
+
+bool CompletedRunRecordsBrowser::refresh(
+    const std::string& directory,
+    const RunRecordsScope& scope) {
+    clear();
+    const auto records = load_valid_run_records(directory);
+    index_ = build_run_records_index(records, scope);
+    if (!index_.courses.empty()) {
+        selected_course_ = 0;
+    }
+    return true;
+}
+
+const RunRecordsCourseIndexEntry*
+CompletedRunRecordsBrowser::selected_course() const noexcept {
+    if (!selected_course_ || *selected_course_ >= index_.courses.size()) {
+        return nullptr;
+    }
+    return &index_.courses[*selected_course_];
+}
+
+const RunDataCatalogEntry*
+CompletedRunRecordsBrowser::selected_run() const noexcept {
+    const auto* course = selected_course();
+    if (!course || !selected_run_ ||
+        *selected_run_ >= course->catalog.entries.size()) {
+        return nullptr;
+    }
+    return &course->catalog.entries[*selected_run_];
+}
+
+const CompletedRunRecord*
+CompletedRunRecordsBrowser::selected_run_record() const noexcept {
+    const auto* course = selected_course();
+    const auto* entry = selected_run();
+    if (!course || !entry || entry->source_index >= course->records.size()) {
+        return nullptr;
+    }
+    return &course->records[entry->source_index].record;
+}
+
+std::optional<RunResultSummaryPresentation>
+CompletedRunRecordsBrowser::selected_run_summary() const {
+    const auto* course = selected_course();
+    const auto* current = selected_run_record();
+    if (!course || !current || !course->catalog.personal_best_entry ||
+        *course->catalog.personal_best_entry >=
+            course->catalog.entries.size()) {
+        return current
+            ? present_run_result_summary(*current, nullptr)
+            : std::nullopt;
+    }
+
+    const auto& pb_entry =
+        course->catalog.entries[*course->catalog.personal_best_entry];
+    if (pb_entry.source_index >= course->records.size()) {
+        return present_run_result_summary(*current, nullptr);
+    }
+    return present_run_result_summary(
+        *current,
+        &course->records[pb_entry.source_index].record);
+}
+
+bool CompletedRunRecordsBrowser::move(int delta) noexcept {
+    if (delta == 0) {
+        return view_ == CompletedRunRecordsView::Courses
+            ? selected_course_.has_value()
+            : selected_run_.has_value();
+    }
+
+    if (view_ == CompletedRunRecordsView::Detail) {
+        return selected_run_.has_value();
+    }
+
+    const int step = delta > 0 ? 1 : -1;
+    if (view_ == CompletedRunRecordsView::Courses) {
+        if (!selected_course_ || index_.courses.empty()) return false;
+        const std::size_t count = index_.courses.size();
+        *selected_course_ = step > 0
+            ? (*selected_course_ + 1) % count
+            : (*selected_course_ == 0 ? count - 1 : *selected_course_ - 1);
+        selected_run_.reset();
+        return true;
+    }
+
+    const auto* course = selected_course();
+    if (!course || !selected_run_ || course->catalog.entries.empty()) {
+        return false;
+    }
+    const std::size_t count = course->catalog.entries.size();
+    *selected_run_ = step > 0
+        ? (*selected_run_ + 1) % count
+        : (*selected_run_ == 0 ? count - 1 : *selected_run_ - 1);
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::open_selected_course() noexcept {
+    const auto* course = selected_course();
+    if (!course || course->catalog.entries.empty()) return false;
+
+    view_ = CompletedRunRecordsView::Runs;
+    selected_run_ = course->catalog.previous_entry.value_or(0);
+    if (*selected_run_ >= course->catalog.entries.size()) {
+        selected_run_ = 0;
+    }
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::open_selected_run_detail() noexcept {
+    if (view_ != CompletedRunRecordsView::Runs ||
+        !selected_run_record()) {
+        return false;
+    }
+    view_ = CompletedRunRecordsView::Detail;
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::back_to_runs() noexcept {
+    if (view_ != CompletedRunRecordsView::Detail) return false;
+    view_ = CompletedRunRecordsView::Runs;
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::back_to_courses() noexcept {
+    if (view_ != CompletedRunRecordsView::Runs) return false;
+    view_ = CompletedRunRecordsView::Courses;
+    selected_run_.reset();
+    return true;
+}
+
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept {
     switch (status) {
@@ -201,11 +337,35 @@ bool CompletedRunBrowser::refresh(
                 if (catalog_entry.path != item.path) continue;
                 entry.is_previous = catalog_entry.is_previous;
                 entry.is_personal_best = catalog_entry.is_personal_best;
+                entry.personal_best_delta_ticks60 =
+                    catalog_entry.personal_best_delta_ticks60;
+                entry.personal_best_delta_text =
+                    catalog_entry.personal_best_delta_text;
                 break;
             }
         }
 
         entries_.push_back(std::move(entry));
+    }
+
+    const CompletedRunRecord* personal_best = nullptr;
+    for (const auto& entry : entries_) {
+        if (entry.playable() && entry.is_personal_best && entry.record) {
+            personal_best = &*entry.record;
+            break;
+        }
+    }
+    if (personal_best) {
+        for (auto& entry : entries_) {
+            if (!entry.playable() || !entry.record) continue;
+            const auto split_table = present_run_split_table(
+                *entry.record,
+                *personal_best,
+                RunDataTargetKind::PersonalBest);
+            if (split_table) {
+                entry.personal_best_splits = split_table->rows;
+            }
+        }
     }
 
     for (std::size_t i = 0; i < entries_.size(); ++i) {

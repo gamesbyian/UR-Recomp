@@ -1,12 +1,14 @@
 # Local Completed-Run Browser and Replay
 
-Status: first usable Windows x64 Modern product browser implemented. Switch is out of scope.
+Status: first usable Windows x64 Modern Local Runs browser/replay plus the first profile-wide Records → Runs/Replays surface implemented. Switch is out of scope.
 
 ## Player-facing behavior
 
 During a supported Modern one-player timed Race context, pause the game and open **Local Runs** with **Ctrl+B** on keyboard or **X** on a gamepad. The browser is host-owned and profile-scoped.
 
-The list is newest-first and shows the stored chronological order, course, local run date derived from the canonical store timestamp, exact 60 Hz finish time, and **PB** / **PREV** status when those canonical selectors apply. Corrupt, malformed, unsupported-version, I/O-failed, and playback-incompatible `.urrun` artifacts remain visible as disabled rows instead of disappearing into the valid list.
+The same wrapper now exposes the first profile-wide **Records → Runs/Replays** surface with **F8** on keyboard or **Y** on a gamepad while paused. Its first level groups every valid profile run in the authoritative game/ROM/build/mode scope by stored `course_id`, showing run count, PB, Previous and Previous-vs-PB from the existing canonical selectors. Enter/A drills into that course's chronological run catalog with PB/PREV tags. Confirming a run opens exact run detail with finish, PB, signed finish delta and available checkpoint deltas from the shared presentation model. Escape/B walks back through run history, course list and then the ordinary pause surface. This surface is intentionally read-only across courses. Cross-course replay is not synthesized from the currently loaded race. When the selected Records course exactly matches the authoritative current-course target, **Ctrl+B / X** hands off to the existing Local Runs browser and its already-validated replay path; for every other course that affordance is absent. Permanent cross-course replay waits for frontend course routing rather than writing guest course state.
+
+The list is newest-first and shows the stored chronological order, course, local run date derived from the canonical store timestamp, exact 60 Hz finish time, and **PB** / **PREV** status when those canonical selectors apply. The catalog layer also now prepares compact per-target statistics directly from those canonical selectors: completed-run count, PB, Previous, and Previous-vs-PB delta, with explicit no-data state rather than a second ranking rule. The selected playable run also shows an exact signed **VS PB** finish delta plus up to two recent authoritative checkpoint rows with exact current time and PB delta, all prepared by the shared completed-run presentation model. Missing/incompatible PB or split data remains `--`/absent rather than inventing a comparison. Corrupt, malformed, unsupported-version, I/O-failed, and playback-incompatible `.urrun` artifacts remain visible as disabled rows instead of disappearing into the valid list.
 
 Up/Down or the D-pad moves among playable records while skipping disabled rows. Enter/A launches the selected run. Escape/B returns to the existing paused product surface.
 
@@ -28,6 +30,6 @@ The browser consumes `.urrun` records only. It does not read or modify `.urghost
 
 ## Acceptance
 
-Focused native tests cover newest-first catalog ordering, canonical Previous/PB annotation, invalid/incompatible-row visibility, selection skipping, canonical replay-input staging, invalid-record rejection, and replay return/cancel lifecycle.
+Focused native tests cover newest-first catalog ordering, canonical Previous/PB annotation, invalid/incompatible-row visibility, selection skipping, profile-wide valid-run enumeration, mixed-course Records indexing, course/run/detail navigation, exact selected-run result/split summaries, canonical replay-input staging, invalid-record rejection, and replay return/cancel lifecycle.
 
 The existing completed-run replay workflow now includes those tests and rebuilds the Windows-style native product whenever the browser, replay controller, host wrapper, or live canonical-input reload seam changes. It also seeds one valid captured `.urrun` plus a deliberately checksum-damaged `.urrun` into an acceptance-only run directory, follows the real Modern 1P route, opens Local Runs through the actual wrapper, requires the catalog to report two stored / one playable, launches the valid run through Restart + the canonical live input injector, requires the stock results return, and proves the directory still contains exactly those two `.urrun` files afterward. The established fresh-process deterministic replay comparison remains the independent simulation-equivalence proof.

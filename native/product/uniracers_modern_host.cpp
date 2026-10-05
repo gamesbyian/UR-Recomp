@@ -26,9 +26,6 @@ extern "C" {
 #include "host_profile_state.hpp"
 #include "host_profile_catalog.hpp"
 #include "modern_racer_identity.hpp"
-#include "modern_tour_continue.hpp"
-#include "quick_practice_catalog.hpp"
-#include "quick_practice_input_mask.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
@@ -112,11 +109,6 @@ std::vector<uint8_t> g_practice_sram_snapshot;
 std::string g_practice_original_save_root;
 std::string g_practice_input_path;
 
-ur::product::ModernTourContinueState g_tour_continue;
-std::string g_tour_continue_profile_id;
-std::string g_tour_continue_input_path;
-bool g_tour_continue_acceptance_fired;
-
 bool g_display_caps_reported;
 bool g_profile_sram_reported;
 std::vector<ur::product::HostProfileCatalogEntry> g_profile_catalog;
@@ -143,6 +135,10 @@ bool g_run_capture_previous_active;
 bool g_run_ghost_draw_reported;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
+std::optional<ur::product::RunDataDeltaPresentation> g_run_timing_last_split;
+bool g_run_timing_supported;
+bool g_run_timing_race_diag_reported;
+bool g_run_timing_results_diag_reported;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -458,52 +454,6 @@ std::string resolve_practice_input_path() {
     SDL_free(pref_path);
     path += "practice-input.txt";
     return path;
-}
-
-std::string resolve_tour_continue_input_path() {
-    const char* override_path = std::getenv("UR_TOUR_CONTINUE_INPUT_PATH");
-    if (override_path && *override_path) return override_path;
-
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "tour-continue-input.txt";
-    return path;
-}
-
-bool queue_tour_continue_input(
-    ur::product::QuickPracticeMenuInput input,
-    uint64_t origin_frame) {
-    const std::uint16_t mask = ur::product::quick_practice_runner_mask(
-        ur::product::launch_input_from_menu_input(input));
-    if (mask == 0) return input == ur::product::QuickPracticeMenuInput::None;
-
-    if (g_tour_continue_input_path.empty()) {
-        g_tour_continue_input_path = resolve_tour_continue_input_path();
-    }
-    if (g_tour_continue_input_path.empty()) return false;
-
-    {
-        std::ofstream out(
-            g_tour_continue_input_path,
-            std::ios::binary | std::ios::trunc);
-        if (!out) return false;
-        char encoded[32];
-        std::snprintf(
-            encoded, sizeof(encoded), "0:2:%X\n",
-            static_cast<unsigned>(mask));
-        out << encoded;
-        out.flush();
-        if (!out) return false;
-    }
-
-    if (!snesrecomp_desktop_load_relative_input_file(
-            g_tour_continue_input_path.c_str())) {
-        return false;
-    }
-    snesrecomp_desktop_arm_relative_input(origin_frame);
-    return true;
 }
 
 bool queue_practice_accept(uint64_t origin_frame) {
@@ -1786,175 +1736,6 @@ bool profile_snapshot_matches_live_sram(
         ur::product::kStockSramBytes) == 0;
 }
 
-bool tour_continue_available() {
-    if (!modern_mode() || g_practice_active || paused() || !g_ram ||
-        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
-        !g_profile_state || !g_profile_state_writable ||
-        !g_profile_state->tour_continuation ||
-        !g_profile_state->stock_sram ||
-        !ur::product::valid_tour_continuation(
-            *g_profile_state->tour_continuation) ||
-        !g_sram ||
-        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
-        return false;
-    }
-
-    const auto continuation =
-        title_continuation(*g_profile_state->tour_continuation);
-    return ur::title::tour_resume_source_matches_sram(
-               continuation,
-               g_profile_state->stock_sram->data(),
-               g_profile_state->stock_sram->size()) &&
-           ur::title::tour_resume_source_matches_sram(
-               continuation,
-               g_sram,
-               static_cast<std::size_t>(g_sram_size));
-}
-
-bool tour_continue_routing() {
-    return g_tour_continue.stage !=
-               ur::product::ModernTourContinueStage::Idle &&
-           g_tour_continue.stage !=
-               ur::product::ModernTourContinueStage::Ready;
-}
-
-void cancel_tour_continue(const char* diagnostic) {
-    g_tour_continue = {};
-    g_tour_continue_profile_id.clear();
-    if (diagnostic) product_diagnostic(diagnostic);
-}
-
-bool begin_tour_continue() {
-    if (!tour_continue_available()) {
-        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-            const bool has_profile = g_profile_state.has_value();
-            const bool has_continuation =
-                has_profile && g_profile_state->tour_continuation.has_value();
-            const bool has_snapshot =
-                has_profile && g_profile_state->stock_sram.has_value();
-            bool persisted_source_ok = false;
-            bool live_source_ok = false;
-            if (has_continuation && has_snapshot &&
-                ur::product::valid_tour_continuation(
-                    *g_profile_state->tour_continuation)) {
-                const auto continuation =
-                    title_continuation(*g_profile_state->tour_continuation);
-                persisted_source_ok =
-                    ur::title::tour_resume_source_matches_sram(
-                        continuation,
-                        g_profile_state->stock_sram->data(),
-                        g_profile_state->stock_sram->size());
-                if (g_sram &&
-                    g_sram_size ==
-                        static_cast<int>(ur::product::kStockSramBytes)) {
-                    live_source_ok =
-                        ur::title::tour_resume_source_matches_sram(
-                            continuation,
-                            g_sram,
-                            static_cast<std::size_t>(g_sram_size));
-                }
-            }
-            std::fprintf(
-                stderr,
-                "UR_TOUR_CONTINUE REJECTED modern=%d practice=%d paused=%d menu=%02X race=%u profile=%d writable=%d continuation=%d snapshot=%d persisted_source=%d live_source=%d\n",
-                modern_mode() ? 1 : 0,
-                g_practice_active ? 1 : 0,
-                paused() ? 1 : 0,
-                g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u,
-                g_ram ? static_cast<unsigned>(g_ram[0x0313]) : 0u,
-                has_profile ? 1 : 0,
-                g_profile_state_writable ? 1 : 0,
-                has_continuation ? 1 : 0,
-                has_snapshot ? 1 : 0,
-                persisted_source_ok ? 1 : 0,
-                live_source_ok ? 1 : 0);
-            std::fflush(stderr);
-        }
-        return false;
-    }
-
-    const auto& continuation = *g_profile_state->tour_continuation;
-    g_tour_continue =
-        ur::product::begin_modern_tour_continue(continuation.tour_row);
-    if (g_tour_continue.stage ==
-        ur::product::ModernTourContinueStage::Idle) {
-        return false;
-    }
-    g_tour_continue_profile_id = g_profile_state->profile_id;
-
-    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-        unsigned completed = 0;
-        for (const auto flag : continuation.qualified) completed += flag;
-        std::fprintf(
-            stderr,
-            "UR_TOUR_CONTINUE STARTED rider=%u tour=%u completed=%u menu=%02X race=%u\n",
-            static_cast<unsigned>(continuation.rider_index),
-            static_cast<unsigned>(continuation.tour_row),
-            completed,
-            static_cast<unsigned>(g_ram[0x009F]),
-            static_cast<unsigned>(g_ram[0x0313]));
-        std::fflush(stderr);
-    }
-    return true;
-}
-
-void advance_tour_continue_route(uint64_t next_frame) {
-    if (!tour_continue_routing()) return;
-
-    if (!modern_mode() || !g_profile_state ||
-        !g_profile_state_writable ||
-        g_tour_continue_profile_id.empty() ||
-        g_profile_state->profile_id != g_tour_continue_profile_id ||
-        !g_profile_state->tour_continuation ||
-        !ur::product::valid_tour_continuation(
-            *g_profile_state->tour_continuation) ||
-        g_profile_state->tour_continuation->tour_row !=
-            g_tour_continue.tour_row) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");
-        return;
-    }
-
-    const auto step = ur::product::advance_modern_tour_continue(
-        g_tour_continue,
-        {
-            g_ram[0x009F],
-            g_ram[0x009B],
-            g_ram[0x0313] == 0x01,
-        });
-    g_tour_continue = step.state;
-
-    if (step.timed_out) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_TIMEOUT");
-        return;
-    }
-    if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_UNEXPECTED_RACE");
-        return;
-    }
-
-    if (step.input != ur::product::QuickPracticeMenuInput::None &&
-        !queue_tour_continue_input(step.input, next_frame)) {
-        cancel_tour_continue("UR_TOUR_CONTINUE INPUT_FAILED");
-        return;
-    }
-
-    if (step.track_select_ready) {
-        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-            std::fprintf(
-                stderr,
-                "UR_TOUR_CONTINUE READY tour=%u menu=%02X\n",
-                static_cast<unsigned>(
-                    g_profile_state->tour_continuation->tour_row),
-                static_cast<unsigned>(g_ram[0x009F]));
-            std::fflush(stderr);
-        }
-        // TRACK_SELECT belongs to the stock frontend. Release all host routing
-        // authority immediately so the player chooses the next event normally.
-        g_tour_continue = {};
-        g_tour_continue_profile_id.clear();
-    }
-}
-
 bool save_active_profile_state(
     const std::optional<ur::product::HostTourContinuation>& continuation,
     const char* diagnostic) {
@@ -2314,6 +2095,10 @@ void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
 }
 
 bool begin_run_record_capture(uint64_t host_frame) {
+    g_run_timing_supported = false;
+    g_run_timing_last_split.reset();
+    g_run_timing_race_diag_reported = false;
+    g_run_timing_results_diag_reported = false;
     if (!run_record_capture_enabled()) return false;
 
     snesrecomp_desktop_arm_relative_input(host_frame);
@@ -2349,6 +2134,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
     (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
+    g_run_timing_supported = true;
     return true;
 }
 
@@ -2380,6 +2166,26 @@ void observe_run_record_split() {
         const std::string id = "checkpoint-" + std::to_string(checkpoint);
         (void)g_run_capture.observe_split(
             id, static_cast<uint64_t>(ticks60));
+        g_run_timing_last_split.reset();
+        const auto* personal_best = g_run_ghosts.record(
+            ur::product::CompletedRunGhostKind::PersonalBest);
+        if (personal_best) {
+            g_run_timing_last_split =
+                ur::product::present_run_split_delta(
+                    *personal_best,
+                    id,
+                    static_cast<uint64_t>(ticks60));
+        }
+        if (std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_TIMING_HUD SPLIT id=%s current_ticks60=%lld delta=%s\n",
+                id.c_str(),
+                static_cast<long long>(ticks60),
+                g_run_timing_last_split
+                    ? g_run_timing_last_split->delta_text.c_str() : "--");
+            std::fflush(stderr);
+        }
     }
     g_run_capture_checkpoint = checkpoint;
 }
@@ -2480,6 +2286,8 @@ void complete_run_record_capture() {
 void rearm_run_capture_after_retry() {
     if (!g_run_capture.capturing()) return;
     g_run_capture.abort_attempt();
+    g_run_timing_supported = false;
+    g_run_timing_last_split.reset();
     g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
     g_run_ghost_playback_trace.reset();
@@ -2677,6 +2485,95 @@ bool activate_pause_selection() {
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
 }
 
+void draw_run_timing_hud(
+    uint8_t* dst,
+    size_t pitch,
+    int width,
+    int height) {
+    const bool race_or_results =
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ||
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    if (!ur::product::should_present_run_timing(
+            modern_mode(), g_run_timing_supported, race_or_results) ||
+        paused() || !dst || pitch < 4 || width <= 0 || height <= 0) {
+        return;
+    }
+
+    const int64_t ticks60 =
+        ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 < 0) return;
+
+    const auto* personal_best = g_run_ghosts.record(
+        ur::product::CompletedRunGhostKind::PersonalBest);
+    const bool results =
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    auto panel = ur::product::present_run_timing_panel(
+        static_cast<std::uint64_t>(ticks60),
+        personal_best,
+        results ? ur::product::RunTimingPresentationPoint::Finish
+                : ur::product::RunTimingPresentationPoint::Live);
+
+    if (!results && g_run_timing_last_split) {
+        panel.comparison_label = "SPLIT";
+        panel.comparison_text = g_run_timing_last_split->delta_text;
+        panel.comparison_available = true;
+    }
+
+    char clock_row[48];
+    char pb_row[48];
+    char comparison_row[56];
+    std::snprintf(
+        clock_row, sizeof(clock_row), "%s  %s",
+        panel.clock_label.c_str(), panel.clock_text.c_str());
+    std::snprintf(
+        pb_row, sizeof(pb_row), "PB      %s",
+        panel.target_text.c_str());
+    std::snprintf(
+        comparison_row, sizeof(comparison_row), "%s  %s",
+        panel.comparison_label.c_str(), panel.comparison_text.c_str());
+
+    uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+    const int stride = static_cast<int>(pitch / 4u);
+    const int panel_w = width < 190 ? width - 12 : 178;
+    const int panel_h = 52;
+    const int x = width - panel_w - 8;
+    const int y = 8;
+    snes_ovl_fill_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xC0202020u);
+    snes_ovl_stroke_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 6,
+        clock_row, 0xFFFFFFFFu, 1);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 21,
+        pb_row, 0xFFFFFFFFu, 1);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 36,
+        comparison_row, 0xFFFFFFFFu, 1);
+
+    if (const char* timing_diagnostics =
+            std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
+        bool& reported = results
+            ? g_run_timing_results_diag_reported
+            : g_run_timing_race_diag_reported;
+        const bool log_every_frame =
+            std::strcmp(timing_diagnostics, "all") == 0;
+        if (log_every_frame || !reported) {
+            reported = true;
+            std::fprintf(
+                stderr,
+                "UR_TIMING_HUD %s current_ticks60=%lld current=%s pb=%s comparison=%s\n",
+                results ? "RESULTS" : "RACE",
+                static_cast<long long>(ticks60),
+                panel.clock_text.c_str(),
+                panel.target_text.c_str(),
+                panel.comparison_text.c_str());
+            std::fflush(stderr);
+        }
+    }
+}
+
 }  // namespace
 
 extern "C" void ur_uniracers_modern_after_config(void) {
@@ -2732,8 +2629,6 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
         g_onboarding_visible ||
-        tour_continue_available() ||
-        tour_continue_routing() ||
         (g_practice_active && g_practice_stage == PracticeStage::Active) ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
@@ -2821,12 +2716,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_practice_acceptance_fired = true;
         (void)begin_practice();
     }
-    if (!g_tour_continue_acceptance_fired &&
-        std::getenv("UR_TOUR_CONTINUE_ACCEPTANCE") &&
-        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
-        g_tour_continue_acceptance_fired = true;
-        (void)begin_tour_continue();
-    }
     if (!g_onboarding_acceptance_fired &&
         std::getenv("UR_ONBOARDING_ACCEPTANCE") &&
         g_onboarding_visible && g_binding_diagnostics_reported &&
@@ -2836,7 +2725,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (stats) {
         advance_practice_route(stats->frame + 1u);
-        advance_tour_continue_route(stats->frame + 1u);
     }
 
     const bool run_active =
@@ -2927,15 +2815,6 @@ extern "C" int ur_uniracers_modern_system_key_down(
             (void)dismiss_onboarding();
         }
         return 1;
-    }
-    if (tour_continue_routing()) {
-        if (key == SDLK_ESCAPE) {
-            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
-        }
-        return 1;
-    }
-    if (modern_mode() && key == SDLK_F3) {
-        return begin_tour_continue() ? 1 : 0;
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
@@ -3038,14 +2917,6 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         } else if (button == kGamepadBtn_B ||
                    button == kGamepadBtn_Start) {
             (void)handle_profile_menu_key(SDLK_ESCAPE);
-        }
-        return 1;
-    }
-
-    if (tour_continue_routing()) {
-        if (pressed &&
-            (button == kGamepadBtn_B || button == kGamepadBtn_Start)) {
-            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
         }
         return 1;
     }
@@ -3349,56 +3220,6 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
-    if (modern_mode() && tour_continue_routing()) {
-        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
-        const int stride = static_cast<int>(pitch / 4u);
-        const char* hint = "CONTINUING TOUR  ESC / PAD B CANCEL";
-        const int hint_w = width < 300 ? width - 16 : 284;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, 15,
-            hint, 0xFFFFFFFFu, 1);
-    }
-
-    if (tour_continue_available()) {
-        const auto& continuation = *g_profile_state->tour_continuation;
-        const auto* course = ur::product::quick_practice_course(
-            static_cast<std::uint8_t>(continuation.tour_row * 5u));
-        unsigned completed = 0;
-        for (const auto flag : continuation.qualified) completed += flag;
-
-        char hint[128];
-        if (course) {
-            std::snprintf(
-                hint, sizeof(hint), "F3 CONTINUE %.*s  %u/5 COMPLETE",
-                static_cast<int>(course->tour_name.size()),
-                course->tour_name.data(),
-                completed);
-        } else {
-            std::snprintf(
-                hint, sizeof(hint), "F3 CONTINUE TOUR  %u/5 COMPLETE",
-                completed);
-        }
-
-        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
-        const int stride = static_cast<int>(pitch / 4u);
-        const int hint_w = width < 290 ? width - 16 : 274;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, height - 34, hint_w, 22,
-            0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, height - 34, hint_w, 22,
-            0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, height - 27,
-            hint, 0xFFFFFFFFu, 1);
-    }
-
     if (modern_mode() && g_practice_active &&
         g_practice_stage == PracticeStage::Active) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
@@ -3414,6 +3235,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height, hint_x + 8, 15,
             hint, 0xFFFFFFFFu, 1);
     }
+
+    draw_run_timing_hud(dst, pitch, width, height);
 
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;

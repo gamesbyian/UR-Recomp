@@ -55,7 +55,7 @@ The modern port may deliberately replace or extend presentation, input plumbing,
 Modernization begins with subtraction, not feature accumulation. Before adding a new system, classify the original feature being touched as one of:
 
 1. **Presentation artifact:** preserve it by default. Original indicators, animations, icons, result rituals, menu visual grammar, sounds and other player-visible communication remain part of the fidelity target. Additional labels, numbers, deltas, tooltips, overlays or expanded views may elaborate on them; they should not casually replace them.
-2. **Gameplay mechanic:** preserve it unless there is a specific, evidence-backed product decision to change it. Mechanics that appear strange should be tested against expert/high-level play before being called obsolete.
+2. **Gameplay mechanic:** preserve it unless there is a specific, evidence-backed product decision to change it. Mechanics that appear strange should be tested against expert/high-level play before being called obsolete. Player testimony is a discriminator, not implementation authority: when expert sources disagree, measure the canonical runtime and preserve the result as a fixture before changing behavior or explanatory copy.
 3. **Administrative or hardware-era system:** eligible for redesign or removal in the modern product layer when its main purpose came from shared-cartridge saves, limited storage, 1994 menu conventions, content-padding repetition or other platform constraints. Preserve an authentic/reference implementation where needed for fidelity.
 
 Apply this rule especially to the frontend:
@@ -111,6 +111,7 @@ The following are **must-do modern product requirements** unless later technical
 - a coherent records/statistics browser that preserves classic score/result presentations as views;
 - a practice/free-play route with rapid track selection and repeated attempts;
 - a concise in-game onboarding/tutorial path for fundamental controls and the stunt-to-speed relationship;
+- expert-edge validation before release for mechanics where high-level play exposes behavior ordinary smoke tests may miss; use competitive/TAS/community evidence to seed deterministic fixtures, and require canonical-runtime confirmation before any simulation change or tutorial wording that depends on disputed mechanics;
 - accessibility-oriented presentation/input options where they can be implemented without changing authoritative simulation, including remapping, vibration control, readable text support, reduced flashing and similar host-layer accommodations;
 - fast local multiplayer setup, rematch and track rotation without requiring legacy League administration;
 - native widescreen, modern resolutions including 4K, arbitrary-window support and authentic 4:3 fallback;

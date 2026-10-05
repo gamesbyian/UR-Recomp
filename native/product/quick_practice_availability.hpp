@@ -25,6 +25,7 @@ constexpr QuickPracticeAvailability quick_practice_normal_tours_only() noexcept 
     return {(std::uint64_t{1} << 40) - 1};
 }
 
+
 constexpr bool quick_practice_track_available(
     QuickPracticeAvailability availability,
     std::uint8_t track_id
@@ -42,6 +43,24 @@ constexpr QuickPracticeAvailability quick_practice_set_track_available(
     const auto bit = std::uint64_t{1} << track_id;
     if (available) availability.track_bits |= bit;
     else availability.track_bits &= ~bit;
+    return availability;
+}
+
+constexpr QuickPracticeAvailability quick_practice_availability_from_tour_options(
+    std::uint16_t visible_tour_options
+) noexcept {
+    QuickPracticeAvailability availability{};
+    for (std::size_t block = 0; block < kQuickPracticeTourOptions.size(); ++block) {
+        const auto option = kQuickPracticeTourOptions[block];
+        if ((visible_tour_options & (std::uint16_t{1} << option)) == 0) {
+            continue;
+        }
+        for (std::uint8_t slot = 0; slot < 5; ++slot) {
+            const auto track = static_cast<std::uint8_t>(block * 5 + slot);
+            availability = quick_practice_set_track_available(
+                availability, track, true);
+        }
+    }
     return availability;
 }
 

@@ -12,6 +12,30 @@ int main() {
     assert(!quick_practice_track_available(normal, 40));
     assert(!quick_practice_track_available(normal, 44));
 
+    auto crawler_only = quick_practice_availability_from_tour_options(1u << 0);
+    assert(quick_practice_available_count(crawler_only) == 5);
+    for (std::uint8_t track = 0; track < 5; ++track) {
+        assert(quick_practice_track_available(crawler_only, track));
+    }
+    assert(!quick_practice_track_available(crawler_only, 5));
+
+    auto crawler_and_shuffler =
+        quick_practice_availability_from_tour_options((1u << 0) | (1u << 2));
+    assert(quick_practice_available_count(crawler_and_shuffler) == 10);
+    assert(quick_practice_track_available(crawler_and_shuffler, 0));
+    assert(quick_practice_track_available(crawler_and_shuffler, 10));
+    assert(!quick_practice_track_available(crawler_and_shuffler, 5));
+
+    // Stock option 8 is not a shipping tour. Setting it must expose nothing.
+    auto reserved_only = quick_practice_availability_from_tour_options(1u << 8);
+    assert(quick_practice_available_count(reserved_only) == 0);
+
+    auto hunter_only = quick_practice_availability_from_tour_options(1u << 9);
+    assert(quick_practice_available_count(hunter_only) == 5);
+    assert(quick_practice_track_available(hunter_only, 40));
+    assert(quick_practice_track_available(hunter_only, 44));
+    assert(!quick_practice_track_available(hunter_only, 39));
+
     auto all = quick_practice_all_tracks();
     assert(quick_practice_available_count(all) == 45);
     assert(quick_practice_track_available(all, 44));

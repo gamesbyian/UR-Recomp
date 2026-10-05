@@ -208,6 +208,24 @@ bool CompletedRunBrowser::refresh(
         entries_.push_back(std::move(entry));
     }
 
+    const CompletedRunRecord* personal_best = nullptr;
+    for (const auto& entry : entries_) {
+        if (entry.playable() && entry.is_personal_best && entry.record) {
+            personal_best = &*entry.record;
+            break;
+        }
+    }
+    if (personal_best) {
+        for (auto& entry : entries_) {
+            if (!entry.playable() || !entry.record) continue;
+            const auto delta = present_run_finish_delta(
+                *personal_best, entry.record->elapsed_ticks60);
+            if (!delta) continue;
+            entry.personal_best_delta_ticks60 = delta->delta_ticks60;
+            entry.personal_best_delta_text = delta->delta_text;
+        }
+    }
+
     for (std::size_t i = 0; i < entries_.size(); ++i) {
         if (entries_[i].playable()) {
             selected_ = i;

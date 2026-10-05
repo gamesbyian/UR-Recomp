@@ -12,9 +12,55 @@ Every workflow must fit one primary class.
 2. **Main-branch regression** — durable checks that must validate the integrated tree. Prefer `push` to `main` with narrow `paths`.
 3. **Reproducible analysis** — deterministic evidence builders whose outputs matter when their inputs change. Trigger only on their true producers/inputs, or keep them manual.
 4. **Manual research infrastructure** — expensive probes, archaeology, historical replay, counterfactual experiments, and one-off discriminators. Default to `workflow_dispatch`.
-5. **Obsolete experiment** — remove it once its conclusion is promoted and no durable invariant depends on rerunning it.
+5. **Retained research instrument** — a closed experiment whose harness may still be useful diagnostically. Keep it manual-only.
+6. **Obsolete experiment** — delete it once its conclusion is promoted and neither its harness nor its historical reproducibility has durable value.
 
-Do not leave a completed branch-specific experiment in `.github/workflows/` merely because it is harmless. With dozens of workflows, harmless files become routing and maintenance cost.
+Do not leave a completed branch-specific experiment automatic merely because its trigger is technically correct. With a large workflow catalog, a correct trigger on a closed question is still CI waste. A closed experiment must either become a durable invariant, become manual-only, or be removed.
+
+## Workflow lifecycle and default posture
+
+A new workflow is **manual by default**. Automatic execution is something a workflow earns after its result protects a current, durable repository invariant.
+
+Before adding `pull_request` or `push`, write down:
+
+- the exact invariant that can block merge or shipping;
+- the smallest set of files capable of changing that invariant;
+- why a cheaper unit/static check is insufficient;
+- which existing workflow, if any, already builds or validates the same candidate;
+- the retirement condition: what future event makes this workflow manual-only or removable.
+
+Research questions, branch-specific probes, archaeology, historical replay, comparison studies, capacity sweeps, platform feasibility work, and evidence-gathering experiments stay `workflow_dispatch` unless their conclusion is deliberately promoted into a durable gate.
+
+When a research question closes, clean up in the same integration pass:
+
+1. promote the conclusion into the owning code/data/test/doc;
+2. remove automatic triggers from the probe;
+3. parameterize or consolidate sibling probes where useful;
+4. delete the workflow if retaining the harness has no realistic diagnostic value;
+5. update `tests/unit/test_ci_trigger_policy.py` when the boundary should remain mechanically enforced.
+
+Do not rely on branch names to make old workflows harmless. Branch-scoped `push` triggers are still permanent repository policy and should be removed when that branch experiment is over.
+
+## Automatic-CI budget
+
+Automatic CI is reserved for the active Windows x64 shipping path and cheap repository integrity contracts.
+
+A workflow should not be automatic merely because:
+- its inputs are easy to name;
+- it used to answer an important research question;
+- it produces interesting evidence;
+- it validates a deferred platform;
+- its runtime is currently affordable;
+- it has always been automatic.
+
+Prefer one broad shipping canary plus narrow subsystem contracts over many overlapping end-to-end builds. If two workflows build the same native candidate, either justify the distinct seam they protect or share/collapse the build. If one workflow has several independent evidence slices, prefer one build feeding those slices over a matrix that rebuilds the candidate per shard.
+
+Current policy examples:
+- Windows x64 packaging/boot validation runs on final `main`, not both PR and merge.
+- Deferred Switch/S2 workflows are manual-only.
+- Closed Widescreen reconnaissance/capacity workflows are manual-only; the shipping 4:3 invariant remains automatic.
+- Native UI evidence is one native build running multiple evidence slices, not four independent builds.
+- The full multi-tool bootstrap matrix is manual; its lightweight contract remains automatic.
 
 ## Trigger policy
 
@@ -246,52 +292,62 @@ Before merging a workflow, answer all of these:
 - Can the same question be answered by a cheaper unit/static check first?
 - Is the workflow still needed after the current experiment closes?
 
-## Repository-wide audit baseline — 2026-10-03
+## Repository-wide audit baseline — 2026-10-05
 
-The audit that established this policy inventoried **78 workflow files**; one obsolete branch-only workflow was removed, leaving **77 active workflow files**.
+A full workflow-catalog audit after a 100+ run fan-out reclassified automatic CI around the active Windows x64 shipping path.
 
-Key findings and actions:
+The audit established these repository-wide rules:
 
-- most expensive active runtime workflows already use path filters and concurrency cancellation;
-- the native UI evidence suite is correctly separated from the fast native smoke gate and sharded across four capture jobs;
-- the obsolete branch-only `ed2f-angle-physics-probe.yml` workflow was removed;
-- historical replay, object-liveness, and finish-differential workflows were narrowed from `tools/toolchain.json` to the specific tool-entry snapshots they consume;
-- Modern Restart acceptance was removed from prose-only plan/doc triggers and narrowed to the SNESRecomp entry it actually consumes;
-- native build smoke stopped watching UI-only capture scripts owned by `native-ui-evidence.yml`;
-- generated course-presentation writer workflows were given serialization groups;
-- the SMV tooling regression now cancels superseded automatic runs.
-- a follow-up post-merge audit removed workflow-self paths from main-push trigger sets across the suite; workflow edits are now validated pre-merge where PR validation exists, or explicitly via manual dispatch for push-only research/evidence jobs.
+- deferred Switch/S2 validation is manual-only;
+- closed Widescreen capacity, scene-policy, preparation, composition and other reconnaissance is manual-only;
+- historical emulator/TAS/SRAM, course/RNC/TCRF, reference-core, challenge-discriminator and other archaeology workflows are manual-only;
+- settled regional NTSC/PAL comparison workflows are manual-only once their evidence has been captured;
+- superseded Racer research/provenance probes are manual-only while the shipping Racer presentation acceptance remains automatic;
+- Windows native package/boot validation runs only on final `main`;
+- the 4:3 Widescreen regression remains automatic but watches only actual Widescreen authority;
+- Native UI evidence performs one build for all evidence slices rather than rebuilding per matrix shard;
+- the full toolchain build matrix is explicit/manual while the cheap bootstrap/island/interoperability contract remains automatic;
+- docs-only edits do not trigger native onboarding or local-multiplayer validation;
+- completed-run replay acceptance does not wake for generic Modern host edits;
+- automatic workflows must remain path-scoped and use concurrency; coordination docs are never executable trigger inputs.
 
-Remaining expensive workflows are retained because they test distinct runtime/evidence seams. Optimize them further only from measured job timing or duplicated-build evidence, not by weakening coverage. Use the manual `CI runtime report` workflow and `tools/report_ci_runtime.py` to rank recent workflows by measured wall time before another broad optimization pass.
+The retained automatic surface should stay deliberately small: current product acceptances, broad native smoke, final-main Windows packaging, the shipping Authentic/4:3 parity invariant, cheap product contracts, tooling/unit validation, repository/import integrity, and other checks whose failure would change an immediate merge or shipping decision.
 
-## Recent-run failure-pattern audit — 2026-10-05
+`tests/unit/test_ci_trigger_policy.py` is the mechanical backstop. Extend it when a newly learned CI boundary should be permanent rather than relying only on prose.
 
-The repository currently contains **102 workflow files**. A 1,000-run recent-history sample covered 30 workflow names; the remainder were dormant/manual or did not occur in that window. In the latest 10-run window per represented workflow, only two workflow families had actual failures:
+## Recent failure-pattern lesson — 2026-10-05
 
-- **Native build and boot smoke:** 6 failures among its latest 10 sampled runs, with the other four cancelled as superseded. The failures were not one repeating engine defect: four were the Modern profile-panel end-to-end assertion, one was Ghost Options navigation coupled to a now-stale row count, and one was a Widescreen stock-centre parity rejection. Several failures also produced a misleading second "missing frame-300 screenshot" error because the validator used `if: always()` after the boot producer had been skipped.
-- **Project tooling unit tests:** 3 failures among its latest 10 sampled runs; all three came from the same stale validator-test assumption after `records-silos` changed from `redesign_candidate` to `redesign_decided`. The test was corrected to synthesize the candidate state explicitly, and the next run passed.
-
-The dominant non-green pattern across high-frequency workflows was **cancellation churn**, especially while one agent made several CI-triggering commits seconds apart. Widescreen capacity, onboarding/practice, native UI evidence, completed-run replay and Racer HD acceptance were generally green when allowed to finish.
+The dominant CI problem was not broken concurrency syntax. It was **correctly configured workflows answering questions the project no longer needed on every PR**, compounded by broad trigger surfaces and duplicated native builds.
 
 Operational conclusions:
 
-- diagnose from the latest completed current-head run and first failed step;
+- first ask whether a workflow still deserves to be automatic;
+- then ask whether its trigger paths are the smallest true invalidation set;
+- then ask whether another workflow is already paying for the same build;
+- only after those questions optimize caching, sharding, or runner details;
+- diagnose from the latest completed current-head run and the first failed step;
 - do not count superseded cancellations as regressions;
-- avoid pushing a chain of tiny commits through high-fan-out workflow paths when one coherent commit can represent the same completed edit;
-- keep product-UI E2E navigation synchronized with the semantic menu model;
-- reserve `always()` for diagnostics/cleanup, not dependent assertions;
-- split volatile product acceptance out of the general smoke gate when serial coupling begins hiding unrelated checks.
+- avoid tiny commit chains through high-fan-out paths;
+- reserve `always()` for diagnostics/cleanup rather than dependent assertions;
+- after changing many workflow files, verify YAML shape and inspect the live Actions fan-out on the merged head.
 
 ## Periodic maintenance
 
 The repository hygiene pass must review:
 
-- newly added automatic workflows;
+- every newly added automatic workflow and the durable invariant that justifies it;
+- whether closed research should be manualized or deleted;
 - jobs without concurrency or timeouts;
-- broad `push` triggers;
-- specialist workflows watching `tools/toolchain.json`;
-- repeated package/build setup that has become a measurable wall-time problem;
-- old research workflows whose conclusions are already promoted;
-- failing workflows that are known evidence gaps rather than merge gates.
+- broad `push` or `pull_request` paths;
+- documentation/planning files in runtime trigger sets;
+- specialist workflows watching global registries instead of precise inputs;
+- repeated native/toolchain setup that can be shared or collapsed;
+- matrix/shard designs that multiply builds rather than only parallelize post-build work;
+- PR validation duplicated again on `main`;
+- deferred-platform checks leaking into the active Windows path;
+- failing workflows that are evidence gaps rather than merge gates;
+- stale claims in this document about which workflows are automatic.
+
+Use the manual `CI runtime report` and recent Actions history to rank actual cost, but do not wait for a runtime crisis before retiring workflows whose decision value is already zero.
 
 See `PERIODIC-REPOSITORY-HYGIENE.md` for the broader recurring audit.

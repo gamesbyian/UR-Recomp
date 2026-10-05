@@ -16,7 +16,6 @@ on:
       - "analysis/widescreen-policy.yml"
       - "analysis/widescreen-vs-policy-evidence.json"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-policy-${{ github.ref }}

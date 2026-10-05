@@ -1,8 +1,23 @@
 # Work Queue
 
-Work in dependency order. Later visual work is intentionally gated on a trustworthy stock baseline.
+Respect real dependencies, but maximize parallel work across independent leaves. The trustworthy stock baseline is already established for the current Windows x64 product path; do not serialize unrelated product work behind closed research gates.
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The former reverse-engineering critical path through stock fidelity, course/rendering semantics and first shipping Widescreen is substantially closed. The active shipping path is now the **Windows x64 consumer product**: finish the Modern profile/progression experience, fast practice/navigation, run/records/timing presentation, controller/accessibility polish, broad Remastered coverage, and packaging/release acceptance while preserving the closed Authentic regression path. Prefer tasks that remove a player-visible blocker or unlock several of those product slices at once. Historical/acquisition/tooling work is supporting unless it directly blocks that path.
+
+## Agent-ready Windows x64 lanes
+
+The active roadmap should expose several runnable leaves at once. Unless an active branch already owns the same write surface, these are valid **parallel** lanes rather than a serial checklist:
+
+1. **Profile/progression continuation:** integrate controlled profile lifecycle capture/apply and host-owned tour/event continuation that survives the stock rider-select wipe. Keep the existing isolated save-root/profile contract intact.
+2. **Controls/accessibility:** expose practical title-level rebinding/hot-plug UX and the first non-simulation accessibility options using the framework's existing binding authority instead of duplicating controller state.
+3. **Timing/statistics presentation:** extend the existing immutable run-data/presentation substrate into useful in-race/results split, PB and target presentation, then the unified local records/statistics surface.
+4. **Fast repeat/navigation:** add one-action rematch/repeat-practice and recent/next-event affordances above the already-authoritative Quick Practice/menu-routing machinery.
+5. **Racer HD coverage:** choose the next animation family only from measured player-visible Original↔HD fallback frequency, then use the existing equivalence, dossier, temporal and approval pipeline without new archaeology.
+6. **Presentation polish:** close the remaining product-overlay/high-density composition policy and deterministic sampling/filter choices without changing guest geometry or simulation cadence.
+7. **Release/packaging:** continuously harden the Windows x64 clean-install/package/startup/save-location/error-reporting acceptance path. This lane should advance independently of optional art coverage.
+8. **Shared tooling:** centralize repeated validators/persistence helpers/context packets only when a concrete repeated cost has appeared in two or more active lanes.
+
+Keep at least three of these in agent-ready form when possible. If a lane must touch a current shared hotspot owned by another branch, move its pure model/tests/catalog work forward first and leave only the thin integration step blocked.
 
 ## Platform portability guardrail
 

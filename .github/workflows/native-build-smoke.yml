@@ -524,16 +524,20 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-acceptance.script"
           AUTH_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-authentic.script"
+          STALE_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-stale.script"
           STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
           ROOT="$RUNNER_TEMP/tour-resume-profile"
           LOG="$RUNNER_TEMP/tour-resume-restore.log"
           DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
           AUTH_LOG="$RUNNER_TEMP/tour-resume-authentic.log"
           AUTH_DUMPS="$RUNNER_TEMP/tour-resume-authentic-dumps"
+          STALE_ROOT="$RUNNER_TEMP/tour-resume-stale-profile"
+          STALE_LOG="$RUNNER_TEMP/tour-resume-stale.log"
+          STALE_DUMPS="$RUNNER_TEMP/tour-resume-stale-dumps"
           PREF_ROOT="$ROOT/xdg"
           PREF_DIR="$PREF_ROOT/gamesbyian/UR-Recomp"
-          rm -rf "$ROOT" "$DUMPS" "$AUTH_DUMPS"
-          mkdir -p "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$PREF_DIR"
+          rm -rf "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS"
+          mkdir -p "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS" "$PREF_DIR"
 
           cat >"$STATE" <<'EOF'
           UR-HOST-STATE/6
@@ -644,6 +648,48 @@ jobs:
               f"flags={flags}",
               "stopped_at_track_select=1",
           )
+          PY
+
+          # A syntactically valid but stale continuation must fail closed
+          # before any stock-menu input is injected. Keep the stock SRAM at
+          # medal generation 0 while claiming generation 1 in metadata.
+          cp "$ROOT/save.srm" "$STALE_ROOT/save.srm"
+          python3 - "$ROOT/host-profile.txt" "$STALE_ROOT/host-profile.txt" <<'PY'
+          from pathlib import Path
+          import sys
+
+          source = Path(sys.argv[1]).read_text()
+          stale = source.replace(
+              "tour_resume=0:0:0:11000",
+              "tour_resume=0:0:1:11000",
+          )
+          if stale == source:
+              raise SystemExit("could not create stale continuation fixture")
+          Path(sys.argv[2]).write_text(stale)
+          PY
+
+          SDL_AUDIODRIVER=dummy \
+          XDG_DATA_HOME="$PREF_ROOT" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_PROFILE_SAVE_ROOT="$STALE_ROOT" \
+          SNESRECOMP_DUMP_DIR="$STALE_DUMPS" \
+          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$STALE_SCRIPT" \
+            >"$STALE_LOG" 2>&1
+
+          ! grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG"
+          ! grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG"
+          test -s "$STALE_DUMPS/tour-continue-stale-main.wram.bin"
+          python3 - "$STALE_DUMPS/tour-continue-stale-main.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+
+          wram = Path(sys.argv[1]).read_bytes()
+          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
+              raise SystemExit(
+                  f"stale Continue did not fail closed: menu={wram[0x009F]:02X} race={wram[0x0313]}")
+          print("UR_TOUR_CONTINUE_STALE rejected=1 menu=D7")
           PY
 
           # The exact same host-side acceptance trigger must do nothing under

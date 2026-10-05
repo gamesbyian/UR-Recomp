@@ -1124,6 +1124,46 @@ Developer recollection says very little cartridge space remained. Treat apparent
 
 ---
 
+# Modern frontend product policy
+
+Modern mode preserves the game and removes the cartridge-era administration around it. Authentic/reference mode remains the exact behavioral oracle for every redesigned surface.
+
+The Modern top level is **Play / Practice / Multiplayer / Records / Options**. Profiles are player identity and persistence, not a hidden Options submenu and not aliases for stock racer/save slots.
+
+- **Play** owns tour/progression and offers resumable current-tour state.
+- **Practice** owns Quick Practice, recent-course and rapid-repeat workflows.
+- **Multiplayer** owns local join/setup, VS and Local Tournament.
+- **Records** owns stock records, profile/racer statistics, completed runs/replays, PB/Previous data and tournament/multiplayer history.
+- **Options** is settings-only: Video, Audio, Controls, Accessibility and Gameplay/Convenience.
+
+Modern local multiplayer uses simultaneous independent join/racer selection. The stock P1-then-P2 shared-selector handoff remains Authentic behavior. Classic racer presets may be selected by both players in Modern when desired; player/viewport identity disambiguates them.
+
+Preserve all 16 classic racer presets exactly, but do not invent new canonical personalities for them. Bronsen, Silvia, Goldwyn and ANTI-UNI remain the canonical stock opponent identities. Recorded ghosts represent the actual profile/racer that produced them. Later CPU/tournament reuse of classic presets is optional content, not new canon.
+
+After preserving the original result presentation, Modern exposes a consistent contextual action set: **Next Event, Retry, Track Select, Tour Select, Records**. Tour play emphasizes Next Event; Practice emphasizes Retry. This extends Uniracers' own VS/post-race vocabulary rather than introducing a foreign interaction model.
+
+Modern replaces stock persistent League administration with **Local Tournament** setup: participants, event/track pool and format. Round-robin/points play is the default because it preserves League's conceptual identity; bracket variants are optional later. Active tournament state is host-persisted. Original League standings remain available as a presentation view and stock League remains Authentic behavior.
+
+Modern name entry uses normal keyboard text input and a controller-friendly on-screen keyboard. Host profile/racer names may exceed stock guest field limits; when guest compatibility requires a stock-width name, derive a deterministic compatible alias/truncation. The original alphabet grid remains Authentic presentation.
+
+The stock attract/demo cycle remains the default presentation artifact in both modes. A future Local Showcase built from strong local completed runs may be offered as an explicit optional attract mode only.
+
+# Modern progression policy
+
+Modern removes mandatory Bronze → Silver → Gold repetition without changing canonical thresholds, opponents, race simulation, scoring or secret unlock rules.
+
+The player selects a **Bronze, Silver or Gold challenge tier** for a tour. Bronsen, Silvia and Goldwyn remain the stock tier opponents. Completing a higher selected tier records that tier and satisfies all lower tiers. Authentic mode retains the original sequential-clear requirement.
+
+Hidden/Hunter progression remains discovery content. Modern may calculate eligibility from the player's highest completed canonical tiers, but it does not expose secret unlock requirements as a checklist or replace the original reward/ending presentations.
+
+Unfinished tours are host-persisted per Modern profile. The current tour, selected racer and completed-event state survive process exit and rider re-entry. Modern exposes explicit **Resume Tour** and **Restart Tour** actions. Authentic mode preserves stock session-loss behavior.
+
+# Modern scope discipline
+
+Do not turn Modern into a giant compatibility-options laboratory. Use settings for genuine preferences such as presentation, controls, accessibility, vibration, ghost visibility and display behavior. Administrative redesigns above are product policy, not per-user toggles.
+
+Expanded cosmetics, a full replay editor, photo mode, achievements/challenges and a user-facing mod ecosystem are not Windows baseline requirements. Section/checkpoint practice starts are the preferred later mastery feature once a safe authoritative start-state contract exists.
+
 # Current critical path
 
 The historical fidelity → renderer → Widescreen → first-HD pipeline is no longer the project bottleneck. Those capabilities are sufficient for the current Windows x64 product. The scarce resource is now **finished consumer-product breadth**: profile continuation, controls/accessibility, useful timing/statistics surfaces, fast repeat/navigation, broad Remastered coverage, presentation polish and release acceptance.

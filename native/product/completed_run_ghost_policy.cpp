@@ -58,4 +58,17 @@ CompletedRunGhostSelection select_completed_run_ghost_target(
     return out;
 }
 
+std::string completed_run_ghost_target_status_label(
+    const CompletedRunGhostState& state,
+    CompletedRunGhostTarget target) {
+    const char* label = completed_run_ghost_target_label(target);
+    if (target == CompletedRunGhostTarget::Off) {
+        return label;
+    }
+    const auto selected = select_completed_run_ghost_target(state, target);
+    return selected.active()
+        ? std::string(label)
+        : std::string(label) + " (NONE)";
+}
+
 }  // namespace ur::product

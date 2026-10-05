@@ -4,6 +4,7 @@
 #include "completed_run_ghost_target.hpp"
 
 #include <optional>
+#include <string>
 #include <string_view>
 
 namespace ur::product {
@@ -24,6 +25,12 @@ const char* completed_run_ghost_target_name(CompletedRunGhostTarget target);
 /* Player-facing label. Keep this separate from the machine token so UI polish
  * cannot silently change persisted profile vocabulary. */
 const char* completed_run_ghost_target_label(CompletedRunGhostTarget target);
+
+/* Player-facing status label. A selected target without a compatible local
+ * run remains fail-closed, but the UI should explain why no ghost appears. */
+std::string completed_run_ghost_target_status_label(
+    const CompletedRunGhostState& state,
+    CompletedRunGhostTarget target);
 std::optional<CompletedRunGhostTarget> parse_completed_run_ghost_target(
     std::string_view value);
 

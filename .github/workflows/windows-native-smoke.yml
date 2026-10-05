@@ -138,21 +138,25 @@ jobs:
           test -f "$PACKAGE/run-uniracers.cmd"
           test -f "$PACKAGE/PACKAGE-MANIFEST.json"
 
-      - name: Clean-package boot and state anchoring
+      - name: Clean-package boot and per-user state anchoring
         run: |
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/package-boot-dumps"
           CALLER="$RUNNER_TEMP/package-launch-cwd"
           EXTRACT="$RUNNER_TEMP/package-extracted"
+          USER_DATA="$RUNNER_TEMP/package-user-data"
           SCRIPT="$RUNNER_TEMP/package-boot.script"
           mkdir -p "$DUMPS" "$CALLER" "$EXTRACT"
+          rm -rf "$USER_DATA"
           python -m zipfile -e "$PACKAGE_ARCHIVE" "$EXTRACT"
           TEST_PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
+          echo "PACKAGE_USER_DATA=$USER_DATA" >> "$GITHUB_ENV"
           test -f "$TEST_PACKAGE/PACKAGE-MANIFEST.json"
           printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
 
           PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          USER_DATA_WIN="$(cygpath -w "$USER_DATA")"
           SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
           DUMPS_WIN="$(cygpath -w "$DUMPS")"
 
@@ -162,6 +166,7 @@ jobs:
             SDL_VIDEODRIVER=offscreen \
             SDL_AUDIODRIVER=dummy \
             SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$USER_DATA_WIN" \
               timeout 300 powershell.exe -NoProfile -Command \
                 "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
                 >"$RUNNER_TEMP/package-boot.log" 2>&1
@@ -178,16 +183,20 @@ jobs:
           print("WINDOWS_PACKAGE_BOOT_MAIN_MENU ok")
           PY
 
-          test -f "$TEST_PACKAGE/config.ini"
-          test -f "$TEST_PACKAGE/keybinds.ini"
+          test -f "$USER_DATA/config.ini"
+          test -f "$USER_DATA/keybinds.ini"
+          test -d "$USER_DATA/saves"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$TEST_PACKAGE/keybinds.ini"
+          test ! -e "$TEST_PACKAGE/saves"
           test ! -e "$CALLER/config.ini"
           test ! -e "$CALLER/keybinds.ini"
-          grep -Fq "Config/saves anchored to" "$RUNNER_TEMP/package-boot.log"
-          grep -Fq "$(cygpath -w "$TEST_PACKAGE")" "$RUNNER_TEMP/package-boot.log"
+          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-boot.log"
+          grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-boot.log"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
           python tools/assemble_windows_package.py verify-archive \
             --archive "$PACKAGE_ARCHIVE"
-          echo "WINDOWS_PACKAGE_STATE_ANCHOR ok"
+          echo "WINDOWS_PACKAGE_USER_DATA_ANCHOR ok"
 
       - name: Extracted-package race-result acceptance
         run: |
@@ -195,6 +204,7 @@ jobs:
           DUMPS="$RUNNER_TEMP/package-race-result-dumps"
           mkdir -p "$DUMPS"
           PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          USER_DATA_WIN="$(cygpath -w "$PACKAGE_USER_DATA")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script")"
           DUMPS_WIN="$(cygpath -w "$DUMPS")"
 
@@ -202,6 +212,7 @@ jobs:
           SDL_VIDEODRIVER=offscreen \
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+          UR_RECOMP_USER_DATA_ROOT="$USER_DATA_WIN" \
             timeout 600 powershell.exe -NoProfile -Command \
               "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-race-result.log" 2>&1
@@ -212,28 +223,96 @@ jobs:
           python tools/check_result_screen_time.py \
             --dump-dir "$DUMPS" \
             --checkpoint race-results
-          grep -Fq "Config/saves anchored to" "$RUNNER_TEMP/package-race-result.log"
-          grep -Fq "$PACKAGE_WIN" "$RUNNER_TEMP/package-race-result.log"
+          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-race-result.log"
+          grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-race-result.log"
           echo "WINDOWS_PACKAGE_RACE_RESULT ok"
 
-      - name: Portable re-extract preserves user settings
+      - name: Package refresh preserves user data
         run: |
           set -euo pipefail
-          test -f "$TEST_PACKAGE/config.ini"
-          test -f "$TEST_PACKAGE/keybinds.ini"
-          CONFIG_BEFORE="$(sha256sum "$TEST_PACKAGE/config.ini" | cut -d' ' -f1)"
-          KEYBINDS_BEFORE="$(sha256sum "$TEST_PACKAGE/keybinds.ini" | cut -d' ' -f1)"
+          test -f "$PACKAGE_USER_DATA/config.ini"
+          test -f "$PACKAGE_USER_DATA/keybinds.ini"
+          mkdir -p "$PACKAGE_USER_DATA/runs/default"
+          printf 'profile-catalog-upgrade-marker\n' > "$PACKAGE_USER_DATA/profiles-v1.txt"
+          printf 'run-upgrade-marker\n' > "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun"
+          printf '# package-refresh-binding-marker\n' >> "$PACKAGE_USER_DATA/keybinds.ini"
+          printf '# package-refresh-settings-marker\n' >> "$PACKAGE_USER_DATA/config.ini"
 
+          CONFIG_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
+          KEYBINDS_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          RUN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
+
+          rm -rf "$TEST_PACKAGE"
           python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"
 
-          CONFIG_AFTER="$(sha256sum "$TEST_PACKAGE/config.ini" | cut -d' ' -f1)"
-          KEYBINDS_AFTER="$(sha256sum "$TEST_PACKAGE/keybinds.ini" | cut -d' ' -f1)"
+          CONFIG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
+          KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          RUN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
           test "$CONFIG_BEFORE" = "$CONFIG_AFTER"
           test "$KEYBINDS_BEFORE" = "$KEYBINDS_AFTER"
+          test "$RUN_BEFORE" = "$RUN_AFTER"
+          grep -Fq "profile-catalog-upgrade-marker" "$PACKAGE_USER_DATA/profiles-v1.txt"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$TEST_PACKAGE/keybinds.ini"
+          test ! -e "$TEST_PACKAGE/saves"
 
           python tools/assemble_windows_package.py verify-archive \
             --archive "$PACKAGE_ARCHIVE"
-          echo "WINDOWS_PACKAGE_REEXTRACT_STATE_PRESERVED ok"
+          echo "WINDOWS_PACKAGE_REFRESH_USER_DATA_PRESERVED ok"
+
+      - name: Legacy portable state migrates once
+        run: |
+          set -euo pipefail
+          LEGACY="$RUNNER_TEMP/package-legacy"
+          MIGRATED="$RUNNER_TEMP/package-migrated-user-data"
+          rm -rf "$LEGACY" "$MIGRATED"
+          cp -R "$TEST_PACKAGE" "$LEGACY"
+          cp "$PACKAGE_USER_DATA/config.ini" "$LEGACY/config.ini"
+          cp "$PACKAGE_USER_DATA/keybinds.ini" "$LEGACY/keybinds.ini"
+          mkdir -p "$LEGACY/saves"
+          printf 'legacy-sram-marker\n' > "$LEGACY/saves/legacy-marker.srm"
+
+          LEGACY_CONFIG="$(sha256sum "$LEGACY/config.ini" | cut -d' ' -f1)"
+          LEGACY_KEYS="$(sha256sum "$LEGACY/keybinds.ini" | cut -d' ' -f1)"
+          LEGACY_WIN="$(cygpath -w "$LEGACY")"
+          MIGRATED_WIN="$(cygpath -w "$MIGRATED")"
+          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          DUMPS="$RUNNER_TEMP/package-migration-dumps"
+          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+          mkdir -p "$DUMPS"
+
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+          UR_RECOMP_USER_DATA_ROOT="$MIGRATED_WIN" \
+            timeout 300 powershell.exe -NoProfile -Command \
+              "& '${LEGACY_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-migration.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-migration.log"
+          test "$RC" -eq 0
+          test -f "$MIGRATED/config.ini"
+          test -f "$MIGRATED/keybinds.ini"
+          test -f "$MIGRATED/saves/legacy-marker.srm"
+          grep -Fq "legacy-sram-marker" "$MIGRATED/saves/legacy-marker.srm"
+          test "$LEGACY_CONFIG" = "$(sha256sum "$LEGACY/config.ini" | cut -d' ' -f1)"
+          test "$LEGACY_KEYS" = "$(sha256sum "$LEGACY/keybinds.ini" | cut -d' ' -f1)"
+
+          printf 'destination-wins\n' > "$MIGRATED/saves/legacy-marker.srm"
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$MIGRATED_WIN" \
+            timeout 300 powershell.exe -NoProfile -Command \
+              "& '${LEGACY_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-migration-second.log" 2>&1
+          RC=$?
+          set -e
+          test "$RC" -eq 0
+          grep -Fq "destination-wins" "$MIGRATED/saves/legacy-marker.srm"
+          echo "WINDOWS_PACKAGE_LEGACY_MIGRATION ok"
 
       - name: Boot to main menu
         run: |

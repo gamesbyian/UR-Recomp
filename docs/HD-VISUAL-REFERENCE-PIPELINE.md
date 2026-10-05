@@ -159,6 +159,10 @@ P2 `0578` fails both exact and palette-normalized reuse, so it earns one genuine
 
 With the second family admitted, measured coverage is 174/882 HD player-frames (19.73%) and 708 Original fallbacks. That removes another 12/720 = 1.67% of the immediately preceding fallback burden and 24/732 = 3.28% cumulatively from the retained baseline. Future expansion must re-rank the remaining unsupported exact states again. A family that cannot justify its equivalence/art cost against measured player-visible burden remains Original.
 
+That re-ranking has now been performed. The next tied-maximum exact state is `0545/057C + 0000/0C27` at frames `1401–1406`, still worth 12 fallback player-frames but confined to one episode. Generic bounded probe run `37390771706` / artifact `11380783383` reconstructs both players from the canonical ROM and finds no exact same-player reuse and no palette-normalized reuse for either pose. P1 `0545` has bounds `[18,5]..[42,37]` and contact `[53,74]`; P2 `057C` in this active-companion context has bounds `[20,3]..[44,38]` and contact `[71,76]`. Both are genuinely novel despite the latter sharing a semantic-frame ID with an already-authored P1 pose.
+
+The measured expansion loop therefore stops here rather than authoring two new poses for one six-frame episode. The next concrete discriminator is broader representative ordinary Windows play: only if that wider route shows this state/family recurring enough to justify the doubled art cost, or new equivalence evidence reduces that cost, should the family re-enter shipping review. Until then both exact states continue through fail-closed Original rendering.
+
 ### Palette-normalized pose equivalence
 
 Exact RGBA equivalence is only the first deduplication layer. Racer color is a separate semantic input in the original game, so two stock sprites can encode the same pose and material structure while differing only in the racer-color palette. Treating those rasters as unrelated visual poses would duplicate authoring effort and permit red/blue variants to drift.

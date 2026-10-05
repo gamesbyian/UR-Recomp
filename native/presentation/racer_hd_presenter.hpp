@@ -33,7 +33,7 @@ constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcep
            semantic_frame_id == 0x057D || semantic_frame_id == 0x0542 ||
            semantic_frame_id == 0x0543 || semantic_frame_id == 0x057E ||
            semantic_frame_id == 0x057F || semantic_frame_id == 0x0544 ||
-           semantic_frame_id == 0x057C;
+           semantic_frame_id == 0x057C || semantic_frame_id == 0x0578;
 }
 
 // The generic candidate remains a deterministic contract-only fallback for
@@ -212,6 +212,29 @@ constexpr bool is_authored_0544_p2_0544_0d69_registration(
            s.p1_companion_gate_word == 0x0001 && s.p2_companion_gate_word == 0x0000;
 }
 
+
+
+constexpr bool is_authored_frequency_0544_p1_0578_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 && registration.semantic_frame_id == 0x0544 &&
+           c.p1_primary == 0x0544 && c.p2_primary == 0x0578 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D63 &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
+
+constexpr bool is_authored_frequency_0578_p2_0544_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 && registration.semantic_frame_id == 0x0578 &&
+           c.p1_primary == 0x0544 && c.p2_primary == 0x0578 &&
+           c.p1_companion == 0x0000 && c.p2_companion == 0x0D63 &&
+           c.p1_selector == 0 && c.p2_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000 && c.p2_companion_gate_word == 0x0001;
+}
 
 
 constexpr bool is_authored_fifth_family_state(
@@ -1711,6 +1734,52 @@ constexpr std::uint32_t recolor_authored_frame_pixel(
     }
 }
 
+constexpr std::uint32_t sample_racer_hd_authored_0544_p1_frequency(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    return recolor_authored_frame_pixel(
+        sample_racer_hd_authored_0544_p2(x, y, hflip, vflip), false
+    );
+}
+
+constexpr std::uint32_t sample_racer_hd_authored_0578_p2_frequency(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    const int wheel_cx = 155, wheel_cy = 111;
+    const int wx = x - wheel_cx, wy = y - wheel_cy;
+    const int wr2 = wx * wx + wy * wy;
+    const bool tire = wr2 <= 36 * 36 && wr2 >= 26 * 26;
+    const bool rim = wr2 < 26 * 26 && wr2 >= 22 * 22;
+    const bool hub = wr2 <= 5 * 5;
+    const bool wheel_spokes =
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1) ||
+        authored_segment_contains(x, y, 144, 92, 166, 130, 1) ||
+        authored_segment_contains(x, y, 166, 92, 144, 130, 1);
+    const bool seat = authored_segment_contains(x, y, 70, 27, 111, 47, 8);
+    const bool neck = authored_segment_contains(x, y, 108, 45, 124, 61, 5);
+    const bool fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5);
+    const bool frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3);
+    const bool crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2);
+    const bool pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2);
+    const int crown_dx = x - 121, crown_dy = y - 58;
+    const bool crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8;
+
+    if (hub) return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (crank || pedal) return authored_drivetrain_hardware_color(y, wheel_cy);
+    if (rim || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (seat) return authored_saddle_color(x, y, 91, 32, 12);
+    if (neck && y < 53) return authored_saddle_mount_color(y, 49);
+    if (crown) return authored_frame_junction_color(x, y, 121, 58, true, fork || frame_brace || neck);
+    if (neck || fork || frame_brace) return authored_blue_frame_color(x, y);
+    if (tire) return authored_rubber_color(x, y, wheel_cx, wheel_cy);
+    return 0;
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -1870,6 +1939,12 @@ constexpr std::uint32_t sample_racer_hd_asset(
         return sample_racer_hd_authored_057f_p1_companion_0d4a(
             x, y, hflip, vflip
         );
+    }
+    if (is_authored_frequency_0544_p1_0578_registration(registration)) {
+        return sample_racer_hd_authored_0544_p1_frequency(x, y, hflip, vflip);
+    }
+    if (is_authored_frequency_0578_p2_0544_registration(registration)) {
+        return sample_racer_hd_authored_0578_p2_frequency(x, y, hflip, vflip);
     }
     if (is_authored_fifth_family_state(
             registration, 1, 0x057E, 0x057E, 0x0542, 0x0D49)) {

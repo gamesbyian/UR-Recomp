@@ -46,6 +46,13 @@ class RacerHdFallbackFamilyProbeTests(unittest.TestCase):
         b[7] = 255
         self.assertNotEqual(MOD.alpha_mask_sha256(bytes(a)), MOD.alpha_mask_sha256(bytes(b)))
 
+    def test_palette_normalization_changes_only_declared_roles(self):
+        palette = [(0, 0, 0, 0), (10, 20, 30, 255), (40, 50, 60, 255)]
+        rgba = bytes((10, 20, 30, 255, 40, 50, 60, 255))
+        normalized = MOD.palette_normalized_rgba(rgba, palette, [1])
+        self.assertEqual(normalized[:4], bytes((1, 0, 0, 255)))
+        self.assertEqual(normalized[4:], rgba[4:])
+
 
 if __name__ == "__main__":
     unittest.main()

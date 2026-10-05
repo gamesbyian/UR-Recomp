@@ -1,23 +1,7 @@
 name: VS Widescreen scene policy
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/widescreen-vs-policy.yml"
-      - "tools/analyze_widescreen_vs_policy.py"
-      - "tests/unit/test_analyze_widescreen_vs_policy.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/apply_native_widescreen_hook.py"
-      - "tools/patch_widescreen_probe_host.py"
-      - "tools/summarize_paired_player_slots.py"
-      - "tests/input/vs-first-race.input"
-      - "tests/input/vs-first-race-observe.script"
-      - "analysis/widescreen-policy.yml"
-      - "analysis/widescreen-vs-policy-evidence.json"
-      - "docs/WIDESCREEN-RECONNAISSANCE.md"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-vs-policy-${{ github.ref }}
   cancel-in-progress: true
 

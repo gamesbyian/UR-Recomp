@@ -1,16 +1,7 @@
 name: RNC static integration classification
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "reference/roms/retail/Unirally_Europe.sfc"
-      - "reference/roms/prototypes/Uniracers_Beta_legacy.sfc"
-      - "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc"
-      - "tools/find_rnc_decoder_signature.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: rnc-static-integration-${{ github.ref }}
   cancel-in-progress: false
 

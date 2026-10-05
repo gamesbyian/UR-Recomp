@@ -152,6 +152,24 @@ int main(int argc, char** argv) {
     assert(records_browser.selected_run()->is_previous);
     assert(records_browser.selected_run()->personal_best_delta_text ==
            "+0:00.37/60");
+    assert(records_browser.selected_run_record());
+    assert(records_browser.selected_run_record()->elapsed_ticks60 == 1750);
+    const auto run_summary = records_browser.selected_run_summary();
+    assert(run_summary);
+    assert(run_summary->finish.clock_text == "0:29.10/60");
+    assert(run_summary->finish.target_text == "0:28.33/60");
+    assert(run_summary->finish.comparison_text == "+0:00.37/60");
+    assert(run_summary->splits.size() == 2);
+    assert(run_summary->splits[0].delta_text == "+0:00.10/60");
+
+    assert(records_browser.open_selected_run_detail());
+    assert(records_browser.view() == CompletedRunRecordsView::Detail);
+    assert(records_browser.move(1));
+    assert(records_browser.selected_run()->personal_best_delta_text ==
+           "+0:00.37/60");
+    assert(records_browser.back_to_runs());
+    assert(records_browser.view() == CompletedRunRecordsView::Runs);
+
     const auto first_run_path = records_browser.selected_run()->path;
     assert(records_browser.move(1));
     assert(records_browser.selected_run());

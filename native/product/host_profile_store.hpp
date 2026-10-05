@@ -42,6 +42,11 @@ struct HostProfileResolveResult {
     explicit operator bool() const noexcept { return state.has_value(); }
 };
 
+constexpr bool host_profile_resolve_writable(
+    HostProfileResolveStatus status) noexcept {
+    return status == HostProfileResolveStatus::Loaded;
+}
+
 enum class HostProfileSaveStatus {
     Saved,
     Rejected,

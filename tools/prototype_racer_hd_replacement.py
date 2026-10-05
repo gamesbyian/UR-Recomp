@@ -218,10 +218,12 @@ def select_representation(
     semantic_frame_id: str,
     live_guards: dict,
     replacement_enabled: bool,
+    player: str | None = None,
 ) -> tuple[str, dict | None]:
     hits = [
         x for x in registry["entries"]
         if x["semantic_frame_id"].lower() == semantic_frame_id.lower()
+        and (player is None or x["player"] == player)
     ]
     exact = [x for x in hits if guards_match(x["composition_guards"], live_guards)]
     if not replacement_enabled:
@@ -325,12 +327,12 @@ def run(
 
     live_guards = dict(entry["composition_guards"])
     selected, selected_entry = select_representation(
-        registry, semantic_frame_id, live_guards, True
+        registry, semantic_frame_id, live_guards, True, entry["player"]
     )
     if selected != "remastered_candidate" or selected_entry is not entry:
         raise AssertionError("exact registered state did not select replacement")
     disabled_selected, _ = select_representation(
-        registry, semantic_frame_id, live_guards, False
+        registry, semantic_frame_id, live_guards, False, entry["player"]
     )
     if disabled_selected != "original":
         raise AssertionError("disabled replacement did not select Original")

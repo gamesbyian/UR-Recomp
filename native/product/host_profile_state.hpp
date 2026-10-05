@@ -2,6 +2,7 @@
 
 #include "host_product_state.hpp"
 #include "completed_run_ghost_target.hpp"
+#include "modern_racer_identity.hpp"
 
 #include <array>
 #include <cstddef>
@@ -36,20 +37,22 @@ struct HostTourContinuation {
 bool valid_tour_continuation(const HostTourContinuation& value) noexcept;
 
 struct HostProfileState {
-    static constexpr std::uint32_t schema_version = 3;
+    static constexpr std::uint32_t schema_version = 4;
 
     std::string profile_id;
     std::uint64_t autosave_generation = 0;
     std::optional<std::array<std::uint8_t, kStockSramBytes>> stock_sram;
     std::optional<HostTourContinuation> tour_continuation;
     CompletedRunGhostTarget ghost_target = CompletedRunGhostTarget::Off;
+    std::optional<HostRacerIdentity> racer_identity;
 
     bool operator==(const HostProfileState& other) const noexcept {
         return profile_id == other.profile_id &&
                autosave_generation == other.autosave_generation &&
                stock_sram == other.stock_sram &&
                tour_continuation == other.tour_continuation &&
-               ghost_target == other.ghost_target;
+               ghost_target == other.ghost_target &&
+               racer_identity == other.racer_identity;
     }
 };
 

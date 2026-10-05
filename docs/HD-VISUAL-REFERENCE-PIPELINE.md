@@ -142,6 +142,38 @@ The true-density handoff is now accepted. Guest/PPU geometry remains 256×224, t
 
 `tools/build_racer_pose_equivalence.py` is now part of that same acceptance path and emits `pose-equivalence.json` beside the dossier. It collapses exact semantic registrations only when same-player stock RGBA is byte-identical, while separately checking authored RGBA identity. For the supported 1205–1220 strip, 14 exact registrations collapse to 10 unique visual poses; all 10 have authored 4× assets, four guards reuse an already-authored byte-identical pose, and there are zero unauthored poses or conflicting authored assets. This closes unique-pose authoring for the currently supported strip.
 
+
+### Palette-normalized pose equivalence
+
+Exact RGBA equivalence is only the first deduplication layer. Racer color is a separate semantic input in the original game, so two stock sprites can encode the same pose and material structure while differing only in the racer-color palette. Treating those rasters as unrelated visual poses would duplicate authoring effort and permit red/blue variants to drift.
+
+Before authoring a new racer pose, the pipeline must therefore attempt two proofs:
+
+1. exact same-palette RGBA identity;
+2. palette-normalized identity after replacing only the source palette entries proven to represent racer color with canonical material-role tokens.
+
+The normalization result should have its own stable digest and geometry-pose identity. Each registered representation retains its exact semantic guards, player and palette provenance, but all members with the same normalized digest reference one canonical authored geometry/material source.
+
+The palette-equivalence manifest should record, at minimum:
+
+- canonical geometry-pose ID and normalized source digest;
+- every member representation and observed runtime context;
+- original palette asset/role mapping for each member;
+- the exact palette roles removed by normalization;
+- canonical authored source identity;
+- deterministic palette/material transform identity and version;
+- full-density authored output hash for each derived variant;
+- normalized authored-output hash;
+- proof that all derived normalized authored outputs are byte-identical.
+
+Fail closed when palette-role provenance is incomplete or when normalization changes alpha, neutral materials, rubber, saddle, hardware or any other non-racer-color content. Similar silhouettes or matching semantic IDs are not enough.
+
+CI acceptance for a declared palette-equivalent group is exact: render each authored variant at native HD density, normalize only the approved racer-color output values, and compare every resulting pixel byte-for-byte. This catches geometry, antialiasing, material-boundary, highlight and micro-detail drift that ordinary envelope/contact or perceptual-similarity checks can miss.
+
+The production consequence is deliberate: **upscale/refine the canonical pose once, derive its color variants, and review the shared geometry once.** A palette-only stock variant must not acquire an independent authored geometry path unless new source evidence proves that it is not actually palette-equivalent.
+
+The current presenter already contains deterministic red/blue recoloring for several newer family entries. That mechanism is the implementation precedent, not yet proof that the entire existing Racer HD corpus has been normalized. Retrofitting the corpus requires measuring palette-normalized stock equivalence first, then replacing any redundant independently authored variants only where the evidence supports exact canonical reuse.
+
 The true-density shipping-art loop is now closed for this retained strip. The initial review correctly held all 10 unique poses at `needs-refinement`; subsequent batched passes resolved saddle volume/attachment, wheel/hub/crank/pedal structure, retained internal detail and the remaining frame-junction modeling without changing any reviewed alpha mask. PR #442 records the final evidence from workflow run `37248763308` / artifact `11319814239`, and the follow-up acceptance run `37249144430` confirms `shipping_ready=true`, 10 approved poses, zero blockers, zero `changed-since-review`, and zero authored conflicts. `tools/build_racer_hd_shipping_readiness.py` remains the fail-closed authority: approval is owned once per unique visual pose and bound to the exact authored RGBA hash. Do not re-open this strip merely for polish; a future byte change intentionally invalidates its approval and must earn a new review packet.
 
 ## Reconstruction decision policy
@@ -239,15 +271,11 @@ Names and manifests must make it impossible to mistake a processed image for ori
 
 ## Priority
 
-### Near term
+### Current status
 
-- keep the three visual-reference dependencies pinned in `tools/toolchain.json`;
-- identify a minimal curated shader/preset set;
-- verify the cheapest deterministic RetroArch screenshot route under Linux/headless automation;
-- test one identical stock frame through the matrix and measure startup/runtime/storage cost;
-- determine which scaler families can instead be applied offline.
+The shipping Racer HD path no longer depends on discovering a “best” emulator shader/scaler matrix. Raw/native ROM-derived evidence, deterministic semantic extraction, true-density authored assets, gameplay-scale review, temporal-coherence checks and hash-bound approval already provide the production decision path.
 
-This is useful tooling work but must not displace the current stock-fidelity and course/reverse-engineering critical path.
+Keep the pinned visual-reference dependencies available as **diagnostic tools**. Curated CRT/NTSC/scaler presets, headless RetroArch capture benchmarking and offline-algorithm comparisons should be added only when a specific art ambiguity or renderer defect cannot be resolved from the existing raw/reference/dossier evidence. Do not assign an agent to complete the reference matrix for its own sake.
 
 ### Phase E
 

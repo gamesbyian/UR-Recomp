@@ -60,7 +60,8 @@ SelectionResult select_racer_presentation_from_wram(
     return select_racer_presentation(
         requested_pack,
         semantic_frame_id,
-        snapshot->composition
+        snapshot->composition,
+        player
     );
 }
 

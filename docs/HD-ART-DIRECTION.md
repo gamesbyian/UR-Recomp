@@ -39,6 +39,27 @@ For moving gameplay art, preserve:
 
 For the unicycle in particular, wheel-ground contact and stable frame-to-frame geometry are release criteria, not polish.
 
+
+## Racer equivalence and canonical authoring
+
+Racer replacement art must be deduplicated by proved visual identity before new geometry is authored. Runtime state identity, player identity, palette identity and visual-geometry identity are separate concepts.
+
+Use this hierarchy, in order:
+
+1. **Exact-raster equivalence.** If two registered states for the same palette reconstruct to byte-identical stock RGBA, they own one authored asset. Keep separate semantic/runtime guards, but do not redraw or refine the pose twice.
+2. **Palette-normalized equivalence.** If two stock racers become byte-identical after only the proven racer-color palette roles are normalized, they own one canonical geometry/material asset plus deterministic palette application. Do not independently author, upscale or refine red/blue/color variants of that pose.
+3. **Distinct visual pose.** Author separate geometry only when the stock evidence fails both exact-raster and palette-normalized equivalence.
+
+Palette normalization must be conservative. It may replace only palette roles proven to encode racer color. Alpha, silhouette, neutral hardware, rubber, saddle, spatial shading structure and every non-color material role remain part of the geometry/material identity. A semantic-frame ID match alone is not proof of equivalence.
+
+For a palette-equivalent family, the canonical authored pose owns all non-color decisions: geometry, antialiasing/coverage, wheel and frame structure, saddle, hardware, material boundaries, baked-light placement and micro-detail. Color variants are derived from that same pose through a versioned deterministic palette/material transform. This is the required production path even when independently authored variants would look approximately identical.
+
+Acceptance must be exact rather than perceptual. Render every declared palette variant at authored density, normalize the approved racer-color values back to canonical material roles, and require the normalized outputs to be byte-identical. Any differing alpha, neutral-material pixel, edge coverage, highlight placement or geometry is a failure. Fuzzy image similarity is useful for review but is not sufficient to prove palette equivalence.
+
+Approval should follow the same ownership model. Exact-raster aliases inherit the unique pose approval. Palette variants inherit geometry/material approval only through the proved canonical pose plus the exact reviewed palette transform/version; changing canonical geometry or the transform invalidates the affected derived review evidence. This prevents a color-only variant from quietly becoming a second fork of the artwork.
+
+The existing `recolor_authored_frame_pixel()` path demonstrates the intended runtime shape for known red/blue variants. New families should prefer canonical-pose-plus-palette derivation whenever the stock evidence proves that relationship. Existing independently authored variants should be migrated opportunistically once palette-normalized equivalence is measured, without reopening already approved art merely for stylistic revision.
+
 ## Racer source-production constraint
 
 The original unicycle imagery was not authored as pixel art from first principles. The project’s developer-history evidence identifies Martin Good as the CG artist responsible for the unicycle renders and records Robbie Graham describing a highly detailed **3D source model rendered down into very small 2D game frames**, with many pedal/wheel phases plus stunt rotation, tilt/stretch and saddle motion. Dedicated Unicycle Compression and A0 plotting tools independently fit that production model.
@@ -133,6 +154,26 @@ The next player-visible Racer HD expansion targets the high-frequency ordinary-r
 Canonical ROM measurement proves all four target alpha masks are byte-identical to already shipping-approved opposite-player geometry. P1 `0543` matches approved P2 `0543`; P2 `0540+0D2C` matches approved P1 `0540+0D2C`; P1 `0542` matches approved P2 `0542`; and P2 `0541+0D2D` matches approved P1 `0541+0D2D`. The authored assets therefore preserve those approved silhouettes, neutral hardware, saddle and rubber exactly and change only the established red/blue frame material. This keeps geometry inheritance explicit rather than re-authoring equivalent shapes by eye.
 
 Gameplay-scale review on native run `37260097104` / artifact `11324094193` measures IoU `0.6408268734` for P1 `0543`, `0.7345844504` for P2 `0540+0D2C`, `0.6780104712` for P1 `0542`, and `0.6787709497` for P2 `0541+0D2D`; every candidate exactly matches its stock envelope and recovered contact anchor. Temporal review proves all seven repeated hold edges remain static. The real `1251 -> 1252` recovery remains dynamic with exact stock/authored contact deltas: P1 changes 110 authored alpha pixels versus 102 stock (ratio `1.0784313725`), while P2 changes 131 versus 93 (ratio `1.4086021505`), both inside the accepted `0.75`-`2.25` motion band. All four unique poses are shipping-approved by exact authored RGBA hash in `analysis/data/racer-hd-art-approval-1244-1252.json`, with zero family blockers; future pixel changes fail closed through the standard readiness join.
+
+## Fourth shipping-approved ordinary-race family
+
+The next Racer HD expansion removes the high-frequency Original island at frames `1230`-`1239`. Frame `1230` enters `0540/057F + 0D0C/0D2A` with both companion gates enabled; frames `1231`-`1237` hold `0540/0540 + 0D0C/0D0C`; frame `1238` returns to the entry composition; frame `1239` exits through `0541/057F + 0D0D/0D2A`. The seven-frame synchronized hold was the highest-frequency remaining unapproved ordinary-race fallback state in the retained trace, so the family was chosen for player-visible switching reduction rather than semantic adjacency.
+
+ROM-derived measurement collapses six semantic registrations to four unique stock poses. P1 entry and hold are byte-identical; P2 entry and exit are byte-identical; P1 exit is byte-identical to the already shipping-approved canonical `0541+0D0D` stock pose. The remaining P1/P2 `0540+0D0C` and P2 `057F+0D2A` shapes share the same recovered envelope/contact as nearby approved constructions but are reviewed against their own exact stock rasters rather than claimed as identical geometry.
+
+Native review run `37261958454` / artifact `11325277378` records gameplay-scale IoU `0.7265415550` for P1 `0540+0D0C`, the same `0.7265415550` for the blue P2 hold counterpart, `0.6666666667` for the reused P1 `0541+0D0D` exit art against this exact family stock, and `0.6744791667` for P2 `057F+0D2A`. All candidates preserve exact stock alpha envelopes and wheel-contact anchors. Static hold edges remain static. Dynamic edges preserve stock motion: P1 exit changes 128 authored alpha pixels versus 91 stock (ratio `1.4065934066`), and P2 enters/leaves the hold at 132 versus 93 (ratio `1.4193548387`), both within the accepted `0.75`-`2.25` band with exact contact deltas.
+
+This family also exposed and fixed a selector correctness issue: semantic ID alone is insufficient when both players may use the same ID under one synchronized composition. Racer-HD selection now includes player identity, and previously accidental cross-player borrowing fails closed to Original. The four unique fourth-family poses are shipping-approved by exact authored RGBA hash in `analysis/data/racer-hd-art-approval-1230-1239.json`; later pixel changes fail closed through the standard readiness join.
+
+## Fifth shipping-approved ordinary-race family
+
+The next measured fallback-reduction target is the seven-frame ordinary-race staircase at frames `1261`-`1267`: `057E/0542 + 0D49/0000` for frames `1261`-`1262`, `057D/0541 + 0D48/0000` for `1263`-`1264`, `057D/0540 + 0D48/0000` for `1265`-`1266`, and `057C/0540 + 0D47/0000` at `1267`. All four states use selectors `0000/0000` and companion gates `0001/0000`. The `057D/0540 + 0D48/0000` step was the highest-frequency exact ordinary-race composition still falling back to Original in the retained trace, so this family was selected by player-visible product value rather than semantic adjacency.
+
+Exact ROM measurement in run `37263957234` / artifact `11324494911` proves that eight exact semantic registrations collapse to six unique same-player visual poses. Five are exact stock-RGBA matches to already shipping-approved art: P1 `057E+0D49`, P1 `057D+0D48`, P2 `0542`, P2 `0541`, and P2 `0540`. Only P1 `057C+0D47` requires genuinely new authored geometry. That new pose continues the approved `057E -> 057D` motion language and preserves the measured stock envelope `[20,3]..[44,38]`, contact `[71,76]`, 320 candidate opaque pixels versus 325 stock, and 231 sampled overlapping alpha pixels over a 414-pixel union (IoU `0.5579710145`).
+
+Native review run `37264523402` / artifact `11325937178` proves the complete seven-frame family at true 4x. All six unique poses preserve exact stock envelopes and recovered contact anchors. Static retained edges remain byte-static. Dynamic motion remains bounded and directionally faithful: P1 `057E -> 057D` changes 118 authored pixels versus 98 stock (ratio `1.2040816327`), P1 `057D -> 057C` changes 113 versus 106 (ratio `1.0660377358`), P2 `0542 -> 0541` changes 116 versus 89 (ratio `1.3033707865`), and P2 `0541 -> 0540` changes 128 versus 93 (ratio `1.3763440860`). All remain inside the accepted `0.75`-`2.25` temporal band.
+
+The six unique poses are hash-bound shipping-approved in `analysis/data/racer-hd-art-approval-1261-1267.json`, with zero family blockers. Frame `1388` remains deliberately fail-closed: its `057F/0543 + 0D6A/0000` state is retained for semantic/prototype evidence but has no approved authored art, so native acceptance explicitly forbids an HD draw there rather than mistaking registration evidence for shipping-art availability.
 
 Secondary appearance references include the official North American/European packaging scans and the 2010 developer feature. They agree with the stock dossier on dark wheel/saddle masses, colored glossy body/frame forms, and brighter neutral hardware. Do not copy marketing-only sparkle/star effects into ordinary gameplay frames merely because they appear in packaging art.
 

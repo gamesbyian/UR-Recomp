@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37261958454,
+    "artifact_id": 11325277378,
+    "temporal_window": [
+      1230,
+      1239
+    ],
+    "review_surface": "racer-hd-fourth-family-dossier/review/index.html",
+    "disposition": "Reviewed the complete 1230-1239 ordinary-race entry/hold/exit family at true 4x. Six semantic registrations collapse to four unique stock poses. P1 0540 entry/hold and P2 057F entry/exit correctly reuse one authored asset each; P1 0541 exit reuses the previously shipping-approved 0541+0D0D art; P2 0540 hold uses the corresponding blue frame treatment. All four unique poses preserve exact stock envelopes and contact anchors. Static hold edges remain static. Dynamic stock edges remain dynamic with authored/stock alpha-change ratios 1.4066 (P1 exit) and 1.4194 (P2 enter/leave hold), within the accepted 0.75-2.25 band. Visual review found no family-level blockers."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0540-p1-fourth-family-entry-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "f544db8eab17b53f68186f799d2e655b3f2fbda7c9e6615944da0cf2401031e8"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0540-p2-fourth-family-hold-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "5d8485f642d8175916579247bde78de1f0634d1eb8960ccf65cb8272bb886ea2"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0541-p1-fourth-family-exit-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "d1e9344eeee78bbd1d05fb7a780dbb977e91e76fb16d66b49c283e3adfaa4f71"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x057F-p2-fourth-family-entry-0D2A-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "858335e11cca8842f20dfcee8524285e1807fbc37fbd3b5d1e39ffbc01351809"
+    }
+  ]
+}

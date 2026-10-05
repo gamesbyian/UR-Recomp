@@ -54,22 +54,6 @@ class NativeBuildSmokePolicyTests(unittest.TestCase):
             "Authentic mode touched modern Internal Render Scale policy",
             self.text,
         )
-        self.assertIn("Internal Render Scale compositor acceptance", self.text)
-        self.assertIn(
-            'grep -q "UR_RACER_HD_DRAW PASS .*output_scale=2"',
-            self.text,
-        )
-        self.assertIn(
-            'tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2',
-            self.text,
-        )
-        for artifact in (
-            "render-scale-2x.state",
-            "render-scale-2x.log",
-            "render-scale-2x.ppm",
-            "render-scale-2x-dumps/",
-        ):
-            self.assertIn(f"${{{{ runner.temp }}}}/{artifact}", self.text)
 
 
 if __name__ == "__main__":

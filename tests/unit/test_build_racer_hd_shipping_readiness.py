@@ -7,7 +7,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
     def equivalence(self):
         return {
             "schema_version": 1,
-            "family": "ordinary-racer",
+            "family": "ordinary-race-racer-presentation",
             "source_temporal_window": {"start": 1, "end": 2},
             "pose_groups": [
                 {
@@ -139,11 +139,24 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
         self.assertEqual(result["family_blockers"], [{"code": "shared-structure"}])
         self.assertFalse(result["shipping_ready"])
 
-    def test_approval_family_must_match_equivalence_family(self):
+    def test_approval_family_maps_to_canonical_equivalence_family(self):
+        result = build_shipping_readiness(
+            self.equivalence(),
+            self.decisions(a="approved", c="approved"),
+        )
+        self.assertEqual(result["family"], "ordinary-race-racer-presentation")
+
+    def test_unsupported_approval_family_is_rejected(self):
         decisions = self.decisions()
         decisions["family"] = "other-family"
-        with self.assertRaisesRegex(ValueError, "does not match equivalence family"):
+        with self.assertRaisesRegex(ValueError, "unsupported approval family"):
             build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_approval_family_rejects_wrong_equivalence_family(self):
+        equivalence = self.equivalence()
+        equivalence["family"] = "other-presentation-family"
+        with self.assertRaisesRegex(ValueError, "expects equivalence family"):
+            build_shipping_readiness(equivalence, self.decisions())
 
     def test_approval_temporal_window_must_match_equivalence_window(self):
         decisions = self.decisions()

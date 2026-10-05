@@ -100,6 +100,7 @@ bool g_onboarding_visible;
 bool g_onboarding_manual_open;
 bool g_onboarding_acceptance_fired;
 bool g_binding_diagnostics_reported;
+bool g_controls_persistence_acceptance_fired;
 std::string g_onboarding_seen_path;
 
 bool g_practice_active;
@@ -1909,6 +1910,7 @@ bool ensure_session() {
     ur::product::reset_widescreen_scene_state(&g_widescreen_scene_state);
     g_widescreen_scene = ur::product::HostSceneComposition::FixedCenter;
     if (g_session && modern_mode()) {
+        maybe_run_controls_persistence_acceptance();
         (void)apply_display_mode_setting(g_product_state.settings);
         (void)apply_output_resolution_setting(g_product_state.settings);
         (void)apply_presentation_fps_setting(g_product_state.settings);
@@ -2781,6 +2783,50 @@ bool handle_controls_action(ur::product::ModernControlsAction action) {
         (void)apply_live_controls_command(command);
     }
     return true;
+}
+
+void maybe_run_controls_persistence_acceptance() {
+    if (g_controls_persistence_acceptance_fired || !modern_mode()) return;
+    const char* mode = std::getenv("UR_CONTROLS_PERSISTENCE_ACCEPTANCE");
+    if (!mode || !*mode) return;
+    g_controls_persistence_acceptance_fired = true;
+
+    bool ok = false;
+    if (std::strcmp(mode, "write") == 0) {
+        ok = apply_live_controls_command({
+                 ur::product::ModernControlsCommandKind::ApplyCapturedKey,
+                 ur::product::ModernControlBinding::A,
+                 static_cast<int>(SDL_SCANCODE_F9)}) &&
+             apply_live_controls_command({
+                 ur::product::ModernControlsCommandKind::ApplyCapturedKey,
+                 ur::product::ModernControlBinding::B,
+                 static_cast<int>(SDL_SCANCODE_F9)}) &&
+             apply_live_controls_command({
+                 ur::product::ModernControlsCommandKind::ClearBinding,
+                 ur::product::ModernControlBinding::X,
+                 0});
+    } else if (std::strcmp(mode, "verify") == 0) {
+        ok = keybinds_get_button(1, 0) == SDL_SCANCODE_F9 &&
+             keybinds_get_button(1, 1) == SDL_SCANCODE_F9 &&
+             keybinds_get_button(1, 2) == SDL_SCANCODE_UNKNOWN;
+    } else if (std::strcmp(mode, "reset") == 0) {
+        ok = apply_live_controls_command({
+            ur::product::ModernControlsCommandKind::ResetPlayer,
+            ur::product::ModernControlBinding::A,
+            0});
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_CONTROLS_PERSISTENCE mode=%s result=%s a=%d b=%d x=%d\n",
+            mode,
+            ok ? "PASS" : "FAIL",
+            static_cast<int>(keybinds_get_button(1, 0)),
+            static_cast<int>(keybinds_get_button(1, 1)),
+            static_cast<int>(keybinds_get_button(1, 2)));
+        std::fflush(stderr);
+    }
 }
 
 bool handle_controls_key(int key) {

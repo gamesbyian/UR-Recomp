@@ -1,0 +1,47 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -694,6 +694,30 @@ void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin) {
+   g_input_relative_armed = 1;
+ }
+ 
++static void ResetInputFilePlayback(void) {
++  g_input_event_count = 0;
++  g_input_event_cursor = 0;
++  g_input_p1_mask = 0;
++  g_input_p2_mask = 0;
++  g_input_p1_end = 0;
++  g_input_p2_end = 0;
++  g_input_relative_enabled = 0;
++  g_input_relative_armed = 0;
++  g_input_relative_origin = 0;
++}
++
++int snesrecomp_desktop_load_relative_input_file(const char *path) {
++  ResetInputFilePlayback();
++  if (!path || !*path)
++    return 0;
++  if (!LoadInputFile(path)) {
++    ResetInputFilePlayback();
++    return 0;
++  }
++  g_input_relative_enabled = 1;
++  return 1;
++}
++
+ static uint32 InputFileMask(uint64 frame) {
+   if (g_input_relative_enabled) {
+     if (!g_input_relative_armed || frame < g_input_relative_origin) return 0;
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -250,4 +250,11 @@ int snesrecomp_desktop_request_session_reboot(void);
+ 
++/* Replace the host-owned deterministic input stream with a validated
++ * INPUT_FILE grammar source and keep it inert until the title arms a
++ * race-relative origin. This reuses the same parser/injector as startup
++ * INPUT_FILE replay rather than introducing a second replay path. */
++int snesrecomp_desktop_load_relative_input_file(const char *path);
++void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
++
+ /* Ask the host to reset its pacing clock at the next opportunity (a title
+  * that just changed its presentation settings). */
+ void snesrecomp_desktop_request_clock_reset(void);

@@ -583,6 +583,10 @@
           "sha256": "a88cb1a342db93865fb814e101e331a0e2adca23709dfad17fa0e264814d7972"
         },
         {
+          "path": "tools/patches/snesrecomp-live-input-reload.patch",
+          "sha256": "b23d1850c922ce9fe3840d1b2f013556ec08240aa97c3c904482d5393e3ce853"
+        },
+        {
           "path": "tools/patches/snesrecomp-native-widescreen-state-dump.patch",
           "sha256": "7d7c270b273eaccba102965e90164a042eef69b96560aeade871a7a7726c18f6"
         },

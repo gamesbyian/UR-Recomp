@@ -24,6 +24,7 @@ int main(int argc, char** argv) {
     state.settings.presentation_fps_mode = HostPresentationFpsMode::Fps144;
     state.settings.output_resolution =
         HostOutputResolution::explicit_size(2560, 1440);
+    state.regional_presentation = RegionalPresentation::Europe;
     state.active_profile_id = "local.profile";
     assert(save_host_product_state_file(path, state) == HostProductSaveStatus::Saved);
 

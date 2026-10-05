@@ -4,9 +4,73 @@ import unittest
 
 
 WORKFLOWS = Path(".github/workflows")
-MAIN_PUSH_ALLOWLIST = {
+MAIN_PUSH_ALLOWLIST = set()
+
+DORMANT_MANUAL_ONLY = {
+    "analyze-reference-roms.yml",
+    "audio-startup-cross-core.yml",
+    "bottom-edge-cross-core.yml",
+    "cc65-da65-closure-eval.yml",
+    "challenge-award-aot-probe.yml",
+    "course-byte11-exact-writer.yml",
+    "course-header-cadence.yml",
+    "course-layout-plane-probe.yml",
+    "course-presentation-contract-sample.yml",
+    "course-presentation-contract.yml",
+    "course-runtime-payload.yml",
+    "course-stream-pointer-search.yml",
+    "generated-challenge-seam-probe.yml",
     "historical-smv-first-race.yml",
+    "historical-snes9x151-medal.yml",
     "historical-wip-dragster.yml",
+    "independent-reference-route.yml",
+    "medal-progression-search.yml",
+    "mesence-two-player-reference.yml",
+    "object-liveness-dragster.yml",
+    "preparation-emission-probe.yml",
+    "qualification-generation-ref-scan.yml",
+    "quick-practice-track-selection.yml",
+    "race-behavior-differential.yml",
+    "race-collision-differential.yml",
+    "race-finish-differential.yml",
+    "race-landing-differential.yml",
+    "race-rotation-differential.yml",
+    "rnc-writer-decoder-probe.yml",
+    "rnc-writer-static-classification.yml",
+    "s2-desktop-digest-reference.yml",
+    "snes9x-island-closure.yml",
+    "snesrecomp-c2-network-audit.yml",
+    "snesref-input-route.yml",
+    "sram-mapping-probe.yml",
+    "switch-s0-compile-probe.yml",
+    "switch-s1-runtime-shell.yml",
+    "switch-s2-executable-link.yml",
+    "switch-s2-guest-aot.yml",
+    "switch-s2-init-execution.yml",
+    "switch-s2-link-surface.yml",
+    "switch-s2-runtime-core.yml",
+    "switch-shared-core-portability.yml",
+    "targeted-wram-store-scan.yml",
+    "tcrf-boot-vram.yml",
+    "tcrf-unused-content-reconcile.yml",
+    "title-transition-cross-core.yml",
+    "trace-course-buffer-writers.yml",
+    "trace-race-wram-writers.yml",
+    "two-player-reference.yml",
+    "vs-split-screen-reference.yml",
+    "widescreen-composition-matrix.yml",
+    "widescreen-native-hook.yml",
+    "widescreen-plus8-oam-probe.yml",
+    "widescreen-strip-scheduling-plus8.yml",
+    "widescreen-tiny-margin-probe.yml",
+    "widescreen-vs-plus16-capacity.yml",
+    "widescreen-vs-plus24-capacity.yml",
+    "widescreen-vs-plus32-capacity.yml",
+    "widescreen-vs-plus40-capacity.yml",
+    "widescreen-vs-plus48-capacity.yml",
+    "widescreen-vs-policy.yml",
+    "widescreen-vs-preparation-trace.yml",
+    "window-xor-recon.yml",
 }
 
 
@@ -20,7 +84,12 @@ def _block(text: str, key: str) -> str:
 
 def _pushes_main(text: str) -> bool:
     push = _block(text, "push")
-    return bool(push and re.search(r"(?m)^      - main\s*$", push))
+    if not push:
+        return False
+    return bool(
+        re.search(r"(?m)^      - main\s*$", push)
+        or re.search(r"(?m)^    branches:\s*\[\s*main\s*\]\s*$", push)
+    )
 
 
 class CiTriggerPolicyTest(unittest.TestCase):
@@ -110,6 +179,31 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "portability must be explicitly dispatched rather than triggered "
             "by every native/product or native/title edit",
         )
+
+    def test_dormant_research_is_manual_only(self):
+        offenders = []
+        for name in sorted(DORMANT_MANUAL_ONLY):
+            path = WORKFLOWS / name
+            text = path.read_text()
+            if _block(text, "pull_request") or _block(text, "push"):
+                offenders.append(name)
+            self.assertIn("  workflow_dispatch:", text, name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"retained research/deferred-platform workflows must be manually dispatched: {offenders}",
+        )
+
+    def test_windows_smoke_runs_only_on_final_main(self):
+        text = (WORKFLOWS / "windows-native-smoke.yml").read_text()
+        self.assertTrue(_pushes_main(text))
+        self.assertFalse(_block(text, "pull_request"))
+
+    def test_native_ui_evidence_does_not_rebuild_per_shard(self):
+        text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
+        self.assertNotIn("matrix.shard", text)
+        self.assertNotIn('"native/product/**"', text)
+
 
     def test_main_push_allowlist_is_evidence_writing(self):
         for name in MAIN_PUSH_ALLOWLIST:

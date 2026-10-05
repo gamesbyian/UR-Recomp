@@ -1,0 +1,34 @@
+name: Qualification generation reference scan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/challenge-writer-entry-scan-2026-10-05
+    paths:
+      - ".github/workflows/qualification-generation-ref-scan.yml"
+      - "tools/scan_qualification_generation_refs.py"
+      - "tests/unit/test_scan_qualification_generation_refs.py"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Scan bounded stock result path
+        run: |
+          python3 -m unittest tests.unit.test_scan_qualification_generation_refs
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p analysis/generated
+          python3 tools/scan_qualification_generation_refs.py             "reference/roms/retail/Uniracers_USA.sfc"             --out analysis/generated/qualification-generation-ref-scan.json             | tee "$RUNNER_TEMP/qualification-generation-ref-scan.log"
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qualification-generation-ref-scan
+          path: |
+            analysis/generated/qualification-generation-ref-scan.json
+            ${{ runner.temp }}/qualification-generation-ref-scan.log
+          if-no-files-found: warn
+          retention-days: 7

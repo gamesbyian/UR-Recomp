@@ -179,7 +179,7 @@
       "id": "uncensored-name-list-patch",
       "value": "medium",
       "cost": "low",
-      "status": "archival-hunt",
+      "status": "closed-local",
       "status_note": "Archival tail: only a small public IPS mirror remains to find (was status archival-tail).",
       "source_ids": [
         "romhack-uncensored",
@@ -187,12 +187,14 @@
         "reddit-uniracers-blacklist-extraction-2019",
         "reddit-original-dev-banned-list-2026"
       ],
-      "question": "Where is the forbidden-name data and what code consumes it?",
-      "next_discriminator": "First attempt to recover the exact rejected-name table directly from the canonical ROM, using the 2019 dual independent extraction reports as evidence that the table is plainly extractable. Cross-check recovered contents against the Uncensored patch, RetroAchievements behavior, and the original-developer 2026 provenance comment. Only then trace the reader routine if implementation-relevant.",
+      "question": "Is there any remaining implementation-relevant uncertainty around the stock forbidden-name system?",
+      "next_discriminator": "None for core behavior. The canonical ROM table, 71-entry pointer structure, substring matcher, extraction script, and runtime rejection path are already recovered and reproduced. Keep the missing third-party Uncensored IPS as archival-only provenance; do not spend research effort unless it surfaces naturally.",
       "deliverables": [
-        "forbidden-name data range",
-        "optional reader routine symbol if cheaply recoverable",
-        "exact canonical rejected-name table with extraction script"
+        "forbidden-name data range (landed)",
+        "exact canonical rejected-name table extraction script (landed)",
+        "substring matcher and scanner semantics (landed)",
+        "runtime NOT COOL ENOUGH rejection reproduction (landed)",
+        "Uncensored IPS only if recovered incidentally"
       ],
       "tags": [
         "rom-hack",
@@ -206,7 +208,7 @@
         "request": ""
       },
       "acquisition_tier": "P3",
-      "acquisition_judgment": "Archival tail. Existing local UI/ROM evidence can recover forbidden-name behavior if it ever becomes implementation-relevant; do not spend bespoke recovery effort."
+      "acquisition_judgment": "Core problem already solved locally on 2026-10-03. External extraction reports and the original-developer comment are corroborating provenance, not new implementation work."
     },
     {
       "id": "spc-audio-driver-and-unused-music",
@@ -793,42 +795,6 @@
       "acquisition_judgment": "Potentially useful for broadening both evidence and tester demographics, but should remain bounded unless it yields concrete mechanics or active-player material."
     },
     {
-      "id": "jumpover-fallthrough-glitch",
-      "value": "high",
-      "cost": "low",
-      "status": "ready",
-      "source_ids": [
-        "tasvideos-uniracers-topic",
-        "tas-twisting-fallthrough-observation"
-      ],
-      "question": "What exact collision/geometry condition allows the player to fall through the track on Bounder - Jumpover, as reported by early TAS researchers?",
-      "next_discriminator": "Use the TASVideos report to localize the search to Bounder - Jumpover. Reproduce the fall-through on canonical runtime, then capture position, velocity, orientation, track-piece/collision state, screen position and recovery behavior around the failure frame. Compare the resulting state to the red/yellow recovery-track and other geometry-escape experiments before deciding whether it is the same collision family.",
-      "deliverables": [
-        "minimal Jumpover fall-through input trace",
-        "failure-frame collision/state capture",
-        "comparison against recovery-track/orange-track escape family",
-        "deterministic regression fixture if reproducible",
-        "twisting-state correlation check at failure frame"
-      ],
-      "tags": [
-        "collision",
-        "glitch",
-        "jumpover",
-        "course-geometry",
-        "fall-through",
-        "tas",
-        "fidelity"
-      ],
-      "artifact_need": {
-        "kind": "none",
-        "state": "public-prose-and-local-runtime",
-        "user_action_required": false,
-        "request": ""
-      },
-      "acquisition_tier": "closed-or-local",
-      "acquisition_judgment": "High value because the report names an exact course and behavior, making this a cheap targeted collision discriminator."
-    },
-    {
       "id": "racer-color-mechanical-equivalence",
       "value": "medium",
       "cost": "low",
@@ -871,7 +837,7 @@
         "tas-twisting-fallthrough-observation"
       ],
       "question": "What collision/timing condition allows the repeatable unmarked skip through the second large loop on Walker - Ping Pong, and is it the same engine failure family as Jumpover fall-throughs?",
-      "next_discriminator": "Use Wump's record-thread description to localize the skip to the second large loop on Walker - Ping Pong. Search deterministic timing around the loop entry/exit, capture position, velocity, orientation, track-piece and collision state across successful and failed attempts, and compare against Bounder - Jumpover fall-through and the intended red/yellow recovery-track system.",
+      "next_discriminator": "Use Wump's record-thread description to localize the skip to the second large loop on Walker - Ping Pong. Search deterministic timing around the loop entry/exit, capture position, velocity, orientation, track-piece and collision state across successful and failed attempts, and compare against the already recovered Dessyreqt Jumpover halfpipe SMVs/scripts and the intended red/yellow recovery-track system.",
       "deliverables": [
         "minimal Ping Pong loop-skip input trace",
         "successful-vs-failed collision timing comparison",
@@ -966,40 +932,6 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "High leverage because several experienced players independently describe subtle input/state behavior that directly affects movement, scoring and speed."
-    },
-    {
-      "id": "historical-tas-input-recovery",
-      "value": "high",
-      "cost": "low",
-      "status": "acquisition-needed",
-      "source_ids": [
-        "tas-halamantariel-wip-smv-2008",
-        "tasvideos-uniracers-topic"
-      ],
-      "question": "Can the publicly shared historical Uniracers SMV input movies be recovered and converted into deterministic project-owned input traces for fidelity testing?",
-      "next_discriminator": "Attempt automated retrieval of the preserved microstorage SMV URL and mirrors/archives for Halamantariel's historical speedruns directory. If recovered, fingerprint the file, identify emulator/movie format version, convert inputs into the project's deterministic trace format, and validate at least one race against known published time. If unavailable, preserve exact URLs/filenames and close as archival-only rather than repeatedly hunting.",
-      "deliverables": [
-        "recovered SMV hash/provenance or explicit retrieval dead end",
-        "SMV format/version identification",
-        "converted project-owned deterministic input trace if recoverable",
-        "one validated historical course replay fixture"
-      ],
-      "tags": [
-        "tas",
-        "smv",
-        "input-movie",
-        "determinism",
-        "archival",
-        "fixtures"
-      ],
-      "artifact_need": {
-        "kind": "SMV input movie",
-        "state": "historical-link",
-        "user_action_required": false,
-        "request": ""
-      },
-      "acquisition_tier": "P1",
-      "acquisition_judgment": "Potentially high leverage because exact historical inputs can replace prose hypotheses with deterministic replay fixtures."
     }
   ],
   "acquisition_policy": {
@@ -1009,6 +941,14 @@
       "P1": "useful corroboration; pursue opportunistically or with cheap automation",
       "P2": "optional evidence; acquire if easy, never block",
       "P3": "archival tail; preserve lead, no bespoke recovery effort unless a new discriminator raises its value"
+    }
+  },
+  "deduplication_policy": {
+    "rule": "Before adding a new external-evidence lead, search the research ledger, reference notes, catalog, generated analysis surfaces and current worklist for the same artifact, mechanic, course/glitch, address, or behavioral question under alternate terminology.",
+    "statuses": {
+      "corroboration_only": "New source supports an already solved fact; add provenance to the existing source set but do not create a new work item.",
+      "discriminator_only": "New source adds a genuinely new test or conflicting claim; extend the existing work item.",
+      "new_lead": "Create a work item only when the repository lacks both the fact and a suitable active discriminator."
     }
   }
 }

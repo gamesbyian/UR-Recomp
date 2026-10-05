@@ -1,0 +1,39 @@
+name: Challenge writer entry scan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/challenge-writer-entry-scan-2026-10-05
+    paths:
+      - ".github/workflows/challenge-writer-entry-scan.yml"
+      - "tools/scan_challenge_writer_entry.py"
+      - "tests/unit/test_scan_challenge_writer_entry.py"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify scanner and canonical ROM
+        run: |
+          python3 -m unittest tests.unit.test_scan_challenge_writer_entry
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Scan writer neighborhood
+        run: |
+          mkdir -p analysis/generated
+          python3 tools/scan_challenge_writer_entry.py             "reference/roms/retail/Uniracers_USA.sfc"             --out analysis/generated/challenge-writer-entry-scan.json             | tee "$RUNNER_TEMP/challenge-writer-entry-scan.log"
+
+      - name: Upload bounded evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: challenge-writer-entry-scan
+          path: |
+            analysis/generated/challenge-writer-entry-scan.json
+            ${{ runner.temp }}/challenge-writer-entry-scan.log
+          if-no-files-found: warn
+          retention-days: 7

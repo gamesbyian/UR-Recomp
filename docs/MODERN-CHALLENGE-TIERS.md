@@ -33,6 +33,26 @@ Hunter remains discovery content and canonical Gold-only once legitimately avail
 
 `native/product/modern_challenge_tier_selector.hpp` turns that policy into a host-navigation-ready selector without duplicating progression rules in UI code. Ordinary tours expose Bronze/Silver/Gold and default to the next stock-sequential tier (or Gold once already complete). Hunter collapses to one Gold choice. Authentic, unavailable tours and invalid medal state expose no selector.
 
+## Qualification semantics
+
+The stock result path now closes the remaining qualification question mechanically.
+
+At `83:879A`, stock dispatches the qualifying-result check by `$074B & 3`. Event types 0 and 1 share `83:88D3`, which compares the live result fields `$0769` and `$07D3` and does **not** read either the persistent medal or `0x10D1`. Therefore race/circuit qualification remains stock-owned once the selected generation has produced the canonical opponent/race setup.
+
+Stunt is the one exception. Event type 2 dispatches to `83:88E1`, which calls `83:9EEB`. That routine:
+
+1. computes the active medal cell with `83:9EB4`;
+2. reads the checksum-protected persistent medal at `$77:069C,X`;
+3. converts completion medal 3 back to challenge generation 2;
+4. indexes the 16-bit table at `83:A218` with `3 * tour_row + generation`;
+5. returns the numeric `QUALIFY` target.
+
+For Crawler, the stock thresholds are Bronze **68**, Silver **137**, Gold **270**; the retained Bronze result-screen capture displays `QUALIFY : 68`, matching the table exactly.
+
+`native/title/uniracers_challenge_qualification.{hpp,cpp}` now models the only Modern substitution required here. It is write-free and fail-closed. For an ordinary-tour stunt result, it may substitute the selected challenge generation only when rider, tour, 1P mode, expected persistent medal and stock-derived generation all still agree. Hunter and stale/malformed context are rejected. Race/circuit paths need no analogous qualification hook.
+
+The generated/runtime callsite integration for `83:9EEB` remains gated until its execution-tier ownership is proven, just like the `80:E6A2` snapshot writer.
+
 ## Completion commit policy
 
 `native/product/modern_challenge_commit_policy.hpp` defines the only product-level circumstances under which a selected tier may request persistent progression. Selection, launch and ordinary race completion are not commit authority by themselves.

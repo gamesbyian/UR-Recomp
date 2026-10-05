@@ -56,6 +56,15 @@ int main() {
     assert(!tour_resume_source_matches_sram(
         stale_source, sram.data(), sram.size()));
 
+    sram[0x0748] = 2;
+    assert(!tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x0748] = 3;
+    sram[0x10AD] = 2;
+    assert(!tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    sram[0x10AD] = 1;
+
     // Model stock rider confirmation wiping all 50 in-tour flags.
     for (std::size_t i = 0; i < 50; ++i) sram[0x1075 + i] = 0;
     assert(apply_tour_resume(

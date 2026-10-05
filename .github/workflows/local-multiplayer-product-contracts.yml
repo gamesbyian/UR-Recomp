@@ -1,0 +1,26 @@
+name: Local multiplayer product contracts
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/local_multiplayer_*.hpp"
+      - "tests/native/local_multiplayer_*_test.cpp"
+      - "tests/unit/test_local_multiplayer_*_cpp.py"
+      - "docs/LOCAL-MULTIPLAYER-SETUP.md"
+      - ".github/workflows/local-multiplayer-product-contracts.yml"
+
+concurrency:
+  group: local-multiplayer-product-contracts-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Run local multiplayer product contracts
+        run: python3 -m unittest tests.unit.test_local_multiplayer_setup_cpp

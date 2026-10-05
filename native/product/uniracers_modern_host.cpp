@@ -673,8 +673,8 @@ bool recent_course_available_for_active_profile() {
 
 bool practice_routing() {
     return g_practice_active &&
-           g_practice_launch.stage != ur::product::QuickPracticeLaunchStage::Idle &&
-           g_practice_launch.stage != ur::product::QuickPracticeLaunchStage::Active;
+           ur::product::quick_practice_launch_owns_player_input(
+               g_practice_launch);
 }
 
 void observe_recent_course_identity() {

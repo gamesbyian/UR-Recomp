@@ -638,6 +638,7 @@ ur::product::FastNavigationContext fast_navigation_context() {
         g_session && ur_modern_session_restart_available(g_session),
         g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7,
         g_practice_active,
+        g_recent_course_track_id.has_value(),
         recent_course_available_for_active_profile(),
     };
 }

@@ -340,16 +340,39 @@ void product_diagnostic(const char* message) {
     std::fflush(stderr);
 }
 
+std::string product_user_data_root() {
+    const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
+    if (override_root && *override_root) {
+        std::string root(override_root);
+        while (!root.empty() && (root.back() == '/' || root.back() == '\\')) {
+            root.pop_back();
+        }
+        return root;
+    }
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string root(pref_path);
+    SDL_free(pref_path);
+    while (!root.empty() && (root.back() == '/' || root.back() == '\\')) {
+        root.pop_back();
+    }
+    return root;
+}
+
+std::string product_user_data_path(const char* leaf) {
+    std::string root = product_user_data_root();
+    if (root.empty() || !leaf || !*leaf) return {};
+    root += "/";
+    root += leaf;
+    return root;
+}
+
 std::string resolve_onboarding_seen_path() {
     const char* override_path = std::getenv("UR_ONBOARDING_STATE_PATH");
     if (override_path && *override_path) return override_path;
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "onboarding-v1.seen";
-    return path;
+    return product_user_data_path("onboarding-v1.seen");
 }
 
 void ensure_onboarding_state() {
@@ -446,36 +469,21 @@ std::string resolve_practice_root() {
     const char* override_root = std::getenv("UR_PRACTICE_SAVE_ROOT");
     if (override_root && *override_root) return override_root;
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "practice-session";
-    return path;
+    return product_user_data_path("practice-session");
 }
 
 std::string resolve_practice_input_path() {
     const char* override_path = std::getenv("UR_PRACTICE_INPUT_PATH");
     if (override_path && *override_path) return override_path;
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "practice-input.txt";
-    return path;
+    return product_user_data_path("practice-input.txt");
 }
 
 std::string resolve_tour_continue_input_path() {
     const char* override_path = std::getenv("UR_TOUR_CONTINUE_INPUT_PATH");
     if (override_path && *override_path) return override_path;
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "tour-continue-input.txt";
-    return path;
+    return product_user_data_path("tour-continue-input.txt");
 }
 
 bool queue_relative_menu_input(
@@ -1098,14 +1106,7 @@ std::string resolve_product_state_path() {
         return override_path;
     }
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) {
-        return {};
-    }
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "host-state-v1.txt";
-    return path;
+    return product_user_data_path("host-state-v1.txt");
 }
 
 void ensure_product_state() {
@@ -1174,11 +1175,7 @@ bool persist_product_state(const ur::product::HostProductState& candidate) {
 
 std::string profile_catalog_path() {
     if (!g_profile_catalog_path.empty()) return g_profile_catalog_path;
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    g_profile_catalog_path = pref_path;
-    SDL_free(pref_path);
-    g_profile_catalog_path += "profiles-v1.txt";
+    g_profile_catalog_path = product_user_data_path("profiles-v1.txt");
     return g_profile_catalog_path;
 }
 
@@ -2414,11 +2411,9 @@ std::string default_run_record_directory() {
     if (!run_record_capture_enabled()) return {};
     ensure_product_state();
 
-    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
-    if (!pref_path) return {};
-    std::string path(pref_path);
-    SDL_free(pref_path);
-    path += "runs/";
+    std::string path = product_user_data_path("runs");
+    if (path.empty()) return {};
+    path += "/";
     path += g_product_state.active_profile_id.value_or("default");
     return path;
 }

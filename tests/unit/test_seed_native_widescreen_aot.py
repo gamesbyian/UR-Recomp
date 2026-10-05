@@ -33,6 +33,11 @@ class NativeWidescreenAotSeedTests(unittest.TestCase):
             self.assertIn('addr = "E6A2"', st)
             self.assertIn('bank = 0', st)
             self.assertIn("func RaceFrameOrchestratorLoop CBCC", bank3)
+            self.assertIn(
+                "func TourStuntQualificationThreshold 9EEB", bank3)
+            self.assertIn(
+                'name = "TourStuntQualificationThreshold"', st)
+            self.assertIn('addr = "9EEB"', st)
             self.assertIn('name = "RaceFrameOrchestratorLoop"', st)
             self.assertIn('addr = "CBCC"', st)
             self.assertIn('bank = 3', st)

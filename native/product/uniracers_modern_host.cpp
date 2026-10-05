@@ -598,13 +598,15 @@ void advance_practice_route(uint64_t next_frame) {
             active_track_id,
         });
     const auto expected_track_id = launch_before.target.track_id;
+    const auto retry_state =
+        ur::product::quick_practice_launch_retry_state(launch_before);
     g_practice_launch = step.state;
 
     if (step.timed_out) {
         // Preserve the timed-out routing state until the reboot request is
         // accepted. If the request fails transactionally, the next host frame
         // retries the same fail-closed abort rather than releasing guest input.
-        g_practice_launch = launch_before;
+        g_practice_launch = retry_state;
         if (!abort_practice_route_to_frontend("UR_PRACTICE ROUTE_TIMEOUT")) {
             product_diagnostic("UR_PRACTICE ROUTE_TIMEOUT_EXIT_RETRY");
         }
@@ -624,7 +626,7 @@ void advance_practice_route(uint64_t next_frame) {
         }
         // A target-aware Practice launch must never silently bless an attract
         // race, bypassed frontend route, or different stock course.
-        g_practice_launch = launch_before;
+        g_practice_launch = retry_state;
         if (!abort_practice_route_to_frontend(
                 step.route_violation
                     ? "UR_PRACTICE ROUTE_VIOLATION_ABORTED"
@@ -652,7 +654,7 @@ void advance_practice_route(uint64_t next_frame) {
         // The state machine advances when it *requests* an input. If transport
         // fails, restore the prior state so the same semantic input is retried
         // instead of pretending the stock menu consumed an edge it never saw.
-        g_practice_launch = launch_before;
+        g_practice_launch = retry_state;
         product_diagnostic("UR_PRACTICE INPUT_FAILED");
         return;
     }

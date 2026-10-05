@@ -35,6 +35,9 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_modern_native_widescreen_enabled", patched)
         self.assertIn("ur_uniracers_modern_prepare_frame", patched)
         self.assertIn("ur_uniracers_modern_compute_viewport", patched)
+        self.assertIn("ur_uniracers_modern_begin_sim_frame", patched)
+        self.assertIn("ur_uniracers_modern_draw_frame", patched)
+        self.assertIn("ur_uniracers_modern_presentation_scale", patched)
         self.assertNotIn("UR_RESTART_PROBE", patched)
         self.assertEqual(patch_main_text(patched), patched)
 
@@ -104,6 +107,9 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_ghost_frame.cpp",
             "completed_run_ghost_trace.cpp",
             "racer_replacement_selector.cpp",
+            "racer_guest_snapshot.cpp",
+            "racer_oam_placement.cpp",
+            "racer_hd_presenter.cpp",
             "completed_run_ghost_racer_selector.cpp",
             "completed_run_ghost_raster.cpp",
             "modern_session_c_api.cpp",

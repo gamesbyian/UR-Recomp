@@ -871,10 +871,12 @@ const RacerRegistration* find_racer_registration(std::uint16_t semantic_frame_id
 
 const RacerRegistration* find_racer_registration_for_state(
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept {
     for (const auto& registration : kRegistrations) {
         if (registration.semantic_frame_id == semantic_frame_id &&
+            registration.player == player &&
             composition_equal(registration.composition, live_state)) {
             return &registration;
         }
@@ -885,7 +887,8 @@ const RacerRegistration* find_racer_registration_for_state(
 SelectionResult select_racer_presentation(
     GraphicsPack requested_pack,
     std::uint16_t semantic_frame_id,
-    const RacerCompositionState& live_state
+    const RacerCompositionState& live_state,
+    std::uint8_t player
 ) noexcept {
     if (requested_pack == GraphicsPack::Original) {
         return {
@@ -908,7 +911,7 @@ SelectionResult select_racer_presentation(
     }
 
     const RacerRegistration* registration =
-        find_racer_registration_for_state(semantic_frame_id, live_state);
+        find_racer_registration_for_state(semantic_frame_id, live_state, player);
     if (registration == nullptr) {
         return {
             requested_pack,

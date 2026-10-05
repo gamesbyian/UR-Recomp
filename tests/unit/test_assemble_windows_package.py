@@ -50,10 +50,16 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("WINDOWS_PACKAGE_ASSEMBLED", result.stdout)
             self.assertFalse((package / "stale.txt").exists())
             self.assertTrue((package / "run-uniracers.cmd").is_file())
+            launcher = (package / "run-uniracers.cmd").read_text()
             self.assertIn(
                 '"UniracersSNESRecomp.exe" "Uniracers_USA.sfc" %*',
-                (package / "run-uniracers.cmd").read_text(),
+                launcher,
             )
+            self.assertIn(
+                "UR-Recomp cannot start: required file missing: Uniracers_USA.sfc",
+                launcher,
+            )
+            self.assertIn("exit /b %ERRORLEVEL%", launcher)
 
             manifest = json.loads(
                 (package / "PACKAGE-MANIFEST.json").read_text()

@@ -8,11 +8,6 @@ on:
       - "analysis/widescreen-vs-plus40-capacity-evidence.json"
       - "analysis/widescreen-policy.yml"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
-      - "analysis/widescreen-vs-plus40-capacity-evidence.json"
-      - "analysis/widescreen-policy.yml"
-      - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
       - "tools/apply_native_widescreen_hook.py"
       - "tests/unit/test_apply_native_widescreen_hook.py"
       - "tools/seed_native_widescreen_aot.py"
@@ -20,10 +15,6 @@ on:
       - "tools/summarize_paired_player_slots.py"
       - "tests/input/vs-first-race.input"
       - "tests/input/vs-first-race-observe.script"
-      - "analysis/widescreen-vs-plus40-capacity-evidence.json"
-      - "analysis/widescreen-policy.yml"
-      - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-plus40-capacity-${{ github.ref }}

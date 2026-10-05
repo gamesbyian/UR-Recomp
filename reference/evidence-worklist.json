@@ -646,7 +646,7 @@
         "tasvideos-uniracers-topic"
       ],
       "question": "Which stock persistence/UI invariants are violated or intentionally tolerated by player-discovered medal-selection and league-deletion edge cases?",
-      "next_discriminator": "Reproduce the reported behaviors on canonical runtime: medal/opponent downgrade selection after earning higher medals, and creation of a one-player league by deleting the second racer after league setup. Capture SRAM diffs, menu state, league membership, record ownership and progression effects before/after each step. Decide whether modern profile/product layers should preserve, expose, normalize or safely contain these stock states.",
+      "next_discriminator": "Reproduce the reported behaviors on canonical runtime: medal/opponent downgrade selection after earning higher medals, and creation of a one-player league by deleting the second racer after league setup. Capture SRAM diffs, menu state, league membership, record ownership and progression effects before/after each step. Decide whether modern profile/product layers should preserve, expose, normalize or safely contain these stock states. Cross-check the medal exploit against caitsith2's TASVideos description, which specifically reports a Bronze-opponent/Silver-qualifier state mismatch after returning to Bronze from Silver selection.",
       "deliverables": [
         "single-player league reproduction trace",
         "medal/opponent selection exploit reproduction trace",
@@ -680,15 +680,17 @@
       "source_ids": [
         "world-of-nintendo-uniracers-codes",
         "libretro-uniracers-cheats",
-        "orangestar-uniracers-faq-2001"
+        "orangestar-uniracers-faq-2001",
+        "gamehacking-org-uniracers"
       ],
       "question": "Which legacy Game Genie/PAR codes independently identify ROM/RAM locations for timer, speed, stunt classification, CPU start state, lead indicator and visual presentation?",
-      "next_discriminator": "Normalize the historical code sets, deduplicate against the imported libretro corpus, decode ROM patch addresses where possible, and test only codes that add a distinct state seam. Prioritize stunt classification, speed/timer, CPU-start, lead-indicator and FAE DINE behavior. Promote addresses only after canonical local reproduction.",
+      "next_discriminator": "Normalize the historical code sets, deduplicate against the imported libretro corpus, decode ROM patch addresses where possible, and test only codes that add a distinct state seam. Prioritize stunt classification, speed/timer, CPU-start, lead-indicator and FAE DINE behavior. Promote addresses only after canonical local reproduction. Include GameHacking.org's jump-in-midair, qualifying-score, lap quick-win and explicit timer codes; use them as localization probes, not behavioral truth.",
       "deliverables": [
         "deduplicated legacy-code concordance table",
         "decoded ROM/RAM address map for unique codes",
         "canonical behavior checks for unique state seams",
-        "explicit dead/duplicate/misdocumented classification"
+        "explicit dead/duplicate/misdocumented classification",
+        "jump-eligibility and lap-completion state probes from unique codes"
       ],
       "tags": [
         "cheats",

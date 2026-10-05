@@ -20,6 +20,7 @@ extern "C" {
 #include "completed_run_store.hpp"
 #include "clean_stock_sram.hpp"
 #include "focus_pause_policy.hpp"
+#include "fast_repeat_navigation.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
 #include "host_profile_runtime.hpp"
@@ -33,6 +34,7 @@ extern "C" {
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
+#include "quick_practice_input_mask.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -91,20 +93,10 @@ bool g_onboarding_acceptance_fired;
 bool g_binding_diagnostics_reported;
 std::string g_onboarding_seen_path;
 
-enum class PracticeStage {
-    Idle = 0,
-    AwaitMain,
-    AwaitRider,
-    AwaitTour,
-    AwaitTrack,
-    AwaitNowPlaying,
-    AwaitRace,
-    Active,
-};
-
 bool g_practice_active;
 bool g_practice_acceptance_fired;
-PracticeStage g_practice_stage = PracticeStage::Idle;
+ur::product::QuickPracticeLaunchState g_practice_launch;
+std::optional<std::uint8_t> g_recent_course_track_id;
 std::vector<uint8_t> g_practice_sram_snapshot;
 std::string g_practice_original_save_root;
 std::string g_practice_input_path;
@@ -452,8 +444,15 @@ std::string resolve_practice_input_path() {
     return path;
 }
 
-bool queue_practice_accept(uint64_t origin_frame) {
+bool queue_practice_input(
+    uint64_t origin_frame,
+    ur::product::QuickPracticeLaunchInput input
+) {
     if (!g_practice_active) return false;
+    const std::uint16_t mask = ur::product::quick_practice_runner_mask(input);
+    if (!ur::product::quick_practice_runner_mask_is_discrete_menu_input(mask)) {
+        return false;
+    }
     if (g_practice_input_path.empty()) {
         g_practice_input_path = resolve_practice_input_path();
     }
@@ -464,9 +463,12 @@ bool queue_practice_accept(uint64_t origin_frame) {
             g_practice_input_path,
             std::ios::binary | std::ios::trunc);
         if (!out) return false;
-        // SNES serial controller mask bit 8 is A. Two frames is long enough
-        // for stock menu edge detection while remaining one discrete press.
-        out << "0:2:100\n";
+        // Two frames is long enough for stock menu edge detection while
+        // remaining one discrete normalized press.
+        char line[32];
+        std::snprintf(line, sizeof(line), "0:2:%X\\n",
+            static_cast<unsigned>(mask));
+        out << line;
         out.flush();
         if (!out) return false;
     }
@@ -479,8 +481,9 @@ bool queue_practice_accept(uint64_t origin_frame) {
     return true;
 }
 
-bool begin_practice() {
-    if (!modern_mode() || g_practice_active || paused() ||
+bool begin_practice(std::uint8_t track_id = 0) {
+    const auto target = ur::product::quick_practice_target_for_track(track_id);
+    if (!modern_mode() || !target.valid || g_practice_active || paused() ||
         g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
@@ -501,13 +504,14 @@ bool begin_practice() {
     RtlEnsureSaveDir();
 
     g_practice_active = true;
-    g_practice_stage = PracticeStage::AwaitMain;
+    g_practice_launch = ur::product::begin_quick_practice_launch(target);
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_PRACTICE STARTED sram=%08X root=%s\n",
+            "UR_PRACTICE STARTED sram=%08X root=%s track=%u\n",
             static_cast<unsigned>(current_sram_digest()),
-            RtlSaveRoot());
+            RtlSaveRoot(),
+            static_cast<unsigned>(track_id));
         std::fflush(stderr);
     }
     return true;
@@ -532,7 +536,7 @@ bool restore_practice_profile_before_reboot() {
             : g_practice_original_save_root.c_str());
 
     g_practice_active = false;
-    g_practice_stage = PracticeStage::Idle;
+    g_practice_launch = {};
     g_practice_sram_snapshot.clear();
     g_practice_original_save_root.clear();
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -549,66 +553,95 @@ bool restore_practice_profile_before_reboot() {
 void advance_practice_route(uint64_t next_frame) {
     if (!g_practice_active) return;
 
-    // Some stock menu transitions can pass through their stable IDs between
-    // host observation boundaries. Active-race state is authoritative and
-    // must close the route even when an intermediate menu was not sampled.
-    if (g_ram[0x0313] == 0x01) {
-        if (g_practice_stage != PracticeStage::Active) {
-            g_practice_stage = PracticeStage::Active;
-            product_diagnostic("UR_PRACTICE RACE_READY");
-        }
+    const auto step = ur::product::advance_quick_practice_launch(
+        g_practice_launch,
+        ur::product::QuickPracticeLaunchObservation{
+            g_ram[0x009F],
+            g_ram[0x009B],
+            g_ram[0x0313] == 0x01,
+        });
+    g_practice_launch = step.state;
+
+    if (step.race_ready) {
+        product_diagnostic("UR_PRACTICE RACE_READY");
         return;
     }
-
-    auto accept = [&](PracticeStage next, const char* stage_name) {
-        if (!queue_practice_accept(next_frame)) {
-            product_diagnostic("UR_PRACTICE INPUT_FAILED");
-            return false;
-        }
-        g_practice_stage = next;
-        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-            std::fprintf(stderr, "UR_PRACTICE ACCEPT stage=%s\n", stage_name);
-            std::fflush(stderr);
-        }
-        return true;
-    };
-
-    switch (g_practice_stage) {
-    case PracticeStage::AwaitMain:
-        if (g_ram[0x009F] == 0xD7) {
-            (void)accept(PracticeStage::AwaitRider, "main");
-        }
-        break;
-    case PracticeStage::AwaitRider:
-        if (g_ram[0x009F] == 0x3C) {
-            (void)accept(PracticeStage::AwaitTour, "rider");
-        }
-        break;
-    case PracticeStage::AwaitTour:
-        if (g_ram[0x009F] == 0x6D) {
-            (void)accept(PracticeStage::AwaitTrack, "tour");
-        }
-        break;
-    case PracticeStage::AwaitTrack:
-        if (g_ram[0x009F] == 0xF6) {
-            (void)accept(PracticeStage::AwaitNowPlaying, "track");
-        }
-        break;
-    case PracticeStage::AwaitNowPlaying:
-        if (g_ram[0x009F] == 0x16) {
-            (void)accept(PracticeStage::AwaitRace, "now-playing");
-        }
-        break;
-    case PracticeStage::AwaitRace:
-        if (g_ram[0x0313] == 0x01) {
-            g_practice_stage = PracticeStage::Active;
-            product_diagnostic("UR_PRACTICE RACE_READY");
-        }
-        break;
-    case PracticeStage::Idle:
-    case PracticeStage::Active:
-        break;
+    if (step.input == ur::product::QuickPracticeLaunchInput::None) {
+        return;
     }
+    if (!queue_practice_input(next_frame, step.input)) {
+        product_diagnostic("UR_PRACTICE INPUT_FAILED");
+        return;
+    }
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PRACTICE INPUT stage=%u input=%u selected=%u\n",
+            static_cast<unsigned>(g_practice_launch.stage),
+            static_cast<unsigned>(step.input),
+            static_cast<unsigned>(g_ram[0x009B]));
+        std::fflush(stderr);
+    }
+}
+
+void observe_recent_course_identity() {
+    if (!modern_mode() || !g_ram || g_ram[0x0313] != 0x01) return;
+    const UrUniracersCourseIdentity course =
+        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
+    if (!course.valid || course.course_index < 1 || course.course_index > 45) {
+        return;
+    }
+    g_recent_course_track_id =
+        static_cast<std::uint8_t>(course.course_index - 1);
+}
+
+ur::product::FastNavigationContext fast_navigation_context() {
+    return {
+        modern_mode(),
+        restart_surface(),
+        g_session && ur_modern_session_restart_available(g_session),
+        g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7,
+        g_practice_active,
+        g_recent_course_track_id.has_value(),
+    };
+}
+
+bool repeat_current_attempt() {
+    if (ur::product::resolve_fast_navigation(
+            ur::product::FastNavigationCommand::RepeatAttempt,
+            fast_navigation_context()) !=
+        ur::product::FastNavigationAction::RestartAttempt) {
+        return false;
+    }
+    const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
+    if (handled) {
+        rearm_run_capture_after_retry();
+        product_diagnostic(
+            g_practice_active
+                ? "UR_FAST_NAV REPEAT_PRACTICE"
+                : "UR_FAST_NAV REMATCH");
+    }
+    return handled;
+}
+
+bool launch_recent_course_practice() {
+    if (ur::product::resolve_fast_navigation(
+            ur::product::FastNavigationCommand::RecentCourse,
+            fast_navigation_context()) !=
+        ur::product::FastNavigationAction::LaunchRecentPractice ||
+        !g_recent_course_track_id) {
+        return false;
+    }
+    const std::uint8_t track_id = *g_recent_course_track_id;
+    if (!begin_practice(track_id)) return false;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_FAST_NAV RECENT_PRACTICE track=%u\n",
+            static_cast<unsigned>(track_id));
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 const char* display_mode_name(ur::product::HostDisplayMode mode) {
@@ -2585,6 +2618,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_ram[0x0313],
             g_ram[0x009F]);
     g_surface = decision.surface;
+    observe_recent_course_identity();
     g_widescreen_scene = ur::product::observe_widescreen_scene(
         &g_widescreen_scene_state,
         g_ram[0x0313],
@@ -2700,6 +2734,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
         return begin_practice() ? 1 : 0;
     }
+    if (modern_mode() && key == SDLK_F6 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        (void)launch_recent_course_practice();
+        return 1;
+    }
 
     if (g_profile_menu_visible) {
         return handle_profile_menu_key(key) ? 1 : 0;
@@ -2762,12 +2801,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return activate_pause_selection() ? 1 : 0;
     }
-    if (key == SDLK_r && (mod & KMOD_CTRL) &&
-        restart_surface() &&
-        ur_modern_session_restart_available(g_session)) {
-        const bool handled = dispatch(UR_MODERN_PAUSE_RESTART_HOTKEY);
-        if (handled) rearm_run_capture_after_retry();
-        return handled ? 1 : 0;
+    if (key == SDLK_r && (mod & KMOD_CTRL)) {
+        return repeat_current_attempt() ? 1 : 0;
+    }
+    if (key == SDLK_r &&
+        g_surface == UR_UNIRACERS_RESTART_RESULTS) {
+        (void)repeat_current_attempt();
+        return 1;
     }
     return 0;
 }
@@ -2815,6 +2855,16 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (modern_mode() && button == kGamepadBtn_X && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
         return begin_practice() ? 1 : 0;
+    }
+    if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        (void)launch_recent_course_practice();
+        return 1;
+    }
+    if (modern_mode() && button == kGamepadBtn_X &&
+        g_surface == UR_UNIRACERS_RESTART_RESULTS) {
+        (void)repeat_current_attempt();
+        return 1;
     }
 
     if (modern_mode() && button == kGamepadBtn_X && !paused() &&
@@ -3549,6 +3599,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
     } else {
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 11,
-            "START / CTRL+R  RETRY", 0xFFFFFFFFu, 1);
+            g_practice_active
+                ? "R / PAD X  REPEAT PRACTICE"
+                : "R / PAD X  REMATCH   CTRL+R RETRY",
+            0xFFFFFFFFu, 1);
     }
 }

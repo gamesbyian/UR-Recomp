@@ -384,6 +384,7 @@ Owning plan: `docs/REGIONAL-PRESENTATION.md`.
 - [ ] Extract/aligned user-visible text/legal candidates and cross-check them against framebuffer evidence; do not promote cartridge-header/internal strings as presentation differences.
 - [ ] Add a pure secret-input recognizer: keyboard `PAL` / `NTSC`; controller Left Left Left L A / Right Right Right R A; title-surface gating, timeout/reset, wrong-order/overlap tests, no swallowed ordinary navigation, Authentic inertness.
 - [ ] Add typed `RegionalPresentation::{NorthAmerica,Europe}` state. Internal naming must avoid implying PAL timing/simulation authority.
+- [ ] Persist regional presentation as global host-owned product state on every platform with supported durable storage; prove clean shutdown/fresh-process restoration, NorthAmerica first-run fallback, profile independence, malformed-state fallback and Authentic inertness. Platforms without durable writable host storage may remain session-only.
 - [ ] Bind the first shipping consumer to exact title branding only after the logo provenance experiment closes. Keep NorthAmerica the default.
 - [ ] Add further frontend regional consumers only when explicitly supported by retained evidence.
 - [ ] Consider course-local Europe presentation deltas only if the seven-course experiment proves them visual-only. Never use the easter egg to alter authoritative race topology or timing.

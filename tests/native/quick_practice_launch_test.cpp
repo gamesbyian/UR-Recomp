@@ -98,6 +98,23 @@ static void prove_all_tracks_reach_race() {
 }
 
 int main() {
+    QuickPracticeLaunchState ownership{};
+    assert(!quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitMain;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitRider;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitTour;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitTrack;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitNowPlaying;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::AwaitRace;
+    assert(quick_practice_launch_owns_player_input(ownership));
+    ownership.stage = QuickPracticeLaunchStage::Active;
+    assert(!quick_practice_launch_owns_player_input(ownership));
+
     prove_all_tracks_reach_race();
 
     const auto target =

@@ -9,6 +9,8 @@ on:
       - ".github/workflows/generated-challenge-seam-probe.yml"
       - "tools/extract_generated_challenge_qualification.py"
       - "tests/unit/test_extract_generated_challenge_qualification.py"
+      - "tools/extract_stunt_qualify_table.py"
+      - "tests/unit/test_extract_stunt_qualify_table.py"
       - "tools/seed_native_widescreen_aot.py"
       - "tools/patch_challenge_generation_writer.py"
       - "tools/prepare_native_widescreen_product.py"
@@ -20,8 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Verify extraction helper
-        run: python3 -m unittest tests.unit.test_extract_generated_challenge_qualification
+      - name: Verify extraction helpers
+        run: |
+          python3 -m unittest \
+            tests.unit.test_extract_generated_challenge_qualification \
+            tests.unit.test_extract_stunt_qualify_table
 
       - name: Stage SNESRecomp
         run: |
@@ -54,6 +59,9 @@ jobs:
           python3 tools/extract_generated_challenge_qualification.py \
             "$ROOT/src/gen" \
             --out analysis/generated/generated-challenge-qualification.json
+          python3 tools/extract_stunt_qualify_table.py \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --out analysis/generated/stunt-qualify-table.json
 
       - name: Upload seam evidence
         if: always()
@@ -62,6 +70,7 @@ jobs:
           name: generated-challenge-seam-probe
           path: |
             analysis/generated/generated-challenge-qualification.json
+            analysis/generated/stunt-qualify-table.json
             ${{ runner.temp }}/challenge-prepare.json
           if-no-files-found: warn
           retention-days: 7

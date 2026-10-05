@@ -1,7 +1,9 @@
 name: course runtime payload probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: course-runtime-payload-${{ github.ref }}
   cancel-in-progress: true
 

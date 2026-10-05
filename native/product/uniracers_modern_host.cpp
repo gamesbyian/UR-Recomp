@@ -612,11 +612,9 @@ void advance_practice_route(uint64_t next_frame) {
         // accepted Practice restore + frontend reboot lifecycle so SRAM/profile
         // state remains isolated and fail closed.
         if (!exit_to_frontend()) {
-            // The raw race byte can precede the validated restart surface by a
-            // frame. Preserve the prior launch state so the next observation
-            // retries the same fail-closed recovery instead of stranding
-            // Practice in an Idle-but-active limbo.
-            g_practice_launch = launch_before;
+            // exit_to_frontend() is transactional for Practice. If the reboot
+            // request is rejected, the live disposable SRAM/root and launch
+            // bookkeeping are restored exactly and this recovery can retry.
             product_diagnostic(
                 step.route_violation
                     ? "UR_PRACTICE ROUTE_VIOLATION_EXIT_RETRY"
@@ -2034,9 +2032,38 @@ bool exit_to_frontend() {
     const int source_surface = static_cast<int>(g_surface);
     const uint32_t before_sram = current_sram_digest();
     const bool returning_from_practice = g_practice_active;
-    if (returning_from_practice &&
-        !restore_practice_profile_before_reboot()) {
-        return false;
+
+    // Practice restore must happen before requesting the session reboot because
+    // the framework durably publishes the *current* cartridge SRAM as part of
+    // an accepted reboot request. Make that transition transactional: if the
+    // request fails, put the live disposable Practice SRAM/root and all host
+    // bookkeeping back exactly so isolation is preserved and retry is safe.
+    std::vector<std::uint8_t> practice_live_sram;
+    std::vector<std::uint8_t> practice_profile_snapshot;
+    std::string practice_live_root;
+    std::string practice_original_root;
+    ur::product::QuickPracticeLaunchState practice_launch;
+    bool practice_race_ready_reported = false;
+
+    if (returning_from_practice) {
+        if (!g_sram ||
+            g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+            product_diagnostic("UR_PRACTICE RESTORE_FAILED");
+            return false;
+        }
+        practice_live_sram.assign(
+            g_sram,
+            g_sram + static_cast<std::size_t>(g_sram_size));
+        practice_profile_snapshot = g_practice_sram_snapshot;
+        const char* live_root = RtlSaveRoot();
+        practice_live_root = live_root ? live_root : "";
+        practice_original_root = g_practice_original_save_root;
+        practice_launch = g_practice_launch;
+        practice_race_ready_reported = g_practice_race_ready_reported;
+
+        if (!restore_practice_profile_before_reboot()) {
+            return false;
+        }
     }
 
     // Queue a full host-owned session rebuild. The request durably publishes
@@ -2045,6 +2072,23 @@ bool exit_to_frontend() {
     // snes_free + SnesInit + RtlReadSram lifecycle used for framework session
     // replacement. No guest PC, WRAM menu byte or progression state is forged.
     if (!snesrecomp_desktop_request_session_reboot()) {
+        if (returning_from_practice &&
+            practice_live_sram.size() == ur::product::kStockSramBytes) {
+            std::memcpy(
+                g_sram,
+                practice_live_sram.data(),
+                ur::product::kStockSramBytes);
+            RtlSetSaveRoot(
+                practice_live_root.empty()
+                    ? nullptr
+                    : practice_live_root.c_str());
+            g_practice_active = true;
+            g_practice_race_ready_reported = practice_race_ready_reported;
+            g_practice_launch = practice_launch;
+            g_practice_sram_snapshot = std::move(practice_profile_snapshot);
+            g_practice_original_save_root = std::move(practice_original_root);
+            product_diagnostic("UR_PRACTICE RESTORE_ROLLED_BACK");
+        }
         product_diagnostic("UR_EXIT_FRONTEND RESET_REQUEST_FAILED");
         return false;
     }

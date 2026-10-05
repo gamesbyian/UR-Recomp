@@ -1,15 +1,7 @@
 name: Medal progression bounded search
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/medal-progression-acceptance-2026-10-02
-    paths:
-      - "tests/input/medal-progression-search.script"
-      - "tools/locate_first_medal_award.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: medal-progression-search-${{ github.ref }}
   cancel-in-progress: true
 

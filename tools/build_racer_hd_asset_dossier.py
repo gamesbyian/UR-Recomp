@@ -1353,7 +1353,11 @@ def build_dossier(
             },
             "fallback": entry["fallback"],
             "art_review": {
-                "shipping_art_approved": False,
+                "shipping_approval_source": (
+                    authored_candidate.get("shipping_approval_source")
+                    if authored_candidate is not None
+                    else None
+                ),
                 "evidence_packet_ready": True,
                 "authored_candidate": authored_candidate,
                 "resolved_decisions": dict(RESOLVED_VISUAL_LANGUAGE),
@@ -1404,7 +1408,14 @@ def build_dossier(
             "stock_geometry_rederived_from_rom": True,
             "registered_anchors_match_rederived_stock": True,
             "candidate_status_is_contract_only": all(
-                not rep["art_review"]["shipping_art_approved"]
+                rep["current_contract_candidate"]["approval_status"]
+                == "contract-only candidate; not approved shipping art"
+                for rep in representations
+            ),
+            "authored_shipping_approval_externalized": all(
+                rep["art_review"]["authored_candidate"] is not None
+                and rep["art_review"]["shipping_approval_source"]
+                == "analysis/data/racer-hd-art-approval.json"
                 for rep in representations
             ),
             "ready_for_art_review": True,
@@ -1412,7 +1423,10 @@ def build_dossier(
         "remaining_scope": {
             "phase_e_globally_complete": False,
             "ordinary_race_racer_family_semantic_gate_reached": True,
-            "shipping_art_approved": False,
+            "shipping_art_approval_source": (
+                "analysis/data/racer-hd-art-approval.json joined by "
+                "tools/build_racer_hd_shipping_readiness.py"
+            ),
             "broader_animation_families": "open; admit deliberately by product/art need",
         },
     }

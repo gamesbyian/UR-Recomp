@@ -158,7 +158,10 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(sample_authored_0541_p1_rgba(128, 22), bytes((49, 45, 38, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(118, 28), bytes((41, 37, 29, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(118, 31), bytes((25, 23, 17, 255)))
-        self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((232, 83, 83, 255)))
+        # The shipping-approved crown integration lets the neck/frame
+        # member shading continue through the junction instead of overpainting
+        # this boundary pixel with the former collar highlight.
+        self.assertEqual(sample_authored_0541_p1_rgba(132, 50), bytes((201, 52, 52, 255)))
         self.assertEqual(sample_authored_0541_p1_rgba(132, 30), bytes((159, 153, 142, 255)))
         # Refinement pass 1 restores stock-supported internal structure with
         # a second fork brace and restrained six-spoke wheel detail.

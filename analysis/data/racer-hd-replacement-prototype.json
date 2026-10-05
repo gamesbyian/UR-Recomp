@@ -76,8 +76,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_first_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: structural fork/spoke detail; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "initial_native_acceptance_run": 37142692369,
         "initial_native_acceptance_artifact_id": 11281156106,
@@ -107,7 +106,9 @@
           "alpha_union_pixels": 359,
           "alpha_iou": 0.6908077994428969
         },
-        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; adds evidence-guided fork bracing and restrained wheel spokes without changing stock envelope/contact"
+        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; adds evidence-guided fork bracing and restrained wheel spokes without changing stock envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -178,8 +179,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p2_baseline",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed P2 baseline; not approved shipping art",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Replace the generic P2 contract placeholder at the canonical frame-1220 synchronized state with an authored blue-player Remastered representation preserving stock envelope [23,3]..[40,38], contact [63,76], and the accepted first-family material/lighting hierarchy.",
         "native_acceptance_run": 37166854227,
@@ -207,7 +207,9 @@
           "alpha_intersection_pixels": 266,
           "alpha_union_pixels": 361,
           "alpha_iou": 0.7368421052631579
-        }
+        },
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -278,8 +280,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057d_p1_with_p2_0543",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_sixth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent frames 1207-1212 as one repeated P1 pose, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,3]..[43,38] and contact [69,76].",
         "native_acceptance_run": 37164968261,
@@ -308,7 +309,9 @@
           "alpha_union_pixels": 385,
           "alpha_iou": 0.638961038961039
         },
-        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -379,10 +382,9 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0543_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement",
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "native_acceptance_run": 37174353366,
         "native_acceptance_artifact_id": 11292358727,
-        "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent the retained P2 0543 pose with one authored blue-player asset matching stock envelope [20,4]..[40,38], bottom span [26,31], contact [57,76], and the established P2 material/lighting language.",
         "gameplay_scale_review": {
@@ -409,7 +411,9 @@
           "alpha_union_pixels": 396,
           "alpha_iou": 0.6641414141414141
         },
-        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -608,8 +612,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057e_p1_with_p2_0543",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fifth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: shifted/narrowed saddle mass; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent the repeated frame-1213/1214 and 1205/1206 P1 pose once, preserving the reviewed first-family material, lighting and edge language while fitting stock envelope [21,2]..[42,38] and contact [67,76].",
         "native_acceptance_run": 37163141373,
@@ -638,7 +641,9 @@
           "alpha_union_pixels": 390,
           "alpha_iou": 0.6461538461538462
         },
-        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map saddle reshaping; remove authored-only upper mass while preserving stock-derived envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -709,10 +714,9 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0543_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "context-safe reuse of refined P2 0543 asset; still needs shipping-art refinement",
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "native_acceptance_run": 37174353366,
         "native_acceptance_artifact_id": 11292358727,
-        "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "reuse_source_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
         "intent": "Retain the distinct 057E/0D49 synchronized guard while reusing the authored P2 0543 asset because the deterministic stock raster is byte-identical across the retained contexts.",
@@ -740,7 +744,9 @@
           "alpha_union_pixels": 396,
           "alpha_iou": 0.6641414141414141
         },
-        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1195,8 +1201,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p1_companion_0d2d",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_second_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: shared structural fork/spoke detail; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Extend the first motion-reviewed authored language to the exact frame-1219 predecessor with only the smallest evidence-backed upper-silhouette change; preserve the accepted lower geometry, contact, materials and object-local lighting.",
         "native_acceptance_run": 37150356100,
@@ -1225,7 +1230,9 @@
           "alpha_union_pixels": 361,
           "alpha_iou": 0.703601108033241
         },
-        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; shares the refined lower structure with frame 1220 while preserving the distinct evidence-backed saddle profile"
+        "refinement_basis": "shipping review run 37180202506 / artifact 11295241964; shares the refined lower structure with frame 1220 while preserving the distinct evidence-backed saddle profile",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1296,10 +1303,9 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p2_baseline",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "accepted context-safe reuse of motion-reviewed P2 baseline; not approved shipping art",
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "native_acceptance_run": 37169313027,
         "native_acceptance_artifact_id": 11290454491,
-        "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "reuse_source_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
         "intent": "Retain the distinct frame-1219 synchronized guard while reusing the frame-1220 authored P2 asset because the deterministic stock P2 raster is byte-identical across the two contexts.",
@@ -1326,7 +1332,9 @@
           "alpha_intersection_pixels": 266,
           "alpha_union_pixels": 361,
           "alpha_iou": 0.7368421052631579
-        }
+        },
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1397,8 +1405,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p1_predecessor",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "motion-reviewed reversed predecessor; not approved shipping art",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Extend the reviewed first-family animation backward to exact frame 1218 using a stock-mask-fitted pose while preserving the established material, object-local lighting, edge, shadow and detail policies.",
         "native_acceptance_run": 37151331456,
@@ -1426,7 +1433,9 @@
           "alpha_intersection_pixels": 270,
           "alpha_union_pixels": 365,
           "alpha_iou": 0.7397260273972602
-        }
+        },
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1497,8 +1506,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0541_p2_predecessor",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent frame-1218 P2 0541 as the reviewed P2 baseline geometry translated one logical pixel left, preserving stock envelope [22,3]..[39,38], contact [61,76], and the established blue-player material/lighting language.",
         "native_acceptance_run": 37169795518,
@@ -1527,7 +1535,9 @@
           "alpha_union_pixels": 360,
           "alpha_iou": 0.7
         },
-        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1598,8 +1608,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0540_p1_predecessor",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_third_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "accepted context-safe reuse of motion-reviewed frame-1218 asset; not approved shipping art",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "reused_from_representation_id": "ordinary-racer-0x0540-p1-predecessor-reference",
         "intent": "Reuse the reviewed frame-1218 authored pose for frame 1217 because retained stock composition proves the two P1 rasters, envelope and contact are byte-for-byte identical despite separate synchronized composition guards.",
@@ -1628,7 +1637,9 @@
           "alpha_intersection_pixels": 270,
           "alpha_union_pixels": 365,
           "alpha_iou": 0.7397260273972602
-        }
+        },
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1699,10 +1710,9 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0542_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: lower-right brace/spoke detail; still needs shipping-art refinement",
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "native_acceptance_run": 37173872885,
         "native_acceptance_artifact_id": 11291829520,
-        "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent frame-1217 P2 0542 with one authored blue-player pose matching stock envelope [21,4]..[40,38] and contact [59,76], while preserving the established P2 material and object-local lighting language.",
         "gameplay_scale_review": {
@@ -1729,7 +1739,9 @@
           "alpha_union_pixels": 392,
           "alpha_iou": 0.7040816326530612
         },
-        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -1928,8 +1940,7 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_057f_p1_companion_0d4a",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_fourth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "true-density refinement pass 1: shifted/narrowed bridge saddle; still needs shipping-art refinement",
-        "shipping_art_approved": false,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Represent the repeated frame-1215/1216 P1 pose once, preserving the reviewed first-family materials, object-local lighting and edge treatment while fitting the recovered stock envelope [22,2]..[41,38] and contact [65,76].",
         "native_acceptance_run": 37159887643,
@@ -1958,7 +1969,9 @@
           "alpha_union_pixels": 379,
           "alpha_iou": 0.6939313984168866
         },
-        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map bridge-pose saddle reshaping; remove unsupported upper mass while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     },
     {
@@ -2029,10 +2042,9 @@
         "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_0542_p2",
         "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
         "density_scale": 4,
-        "approval_status": "context-safe reuse of refined P2 0542 asset; still needs shipping-art refinement",
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
         "native_acceptance_run": 37173872885,
         "native_acceptance_artifact_id": 11291829520,
-        "shipping_art_approved": false,
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "reuse_source_representation_id": "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference",
         "intent": "Retain the distinct frames-1215-1216 synchronized guard while reusing the frame-1217 authored P2 0542 asset because the deterministic stock raster is byte-identical across the two contexts.",
@@ -2060,7 +2072,9 @@
           "alpha_union_pixels": 392,
           "alpha_iou": 0.7040816326530612
         },
-        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact"
+        "refinement_basis": "post-#375 mismatch-map batch; restores stock-supported lower-right frame structure and restrained hub-centered wheel spokes while preserving exact envelope/contact",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval.json"
       }
     }
   ],

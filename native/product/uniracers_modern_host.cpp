@@ -479,21 +479,18 @@ std::string resolve_tour_continue_input_path() {
     return path;
 }
 
-bool queue_tour_continue_input(
-    ur::product::QuickPracticeMenuInput input,
-    uint64_t origin_frame) {
-    const std::uint16_t mask = ur::product::quick_practice_runner_mask(
-        ur::product::launch_input_from_menu_input(input));
-    if (mask == 0) return input == ur::product::QuickPracticeMenuInput::None;
-
-    if (g_tour_continue_input_path.empty()) {
-        g_tour_continue_input_path = resolve_tour_continue_input_path();
+bool queue_relative_menu_input(
+    std::string& input_path,
+    uint64_t origin_frame,
+    std::uint16_t mask) {
+    if (!ur::product::quick_practice_runner_mask_is_discrete_menu_input(mask) ||
+        input_path.empty()) {
+        return false;
     }
-    if (g_tour_continue_input_path.empty()) return false;
 
     {
         std::ofstream out(
-            g_tour_continue_input_path,
+            input_path,
             std::ios::binary | std::ios::trunc);
         if (!out) return false;
         char encoded[32];
@@ -505,42 +502,44 @@ bool queue_tour_continue_input(
         if (!out) return false;
     }
 
-    if (!snesrecomp_desktop_load_relative_input_file(
-            g_tour_continue_input_path.c_str())) {
+    if (!snesrecomp_desktop_load_relative_input_file(input_path.c_str())) {
         return false;
     }
     snesrecomp_desktop_arm_relative_input(origin_frame);
     return true;
 }
 
-bool queue_practice_accept(uint64_t origin_frame) {
+bool queue_tour_continue_input(
+    ur::product::QuickPracticeMenuInput input,
+    uint64_t origin_frame) {
+    const std::uint16_t mask = ur::product::quick_practice_runner_mask(
+        ur::product::launch_input_from_menu_input(input));
+    if (mask == 0) return input == ur::product::QuickPracticeMenuInput::None;
+
+    if (g_tour_continue_input_path.empty()) {
+        g_tour_continue_input_path = resolve_tour_continue_input_path();
+    }
+    return queue_relative_menu_input(
+        g_tour_continue_input_path,
+        origin_frame,
+        mask);
+}
+
+bool queue_practice_input(
+    uint64_t origin_frame,
+    ur::product::QuickPracticeLaunchInput input) {
     if (!g_practice_active) return false;
     if (g_practice_input_path.empty()) {
         g_practice_input_path = resolve_practice_input_path();
     }
-    if (g_practice_input_path.empty()) return false;
-
-    {
-        std::ofstream out(
-            g_practice_input_path,
-            std::ios::binary | std::ios::trunc);
-        if (!out) return false;
-        // SNES serial controller mask bit 8 is A. Two frames is long enough
-        // for stock menu edge detection while remaining one discrete press.
-        out << "0:2:100\n";
-        out.flush();
-        if (!out) return false;
-    }
-
-    if (!snesrecomp_desktop_load_relative_input_file(
-            g_practice_input_path.c_str())) {
-        return false;
-    }
-    snesrecomp_desktop_arm_relative_input(origin_frame);
-    return true;
+    return queue_relative_menu_input(
+        g_practice_input_path,
+        origin_frame,
+        ur::product::quick_practice_runner_mask(input));
 }
 
-bool begin_practice() {
+bool begin_practice(std::uint8_t track_id = 0) {
+    const auto target = ur::product::quick_practice_target_for_track(track_id);
     if (!modern_mode() || g_practice_active || paused() ||
         g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
@@ -3071,7 +3070,9 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_onboarding_visible ||
         tour_continue_available() ||
         tour_continue_routing() ||
-        (g_practice_active && g_practice_stage == PracticeStage::Active) ||
+        (g_practice_active &&
+         g_practice_launch.stage ==
+             ur::product::QuickPracticeLaunchStage::Active) ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
@@ -3773,6 +3774,38 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
+    if (modern_mode() && !g_practice_active &&
+        recent_course_available_for_active_profile() &&
+        g_recent_course_track_id && g_ram[0x0313] != 0x01 &&
+        g_ram[0x009F] == 0xD7) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const auto* course =
+            ur::product::quick_practice_course(*g_recent_course_track_id);
+        char hint[96];
+        std::snprintf(
+            hint, sizeof(hint), "F6 / PAD Y  RECENT: %s",
+            course ? course->name.data() : "COURSE");
+        snes_ovl_draw_text(
+            pixels, stride, height, 8, height - 13,
+            hint, 0xFFFFFFFFu, 1);
+    }
+
+    if (modern_mode() && practice_routing()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const char* hint = "PRACTICE ROUTING...  ESC / B / START CANCEL";
+        const int hint_w = width < 320 ? width - 16 : 304;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, 15,
+            hint, 0xFFFFFFFFu, 1);
+    }
+
     if (modern_mode() && tour_continue_routing()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
@@ -3824,7 +3857,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
     }
 
     if (modern_mode() && g_practice_active &&
-        g_practice_stage == PracticeStage::Active) {
+        g_practice_launch.stage ==
+            ur::product::QuickPracticeLaunchStage::Active) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const char* hint = "PRACTICE  START > EXIT FRONTEND TO RETURN";

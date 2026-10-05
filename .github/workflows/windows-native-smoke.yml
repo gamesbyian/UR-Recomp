@@ -165,6 +165,7 @@ jobs:
           mkdir -p "$DUMPS" "$CALLER" "$EXTRACT"
           python -m zipfile -e "$PACKAGE_ARCHIVE" "$EXTRACT"
           TEST_PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
+          echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
           test -f "$TEST_PACKAGE/PACKAGE-MANIFEST.json"
           printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
 

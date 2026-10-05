@@ -78,3 +78,16 @@ Prioritize testers who combine:
 4. enough specificity in their comments to suggest they will notice fidelity regressions rather than simply react to novelty.
 
 If outreach ever happens, keep it individualized and reference the exact public comment that made the project seem relevant to them. Do not bulk-message this list.
+
+
+## Recently active players
+
+These people are not included because they explicitly requested a remake; they are useful because public activity shows current, hands-on familiarity with the game.
+
+| Handle | Platform | Recent evidence | Why they may be useful | Source |
+| --- | --- | --- | --- | --- |
+| **Segastar** | Speedrun.com | Current moderator and recent top-level submitted runs, including a 2026 Hairpin Hill record. | Strong current competitive familiarity; useful for high-skill physics/timing validation. | https://www.speedrun.com/uniracers |
+| **kzryzstof** | RetroAchievements | Mastered the Uniracers achievement set in September 2026. | Very recent full-game completion suggests fresh progression and mechanics knowledge. | https://retroachievements.org/game/1295 |
+| **Tdiggity13** | RetroAchievements | Mastered the set in September 2026. | Current full-game player, useful for ordinary progression and achievement-like behavioral checks. | https://retroachievements.org/game/1295 |
+| **JoelSim** | RetroAchievements | Mastered the set in August 2026. | Current full-game player with recent experience across the whole progression arc. | https://retroachievements.org/game/1295 |
+| **itsSked** | RetroAchievements | Recently active in leaderboard/achievement discussion; reports discovering achievement constraints through play. | Useful for modern emulator/runtime compatibility and achievement/progression validation. | https://retroachievements.org/game/1295 |

@@ -71,4 +71,16 @@ constexpr ModernTourEntryDecision resolve_modern_tour_entry(
     return {};
 }
 
+constexpr bool modern_tour_entry_may_retire_continuation(
+    ModernTourEntryDecision decision,
+    bool settled_track_select,
+    bool stock_qualification_row_empty) noexcept {
+    return decision.intent == ModernTourEntryIntent::Restart &&
+           decision.route_stock_frontend &&
+           !decision.restore_continuation_at_track_select &&
+           decision.retire_continuation_after_stock_wipe &&
+           settled_track_select &&
+           stock_qualification_row_empty;
+}
+
 }  // namespace ur::product

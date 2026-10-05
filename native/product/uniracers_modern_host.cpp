@@ -3622,29 +3622,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
 
     if (g_controls_visible) {
-        if (!pressed) return 1;
-        if (g_controls_rebind.capturing) {
-            if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
-                (void)ur::product::modern_controls_handle_action(
-                    &g_controls_rebind, ur::product::ModernControlsAction::Back);
-                product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
-            }
-            return 1;
-        }
-        if (button == kGamepadBtn_DpadUp) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Previous);
-        } else if (button == kGamepadBtn_DpadDown) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Next);
-        } else if (button == kGamepadBtn_A) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Confirm);
-        } else if (button == kGamepadBtn_X) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Clear);
-        } else if (button == kGamepadBtn_Y) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Reset);
-        } else if (button == kGamepadBtn_B || button == kGamepadBtn_Start) {
-            (void)handle_controls_action(ur::product::ModernControlsAction::Back);
-        }
-        return 1;
+        // Controls navigation must respect the player's configured GamepadMap.
+        // Return to the framework here so it can resolve this physical button
+        // to a semantic SNES control and call system_gamepad_control below.
+        return 0;
     }
 
     if (g_options_visible) {
@@ -3693,6 +3674,56 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return dispatch(UR_MODERN_PAUSE_CANCEL) ? 1 : 0;
     }
     return 0;
+}
+
+extern "C" int ur_uniracers_modern_system_gamepad_control(
+    int control,
+    int pressed) {
+    if (!ensure_session() || !g_controls_visible) return 0;
+
+    // SNESRecomp's mapped-control order is stable:
+    // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    if (!pressed) return 1;
+
+    if (g_controls_rebind.capturing) {
+        if (control == 7 || control == 5) {
+            (void)ur::product::modern_controls_handle_action(
+                &g_controls_rebind, ur::product::ModernControlsAction::Back);
+            product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+        }
+        return 1;
+    }
+
+    switch (control) {
+    case 0:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Previous);
+        break;
+    case 1:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Next);
+        break;
+    case 6:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Confirm);
+        break;
+    case 8:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Clear);
+        break;
+    case 9:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Reset);
+        break;
+    case 7:
+    case 5:
+        (void)handle_controls_action(
+            ur::product::ModernControlsAction::Back);
+        break;
+    default:
+        break;
+    }
+    return 1;
 }
 
 extern "C" void ur_uniracers_modern_system_overlay(

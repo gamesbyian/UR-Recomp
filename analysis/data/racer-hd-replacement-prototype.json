@@ -489,7 +489,34 @@
         "intent": "Frame 1305 reuses the shipping-approved 057E P1 art because its deterministic stock RGBA is byte-identical to the approved 057E/0543+0D49 pose.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
-        "reuse_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference"
+        "reuse_source_representation_id": "ordinary-racer-0x057E-p1-with-p2-0543-reference",
+        "native_acceptance_run": 37257283393,
+        "native_acceptance_artifact_id": 11323366532,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            21,
+            2,
+            42,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            21,
+            2,
+            42,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            67,
+            76
+          ],
+          "stock_opaque_pixels": 325,
+          "candidate_opaque_pixels": 323,
+          "alpha_intersection_pixels": 249,
+          "alpha_union_pixels": 399,
+          "alpha_iou": 0.6240601503759399
+        },
+        "refinement_basis": "byte-identical stock-pose proof reuses the already shipping-approved 057E authored asset under the exact 1305 guard"
       }
     },
     {
@@ -564,7 +591,34 @@
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Author frame-1305 P2 0544 with stock envelope [19,5]..[41,38] and contact [55,76].",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
-        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json"
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "native_acceptance_run": 37257283393,
+        "native_acceptance_artifact_id": 11323366532,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            19,
+            5,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            19,
+            5,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            55,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 319,
+          "alpha_intersection_pixels": 239,
+          "alpha_union_pixels": 402,
+          "alpha_iou": 0.5945273631840796
+        },
+        "refinement_basis": "1305-1306 reviewed family: preserve measured 0544 envelope/contact while advancing the approved P2 material, crown/fork and wheel-detail language from 0543"
       }
     },
     {
@@ -844,7 +898,34 @@
         "visual_language_authority": "docs/HD-ART-DIRECTION.md",
         "intent": "Author the distinct frame-1306 0D69 P1 pose with stock envelope [22,2]..[42,38] and contact [67,76].",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
-        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json"
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
+        "native_acceptance_run": 37257283393,
+        "native_acceptance_artifact_id": 11323366532,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            42,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            42,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            67,
+            76
+          ],
+          "stock_opaque_pixels": 325,
+          "candidate_opaque_pixels": 322,
+          "alpha_intersection_pixels": 251,
+          "alpha_union_pixels": 396,
+          "alpha_iou": 0.6338383838383839
+        },
+        "refinement_basis": "1305-1306 reviewed family: preserve the measured one-pixel-left-edge change and fixed contact while keeping the approved 057E material/structural language"
       }
     },
     {
@@ -920,7 +1001,34 @@
         "intent": "Frame 1306 retains its exact guard while reusing P2 0544 because stock RGBA is byte-identical across 1305-1306.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-057e-0544.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-057e-0544.json",
-        "reuse_source_representation_id": "ordinary-racer-0x0544-p2-sync-reference"
+        "reuse_source_representation_id": "ordinary-racer-0x0544-p2-sync-reference",
+        "native_acceptance_run": 37257283393,
+        "native_acceptance_artifact_id": 11323366532,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            19,
+            5,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            19,
+            5,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            55,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 319,
+          "alpha_intersection_pixels": 239,
+          "alpha_union_pixels": 402,
+          "alpha_iou": 0.5945273631840796
+        },
+        "refinement_basis": "1305-1306 reviewed family: preserve measured 0544 envelope/contact while advancing the approved P2 material, crown/fork and wheel-detail language from 0543"
       }
     },
     {

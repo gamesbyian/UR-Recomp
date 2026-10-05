@@ -26,6 +26,8 @@ from prototype_racer_hd_replacement import (
     alpha_bounds,
     alpha_contact_anchor_x2_y2,
     build_stock_rgba,
+    encode_png_rgba,
+    nearest_rgba,
 )
 from extract_racer_presentation_family import rgba_palette
 
@@ -110,7 +112,7 @@ def approved_same_player_entries(registry: dict[str, Any], player: str) -> list[
     return rows
 
 
-def build_report(rom: bytes, registry: dict[str, Any]) -> dict[str, Any]:
+def build_report(rom: bytes, registry: dict[str, Any], output_dir: Path | None = None) -> dict[str, Any]:
     roles = palette_role_indices(rom)
     palettes = {
         "p1": rgba_palette(rom, 0x06),
@@ -145,6 +147,15 @@ def build_report(rom: bytes, registry: dict[str, Any]) -> dict[str, Any]:
         target_entry = temporary_entry(player)
         target = build_stock_rgba(rom, target_entry)
         normalized = palette_normalized_rgba(target, palettes[player], roles)
+        if output_dir is not None:
+            output_dir.mkdir(parents=True, exist_ok=True)
+            (output_dir / f"{player}-stock.png").write_bytes(
+                encode_png_rgba(W, H, target)
+            )
+            stock4 = nearest_rgba(target, W, H, 4)
+            (output_dir / f"{player}-stock-4x.png").write_bytes(
+                encode_png_rgba(W * 4, H * 4, stock4)
+            )
         target_hash = sha256(target)
         normalized_hash = sha256(normalized)
 
@@ -226,11 +237,13 @@ def main() -> int:
         default=ROOT / "analysis/data/racer-hd-replacement-prototype.json",
     )
     parser.add_argument("--json-out", type=Path)
+    parser.add_argument("--output-dir", type=Path)
     args = parser.parse_args()
 
     report = build_report(
         args.rom.read_bytes(),
         json.loads(args.registry.read_text(encoding="utf-8")),
+        args.output_dir,
     )
     rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.json_out:

@@ -73,7 +73,7 @@ Prefer this pattern for new Modern selectors and browsers, including profile man
 
 When two workflows or tools parse the same artifact format or repeat the same acceptance logic, extract one repository-owned parser/validator and make both consume it. The evidence-envelope helper, consolidated knowledge builders and parameterized Widescreen validators already follow this direction.
 
-A third copy of format parsing, checksum logic, PPM/frame inspection, run-artifact validation, profile/catalog validation or semantic catalog joining is a signal to centralize. CI should invoke the same validator product tools use where practical rather than maintaining grep/Python lookalikes.
+A third copy of format parsing, checksum logic, PPM/frame inspection, run-artifact validation, profile/catalog validation or semantic catalog joining is a signal to centralize. `tools/check_ppm.py` is now the concrete frame-inspection example: native smoke and Racer HD review tooling consume the same binary-P6 parser rather than maintaining inline variants. CI should invoke the same validator product tools use where practical rather than maintaining grep/Python lookalikes.
 
 ### Fresh-process and corruption acceptance for persisted product data
 

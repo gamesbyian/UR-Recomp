@@ -9,7 +9,9 @@ on:
       - ".github/workflows/challenge-generation-transient-probe.yml"
       - "tests/input/challenge-generation-transient-probe.script"
       - "tools/probe_challenge_generation.py"
+      - "tools/scan_challenge_generation_refs.py"
       - "tests/unit/test_probe_challenge_generation.py"
+      - "tests/unit/test_scan_challenge_generation_refs.py"
       - "tools/probe_tier_opponents.py"
       - "tools/patches/snesrecomp-sram-poke.patch"
 
@@ -35,7 +37,13 @@ jobs:
         run: |
           python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
           test "$(stat -c%s "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm")" -eq 8192
-          python3 -m unittest tests.unit.test_probe_challenge_generation
+          python3 -m unittest \
+            tests.unit.test_probe_challenge_generation \
+            tests.unit.test_scan_challenge_generation_refs
+          mkdir -p analysis/generated
+          python3 tools/scan_challenge_generation_refs.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --out analysis/generated/challenge-generation-direct-refs.json
 
       - name: Build reference harness and Snes9x core
         run: |
@@ -70,6 +78,7 @@ jobs:
           name: challenge-generation-transient-probe
           path: |
             analysis/generated/challenge-generation-transient-probe.json
+            analysis/generated/challenge-generation-direct-refs.json
             ${{ runner.temp }}/challenge-generation-transient-probe.log
           if-no-files-found: warn
           retention-days: 7

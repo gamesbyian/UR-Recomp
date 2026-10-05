@@ -99,6 +99,47 @@ Expected first consumers:
 
 The profile must not become an implicit permission to fork arbitrary UI, gameplay or data.
 
+## Switch transition design
+
+A successful regional secret should not hard-cut the title branding if the original frontend already provides a suitable transition language. The preferred product behavior is to make the switch feel like a hidden stock frontend destination rather than a modern settings toggle.
+
+Current design order:
+
+1. **Prefer an original Uniracers frontend/title transition primitive.** The leading candidate is the stock horizontal menu/title movement already used by the frontend. Reuse its timing, easing, palette behavior and compositing characteristics as literally as practical.
+2. **Direction follows the secret.**
+   - `PAL` / Left Left Left L A should move the current North American presentation **leftward** and reveal Europe / Unirally from the opposite side.
+   - `NTSC` / Right Right Right R A should move the current European presentation **rightward** and reveal North America / Uniracers from the opposite side.
+   This makes the input sequence and visual response share one spatial grammar.
+3. If the matched title-transition evidence shows that the original title-to-menu animation is a better fit than the horizontal menu movement, prefer that exact stock transition instead.
+4. If neither stock transition is safe to replay in isolation, use the smallest faithful fallback already present in the game, such as a brief palette fade. Do not invent a custom modern wipe while an original transition is available.
+
+The regional state change itself remains host-owned presentation state. The animation must not reboot or replace the authoritative guest runtime merely to create a visual effect.
+
+### Transition evidence experiment
+
+Extend the matched USA/Europe title comparison to retain enough consecutive frames to characterize the stock transition itself rather than only endpoint screenshots.
+
+At minimum, capture:
+
+- the title-family state around frames 300, 360 and 420;
+- the transition into first main-menu presentation;
+- settled main menu;
+- any ordinary left/right frontend transition that demonstrably scrolls one menu surface into another.
+
+For each candidate transition, record:
+
+- source and destination guest/frontend states;
+- duration in guest frames and presented frames;
+- horizontal/vertical displacement per frame;
+- whether the transition is tilemap/camera movement, palette fade, layer enable/disable, sprite animation or a combination;
+- easing/step pattern;
+- whether audio continues uninterrupted;
+- whether guest input is suppressed during the transition;
+- whether replaying the visual primitive can remain presentation-only;
+- whether the same primitive exists identically in both retail regions.
+
+Acceptance criterion: choose the most recognizably stock transition that can be driven by regional presentation state without changing simulation, progression or guest timing. The selected transition must have a deterministic test/retained frame sequence before shipping.
+
 ## Persistence policy
 
 Default to **NorthAmerica / Uniracers** on first launch.

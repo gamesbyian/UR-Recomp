@@ -20,6 +20,7 @@ if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
 
 from apply_native_widescreen_hook import apply as apply_widescreen_hook
+from patch_challenge_generation_writer import patch_sources as patch_challenge_generation_writer
 from seed_native_widescreen_aot import ensure_seed
 
 
@@ -78,6 +79,7 @@ def prepare(
             "product_ready": False,
         }
     hook = apply_widescreen_hook(generated)
+    challenge_generation_source = patch_challenge_generation_writer(generated)
 
     if not hook.get("margin72_supported"):
         raise ValueError("accepted Widescreen provider did not retain +72 capacity")
@@ -85,6 +87,8 @@ def prepare(
         "schema_version": 1,
         "seeded": seeded,
         "hook": hook,
+        "challenge_generation_writer": str(
+            challenge_generation_source.relative_to(project)),
         "product_ready": True,
     }
 

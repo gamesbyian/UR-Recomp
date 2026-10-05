@@ -2934,7 +2934,8 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
     if (modern_mode() && key == SDLK_F6 && !paused() &&
-        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        recent_course_available_for_active_profile()) {
         (void)launch_recent_course_practice();
         return 1;
     }

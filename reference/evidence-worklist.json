@@ -456,7 +456,7 @@
         "cabbagery-uniracers-mechanics-2024"
       ],
       "question": "Which community-documented mechanics recur across independent sources strongly enough to justify direct canonical-ROM/runtime tests and durable fixtures?",
-      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion.",
+      "next_discriminator": "Prioritize independently repeated, implementation-relevant claims: stunt score values/decay, boost gain and offscreen depletion, track-color cue semantics, Hunter/Anti-Uni effect triggers, screen-position/scrolling influence on race timing, Mega stunt detection, and rejected-name substring behavior. For each claim, build the cheapest deterministic reproduction and record corroborating versus conflicting sources before promotion. Also verify TAS-reported Tabletop duration-dependent scoring and whether airborne stunt input remains active after the stunt timer reaches zero.",
       "deliverables": [
         "cross-source mechanics concordance table",
         "deterministic stunt-score and repeat-decay fixture",
@@ -464,7 +464,8 @@
         "screen-position/scrolling timing discriminator",
         "Mega stunt recognition fixture",
         "name-filter substring behavior fixture",
-        "source conflict notes where player recollections disagree"
+        "source conflict notes where player recollections disagree",
+        "Tabletop duration-scoring and stunt-timer overrun fixture"
       ],
       "tags": [
         "community-research",

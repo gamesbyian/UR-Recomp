@@ -1,17 +1,7 @@
 name: Switch S2 runtime-core portability
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "analysis/switch-s2-runtime-core-contract.json"
-      - "tools/build_switch_s2_runtime_probe.py"
-      - "tests/unit/test_switch_s2_runtime_core.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - ".github/workflows/switch-s2-runtime-core.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

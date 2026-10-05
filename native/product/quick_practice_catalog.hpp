@@ -3,6 +3,7 @@
 #include "quick_practice_route.hpp"
 
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <string_view>
 

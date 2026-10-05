@@ -76,7 +76,7 @@ Do not add all tools to CI. CI belongs to durable merge-safety invariants. On-de
 
 Use `CI-WORKFLOW-BEST-PRACTICES.md` as the canonical workflow-design policy.
 
-Classify each workflow as durable validation, main-branch regression, reproducible analysis, manual research infrastructure, or obsolete/one-off.
+Classify each workflow as durable validation, final-main regression, reproducible analysis, manual research infrastructure, retained diagnostic instrument, or obsolete/one-off. Automatic status must be justified separately from mere usefulness.
 
 Check:
 - the latest 5-10 runs of each active automatic workflow when history exists, classifying actual failures separately from superseded cancellations;
@@ -92,7 +92,13 @@ Check:
 - automatic read-only work cancels superseded runs;
 - generated-evidence writers serialize instead of racing branch writes;
 - emulator/native/build jobs have explicit job-level timeouts;
-- temporary acquisition/research workflows were removed after use;
+- closed acquisition/research workflows were either removed or made manual-only after their conclusion was promoted;
+- branch-specific `push` triggers do not survive after the owning experiment closes;
+- deferred-platform workflows remain manual while that platform is outside the active shipping path;
+- automatic workflows still answer a current merge/shipping decision rather than only producing interesting evidence;
+- the same native/toolchain candidate is not rebuilt by multiple jobs without a distinct invariant that requires it;
+- matrix/shard jobs do not each repeat expensive setup/build work that could be shared once;
+- PR validation is not needlessly repeated on the merge commit;
 - repeated build/package setup is justified by wall-time evidence rather than habit;
 - build caches and dependency installation remain reasonable;
 - artifact/log output contains enough bounded evidence for an agent to diagnose failure;
@@ -132,7 +138,7 @@ Avoid mass renames without a concrete comprehension benefit.
 
 After changes:
 1. rerun `python3 tools/check_repo_hygiene.py`;
-2. run the cheapest relevant functional checks for changed scripts/docs/workflows;
+2. run the cheapest relevant functional checks for changed scripts/docs/workflows, including `python3 -m unittest tests.unit.test_ci_trigger_policy -v` when workflow policy or triggers changed;
 3. verify documentation links and moved artifact paths manually or mechanically;
 4. inspect final diff for accidental generated/binary churn;
 5. update the owning current authority if the hygiene pass changed project state.

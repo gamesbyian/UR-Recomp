@@ -65,11 +65,28 @@ int main() {
     assert(catalog.previous_entry && *catalog.previous_entry == 3);
     assert(catalog.entries[3].is_previous);
 
+    const auto stats = present_run_data_statistics(catalog);
+    assert(stats.completed_runs == 4);
+    assert(stats.personal_best_available);
+    assert(stats.personal_best_text == "0:28.33/60");
+    assert(stats.previous_available);
+    assert(stats.previous_text == "0:29.10/60");
+    assert(stats.previous_comparison_available);
+    assert(stats.previous_vs_pb_text == "+0:00.37/60");
+
     const std::vector<StoredRunRecord> empty;
     const auto none = build_run_data_catalog(empty, target());
     assert(none.entries.empty());
     assert(!none.previous_entry);
     assert(!none.personal_best_entry);
+    const auto empty_stats = present_run_data_statistics(none);
+    assert(empty_stats.completed_runs == 0);
+    assert(!empty_stats.personal_best_available);
+    assert(empty_stats.personal_best_text == "--");
+    assert(!empty_stats.previous_available);
+    assert(empty_stats.previous_text == "--");
+    assert(!empty_stats.previous_comparison_available);
+    assert(empty_stats.previous_vs_pb_text == "--");
 
     return 0;
 }

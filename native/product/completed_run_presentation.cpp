@@ -168,4 +168,30 @@ std::optional<RunTimingSplitTablePresentation> present_run_split_table(
     return table;
 }
 
+std::optional<RunResultSummaryPresentation> present_run_result_summary(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord* personal_best) {
+    std::string detail;
+    if (!validate_completed_run_record(current, &detail)) {
+        return std::nullopt;
+    }
+
+    RunResultSummaryPresentation summary;
+    summary.finish = present_run_timing_panel(
+        current.elapsed_ticks60,
+        personal_best,
+        RunTimingPresentationPoint::Finish);
+
+    if (!personal_best) return summary;
+
+    const auto splits = present_run_split_table(
+        current,
+        *personal_best,
+        RunDataTargetKind::PersonalBest);
+    if (splits) {
+        summary.splits = splits->rows;
+    }
+    return summary;
+}
+
 }  // namespace ur::product

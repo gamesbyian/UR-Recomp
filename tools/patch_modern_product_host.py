@@ -48,14 +48,32 @@ def patch_main_text(source: str) -> str:
             1,
         )
 
-    if "ur_uniracers_modern_compute_viewport" in source:
+    if "ur_uniracers_modern_presentation_scale" in source:
         return source
+
+    if "ur_uniracers_modern_compute_viewport" in source:
+        anchor = (
+            "    .compute_viewport       = &ur_uniracers_modern_compute_viewport,\n"
+        )
+        if anchor not in source:
+            raise ValueError("existing modern host viewport field not found")
+        return source.replace(
+            anchor,
+            anchor
+            + "    .begin_sim_frame       = &ur_uniracers_modern_begin_sim_frame,\n"
+            + "    .draw_frame            = &ur_uniracers_modern_draw_frame,\n"
+            + "    .presentation_scale    = &ur_uniracers_modern_presentation_scale,\n",
+            1,
+        )
 
     widescreen_fields = (
         "    .native_widescreen      = 1,\n"
         "    .native_widescreen_enabled = &ur_uniracers_modern_native_widescreen_enabled,\n"
         "    .prepare_frame          = &ur_uniracers_modern_prepare_frame,\n"
         "    .compute_viewport       = &ur_uniracers_modern_compute_viewport,\n"
+        "    .begin_sim_frame       = &ur_uniracers_modern_begin_sim_frame,\n"
+        "    .draw_frame            = &ur_uniracers_modern_draw_frame,\n"
+        "    .presentation_scale    = &ur_uniracers_modern_presentation_scale,\n"
     )
 
     if "ur_uniracers_modern_presentation_hz" in source:
@@ -183,6 +201,9 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + source_lines
         + "\n"
         + f'    "{presentation_dir}/racer_replacement_selector.cpp"\n'
+        + f'    "{presentation_dir}/racer_guest_snapshot.cpp"\n'
+        + f'    "{presentation_dir}/racer_oam_placement.cpp"\n'
+        + f'    "{presentation_dir}/racer_hd_presenter.cpp"\n'
         + f'    "{presentation_dir}/completed_run_ghost_racer_selector.cpp"\n'
         + f'    "{presentation_dir}/completed_run_ghost_raster.cpp"'
         + "\n"

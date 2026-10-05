@@ -13,6 +13,7 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/patches/snesrecomp-live-display-mode.patch"
+      - "tools/patches/snesrecomp-presentation-scale.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/prepare_native_widescreen_product.py"

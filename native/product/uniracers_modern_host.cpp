@@ -24,6 +24,7 @@ extern "C" {
 #include "host_profile_runtime.hpp"
 #include "host_profile_state.hpp"
 #include "host_profile_store.hpp"
+#include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
@@ -37,6 +38,7 @@ extern "C" {
 #include "widescreen_output_composition.hpp"
 #include "../presentation/completed_run_ghost_racer_selector.hpp"
 #include "../presentation/completed_run_ghost_raster.hpp"
+#include "../presentation/racer_hd_presenter.hpp"
 
 #include <cstdlib>
 #include <fstream>
@@ -1088,6 +1090,27 @@ bool cycle_output_resolution_setting() {
     return true;
 }
 
+bool cycle_internal_render_scale_setting() {
+    if (!modern_mode()) return false;
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.internal_render_scale =
+        ur::product::next_internal_render_scale(
+            candidate.settings.internal_render_scale);
+    if (!persist_product_state(candidate)) return false;
+    const int scale = ur::product::internal_render_scale_value(
+        candidate.settings.internal_render_scale);
+    if (!ur::presentation::racer_hd_set_internal_render_scale(scale)) {
+        return false;
+    }
+    g_product_state = candidate;
+    snesrecomp_desktop_request_clock_reset();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_RENDER_SCALE SELECTED scale=%dx\n", scale);
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 void refresh_run_ghost_playback_trace();
 
 bool cycle_widescreen_setting() {
@@ -1171,6 +1194,8 @@ bool activate_options_selection() {
         return cycle_presentation_fps_setting();
     case UR_MODERN_OPTIONS_OUTPUT_RESOLUTION:
         return cycle_output_resolution_setting();
+    case UR_MODERN_OPTIONS_RENDER_SCALE:
+        return cycle_internal_render_scale_setting();
     case UR_MODERN_OPTIONS_WIDESCREEN:
         return cycle_widescreen_setting();
     case UR_MODERN_OPTIONS_GHOST:
@@ -1240,6 +1265,9 @@ bool ensure_session() {
         (void)apply_output_resolution_setting(g_product_state.settings);
         (void)apply_presentation_fps_setting(g_product_state.settings);
         (void)apply_vsync_setting(g_product_state.settings);
+        (void)ur::presentation::racer_hd_set_internal_render_scale(
+            ur::product::internal_render_scale_value(
+                g_product_state.settings.internal_render_scale));
     }
     return g_session != nullptr;
 }
@@ -2015,9 +2043,14 @@ extern "C" void ur_uniracers_modern_prepare_frame(
     int,
     int* frame_width,
     int* frame_height) {
-    if (!frame_width || !frame_height || !authentic_16x9_view_enabled()) {
+    if (!frame_width || !frame_height) {
         return;
     }
+    if (modern_mode()) {
+        ur::presentation::racer_hd_prepare_frame(
+            0, 0, frame_width, frame_height);
+    }
+    if (!authentic_16x9_view_enabled()) return;
 
     const auto plan = ur::product::resolve_16x9_output_composition(
         ur::product::HostGraphicsRepresentation::Original,
@@ -2030,6 +2063,30 @@ extern "C" void ur_uniracers_modern_prepare_frame(
     ur_ws_margins_prepare_frame(
         plan.expose_added_world ? 1 : 0,
         (plan.logical_view_width - 256) / 2);
+}
+
+extern "C" void ur_uniracers_modern_begin_sim_frame(unsigned frame_number) {
+    if (modern_mode()) {
+        ur::presentation::racer_hd_begin_sim_frame(frame_number);
+    }
+}
+
+extern "C" int ur_uniracers_modern_presentation_scale(void) {
+    const bool world_expanded =
+        authentic_16x9_view_enabled() &&
+        g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand;
+    return ur::product::resolve_internal_render_scale(
+        modern_mode(),
+        world_expanded,
+        ur::presentation::racer_hd_presentation_scale());
+}
+
+extern "C" int ur_uniracers_modern_draw_frame(
+    uint8_t* dst, size_t pitch, const uint8_t* field,
+    int frame_width, int frame_height, double alpha) {
+    if (!modern_mode()) return 0;
+    return ur::presentation::racer_hd_draw_frame(
+        dst, pitch, field, frame_width, frame_height, alpha);
 }
 
 extern "C" void ur_uniracers_modern_compute_viewport(
@@ -2524,7 +2581,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 174;
+            const int options_h = 189;
             const int options_y = (height - options_h) / 2;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
@@ -2578,6 +2635,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char vsync_row[32];
             char presentation_row[32];
             char resolution_row[40];
+            char render_scale_row[32];
             char widescreen_row[32];
             char ghost_row[32];
             const auto ghost_target = active_run_ghost_target();
@@ -2604,6 +2662,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 resolution_row, sizeof(resolution_row), "%c OUTPUT  %s",
                 selected == UR_MODERN_OPTIONS_OUTPUT_RESOLUTION ? '>' : ' ',
                 resolution_value.c_str());
+            std::snprintf(
+                render_scale_row, sizeof(render_scale_row), "%c HD SCALE %dx",
+                selected == UR_MODERN_OPTIONS_RENDER_SCALE ? '>' : ' ',
+                ur::product::internal_render_scale_value(
+                    g_product_state.settings.internal_render_scale));
             std::snprintf(
                 widescreen_row, sizeof(widescreen_row), "%c VIEW     %s",
                 selected == UR_MODERN_OPTIONS_WIDESCREEN ? '>' : ' ',
@@ -2640,15 +2703,18 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 resolution_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, options_y + 102,
-                widescreen_row, 0xFFFFFFFFu, 1);
+                render_scale_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, options_y + 117,
+                widescreen_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, options_y + 132,
                 ghost_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 137,
+                pixels, stride, height, x + 8, options_y + 152,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 157,
+                pixels, stride, height, x + 8, options_y + 172,
                 "B / ESC    BACK", 0xFFFFFFFFu, 1);
             return;
         }

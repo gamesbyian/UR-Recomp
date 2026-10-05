@@ -548,7 +548,7 @@
         },
         {
           "path": "tools/patches/snesrecomp-presentation-scale.patch",
-          "sha256": "5607b09883ae8f0ccf3e3dd8d5c064bc5c7434de7c43ef1285b1477283848646"
+          "sha256": "d5ba3b4adc9b79b8a1d769357859e049ea0ab9e81e00bfe16a2527ed37cc9cd7"
         },
         {
           "path": "tools/patches/snesrecomp-console-reset-request.patch",

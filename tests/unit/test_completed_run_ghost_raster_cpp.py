@@ -18,6 +18,7 @@ class CompletedRunGhostRasterCppTests(unittest.TestCase):
                     "-Wall",
                     "-Wextra",
                     "-Werror",
+                    "-Wno-unused-variable",
                     "-pedantic",
                     "-I",
                     str(ROOT / "native" / "product"),

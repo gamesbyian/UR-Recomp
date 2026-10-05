@@ -36,6 +36,24 @@ struct RunDataStatisticsPresentation {
     bool previous_comparison_available = false;
 };
 
+struct RunRecordsScope {
+    std::string game_id;
+    std::string rom_sha256;
+    std::string build_compat_id;
+    std::string mode;
+};
+
+struct RunRecordsCourseIndexEntry {
+    std::string course_id;
+    RunDataCatalog catalog;
+    RunDataStatisticsPresentation statistics;
+};
+
+struct RunRecordsIndex {
+    std::size_t total_completed_runs = 0;
+    std::vector<RunRecordsCourseIndexEntry> courses;
+};
+
 /* Build presentation metadata over an already compatibility-filtered store
  * catalog. Selection delegates to the canonical previous/PB selectors; this
  * layer adds no new ranking or replay rules. */
@@ -47,5 +65,12 @@ RunDataCatalog build_run_data_catalog(
  * no alternate selection rule: PB and Previous come only from catalog flags. */
 RunDataStatisticsPresentation present_run_data_statistics(
     const RunDataCatalog& catalog);
+
+/* Build the course-independent Runs/Replays index for one authoritative
+ * game/ROM/build/mode scope. Records are grouped by their stored course_id and
+ * each group delegates PB/Previous selection to build_run_data_catalog(). */
+RunRecordsIndex build_run_records_index(
+    const std::vector<StoredRunRecord>& records,
+    const RunRecordsScope& scope);
 
 }  // namespace ur::product

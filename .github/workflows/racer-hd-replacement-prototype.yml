@@ -146,6 +146,36 @@ jobs:
             --p1-gate 0x0001 --p2-gate 0x0000 \
             --player p2 --palette-asset-id 0x07 \
             | tee "$RUNNER_TEMP/racer-third-reference-0541-p2.json"
+          # Cross-player geometry references: these are already-approved
+          # opposite-color poses whose alpha masks may be reusable exactly.
+          python3 tools/measure_racer_composed_anchor.py "$ROM" \
+            --p1-primary 0x057D --p2-primary 0x0543 \
+            --p1-companion 0x0D48 --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-third-crossref-0543-p2.json"
+          python3 tools/measure_racer_composed_anchor.py "$ROM" \
+            --p1-primary 0x0540 --p2-primary 0x0541 \
+            --p1-companion 0x0D2C --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-third-crossref-0540d2c-p1.json"
+          python3 tools/measure_racer_composed_anchor.py "$ROM" \
+            --p1-primary 0x0540 --p2-primary 0x0542 \
+            --p1-companion 0x0D2C --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p2 --palette-asset-id 0x07 \
+            | tee "$RUNNER_TEMP/racer-third-crossref-0542-p2.json"
+          python3 tools/measure_racer_composed_anchor.py "$ROM" \
+            --p1-primary 0x0541 --p2-primary 0x0540 \
+            --p1-companion 0x0D2D --p2-companion 0x0000 \
+            --p1-selector 0 --p2-selector 0 \
+            --p1-gate 0x0001 --p2-gate 0x0000 \
+            --player p1 --palette-asset-id 0x06 \
+            | tee "$RUNNER_TEMP/racer-third-crossref-0541d2d-p1.json"
 
       - name: Classify third-family visual equivalence
         run: |
@@ -159,6 +189,10 @@ jobs:
               "racer-third-recovery-p2",
               "racer-third-reference-0540-p2",
               "racer-third-reference-0541-p2",
+              "racer-third-crossref-0543-p2",
+              "racer-third-crossref-0540d2c-p1",
+              "racer-third-crossref-0542-p2",
+              "racer-third-crossref-0541d2d-p1",
           ]
           rows = {name: json.loads((root / f"{name}.json").read_text()) for name in names}
           hashes = {}
@@ -171,6 +205,20 @@ jobs:
               "same_player_equivalence_groups": [
                   group for group in hashes.values() if len(group) > 1
               ],
+              "cross_player_alpha_equivalence": {
+                  "hold_p1_0543_matches_approved_p2_0543":
+                      rows["racer-third-hold-p1"]["alpha_sha256"]
+                      == rows["racer-third-crossref-0543-p2"]["alpha_sha256"],
+                  "hold_p2_0540d2c_matches_approved_p1_0540d2c":
+                      rows["racer-third-hold-p2"]["alpha_sha256"]
+                      == rows["racer-third-crossref-0540d2c-p1"]["alpha_sha256"],
+                  "recovery_p1_0542_matches_approved_p2_0542":
+                      rows["racer-third-recovery-p1"]["alpha_sha256"]
+                      == rows["racer-third-crossref-0542-p2"]["alpha_sha256"],
+                  "recovery_p2_0541d2d_matches_approved_p1_0541d2d":
+                      rows["racer-third-recovery-p2"]["alpha_sha256"]
+                      == rows["racer-third-crossref-0541d2d-p1"]["alpha_sha256"],
+              },
           }
           (root / "racer-third-family-equivalence.json").write_text(
               json.dumps(summary, indent=2, sort_keys=True) + "\n"
@@ -491,6 +539,10 @@ jobs:
             ${{ runner.temp }}/racer-third-recovery-p2.json
             ${{ runner.temp }}/racer-third-reference-0540-p2.json
             ${{ runner.temp }}/racer-third-reference-0541-p2.json
+            ${{ runner.temp }}/racer-third-crossref-0543-p2.json
+            ${{ runner.temp }}/racer-third-crossref-0540d2c-p1.json
+            ${{ runner.temp }}/racer-third-crossref-0542-p2.json
+            ${{ runner.temp }}/racer-third-crossref-0541d2d-p1.json
             ${{ runner.temp }}/racer-third-family-equivalence.json
             ${{ runner.temp }}/racer-duplicate-sync-p1.json
             ${{ runner.temp }}/racer-duplicate-sync-p2.json

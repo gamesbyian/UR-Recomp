@@ -10,23 +10,6 @@ name: Windows native build and boot smoke
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/windows-native-smoke.yml"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
-      - "third_party/archives/SDL3-3.4.10.tar.gz"
-      - "third_party/cargo/snesrecomp-analyzer/**"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/sdl3.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/patch_modern_product_host.py"
-      - "tools/check_result_screen_time.py"
-      - "tools/assemble_windows_package.py"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "docs/WINDOWS-X64-PACKAGING.md"
-      - "native/product/**"
-      - "native/title/**"
   push:
     branches: [main]
     paths:

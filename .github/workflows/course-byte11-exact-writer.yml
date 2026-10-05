@@ -1,16 +1,7 @@
 name: Course byte11 exact writer PC
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/reach-first-race.script"
-      - "tools/summarize_course_byte11_wlog.py"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: write
 
 concurrency:

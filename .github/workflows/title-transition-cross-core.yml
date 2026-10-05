@@ -1,18 +1,7 @@
 name: Title transition cross-core regression
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tests/input/title-transition-recon.script"
-      - "tools/summarize_title_transition.py"
-      - "analysis/generated/title-transition-reference-summary.json"
-      - ".github/workflows/title-transition-cross-core.yml"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-concurrency:
+  workflow_dispatch:concurrency:
   group: title-transition-cross-core-${{ github.ref }}
   cancel-in-progress: true
 

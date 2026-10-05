@@ -1,22 +1,7 @@
 name: Switch S2 combined link surface
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "analysis/switch-s2-link-surface-contract.json"
-      - "tools/analyze_switch_s2_link_surface.py"
-      - "tests/unit/test_switch_s2_link_surface.py"
-      - "analysis/switch-s2-guest-aot-contract.json"
-      - "analysis/switch-s2-runtime-core-contract.json"
-      - "tools/build_switch_s2_guest_probe.py"
-      - "tools/build_switch_s2_runtime_probe.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - ".github/workflows/switch-s2-link-surface.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

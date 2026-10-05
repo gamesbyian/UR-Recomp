@@ -1,17 +1,7 @@
 name: Audio startup cross-core regression
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "tools/analyze_reference_audio_windows.py"
-      - "tests/input/reach-first-race.script"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/bootstrap_toolchain.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: audio-startup-cross-core-${{ github.ref }}
   cancel-in-progress: true
 

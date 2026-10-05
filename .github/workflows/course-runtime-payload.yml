@@ -1,23 +1,7 @@
 name: course runtime payload probe
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/reach-first-race.script"
-      - "tests/input/course-load-timeline.script"
-      - "tests/input/course-load-timeline-tour2.script"
-      - "tools/rnc_method1.py"
-      - "tools/analyze_rnc_streams.py"
-      - "tools/probe_runtime_course_payload.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: course-runtime-payload-${{ github.ref }}
   cancel-in-progress: true
 

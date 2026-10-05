@@ -1,21 +1,7 @@
 name: ordinary 2P reference regression
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tests/input/two-player-first-race.input"
-      - "tests/input/two-player-first-race-observe.script"
-      - "tests/input/two-player-p2-drift-microtrace.script"
-      - "tests/input/two-player-phase-entry-microtrace.script"
-      - "tests/input/two-player-phase-origin-microtrace.script"
-      - "tools/summarize_paired_player_slots.py"
-      - "tools/build_ui_atlas.py"
-      - "analysis/ui-capture-manifest.json"
-      - "tools/assert_uniracers_vs_oam_seam.py"
-      - ".github/workflows/two-player-reference.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: ordinary-2p-reference-${{ github.ref }}
   cancel-in-progress: true
 

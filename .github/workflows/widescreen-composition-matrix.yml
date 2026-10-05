@@ -1,17 +1,7 @@
 name: +8 Widescreen composition edge trace
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tools/patch_widescreen_probe_composition_trace.py"
-      - "tools/analyze_widescreen_composition_trace.py"
-      - "tests/unit/test_widescreen_probe_composition_trace.py"
-      - "tests/input/widescreen-presentation-phase-gap.script"
-      - "tools/analyze_widescreen_presentation_phase_gap.py"
-      - ".github/workflows/widescreen-composition-matrix.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-composition-trace-${{ github.ref }}
   cancel-in-progress: true
 

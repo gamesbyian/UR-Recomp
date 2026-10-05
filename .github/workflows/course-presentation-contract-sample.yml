@@ -1,14 +1,7 @@
 name: Course presentation contract sample
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "tools/analyze_course_presentation_contract_sample.py"
-      - "tools/build_course_presentation_contract.py"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: course-presentation-contract-sample-${{ github.ref }}
   # This workflow may commit generated evidence; queue writes rather than cancel them.
   cancel-in-progress: false

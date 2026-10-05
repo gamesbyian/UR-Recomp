@@ -1,16 +1,7 @@
 name: trace course-buffer writers
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "snesrecomp"
-      - "tests/input/reach-first-race.script"
-      - "tools/trace_native_wram_writers.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: trace-course-buffer-writers-${{ github.ref }}
   cancel-in-progress: true
 

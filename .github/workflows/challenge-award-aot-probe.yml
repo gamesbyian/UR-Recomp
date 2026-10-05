@@ -1,19 +1,7 @@
 name: Challenge award AOT probe
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/challenge-award-aot-probe-2026-10-05
-    paths:
-      - ".github/workflows/challenge-award-aot-probe.yml"
-      - "tools/extract_generated_challenge_award.py"
-      - "tests/unit/test_extract_generated_challenge_award.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/patch_challenge_generation_writer.py"
-
-jobs:
+  workflow_dispatch:jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 8

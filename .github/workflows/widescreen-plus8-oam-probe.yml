@@ -1,16 +1,7 @@
 name: +8 Widescreen OAM boundary probe
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tools/analyze_widescreen_plus8_oam.py"
-      - "tests/unit/test_analyze_widescreen_plus8_oam.py"
-      - "tools/patch_widescreen_probe_window_policy.py"
-      - "tests/unit/test_widescreen_probe_window_policy.py"
-      - ".github/workflows/widescreen-plus8-oam-probe.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-plus8-oam-${{ github.ref }}
   cancel-in-progress: true
 

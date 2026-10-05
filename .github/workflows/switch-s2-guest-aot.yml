@@ -1,19 +1,7 @@
 name: Switch S2 guest AOT portability
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "analysis/switch-s2-guest-aot-contract.json"
-      - "tools/build_switch_s2_guest_probe.py"
-      - "tests/unit/test_switch_s2_guest_aot.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - ".github/workflows/switch-s2-guest-aot.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

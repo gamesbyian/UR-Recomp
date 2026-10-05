@@ -1,22 +1,7 @@
 name: Switch S2 executable link
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "platform/switch/s2_link_probe/**"
-      - "analysis/switch-s2-executable-link-contract.json"
-      - "tools/check_switch_s2_executable_link.py"
-      - "tests/unit/test_switch_s2_executable_link.py"
-      - "analysis/switch-s2-guest-aot-contract.json"
-      - "analysis/switch-s2-runtime-core-contract.json"
-      - "tools/build_switch_s2_guest_probe.py"
-      - "tools/build_switch_s2_runtime_probe.py"
-      - "tools/bootstrap_toolchain.py"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - ".github/workflows/switch-s2-executable-link.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

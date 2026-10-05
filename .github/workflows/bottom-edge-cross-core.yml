@@ -1,19 +1,7 @@
 name: Bottom-edge cross-core regression
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tools/summarize_presentation_geometry.py"
-      - "tests/input/reach-first-race.script"
-      - "tools/toolchain-entries/snes9x-libretro.json"
-      - "tools/toolchain-entries/beetle-bsnes-libretro.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/patches/beetle-bsnes-ur-recomp.patch"
-      - ".github/workflows/bottom-edge-cross-core.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: bottom-edge-cross-core-${{ github.ref }}
   cancel-in-progress: true
 

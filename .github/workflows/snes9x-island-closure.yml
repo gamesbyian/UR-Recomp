@@ -1,12 +1,6 @@
 name: Snes9x island closure probe
 
 on:
-  pull_request:
-    paths:
-      - "tools/measure_source_closure.py"
-      - "tests/unit/test_measure_source_closure.py"
-      - "tools/patches/snes9x-snesref-debug-exports.patch"
-      - ".github/workflows/snes9x-island-closure.yml"
   workflow_dispatch:
 
 concurrency:

@@ -1,15 +1,7 @@
 name: TCRF unused-content ROM reconciliation
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/tcrf-rom-reconciliation-2026-10-02
-    paths:
-      - "tools/analyze_tcrf_unused_content.py"
-      - "tests/unit/test_analyze_tcrf_unused_content.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: tcrf-unused-content-reconcile-${{ github.ref }}
   cancel-in-progress: true
 

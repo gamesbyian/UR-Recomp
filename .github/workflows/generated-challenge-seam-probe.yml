@@ -1,21 +1,7 @@
 name: Generated challenge seam probe
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - chatgpt/challenge-writer-entry-scan-2026-10-05
-    paths:
-      - ".github/workflows/generated-challenge-seam-probe.yml"
-      - "tools/extract_generated_challenge_qualification.py"
-      - "tests/unit/test_extract_generated_challenge_qualification.py"
-      - "tools/extract_stunt_qualify_table.py"
-      - "tests/unit/test_extract_stunt_qualify_table.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/patch_challenge_generation_writer.py"
-      - "tools/prepare_native_widescreen_product.py"
-
-jobs:
+  workflow_dispatch:jobs:
   probe:
     runs-on: ubuntu-latest
     timeout-minutes: 8

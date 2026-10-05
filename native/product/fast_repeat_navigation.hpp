@@ -1,7 +1,5 @@
 #pragma once
 
-#include "next_event_derivation.hpp"
-
 #include <cstdint>
 
 namespace ur::product {
@@ -48,8 +46,8 @@ constexpr FastNavigationAction resolve_fast_navigation(
     case FastNavigationCommand::NextEvent:
         // Routing a uniquely derived event remains a separate progression
         // concern. This policy command stays inert until the caller supplies
-        // an accepted stock-menu route; unique_next_track_id() is the sole
-        // derivation primitive and fails closed outside the four-of-five case.
+        // an accepted stock-menu route; the standalone Next Event derivation
+        // contract fails closed outside the four-of-five case.
         return FastNavigationAction::None;
     }
     return FastNavigationAction::None;

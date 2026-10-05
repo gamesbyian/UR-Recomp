@@ -14,7 +14,7 @@ The portable package contains:
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - generated `rom.cfg`;
 - the staged `mods/` tree;
-- `run-uniracers.cmd`, which anchors launch to the extracted package directory and supplies the packaged ROM;
+- `run-uniracers.cmd`, which anchors launch to the extracted package directory, supplies the packaged ROM, checks the executable/ROM/`rom.cfg` are present, and returns a clear deterministic error if the package is incomplete;
 - `README.txt` with the writable-extraction requirement;
 - `PACKAGE-MANIFEST.json` with SHA-256 and size for every packaged payload file.
 
@@ -32,7 +32,8 @@ Acceptance is:
 4. launch the package from an unrelated working directory through `run-uniracers.cmd`;
 5. reach the stock main menu using only files inside the package plus the external acceptance script;
 6. prove first-run `config.ini` and `keybinds.ini` are created beside the packaged executable, not in the caller working directory;
-7. retain the package as a CI artifact for inspection.
+7. deliberately remove the packaged ROM and prove the launcher exits with code 2 plus a clear missing-file diagnostic rather than falling through to a cryptic runtime failure;
+8. retain the package as a CI artifact for inspection.
 
 The package must remain self-contained with respect to game/runtime payload. Build tools, repository source trees and checkout-relative paths are not allowed runtime dependencies.
 

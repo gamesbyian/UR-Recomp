@@ -1,7 +1,9 @@
 name: Historical 2008 Dragster replay
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: historical-wip-dragster-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 

@@ -9,6 +9,7 @@ on:
       - "tools/build_racer_hd_asset_dossier.py"
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
+      - "tools/check_ppm.py"
       - "tools/build_racer_hd_shipping_readiness.py"
       - "analysis/data/racer-hd-art-approval.json"
       - "tests/unit/test_build_racer_hd_asset_dossier.py"

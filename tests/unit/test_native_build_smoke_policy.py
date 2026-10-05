@@ -40,6 +40,30 @@ class NativeBuildSmokePolicyTests(unittest.TestCase):
     def test_does_not_reintroduce_framework_git_fetch_contract(self) -> None:
         self.assertNotIn("--snesrecomp-ref", self.text)
 
+    def test_modern_settings_acceptance_covers_internal_render_scale(self) -> None:
+        # Adding an Options row changes every subsequent cursor position. Keep
+        # the live native route responsible for selecting, saving, reloading,
+        # and proving Authentic-mode inertness for the new row.
+        self.assertIn("# Internal Render Scale: 4x -> 1x.", self.text)
+        self.assertIn('grep -q "^internal_render_scale=1x$"', self.text)
+        self.assertGreaterEqual(
+            self.text.count('grep -q "UR_RENDER_SCALE APPLIED scale=1x"'),
+            2,
+        )
+        self.assertIn(
+            "Authentic mode touched modern Internal Render Scale policy",
+            self.text,
+        )
+        self.assertIn("Internal Render Scale compositor acceptance", self.text)
+        self.assertIn(
+            'grep -q "UR_RACER_HD_DRAW PASS .*output_scale=2"',
+            self.text,
+        )
+        self.assertIn(
+            'tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2',
+            self.text,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

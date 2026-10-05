@@ -82,9 +82,9 @@
     "absolute_coverage_gain_percentage_points": 1.360544217687075
   },
   "continuation_disposition": {
-    "status": "measurement-loop-ready",
-    "reason": "The second measured family is shipping-approved under exact provenance and temporal gates. Re-rank the remaining unsupported exact states from the same retained route before choosing any further family.",
-    "next_concrete_discriminator": "Re-run fallback-frequency ranking with both measured families registered; choose the highest remaining exact state by player-fallback frames then recurrence. Stop if its bounded equivalence/art cost is not justified by observed burden."
+    "status": "stop-before-new-art",
+    "reason": "The highest remaining measured state requires two novel poses for a single six-frame episode and 12 player-fallback frames. This is not currently worth shipping relative to the reuse-heavy expansions already admitted.",
+    "next_concrete_discriminator": "Resume only if a broader representative Windows route shows this state/family recurring enough to justify two new poses, or if new equivalence evidence lowers its art cost. Otherwise leave it on fail-closed Original."
   },
   "second_expansion": {
     "selected_exact_state": {
@@ -147,5 +147,59 @@
     "fallback_burden_removed_fraction": 0.016666666666666666,
     "absolute_coverage_gain_percentage_points": 1.3605442176870748,
     "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+  },
+  "next_ranked_discriminator": {
+    "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+    "frames": [
+      1401,
+      1402,
+      1403,
+      1404,
+      1405,
+      1406
+    ],
+    "episode_count": 1,
+    "player_fallback_frames": 12,
+    "workflow_run": 37390771706,
+    "artifact_id": 11380783383,
+    "probe": "tools/probe_racer_hd_state_reuse.py",
+    "players": {
+      "p1": {
+        "semantic_frame_id": "0x0545",
+        "stock_rgba_sha256": "f8ce4667871db7b668252b3a920a27e88a3b5b1ea04d0b96066fe7243ca32197",
+        "normalized_geometry_sha256": "9949f8432b87631d52c254b8a3d28a5ce208dbfec05479a954e6129ecb84e278",
+        "alpha_bounds": [
+          18,
+          5,
+          42,
+          37
+        ],
+        "contact_x2_y2": [
+          53,
+          74
+        ],
+        "exact_same_player_matches": [],
+        "palette_normalized_matches": []
+      },
+      "p2": {
+        "semantic_frame_id": "0x057C",
+        "stock_rgba_sha256": "37b4fcdbec0e33f447a2b757a70da77fde2475b8d536900382bde1291e3e0df6",
+        "normalized_geometry_sha256": "dc76ae154d66076a089b1e2e2cfc1c8f28d2c44b7ef34d3a46008a2e6627b61d",
+        "alpha_bounds": [
+          20,
+          3,
+          44,
+          38
+        ],
+        "contact_x2_y2": [
+          71,
+          76
+        ],
+        "exact_same_player_matches": [],
+        "palette_normalized_matches": []
+      }
+    },
+    "disposition": "stop-before-new-art",
+    "reason": "This state has the same 12-player-frame payoff as the two accepted measured families but occurs in only one episode and requires two genuinely new poses. No exact or palette-normalized reuse exists for either player, so shipping it now would double the new-art cost of the previous family without increasing measured burden removed."
   }
 }

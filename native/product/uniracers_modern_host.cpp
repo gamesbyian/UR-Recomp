@@ -2545,7 +2545,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
         g_onboarding_visible ||
-        (g_practice_active && g_practice_stage == PracticeStage::Active) ||
+        (g_practice_active && g_practice_launch.stage == ur::product::QuickPracticeLaunchStage::Active) ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
@@ -3154,7 +3154,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     }
 
     if (modern_mode() && g_practice_active &&
-        g_practice_stage == PracticeStage::Active) {
+        g_practice_launch.stage == ur::product::QuickPracticeLaunchStage::Active) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const char* hint = "PRACTICE  START > EXIT FRONTEND TO RETURN";

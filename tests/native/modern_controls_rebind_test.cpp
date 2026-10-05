@@ -47,6 +47,20 @@ int main() {
     assert(command.key_scancode == 42);
     assert(!state.capturing);
 
+    // Duplicate physical keys are intentionally legal. The model emits the
+    // same scancode for another logical SNES control without deduplication.
+    (void)modern_controls_handle_action(&state, ModernControlsAction::Next);
+    command = modern_controls_handle_action(&state, ModernControlsAction::Confirm);
+    assert(state.capturing);
+    command = modern_controls_capture_key(&state, 42);
+    assert(command.kind == ModernControlsCommandKind::ApplyCapturedKey);
+    assert(command.binding == ModernControlBinding::B);
+    assert(command.key_scancode == 42);
+    assert(!state.capturing);
+
+    // Return to A so the existing navigation assertions retain their intent.
+    (void)modern_controls_handle_action(&state, ModernControlsAction::Previous);
+
     (void)modern_controls_handle_action(
         &state, ModernControlsAction::Next);
     assert(state.selected == ModernControlBinding::B);

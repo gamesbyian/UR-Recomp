@@ -3,12 +3,9 @@
 #include <cstddef>
 #include <cstdint>
 
-namespace ur::product {
+#include "regional_presentation.hpp"
 
-enum class RegionalPresentation : std::uint8_t {
-    NorthAmerica = 0,
-    Europe = 1,
-};
+namespace ur::product {
 
 enum class RegionalControllerAction : std::uint8_t {
     Left = 0,

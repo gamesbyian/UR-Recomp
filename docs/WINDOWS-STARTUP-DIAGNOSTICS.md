@@ -1,6 +1,19 @@
 # Windows Startup Diagnostics Contract
 
-Status: implementation-ready Windows x64 release acceptance contract.
+Status: package-bootstrap subset implemented and acceptance-covered; video/audio/log presentation remains deferred.
+
+## Implemented portable-package subset
+
+The assembled Windows x64 package now classifies four high-value startup failures without adding a second launcher or persistence authority:
+
+- `UR-STARTUP-ROM-MISSING`: the packaged ROM is absent;
+- `UR-STARTUP-ROM-INVALID`: the explicit packaged ROM fails the framework's generated ROM-identity check;
+- `UR-STARTUP-SAVE-ROOT`: the shared per-user root cannot be created/written or the framework cannot adopt it;
+- `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent.
+
+`run-uniracers.cmd` owns package-presence and user-root checks. The pinned desktop host owns the ROM-identity and final mutable-root adoption checks. Windows package acceptance deliberately breaks each representative prerequisite and requires the corresponding stable code.
+
+`UR-STARTUP-VIDEO`, `UR-STARTUP-AUDIO`, optional retained startup-log presentation, and a generic `UR-STARTUP-UNKNOWN` catch-all remain open. Existing host breadcrumbs/crash reporting continue to own those failures until a similarly narrow implementation is available.
 
 ## Purpose
 

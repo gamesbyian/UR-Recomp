@@ -150,6 +150,8 @@ int main(int argc, char** argv) {
     assert(records_browser.view() == CompletedRunRecordsView::Runs);
     assert(records_browser.selected_run());
     assert(records_browser.selected_run()->is_previous);
+    assert(records_browser.selected_run()->personal_best_delta_text ==
+           "+0:00.37/60");
     const auto first_run_path = records_browser.selected_run()->path;
     assert(records_browser.move(1));
     assert(records_browser.selected_run());

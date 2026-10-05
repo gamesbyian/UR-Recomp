@@ -22,6 +22,9 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/check_result_screen_time.py"
+      - "tools/assemble_windows_package.py"
+      - "tests/unit/test_assemble_windows_package.py"
+      - "docs/WINDOWS-X64-PACKAGING.md"
       - "native/product/**"
       - "native/title/**"
   push:
@@ -34,6 +37,9 @@ on:
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
+      - "tools/assemble_windows_package.py"
+      - "tests/unit/test_assemble_windows_package.py"
+      - "docs/WINDOWS-X64-PACKAGING.md"
       - "native/product/**"
       - "native/title/**"
 
@@ -63,8 +69,10 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify canonical ROM
-        run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+      - name: Verify canonical ROM and package contracts
+        run: |
+          python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python -m unittest tests.unit.test_assemble_windows_package
 
       - name: Stage repository-owned SNESRecomp framework
         run: |
@@ -123,6 +131,66 @@ jobs:
           echo "EXE=$EXE" >> "$GITHUB_ENV"
           ls -la "$(dirname "$EXE")"
 
+      - name: Assemble and verify portable Windows package
+        run: |
+          set -euo pipefail
+          PACKAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py assemble \
+            --build-dir "$(dirname "$EXE")" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --output "$PACKAGE" \
+            --source-revision "$GITHUB_SHA"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+          test -f "$PACKAGE/UniracersSNESRecomp.exe"
+          test -f "$PACKAGE/Uniracers_USA.sfc"
+          test -f "$PACKAGE/rom.cfg"
+          test -f "$PACKAGE/run-uniracers.cmd"
+          test -f "$PACKAGE/PACKAGE-MANIFEST.json"
+
+      - name: Clean-package boot and state anchoring
+        run: |
+          set -euo pipefail
+          DUMPS="$RUNNER_TEMP/package-boot-dumps"
+          CALLER="$RUNNER_TEMP/package-launch-cwd"
+          SCRIPT="$RUNNER_TEMP/package-boot.script"
+          mkdir -p "$DUMPS" "$CALLER"
+          printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
+
+          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
+          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+
+          set +e
+          (
+            cd "$CALLER"
+            SDL_VIDEODRIVER=offscreen \
+            SDL_AUDIODRIVER=dummy \
+            SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+              timeout 300 cmd.exe //d //s //c \
+                "\"${PACKAGE_WIN}\\run-uniracers.cmd\" --script \"${SCRIPT_WIN}\"" \
+                >"$RUNNER_TEMP/package-boot.log" 2>&1
+          )
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-boot.log"
+          test "$RC" -eq 0
+
+          python - "$DUMPS/package-main-menu.wram.bin" <<'PY'
+          import pathlib, sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          assert wram[0x9F] == 0xD7, f"packaged main menu not reached: $9F=0x{wram[0x9F]:02X}"
+          print("WINDOWS_PACKAGE_BOOT_MAIN_MENU ok")
+          PY
+
+          test -f "$PACKAGE/config.ini"
+          test -f "$PACKAGE/keybinds.ini"
+          test ! -e "$CALLER/config.ini"
+          test ! -e "$CALLER/keybinds.ini"
+          grep -Fq "Config/saves anchored to" "$RUNNER_TEMP/package-boot.log"
+          grep -Fq "$(cygpath -w "$PACKAGE")" "$RUNNER_TEMP/package-boot.log"
+          echo "WINDOWS_PACKAGE_STATE_ANCHOR ok"
+
       - name: Boot to main menu
         run: |
           set -euo pipefail
@@ -172,5 +240,16 @@ jobs:
             ${{ runner.temp }}/*.log
             ${{ runner.temp }}/boot-dumps/
             ${{ runner.temp }}/race-result-dumps/race-results.*
+            ${{ runner.temp }}/package-boot-dumps/
+            ${{ runner.temp }}/UR-Recomp-Windows-x64/
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Upload portable Windows package
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-recomp-windows-x64-portable
+          path: ${{ runner.temp }}/UR-Recomp-Windows-x64/
+          if-no-files-found: error
           retention-days: 7

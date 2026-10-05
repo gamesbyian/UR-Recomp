@@ -1,7 +1,9 @@
 name: Medal progression bounded search
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: medal-progression-search-${{ github.ref }}
   cancel-in-progress: true
 

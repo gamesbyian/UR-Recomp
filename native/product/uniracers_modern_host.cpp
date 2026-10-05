@@ -2116,7 +2116,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::snprintf(
                 ghost_row, sizeof(ghost_row), "%c GHOST    %s",
                 selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
-                ur::product::completed_run_ghost_target_name(
+                ur::product::completed_run_ghost_target_label(
                     active_run_ghost_target()));
             snes_ovl_fill_rect(
                 pixels, stride, height, x, options_y, panel_w, options_h,

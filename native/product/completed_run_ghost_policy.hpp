@@ -18,8 +18,12 @@ struct CompletedRunGhostSelection {
     }
 };
 
-/* Stable product vocabulary for persistence/UI wiring. */
+/* Stable machine vocabulary for persistence and diagnostics. */
 const char* completed_run_ghost_target_name(CompletedRunGhostTarget target);
+
+/* Player-facing label. Keep this separate from the machine token so UI polish
+ * cannot silently change persisted profile vocabulary. */
+const char* completed_run_ghost_target_label(CompletedRunGhostTarget target);
 std::optional<CompletedRunGhostTarget> parse_completed_run_ghost_target(
     std::string_view value);
 

@@ -94,6 +94,13 @@ int main() {
     assert(std::string(completed_run_ghost_target_name(
         CompletedRunGhostTarget::PersonalBest)) == "personal-best");
 
+    assert(std::string(completed_run_ghost_target_label(
+        CompletedRunGhostTarget::Off)) == "OFF");
+    assert(std::string(completed_run_ghost_target_label(
+        CompletedRunGhostTarget::Previous)) == "PREVIOUS");
+    assert(std::string(completed_run_ghost_target_label(
+        CompletedRunGhostTarget::PersonalBest)) == "PERSONAL BEST");
+
     assert(parse_completed_run_ghost_target("off") ==
            CompletedRunGhostTarget::Off);
     assert(parse_completed_run_ghost_target("previous") ==

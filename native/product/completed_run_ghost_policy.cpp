@@ -14,6 +14,18 @@ const char* completed_run_ghost_target_name(CompletedRunGhostTarget target) {
     return "off";
 }
 
+const char* completed_run_ghost_target_label(CompletedRunGhostTarget target) {
+    switch (target) {
+    case CompletedRunGhostTarget::Off:
+        return "OFF";
+    case CompletedRunGhostTarget::Previous:
+        return "PREVIOUS";
+    case CompletedRunGhostTarget::PersonalBest:
+        return "PERSONAL BEST";
+    }
+    return "OFF";
+}
+
 std::optional<CompletedRunGhostTarget> parse_completed_run_ghost_target(
     std::string_view value) {
     if (value == "off") return CompletedRunGhostTarget::Off;

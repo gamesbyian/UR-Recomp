@@ -1,7 +1,9 @@
 name: Switch S1 runtime shell
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: read
 
 concurrency:

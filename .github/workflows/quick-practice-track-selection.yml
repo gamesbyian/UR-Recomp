@@ -5,6 +5,9 @@ on:
   pull_request:
     paths:
       - "tests/input/quick-practice-*.script"
+      - "native/product/quick_practice_route.hpp"
+      - "tests/native/quick_practice_route_test.cpp"
+      - "tests/unit/test_quick_practice_route_cpp.py"
       - ".github/workflows/quick-practice-track-selection.yml"
 
 concurrency:
@@ -28,6 +31,11 @@ jobs:
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Test Quick Practice routing policy
+        shell: bash
+        run: |
+          python3 -m unittest tests.unit.test_quick_practice_route_cpp
 
       - name: Stage framework and SDL3
         shell: bash

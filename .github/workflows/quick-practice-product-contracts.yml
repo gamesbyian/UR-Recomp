@@ -6,6 +6,7 @@ on:
     paths:
       - "native/product/quick_practice_*.hpp"
       - "native/product/fast_repeat_navigation.hpp"
+      - "native/product/next_event_derivation.hpp"
       - "tests/native/quick_practice_*_test.cpp"
       - "tests/native/fast_repeat_navigation_test.cpp"
       - "tests/unit/test_quick_practice_*_cpp.py"

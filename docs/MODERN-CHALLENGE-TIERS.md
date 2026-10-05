@@ -33,6 +33,21 @@ Hunter remains discovery content and canonical Gold-only once legitimately avail
 
 `native/product/modern_challenge_tier_selector.hpp` turns that policy into a host-navigation-ready selector without duplicating progression rules in UI code. Ordinary tours expose Bronze/Silver/Gold and default to the next stock-sequential tier (or Gold once already complete). Hunter collapses to one Gold choice. Authentic, unavailable tours and invalid medal state expose no selector.
 
+## Completion commit policy
+
+`native/product/modern_challenge_commit_policy.hpp` defines the only product-level circumstances under which a selected tier may request persistent progression. Selection, launch and ordinary race completion are not commit authority by themselves.
+
+A commit plan requires all of the following:
+
+- Modern mode;
+- valid prior stock medal and selected tier;
+- the selected tier was actually completed;
+- the stock tour-award lifecycle boundary was reached.
+
+The plan records the exact previous medal it expects and the resulting canonical medal `max(previous, selected)`. A title adapter must revalidate that expected previous medal before any write; if progression changed underneath the plan, it fails closed. Failure, cancellation, an incomplete tour, a lower/equal replay, invalid input and Authentic mode produce no progression write.
+
+This is policy only. Checksum-covered medal mutation and any derived-tier reconciliation remain title-owned implementation details gated by native/fresh-process acceptance.
+
 ## Required runtime adapter before shipping selection
 
 A player-facing selector is **not yet authorized to launch a non-current tier**.

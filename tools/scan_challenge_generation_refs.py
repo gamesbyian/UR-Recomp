@@ -46,6 +46,22 @@ def lorom_cpu_address(offset: int) -> str:
     return f"{bank:02X}:{addr:04X}"
 
 
+def semantic_hint(cpu_address: str, opcode: int | None) -> str | None:
+    # These labels intentionally stop at what retained stock evidence plus
+    # local instruction shape establishes. Unknown consumers remain unknown.
+    if cpu_address == "80:B315" and opcode == 0xAF:
+        return "ordinary-opponent-index: generation + 0x11, capped at 0x13"
+    if cpu_address == "80:E6BF" and opcode == 0x8F:
+        return "tour-confirm snapshot writer from active persistent medal"
+    if cpu_address in {"80:BC15", "80:BC79"} and opcode == 0xCF:
+        return "persistent-medal versus generation-snapshot comparison"
+    if cpu_address == "80:E8F0" and opcode == 0xAF:
+        return "frontend generation-label consumer"
+    if cpu_address in {"80:EAA6", "80:EAB9"}:
+        return "generation reconciliation read/write path"
+    return None
+
+
 def scan(rom: bytes) -> list[dict]:
     out = []
     start = 0
@@ -57,12 +73,14 @@ def scan(rom: bytes) -> list[dict]:
         opcode = rom[opcode_pos] if opcode_pos >= 0 else None
         lo = max(0, opcode_pos - 16)
         hi = min(len(rom), pos + len(TARGET) + 16)
+        cpu_address = lorom_cpu_address(opcode_pos)
         out.append({
             "file_offset": f"0x{opcode_pos:06X}",
-            "cpu_address": lorom_cpu_address(opcode_pos),
+            "cpu_address": cpu_address,
             "opcode": None if opcode is None else f"0x{opcode:02X}",
             "mnemonic": LONG_OPCODES.get(opcode),
             "recognized_long_address_instruction": opcode in LONG_OPCODES,
+            "semantic_hint": semantic_hint(cpu_address, opcode),
             "window_start": f"0x{lo:06X}",
             "window_hex": rom[lo:hi].hex(" "),
         })

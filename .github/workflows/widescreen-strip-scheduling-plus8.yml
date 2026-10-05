@@ -1,7 +1,9 @@
 name: Widescreen +8 strip scheduling acceptance
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-strip-scheduling-plus8-${{ github.ref }}
   cancel-in-progress: true
 

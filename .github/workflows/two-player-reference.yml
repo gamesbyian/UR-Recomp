@@ -1,7 +1,9 @@
 name: ordinary 2P reference regression
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: ordinary-2p-reference-${{ github.ref }}
   cancel-in-progress: true
 

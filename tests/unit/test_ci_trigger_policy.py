@@ -7,6 +7,17 @@ WORKFLOWS = Path(".github/workflows")
 MAIN_PUSH_ALLOWLIST = set()
 
 DORMANT_MANUAL_ONLY = {
+    "regional-retail-static-analysis.yml",
+    "regional-retail-frontend-comparison.yml",
+    "regional-retail-course-payloads.yml",
+    "regional-retail-audio-packages.yml",
+    "racer-staging-consumers.yml",
+    "racer-piece-semantics.yml",
+    "racer-piece-render-binding.yml",
+    "racer-packed-low2.yml",
+    "racer-asset-roundtrip.yml",
+    "dual-player-input.yml",
+    "deterministic-differential.yml",
     "smv-tools.yml",
     "racer-composition-mesen.yml",
     "racer-asset-exact-roundtrip.yml",
@@ -233,6 +244,18 @@ class CiTriggerPolicyTest(unittest.TestCase):
             [],
             f"workflow_dispatch must be separated from the next top-level key: {offenders}",
         )
+
+
+    def test_full_toolchain_build_matrix_is_manual_only(self):
+        text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()
+        self.assertRegex(
+            text,
+            r"(?m)^  build-smoke:\n    if: github\.event_name == 'workflow_dispatch'$",
+        )
+
+    def test_replay_acceptance_does_not_follow_generic_host_edits(self):
+        text = (WORKFLOWS / "completed-run-replay-acceptance.yml").read_text()
+        self.assertNotIn('"native/product/uniracers_modern_host.*"', _block(text, "pull_request"))
 
 
     def test_main_push_allowlist_is_evidence_writing(self):

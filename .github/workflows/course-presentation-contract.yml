@@ -1,15 +1,7 @@
 name: Course presentation spatial contract
 
 on:
-  workflow_dispatch:
-  push:
-    paths:
-      - "tools/build_course_presentation_contract.py"
-      - "tests/unit/test_course_presentation_contract.py"
-      - "analysis/generated/dessyreqt-course-landmarks.json"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: course-presentation-contract-${{ github.ref }}
   # This workflow may commit generated evidence; queue writes rather than cancel them.
   cancel-in-progress: false

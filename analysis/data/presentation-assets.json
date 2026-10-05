@@ -1833,6 +1833,135 @@
               }
             },
             "source": "dense host-frame adjacency identifies repeated frames 1215-1216; canonical ROM geometry measured by Racer HD prototype run 37099604317"
+          },
+          {
+            "checkpoint": "native-dense-trace-1244-through-1251",
+            "workflow_run": 37257283393,
+            "artifact_id": 11323366532,
+            "frames": [
+              1244,
+              1245,
+              1246,
+              1247,
+              1248,
+              1249,
+              1250,
+              1251
+            ],
+            "ids": {
+              "p1_primary": "0x0543",
+              "p2_primary": "0x0540",
+              "p1_companion": "0x0000",
+              "p2_companion": "0x0D2C"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0000",
+              "p2": "0x0001"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  57,
+                  76
+                ],
+                "alpha_bounds": [
+                  20,
+                  4,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "7ae33c4f78e7ae11aecdd7b10611b1ae8f0a481d9c459733326031b9257f5390"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  63,
+                  76
+                ],
+                "alpha_bounds": [
+                  23,
+                  2,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "c1f303178367410a4b08d059ec24669122df1c27d4395d730312bdb8c86dd6f6"
+              }
+            },
+            "geometry_workflow_run": 37259412419,
+            "geometry_artifact_id": 11323283909,
+            "source": "dense native post-guest-frame WRAM trace identifies the eight-frame hold; canonical ROM geometry and alpha hashes measured by Racer HD prototype run 37259412419"
+          },
+          {
+            "checkpoint": "native-dense-trace-1252",
+            "workflow_run": 37257283393,
+            "artifact_id": 11323366532,
+            "frames": [
+              1252
+            ],
+            "ids": {
+              "p1_primary": "0x0542",
+              "p2_primary": "0x0541",
+              "p1_companion": "0x0000",
+              "p2_companion": "0x0D2D"
+            },
+            "selectors": {
+              "p1": 0,
+              "p2": 0
+            },
+            "companion_gate_words": {
+              "p1": "0x0000",
+              "p2": "0x0001"
+            },
+            "geometry": {
+              "p1": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  59,
+                  76
+                ],
+                "alpha_bounds": [
+                  21,
+                  4,
+                  40,
+                  38
+                ],
+                "alpha_sha256": "24fd071dfd989174b52ed9c2b6d0e9e2e8494c109fc2a5e7ecd2b9a15d11e40a"
+              },
+              "p2": {
+                "flip_pivot_x2_y2": [
+                  63,
+                  63
+                ],
+                "wheel_contact_x2_y2": [
+                  61,
+                  76
+                ],
+                "alpha_bounds": [
+                  22,
+                  2,
+                  39,
+                  38
+                ],
+                "alpha_sha256": "4c25b27b3e8fb92aed0fa1a93b9289be1fb68282132236a880b9c81bdc1994f9"
+              }
+            },
+            "geometry_workflow_run": 37259412419,
+            "geometry_artifact_id": 11323283909,
+            "source": "dense native post-guest-frame WRAM trace identifies the recovery frame; canonical ROM geometry and alpha hashes measured by Racer HD prototype run 37259412419"
           }
         ]
       }

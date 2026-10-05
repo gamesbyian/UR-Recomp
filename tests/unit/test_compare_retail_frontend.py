@@ -49,6 +49,17 @@ class RetailFrontendComparisonTests(unittest.TestCase):
 
     def test_case_catalog_uses_semantic_routes(self):
         tool = load_tool()
+        self.assertIn("title-transition", tool.CASES)
+        self.assertEqual(
+            tool.CASES["title-transition"]["checkpoints"],
+            [
+                "boot-300",
+                "boot-360",
+                "boot-420",
+                "main-menu-first",
+                "main-menu-settled",
+            ],
+        )
         self.assertIn("startup-main", tool.CASES)
         self.assertEqual(
             tool.CASES["startup-main"]["checkpoints"],

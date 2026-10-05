@@ -27,6 +27,7 @@ from prototype_racer_hd_replacement import (
     alpha_contact_anchor_x2_y2,
     build_stock_rgba,
 )
+from extract_racer_presentation_family import rgba_palette
 
 TARGET_STATE = {
     "p1_primary": "0x0544",
@@ -49,6 +50,40 @@ def alpha_mask_sha256(rgba: bytes) -> str:
     if len(rgba) != W * H * 4:
         raise ValueError("unexpected RGBA byte length")
     return sha256(bytes(1 if rgba[i + 3] else 0 for i in range(0, len(rgba), 4)))
+
+
+def palette_role_indices(rom: bytes) -> list[int]:
+    """Return palette slots whose values differ between the proven P1/P2 palettes."""
+    p1 = rgba_palette(rom, 0x06)
+    p2 = rgba_palette(rom, 0x07)
+    if len(p1) != len(p2):
+        raise ValueError("racer palettes have different lengths")
+    roles = [i for i, pair in enumerate(zip(p1, p2)) if pair[0] != pair[1]]
+    if 0 in roles:
+        raise ValueError("transparent palette role may not be normalized")
+    return roles
+
+
+def palette_normalized_rgba(
+    rgba: bytes,
+    palette: list[tuple[int, int, int, int]],
+    role_indices: list[int],
+) -> bytes:
+    """Replace only proven player-color palette values with stable role tokens."""
+    role_map: dict[bytes, bytes] = {}
+    for index in role_indices:
+        source = bytes(palette[index])
+        if source in role_map and role_map[source] != bytes((index, 0, 0, 255)):
+            raise ValueError("ambiguous racer-color palette value")
+        role_map[source] = bytes((index, 0, 0, 255))
+
+    out = bytearray(rgba)
+    for i in range(0, len(out), 4):
+        pixel = bytes(out[i:i + 4])
+        token = role_map.get(pixel)
+        if token is not None:
+            out[i:i + 4] = token
+    return bytes(out)
 
 
 def temporary_entry(player: str) -> dict[str, Any]:
@@ -76,70 +111,80 @@ def approved_same_player_entries(registry: dict[str, Any], player: str) -> list[
 
 
 def build_report(rom: bytes, registry: dict[str, Any]) -> dict[str, Any]:
-    players = {}
-    any_exact_reuse = False
-    requires_new_pose = False
+    roles = palette_role_indices(rom)
+    palettes = {
+        "p1": rgba_palette(rom, 0x06),
+        "p2": rgba_palette(rom, 0x07),
+    }
 
+    approved = []
+    seen_representation_ids = set()
     for player in ("p1", "p2"):
-        target_entry = temporary_entry(player)
-        target = build_stock_rgba(rom, target_entry)
-        target_hash = sha256(target)
-        target_alpha_hash = alpha_mask_sha256(target)
-
-        matches = []
-        canonical = {}
         for entry in approved_same_player_entries(registry, player):
+            rid = entry["representation_id"]
+            if rid in seen_representation_ids:
+                continue
+            seen_representation_ids.add(rid)
             stock = build_stock_rgba(rom, entry)
-            stock_hash = sha256(stock)
-            row = canonical.setdefault(stock_hash, {
-                "stock_rgba_sha256": stock_hash,
+            normalized = palette_normalized_rgba(stock, palettes[player], roles)
+            approved.append({
+                "player": player,
+                "semantic_frame_id": entry["semantic_frame_id"],
+                "representation_id": rid,
+                "palette_asset_id": entry["palette_asset_id"],
+                "shipping_approval_source": entry["authored_candidate"]["shipping_approval_source"],
+                "stock_rgba_sha256": sha256(stock),
+                "normalized_geometry_sha256": sha256(normalized),
                 "alpha_mask_sha256": alpha_mask_sha256(stock),
-                "semantic_frame_ids": set(),
-                "representation_ids": [],
-                "shipping_approval_sources": set(),
                 "alpha_bounds": alpha_bounds(stock, W, H),
                 "contact_x2_y2": alpha_contact_anchor_x2_y2(stock, W, H),
             })
-            row["semantic_frame_ids"].add(entry["semantic_frame_id"])
-            row["representation_ids"].append(entry["representation_id"])
-            row["shipping_approval_sources"].add(
-                entry["authored_candidate"]["shipping_approval_source"]
-            )
-            if stock_hash == target_hash:
-                matches.append(entry["representation_id"])
 
-        canonical_rows = []
-        for row in canonical.values():
-            canonical_rows.append({
-                **row,
-                "semantic_frame_ids": sorted(row["semantic_frame_ids"]),
-                "representation_ids": sorted(row["representation_ids"]),
-                "shipping_approval_sources": sorted(row["shipping_approval_sources"]),
-            })
-        canonical_rows.sort(key=lambda row: row["stock_rgba_sha256"])
+    players = {}
+    for player in ("p1", "p2"):
+        target_entry = temporary_entry(player)
+        target = build_stock_rgba(rom, target_entry)
+        normalized = palette_normalized_rgba(target, palettes[player], roles)
+        target_hash = sha256(target)
+        normalized_hash = sha256(normalized)
 
-        exact = bool(matches)
-        any_exact_reuse = any_exact_reuse or exact
-        requires_new_pose = requires_new_pose or not exact
+        same_player_exact = sorted(
+            row["representation_id"] for row in approved
+            if row["player"] == player and row["stock_rgba_sha256"] == target_hash
+        )
+        palette_normalized = sorted(
+            row["representation_id"] for row in approved
+            if row["normalized_geometry_sha256"] == normalized_hash
+        )
+
         players[player] = {
             "palette_asset_id": target_entry["palette_asset_id"],
             "semantic_frame_id": TARGET_STATE[f"{player}_primary"],
             "stock_rgba_sha256": target_hash,
-            "alpha_mask_sha256": target_alpha_hash,
+            "normalized_geometry_sha256": normalized_hash,
+            "alpha_mask_sha256": alpha_mask_sha256(target),
             "alpha_bounds": alpha_bounds(target, W, H),
             "contact_x2_y2": alpha_contact_anchor_x2_y2(target, W, H),
-            "approved_same_player_unique_stock_pose_count": len(canonical_rows),
-            "exact_rgba_reuse_matches": sorted(matches),
-            "exact_rgba_reuse_proven": exact,
-            "palette_normalization_disposition": (
-                "not needed: all approved same-player comparison poses use the same "
-                "stock palette asset, so exact RGBA is already the stricter proof"
-            ),
-            "approved_same_player_pose_catalog": canonical_rows,
+            "exact_same_player_reuse_matches": same_player_exact,
+            "exact_same_player_reuse_proven": bool(same_player_exact),
+            "palette_normalized_reuse_matches": palette_normalized,
+            "palette_normalized_reuse_proven": bool(palette_normalized),
         }
 
+    all_reusable = all(
+        players[p]["exact_same_player_reuse_proven"]
+        or players[p]["palette_normalized_reuse_proven"]
+        for p in ("p1", "p2")
+    )
+    novel = [
+        p for p in ("p1", "p2")
+        if not (
+            players[p]["exact_same_player_reuse_proven"]
+            or players[p]["palette_normalized_reuse_proven"]
+        )
+    ]
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "purpose": "Bounded pre-registration reuse discriminator for measured Racer HD fallback burden.",
         "target": {
             "state": TARGET_STATE,
@@ -147,17 +192,26 @@ def build_report(rom: bytes, registry: dict[str, Any]) -> dict[str, Any]:
             "episode_count": 2,
             "player_fallback_frames": 12,
         },
-        "players": players,
-        "disposition": {
-            "all_players_exact_reuse_proven": all(
-                players[p]["exact_rgba_reuse_proven"] for p in ("p1", "p2")
+        "palette_normalization": {
+            "palette_assets": ["0x06", "0x07"],
+            "normalized_role_indices": roles,
+            "rule": (
+                "Only palette indices whose canonical P1/P2 values differ are replaced "
+                "by stable role tokens; transparent and byte-identical neutral/material "
+                "entries remain untouched."
             ),
-            "any_player_exact_reuse_proven": any_exact_reuse,
-            "requires_at_least_one_new_pose": requires_new_pose,
+        },
+        "players": players,
+        "approved_pose_catalog": approved,
+        "disposition": {
+            "all_players_reuse_proven": all_reusable,
+            "novel_players": novel,
+            "requires_new_pose_count": len(novel),
             "admission_rule": (
-                "Register only players with exact approved same-player stock-RGBA reuse. "
-                "Any unmatched player remains Original until one distinct authored pose "
-                "passes the ordinary dossier, review, temporal and hash-bound shipping gates."
+                "Exact same-player RGBA reuse is preferred. Cross-player reuse is allowed "
+                "only when the palette-normalized stock raster is byte-identical after "
+                "normalizing exactly the proven player-color palette roles. Unmatched poses "
+                "remain Original until distinct authored art passes ordinary review gates."
             ),
         },
     }

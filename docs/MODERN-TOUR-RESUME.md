@@ -43,7 +43,7 @@ On a later process, a valid active Modern profile exposes a compact **F3 Continu
 
 `MAIN_MENU (D7) -> RIDER_SELECT (3C) -> saved TOUR_SELECT option (6D) -> TRACK_SELECT (F6)`.
 
-The route deliberately stops at TRACK_SELECT and immediately relinquishes input ownership. The player still chooses the next event, and stock race initialization remains untouched. Escape, or controller B/Start while the route is in flight, cancels the host route without changing progression.
+The route deliberately stops at TRACK_SELECT and immediately relinquishes input ownership. The player still chooses the next event, and stock race initialization remains untouched. The in-flight route is bound to the exact profile that launched it, aborts on profile/context disagreement or unexpected race entry, and has a bounded 3600-observation lifetime so a broken frontend transition cannot retain host input ownership indefinitely. Escape, or controller B/Start while the route is in flight, cancels the host route without changing progression.
 
 Stock rider confirmation is allowed to perform its historical flag wipe unchanged. At TRACK_SELECT, and only there, the existing title adapter may restore the saved five-byte row when all of the following still match:
 

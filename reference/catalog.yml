@@ -853,3 +853,35 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public leaderboard/forum material; summarize with provenance."
     relevance: "Current competitive corpus with hundreds of submitted runs, recent Hunter and course records, historical-PB comparisons, and player observations about screen-position/scrolling behavior affecting optimal times."
+
+
+  - id: gamefaqs-newo-sram-corruption
+    title: "GameFAQs Uniracers save corruption observations"
+    type: player_failure_observation
+    url: "https://gamefaqs.gamespot.com/boards/588824-uniracers/74957009"
+    authors_or_participants: ["newo", "NuAngel"]
+    published: "2017"
+    retrieved: "2026-10-05"
+    rights: "Public forum discussion; preserve claims and provenance only."
+    relevance: "Reports observed SRAM corruption symptoms including mutated racer names, implausible stunt scores, menu palette corruption, and game lockup resolved by erasing save data. Useful for malformed-save robustness fixtures, not as proof of root cause."
+
+
+  - id: reddit-uniracers-boost-mechanics-2021
+    title: "Reddit Uniracers remake discussion with boost-mechanics claims"
+    type: player_mechanics_discussion
+    url: "https://www.reddit.com/r/gaming/comments/nh0g1c/"
+    published: "2021-05-20"
+    retrieved: "2026-10-05"
+    rights: "Public Reddit discussion; preserve claims and provenance only."
+    relevance: "Contains a specific claim that stunt complexity affects stunt points but not race-speed boost, conflicting with other player guides/reviews. High-value discriminator for canonical boost semantics."
+
+
+  - id: arqade-uniracers-straightaway-speed
+    title: "Arqade Uniracers straightaway speed discussion"
+    type: player_mechanics_discussion
+    url: "https://gaming.stackexchange.com/questions/840/how-do-i-maximize-speed-on-a-straightaway-in-uniracers"
+    authors_or_participants: ["Mag Roader", "Jaydles"]
+    published: "2010-07-08"
+    retrieved: "2026-10-05"
+    rights: "Public Stack Exchange content; summarize with provenance and respect upstream CC terms."
+    relevance: "Documents experienced-player belief that Roll+Twist balances boost against landing cleanliness and suggests landing quality/friction can offset larger trick boost. Useful as a competing hypothesis for deterministic speed tests."

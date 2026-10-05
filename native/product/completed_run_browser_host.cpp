@@ -439,19 +439,28 @@ void maybe_run_records_browser_acceptance() {
     const bool drilled =
         opened &&
         records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM);
+    const bool detail =
+        drilled &&
+        records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) &&
+        g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Detail;
     const bool current_course =
-        drilled && records_selected_matches_current_course();
+        detail && records_selected_matches_current_course();
+    const auto summary = g_records_browser.selected_run_summary();
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d current_course=%d courses=%zu runs=%zu\n",
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s\n",
             pause_handled,
             opened ? 1 : 0,
             drilled ? 1 : 0,
+            detail ? 1 : 0,
             current_course ? 1 : 0,
             g_records_browser.index().courses.size(),
-            g_records_browser.index().total_completed_runs);
+            g_records_browser.index().total_completed_runs,
+            summary ? summary->finish.clock_text.c_str() : "--",
+            summary ? summary->finish.comparison_text.c_str() : "--");
         std::fflush(stderr);
     }
 

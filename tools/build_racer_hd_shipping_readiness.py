@@ -15,6 +15,11 @@ def build_shipping_readiness(
     equivalence: dict[str, Any],
     decisions: dict[str, Any],
 ) -> dict[str, Any]:
+    if equivalence.get("schema_version") != 1:
+        raise ValueError("unsupported pose-equivalence schema version")
+    if decisions.get("schema_version") != 1:
+        raise ValueError("unsupported art-approval schema version")
+
     equivalence_family = equivalence.get("family")
     decision_family = decisions.get("family")
     if not isinstance(equivalence_family, str) or not equivalence_family:
@@ -51,6 +56,8 @@ def build_shipping_readiness(
         raise ValueError("family_blockers must be a list")
 
     decision_rows = decisions.get("decisions", [])
+    if not isinstance(decision_rows, list):
+        raise ValueError("decisions must be a list")
     by_source: dict[str, dict[str, Any]] = {}
     for row in decision_rows:
         source = row["authored_source_representation_id"]

@@ -1,19 +1,7 @@
 name: MesenCE ordinary 2P evidence
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/mesence-two-player-reference.yml"
-      - "tests/input/two-player-first-race.input"
-      - "tests/input/two-player-first-race-observe.script"
-      - "tools/run_fixture_mesen.py"
-      - "tools/replay_input_mesen.py"
-      - "tools/summarize_paired_player_slots.py"
-      - "third_party/src/mesen-for-ai/**"
-      - "tools/toolchain-entries/mesence.json"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: mesence-ordinary-2p-${{ github.ref }}
   cancel-in-progress: true
 

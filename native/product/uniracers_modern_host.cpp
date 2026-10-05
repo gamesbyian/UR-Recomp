@@ -2024,8 +2024,9 @@ bool restart_surface() {
            g_surface == UR_UNIRACERS_RESTART_RESULTS;
 }
 
-bool exit_to_frontend() {
-    if (!modern_mode() || !restart_surface()) {
+bool request_frontend_reboot(bool require_restart_surface) {
+    if (!modern_mode() ||
+        (require_restart_surface && !restart_surface())) {
         product_diagnostic("UR_EXIT_FRONTEND REJECTED_UNSAFE_SURFACE");
         return false;
     }
@@ -2117,6 +2118,19 @@ bool exit_to_frontend() {
         std::fflush(stderr);
     }
     return true;
+}
+
+bool exit_to_frontend() {
+    return request_frontend_reboot(true);
+}
+
+bool abort_practice_route_to_frontend(const char* diagnostic) {
+    if (!g_practice_active) return false;
+    const bool requested = request_frontend_reboot(false);
+    if (requested && diagnostic) {
+        product_diagnostic(diagnostic);
+    }
+    return requested;
 }
 
 bool paused() {

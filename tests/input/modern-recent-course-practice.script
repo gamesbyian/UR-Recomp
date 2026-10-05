@@ -1,0 +1,45 @@
+# Native Recent Course acceptance.
+# Reach an authoritative stock race through ordinary guest input. The existing
+# Exit Frontend acceptance returns to MAIN_MENU in the same process after the
+# host has observed and validated live course identity. The workflow then sends
+# the actual F6 Recent Course shortcut. The host must re-enter the same course
+# only through the isolated Quick Practice stock-menu router.
+
+until 009F == D7 3600
+wait 60
+dump recent-main-first
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+press a 2
+
+until 009F == F6 1200
+wait 60
+press a 2
+
+until 009F != F6 1200
+until 009F == 16 1200
+wait 60
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump recent-source-race
+
+# UR_EXIT_FRONTEND_ACCEPTANCE=active requests the already-validated host
+# transition after the source race has remained settled long enough for the
+# dump above and Recent Course observation.
+until 009F == D7 1800
+wait 60
+dump recent-returned-main
+
+# The workflow sends F6 only after observing this dump.
+until 0313 == 01 3600
+wait 60
+dump recent-practice-race
+quit

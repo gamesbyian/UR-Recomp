@@ -11,6 +11,7 @@ on:
       - "tools/extract_menu_visual_language.py"
       - "tools/probe_tier_opponents.py"
       - "tests/unit/test_compare_retail_frontend.py"
+      - "tests/input/title-transition-recon.script"
       - "tests/input/ui-startup-timeline.script"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"

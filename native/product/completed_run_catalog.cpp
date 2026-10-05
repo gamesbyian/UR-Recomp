@@ -57,4 +57,38 @@ RunDataCatalog build_run_data_catalog(
     return catalog;
 }
 
+RunDataStatisticsPresentation present_run_data_statistics(
+    const RunDataCatalog& catalog) {
+    RunDataStatisticsPresentation stats;
+    stats.completed_runs = catalog.entries.size();
+
+    const RunDataCatalogEntry* pb = nullptr;
+    const RunDataCatalogEntry* previous = nullptr;
+
+    if (catalog.personal_best_entry &&
+        *catalog.personal_best_entry < catalog.entries.size()) {
+        pb = &catalog.entries[*catalog.personal_best_entry];
+        stats.personal_best_available = true;
+        stats.personal_best_text = pb->time_text;
+    }
+
+    if (catalog.previous_entry &&
+        *catalog.previous_entry < catalog.entries.size()) {
+        previous = &catalog.entries[*catalog.previous_entry];
+        stats.previous_available = true;
+        stats.previous_text = previous->time_text;
+    }
+
+    if (pb && previous) {
+        const auto delta = exact_run_timing_delta_ticks60(
+            previous->elapsed_ticks60, pb->elapsed_ticks60);
+        if (delta) {
+            stats.previous_comparison_available = true;
+            stats.previous_vs_pb_text = format_run_delta_ticks60(*delta);
+        }
+    }
+
+    return stats;
+}
+
 }  // namespace ur::product

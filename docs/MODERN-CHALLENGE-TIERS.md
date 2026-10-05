@@ -84,7 +84,11 @@ On success it returns only the selected generation that the stock snapshot write
 
 This shape is important because the retained direct-reference scan localizes the stock snapshot writer at `80:E6BF`, an ordinary opponent consumer at `80:B315` and a frontend generation-label consumer at `80:E8F0`. Substituting at the writer boundary lets downstream stock consumers share one coherent generation instead of repairing label/opponent state afterward.
 
-The generated-code hook at `80:E6BF` is still pending. Until that hook and threshold/result acceptance exist, this adapter is not player-facing authorization for non-current-tier launch.
+The generated-code writer hook is now implemented as a fail-closed post-generation patch plus a narrow C bridge. `tools/patch_challenge_generation_writer.py` scans the shipping generated C set and requires exactly one emitted byte store to `$77:10D1`; it wraps only that store's value through `ur_uniracers_challenge_generation_filter()`. Zero or multiple matching stores fail the shipping preparation. The 4:3 regression-baseline generator deliberately does not apply this hook.
+
+The bridge is exact stock pass-through until a typed request is armed. `uniracers_challenge_generation_runtime.cpp` installs a one-shot filter for one stock snapshot writer only. The request is consumed and disarmed whether validation succeeds or fails, and explicit cancellation restores pass-through before the writer. This prevents a stale tier choice from leaking into a later tour confirm.
+
+Player-facing wiring and threshold/result acceptance are still pending. The existence of the writer hook is not by itself authorization for non-current-tier launch.
 
 ### Completion/reward constraint
 

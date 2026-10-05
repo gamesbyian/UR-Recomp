@@ -22,6 +22,7 @@ def patch_main_text(source: str) -> str:
         ("&ur_uniracers_modern_after_run_frame", "&ur_uniracers_product_after_run_frame"),
         ("&ur_uniracers_modern_system_key_down", "&ur_uniracers_product_system_key_down"),
         ("&ur_uniracers_modern_system_gamepad_button", "&ur_uniracers_product_system_gamepad_button"),
+        ("&ur_uniracers_modern_system_gamepad_control", "&ur_uniracers_product_system_gamepad_control"),
         ("&ur_uniracers_modern_system_overlay", "&ur_uniracers_product_system_overlay"),
     ):
         source = source.replace(original, wrapped)
@@ -45,6 +46,19 @@ def patch_main_text(source: str) -> str:
             FIELD_ANCHOR,
             FIELD_ANCHOR
             + "    .after_config          = &ur_uniracers_modern_after_config,\n",
+            1,
+        )
+
+    if "system_gamepad_control" not in source:
+        raw_gamepad_anchor = (
+            "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
+        )
+        if raw_gamepad_anchor not in source:
+            raise ValueError("generated host raw gamepad field not found")
+        source = source.replace(
+            raw_gamepad_anchor,
+            raw_gamepad_anchor
+            + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n",
             1,
         )
 
@@ -115,6 +129,7 @@ def patch_main_text(source: str) -> str:
         + "    .after_run_frame       = &ur_uniracers_product_after_run_frame,\n"
         + "    .system_key_down       = &ur_uniracers_product_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
+        + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n"
         + "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"
         + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
         + widescreen_fields,

@@ -1,0 +1,66 @@
+name: Challenge generation transient probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - chatgpt/challenge-generation-transient-probe-2026-10-05
+    paths:
+      - ".github/workflows/challenge-generation-transient-probe.yml"
+      - "tests/input/challenge-generation-transient-probe.script"
+      - "tools/probe_challenge_generation.py"
+      - "tests/unit/test_probe_challenge_generation.py"
+      - "tools/probe_tier_opponents.py"
+      - "tools/patches/snesrecomp-sram-poke.patch"
+
+concurrency:
+  group: challenge-generation-transient-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify inputs and pure analysis
+        run: |
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          test "$(stat -c%s "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm")" -eq 8192
+          python3 -m unittest tests.unit.test_probe_challenge_generation
+
+      - name: Build reference harness and Snes9x core
+        run: |
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          test -x .tools/src/snesrecomp/build-snesref/snesref
+          test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+      - name: Run transient generation discriminator
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p analysis/generated
+          python3 tools/probe_challenge_generation.py \
+            "reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
+            --out analysis/generated/challenge-generation-transient-probe.json \
+            | tee "$RUNNER_TEMP/challenge-generation-transient-probe.log"
+
+      - name: Upload discriminator evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: challenge-generation-transient-probe
+          path: |
+            analysis/generated/challenge-generation-transient-probe.json
+            ${{ runner.temp }}/challenge-generation-transient-probe.log
+          if-no-files-found: warn
+          retention-days: 7

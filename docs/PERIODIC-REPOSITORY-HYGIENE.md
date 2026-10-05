@@ -79,6 +79,13 @@ Use `CI-WORKFLOW-BEST-PRACTICES.md` as the canonical workflow-design policy.
 Classify each workflow as durable validation, main-branch regression, reproducible analysis, manual research infrastructure, or obsolete/one-off.
 
 Check:
+- the latest 5-10 runs of each active automatic workflow when history exists, classifying actual failures separately from superseded cancellations;
+- the first failed job/step and its bounded log before inferring a product regression;
+- repeated cancellation churn from agents pushing several CI-triggering commits faster than useful gates can complete;
+- dependent validators using `if: always()` and manufacturing secondary failures when producer artifacts were never created;
+- UI acceptance routes whose literal cursor counts drifted after a menu row was inserted or reordered;
+- policy/schema tests that rely on one live production object remaining in a temporary state rather than constructing the invalid fixture explicitly;
+- monolithic smoke jobs where one volatile product acceptance causes most unrelated checks to be skipped;
 - triggers still match the workflow's purpose and use the narrowest correct `paths`;
 - expensive work is not selected by unrelated changes or prose-only documentation;
 - specialist workflows use per-tool entry snapshots instead of `tools/toolchain.json` where possible;

@@ -179,8 +179,8 @@ jobs:
             SDL_VIDEODRIVER=offscreen \
             SDL_AUDIODRIVER=dummy \
             SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-              timeout 300 cmd.exe //d //s //c \
-                "\"${PACKAGE_WIN}\\run-uniracers.cmd\" --script \"${SCRIPT_WIN}\"" \
+              timeout 300 powershell.exe -NoProfile -Command \
+                "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
                 >"$RUNNER_TEMP/package-boot.log" 2>&1
           )
           RC=$?
@@ -219,8 +219,8 @@ jobs:
           SDL_VIDEODRIVER=offscreen \
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-            timeout 600 cmd.exe //d //s //c \
-              "\"${PACKAGE_WIN}\\run-uniracers.cmd\" --script \"${SCRIPT_WIN}\"" \
+            timeout 600 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-race-result.log" 2>&1
           RC=$?
           set -e
@@ -301,7 +301,8 @@ jobs:
           BROKEN_WIN="$(cygpath -w "$BROKEN")"
 
           set +e
-          cmd.exe //d //s //c "\"${BROKEN_WIN}\\run-uniracers.cmd\"" \
+          powershell.exe -NoProfile -Command \
+            "& '${BROKEN_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-rom.log" 2>&1
           RC=$?
           set -e

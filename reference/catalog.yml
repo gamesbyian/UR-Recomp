@@ -1027,3 +1027,25 @@ sources:
     language: "pt-BR"
     rights: "Public article; summarize with provenance."
     relevance: "Recent Brazilian-language Uniracers coverage demonstrates a currently active regional audience and provides a pivot for locating commenters, players and creators with fresh familiarity."
+
+
+  - id: flymaggott-dragster-fliptwist-video
+    title: "FlyMaggott 24.45 Dragster flip-twist video"
+    type: competitive_mechanics_video
+    url: "https://www.youtube.com/watch?v=ZEp9T0daxlw"
+    author: "FlyMaggott"
+    published: "circa 2007"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube video linked from the GameFAQs PAL high-score thread; preserve metadata and derived observations only."
+    relevance: "Primary audiovisual artifact for the competitive flip-twist technique and the reported large deferred boost release at the end of a stunt chain. Useful for frame-level boost/scroll reconstruction."
+
+
+  - id: nuangel-sram-corruption-video
+    title: "NuAngel Uniracers corrupted-save/crash video"
+    type: player_failure_video
+    url: "https://www.youtube.com/watch?v=ZzrkUD8K8Ec"
+    author: "NuAngel"
+    published: "2017-02-10"
+    retrieved: "2026-10-05"
+    rights: "Public YouTube video linked from GameFAQs; preserve metadata and derived observations only."
+    relevance: "Audiovisual evidence accompanying reports of malformed racer names and a crash resolved by clearing save data. Useful for classifying visible corrupted-SRAM symptoms before synthetic reproduction."

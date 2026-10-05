@@ -1,5 +1,6 @@
 #pragma once
 
+#include "completed_run_catalog.hpp"
 #include "completed_run_presentation.hpp"
 
 #include <cstddef>
@@ -43,6 +44,40 @@ struct CompletedRunBrowserEntry {
 
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept;
+
+enum class CompletedRunRecordsView : std::uint8_t {
+    Courses = 0,
+    Runs = 1,
+};
+
+class CompletedRunRecordsBrowser {
+public:
+    void clear() noexcept;
+    bool refresh(
+        const std::string& directory,
+        const RunRecordsScope& scope);
+
+    CompletedRunRecordsView view() const noexcept { return view_; }
+    const RunRecordsIndex& index() const noexcept { return index_; }
+    std::optional<std::size_t> selected_course_index() const noexcept {
+        return selected_course_;
+    }
+    std::optional<std::size_t> selected_run_index() const noexcept {
+        return selected_run_;
+    }
+    const RunRecordsCourseIndexEntry* selected_course() const noexcept;
+    const RunDataCatalogEntry* selected_run() const noexcept;
+
+    bool move(int delta) noexcept;
+    bool open_selected_course() noexcept;
+    bool back_to_courses() noexcept;
+
+private:
+    RunRecordsIndex index_;
+    CompletedRunRecordsView view_ = CompletedRunRecordsView::Courses;
+    std::optional<std::size_t> selected_course_;
+    std::optional<std::size_t> selected_run_;
+};
 
 class CompletedRunBrowser {
 public:

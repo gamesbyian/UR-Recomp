@@ -183,6 +183,30 @@ jobs:
             --player p2 --palette-asset-id 0x07 \
             | tee "$RUNNER_TEMP/racer-companion-context-p2.json"
 
+      - name: Classify second-family visual equivalence
+        run: |
+          python3 - "$RUNNER_TEMP" <<'PY'
+          import json, pathlib, sys
+          root = pathlib.Path(sys.argv[1])
+          sync_p1 = json.loads((root / "racer-second-sync-p1.json").read_text())
+          sync_p2 = json.loads((root / "racer-second-sync-p2.json").read_text())
+          alt_p1 = json.loads((root / "racer-companion-context-p1.json").read_text())
+          alt_p2 = json.loads((root / "racer-companion-context-p2.json").read_text())
+          summary = {
+              "family": "ordinary-race-057e-0544",
+              "sync_context": "057E/0544 + 0D49/0000",
+              "alternate_context": "057E/0544 + 0D69/0000",
+              "p1_byte_identical": sync_p1["rgba_sha256"] == alt_p1["rgba_sha256"],
+              "p2_byte_identical": sync_p2["rgba_sha256"] == alt_p2["rgba_sha256"],
+              "sync": {"p1": sync_p1, "p2": sync_p2},
+              "alternate": {"p1": alt_p1, "p2": alt_p2},
+          }
+          (root / "racer-second-family-equivalence.json").write_text(
+              json.dumps(summary, indent=2, sort_keys=True) + "\n"
+          )
+          print(json.dumps(summary, sort_keys=True))
+          PY
+
       - name: Measure predecessor synchronized racer anchors
         run: |
           python3 tools/measure_racer_composed_anchor.py \
@@ -389,6 +413,7 @@ jobs:
             ${{ runner.temp }}/racer-predecessor-p2.json
             ${{ runner.temp }}/racer-companion-context-p1.json
             ${{ runner.temp }}/racer-companion-context-p2.json
+            ${{ runner.temp }}/racer-second-family-equivalence.json
             ${{ runner.temp }}/racer-duplicate-sync-p1.json
             ${{ runner.temp }}/racer-duplicate-sync-p2.json
             ${{ runner.temp }}/racer-adjacent-sync-p1.json

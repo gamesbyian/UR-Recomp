@@ -18,12 +18,18 @@ static void prove_all_tracks_reach_race() {
 
             switch (step.input) {
             case QuickPracticeLaunchInput::Up:
-                if (observation.selected_option > 0) {
+                if (observation.menu_id == 0x6D) {
+                    if (observation.selected_option >= 2) {
+                        observation.selected_option =
+                            static_cast<std::uint8_t>(observation.selected_option - 2);
+                    }
+                } else if (observation.selected_option > 0) {
                     --observation.selected_option;
                 }
                 break;
             case QuickPracticeLaunchInput::Down:
-                ++observation.selected_option;
+                observation.selected_option = static_cast<std::uint8_t>(
+                    observation.selected_option + (observation.menu_id == 0x6D ? 2 : 1));
                 break;
             case QuickPracticeLaunchInput::Left:
                 if (observation.selected_option > 0) {

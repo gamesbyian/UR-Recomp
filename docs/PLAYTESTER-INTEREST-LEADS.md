@@ -42,6 +42,9 @@ Last updated: 2026-10-05
 | Handle | Platform | Relevant evidence | Why they may be valuable | Source |
 | --- | --- | --- | --- | --- |
 | **cabbagery** | Reddit | Wrote a detailed account of Hunter mechanics, stunt scoring, recordkeeping, progression, multiplayer unlocking, track cues and trick-speed relationships. | Has unusually deep practical knowledge of the original. Even without an explicit remake request in the indexed comment, this is the sort of tester likely to notice subtle behavioral or progression errors. | https://www.reddit.com/r/snes/comments/1h4c44t/what_do_you_think_of_uniracers/ |
+| **FlyHec** | Speedrun.com | Active high-level runner with recent Hunter/course records; explicitly compares current attempts to personal bests dating back to 1995. | Extremely strong timing/fidelity prospect who can detect subtle speed, scroll, route and collision differences. | https://www.speedrun.com/uniracers |
+| **KattaTonik_** | Speedrun.com | Discussed screen-position/scrolling behavior needed for optimal Dragster times and has competitive submitted runs. | Valuable for camera/scroll coupling, race timing and high-skill handling validation. | https://www.speedrun.com/uniracers/forums/ybz50 |
+| **mrcab55** | Speedrun.com | Longtime runner and current community moderator; authored the site's Uniracers guide. | Good candidate for broad gameplay validation and for identifying obscure competitive-community knowledge. | https://www.speedrun.com/uniracers/guides |
 
 ## Additional leads to identify
 

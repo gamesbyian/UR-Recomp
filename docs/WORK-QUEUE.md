@@ -8,7 +8,7 @@ Respect real dependencies, but maximize parallel work across independent leaves.
 
 The active roadmap should expose several runnable leaves at once. Unless an active branch already owns the same write surface, these are valid **parallel** lanes rather than a serial checklist:
 
-1. **Profile/progression continuation:** integrate controlled profile lifecycle capture/apply and host-owned tour/event continuation that survives the stock rider-select wipe. Keep the existing isolated save-root/profile contract intact.
+1. **Profile/progression continuation:** **[shipped slice]** profile-local unfinished-tour capture/apply survives the stock rider-select wipe, and Windows x64 now exposes a fresh-process Continue Tour route that uses ordinary stock menu inputs and stops at the restored tour's TRACK_SELECT surface. Remaining baseline work is the broader task-oriented Modern progression/root UX, explicit Restart Tour, and settled challenge-tier presentation; do not build another persistence or progression model.
 2. **Controls/accessibility:** expose practical title-level rebinding/hot-plug UX and the first non-simulation accessibility options using the framework's existing binding authority instead of duplicating controller state.
 3. **Timing/statistics presentation:** extend the existing immutable run-data/presentation substrate into useful in-race/results split, PB and target presentation, then the unified local records/statistics surface.
 4. **Fast repeat/navigation:** add one-action rematch/repeat-practice and recent/next-event affordances above the already-authoritative Quick Practice/menu-routing machinery.

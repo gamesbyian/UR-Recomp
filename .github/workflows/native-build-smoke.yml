@@ -1088,6 +1088,7 @@ jobs:
               sed "s/^widescreen=.*/widescreen=$view/" "$ROOT/host-state-v6.txt" >"$OUT/state.txt"
               reset_saves
               UR_PRODUCT_DIAGNOSTICS=1 \
+              UR_TIMING_HUD_DIAGNOSTICS=all \
               UR_HOST_STATE_PATH="$OUT/state.txt" \
               URRECOMP_WS_NATIVE_TRACE=1 \
               SNESRECOMP_INPUT_FILE="$input" \
@@ -1122,6 +1123,14 @@ jobs:
           split_route two-player \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
             "$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          for view in original 16x9; do
+            if grep -q "UR_TIMING_HUD " \
+                "$RUNNER_TEMP/widescreen-product-two-player-$view/run.log"; then
+              echo "::error::Unsupported ordinary 2P race exposed the 1P timing HUD"
+              exit 1
+            fi
+          done
+          echo "UR_TIMING_HUD_UNSUPPORTED_RESULT=two_player_inert"
           python3 tools/check_widescreen_product_parity.py \
             --stock-dumps "$RUNNER_TEMP/widescreen-product-two-player-original/dumps" \
             --wide-dumps "$RUNNER_TEMP/widescreen-product-two-player-16x9/dumps" \
@@ -1696,6 +1705,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_TIMING_HUD_DIAGNOSTICS=all
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
             PID=$!
@@ -1708,6 +1718,7 @@ jobs:
             [ -s "'"$DUMPS"'/race-entered.wram.bin" ]
 
             EXPECTED=$(python3 -c '"'"'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); u=lambda o:w[o]|(w[o+1]<<8); m,ts,sec,t,sub=(u(0x0E0F),u(0x0E13),u(0x0E17),u(0x0E1B),u(0x0E1F)); assert 0<=m<=9 and 0<=ts<=5 and 0<=sec<=9 and 0<=t<=9 and 0<=sub<=5; print(f"{m}:{ts}{sec}.{t} subtick={sub}")'"'"' "'"$DUMPS"'/race-entered.wram.bin")
+            EXPECTED_HUD=$(python3 -c '"'"'import pathlib,sys; w=pathlib.Path(sys.argv[1]).read_bytes(); u=lambda o:w[o]|(w[o+1]<<8); m,ts,sec,t,sub=(u(0x0E0F),u(0x0E13),u(0x0E17),u(0x0E1B),u(0x0E1F)); ticks=((m*60)+(ts*10)+sec)*60+t*6+sub; total=ticks//60; print(f"{ticks} {total//60}:{total%60:02d}.{ticks%60:02d}/60")'"'"' "'"$DUMPS"'/race-entered.wram.bin")
 
             WIN=""
             for _ in $(seq 1 100); do
@@ -1735,6 +1746,9 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_RUN_DATA OPENED valid=1 time=$EXPECTED" "'"$LOG"'"
+            HUD_TICKS=${EXPECTED_HUD%% *}
+            HUD_TEXT=${EXPECTED_HUD#* }
+            grep -q "UR_TIMING_HUD RACE current_ticks60=${HUD_TICKS} current=${HUD_TEXT}" "'"$LOG"'"
             kill -0 "$PID"
 
             xdotool key Escape
@@ -1752,6 +1766,35 @@ jobs:
 
           cat "$LOG"
           echo "UR_PAUSE_RUN_DATA_RESULT=authoritative_timer_opened_and_closed"
+
+          AUTH_LOG="$RUNNER_TEMP/timing-hud-authentic.log"
+          AUTH_DUMPS="$RUNNER_TEMP/timing-hud-authentic-dumps"
+          rm -rf "$AUTH_DUMPS"
+          mkdir -p "$AUTH_DUMPS"
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_EXECUTION_MODE=authentic
+            export UR_TIMING_HUD_DIAGNOSTICS=all
+            export SNESRECOMP_DUMP_DIR="'"$AUTH_DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$AUTH_LOG"'" 2>&1 &
+            PID=$!
+            for _ in $(seq 1 600); do
+              [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$AUTH_DUMPS"'/race-entered.wram.bin" ]
+            sleep 0.3
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+          '
+          cat "$AUTH_LOG"
+          if grep -q "UR_TIMING_HUD " "$AUTH_LOG"; then
+            echo "::error::Authentic execution exposed the Modern timing HUD"
+            exit 1
+          fi
+          echo "UR_TIMING_HUD_AUTHENTIC_RESULT=inert"
 
       - name: Modern Exit to Frontend acceptance
         shell: bash

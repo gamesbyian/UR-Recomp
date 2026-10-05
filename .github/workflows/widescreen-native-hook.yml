@@ -1,7 +1,9 @@
 name: Native Widescreen runtime hook
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-native-hook-${{ github.ref }}
   cancel-in-progress: true
 

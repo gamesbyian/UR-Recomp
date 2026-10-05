@@ -1856,7 +1856,6 @@ void advance_tour_continue_route(uint64_t next_frame) {
         !g_profile_state->tour_continuation ||
         !ur::product::valid_tour_continuation(
             *g_profile_state->tour_continuation) ||
-        !profile_snapshot_matches_live_sram(*g_profile_state) ||
         g_profile_state->tour_continuation->tour_row !=
             g_tour_continue.tour_row) {
         cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");

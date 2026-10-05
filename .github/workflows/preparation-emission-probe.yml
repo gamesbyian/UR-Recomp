@@ -1,7 +1,9 @@
 name: Preparation to PPU emission probe
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: preparation-emission-${{ github.ref }}
   cancel-in-progress: true
 

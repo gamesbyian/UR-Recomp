@@ -25,6 +25,11 @@ QUALIFICATION_ADDR = "9EEB"
 QUALIFICATION_NAME = "TourStuntQualificationThreshold"
 QUALIFICATION_SYMBOL_MARKER = 'name = "TourStuntQualificationThreshold"'
 
+AWARD_BANK = 3
+AWARD_ADDR = "879A"
+AWARD_NAME = "TourResultQualificationAndAward"
+AWARD_SYMBOL_MARKER = 'name = "TourResultQualificationAndAward"'
+
 def _append_once(path: Path, marker: str, entry: str, *, prefix: str = "") -> bool:
     text = path.read_text(encoding="utf-8") if path.exists() else prefix
     if marker in text:
@@ -66,12 +71,24 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
         f"bank = {QUALIFICATION_BANK}\nemit = true\n"
         "note = \"83:9EEB reads persistent medal generation and indexes the 83:A218 stunt QUALIFY table\"\n"
     )
+    award_marker = f"func {AWARD_NAME} {AWARD_ADDR}"
+    award_entry = (
+        "# UR-Recomp bounded tour-result qualification/award probe seed.\n"
+        f"{award_marker}\n"
+    )
+    award_symbol_entry = (
+        f"\n[[func]]\nname = \"{AWARD_NAME}\"\naddr = \"{AWARD_ADDR}\"\n"
+        f"bank = {AWARD_BANK}\nemit = true\n"
+        "note = \"80:BC62 JSL 83:879A; routine owns qualification, tour flags and 83:8827 medal award read\"\n"
+    )
 
     symbol_caller = _append_once(symbols, CALLER_SYMBOL_MARKER, caller_symbol_entry)
     symbol_challenge = _append_once(
         symbols, CHALLENGE_SYMBOL_MARKER, challenge_symbol_entry)
     symbol_qualification = _append_once(
         symbols, QUALIFICATION_SYMBOL_MARKER, qualification_symbol_entry)
+    symbol_award = _append_once(
+        symbols, AWARD_SYMBOL_MARKER, award_symbol_entry)
     bank_challenge = cfg_dir / f"bank{CHALLENGE_BANK:02d}.cfg"
     caller_changed = _append_once(
         bank_caller,
@@ -85,15 +102,24 @@ def ensure_seed(cfg_dir: Path) -> dict[str, bool]:
         qualification_entry,
         prefix=f"bank = {QUALIFICATION_BANK}\ntier_down_stubs\n",
     )
+    award_changed = _append_once(
+        bank_caller,
+        award_marker,
+        award_entry,
+        prefix=f"bank = {AWARD_BANK}\ntier_down_stubs\n",
+    )
     return {
-        "symbols": symbol_caller or symbol_challenge or symbol_qualification,
+        "symbols": (
+            symbol_caller or symbol_challenge or
+            symbol_qualification or symbol_award
+        ),
         "bank00": _append_once(
             bank_challenge,
             challenge_marker,
             challenge_entry,
             prefix=f"bank = {CHALLENGE_BANK}\ntier_down_stubs\n",
         ),
-        "bank03": caller_changed or qualification_changed,
+        "bank03": caller_changed or qualification_changed or award_changed,
     }
 
 def main() -> int:

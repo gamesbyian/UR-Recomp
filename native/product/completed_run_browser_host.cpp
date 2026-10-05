@@ -28,9 +28,11 @@ namespace {
 namespace fs = std::filesystem;
 
 ur::product::CompletedRunBrowser g_browser;
+ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
 UrUniracersRestartPolicyState g_replay_policy;
 bool g_browser_visible;
+bool g_records_browser_visible;
 bool g_one_player_context;
 std::uint64_t g_last_host_frame;
 unsigned g_browser_acceptance_active_frames;
@@ -87,6 +89,15 @@ std::string active_run_directory() {
     return root + "runs/" + active_profile_id();
 }
 
+ur::product::RunRecordsScope records_scope() {
+    return {
+        "uniracers-usa",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
+        "race-1p",
+    };
+}
+
 std::optional<ur::product::RunPlaybackTarget> current_target() {
     if (!modern_mode() || !g_one_player_context) return std::nullopt;
 
@@ -108,6 +119,15 @@ std::optional<ur::product::RunPlaybackTarget> current_target() {
     };
 }
 
+bool refresh_records_browser() {
+    const std::string directory = active_run_directory();
+    if (directory.empty()) {
+        g_records_browser.clear();
+        return false;
+    }
+    return g_records_browser.refresh(directory, records_scope());
+}
+
 bool refresh_browser() {
     const auto target = current_target();
     const std::string directory = active_run_directory();
@@ -121,6 +141,11 @@ bool refresh_browser() {
 void close_browser() {
     g_browser_visible = false;
     diagnostic("UR_RUN_BROWSER CLOSED");
+}
+
+void close_records_browser() {
+    g_records_browser_visible = false;
+    diagnostic("UR_RECORDS_BROWSER CLOSED");
 }
 
 bool normalize_base_pause_surface() {
@@ -137,6 +162,38 @@ bool normalize_base_pause_surface() {
     return snesrecomp_desktop_is_paused() != 0;
 }
 
+bool open_records_browser() {
+    if (!modern_mode() || !snesrecomp_desktop_is_paused()) {
+        return false;
+    }
+    if (!normalize_base_pause_surface() || !refresh_records_browser()) {
+        return false;
+    }
+
+    g_browser_visible = false;
+    g_records_browser_visible = true;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu profile=%s\n",
+            g_records_browser.index().courses.size(),
+            g_records_browser.index().total_completed_runs,
+            active_profile_id().c_str());
+        for (const auto& course : g_records_browser.index().courses) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER COURSE course=%s runs=%zu pb=%s previous=%s delta=%s\n",
+                course.course_id.c_str(),
+                course.statistics.completed_runs,
+                course.statistics.personal_best_text.c_str(),
+                course.statistics.previous_text.c_str(),
+                course.statistics.previous_vs_pb_text.c_str());
+        }
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool open_browser() {
     const UrUniracersRestartSurface surface =
         ur_uniracers_classify_restart_surface(
@@ -148,6 +205,7 @@ bool open_browser() {
         return false;
     }
     if (!normalize_base_pause_surface() || !refresh_browser()) return false;
+    g_records_browser_visible = false;
     g_browser_visible = true;
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
@@ -275,6 +333,33 @@ void return_to_browser(
     }
 }
 
+bool records_browser_navigation(UrModernHostNavigationAction action) {
+    if (!g_records_browser_visible) return false;
+
+    const int delta = ur_modern_host_navigation_vertical_delta(action);
+    if (delta != 0) {
+        (void)g_records_browser.move(delta);
+        return true;
+    }
+    if (ur_modern_host_navigation_is_confirm(action)) {
+        if (g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Courses) {
+            (void)g_records_browser.open_selected_course();
+        }
+        return true;
+    }
+    if (ur_modern_host_navigation_is_back(action)) {
+        if (g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Runs) {
+            (void)g_records_browser.back_to_courses();
+        } else {
+            close_records_browser();
+        }
+        return true;
+    }
+    return true;
+}
+
 bool browser_navigation(UrModernHostNavigationAction action) {
     if (!g_browser_visible) return false;
 
@@ -347,6 +432,146 @@ void update_context_from_guest() {
     default:
         break;
     }
+}
+
+void draw_records_browser(
+    uint8_t* dst,
+    size_t pitch,
+    int width,
+    int height) {
+    if (!g_records_browser_visible || !dst || pitch < 4 ||
+        width <= 0 || height <= 0) {
+        return;
+    }
+
+    uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+    const int stride = static_cast<int>(pitch / 4u);
+    const int panel_w = width < 244 ? width - 12 : 236;
+    const int row_count = 7;
+    const int panel_h = 39 + row_count * 15 + 45;
+    const int x = (width - panel_w) / 2;
+    const int y = (height - panel_h) / 2;
+
+    snes_ovl_fill_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xEE202020u);
+    snes_ovl_stroke_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+
+    if (g_records_browser.view() ==
+        ur::product::CompletedRunRecordsView::Courses) {
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            "RECORDS / RUNS", 0xFFFFFFFFu, 1);
+
+        char summary[64];
+        std::snprintf(
+            summary, sizeof(summary), "%zu COURSES / %zu RUNS",
+            g_records_browser.index().courses.size(),
+            g_records_browser.index().total_completed_runs);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 22,
+            summary, 0xFFFFFFFFu, 1);
+
+        std::size_t first = 0;
+        if (const auto selected = g_records_browser.selected_course_index()) {
+            if (*selected >= static_cast<std::size_t>(row_count)) {
+                first = *selected - static_cast<std::size_t>(row_count) + 1;
+            }
+        }
+
+        for (int row = 0; row < row_count; ++row) {
+            const std::size_t index = first + static_cast<std::size_t>(row);
+            if (index >= g_records_browser.index().courses.size()) break;
+            const auto& course = g_records_browser.index().courses[index];
+            const std::string short_course =
+                course.course_id.rfind("course:", 0) == 0
+                    ? "C" + course.course_id.substr(7)
+                    : course.course_id;
+            char line[96];
+            std::snprintf(
+                line, sizeof(line), "%c %-4s %2zu  PB %s",
+                g_records_browser.selected_course_index() &&
+                        *g_records_browser.selected_course_index() == index
+                    ? '>' : ' ',
+                short_course.c_str(),
+                course.statistics.completed_runs,
+                course.statistics.personal_best_text.c_str());
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 42 + row * 15,
+                line, 0xFFFFFFFFu, 1);
+        }
+
+        const auto* selected = g_records_browser.selected_course();
+        char previous[80];
+        std::snprintf(
+            previous, sizeof(previous), "PREV %s  VS PB %s",
+            selected ? selected->statistics.previous_text.c_str() : "--",
+            selected ? selected->statistics.previous_vs_pb_text.c_str() : "--");
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 41,
+            previous, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 26,
+            "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
+    } else {
+        const auto* course = g_records_browser.selected_course();
+        const std::string short_course =
+            course && course->course_id.rfind("course:", 0) == 0
+                ? "C" + course->course_id.substr(7)
+                : (course ? course->course_id : "--");
+        char title[64];
+        std::snprintf(
+            title, sizeof(title), "RECORDS / %s", short_course.c_str());
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            title, 0xFFFFFFFFu, 1);
+
+        char summary[64];
+        std::snprintf(
+            summary, sizeof(summary), "%zu RUNS  PB %s",
+            course ? course->statistics.completed_runs : 0u,
+            course ? course->statistics.personal_best_text.c_str() : "--");
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 22,
+            summary, 0xFFFFFFFFu, 1);
+
+        if (course) {
+            std::size_t first = 0;
+            if (const auto selected = g_records_browser.selected_run_index()) {
+                if (*selected >= static_cast<std::size_t>(row_count)) {
+                    first = *selected - static_cast<std::size_t>(row_count) + 1;
+                }
+            }
+            for (int row = 0; row < row_count; ++row) {
+                const std::size_t index = first + static_cast<std::size_t>(row);
+                if (index >= course->catalog.entries.size()) break;
+                const auto& entry = course->catalog.entries[index];
+                std::string tags;
+                if (entry.is_personal_best) tags += " PB";
+                if (entry.is_previous) tags += " PREV";
+                char line[96];
+                std::snprintf(
+                    line, sizeof(line), "%c #%03zu %s%s",
+                    g_records_browser.selected_run_index() &&
+                            *g_records_browser.selected_run_index() == index
+                        ? '>' : ' ',
+                    entry.source_index + 1,
+                    entry.time_text.c_str(),
+                    tags.c_str());
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42 + row * 15,
+                    line, 0xFFFFFFFFu, 1);
+            }
+        }
+
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 26,
+            "ESC / B    COURSES", 0xFFFFFFFFu, 1);
+    }
+
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 8, y + panel_h - 11,
+        "CTRL+R / Y  CLOSE", 0xFFFFFFFFu, 1);
 }
 
 void draw_browser(
@@ -488,13 +713,17 @@ void draw_browser_hint(
     size_t pitch,
     int width,
     int height) {
-    if (!modern_mode() || g_browser_visible || g_replay_flow.active() ||
+    if (!modern_mode() || g_browser_visible || g_records_browser_visible ||
+        g_replay_flow.active() ||
         !g_one_player_context || !snesrecomp_desktop_is_paused() ||
         !dst || pitch < 4 || width <= 0 || height <= 0) {
         return;
     }
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
+    snes_ovl_draw_text(
+        pixels, stride, height, 8, height - 28,
+        "CTRL+R / Y  RECORDS", 0xFFFFFFFFu, 1);
     snes_ovl_draw_text(
         pixels, stride, height, 8, height - 13,
         "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
@@ -542,6 +771,27 @@ extern "C" int ur_uniracers_product_system_key_down(
         return 1;
     }
 
+    if (g_records_browser_visible) {
+        if (repeat) return 1;
+        if (key == SDLK_UP) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_UP) ? 1 : 0;
+        }
+        if (key == SDLK_DOWN) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
+        }
+        if (key == SDLK_ESCAPE) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
+        }
+        if (key == SDLK_r && (mod & KMOD_CTRL)) {
+            close_records_browser();
+            return 1;
+        }
+        return 1;
+    }
+
     if (g_browser_visible) {
         if (repeat) return 1;
         if (key == SDLK_UP) {
@@ -556,6 +806,12 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_ESCAPE) {
             return browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
+        return 1;
+    }
+
+    if (key == SDLK_r && (mod & KMOD_CTRL) &&
+        snesrecomp_desktop_is_paused()) {
+        (void)open_records_browser();
         return 1;
     }
 
@@ -580,6 +836,27 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         return 1;
     }
 
+    if (g_records_browser_visible) {
+        if (!pressed) return 1;
+        if (button == kGamepadBtn_DpadUp) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_UP) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_DpadDown) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_A) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_B) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_Y) {
+            close_records_browser();
+            return 1;
+        }
+        return 1;
+    }
+
     if (g_browser_visible) {
         if (!pressed) return 1;
         if (button == kGamepadBtn_DpadUp) {
@@ -594,6 +871,12 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         if (button == kGamepadBtn_B) {
             return browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
+        return 1;
+    }
+
+    if (pressed && button == kGamepadBtn_Y &&
+        snesrecomp_desktop_is_paused()) {
+        (void)open_records_browser();
         return 1;
     }
 
@@ -614,6 +897,7 @@ extern "C" void ur_uniracers_product_system_overlay(
     if (!g_replay_flow.active()) {
         ur_uniracers_modern_system_overlay(dst, pitch, width, height);
     }
+    draw_records_browser(dst, pitch, width, height);
     draw_browser(dst, pitch, width, height);
     draw_browser_hint(dst, pitch, width, height);
 }

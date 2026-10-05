@@ -143,6 +143,10 @@ bool g_run_capture_previous_active;
 bool g_run_ghost_draw_reported;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
+std::optional<ur::product::RunDataDeltaPresentation> g_run_timing_last_split;
+bool g_run_timing_supported;
+bool g_run_timing_race_diag_reported;
+bool g_run_timing_results_diag_reported;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -2314,6 +2318,10 @@ void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
 }
 
 bool begin_run_record_capture(uint64_t host_frame) {
+    g_run_timing_supported = false;
+    g_run_timing_last_split.reset();
+    g_run_timing_race_diag_reported = false;
+    g_run_timing_results_diag_reported = false;
     if (!run_record_capture_enabled()) return false;
 
     snesrecomp_desktop_arm_relative_input(host_frame);
@@ -2349,6 +2357,7 @@ bool begin_run_record_capture(uint64_t host_frame) {
     (void)g_run_ghost_trace_capture.begin_attempt();
     g_run_capture_origin_frame = host_frame;
     g_run_capture_checkpoint = read_run_word(0x1199u);
+    g_run_timing_supported = true;
     return true;
 }
 
@@ -2380,6 +2389,26 @@ void observe_run_record_split() {
         const std::string id = "checkpoint-" + std::to_string(checkpoint);
         (void)g_run_capture.observe_split(
             id, static_cast<uint64_t>(ticks60));
+        g_run_timing_last_split.reset();
+        const auto* personal_best = g_run_ghosts.record(
+            ur::product::CompletedRunGhostKind::PersonalBest);
+        if (personal_best) {
+            g_run_timing_last_split =
+                ur::product::present_run_split_delta(
+                    *personal_best,
+                    id,
+                    static_cast<uint64_t>(ticks60));
+        }
+        if (std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_TIMING_HUD SPLIT id=%s current_ticks60=%lld delta=%s\n",
+                id.c_str(),
+                static_cast<long long>(ticks60),
+                g_run_timing_last_split
+                    ? g_run_timing_last_split->delta_text.c_str() : "--");
+            std::fflush(stderr);
+        }
     }
     g_run_capture_checkpoint = checkpoint;
 }
@@ -2480,6 +2509,8 @@ void complete_run_record_capture() {
 void rearm_run_capture_after_retry() {
     if (!g_run_capture.capturing()) return;
     g_run_capture.abort_attempt();
+    g_run_timing_supported = false;
+    g_run_timing_last_split.reset();
     g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
     g_run_ghost_playback_trace.reset();
@@ -2675,6 +2706,95 @@ bool activate_pause_selection() {
         return handled;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
+}
+
+void draw_run_timing_hud(
+    uint8_t* dst,
+    size_t pitch,
+    int width,
+    int height) {
+    const bool race_or_results =
+        g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ||
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    if (!ur::product::should_present_run_timing(
+            modern_mode(), g_run_timing_supported, race_or_results) ||
+        paused() || !dst || pitch < 4 || width <= 0 || height <= 0) {
+        return;
+    }
+
+    const int64_t ticks60 =
+        ur_uniracers_run_data_ticks60(current_run_data());
+    if (ticks60 < 0) return;
+
+    const auto* personal_best = g_run_ghosts.record(
+        ur::product::CompletedRunGhostKind::PersonalBest);
+    const bool results =
+        g_surface == UR_UNIRACERS_RESTART_RESULTS;
+    auto panel = ur::product::present_run_timing_panel(
+        static_cast<std::uint64_t>(ticks60),
+        personal_best,
+        results ? ur::product::RunTimingPresentationPoint::Finish
+                : ur::product::RunTimingPresentationPoint::Live);
+
+    if (!results && g_run_timing_last_split) {
+        panel.comparison_label = "SPLIT";
+        panel.comparison_text = g_run_timing_last_split->delta_text;
+        panel.comparison_available = true;
+    }
+
+    char clock_row[48];
+    char pb_row[48];
+    char comparison_row[56];
+    std::snprintf(
+        clock_row, sizeof(clock_row), "%s  %s",
+        panel.clock_label.c_str(), panel.clock_text.c_str());
+    std::snprintf(
+        pb_row, sizeof(pb_row), "PB      %s",
+        panel.target_text.c_str());
+    std::snprintf(
+        comparison_row, sizeof(comparison_row), "%s  %s",
+        panel.comparison_label.c_str(), panel.comparison_text.c_str());
+
+    uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+    const int stride = static_cast<int>(pitch / 4u);
+    const int panel_w = width < 190 ? width - 12 : 178;
+    const int panel_h = 52;
+    const int x = width - panel_w - 8;
+    const int y = 8;
+    snes_ovl_fill_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xC0202020u);
+    snes_ovl_stroke_rect(
+        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 6,
+        clock_row, 0xFFFFFFFFu, 1);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 21,
+        pb_row, 0xFFFFFFFFu, 1);
+    snes_ovl_draw_text(
+        pixels, stride, height, x + 7, y + 36,
+        comparison_row, 0xFFFFFFFFu, 1);
+
+    if (const char* timing_diagnostics =
+            std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
+        bool& reported = results
+            ? g_run_timing_results_diag_reported
+            : g_run_timing_race_diag_reported;
+        const bool log_every_frame =
+            std::strcmp(timing_diagnostics, "all") == 0;
+        if (log_every_frame || !reported) {
+            reported = true;
+            std::fprintf(
+                stderr,
+                "UR_TIMING_HUD %s current_ticks60=%lld current=%s pb=%s comparison=%s\n",
+                results ? "RESULTS" : "RACE",
+                static_cast<long long>(ticks60),
+                panel.clock_text.c_str(),
+                panel.target_text.c_str(),
+                panel.comparison_text.c_str());
+            std::fflush(stderr);
+        }
+    }
 }
 
 }  // namespace
@@ -3414,6 +3534,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height, hint_x + 8, 15,
             hint, 0xFFFFFFFFu, 1);
     }
+
+    draw_run_timing_hud(dst, pitch, width, height);
 
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;

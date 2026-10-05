@@ -85,41 +85,6 @@ jobs:
           grep -q "UR_ONBOARDING HIDDEN first_run=0" "$SECOND"
           ! grep -q "UR_ONBOARDING SHOWN" "$SECOND"
 
-      - name: Prove authoritative quick practice and SRAM restoration
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          EXE="$ROOT/build/UniracersSNESRecomp"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          LOG="$RUNNER_TEMP/practice.log"
-          MARKER="$RUNNER_TEMP/onboarding.seen"
-          PRACTICE_ROOT="$RUNNER_TEMP/practice-save"
-          PRACTICE_INPUT="$RUNNER_TEMP/practice-input.txt"
-          PRACTICE_RUN="$RUNNER_TEMP/practice-should-not-exist.urrun"
-
-          mkdir -p "$PRACTICE_ROOT"
-          rm -f "$PRACTICE_RUN" "$PRACTICE_RUN.input" "$PRACTICE_RUN.urghost"
-          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_PRACTICE_ACCEPTANCE=1           UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT"           UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT"           UR_RUN_RECORD_CAPTURE_PATH="$PRACTICE_RUN"           UR_EXIT_FRONTEND_ACCEPTANCE=active             timeout 150s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-practice-route.script"               >"$LOG" 2>&1
-
-          cat "$LOG"
-          grep -q "UR_PRACTICE STARTED" "$LOG"
-          grep -q "UR_PRACTICE ACCEPT stage=main" "$LOG"
-          grep -q "UR_PRACTICE RACE_READY" "$LOG"
-          grep -q "UR_PRACTICE RESTORED" "$LOG"
-          grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
-          grep -q "script .* dump practice-race-entered ok" "$LOG"
-          grep -q "script .* dump practice-returned-main ok" "$LOG"
-
-          START_DIGEST="$(grep 'UR_PRACTICE STARTED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
-          RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
-          test -n "$START_DIGEST"
-          test "$START_DIGEST" = "$RESTORE_DIGEST"
-          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
-          test ! -e "$PRACTICE_RUN"
-          test ! -e "$PRACTICE_RUN.input"
-          test ! -e "$PRACTICE_RUN.urghost"
-
       - name: Prove one-action completed-race rematch
         shell: bash
         run: |
@@ -361,6 +326,41 @@ jobs:
               "UR_RECENT_COURSE_RESULT=same_authoritative_course "
               "isolated_practice=1 direct_state_write=0")
           PY
+      - name: Prove authoritative quick practice and SRAM restoration
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/practice.log"
+          MARKER="$RUNNER_TEMP/onboarding.seen"
+          PRACTICE_ROOT="$RUNNER_TEMP/practice-save"
+          PRACTICE_INPUT="$RUNNER_TEMP/practice-input.txt"
+          PRACTICE_RUN="$RUNNER_TEMP/practice-should-not-exist.urrun"
+
+          mkdir -p "$PRACTICE_ROOT"
+          rm -f "$PRACTICE_RUN" "$PRACTICE_RUN.input" "$PRACTICE_RUN.urghost"
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_PRACTICE_ACCEPTANCE=1           UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT"           UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT"           UR_RUN_RECORD_CAPTURE_PATH="$PRACTICE_RUN"           UR_EXIT_FRONTEND_ACCEPTANCE=active             timeout 150s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-practice-route.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_PRACTICE STARTED" "$LOG"
+          grep -q "UR_PRACTICE ACCEPT stage=main" "$LOG"
+          grep -q "UR_PRACTICE RACE_READY" "$LOG"
+          grep -q "UR_PRACTICE RESTORED" "$LOG"
+          grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+          grep -q "script .* dump practice-race-entered ok" "$LOG"
+          grep -q "script .* dump practice-returned-main ok" "$LOG"
+
+          START_DIGEST="$(grep 'UR_PRACTICE STARTED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          test -n "$START_DIGEST"
+          test "$START_DIGEST" = "$RESTORE_DIGEST"
+          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+          test ! -e "$PRACTICE_RUN"
+          test ! -e "$PRACTICE_RUN.input"
+          test ! -e "$PRACTICE_RUN.urghost"
+
       - name: Prove Authentic mode remains inert
         shell: bash
         run: |

@@ -31,6 +31,8 @@ Hunter remains discovery content and canonical Gold-only once legitimately avail
 
 `native/product/modern_challenge_tier_policy.hpp` encodes only this semantic algebra. It has no SRAM/WRAM or runtime write interface.
 
+`native/product/modern_challenge_tier_selector.hpp` turns that policy into a host-navigation-ready selector without duplicating progression rules in UI code. Ordinary tours expose Bronze/Silver/Gold and default to the next stock-sequential tier (or Gold once already complete). Hunter collapses to one Gold choice. Authentic, unavailable tours and invalid medal state expose no selector.
+
 ## Required runtime adapter before shipping selection
 
 A player-facing selector is **not yet authorized to launch a non-current tier**.

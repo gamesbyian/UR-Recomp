@@ -1,22 +1,7 @@
 name: VS Widescreen +24 capacity
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/widescreen-vs-plus24-capacity.yml"
-      - "analysis/widescreen-vs-plus24-capacity-evidence.json"
-      - "analysis/widescreen-policy.yml"
-      - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "tools/apply_native_widescreen_hook.py"
-      - "tests/unit/test_apply_native_widescreen_hook.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/patch_widescreen_probe_host.py"
-      - "tools/summarize_paired_player_slots.py"
-      - "tests/input/vs-first-race.input"
-      - "tests/input/vs-first-race-observe.script"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-vs-plus24-capacity-${{ github.ref }}
   cancel-in-progress: true
 

@@ -1,17 +1,7 @@
 name: Switch S0 compile probe
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "platform/switch/s0_probe/**"
-      - "analysis/switch-s0-contract.json"
-      - "third_party/platform/switch/pins.json"
-      - "tools/check_switch_s0_probe.py"
-      - "tests/unit/test_switch_s0_probe.py"
-      - ".github/workflows/switch-s0-compile-probe.yml"
-
-permissions:
+  workflow_dispatch:permissions:
   contents: read
 
 concurrency:

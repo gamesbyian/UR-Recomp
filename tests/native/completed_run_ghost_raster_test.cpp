@@ -1,6 +1,7 @@
 #include "completed_run_ghost_raster.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <cstdint>
 #include <vector>
@@ -37,6 +38,11 @@ int main() {
         static_cast<std::size_t>(width) * height,
         0xff203040u);
     const auto before = pixels;
+    std::array<std::uint8_t, 16> guest_state{};
+    for (std::size_t i = 0; i < guest_state.size(); ++i) {
+        guest_state[i] = static_cast<std::uint8_t>(i * 7u);
+    }
+    const auto guest_before = guest_state;
 
     assert(draw_completed_run_ghost_racer(
         reinterpret_cast<std::uint8_t*>(pixels.data()),
@@ -46,13 +52,17 @@ int main() {
         1,
         frame,
         *selected.registration,
-        128));
+        CompletedRunGhostRenderStyle{128}));
 
     std::size_t changed = 0;
     for (std::size_t i = 0; i < pixels.size(); ++i) {
         if (pixels[i] != before[i]) ++changed;
     }
     assert(changed > 0);
+
+    // The compositor has no guest-state input or output. Keep an explicit
+    // sentinel around the draw call so presentation remains host-only.
+    assert(guest_state == guest_before);
 
     // Zero opacity is deliberately inert.
     const auto after_draw = pixels;
@@ -64,7 +74,7 @@ int main() {
         1,
         frame,
         *selected.registration,
-        0));
+        CompletedRunGhostRenderStyle{0}));
     assert(pixels == after_draw);
 
     // Semantic mismatch fails closed instead of drawing the wrong asset.
@@ -78,7 +88,7 @@ int main() {
         1,
         wrong,
         *selected.registration,
-        128));
+        CompletedRunGhostRenderStyle{128}));
 
     // Offscreen clipping remains safe and can still draw the visible slice.
     auto clipped = frame;
@@ -93,7 +103,7 @@ int main() {
         1,
         clipped,
         *selected.registration,
-        128));
+        CompletedRunGhostRenderStyle{128}));
 
     assert(!draw_completed_run_ghost_racer(
         nullptr,
@@ -103,7 +113,7 @@ int main() {
         1,
         frame,
         *selected.registration,
-        128));
+        CompletedRunGhostRenderStyle{128}));
 
     return 0;
 }

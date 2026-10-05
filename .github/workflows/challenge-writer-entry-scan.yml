@@ -1,7 +1,9 @@
 name: Challenge writer entry scan
 
 on:
-  workflow_dispatch:jobs:
+  workflow_dispatch:
+
+jobs:
   scan:
     runs-on: ubuntu-latest
     timeout-minutes: 5

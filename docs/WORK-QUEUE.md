@@ -294,12 +294,12 @@ Treat these as must-do unless later technical evidence demonstrates a specific b
 - [~] Personal-best and previous-run ghosts using local storage only. Previous/PB selection, per-profile target policy, checksum-bound `.urghost` traces, live-camera projection and the first visible Modern 1P presentation-only renderer are implemented. Remaining work is product polish/local ghost management, not another trajectory or simulation model.
 - [ ] Local replay/run-record persistence sufficient to re-drive or review completed runs.
 - [ ] Exact timing, lap/split data, PB deltas and medal/target deltas shown alongside preserved original indicators. Stock top-3 per-track records (times, circuit best laps, stunt scores, holders) are mapped in `analysis/generated/track-records-sram.json` and can seed or mirror PBs.
-- [ ] Practice/free-play route with rapid track selection and repeat attempts.
-- [ ] Concise onboarding/tutorial for fundamental controls, landing and stunt-to-speed behavior while preserving secrets/advanced discovery.
+- [~] Practice/free-play: a production Quick Practice path now reaches a representative first race from the Modern main menu through ordinary stock frontend inputs and authoritative race initialization, isolates/restores SRAM, suppresses profile/run persistence, and returns cleanly through Exit Frontend. Direct rapid track selection and richer repeat-attempt UX remain.
+- [x] Concise onboarding/help for fundamental controls, landing and stunt-to-speed behavior, with live keyboard/controller binding labels, first-run dismissal plus F1 reopen, and deliberate preservation of secrets/advanced discovery.
 - [ ] Accessibility/input presentation options that do not alter authoritative simulation, including remapping, vibration control, readable text support and reduced flashing where applicable.
 - [ ] Fast local multiplayer join/setup, rematch and track rotation without legacy League bureaucracy.
 - [ ] Authentic/raw-pixel plus modern/HD presentation presets, with optional CRT/NTSC-style display choices where useful.
-- [ ] Fast navigation affordances such as recent track, rematch, next event and direct practice access.
+- [~] Fast navigation affordances: direct Quick Practice access now exists from the Modern main menu; recent track, rematch and next-event shortcuts remain.
 - [ ] Localization-ready text/UI architecture.
 - [~] Preserve original attract/demo behavior and leave a clean hook for a local recorded-run showcase. Stock behavior is measured in `analysis/generated/attract-cycle.json`: a 503-frame MAIN_MENU idle timeout, then title, then a ~2190-frame split-screen demo race on a course that advances per cycle, returning via the title; Start exits early. The showcase hook design remains.
 - [ ] Keep content/data boundaries friendly to future custom courses, local challenge packs and visual packs without making those all launch requirements.

@@ -47,6 +47,7 @@ extern "C" {
 #include <vector>
 
 extern "C" void snesrecomp_desktop_arm_relative_input(uint64_t post_frame_origin);
+extern "C" int snesrecomp_desktop_load_relative_input_file(const char* path);
 
 namespace {
 
@@ -76,6 +77,31 @@ bool g_options_visible;
 bool g_controls_visible;
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
+bool g_onboarding_initialized;
+bool g_onboarding_visible;
+bool g_onboarding_manual_open;
+bool g_onboarding_acceptance_fired;
+bool g_binding_diagnostics_reported;
+std::string g_onboarding_seen_path;
+
+enum class PracticeStage {
+    Idle = 0,
+    AwaitMain,
+    AwaitRider,
+    AwaitTour,
+    AwaitTrack,
+    AwaitNowPlaying,
+    AwaitRace,
+    Active,
+};
+
+bool g_practice_active;
+bool g_practice_acceptance_fired;
+PracticeStage g_practice_stage = PracticeStage::Idle;
+std::vector<uint8_t> g_practice_sram_snapshot;
+std::string g_practice_original_save_root;
+std::string g_practice_input_path;
+
 bool g_display_caps_reported;
 bool g_profile_sram_reported;
 bool g_exit_frontend_waiting_for_main;
@@ -150,6 +176,8 @@ bool modern_mode() {
 
 void ensure_product_state();
 void product_diagnostic(const char* message);
+bool paused();
+uint32_t current_sram_digest();
 void apply_profile_save_root() {
     ensure_product_state();
 
@@ -256,6 +284,291 @@ void product_diagnostic(const char* message) {
     if (!std::getenv("UR_PRODUCT_DIAGNOSTICS")) return;
     std::fprintf(stderr, "%s\n", message);
     std::fflush(stderr);
+}
+
+std::string resolve_onboarding_seen_path() {
+    const char* override_path = std::getenv("UR_ONBOARDING_STATE_PATH");
+    if (override_path && *override_path) return override_path;
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "onboarding-v1.seen";
+    return path;
+}
+
+void ensure_onboarding_state() {
+    if (g_onboarding_initialized) return;
+    g_onboarding_initialized = true;
+    if (!modern_mode()) return;
+
+    g_onboarding_seen_path = resolve_onboarding_seen_path();
+    bool seen = false;
+    if (!g_onboarding_seen_path.empty()) {
+        std::ifstream in(g_onboarding_seen_path, std::ios::binary);
+        seen = in.good();
+    }
+
+    // Existing Modern installations predate onboarding. Treat an existing
+    // product-state file as an already-established install unless acceptance
+    // explicitly supplies a dedicated onboarding marker path. This keeps the
+    // first-run overlay from contaminating deterministic regression captures
+    // or surprising upgraded users, while a genuinely fresh install still
+    // receives the explanation.
+    const char* onboarding_override = std::getenv("UR_ONBOARDING_STATE_PATH");
+    if (!seen && !(onboarding_override && *onboarding_override) &&
+        !g_product_state_path.empty()) {
+        std::ifstream product_state(g_product_state_path, std::ios::binary);
+        seen = product_state.good();
+    }
+
+    g_onboarding_visible = !seen;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_ONBOARDING %s first_run=%d\n",
+            g_onboarding_visible ? "SHOWN" : "HIDDEN",
+            g_onboarding_visible ? 1 : 0);
+        std::fflush(stderr);
+    }
+}
+
+bool dismiss_onboarding() {
+    if (!modern_mode()) return false;
+    g_onboarding_visible = false;
+    g_onboarding_manual_open = false;
+    if (g_onboarding_seen_path.empty()) {
+        g_onboarding_seen_path = resolve_onboarding_seen_path();
+    }
+    if (!g_onboarding_seen_path.empty()) {
+        std::ofstream out(
+            g_onboarding_seen_path,
+            std::ios::binary | std::ios::trunc);
+        if (!out) {
+            product_diagnostic("UR_ONBOARDING DISMISS_SAVE_FAILED");
+            return true;
+        }
+        out << "seen-v1\n";
+        out.flush();
+        if (!out) {
+            product_diagnostic("UR_ONBOARDING DISMISS_SAVE_FAILED");
+            return true;
+        }
+    }
+    product_diagnostic("UR_ONBOARDING DISMISSED");
+    return true;
+}
+
+bool onboarding_surface_active() {
+    if (!modern_mode() || !g_onboarding_visible) return false;
+    if (g_onboarding_manual_open) return true;
+    return g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+}
+
+std::string live_gamepad_binding_label(int control_offset) {
+    // The title hook receives normalized SNES controls after the framework's
+    // physical gamepad mapping. Describe that stable semantic surface here
+    // instead of linking the framework's optional launcher/config backend
+    // merely to reverse-map physical buttons for presentation.
+    switch (control_offset) {
+    case 0: return "UP";
+    case 1: return "DOWN";
+    case 2: return "LEFT";
+    case 3: return "RIGHT";
+    case 4: return "SELECT";
+    case 5: return "START";
+    case 6: return "A";
+    case 7: return "B";
+    case 8: return "X";
+    case 9: return "Y";
+    case 10: return "L";
+    case 11: return "R";
+    default: return "NONE";
+    }
+}
+
+std::string resolve_practice_root() {
+    const char* override_root = std::getenv("UR_PRACTICE_SAVE_ROOT");
+    if (override_root && *override_root) return override_root;
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "practice-session";
+    return path;
+}
+
+std::string resolve_practice_input_path() {
+    const char* override_path = std::getenv("UR_PRACTICE_INPUT_PATH");
+    if (override_path && *override_path) return override_path;
+
+    char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
+    if (!pref_path) return {};
+    std::string path(pref_path);
+    SDL_free(pref_path);
+    path += "practice-input.txt";
+    return path;
+}
+
+bool queue_practice_accept(uint64_t origin_frame) {
+    if (!g_practice_active) return false;
+    if (g_practice_input_path.empty()) {
+        g_practice_input_path = resolve_practice_input_path();
+    }
+    if (g_practice_input_path.empty()) return false;
+
+    {
+        std::ofstream out(
+            g_practice_input_path,
+            std::ios::binary | std::ios::trunc);
+        if (!out) return false;
+        // SNES serial controller mask bit 8 is A. Two frames is long enough
+        // for stock menu edge detection while remaining one discrete press.
+        out << "0:2:100\n";
+        out.flush();
+        if (!out) return false;
+    }
+
+    if (!snesrecomp_desktop_load_relative_input_file(
+            g_practice_input_path.c_str())) {
+        return false;
+    }
+    snesrecomp_desktop_arm_relative_input(origin_frame);
+    return true;
+}
+
+bool begin_practice() {
+    if (!modern_mode() || g_practice_active || paused() ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    g_practice_sram_snapshot.assign(
+        g_sram,
+        g_sram + static_cast<std::size_t>(g_sram_size));
+    const char* root = RtlSaveRoot();
+    g_practice_original_save_root = root ? root : "";
+
+    const std::string practice_root = resolve_practice_root();
+    if (practice_root.empty()) {
+        g_practice_sram_snapshot.clear();
+        return false;
+    }
+    RtlSetSaveRoot(practice_root.c_str());
+    RtlEnsureSaveDir();
+
+    g_practice_active = true;
+    g_practice_stage = PracticeStage::AwaitMain;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PRACTICE STARTED sram=%08X root=%s\n",
+            static_cast<unsigned>(current_sram_digest()),
+            RtlSaveRoot());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool restore_practice_profile_before_reboot() {
+    if (!g_practice_active) return true;
+    if (!g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes) ||
+        g_practice_sram_snapshot.size() != ur::product::kStockSramBytes) {
+        product_diagnostic("UR_PRACTICE RESTORE_FAILED");
+        return false;
+    }
+
+    std::memcpy(
+        g_sram,
+        g_practice_sram_snapshot.data(),
+        ur::product::kStockSramBytes);
+    RtlSetSaveRoot(
+        g_practice_original_save_root.empty()
+            ? nullptr
+            : g_practice_original_save_root.c_str());
+
+    g_practice_active = false;
+    g_practice_stage = PracticeStage::Idle;
+    g_practice_sram_snapshot.clear();
+    g_practice_original_save_root.clear();
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PRACTICE RESTORED sram=%08X root=%s\n",
+            static_cast<unsigned>(current_sram_digest()),
+            RtlSaveRoot());
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+void advance_practice_route(uint64_t next_frame) {
+    if (!g_practice_active) return;
+
+    // Some stock menu transitions can pass through their stable IDs between
+    // host observation boundaries. Active-race state is authoritative and
+    // must close the route even when an intermediate menu was not sampled.
+    if (g_ram[0x0313] == 0x01) {
+        if (g_practice_stage != PracticeStage::Active) {
+            g_practice_stage = PracticeStage::Active;
+            product_diagnostic("UR_PRACTICE RACE_READY");
+        }
+        return;
+    }
+
+    auto accept = [&](PracticeStage next, const char* stage_name) {
+        if (!queue_practice_accept(next_frame)) {
+            product_diagnostic("UR_PRACTICE INPUT_FAILED");
+            return false;
+        }
+        g_practice_stage = next;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr, "UR_PRACTICE ACCEPT stage=%s\n", stage_name);
+            std::fflush(stderr);
+        }
+        return true;
+    };
+
+    switch (g_practice_stage) {
+    case PracticeStage::AwaitMain:
+        if (g_ram[0x009F] == 0xD7) {
+            (void)accept(PracticeStage::AwaitRider, "main");
+        }
+        break;
+    case PracticeStage::AwaitRider:
+        if (g_ram[0x009F] == 0x3C) {
+            (void)accept(PracticeStage::AwaitTour, "rider");
+        }
+        break;
+    case PracticeStage::AwaitTour:
+        if (g_ram[0x009F] == 0x6D) {
+            (void)accept(PracticeStage::AwaitTrack, "tour");
+        }
+        break;
+    case PracticeStage::AwaitTrack:
+        if (g_ram[0x009F] == 0xF6) {
+            (void)accept(PracticeStage::AwaitNowPlaying, "track");
+        }
+        break;
+    case PracticeStage::AwaitNowPlaying:
+        if (g_ram[0x009F] == 0x16) {
+            (void)accept(PracticeStage::AwaitRace, "now-playing");
+        }
+        break;
+    case PracticeStage::AwaitRace:
+        if (g_ram[0x0313] == 0x01) {
+            g_practice_stage = PracticeStage::Active;
+            product_diagnostic("UR_PRACTICE RACE_READY");
+        }
+        break;
+    case PracticeStage::Idle:
+    case PracticeStage::Active:
+        break;
+    }
 }
 
 const char* display_mode_name(ur::product::HostDisplayMode mode) {
@@ -903,6 +1216,7 @@ uint32_t current_sram_digest() {
 bool ensure_session() {
     if (g_session) return true;
     ensure_product_state();
+    ensure_onboarding_state();
     const std::size_t capacity = RtlRollbackSnapshotBound();
     if (!capacity) return false;
 
@@ -965,8 +1279,8 @@ bool profile_snapshot_matches_live_sram(
 bool save_active_profile_state(
     const std::optional<ur::product::HostTourContinuation>& continuation,
     const char* diagnostic) {
-    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
-        g_profile_state_path.empty() || !g_sram ||
+    if (!modern_mode() || g_practice_active || !g_profile_state ||
+        !g_profile_state_writable || g_profile_state_path.empty() || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
     }
@@ -1103,6 +1417,11 @@ bool exit_to_frontend() {
 
     const int source_surface = static_cast<int>(g_surface);
     const uint32_t before_sram = current_sram_digest();
+    const bool returning_from_practice = g_practice_active;
+    if (returning_from_practice &&
+        !restore_practice_profile_before_reboot()) {
+        return false;
+    }
 
     // Queue a full host-owned session rebuild. The request durably publishes
     // current cartridge SRAM before it can succeed; the host consumes it only
@@ -1130,9 +1449,10 @@ bool exit_to_frontend() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_EXIT_FRONTEND REQUESTED source=%d sram=%08X\n",
+            "UR_EXIT_FRONTEND REQUESTED source=%d sram=%08X practice=%d\n",
             source_surface,
-            static_cast<unsigned>(before_sram));
+            static_cast<unsigned>(before_sram),
+            returning_from_practice ? 1 : 0);
         std::fflush(stderr);
     }
     return true;
@@ -1187,7 +1507,7 @@ ur::product::CompletedRunGhostTarget active_run_ghost_target() {
 }
 
 bool run_record_capture_enabled() {
-    return modern_mode() &&
+    return modern_mode() && !g_practice_active &&
            g_widescreen_scene_state.race_mode ==
                ur::product::HostRacePresentationMode::OnePlayer;
 }
@@ -1774,6 +2094,23 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_ram[0x0313],
         g_ram[0x009F]);
 
+    if (!g_practice_acceptance_fired &&
+        std::getenv("UR_PRACTICE_ACCEPTANCE") &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        g_practice_acceptance_fired = true;
+        (void)begin_practice();
+    }
+    if (!g_onboarding_acceptance_fired &&
+        std::getenv("UR_ONBOARDING_ACCEPTANCE") &&
+        g_onboarding_visible && g_binding_diagnostics_reported &&
+        g_ram[0x009F] == 0xD7) {
+        g_onboarding_acceptance_fired = true;
+        (void)dismiss_onboarding();
+    }
+    if (stats) {
+        advance_practice_route(stats->frame + 1u);
+    }
+
     const bool run_active =
         g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE;
     if (stats && g_run_capture_previous_active && g_run_capture.capturing()) {
@@ -1849,6 +2186,24 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int repeat) {
     if (repeat || !ensure_session()) return 0;
 
+    if (modern_mode() && key == SDLK_F1) {
+        g_onboarding_visible = true;
+        g_onboarding_manual_open = true;
+        product_diagnostic("UR_ONBOARDING HELP_OPENED");
+        return 1;
+    }
+    if (onboarding_surface_active()) {
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER ||
+            key == SDLK_ESCAPE) {
+            (void)dismiss_onboarding();
+        }
+        return 1;
+    }
+    if (modern_mode() && key == SDLK_F5 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        return begin_practice() ? 1 : 0;
+    }
+
     if (g_quit_confirm_visible &&
         (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
         return request_desktop_quit() ? 1 : 0;
@@ -1917,7 +2272,19 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (!ensure_session()) return 0;
 
     if (!pressed) {
-        return paused() ? 1 : 0;
+        return paused() || onboarding_surface_active() ? 1 : 0;
+    }
+
+    if (onboarding_surface_active()) {
+        if (button == kGamepadBtn_A || button == kGamepadBtn_B ||
+            button == kGamepadBtn_Start) {
+            (void)dismiss_onboarding();
+        }
+        return 1;
+    }
+    if (modern_mode() && button == kGamepadBtn_X && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        return begin_practice() ? 1 : 0;
     }
 
     if (g_quit_confirm_visible && button == kGamepadBtn_A) {
@@ -1981,6 +2348,104 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
+    if (onboarding_surface_active()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int panel_w = width < 340 ? width - 16 : 324;
+        const int panel_h = 174;
+        const int x = (width - panel_w) / 2;
+        const int y = (height - panel_h) / 2;
+        const KeyBinds* binds = keybinds_get();
+        const PlayerBinds fallback{};
+        const PlayerBinds& p1 = binds ? binds->p1 : fallback;
+        const std::string left = uppercase_keybind_label(p1.left);
+        const std::string right = uppercase_keybind_label(p1.right);
+        const std::string jump = uppercase_keybind_label(p1.b);
+        const std::string brake = uppercase_keybind_label(p1.y);
+        const std::string a = uppercase_keybind_label(p1.a);
+        const std::string x_key = uppercase_keybind_label(p1.x);
+        const std::string l = uppercase_keybind_label(p1.l);
+        const std::string r = uppercase_keybind_label(p1.r);
+        const std::string pad_left = live_gamepad_binding_label(2);
+        const std::string pad_right = live_gamepad_binding_label(3);
+        const std::string pad_jump = live_gamepad_binding_label(7);
+        const std::string pad_brake = live_gamepad_binding_label(9);
+        const std::string pad_a = live_gamepad_binding_label(6);
+        const std::string pad_x = live_gamepad_binding_label(8);
+        const std::string pad_l = live_gamepad_binding_label(10);
+        const std::string pad_r = live_gamepad_binding_label(11);
+        char move_row[128];
+        char jump_row[96];
+        char brake_row[96];
+        char stunt_row1[128];
+        char stunt_row2[128];
+        std::snprintf(
+            move_row, sizeof(move_row), "MOVE  %s/%s   PAD %s/%s",
+            left.c_str(), right.c_str(), pad_left.c_str(), pad_right.c_str());
+        std::snprintf(
+            jump_row, sizeof(jump_row), "JUMP B  %s   PAD %s",
+            jump.c_str(), pad_jump.c_str());
+        std::snprintf(
+            brake_row, sizeof(brake_row), "BRAKE Y %s   PAD %s",
+            brake.c_str(), pad_brake.c_str());
+        std::snprintf(
+            stunt_row1, sizeof(stunt_row1), "STUNTS A/X  %s/%s   PAD %s/%s",
+            a.c_str(), x_key.c_str(), pad_a.c_str(), pad_x.c_str());
+        std::snprintf(
+            stunt_row2, sizeof(stunt_row2), "STUNTS L/R  %s/%s   PAD %s/%s",
+            l.c_str(), r.c_str(), pad_l.c_str(), pad_r.c_str());
+
+        if (!g_binding_diagnostics_reported &&
+            std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            g_binding_diagnostics_reported = true;
+            std::fprintf(
+                stderr,
+                "UR_ONBOARDING BINDINGS keyboard_left=%s keyboard_right=%s keyboard_jump=%s keyboard_brake=%s keyboard_a=%s keyboard_x=%s keyboard_l=%s keyboard_r=%s pad_left=%s pad_right=%s pad_jump=%s pad_brake=%s pad_a=%s pad_x=%s pad_l=%s pad_r=%s\n",
+                left.c_str(), right.c_str(), jump.c_str(), brake.c_str(),
+                a.c_str(), x_key.c_str(), l.c_str(), r.c_str(),
+                pad_left.c_str(), pad_right.c_str(), pad_jump.c_str(),
+                pad_brake.c_str(), pad_a.c_str(), pad_x.c_str(),
+                pad_l.c_str(), pad_r.c_str());
+            std::fflush(stderr);
+        }
+
+        snes_ovl_fill_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 27,
+            move_row, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 42,
+            jump_row, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 57,
+            brake_row, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 72,
+            stunt_row1, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 87,
+            stunt_row2, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 107,
+            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 122,
+            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 142,
+            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 157,
+            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, 1);
+        return;
+    }
+
     if (modern_mode() &&
         g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
         g_run_ghost_presentation_frame &&
@@ -2022,6 +2487,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 }
             }
         }
+    }
+
+    if (modern_mode() && g_practice_active &&
+        g_practice_stage == PracticeStage::Active) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const char* hint = "PRACTICE  START > EXIT FRONTEND TO RETURN";
+        const int hint_w = width < 300 ? width - 16 : 284;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, 15,
+            hint, 0xFFFFFFFFu, 1);
     }
 
     const int is_paused = paused() ? 1 : 0;
@@ -2173,13 +2654,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         if (g_controls_visible) {
-            const int controls_h = 144;
+            const int controls_h = 174;
             const int controls_y = (height - controls_h) / 2;
             const KeyBinds* binds = keybinds_get();
             const PlayerBinds fallback{};
             const PlayerBinds& p1 = binds ? binds->p1 : fallback;
-            const std::string up = uppercase_keybind_label(p1.up);
-            const std::string down = uppercase_keybind_label(p1.down);
             const std::string left = uppercase_keybind_label(p1.left);
             const std::string right = uppercase_keybind_label(p1.right);
             const std::string b = uppercase_keybind_label(p1.b);
@@ -2189,31 +2668,36 @@ extern "C" void ur_uniracers_modern_system_overlay(
             const std::string l = uppercase_keybind_label(p1.l);
             const std::string r = uppercase_keybind_label(p1.r);
             const std::string start = uppercase_keybind_label(p1.start);
-            const std::string select = uppercase_keybind_label(p1.select);
-            char up_down_row[64];
-            char left_right_row[64];
-            char by_row[64];
-            char ax_row[64];
-            char lr_row[64];
-            char start_select_row[72];
+            char move_row[128];
+            char jump_row[96];
+            char brake_row[96];
+            char ax_row[128];
+            char lr_row[128];
+            char start_row[96];
             std::snprintf(
-                up_down_row, sizeof(up_down_row), "UP/DOWN  %s / %s",
-                up.c_str(), down.c_str());
+                move_row, sizeof(move_row), "MOVE %s/%s   PAD %s/%s",
+                left.c_str(), right.c_str(),
+                live_gamepad_binding_label(2).c_str(),
+                live_gamepad_binding_label(3).c_str());
             std::snprintf(
-                left_right_row, sizeof(left_right_row), "LEFT/RIGHT  %s / %s",
-                left.c_str(), right.c_str());
+                jump_row, sizeof(jump_row), "JUMP B  %s   PAD %s",
+                b.c_str(), live_gamepad_binding_label(7).c_str());
             std::snprintf(
-                by_row, sizeof(by_row), "B/Y      %s / %s",
-                b.c_str(), y_key.c_str());
+                brake_row, sizeof(brake_row), "BRAKE Y %s   PAD %s",
+                y_key.c_str(), live_gamepad_binding_label(9).c_str());
             std::snprintf(
-                ax_row, sizeof(ax_row), "A/X      %s / %s",
-                a.c_str(), x_key.c_str());
+                ax_row, sizeof(ax_row), "STUNTS A/X %s/%s   PAD %s/%s",
+                a.c_str(), x_key.c_str(),
+                live_gamepad_binding_label(6).c_str(),
+                live_gamepad_binding_label(8).c_str());
             std::snprintf(
-                lr_row, sizeof(lr_row), "L/R      %s / %s",
-                l.c_str(), r.c_str());
+                lr_row, sizeof(lr_row), "STUNTS L/R %s/%s   PAD %s/%s",
+                l.c_str(), r.c_str(),
+                live_gamepad_binding_label(10).c_str(),
+                live_gamepad_binding_label(11).c_str());
             std::snprintf(
-                start_select_row, sizeof(start_select_row),
-                "START/SEL  %s / %s", start.c_str(), select.c_str());
+                start_row, sizeof(start_row), "PAUSE START %s   PAD %s",
+                start.c_str(), live_gamepad_binding_label(5).c_str());
 
             snes_ovl_fill_rect(
                 pixels, stride, height, x, controls_y, panel_w, controls_h,
@@ -2223,28 +2707,34 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 7,
-                "CONTROLS - P1 KEYBOARD", 0xFFFFFFFFu, 1);
+                "CONTROLS - LIVE P1 BINDINGS", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 22,
-                up_down_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 27,
+                move_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 37,
-                left_right_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 42,
+                jump_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 52,
-                by_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 57,
+                brake_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 67,
+                pixels, stride, height, x + 8, controls_y + 72,
                 ax_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 82,
+                pixels, stride, height, x + 8, controls_y + 87,
                 lr_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 97,
-                start_select_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 102,
+                start_row, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 117,
-                "ESC / B   BACK", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8, controls_y + 122,
+                "LAND WHEEL-DOWN. CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 142,
+                "F5 / PAD X  QUICK PRACTICE FROM MAIN MENU", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 157,
+                "ESC / PAD B  BACK", 0xFFFFFFFFu, 1);
             return;
         }
 

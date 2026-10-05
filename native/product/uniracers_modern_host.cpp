@@ -1869,6 +1869,11 @@ void advance_tour_continue_route(uint64_t next_frame) {
         });
     g_tour_continue = step.state;
 
+    if (step.timed_out) {
+        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_TIMEOUT");
+        return;
+    }
+
     if (step.input != ur::product::QuickPracticeMenuInput::None &&
         !queue_tour_continue_input(step.input, next_frame)) {
         cancel_tour_continue("UR_TOUR_CONTINUE INPUT_FAILED");

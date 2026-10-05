@@ -26,6 +26,10 @@ int main() {
 
     ur_modern_options_menu_move(&menu, 1);
     assert(ur_modern_options_menu_selected(&menu) ==
+           UR_MODERN_OPTIONS_RENDER_SCALE);
+
+    ur_modern_options_menu_move(&menu, 1);
+    assert(ur_modern_options_menu_selected(&menu) ==
            UR_MODERN_OPTIONS_WIDESCREEN);
 
     ur_modern_options_menu_move(&menu, 1);

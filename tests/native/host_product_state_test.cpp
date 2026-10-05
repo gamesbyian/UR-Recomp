@@ -221,6 +221,10 @@ int main() {
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=5x\n"));
     static_assert(internal_render_scale_value(HostInternalRenderScale::X1) == 1);
     static_assert(internal_render_scale_value(HostInternalRenderScale::X4) == 4);
+    static_assert(next_internal_render_scale(HostInternalRenderScale::X1) ==
+                  HostInternalRenderScale::X2);
+    static_assert(next_internal_render_scale(HostInternalRenderScale::X4) ==
+                  HostInternalRenderScale::X1);
 
     return 0;
 }

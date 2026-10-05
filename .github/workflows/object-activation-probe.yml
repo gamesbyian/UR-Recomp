@@ -1,14 +1,7 @@
 name: Dragster object activation probe
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - "tests/input/object-activation-dragster-tail.script"
-      - "tools/analyze_object_activation_probe.py"
-      - ".github/workflows/object-activation-probe.yml"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: object-activation-probe-${{ github.ref }}
   cancel-in-progress: true
 

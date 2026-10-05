@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 import shutil
+import zipfile
 from pathlib import Path
 
 SCHEMA_VERSION = 1
@@ -16,6 +17,8 @@ ROM_NAME = "Uniracers_USA.sfc"
 MANIFEST_NAME = "PACKAGE-MANIFEST.json"
 LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
+ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
+ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 
 
 def sha256(path: Path) -> str:
@@ -163,6 +166,102 @@ def verify(package: Path) -> dict[str, object]:
     return manifest
 
 
+def create_archive(package: Path, archive: Path) -> dict[str, object]:
+    package = package.resolve()
+    archive = archive.resolve()
+    manifest = verify(package)
+    if archive.exists():
+        archive.unlink()
+    archive.parent.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(
+        archive, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9
+    ) as output:
+        for path in sorted(p for p in package.rglob("*") if p.is_file()):
+            relative = path.relative_to(package).as_posix()
+            info = zipfile.ZipInfo(
+                f"{ARCHIVE_ROOT}/{relative}", date_time=ARCHIVE_TIMESTAMP
+            )
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = 0o100644 << 16
+            output.writestr(info, path.read_bytes(), compresslevel=9)
+    return manifest
+
+
+def verify_archive(archive: Path) -> dict[str, object]:
+    archive = archive.resolve()
+    if not archive.is_file():
+        raise ValueError(f"package archive missing: {archive}")
+
+    manifest_name = f"{ARCHIVE_ROOT}/{MANIFEST_NAME}"
+    try:
+        with zipfile.ZipFile(archive, "r") as source:
+            names = source.namelist()
+            if len(names) != len(set(names)):
+                raise ValueError("package archive contains duplicate paths")
+            if any(
+                name.startswith("/") or "\\" in name or ".." in Path(name).parts
+                for name in names
+            ):
+                raise ValueError("package archive contains unsafe paths")
+            if manifest_name not in names:
+                raise ValueError("package archive manifest missing")
+            try:
+                manifest = json.loads(
+                    source.read(manifest_name).decode("utf-8")
+                )
+            except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise ValueError(
+                    f"cannot read package archive manifest: {exc}"
+                ) from exc
+
+            if (
+                manifest.get("schema_version") != SCHEMA_VERSION
+                or manifest.get("package_format") != PACKAGE_FORMAT
+                or not isinstance(manifest.get("files"), list)
+            ):
+                raise ValueError("unsupported or malformed package archive manifest")
+
+            expected_names = {manifest_name}
+            for entry in manifest["files"]:
+                if not isinstance(entry, dict):
+                    raise ValueError("malformed package archive file entry")
+                relative = entry.get("path")
+                expected_size = entry.get("size")
+                expected_hash = entry.get("sha256")
+                if (
+                    not isinstance(relative, str)
+                    or not isinstance(expected_size, int)
+                    or not isinstance(expected_hash, str)
+                ):
+                    raise ValueError("malformed package archive file entry")
+                name = f"{ARCHIVE_ROOT}/{relative}"
+                expected_names.add(name)
+                try:
+                    payload = source.read(name)
+                except KeyError as exc:
+                    raise ValueError(
+                        f"package archive payload missing: {relative}"
+                    ) from exc
+                if len(payload) != expected_size:
+                    raise ValueError(
+                        f"package archive size mismatch: {relative}"
+                    )
+                if hashlib.sha256(payload).hexdigest() != expected_hash:
+                    raise ValueError(
+                        f"package archive checksum mismatch: {relative}"
+                    )
+
+            if set(names) != expected_names:
+                raise ValueError(
+                    "package archive contains unmanifested or missing files"
+                )
+    except zipfile.BadZipFile as exc:
+        raise ValueError(f"invalid package archive: {exc}") from exc
+
+    return manifest
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -176,6 +275,13 @@ def main() -> int:
     verify_parser = subparsers.add_parser("verify")
     verify_parser.add_argument("--package", type=Path, required=True)
 
+    archive_parser = subparsers.add_parser("archive")
+    archive_parser.add_argument("--package", type=Path, required=True)
+    archive_parser.add_argument("--output", type=Path, required=True)
+
+    verify_archive_parser = subparsers.add_parser("verify-archive")
+    verify_archive_parser.add_argument("--archive", type=Path, required=True)
+
     args = parser.parse_args()
     try:
         if args.command == "assemble":
@@ -186,11 +292,23 @@ def main() -> int:
                 f"WINDOWS_PACKAGE_ASSEMBLED files={len(manifest['files'])} "
                 f"output={args.output}"
             )
-        else:
+        elif args.command == "verify":
             manifest = verify(args.package)
             print(
                 f"WINDOWS_PACKAGE_VERIFIED files={len(manifest['files'])} "
                 f"package={args.package}"
+            )
+        elif args.command == "archive":
+            manifest = create_archive(args.package, args.output)
+            print(
+                f"WINDOWS_PACKAGE_ARCHIVED files={len(manifest['files'])} "
+                f"archive={args.output}"
+            )
+        else:
+            manifest = verify_archive(args.archive)
+            print(
+                f"WINDOWS_PACKAGE_ARCHIVE_VERIFIED files={len(manifest['files'])} "
+                f"archive={args.archive}"
             )
     except ValueError as exc:
         parser.error(str(exc))

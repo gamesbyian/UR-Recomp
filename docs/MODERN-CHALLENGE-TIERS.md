@@ -68,6 +68,30 @@ The adapter must satisfy all of these constraints:
 
 The preferred implementation shape is a title-owned typed challenge adapter with the smallest possible input/output vocabulary, analogous to the existing tour-resume adapter. It should own all concrete stock addresses and checksum mechanics. Generic product policy should see only tier/opponent/completion semantics.
 
+### Generation snapshot adapter
+
+`native/title/uniracers_challenge_generation.{hpp,cpp}` now implements the typed decision half of that seam. It is designed to sit directly on the stock tour-confirm snapshot writer rather than performing a later SRAM patch.
+
+The adapter receives the generation value stock was about to write plus an optional Modern request. A request names the rider, ordinary tour row, expected persistent medal and selected generation. It applies only when all of these still agree with live stock context:
+
+- one-player tour mode;
+- live rider;
+- live tour row;
+- persistent medal cell;
+- stock writer input generation.
+
+On success it returns only the selected generation that the stock snapshot writer should store. It does not itself write SRAM or WRAM. With no request, invalid input, Hunter, stale profile/progression context or a stock-generation mismatch, it returns the original stock generation unchanged.
+
+This shape is important because the retained direct-reference scan localizes the stock snapshot writer at `80:E6BF`, an ordinary opponent consumer at `80:B315` and a frontend generation-label consumer at `80:E8F0`. Substituting at the writer boundary lets downstream stock consumers share one coherent generation instead of repairing label/opponent state afterward.
+
+The generated-code writer hook machinery is implemented as a fail-closed post-generation patch plus a narrow C bridge. `tools/patch_challenge_generation_writer.py` requires exactly one emitted byte store to `$77:10D1` before it will wrap that store's value through `ur_uniracers_challenge_generation_filter()`; zero or multiple matches fail closed.
+
+The ordinary shipping AOT set does not currently emit that writer, so #496 does **not** apply the generated-store patch during native preparation. A bounded canonical-ROM call scan has since identified `80:E6A2` as the sole direct call target into the writer tail (`80:C28F JSR 80:E6A2`). The stacked writer-ownership proof seeds that routine into AOT and must demonstrate one generated `0x10D1` store before shipping preparation may own this hook.
+
+The bridge is exact stock pass-through until a typed request is armed. `uniracers_challenge_generation_runtime.cpp` installs a one-shot filter for one stock snapshot writer only. The request is consumed and disarmed whether validation succeeds or fails, and explicit cancellation restores pass-through before the writer. This prevents a stale tier choice from leaking into a later tour confirm.
+
+Player-facing wiring and threshold/result acceptance are still pending. The existence of the adapter/bridge machinery is not by itself authorization for non-current-tier launch.
+
 ### Completion/reward constraint
 
 The retained stock award path already closes an important implementation question: at `83:8823..8838` stock reads the persistent medal cell, increments it by exactly one, stores only values up to 3, then the later `83:88FD` dispatch selects ordinary medal presentation versus the per-tour gold vignette / Hunter ending based on the resulting stock progression state.

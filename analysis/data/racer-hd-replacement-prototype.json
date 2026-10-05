@@ -2716,7 +2716,33 @@
         "intent": "Use the reviewed red 0540 construction for the 1230/1238 P1 0540+0D0C pose; the family-local review compares it against this exact companion-context stock raster.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "same envelope/contact and near-identical stock silhouette to approved P1 0540+0D2C; no claim of byte-identical stock geometry"
+        "reuse_basis": "same envelope/contact and near-identical stock silhouette to approved P1 0540+0D2C; no claim of byte-identical stock geometry",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
       }
     },
     {
@@ -2792,7 +2818,33 @@
         "intent": "Render the 1230/1238 P2 057F+0D2A pose as the blue-player counterpart of the reviewed 057F bridge construction, retaining neutral materials and envelope/contact.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "approved 057F bridge art transposed to blue; exact 0D2A stock is independently reviewed"
+        "reuse_basis": "approved 057F bridge art transposed to blue; exact 0D2A stock is independently reviewed",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            65,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 321,
+          "alpha_intersection_pixels": 259,
+          "alpha_union_pixels": 384,
+          "alpha_iou": 0.6744791666666666
+        }
       }
     },
     {
@@ -2868,7 +2920,33 @@
         "intent": "Reuse the exact same authored red P1 pose across the seven-frame 0540+0D0C hold, matching the stock entry/hold RGBA identity.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P1"
+        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P1",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
       }
     },
     {
@@ -2944,7 +3022,33 @@
         "intent": "Render the synchronized seven-frame P2 0540+0D0C hold as the blue counterpart of the reviewed P1 0540 construction.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "stock alpha mask is byte-identical to fourth-family P1 hold geometry; authored neutral materials are preserved while frame palette is transposed"
+        "reuse_basis": "stock alpha mask is byte-identical to fourth-family P1 hold geometry; authored neutral materials are preserved while frame palette is transposed",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            23,
+            2,
+            40,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            63,
+            76
+          ],
+          "stock_opaque_pixels": 327,
+          "candidate_opaque_pixels": 317,
+          "alpha_intersection_pixels": 271,
+          "alpha_union_pixels": 373,
+          "alpha_iou": 0.7265415549597856
+        }
       }
     },
     {
@@ -3020,7 +3124,33 @@
         "intent": "Reuse the shipping-approved P1 0541+0D0D authored pose at frame 1239; stock RGBA is byte-identical to the approved canonical P1 pose.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "exact stock RGBA identity proven in fourth-family measurement"
+        "reuse_basis": "exact stock RGBA identity proven in fourth-family measurement",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            3,
+            39,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            61,
+            76
+          ],
+          "stock_opaque_pixels": 324,
+          "candidate_opaque_pixels": 271,
+          "alpha_intersection_pixels": 238,
+          "alpha_union_pixels": 357,
+          "alpha_iou": 0.6666666666666666
+        }
       }
     },
     {
@@ -3096,7 +3226,33 @@
         "intent": "Reuse the same blue P2 057F+0D2A authored pose at frame 1239; stock RGBA is byte-identical to the 1230/1238 P2 entry pose.",
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-1230-1239.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-1230-1239.json",
-        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P2"
+        "reuse_basis": "stock RGBA is byte-identical to fourth-family entry P2",
+        "native_acceptance_run": 37261958454,
+        "native_acceptance_artifact_id": 11325277378,
+        "gameplay_scale_review": {
+          "sampling": "4x logical pixel centres (x*4+2, y*4+2)",
+          "stock_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_alpha_bounds": [
+            22,
+            2,
+            41,
+            38
+          ],
+          "candidate_contact_x2_y2": [
+            65,
+            76
+          ],
+          "stock_opaque_pixels": 322,
+          "candidate_opaque_pixels": 321,
+          "alpha_intersection_pixels": 259,
+          "alpha_union_pixels": 384,
+          "alpha_iou": 0.6744791666666666
+        }
       }
     }
   ],
@@ -3346,7 +3502,7 @@
       }
     },
     "ordinary-race-1230-1239-entry-hold-exit": {
-      "status": "authored candidate sequence-level motion gate; shipping approval remains hash-bound and external",
+      "status": "accepted authored sequence-level motion gate; shipping approval hash-bound in family ledger",
       "window_start": 1230,
       "window_end": 1239,
       "sampling": "authored 4x logical pixel centres (x*4+2, y*4+2)",
@@ -3426,6 +3582,22 @@
           1238,
           1239
         ]
+      },
+      "acceptance_run": 37261958454,
+      "acceptance_artifact_id": 11325277378,
+      "measured": {
+        "p1": {
+          "static_edges": 8,
+          "dynamic_edges": 1,
+          "dynamic_ratio_min": 1.4065934065934067,
+          "dynamic_ratio_max": 1.4065934065934067
+        },
+        "p2": {
+          "static_edges": 7,
+          "dynamic_edges": 2,
+          "dynamic_ratio_min": 1.4193548387096775,
+          "dynamic_ratio_max": 1.4193548387096775
+        }
       }
     }
   }

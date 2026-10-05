@@ -48,6 +48,7 @@ const char* completed_run_browser_status_name(
 enum class CompletedRunRecordsView : std::uint8_t {
     Courses = 0,
     Runs = 1,
+    Detail = 2,
 };
 
 class CompletedRunRecordsBrowser {
@@ -67,9 +68,14 @@ public:
     }
     const RunRecordsCourseIndexEntry* selected_course() const noexcept;
     const RunDataCatalogEntry* selected_run() const noexcept;
+    const CompletedRunRecord* selected_run_record() const noexcept;
+    std::optional<RunResultSummaryPresentation>
+    selected_run_summary() const;
 
     bool move(int delta) noexcept;
     bool open_selected_course() noexcept;
+    bool open_selected_run_detail() noexcept;
+    bool back_to_runs() noexcept;
     bool back_to_courses() noexcept;
 
 private:

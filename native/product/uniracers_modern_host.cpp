@@ -452,27 +452,24 @@ std::string resolve_practice_input_path() {
     return path;
 }
 
-bool queue_practice_input(
+bool queue_relative_menu_input(
+    std::string& input_path,
     uint64_t origin_frame,
-    ur::product::QuickPracticeLaunchInput input
+    std::uint16_t mask
 ) {
-    if (!g_practice_active) return false;
-    const std::uint16_t mask = ur::product::quick_practice_runner_mask(input);
-    if (!ur::product::quick_practice_runner_mask_is_discrete_menu_input(mask)) {
+    if (!ur::product::quick_practice_runner_mask_is_discrete_menu_input(mask) ||
+        input_path.empty()) {
         return false;
     }
-    if (g_practice_input_path.empty()) {
-        g_practice_input_path = resolve_practice_input_path();
-    }
-    if (g_practice_input_path.empty()) return false;
 
     {
         std::ofstream out(
-            g_practice_input_path,
+            input_path,
             std::ios::binary | std::ios::trunc);
         if (!out) return false;
         // Two frames is long enough for stock menu edge detection while
-        // remaining one discrete normalized press.
+        // remaining one discrete normalized press. This transport is shared
+        // by host-owned frontend routers; policy remains with each caller.
         char line[32];
         std::snprintf(line, sizeof(line), "0:2:%X\n",
             static_cast<unsigned>(mask));
@@ -481,12 +478,25 @@ bool queue_practice_input(
         if (!out) return false;
     }
 
-    if (!snesrecomp_desktop_load_relative_input_file(
-            g_practice_input_path.c_str())) {
+    if (!snesrecomp_desktop_load_relative_input_file(input_path.c_str())) {
         return false;
     }
     snesrecomp_desktop_arm_relative_input(origin_frame);
     return true;
+}
+
+bool queue_practice_input(
+    uint64_t origin_frame,
+    ur::product::QuickPracticeLaunchInput input
+) {
+    if (!g_practice_active) return false;
+    if (g_practice_input_path.empty()) {
+        g_practice_input_path = resolve_practice_input_path();
+    }
+    return queue_relative_menu_input(
+        g_practice_input_path,
+        origin_frame,
+        ur::product::quick_practice_runner_mask(input));
 }
 
 bool begin_practice(std::uint8_t track_id = 0) {

@@ -699,6 +699,75 @@
       },
       "acquisition_tier": "closed-or-local",
       "acquisition_judgment": "Useful for cheap address localization but secondary to canonical runtime and existing libretro evidence."
+    },
+    {
+      "id": "pb-ruining-glitch-video",
+      "value": "high",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "speedrun-karmamachine-pb-ruining-glitch"
+      ],
+      "question": "What rare runtime state caused karmamachine's recorded 'PB Ruining Glitch', and does it expose a collision, camera, race-state, or persistence edge case that should be preserved or contained?",
+      "next_discriminator": "Recover or inspect the embedded video using the preserved YouTube ID XI4QqEFrPQE, identify the exact course/scene and visible failure signature, then reproduce only if the state can be bounded. Correlate with existing orange-track/fall-through/collision leads before creating new mechanisms.",
+      "deliverables": [
+        "video-derived scene and symptom classification",
+        "course/state hypothesis linked to existing glitch families",
+        "reproduction trace if feasible",
+        "explicit duplicate-versus-distinct classification relative to orange-track and fall-through evidence"
+      ],
+      "tags": [
+        "speedrun",
+        "glitch",
+        "video",
+        "rare-state",
+        "collision",
+        "camera",
+        "fidelity"
+      ],
+      "artifact_need": {
+        "kind": "video",
+        "state": "public-embedded",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "P1",
+      "acquisition_judgment": "High information value because the rare failure is visually recorded by a long-term competitive player; first step is classification, not blind reproduction."
+    },
+    {
+      "id": "brazilian-community-pivot",
+      "value": "medium",
+      "cost": "low",
+      "status": "ready",
+      "source_ids": [
+        "brazil-lgd-retrogamer-uniracers-2017",
+        "brazil-jogovelho-uniracers-2026",
+        "gamefaqs-uniracers-pal-records"
+      ],
+      "question": "Where is the Brazilian Uniracers/Unirally player activity remembered by PAL community members, and does it contain records, mechanics observations, videos, glitches or current tester candidates not represented in English-language sources?",
+      "next_discriminator": "Pivot from known Portuguese-language creators/articles into comments, related videos, forum posts and social handles using Portuguese terms for records, tricks, shortcuts, glitches, multiplayer and Super Nintendo. Promote only concrete mechanics evidence or identifiable current-player leads.",
+      "deliverables": [
+        "Brazilian player/community source map",
+        "new technical/mechanics sources if found",
+        "current tester leads with source provenance",
+        "explicit dead-end note if coverage remains article-only"
+      ],
+      "tags": [
+        "brazil",
+        "portuguese",
+        "community",
+        "tester-discovery",
+        "records",
+        "glitches"
+      ],
+      "artifact_need": {
+        "kind": "none",
+        "state": "public-web",
+        "user_action_required": false,
+        "request": ""
+      },
+      "acquisition_tier": "P2",
+      "acquisition_judgment": "Potentially useful for broadening both evidence and tester demographics, but should remain bounded unless it yields concrete mechanics or active-player material."
     }
   ],
   "acquisition_policy": {

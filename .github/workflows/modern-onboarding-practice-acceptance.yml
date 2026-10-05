@@ -1,0 +1,142 @@
+name: Modern onboarding and practice acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/uniracers_modern_host.*"
+      - "tests/input/modern-main-menu.script"
+      - "tests/input/modern-practice-route.script"
+      - ".github/workflows/modern-onboarding-practice-acceptance.yml"
+      - "docs/MODERN-PRODUCT-LAYER.md"
+
+concurrency:
+  group: modern-onboarding-practice-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Scaffold and build Modern native host
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-onboarding-practice"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK"             sh "$FRAMEWORK/tools/new_project/setup_project.sh"               --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"               --dir "$TMP"               --name "Uniracers"               --players 2               --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay               --no-github --no-submodules --no-generate --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py"             --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM"             --json-out "$RUNNER_TEMP/widescreen-product-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py"             "$ROOT/src/main.c"             --game-rtl "$ROOT/src/game_rtl.c"             --cmake "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL3             -DSNESRECOMP_SDL3_FETCH=ON             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Prove first-run onboarding and dismissal persistence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          MARKER="$RUNNER_TEMP/onboarding.seen"
+          FIRST="$RUNNER_TEMP/onboarding-first.log"
+          SECOND="$RUNNER_TEMP/onboarding-second.log"
+
+          rm -f "$MARKER"
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_ONBOARDING_ACCEPTANCE=1             timeout 120s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-main-menu.script"               >"$FIRST" 2>&1
+
+          cat "$FIRST"
+          grep -q "UR_ONBOARDING SHOWN first_run=1" "$FIRST"
+          grep -q "UR_ONBOARDING BINDINGS keyboard_left=" "$FIRST"
+          grep -Eq "UR_ONBOARDING BINDINGS .*keyboard_jump=[^ ]+ .*pad_jump=[^ ]+" "$FIRST"
+          grep -q "UR_ONBOARDING DISMISSED" "$FIRST"
+          test -s "$MARKER"
+
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"             timeout 120s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-main-menu.script"               >"$SECOND" 2>&1
+
+          cat "$SECOND"
+          grep -q "UR_ONBOARDING HIDDEN first_run=0" "$SECOND"
+          ! grep -q "UR_ONBOARDING SHOWN" "$SECOND"
+
+      - name: Prove authoritative quick practice and SRAM restoration
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/practice.log"
+          MARKER="$RUNNER_TEMP/onboarding.seen"
+          PRACTICE_ROOT="$RUNNER_TEMP/practice-save"
+          PRACTICE_INPUT="$RUNNER_TEMP/practice-input.txt"
+
+          mkdir -p "$PRACTICE_ROOT"
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_ONBOARDING_STATE_PATH="$MARKER"           UR_PRACTICE_ACCEPTANCE=1           UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT"           UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT"           UR_EXIT_FRONTEND_ACCEPTANCE=active             timeout 150s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-practice-route.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_PRACTICE STARTED" "$LOG"
+          grep -q "UR_PRACTICE ACCEPT stage=main" "$LOG"
+          grep -q "UR_PRACTICE RACE_READY" "$LOG"
+          grep -q "UR_PRACTICE RESTORED" "$LOG"
+          grep -q "UR_EXIT_FRONTEND FRONTEND_READY menu=D7" "$LOG"
+          grep -q "script .* dump practice-race-entered ok" "$LOG"
+          grep -q "script .* dump practice-returned-main ok" "$LOG"
+
+          START_DIGEST="$(grep 'UR_PRACTICE STARTED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          RESTORE_DIGEST="$(grep 'UR_PRACTICE RESTORED' "$LOG" | tail -1 | sed -E 's/.*sram=([0-9A-F]+).*/\1/')"
+          test -n "$START_DIGEST"
+          test "$START_DIGEST" = "$RESTORE_DIGEST"
+          ! grep -q "UR_PROFILE_AUTOSAVE RESULT" "$LOG"
+
+      - name: Prove Authentic mode remains inert
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          LOG="$RUNNER_TEMP/authentic.log"
+
+          SDL_AUDIODRIVER=dummy           UR_EXECUTION_MODE=authentic           UR_PRODUCT_DIAGNOSTICS=1           UR_PRACTICE_ACCEPTANCE=1           UR_ONBOARDING_ACCEPTANCE=1             timeout 120s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/modern-main-menu.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$LOG"
+          ! grep -q "UR_ONBOARDING SHOWN" "$LOG"
+          ! grep -q "UR_PRACTICE STARTED" "$LOG"
+
+      - name: Upload acceptance logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-onboarding-practice-acceptance
+          path: |
+            ${{ runner.temp }}/onboarding-first.log
+            ${{ runner.temp }}/onboarding-second.log
+            ${{ runner.temp }}/practice.log
+            ${{ runner.temp }}/authentic.log
+          if-no-files-found: warn
+          retention-days: 7

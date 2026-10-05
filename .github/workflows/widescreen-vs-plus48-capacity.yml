@@ -1,7 +1,9 @@
 name: VS Widescreen +48 capacity
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: widescreen-vs-plus48-capacity-${{ github.ref }}
   cancel-in-progress: true
 

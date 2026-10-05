@@ -233,6 +233,25 @@ jobs:
           grep -Fq "$PACKAGE_WIN" "$RUNNER_TEMP/package-race-result.log"
           echo "WINDOWS_PACKAGE_RACE_RESULT ok"
 
+      - name: Portable re-extract preserves user settings
+        run: |
+          set -euo pipefail
+          test -f "$TEST_PACKAGE/config.ini"
+          test -f "$TEST_PACKAGE/keybinds.ini"
+          CONFIG_BEFORE="$(sha256sum "$TEST_PACKAGE/config.ini" | cut -d' ' -f1)"
+          KEYBINDS_BEFORE="$(sha256sum "$TEST_PACKAGE/keybinds.ini" | cut -d' ' -f1)"
+
+          python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"
+
+          CONFIG_AFTER="$(sha256sum "$TEST_PACKAGE/config.ini" | cut -d' ' -f1)"
+          KEYBINDS_AFTER="$(sha256sum "$TEST_PACKAGE/keybinds.ini" | cut -d' ' -f1)"
+          test "$CONFIG_BEFORE" = "$CONFIG_AFTER"
+          test "$KEYBINDS_BEFORE" = "$KEYBINDS_AFTER"
+
+          python tools/assemble_windows_package.py verify-archive \
+            --archive "$PACKAGE_ARCHIVE"
+          echo "WINDOWS_PACKAGE_REEXTRACT_STATE_PRESERVED ok"
+
       - name: Boot to main menu
         run: |
           set -euo pipefail

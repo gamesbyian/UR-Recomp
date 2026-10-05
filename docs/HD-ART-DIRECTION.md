@@ -78,6 +78,9 @@ With that rule, the first-family **visual-language baseline is closed enough to 
 
 ### First authored review candidate
 
+**Current status note (2026-10-05):** This section intentionally retains the chronological review history. Statements below that individual poses are “not approved shipping art” describe intermediate checkpoints, not the current disposition. The retained 1205–1220 strip is now 10/10 unique poses shipping-art approved through PR #442, with approval bound to exact authored RGBA hashes and the review packet carrying its workflow/artifact/window evidence.
+
+
 The first actual Remastered racer candidate now exists for exact representation `ordinary-racer-0x0541-p1-sync-reference` (`0541/0540 + 0D0D/0000`, P1 palette `0x06`). It is a 4x-density procedural high-resolution asset using the closed baseline above rather than the generic Scale2x contract placeholder.
 
 Initial native acceptance run `37142692369` proved the authored representation flowed through the real host selector and split-screen presenter at frame 1220 in both top and bottom viewports with `guest_state_unchanged=1`, zero stable WRAM differences, and unchanged Original control hash. That first pilot was mechanically correct but failed the first gameplay-scale motion review: its sampled silhouette occupied `x=21..40, y=8..38` while the stock frame occupies `x=22..39, y=3..38`, and stock/candidate alpha IoU was only about 0.377. Because the registered 1219 -> 1220 stock transition changes only seven source pixels, the pilot's redistributed mass would have read as an avoidable scale/posture pop.

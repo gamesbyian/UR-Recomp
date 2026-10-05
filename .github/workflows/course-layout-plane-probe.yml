@@ -1,7 +1,9 @@
 name: Course layout plane probe
 
 on:
-  workflow_dispatch:permissions:
+  workflow_dispatch:
+
+permissions:
   contents: write
 
 concurrency:

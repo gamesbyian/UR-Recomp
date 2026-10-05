@@ -222,7 +222,8 @@ jobs:
           assert dossier["representations"]
           assert all(
               rep["art_review"]["evidence_packet_ready"]
-              and rep["art_review"]["shipping_art_approved"]
+              and rep["art_review"]["shipping_approval_source"]
+                  == "analysis/data/racer-hd-art-approval.json"
               and "lighting_space" in rep["art_review"]["resolved_decisions"]
               and "edge_treatment" in rep["art_review"]["resolved_decisions"]
               and "material_classes" in rep["art_review"]["resolved_decisions"]

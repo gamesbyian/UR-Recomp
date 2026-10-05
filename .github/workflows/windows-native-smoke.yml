@@ -185,6 +185,7 @@ jobs:
 
           test -f "$USER_DATA/config.ini"
           test -f "$USER_DATA/keybinds.ini"
+          test -f "$USER_DATA/mod-state.toml"
           test -d "$USER_DATA/saves"
           test ! -e "$TEST_PACKAGE/config.ini"
           test ! -e "$TEST_PACKAGE/keybinds.ini"
@@ -239,9 +240,11 @@ jobs:
           printf 'run-upgrade-marker\n' > "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun"
           printf '# package-refresh-binding-marker\n' >> "$PACKAGE_USER_DATA/keybinds.ini"
           printf '# package-refresh-settings-marker\n' >> "$PACKAGE_USER_DATA/config.ini"
+          printf '# package-refresh-mod-marker\n' >> "$PACKAGE_USER_DATA/mod-state.toml"
 
           CONFIG_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          MOD_STATE_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/mod-state.toml" | cut -d' ' -f1)"
           MODERN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
           PROFILE_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
@@ -251,11 +254,13 @@ jobs:
 
           CONFIG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
+          MOD_STATE_AFTER="$(sha256sum "$PACKAGE_USER_DATA/mod-state.toml" | cut -d' ' -f1)"
           MODERN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
           PROFILE_AFTER="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
           test "$CONFIG_BEFORE" = "$CONFIG_AFTER"
           test "$KEYBINDS_BEFORE" = "$KEYBINDS_AFTER"
+          test "$MOD_STATE_BEFORE" = "$MOD_STATE_AFTER"
           test "$MODERN_BEFORE" = "$MODERN_AFTER"
           test "$PROFILE_BEFORE" = "$PROFILE_AFTER"
           test "$RUN_BEFORE" = "$RUN_AFTER"
@@ -277,11 +282,14 @@ jobs:
           cp -R "$TEST_PACKAGE" "$LEGACY"
           cp "$PACKAGE_USER_DATA/config.ini" "$LEGACY/config.ini"
           cp "$PACKAGE_USER_DATA/keybinds.ini" "$LEGACY/keybinds.ini"
+          mkdir -p "$LEGACY/mods/preloaded"
+          cp "$PACKAGE_USER_DATA/mod-state.toml" "$LEGACY/mods/preloaded/state.toml"
           mkdir -p "$LEGACY/saves"
           printf 'legacy-sram-marker\n' > "$LEGACY/saves/legacy-marker.srm"
 
           LEGACY_CONFIG="$(sha256sum "$LEGACY/config.ini" | cut -d' ' -f1)"
           LEGACY_KEYS="$(sha256sum "$LEGACY/keybinds.ini" | cut -d' ' -f1)"
+          LEGACY_MOD="$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"
           LEGACY_WIN="$(cygpath -w "$LEGACY")"
           MIGRATED_WIN="$(cygpath -w "$MIGRATED")"
           SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
@@ -303,12 +311,15 @@ jobs:
           test "$RC" -eq 0
           test -f "$MIGRATED/config.ini"
           test -f "$MIGRATED/keybinds.ini"
+          test -f "$MIGRATED/mod-state.toml"
           test -f "$MIGRATED/saves/legacy-marker.srm"
           grep -Fq "legacy-sram-marker" "$MIGRATED/saves/legacy-marker.srm"
           test "$LEGACY_CONFIG" = "$(sha256sum "$LEGACY/config.ini" | cut -d' ' -f1)"
           test "$LEGACY_KEYS" = "$(sha256sum "$LEGACY/keybinds.ini" | cut -d' ' -f1)"
+          test "$LEGACY_MOD" = "$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"
 
           printf 'destination-wins\n' > "$MIGRATED/saves/legacy-marker.srm"
+          printf '# destination-wins-mod\n' >> "$MIGRATED/mod-state.toml"
           set +e
           SDL_VIDEODRIVER=offscreen \
           SDL_AUDIODRIVER=dummy \
@@ -320,6 +331,7 @@ jobs:
           set -e
           test "$RC" -eq 0
           grep -Fq "destination-wins" "$MIGRATED/saves/legacy-marker.srm"
+          grep -Fq "destination-wins-mod" "$MIGRATED/mod-state.toml"
           echo "WINDOWS_PACKAGE_LEGACY_MIGRATION ok"
 
       - name: Boot to main menu

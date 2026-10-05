@@ -115,6 +115,20 @@ int main() {
     ownership.stage = QuickPracticeLaunchStage::Active;
     assert(!quick_practice_launch_owns_player_input(ownership));
 
+    QuickPracticeLaunchState retry_budget =
+        begin_quick_practice_launch(quick_practice_target_for_track(0));
+    retry_budget.observations_remaining = 2;
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 1);
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 0);
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 0);
+    retry_budget.stage = QuickPracticeLaunchStage::Active;
+    retry_budget.observations_remaining = 2;
+    retry_budget = quick_practice_launch_retry_state(retry_budget);
+    assert(retry_budget.observations_remaining == 2);
+
     prove_all_tracks_reach_race();
 
     const auto target =

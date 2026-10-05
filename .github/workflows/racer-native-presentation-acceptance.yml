@@ -270,6 +270,8 @@ jobs:
           assert review_packet["shipping_readiness"] == {
               "shipping_ready": True,
               "counts": readiness["counts"],
+              "review_basis": readiness["review_basis"],
+              "family_blockers": [],
           }
           assert all(
               pose["shipping_review_status"] == "approved"

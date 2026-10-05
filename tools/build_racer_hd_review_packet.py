@@ -184,6 +184,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
 </section>"""
 
     shipping_summary = ""
+    review_evidence_html = ""
     if readiness is not None:
         counts = readiness["counts"]
         shipping_summary = (
@@ -192,6 +193,21 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
             f' · needs refinement {counts["needs_refinement"]}'
             f' · changed since review {counts.get("changed_since_review", 0)}'
         )
+        basis = readiness.get("review_basis") or {}
+        window = basis.get("temporal_window") or []
+        if (
+            basis.get("workflow_run") is not None
+            and basis.get("artifact_id") is not None
+            and len(window) == 2
+        ):
+            surface = str(basis.get("review_surface", "n/a"))
+            review_evidence_html = (
+                '<p class="evidence">review evidence: workflow run '
+                f'{html.escape(str(basis["workflow_run"]))} · artifact '
+                f'{html.escape(str(basis["artifact_id"]))} · window '
+                f'{html.escape(str(window[0]))}–{html.escape(str(window[1]))} · surface '
+                f'{html.escape(surface)}</p>'
+            )
     baseline_summary = ""
     if "baseline_comparison" in manifest:
         baseline = manifest["baseline_comparison"]
@@ -217,6 +233,7 @@ def render_html(manifest: dict, live: dict | None, readiness: dict | None = None
 body {{ font-family: system-ui, sans-serif; margin: 24px; background: #111; color: #eee; }}
 h1, h2 {{ margin-bottom: 8px; }}
 .summary {{ padding: 12px; background: #222; border-radius: 8px; }}
+.evidence {{ color: #bbb; font-family: ui-monospace, monospace; font-size: 12px; }}
 .pose, .live {{ margin: 24px 0; padding: 16px; background: #1b1b1b; border-radius: 10px; }}
 .meta {{ font-family: ui-monospace, monospace; font-size: 12px; color: #bbb; }}
 .panels {{ display: flex; flex-wrap: wrap; gap: 16px; align-items: end; }}
@@ -237,6 +254,7 @@ figcaption {{ margin-top: 6px; color: #bbb; font-size: 12px; }}
 <body>
 <h1>Racer HD review packet</h1>
 <p class="summary">{html.escape(summary)}</p>
+{review_evidence_html}
 {live_html}
 {''.join(cards)}
 </body>
@@ -334,6 +352,8 @@ def build_review_packet(
         manifest["shipping_readiness"] = {
             "shipping_ready": readiness["shipping_ready"],
             "counts": readiness["counts"],
+            "review_basis": readiness.get("review_basis"),
+            "family_blockers": readiness.get("family_blockers", []),
         }
     live = None
     if (original_frame is None) != (hd_frame is None):

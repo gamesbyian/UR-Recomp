@@ -7,7 +7,6 @@ on:
       - "native/product/local_multiplayer_*.hpp"
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
-      - "docs/LOCAL-MULTIPLAYER-SETUP.md"
       - ".github/workflows/local-multiplayer-product-contracts.yml"
 
 concurrency:

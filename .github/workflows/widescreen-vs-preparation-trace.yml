@@ -1,19 +1,7 @@
 name: VS preparation writer trace
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/widescreen-vs-preparation-trace.yml"
-      - "tools/trace_native_wram_writers.py"
-      - "tools/instrument_snesref_vs_preparation_writes.py"
-      - "tests/input/vs-first-race.input"
-      - "tests/input/vs-first-race-observe.script"
-      - "analysis/widescreen-vs-preparation-seam.json"
-      - "analysis/widescreen-policy.yml"
-      - "docs/WIDESCREEN-RECONNAISSANCE.md"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: widescreen-vs-preparation-trace-${{ github.ref }}
   cancel-in-progress: true
 

@@ -15,7 +15,6 @@ on:
       - "analysis/widescreen-vs-plus16-capacity-evidence.json"
       - "analysis/widescreen-policy.yml"
       - "docs/WIDESCREEN-RECONNAISSANCE.md"
-      - "docs/WORK-QUEUE.md"
 
 concurrency:
   group: widescreen-vs-plus16-capacity-${{ github.ref }}

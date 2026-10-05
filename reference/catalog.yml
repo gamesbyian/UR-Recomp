@@ -992,3 +992,38 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public forum post; summarize with provenance."
     relevance: "Recent explicit request for a faithful Uniracers revival ('Uniracers 99'), from a user who separately reported heavy college multiplayer play in 2026."
+
+
+  - id: speedrun-karmamachine-pb-ruining-glitch
+    title: "karmamachine PB Ruining Glitch"
+    type: speedrun_glitch_video_lead
+    url: "https://www.speedrun.com/uniracers/forums/0ba78"
+    author: "karmamachine"
+    published: "circa 2016"
+    retrieved: "2026-10-05"
+    video_id: "XI4QqEFrPQE"
+    rights: "Public Speedrun.com post with embedded YouTube video; preserve provenance and derived observations, not third-party video bytes unless separately permitted."
+    relevance: "Competitive runner reports a rare run-destroying glitch occurring for the first time in over 20 years of play, with an embedded video artifact. High-value rare-state lead because the visual evidence may permit exact scene/state classification even though the post does not explain the mechanism."
+
+
+  - id: brazil-lgd-retrogamer-uniracers-2017
+    title: "LGD Retrogamer Portuguese Uniracers gameplay"
+    type: brazilian_player_content
+    url: "https://www.youtube.com/watch?v=vrhhJ71oAiY"
+    author: "LGD Retrogamer"
+    published: "2017-02-04"
+    retrieved: "2026-10-05"
+    language: "pt-BR"
+    rights: "Public YouTube video; index metadata and observations only."
+    relevance: "Brazilian Portuguese gameplay coverage with detailed progression/opponent description and name-filter trivia. Useful primarily as a social-discovery pivot into the Brazilian Unirally/Uniracers audience noted by PAL players."
+
+
+  - id: brazil-jogovelho-uniracers-2026
+    title: "Jogo Velho Uniracers retrospective"
+    type: brazilian_retro_coverage
+    url: "https://jogovelho.com.br/uniracers-snes/"
+    published: "2026-07"
+    retrieved: "2026-10-05"
+    language: "pt-BR"
+    rights: "Public article; summarize with provenance."
+    relevance: "Recent Brazilian-language Uniracers coverage demonstrates a currently active regional audience and provides a pivot for locating commenters, players and creators with fresh familiarity."

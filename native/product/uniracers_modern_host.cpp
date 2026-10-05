@@ -668,6 +668,13 @@ bool recent_course_available_for_active_profile() {
 
 void observe_recent_course_identity() {
     if (!modern_mode()) return;
+    // During Practice launch, do not let an attract/demo or wrong-course race
+    // poison Recent Course before the target-aware router has validated it.
+    if (g_practice_active &&
+        g_practice_launch.stage !=
+            ur::product::QuickPracticeLaunchStage::Active) {
+        return;
+    }
     const int active_track_id = authoritative_active_track_id();
     if (active_track_id < 0 || active_track_id >= 45) return;
 

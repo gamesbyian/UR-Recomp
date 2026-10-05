@@ -1269,10 +1269,11 @@ jobs:
 
           assert retained["before"]["hd_selected_player_frames"] == 150
           assert retained["after"]["hd_selected_player_frames"] == 162
-          assert retained["after"]["original_fallback_player_frames"] == 720
+          assert retained["current_after"]["hd_selected_player_frames"] == 174
+          assert retained["current_after"]["original_fallback_player_frames"] == 708
           assert current["measurement"]["player_frame_observations"] == 882
-          assert current["measurement"]["hd_selected_player_frames"] == 162
-          assert current["measurement"]["original_fallback_player_frames"] == 720
+          assert current["measurement"]["hd_selected_player_frames"] == 174
+          assert current["measurement"]["original_fallback_player_frames"] == 708
 
           assert dossier["temporal_window"]["start"] == 1354
           assert dossier["temporal_window"]["end"] == 1356
@@ -1300,7 +1301,7 @@ jobs:
               assert all(pair["transition_class"] == "static" for pair in pairs)
               assert all(pair["static_edge_preserved"] for pair in pairs)
 
-          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 after=162/882 removed=12")
+          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=174/882 removed=24")
           PY
 
       - name: Upload compact acceptance log

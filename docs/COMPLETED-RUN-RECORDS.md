@@ -1,6 +1,6 @@
 # Completed Run Records and Ghost Foundation
 
-Status: completed-run capture/replay, Previous/PB selection, checksum-bound presentation traces, live-camera projection, and the first visible Modern 1P ghost renderer are implemented.
+Status: completed-run capture/replay, Previous/PB selection, checksum-bound presentation traces, live-camera projection, the first visible Modern 1P ghost renderer, and the first live/results timing-PB-split presentation slice are implemented.
 
 ## Ownership
 
@@ -19,6 +19,14 @@ The optional terminal digest is a validation oracle only. It does not grant host
 ## Timing
 
 ur_uniracers_run_data_ticks60() converts the established title timer digits to exact 60 Hz ticks: ticks60 = whole_seconds * 60 + tenths * 6 + sub_tick. This avoids host-wall-clock timing and keeps PB/split arithmetic aligned with authoritative guest timing.
+
+## Player-facing timing presentation
+
+The Windows x64 Modern host now consumes the same authoritative timing substrate directly during supported 1P timed Race play. A compact host overlay shows exact current time while racing and exact finish time on the stock results surface, alongside the already-selected compatible PB. Current elapsed time is deliberately not compared against a PB finish during ordinary mid-race frames. Signed comparison appears only when the guest crosses a named checkpoint already represented in the PB record, or at finish.
+
+The last exact checkpoint delta is retained as host presentation state until another checkpoint is observed. Missing PB data, missing matching split IDs, malformed targets, Authentic execution, unsupported event types and non-race/results surfaces fail closed to clear `--`/no-overlay states. The stock Uniracers result/score presentation remains visible underneath; no guest timer, cadence, physics, RNG or record authority changes.
+
+`completed_run_presentation.*` owns the reusable player-facing model so the later Records/statistics browser can consume the same exact formatting and delta semantics instead of cloning HUD logic.
 
 ## Format evolution and failure policy
 

@@ -83,6 +83,9 @@ int main() {
         activated.menu, stale, UR_MODERN_HOST_NAV_CONFIRM);
     assert(activated.intent == ModernTourEntryIntent::None);
     assert(!activated.close_menu);
+    assert(!activated.menu.confirming_restart);
+    assert(selected_modern_tour_action(activated.menu) ==
+           ModernTourActionRow::RestartTour);
 
     return 0;
 }

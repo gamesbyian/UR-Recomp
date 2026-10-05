@@ -3694,34 +3694,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         return 1;
     }
 
-    switch (control) {
-    case 0:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Previous);
-        break;
-    case 1:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Next);
-        break;
-    case 6:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Confirm);
-        break;
-    case 8:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Clear);
-        break;
-    case 9:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Reset);
-        break;
-    case 7:
-    case 5:
-        (void)handle_controls_action(
-            ur::product::ModernControlsAction::Back);
-        break;
-    default:
-        break;
+    ur::product::ModernControlsAction action{};
+    if (ur::product::modern_controls_action_for_snes_control(
+            control, &action)) {
+        (void)handle_controls_action(action);
     }
     return 1;
 }

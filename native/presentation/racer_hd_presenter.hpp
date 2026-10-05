@@ -661,8 +661,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1(
 
     // The saddle is restored to the stock top-of-silhouette band. The original
     // pilot started five logical pixels too low when sampled for gameplay.
-    const int seat_dx = x - 128;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 128, 22, 30, 18, 12, 32
     );
@@ -745,9 +743,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p1_companion_0d2d(
     const bool pedal = authored_pedal_contains(
         x, y, 138, 150
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 23;
     const bool seat = authored_saddle_contains(
         x, y, 130, 23, 32, 13, 8, 34
     );
@@ -829,9 +824,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p1_predecessor(
     const bool pedal = authored_pedal_contains(
         x, y, 141, 145
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 130, 22, 35, 12, 8, 36
     );
@@ -923,8 +915,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057f_p1_companion_0d4a(
     // wheel supplies the recovered right envelope/contact.
     // True-density mismatch review showed a small right-heavy saddle block
     // in this bridge pose. Shift/narrow it without touching envelope/contact.
-    const int seat_dx = x - 120;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 120, 22, 32, 14, 8, 36
     );
@@ -1016,8 +1006,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057e_p1_with_p2_0543(
     // True-density review showed the old saddle carrying excess mass on
     // the right. Preserve the pose envelope/contact while shifting/narrowing
     // the same smooth object-local form.
-    const int seat_dx = x - 116;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 116, 22, 32, 14, 8, 36
     );
@@ -1107,8 +1095,6 @@ constexpr std::uint32_t sample_racer_hd_authored_057d_p1_with_p2_0543(
     // The 057D mismatch map shows the same right-heavy saddle mass as
     // 057E. Shift left and narrow it while the wheel continues to own the
     // exact recovered contact anchor.
-    const int seat_dx = x - 112;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 112, 26, 28, 14, 12, 40
     );
@@ -1186,9 +1172,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0540_p2_baseline(
     const bool pedal = authored_pedal_contains(
         x, y, 141, 145
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 22;
     const bool seat = authored_saddle_contains(
         x, y, 130, 22, 35, 12, 12, 36
     );
@@ -1265,8 +1248,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0541_p2_predecessor(
     // The P2 0541 transition pose is over-broad on the left/top at true
     // density. Shift right/down and narrow the saddle while preserving the
     // stock-derived envelope/contact through the wheel/fork structure.
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 130, 26, 30, 12, 12, 40
     );
@@ -1351,9 +1332,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0542_p2(
     const bool pedal = authored_pedal_contains(
         x, y, 133, 137
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 26;
     const bool seat = authored_saddle_contains(
         x, y, 130, 26, 35, 14, 16, 40
     );
@@ -1431,9 +1409,6 @@ constexpr std::uint32_t sample_racer_hd_authored_0543_p2(
     const bool pedal = authored_pedal_contains(
         x, y, 131, 135
     );
-
-    const int seat_dx = x - 130;
-    const int seat_dy = y - 30;
     const bool seat = authored_saddle_contains(
         x, y, 130, 30, 35, 12, 16, 40
     );

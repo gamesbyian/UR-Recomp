@@ -1049,3 +1049,14 @@ sources:
     retrieved: "2026-10-05"
     rights: "Public YouTube video linked from GameFAQs; preserve metadata and derived observations only."
     relevance: "Audiovisual evidence accompanying reports of malformed racer names and a crash resolved by clearing save data. Useful for classifying visible corrupted-SRAM symptoms before synthetic reproduction."
+
+
+  - id: gamefaqs-starscream-boost-review
+    title: "Starscream Uniracers review with stunt-boost claim"
+    type: player_mechanics_review
+    url: "https://gamefaqs.gamespot.com/snes/588824-uniracers/reviews/36130"
+    author: "Starscream"
+    published: "2002-06-27"
+    retrieved: "2026-10-05"
+    rights: "Public GameFAQs review; preserve claims and provenance only."
+    relevance: "Independent early-player claim that larger tricks produce larger speed boosts, corroborating OrangeStar and conflicting with later fixed-boost recollections. Useful specifically as evidence for the boost-semantics discriminator."

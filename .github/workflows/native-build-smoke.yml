@@ -678,6 +678,7 @@ jobs:
           timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$STALE_SCRIPT" \
             >"$STALE_LOG" 2>&1
 
+          grep -Eq "UR_TOUR_CONTINUE REJECTED .*profile=1 writable=1 continuation=1 snapshot=1 persisted_source=0 live_source=0" "$STALE_LOG"
           ! grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG"
           ! grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG"
           test -s "$STALE_DUMPS/tour-continue-stale-main.wram.bin"

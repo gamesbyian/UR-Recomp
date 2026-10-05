@@ -41,6 +41,15 @@ jobs:
         run: |
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --jobs 2
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+          # The battery-SRAM script poke is deliberately experiment-only.
+          # Keep it out of the canonical snesrecomp toolchain patch set.
+          git -C .tools/src/snesrecomp apply --check \
+            "$GITHUB_WORKSPACE/tools/patches/snesrecomp-sram-poke.patch"
+          git -C .tools/src/snesrecomp apply \
+            "$GITHUB_WORKSPACE/tools/patches/snesrecomp-sram-poke.patch"
+          cmake --build .tools/src/snesrecomp/build-snesref -j2
+
           test -x .tools/src/snesrecomp/build-snesref/snesref
           test -f .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
 

@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37260097104,
+    "artifact_id": 11324094193,
+    "temporal_window": [
+      1244,
+      1252
+    ],
+    "review_surface": "racer-hd-third-family-dossier/review/index.html",
+    "disposition": "Reviewed the complete 1244-1252 high-frequency ordinary-race hold/recovery family at true 4x. All four target stock alpha masks are exact matches to previously shipping-approved opposite-player geometry, and the authored implementation changes only the established red/blue frame material while preserving neutral hardware, saddle, rubber, occupancy, envelope and contact. The seven repeated hold edges remain byte-static in authored alpha; the 1251->1252 recovery remains dynamic for both racers with exact stock contact deltas. P1 changes 110 authored alpha pixels versus 102 stock (ratio 1.0784); P2 changes 131 versus 93 (ratio 1.4086), both within the accepted 0.75-2.25 motion band. Visual review found the recolored geometry coherent with the approved material, crown/fork, hardware and wheel-detail language, with no family-level blockers."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0542-p1-third-family-recovery-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "fd4e9ee1bac51900378f5991d8011ee5fd260abb9fa5388f48c13788a326e212"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0543-p1-third-family-hold-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "e38ac4f29dc3d62d1635bf02857a688031e321fe907ed9da2d7726572f17ed44"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0540-p2-third-family-hold-0D2C-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "5d8485f642d8175916579247bde78de1f0634d1eb8960ccf65cb8272bb886ea2"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0541-p2-third-family-recovery-0D2D-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "afd959cbee35aeb8df4f22dc1031930d8fbe3e83214d61bc7427076b12a692cf"
+    }
+  ]
+}

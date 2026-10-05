@@ -53,14 +53,16 @@ def patch_main_text(source: str) -> str:
         raw_gamepad_anchor = (
             "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
         )
-        if raw_gamepad_anchor not in source:
-            raise ValueError("generated host raw gamepad field not found")
-        source = source.replace(
-            raw_gamepad_anchor,
-            raw_gamepad_anchor
-            + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n",
-            1,
-        )
+        # Existing Modern hosts already have the raw-button callback and need
+        # an in-place semantic upgrade. A pristine generated host has neither;
+        # its full callback block is injected by the fresh-host path below.
+        if raw_gamepad_anchor in source:
+            source = source.replace(
+                raw_gamepad_anchor,
+                raw_gamepad_anchor
+                + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n",
+                1,
+            )
 
     if "ur_uniracers_modern_presentation_scale" in source:
         return source

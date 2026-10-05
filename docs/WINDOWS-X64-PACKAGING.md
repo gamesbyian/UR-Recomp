@@ -34,7 +34,7 @@ Acceptance now covers:
 2. assemble and independently verify the clean package manifest and deterministic ZIP;
 3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
-5. prove fresh-run `config.ini`, `keybinds.ini` and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory;
+5. prove fresh-run `config.ini`, `keybinds.ini`, mod-selection state and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory, and re-verify the launched extracted package against its manifest;
 6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state and completed-run data under that user root, replace the extracted package from the clean ZIP, and prove every seeded user-data artifact remains byte-identical;
 7. construct a legacy portable folder containing package-local config, bindings and save data, launch against an empty user root, and prove all three migrate successfully while the legacy source remains untouched;
 8. launch that legacy folder again after changing the migrated destination and prove destination-wins/idempotent migration does not overwrite newer user data;
@@ -47,7 +47,7 @@ The package remains self-contained with respect to immutable game/runtime payloa
 
 The portable package no longer requires a writable extraction directory for ordinary mutable state. The default Windows root is `%APPDATA%\\gamesbyian\\UR-Recomp`; `UR_RECOMP_USER_DATA_ROOT` exists as an explicit portable/testing override. The launcher exports that resolved root to the framework and Modern host rather than maintaining feature-specific locations.
 
-Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. User-owned config, bindings, cartridge/profile saves, mod selections, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.
+Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. The framework ROM-path cache is redirected to the user-data root so launcher activity cannot rewrite packaged `rom.cfg`. User-owned config, bindings, cartridge/profile saves, mod selections, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.
 
 An installer is still deferred. The storage/migration prerequisite is now satisfied, but installer selection, registration/uninstall behavior, signed release policy and installer-specific upgrade/rollback acceptance are separate work and must not be implied by the portable ZIP.
 

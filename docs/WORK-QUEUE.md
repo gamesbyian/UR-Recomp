@@ -337,9 +337,8 @@ See docs/original-development/.
 - [x] Acquire, organize and fingerprint PAL retail and the historical GoodSNES-listed beta image.
 - [x] Generate four-build differential comparison, including USA retail vs legacy beta and PAL retail vs 1994-11-29 prototype.
 - [x] Inspect DMA press-material archive; retain/upload the Uniracers PDF judged relevant.
-- [ ] Continue hunt for Mike Dailly's historical SNES framework source.
-- [ ] Search for binaries/source/screenshots of SNasm, Unicycle Compression, level editor, A0 plotter, graphics/MIDI converters and Amiga/SNES link.
-- [ ] Convert remaining historical predictions into local ROM tests: 256-wide course interpretation, copier protection, animation indexing and audio-driver identity. RNC Method 1 and OAM/raster behavior now have strong local/external evidence.
+- [~] Original-development source/tool hunting is passive archival work. The existing ROMs, prototype, recovered historical workspaces, press material and local tooling are sufficient for the Windows product; only pursue Mike Dailly/framework/SNasm/editor/converter artifacts when a concrete new provenance lead appears.
+- [~] Former “historical prediction” tests are no longer a bundled task. Course geometry/width and product-facing animation indexing are already sufficiently constrained by the canonical course corpus and presentation assets. Copier-protection and audio-driver identity remain preservation-only questions unless they affect a live compatibility or audio decision.
 
 
 ## Third-party code audit and adaptation
@@ -350,23 +349,22 @@ See docs/original-development/.
 - [x] Add unit coverage for promoted state semantics, duplicate-Lua-key detection and RNC packed-payload bounds.
 - [x] Classify the Snes9x 1.43 Uniracers branch as historical workaround evidence rather than an implementation template.
 - [x] Audit imported emulator/source snapshots far enough to identify assumptions worth testing. Remaining work is now Phase 4 runtime discrimination, not open-ended source auditing; active-display OAM is the first concrete seam.
-- [~] Make an explicit port/defer decision for autonomous race-driving policy. Exact historical SMV replay is preferred wherever prerecorded input suffices; port policy only if state-responsive whole-race coverage adds a capability movies cannot.
-- [ ] Review any newly imported executable/script before promoting it into a project-owned dependency.
+- [x] Defer autonomous race-driving-policy porting. Exact historical SMVs plus the retained deterministic fixture matrix already cover current regression needs; revive state-responsive driving only when a concrete soak/fuzz requirement cannot be met by fixed input.
+- [~] Review any newly imported executable/script before promoting it into a project-owned dependency. This is an ongoing admission rule, not a backlog item.
 - [x] Classify and byte-pin the full `reference/imported/` corpus; fail CI on unclassified additions, altered mirrors or executable-bit drift.
 - [x] Harden `tools/toolchain.json` / `bootstrap_toolchain.py`: argv-only builds, exact pins/origins, clean disposable checkouts, per-tool Python environments, typed artifact verification and hash-pinned project patches.
 - [x] Make every automatic toolchain entry smoke-buildable in CI; keep heavyweight GUI/debugger workbenches explicitly manual until a real workflow needs them.
 - [x] Establish `tools/tool_interop.json` and `docs/TOOL-INTEROPERABILITY.md` as the producer/consumer and multi-tool-chain authority.
-- [~] Fan canonical symbols into every analysis/debugger surface instead of maintaining tool-specific label lists. snes2asm YAML and da65 info seeds are generated; Mesen and Ghidra import remain.
+- [~] Canonical symbol fan-out is sufficient for current automatic tooling through the generated snes2asm/da65 surfaces. Add Mesen/Ghidra import only when an active product-driven investigation actually uses those workbenches; do not schedule parity for unused tools.
 - [x] Add an independent Snes9x vs Beetle/bsnes-derived first-race state route; first successful run establishes a checkpoint-by-checkpoint emulator-variance baseline.
-- [~] Prove the shared fixture grammar end-to-end through Mesen/mesen-for-ai. The adapter and ROM-free semantics tests exist; promote the pinned MesenCE Linux runtime, execute the canonical first-race fixture, emit the same named full-WRAM checkpoints, and compare them with the existing tool.
-- [ ] Validate a Mesen-CDL compatibility adapter against a small known execution corpus before feeding Mesen coverage into DiztinGUIsh or da65; preserve any non-equivalent flags explicitly.
-- [x] Prove the first exact semantic graphics/presentation round trip on a representative racer family: deterministic `$0FE9/$0FEB` frame identity → `20:8000` pointer → exact packed stream, plus exact race-init OBJ graphics and palette identity/payload, with byte-identical reconstruction and a compact manifest. Extend on demand rather than bulk-decoding every racer frame.\n- [ ] Prove the separate snes2asm → SuperFamiconv → generated reconstruction worktree → WLA-DX round trip when a native SNES planar graphics family actually requires SuperFamiconv; do not make that toolchain a blocker for the custom packed racer-presentation format.
+- [~] Mesen/mesen-for-ai and Mesen-CDL integration are conditional cross-emulator tools, not current fidelity gates. Existing native + pinned-reference fixtures are sufficient for the Windows product. Promote the Mesen runtime/CDL adapter only when a specific discrepancy needs an independent emulator oracle or coverage source.
+- [x] Prove the first exact semantic graphics/presentation round trip on a representative racer family: deterministic `$0FE9/$0FEB` frame identity → `20:8000` pointer → exact packed stream, plus exact race-init OBJ graphics and palette identity/payload, with byte-identical reconstruction and a compact manifest. Extend on demand rather than bulk-decoding every racer frame.\n- [~] The snes2asm → SuperFamiconv → WLA-DX round trip remains demand-triggered. Prove it only when a concrete native SNES planar graphics family requires that path; current Racer HD work does not.
 - [x] Audit headless execution/build posture: keep GUI workbenches off default CI, preserve Mesen's upstream Xvfb-backed testrunner route, and restrict automatic builds to CLI/libretro surfaces.
 - [x] Trim automatic build scope: cc65 now builds only da65; WLA-DX now builds only wla-65816 + wlalink; Python venv setup no longer upgrades pip unconditionally; fresh Git bootstrap fetches only the pinned commit.
-- [ ] Add a fingerprinted safe-reuse/cache mode for repeated same-checkout tool bootstraps only if agent sessions show rebuild time is materially recurring; keep strict clean rebuilds as the CI/default evidence path.
+- [~] Add tool-bootstrap cache/reuse only after measured agent sessions show it is a recurring wall-time cost. Until then this is a trigger condition, not queued implementation.
 
 - [x] Pin visual-reference workbenches (RetroArch, Slang shaders, bsnes-hd) as manual/wrapped dependencies so future graphics work does not depend on rediscovering or floating upstream versions.
-- [ ] Promote a RetroArch or bsnes-hd command/output contract into `tools/tool_interop.json` only after a real deterministic capture experiment establishes what another project tool can consume.
+- [~] Add RetroArch/bsnes-hd interop only when a real diagnostic capture is needed by another project tool. The current Remastered pipeline does not require this contract.
 
 Audit policy: `docs/THIRD-PARTY-CODE-AUDIT.md`. Remaining closeout scope and explicit defer/transfer rules: `docs/TOOLING-AUDIT-CLOSEOUT.md`.
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "completed_run_record.hpp"
+#include "completed_run_presentation.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -32,6 +32,7 @@ struct CompletedRunBrowserEntry {
     bool is_personal_best = false;
     std::optional<std::int64_t> personal_best_delta_ticks60;
     std::string personal_best_delta_text = "--";
+    std::vector<RunTimingSplitRowPresentation> personal_best_splits;
     std::optional<CompletedRunRecord> record;
 
     bool playable() const noexcept {

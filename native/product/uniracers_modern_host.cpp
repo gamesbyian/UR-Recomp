@@ -1797,7 +1797,11 @@ bool tour_continue_available() {
            g_profile_state->tour_continuation &&
            ur::product::valid_tour_continuation(
                *g_profile_state->tour_continuation) &&
-           profile_snapshot_matches_live_sram(*g_profile_state);
+           profile_snapshot_matches_live_sram(*g_profile_state) &&
+           ur::title::tour_resume_source_matches_sram(
+               title_continuation(*g_profile_state->tour_continuation),
+               g_sram,
+               static_cast<std::size_t>(g_sram_size));
 }
 
 bool tour_continue_routing() {

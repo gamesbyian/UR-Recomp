@@ -71,6 +71,10 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"",
+                launcher,
+            )
+            self.assertIn(
                 'if exist "config.ini" if not exist '
                 '"%UR_RECOMP_USER_DATA_ROOT%\\config.ini"',
                 launcher,
@@ -83,6 +87,11 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 'if exist "saves\\" if not exist '
                 '"%UR_RECOMP_USER_DATA_ROOT%\\saves\\"',
+                launcher,
+            )
+            self.assertIn(
+                'if exist "mods\\preloaded\\state.toml" if not exist '
+                '"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml"',
                 launcher,
             )
             self.assertIn("exit /b %ERRORLEVEL%", launcher)

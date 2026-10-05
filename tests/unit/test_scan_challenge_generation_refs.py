@@ -17,6 +17,13 @@ class ChallengeGenerationRefScanTests(unittest.TestCase):
         self.assertEqual(refs[0]["mnemonic"], "LDA.l")
         self.assertTrue(refs[0]["recognized_long_address_instruction"])
         self.assertEqual(refs[0]["cpu_address"], "80:8002")
+        self.assertIsNone(refs[0]["semantic_hint"])
+        self.assertEqual(
+            scan.semantic_hint("80:B315", 0xAF),
+            "ordinary-opponent-index: generation + 0x11, capped at 0x13")
+        self.assertEqual(
+            scan.semantic_hint("80:E6BF", 0x8F),
+            "tour-confirm snapshot writer from active persistent medal")
         self.assertEqual(refs[1]["mnemonic"], "STA.l")
         self.assertTrue(refs[1]["recognized_long_address_instruction"])
         self.assertIsNone(refs[2]["mnemonic"])

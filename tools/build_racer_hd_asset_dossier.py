@@ -180,6 +180,13 @@ THIRTY_SIXTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0540-p2-fifth-family-057C-reference"
 )
 
+THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0544-p1-frequency-0578-reference"
+)
+THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0578-p2-frequency-0544-reference"
+)
+
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
     return bytes((r, g, b, a))
@@ -1254,6 +1261,77 @@ def build_twelfth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0544_p1_frequency_rgba(x: int, y: int) -> bytes:
+    """Reuse the approved 0544 geometry with only the proven player-color swap."""
+    return recolor_authored_frame_rgba(
+        sample_authored_0544_p2_rgba(x, y),
+        blue_frame=False,
+    )
+
+
+def build_twentieth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0544_p1_frequency_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def sample_authored_0578_p2_frequency_rgba(x: int, y: int) -> bytes:
+    """Author the measured 0578 P2 pose from the exact 1280-1286 stock reference."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx, wheel_cy = 155, 111
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 26 * 26
+    rim = wr2 < 26 * 26 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+
+    wheel_spokes = (
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1)
+        or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
+        or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
+    )
+    seat = authored_segment_contains(x, y, 70, 27, 111, 47, 8)
+    neck = authored_segment_contains(x, y, 108, 45, 124, 61, 5)
+    fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3)
+    crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
+    pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
+    crown_dx, crown_dy = x - 121, y - 58
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if seat:
+        return authored_saddle_rgba(x, y, 91, 32, 12)
+    if neck and y < 53:
+        return authored_saddle_mount_rgba(y, 49)
+    if crown:
+        return authored_frame_junction_rgba(
+            x, y, 121, 58, True, fork or frame_brace or neck
+        )
+    if neck or fork or frame_brace:
+        return authored_blue_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twenty_first_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0578_p2_frequency_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -1538,6 +1616,18 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_nineteenth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_nineteenth_authored_candidate_rgba",
             "sample_racer_hd_authored_057c_p1_fifth_family",
+        )
+    if rid == THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twentieth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twentieth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0544_p1_frequency",
+        )
+    if rid == THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twenty_first_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twenty_first_authored_candidate_rgba",
+            "sample_racer_hd_authored_0578_p2_frequency",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

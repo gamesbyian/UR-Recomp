@@ -31,8 +31,11 @@ class ModernControlsHostContractTests(unittest.TestCase):
         body = source[start:end]
 
         controls = body.index("if (g_controls_visible)")
-        controls_block = body[controls:controls + 420]
+        generic_release = body.index("if (!pressed)")
+        controls_block = body[controls:controls + 520]
+        self.assertLess(controls, generic_release)
         self.assertIn("configured GamepadMap", controls_block)
+        self.assertIn("BOTH press and release", controls_block)
         self.assertIn("return 0;", controls_block)
 
     def test_semantic_controls_path_uses_tested_policy(self):

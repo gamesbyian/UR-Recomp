@@ -95,6 +95,11 @@ int main() {
     assert(no_pb_panel.target_text == "--");
     assert(!no_pb_panel.comparison_available);
 
+    assert(should_present_run_timing(true, true, true));
+    assert(!should_present_run_timing(false, true, true));
+    assert(!should_present_run_timing(true, false, true));
+    assert(!should_present_run_timing(true, true, false));
+
     assert(!present_run_split_delta(record, "missing", 100));
 
     auto malformed = record;

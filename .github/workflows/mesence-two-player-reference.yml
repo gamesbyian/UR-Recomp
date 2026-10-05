@@ -1,7 +1,9 @@
 name: MesenCE ordinary 2P evidence
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: mesence-ordinary-2p-${{ github.ref }}
   cancel-in-progress: true
 

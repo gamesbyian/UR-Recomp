@@ -1,6 +1,6 @@
 # Quick Practice Track Picker Integration
 
-Status: product substrate implemented; Modern host/UI wiring pending until the active host lanes settle.
+Status: product substrate implemented; the Modern host now consumes the target-aware launch machine for default and validated Recent Course launches. The full generic picker presentation remains a separate UI completion step.
 
 ## Product goal
 
@@ -50,7 +50,9 @@ No guest state was written by those probes.
 
 ## Host integration shape
 
-After the active Modern host/profile/settings work is merged, keep the host patch thin.
+The host patch is now thin at the launch boundary: `uniracers_modern_host.cpp` creates a validated target and advances `QuickPracticeLaunchState` from observed stock menu/race state. It emits only normalized menu input through the established relative-input runner. The remaining picker UI should stay above this same path rather than creating another router.
+
+For the eventual full picker presentation:
 
 At the settled Modern main menu:
 
@@ -78,6 +80,8 @@ On confirm:
 8. when the launch machine reports Active, reuse the existing practice overlay and persistence suppression.
 
 Do not resurrect a second host-owned copy of tour/track routing.
+
+Fast repeat/navigation builds on the same rule. A course observed during an authoritative live race may be cached process-locally as Recent Course. F6 / controller Y at the settled Modern main menu converts that validated identity back to a `QuickPracticeTarget` and enters the same isolated Practice lifecycle. Completed Practice results use the existing rollback Restart anchor for one-action Repeat Practice; no relaunch routing is needed for that case.
 
 ## Persistence and secret boundaries
 

@@ -11,7 +11,8 @@ namespace {
 
 CompletedRunRecord run(
     std::uint64_t ticks,
-    const std::string& course = "course:01") {
+    const std::string& course = "course:01",
+    std::uint64_t checkpoint = 840) {
     CompletedRunRecord record;
     record.provenance = {
         "uniracers-usa",
@@ -22,7 +23,10 @@ CompletedRunRecord run(
     };
     record.elapsed_ticks60 = ticks;
     record.frame_count = 2;
-    record.splits = {{"finish", ticks}};
+    record.splits = {
+        {"checkpoint-1", checkpoint},
+        {"finish", ticks},
+    };
     record.inputs = {{0, 2, 0x100, 0}};
     return record;
 }
@@ -96,6 +100,9 @@ int main(int argc, char** argv) {
     assert(browser.selected()->time_text == "0:29.10/60");
     assert(browser.selected()->personal_best_delta_ticks60 == 37);
     assert(browser.selected()->personal_best_delta_text == "+0:00.37/60");
+    assert(browser.selected()->personal_best_splits.size() == 2);
+    assert(browser.selected()->personal_best_splits[0].id == "checkpoint-1");
+    assert(browser.selected()->personal_best_splits[0].delta_text == "+0:00.00/60");
 
     assert(browser.move(1));
     assert(browser.selected()->chronological_order == 3);
@@ -103,6 +110,7 @@ int main(int argc, char** argv) {
     assert(browser.selected()->time_text == "0:28.33/60");
     assert(browser.selected()->personal_best_delta_ticks60 == 0);
     assert(browser.selected()->personal_best_delta_text == "+0:00.00/60");
+    assert(browser.selected()->personal_best_splits.size() == 2);
 
     assert(browser.move(-1));
     assert(browser.selected()->chronological_order == 4);

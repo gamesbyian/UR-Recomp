@@ -3,6 +3,7 @@ import pathlib
 import subprocess
 import sys
 import tempfile
+import zipfile
 import unittest
 
 
@@ -76,6 +77,32 @@ class WindowsPackageTests(unittest.TestCase):
 
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
+
+            archive1 = root / "package-1.zip"
+            archive2 = root / "package-2.zip"
+            archived = self.run_tool(
+                "archive", "--package", package, "--output", archive1
+            )
+            self.assertIn("WINDOWS_PACKAGE_ARCHIVED", archived.stdout)
+            self.run_tool(
+                "archive", "--package", package, "--output", archive2
+            )
+            self.assertEqual(archive1.read_bytes(), archive2.read_bytes())
+            verified_archive = self.run_tool(
+                "verify-archive", "--archive", archive1
+            )
+            self.assertIn(
+                "WINDOWS_PACKAGE_ARCHIVE_VERIFIED",
+                verified_archive.stdout,
+            )
+            with zipfile.ZipFile(archive1) as package_zip:
+                names = package_zip.namelist()
+            self.assertIn(
+                "UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json", names
+            )
+            self.assertIn(
+                "UR-Recomp-Windows-x64/UniracersSNESRecomp.exe", names
+            )
 
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")
             failed = self.run_tool(

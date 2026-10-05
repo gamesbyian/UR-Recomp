@@ -81,7 +81,7 @@ On confirm:
 
 Do not resurrect a second host-owned copy of tour/track routing.
 
-Fast repeat/navigation builds on the same rule. A course observed during an authoritative live race may be cached process-locally for the active profile as Recent Course. F6 / controller Y at the settled Modern main menu converts that validated identity back to a `QuickPracticeTarget` and enters the same isolated Practice lifecycle. Completed Practice results use the existing rollback Restart anchor for one-action Repeat Practice; no relaunch routing is needed for that case.
+Fast repeat/navigation builds on the same rule. A course observed during an authoritative live race may be cached process-locally for the current Modern profile context as Recent Course. Named profiles never share the cache with one another, and the no-profile context is isolated from every named profile. F6 / controller Y at the settled Modern main menu converts that validated identity back to a `QuickPracticeTarget` and enters the same isolated Practice lifecycle. Completed Practice results use the existing rollback Restart anchor for one-action Repeat Practice; no relaunch routing is needed for that case.
 
 ## Persistence and secret boundaries
 

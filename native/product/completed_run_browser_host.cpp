@@ -564,6 +564,14 @@ void draw_records_browser(
             }
         }
 
+        const auto* selected = g_records_browser.selected_run();
+        char comparison[80];
+        std::snprintf(
+            comparison, sizeof(comparison), "VS PB %s",
+            selected ? selected->personal_best_delta_text.c_str() : "--");
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 41,
+            comparison, 0xFFFFFFFFu, 1);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 26,
             "ESC / B    COURSES", 0xFFFFFFFFu, 1);

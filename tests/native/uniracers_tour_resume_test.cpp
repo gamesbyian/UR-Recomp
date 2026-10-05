@@ -43,6 +43,18 @@ int main() {
     assert(valid_unfinished_tour_progress(*observed));
 
     const TourProgress continuation = *observed;
+    assert(tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+
+    // Persisted continuation metadata must agree with its own SRAM source.
+    auto stale_source = continuation;
+    stale_source.medal_value = 2;
+    assert(!tour_resume_source_matches_sram(
+        stale_source, sram.data(), sram.size()));
+    stale_source = continuation;
+    stale_source.qualified[1] = 1;
+    assert(!tour_resume_source_matches_sram(
+        stale_source, sram.data(), sram.size()));
 
     // Model stock rider confirmation wiping all 50 in-tour flags.
     for (std::size_t i = 0; i < 50; ++i) sram[0x1075 + i] = 0;

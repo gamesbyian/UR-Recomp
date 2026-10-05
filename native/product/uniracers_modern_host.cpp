@@ -209,6 +209,7 @@ bool modern_mode() {
 
 void ensure_product_state();
 void ensure_profile_catalog();
+void maybe_run_controls_persistence_acceptance();
 void product_diagnostic(const char* message);
 bool paused();
 bool restart_surface();

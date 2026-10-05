@@ -570,17 +570,48 @@ bool restore_practice_profile_before_reboot() {
     return true;
 }
 
+int authoritative_active_track_id() {
+    if (!g_ram || g_ram[0x0313] != 0x01) return -1;
+    const UrUniracersCourseIdentity course =
+        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
+    if (!course.valid || course.course_index < 1 || course.course_index > 45) {
+        return -1;
+    }
+    return course.course_index - 1;
+}
+
 void advance_practice_route(uint64_t next_frame) {
     if (!g_practice_active) return;
 
+    const int active_track_id = authoritative_active_track_id();
     const auto step = ur::product::advance_quick_practice_launch(
         g_practice_launch,
         ur::product::QuickPracticeLaunchObservation{
             g_ram[0x009F],
             g_ram[0x009B],
             g_ram[0x0313] == 0x01,
+            active_track_id,
         });
+    const auto expected_track_id = g_practice_launch.target.track_id;
     g_practice_launch = step.state;
+
+    if (step.course_mismatch) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PRACTICE COURSE_MISMATCH expected=%u actual=%d\n",
+                static_cast<unsigned>(expected_track_id),
+                active_track_id);
+            std::fflush(stderr);
+        }
+        // A target-aware Practice launch must never silently bless a different
+        // stock course. Reuse the accepted Practice restore + frontend reboot
+        // lifecycle so SRAM/profile state remains isolated and fail closed.
+        if (!exit_to_frontend()) {
+            product_diagnostic("UR_PRACTICE COURSE_MISMATCH_EXIT_FAILED");
+        }
+        return;
+    }
 
     if (step.race_ready) {
         if (!g_practice_race_ready_reported) {
@@ -630,15 +661,12 @@ bool recent_course_available_for_active_profile() {
 }
 
 void observe_recent_course_identity() {
-    if (!modern_mode() || !g_ram || g_ram[0x0313] != 0x01) return;
-    const UrUniracersCourseIdentity course =
-        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
-    if (!course.valid || course.course_index < 1 || course.course_index > 45) {
-        return;
-    }
+    if (!modern_mode()) return;
+    const int active_track_id = authoritative_active_track_id();
+    if (active_track_id < 0 || active_track_id >= 45) return;
 
     const auto track_id =
-        static_cast<std::uint8_t>(course.course_index - 1);
+        static_cast<std::uint8_t>(active_track_id);
     const std::string profile_key = active_profile_key();
     const bool changed =
         !g_recent_course_track_id ||

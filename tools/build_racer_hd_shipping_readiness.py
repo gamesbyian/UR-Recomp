@@ -15,6 +15,34 @@ def build_shipping_readiness(
     equivalence: dict[str, Any],
     decisions: dict[str, Any],
 ) -> dict[str, Any]:
+    equivalence_family = equivalence.get("family")
+    decision_family = decisions.get("family")
+    if not isinstance(equivalence_family, str) or not equivalence_family:
+        raise ValueError("equivalence surface lacks a family")
+    if decision_family != equivalence_family:
+        raise ValueError(
+            f"approval family {decision_family!r} does not match "
+            f"equivalence family {equivalence_family!r}"
+        )
+
+    source_window = equivalence.get("source_temporal_window")
+    review_basis = decisions.get("review_basis")
+    if not isinstance(source_window, dict):
+        raise ValueError("equivalence surface lacks a source temporal window")
+    if not isinstance(review_basis, dict):
+        raise ValueError("approval ledger lacks a review basis")
+    reviewed_window = review_basis.get("temporal_window")
+    expected_window = [source_window.get("start"), source_window.get("end")]
+    if reviewed_window != expected_window:
+        raise ValueError(
+            f"approval temporal window {reviewed_window!r} does not match "
+            f"equivalence window {expected_window!r}"
+        )
+
+    family_blockers = decisions.get("family_blockers", [])
+    if not isinstance(family_blockers, list):
+        raise ValueError("family_blockers must be a list")
+
     decision_rows = decisions.get("decisions", [])
     by_source: dict[str, dict[str, Any]] = {}
     for row in decision_rows:
@@ -97,6 +125,7 @@ def build_shipping_readiness(
     }
     shipping_ready = (
         len(poses) > 0
+        and not family_blockers
         and counts["approved"] == len(poses)
         and counts["needs_refinement"] == 0
         and counts["rejected"] == 0
@@ -107,10 +136,10 @@ def build_shipping_readiness(
     )
     return {
         "schema_version": 1,
-        "family": equivalence.get("family"),
-        "source_temporal_window": equivalence.get("source_temporal_window"),
-        "review_basis": decisions.get("review_basis"),
-        "family_blockers": decisions.get("family_blockers", []),
+        "family": equivalence_family,
+        "source_temporal_window": source_window,
+        "review_basis": review_basis,
+        "family_blockers": family_blockers,
         "unique_pose_count": len(poses),
         "counts": counts,
         "shipping_ready": shipping_ready,

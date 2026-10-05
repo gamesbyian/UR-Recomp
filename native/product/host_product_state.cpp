@@ -148,6 +148,31 @@ const char* widescreen_mode_name(HostWidescreenMode mode) noexcept {
     return nullptr;
 }
 
+bool parse_regional_presentation(
+    std::string_view text,
+    RegionalPresentation& out) noexcept {
+    if (text == "north_america") {
+        out = RegionalPresentation::NorthAmerica;
+        return true;
+    }
+    if (text == "europe") {
+        out = RegionalPresentation::Europe;
+        return true;
+    }
+    return false;
+}
+
+const char* regional_presentation_name(
+    RegionalPresentation presentation) noexcept {
+    switch (presentation) {
+    case RegionalPresentation::NorthAmerica:
+        return "north_america";
+    case RegionalPresentation::Europe:
+        return "europe";
+    }
+    return nullptr;
+}
+
 bool parse_internal_render_scale(
     std::string_view text,
     HostInternalRenderScale& out) noexcept {
@@ -278,8 +303,11 @@ std::string encode_host_product_state(const HostProductState& state) {
         widescreen_mode_name(state.settings.widescreen_mode);
     const char* internal_render_scale =
         internal_render_scale_name(state.settings.internal_render_scale);
+    const char* regional_presentation =
+        regional_presentation_name(state.regional_presentation);
     if (!display_mode || !vsync_mode || !presentation_fps || !widescreen ||
-        output_resolution.empty() || !internal_render_scale) {
+        output_resolution.empty() || !internal_render_scale ||
+        !regional_presentation) {
         return {};
     }
 
@@ -290,6 +318,7 @@ std::string encode_host_product_state(const HostProductState& state) {
         out << *state.active_profile_id;
     }
     out << '\n';
+    out << "regional_presentation=" << regional_presentation << '\n';
     out << "pause_on_focus_loss=" << (state.settings.pause_on_focus_loss ? '1' : '0') << '\n';
     out << "vibration_enabled=" << (state.settings.vibration_enabled ? '1' : '0') << '\n';
     out << "display_mode=" << display_mode << '\n';
@@ -355,7 +384,8 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
     };
     static constexpr std::string_view allowed_v6[] = {
         "profile", "pause_on_focus_loss", "vibration_enabled", "display_mode", "vsync",
-        "presentation_fps", "output_resolution", "widescreen", "internal_render_scale"
+        "presentation_fps", "output_resolution", "widescreen", "internal_render_scale",
+        "regional_presentation"
     };
 
     const std::string_view* required = required_v6_core;
@@ -406,6 +436,15 @@ DecodeResult decode_host_product_state(std::string_view encoded) {
             return {std::nullopt, "invalid profile id"};
         }
         state.active_profile_id = profile;
+    }
+
+    const auto regional_presentation = fields.find("regional_presentation");
+    if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !legacy_v4 &&
+        !legacy_v5 && regional_presentation != fields.end() &&
+        !parse_regional_presentation(
+            regional_presentation->second,
+            state.regional_presentation)) {
+        return {std::nullopt, "invalid regional presentation"};
     }
 
     if (!parse_bool(fields.at("pause_on_focus_loss"), state.settings.pause_on_focus_loss) ||

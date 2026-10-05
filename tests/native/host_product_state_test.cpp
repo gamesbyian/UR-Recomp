@@ -18,6 +18,7 @@ int main() {
     const std::string expected_defaults =
         "UR-HOST-STATE/6\n"
         "profile=\n"
+        "regional_presentation=north_america\n"
         "pause_on_focus_loss=1\n"
         "vibration_enabled=1\n"
         "display_mode=windowed\n"
@@ -30,6 +31,7 @@ int main() {
 
     HostProductState customized;
     customized.active_profile_id = "ian.local-1";
+    customized.regional_presentation = RegionalPresentation::Europe;
     customized.settings.pause_on_focus_loss = false;
     customized.settings.vibration_enabled = false;
     customized.settings.display_mode = HostDisplayMode::Fullscreen;
@@ -43,6 +45,7 @@ int main() {
     assert(encoded ==
         "UR-HOST-STATE/6\n"
         "profile=ian.local-1\n"
+        "regional_presentation=europe\n"
         "pause_on_focus_loss=0\n"
         "vibration_enabled=0\n"
         "display_mode=fullscreen\n"
@@ -67,6 +70,8 @@ int main() {
         "pause_on_focus_loss=0\n"
         "vibration_enabled=1\n");
     assert(sparse_v6);
+    assert(sparse_v6.state->regional_presentation ==
+           RegionalPresentation::NorthAmerica);
     assert(sparse_v6.state->settings.pause_on_focus_loss == false);
     assert(sparse_v6.state->settings.display_mode == HostDisplayMode::Windowed);
     assert(sparse_v6.state->settings.vsync_mode == HostVSyncMode::On);
@@ -81,6 +86,8 @@ int main() {
     const std::string normalized_sparse =
         encode_host_product_state(*sparse_v6.state);
     assert(normalized_sparse.find(
+        "regional_presentation=north_america\n") != std::string::npos);
+    assert(normalized_sparse.find(
         "output_resolution=native\n") != std::string::npos);
     assert(normalized_sparse.find(
         "widescreen=original\n") != std::string::npos);
@@ -93,10 +100,12 @@ int main() {
         "pause_on_focus_loss=1\n"
         "vibration_enabled=0\n"
         "display_mode=fullscreen\n"
+        "regional_presentation=europe\n"
         "output_resolution=1280x720\n"
         "widescreen=16x9\n"
         "internal_render_scale=3x\n");
     assert(partial_v6);
+    assert(partial_v6.state->regional_presentation == RegionalPresentation::Europe);
     assert(partial_v6.state->settings.display_mode == HostDisplayMode::Fullscreen);
     assert(partial_v6.state->settings.vsync_mode == HostVSyncMode::On);
     assert(partial_v6.state->settings.presentation_fps_mode ==
@@ -219,6 +228,7 @@ int main() {
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\nwidescreen=magic\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=0x\n"));
     assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\ninternal_render_scale=5x\n"));
+    assert(!decode_host_product_state("UR-HOST-STATE/6\nprofile=x\npause_on_focus_loss=1\nvibration_enabled=1\nregional_presentation=pal\n"));
     static_assert(internal_render_scale_value(HostInternalRenderScale::X1) == 1);
     static_assert(internal_render_scale_value(HostInternalRenderScale::X4) == 4);
     static_assert(next_internal_render_scale(HostInternalRenderScale::X1) ==

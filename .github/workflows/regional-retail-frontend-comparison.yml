@@ -1,0 +1,77 @@
+name: Regional retail frontend comparison
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Unirally_Europe.sfc"
+      - "tools/compare_retail_frontend.py"
+      - "tools/compare_framebuffers.py"
+      - "tools/extract_menu_visual_language.py"
+      - "tools/probe_tier_opponents.py"
+      - "tests/unit/test_compare_retail_frontend.py"
+      - "tests/input/title-transition-recon.script"
+      - "tests/input/ui-startup-timeline.script"
+      - "tests/input/ui-options-route.script"
+      - "tests/input/ui-main-branches.script"
+      - "tests/input/ui-records-explore.script"
+      - "tests/input/ui-name-league-route.script"
+      - ".github/workflows/regional-retail-frontend-comparison.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: regional-retail-frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install reference build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev
+
+      - name: Verify comparison tool contract
+        run: python3 -m unittest tests.unit.test_compare_retail_frontend
+
+      - name: Build pinned Snes9x libretro core
+        run: python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+
+      - name: Build snesref
+        run: |
+          cmake -S snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/snesref-build" \
+            -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+          test -x "$RUNNER_TEMP/snesref-build/snesref"
+
+      - name: Capture and compare retail frontends
+        run: |
+          mkdir -p "$RUNNER_TEMP/regional-frontend"
+          python3 tools/compare_retail_frontend.py \
+            --snesref "$RUNNER_TEMP/snesref-build/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --usa-rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --europe-rom "$GITHUB_WORKSPACE/reference/roms/retail/Unirally_Europe.sfc" \
+            --retain-dir "$RUNNER_TEMP/regional-frontend/dumps" \
+            --out "$RUNNER_TEMP/regional-frontend/retail-frontend-comparison.json"
+          cat "$RUNNER_TEMP/regional-frontend/retail-frontend-comparison.json"
+
+      - name: Upload matched regional frontend evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: regional-retail-frontend-comparison
+          path: ${{ runner.temp }}/regional-frontend/
+          if-no-files-found: error
+          retention-days: 14

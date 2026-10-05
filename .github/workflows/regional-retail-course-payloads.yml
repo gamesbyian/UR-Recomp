@@ -1,0 +1,46 @@
+name: Regional retail course payload comparison
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Unirally_Europe.sfc"
+      - "tools/compare_regional_course_payloads.py"
+      - "tools/analyze_course_resource_lists.py"
+      - "tools/analyze_rnc_streams.py"
+      - "tools/rnc_method1.py"
+      - "analysis/data/course-corpus.json"
+      - "tests/unit/test_compare_regional_course_payloads.py"
+      - ".github/workflows/regional-retail-course-payloads.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify regional course comparison contract
+        run: python3 -m unittest tests.unit.test_compare_regional_course_payloads
+
+      - name: Generate decoded regional course comparison
+        run: |
+          mkdir -p analysis/out/regional-courses
+          python3 tools/compare_regional_course_payloads.py \
+            --usa-rom reference/roms/retail/Uniracers_USA.sfc \
+            --europe-rom reference/roms/retail/Unirally_Europe.sfc \
+            --json-out analysis/out/regional-courses/course-payload-comparison.json \
+            --md-out analysis/out/regional-courses/course-payload-comparison.md
+          cat analysis/out/regional-courses/course-payload-comparison.md
+
+      - name: Upload regional course evidence
+        uses: actions/upload-artifact@v4
+        with:
+          name: regional-retail-course-payloads
+          path: analysis/out/regional-courses/
+          if-no-files-found: error
+          retention-days: 14

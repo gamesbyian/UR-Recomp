@@ -8,6 +8,10 @@
 
 namespace ur::presentation {
 
+struct CompletedRunGhostRenderStyle {
+    std::uint8_t opacity = 128;
+};
+
 /* Blend one already-resolved ghost racer into a host-owned RGBA8888 surface.
  *
  * The frame coordinates are logical 256x224 presentation coordinates and are
@@ -22,7 +26,7 @@ bool draw_completed_run_ghost_racer(
     int scale,
     const ur::product::CompletedRunGhostPresentationFrame& frame,
     const RacerRegistration& registration,
-    std::uint8_t opacity
+    CompletedRunGhostRenderStyle style = {}
 ) noexcept;
 
 }  // namespace ur::presentation

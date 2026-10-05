@@ -12,6 +12,7 @@ int main() {
     assert(!unique_remaining_tour_slot({1, 1, 0, 0, 1}));
     assert(!unique_remaining_tour_slot({1, 1, 1, 1, 1}));
     assert(!unique_remaining_tour_slot({0, 0, 0, 0, 0}));
+    assert(!unique_remaining_tour_slot({1, 1, 1, 1, 2}));
 
     assert(unique_next_track_id(0, {1, 1, 1, 1, 0}) ==
            std::optional<std::uint8_t>{4});

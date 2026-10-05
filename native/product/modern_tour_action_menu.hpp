@@ -87,6 +87,11 @@ constexpr ModernTourActionMenuResult activate_modern_tour_action_menu(
             if (decision.intent == ModernTourEntryIntent::Restart) {
                 out.intent = decision.intent;
                 out.close_menu = true;
+            } else {
+                // Context can become stale while confirmation is open.
+                // Return to the action menu instead of trapping the player
+                // in a confirmation that can no longer succeed.
+                out.menu.confirming_restart = false;
             }
         }
         return out;

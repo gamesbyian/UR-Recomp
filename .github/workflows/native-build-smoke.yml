@@ -1747,9 +1747,21 @@ jobs:
             done
             grep -q "UR_CONTROLS BINDINGS a=F3 " "'"$SECOND_LOG"'"
 
-            # Clear and reset use the same live authority and immediately redraw
-            # from it rather than mutating a product-owned shadow map.
-            xdotool key Delete
+            # Duplicate physical keys are intentionally legal. Bind the
+            # selected B control to the same F3 key through the real panel and
+            # require the live framework authority to report both.
+            xdotool key Down Return F3
+            for _ in $(seq 1 100); do
+              grep -q "UR_CONTROLS command=2 binding=1 .*scancode=.* applied=1" "'"$SECOND_LOG"'" &&
+                grep -q "UR_CONTROLS BINDINGS a=F3 b=F3 " "'"$SECOND_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_CONTROLS BINDINGS a=F3 b=F3 " "'"$SECOND_LOG"'"
+
+            # Return to A. Clear and reset use the same live authority and
+            # immediately redraw from it rather than mutating a shadow map.
+            xdotool key Up Delete
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=3 binding=0 .*applied=1" "'"$SECOND_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=NONE " "'"$SECOND_LOG"'" && break
@@ -1774,7 +1786,7 @@ jobs:
 
           cat "$FIRST_LOG"
           cat "$SECOND_LOG"
-          echo "UR_PAUSE_CONTROLS_RESULT=edit_saved_reloaded_cancelled_cleared_reset"
+          echo "UR_PAUSE_CONTROLS_RESULT=edit_saved_reloaded_duplicate_cancelled_cleared_reset"
 
       - name: Modern pause Run Data acceptance
         shell: bash

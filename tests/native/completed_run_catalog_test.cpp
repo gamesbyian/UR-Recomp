@@ -74,6 +74,43 @@ int main() {
     assert(stats.previous_comparison_available);
     assert(stats.previous_vs_pb_text == "+0:00.37/60");
 
+    const RunRecordsScope scope{
+        "uniracers-usa",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "native-sim-v1",
+        "race-1p",
+    };
+    std::vector<StoredRunRecord> mixed_records = records;
+    mixed_records.push_back({"course2-a.urrun", run(1200, "course:02")});
+    mixed_records.push_back({"course2-b.urrun", run(1180, "course:02")});
+    auto wrong_mode = run(700, "course:03");
+    wrong_mode.provenance.mode = "stunt-1p";
+    mixed_records.push_back({"wrong-mode.urrun", wrong_mode});
+
+    const auto index = build_run_records_index(mixed_records, scope);
+    assert(index.total_completed_runs == 7);
+    assert(index.courses.size() == 2);
+    assert(index.courses[0].course_id == "course:01");
+    assert(index.courses[0].statistics.completed_runs == 4);
+    assert(index.courses[0].statistics.personal_best_text == "0:28.33/60");
+    assert(index.courses[0].statistics.previous_text == "0:29.10/60");
+    assert(index.courses[1].course_id == "course:02");
+    assert(index.courses[1].statistics.completed_runs == 3);
+    assert(index.courses[1].statistics.personal_best_text == "0:15.00/60");
+    assert(index.courses[1].statistics.previous_text == "0:19.40/60");
+    assert(index.courses[1].catalog.entries.size() == 3);
+
+    const RunRecordsScope wrong_scope{
+        scope.game_id,
+        scope.rom_sha256,
+        "other-build",
+        scope.mode,
+    };
+    const auto incompatible_index =
+        build_run_records_index(mixed_records, wrong_scope);
+    assert(incompatible_index.total_completed_runs == 0);
+    assert(incompatible_index.courses.empty());
+
     const std::vector<StoredRunRecord> empty;
     const auto none = build_run_data_catalog(empty, target());
     assert(none.entries.empty());

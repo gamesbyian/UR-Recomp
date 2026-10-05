@@ -271,15 +271,11 @@ Names and manifests must make it impossible to mistake a processed image for ori
 
 ## Priority
 
-### Near term
+### Current status
 
-- keep the three visual-reference dependencies pinned in `tools/toolchain.json`;
-- identify a minimal curated shader/preset set;
-- verify the cheapest deterministic RetroArch screenshot route under Linux/headless automation;
-- test one identical stock frame through the matrix and measure startup/runtime/storage cost;
-- determine which scaler families can instead be applied offline.
+The shipping Racer HD path no longer depends on discovering a “best” emulator shader/scaler matrix. Raw/native ROM-derived evidence, deterministic semantic extraction, true-density authored assets, gameplay-scale review, temporal-coherence checks and hash-bound approval already provide the production decision path.
 
-This is useful tooling work but must not displace the current stock-fidelity and course/reverse-engineering critical path.
+Keep the pinned visual-reference dependencies available as **diagnostic tools**. Curated CRT/NTSC/scaler presets, headless RetroArch capture benchmarking and offline-algorithm comparisons should be added only when a specific art ambiguity or renderer defect cannot be resolved from the existing raw/reference/dossier evidence. Do not assign an agent to complete the reference matrix for its own sake.
 
 ### Phase E
 

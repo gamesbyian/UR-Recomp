@@ -389,13 +389,25 @@ const char* gamepad_button_label(int button) {
 }
 
 std::string live_gamepad_binding_label(int control_offset) {
-    const int wanted = kKeys_Controls + control_offset;
-    for (int button = 0; button < kGamepadBtn_Count; ++button) {
-        if (FindCmdForGamepadButton(button, 0) == wanted) {
-            return gamepad_button_label(button);
-        }
+    // The title hook receives normalized SNES controls after the framework's
+    // physical gamepad mapping. Describe that stable semantic surface here
+    // instead of linking the framework's optional launcher/config backend
+    // merely to reverse-map physical buttons for presentation.
+    switch (control_offset) {
+    case 0: return "UP";
+    case 1: return "DOWN";
+    case 2: return "LEFT";
+    case 3: return "RIGHT";
+    case 4: return "SELECT";
+    case 5: return "START";
+    case 6: return "A";
+    case 7: return "B";
+    case 8: return "X";
+    case 9: return "Y";
+    case 10: return "L";
+    case 11: return "R";
+    default: return "NONE";
     }
-    return "NONE";
 }
 
 std::string resolve_practice_root() {

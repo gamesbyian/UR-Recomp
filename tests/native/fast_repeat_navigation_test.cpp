@@ -25,6 +25,12 @@ int main() {
 
     ctx = {};
     ctx.modern_mode = true;
+    // Next Event is deliberately represented but unavailable until one
+    // authoritative stock event can be derived without guessing.
+    assert(resolve_fast_navigation(
+        FastNavigationCommand::NextEvent, ctx) ==
+        FastNavigationAction::None);
+
     ctx.settled_main_menu = true;
     ctx.recent_course_valid = true;
     assert(resolve_fast_navigation(

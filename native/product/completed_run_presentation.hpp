@@ -60,6 +60,11 @@ struct RunTimingSplitTablePresentation {
     std::vector<RunTimingSplitRowPresentation> rows;
 };
 
+struct RunResultSummaryPresentation {
+    RunTimingPanelPresentation finish;
+    std::vector<RunTimingSplitRowPresentation> splits;
+};
+
 /* Exact display form for the authoritative 60 Hz clock.
  * Example: 1713 ticks -> "0:28.33/60". */
 std::string format_run_ticks60(std::uint64_t ticks60);
@@ -105,5 +110,13 @@ std::optional<RunTimingSplitTablePresentation> present_run_split_table(
     const CompletedRunRecord& current,
     const CompletedRunRecord& target,
     RunDataTargetKind kind);
+
+/* Prepared post-run detail for results/records consumers. The current run must
+ * itself be a valid authoritative completed-run record. A missing or invalid
+ * PB still yields exact finish time with clear no-target state; compatible PB
+ * data enriches it with finish and ordered split deltas. */
+std::optional<RunResultSummaryPresentation> present_run_result_summary(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord* personal_best);
 
 }  // namespace ur::product

@@ -2992,8 +2992,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
             (modern_mode() &&
              g_surface == UR_UNIRACERS_RESTART_RESULTS &&
              button == kGamepadBtn_X) ||
-            (settled_main &&
-             (button == kGamepadBtn_X || button == kGamepadBtn_Y));
+            (settled_main && button == kGamepadBtn_X) ||
+            (settled_main && button == kGamepadBtn_Y &&
+             recent_course_available_for_active_profile());
         return fast_nav_release || paused() || onboarding_surface_active()
             ? 1 : 0;
     }
@@ -3014,7 +3015,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
     if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
-        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        recent_course_available_for_active_profile()) {
         (void)launch_recent_course_practice();
         return 1;
     }

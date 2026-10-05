@@ -672,6 +672,12 @@ bool recent_course_available_for_active_profile() {
            g_recent_course_profile_key == active_profile_key();
 }
 
+bool practice_routing() {
+    return g_practice_active &&
+           g_practice_launch.stage != ur::product::QuickPracticeLaunchStage::Idle &&
+           g_practice_launch.stage != ur::product::QuickPracticeLaunchStage::Active;
+}
+
 void observe_recent_course_identity() {
     if (!modern_mode()) return;
     // During Practice launch, do not let an attract/demo or wrong-course race
@@ -2871,6 +2877,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
         }
         return 1;
     }
+    if (practice_routing()) {
+        // Host-owned stock-menu routing is exclusive until the requested
+        // Practice race has been authoritatively validated. Do not allow the
+        // same physical keyboard input to perturb guest menu selection.
+        return 1;
+    }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
         (void)begin_practice();
@@ -2960,6 +2972,12 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     int button,
     int pressed) {
     if (!ensure_session()) return 0;
+
+    if (practice_routing()) {
+        // Consume both press and release edges while the host owns stock-menu
+        // traversal. Once Active, normal race controls are guest-owned again.
+        return 1;
+    }
 
     if (g_profile_menu_visible) {
         if (!pressed) return 1;

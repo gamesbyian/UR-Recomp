@@ -500,29 +500,30 @@ Operating rules:
 - preserve evidence strength on semantic names and symbols instead of allowing a plausible name to become an unqualified fact;
 - continue the current selective-reverse-engineering strategy: understand deeply where the product needs hooks, validation or modification, and let generated recompilation carry unrelated code.
 
-Immediate integration targets:
+Current integration posture:
 
-- [ ] Finish the canonical Mesen first-race route and validate the Mesen CDL adapter with per-fixture provenance.
-- [ ] Preserve code/data/unknown and individual-vs-union coverage semantics when CDL feeds static tooling.
-- [ ] Record relevant 65816 M/X entry-state evidence for canonical static regions where immediate-width ambiguity can affect decoding.
-- [ ] Pilot deterministic extract -> semantic artifact -> unchanged reconstruction validation on the first suitable graphics/course asset family.
-- [ ] Add evidence strength/class metadata to promoted symbols when the symbol schema is next extended.
-- [ ] Add compact failure-capsule generation only if repeated first-divergence investigations show manual artifact bundling is recurring work.
+- Mesen/CDL expansion is **on-demand**, not a standing target. Native + pinned reference fixtures already provide the current product oracle; finish a Mesen route only when an emulator-independent discriminator would change a real decision.
+- Preserve code/data/unknown, M/X context and evidence-strength metadata whenever those facts are touched by a product-driven investigation, but do not launch standalone coverage-cleanup projects merely to fill metadata.
+- Deterministic extract -> semantic artifact -> unchanged reconstruction is already proven at production quality by the Racer HD extraction/reconstruction/dossier pipeline and related course/resource tooling. Reuse those contracts rather than scheduling another pilot.
+- Failure-capsule generation remains conditional on demonstrated repeated manual bundling cost; no speculative implementation is needed.
 
 
 ## Recovery ownership: evidence-to-executable backlog (2026-09-29)
 
 The project has largely solved *evidence intake*; current research should emphasize conversion of evidence into executable knowledge. The canonical product plan's **Evidence-to-executable recovery backlog (2026-09-29)** is binding. This research plan owns the investigative side of that backlog.
 
-Priority research lanes, in current impact order:
+Priority research is now **demand-pulled by the Windows product queue**, not a parallel completion program.
 
-1. **Bracket and explain the exact 2014 native/reference divergence around guest frame 440.** Capture increasingly fine state/PC/write evidence until the first causal divergence is localized. Treat this as the highest-value fidelity signal because it may expose a translated-code, host-timing, startup-state, controller-stream, or hardware-model defect that affects everything downstream.
-2. **Expand the comparative decompilation atlas on executed/high-value code.** Use the four preserved ROMs plus SNESRecomp, snes2asm, bounded da65 and Ghidra where useful. Resolve analyzer disagreement, align moved routines, and prioritize the three unresolved indirect dispatch sites, two LLE-only variants, and the five explicit core semantic placeholders.
-3. **Promote core simulation/rendering semantics required by the product architecture.** Main loop, player update/physics, course loader/representation, camera, OAM/sprite construction/culling and race state outrank low-impact archaeological completeness because they unlock exact fidelity, widescreen/HD presentation and course tooling.
-4. **Close the deterministic stock-race/2P fidelity gates using the improved semantic map.** Finish, simultaneous two-player behavior and remaining active-display OAM seams are higher-value once the frame-440 divergence is understood.
-5. Continue four-ROM differential archaeology for executable/table/frontend/localization/timing/protection deltas, especially where it helps lanes 1-4.
-6. Continue TAS/cheat/RetroAchievements/Nitrodon/Dessyreqt evidence promotion when it names or constrains code used by lanes 1-4. The `usjo13.lua` hunt is now passive unless a concrete lead appears.
-7. Keep CPU-side audio, Sayans/Sinister translation archaeology, UI-tail completion and unused-content confirmation moving opportunistically, but do not let them outrank unresolved core fidelity/decompilation work. Audio package attribution is already substantially closed.
-8. Continue archival reconstruction of DMA's original authoring pipeline opportunistically. Original editor/framework/conversion source remains potentially high-leverage, but acquisition is not a gating dependency and should not displace executable local work.
+The following former priorities are closed as standing research lanes:
+
+1. the 2014 absolute-frame divergence is retained as historical timing/alignment evidence; event-relative product fidelity no longer depends on resolving it further;
+2. comparative atlas growth is infrastructure, not a completion target;
+3. core race/render/course semantics are sufficient for current product modification and validation;
+4. representative stock 1P/ordinary-2P/VS fidelity and progression persistence are closed unless a new counterexample appears;
+5. TAS/Nitrodon/Dessyreqt/RetroAchievements evidence is mined further only when a queued product question names a missing semantic;
+6. CPU-audio, translation, unused-content and original-development archaeology remain opportunistic preservation/research, never default agent assignments.
+
+Open a new research task only when it can name all four of: **the product decision it changes, the missing fact, the cheapest existing-data inference or discriminator, and the stop condition**. Before collecting new data, query the normalized evidence surfaces and test whether the answer is already implied strongly enough for the decision. If multiple existing sources independently constrain the same conclusion and no plausible alternative would change implementation, record the inference and proceed rather than demanding a bespoke new capture.
+
 
 For every lane, the preferred end product is a fixture, verified symbol, parser, generated report, regression, implementation constraint or durable negative result. A link alone is intake, not completion.

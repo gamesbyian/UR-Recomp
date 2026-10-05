@@ -80,12 +80,6 @@ Plan for a modern racer/profile model in which:
 
 The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
 
-### HD racer asset deduplication contract
-
-Replacement-art production must distinguish semantic state, palette identity and visual geometry. Before a racer sprite is independently authored, refined or upscaled, prove whether it is (1) an exact-raster alias of an existing pose or (2) a palette-only alias after conservative normalization of proven racer-color roles. Exact aliases reuse one authored asset. Palette-only aliases reuse one canonical geometry/material asset and derive color through a deterministic versioned palette transform. Only a pose that fails both equivalence proofs may receive independent geometry.
-
-For declared palette-equivalent Racer HD assets, acceptance is byte-exact after authored-output palette normalization, not merely perceptual similarity. Alpha, antialiasing/coverage, neutral materials, wheel/frame structure, saddle, hardware, baked highlight placement and micro-detail must remain identical. This both avoids duplicated art work and guarantees that Remastered color variants remain as geometrically identical as the source evidence says they are. Existing independently authored variants should be audited and consolidated when measured evidence proves palette-only equivalence. See `HD-ART-DIRECTION.md` and `HD-VISUAL-REFERENCE-PIPELINE.md`.
-
 ### Progression and frontend candidates for deliberate simplification
 
 The modern product layer should evaluate, rather than automatically inherit:
@@ -131,24 +125,26 @@ The following are **must-do modern product requirements** unless later technical
 
 These requirements should be implemented at the layer that owns them. Do not move timing, ghost, replay, menu or accessibility concerns into the original simulation when host/runtime policy can provide them cleanly.
 
-The first project-owned modern product seam is defined in `MODERN-PRODUCT-LAYER.md`: host profile selection and typed host settings live in an isolated, versioned host-state envelope with an explicit Authentic/Modern policy switch. Authentic mode grants no host-profile, host-setting or modern-command authority. The envelope deliberately contains no WRAM/SRAM, racer-slot, medal, course or simulation state; future pause/restart, autosave, records, ghosts and racer identity should attach through narrow host/runtime interfaces rather than expanding cartridge-era save semantics. Pause is bound to the existing host frame gate. Restart Race has the deterministic native substrate and the first real modern-product command integration: `ModernSessionRuntime` carries the typed request through the runtime adapter into the lifecycle-owned rollback anchor, owns the rewind-audio timing lock while Retry is valid, reconciles live audio presentation after restore, and exposes a narrow C ABI for generated-host and later UI wiring. One important persistence boundary is explicit: SNESRecomp rollback snapshots include cartridge SRAM, so the Uniracers binding preserves the current 8 KiB SRAM across Retry instead of reverting progression or records to the race-entry image. Title policy exposes Retry only in active race and established results surfaces. The ordinary native product host now exposes root Resume, conditional Restart, Options, Controls, read-only Run Data and confirmed Quit Desktop. Options owns persisted Focus Pause, desktop Display Mode, VSync, Presentation FPS, Output Resolution, Widescreen view and 1x–4x Internal Render Scale through one keyboard/controller-parity subview. Display mode remains behind the SNESRecomp host adapter; presentation FPS binds the framework's separate presentation clock; Output Resolution consumes the normalized active-monitor catalog and only applies an exact concrete host mode in true Fullscreen. Windowed and Borderless remain resolution-inert, stale saved dimensions recover effectively to Native, and failed persistence restores the previous live video output state. These settings remain host presentation policy only and do not change authoritative guest timers, physics, AI, RNG, animation-state selection, progression, records or SRAM. Controls, Run Data, Exit to Frontend and Quit keep their root positions. Restart acceptance remains green through repeated replay and results-screen SRAM preservation. Authentic mode remains a stock-policy escape hatch and does not load or apply modern administrative state. Independent profile persistence now has a separate versioned, atomic host-owned substrate with Modern-only capture/restore of an exact stock-SRAM mirror; shipping lifecycle integration, true tour/event resume, richer run statistics/splits and additional proven settings remain separate follow-ons.
+The durable Modern-product architecture is defined in `MODERN-PRODUCT-LAYER.md`. Host administrative state, profiles, settings, pause/restart, practice routing, completed-run records, ghosts and other Modern conveniences remain outside authoritative guest simulation and cartridge-era save semantics. Authentic mode grants none of that host-owned authority. Title-specific observation and narrow runtime adapters may read the guest state needed to present or coordinate a feature, but Modern product code must not acquire a general guest-memory write surface merely for convenience.
+
+Persisted Modern data uses explicit versioned contracts, bounded/fail-closed decoding and fresh-process acceptance. Live host settings use capability-aware transactional application rather than allowing runtime and persistence to drift. Rewind/replay features must prove bounded forward determinism, not just immediate snapshot equality. Presentation-only features such as Widescreen, HD assets, ghosts and high-refresh output may change what is drawn without becoming gameplay authority. These are project architecture rules, not a snapshot of whichever menu rows or product slices happen to be implemented today.
+
+Current implementation readiness and the next Windows x64 product gaps belong in `WORK-QUEUE.md` and `SEMANTIC-SUFFICIENCY.md`. Keep this plan focused on end-state requirements and ownership boundaries; do not append run-by-run implementation history here as features land.
 
 ### Decide when the relevant subsystem is mature
 
-The following are desirable but should be evaluated when the underlying state model, renderer, frontend or course model is sufficiently understood. Do not force them early:
+The following are desirable but are **post-baseline optional features**, not unresolved baseline product policy:
 
 - expanded racer cosmetics beyond name/color and exact legacy presets;
 - full replay viewer with scrubbing, frame stepping, camera controls or HUD hiding;
 - photo/capture tools;
 - richer statistics such as stunt histories, heatmaps, streaks or aggregate telemetry;
 - achievements/challenges designed around mastery, secrets and unusual clean runs rather than grind;
-- section/checkpoint-based practice starts, if the course/state model can support them without corrupting normal simulation semantics;
-- a simplified local tournament/bracket mode replacing most legacy League administration;
-- modern medal/progression policy such as awarding the highest achieved tier immediately or making challenge tier selectable;
-- a modernized attract/demo reel sourced from especially strong local runs;
-- user-facing mod/content-pack affordances beyond the already planned custom-course tooling.
+- section/checkpoint-based practice starts once a safe authoritative start-state contract exists; prioritize this mastery feature ahead of photo mode/achievements when post-baseline capacity permits;
+- an optional Local Showcase attract mode sourced from strong local runs, while the stock attract cycle remains default;
+- user-facing mod/content-pack affordances beyond the planned custom-course/content boundaries.
 
-A later decision may promote any of these to must-do once implementation cost and fidelity impact are understood.
+Local Tournament and Modern medal/progression policy are no longer in this defer/decide-later set; their baseline behavior is fixed by the Modern frontend/progression policy below.
 
 ### Network and hosted-service policy
 
@@ -567,26 +563,13 @@ The symbol map includes the major gameplay, camera, course-loading, sprite-const
 
 Turn the 45 decoded payloads into a semantic course representation that can be rendered, inspected and eventually edited without changing game physics.
 
-### Immediate work
+### Current evidence boundary
 
-1. Trace the single known caller path into `RNC1_Unpack`.
-2. Identify how the game selects one of the 45 streams.
-3. Confirm stream ordinal against a known selected course at runtime.
-4. Follow the decompressed destination into its consumers.
-5. Test the historical `7E:2080` breadcrumb.
-6. Determine the role of the first decoded header words.
-7. Test, rather than assume, the historical:
-   - 256-wide claim;
-   - 64x64-block observation;
-   - 8x8 tile relationship.
-8. Separate:
-   - visual track layout;
-   - collision/physics;
-   - hazards;
-   - boosts;
-   - start/finish/checkpoints;
-   - metadata/theme;
-   - auxiliary dictionaries/tables.
+The current Windows product does **not** need another generic course-format discovery pass. All 45 Method-1 payloads are identified/decompressed; canonical course identity and selection are usable; the six fixed-area geometry families, representative coarse/fine spatial model, runtime materialization/resource ownership, checkpoint/finish-bearing cells and presentation lookup are sufficient for Quick Practice, Widescreen and current rendering work.
+
+Do not rediscover these facts from caller traces or historical breadcrumbs. Query `analysis/data/course-corpus.json`, `course-resource-catalog.json`, `COURSE-FORMAT.md` and the generated presentation contracts first.
+
+The genuinely deferred Phase-I/editor questions are narrower: exact serialized selector/index encoding where needed for writing new courses, remaining packed control-bit semantics, and any auxiliary dictionary/object semantics required to round-trip arbitrary custom content. Infer those from the existing 45-course corpus before collecting new runtime data; only add a probe when multiple plausible interpretations would produce different editor output.
 
 ### Independent validation
 
@@ -688,30 +671,11 @@ This separates geometry/camera problems from asset-resolution problems. Canonica
 
 Establish the 4:3 release gate before any Widescreen hook. With the Widescreen feature disabled, enhancement work must leave the authentic path bit-identical on defined deterministic captures.
 
-### F0 - reconnaissance before permanent widening
+### F0 - reconnaissance status
 
-Before changing game behavior, run a bounded widescreen reconnaissance pass on representative deterministic fixtures.
+This gate is closed for the supported 16:9 product. The project already has a bit-identical 4:3 regression path, a reusable `tools/widescreen_probe.py`, validated +48 host-owned backing for the shipped view, explicit scene/domain policy, object-exposure measurements, per-viewport 2P/VS acceptance and WRAM-confinement/stock-centre parity gates.
 
-Required preparation:
-
-1. study the pinned `wide-snes` reference by failure category rather than transplanting Super Mario World patches;
-2. establish a small reproducible bsnes-hd diagnostic preset matrix for per-BG widening, sprite clip/safe/unsafe behavior, window handling, overscan and pixel-aspect policy;
-3. build `tools/widescreen_probe.py` only after a deterministic capture route exists, reusing the shared fixture grammar rather than creating another replay format;
-4. probe increasing horizontal exposure margins (current matrix: +0, +8, +16, +24, +32, +48, +64, +72 source pixels where the runtime can express them);
-5. record the first margin/frame at which each rendering or game-state assumption fails.
-
-The probe should classify at least:
-
-- stale/unprepared background columns;
-- unintended tilemap wrap or authored-world overrun;
-- sprite disappearance, clipping or coordinate wrap;
-- newly exposed hidden sprites/objects;
-- object pop-in or late graphics preparation;
-- window/color-math/scanline-effect boundaries;
-- unfinished/offstage art;
-- scripted transition or reveal leakage.
-
-The purpose is to replace "widescreen looks wrong" with a machine-readable first-failure map.
+The original bsnes-hd/preset-matrix proposal is now optional diagnostic tooling, not unfinished Widescreen work. Do not repeat staged-margin sweeps or collect another generic first-failure map unless a new scene, wider aspect ratio or concrete rendering defect violates the accepted contract.
 
 ### Keep horizontal domains separate
 
@@ -1158,24 +1122,67 @@ Developer recollection says very little cartridge space remained. Treat apparent
 
 ---
 
+# Modern frontend product policy
+
+Modern mode preserves the game and removes the cartridge-era administration around it. Authentic/reference mode remains the exact behavioral oracle for every redesigned surface.
+
+The Modern top level is **Play / Practice / Multiplayer / Records / Options**. Profiles are player identity and persistence, not a hidden Options submenu and not aliases for stock racer/save slots.
+
+- **Play** owns tour/progression and offers resumable current-tour state.
+- **Practice** owns Quick Practice, recent-course and rapid-repeat workflows.
+- **Multiplayer** owns local join/setup, VS and Local Tournament.
+- **Records** owns stock records, profile/racer statistics, completed runs/replays, PB/Previous data and tournament/multiplayer history.
+- **Options** is settings-only: Video, Audio, Controls, Accessibility and Gameplay/Convenience.
+
+Modern local multiplayer uses simultaneous independent join/racer selection. The stock P1-then-P2 shared-selector handoff remains Authentic behavior. Classic racer presets may be selected by both players in Modern when desired; player/viewport identity disambiguates them.
+
+Preserve all 16 classic racer presets exactly, but do not invent new canonical personalities for them. Bronsen, Silvia, Goldwyn and ANTI-UNI remain the canonical stock opponent identities. Recorded ghosts represent the actual profile/racer that produced them. Later CPU/tournament reuse of classic presets is optional content, not new canon.
+
+After preserving the original result presentation, Modern exposes a consistent contextual action set: **Next Event, Retry, Track Select, Tour Select, Records**. Tour play emphasizes Next Event; Practice emphasizes Retry. This extends Uniracers' own VS/post-race vocabulary rather than introducing a foreign interaction model.
+
+Modern replaces stock persistent League administration with **Local Tournament** setup: participants, event/track pool and format. Round-robin/points play is the default because it preserves League's conceptual identity; bracket variants are optional later. Active tournament state is host-persisted. Original League standings remain available as a presentation view and stock League remains Authentic behavior.
+
+Modern name entry uses normal keyboard text input and a controller-friendly on-screen keyboard. Host profile/racer names may exceed stock guest field limits; when guest compatibility requires a stock-width name, derive a deterministic compatible alias/truncation. The original alphabet grid remains Authentic presentation.
+
+The stock attract/demo cycle remains the default presentation artifact in both modes. A future Local Showcase built from strong local completed runs may be offered as an explicit optional attract mode only.
+
+# Modern progression policy
+
+Modern removes mandatory Bronze → Silver → Gold repetition without changing canonical thresholds, opponents, race simulation, scoring or secret unlock rules.
+
+The player selects a **Bronze, Silver or Gold challenge tier** for a tour. Bronsen, Silvia and Goldwyn remain the stock tier opponents. Completing a higher selected tier records that tier and satisfies all lower tiers. Authentic mode retains the original sequential-clear requirement.
+
+Hidden/Hunter progression remains discovery content. Modern may calculate eligibility from the player's highest completed canonical tiers, but it does not expose secret unlock requirements as a checklist or replace the original reward/ending presentations.
+
+Unfinished tours are host-persisted per Modern profile. The current tour, selected racer and completed-event state survive process exit and rider re-entry. Modern exposes explicit **Resume Tour** and **Restart Tour** actions. Authentic mode preserves stock session-loss behavior.
+
+# Modern scope discipline
+
+Do not turn Modern into a giant compatibility-options laboratory. Use settings for genuine preferences such as presentation, controls, accessibility, vibration, ghost visibility and display behavior. Administrative redesigns above are product policy, not per-user toggles.
+
+Expanded cosmetics, a full replay editor, photo mode, achievements/challenges and a user-facing mod ecosystem are not Windows baseline requirements. Section/checkpoint practice starts are the preferred later mastery feature once a safe authoritative start-state contract exists.
+
 # Current critical path
 
-The last two days materially changed the shape of the project. Broad structural recovery is now a proven capability rather than the main uncertainty. The comparative-island pipeline has mapped enough race, collision, camera, course-resource, OAM, timing, message and rendering-adjacent structure that the scarce resource is **semantic sufficiency for deliberate modification**, not the ability to discover another valid code island.
+The historical fidelity → renderer → Widescreen → first-HD pipeline is no longer the project bottleneck. Those capabilities are sufficient for the current Windows x64 product. The scarce resource is now **finished consumer-product breadth**: profile continuation, controls/accessibility, useful timing/statistics surfaces, fast repeat/navigation, broad Remastered coverage, presentation polish and release acceptance.
 
-A fresh agent should therefore optimize for the shortest path to a safely altered presentation, not for island count, bounded-byte count, atlas percentage or archaeological completeness.
+Because implementation is performed by autonomous agents, this is a dependency graph rather than a one-agent ladder. Run independent leaves concurrently and reserve serialization for genuinely shared runtime surfaces.
 
-1. **Finish the renderer-facing causal chain already in motion.** Prioritize regions that connect camera/window state, world preparation/streaming, sprite/OAM construction, PPU output and race rendering. Current work around the `83:F0BB` race-render path is an example of the right kind of structural recovery because it directly constrains presentation work.
-2. **Separate gameplay activation from presentation visibility.** Establish when world objects/opponents/events become behaviorally active versus when their graphics are prepared, culled and emitted. This is a Widescreen safety requirement: widening must not silently advance simulation or reveal state that was not already authoritative.
-3. **Close a finite stock-fidelity matrix rather than continue generalized divergence hunting.** Required representative cases are: one-player acceleration/jump/rotation/landing/contact, stunt/reward behavior, finish/results, course transition, ordinary two-player isolated and simultaneous input, VS setup/play, save/load/progression, and the known active-display OAM/raster seam. Compare semantic/event-relative state where absolute host-frame phase is not itself gameplay state. Once this matrix is green, stock fidelity is sufficient for presentation work unless later evidence exposes a counterexample.
-4. **Define the minimum course/rendering contract needed for presentation.** Recover course bounds, spatial organization, materialized resources, graphics/tile streaming, object/event placement and the fields needed to render a wider view deliberately. Do not block Widescreen on an editor-complete reconstruction of every course structure.
-5. **Begin bounded Widescreen reconnaissance as a reverse-engineering instrument.** After the renderer-facing chain is coherent enough to interpret failures, test tiny horizontal exposure increments such as +8, +16 and +24 source pixels under deterministic fixtures. The purpose is to identify the first violated assumption. Do not preserve a widening change merely because it appears visually plausible.
-6. **Recover only the semantic structure demanded by those failures or by fidelity gates.** Structural islands remain valuable, but a new island must now satisfy at least one of these conditions: close a known fidelity uncertainty; unlock a concrete Widescreen/rendering/course requirement; connect or disambiguate an already high-value subsystem; or provide a cheap reusable semantic anchor with clear downstream leverage. Frontier rank alone is not sufficient.
-7. **Run deterministic original-asset extraction/reconstruction and animation-state mapping in parallel.** These can advance without waiting for full Widescreen and will later gate HD Presentation. Prioritize exact round trips, resource/animation identity and semantic state mapping, not aesthetic replacement work yet.
-8. **Implement stock-art Widescreen once the activation/preparation/render domains are understood.** Expand logical view while holding authoritative simulation and authentic 4:3 behavior constant. Validate information exposure, culling, camera, HUD, multiplayer and raster behavior.
-9. **Implement HD Presentation, then the modern product layer.** Higher-resolution presentation comes after semantic asset/state mapping. Contemporary controls, profiles, pause/retry, ghosts/timing/statistics, accessibility and streamlined frontend behavior should remain outside authoritative simulation wherever practical.
-10. **Finish editor/custom-content and release packaging after the underlying semantic formats are stable.**
+The current product-critical lanes are:
 
-Supporting research is pulled forward when it shortens one of these steps. It does not become critical merely because evidence exists, an analyzer can expose it, or a previous workstream had momentum.
+1. **Modern progression continuity.** Complete controlled profile lifecycle integration and host-owned tour/event continuation without changing guest progression semantics or allowing profiles to share cartridge backing state.
+2. **Controls and accessibility.** Turn the existing read-only/live binding authority into practical player-facing rebinding/hot-plug UX and add host-only accessibility features that do not alter authoritative simulation.
+3. **Run/timing/statistics UX.** Build on the already accepted completed-run, PB/Previous, split/delta and Local Runs substrates. The next work is presentation and navigation, not a replacement data model.
+4. **Fast play loop.** Extend Quick Practice and Restart with repeat/rematch, recent-course and next-event affordances while continuing to route authoritative race setup through the recovered stock menu/initializer contracts.
+5. **Remastered coverage.** Expand Racer HD only where measured fallback frequency or another visible product requirement justifies it. Reuse canonical geometry, deterministic palette-equivalence, temporal review and hash-bound approval.
+6. **Presentation completion.** Finish high-density product-overlay behavior, deterministic sampling/filter policy and remaining display polish while keeping guest geometry, timing and simulation authority unchanged.
+7. **Windows packaging and release acceptance.** Treat clean install, startup, first-run, save locations, portable error behavior and reproducible packaged builds as a continuously runnable lane, not a final-week phase.
+8. **Editor/custom content only after the shipping path is no longer starved.** Course-format knowledge is already sufficient to avoid blocking present product work; do not consume agent capacity on editor breadth while baseline Windows product requirements remain unfinished.
+
+Every lane should be decomposed until at least one leaf can be executed without new exploratory research. When multiple leaves are ready, start them in parallel unless they need to write the same central file. Shared host/menu/schema integration gets one temporary owner; neighboring agents should advance pure policies, models, tests, catalogs, assets and acceptance tooling independently so the blocked reconciliation is small.
+
+Supporting research is admitted only when it changes a queued product decision, supplies a missing acceptance oracle, or removes repeated agent work. Existing structural/evidence/query surfaces should be treated as infrastructure to consume, not as programs that need completion for their own sake.
+
 
 ## Structural-recovery stop rule
 

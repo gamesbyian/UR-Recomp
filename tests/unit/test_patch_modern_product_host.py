@@ -125,6 +125,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "uniracers_challenge_generation.cpp",
             "uniracers_challenge_generation_runtime.cpp",
             "uniracers_challenge_qualification.cpp",
+            "uniracers_challenge_award.cpp",
             "uniracers_challenge_generation_bridge.c",
         ):
             self.assertIn(name, patched)

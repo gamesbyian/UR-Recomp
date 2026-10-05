@@ -1,7 +1,9 @@
 name: Historical Snes9x medal capture
 
 on:
-  workflow_dispatch:concurrency:
+  workflow_dispatch:
+
+concurrency:
   group: historical-snes9x-medal-${{ github.ref }}
   cancel-in-progress: true
 

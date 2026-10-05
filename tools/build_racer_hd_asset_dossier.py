@@ -320,22 +320,27 @@ def authored_frame_junction_rgba(
     crown_y: int,
     blue_frame: bool,
 ) -> bytes:
-    """Mirror the native forged crown/junction material exactly."""
+    """Mirror the native integrated forged crown/junction material exactly."""
     dx = x - crown_x
     dy = y - crown_y
     radial2 = dx * dx + dy * dy
-    highlight = dx <= 1 and dy <= 1 and radial2 >= 18
-    shadow = dx >= 2 or dy >= 4
+    shoulder_highlight = dy <= -1 and dx <= 2 and radial2 >= 12
+    integrated_throat = dy >= 1 and (dx >= -2 or radial2 <= 20)
+    outer_shadow = dx >= 4 or dy >= 5
     if blue_frame:
-        if highlight:
+        if shoulder_highlight:
             return _rgba32(83, 115, 232)
-        if shadow:
+        if outer_shadow:
             return _rgba32(24, 40, 120)
+        if integrated_throat:
+            return _rgba32(35, 51, 150)
         return _rgba32(52, 77, 201)
-    if highlight:
+    if shoulder_highlight:
         return _rgba32(232, 83, 83)
-    if shadow:
+    if outer_shadow:
         return _rgba32(120, 24, 24)
+    if integrated_throat:
+        return _rgba32(150, 35, 35)
     return _rgba32(201, 52, 52)
 
 

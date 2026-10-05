@@ -31,7 +31,10 @@ class ModernControlsHostContractTests(unittest.TestCase):
         body = source[start:end]
 
         controls = body.index("if (g_controls_visible)")
-        generic_release = body.index("if (!pressed)")
+        generic_release = body.index(
+            "if (!pressed) {\n"
+            "        if (button == g_practice_cancel_gamepad_button)"
+        )
         controls_block = body[controls:controls + 520]
         self.assertLess(controls, generic_release)
         self.assertIn("configured GamepadMap", controls_block)

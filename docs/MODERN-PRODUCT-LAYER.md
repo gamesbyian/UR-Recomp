@@ -294,3 +294,20 @@ Host-state codec v6 now follows the catalog's additive-key rule: its seven histo
 native/product/completed_run_record.*, completed_run_capture.*, completed_run_store.* and completed_run_comparison.* own the host-only records substrate. The framework exposes the exact controller word submitted to `RtlRunFrame`; the title adapter derives canonical course identity from immutable decoded-header fields; timing and splits remain in authoritative guest units. Modern 1P attempts begin at the same race-entry boundary used by Retry, Retry aborts/re-arms capture, and finalized records append beneath the active profile using a strict versioned/checksummed codec. Compatible records supply Previous/PB candidates, exact signed deltas and canonical deterministic replay input without acquiring guest-memory authority.
 
 The product layer consumes that substrate in two separate ways. Local Runs presents the active profile's catalog, keeps malformed/incompatible artifacts visible but disabled, and launches a selected compatible record through the established deterministic input/restart path without creating a duplicate capture. Previous/PB ghosts load only checksum-bound trace sidecars, perform race-relative lookup and current-camera projection, reuse the Racer-HD semantic/composition selector, and blend as host-only presentation. Missing/stale/incompatible data fails closed, and Authentic/non-1P modes gain no record or ghost authority. Remaining work is richer split/target/statistics presentation and local-management polish rather than a second records, replay or ghost data model; see `COMPLETED-RUN-RECORDS.md`, `COMPLETED-RUN-BROWSER.md` and `GHOST-PRESENTATION-TRACE.md`.
+
+## Regional presentation profile
+
+Modern may own one hidden regional-presentation preference with two semantic values: `NorthAmerica` and `Europe`. It exists to reproduce evidence-backed Uniracers-versus-Unirally presentation differences while keeping one authoritative gameplay runtime.
+
+The feature is intentionally outside normal Options discoverability. On the accepted idle title surface:
+
+- keyboard text `PAL` selects Europe / Unirally;
+- keyboard text `NTSC` selects North America / Uniracers;
+- controller Left, Left, Left, L, A selects Europe;
+- controller Right, Right, Right, R, A selects North America.
+
+Input recognition is host-semantic and surface-gated. It must not depend on physical SDL scancodes/device button numbers, must not swallow ordinary title navigation, and must reset on timeout, title-surface exit or conflicting input. Authentic execution ignores the feature.
+
+The regional state has presentation authority only. It cannot alter guest cadence, physics, collision, AI, RNG, timers, stunt scoring, progression, SRAM, completed-run identity, replay semantics or PB comparability. If persisted, it belongs to host administrative state rather than a Modern profile's guest SRAM/progression namespace; malformed/unknown values fail safely to North America.
+
+Exact consumers are evidence-driven. The initial intended consumer is title/logo branding. Other startup/frontend differences may follow after `docs/REGIONAL-PRESENTATION.md` closes its framebuffer/string/audio experiments. The seven Europe-retail course payload changes are not presentation consumers unless each selected delta is independently proven visual-only.

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <array>
+#include "next_event_derivation.hpp"
+
 #include <cstdint>
-#include <optional>
 
 namespace ur::product {
 
@@ -27,33 +27,6 @@ struct FastNavigationContext {
     bool recent_course_valid = false;
     bool recent_course_profile_matches = false;
 };
-
-constexpr std::optional<std::uint8_t> unique_remaining_tour_slot(
-    const std::array<std::uint8_t, 5>& qualified
-) noexcept {
-    std::optional<std::uint8_t> remaining;
-    unsigned qualified_count = 0;
-    for (std::uint8_t slot = 0; slot < qualified.size(); ++slot) {
-        if (qualified[slot] > 1) return std::nullopt;
-        if (qualified[slot] == 1) {
-            ++qualified_count;
-            continue;
-        }
-        if (remaining) return std::nullopt;
-        remaining = slot;
-    }
-    return qualified_count == 4 ? remaining : std::nullopt;
-}
-
-constexpr std::optional<std::uint8_t> unique_next_track_id(
-    std::uint8_t tour_row,
-    const std::array<std::uint8_t, 5>& qualified
-) noexcept {
-    if (tour_row >= 9) return std::nullopt;
-    const auto slot = unique_remaining_tour_slot(qualified);
-    if (!slot) return std::nullopt;
-    return static_cast<std::uint8_t>(tour_row * 5u + *slot);
-}
 
 constexpr FastNavigationAction resolve_fast_navigation(
     FastNavigationCommand command,

@@ -199,12 +199,38 @@ The accepted pause/retry stack is no longer acceptance-harness-only. `native/pro
 
 Modern mode is the production default. Setting `UR_EXECUTION_MODE=authentic` creates the same host binding in Authentic policy mode; rejected product actions are not consumed, so ordinary frontend/guest input remains authoritative. Modern pause activation is intentionally title-gated to established active-race/results surfaces, which keeps frontend Start/Escape behavior out of the product overlay. The same title gate now applies to pause-on-focus-loss, so losing focus in stock frontend flow cannot freeze or reinterpret guest menu behavior.
 
+## First-run help and quick practice
+
+Modern Windows x64 has one deliberately compact onboarding surface rather than a parallel tutorial game mode.
+
+On the first genuinely new Modern install, the host presents a dismissible controls/help overlay. Existing installs with a product-state file are treated as already established so an upgrade does not interrupt normal play or deterministic regression captures. `F1` reopens Help later. The overlay explains only the fundamental play loop that should not require external documentation:
+
+- Left/Right movement;
+- B to jump and Y to brake;
+- A/X/L/R as stunt controls;
+- land wheel-down to complete the stunt;
+- clean completed stunts add speed.
+
+Keyboard labels come from SNESRecomp's live P1 `keybinds.ini` state. Controller labels are resolved from the framework's live `GamepadMap` command mapping, so the panel describes the mappings actually feeding the guest rather than copying a second title-owned binding table. The existing pause-menu Controls view uses the same live sources. Advanced discoveries, the stock cheat and hidden tour/progression rewards are intentionally absent.
+
+The first-run dismissal is host-only state in `onboarding-v1.seen`; it has no guest/SRAM representation and Authentic mode neither reads nor displays it.
+
+Modern main-menu Quick Practice is available through `F5` or controller X. It does not write a course ID, menu byte, physics state or race-start structure directly. Instead it observes the already-proven stock frontend states and feeds ordinary A-button pulses through SNESRecomp's existing deterministic input parser when those stable menu states are visible at a host observation boundary:
+
+`MAIN_MENU (D7) -> RIDER_SELECT (3C) -> TOUR_SELECT (6D) -> TRACK_SELECT (F6) -> NOW_PLAYING (16) -> active race (0313=01)`.
+
+That keeps the ordinary guest frontend and race initializer authoritative for the practice attempt. The current path deliberately accepts the default first rider/tour/track, yielding a representative first race without duplicating tournament-selection semantics. Broader direct track selection can remain a later practice-product refinement.
+
+Practice is non-progressing Modern product state. At launch, the host snapshots the exact 8 KiB guest SRAM and switches framework persistence to an isolated practice save root. Modern profile autosave and completed-run capture are disabled while practice is active. Choosing the existing Pause > Exit Frontend path restores the exact pre-practice SRAM bytes and original save root before the already-accepted full session reboot publishes SRAM and reconstructs the stock frontend. A small in-race hint makes that return path discoverable. Authentic mode cannot enter this path.
+
+The dedicated native acceptance requires first-run visibility/dismissal persistence, rendered live keyboard/controller binding diagnostics, stock-input-driven launch into authoritative active-race state, byte-identical pre/post-practice SRAM digests, clean return to main menu, absence of profile autosave during practice, and complete Authentic inertness. Intermediate menu IDs are diagnostic rather than mandatory because stock transitions can cross them between host observation boundaries.
+
 ## Extension points
 
 Do not add these systems to `HostProductState` merely because they are planned. Add narrow interfaces when there is a concrete runtime consumer:
 
 - **pause/restart:** pause and Restart Race are connected end-to-end through the typed product/runtime command surface, and the first desktop key binding is now wired through the host event loop. Escape toggles host pause; Enter resumes from pause; Ctrl+R reaches Restart Race only when the validated anchor is available. Visual pause/results presentation is present, and keyboard/controller navigation now share one platform-independent pause-input policy above the deterministic two-row menu. Keyboard uses Escape to toggle, Up/Down to navigate, Enter to activate and Ctrl+R as the direct Restart hotkey. Controller uses Start to toggle, D-pad Up/Down to navigate, A to activate and B to cancel/resume. Restart appears only while the validated anchor is available. The host consumes these normalized product buttons before configured guest/GamepadMap dispatch, so modern menu navigation cannot leak into the SNES controller word. Focused native acceptance now drives the first deterministic restart through that actual gamepad menu path and the second through the real Ctrl+R key path, proving both player-facing inputs converge on the same accepted lifecycle restore. Remaining pause-menu work is polish and broader controller/platform UX, not another runtime or snapshot seam;
-- **controls presentation:** the Modern Controls panel now reads SNESRecomp's live P1 `keybinds.ini` view and displays the actual D-pad, face-button, shoulder, Start and Select keyboard bindings rather than hard-coded menu-action placeholders. This is read-only presentation: SNESRecomp remains the sole keyboard/gamepad mapping authority and still produces the exact controller word submitted to the guest. The framework already has a live binding editor/reload path; exposing that editor directly from the title is a later host-integration slice, not a reason to duplicate mapping state in UR-Recomp;
+- **controls presentation:** the Modern Controls panel and first-run Help read SNESRecomp's live P1 `keybinds.ini` view and live `GamepadMap`, displaying the actual movement, face-button, shoulder and Start mappings rather than hard-coded menu-action placeholders. Help also explains jump, brake, wheel-down landing and the stunt-to-speed loop while deliberately preserving secrets. This is read-only presentation: SNESRecomp remains the sole keyboard/gamepad mapping authority and still produces the exact controller word submitted to the guest. The framework already has a live binding editor/reload path; exposing that editor directly from the title is a later host-integration slice, not a reason to duplicate mapping state in UR-Recomp;
 - **autosave/resume:** a coordinator that owns host save metadata while preserving guest SRAM as guest data;
 - **records/ghosts:** append-only run artifacts keyed by profile and course identity, sourced from observed authoritative race state;
 - **racer identity:** product data associated with a profile, explicitly separate from the original save-slot/unicycle coupling;

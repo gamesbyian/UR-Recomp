@@ -80,6 +80,12 @@ Plan for a modern racer/profile model in which:
 
 The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
 
+### HD racer asset deduplication contract
+
+Replacement-art production must distinguish semantic state, palette identity and visual geometry. Before a racer sprite is independently authored, refined or upscaled, prove whether it is (1) an exact-raster alias of an existing pose or (2) a palette-only alias after conservative normalization of proven racer-color roles. Exact aliases reuse one authored asset. Palette-only aliases reuse one canonical geometry/material asset and derive color through a deterministic versioned palette transform. Only a pose that fails both equivalence proofs may receive independent geometry.
+
+For declared palette-equivalent Racer HD assets, acceptance is byte-exact after authored-output palette normalization, not merely perceptual similarity. Alpha, antialiasing/coverage, neutral materials, wheel/frame structure, saddle, hardware, baked highlight placement and micro-detail must remain identical. This both avoids duplicated art work and guarantees that Remastered color variants remain as geometrically identical as the source evidence says they are. Existing independently authored variants should be audited and consolidated when measured evidence proves palette-only equivalence. See `HD-ART-DIRECTION.md` and `HD-VISUAL-REFERENCE-PIPELINE.md`.
+
 ### Progression and frontend candidates for deliberate simplification
 
 The modern product layer should evaluate, rather than automatically inherit:

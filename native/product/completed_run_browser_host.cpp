@@ -362,7 +362,7 @@ void draw_browser(
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 244 ? width - 12 : 236;
     const int row_count = 6;
-    const int panel_h = 39 + row_count * 15 + 46;
+    const int panel_h = 39 + row_count * 15 + 76;
     const int x = (width - panel_w) / 2;
     const int y = (height - panel_h) / 2;
 
@@ -446,8 +446,35 @@ void draw_browser(
         comparison, sizeof(comparison), "VS PB     %s",
         selected ? selected->personal_best_delta_text.c_str() : "--");
     snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + panel_h - 41,
+        pixels, stride, height, x + 8, y + panel_h - 71,
         comparison, 0xFFFFFFFFu, 1);
+
+    if (selected && !selected->personal_best_splits.empty()) {
+        int split_row_y = y + panel_h - 56;
+        int shown = 0;
+        for (auto it = selected->personal_best_splits.rbegin();
+             it != selected->personal_best_splits.rend() && shown < 2;
+             ++it) {
+            if (it->id == "finish") continue;
+            std::string label = it->id;
+            if (label.rfind("checkpoint-", 0) == 0) {
+                label = "CP " + label.substr(11);
+            }
+            char split_line[72];
+            std::snprintf(
+                split_line, sizeof(split_line),
+                "%s  %s  %s",
+                label.c_str(),
+                it->current_text.c_str(),
+                it->delta_text.c_str());
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, split_row_y,
+                split_line, 0xFFFFFFFFu, 1);
+            split_row_y += 15;
+            ++shown;
+        }
+    }
+
     snes_ovl_draw_text(
         pixels, stride, height, x + 8, y + panel_h - 26,
         "ENTER / A  REPLAY", 0xFFFFFFFFu, 1);

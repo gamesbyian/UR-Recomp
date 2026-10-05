@@ -46,6 +46,7 @@ class ChallengeGenerationProbeTests(unittest.TestCase):
             obs("BRONZE", 17, "BRONSEN"),
             obs("GOLD", 19, "GOLDWYN"),
             bytes(before),
+            bytes(sram),
             bytes(sram))
         self.assertEqual(report["classification"], "full-generation-seam")
         self.assertTrue(report["candidate_is_full_generation_seam"])

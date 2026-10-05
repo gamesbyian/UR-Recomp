@@ -2420,41 +2420,64 @@
           "original_fallback_player_frames": 732,
           "hd_coverage_fraction": 0.17006802721088435
         },
-        "selected_exact_state": {
-          "composition": {
-            "p1_primary": "0x0540",
-            "p2_primary": "0x0543",
-            "p1_companion": "0x0D2C",
-            "p2_companion": "0x0000",
-            "p1_selector": 0,
-            "p2_selector": 0,
-            "p1_companion_gate_word": "0x0001",
-            "p2_companion_gate_word": "0x0000"
+        "expansions": [
+          {
+            "state": "0x0540/0x0543 + 0x0D2C/0x0000 sel 0/0 gate 0x0001/0x0000",
+            "observed_frames": [
+              1354,
+              1355,
+              1356,
+              1390,
+              1418,
+              1450
+            ],
+            "independent_episodes": 4,
+            "player_fallback_frames_removed": 12,
+            "after": {
+              "player_frame_observations": 882,
+              "hd_selected_player_frames": 162,
+              "original_fallback_player_frames": 720,
+              "hd_coverage_fraction": 0.1836734693877551,
+              "fallback_burden_removed_fraction": 0.01639344262295082,
+              "absolute_coverage_gain_percentage_points": 1.360544217687075
+            },
+            "approval_manifest": "analysis/data/racer-hd-art-approval-1354-1356.json"
           },
-          "observed_frames": [
-            1354,
-            1355,
-            1356,
-            1390,
-            1418,
-            1450
-          ],
-          "independent_episodes": 4,
-          "player_fallback_frames": 12,
-          "runtime_representation_ids": [
-            "ordinary-racer-0x0540-p1-frequency-0543-reference",
-            "ordinary-racer-0x0543-p2-frequency-0540-reference"
-          ],
-          "art_policy": "reuse only after same-player deterministic stock RGBA identity proof; inherited shipping art remains bound to the exact previously reviewed authored RGBA hashes"
+          {
+            "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+            "observed_frames": [
+              1280,
+              1281,
+              1282,
+              1283,
+              1285,
+              1286
+            ],
+            "independent_episodes": 2,
+            "player_fallback_frames_removed": 12,
+            "after": {
+              "player_frame_observations": 882,
+              "hd_selected_player_frames": 174,
+              "original_fallback_player_frames": 708,
+              "hd_coverage_fraction": 0.19727891156462585,
+              "fallback_burden_removed_fraction": 0.016666666666666666,
+              "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+              "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+            },
+            "approval_manifest": "analysis/data/racer-hd-art-approval-1280-1286.json",
+            "reuse_basis": "P1 0544 palette-normalized canonical geometry reuse; P2 0578 one distinct reviewed pose"
+          }
+        ],
+        "current_after": {
+          "player_frame_observations": 882,
+          "hd_selected_player_frames": 174,
+          "original_fallback_player_frames": 708,
+          "hd_coverage_fraction": 0.19727891156462585,
+          "fallback_burden_removed_fraction": 0.016666666666666666,
+          "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+          "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
         },
-        "after": {
-          "hd_selected_player_frames": 162,
-          "original_fallback_player_frames": 720,
-          "hd_coverage_fraction": 0.1836734693877551,
-          "absolute_coverage_gain_percentage_points": 1.360544217687075,
-          "baseline_fallback_burden_removed_fraction": 0.01639344262295082
-        },
-        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact stock equivalence permits it."
+        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it."
       }
     }
   ]

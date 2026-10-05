@@ -1,14 +1,7 @@
 name: Evaluate reduced da65 closure
 
 on:
-  workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/cc65-da65-closure-eval.yml"
-      - "tools/evaluate_cc65_da65_closure.py"
-      - "tests/unit/test_evaluate_cc65_da65_closure.py"
-
-concurrency:
+  workflow_dispatch:concurrency:
   group: cc65-da65-closure-eval-${{ github.ref }}
   cancel-in-progress: true
 

@@ -3566,6 +3566,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
 
+    if (g_controls_visible) {
+        // Controls navigation must respect the player's configured GamepadMap.
+        // Defer BOTH press and release before the generic paused-release path;
+        // otherwise SNESRecomp never clears its physical modifier state.
+        return 0;
+    }
+
     if (!pressed) {
         if (button == g_practice_cancel_gamepad_button) {
             g_practice_cancel_gamepad_button = -1;
@@ -3619,13 +3626,6 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (g_quit_confirm_visible && button == kGamepadBtn_A) {
         return request_desktop_quit() ? 1 : 0;
-    }
-
-    if (g_controls_visible) {
-        // Controls navigation must respect the player's configured GamepadMap.
-        // Return to the framework here so it can resolve this physical button
-        // to a semantic SNES control and call system_gamepad_control below.
-        return 0;
     }
 
     if (g_options_visible) {

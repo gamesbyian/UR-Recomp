@@ -55,6 +55,17 @@ RunDataCatalog build_run_data_catalog(
     if (personal_best && *personal_best < catalog.entries.size()) {
         catalog.personal_best_entry = *personal_best;
         catalog.entries[*personal_best].is_personal_best = true;
+
+        const auto pb_ticks =
+            catalog.entries[*personal_best].elapsed_ticks60;
+        for (auto& entry : catalog.entries) {
+            const auto delta = exact_run_timing_delta_ticks60(
+                entry.elapsed_ticks60, pb_ticks);
+            if (!delta) continue;
+            entry.personal_best_delta_ticks60 = *delta;
+            entry.personal_best_delta_text =
+                format_run_delta_ticks60(*delta);
+        }
     }
 
     return catalog;

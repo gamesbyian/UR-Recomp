@@ -6,6 +6,7 @@ from tools.build_racer_hd_shipping_readiness import build_shipping_readiness
 class RacerHdShippingReadinessTest(unittest.TestCase):
     def equivalence(self):
         return {
+            "schema_version": 1,
             "family": "ordinary-racer",
             "source_temporal_window": {"start": 1, "end": 2},
             "pose_groups": [
@@ -47,6 +48,7 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
                 "blocker_codes": ["coarse"] if status == "needs-refinement" else [],
             }
         return {
+            "schema_version": 1,
             "family": "ordinary-racer",
             "review_basis": {
                 "workflow_run": 1,
@@ -61,6 +63,23 @@ class RacerHdShippingReadinessTest(unittest.TestCase):
             ),
             "decisions": [row("a", a), row("c", c)],
         }
+
+    def test_schema_versions_must_match_supported_contract(self):
+        equivalence = self.equivalence()
+        equivalence["schema_version"] = 2
+        with self.assertRaisesRegex(ValueError, "pose-equivalence schema version"):
+            build_shipping_readiness(equivalence, self.decisions())
+
+        decisions = self.decisions()
+        decisions["schema_version"] = 2
+        with self.assertRaisesRegex(ValueError, "art-approval schema version"):
+            build_shipping_readiness(self.equivalence(), decisions)
+
+    def test_decisions_must_be_a_list(self):
+        decisions = self.decisions()
+        decisions["decisions"] = {}
+        with self.assertRaisesRegex(ValueError, "decisions must be a list"):
+            build_shipping_readiness(self.equivalence(), decisions)
 
     def test_readiness_is_owned_per_unique_pose_not_guard(self):
         result = build_shipping_readiness(

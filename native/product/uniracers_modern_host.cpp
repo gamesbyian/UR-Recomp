@@ -34,6 +34,7 @@ extern "C" {
 #include "modern_options_menu.h"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
+#include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
@@ -2869,7 +2870,16 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
 
     if (!pressed) {
-        return paused() || onboarding_surface_active() ? 1 : 0;
+        const bool settled_main =
+            modern_mode() && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+        const bool fast_nav_release =
+            (modern_mode() &&
+             g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+             button == kGamepadBtn_X) ||
+            (settled_main &&
+             (button == kGamepadBtn_X || button == kGamepadBtn_Y));
+        return fast_nav_release || paused() || onboarding_surface_active()
+            ? 1 : 0;
     }
 
     if (onboarding_surface_active()) {

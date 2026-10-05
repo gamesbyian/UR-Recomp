@@ -3278,13 +3278,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
-    if (modern_mode() && g_ram[0x009F] == 0xD7 &&
-        g_ram[0x0313] != 0x01 && g_profile_state &&
-        g_profile_state_writable &&
-        g_profile_state->tour_continuation &&
-        ur::product::valid_tour_continuation(
-            *g_profile_state->tour_continuation) &&
-        profile_snapshot_matches_live_sram(*g_profile_state)) {
+    if (tour_continue_available()) {
         const auto& continuation = *g_profile_state->tour_continuation;
         const auto* course = ur::product::quick_practice_course(
             static_cast<std::uint8_t>(continuation.tour_row * 5u));

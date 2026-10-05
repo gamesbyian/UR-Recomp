@@ -1,0 +1,67 @@
+{
+  "schema_version": 1,
+  "purpose": "Canonical stock qualification model for Modern direct challenge-tier integration.",
+  "sources": [
+    "reference/imported/reverse-engineering/nitrodon/bank 83.txt",
+    "tools/extract_progression_sram_semantics.py",
+    "tools/extract_stunt_qualify_table.py"
+  ],
+  "result_entry": "83:879A",
+  "event_type_source": {
+    "address": "77:074B",
+    "mask": "0x0003"
+  },
+  "dispatch": [
+    {
+      "event_type": 0,
+      "comparator": "83:88D3",
+      "role": "race_or_circuit",
+      "generation_dependency": false
+    },
+    {
+      "event_type": 1,
+      "comparator": "83:88D3",
+      "role": "race_or_circuit",
+      "generation_dependency": false
+    },
+    {
+      "event_type": 2,
+      "comparator": "83:88E1",
+      "role": "stunt",
+      "generation_dependency": true,
+      "threshold_helper": "83:9EEB"
+    }
+  ],
+  "race_circuit": {
+    "comparator": "83:88D3",
+    "left": "77:0769",
+    "right": "77:07D3",
+    "reads_persistent_medal": false,
+    "reads_generation_snapshot_10D1": false
+  },
+  "stunt": {
+    "comparator": "83:88E1",
+    "score": "77:07BB",
+    "threshold_helper": "83:9EEB",
+    "persistent_medal": "77:069C + 16*tour_row + rider",
+    "medal_to_generation": "min(persistent_medal, 2)",
+    "threshold_table": "83:A218",
+    "threshold_index": "3*tour_row + generation",
+    "thresholds": [
+      {"tour_row":0,"tour":"Crawler","bronze":68,"silver":137,"gold":270},
+      {"tour_row":1,"tour":"Jumper","bronze":88,"silver":176,"gold":308},
+      {"tour_row":2,"tour":"Shuffler","bronze":58,"silver":116,"gold":220},
+      {"tour_row":3,"tour":"Bounder","bronze":63,"silver":127,"gold":223},
+      {"tour_row":4,"tour":"Walker","bronze":90,"silver":180,"gold":300},
+      {"tour_row":5,"tour":"Runner","bronze":61,"silver":122,"gold":215},
+      {"tour_row":6,"tour":"Hopper","bronze":107,"silver":215,"gold":400},
+      {"tour_row":7,"tour":"Sprinter","bronze":86,"silver":172,"gold":302}
+    ]
+  },
+  "modern_implication": {
+    "race_circuit_extra_hook_required": false,
+    "stunt_extra_hook_required": true,
+    "stunt_hook_semantics": "substitute selected challenge generation before the 83:A218 lookup without mutating persistent medal",
+    "hunter_selectable_tier_surface": false
+  }
+}

@@ -288,6 +288,26 @@ Replay representative title/frontend input traces and prove:
 - switching is impossible during races/results/text-entry modals/Authentic mode;
 - mapped controller types produce identical semantic sequences.
 
+## Current implementation status
+
+The policy-only phase has advanced into a tested product substrate on this branch:
+
+- `native/product/regional_presentation.hpp` owns the shared semantic `RegionalPresentation` type;
+- `regional_presentation_secret.{hpp,cpp}` implements the pure keyboard/controller recognizer with title-surface, Modern-mode, text-entry and timeout gating;
+- `regional_presentation_runtime.{hpp,cpp}` initializes recognition from host state and changes only `HostProductState::regional_presentation`, returning `SaveRequired` only for a real regional transition;
+- host-state schema v6 accepts `regional_presentation=north_america|europe` as a known additive field, so older/sparse v6 files default safely to NorthAmerica and canonical re-save writes the explicit value;
+- host-state/store tests cover Europe serialization/round-trip; standalone regional tests cover PAL/NTSC text, both controller codes, repeated-selection no-op, timeout, wrong-prefix recovery, Authentic/text-entry/off-title rejection and persisted-state initialization.
+
+Still intentionally unwired:
+
+- platform event translation into the semantic matcher;
+- concrete title-surface observation in the production host;
+- save dispatch after `SaveRequired`;
+- title/logo rendering selection;
+- the evidence experiments below.
+
+This keeps the active shared Modern host out of this PR until the current navigation/progression/controls branches are reconciled.
+
 ## Implementation phases
 
 ### Phase 0: evidence closure

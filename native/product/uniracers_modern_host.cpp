@@ -3442,6 +3442,21 @@ extern "C" void ur_uniracers_modern_system_overlay(
             hint, 0xFFFFFFFFu, 1);
     }
 
+    if (modern_mode() && practice_routing()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const char* hint = "PRACTICE ROUTING...  ESC / B / START CANCEL";
+        const int hint_w = width < 320 ? width - 16 : 304;
+        const int hint_x = (width - hint_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, hint_x + 8, 15,
+            hint, 0xFFFFFFFFu, 1);
+    }
+
     if (modern_mode() && g_practice_active &&
         g_practice_launch.stage == ur::product::QuickPracticeLaunchStage::Active) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);

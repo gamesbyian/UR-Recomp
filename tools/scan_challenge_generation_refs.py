@@ -39,7 +39,9 @@ LONG_OPCODES = {
 
 
 def lorom_cpu_address(offset: int) -> str:
-    bank = offset // 0x8000
+    # UR-Recomp documents executable LoROM through its high-bank mirror
+    # (80:xxxx, 81:xxxx, ...), matching the recovered stock routine names.
+    bank = 0x80 | (offset // 0x8000)
     addr = 0x8000 + (offset % 0x8000)
     return f"{bank:02X}:{addr:04X}"
 

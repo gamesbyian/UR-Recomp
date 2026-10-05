@@ -8,8 +8,10 @@ This document owns the regional-presentation feature that lets the shipped game 
 
 The feature is an easter egg, not a settings-menu item and not a separate PAL gameplay mode.
 
-At the idle main-title surface:
+At the stock title-family surface:
 
+- retained title-transition evidence identifies `7E:009F == 0x84` as the title-family state and `0xD7` as the navigable main menu;
+- secret recognition is admitted on `0x84`, not `0xD7`, so controller Left/Right/A inputs cannot steal ordinary main-menu navigation;
 - typing `PAL` on a keyboard selects the European presentation profile;
 - typing `NTSC` selects the North American presentation profile;
 - controller-only users use:
@@ -295,17 +297,21 @@ The policy-only phase has advanced into a tested product substrate on this branc
 - `native/product/regional_presentation.hpp` owns the shared semantic `RegionalPresentation` type;
 - `regional_presentation_secret.{hpp,cpp}` implements the pure keyboard/controller recognizer with title-surface, Modern-mode, text-entry and timeout gating;
 - `regional_presentation_runtime.{hpp,cpp}` initializes recognition from host state and changes only `HostProductState::regional_presentation`, returning `SaveRequired` only for a real regional transition;
+- `regional_presentation_input_policy.hpp` binds admission to the proven `0x84` title-family state, keeps `0xD7` main-menu navigation guest-owned, and provides SDL-free keyboard-letter admission;
 - host-state schema v6 accepts `regional_presentation=north_america|europe` as a known additive field, so older/sparse v6 files default safely to NorthAmerica and canonical re-save writes the explicit value;
 - host-state/store tests cover Europe serialization/round-trip; standalone regional tests cover PAL/NTSC text, both controller codes, repeated-selection no-op, timeout, wrong-prefix recovery, Authentic/text-entry/off-title rejection and persisted-state initialization;
 - store-level acceptance now proves PAL -> durable save -> fresh load -> profile switch -> NTSC -> durable save -> fresh load, establishing global/profile-independent persistence;
 - `tools/analyze_regional_retail_static.py` independently verifies the exact retail identities, 38/45 RNC identity, all seven changed stream ordinals, course mapping, promoted resource/header deltas and candidate printable-string differences;
 - `regional-retail-static-analysis.yml` retains that exact static inventory as JSON/Markdown evidence;
-- `tools/compare_retail_frontend.py` plus `regional-retail-frontend-comparison.yml` now run the same semantic snesref UI routes against both retail ROMs and retain matched framebuffer/text differences plus route failures for interpretation.
+- `tools/compare_retail_frontend.py` plus `regional-retail-frontend-comparison.yml` now run the same semantic snesref UI routes against both retail ROMs and retain matched framebuffer/text differences plus route failures for interpretation; the route now includes title checkpoints at frames 300/360/420 plus first/settled main menu;
+- `tools/compare_regional_audio_packages.py` plus `regional-retail-audio-packages.yml` compare the known 50-block ROM-side APU package pool independently of potentially relocated PAL selector tables;
+- `tools/compare_regional_course_payloads.py` plus `regional-retail-course-payloads.yml` decode the seven changed RNC streams and localize byte changes into header, coarse table, fine-record region, resource list and post-list payload without over-classifying their semantics;
+- the generated-product CMake patch now links the regional secret/runtime sources, so the feature is part of the shipping native product build rather than unit-test-only code.
 
 Still intentionally unwired:
 
 - platform event translation into the semantic matcher;
-- concrete title-surface observation in the production host;
+- thin production-host binding of the already-proven `0x84` title admission policy;
 - save dispatch after `SaveRequired`;
 - title/logo rendering selection;
 - production consumption of the evidence experiments below.

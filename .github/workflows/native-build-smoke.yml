@@ -2136,6 +2136,10 @@ jobs:
             ${{ runner.temp }}/regional-pal.log
             ${{ runner.temp }}/regional-ntsc.log
             ${{ runner.temp }}/regional-verify.log
+            ${{ runner.temp }}/regional-main-menu-negative.log
+            ${{ runner.temp }}/regional-authentic-negative.log
+            ${{ runner.temp }}/regional-main-menu-dumps/
+            ${{ runner.temp }}/regional-authentic-dumps/
             ${{ runner.temp }}/regional-pal-dumps/
             ${{ runner.temp }}/regional-ntsc-dumps/
             ${{ runner.temp }}/pause-controls-edit.log

@@ -2470,12 +2470,12 @@
         ],
         "current_after": {
           "player_frame_observations": 882,
-          "hd_selected_player_frames": 174,
-          "original_fallback_player_frames": 708,
-          "hd_coverage_fraction": 0.19727891156462585,
-          "fallback_burden_removed_fraction": 0.016666666666666666,
-          "absolute_coverage_gain_percentage_points": 1.3605442176870748,
-          "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+          "hd_selected_player_frames": 177,
+          "original_fallback_player_frames": 705,
+          "hd_coverage_fraction": 0.20068027210884354,
+          "fallback_burden_removed_fraction": 0.036885245901639344,
+          "absolute_coverage_gain_percentage_points": 3.061224489795918,
+          "cumulative_baseline_fallback_burden_removed_fraction": 0.036885245901639344
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring.",
         "next_ranked_discriminator": {
@@ -2736,6 +2736,30 @@
             },
             "rule": "0039 remains high-value by measured burden; start it as the next bounded shipping slice from the green post-0439 baseline."
           }
+        },
+        "broader_player_local_spill_in": {
+          "status": "measured-runtime-visible",
+          "player_frames_added": 3,
+          "states": [
+            {
+              "frame": 1585,
+              "player": "p1",
+              "semantic_frame_id": "0x04B9"
+            },
+            {
+              "frame": 1588,
+              "player": "p1",
+              "semantic_frame_id": "0x0239"
+            },
+            {
+              "frame": 1600,
+              "player": "p1",
+              "semantic_frame_id": "0x0439"
+            }
+          ],
+          "reason": "The three broader-route P1 player-local registrations also occur once each inside the retained 441-frame native window. Their P2 peers remain fail-closed Original.",
+          "workflow_run": 37402856706,
+          "artifact_id": 11386595434
         }
       }
     }

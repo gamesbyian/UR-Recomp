@@ -119,6 +119,7 @@ def presentation():
             },
         ],
         "current_after":fallback["current_after"],
+        "broader_player_local_spill_in":fallback["broader_player_local_spill_in"],
         "next_ranked_discriminator":{
             "state":fallback["next_ranked_discriminator"]["state"],
             "observed_frames":fallback["next_ranked_discriminator"]["frames"],

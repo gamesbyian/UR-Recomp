@@ -9,6 +9,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TOOL = ROOT / "tools" / "assemble_windows_package.py"
+WORKFLOW = ROOT / ".github" / "workflows" / "windows-native-smoke.yml"
 
 
 class WindowsPackageTests(unittest.TestCase):
@@ -591,6 +592,17 @@ class WindowsPackageTests(unittest.TestCase):
 
             verified = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verified.stdout)
+
+
+    def test_windows_workflow_verifies_canonical_rom_before_assembly(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        verify = workflow.index(
+            'python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"'
+        )
+        assemble = workflow.index(
+            "python tools/assemble_windows_package.py assemble"
+        )
+        self.assertLess(verify, assemble)
 
 
     def test_missing_source_revision_fails_closed(self):

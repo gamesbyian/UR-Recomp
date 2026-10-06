@@ -79,6 +79,7 @@ jobs:
               "ordinary-racer-0x0239-p1-broader-frequency-reference",
               "ordinary-racer-0x0439-p1-broader-frequency-reference",
               "ordinary-racer-0x0039-p1-broader-frequency-reference",
+              "ordinary-racer-0x00B9-p1-broader-frequency-reference",
           }
           data["entries"] = [
               e for e in data["entries"]
@@ -89,6 +90,7 @@ jobs:
               "ordinary-race-0239-broader-static-1406-1407",
               "ordinary-race-0439-broader-static-1414-1415",
               "ordinary-race-0039-broader-static-1398-1399",
+              "ordinary-race-00b9-broader-static-1400-1401",
           ):
               data.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[1]).write_text(
@@ -105,6 +107,7 @@ jobs:
               "ordinary-racer-0x0239-p1-broader-frequency-reference",
               "ordinary-racer-0x0439-p1-broader-frequency-reference",
               "ordinary-racer-0x0039-p1-broader-frequency-reference",
+              "ordinary-racer-0x00B9-p1-broader-frequency-reference",
           }
           data["entries"] = [
               e for e in data["entries"] if e["representation_id"] not in excluded
@@ -113,6 +116,7 @@ jobs:
               "ordinary-race-0239-broader-static-1406-1407",
               "ordinary-race-0439-broader-static-1414-1415",
               "ordinary-race-0039-broader-static-1398-1399",
+              "ordinary-race-00b9-broader-static-1400-1401",
           ):
               data.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[1]).write_text(
@@ -327,6 +331,7 @@ jobs:
               "ordinary-racer-0x0239-p1-broader-frequency-reference",
               "ordinary-racer-0x0439-p1-broader-frequency-reference",
               "ordinary-racer-0x0039-p1-broader-frequency-reference",
+              "ordinary-racer-0x00B9-p1-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -335,6 +340,7 @@ jobs:
               "ordinary-race-0239-broader-static-1406-1407",
               "ordinary-race-0439-broader-static-1414-1415",
               "ordinary-race-0039-broader-static-1398-1399",
+              "ordinary-race-00b9-broader-static-1400-1401",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(json.dumps(source, indent=2) + "\n")
@@ -346,6 +352,7 @@ jobs:
           excluded = {
               "ordinary-racer-0x0439-p1-broader-frequency-reference",
               "ordinary-racer-0x0039-p1-broader-frequency-reference",
+              "ordinary-racer-0x00B9-p1-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -353,6 +360,7 @@ jobs:
           for key in (
               "ordinary-race-0439-broader-static-1414-1415",
               "ordinary-race-0039-broader-static-1398-1399",
+              "ordinary-race-00b9-broader-static-1400-1401",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(json.dumps(source, indent=2) + "\n")
@@ -466,13 +474,18 @@ jobs:
           python3 - analysis/data/racer-hd-replacement-prototype.json "$RUNNER_TEMP/racer-hd-after-0439-registry.json" <<'PY'
           import json, pathlib, sys
           source = json.loads(pathlib.Path(sys.argv[1]).read_text())
-          rid = "ordinary-racer-0x0039-p1-broader-frequency-reference"
+          excluded = {
+              "ordinary-racer-0x0039-p1-broader-frequency-reference",
+              "ordinary-racer-0x00B9-p1-broader-frequency-reference",
+          }
           source["entries"] = [
-              e for e in source["entries"] if e["representation_id"] != rid
+              e for e in source["entries"] if e["representation_id"] not in excluded
           ]
-          source.get("motion_review_sequences", {}).pop(
-              "ordinary-race-0039-broader-static-1398-1399", None
-          )
+          for key in (
+              "ordinary-race-0039-broader-static-1398-1399",
+              "ordinary-race-00b9-broader-static-1400-1401",
+          ):
+              source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
               json.dumps(source, indent=2, sort_keys=True) + "\n"
           )
@@ -602,6 +615,25 @@ jobs:
           }, sort_keys=True))
           PY
 
+      - name: Stage post-0039 registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - analysis/data/racer-hd-replacement-prototype.json "$RUNNER_TEMP/racer-hd-after-0039-registry.json" <<'PY'
+          import json, pathlib, sys
+          source = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          rid = "ordinary-racer-0x00B9-p1-broader-frequency-reference"
+          source["entries"] = [
+              e for e in source["entries"] if e["representation_id"] != rid
+          ]
+          source.get("motion_review_sequences", {}).pop(
+              "ordinary-race-00b9-broader-static-1400-1401", None
+          )
+          pathlib.Path(sys.argv[2]).write_text(
+              json.dumps(source, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+
       - name: Measure and review P1 0039 context
         shell: bash
         run: |
@@ -620,6 +652,7 @@ jobs:
           python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
             "$RUNNER_TEMP/racer-hd-broader-dumps" \
             --prefix racer-sample \
+            --registry "$RUNNER_TEMP/racer-hd-after-0039-registry.json" \
             --workflow-run "${{ github.run_id }}" \
             --json-out "$RUNNER_TEMP/racer-hd-after-0039.json" \
             --trace-out "$RUNNER_TEMP/racer-hd-after-0039-trace.json" \
@@ -708,6 +741,7 @@ jobs:
           python3 tools/probe_racer_hd_ranked_visual_context.py \
             "$ROM" \
             "$RUNNER_TEMP/racer-hd-after-0039.json" \
+            --registry "$RUNNER_TEMP/racer-hd-after-0039-registry.json" \
             --rank 0 \
             --json-out "$RUNNER_TEMP/racer-hd-post-0039-next-probe.json" \
             --output-dir "$RUNNER_TEMP/racer-hd-post-0039-next-probe" \
@@ -722,6 +756,98 @@ jobs:
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],
           }, sort_keys=True))
+          PY
+
+      - name: Measure and review P1 00B9 context
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+
+          python3 tools/probe_racer_hd_ranked_visual_context.py \
+            "$ROM" \
+            "$RUNNER_TEMP/racer-hd-after-0039.json" \
+            --registry "$RUNNER_TEMP/racer-hd-after-0039-registry.json" \
+            --rank 0 \
+            --json-out "$RUNNER_TEMP/racer-hd-00b9-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-00b9-probe" \
+            > "$RUNNER_TEMP/racer-hd-00b9-probe.txt"
+
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
+            "$RUNNER_TEMP/racer-hd-broader-dumps" \
+            --prefix racer-sample \
+            --workflow-run "${{ github.run_id }}" \
+            --json-out "$RUNNER_TEMP/racer-hd-after-00b9.json" \
+            --trace-out "$RUNNER_TEMP/racer-hd-after-00b9-trace.json" \
+            > "$RUNNER_TEMP/racer-hd-after-00b9.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-after-0039.json" "$RUNNER_TEMP/racer-hd-after-00b9.json" "$RUNNER_TEMP/racer-hd-00b9-probe.json" <<'PY'
+          import json, pathlib, sys
+          before = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          after = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          probe = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          b, a = before["measurement"], after["measurement"]
+          target = probe["target"]
+          assert (b["hd_selected_player_frames"], b["original_fallback_player_frames"]) == (431, 4851), b
+          assert target["player"] == "p1"
+          assert target["semantic_frame_id"] == "0x00B9"
+          assert target["player_frames"] == 75
+          assert target["episode_count"] == 56
+          assert probe["witness_exact_state_count"] == 48
+          assert probe["unique_stock_raster_count"] == 1
+          assert probe["canonical"]["stock_rgba_sha256"] == "4731c8eda730062bd4bf0157417a7147594221e38c689b48699bdf1e02ae0161"
+          assert probe["canonical"]["normalized_geometry_sha256"] == "c6cbc07d83c88ca3f45250e2b5f57964ca2cd1aec070eaa4d836cf629e06ef97"
+          assert probe["canonical"]["alpha_bounds"] == [18, 5, 47, 36]
+          assert probe["canonical"]["contact_x2_y2"] == [77, 72]
+          assert probe["canonical"]["exact_same_player_matches"] == []
+          assert probe["canonical"]["palette_normalized_matches"] == []
+          assert (a["hd_selected_player_frames"], a["original_fallback_player_frames"]) == (506, 4776), a
+          assert a["hd_selected_player_frames"] - b["hd_selected_player_frames"] == 75
+          print("RACER_HD_00B9_GAIN before=431/5282 after=506/5282 removed=75")
+          PY
+
+          DOSSIER="$RUNNER_TEMP/racer-hd-00b9-dossier"
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-after-00b9-trace.json" \
+            --window-start 1400 \
+            --window-end 1401 \
+            --player p1 \
+            --output-dir "$DOSSIER" \
+            > "$RUNNER_TEMP/racer-hd-00b9-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$DOSSIER/manifest.json" \
+            --out "$DOSSIER/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-00b9-equivalence.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$DOSSIER/manifest.json" \
+            "$DOSSIER/pose-equivalence.json" \
+            --output-dir "$DOSSIER/review" \
+            > "$RUNNER_TEMP/racer-hd-00b9-review.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-00b9-broader-static-1400-1401 \
+            --json-out "$RUNNER_TEMP/racer-hd-00b9-temporal.json" \
+            > "$RUNNER_TEMP/racer-hd-00b9-temporal.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-00b9-temporal.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.73, review
+          assert temporal["players"] == ["p1"]
+          assert all(temporal["validation"].values()), temporal
+          print("RACER_HD_00B9_REVIEW", json.dumps(review, sort_keys=True))
+          print("RACER_HD_00B9_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"])
           PY
 
       - uses: actions/upload-artifact@v4
@@ -792,6 +918,18 @@ jobs:
             ${{ runner.temp }}/racer-hd-post-0039-next-probe.json
             ${{ runner.temp }}/racer-hd-post-0039-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-0039-next-probe/
+            ${{ runner.temp }}/racer-hd-00b9-probe.json
+            ${{ runner.temp }}/racer-hd-00b9-probe.txt
+            ${{ runner.temp }}/racer-hd-00b9-probe/
+            ${{ runner.temp }}/racer-hd-after-00b9.json
+            ${{ runner.temp }}/racer-hd-after-00b9.txt
+            ${{ runner.temp }}/racer-hd-after-00b9-trace.json
+            ${{ runner.temp }}/racer-hd-00b9-dossier/
+            ${{ runner.temp }}/racer-hd-00b9-dossier.txt
+            ${{ runner.temp }}/racer-hd-00b9-equivalence.txt
+            ${{ runner.temp }}/racer-hd-00b9-review.txt
+            ${{ runner.temp }}/racer-hd-00b9-temporal.json
+            ${{ runner.temp }}/racer-hd-00b9-temporal.txt
             ${{ runner.temp }}/racer-hd-0439-temporal.json
             ${{ runner.temp }}/racer-hd-0439-temporal.txt
             ${{ runner.temp }}/racer-hd-next-visual-probe.json

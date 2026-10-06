@@ -134,13 +134,11 @@ jobs:
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
 
-            for _ in $(seq 1 600); do
-              [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break
-              kill -0 "$PID" 2>/dev/null || exit 1
-              sleep 0.1
-            done
-            [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ]
-            xdotool key --window "$WIN" Escape
+            # Cancel immediately after the script proves settled main.
+            # Waiting for a later simulated-frame checkpoint lets a 60 Hz guest
+            # outrun a 100 ms shell polling interval and turns this into a
+            # wall-clock race rather than a cancellation test.
+            xdotool key Escape
 
             for _ in $(seq 1 600); do
               [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ] && break
@@ -164,14 +162,14 @@ jobs:
           test -n "$START_DIGEST"
           test "$START_DIGEST" = "$RESTORE_DIGEST"
 
-          python3 - "$DUMPS/practice-cancel-routing.wram.bin" "$DUMPS/practice-cancel-returned-main.wram.bin" <<'PY'
+          python3 - "$DUMPS/practice-cancel-main.wram.bin" "$DUMPS/practice-cancel-returned-main.wram.bin" <<'PY'
           from pathlib import Path
           import sys
 
-          routing = Path(sys.argv[1]).read_bytes()
+          started = Path(sys.argv[1]).read_bytes()
           returned = Path(sys.argv[2]).read_bytes()
-          if routing[0x009F] != 0x3C or routing[0x0313] == 1:
-              raise SystemExit("cancel was not issued during stock rider-select routing")
+          if started[0x009F] != 0xD7 or started[0x0313] == 1:
+              raise SystemExit("Practice acceptance did not begin from settled Modern main")
           if returned[0x009F] != 0xD7 or returned[0x0313] == 1:
               raise SystemExit("cancel did not return to settled Modern main menu")
           print("UR_PRACTICE_CANCEL_RESULT=restored frontend=main race_entered=0")

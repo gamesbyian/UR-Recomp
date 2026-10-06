@@ -179,7 +179,7 @@
       "id": "uncensored-name-list-patch",
       "value": "medium",
       "cost": "low",
-      "status": "closed-local",
+      "status": "complete",
       "status_note": "Archival tail: only a small public IPS mirror remains to find (was status archival-tail).",
       "source_ids": [
         "romhack-uncensored",

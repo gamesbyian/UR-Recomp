@@ -60,10 +60,13 @@ class ModernControlsHostContractTests(unittest.TestCase):
             'extern "C" void ur_uniracers_modern_system_overlay(', start)
         body = source[start:end]
 
-        self.assertIn("!g_controls_visible", body)
+        controls = body.index("if (g_controls_visible)")
+        regional = body.index("RegionalControllerAction regional_action")
+        self.assertLess(controls, regional)
         self.assertIn("modern_controls_action_for_snes_control", body)
         self.assertIn("handle_controls_action(action)", body)
         self.assertIn("UR_CONTROLS CAPTURE_CANCELLED", body)
+        self.assertIn("return 1;", body[controls:regional])
 
     def test_controls_precede_paused_records_gamepad_shortcuts(self):
         source = WRAPPER.read_text(encoding="utf-8")

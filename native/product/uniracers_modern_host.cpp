@@ -31,6 +31,7 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
+#include "regional_presentation_input_coordinator.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
@@ -81,6 +82,8 @@ std::string uppercase_keybind_label(SDL_Scancode scancode) {
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
+std::optional<ur::product::RegionalPresentationInputCoordinator>
+    g_regional_input;
 ur::product::HostPresentationFpsMode g_live_presentation_fps_mode =
     ur::product::HostPresentationFpsMode::Game;
 bool g_product_state_initialized;
@@ -207,6 +210,7 @@ bool modern_mode() {
 }
 
 void ensure_product_state();
+bool persist_product_state(const ur::product::HostProductState& candidate);
 void ensure_profile_catalog();
 void product_diagnostic(const char* message);
 bool paused();
@@ -215,6 +219,57 @@ bool dispatch(UrModernPauseAction action);
 bool abort_practice_route_to_frontend(const char* diagnostic);
 void rearm_run_capture_after_retry();
 uint32_t current_sram_digest();
+const char* regional_presentation_name(
+    ur::product::RegionalPresentation presentation) noexcept {
+    return presentation == ur::product::RegionalPresentation::Europe
+        ? "europe" : "north_america";
+}
+
+bool regional_host_text_entry_active() noexcept {
+    return g_profile_edit_mode != ProfileEditMode::None;
+}
+
+ur::product::RegionalSecretContext current_regional_secret_context() noexcept {
+    const bool in_race =
+        g_ram && g_ram[0x0313] == 0x01;
+    const std::uint8_t current_menu =
+        g_ram ? g_ram[0x009F] : 0u;
+    return ur::product::regional_secret_context(
+        modern_mode(),
+        current_menu,
+        in_race,
+        regional_host_text_entry_active());
+}
+
+ur::product::RegionalPresentationInputCoordinator&
+regional_input_coordinator() {
+    ensure_product_state();
+    if (!g_regional_input) {
+        g_regional_input.emplace(g_product_state);
+    }
+    return *g_regional_input;
+}
+
+bool apply_regional_input_decision(
+    const ur::product::RegionalInputDecision& decision,
+    const char* source) {
+    if (decision.update ==
+        ur::product::RegionalPresentationUpdate::SaveRequired) {
+        const bool saved = persist_product_state(g_product_state);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_REGIONAL SWITCH source=%s presentation=%s saved=%d\n",
+                source,
+                regional_presentation_name(
+                    g_product_state.regional_presentation),
+                saved ? 1 : 0);
+            std::fflush(stderr);
+        }
+    }
+    return decision.consume;
+}
+
 void apply_profile_save_root() {
     ensure_product_state();
 
@@ -1135,7 +1190,9 @@ void ensure_product_state() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_HOST_STATE LOADED pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s output_resolution=%s widescreen=%s internal_render_scale=%dx\n",
+                "UR_HOST_STATE LOADED regional_presentation=%s pause_on_focus_loss=%d display_mode=%s vsync=%s presentation_fps=%s output_resolution=%s widescreen=%s internal_render_scale=%dx\n",
+                regional_presentation_name(
+                    g_product_state.regional_presentation),
                 g_product_state.settings.pause_on_focus_loss ? 1 : 0,
                 display_mode_name(g_product_state.settings.display_mode),
                 vsync_mode_name(g_product_state.settings.vsync_mode),
@@ -3398,6 +3455,17 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    {
+        const auto regional = regional_input_coordinator().keyboard_key(
+            g_product_state,
+            key,
+            static_cast<std::uint64_t>(SDL_GetTicks()),
+            current_regional_secret_context());
+        if (apply_regional_input_decision(regional, "keyboard")) {
+            return 1;
+        }
+    }
+
     // Controls is modal input ownership. In particular, capture must see keys
     // such as F1/F3 before any global Modern shortcut can consume them.
     if (g_controls_visible) {
@@ -3703,7 +3771,37 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
             control, &action)) {
         (void)handle_controls_action(action);
     }
-    return 1;
+    ur::product::RegionalControllerAction regional_action =
+        ur::product::RegionalControllerAction::Other;
+    switch (control) {
+    case 2:
+        regional_action = ur::product::RegionalControllerAction::Left;
+        break;
+    case 3:
+        regional_action = ur::product::RegionalControllerAction::Right;
+        break;
+    case 6:
+        regional_action = ur::product::RegionalControllerAction::Accept;
+        break;
+    case 10:
+        regional_action = ur::product::RegionalControllerAction::ShoulderL;
+        break;
+    case 11:
+        regional_action = ur::product::RegionalControllerAction::ShoulderR;
+        break;
+    default:
+        break;
+    }
+    const auto regional = regional_input_coordinator().controller_button(
+        g_product_state,
+        regional_action,
+        pressed != 0,
+        static_cast<std::uint64_t>(SDL_GetTicks()),
+        current_regional_secret_context());
+    if (apply_regional_input_decision(regional, "controller")) {
+        return 1;
+    }
+    return 0;
 }
 
 extern "C" void ur_uniracers_modern_system_overlay(

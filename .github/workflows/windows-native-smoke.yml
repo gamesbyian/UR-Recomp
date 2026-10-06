@@ -336,6 +336,11 @@ jobs:
 
           printf 'destination-wins\n' > "$MIGRATED/saves/legacy-marker.srm"
           printf '# destination-wins-mod\n' >> "$MIGRATED/mod-state.toml"
+          mkdir -p "$MIGRATED/.ur-recomp-saves.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-saves.migrate.tmp/stale.srm"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-mod-state.toml.migrate.tmp"
           set +e
           SDL_VIDEODRIVER=offscreen \
           SDL_AUDIODRIVER=dummy \
@@ -348,6 +353,10 @@ jobs:
           test "$RC" -eq 0
           grep -Fq "destination-wins" "$MIGRATED/saves/legacy-marker.srm"
           grep -Fq "destination-wins-mod" "$MIGRATED/mod-state.toml"
+          test ! -e "$MIGRATED/.ur-recomp-saves.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-mod-state.toml.migrate.tmp"
           echo "WINDOWS_PACKAGE_LEGACY_MIGRATION ok"
 
       - name: Boot to main menu

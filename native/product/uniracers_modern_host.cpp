@@ -131,6 +131,8 @@ unsigned g_ghost_target_acceptance_frames;
 bool g_ghost_target_acceptance_fired;
 unsigned g_recent_course_acceptance_frames;
 bool g_recent_course_acceptance_fired;
+unsigned g_pause_open_acceptance_frames;
+bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
@@ -4125,6 +4127,26 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             }
         } else if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
             g_recent_course_acceptance_frames = 0;
+        }
+
+        // Native pause-surface acceptances need to enter the host layer only
+        // after an authoritative active-race checkpoint is observable. Do that
+        // once on the emulated-frame boundary; individual tests can still drive
+        // the real pause/options/controls surfaces through desktop input.
+        if (!g_pause_open_acceptance_fired &&
+            std::getenv("UR_PAUSE_OPEN_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE && !paused()) {
+            ++g_pause_open_acceptance_frames;
+            if (g_pause_open_acceptance_frames >= 120u) {
+                g_pause_open_acceptance_fired = true;
+                g_pause_open_acceptance_frames = 0;
+                if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                    diagnose_pause_state();
+                    product_diagnostic("UR_PAUSE_ACCEPTANCE OPENED");
+                }
+            }
+        } else if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            g_pause_open_acceptance_frames = 0;
         }
     }
 

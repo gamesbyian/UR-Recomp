@@ -51,7 +51,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-title-input-filter.patch",
-      "sha256": "4132c884e0a66802713623c46322619987f50c6c9254bc4cff4aedb3d1a5a238"
+      "sha256": "5e95204dda776185d94acc2ddf589e6964e1f37ef569336840ea78b411b09e47"
     },
     {
       "path": "tools/patches/snesrecomp-source-gamepad-hook.patch",

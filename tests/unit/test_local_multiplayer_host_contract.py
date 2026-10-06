@@ -21,10 +21,10 @@ class LocalMultiplayerHostContractTests(unittest.TestCase):
     def test_framework_source_hook_precedes_ordinary_title_dispatch(self):
         source = PATCH.read_text(encoding="utf-8")
         source_callback = source.index("g_game->system_gamepad_source_button(")
-        ordinary_callback = source.index("g_game->system_gamepad_button(button, pressed)")
-        dispatch = source.index("SetPadButtonOrFallthrough")
-        self.assertLess(source_callback, ordinary_callback)
-        self.assertLess(ordinary_callback, dispatch)
+        consume_return = source.index("    return;", source_callback)
+        bookkeeping = source.index("Keep per-controller physical/modifier bookkeeping", source_callback)
+        self.assertLess(source_callback, consume_return)
+        self.assertLess(consume_return, bookkeeping)
         self.assertIn("system_gamepad_source_connection", source)
 
     def test_modern_join_is_contextual_to_stock_two_player_select(self):

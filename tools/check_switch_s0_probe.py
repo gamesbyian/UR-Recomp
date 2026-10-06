@@ -71,12 +71,12 @@ def check_contract(root: Path = ROOT) -> list[str]:
         errors.append("S0 workflow must explicitly load the devkitPro Switch environment")
     if "workflow_dispatch:" not in workflow:
         errors.append("S0 workflow must remain manually runnable")
-    if "pull_request:" not in workflow:
-        errors.append("S0 workflow must validate probe changes before merge")
+    if "pull_request:" in workflow:
+        errors.append("S0 workflow must remain manual-only while Switch work is deferred")
     if "timeout-minutes:" not in workflow:
         errors.append("S0 workflow requires an explicit job timeout")
     if "concurrency:" not in workflow:
-        errors.append("S0 automatic validation requires concurrency cancellation")
+        errors.append("S0 manual validation must retain bounded concurrency")
     if "actions/upload-artifact@" not in workflow:
         errors.append("S0 workflow must retain build metadata")
 

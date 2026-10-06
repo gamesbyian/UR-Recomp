@@ -429,6 +429,19 @@ jobs:
           test "$RC" -eq 3
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-unwritable-root.log"
 
+          set +e
+          UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\
+            powershell.exe -NoProfile -Command \\
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+              >"$RUNNER_TEMP/package-relative-root.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-relative-root.log"
+          test "$RC" -eq 3
+          grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-relative-root.log"
+          grep -Fq "must be an absolute Windows path" "$RUNNER_TEMP/package-relative-root.log"
+          test ! -e "$TEST_PACKAGE/relative-user-data"
+
           BAD_IMAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64-invalid-rom"
           INVALID_USER="$RUNNER_TEMP/package-invalid-rom-user-data"
           cp -R "$TEST_PACKAGE" "$BAD_IMAGE"

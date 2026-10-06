@@ -532,9 +532,9 @@ jobs:
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-unwritable-root.log"
 
           set +e
-          env -u UR_RECOMP_USER_DATA_ROOT -u APPDATA \\
-            powershell.exe -NoProfile -Command \\
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+          env -u UR_RECOMP_USER_DATA_ROOT -u APPDATA \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-missing-appdata.log" 2>&1
           RC=$?
           set -e
@@ -548,9 +548,9 @@ jobs:
           mkdir -p "$BAD_TYPE_ROOT/config.ini"
           BAD_TYPE_ROOT_WIN="$(cygpath -w "$BAD_TYPE_ROOT")"
           set +e
-          UR_RECOMP_USER_DATA_ROOT="$BAD_TYPE_ROOT_WIN" \\
-            powershell.exe -NoProfile -Command \\
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+          UR_RECOMP_USER_DATA_ROOT="$BAD_TYPE_ROOT_WIN" \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-bad-type-root.log" 2>&1
           RC=$?
           set -e
@@ -560,9 +560,9 @@ jobs:
           grep -Fq "User data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
 
           set +e
-          UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\
-            powershell.exe -NoProfile -Command \\
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+          UR_RECOMP_USER_DATA_ROOT="relative-user-data" \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-relative-root.log" 2>&1
           RC=$?
           set -e
@@ -573,9 +573,9 @@ jobs:
           test ! -e "$TEST_PACKAGE/relative-user-data"
 
           set +e
-          env -u UR_RECOMP_USER_DATA_ROOT APPDATA="relative-appdata" \\
-            powershell.exe -NoProfile -Command \\
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+          env -u UR_RECOMP_USER_DATA_ROOT APPDATA="relative-appdata" \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-relative-appdata.log" 2>&1
           RC=$?
           set -e
@@ -587,9 +587,9 @@ jobs:
 
           INSIDE_ROOT_WIN="$(cygpath -w "$TEST_PACKAGE/user-data")"
           set +e
-          UR_RECOMP_USER_DATA_ROOT="$INSIDE_ROOT_WIN" \\
-            powershell.exe -NoProfile -Command \\
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+          UR_RECOMP_USER_DATA_ROOT="$INSIDE_ROOT_WIN" \
+            powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
               >"$RUNNER_TEMP/package-inside-root.log" 2>&1
           RC=$?
           set -e

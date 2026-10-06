@@ -586,9 +586,9 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'"
-            xdotool key n
-            xdotool key Left
-            xdotool key Return
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Left
+            xdotool key --window "$WIN" Return
             for _ in $(seq 1 100); do
               grep -q "UR_PROFILE_UI CREATED" "'"$LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
@@ -599,9 +599,9 @@ jobs:
             # A rejected edit is still modal: submit an empty rename first
             # and prove the host consumes it instead of dismissing the editor or
             # forwarding Enter to the stock rider-select screen underneath.
-            xdotool key r
-            xdotool key BackSpace BackSpace BackSpace BackSpace BackSpace
-            xdotool key Return
+            xdotool key --window "$WIN" r
+            xdotool key --window "$WIN" BackSpace BackSpace BackSpace BackSpace BackSpace
+            xdotool key --window "$WIN" Return
             for _ in $(seq 1 100); do
               grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
@@ -609,8 +609,8 @@ jobs:
             done
             grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'"
 
-            xdotool type SONIC
-            xdotool key Return
+            xdotool type --window "$WIN" SONIC
+            xdotool key --window "$WIN" Return
             for _ in $(seq 1 100); do
               grep -q "UR_PROFILE_UI RENAMED" "'"$LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
@@ -621,23 +621,23 @@ jobs:
 
             # Create a second independent default MIKE profile, then switch
             # back to the first profile through the actual chooser.
-            xdotool key n
-            xdotool key Return
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Return
             for _ in $(seq 1 100); do
               [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ] && break
               kill -0 "$PID" 2>/dev/null || exit 1
               sleep 0.1
             done
             [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ]
-            xdotool key Up
-            xdotool key Return
+            xdotool key --window "$WIN" Up
+            xdotool key --window "$WIN" Return
             for _ in $(seq 1 100); do
               [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ] && break
               kill -0 "$PID" 2>/dev/null || exit 1
               sleep 0.1
             done
             [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ]
-            xdotool key Escape
+            xdotool key --window "$WIN" Escape
 
             # Closing the host modal arms a frame-bound acceptance handoff.
             # Stock rider confirmation is queued through the deterministic

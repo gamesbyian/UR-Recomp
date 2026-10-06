@@ -1,0 +1,224 @@
+name: Profile panel native acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/**"
+      - "tests/input/modern-profile-panel-acceptance.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/**"
+      - "tools/patches/**"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/patch_modern_product_host.py"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/profile-panel-native-acceptance.yml"
+
+concurrency:
+  group: profile-panel-native-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  profile-panel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb xdotool \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Build native target
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/profile-panel-build"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" --name "Uniracers" --players 2 --yes \
+              --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/profile-panel-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      - name: Profile panel acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.build.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-profile-panel-acceptance.script"
+          ROOT="$RUNNER_TEMP/modern-profile-panel"
+          STATE="$ROOT/host-state-v6.txt"
+          LOG="$ROOT/run.log"
+          DUMPS="$ROOT/dumps"
+          SAVE_ROOT="$(dirname "$EXE")/saves/profile-steve"
+          SECOND_ROOT="$(dirname "$EXE")/saves/profile-mike"
+          rm -rf "$ROOT" "$SAVE_ROOT" "$SECOND_ROOT"
+          mkdir -p "$DUMPS"
+          cat >"$STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
+          set +e
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_HOST_STATE_PATH="'"$STATE"'"
+            export UR_PROFILE_PANEL_ACCEPTANCE=1
+            export UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH="'"$ROOT"'/profile-panel-input.txt"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/profile-panel-rider-select-ready.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/profile-panel-rider-select-ready.wram.bin" ]
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              xdotool key --window "$WIN" F2
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'"
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Left
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI CREATED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI CREATED" "'"$LOG"'"
+            xdotool key --window "$WIN" r
+            xdotool key --window "$WIN" BackSpace BackSpace BackSpace BackSpace BackSpace
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'"
+            xdotool type --window "$WIN" SONIC
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI RENAMED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI RENAMED" "'"$LOG"'"
+            grep -q "UR_PROFILE_UI COOL_NAME" "'"$LOG"'"
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ]
+            xdotool key --window "$WIN" Up
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ]
+            xdotool key --window "$WIN" Escape
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED" "'"$LOG"'"
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/profile-panel-tour-ready.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/profile-panel-tour-ready.wram.bin" ]
+            wait "$PID"
+          '
+          STATUS=$?
+          set -e
+          cat "$LOG" || true
+          if [ "$STATUS" -ne 0 ]; then
+            exit "$STATUS"
+          fi
+          grep -q "^profile=steve$" "$STATE"
+          test -s "$SAVE_ROOT/host-profile.txt"
+          grep -q "^racer_name=SONIC$" "$SAVE_ROOT/host-profile.txt"
+          grep -q "^racer_index=15$" "$SAVE_ROOT/host-profile.txt"
+          test -s "$SECOND_ROOT/host-profile.txt"
+          grep -q "^profile=mike$" "$SECOND_ROOT/host-profile.txt"
+          grep -q "^racer_name=MIKE$" "$SECOND_ROOT/host-profile.txt"
+          grep -q "^racer_index=0$" "$SECOND_ROOT/host-profile.txt"
+          python3 - "$DUMPS/profile-panel-tour-ready.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+          wram = Path(sys.argv[1]).read_bytes()
+          if wram[0x017D] != 15:
+              raise SystemExit(f"wrong stock rider: {wram[0x017D]}")
+          PY
+
+      - name: Upload targeted diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-panel-native-acceptance
+          path: |
+            ${{ runner.temp }}/modern-profile-panel/run.log
+            ${{ runner.temp }}/modern-profile-panel/host-state-v6.txt
+            ${{ runner.temp }}/modern-profile-panel/dumps/*.wram.bin
+          if-no-files-found: ignore

@@ -78,7 +78,7 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                "UR-STARTUP-ROM-MISSING: packaged ROM is missing",
+                "UR-STARTUP-ROM-MISSING",
                 launcher,
             )
             self.assertIn("UR-STARTUP-RUNTIME-DATA", launcher)
@@ -87,6 +87,13 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn("UR-STARTUP-SAVE-ROOT", launcher)
+            self.assertIn("diagnostics\\startup.log", launcher)
+            self.assertIn("schema=ur-startup-log-v1", launcher)
+            self.assertIn("build_revision=abc123", launcher)
+            self.assertIn("architecture=x64", launcher)
+            self.assertIn("SNESRECOMP_STARTUP_LOG", launcher)
+            self.assertIn(":startup_fail", launcher)
+            self.assertIn("process_exit=%UR_GAME_RC%", launcher)
             self.assertIn(
                 "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",
                 launcher,
@@ -203,7 +210,7 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\saves\\*" /s /d', launcher)
             self.assertNotIn("UR_MIGRATE_FILE", launcher)
             self.assertNotIn("UR_MIGRATE_DIR", launcher)
-            self.assertIn("exit /b %ERRORLEVEL%", launcher)
+            self.assertIn("exit /b %UR_GAME_RC%", launcher)
 
             manifest = json.loads(
                 (package / "PACKAGE-MANIFEST.json").read_text()

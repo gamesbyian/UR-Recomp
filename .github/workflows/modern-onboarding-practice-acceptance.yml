@@ -112,6 +112,7 @@ jobs:
             export UR_ONBOARDING_STATE_PATH="'"$MARKER"'"
             export UR_PRACTICE_SAVE_ROOT="'"$PRACTICE_ROOT"'"
             export UR_PRACTICE_INPUT_PATH="'"$PRACTICE_INPUT"'"
+            export UR_PRACTICE_ACCEPTANCE=1
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
 
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
@@ -132,12 +133,6 @@ jobs:
             done
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
-            # Send directly to the resolved game window. A second F5 is safe:
-            # once routing begins, the modal route consumes all non-Escape
-            # product edges; if the first X11 edge was lost, the second starts it.
-            xdotool key --window "$WIN" F5
-            sleep 0.1
-            xdotool key --window "$WIN" F5
 
             for _ in $(seq 1 600); do
               [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break

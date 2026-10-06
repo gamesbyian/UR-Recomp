@@ -584,6 +584,20 @@ class WindowsPackageTests(unittest.TestCase):
                 multiline.stderr,
             )
 
+            tabbed = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", root / "package-tabbed",
+                "--source-revision", "abc123\tspoofed",
+                check=False,
+            )
+            self.assertNotEqual(tabbed.returncode, 0)
+            self.assertIn(
+                "source revision is required for a shippable package",
+                tabbed.stderr,
+            )
+
 
 
 if __name__ == "__main__":

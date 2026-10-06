@@ -18,9 +18,11 @@ class ModernControlsHostContractTests(unittest.TestCase):
 
         controls = body.index("if (g_controls_visible)")
         help_shortcut = body.index("key == SDLK_F1")
-        continue_shortcut = body.index("key == SDLK_F3")
+        tour_shortcut = body.index(
+            "if (modern_mode() && key == SDLK_F3 && !paused()"
+        )
         self.assertLess(controls, help_shortcut)
-        self.assertLess(controls, continue_shortcut)
+        self.assertLess(controls, tour_shortcut)
         self.assertIn("return handle_controls_key(key) ? 1 : 0;", body)
 
     def test_raw_controls_gamepad_path_defers_to_framework_mapping(self):
@@ -40,6 +42,130 @@ class ModernControlsHostContractTests(unittest.TestCase):
         self.assertLess(controls, generic_release)
         self.assertIn("mapped P1 semantics only", controls_block)
         self.assertIn("return -1;", controls_block)
+
+    def test_failed_restart_retirement_aborts_through_rollback(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index(
+            "if (retire_tour_continuation_after_stock_reset())"
+        )
+        end = source.index(
+            "if (current->rider_index == saved.rider_index", start
+        )
+        body = source[start:end]
+        self.assertIn(
+            'abort_tour_continue(\n'
+            '                        "UR_TOUR_RESTART RETIRE_PERSIST_FAILED")',
+            body,
+        )
+        self.assertNotIn("Keep Ready", body)
+
+    def test_restart_retirement_publishes_profile_before_sram(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index("bool retire_tour_continuation_after_stock_reset()")
+        end = source.index("bool save_active_profile_state(", start)
+        body = source[start:end]
+
+        profile_save = body.index("save_host_profile_state_file(")
+        sram_save = body.index("RtlTryWriteSram()")
+        rollback = body.index("UR_TOUR_RESTART PROFILE_ROLLED_BACK")
+        self.assertLess(profile_save, sram_save)
+        self.assertLess(sram_save, rollback)
+        self.assertIn("candidate.tour_continuation.reset()", body)
+        self.assertIn("g_profile_state = std::move(candidate);", body)
+
+    def test_tour_route_uses_semantic_race_surface(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index("void advance_tour_continue_route(uint64_t next_frame)")
+        end = source.index("bool retire_tour_continuation_after_stock_reset()", start)
+        body = source[start:end]
+
+        self.assertIn(
+            "g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE",
+            body,
+        )
+        self.assertNotIn(
+            "g_ram[0x0313] == 0x01",
+            body,
+        )
+
+    def test_explicit_tour_route_suppresses_passive_resume_until_ready(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index("void reconcile_tour_resume()")
+        end = source.index("bool restart_surface()", start)
+        body = source[start:end]
+
+        ownership = body.index(
+            "g_tour_continue.stage !=\n"
+            "            ur::product::ModernTourContinueStage::Idle"
+        )
+        passive = body.index(
+            "// Passive stock arrival at TRACK_SELECT"
+        )
+        self.assertLess(ownership, passive)
+        self.assertIn(
+            "ModernTourContinueStage::Ready",
+            body[ownership:ownership + 400],
+        )
+
+    def test_tour_wipe_detection_uses_title_owned_empty_row_evidence(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index("bool tour_entry_crossed_stock_rider_wipe()")
+        end = source.index(
+            "bool rollback_tour_entry_to_profile_snapshot()", start
+        )
+        body = source[start:end]
+        self.assertIn("tour_qualification_row_empty(", body)
+        self.assertIn("g_profile_state->tour_continuation", body)
+
+    def test_tour_terminal_failures_preserve_pre_step_wipe_state(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index("void advance_tour_continue_route(uint64_t next_frame)")
+        end = source.index("void reconcile_tour_resume()", start)
+        body = source[start:end]
+
+        crossed = body.index(
+            "const bool crossed_stock_rider_wipe =\n"
+            "        tour_entry_crossed_stock_rider_wipe();"
+        )
+        advance = body.index("advance_modern_tour_continue(")
+        timeout = body.index("ABORTED_TIMEOUT")
+        unexpected = body.index("ABORTED_UNEXPECTED_RACE")
+        self.assertLess(crossed, advance)
+        self.assertIn("crossed_stock_rider_wipe", body[timeout:timeout + 180])
+        unexpected_abort = body.index(
+            "abort_tour_continue(", unexpected
+        )
+        self.assertIn(
+            "crossed_stock_rider_wipe",
+            body[unexpected_abort:unexpected_abort + 220],
+        )
+
+    def test_tour_controller_shortcut_is_semantic_end_to_end(self):
+        source = HOST.read_text(encoding="utf-8")
+        raw_start = source.index(
+            'extern "C" int ur_uniracers_modern_system_gamepad_button(')
+        raw_end = source.index(
+            'extern "C" int ur_uniracers_modern_system_gamepad_control(',
+            raw_start,
+        )
+        raw = source[raw_start:raw_end]
+        semantic_start = raw_end
+        semantic_end = source.index(
+            'extern "C" void ur_uniracers_modern_system_overlay(',
+            semantic_start,
+        )
+        semantic = source[semantic_start:semantic_end]
+
+        self.assertNotIn(
+            "button == kGamepadBtn_Y &&\n"
+            "             (tour_continue_available()",
+            raw,
+        )
+        self.assertIn(
+            "pressed && control == 9",
+            semantic,
+        )
+        self.assertIn("open_tour_action_menu()", semantic)
 
     def test_framework_bookkeeps_gamepad_edge_before_title_callback(self):
         source = GAMEPAD_PATCH.read_text(encoding="utf-8")

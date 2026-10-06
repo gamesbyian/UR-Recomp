@@ -1,9 +1,16 @@
-# Fresh-process Modern Continue Tour acceptance.
-# The host-side acceptance trigger fires on the first settled stock main-menu
-# observation. Launch-surface proof comes from the structured STARTED
-# diagnostic; this script proves the route reaches TRACK_SELECT and stops there.
+# Fresh-process Modern Tour entry acceptance.
+# First expose a deterministic settled-main synchronization point for the
+# player-facing F3 / controller surface. The selected action then owns only
+# ordinary stock menu inputs until TRACK_SELECT.
 
-until 009F == F6 3600
+until 009F == D7 3600
+dump tour-entry-main-ready
+
+# Rider confirmation has now crossed the stock qualification-row wipe.
+until 009F == 6D 360000
+dump tour-entry-post-rider-wipe
+
+until 009F == F6 360000
 wait 60
 dump tour-continue-track-ready
 

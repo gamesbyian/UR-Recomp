@@ -39,6 +39,7 @@ on:
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
       - "tests/input/modern-profile-panel-acceptance.script"
+      - "tests/native/run_modern_tour_entry_acceptance.sh"
       - "tests/input/modern-exit-frontend-results.script"
       - "tests/input/modern-exit-frontend-active.script"
       - "tests/input/widescreen-product-acceptance.script"
@@ -166,6 +167,33 @@ jobs:
           file "$EXE"
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
           echo "Selected game target: $EXE"
+
+      - name: Modern Tour Resume Restart acceptance
+        shell: bash
+        run: |
+          set -uo pipefail
+          WORK="$RUNNER_TEMP/modern-tour-entry"
+          rm -rf "$WORK"
+          mkdir -p "$WORK"
+
+          set +e
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_tour_entry_acceptance.sh" \
+            "${{ steps.exe.outputs.exe }}" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$WORK"
+          STATUS=$?
+          set -e
+
+          if [ "$STATUS" -ne 0 ]; then
+            echo "== Modern Tour acceptance evidence =="
+            find "$WORK" -maxdepth 3 -type f -print | sort || true
+            for LOG in "$WORK"/*.log; do
+              [ -f "$LOG" ] || continue
+              echo "===== $LOG ====="
+              cat "$LOG" || true
+            done
+            exit "$STATUS"
+          fi
 
       - name: Modern regional PAL NTSC secret persistence acceptance
         shell: bash
@@ -689,210 +717,6 @@ jobs:
           ! grep -q "UR_PROFILE_UI OPENED" "$AUTH_LOG"
           echo "UR_PROFILE_PANEL_RESULT=two_profile_create_switch_rename_cool_name_profile_sram_isolated_stock_rider_15_authentic_inert"
 
-      - name: Modern unfinished-tour resume acceptance
-        shell: bash
-        run: |
-          set -euo pipefail
-          EXE="${{ steps.exe.outputs.exe }}"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-acceptance.script"
-          AUTH_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-authentic.script"
-          STALE_SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-tour-continue-stale.script"
-          STATE="$RUNNER_TEMP/tour-resume-host-state.txt"
-          ROOT="$RUNNER_TEMP/tour-resume-profile"
-          LOG="$RUNNER_TEMP/tour-resume-restore.log"
-          DUMPS="$RUNNER_TEMP/tour-resume-restore-dumps"
-          AUTH_LOG="$RUNNER_TEMP/tour-resume-authentic.log"
-          AUTH_DUMPS="$RUNNER_TEMP/tour-resume-authentic-dumps"
-          STALE_ROOT="$RUNNER_TEMP/tour-resume-stale-profile"
-          STALE_LOG="$RUNNER_TEMP/tour-resume-stale.log"
-          STALE_DUMPS="$RUNNER_TEMP/tour-resume-stale-dumps"
-          PREF_ROOT="$ROOT/xdg"
-          PREF_DIR="$PREF_ROOT/gamesbyian/UR-Recomp"
-          rm -rf "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS"
-          mkdir -p "$ROOT" "$DUMPS" "$AUTH_DUMPS" "$STALE_ROOT" "$STALE_DUMPS" "$PREF_DIR"
-
-          cat >"$STATE" <<'EOF'
-          UR-HOST-STATE/6
-          profile=resume.alpha
-          pause_on_focus_loss=1
-          vibration_enabled=1
-          EOF
-
-          # R-2026-10-04-UI-20 already proves that battery-backed unfinished
-          # flags survive boot and that stock rider confirmation wipes all 50.
-          # Build the smallest exact fixture from the canonical clean SRAM:
-          # Crawler/rider 0, medal generation 0, tracks 0+1 qualified.
-          python3 - \
-            "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
-            "$ROOT/save.srm" "$ROOT/host-profile.txt" <<'PY'
-          from pathlib import Path
-          import sys
-
-          source, sram_path, profile_path = map(Path, sys.argv[1:])
-          sram = bytearray(source.read_bytes())
-          if len(sram) != 8192:
-              raise SystemExit(f"unexpected clean SRAM size: {len(sram)}")
-          rider = 0
-          tour = 0
-          medal = sram[0x069C + 16 * tour + rider]
-          if medal != 0:
-              raise SystemExit(f"clean fixture medal is not zero: {medal}")
-          flags = bytes((1, 1, 0, 0, 0))
-          # The continuation source contract includes stock one-player tour
-          # mode and rider identity as well as the medal generation/flags.
-          sram[0x10AD] = 1
-          sram[0x0748] = rider
-          sram[0x1075:0x107A] = flags
-          sram_path.write_bytes(sram)
-          profile_path.write_text(
-              "UR-HOST-PROFILE/4\n"
-              "profile=resume.alpha\n"
-              "generation=1\n"
-              f"stock_sram={bytes(sram).hex()}\n"
-              f"tour_resume={rider}:{tour}:{medal}:11000\n"
-              "ghost_target=off\n"
-              "racer_name=MIKE\n"
-              "racer_index=0\n"
-          )
-          print("UR_TOUR_RESUME_FIXTURE rider=0 tour=0 medal=0 flags=11000 schema=4 racer=MIKE")
-          PY
-
-          cat >"$PREF_DIR/profiles-v1.txt" <<'EOF'
-          UR-PROFILE-CATALOG/1
-          resume.alpha|0|MIKE
-          EOF
-
-          set +e
-          SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
-          UR_HOST_STATE_PATH="$STATE" \
-          UR_PROFILE_SAVE_ROOT="$ROOT" \
-          SNESRECOMP_DUMP_DIR="$DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-            >"$LOG" 2>&1
-          STATUS=$?
-          set -e
-          cat "$LOG"
-          if [ "$STATUS" -ne 0 ]; then
-            echo "::error::Modern Continue Tour native process failed with status $STATUS"
-            exit "$STATUS"
-          fi
-
-          grep -q "UR_TOUR_CONTINUE STARTED rider=0 tour=0 completed=2 menu=D7 race=0" "$LOG"
-          grep -q "UR_TOUR_CONTINUE READY tour=0 menu=F6" "$LOG"
-          grep -q "UR_TOUR_RESUME APPLIED" "$LOG"
-          test -s "$DUMPS/tour-continue-track-ready.wram.bin"
-
-          python3 - \
-            "$DUMPS/tour-continue-track-ready.wram.bin" \
-            "$ROOT/host-profile.txt" "$ROOT/save.srm" <<'PY'
-          import pathlib
-          import sys
-
-          track = pathlib.Path(sys.argv[1]).read_bytes()
-          profile = pathlib.Path(sys.argv[2]).read_text().splitlines()
-          sram = pathlib.Path(sys.argv[3]).read_bytes()
-
-          if track[0x009F] != 0xF6 or track[0x0313] == 1:
-              raise SystemExit("Continue did not stop at stock TRACK_SELECT")
-          if track[0x00D0] != 0:
-              raise SystemExit(f"Continue reached wrong tour row: {track[0x00D0]}")
-
-          resume = next(line.split("=", 1)[1] for line in profile
-                        if line.startswith("tour_resume="))
-          rider, tour, medal, flags = resume.split(":")
-          tour = int(tour)
-          expected = bytes(int(ch) for ch in flags)
-          actual = sram[0x1075 + 5 * tour:0x1075 + 5 * tour + 5]
-          if actual != expected:
-              raise SystemExit(
-                  f"restored tour flags mismatch: expected={list(expected)} actual={list(actual)}")
-          if not 0 < sum(actual) < 5:
-              raise SystemExit(f"continuation is not unfinished progress: {list(actual)}")
-          print(
-              "UR_TOUR_CONTINUE_FILE",
-              f"rider={rider}",
-              f"tour={tour}",
-              f"medal={medal}",
-              f"flags={flags}",
-              "stopped_at_track_select=1",
-          )
-          PY
-
-          # A syntactically valid but stale continuation must fail closed
-          # before any stock-menu input is injected. Keep the stock SRAM at
-          # medal generation 0 while claiming generation 1 in metadata.
-          cp "$ROOT/save.srm" "$STALE_ROOT/save.srm"
-          python3 - "$ROOT/host-profile.txt" "$STALE_ROOT/host-profile.txt" <<'PY'
-          from pathlib import Path
-          import sys
-
-          source = Path(sys.argv[1]).read_text()
-          stale = source.replace(
-              "tour_resume=0:0:0:11000",
-              "tour_resume=0:0:1:11000",
-          )
-          if stale == source:
-              raise SystemExit("could not create stale continuation fixture")
-          Path(sys.argv[2]).write_text(stale)
-          PY
-
-          SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
-          UR_HOST_STATE_PATH="$STATE" \
-          UR_PROFILE_SAVE_ROOT="$STALE_ROOT" \
-          SNESRECOMP_DUMP_DIR="$STALE_DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$STALE_SCRIPT" \
-            >"$STALE_LOG" 2>&1
-
-          grep -Eq "UR_TOUR_CONTINUE REJECTED .*profile=1 writable=1 continuation=1 snapshot=1 persisted_source=0 live_source=0" "$STALE_LOG"
-          ! grep -q "UR_TOUR_CONTINUE STARTED" "$STALE_LOG"
-          ! grep -q "UR_TOUR_RESUME APPLIED" "$STALE_LOG"
-          test -s "$STALE_DUMPS/tour-continue-stale-main.wram.bin"
-          python3 - "$STALE_DUMPS/tour-continue-stale-main.wram.bin" <<'PY'
-          from pathlib import Path
-          import sys
-
-          wram = Path(sys.argv[1]).read_bytes()
-          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
-              raise SystemExit(
-                  f"stale Continue did not fail closed: menu={wram[0x009F]:02X} race={wram[0x0313]}")
-          print("UR_TOUR_CONTINUE_STALE rejected=1 menu=D7")
-          PY
-
-          # The exact same host-side acceptance trigger must do nothing under
-          # Authentic policy. No profile metadata is loaded or applied there.
-          SDL_AUDIODRIVER=dummy \
-          XDG_DATA_HOME="$PREF_ROOT" \
-          UR_EXECUTION_MODE=authentic \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-          UR_TOUR_CONTINUE_ACCEPTANCE=1 \
-          UR_HOST_STATE_PATH="$STATE" \
-          UR_PROFILE_SAVE_ROOT="$ROOT" \
-          SNESRECOMP_DUMP_DIR="$AUTH_DUMPS" \
-          timeout 100s xvfb-run -a "$EXE" "$ROM" --script "$AUTH_SCRIPT" \
-            >"$AUTH_LOG" 2>&1
-
-          ! grep -q "UR_TOUR_CONTINUE STARTED" "$AUTH_LOG"
-          ! grep -q "UR_TOUR_RESUME APPLIED" "$AUTH_LOG"
-          test -s "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin"
-          python3 - "$AUTH_DUMPS/tour-continue-authentic-main.wram.bin" <<'PY'
-          import pathlib
-          import sys
-          wram = pathlib.Path(sys.argv[1]).read_bytes()
-          if wram[0x009F] != 0xD7 or wram[0x0313] == 1:
-              raise SystemExit(
-                  f"Authentic Continue trigger was not inert: menu={wram[0x009F]:02X} race={wram[0x0313]}")
-          print("UR_TOUR_CONTINUE_AUTHENTIC inert=1 menu=D7")
-          PY
-
-          grep "UR_TOUR_" "$LOG"
-          echo "UR_TOUR_RESUME_RESULT=fresh_process_continue_to_stock_track_select_restore_authentic_inert"
 
       - name: Native boot smoke
         shell: bash
@@ -2152,6 +1976,7 @@ jobs:
             ${{ runner.temp }}/exit-frontend-results-pause.log
             ${{ runner.temp }}/exit-frontend-results-pause-dumps/
             ${{ runner.temp }}/pause-quit.log
+            ${{ runner.temp }}/modern-tour-entry/
           if-no-files-found: warn
           retention-days: 7
 

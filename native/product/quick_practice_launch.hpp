@@ -35,7 +35,6 @@ struct QuickPracticeLaunchObservation {
     int active_track_id = -1;
 };
 
-constexpr std::uint16_t kQuickPracticeMenuSettleObservations = 60;
 constexpr std::uint32_t kQuickPracticeLaunchMaxObservations = 3600;
 
 struct QuickPracticeLaunchState {

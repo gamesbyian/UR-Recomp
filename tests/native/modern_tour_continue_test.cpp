@@ -4,6 +4,24 @@
 
 using namespace ur::product;
 
+static ModernTourContinueStep advance_until_action(
+    ModernTourContinueState state,
+    ModernTourContinueObservation observation) {
+    ModernTourContinueStep step;
+    for (std::uint16_t i = 0;
+         i <= kQuickPracticeMenuSettleObservations;
+         ++i) {
+        step = advance_modern_tour_continue(state, observation);
+        state = step.state;
+        if (step.input != QuickPracticeMenuInput::None ||
+            step.track_select_ready || step.timed_out ||
+            step.state.stage == ModernTourContinueStage::Idle) {
+            return step;
+        }
+    }
+    return step;
+}
+
 static void prove_restart_uses_same_stock_route_without_restore() {
     const ModernTourEntryContext context{
         ExecutionMode::Modern,
@@ -26,9 +44,9 @@ static void prove_restart_uses_same_stock_route_without_restore() {
 
         ModernTourContinueObservation observation{0xD7, 0, false};
         bool reached = false;
-        for (int guard = 0; guard < 48 && !reached; ++guard) {
+        for (int guard = 0; guard < 320 && !reached; ++guard) {
             const auto step =
-                advance_modern_tour_continue(state, observation);
+                advance_until_action(state, observation);
             state = step.state;
 
             switch (step.input) {
@@ -89,9 +107,9 @@ static void prove_all_tours_reach_track_select() {
         ModernTourContinueObservation observation{0xD7, 0, false};
 
         bool reached = false;
-        for (int guard = 0; guard < 48 && !reached; ++guard) {
+        for (int guard = 0; guard < 320 && !reached; ++guard) {
             const auto step =
-                advance_modern_tour_continue(state, observation);
+                advance_until_action(state, observation);
             state = step.state;
 
             switch (step.input) {
@@ -155,19 +173,25 @@ int main() {
         assert(state.stage == ModernTourContinueStage::AwaitMain);
         assert(state.tour_option == 0);
 
-        auto step = advance_modern_tour_continue(state, {0xD7, 0, false});
+        auto early = advance_modern_tour_continue(
+            state, {0xD7, 0, false});
+        assert(early.input == QuickPracticeMenuInput::None);
+        assert(!early.state.menu_settled);
+        assert(early.state.menu_settle_observations == 1);
+
+        auto step = advance_until_action(state, {0xD7, 0, false});
         assert(step.input == QuickPracticeMenuInput::Accept);
         assert(step.state.stage == ModernTourContinueStage::AwaitRider);
 
-        step = advance_modern_tour_continue(step.state, {0x3C, 0, false});
+        step = advance_until_action(step.state, {0x3C, 0, false});
         assert(step.input == QuickPracticeMenuInput::Accept);
         assert(step.state.stage == ModernTourContinueStage::AwaitTour);
 
-        step = advance_modern_tour_continue(step.state, {0x6D, 0, false});
+        step = advance_until_action(step.state, {0x6D, 0, false});
         assert(step.input == QuickPracticeMenuInput::Accept);
         assert(step.state.stage == ModernTourContinueStage::AwaitTrack);
 
-        step = advance_modern_tour_continue(step.state, {0xF6, 0, false});
+        step = advance_until_action(step.state, {0xF6, 0, false});
         assert(step.input == QuickPracticeMenuInput::None);
         assert(step.track_select_ready);
         assert(step.state.stage == ModernTourContinueStage::Ready);
@@ -177,12 +201,12 @@ int main() {
         auto state = begin_modern_tour_continue(8);
         assert(state.tour_option == 9);
 
-        auto step = advance_modern_tour_continue(state, {0xD7, 0, false});
-        step = advance_modern_tour_continue(step.state, {0x3C, 0, false});
+        auto step = advance_until_action(state, {0xD7, 0, false});
+        step = advance_until_action(step.state, {0x3C, 0, false});
 
         // From tour option 0, Hunter requires ordinary stock directional
         // navigation rather than any direct menu-state write.
-        step = advance_modern_tour_continue(step.state, {0x6D, 0, false});
+        step = advance_until_action(step.state, {0x6D, 0, false});
         assert(step.input == QuickPracticeMenuInput::Down);
         assert(step.state.waiting_for_selection_change);
 

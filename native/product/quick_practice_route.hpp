@@ -15,6 +15,8 @@ enum class QuickPracticeMenuInput {
     Accept,
 };
 
+constexpr std::uint16_t kQuickPracticeMenuSettleObservations = 60;
+
 struct QuickPracticeTarget {
     std::uint8_t track_id = 0;
     std::uint8_t tour_option = 0;

@@ -68,10 +68,23 @@ int main() {
     assert(!tour_resume_source_matches_sram(
         continuation, sram.data(), sram.size()));
     sram[0x0748] = 3;
+    // Settled stock main clears the in-tour play-mode byte but preserves the
+    // continuation identity fields. Persisted provenance stays strict while
+    // the live frontend preflight admits only stock main (0) or tour (1).
+    sram[0x10AD] = 0;
+    assert(!tour_resume_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+    assert(tour_resume_frontend_source_matches_sram(
+        continuation, sram.data(), sram.size()));
+
     sram[0x10AD] = 2;
     assert(!tour_resume_source_matches_sram(
         continuation, sram.data(), sram.size()));
+    assert(!tour_resume_frontend_source_matches_sram(
+        continuation, sram.data(), sram.size()));
     sram[0x10AD] = 1;
+    assert(tour_resume_frontend_source_matches_sram(
+        continuation, sram.data(), sram.size()));
 
     assert(!tour_qualification_row_empty(
         continuation.tour_row, sram.data(), sram.size()));

@@ -192,6 +192,12 @@ THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
 THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0578-p2-frequency-0544-reference"
 )
+THIRTY_NINTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x04B9-p1-broader-frequency-reference"
+)
+FORTIETH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0239-p1-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1338,6 +1344,115 @@ def build_twenty_first_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_04b9_p1_broader_rgba(x: int, y: int) -> bytes:
+    """Author the high-frequency dynamic P1 04B9 pose from canonical stock evidence."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx, wheel_cy = 155, 111
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 26 * 26
+    rim = wr2 < 26 * 26 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+    wheel_spokes = (
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1)
+        or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
+        or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
+    )
+    # The 04B9 stock envelope is one logical pixel narrower on the left than
+    # the nearby 0578 pose. Preserve the distinct silhouette instead of
+    # aliasing the two stock states.
+    seat = authored_segment_contains(x, y, 74, 27, 111, 47, 8)
+    neck = authored_segment_contains(x, y, 108, 45, 124, 61, 5)
+    fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3)
+    crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
+    pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
+    crown_dx, crown_dy = x - 121, y - 58
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if seat:
+        return authored_saddle_rgba(x, y, 93, 32, 12)
+    if neck and y < 53:
+        return authored_saddle_mount_rgba(y, 49)
+    if crown:
+        return authored_frame_junction_rgba(
+            x, y, 121, 58, False, fork or frame_brace or neck
+        )
+    if neck or fork or frame_brace:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twenty_second_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_04b9_p1_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
+def sample_authored_0239_p1_broader_rgba(x: int, y: int) -> bytes:
+    """Author the next measured P1 0239 dynamic-play pose."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+    wheel_cx, wheel_cy = 155, 111
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 26 * 26
+    rim = wr2 < 26 * 26 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+    wheel_spokes = (
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1)
+        or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
+        or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
+    )
+    seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8)
+    neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5)
+    fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3)
+    crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
+    pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
+    crown_dx, crown_dy = x - 121, y - 58
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if seat:
+        return authored_saddle_rgba(x, y, 93, 31, 12)
+    if neck and y < 52:
+        return authored_saddle_mount_rgba(y, 47)
+    if crown:
+        return authored_frame_junction_rgba(
+            x, y, 121, 58, False, fork or frame_brace or neck
+        )
+    if neck or fork or frame_brace:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twenty_third_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0239_p1_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -1652,6 +1767,18 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             "tools/build_racer_hd_asset_dossier.py::build_twenty_first_authored_candidate_rgba",
             "sample_racer_hd_authored_0578_p2_frequency",
         )
+    if rid == THIRTY_NINTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twenty_second_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twenty_second_authored_candidate_rgba",
+            "sample_racer_hd_authored_04b9_p1_broader",
+        )
+    if rid == FORTIETH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twenty_third_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twenty_third_authored_candidate_rgba",
+            "sample_racer_hd_authored_0239_p1_broader",
+        )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 
 
@@ -1717,9 +1844,16 @@ def registry_by_representation(registry: dict) -> dict[str, dict]:
     return out
 
 
-def exact_window_rows(trace_report: dict, start: int, end: int) -> list[dict]:
+def exact_window_rows(
+    trace_report: dict,
+    start: int,
+    end: int,
+    players: tuple[str, ...] = ("p1", "p2"),
+) -> list[dict]:
     if start > end:
         raise ValueError("window start must not exceed window end")
+    if not players or any(player not in ("p1", "p2") for player in players):
+        raise ValueError(f"invalid review players: {players}")
     coverage = trace_report.get("registered_composition_coverage")
     if not isinstance(coverage, dict):
         raise ValueError("trace report lacks registered_composition_coverage")
@@ -1732,19 +1866,23 @@ def exact_window_rows(trace_report: dict, start: int, end: int) -> list[dict]:
     if frames != expected:
         raise ValueError(f"trace window is not exact/contiguous: {frames} != {expected}")
     for row in rows:
-        if not row.get("fully_registered"):
+        if players == ("p1", "p2") and not row.get("fully_registered"):
             raise ValueError(f"frame {row['frame']} is not fully registered")
-        for key in ("p1_representation_id", "p2_representation_id"):
+        for player in players:
+            key = f"{player}_representation_id"
             if not row.get(key):
                 raise ValueError(f"frame {row['frame']} lacks {key}")
     return rows
 
 
-def observation_map(rows: list[dict]) -> dict[str, dict]:
+def observation_map(
+    rows: list[dict],
+    players: tuple[str, ...] = ("p1", "p2"),
+) -> dict[str, dict]:
     observed: dict[str, dict] = {}
     for row in rows:
         frame = int(row["frame"])
-        for player in ("p1", "p2"):
+        for player in players:
             rid = row[f"{player}_representation_id"]
             item = observed.setdefault(rid, {"player": player, "frames": []})
             if item["player"] != player:
@@ -1813,10 +1951,11 @@ def build_dossier(
     trace_report: dict,
     start: int,
     end: int,
+    players: tuple[str, ...] = ("p1", "p2"),
 ) -> tuple[dict, dict[str, dict[str, bytes]]]:
-    rows = exact_window_rows(trace_report, start, end)
+    rows = exact_window_rows(trace_report, start, end, players)
     entries = registry_by_representation(registry)
-    observed = observation_map(rows)
+    observed = observation_map(rows, players)
     assets: dict[str, dict[str, bytes]] = {}
     representations = []
 
@@ -2019,8 +2158,10 @@ def build_dossier(
     timeline = [
         {
             "frame": int(row["frame"]),
-            "p1_representation_id": row["p1_representation_id"],
-            "p2_representation_id": row["p2_representation_id"],
+            **{
+                f"{player}_representation_id": row[f"{player}_representation_id"]
+                for player in players
+            },
         }
         for row in rows
     ]
@@ -2029,15 +2170,17 @@ def build_dossier(
         "schema_version": 1,
         "family": registry["family"],
         "purpose": (
-            "Approval-oriented evidence packet for the first continuously "
-            "registered ordinary-race Racer HD temporal window."
+            "Approval-oriented evidence packet for a continuously registered "
+            "ordinary-race Racer HD review window."
         ),
+        "review_players": list(players),
         "temporal_window": {
             "start": start,
             "end": end,
             "frame_count": end - start + 1,
             "source": "registered_composition_coverage from deterministic native semantic trace",
-            "all_frames_exactly_registered": True,
+            "all_frames_exactly_registered": players == ("p1", "p2"),
+            "all_review_players_exactly_registered": True,
         },
         "authoritative_inputs": {
             "semantic_identity": registry["lookup"]["primary_key"],
@@ -2052,7 +2195,8 @@ def build_dossier(
         "timeline": timeline,
         "representations": representations,
         "validation": {
-            "fully_registered_window": True,
+            "fully_registered_window": players == ("p1", "p2"),
+            "review_players_registered_window": True,
             "registry_representation_ids_unique": True,
             "stock_geometry_rederived_from_rom": True,
             "registered_anchors_match_rederived_stock": True,
@@ -2114,7 +2258,14 @@ def main() -> int:
     ap.add_argument("--window-start", type=int, required=True)
     ap.add_argument("--window-end", type=int, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
+    ap.add_argument(
+        "--player",
+        action="append",
+        choices=("p1", "p2"),
+        help="review only this player; repeat for both. Omit to require both players.",
+    )
     args = ap.parse_args()
+    players = tuple(args.player) if args.player else ("p1", "p2")
 
     dossier, assets = build_dossier(
         args.rom.read_bytes(),
@@ -2122,6 +2273,7 @@ def main() -> int:
         json.loads(args.trace.read_text(encoding="utf-8")),
         args.window_start,
         args.window_end,
+        players,
     )
     write_dossier(args.output_dir, dossier, assets)
     print(json.dumps(dossier, indent=2, sort_keys=True))

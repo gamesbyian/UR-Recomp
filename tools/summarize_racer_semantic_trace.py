@@ -106,9 +106,19 @@ def row_matches_registration(row: dict, entry: dict) -> bool:
         "p1_companion_gate_word": "p1_gate",
         "p2_companion_gate_word": "p2_gate",
     }
+    if entry.get("guard_scope") == "player_local":
+        player = entry["player"]
+        keys = (
+            f"{player}_primary",
+            f"{player}_companion",
+            f"{player}_selector",
+            f"{player}_companion_gate_word",
+        )
+    else:
+        keys = tuple(mapping)
     return all(
-        normalized_guard(guards[key]) == normalized_guard(row[row_key])
-        for key, row_key in mapping.items()
+        normalized_guard(guards[key]) == normalized_guard(row[mapping[key]])
+        for key in keys
     )
 
 

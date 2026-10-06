@@ -1156,6 +1156,58 @@ constexpr RacerRegistration kRegistrations[] = {
         true,
         true,
     },
+    {
+        0x04B9,
+        1,
+        {
+            0x04B9,
+            0x0546,
+            0x0000,
+            0x0EB2,
+            0,
+            0,
+            0x0000,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {77, 72},
+        true,
+        true,
+        true,
+    },
+    {
+        0x0239,
+        1,
+        {
+            0x0239,
+            0x057A,
+            0x0000,
+            0x0EC5,
+            0,
+            0,
+            0x0000,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {77, 72},
+        true,
+        true,
+        true,
+    },
 
 };
 
@@ -1176,9 +1228,16 @@ const RacerRegistration* find_racer_registration_for_state(
     std::uint8_t player
 ) noexcept {
     for (const auto& registration : kRegistrations) {
-        if (registration.semantic_frame_id == semantic_frame_id &&
-            registration.player == player &&
-            composition_equal(registration.composition, live_state)) {
+        if (registration.semantic_frame_id != semantic_frame_id ||
+            registration.player != player) {
+            continue;
+        }
+        const bool composition_matches = registration.player_local_guard
+            ? player_local_composition_equal(
+                  registration.composition, live_state, registration.player
+              )
+            : composition_equal(registration.composition, live_state);
+        if (composition_matches) {
             return &registration;
         }
     }

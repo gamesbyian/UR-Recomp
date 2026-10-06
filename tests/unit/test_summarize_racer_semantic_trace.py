@@ -64,6 +64,29 @@ class RacerSemanticTraceTests(unittest.TestCase):
         self.assertEqual(n["previous_primary_counts"], {"0x0541": 1})
         self.assertEqual(n["next_primary_counts"], {"0x0541": 1, "0x0542": 1})
 
+    def test_player_local_guard_ignores_only_opponent_fields(self):
+        row = parse_trace(
+            "UR_RACER_PRESENTATION_TRACE frame=10 p1_primary=04B9 p2_primary=0578 "
+            "p1_companion=0000 p2_companion=0EC3 p1_selector=0000 p2_selector=0000 "
+            "p1_gate=0000 p2_gate=0001"
+        )[0]
+        entry = {
+            "semantic_frame_id": "0x04B9",
+            "representation_id": "p1-local",
+            "player": "p1",
+            "guard_scope": "player_local",
+            "composition_guards": {
+                "p1_primary": "0x04B9", "p2_primary": "0x0546",
+                "p1_companion": "0x0000", "p2_companion": "0x0EB2",
+                "p1_selector": 0, "p2_selector": 0,
+                "p1_companion_gate_word": "0x0000",
+                "p2_companion_gate_word": "0x0001",
+            },
+        }
+        self.assertTrue(row_matches_registration(row, entry))
+        row["p1_companion"] = "0x0001"
+        self.assertFalse(row_matches_registration(row, entry))
+
     def test_registered_composition_coverage_requires_both_players(self):
         text = "\n".join([
             "UR_RACER_PRESENTATION_TRACE frame=10 p1_primary=0541 p2_primary=0540 p1_companion=0D0D p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0001 p2_gate=0000",

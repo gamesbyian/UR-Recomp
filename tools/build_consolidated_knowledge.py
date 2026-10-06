@@ -90,6 +90,7 @@ def presentation():
     evidence=dict(r["evidence"])
     evidence["widescreen_plus8_sequence_boundary"]={"status":"closed_for_current_widescreen_decision","event":"object-tail-141","control_sequence_selector":1,"plus8_sequence_selector":3,"sequence_cursor_both":1,"sequence_writer":"83:EB57 -> 82:8952/8956 -> STA $0DE9,Y; Y=2 targets P2 $0DEB","selector_source":"$7710B1 six-state presentation/frontend counter; 83:EB3F..EB51 maps 0/1->1, 2/3->3, 4/5->5","counter_raw_classes":{"control":"0/1","plus8":"2/3"},"counter_writers":["83:C8EF..C8FB clamp/reset","83:C9E2..C9F2 modulo-6 advance"],"control_frame_id":"0x0A45","plus8_frame_id":"0x0A8D","persistent_chain":"$0DEB -> $0F4F -> $0F97 -> $0FEB","first_vram_divergence":"object-tail-142","upload_chain":"83:F0BB -> 83:F296 -> 83:F2BB -> NMI DMA","oam_equal_through_early_gap":True,"raw_counter_note":"Exact member within each two-value raw class is not directly dumped; that ambiguity cannot alter the selected sequence or causal conclusion.","evidence":"analysis/generated/widescreen-plus8-presentation-sequence-closure-2026-10-02.md","workflow_run":36978866214}
     fallback = load("analysis/generated/racer-hd-fallback-frequency-2026-10-05.json")
+    broader = load("analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json")
     selected = fallback["selected_next_family"]
     family = {"id":r["family"],"source":"analysis/generated/racer-presentation-family.json","replacement_key":r["replacement_key"],"frames":r["frames"],"graphics":r["graphics"],"palettes":r["palettes"],"observed_states":r["observed_states"],"roundtrip":r["roundtrip"],"evidence":evidence,"piece_semantics":r["piece_semantics"],"inferred_record_structure":inferred,"composition_contract":composition_contract}
     second = fallback["second_expansion"]
@@ -128,7 +129,20 @@ def presentation():
             "next_concrete_discriminator":fallback["continuation_disposition"]["next_concrete_discriminator"],
         },
         "continuation_disposition":fallback["continuation_disposition"],
-        "admission_rule":"Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it.",
+        "broader_ordinary_play":{
+            "retained_summary":"analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json",
+            "source":broader["source"],
+            "phase_parity":broader["phase_parity"],
+            "before":broader["before"],
+            "selected_player_local_context":broader["selected_player_local_context"],
+            "after_04b9":broader["after_04b9"],
+            "shipping_04b9":broader["shipping_04b9"],
+            "expansions":broader["expansions"],
+            "current_after":broader["current_after"],
+            "next_discriminator":broader["next_discriminator"],
+            "status":broader["status"],
+        },
+        "admission_rule":"Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring.",
     }
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[family]}
 

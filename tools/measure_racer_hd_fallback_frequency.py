@@ -51,6 +51,8 @@ def build_report(
     unsupported: dict[str, dict[str, Any]] = {}
     fallback_by_primary = Counter()
     fallback_by_player_primary = Counter()
+    fallback_by_player_visual = Counter()
+    visual_frames: dict[tuple[str, str, str, int, str], set[int]] = defaultdict(set)
     supported = 0
     observations = 0
 
@@ -75,6 +77,15 @@ def build_report(
 
             fallback_by_primary[semantic] += 1
             fallback_by_player_primary[(player, semantic)] += 1
+            visual_key = (
+                player,
+                semantic,
+                row[f"{player}_companion"],
+                row[f"{player}_selector"],
+                row[f"{player}_gate"],
+            )
+            fallback_by_player_visual[visual_key] += 1
+            visual_frames[visual_key].add(row["frame"])
             item = unsupported.setdefault(key, {
                 "state": key,
                 "composition": {
@@ -145,6 +156,32 @@ def build_report(
             for (player, semantic), count in sorted(
                 fallback_by_player_primary.items(),
                 key=lambda item: (-item[1], item[0][0], item[0][1]),
+            )
+        ],
+        "fallback_by_player_visual_context": [
+            {
+                "player": player,
+                "semantic_frame_id": semantic,
+                "companion": companion,
+                "selector": selector,
+                "gate": gate,
+                "player_frames": count,
+                "frame_hits": len(visual_frames[(player, semantic, companion, selector, gate)]),
+                "episode_count": episode_count(
+                    sorted(visual_frames[(player, semantic, companion, selector, gate)])
+                ),
+                "frames": sorted(
+                    visual_frames[(player, semantic, companion, selector, gate)]
+                ),
+            }
+            for (player, semantic, companion, selector, gate), count in sorted(
+                fallback_by_player_visual.items(),
+                key=lambda item: (
+                    -item[1],
+                    -episode_count(sorted(visual_frames[item[0]])),
+                    -len(visual_frames[item[0]]),
+                    item[0],
+                ),
             )
         ],
         "ranking_rule": (

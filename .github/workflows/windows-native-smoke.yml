@@ -299,6 +299,8 @@ jobs:
           LEGACY_MOD="$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"
           LEGACY_WIN="$(cygpath -w "$LEGACY")"
           MIGRATED_WIN="$(cygpath -w "$MIGRATED")"
+          powershell.exe -NoProfile -Command \
+            "(Get-Item -LiteralPath '${LEGACY_WIN}\\config.ini').IsReadOnly = \$true; (Get-Item -LiteralPath '${LEGACY_WIN}\\keybinds.ini').IsReadOnly = \$true; (Get-Item -LiteralPath '${LEGACY_WIN}\\mods\\preloaded\\state.toml').IsReadOnly = \$true; (Get-Item -LiteralPath '${LEGACY_WIN}\\saves\\legacy-marker.srm').IsReadOnly = \$true"
           SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
           DUMPS="$RUNNER_TEMP/package-migration-dumps"
           DUMPS_WIN="$(cygpath -w "$DUMPS")"
@@ -326,6 +328,8 @@ jobs:
           test -f "$MIGRATED/mod-state.toml"
           test -f "$MIGRATED/saves/legacy-marker.srm"
           grep -Fq "legacy-sram-marker" "$MIGRATED/saves/legacy-marker.srm"
+          powershell.exe -NoProfile -Command \
+            "if ((Get-Item -LiteralPath '${MIGRATED_WIN}\\config.ini').IsReadOnly -or (Get-Item -LiteralPath '${MIGRATED_WIN}\\keybinds.ini').IsReadOnly -or (Get-Item -LiteralPath '${MIGRATED_WIN}\\mod-state.toml').IsReadOnly -or (Get-Item -LiteralPath '${MIGRATED_WIN}\\saves\\legacy-marker.srm').IsReadOnly) { exit 1 }"
           test ! -e "$MIGRATED/.ur-recomp-saves.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"

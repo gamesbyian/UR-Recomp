@@ -367,10 +367,11 @@ jobs:
           test "$LEGACY_MOD" = "$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"
           test "$LEGACY_SAVE" = "$(sha256sum "$LEGACY/saves/legacy-marker.srm" | cut -d' ' -f1)"
 
-          printf '# destination-wins-config\n' >> "$MIGRATED/config.ini"
-          printf '# destination-wins-keybinds\n' >> "$MIGRATED/keybinds.ini"
+          printf '# legacy-source-must-not-remigrate-config\n' >> "$LEGACY/config.ini"
+          printf '# legacy-source-must-not-remigrate-keybinds\n' >> "$LEGACY/keybinds.ini"
+          printf 'legacy-source-must-not-remigrate-save\n' > "$LEGACY/saves/legacy-marker.srm"
+          printf '# legacy-source-must-not-remigrate-mod\n' >> "$LEGACY/mods/preloaded/state.toml"
           printf 'destination-wins\n' > "$MIGRATED/saves/legacy-marker.srm"
-          printf '# destination-wins-mod\n' >> "$MIGRATED/mod-state.toml"
           mkdir -p "$MIGRATED/.ur-recomp-saves.migrate.tmp"
           printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-saves.migrate.tmp/stale.srm"
           printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
@@ -386,10 +387,14 @@ jobs:
           RC=$?
           set -e
           test "$RC" -eq 0
-          grep -Fq "destination-wins-config" "$MIGRATED/config.ini"
-          grep -Fq "destination-wins-keybinds" "$MIGRATED/keybinds.ini"
+          test -f "$MIGRATED/config.ini"
+          test -f "$MIGRATED/keybinds.ini"
+          test -f "$MIGRATED/mod-state.toml"
+          ! grep -Fq "legacy-source-must-not-remigrate-config" "$MIGRATED/config.ini"
+          ! grep -Fq "legacy-source-must-not-remigrate-keybinds" "$MIGRATED/keybinds.ini"
           grep -Fq "destination-wins" "$MIGRATED/saves/legacy-marker.srm"
-          grep -Fq "destination-wins-mod" "$MIGRATED/mod-state.toml"
+          ! grep -Fq "legacy-source-must-not-remigrate-save" "$MIGRATED/saves/legacy-marker.srm"
+          ! grep -Fq "legacy-source-must-not-remigrate-mod" "$MIGRATED/mod-state.toml"
           test ! -e "$MIGRATED/.ur-recomp-saves.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
           test ! -e "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"

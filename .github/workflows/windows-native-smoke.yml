@@ -367,6 +367,8 @@ jobs:
           test "$LEGACY_MOD" = "$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"
           test "$LEGACY_SAVE" = "$(sha256sum "$LEGACY/saves/legacy-marker.srm" | cut -d' ' -f1)"
 
+          powershell.exe -NoProfile -Command \
+            "(Get-Item -LiteralPath '${LEGACY_WIN}\\config.ini').IsReadOnly = \$false; (Get-Item -LiteralPath '${LEGACY_WIN}\\keybinds.ini').IsReadOnly = \$false; (Get-Item -LiteralPath '${LEGACY_WIN}\\mods\\preloaded\\state.toml').IsReadOnly = \$false; (Get-Item -LiteralPath '${LEGACY_WIN}\\saves\\legacy-marker.srm').IsReadOnly = \$false"
           printf '# legacy-source-must-not-remigrate-config\n' >> "$LEGACY/config.ini"
           printf '# legacy-source-must-not-remigrate-keybinds\n' >> "$LEGACY/keybinds.ini"
           printf 'legacy-source-must-not-remigrate-save\n' > "$LEGACY/saves/legacy-marker.srm"

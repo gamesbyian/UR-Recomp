@@ -61,7 +61,7 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("Source revision: abc123", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
-                '"UniracersSNESRecomp.exe" "Uniracers_USA.sfc" %*',
+                '"%~dp0UniracersSNESRecomp.exe" "%~dp0Uniracers_USA.sfc" %*',
                 launcher,
             )
             self.assertIn(

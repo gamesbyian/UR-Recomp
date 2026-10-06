@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37264523402,
+    "artifact_id": 11325937178,
+    "temporal_window": [1354, 1356],
+    "review_surface": "native-racer-presentation-acceptance source asset review plus exact-pose reuse proof for measured frames 1354-1356",
+    "disposition": "No new art is introduced. The measured 1354-1356 hold reuses two previously shipping-approved authored assets. Current-family dossier/equivalence must prove same-player stock RGBA identity to the declared canonical source and must reproduce the exact reviewed authored RGBA hashes below; temporal validation must prove all retained edges remain static."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0540-p1-frequency-0543-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "f544db8eab17b53f68186f799d2e655b3f2fbda7c9e6615944da0cf2401031e8",
+      "inherited_from_representation_id": "ordinary-racer-0x0540-p1-companion-0D2C-with-p2-0542-reference",
+      "inherited_from_approval": "analysis/data/racer-hd-art-approval.json"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0543-p2-frequency-0540-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+      "inherited_from_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "inherited_from_approval": "analysis/data/racer-hd-art-approval.json"
+    }
+  ]
+}

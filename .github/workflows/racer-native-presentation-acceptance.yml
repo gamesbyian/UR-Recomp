@@ -6,18 +6,25 @@ on:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
       - "tools/summarize_racer_semantic_trace.py"
+      - "tools/measure_racer_hd_fallback_frequency.py"
+      - "tools/probe_racer_hd_fallback_family.py"
+      - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
       - "tools/check_ppm.py"
       - "tools/build_racer_hd_shipping_readiness.py"
       - "analysis/data/racer-hd-art-approval.json"
+      - "analysis/data/racer-hd-art-approval-1354-1356.json"
+      - "analysis/data/racer-hd-art-approval-1280-1286.json"
       - "tests/unit/test_build_racer_hd_asset_dossier.py"
       - "tests/unit/test_build_racer_pose_equivalence.py"
       - "tests/unit/test_build_racer_hd_review_packet.py"
       - "tests/unit/test_build_racer_hd_shipping_readiness.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/unit/test_summarize_racer_semantic_trace.py"
+      - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
+      - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
       - "tests/native/racer_oam_placement_test.cpp"
@@ -36,6 +43,100 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Probe next measured fallback family reuse
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/probe_racer_hd_fallback_family.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-next-family-probe" \
+            --trace-out "$RUNNER_TEMP/racer-hd-next-family-trace.json" \
+            | tee "$RUNNER_TEMP/racer-hd-next-family-probe.txt"
+
+      - name: Build next-family Racer HD review evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          DOSSIER="$RUNNER_TEMP/racer-hd-next-family-dossier"
+
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-next-family-trace.json" \
+            --window-start 1280 \
+            --window-end 1283 \
+            --output-dir "$DOSSIER" \
+            > "$RUNNER_TEMP/racer-hd-next-family-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$DOSSIER/manifest.json" \
+            --out "$DOSSIER/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-equivalence.txt"
+
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-1280-1286.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-next-family-shipping-readiness.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$DOSSIER/manifest.json" \
+            "$DOSSIER/pose-equivalence.json" \
+            --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-review.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$DOSSIER/shipping-readiness.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          reps = {r["representation_id"]: r for r in dossier["representations"]}
+          p1 = reps["ordinary-racer-0x0544-p1-frequency-0578-reference"]
+          p2 = reps["ordinary-racer-0x0578-p2-frequency-0544-reference"]
+          proof = p1["art_review"]["palette_reuse_proof"]
+          assert proof["stock_normalized_byte_identical"] is True
+          assert proof["authored_normalized_byte_identical"] is True
+          assert proof["normalized_stock_sha256"] == "f78818b7924ce450ceca6d425f11e520388db635a77e6fec9a30236e960b82e4"
+          assert p1["art_review"]["authored_candidate"]["rgba_sha256"] == "0254ccf6722ec2dfccd0d5d449c8371974c54a35c28efd4e1071e093782e341a"
+          assert p2["art_review"]["authored_candidate"]["rgba_sha256"] == "c2a76550ed07481f22ba832a75170c4609fd2b1bd45d748d5c2d8f90a1d66201"
+          review = p2["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          assert review["stock_alpha_bounds"] == [17, 5, 47, 36]
+          assert review["candidate_alpha_bounds"] == [17, 5, 47, 36]
+          assert review["candidate_contact_x2_y2"] == [77, 72]
+          assert review["alpha_iou"] >= 0.67
+          assert readiness["shipping_ready"] is True
+          assert readiness["counts"]["approved"] == 2
+          print("UR_RACER_NEXT_FAMILY_REVIEW PASS approved=2")
+          PY
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-1280-1283-frequency-hold \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-temporal-a.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-temporal-a.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-1285-1286-frequency-hold \
+            --json-out "$RUNNER_TEMP/racer-hd-next-family-temporal-b.json" \
+            > "$RUNNER_TEMP/racer-hd-next-family-temporal-b.txt"
+      - name: Probe next remaining measured Racer HD state
+        shell: bash
+        run: |
+          set -euo pipefail
+          STATE='{"p1_primary":"0x0545","p2_primary":"0x057C","p1_companion":"0x0000","p2_companion":"0x0C27","p1_selector":0,"p2_selector":0,"p1_companion_gate_word":"0x0000","p2_companion_gate_word":"0x0001"}'
+          python3 tools/probe_racer_hd_state_reuse.py \
+            "reference/roms/retail/Uniracers_USA.sfc" \
+            --state-json "$STATE" \
+            --frames "1401,1402,1403,1404,1405,1406" \
+            --json-out "$RUNNER_TEMP/racer-hd-next-ranked-state.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-next-ranked-state" \
+            > "$RUNNER_TEMP/racer-hd-next-ranked-state.txt"
       - name: Install native build dependencies
         run: |
           sudo apt-get update
@@ -43,9 +144,6 @@ jobs:
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev \
             libpulse-dev libxss-dev libxtst-dev
-
-      - name: Verify canonical ROM
-        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Verify selector, placement, and orientation contracts
         shell: bash
@@ -1155,6 +1253,70 @@ jobs:
           )
           PY
 
+      - name: Measure fallback frequency and validate measured family
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+
+          python3 tools/measure_racer_hd_fallback_frequency.py             "$RUNNER_TEMP/racer-hd.log"             --json-out "$RUNNER_TEMP/racer-hd-fallback-frequency.json"             --workflow-run "$GITHUB_RUN_ID"             > "$RUNNER_TEMP/racer-hd-fallback-frequency.txt"
+
+          python3 tools/build_racer_hd_asset_dossier.py             "$ROM"             --trace "$RUNNER_TEMP/racer-hd-semantic-trace.json"             --window-start 1354             --window-end 1356             --output-dir "$RUNNER_TEMP/racer-hd-frequency-family-dossier"             > "$RUNNER_TEMP/racer-hd-frequency-family-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/manifest.json"             --out "$RUNNER_TEMP/racer-hd-frequency-family-dossier/pose-equivalence.json"             > "$RUNNER_TEMP/racer-hd-frequency-family-pose-equivalence.txt"
+
+          python3 tools/build_racer_hd_shipping_readiness.py             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/pose-equivalence.json"             --decisions analysis/data/racer-hd-art-approval-1354-1356.json             --out "$RUNNER_TEMP/racer-hd-frequency-family-dossier/shipping-readiness.json"             --require-shipping-ready             > "$RUNNER_TEMP/racer-hd-frequency-family-shipping-readiness.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py             "$ROM"             --sequence-key ordinary-race-1354-1356-frequency-hold             --json-out "$RUNNER_TEMP/racer-hd-frequency-family-temporal.json"             > "$RUNNER_TEMP/racer-hd-frequency-family-temporal.txt"
+
+          python3 tools/build_racer_hd_review_packet.py             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/manifest.json"             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/pose-equivalence.json"             --output-dir "$RUNNER_TEMP/racer-hd-frequency-family-dossier/review"             --readiness "$RUNNER_TEMP/racer-hd-frequency-family-dossier/shipping-readiness.json"             > "$RUNNER_TEMP/racer-hd-frequency-family-review-packet.txt"
+
+          python3 -             "$RUNNER_TEMP/racer-hd-fallback-frequency.json"             analysis/generated/racer-hd-fallback-frequency-2026-10-05.json             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/manifest.json"             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/pose-equivalence.json"             "$RUNNER_TEMP/racer-hd-frequency-family-temporal.json"             "$RUNNER_TEMP/racer-hd-frequency-family-dossier/shipping-readiness.json" <<'PY'
+          import json, pathlib, sys
+          current = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          retained = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          dossier = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          equivalence = json.loads(pathlib.Path(sys.argv[4]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[5]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[6]).read_text())
+
+          assert retained["before"]["hd_selected_player_frames"] == 150
+          assert retained["after"]["hd_selected_player_frames"] == 162
+          assert retained["current_after"]["hd_selected_player_frames"] == 174
+          assert retained["current_after"]["original_fallback_player_frames"] == 708
+          assert current["measurement"]["player_frame_observations"] == 882
+          assert current["measurement"]["hd_selected_player_frames"] == 174
+          assert current["measurement"]["original_fallback_player_frames"] == 708
+
+          assert dossier["temporal_window"]["start"] == 1354
+          assert dossier["temporal_window"]["end"] == 1356
+          assert dossier["temporal_window"]["frame_count"] == 3
+          assert len(dossier["representations"]) == 2
+          for rep in dossier["representations"]:
+              proof = rep["art_review"]["reuse_proof"]
+              assert proof["same_player"] is True
+              assert proof["stock_rgba_byte_identical"] is True
+              assert proof["stock_rgba_sha256"] == proof["source_stock_rgba_sha256"]
+              assert rep["art_review"]["authored_candidate"]["rgba_sha256"] == proof["source_authored_rgba_sha256"]
+
+          assert equivalence["semantic_representation_count"] == 2
+          assert equivalence["unique_stock_pose_count"] == 2
+          assert equivalence["worklist"]["unauthored_pose_count"] == 0
+          assert equivalence["worklist"]["conflicting_authored_pose_count"] == 0
+          assert readiness["shipping_ready"] is True
+          assert readiness["counts"]["approved"] == 2
+          assert temporal["window"] == [1354, 1356]
+          assert temporal["sequence_key"] == "ordinary-race-1354-1356-frequency-hold"
+          assert all(temporal["validation"].values())
+          for player in ("p1", "p2"):
+              pairs = temporal["sequences"][player]["pairs"]
+              assert len(pairs) == 2
+              assert all(pair["transition_class"] == "static" for pair in pairs)
+              assert all(pair["static_edge_preserved"] for pair in pairs)
+
+          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=174/882 removed=24")
+          PY
+
       - name: Upload compact acceptance log
         if: always()
         uses: actions/upload-artifact@v4
@@ -1201,6 +1363,31 @@ jobs:
             ${{ runner.temp }}/racer-hd-fifth-family-temporal.txt
             ${{ runner.temp }}/racer-hd-fifth-family-review-packet.txt
             ${{ runner.temp }}/racer-hd-fifth-family-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-fallback-frequency.json
+            ${{ runner.temp }}/racer-hd-fallback-frequency.txt
+            ${{ runner.temp }}/racer-hd-next-family-probe.json
+            ${{ runner.temp }}/racer-hd-next-family-probe.txt
+            ${{ runner.temp }}/racer-hd-next-family-probe/
+            ${{ runner.temp }}/racer-hd-next-family-trace.json
+            ${{ runner.temp }}/racer-hd-next-family-dossier/
+            ${{ runner.temp }}/racer-hd-next-family-dossier.txt
+            ${{ runner.temp }}/racer-hd-next-family-equivalence.txt
+            ${{ runner.temp }}/racer-hd-next-family-review.txt
+            ${{ runner.temp }}/racer-hd-next-family-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-next-ranked-state.json
+            ${{ runner.temp }}/racer-hd-next-ranked-state.txt
+            ${{ runner.temp }}/racer-hd-next-ranked-state/
+            ${{ runner.temp }}/racer-hd-next-family-temporal-a.json
+            ${{ runner.temp }}/racer-hd-next-family-temporal-a.txt
+            ${{ runner.temp }}/racer-hd-next-family-temporal-b.json
+            ${{ runner.temp }}/racer-hd-next-family-temporal-b.txt
+            ${{ runner.temp }}/racer-hd-frequency-family-dossier/
+            ${{ runner.temp }}/racer-hd-frequency-family-dossier.txt
+            ${{ runner.temp }}/racer-hd-frequency-family-pose-equivalence.txt
+            ${{ runner.temp }}/racer-hd-frequency-family-temporal.json
+            ${{ runner.temp }}/racer-hd-frequency-family-temporal.txt
+            ${{ runner.temp }}/racer-hd-frequency-family-review-packet.txt
+            ${{ runner.temp }}/racer-hd-frequency-family-shipping-readiness.txt
             ${{ runner.temp }}/racer-hd-fourth-family-dossier/
             ${{ runner.temp }}/racer-hd-fourth-family-dossier.txt
             ${{ runner.temp }}/racer-hd-fourth-family-pose-equivalence.txt

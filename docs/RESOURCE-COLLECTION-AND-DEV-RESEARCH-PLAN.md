@@ -527,3 +527,25 @@ Open a new research task only when it can name all four of: **the product decisi
 
 
 For every lane, the preferred end product is a fixture, verified symbol, parser, generated report, regression, implementation constraint or durable negative result. A link alone is intake, not completion.
+
+
+## Community evidence and expert-player research
+
+The 2026-10-05 web archaeology pass established that old FAQs, TAS/speedrun discussions, competitive record threads, cheat-code databases, glitch writeups and modern player discussions can expose useful behavioral discriminators. This lane is now **bounded evidence intake**, not a standing broad-search program.
+
+Use community evidence when it does at least one of the following:
+- identifies a concrete reproducible mechanic or edge case absent from current fixtures;
+- conflicts with another source strongly enough to justify a cheap canonical-runtime discriminator;
+- exposes an exact technical artifact such as an SMV, Lua script, savestate, patch, trace or code list;
+- identifies an active/high-skill/PAL/glitch-oriented player who may later improve release-candidate playtesting.
+
+Before adding work, apply the deduplication preflight in `docs/EXTERNAL-EVIDENCE-INTAKE.md`. The repository already contains extensive TAS, Nitrodon, Dessyreqt, name-filter, course-map, cheat-code and historical-movie evidence; rediscovered sources should normally become provenance on existing claims rather than new queue items.
+
+Current high-value unresolved community-seeded discriminators are:
+- game-facing boost-to-speed behavior, including airborne storage, offscreen depletion and the confirmed `0x0180` boost clamp;
+- exact stunt-recognition/input boundaries where competitive/TAS reports disagree or expose timing sensitivity;
+- collision/recovery edge cases represented by recovered Jumpover artifacts, the Ping Pong unmarked loop skip and red/yellow recovery-track escape behavior;
+- malformed-SRAM containment relevant to Modern profiles;
+- rare recorded glitches only when video/artifact classification shows they are distinct from an existing collision/recovery family.
+
+Do not broaden this into generic nostalgia collection, exhaustive glitch hunting, or a second reverse-engineering program. Canonical ROM/runtime evidence remains authoritative.

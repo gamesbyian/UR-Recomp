@@ -1,0 +1,205 @@
+{
+  "schema_version": 1,
+  "source": {
+    "workflow_run": 37264523402,
+    "artifact_id": 11325937178,
+    "artifact_name": "native-racer-presentation-acceptance",
+    "route": "two-player-first-race-observe.script + two-player-first-race.input",
+    "trace_window": [
+      1180,
+      1620
+    ],
+    "measurement_semantics": "post-guest-frame WRAM composition consumed by the native semantic selector"
+  },
+  "before": {
+    "player_frame_observations": 882,
+    "hd_selected_player_frames": 150,
+    "original_fallback_player_frames": 732,
+    "hd_coverage_fraction": 0.17006802721088435
+  },
+  "ranking_rule": "Exact synchronized states are ranked by fallback player-frames, then independent episode count, then frame hits.",
+  "selected_next_family": {
+    "state": "0x0540/0x0543 + 0x0D2C/0x0000 sel 0/0 gate 0x0001/0x0000",
+    "frames": [
+      1354,
+      1355,
+      1356,
+      1390,
+      1418,
+      1450
+    ],
+    "episode_count": 4,
+    "player_frames_removed": 12,
+    "selection_basis": "Tied for maximum fallback player-frames, but recurs across four separate episodes. Both player poses already have hash-bound shipping approval under other exact composition guards, so this family can expand coverage through proven reuse rather than new art."
+  },
+  "other_tied_maximum_states": [
+    {
+      "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+      "frames": [
+        1280,
+        1281,
+        1282,
+        1283,
+        1285,
+        1286
+      ],
+      "episode_count": 2,
+      "player_frames": 12
+    },
+    {
+      "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+      "frames": [
+        1401,
+        1402,
+        1403,
+        1404,
+        1405,
+        1406
+      ],
+      "episode_count": 1,
+      "player_frames": 12
+    },
+    {
+      "state": "0x057C/0x0547 + 0x0D67/0x0000 sel 0/0 gate 0x0001/0x0000",
+      "frames": [
+        1456,
+        1457,
+        1458,
+        1459,
+        1460,
+        1461
+      ],
+      "episode_count": 1,
+      "player_frames": 12
+    }
+  ],
+  "after": {
+    "player_frame_observations": 882,
+    "hd_selected_player_frames": 162,
+    "original_fallback_player_frames": 720,
+    "hd_coverage_fraction": 0.1836734693877551,
+    "fallback_burden_removed_fraction": 0.01639344262295082,
+    "absolute_coverage_gain_percentage_points": 1.360544217687075
+  },
+  "continuation_disposition": {
+    "status": "stop-before-new-art",
+    "reason": "The highest remaining measured state requires two novel poses for a single six-frame episode and 12 player-fallback frames. This is not currently worth shipping relative to the reuse-heavy expansions already admitted.",
+    "next_concrete_discriminator": "Resume only if a broader representative Windows route shows this state/family recurring enough to justify two new poses, or if new equivalence evidence lowers its art cost. Otherwise leave it on fail-closed Original."
+  },
+  "second_expansion": {
+    "selected_exact_state": {
+      "state": "0x0544/0x0578 + 0x0000/0x0D63 sel 0/0 gate 0x0000/0x0001",
+      "frames": [
+        1280,
+        1281,
+        1282,
+        1283,
+        1285,
+        1286
+      ],
+      "episode_count": 2,
+      "player_frames_removed": 12,
+      "selection_basis": "Tied for maximum remaining player-visible fallback burden. Bounded discriminator proved P1 0544 is palette-normalized geometry-equivalent to the shipping P2 0544 pose, while P2 0578 is one genuinely new pose.",
+      "p1_reuse": {
+        "source_representation_id": "ordinary-racer-0x0544-p2-sync-reference",
+        "normalized_stock_sha256": "f78818b7924ce450ceca6d425f11e520388db635a77e6fec9a30236e960b82e4",
+        "normalized_authored_sha256": "1979cc827edac87de49e7a0cdb1c49bfc7e3bdec86642faf2ab26da2dc33f6fc"
+      },
+      "p2_new_pose": {
+        "authored_rgba_sha256": "c2a76550ed07481f22ba832a75170c4609fd2b1bd45d748d5c2d8f90a1d66201",
+        "stock_alpha_bounds": [
+          17,
+          5,
+          47,
+          36
+        ],
+        "contact_x2_y2": [
+          77,
+          72
+        ],
+        "alpha_iou": 0.6731843575418994
+      },
+      "approval_manifest": "analysis/data/racer-hd-art-approval-1280-1286.json",
+      "review_workflow_run": 37390149923,
+      "review_artifact_id": 11381001561
+    },
+    "before": {
+      "player_frame_observations": 882,
+      "hd_selected_player_frames": 162,
+      "original_fallback_player_frames": 720,
+      "hd_coverage_fraction": 0.1836734693877551
+    },
+    "after": {
+      "player_frame_observations": 882,
+      "hd_selected_player_frames": 174,
+      "original_fallback_player_frames": 708,
+      "hd_coverage_fraction": 0.19727891156462585,
+      "fallback_burden_removed_fraction": 0.016666666666666666,
+      "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+      "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+    }
+  },
+  "current_after": {
+    "player_frame_observations": 882,
+    "hd_selected_player_frames": 174,
+    "original_fallback_player_frames": 708,
+    "hd_coverage_fraction": 0.19727891156462585,
+    "fallback_burden_removed_fraction": 0.016666666666666666,
+    "absolute_coverage_gain_percentage_points": 1.3605442176870748,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+  },
+  "next_ranked_discriminator": {
+    "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+    "frames": [
+      1401,
+      1402,
+      1403,
+      1404,
+      1405,
+      1406
+    ],
+    "episode_count": 1,
+    "player_fallback_frames": 12,
+    "workflow_run": 37390771706,
+    "artifact_id": 11380783383,
+    "probe": "tools/probe_racer_hd_state_reuse.py",
+    "players": {
+      "p1": {
+        "semantic_frame_id": "0x0545",
+        "stock_rgba_sha256": "f8ce4667871db7b668252b3a920a27e88a3b5b1ea04d0b96066fe7243ca32197",
+        "normalized_geometry_sha256": "9949f8432b87631d52c254b8a3d28a5ce208dbfec05479a954e6129ecb84e278",
+        "alpha_bounds": [
+          18,
+          5,
+          42,
+          37
+        ],
+        "contact_x2_y2": [
+          53,
+          74
+        ],
+        "exact_same_player_matches": [],
+        "palette_normalized_matches": []
+      },
+      "p2": {
+        "semantic_frame_id": "0x057C",
+        "stock_rgba_sha256": "37b4fcdbec0e33f447a2b757a70da77fde2475b8d536900382bde1291e3e0df6",
+        "normalized_geometry_sha256": "dc76ae154d66076a089b1e2e2cfc1c8f28d2c44b7ef34d3a46008a2e6627b61d",
+        "alpha_bounds": [
+          20,
+          3,
+          44,
+          38
+        ],
+        "contact_x2_y2": [
+          71,
+          76
+        ],
+        "exact_same_player_matches": [],
+        "palette_normalized_matches": []
+      }
+    },
+    "disposition": "stop-before-new-art",
+    "reason": "This state has the same 12-player-frame payoff as the two accepted measured families but occurs in only one episode and requires two genuinely new poses. No exact or palette-normalized reuse exists for either player, so shipping it now would double the new-art cost of the previous family without increasing measured burden removed."
+  }
+}

@@ -440,5 +440,34 @@ int main() {
         GraphicsPack::Remastered, 0x057F, p057f_p0542_mismatch, 1
     ).fallback_reason == FallbackReason::CompositionMismatch);
 
+    const RacerCompositionState frequency_0544_0578_context{
+        0x0544, 0x0578, 0x0000, 0x0D63, 0, 0, 0x0000, 0x0001
+    };
+    const auto* frequency_p1 =
+        find_racer_registration_for_state(0x0544, frequency_0544_0578_context, 1);
+    const auto* frequency_p2 =
+        find_racer_registration_for_state(0x0578, frequency_0544_0578_context, 2);
+    assert(frequency_p1 != nullptr);
+    assert(frequency_p2 != nullptr);
+    assert(frequency_p1->contact_anchor.x2 == 55);
+    assert(frequency_p1->contact_anchor.y2 == 76);
+    assert(frequency_p2->contact_anchor.x2 == 77);
+    assert(frequency_p2->contact_anchor.y2 == 72);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0544, frequency_0544_0578_context, 1
+    ).registration == frequency_p1);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, frequency_0544_0578_context, 2
+    ).registration == frequency_p2);
+
+    auto frequency_near_miss = frequency_0544_0578_context;
+    frequency_near_miss.p2_companion = 0x0D64;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0544, frequency_near_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, frequency_near_miss, 2
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

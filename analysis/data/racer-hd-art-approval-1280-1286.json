@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "workflow_run": 37390149923,
+    "artifact_id": 11381001561,
+    "review_surface": "measured fallback-family deterministic dossier, pose-equivalence, review packet, palette-reuse proof, and two temporal holds",
+    "disposition": "P1 0544 reuses the shipping-approved P2 0544 geometry through a proven player-color-only transform. P2 0578 is one new authored pose reviewed against exact stock frames 1280-1286. Both remain bound to the exact authored hashes below.",
+    "temporal_window": [
+      1280,
+      1283
+    ],
+    "additional_temporal_windows": [
+      [
+        1285,
+        1286
+      ]
+    ]
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0544-p1-frequency-0578-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "0254ccf6722ec2dfccd0d5d449c8371974c54a35c28efd4e1071e093782e341a",
+      "palette_reused_from_representation_id": "ordinary-racer-0x0544-p2-sync-reference",
+      "palette_normalized_stock_sha256": "f78818b7924ce450ceca6d425f11e520388db635a77e6fec9a30236e960b82e4",
+      "normalized_authored_sha256": "1979cc827edac87de49e7a0cdb1c49bfc7e3bdec86642faf2ab26da2dc33f6fc"
+    },
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0578-p2-frequency-0544-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "c2a76550ed07481f22ba832a75170c4609fd2b1bd45d748d5c2d8f90a1d66201",
+      "review_metrics": {
+        "stock_alpha_bounds": [
+          17,
+          5,
+          47,
+          36
+        ],
+        "candidate_alpha_bounds": [
+          17,
+          5,
+          47,
+          36
+        ],
+        "stock_contact_x2_y2": [
+          77,
+          72
+        ],
+        "candidate_contact_x2_y2": [
+          77,
+          72
+        ],
+        "alpha_iou": 0.6731843575418994
+      }
+    }
+  ]
+}

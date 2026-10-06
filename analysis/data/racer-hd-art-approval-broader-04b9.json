@@ -14,7 +14,9 @@
     ],
     "review_surface": "broader ordinary-play census, canonical stock reconstruction, one-pose single-player dossier, equivalence review and real two-frame static temporal witness",
     "guard_scope": "player_local",
-    "guard_scope_proof": "58 synchronized opponent-state witnesses / 80 player-frames reconstruct one identical P1 stock RGBA raster; P1/P2 staging columns are disjoint"
+    "guard_scope_proof": "58 synchronized opponent-state witnesses / 80 player-frames reconstruct one identical P1 stock RGBA raster; P1/P2 staging columns are disjoint",
+    "workflow_run": 37394191595,
+    "artifact_id": 11382681039
   },
   "family_blockers": [],
   "decisions": [

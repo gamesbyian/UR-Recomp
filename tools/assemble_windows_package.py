@@ -354,6 +354,7 @@ def create_archive(package: Path, archive: Path) -> dict[str, object]:
                 f"{ARCHIVE_ROOT}/{relative}", date_time=ARCHIVE_TIMESTAMP
             )
             info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
             info.external_attr = 0o100644 << 16
             output.writestr(info, path.read_bytes(), compresslevel=9)
     return manifest
@@ -367,7 +368,18 @@ def verify_archive(archive: Path) -> dict[str, object]:
     manifest_name = f"{ARCHIVE_ROOT}/{MANIFEST_NAME}"
     try:
         with zipfile.ZipFile(archive, "r") as source:
-            names = source.namelist()
+            infos = source.infolist()
+            names = [info.filename for info in infos]
+            for info in infos:
+                if (
+                    info.date_time != ARCHIVE_TIMESTAMP
+                    or info.compress_type != zipfile.ZIP_DEFLATED
+                    or info.create_system != 3
+                    or info.external_attr != (0o100644 << 16)
+                ):
+                    raise ValueError(
+                        f"package archive metadata is not normalized: {info.filename}"
+                    )
             if len(names) != len(set(names)):
                 raise ValueError("package archive contains duplicate paths")
             if any(

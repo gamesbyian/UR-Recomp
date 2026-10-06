@@ -36,7 +36,8 @@ class LocalMultiplayerHostContractTests(unittest.TestCase):
         self.assertIn("local_multiplayer_slot_for_player(player_index)", body)
         self.assertIn("button == kGamepadBtn_A || button == kGamepadBtn_Start", body)
         self.assertIn("local_multiplayer_assign_source(slot, source)", body)
-        self.assertIn("if (!pressed) return 1;", body)
+        self.assertIn("g_local_multiplayer_consumed_buttons", body)
+        self.assertIn("g_local_multiplayer_consumed_buttons[seat] &= ~button_bit;", body)
         self.assertIn("button == kGamepadBtn_B", body)
 
     def test_generated_host_binds_source_callbacks(self):

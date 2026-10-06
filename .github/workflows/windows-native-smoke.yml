@@ -10,6 +10,7 @@ name: Windows native build and boot smoke
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
     paths:
@@ -55,10 +56,11 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify canonical ROM and package contracts
-        run: |
-          python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package
+      - name: Verify canonical ROM
+        run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Verify package contracts
+        run: python -m unittest tests.unit.test_assemble_windows_package
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

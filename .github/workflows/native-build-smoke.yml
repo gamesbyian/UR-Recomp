@@ -580,6 +580,12 @@ jobs:
             # to exact classic STEVE/rider 15. Rename afterward to prove the
             # player-facing name is independent from the stock rider identity.
             xdotool key F2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'"
             xdotool key n
             xdotool key Left
             xdotool key Return

@@ -13,6 +13,7 @@ TMPROOT="$4"
 SCRIPT_DIR="$(dirname "$TITLE_SCRIPT")"
 MAIN_MENU_SCRIPT="$SCRIPT_DIR/modern-regional-main-menu.script"
 VERIFY_SCRIPT="$SCRIPT_DIR/modern-main-menu.script"
+VISUAL_SCRIPT="$SCRIPT_DIR/title-transition-recon.script"
 
 STATE="$TMPROOT/regional-host-state.txt"
 PAL_LOG="$TMPROOT/regional-pal.log"
@@ -24,10 +25,26 @@ PAL_DUMPS="$TMPROOT/regional-pal-dumps"
 NTSC_DUMPS="$TMPROOT/regional-ntsc-dumps"
 MAIN_MENU_DUMPS="$TMPROOT/regional-main-menu-dumps"
 AUTHENTIC_DUMPS="$TMPROOT/regional-authentic-dumps"
+EUROPE_VISUAL_DUMPS="$TMPROOT/regional-europe-visual-dumps"
+NA_VISUAL_DUMPS="$TMPROOT/regional-na-visual-dumps"
+AUTHENTIC_VISUAL_DUMPS="$TMPROOT/regional-authentic-visual-dumps"
+EUROPE_SCREENSHOT="$TMPROOT/regional-europe-title.ppm"
+NA_SCREENSHOT="$TMPROOT/regional-na-title.ppm"
+AUTHENTIC_SCREENSHOT="$TMPROOT/regional-authentic-title.ppm"
+EUROPE_VISUAL_LOG="$TMPROOT/regional-europe-visual.log"
+NA_VISUAL_LOG="$TMPROOT/regional-na-visual.log"
+AUTHENTIC_VISUAL_LOG="$TMPROOT/regional-authentic-visual.log"
+EUROPE_STATE_SNAPSHOT="$TMPROOT/regional-europe-host-state.txt"
+SOURCE_RGB_SHA="f2e8abef59271b4e05b3fc49e6d8b70ae695a6e813347756c293ab7a4a023b5f"
+TARGET_RGB_SHA="40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
 
-rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG"
-rm -rf "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS"
-mkdir -p "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS"
+rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG" \
+  "$EUROPE_SCREENSHOT" "$NA_SCREENSHOT" "$AUTHENTIC_SCREENSHOT" \
+  "$EUROPE_VISUAL_LOG" "$NA_VISUAL_LOG" "$AUTHENTIC_VISUAL_LOG" "$EUROPE_STATE_SNAPSHOT"
+rm -rf "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS" \
+  "$EUROPE_VISUAL_DUMPS" "$NA_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_DUMPS"
+mkdir -p "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS" \
+  "$EUROPE_VISUAL_DUMPS" "$NA_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_DUMPS"
 
 run_secret_process() {
   local sequence="$1"
@@ -101,11 +118,98 @@ run_secret_process() {
   ' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$log" "$dumps"       "$sequence" "$expected" "$expected_loaded"
 }
 
+ppm_crop_sha() {
+  local ppm="$1"
+  python3 - "$ppm" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+data = path.read_bytes()
+if not data.startswith(b"P6\n"):
+    raise SystemExit(f"not P6 PPM: {path}")
+parts = data.split(b"\n", 3)
+if len(parts) != 4:
+    raise SystemExit(f"malformed PPM: {path}")
+width, height = map(int, parts[1].split())
+maxval = int(parts[2])
+pixels = parts[3]
+if (width, height, maxval) != (256, 224, 255):
+    raise SystemExit(f"unexpected PPM geometry: {(width, height, maxval)}")
+if len(pixels) != width * height * 3:
+    raise SystemExit(f"unexpected PPM payload length: {len(pixels)}")
+x0, y0, x1, y1 = 10, 1, 247, 81
+crop = bytearray()
+for y in range(y0, y1 + 1):
+    start = (y * width + x0) * 3
+    end = (y * width + x1 + 1) * 3
+    crop.extend(pixels[start:end])
+actual = hashlib.sha256(crop).hexdigest()
+print(actual)
+PY
+}
+
+run_visual_process() {
+  local state="$1"
+  local expected_loaded="$2"
+  local screenshot="$3"
+  local dumps="$4"
+  local log="$5"
+  local execution_mode="${6:-modern}"
+
+  rm -f "$screenshot" "$log"
+  rm -rf "$dumps"
+  mkdir -p "$dumps"
+
+  SDL_AUDIODRIVER=dummy \
+  UR_PRODUCT_DIAGNOSTICS=1 \
+  UR_EXECUTION_MODE="$execution_mode" \
+  UR_HOST_STATE_PATH="$state" \
+  SNESRECOMP_DUMP_DIR="$dumps" \
+  SNESRECOMP_SCREENSHOT="$screenshot" \
+  SNESRECOMP_SCREENSHOT_FRAME=300 \
+  timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$VISUAL_SCRIPT" >"$log" 2>&1
+  cat "$log"
+
+  test -s "$screenshot"
+  test -s "$dumps/boot-300.wram.bin"
+  if [ "$execution_mode" = modern ]; then
+    grep -q "UR_HOST_STATE LOADED regional_presentation=$expected_loaded " "$log"
+  else
+    grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$log"
+  fi
+}
+
 run_secret_process "p a l" "europe" "" "$PAL_LOG" "$PAL_DUMPS"
 grep -q "^regional_presentation=europe$" "$STATE"
+cp "$STATE" "$EUROPE_STATE_SNAPSHOT"
+
+run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG"
+grep -q "UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1" "$EUROPE_VISUAL_LOG"
+EUROPE_VISIBLE_SHA="$(ppm_crop_sha "$EUROPE_SCREENSHOT")"
+test "$EUROPE_VISIBLE_SHA" = "$TARGET_RGB_SHA"
+echo "UR_REGIONAL_VISIBLE EUROPE=$EUROPE_VISIBLE_SHA"
+
+run_visual_process "$EUROPE_STATE_SNAPSHOT" "europe" "$AUTHENTIC_SCREENSHOT" "$AUTHENTIC_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_LOG" "authentic"
+AUTHENTIC_VISIBLE_SHA="$(ppm_crop_sha "$AUTHENTIC_SCREENSHOT")"
+test "$AUTHENTIC_VISIBLE_SHA" = "$SOURCE_RGB_SHA"
+echo "UR_REGIONAL_VISIBLE AUTHENTIC=$AUTHENTIC_VISIBLE_SHA"
 
 run_secret_process "n t s c" "north_america" "europe" "$NTSC_LOG" "$NTSC_DUMPS"
 grep -q "^regional_presentation=north_america$" "$STATE"
+
+run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG"
+NA_VISIBLE_SHA="$(ppm_crop_sha "$NA_SCREENSHOT")"
+test "$NA_VISIBLE_SHA" = "$SOURCE_RGB_SHA"
+echo "UR_REGIONAL_VISIBLE NORTH_AMERICA=$NA_VISIBLE_SHA"
+test "$EUROPE_VISIBLE_SHA" != "$NA_VISIBLE_SHA"
+test "$AUTHENTIC_VISIBLE_SHA" = "$NA_VISIBLE_SHA"
+echo "UR_REGIONAL_VISIBLE_SHA europe=$EUROPE_VISIBLE_SHA north_america=$NA_VISIBLE_SHA authentic=$AUTHENTIC_VISIBLE_SHA"
+
+for suffix in wram.bin sram.bin vram.bin cgram.bin oam.bin; do
+  cmp "$EUROPE_VISUAL_DUMPS/boot-300.$suffix" "$NA_VISUAL_DUMPS/boot-300.$suffix"
+done
 
 # Navigable main menu (0xD7) is explicitly not an admission surface.
 timeout 90s xvfb-run -a bash -c '
@@ -176,4 +280,7 @@ cat "$NTSC_LOG"
 cat "$MAIN_MENU_LOG"
 cat "$AUTHENTIC_LOG"
 cat "$VERIFY_LOG"
-echo "UR_REGIONAL_RESULT=pal_saved_reloaded_ntsc_saved_reloaded_main_menu_inert_authentic_inert"
+cat "$EUROPE_VISUAL_LOG"
+cat "$NA_VISUAL_LOG"
+cat "$AUTHENTIC_VISUAL_LOG"
+echo "UR_REGIONAL_RESULT=pal_saved_unirally_visible_ntsc_saved_uniracers_visible_guest_state_equal_main_menu_inert_authentic_canonical"

@@ -497,7 +497,7 @@
       "acquisition_judgment": "High leverage because multiple independent player/research communities describe overlapping mechanics; canonical reproduction can turn folklore into durable regression tests cheaply."
     },
     {
-      "id": "reddit-uniracers-boost-mechanics-2021",
+      "id": "boost-semantics-conflict",
       "value": "high",
       "cost": "low",
       "status": "ready",
@@ -868,7 +868,7 @@
       "status": "ready",
       "source_ids": [
         "reddit-original-dev-banned-list-2026",
-        "boost-semantics-conflict"
+        "reddit-uniracers-boost-mechanics-2021"
       ],
       "question": "How does twist-derived boost interact with twist-track sections that punish or redirect jumping, and is the resulting friction purely level design or tied to distinct track-state rules?",
       "next_discriminator": "Use the 2026 original-developer thread's player recollection as a design-friction lead. Identify twist-track sections where jumping is disadvantageous or causes rollback, then compare grounded twist-track traversal against jump-and-twist traversal while tracing boost, position, rollback/recovery state and camera. Do not infer intended design rationale beyond observable behavior.",

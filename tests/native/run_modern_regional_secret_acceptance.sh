@@ -13,6 +13,7 @@ TMPROOT="$4"
 SCRIPT_DIR="$(dirname "$TITLE_SCRIPT")"
 MAIN_MENU_SCRIPT="$SCRIPT_DIR/modern-regional-main-menu.script"
 VERIFY_SCRIPT="$SCRIPT_DIR/modern-main-menu.script"
+VISUAL_SCRIPT="$SCRIPT_DIR/title-transition-recon.script"
 
 STATE="$TMPROOT/regional-host-state.txt"
 PAL_LOG="$TMPROOT/regional-pal.log"
@@ -24,10 +25,26 @@ PAL_DUMPS="$TMPROOT/regional-pal-dumps"
 NTSC_DUMPS="$TMPROOT/regional-ntsc-dumps"
 MAIN_MENU_DUMPS="$TMPROOT/regional-main-menu-dumps"
 AUTHENTIC_DUMPS="$TMPROOT/regional-authentic-dumps"
+EUROPE_VISUAL_DUMPS="$TMPROOT/regional-europe-visual-dumps"
+NA_VISUAL_DUMPS="$TMPROOT/regional-na-visual-dumps"
+AUTHENTIC_VISUAL_DUMPS="$TMPROOT/regional-authentic-visual-dumps"
+EUROPE_SCREENSHOT="$TMPROOT/regional-europe-title.ppm"
+NA_SCREENSHOT="$TMPROOT/regional-na-title.ppm"
+AUTHENTIC_SCREENSHOT="$TMPROOT/regional-authentic-title.ppm"
+EUROPE_VISUAL_LOG="$TMPROOT/regional-europe-visual.log"
+NA_VISUAL_LOG="$TMPROOT/regional-na-visual.log"
+AUTHENTIC_VISUAL_LOG="$TMPROOT/regional-authentic-visual.log"
+EUROPE_STATE_SNAPSHOT="$TMPROOT/regional-europe-host-state.txt"
+SOURCE_RGB_SHA="f2e8abef59271b4e05b3fc49e6d8b70ae695a6e813347756c293ab7a4a023b5f"
+TARGET_RGB_SHA="40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
 
-rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG"
-rm -rf "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS"
-mkdir -p "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS"
+rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG" \
+  "$EUROPE_SCREENSHOT" "$NA_SCREENSHOT" "$AUTHENTIC_SCREENSHOT" \
+  "$EUROPE_VISUAL_LOG" "$NA_VISUAL_LOG" "$AUTHENTIC_VISUAL_LOG" "$EUROPE_STATE_SNAPSHOT"
+rm -rf "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS" \
+  "$EUROPE_VISUAL_DUMPS" "$NA_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_DUMPS"
+mkdir -p "$PAL_DUMPS" "$NTSC_DUMPS" "$MAIN_MENU_DUMPS" "$AUTHENTIC_DUMPS" \
+  "$EUROPE_VISUAL_DUMPS" "$NA_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_DUMPS"
 
 run_secret_process() {
   local sequence="$1"
@@ -99,6 +116,72 @@ run_secret_process() {
 
     wait "$PID" 2>/dev/null || true
   ' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$log" "$dumps"       "$sequence" "$expected" "$expected_loaded"
+}
+
+verify_ppm_crop() {
+  local ppm="$1"
+  local expected_sha="$2"
+  python3 - "$ppm" "$expected_sha" <<'PY'
+import hashlib
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+expected = sys.argv[2]
+data = path.read_bytes()
+if not data.startswith(b"P6\n"):
+    raise SystemExit(f"not P6 PPM: {path}")
+parts = data.split(b"\n", 3)
+if len(parts) != 4:
+    raise SystemExit(f"malformed PPM: {path}")
+width, height = map(int, parts[1].split())
+maxval = int(parts[2])
+pixels = parts[3]
+if (width, height, maxval) != (256, 224, 255):
+    raise SystemExit(f"unexpected PPM geometry: {(width, height, maxval)}")
+if len(pixels) != width * height * 3:
+    raise SystemExit(f"unexpected PPM payload length: {len(pixels)}")
+x0, y0, x1, y1 = 10, 1, 247, 81
+crop = bytearray()
+for y in range(y0, y1 + 1):
+    start = (y * width + x0) * 3
+    end = (y * width + x1 + 1) * 3
+    crop.extend(pixels[start:end])
+actual = hashlib.sha256(crop).hexdigest()
+if actual != expected:
+    raise SystemExit(f"title crop hash mismatch: {actual} != {expected}")
+print(f"UR_REGIONAL_TITLE_CROP_SHA256={actual}")
+PY
+}
+
+run_visual_process() {
+  local state="$1"
+  local expected_loaded="$2"
+  local screenshot="$3"
+  local dumps="$4"
+  local log="$5"
+  local execution_mode="${6:-modern}"
+
+  rm -f "$screenshot" "$log"
+  rm -rf "$dumps"
+  mkdir -p "$dumps"
+
+  SDL_AUDIODRIVER=dummy \
+  UR_PRODUCT_DIAGNOSTICS=1 \
+  UR_EXECUTION_MODE="$execution_mode" \
+  UR_HOST_STATE_PATH="$state" \
+  SNESRECOMP_DUMP_DIR="$dumps" \
+  SNESRECOMP_SCREENSHOT="$screenshot" \
+  SNESRECOMP_SCREENSHOT_FRAME=300 \
+  timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$VISUAL_SCRIPT" >"$log" 2>&1
+
+  test -s "$screenshot"
+  test -s "$dumps/boot-300.wram.bin"
+  if [ "$execution_mode" = modern ]; then
+    grep -q "UR_HOST_STATE LOADED regional_presentation=$expected_loaded " "$log"
+  else
+    grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$log"
+  fi
 }
 
 run_secret_process "p a l" "europe" "" "$PAL_LOG" "$PAL_DUMPS"

@@ -122,6 +122,9 @@ bool g_local_multiplayer_two_player_visit;
 bool g_practice_active;
 bool g_practice_acceptance_fired;
 bool g_practice_race_ready_reported;
+unsigned g_practice_cancel_acceptance_frames;
+bool g_profile_panel_acceptance_confirm_pending;
+std::string g_profile_panel_acceptance_input_path;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
@@ -636,6 +639,14 @@ std::string resolve_tour_continue_input_path() {
     if (override_path && *override_path) return override_path;
 
     return product_user_data_path("tour-continue-input.txt");
+}
+
+std::string resolve_profile_panel_acceptance_input_path() {
+    const char* override_path =
+        std::getenv("UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH");
+    if (override_path && *override_path) return override_path;
+
+    return product_user_data_path("profile-panel-acceptance-input.txt");
 }
 
 bool queue_relative_menu_input(
@@ -1779,6 +1790,10 @@ bool handle_profile_menu_key(int key) {
 
     if (key == SDLK_ESCAPE || key == SDLK_F2) {
         g_profile_menu_visible = false;
+        if (std::getenv("UR_PROFILE_PANEL_ACCEPTANCE")) {
+            g_profile_panel_acceptance_confirm_pending = true;
+            product_diagnostic("UR_PROFILE_UI ACCEPTANCE_CONFIRM_ARMED");
+        }
         return true;
     }
     if (key == SDLK_n) { begin_profile_create(); return true; }
@@ -4002,6 +4017,46 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (stats) {
         advance_practice_route(stats->frame + 1u);
         advance_tour_continue_route(stats->frame + 1u);
+
+        // Acceptance-only synchronization belongs on the emulated-frame
+        // boundary, not in wall-clock X11 polling. Hold the real Practice
+        // router at rider select long enough for the script to retain its
+        // checkpoint, then exercise the ordinary abort/reboot path.
+        if (std::getenv("UR_PRACTICE_CANCEL_ACCEPTANCE") &&
+            g_practice_active && g_ram[0x0313] != 0x01 &&
+            g_ram[0x009F] == 0x3C) {
+            ++g_practice_cancel_acceptance_frames;
+            if (g_practice_cancel_acceptance_frames >= 30u) {
+                g_practice_cancel_acceptance_frames = 0;
+                (void)abort_practice_route_to_frontend(
+                    "UR_PRACTICE ROUTE_CANCELLED");
+            }
+        } else {
+            g_practice_cancel_acceptance_frames = 0;
+        }
+
+        // The profile acceptance still drives the real host UI, but once that
+        // modal surface closes, hand stock rider confirmation back to the
+        // deterministic guest-input transport on an observed rider-select
+        // frame. This removes the host/guest wall-clock race without bypassing
+        // stock confirmation or rider initialization.
+        if (g_profile_panel_acceptance_confirm_pending &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0x3C) {
+            project_profile_identity_to_stock_rider();
+            if (g_profile_panel_acceptance_input_path.empty()) {
+                g_profile_panel_acceptance_input_path =
+                    resolve_profile_panel_acceptance_input_path();
+            }
+            if (queue_relative_menu_input(
+                    g_profile_panel_acceptance_input_path,
+                    stats->frame + 1u,
+                    ur::product::quick_practice_runner_mask(
+                        ur::product::QuickPracticeLaunchInput::Accept))) {
+                g_profile_panel_acceptance_confirm_pending = false;
+                product_diagnostic(
+                    "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED");
+            }
+        }
     }
 
     const bool run_active =

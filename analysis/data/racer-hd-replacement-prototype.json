@@ -3,9 +3,9 @@
   "family": "ordinary-race-racer-presentation",
   "purpose": "Product-facing HD substitution contracts for synchronized ordinary-race racer objects.",
   "lookup": {
-    "primary_key": "semantic_frame_id + composition_guards",
+    "primary_key": "semantic_frame_id + guarded composition scope",
     "authoritative_state": "$0FE9/$0FEB",
-    "note": "The authoritative 16-bit presentation ID narrows the candidate set; the full synchronized composition guard selects the exact representation. Multiple registrations may therefore share one semantic_frame_id. Tooling may use representation_id as an explicit disambiguator. Unknown or ambiguous exact states fail closed to Original."
+    "note": "The authoritative 16-bit presentation ID narrows the candidate set. Registrations are synchronized-exact by default. A registration may opt into guard_scope=player_local only when composition structure proves the opponent columns cannot affect that player's raster and retained multi-witness stock reconstruction proves byte-identical local output; that scope still matches the player's primary/companion/selector/gate exactly. Unknown or ambiguous guarded states fail closed to Original."
   },
   "entries": [
     {

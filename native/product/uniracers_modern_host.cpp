@@ -4774,11 +4774,17 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
-    // mapping but before guest dispatch. L/R have no ordinary settled-main
-    // action, so removing only those two bits makes the stock Left+A+L+R
-    // erase-all gesture impossible in Modern mode without disturbing Left/A
-    // navigation. Scripted/reference input bypasses this filter, and
-    // Authentic mode returns the word byte-for-byte.
+    // mapping but before guest dispatch. Host-modal input must not also reach
+    // the stock game underneath: key callbacks consume the host action, but
+    // mapped SNES input is assembled independently later in the frame.
+    if (modern_mode() && g_profile_menu_visible) {
+        return 0u;
+    }
+
+    // L/R have no ordinary settled-main action, so removing only those two
+    // bits makes the stock Left+A+L+R erase-all gesture impossible in Modern
+    // mode without disturbing Left/A navigation. Scripted/reference input
+    // bypasses this filter, and Authentic mode returns the word byte-for-byte.
     const bool settled_main_menu =
         g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
     return ur::product::modern_profile_admin_filter_human_input(

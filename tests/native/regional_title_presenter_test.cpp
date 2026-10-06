@@ -124,17 +124,13 @@ int main() {
 
     {
         auto frame = canonical;
-        const std::size_t changed =
-            static_cast<std::size_t>(kOriginY) * kPitch +
-            static_cast<std::size_t>(kOriginX) * 4u;
-        frame[changed] ^= 0x01u;
         const auto before = frame;
         const auto result = apply_regional_title_presentation(
             RegionalPresentation::Europe,
             true,
             frame.data(),
             kPitch,
-            kFrameWidth,
+            kWidth - 1,
             kFrameHeight);
         assert(result == RegionalTitlePresentationResult::FailedClosed);
         assert(frame == before);

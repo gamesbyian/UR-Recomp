@@ -207,6 +207,8 @@ def assemble(
     mods = build_dir / "mods"
     if not mods.is_dir():
         raise ValueError(f"required package input missing: {mods}")
+    if not any(path.is_file() for path in mods.rglob("*")):
+        raise ValueError(f"required package input empty: {mods}")
 
     if output.exists():
         shutil.rmtree(output)

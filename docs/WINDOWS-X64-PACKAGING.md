@@ -31,14 +31,14 @@ The Windows x64 workflow is the authoritative end-to-end validator for the **ass
 The implemented acceptance sequence covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;
-2. assemble and independently verify the clean package manifest and deterministic ZIP;
+2. assemble and independently verify the clean package manifest, including a non-empty source revision, and the deterministic ZIP;
 3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
 5. prove fresh-run `config.ini`, `keybinds.ini`, mod-selection state and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory, and re-verify the launched extracted package against its manifest;
 6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state and completed-run data under that user root, replace the extracted package from the clean ZIP, and prove every seeded user-data artifact remains byte-identical;
 7. construct a legacy portable folder containing package-local config, bindings and save data, launch against an empty user root, and prove all three migrate successfully while the legacy source remains untouched;
 8. launch that legacy folder again after changing the migrated destination and prove destination-wins/idempotent migration does not overwrite newer user data;
-9. exercise representative startup failures for missing ROM, missing runtime payload, unusable user-data root and invalid ROM, requiring the stable diagnostic codes documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
+9. exercise representative startup failures for missing ROM, missing runtime payload, invalid/non-absolute/package-local user-data roots and invalid ROM, requiring the stable diagnostic codes documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
 10. re-verify the clean source package/archive and retain the deterministic ZIP as the consumer CI artifact.
 
 The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies.

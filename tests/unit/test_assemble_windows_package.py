@@ -51,6 +51,10 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("WINDOWS_PACKAGE_ASSEMBLED", result.stdout)
             self.assertFalse((package / "stale.txt").exists())
             self.assertTrue((package / "run-uniracers.cmd").is_file())
+            self.assertIn(
+                "Source revision: abc123",
+                (package / "README.txt").read_text(),
+            )
             launcher = (package / "run-uniracers.cmd").read_text()
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(

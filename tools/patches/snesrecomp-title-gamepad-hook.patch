@@ -1,10 +1,14 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -4607,9 +4607,23 @@
+@@ -4607,9 +4607,27 @@
  static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
-+  if (g_game->system_gamepad_button &&
-+      g_game->system_gamepad_button(button, pressed))
-+    return;
++  int title_gamepad_button_result = 0;
++  if (g_game->system_gamepad_button) {
++    title_gamepad_button_result =
++        g_game->system_gamepad_button(button, pressed);
++    if (title_gamepad_button_result > 0)
++      return;
++  }
    if (!!(gi->modifiers & (1 << button)) == pressed)
      return;
    gi->modifiers ^= 1 << button;
@@ -21,6 +25,8 @@
 +      g_game->system_gamepad_control(
 +          (int)(gi->last_cmd[button] - kKeys_Controls), pressed))
 +    return;
++  if (title_gamepad_button_result < 0)
++    return;
    if (gi->last_cmd[button] != 0)
      SetPadButtonOrFallthrough(gi->last_cmd[button], pressed);
  }
@@ -30,8 +36,9 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
 +  /* Optional title-owned normalized physical gamepad-button seam. Called
-+   * before the configured GamepadMap/guest mapping. Return nonzero to
-+   * consume. Existing title shortcuts may intentionally use this surface. */
++   * before the configured GamepadMap/guest mapping. Return >0 to consume;
++   * return <0 to resolve only mapped P1 semantic controls and suppress any
++   * other mapped command; return 0 for ordinary framework dispatch. */
 +  int (*system_gamepad_button)(int button, int pressed);
 +
 +  /* Optional title-owned semantic P1 SNES-control seam. Called after the

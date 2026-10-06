@@ -135,10 +135,14 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                'move /y "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp" '
-                '"%UR_RECOMP_USER_DATA_ROOT%\\saves"',
+                'ren "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp" "saves"',
                 launcher,
             )
+            self.assertIn(
+                'ren "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.migrate.tmp" "config.ini"',
+                launcher,
+            )
+            self.assertNotIn("move /y", launcher)
             self.assertNotIn("UR_MIGRATE_FILE", launcher)
             self.assertNotIn("UR_MIGRATE_DIR", launcher)
             self.assertIn("exit /b %ERRORLEVEL%", launcher)

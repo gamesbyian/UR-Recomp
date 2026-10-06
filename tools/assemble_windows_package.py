@@ -182,6 +182,12 @@ def write_readme(path: Path, source_revision: str) -> None:
         "launch. Existing user-data "
         "files always win, so migration is deterministic and safe to repeat.\n"
         "\n"
+        "To update this portable build, close the game, delete or move the old "
+        "extracted UR-Recomp-Windows-x64 folder, then extract the new ZIP as a "
+        "fresh folder. Do not overlay a new ZIP onto an old package tree. Your "
+        "normal settings, profiles, bindings and run history live outside the "
+        "package and are preserved across that replacement.\n"
+        "\n"
         "Private personal-use preservation/remaster build.\n",
         encoding="utf-8",
     )

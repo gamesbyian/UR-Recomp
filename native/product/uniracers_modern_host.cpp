@@ -3512,6 +3512,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
     return 0;
 }
 
+extern "C" int ur_uniracers_modern_controls_active(void) {
+    return modern_mode() && g_controls_visible ? 1 : 0;
+}
+
 extern "C" int ur_uniracers_modern_system_gamepad_button(
     int button,
     int pressed) {

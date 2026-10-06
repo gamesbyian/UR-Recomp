@@ -122,6 +122,21 @@ class WindowsPackageTests(unittest.TestCase):
                 '"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml"',
                 launcher,
             )
+            self.assertIn(
+                ".ur-recomp-config.ini.migrate.tmp",
+                launcher,
+            )
+            self.assertIn(
+                ".ur-recomp-saves.migrate.tmp",
+                launcher,
+            )
+            self.assertIn(
+                'move /y "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp" '
+                '"%UR_RECOMP_USER_DATA_ROOT%\\saves"',
+                launcher,
+            )
+            self.assertNotIn("UR_MIGRATE_FILE", launcher)
+            self.assertNotIn("UR_MIGRATE_DIR", launcher)
             self.assertIn("exit /b %ERRORLEVEL%", launcher)
 
             manifest = json.loads(

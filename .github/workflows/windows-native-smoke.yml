@@ -276,6 +276,31 @@ jobs:
           test ! -e "$TEST_PACKAGE/keybinds.ini"
           test ! -e "$TEST_PACKAGE/saves"
 
+          REFRESH_DUMPS="$RUNNER_TEMP/package-refresh-dumps"
+          mkdir -p "$REFRESH_DUMPS"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          USER_DATA_WIN="$(cygpath -w "$PACKAGE_USER_DATA")"
+          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          REFRESH_DUMPS_WIN="$(cygpath -w "$REFRESH_DUMPS")"
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_DUMP_DIR="$REFRESH_DUMPS_WIN" \
+          UR_RECOMP_USER_DATA_ROOT="$USER_DATA_WIN" \
+            timeout 300 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-refresh-boot.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-refresh-boot.log"
+          test "$RC" -eq 0
+          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-refresh-boot.log"
+          grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-refresh-boot.log"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$TEST_PACKAGE/keybinds.ini"
+          test ! -e "$TEST_PACKAGE/saves"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
+
           python tools/assemble_windows_package.py verify-archive \
             --archive "$PACKAGE_ARCHIVE"
           echo "WINDOWS_PACKAGE_REFRESH_USER_DATA_PRESERVED ok"

@@ -349,7 +349,7 @@ The policy-only phase has advanced into a tested product substrate on this branc
 - `tools/compare_regional_course_payloads.py` plus `regional-retail-course-payloads.yml` decode the seven changed RNC streams and localize byte changes into header, coarse table, fine-record region, resource list and post-list payload without over-classifying their semantics;
 - `tools/analyze_regional_title_delta.py` now promotes only a repeated settled retail title pair: USA and Europe frames 300/360 are internally stable, the visible delta is bounded to `[10,1]..[247,81]`, CGRAM is identical at those checkpoints, and exact crop/full-frame hashes are retained;
 - `native/product/regional_title_retail_asset.hpp` carries the compact exact retail-derived USA/Europe title rasters with verified ROM/workflow/artifact provenance; `analysis/data/presentation-assets.json` exposes the same family through the consolidated query surface;
-- `native/product/regional_title_presenter.{hpp,cpp}` applies Europe/Unirally only after the current canonical USA crop matches the retained digest, otherwise failing closed to the untouched Uniracers frame;
+- `native/product/regional_title_presenter.{hpp,cpp}` applies Europe/Unirally only on the proven idle-title semantic surface after validating the retained Europe payload; NorthAmerica remains the live canonical USA guest raster, and any failed Europe write restores that live raster;
 - the generated-product CMake patch now links the regional secret/runtime and title-presenter sources, so the feature is part of the shipping native product build rather than unit-test-only code.
 
 The production host now completes the hidden-switch input and persistence path:
@@ -385,7 +385,7 @@ No rendering change is required in this phase.
 
 ### Phase 2: exact title branding switch
 
-**Complete for the first settled-title consumer.** NorthAmerica remains the canonical USA guest raster. Europe uses the exact repeated Europe-retail title raster crop derived from matched snesref evidence, admitted only when the live canonical USA crop hash matches. The substitution occurs in the host compositor, requires no process or guest restart, and has no guest-memory authority. Any provenance mismatch fails closed to canonical Uniracers.
+**Complete for the first settled-title consumer.** NorthAmerica remains the canonical USA guest raster. Europe uses the exact repeated Europe-retail title raster crop derived from matched snesref evidence, admitted only on the proven idle-title semantic surface after retained-payload validation. The substitution occurs in the host compositor, requires no process or guest restart, and has no guest-memory authority. Any provenance mismatch fails closed to canonical Uniracers.
 
 ### Phase 3: remaining proven frontend deltas
 

@@ -2,6 +2,17 @@
 +++ b/runner/src/desktop/host_main.c
 @@ -4607,9 +4607,27 @@
  static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
+-  if (!!(gi->modifiers & (1 << button)) == pressed)
+-    return;
++  if (!!(gi->modifiers & (1 << button)) == pressed)
++    return;
+   gi->modifiers ^= 1 << button;
+   if (pressed)
+     gi->last_cmd[button] = FindCmdForGamepadButton(button + gi->index * kGamepadBtn_Count, gi->modifiers);
++  /* Keep per-controller physical/modifier bookkeeping authoritative before a
++   * title can consume the edge. That guarantees a press consumed by a modal
++   * title surface still has its matching release cleared even if the modal
++   * closes before button-up arrives. */
 +  int title_gamepad_button_result = 0;
 +  if (g_game->system_gamepad_button) {
 +    title_gamepad_button_result =
@@ -9,16 +20,10 @@
 +    if (title_gamepad_button_result > 0)
 +      return;
 +  }
-   if (!!(gi->modifiers & (1 << button)) == pressed)
-     return;
-   gi->modifiers ^= 1 << button;
-   if (pressed)
-     gi->last_cmd[button] = FindCmdForGamepadButton(button + gi->index * kGamepadBtn_Count, gi->modifiers);
 +  /* Some title-owned product gestures need the player's semantic SNES
-+   * controls, not the physical SDL button. Keep the older raw-button seam
-+   * above for host shortcuts, then expose only mapped P1 controller commands
-+   * here. Press and release use the same remembered command so a title that
-+   * consumes a press can consume its matching release as well. */
++   * controls, not the physical SDL button. Expose mapped P1 controller
++   * commands before guest/system dispatch. Press and release use the same
++   * remembered command. */
 +  if (g_game->system_gamepad_control &&
 +      gi->last_cmd[button] >= kKeys_Controls &&
 +      gi->last_cmd[button] <= kKeys_Controls_Last &&
@@ -36,9 +41,10 @@
    int (*system_key_down)(int key, int mod, int repeat);
  
 +  /* Optional title-owned normalized physical gamepad-button seam. Called
-+   * before the configured GamepadMap/guest mapping. Return >0 to consume;
-+   * return <0 to resolve only mapped P1 semantic controls and suppress any
-+   * other mapped command; return 0 for ordinary framework dispatch. */
++   * after per-controller edge bookkeeping / command lookup but before mapped
++   * semantic or guest/system dispatch. Return >0 to consume; return <0 to
++   * resolve only mapped P1 semantic controls and suppress any other mapped
++   * command; return 0 for ordinary framework dispatch. */
 +  int (*system_gamepad_button)(int button, int pressed);
 +
 +  /* Optional title-owned semantic P1 SNES-control seam. Called after the

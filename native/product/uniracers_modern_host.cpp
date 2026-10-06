@@ -3571,10 +3571,17 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
 
+    const bool valid_button =
+        button >= 0 && button < kGamepadBtn_Count;
+    if (valid_button && pressed && !g_controls_visible) {
+        // A device can disappear while a Controls-owned press is still down.
+        // A later ordinary press proves that old release can no longer arrive.
+        g_controls_deferred_gamepad_buttons[
+            static_cast<std::size_t>(button)] = false;
+    }
     const bool deferred_controls_release =
         !pressed &&
-        button >= 0 &&
-        button < kGamepadBtn_Count &&
+        valid_button &&
         g_controls_deferred_gamepad_buttons[
             static_cast<std::size_t>(button)];
     if (g_controls_visible || deferred_controls_release) {
@@ -3583,7 +3590,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         // release is also handed back even if mapped B/Start closes the panel
         // on the press. Negative means "resolve mapped P1 semantics only":
         // framework/system commands and guest dispatch stay suppressed.
-        if (button >= 0 && button < kGamepadBtn_Count) {
+        if (valid_button) {
             g_controls_deferred_gamepad_buttons[
                 static_cast<std::size_t>(button)] = pressed != 0;
         }

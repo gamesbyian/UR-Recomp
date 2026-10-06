@@ -27,7 +27,9 @@ extern "C" {
 #include "host_profile_state.hpp"
 #include "host_profile_catalog.hpp"
 #include "modern_racer_identity.hpp"
+#include "modern_tour_action_menu.hpp"
 #include "modern_tour_continue.hpp"
+#include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
@@ -134,6 +136,8 @@ ur::product::ModernTourContinueState g_tour_continue;
 std::string g_tour_continue_profile_id;
 std::string g_tour_continue_input_path;
 bool g_tour_continue_acceptance_fired;
+bool g_tour_action_visible;
+ur::product::ModernTourActionMenu g_tour_action_menu;
 
 bool g_display_caps_reported;
 bool g_profile_sram_reported;
@@ -2251,7 +2255,7 @@ bool tour_continue_available() {
                continuation,
                g_profile_state->stock_sram->data(),
                g_profile_state->stock_sram->size()) &&
-           ur::title::tour_resume_source_matches_sram(
+           ur::title::tour_resume_frontend_source_matches_sram(
                continuation,
                g_sram,
                static_cast<std::size_t>(g_sram_size));
@@ -2264,10 +2268,244 @@ bool tour_continue_routing() {
                ur::product::ModernTourContinueStage::Ready;
 }
 
+ur::product::ModernTourEntryContext current_tour_entry_context() {
+    const bool available = tour_continue_available();
+    return {
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        available,
+        available,
+        available,
+    };
+}
+
+const char* tour_entry_intent_name(
+    ur::product::ModernTourEntryIntent intent) noexcept {
+    switch (intent) {
+    case ur::product::ModernTourEntryIntent::Resume:
+        return "resume";
+    case ur::product::ModernTourEntryIntent::Restart:
+        return "restart";
+    case ur::product::ModernTourEntryIntent::None:
+    default:
+        return "none";
+    }
+}
+
+const char* challenge_tier_name(
+    ur::product::ModernChallengeTier tier) noexcept {
+    switch (tier) {
+    case ur::product::ModernChallengeTier::Silver:
+        return "SILVER";
+    case ur::product::ModernChallengeTier::Gold:
+        return "GOLD";
+    case ur::product::ModernChallengeTier::Bronze:
+    default:
+        return "BRONZE";
+    }
+}
+
+void close_tour_action_menu(const char* diagnostic) {
+    g_tour_action_visible = false;
+    g_tour_action_menu = {};
+    if (diagnostic) product_diagnostic(diagnostic);
+}
+
+bool open_tour_action_menu() {
+    const auto context = current_tour_entry_context();
+    const auto actions = ur::product::modern_tour_entry_actions(context);
+    if (!actions.resume_available || !g_profile_state ||
+        !g_profile_state->tour_continuation) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_TOUR_ENTRY MENU_UNAVAILABLE modern=%d paused=%d menu=%02X race=%u profile=%d writable=%d continuation=%d snapshot=%d\n",
+                modern_mode() ? 1 : 0,
+                paused() ? 1 : 0,
+                g_ram ? static_cast<unsigned>(g_ram[0x009F]) : 0u,
+                g_ram ? static_cast<unsigned>(g_ram[0x0313]) : 0u,
+                g_profile_state.has_value() ? 1 : 0,
+                g_profile_state_writable ? 1 : 0,
+                (g_profile_state &&
+                 g_profile_state->tour_continuation.has_value()) ? 1 : 0,
+                (g_profile_state &&
+                 g_profile_state->stock_sram.has_value()) ? 1 : 0);
+            std::fflush(stderr);
+        }
+        return false;
+    }
+    g_tour_action_menu =
+        ur::product::make_modern_tour_action_menu(context);
+    g_tour_action_visible = true;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        const auto tier = ur::product::default_modern_challenge_tier(
+            g_profile_state->tour_continuation->medal_value);
+        std::fprintf(
+            stderr,
+            "UR_TOUR_ENTRY MENU_OPENED rider=%u tour=%u tier=%s\n",
+            static_cast<unsigned>(
+                g_profile_state->tour_continuation->rider_index),
+            static_cast<unsigned>(
+                g_profile_state->tour_continuation->tour_row),
+            challenge_tier_name(tier));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 void cancel_tour_continue(const char* diagnostic) {
     g_tour_continue = {};
     g_tour_continue_profile_id.clear();
     if (diagnostic) product_diagnostic(diagnostic);
+}
+
+bool tour_entry_crossed_stock_rider_wipe() noexcept {
+    if (!g_ram) return false;
+
+    // During the rider -> tour transition the frontend byte can be transient
+    // even though stock has already cleared the qualification row. The route
+    // starts only from an exact non-empty continuation source, so an empty
+    // saved-tour row is direct title-owned evidence that the destructive stock
+    // boundary has been crossed.
+    if (g_profile_state && g_profile_state->tour_continuation && g_sram &&
+        g_sram_size == static_cast<int>(ur::product::kStockSramBytes)) {
+        const auto saved =
+            title_continuation(*g_profile_state->tour_continuation);
+        if (ur::title::tour_qualification_row_empty(
+                saved.tour_row,
+                g_sram,
+                static_cast<std::size_t>(g_sram_size))) {
+            return true;
+        }
+    }
+
+    if (g_ram[0x009F] == 0x6D || g_ram[0x009F] == 0xF6) return true;
+    return g_tour_continue.stage ==
+               ur::product::ModernTourContinueStage::AwaitTrack ||
+           g_tour_continue.stage ==
+               ur::product::ModernTourContinueStage::Ready;
+}
+
+bool rollback_tour_entry_to_profile_snapshot() {
+    if (!modern_mode() || !g_profile_state || !g_profile_state->stock_sram ||
+        g_tour_continue_profile_id.empty() ||
+        g_tour_continue_profile_id != g_profile_state->profile_id ||
+        !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    const auto restored = ur::product::restore_stock_sram_from_profile(
+        ur::product::ExecutionMode::Modern,
+        *g_profile_state,
+        g_sram,
+        static_cast<std::size_t>(g_sram_size));
+    if (restored != ur::product::HostProfileTransferStatus::Applied) {
+        return false;
+    }
+    if (!RtlTryWriteSram()) {
+        product_diagnostic("UR_TOUR_CONTINUE ROLLBACK_SRAM_WRITE_FAILED");
+        return false;
+    }
+    product_diagnostic("UR_TOUR_CONTINUE ROLLED_BACK_PROFILE_SNAPSHOT");
+    return true;
+}
+
+void abort_tour_continue(
+    const char* diagnostic,
+    bool rollback_required) {
+    // The full profile SRAM snapshot is a recovery authority only after stock
+    // rider confirmation has crossed its historical qualification-row wipe.
+    // Before that boundary, live SRAM has not been destructively changed by
+    // this route and replacing all 8 KiB could discard unrelated live state.
+    const bool restored =
+        !rollback_required || rollback_tour_entry_to_profile_snapshot();
+    cancel_tour_continue(nullptr);
+    if (diagnostic) product_diagnostic(diagnostic);
+    if (rollback_required && !restored) {
+        product_diagnostic("UR_TOUR_CONTINUE ROLLBACK_UNAVAILABLE");
+    }
+}
+
+void abort_tour_continue(const char* diagnostic) {
+    abort_tour_continue(
+        diagnostic,
+        tour_entry_crossed_stock_rider_wipe());
+}
+
+bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {
+    const auto context = current_tour_entry_context();
+    const auto decision = ur::product::resolve_modern_tour_entry(
+        context,
+        intent,
+        intent == ur::product::ModernTourEntryIntent::Restart);
+    if (decision.intent == ur::product::ModernTourEntryIntent::None ||
+        !g_profile_state || !g_profile_state->tour_continuation) {
+        product_diagnostic("UR_TOUR_ENTRY REJECTED");
+        return false;
+    }
+
+    const auto& continuation = *g_profile_state->tour_continuation;
+    g_tour_continue = ur::product::begin_modern_tour_entry(
+        continuation.tour_row, decision);
+    if (g_tour_continue.stage ==
+        ur::product::ModernTourContinueStage::Idle) {
+        return false;
+    }
+    g_tour_continue_profile_id = g_profile_state->profile_id;
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        unsigned completed = 0;
+        for (const auto flag : continuation.qualified) completed += flag;
+        const auto tier = ur::product::default_modern_challenge_tier(
+            continuation.medal_value);
+        std::fprintf(
+            stderr,
+            "UR_TOUR_CONTINUE STARTED intent=%s rider=%u tour=%u completed=%u tier=%s menu=%02X race=%u\n",
+            tour_entry_intent_name(intent),
+            static_cast<unsigned>(continuation.rider_index),
+            static_cast<unsigned>(continuation.tour_row),
+            completed,
+            challenge_tier_name(tier),
+            static_cast<unsigned>(g_ram[0x009F]),
+            static_cast<unsigned>(g_ram[0x0313]));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool handle_tour_action_navigation(
+    UrModernHostNavigationAction action) {
+    if (!g_tour_action_visible) return false;
+
+    const auto context = current_tour_entry_context();
+    if (ur_modern_host_navigation_vertical_delta(action) != 0) {
+        g_tour_action_menu =
+            ur::product::navigate_modern_tour_action_menu(
+                g_tour_action_menu, action);
+        return true;
+    }
+
+    if (ur_modern_host_navigation_is_back(action) ||
+        ur_modern_host_navigation_is_confirm(action)) {
+        const auto result = ur::product::activate_modern_tour_action_menu(
+            g_tour_action_menu, context, action);
+        g_tour_action_menu = result.menu;
+
+        if (result.intent != ur::product::ModernTourEntryIntent::None) {
+            const auto intent = result.intent;
+            close_tour_action_menu(nullptr);
+            if (!begin_tour_entry(intent)) {
+                product_diagnostic("UR_TOUR_ENTRY ROUTE_START_FAILED");
+            }
+            return true;
+        }
+        if (result.close_menu) {
+            close_tour_action_menu("UR_TOUR_ENTRY CANCELLED");
+        }
+        return true;
+    }
+    return true;
 }
 
 bool begin_tour_continue() {
@@ -2294,7 +2532,7 @@ bool begin_tour_continue() {
                     g_sram_size ==
                         static_cast<int>(ur::product::kStockSramBytes)) {
                     live_source_ok =
-                        ur::title::tour_resume_source_matches_sram(
+                        ur::title::tour_resume_frontend_source_matches_sram(
                             continuation,
                             g_sram,
                             static_cast<std::size_t>(g_sram_size));
@@ -2319,29 +2557,8 @@ bool begin_tour_continue() {
         return false;
     }
 
-    const auto& continuation = *g_profile_state->tour_continuation;
-    g_tour_continue =
-        ur::product::begin_modern_tour_continue(continuation.tour_row);
-    if (g_tour_continue.stage ==
-        ur::product::ModernTourContinueStage::Idle) {
-        return false;
-    }
-    g_tour_continue_profile_id = g_profile_state->profile_id;
-
-    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-        unsigned completed = 0;
-        for (const auto flag : continuation.qualified) completed += flag;
-        std::fprintf(
-            stderr,
-            "UR_TOUR_CONTINUE STARTED rider=%u tour=%u completed=%u menu=%02X race=%u\n",
-            static_cast<unsigned>(continuation.rider_index),
-            static_cast<unsigned>(continuation.tour_row),
-            completed,
-            static_cast<unsigned>(g_ram[0x009F]),
-            static_cast<unsigned>(g_ram[0x0313]));
-        std::fflush(stderr);
-    }
-    return true;
+    return begin_tour_entry(
+        ur::product::ModernTourEntryIntent::Resume);
 }
 
 void advance_tour_continue_route(uint64_t next_frame) {
@@ -2356,31 +2573,46 @@ void advance_tour_continue_route(uint64_t next_frame) {
             *g_profile_state->tour_continuation) ||
         g_profile_state->tour_continuation->tour_row !=
             g_tour_continue.tour_row) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");
+        abort_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");
         return;
     }
 
+    const bool crossed_stock_rider_wipe =
+        tour_entry_crossed_stock_rider_wipe();
     const auto step = ur::product::advance_modern_tour_continue(
         g_tour_continue,
         {
             g_ram[0x009F],
             g_ram[0x009B],
-            g_ram[0x0313] == 0x01,
+            g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE,
         });
     g_tour_continue = step.state;
 
     if (step.timed_out) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_TIMEOUT");
+        abort_tour_continue(
+            "UR_TOUR_CONTINUE ABORTED_TIMEOUT",
+            crossed_stock_rider_wipe);
         return;
     }
     if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle) {
-        cancel_tour_continue("UR_TOUR_CONTINUE ABORTED_UNEXPECTED_RACE");
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_TOUR_CONTINUE ABORTED_UNEXPECTED_RACE menu=%02X race_surface=%d previous_race=%d\n",
+                static_cast<unsigned>(g_ram[0x009F]),
+                g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE ? 1 : 0,
+                g_run_capture_previous_active ? 1 : 0);
+            std::fflush(stderr);
+        }
+        abort_tour_continue(
+            nullptr,
+            crossed_stock_rider_wipe);
         return;
     }
 
     if (step.input != ur::product::QuickPracticeMenuInput::None &&
         !queue_tour_continue_input(step.input, next_frame)) {
-        cancel_tour_continue("UR_TOUR_CONTINUE INPUT_FAILED");
+        abort_tour_continue("UR_TOUR_CONTINUE INPUT_FAILED");
         return;
     }
 
@@ -2388,17 +2620,72 @@ void advance_tour_continue_route(uint64_t next_frame) {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_TOUR_CONTINUE READY tour=%u menu=%02X\n",
+                "UR_TOUR_CONTINUE READY intent=%s tour=%u menu=%02X\n",
+                tour_entry_intent_name(g_tour_continue.intent),
                 static_cast<unsigned>(
                     g_profile_state->tour_continuation->tour_row),
                 static_cast<unsigned>(g_ram[0x009F]));
             std::fflush(stderr);
         }
-        // TRACK_SELECT belongs to the stock frontend. Release all host routing
-        // authority immediately so the player chooses the next event normally.
-        g_tour_continue = {};
-        g_tour_continue_profile_id.clear();
+        // Keep the typed intent in Ready until reconcile_tour_resume() settles
+        // the TRACK_SELECT boundary. Input ownership is already released
+        // because tour_continue_routing() excludes Ready.
     }
+}
+
+bool retire_tour_continuation_after_stock_reset() {
+    if (!modern_mode() || g_practice_active || !g_profile_state ||
+        !g_profile_state_writable || g_profile_state_path.empty() || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+
+    const auto original = *g_profile_state;
+    auto candidate = original;
+    candidate.tour_continuation.reset();
+    if (ur::product::capture_stock_sram_for_profile(
+            ur::product::ExecutionMode::Modern,
+            candidate,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size)) !=
+        ur::product::HostProfileTransferStatus::Applied) {
+        return false;
+    }
+
+    // Retirement is a two-file transaction. Publish the host profile first so
+    // a profile-file failure cannot leave save.srm durably wiped while the old
+    // resumable continuation remains. If the SRAM write then fails, roll the
+    // profile metadata back to the exact pre-retirement state.
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        product_diagnostic("UR_TOUR_RESTART PROFILE_SAVE_FAILED");
+        return false;
+    }
+
+    if (!RtlTryWriteSram()) {
+        const auto rollback = ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            original);
+        product_diagnostic(
+            rollback == ur::product::HostProfileSaveStatus::Saved
+                ? "UR_TOUR_RESTART PROFILE_ROLLED_BACK"
+                : "UR_TOUR_RESTART PROFILE_ROLLBACK_FAILED");
+        return false;
+    }
+
+    g_profile_state = std::move(candidate);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_TOUR_RESTART RETIRED generation=%llu\n",
+            static_cast<unsigned long long>(
+                g_profile_state->autosave_generation));
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 bool save_active_profile_state(
@@ -2464,11 +2751,77 @@ void reconcile_tour_resume() {
         static_cast<std::size_t>(g_sram_size));
     if (!current) return;
 
+    // An explicit Resume/Restart route owns continuation semantics until its
+    // TRACK_SELECT settle window has completed. In particular, first-visible
+    // F6 must not fall through to the legacy passive restore path while a
+    // Restart is still proving the stock wipe.
+    if (g_tour_continue.stage !=
+            ur::product::ModernTourContinueStage::Idle &&
+        g_tour_continue.stage !=
+            ur::product::ModernTourContinueStage::Ready) {
+        return;
+    }
+
     // Stock TRACK_SELECT is the first stable point after rider/tour
     // confirmation. Rider select has already performed its historical wipe.
+    if (g_tour_continue.stage ==
+            ur::product::ModernTourContinueStage::Ready &&
+        g_ram[0x009F] != 0xF6) {
+        abort_tour_continue("UR_TOUR_ENTRY SETTLEMENT_LEFT_TRACK_SELECT");
+    }
+
     if (g_ram[0x009F] == 0xF6 && g_profile_state->tour_continuation) {
         const auto saved =
             title_continuation(*g_profile_state->tour_continuation);
+
+        const bool settling_routed_entry =
+            g_tour_continue.stage ==
+                ur::product::ModernTourContinueStage::Ready &&
+            !g_tour_continue_profile_id.empty() &&
+            g_tour_continue_profile_id == g_profile_state->profile_id &&
+            g_tour_continue.tour_row == saved.tour_row;
+
+        if (settling_routed_entry &&
+            g_tour_continue.intent ==
+                ur::product::ModernTourEntryIntent::Restart) {
+            const ur::product::ModernTourEntryDecision decision{
+                g_tour_continue.intent,
+                true,
+                g_tour_continue.restore_continuation_at_track_select,
+                g_tour_continue.retire_continuation_after_stock_wipe,
+            };
+            const bool stock_context_matches =
+                current->rider_index == saved.rider_index &&
+                current->tour_row == saved.tour_row &&
+                current->medal_value == saved.medal_value;
+            const bool stock_row_empty =
+                stock_context_matches &&
+                ur::title::tour_qualification_row_empty(
+                    saved.tour_row,
+                    g_sram,
+                    static_cast<std::size_t>(g_sram_size));
+            if (ur::product::modern_tour_entry_may_retire_continuation(
+                    decision, true, stock_row_empty)) {
+                product_diagnostic("UR_TOUR_RESTART STOCK_RESET_PROVEN");
+                if (retire_tour_continuation_after_stock_reset()) {
+                    cancel_tour_continue(nullptr);
+                } else {
+                    // A failed retirement must not leave the live stock-empty
+                    // row hanging around for a later framework shutdown/save.
+                    // Restore the authoritative profile snapshot immediately
+                    // and release the explicit route with continuation intact.
+                    abort_tour_continue(
+                        "UR_TOUR_RESTART RETIRE_PERSIST_FAILED");
+                }
+            } else {
+                // A non-empty row means the stock destructive boundary has not
+                // been proven. Preserve the resumable host continuation and
+                // refuse to reinterpret this as Resume.
+                product_diagnostic(
+                    "UR_TOUR_RESTART RESET_NOT_PROVEN");
+            }
+            return;
+        }
 
         if (current->rider_index == saved.rider_index &&
             current->tour_row == saved.tour_row &&
@@ -2476,9 +2829,37 @@ void reconcile_tour_resume() {
             (void)save_active_profile_state(
                 std::nullopt,
                 "UR_TOUR_RESUME CLEARED_STALE_MEDAL");
+            cancel_tour_continue(nullptr);
             return;
         }
 
+        if (settling_routed_entry &&
+            g_tour_continue.intent ==
+                ur::product::ModernTourEntryIntent::Resume) {
+            const auto applied = ur::title::apply_tour_resume(
+                saved,
+                g_ram,
+                0x20000,
+                g_sram,
+                static_cast<std::size_t>(g_sram_size));
+            if (applied == ur::title::TourResumeApplyStatus::Applied ||
+                applied ==
+                    ur::title::TourResumeApplyStatus::AlreadyPresent) {
+                if (applied ==
+                    ur::title::TourResumeApplyStatus::Applied) {
+                    (void)save_active_profile_state(
+                        g_profile_state->tour_continuation,
+                        "UR_TOUR_RESUME APPLIED");
+                }
+                cancel_tour_continue(nullptr);
+            } else {
+                product_diagnostic("UR_TOUR_RESUME ROUTE_SETTLEMENT_FAILED");
+            }
+            return;
+        }
+
+        // Passive stock arrival at TRACK_SELECT keeps the established safety
+        // net for a saved continuation outside an explicitly routed action.
         const auto applied = ur::title::apply_tour_resume(
             saved,
             g_ram,
@@ -3461,6 +3842,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
         g_onboarding_visible ||
+        g_tour_action_visible ||
         tour_continue_available() ||
         tour_continue_routing() ||
         (g_practice_active &&
@@ -3745,6 +4127,26 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (g_tour_action_visible) {
+        if (key == SDLK_UP) {
+            return handle_tour_action_navigation(
+                UR_MODERN_HOST_NAV_UP) ? 1 : 0;
+        }
+        if (key == SDLK_DOWN) {
+            return handle_tour_action_navigation(
+                UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            return handle_tour_action_navigation(
+                UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
+        }
+        if (key == SDLK_ESCAPE || key == SDLK_F3) {
+            return handle_tour_action_navigation(
+                UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
+        }
+        return 1;
+    }
+
     {
         const auto regional = regional_input_coordinator().keyboard_key(
             g_product_state,
@@ -3777,12 +4179,15 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
     if (tour_continue_routing()) {
         if (key == SDLK_ESCAPE) {
-            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
+            abort_tour_continue("UR_TOUR_CONTINUE CANCELLED");
         }
         return 1;
     }
-    if (modern_mode() && key == SDLK_F3) {
-        return begin_tour_continue() ? 1 : 0;
+    if (modern_mode() && key == SDLK_F3 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        // F3 is now the explicit player-facing Resume / Restart surface.
+        // The acceptance-only environment hook still exercises direct Resume.
+        return open_tour_action_menu() ? 1 : 0;
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
@@ -3936,6 +4341,12 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     int pressed) {
     if (!ensure_session()) return 0;
 
+    if (g_tour_action_visible) {
+        // Defer physical buttons to SNESRecomp's configured GamepadMap, then
+        // consume only the resulting P1 semantic controls below.
+        return -1;
+    }
+
     if (practice_routing()) {
         // Consume both press and release edges while the host owns stock-menu
         // traversal. B/Start cancel the route safely; once Active, normal race
@@ -3992,7 +4403,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (tour_continue_routing()) {
         if (pressed &&
             (button == kGamepadBtn_B || button == kGamepadBtn_Start)) {
-            cancel_tour_continue("UR_TOUR_CONTINUE CANCELLED");
+            abort_tour_continue("UR_TOUR_CONTINUE CANCELLED");
         }
         return 1;
     }
@@ -4017,6 +4428,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
              button == kGamepadBtn_X) ||
             (settled_main && button == kGamepadBtn_X) ||
             (settled_main && button == kGamepadBtn_Y &&
+             !tour_continue_available() &&
              recent_course_available_for_active_profile());
         return fast_nav_release || paused() || onboarding_surface_active()
             ? 1 : 0;
@@ -4039,6 +4451,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
     if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        !tour_continue_available() &&
         recent_course_available_for_active_profile()) {
         (void)launch_recent_course_practice();
         return 1;
@@ -4114,6 +4527,35 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    if (g_tour_action_visible) {
+        if (!pressed) return 1;
+        switch (control) {
+        case 0:
+            (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_UP);
+            break;
+        case 1:
+            (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_DOWN);
+            break;
+        case 6:
+            (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_CONFIRM);
+            break;
+        case 5:
+        case 7:
+            (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_BACK);
+            break;
+        default:
+            break;
+        }
+        return 1;
+    }
+
+    if (modern_mode() && pressed && control == 9 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        tour_continue_available()) {
+        (void)open_tour_action_menu();
+        return 1;
+    }
+
     if (g_controls_visible) {
         if (!pressed) return 1;
 
@@ -4373,6 +4815,77 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
+    if (g_tour_action_visible && modern_mode() &&
+        g_profile_state && g_profile_state->tour_continuation) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int panel_w = width < 260 ? width - 16 : 252;
+        const int panel_h = 142;
+        const int x = (width - panel_w) / 2;
+        const int y = (height - panel_h) / 2;
+        const auto& continuation = *g_profile_state->tour_continuation;
+        const auto tier = ur::product::default_modern_challenge_tier(
+            continuation.medal_value);
+        const auto* course = ur::product::quick_practice_course(
+            static_cast<std::uint8_t>(continuation.tour_row * 5u));
+
+        snes_ovl_fill_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            "TOUR", 0xFFFFFFFFu, 1);
+
+        char detail[96];
+        std::snprintf(
+            detail, sizeof(detail), "%.*s  CHALLENGE %s",
+            course ? static_cast<int>(course->tour_name.size()) : 4,
+            course ? course->tour_name.data() : "TOUR",
+            challenge_tier_name(tier));
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 25,
+            detail, 0xFFFFFFFFu, 1);
+
+        unsigned completed = 0;
+        for (const auto flag : continuation.qualified) completed += flag;
+        std::snprintf(
+            detail, sizeof(detail), "PROGRESS %u/5", completed);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 42,
+            detail, 0xFFFFFFFFu, 1);
+
+        if (g_tour_action_menu.confirming_restart) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 67,
+                "RESTART TOUR?", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 86,
+                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 105,
+                "ESC / PAD B CANCEL", 0xFFFFFFFFu, 1);
+        } else {
+            const char* row_labels[] = {
+                "RESUME TOUR", "RESTART TOUR", "BACK"
+            };
+            for (std::size_t i = 0; i < g_tour_action_menu.row_count; ++i) {
+                char row[64];
+                const auto idx = static_cast<std::size_t>(
+                    g_tour_action_menu.rows[i]);
+                std::snprintf(
+                    row, sizeof(row), "%c %s",
+                    i == g_tour_action_menu.selected ? '>' : ' ',
+                    row_labels[idx]);
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8,
+                    y + 66 + static_cast<int>(i) * 18,
+                    row, 0xFFFFFFFFu, 1);
+            }
+        }
+        return;
+    }
+
     if (g_profile_menu_visible && modern_mode()) {
         ensure_profile_catalog();
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
@@ -4526,13 +5039,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
         char hint[128];
         if (course) {
             std::snprintf(
-                hint, sizeof(hint), "F3 CONTINUE %.*s  %u/5 COMPLETE",
+                hint, sizeof(hint), "F3 / PAD Y TOUR %.*s  %u/5",
                 static_cast<int>(course->tour_name.size()),
                 course->tour_name.data(),
                 completed);
         } else {
             std::snprintf(
-                hint, sizeof(hint), "F3 CONTINUE TOUR  %u/5 COMPLETE",
+                hint, sizeof(hint), "F3 / PAD Y TOUR  %u/5",
                 completed);
         }
 

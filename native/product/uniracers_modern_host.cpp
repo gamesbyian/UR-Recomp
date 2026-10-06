@@ -324,8 +324,18 @@ void update_local_multiplayer_join_surface() {
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
         g_local_multiplayer_setup = {};
-        g_local_multiplayer_join_visible = true;
-        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        const bool has_controller_source = std::any_of(
+            g_local_multiplayer_sources.begin(),
+            g_local_multiplayer_sources.end(),
+            [](const ur::product::LocalInputSource& source) {
+                return source.connected;
+            });
+        g_local_multiplayer_join_visible = has_controller_source;
+        if (has_controller_source) {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        } else {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
+        }
     }
 }
 

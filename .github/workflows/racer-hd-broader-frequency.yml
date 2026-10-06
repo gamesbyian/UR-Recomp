@@ -12,6 +12,7 @@ on:
       - "native/presentation/racer_replacement_selector.cpp"
       - "native/presentation/racer_hd_presenter.hpp"
       - "analysis/data/racer-hd-replacement-prototype.json"
+      - "analysis/data/racer-hd-art-approval-broader-04b9.json"
       - "analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json"
       - "tests/native/racer_replacement_selector_test.cpp"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -224,10 +225,18 @@ jobs:
             --out "$DOSSIER/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-04b9-equivalence.txt"
 
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-broader-04b9.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-04b9-shipping-readiness.txt"
+
           python3 tools/build_racer_hd_review_packet.py \
             "$DOSSIER/manifest.json" \
             "$DOSSIER/pose-equivalence.json" \
             --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
             > "$RUNNER_TEMP/racer-hd-04b9-review.txt"
 
           python3 tools/check_racer_hd_temporal_coherence.py \
@@ -236,10 +245,11 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-hd-04b9-temporal.json" \
             > "$RUNNER_TEMP/racer-hd-04b9-temporal.txt"
 
-          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-04b9-temporal.json" <<'PY'
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-04b9-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
           import json, pathlib, sys
           dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
           temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[3]).read_text())
           assert dossier["review_players"] == ["p1"]
           assert dossier["validation"]["review_players_registered_window"] is True
           assert dossier["validation"]["fully_registered_window"] is False
@@ -249,6 +259,10 @@ jobs:
           assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.68, review
+          assert reps[0]["art_review"]["authored_candidate"]["rgba_sha256"] == "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed"
+          assert readiness["shipping_ready"] is True, readiness
+          assert readiness["counts"]["approved"] == 1, readiness
           assert temporal["players"] == ["p1"]
           assert all(temporal["validation"].values()), temporal
           print("RACER_HD_04B9_REVIEW", json.dumps(review, sort_keys=True))
@@ -290,6 +304,7 @@ jobs:
             ${{ runner.temp }}/racer-hd-04b9-dossier.txt
             ${{ runner.temp }}/racer-hd-04b9-equivalence.txt
             ${{ runner.temp }}/racer-hd-04b9-review.txt
+            ${{ runner.temp }}/racer-hd-04b9-shipping-readiness.txt
             ${{ runner.temp }}/racer-hd-04b9-temporal.json
             ${{ runner.temp }}/racer-hd-04b9-temporal.txt
             ${{ runner.temp }}/racer-hd-next-visual-probe.json

@@ -213,6 +213,23 @@ def guards_match(expected: dict, live: dict) -> bool:
     )
 
 
+def guards_match_player_local(
+    expected: dict,
+    live: dict,
+    player: str,
+) -> bool:
+    keys = (
+        f"{player}_primary",
+        f"{player}_companion",
+        f"{player}_selector",
+        f"{player}_companion_gate_word",
+    )
+    return all(
+        normalized_guard_value(expected[key]) == normalized_guard_value(live[key])
+        for key in keys
+    )
+
+
 def select_representation(
     registry: dict,
     semantic_frame_id: str,
@@ -225,7 +242,16 @@ def select_representation(
         if x["semantic_frame_id"].lower() == semantic_frame_id.lower()
         and (player is None or x["player"] == player)
     ]
-    exact = [x for x in hits if guards_match(x["composition_guards"], live_guards)]
+    exact = [
+        x for x in hits
+        if (
+            guards_match_player_local(
+                x["composition_guards"], live_guards, x["player"]
+            )
+            if x.get("guard_scope") == "player_local"
+            else guards_match(x["composition_guards"], live_guards)
+        )
+    ]
     if not replacement_enabled:
         return "original", exact[0] if len(exact) == 1 else (hits[0] if hits else None)
     if len(exact) == 1:

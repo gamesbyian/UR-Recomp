@@ -1416,7 +1416,7 @@ def sample_authored_0239_p1_broader_rgba(x: int, y: int) -> bytes:
         or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
         or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
     )
-    seat = authored_segment_contains(x, y, 72, 20, 109, 43, 8)
+    seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8)
     neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5)
     fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5)
     frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3)
@@ -1431,7 +1431,7 @@ def sample_authored_0239_p1_broader_rgba(x: int, y: int) -> bytes:
     if rim or wheel_spokes:
         return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
     if seat:
-        return authored_saddle_rgba(x, y, 91, 29, 12)
+        return authored_saddle_rgba(x, y, 93, 31, 12)
     if neck and y < 52:
         return authored_saddle_mount_rgba(y, 47)
     if crown:

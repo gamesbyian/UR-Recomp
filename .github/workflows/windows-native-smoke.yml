@@ -59,8 +59,26 @@ jobs:
       - name: Verify canonical ROM
         run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Verify package contracts
-        run: python -m unittest tests.unit.test_assemble_windows_package
+      - name: Package contract test_unknown_startup_code_stays_narrowly_bound_to_controller_init
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_unknown_startup_code_stays_narrowly_bound_to_controller_init
+
+      - name: Package contract test_assemble_verify_and_clean_stale_output
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_assemble_verify_and_clean_stale_output
+
+      - name: Package contract test_missing_required_input_fails_closed
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_required_input_fails_closed
+
+      - name: Package contract test_empty_mod_payload_fails_closed
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_empty_mod_payload_fails_closed
+
+      - name: Package contract test_destructive_output_paths_fail_closed
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_destructive_output_paths_fail_closed
+
+      - name: Package contract test_windows_workflow_verifies_canonical_rom_before_assembly
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_workflow_verifies_canonical_rom_before_assembly
+
+      - name: Package contract test_missing_source_revision_fails_closed
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_source_revision_fails_closed
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

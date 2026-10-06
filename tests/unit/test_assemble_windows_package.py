@@ -252,6 +252,38 @@ class WindowsPackageTests(unittest.TestCase):
                 "WINDOWS_PACKAGE_ARCHIVE_VERIFIED",
                 verified_archive.stdout,
             )
+
+            mismatch_archive = root / "package-mismatch-revision.zip"
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                mismatch_archive, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        archive_manifest = json.loads(
+                            source.read(info.filename).decode("utf-8")
+                        )
+                        archive_manifest["source_revision"] = "different-revision"
+                        target.writestr(
+                            info,
+                            json.dumps(
+                                archive_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n",
+                        )
+                    else:
+                        target.writestr(info, source.read(info.filename))
+            mismatch_archive_result = self.run_tool(
+                "verify-archive",
+                "--archive", mismatch_archive,
+                check=False,
+            )
+            self.assertNotEqual(mismatch_archive_result.returncode, 0)
+            self.assertIn(
+                "README source revision does not match manifest",
+                mismatch_archive_result.stderr,
+            )
+
             with zipfile.ZipFile(archive1) as package_zip:
                 names = package_zip.namelist()
             self.assertIn(

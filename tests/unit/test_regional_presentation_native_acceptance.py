@@ -20,10 +20,16 @@ class RegionalPresentationNativeAcceptanceContractTests(unittest.TestCase):
         self.assertIn("regional-main-menu-ready.wram.bin", source)
         self.assertIn("UR_EXECUTION_MODE=authentic", source)
         self.assertIn("UR_HOST_STATE AUTHENTIC_INERT", source)
+        self.assertIn("verify_ppm_crop", source)
+        self.assertIn("regional-europe-title.ppm", source)
+        self.assertIn("regional-na-title.ppm", source)
+        self.assertIn("regional-authentic-title.ppm", source)
+        self.assertIn("UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1", source)
+        self.assertIn("cmp \"$EUROPE_VISUAL_DUMPS/boot-300.$suffix\" \"$NA_VISUAL_DUMPS/boot-300.$suffix\"", source)
         self.assertIn(
             "UR_REGIONAL_RESULT="
-            "pal_saved_reloaded_ntsc_saved_reloaded_"
-            "main_menu_inert_authentic_inert",
+            "pal_saved_unirally_visible_ntsc_saved_uniracers_visible_"
+            "guest_state_equal_main_menu_inert_authentic_canonical",
             source,
         )
 

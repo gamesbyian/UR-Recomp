@@ -54,7 +54,7 @@ def write_launcher(path: Path) -> None:
         f"if not exist \"{ROM_NAME}\" (echo UR-STARTUP-ROM-MISSING: packaged ROM is missing: {ROM_NAME}. Restore the package or your verified personal dump. 1>&2 & exit /b 2)\r\n"
         "if not exist \"rom.cfg\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: rom.cfg. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
         "if not exist \"mods\\\" (echo UR-STARTUP-RUNTIME-DATA: required package directory is missing: mods. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
-        "for /f \"delims=\" %%I in ('dir /b /a \"mods\" 2^>nul') do goto mods_payload_ready\r\n"
+        "for /f \"delims=\" %%I in ('dir /b /s /a-d \"mods\\*\" 2^>nul') do goto mods_payload_ready\r\n"
         "echo UR-STARTUP-RUNTIME-DATA: required package directory is empty: mods. Re-extract the complete package. 1>&2\r\n"
         "exit /b 2\r\n"
         ":mods_payload_ready\r\n"

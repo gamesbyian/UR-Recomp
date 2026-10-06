@@ -1,6 +1,6 @@
 --- a/runner/src/host_paths.c
 +++ b/runner/src/host_paths.c
-@@ -146,11 +146,50 @@
+@@ -146,31 +146,50 @@
 -static int dir_is_writable(const char *dir) {
 -    char probe[1024];
 -    if (snprintf(probe, sizeof(probe), "%s.snesrecomp_write_probe",
@@ -10,6 +10,26 @@
 -    if (!f) return 0;
 -    fclose(f);
 -    remove(probe);
+-    return 1;
+-}
+-
+-int snesrecomp_anchor_to_exe_dir(void) {
+-    char dir[1024];
+-    get_exe_dir(dir, sizeof(dir));
+-    if (dir[0] == '.' &&
+-        (dir[1] == '/' || dir[1] == '\\' || dir[1] == '\0'))
+-        return 0;
+-    if (!dir_is_writable(dir)) {
+-        fprintf(stderr,
+-                "[Launcher] Executable directory '%s' is not writable; "
+-                "config and saves stay in the current directory.\n", dir);
+-        return 0;
+-    }
+-    if (snesrecomp_chdir(dir) != 0) {
+-        fprintf(stderr, "[Launcher] Could not change directory to '%s'.\n", dir);
+-        return 0;
+-    }
+-    fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
 -    return 1;
 -}
 +static int dir_is_writable(const char *dir) {

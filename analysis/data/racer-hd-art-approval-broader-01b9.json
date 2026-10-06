@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "temporal_window": [
+      1404,
+      1405
+    ],
+    "workflow_run": 37426933828,
+    "artifact_id": 11394613923,
+    "review_surface": "Broader-route P1-only deterministic dossier, pose-equivalence, authored review, and real 1404-1405 player-local temporal hold."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x01B9-p1-broader-frequency-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "37d4244188d1a00fbf0efae1e37f278bcb11102070a9eaffde09620dcdcb3ba5",
+      "review_metrics": {
+        "stock_alpha_bounds": [
+          18,
+          5,
+          47,
+          36
+        ],
+        "candidate_alpha_bounds": [
+          18,
+          5,
+          47,
+          36
+        ],
+        "stock_contact_x2_y2": [
+          77,
+          72
+        ],
+        "candidate_contact_x2_y2": [
+          77,
+          72
+        ],
+        "alpha_iou": 0.7346938775510204
+      }
+    }
+  ]
+}

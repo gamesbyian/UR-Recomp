@@ -1,4 +1,5 @@
 import pathlib
+import subprocess
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -8,6 +9,15 @@ PATCHER = ROOT / "tools" / "patch_modern_product_host.py"
 
 
 class LocalMultiplayerHostContractTests(unittest.TestCase):
+    def test_framework_patch_is_syntactically_valid(self):
+        result = subprocess.run(
+            ["git", "apply", "--numstat", str(PATCH)],
+            cwd=ROOT,
+            text=True,
+            capture_output=True,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_framework_source_hook_precedes_ordinary_title_dispatch(self):
         source = PATCH.read_text(encoding="utf-8")
         source_callback = source.index("g_game->system_gamepad_source_button(")

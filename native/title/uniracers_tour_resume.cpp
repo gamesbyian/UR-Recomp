@@ -45,15 +45,14 @@ bool valid_unfinished_tour_progress(const TourProgress& value) noexcept {
     return count > 0 && count < kTourTrackCount;
 }
 
-bool tour_resume_source_matches_sram(
+namespace {
+
+bool tour_resume_identity_matches_sram(
     const TourProgress& continuation,
     const std::uint8_t* sram,
     std::size_t sram_size) noexcept {
     if (!valid_unfinished_tour_progress(continuation) || !sram ||
-        sram_size <= kSramPlayMode) {
-        return false;
-    }
-    if (sram[kSramPlayMode] != kTourPlayMode ||
+        sram_size <= kSramPlayMode ||
         sram[kSramRiderIndex] != continuation.rider_index) {
         return false;
     }
@@ -69,6 +68,34 @@ bool tour_resume_source_matches_sram(
         if (sram[flags + i] != continuation.qualified[i]) return false;
     }
     return true;
+}
+
+}  // namespace
+
+bool tour_resume_source_matches_sram(
+    const TourProgress& continuation,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept {
+    return tour_resume_identity_matches_sram(
+               continuation, sram, sram_size) &&
+           sram[kSramPlayMode] == kTourPlayMode;
+}
+
+bool tour_resume_frontend_source_matches_sram(
+    const TourProgress& continuation,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept {
+    if (!tour_resume_identity_matches_sram(
+            continuation, sram, sram_size)) {
+        return false;
+    }
+
+    // Stock clears the in-tour play-mode byte when returning to settled main,
+    // while leaving rider, medal generation and qualification flags intact.
+    // Accept either the persisted in-tour marker or the proven frontend reset;
+    // reject every other mode.
+    return sram[kSramPlayMode] == 0 ||
+           sram[kSramPlayMode] == kTourPlayMode;
 }
 
 bool tour_qualification_row_empty(

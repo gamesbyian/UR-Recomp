@@ -1,0 +1,85 @@
+{
+  "schema_version": 1,
+  "purpose": "Compact retained evidence for broader ordinary-play Racer HD fallback ranking and the selected P1 0x04B9 player-local family.",
+  "source": {
+    "workflow_run": 37394191595,
+    "artifact_id": 11382681039,
+    "runtime": "Snes9x reference core",
+    "input_fixture": "tests/input/two-player-p1-win.input",
+    "trace_window": [
+      1180,
+      3820
+    ],
+    "frames_observed": 2641,
+    "player_frame_observations": 5282,
+    "sampling": "every guest frame from full 128 KiB WRAM dumps"
+  },
+  "phase_parity": {
+    "window": [
+      1180,
+      1620
+    ],
+    "frames": 441,
+    "native_retained_baseline": {
+      "hd_selected_player_frames": 174,
+      "original_fallback_player_frames": 708
+    },
+    "snes9x_reference": {
+      "hd_selected_player_frames": 174,
+      "original_fallback_player_frames": 708
+    },
+    "prior_stop_state": {
+      "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+      "player_frames": 12,
+      "episode_count": 1
+    },
+    "status": "exact parity"
+  },
+  "before": {
+    "hd_selected_player_frames": 118,
+    "original_fallback_player_frames": 5164,
+    "hd_coverage_fraction": 0.022340022718667172
+  },
+  "invalidated_previous_discriminator": {
+    "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+    "observed_in_broader_route": false,
+    "conclusion": "Do not author the previously proposed two-pose family from the narrow-route ranking."
+  },
+  "selected_player_local_context": {
+    "player": "p1",
+    "semantic_frame_id": "0x04B9",
+    "companion": "0x0000",
+    "selector": 0,
+    "gate": "0x0000",
+    "player_frames": 80,
+    "episode_count": 60,
+    "synchronized_witness_state_count": 58,
+    "local_visual_identity_proven": true,
+    "unique_stock_raster_count": 1,
+    "stock_rgba_sha256": "42d47919a4326d4b4ddfd1f249a46e218dcde421e1520e7f7399afc6aa7dcf68",
+    "normalized_geometry_sha256": "5634bb044e9fd446dc338593151fef2783066ac8ab2cf012271fa16888c57a48",
+    "alpha_bounds": [
+      18,
+      5,
+      47,
+      36
+    ],
+    "contact_x2_y2": [
+      77,
+      72
+    ],
+    "exact_same_player_reuse_matches": [],
+    "palette_normalized_reuse_matches": [],
+    "requires_new_pose": true,
+    "guard_scope": "player_local",
+    "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
+  },
+  "expected_after_registration": {
+    "hd_selected_player_frames": 198,
+    "original_fallback_player_frames": 5084,
+    "player_frames_removed": 80,
+    "absolute_coverage_gain_percentage_points": 1.5145778114350625,
+    "immediate_fallback_burden_removed_fraction": 0.015491866769945779
+  },
+  "status": "review in progress; shipping hash not yet bound"
+}

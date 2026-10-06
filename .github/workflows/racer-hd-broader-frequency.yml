@@ -503,10 +503,18 @@ jobs:
             --out "$DOSSIER/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-0439-equivalence.txt"
 
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-broader-0439.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-0439-shipping-readiness.txt"
+
           python3 tools/build_racer_hd_review_packet.py \
             "$DOSSIER/manifest.json" \
             "$DOSSIER/pose-equivalence.json" \
             --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
             > "$RUNNER_TEMP/racer-hd-0439-review.txt"
 
           python3 tools/check_racer_hd_temporal_coherence.py \
@@ -515,10 +523,11 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-hd-0439-temporal.json" \
             > "$RUNNER_TEMP/racer-hd-0439-temporal.txt"
 
-          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-0439-temporal.json" <<'PY'
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-0439-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
           import json, pathlib, sys
           dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
           temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[3]).read_text())
           reps = dossier["representations"]
           assert len(reps) == 1
           review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
@@ -526,6 +535,9 @@ jobs:
           assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_contact_x2_y2"] == [77, 72], review
           assert review["alpha_iou"] >= 0.74, review
+          assert reps[0]["art_review"]["authored_candidate"]["rgba_sha256"] == "564e43faa8eeaef15c28eef07be2de3e04783f87d655e3c651f6c4d8618fd4a8"
+          assert readiness["shipping_ready"] is True, readiness
+          assert readiness["counts"]["approved"] == 1, readiness
           assert temporal["players"] == ["p1"]
           assert all(temporal["validation"].values()), temporal
           print("RACER_HD_0439_REVIEW", json.dumps(review, sort_keys=True))
@@ -602,6 +614,7 @@ jobs:
             ${{ runner.temp }}/racer-hd-0439-dossier.txt
             ${{ runner.temp }}/racer-hd-0439-equivalence.txt
             ${{ runner.temp }}/racer-hd-0439-review.txt
+            ${{ runner.temp }}/racer-hd-0439-shipping-readiness.txt
             ${{ runner.temp }}/racer-hd-0439-temporal.json
             ${{ runner.temp }}/racer-hd-0439-temporal.txt
             ${{ runner.temp }}/racer-hd-next-visual-probe.json

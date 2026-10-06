@@ -55,7 +55,7 @@
     * title surface still has its matching release cleared even if the modal
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -214,6 +214,22 @@ typedef struct SnesDesktopHostGame {
+@@ -214,5 +214,21 @@ typedef struct SnesDesktopHostGame {
     * Return nonzero to consume both product gestures and their releases. */
    int (*system_gamepad_control)(int control, int pressed);
  

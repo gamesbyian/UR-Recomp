@@ -1,6 +1,19 @@
 # Windows Startup Diagnostics Contract
 
-Status: implementation-ready Windows x64 release acceptance contract.
+Status: package-bootstrap subset implemented with focused contract coverage; full packaged-Windows acceptance is specified but still awaits a clean end-to-end run past shared native-framework blockers. Video/audio/log presentation remains deferred.
+
+## Implemented portable-package subset
+
+The assembled Windows x64 package now classifies four high-value startup failures without adding a second launcher or persistence authority:
+
+- `UR-STARTUP-ROM-MISSING`: the packaged ROM is absent;
+- `UR-STARTUP-ROM-INVALID`: the explicit packaged ROM fails the framework's generated ROM-identity check;
+- `UR-STARTUP-SAVE-ROOT`: the shared per-user root is invalid (including a relative override, a non-absolute resolved `APPDATA` root, a location inside the extracted package tree, or a file/directory type conflict at a required persistence path), cannot be created/written, or the framework cannot adopt it;
+- `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent or the staged `mods/` payload is empty.
+
+`run-uniracers.cmd` owns package-presence and user-root checks. The pinned desktop host owns the ROM-identity and final mutable-root adoption checks. Windows package acceptance deliberately breaks each representative prerequisite and requires the corresponding stable code.
+
+`UR-STARTUP-VIDEO`, `UR-STARTUP-AUDIO`, optional retained startup-log presentation, and a generic `UR-STARTUP-UNKNOWN` catch-all remain open. Existing host breadcrumbs/crash reporting continue to own those failures until a similarly narrow implementation is available.
 
 ## Purpose
 
@@ -15,7 +28,8 @@ Startup diagnostics may observe and report:
 - SDL/video/audio/controller initialization;
 - required runtime/data-file presence;
 - user-supplied ROM discovery and validation status;
-- creation/read/write failures for host-owned profile/settings/run directories.
+- creation/read/write failures for host-owned profile/settings/run directories;
+- legacy migration stage/commit failures in the shared user-data root.
 
 They must not repair, rewrite, or synthesize guest SRAM, progression, replay, ghost, physics, timing, or course state. Existing fail-closed codecs remain authoritative for those surfaces.
 
@@ -66,7 +80,7 @@ A Windows release candidate is not startup-diagnostics-complete until automated 
 1. valid normal startup reaches the established playable frontend/race baseline with no startup error;
 2. missing ROM exits cleanly with `UR-STARTUP-ROM-MISSING`;
 3. wrong ROM bytes exit cleanly with `UR-STARTUP-ROM-INVALID`;
-4. unwritable host save root exits cleanly with `UR-STARTUP-SAVE-ROOT`;
+4. unavailable `APPDATA`, invalid/non-absolute/package-local user-data roots, required-path type conflicts, or an unwritable host save root exit cleanly with `UR-STARTUP-SAVE-ROOT`;
 5. deliberately missing required runtime data exits cleanly with `UR-STARTUP-RUNTIME-DATA`;
 6. every failure produces exactly one stable player-facing diagnosis and, where writable, one bounded diagnostic log;
 7. Authentic and Modern modes share the same bootstrap/error contract because no guest simulation has started yet.

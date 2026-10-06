@@ -1,0 +1,56 @@
+--- a/runner/src/mod_runtime.cpp
++++ b/runner/src/mod_runtime.cpp
+@@ -1448,9 +1448,16 @@ bool scan(Runtime& runtime, std::string* error) {
+     return true;
+ }
+ 
++fs::path state_path(const Runtime& runtime) {
++    const char* override_path = std::getenv("SNESRECOMP_MOD_STATE_PATH");
++    if (override_path && override_path[0])
++        return fs::path(override_path);
++    return runtime.root / "state.toml";
++}
++
+ bool load_state(Runtime& runtime, std::string* error) {
+     runtime.selections.clear();
+-    const fs::path path = runtime.root / "state.toml";
++    const fs::path path = state_path(runtime);
+     if (!fs::exists(path)) return true;
+     std::ifstream file(path);
+     if (!file) {
+@@ -1583,9 +1590,15 @@ std::string quote_toml(const std::string& value) {
+ 
+ bool save_state(Runtime& runtime, std::string* error) {
+     std::error_code ec;
+-    fs::create_directories(runtime.root, ec);
+-    const fs::path temp = runtime.root / "state.toml.tmp";
+-    const fs::path output = runtime.root / "state.toml";
++    const fs::path output = state_path(runtime);
++    if (!output.parent_path().empty()) {
++        fs::create_directories(output.parent_path(), ec);
++        if (ec) {
++            set_error(error, "cannot create mod state directory: " + ec.message());
++            return false;
++        }
++    }
++    fs::path temp = output; temp += ".tmp";
+     std::ofstream file(temp, std::ios::trunc);
+     if (!file) {
+         set_error(error, "cannot write mod state");
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -3768,7 +3768,12 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+       if (!g_mods_ready)
+         fprintf(stderr, "mods: unavailable: %s\n", snes_mod_runtime_last_error_c());
+-      else
+-        snprintf(g_mod_state_path, sizeof(g_mod_state_path), "%s/state.toml", mods_dir);
++      else {
++        const char *mod_state = HostGetenv("MOD_STATE_PATH");
++        if (mod_state && mod_state[0])
++          snprintf(g_mod_state_path, sizeof(g_mod_state_path), "%s", mod_state);
++        else
++          snprintf(g_mod_state_path, sizeof(g_mod_state_path), "%s/state.toml", mods_dir);
++      }
+     }
+   }
+ #endif

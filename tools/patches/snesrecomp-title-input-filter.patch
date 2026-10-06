@@ -1,13 +1,13 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -4120,1 +4120,3 @@
+@@ -4120,2 +4120,4 @@
 +    if (g_game->filter_player_input)
 +      human = g_game->filter_player_input(human);
      uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);
  
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -215,3 +215,10 @@
+@@ -215,3 +215,9 @@
    int (*system_gamepad_control)(int control, int pressed);
 +
 +  /* Optional title-owned filter for the final human controller word after

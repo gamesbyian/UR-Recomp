@@ -132,7 +132,12 @@ jobs:
             done
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
-            xdotool key F5
+            # Send directly to the resolved game window. A second F5 is safe:
+            # once routing begins, the modal route consumes all non-Escape
+            # product edges; if the first X11 edge was lost, the second starts it.
+            xdotool key --window "$WIN" F5
+            sleep 0.1
+            xdotool key --window "$WIN" F5
 
             for _ in $(seq 1 600); do
               [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break
@@ -140,7 +145,7 @@ jobs:
               sleep 0.1
             done
             [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ]
-            xdotool key Escape
+            xdotool key --window "$WIN" Escape
 
             for _ in $(seq 1 600); do
               [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ] && break

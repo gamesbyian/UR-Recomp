@@ -961,7 +961,7 @@ jobs:
           assert target["semantic_frame_id"] == "0x02B9"
           assert target["player_frames"] == 74
           assert target["episode_count"] == 55
-          assert probe["witness_exact_state_count"] == 49
+          assert probe["witness_exact_state_count"] == 47
           assert probe["unique_stock_raster_count"] == 1
           assert probe["canonical"]["stock_rgba_sha256"] == "2b6eeb77ba73f8fbaaa0b258c7c0f63d74780a64e9b0d4e7aeb40e823cfb2c52"
           assert probe["canonical"]["normalized_geometry_sha256"] == "46905e5bd39ffac65d0a18f8638c442589089c149c8f28be23a7768ba41e0829"

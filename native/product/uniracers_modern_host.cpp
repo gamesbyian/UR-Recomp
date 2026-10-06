@@ -4102,7 +4102,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         if (!g_ghost_target_acceptance_fired &&
             std::getenv("UR_GHOST_TARGET_ACCEPTANCE") &&
             g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
-            g_ghost_target_acceptance_fired = true;
+            // g_surface is observed before the Modern session receives this
+            // frame's race-active update below. Treat a rejected first-frame
+            // pause as retryable instead of consuming the one-shot trigger.
             if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
                 const int restart =
                     ur_modern_session_restart_available(g_session);
@@ -4112,7 +4114,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                     for (int row = 0; row < 7; ++row) {
                         ur_modern_options_menu_move(&g_options_menu, 1);
                     }
-                    (void)activate_options_selection();
+                    if (activate_options_selection()) {
+                        g_ghost_target_acceptance_fired = true;
+                    }
                 }
             }
         }

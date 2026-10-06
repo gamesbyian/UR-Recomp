@@ -17,6 +17,7 @@ on:
       - "analysis/data/racer-hd-art-approval-broader-0439.json"
       - "analysis/data/racer-hd-art-approval-broader-0039.json"
       - "analysis/data/racer-hd-art-approval-broader-00b9.json"
+      - "analysis/data/racer-hd-art-approval-broader-02b9.json"
       - "analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json"
       - "tests/native/racer_replacement_selector_test.cpp"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -989,10 +990,18 @@ jobs:
             --out "$DOSSIER/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-02b9-equivalence.txt"
 
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-broader-02b9.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-02b9-shipping-readiness.txt"
+
           python3 tools/build_racer_hd_review_packet.py \
             "$DOSSIER/manifest.json" \
             "$DOSSIER/pose-equivalence.json" \
             --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
             > "$RUNNER_TEMP/racer-hd-02b9-review.txt"
 
           python3 tools/check_racer_hd_temporal_coherence.py \
@@ -1001,10 +1010,11 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-hd-02b9-temporal.json" \
             > "$RUNNER_TEMP/racer-hd-02b9-temporal.txt"
 
-          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-02b9-temporal.json" <<'PY'
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-02b9-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
           import json, pathlib, sys
           dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
           temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[3]).read_text())
           reps = dossier["representations"]
           assert len(reps) == 1
           review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
@@ -1015,9 +1025,31 @@ jobs:
           print("RACER_HD_02B9_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
           assert review["candidate_contact_x2_y2"] == [77, 72], review
           assert review["alpha_iou"] >= 0.70, review
+          assert reps[0]["art_review"]["authored_candidate"]["rgba_sha256"] == "48653f2f0cad1d5939fccf1449111886f708985bd3d58d6dadd0f5fa3e7aa79f"
+          assert readiness["shipping_ready"] is True, readiness
+          assert readiness["counts"]["approved"] == 1, readiness
           assert temporal["players"] == ["p1"], temporal
           failed = [key for key, value in temporal["validation"].items() if not value]
           assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
+          python3 tools/probe_racer_hd_ranked_visual_context.py \
+            "$ROM" \
+            "$RUNNER_TEMP/racer-hd-after-02b9.json" \
+            --rank 0 \
+            --json-out "$RUNNER_TEMP/racer-hd-post-02b9-next-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-post-02b9-next-probe" \
+            > "$RUNNER_TEMP/racer-hd-post-02b9-next-probe.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-post-02b9-next-probe.json" <<'PY'
+          import json, pathlib, sys
+          probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          print("RACER_HD_POST_02B9_NEXT", json.dumps({
+              "target": probe["target"],
+              "unique_stock_raster_count": probe["unique_stock_raster_count"],
+              "disposition": probe["disposition"],
+              "canonical": probe["canonical"],
+          }, sort_keys=True))
           PY
 
       - uses: actions/upload-artifact@v4
@@ -1113,6 +1145,10 @@ jobs:
             ${{ runner.temp }}/racer-hd-02b9-review.txt
             ${{ runner.temp }}/racer-hd-02b9-temporal.json
             ${{ runner.temp }}/racer-hd-02b9-temporal.txt
+            ${{ runner.temp }}/racer-hd-02b9-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-post-02b9-next-probe.json
+            ${{ runner.temp }}/racer-hd-post-02b9-next-probe.txt
+            ${{ runner.temp }}/racer-hd-post-02b9-next-probe/
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe.json
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe/

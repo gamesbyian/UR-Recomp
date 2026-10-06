@@ -156,6 +156,11 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertNotIn("move /y", launcher)
+            self.assertNotIn("/h /k /y", launcher)
+            self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\config.ini"', launcher)
+            self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini"', launcher)
+            self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml"', launcher)
+            self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\saves\\*" /s /d', launcher)
             self.assertNotIn("UR_MIGRATE_FILE", launcher)
             self.assertNotIn("UR_MIGRATE_DIR", launcher)
             self.assertIn("exit /b %ERRORLEVEL%", launcher)

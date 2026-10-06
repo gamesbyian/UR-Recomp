@@ -1,0 +1,79 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -1393,6 +1393,9 @@ static bool HandleDeviceEvent(const SDL_Event *event) {
+   case SDL_CONTROLLERDEVICEREMOVED:
+     gi = GetGamepadInfo(SNESRECOMP_SDL_EVENT_DEVICE(*event));
+     if (gi) {
++      if (g_game->system_gamepad_source_connection)
++        g_game->system_gamepad_source_connection(
++            gi->index, (uint64_t)(uint32_t)gi->joystick_id, 0);
+       memset(gi, 0, sizeof(GamepadInfo));
+       gi->joystick_id = -1;
+     }
+@@ -1415,6 +1418,9 @@ static bool HandleDeviceEvent(const SDL_Event *event) {
+   case SDL_JOYDEVICEREMOVED:
+     gi = GetGamepadInfo(event->jdevice.which);
+     if (gi && gi->raw_joystick) {
++      if (g_game->system_gamepad_source_connection)
++        g_game->system_gamepad_source_connection(
++            gi->index, (uint64_t)(uint32_t)gi->joystick_id, 0);
+       if (gi->joystick) SDL_JoystickClose(gi->joystick);
+       memset(gi, 0, sizeof(GamepadInfo));
+       gi->joystick_id = -1;
+@@ -4150,6 +4156,9 @@ static void OpenOneGamepad(int i) {
+     memset(gi, 0, sizeof(GamepadInfo));
+     gi->index = found_idx;
+     gi->joystick_id = joystick_id;
++    if (g_game->system_gamepad_source_connection)
++      g_game->system_gamepad_source_connection(
++          gi->index, (uint64_t)(uint32_t)gi->joystick_id, 1);
+   }
+ }
+ 
+@@ -4174,6 +4183,9 @@ static void OpenOneJoystick(int i) {
+   gi->raw_joystick = true;
+   gi->index = slot;
+   gi->joystick_id = id;
++  if (g_game->system_gamepad_source_connection)
++    g_game->system_gamepad_source_connection(
++        gi->index, (uint64_t)(uint32_t)gi->joystick_id, 1);
+   printf("Found unmapped raw joystick '%s' assigning to player %d\n",
+          SDL_JoystickName(joystick), slot + 1);
+ }
+@@ -4622,5 +4634,12 @@ static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {
+   if (pressed)
+     gi->last_cmd[button] = FindCmdForGamepadButton(button + gi->index * kGamepadBtn_Count, gi->modifiers);
++  if (g_game->system_gamepad_source_button &&
++      g_game->system_gamepad_source_button(
++          gi->index,
++          (uint64_t)(uint32_t)gi->joystick_id,
++          button,
++          pressed))
++    return;
+   /* Keep per-controller physical/modifier bookkeeping authoritative before a
+    * title can consume the edge. That guarantees a press consumed by a modal
+    * title surface still has its matching release cleared even if the modal
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -214,6 +214,22 @@ typedef struct SnesDesktopHostGame {
+    * Return nonzero to consume both product gestures and their releases. */
+   int (*system_gamepad_control)(int control, int pressed);
+ 
++  /* Optional title-owned source-aware physical gamepad seam. The framework
++   * player index is the already-established host seat, while source_id is the
++   * SDL joystick instance identity for the lifetime of this process. This is
++   * intentionally separate from mapped guest controls so product UI can
++   * implement independent local-player join without inventing a second input
++   * map. Return nonzero to consume the physical edge before ordinary title or
++   * guest dispatch. */
++  int (*system_gamepad_source_button)(
++      int player_index, uint64_t source_id, int button, int pressed);
++
++  /* Optional source connection notification for title-owned local-player UI.
++   * connected=0 is delivered before the framework clears the seat; connected=1
++   * is delivered after a controller/raw joystick acquires a framework seat. */
++  void (*system_gamepad_source_connection)(
++      int player_index, uint64_t source_id, int connected);
++
+   /* Optional post-compose title overlay. Runs after the title frame and frame
+    * blend, before the framework OSD/screenshot path. Presentation-only. */

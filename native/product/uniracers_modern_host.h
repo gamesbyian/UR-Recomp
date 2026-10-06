@@ -15,6 +15,10 @@ void ur_uniracers_modern_after_run_frame(
     const struct SnesDesktopHostFrameStats* stats);
 int ur_uniracers_modern_system_key_down(int key, int mod, int repeat);
 int ur_uniracers_modern_system_gamepad_button(int button, int pressed);
+int ur_uniracers_modern_system_gamepad_source_button(
+    int player_index, uint64_t source_id, int button, int pressed);
+void ur_uniracers_modern_system_gamepad_source_connection(
+    int player_index, uint64_t source_id, int connected);
 int ur_uniracers_modern_controls_active(void);
 int ur_uniracers_modern_system_gamepad_control(int control, int pressed);
 void ur_uniracers_modern_system_overlay(

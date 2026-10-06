@@ -36,6 +36,7 @@ extern "C" {
 #include "regional_title_presenter.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
+#include "local_multiplayer_setup.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_options_menu.h"
@@ -57,6 +58,7 @@ extern "C" {
 #include <algorithm>
 #include <array>
 #include <cstdlib>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <cstring>
@@ -107,6 +109,12 @@ bool g_onboarding_manual_open;
 bool g_onboarding_acceptance_fired;
 bool g_binding_diagnostics_reported;
 std::string g_onboarding_seen_path;
+
+ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
+std::array<ur::product::LocalInputSource, 2> g_local_multiplayer_sources{};
+std::array<std::uint32_t, 2> g_local_multiplayer_consumed_buttons{};
+bool g_local_multiplayer_join_visible;
+bool g_local_multiplayer_two_player_visit;
 
 bool g_practice_active;
 bool g_practice_acceptance_fired;
@@ -271,6 +279,62 @@ bool apply_regional_input_decision(
         }
     }
     return decision.consume;
+}
+
+ur::product::LocalInputSource local_multiplayer_controller_source(
+    std::uint64_t source_id,
+    bool connected) noexcept {
+    // SDL joystick instance IDs are 32-bit process-local identities and may be
+    // zero. The product model reserves zero for "no source", so store id+1.
+    return {
+        ur::product::LocalInputKind::Controller,
+        source_id + 1u,
+        connected,
+    };
+}
+
+ur::product::LocalMultiplayerSlot local_multiplayer_slot_for_player(
+    int player_index) noexcept {
+    return player_index == 1
+        ? ur::product::LocalMultiplayerSlot::Player2
+        : ur::product::LocalMultiplayerSlot::Player1;
+}
+
+void update_local_multiplayer_join_surface() {
+    if (!modern_mode() || !g_ram) {
+        g_local_multiplayer_join_visible = false;
+        g_local_multiplayer_two_player_visit = false;
+        return;
+    }
+
+    const bool two_player_select = g_ram[0x009F] == 0x3D;
+    if (!two_player_select) {
+        g_local_multiplayer_join_visible = false;
+        g_local_multiplayer_two_player_visit = false;
+        g_local_multiplayer_setup = {};
+        return;
+    }
+
+    if (!g_local_multiplayer_two_player_visit) {
+        g_local_multiplayer_two_player_visit = true;
+        g_local_multiplayer_setup = {};
+        g_local_multiplayer_join_visible = true;
+        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+    }
+}
+
+bool local_multiplayer_assign_source(
+    ur::product::LocalMultiplayerSlot slot,
+    ur::product::LocalInputSource source) {
+    const auto result =
+        ur::product::local_multiplayer_assign(g_local_multiplayer_setup, slot, source);
+    if (!result.applied()) return false;
+    g_local_multiplayer_setup = result.state;
+    if (ur::product::local_multiplayer_launch_eligible(g_local_multiplayer_setup)) {
+        g_local_multiplayer_join_visible = false;
+        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_READY");
+    }
+    return true;
 }
 
 void observe_regional_title_surface() {
@@ -3492,6 +3556,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
 
     observe_regional_title_surface();
+    update_local_multiplayer_join_surface();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
 }
@@ -3501,6 +3566,21 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int mod,
     int repeat) {
     if (repeat || !ensure_session()) return 0;
+
+    if (g_local_multiplayer_join_visible) {
+        if (key == SDLK_ESCAPE) {
+            g_local_multiplayer_join_visible = false;
+            product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK");
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            (void)local_multiplayer_assign_source(
+                ur::product::LocalMultiplayerSlot::Player1,
+                {ur::product::LocalInputKind::Keyboard, 1u, true});
+            return 1;
+        }
+        return 1;
+    }
 
     if (practice_routing()) {
         // Host-owned stock-menu routing is exclusive until the requested
@@ -3640,6 +3720,63 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
 extern "C" int ur_uniracers_modern_controls_active(void) {
     return modern_mode() && g_controls_visible ? 1 : 0;
+}
+
+extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
+    int player_index,
+    uint64_t source_id,
+    int connected) {
+    if (player_index < 0 || player_index >= 2) return;
+    auto source = local_multiplayer_controller_source(
+        source_id, connected != 0);
+    const auto seat = static_cast<std::size_t>(player_index);
+    g_local_multiplayer_sources[seat] = source;
+    if (!connected) g_local_multiplayer_consumed_buttons[seat] = 0u;
+    g_local_multiplayer_setup = ur::product::local_multiplayer_set_connected(
+        g_local_multiplayer_setup, source, connected != 0);
+    if (!connected && g_local_multiplayer_join_visible) {
+        product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
+    }
+}
+
+extern "C" int ur_uniracers_modern_system_gamepad_source_button(
+    int player_index,
+    uint64_t source_id,
+    int button,
+    int pressed) {
+    if (!ensure_session()) return 0;
+    if (player_index < 0 || player_index >= 2) {
+        return g_local_multiplayer_join_visible ? 1 : 0;
+    }
+
+    const auto seat = static_cast<std::size_t>(player_index);
+    const std::uint32_t button_bit =
+        button >= 0 && button < 32 ? (1u << static_cast<unsigned>(button)) : 0u;
+    if (!pressed) {
+        if (button_bit && (g_local_multiplayer_consumed_buttons[seat] & button_bit)) {
+            g_local_multiplayer_consumed_buttons[seat] &= ~button_bit;
+            return 1;
+        }
+        return g_local_multiplayer_join_visible ? 1 : 0;
+    }
+    if (!g_local_multiplayer_join_visible) return 0;
+    if (button_bit) g_local_multiplayer_consumed_buttons[seat] |= button_bit;
+
+    const auto slot = local_multiplayer_slot_for_player(player_index);
+    const auto source = local_multiplayer_controller_source(source_id, true);
+    g_local_multiplayer_sources[seat] = source;
+
+    if (button == kGamepadBtn_B) {
+        const auto left =
+            ur::product::local_multiplayer_leave(g_local_multiplayer_setup, slot);
+        if (left.applied()) g_local_multiplayer_setup = left.state;
+        return 1;
+    }
+    if (button == kGamepadBtn_A || button == kGamepadBtn_Start) {
+        (void)local_multiplayer_assign_source(slot, source);
+        return 1;
+    }
+    return 1;
 }
 
 extern "C" int ur_uniracers_modern_system_gamepad_button(
@@ -4016,6 +4153,43 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 }
             }
         }
+    }
+
+    if (g_local_multiplayer_join_visible && modern_mode()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int panel_w = width < 276 ? width - 16 : 268;
+        const int panel_h = 112;
+        const int x = (width - panel_w) / 2;
+        const int y = (height - panel_h) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 7,
+            "LOCAL MULTIPLAYER", 0xFFFFFFFFu, 1);
+        const char* p1 =
+            g_local_multiplayer_setup.player1.assigned &&
+            g_local_multiplayer_setup.player1.source.connected
+                ? "PLAYER 1  JOINED" : "PLAYER 1  PRESS A / START";
+        const char* p2 =
+            g_local_multiplayer_setup.player2.assigned &&
+            g_local_multiplayer_setup.player2.source.connected
+                ? "PLAYER 2  JOINED" : "PLAYER 2  PRESS A / START";
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 32,
+            p1, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 52,
+            p2, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 77,
+            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 94,
+            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, 1);
+        return;
     }
 
     if (g_profile_menu_visible && modern_mode()) {

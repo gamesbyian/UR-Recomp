@@ -417,7 +417,7 @@ jobs:
           set -euo pipefail
           python3 tools/probe_racer_hd_ranked_visual_context.py \
             "reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/racer-hd-broader-after.json" \
+            "$RUNNER_TEMP/racer-hd-after-0239.json" \
             --rank 0 \
             --json-out "$RUNNER_TEMP/racer-hd-next-visual-probe.json" \
             --output-dir "$RUNNER_TEMP/racer-hd-next-visual-probe" \

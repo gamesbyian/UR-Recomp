@@ -55,7 +55,8 @@
      const char *arg_rom = (args.rom && args.rom[0]) ? args.rom : NULL;
      int have_positional = (arg_rom != NULL);
 +    if (arg_rom && g_rom_identity_ok &&
-+        !snesrecomp_rom_verify_sha256(arg_rom, g_rom_sha256))
++        snesrecomp_rom_match_sha256(
++            arg_rom, (const uint8_t (*)[32])&g_rom_sha256, 1) != 0)
 +      return StartupFail(
 +          "UR-STARTUP-ROM-INVALID", "rom", arg_rom,
 +          "The packaged ROM does not match this build.",

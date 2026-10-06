@@ -108,6 +108,28 @@ jobs:
                   raise SystemExit(f"{spec['path']}: {actual} != {spec['sha256']}")
           PY
 
+      - name: Stage raw SNESRecomp source
+        run: |
+          python - <<'PY'
+          from tools import bootstrap_toolchain as b
+          manifest = b.load_manifest()
+          island = b.load_island_manifest()
+          tool = next(t for t in manifest["tools"] if t["id"] == "snesrecomp")
+          src_root = b.ROOT / manifest.get("install_root", ".tools") / "src"
+          src_root.mkdir(parents=True, exist_ok=True)
+          b.ensure_source(tool, src_root, island, offline=True)
+          PY
+
+      - name: Apply SNESRecomp patch stack
+        run: |
+          python - <<'PY'
+          from tools import bootstrap_toolchain as b
+          manifest = b.load_manifest()
+          tool = next(t for t in manifest["tools"] if t["id"] == "snesrecomp")
+          dest = b.ROOT / manifest.get("install_root", ".tools") / "src" / "snesrecomp"
+          b.apply_patches(tool, dest)
+          PY
+
       - name: Stage SNESRecomp framework
         run: |
           set -euo pipefail

@@ -4050,8 +4050,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         // longer can let this transient stock menu state disappear first.
         if (!g_profile_panel_acceptance_open_fired &&
             std::getenv("UR_PROFILE_PANEL_ACCEPTANCE") &&
-            !g_profile_menu_visible &&
-            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0x3C) {
+            !g_profile_menu_visible && !paused() &&
+            g_ram[0x009F] == 0x3C) {
             g_profile_panel_acceptance_open_fired = true;
             open_profile_menu();
         }

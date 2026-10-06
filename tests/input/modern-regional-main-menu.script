@@ -1,0 +1,5 @@
+# Hold the settled main-menu admission-negative surface for host-input checks.
+until 009F == D7 3600
+dump regional-main-menu-ready
+wait 180
+quit

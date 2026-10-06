@@ -167,6 +167,12 @@ jobs:
           echo "exe=$EXE" >> "$GITHUB_OUTPUT"
           echo "Selected game target: $EXE"
 
+      - name: Modern regional PAL NTSC secret persistence acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_regional_secret_acceptance.sh"             "${{ steps.exe.outputs.exe }}"             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"             "$GITHUB_WORKSPACE/tests/input/modern-regional-secret-title.script"             "$RUNNER_TEMP"
+
       - name: Modern pause controls rebinding persistence acceptance
         shell: bash
         run: |
@@ -2126,6 +2132,16 @@ jobs:
             ${{ runner.temp }}/render-scale-2x.log
             ${{ runner.temp }}/render-scale-2x.ppm
             ${{ runner.temp }}/render-scale-2x-dumps/
+            ${{ runner.temp }}/regional-host-state.txt
+            ${{ runner.temp }}/regional-pal.log
+            ${{ runner.temp }}/regional-ntsc.log
+            ${{ runner.temp }}/regional-verify.log
+            ${{ runner.temp }}/regional-main-menu-negative.log
+            ${{ runner.temp }}/regional-authentic-negative.log
+            ${{ runner.temp }}/regional-main-menu-dumps/
+            ${{ runner.temp }}/regional-authentic-dumps/
+            ${{ runner.temp }}/regional-pal-dumps/
+            ${{ runner.temp }}/regional-ntsc-dumps/
             ${{ runner.temp }}/pause-controls-edit.log
             ${{ runner.temp }}/pause-controls-reload.log
             ${{ runner.temp }}/pause-controls-edit-dumps/

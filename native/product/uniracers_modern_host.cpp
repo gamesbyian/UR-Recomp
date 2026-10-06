@@ -93,7 +93,6 @@ UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_controls_visible;
 ur::product::ModernControlsRebindState g_controls_rebind;
-std::array<bool, kGamepadBtn_Count> g_controls_deferred_gamepad_buttons{};
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_onboarding_initialized;
@@ -3571,29 +3570,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
 
-    const bool valid_button =
-        button >= 0 && button < kGamepadBtn_Count;
-    if (valid_button && pressed && !g_controls_visible) {
-        // A device can disappear while a Controls-owned press is still down.
-        // A later ordinary press proves that old release can no longer arrive.
-        g_controls_deferred_gamepad_buttons[
-            static_cast<std::size_t>(button)] = false;
-    }
-    const bool deferred_controls_release =
-        !pressed &&
-        valid_button &&
-        g_controls_deferred_gamepad_buttons[
-            static_cast<std::size_t>(button)];
-    if (g_controls_visible || deferred_controls_release) {
-        // Controls navigation must respect the player's configured GamepadMap.
-        // Track every raw button handed back to the framework so its matching
-        // release is also handed back even if mapped B/Start closes the panel
-        // on the press. Negative means "resolve mapped P1 semantics only":
+    if (g_controls_visible) {
+        // Framework physical/modifier bookkeeping already happened before this
+        // callback. Negative means "resolve mapped P1 semantics only":
         // framework/system commands and guest dispatch stay suppressed.
-        if (valid_button) {
-            g_controls_deferred_gamepad_buttons[
-                static_cast<std::size_t>(button)] = pressed != 0;
-        }
         return -1;
     }
 

@@ -28,6 +28,23 @@ REQUIRED_PACKAGE_FILES = {
 }
 
 
+def normalize_source_revision(value: object) -> str:
+    if not isinstance(value, str):
+        raise ValueError("source revision must be a string")
+    revision = value.strip()
+    if (
+        not revision
+        or revision != value
+        or any(ch in revision for ch in "\r\n\x00")
+    ):
+        raise ValueError("source revision must be one non-empty canonical line")
+    return revision
+
+
+def expected_readme_revision_line(source_revision: str) -> str:
+    return f"Source revision: {source_revision}\n"
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -202,9 +219,12 @@ def assemble(
     build_dir = build_dir.resolve()
     rom = rom.resolve()
     output = output.resolve()
-    source_revision = source_revision.strip()
-    if not source_revision:
-        raise ValueError("source revision is required for a shippable package")
+    try:
+        source_revision = normalize_source_revision(source_revision)
+    except ValueError as exc:
+        raise ValueError(
+            "source revision is required for a shippable package"
+        ) from exc
 
     required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
     for path in required_files:

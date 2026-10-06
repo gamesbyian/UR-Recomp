@@ -149,6 +149,9 @@ def assemble(
     build_dir = build_dir.resolve()
     rom = rom.resolve()
     output = output.resolve()
+    source_revision = source_revision.strip()
+    if not source_revision:
+        raise ValueError("source revision is required for a shippable package")
 
     required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
     for path in required_files:
@@ -197,6 +200,8 @@ def verify(package: Path) -> dict[str, object]:
         manifest.get("schema_version") != SCHEMA_VERSION
         or manifest.get("package_format") != PACKAGE_FORMAT
         or not isinstance(manifest.get("files"), list)
+        or not isinstance(manifest.get("source_revision"), str)
+        or not manifest["source_revision"].strip()
     ):
         raise ValueError("unsupported or malformed package manifest")
 
@@ -275,6 +280,8 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 manifest.get("schema_version") != SCHEMA_VERSION
                 or manifest.get("package_format") != PACKAGE_FORMAT
                 or not isinstance(manifest.get("files"), list)
+                or not isinstance(manifest.get("source_revision"), str)
+                or not manifest["source_revision"].strip()
             ):
                 raise ValueError("unsupported or malformed package archive manifest")
 

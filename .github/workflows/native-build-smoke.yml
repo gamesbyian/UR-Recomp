@@ -576,10 +576,9 @@ jobs:
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
 
-            # Open the real Modern panel and wrap one preset left from MIKE
-            # to exact classic STEVE/rider 15. Rename afterward to prove the
-            # player-facing name is independent from the stock rider identity.
-            xdotool key F2
+            # The acceptance host opens the real Modern panel on a
+            # deterministic rider-select frame. From here onward this test
+            # still drives the actual player-facing profile UI.
             for _ in $(seq 1 100); do
               grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1

@@ -89,19 +89,12 @@ def validate_required_package_paths(
         raise ValueError(f"{context} mods directory is empty")
 
 
-def write_launcher(path: Path) -> None:
+def write_launcher(path: Path, source_revision: str) -> None:
     path.write_text(
         "@echo off\r\n"
         "setlocal DisableDelayedExpansion\r\n"
         "cd /d \"%~dp0\"\r\n"
-        f"if not exist \"{EXE_NAME}\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: {EXE_NAME}. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
-        f"if not exist \"{ROM_NAME}\" (echo UR-STARTUP-ROM-MISSING: packaged ROM is missing: {ROM_NAME}. Restore the package or your verified personal dump. 1>&2 & exit /b 2)\r\n"
-        "if not exist \"rom.cfg\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: rom.cfg. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
-        "if not exist \"mods\\\" (echo UR-STARTUP-RUNTIME-DATA: required package directory is missing: mods. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
-        "for /f \"delims=\" %%I in ('dir /b /s /a-d \"mods\\*\" 2^>nul') do goto mods_payload_ready\r\n"
-        "echo UR-STARTUP-RUNTIME-DATA: required package directory is empty: mods. Re-extract the complete package. 1>&2\r\n"
-        "exit /b 2\r\n"
-        ":mods_payload_ready\r\n"
+
         "if defined UR_RECOMP_USER_DATA_ROOT goto validate_user_root\r\n"
         "if not defined APPDATA (echo UR-STARTUP-SAVE-ROOT: APPDATA is unavailable. Set UR_RECOMP_USER_DATA_ROOT to a writable absolute directory and retry. 1>&2 & exit /b 3)\r\n"
         "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"\r\n"
@@ -130,11 +123,31 @@ def write_launcher(path: Path) -> None:
         "> \"%UR_WRITE_PROBE%\" echo writable\r\n"
         "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory is not writable. Check permissions or choose another absolute location. 1>&2 & exit /b 3)\r\n"
         "del /q \"%UR_WRITE_PROBE%\" >nul 2>&1\r\n"
-        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\\\" (echo UR-STARTUP-SAVE-ROOT: user data config.ini is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
-        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\\\" (echo UR-STARTUP-SAVE-ROOT: user data keybinds.ini is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
-        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\\\" (echo UR-STARTUP-SAVE-ROOT: user data mod-state.toml is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
-        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\rom.cfg\\\" (echo UR-STARTUP-SAVE-ROOT: user data rom.cfg is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
-        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (echo UR-STARTUP-SAVE-ROOT: user data saves path is not a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" mkdir \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\" 2>nul\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" (\r\n"
+        "  set \"UR_RECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\"\r\n"
+        "  set \"SNESRECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\"\r\n"
+        "  > \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo schema=ur-startup-log-v1\r\n"
+        f"  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo build_revision={source_revision}\r\n"
+        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo architecture=x64\r\n"
+        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo subsystem=bootstrap\r\n"
+        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo package_root=%UR_PACKAGE_ROOT%\r\n"
+        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo user_data_root=%UR_RECOMP_USER_DATA_ROOT%\r\n"
+        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo result=startup-begin\r\n"
+        ")\r\n"
+        f"if not exist \"{EXE_NAME}\" (call :startup_fail \"UR-STARTUP-RUNTIME-DATA\" \"runtime-data\" \"Required package file is missing: {EXE_NAME}. Re-extract the complete package.\" & exit /b 2)\r\n"
+        f"if not exist \"{ROM_NAME}\" (call :startup_fail \"UR-STARTUP-ROM-MISSING\" \"rom\" \"Packaged ROM is missing: {ROM_NAME}. Restore the package or your verified personal dump.\" & exit /b 2)\r\n"
+        "if not exist \"rom.cfg\" (call :startup_fail \"UR-STARTUP-RUNTIME-DATA\" \"runtime-data\" \"Required package file is missing: rom.cfg. Re-extract the complete package.\" & exit /b 2)\r\n"
+        "if not exist \"mods\\\" (call :startup_fail \"UR-STARTUP-RUNTIME-DATA\" \"runtime-data\" \"Required package directory is missing: mods. Re-extract the complete package.\" & exit /b 2)\r\n"
+        "for /f \"delims=\" %%I in ('dir /b /s /a-d \"mods\\*\" 2^>nul') do goto mods_payload_ready\r\n"
+        "call :startup_fail \"UR-STARTUP-RUNTIME-DATA\" \"runtime-data\" \"Required package directory is empty: mods. Re-extract the complete package.\"\r\n"
+        "exit /b 2\r\n"
+        ":mods_payload_ready\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\\\" (call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"User data config.ini is a directory. Remove or rename it and retry.\" & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\\\" (call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"User data keybinds.ini is a directory. Remove or rename it and retry.\" & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\\\" (call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"User data mod-state.toml is a directory. Remove or rename it and retry.\" & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\rom.cfg\\\" (call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"User data rom.cfg is a directory. Remove or rename it and retry.\" & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (call :startup_fail \"UR-STARTUP-SAVE-ROOT\" \"save-root\" \"User data saves path is not a directory. Remove or rename it and retry.\" & exit /b 3)\r\n"
         "set \"UR_MIGRATE_TOKEN=%RANDOM%-%RANDOM%\"\r\n"
         "set \"UR_MIGRATE_CONFIG=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
         "set \"UR_MIGRATE_KEYS=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-keybinds.ini.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
@@ -177,7 +190,17 @@ def write_launcher(path: Path) -> None:
         "set \"SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%\"\r\n"
         "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"\r\n"
         f"\"%~dp0{EXE_NAME}\" \"%~dp0{ROM_NAME}\" %*\r\n"
-        "exit /b %ERRORLEVEL%\r\n",
+        "set \"UR_GAME_RC=%ERRORLEVEL%\"\r\n"
+        "if defined UR_RECOMP_STARTUP_LOG >> \"%UR_RECOMP_STARTUP_LOG%\" echo process_exit=%UR_GAME_RC%\r\n"
+        "exit /b %UR_GAME_RC%\r\n"
+        ":startup_fail\r\n"
+        "echo %~1: %~3 1>&2\r\n"
+        "if defined UR_RECOMP_STARTUP_LOG (\r\n"
+        "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo code=%~1\r\n"
+        "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo subsystem=%~2\r\n"
+        "  >> \"%UR_RECOMP_STARTUP_LOG%\" echo result=fatal\r\n"
+        ")\r\n"
+        "exit /b 0\r\n",
         encoding="utf-8",
         newline="",
     )
@@ -271,7 +294,7 @@ def assemble(
     shutil.copy2(build_dir / "rom.cfg", output / "rom.cfg")
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
-    write_launcher(output / LAUNCHER_NAME)
+    write_launcher(output / LAUNCHER_NAME, source_revision)
     write_readme(output / README_NAME, source_revision)
 
     manifest: dict[str, object] = {

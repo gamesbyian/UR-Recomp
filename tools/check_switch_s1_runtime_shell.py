@@ -63,8 +63,10 @@ def check(root: Path = ROOT) -> list[str]:
         errors.append("S1 contract must name the canonical hardware evaluator")
     if "hardware-observation-only" not in source:
         errors.append("S1 report must label itself hardware-observation-only")
-    if "pull_request:" not in workflow or "workflow_dispatch:" not in workflow:
-        errors.append("S1 workflow must support PR validation and manual dispatch")
+    if "workflow_dispatch:" not in workflow:
+        errors.append("S1 workflow must remain manually runnable")
+    if "pull_request:" in workflow:
+        errors.append("S1 workflow must remain manual-only while Switch work is deferred")
     if "timeout-minutes:" not in workflow or "concurrency:" not in workflow:
         errors.append("S1 workflow must be bounded and cancel superseded runs")
     if "test -s platform/switch/s1_runtime_shell/ur-recomp-switch-s1.nro" not in workflow:

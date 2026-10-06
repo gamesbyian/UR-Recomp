@@ -1,0 +1,132 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -162,6 +162,42 @@ static const char *HostGetenv(const char *name) {
+   return NULL;
+ }
+ 
++static void StartupLogFailure(const char *code, const char *subsystem,
++                              const char *path, const char *result) {
++  const char *log_path = HostGetenv("STARTUP_LOG");
++  if (!log_path || !log_path[0]) return;
++  FILE *f = fopen(log_path, "ab");
++  if (!f) return;
++  fprintf(f, "code=%s\n", code ? code : "UR-STARTUP-UNKNOWN");
++  fprintf(f, "subsystem=%s\n", subsystem ? subsystem : "unknown");
++  if (path && path[0]) fprintf(f, "path=%s\n", path);
++  fprintf(f, "result=%s\n", result ? result : "fatal");
++  fclose(f);
++}
++
++static int StartupFail(const char *code, const char *subsystem,
++                       const char *path, const char *explanation,
++                       const char *action) {
++  StartupLogFailure(code, subsystem, path, "fatal");
++  fprintf(stderr, "%s: %s", code, explanation);
++  if (path && path[0]) fprintf(stderr, " Path: %s.", path);
++  if (action && action[0]) fprintf(stderr, " %s", action);
++  fputc('\n', stderr);
++  return 1;
++}
++
+ static uint32 g_win_flags = SDL_WINDOW_RESIZABLE;
+ static SDL_Window *g_window;
+@@ -3545,12 +3581,13 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+     int anchored = snesrecomp_anchor_to_exe_dir();
+     if (!anchored) {
+       if (HostGetenv("USER_DATA_DIR")) {
+-        fprintf(stderr,
+-                "UR-STARTUP-SAVE-ROOT: user data directory is unavailable or "
+-                "not writable. Choose a writable per-user location and retry.\n");
+-        return 7;
++        return StartupFail(
++            "UR-STARTUP-SAVE-ROOT", "save-root", HostGetenv("USER_DATA_DIR"),
++            "The configured user data directory is unavailable or not writable.",
++            "Choose a writable per-user location and retry.");
+       }
+       /* Read-only install: fall back to the historical walk-up so a Windows
+        * copy in an unwritable directory still finds a config. */
+@@ -3830,12 +3867,14 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+                                                   g_rom_identity_ok ? g_rom_sha256
+                                                                   : NULL)) {
+         /* User cancelled the picker or repeatedly chose a non-matching ROM. */
+-        if (arg_rom)
+-          fprintf(stderr,
+-                  "UR-STARTUP-ROM-INVALID: ROM '%s' does not match the build. "
+-                  "Restore the packaged ROM and retry.\n", arg_rom);
++        if (arg_rom) {
++          StartupLogFailure("UR-STARTUP-ROM-INVALID", "rom", arg_rom, "fatal");
++          fprintf(stderr,
++                  "UR-STARTUP-ROM-INVALID: The packaged ROM does not match this build. "
++                  "Restore the packaged ROM or your verified personal dump and retry.\n");
++        }
+         snesrecomp_host_args_usage(program_path, NULL);
+         fprintf(stderr, "\nYou must legally own a copy of %s.\n",
+                 game->display_name);
+@@ -3924,13 +3963,30 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+   SDL_SetMainReady();
+-  /* Return convention flipped in SDL3 (0 == success became true == success),
+-   * so this MUST go through the shim. */
+-  if (!snesrecomp_sdl_init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER)) {
+-    host_report_breadcrumb("SDL_Init FAILED: %s", SDL_GetError());
+-    printf("Failed to init SDL: %s\n", SDL_GetError());
+-    return 1;
++  /* Initialize fatal startup subsystems separately so a release build can
++   * classify the already-observable failure without guessing from SDL text.
++   * Repeated SDL_Init calls are additive in SDL2/SDL3 and preserve the same
++   * set of initialized subsystems as the previous combined call. */
++  if (!snesrecomp_sdl_init(SDL_INIT_VIDEO)) {
++    host_report_breadcrumb("SDL video init FAILED: %s", SDL_GetError());
++    return StartupFail(
++        "UR-STARTUP-VIDEO", "video", NULL,
++        "Video initialization failed.",
++        "Update or select a working graphics driver and retry.");
++  }
++  if (!snesrecomp_sdl_init(SDL_INIT_AUDIO)) {
++    host_report_breadcrumb("SDL audio init FAILED: %s", SDL_GetError());
++    return StartupFail(
++        "UR-STARTUP-AUDIO", "audio", NULL,
++        "Audio initialization failed.",
++        "Check the Windows audio device/driver and retry.");
++  }
++  if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER)) {
++    host_report_breadcrumb("SDL controller init FAILED: %s", SDL_GetError());
++    return StartupFail(
++        "UR-STARTUP-UNKNOWN", "controller", NULL,
++        "A required host input subsystem could not initialize.",
++        "Reconnect controllers or restart Windows, then retry.");
+   }
+   host_report_breadcrumb("SDL init ok: video=%s audio=%s",
+                          SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "(none)",
+@@ -3981,9 +4037,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+   SDL_Window *window = snesrecomp_sdl_create_window(
+       g_window_title, window_width, window_height, g_win_flags);
+   if(window == NULL) {
+     host_report_breadcrumb("SDL_CreateWindow FAILED: %s", SDL_GetError());
+-    printf("Failed to create window: %s\n", SDL_GetError());
+-    return 1;
++    return StartupFail(
++        "UR-STARTUP-VIDEO", "video", NULL,
++        "The game window could not be created.",
++        "Reset the video settings or update the graphics driver and retry.");
+   }
+@@ -3993,7 +4051,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+   if (!g_renderer_funcs.Initialize(window)) {
+     host_report_breadcrumb("renderer init FAILED (output_method=%d)",
+                            g_config.output_method);
+-    return 1;
++    return StartupFail(
++        "UR-STARTUP-VIDEO", "video", NULL,
++        "The selected renderer could not initialize.",
++        "Reset the video settings or choose another renderer and retry.");
+   }
+@@ -4038,9 +4099,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+ #endif
+     if (g_audio_device == 0) {
+       host_report_breadcrumb("audio device open FAILED: %s", SDL_GetError());
+-      printf("Failed to open audio device: %s\n", SDL_GetError());
+-      return 1;
++      return StartupFail(
++          "UR-STARTUP-AUDIO", "audio", NULL,
++          "The Windows audio output device could not be opened.",
++          "Check the default playback device or disable audio and retry.");
+     }

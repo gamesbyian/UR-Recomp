@@ -28,7 +28,8 @@ Startup diagnostics may observe and report:
 - SDL/video/audio/controller initialization;
 - required runtime/data-file presence;
 - user-supplied ROM discovery and validation status;
-- creation/read/write failures for host-owned profile/settings/run directories.
+- creation/read/write failures for host-owned profile/settings/run directories;
+- legacy migration stage/commit failures in the shared user-data root.
 
 They must not repair, rewrite, or synthesize guest SRAM, progression, replay, ghost, physics, timing, or course state. Existing fail-closed codecs remain authoritative for those surfaces.
 

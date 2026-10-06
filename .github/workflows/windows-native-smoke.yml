@@ -503,7 +503,7 @@ jobs:
           test ! -e "$TEST_PACKAGE/user-data"
 
           BAD_IMAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64-invalid-rom"
-          INVALID_USER="$RUNNER_TEMP/package-invalid-rom-user-data"
+          INVALID_USER="$RUNNER_TEMP/package-invalid-rom-user!data"
           cp -R "$TEST_PACKAGE" "$BAD_IMAGE"
           python - "$BAD_IMAGE/Uniracers_USA.sfc" <<'PY'
           import pathlib, sys
@@ -526,6 +526,7 @@ jobs:
           cat "$RUNNER_TEMP/package-invalid-rom.log"
           test "$RC" -ne 0
           grep -Fq "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log"
+          test -d "$INVALID_USER"
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
       - name: Upload Windows evidence

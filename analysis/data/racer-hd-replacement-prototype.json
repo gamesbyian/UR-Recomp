@@ -4619,8 +4619,8 @@
           "scope": "player_local",
           "structural_basis": "compose_racer_staging partitions P1 and P2 into disjoint object columns and rasterize_composed_player_rgba filters by player",
           "empirical_basis": "48 synchronized exact-state witnesses / 75 player-frames collapse to one P1 stock RGBA raster",
-          "workflow_run": 37404756760,
-          "artifact_id": 11386765559,
+          "workflow_run": 37405819585,
+          "artifact_id": 11387476825,
           "stock_rgba_sha256": "4731c8eda730062bd4bf0157417a7147594221e38c689b48699bdf1e02ae0161"
         }
       },

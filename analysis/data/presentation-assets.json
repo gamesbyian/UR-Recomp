@@ -2719,27 +2719,16 @@
                 "artifact_id": 11386435456,
                 "status": "green"
               }
-            }
-          ],
-          "current_after": {
-            "hd_selected_player_frames": 355,
-            "original_fallback_player_frames": 4927,
-            "hd_coverage_fraction": 0.0672093903824309,
-            "cumulative_player_frames_removed": 237,
-            "absolute_coverage_gain_percentage_points": 4.486936766376372,
-            "cumulative_baseline_fallback_burden_removed_fraction": 0.04589465530596437
-          },
-          "next_discriminator": {
-            "status": "measured-post-0439-leader",
-            "target": {
+            },
+            {
               "player": "p1",
               "semantic_frame_id": "0x0039",
               "companion": "0x0000",
               "selector": 0,
               "gate": "0x0000",
-              "player_frames": 76,
+              "player_frames_removed": 76,
               "episode_count": 56,
-              "unique_stock_raster_count": 1,
+              "synchronized_witness_state_count": 48,
               "stock_rgba_sha256": "1662bc84037f21e697d8a4e25276c19e027f374f90124f95b022b7f9447cf259",
               "normalized_geometry_sha256": "ab93302f6d9994840c035ce43f173855cbe8201850f0adc0612a1a5a6af076d9",
               "alpha_bounds": [
@@ -2752,13 +2741,43 @@
                 77,
                 72
               ],
-              "exact_same_player_reuse_matches": [],
-              "palette_normalized_reuse_matches": [],
-              "requires_new_pose": true
-            },
-            "rule": "0039 remains high-value by measured burden; start it as the next bounded shipping slice from the green post-0439 baseline."
+              "guard_scope": "player_local",
+              "approval_manifest": "analysis/data/racer-hd-art-approval-broader-0039.json",
+              "authored_rgba_sha256": "071f98f47939c3710925f46645e6fba2f53b7c3386c79d17d7b4157a616b6e75",
+              "review_alpha_iou": 0.7477744807121661,
+              "review_evidence": {
+                "workflow_run": 37404321463,
+                "artifact_id": 11385794751
+              },
+              "after": {
+                "hd_selected_player_frames": 431,
+                "original_fallback_player_frames": 4851,
+                "hd_coverage_fraction": 0.08159787959106399
+              }
+            }
+          ],
+          "current_after": {
+            "hd_selected_player_frames": 431,
+            "original_fallback_player_frames": 4851,
+            "hd_coverage_fraction": 0.08159787959106399,
+            "cumulative_player_frames_removed": 313,
+            "absolute_coverage_gain_percentage_points": 5.9257856872396815,
+            "cumulative_baseline_fallback_burden_removed_fraction": 0.060611928737412855
           },
-          "status": "shipping expansion active; 04B9, 0239, and 0439 measured, reviewed, hash-approved, and runtime-registered"
+          "next_discriminator": {
+            "status": "post-0039-frequency-leader-awaiting-canonical-probe",
+            "target": {
+              "player": "p1",
+              "semantic_frame_id": "0x00B9",
+              "companion": "0x0000",
+              "selector": 0,
+              "gate": "0x0000",
+              "player_frames": 75,
+              "episode_count": 56
+            },
+            "rule": "Do not author from raw burden alone. Require the post-0039 canonical visual-context probe to prove raster identity and exact/palette-normalized reuse disposition first."
+          },
+          "status": "shipping expansion active; 04B9, 0239, 0439, and 0039 measured, reviewed, hash-approved, and runtime-registered"
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring."
       }

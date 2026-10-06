@@ -3751,25 +3751,28 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 extern "C" int ur_uniracers_modern_system_gamepad_control(
     int control,
     int pressed) {
-    if (!ensure_session() || !g_controls_visible) return 0;
+    if (!ensure_session()) return 0;
 
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
-    if (!pressed) return 1;
+    if (g_controls_visible) {
+        if (!pressed) return 1;
 
-    if (g_controls_rebind.capturing) {
-        if (control == 7 || control == 5) {
-            (void)ur::product::modern_controls_handle_action(
-                &g_controls_rebind, ur::product::ModernControlsAction::Back);
-            product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+        if (g_controls_rebind.capturing) {
+            if (control == 7 || control == 5) {
+                (void)ur::product::modern_controls_handle_action(
+                    &g_controls_rebind, ur::product::ModernControlsAction::Back);
+                product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+            }
+            return 1;
+        }
+
+        ur::product::ModernControlsAction action{};
+        if (ur::product::modern_controls_action_for_snes_control(
+                control, &action)) {
+            (void)handle_controls_action(action);
         }
         return 1;
-    }
-
-    ur::product::ModernControlsAction action{};
-    if (ur::product::modern_controls_action_for_snes_control(
-            control, &action)) {
-        (void)handle_controls_action(action);
     }
     ur::product::RegionalControllerAction regional_action =
         ur::product::RegionalControllerAction::Other;

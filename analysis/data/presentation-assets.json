@@ -2477,7 +2477,7 @@
           "absolute_coverage_gain_percentage_points": 1.3605442176870748,
           "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
         },
-        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Rank exact synchronized states by fallback player-frames, then recurrence across independent episodes; prefer proven geometry reuse where exact or palette-normalized equivalence permits it.",
+        "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring.",
         "next_ranked_discriminator": {
           "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
           "observed_frames": [
@@ -2498,6 +2498,105 @@
           "status": "stop-before-new-art",
           "reason": "The highest remaining measured state requires two novel poses for a single six-frame episode and 12 player-fallback frames. This is not currently worth shipping relative to the reuse-heavy expansions already admitted.",
           "next_concrete_discriminator": "Resume only if a broader representative Windows route shows this state/family recurring enough to justify two new poses, or if new equivalence evidence lowers its art cost. Otherwise leave it on fail-closed Original."
+        },
+        "broader_ordinary_play": {
+          "retained_summary": "analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json",
+          "source": {
+            "workflow_run": 37394191595,
+            "artifact_id": 11382681039,
+            "runtime": "Snes9x reference core",
+            "input_fixture": "tests/input/two-player-p1-win.input",
+            "trace_window": [
+              1180,
+              3820
+            ],
+            "frames_observed": 2641,
+            "player_frame_observations": 5282,
+            "sampling": "every guest frame from full 128 KiB WRAM dumps"
+          },
+          "phase_parity": {
+            "window": [
+              1180,
+              1620
+            ],
+            "frames": 441,
+            "native_retained_baseline": {
+              "hd_selected_player_frames": 174,
+              "original_fallback_player_frames": 708
+            },
+            "snes9x_reference": {
+              "hd_selected_player_frames": 174,
+              "original_fallback_player_frames": 708
+            },
+            "prior_stop_state": {
+              "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
+              "player_frames": 12,
+              "episode_count": 1
+            },
+            "status": "exact parity"
+          },
+          "before": {
+            "hd_selected_player_frames": 118,
+            "original_fallback_player_frames": 5164,
+            "hd_coverage_fraction": 0.022340022718667172
+          },
+          "selected_player_local_context": {
+            "player": "p1",
+            "semantic_frame_id": "0x04B9",
+            "companion": "0x0000",
+            "selector": 0,
+            "gate": "0x0000",
+            "player_frames": 80,
+            "episode_count": 60,
+            "synchronized_witness_state_count": 58,
+            "local_visual_identity_proven": true,
+            "unique_stock_raster_count": 1,
+            "stock_rgba_sha256": "42d47919a4326d4b4ddfd1f249a46e218dcde421e1520e7f7399afc6aa7dcf68",
+            "normalized_geometry_sha256": "5634bb044e9fd446dc338593151fef2783066ac8ab2cf012271fa16888c57a48",
+            "alpha_bounds": [
+              18,
+              5,
+              47,
+              36
+            ],
+            "contact_x2_y2": [
+              77,
+              72
+            ],
+            "exact_same_player_reuse_matches": [],
+            "palette_normalized_reuse_matches": [],
+            "requires_new_pose": true,
+            "guard_scope": "player_local",
+            "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
+          },
+          "after": {
+            "hd_selected_player_frames": 198,
+            "original_fallback_player_frames": 5084,
+            "hd_coverage_fraction": 0.03748580083301779,
+            "player_frames_removed": 80,
+            "absolute_coverage_gain_percentage_points": 1.5145778114350625,
+            "immediate_fallback_burden_removed_fraction": 0.015491866769945779
+          },
+          "shipping": {
+            "representation_id": "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+            "approval_manifest": "analysis/data/racer-hd-art-approval-broader-04b9.json",
+            "authored_rgba_sha256": "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed",
+            "review_metrics": {
+              "candidate_alpha_bounds": [
+                18,
+                5,
+                47,
+                36
+              ],
+              "candidate_contact_x2_y2": [
+                77,
+                72
+              ],
+              "alpha_iou": 0.6810344827586207
+            },
+            "temporal_sequence": "ordinary-race-04b9-broader-static-1392-1393"
+          },
+          "status": "shipping-approved subject to focused workflow reproduction"
         }
       }
     }

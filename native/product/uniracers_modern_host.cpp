@@ -4043,12 +4043,15 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_practice_cancel_acceptance_frames = 0;
         }
 
-        // Enter the real profile panel on the first authoritative rider-select
-        // frame. The scripted guest route continues independently while the
-        // host modal is open, so no additional dwell is required here; waiting
-        // longer can let this transient stock menu state disappear first.
+        // Synchronize profile-panel acceptance to the guest checkpoint the
+        // script itself emits after rider select has settled. This avoids a
+        // second, independent observation race between host and workflow.
+        const char* profile_acceptance_ready =
+            std::getenv("UR_PROFILE_PANEL_ACCEPTANCE_READY_PATH");
         if (!g_profile_panel_acceptance_open_fired &&
             std::getenv("UR_PROFILE_PANEL_ACCEPTANCE") &&
+            profile_acceptance_ready && *profile_acceptance_ready &&
+            std::filesystem::exists(profile_acceptance_ready) &&
             !g_profile_menu_visible && !paused() &&
             g_ram[0x009F] == 0x3C) {
             g_profile_panel_acceptance_open_fired = true;

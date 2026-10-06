@@ -285,6 +285,11 @@ jobs:
             done
             grep -q "UR_CONTROLS CAPTURE_CANCELLED" "'"$FIRST_LOG"'"
             xdotool key Escape
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_CONTROLS CLOSED" "'"$FIRST_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
             grep -q "UR_PAUSE_CONTROLS CLOSED" "'"$FIRST_LOG"'"
 
             kill "$PID" 2>/dev/null || true

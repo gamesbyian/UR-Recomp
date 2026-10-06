@@ -33,6 +33,7 @@ extern "C" {
 #include "quick_practice_launch.hpp"
 #include "regional_presentation_input_policy.hpp"
 #include "regional_presentation_input_coordinator.hpp"
+#include "regional_title_presenter.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"
@@ -3263,6 +3264,56 @@ extern "C" int ur_uniracers_modern_draw_frame(
     uint8_t* dst, size_t pitch, const uint8_t* field,
     int frame_width, int frame_height, double alpha) {
     if (!modern_mode()) return 0;
+
+    ensure_product_state();
+    const bool regional_title =
+        g_product_state.regional_presentation ==
+            ur::product::RegionalPresentation::Europe &&
+        current_regional_secret_context().idle_title_surface;
+    if (regional_title && dst && field && frame_width > 0 &&
+        frame_height > 0 &&
+        pitch >= static_cast<std::size_t>(frame_width) * 4u) {
+        const std::size_t row_bytes =
+            static_cast<std::size_t>(frame_width) * 4u;
+        for (int y = 0; y < frame_height; ++y) {
+            std::memcpy(
+                dst + static_cast<std::size_t>(y) * pitch,
+                field + static_cast<std::size_t>(y) * row_bytes,
+                row_bytes);
+        }
+        const auto regional_result =
+            ur::product::apply_regional_title_presentation(
+                g_product_state.regional_presentation,
+                true,
+                dst,
+                pitch,
+                frame_width,
+                frame_height);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            static ur::product::RegionalTitlePresentationResult last_result =
+                ur::product::RegionalTitlePresentationResult::Canonical;
+            if (regional_result != last_result) {
+                const char* result_name =
+                    regional_result ==
+                            ur::product::RegionalTitlePresentationResult::EuropeApplied
+                        ? "unirally"
+                        : regional_result ==
+                                  ur::product::RegionalTitlePresentationResult::FailedClosed
+                              ? "canonical-fail-closed"
+                              : "uniracers";
+                std::fprintf(
+                    stderr,
+                    "UR_REGIONAL_TITLE visible=%s guest_state_unchanged=1\n",
+                    result_name);
+                std::fflush(stderr);
+                last_result = regional_result;
+            }
+        }
+        // Even a provenance mismatch returns the untouched canonical copy.
+        // The regional presenter never writes guest PPU/WRAM state.
+        return 1;
+    }
+
     return ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_width, frame_height, alpha);
 }

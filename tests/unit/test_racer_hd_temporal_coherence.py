@@ -1,7 +1,9 @@
 import unittest
+from unittest.mock import patch
 
 from tools.check_racer_hd_temporal_coherence import (
     alpha_mask,
+    build_report,
     evaluate_transition,
     logical_center_alpha_mask,
     xor_count,
@@ -66,6 +68,52 @@ class RacerHdTemporalCoherenceTests(unittest.TestCase):
             dynamic["stock_contact_delta_x2_y2"],
             dynamic["authored_contact_delta_x2_y2"],
         )
+
+    def test_single_player_motion_review_sequence(self):
+        rid = "p1-only"
+        registry = {
+            "family": "test",
+            "entries": [{
+                "representation_id": rid,
+                "semantic_frame_id": "0x04B9",
+                "player": "p1",
+                "registration": {
+                    "semantic_anchors": {"wheel_contact_x2_y2": [1, 0]}
+                },
+                "authored_candidate": {"kind": "test"},
+            }],
+            "motion_review_sequences": {
+                "p1-static": {
+                    "window_start": 10,
+                    "window_end": 11,
+                    "players": ["p1"],
+                    "sampling": "test",
+                    "frames": [
+                        {"frame": 10, "p1_representation_id": rid},
+                        {"frame": 11, "p1_representation_id": rid},
+                    ],
+                    "acceptance": {
+                        "dynamic_transition_ratio_min": 0.25,
+                        "dynamic_transition_ratio_max": 4.0,
+                    },
+                }
+            },
+        }
+        stock = bytearray(64 * 64 * 4)
+        stock[3] = 255
+        authored = bytearray(256 * 256 * 4)
+        authored[(((0 * 4 + 2) * 256) + (0 * 4 + 2)) * 4 + 3] = 255
+        with patch(
+            "tools.check_racer_hd_temporal_coherence.build_stock_rgba",
+            return_value=bytes(stock),
+        ), patch(
+            "tools.check_racer_hd_temporal_coherence.authored_candidate_rgba_for_entry",
+            return_value=(bytes(authored), "generator", "sampler"),
+        ):
+            report = build_report(b"", registry, "p1-static")
+        self.assertEqual(report["players"], ["p1"])
+        self.assertEqual(set(report["sequences"]), {"p1"})
+        self.assertTrue(all(report["validation"].values()))
 
     def test_xor_requires_equal_masks(self):
         with self.assertRaises(ValueError):

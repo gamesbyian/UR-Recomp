@@ -55,9 +55,8 @@
     * title surface still has its matching release cleared even if the modal
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -214,3 +214,19 @@ typedef struct SnesDesktopHostGame {
-    * Return nonzero to consume both product gestures and their releases. */
-   int (*system_gamepad_control)(int control, int pressed);
+@@ -222,2 +222,18 @@ typedef struct SnesDesktopHostGame {
+   uint32_t (*filter_player_input)(uint32_t inputs);
  
 +  /* Optional title-owned source-aware physical gamepad seam. The framework
 +   * player index is the already-established host seat, while source_id is the

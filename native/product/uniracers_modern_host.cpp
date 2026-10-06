@@ -125,7 +125,6 @@ bool g_practice_race_ready_reported;
 unsigned g_practice_cancel_acceptance_frames;
 bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
-bool g_profile_panel_acceptance_open_fired;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -4041,21 +4040,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             }
         } else {
             g_practice_cancel_acceptance_frames = 0;
-        }
-
-        // Synchronize profile-panel acceptance to the guest checkpoint the
-        // script itself emits after rider select has settled. This avoids a
-        // second, independent observation race between host and workflow.
-        const char* profile_acceptance_ready =
-            std::getenv("UR_PROFILE_PANEL_ACCEPTANCE_READY_PATH");
-        if (!g_profile_panel_acceptance_open_fired &&
-            std::getenv("UR_PROFILE_PANEL_ACCEPTANCE") &&
-            profile_acceptance_ready && *profile_acceptance_ready &&
-            std::filesystem::exists(profile_acceptance_ready) &&
-            !g_profile_menu_visible && !paused() &&
-            g_ram[0x009F] == 0x3C) {
-            g_profile_panel_acceptance_open_fired = true;
-            open_profile_menu();
         }
 
         // The profile acceptance still drives the real host UI, but once that

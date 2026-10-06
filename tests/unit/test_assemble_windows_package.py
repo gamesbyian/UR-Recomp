@@ -144,7 +144,7 @@ class WindowsPackageTests(unittest.TestCase):
             provenance_manifest = json.loads(manifest_path.read_text())
             provenance_manifest["source_revision"] = ""
             manifest_path.write_text(
-                json.dumps(provenance_manifest, indent=2, sort_keys=True) + "\\n"
+                json.dumps(provenance_manifest, indent=2, sort_keys=True) + "\n"
             )
             provenance_failed = self.run_tool(
                 "verify", "--package", package, check=False
@@ -155,7 +155,7 @@ class WindowsPackageTests(unittest.TestCase):
                 provenance_failed.stderr,
             )
             manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\\n"
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
             )
 
             archive1 = root / "package-1.zip"

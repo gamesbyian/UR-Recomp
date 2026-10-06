@@ -556,6 +556,7 @@ jobs:
             export UR_HOST_STATE_PATH="'"$STATE"'"
             export UR_PROFILE_PANEL_ACCEPTANCE=1
             export UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH="'"$ROOT"'/profile-panel-input.txt"
+            export UR_PROFILE_PANEL_ACCEPTANCE_READY_PATH="'"$DUMPS"'/profile-panel-rider-select-ready.wram.bin"
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
             PID=$!

@@ -303,6 +303,11 @@ jobs:
           DUMPS="$RUNNER_TEMP/package-migration-dumps"
           DUMPS_WIN="$(cygpath -w "$DUMPS")"
           mkdir -p "$DUMPS"
+          mkdir -p "$MIGRATED/.ur-recomp-saves.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-saves.migrate.tmp/stale.srm"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"
+          printf 'stale-temp\n' > "$MIGRATED/.ur-recomp-mod-state.toml.migrate.tmp"
 
           set +e
           SDL_VIDEODRIVER=offscreen \
@@ -321,6 +326,10 @@ jobs:
           test -f "$MIGRATED/mod-state.toml"
           test -f "$MIGRATED/saves/legacy-marker.srm"
           grep -Fq "legacy-sram-marker" "$MIGRATED/saves/legacy-marker.srm"
+          test ! -e "$MIGRATED/.ur-recomp-saves.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-config.ini.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-keybinds.ini.migrate.tmp"
+          test ! -e "$MIGRATED/.ur-recomp-mod-state.toml.migrate.tmp"
           test "$LEGACY_CONFIG" = "$(sha256sum "$LEGACY/config.ini" | cut -d' ' -f1)"
           test "$LEGACY_KEYS" = "$(sha256sum "$LEGACY/keybinds.ini" | cut -d' ' -f1)"
           test "$LEGACY_MOD" = "$(sha256sum "$LEGACY/mods/preloaded/state.toml" | cut -d' ' -f1)"

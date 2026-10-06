@@ -335,6 +335,10 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     or not isinstance(expected_hash, str)
                 ):
                     raise ValueError("malformed package archive file entry")
+                if relative in relative_paths:
+                    raise ValueError(
+                        f"duplicate package archive manifest path: {relative}"
+                    )
                 relative_paths.add(relative)
                 name = f"{ARCHIVE_ROOT}/{relative}"
                 expected_names.add(name)

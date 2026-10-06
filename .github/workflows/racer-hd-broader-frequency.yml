@@ -365,6 +365,8 @@ jobs:
           assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.71, review
+          assert reps[0]["art_review"]["authored_candidate"]["rgba_sha256"] == "a169c7f38b902b33c3126552688c0d2a9afbc6458b775ac297a5be9c14baa6c6"
           assert temporal["players"] == ["p1"]
           assert all(temporal["validation"].values()), temporal
           print("RACER_HD_0239_REVIEW", json.dumps(review, sort_keys=True))

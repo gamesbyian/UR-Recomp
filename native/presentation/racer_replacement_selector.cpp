@@ -1176,9 +1176,16 @@ const RacerRegistration* find_racer_registration_for_state(
     std::uint8_t player
 ) noexcept {
     for (const auto& registration : kRegistrations) {
-        if (registration.semantic_frame_id == semantic_frame_id &&
-            registration.player == player &&
-            composition_equal(registration.composition, live_state)) {
+        if (registration.semantic_frame_id != semantic_frame_id ||
+            registration.player != player) {
+            continue;
+        }
+        const bool composition_matches = registration.player_local_guard
+            ? player_local_composition_equal(
+                  registration.composition, live_state, registration.player
+              )
+            : composition_equal(registration.composition, live_state);
+        if (composition_matches) {
             return &registration;
         }
     }

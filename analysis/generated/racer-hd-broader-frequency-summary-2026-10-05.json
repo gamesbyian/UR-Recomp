@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "purpose": "Compact retained evidence for broader ordinary-play Racer HD fallback ranking and the selected P1 0x04B9 player-local family.",
+  "purpose": "Compact retained evidence for broader ordinary-play Racer HD fallback ranking and measurement-selected player-local shipping families.",
   "source": {
     "workflow_run": 37394191595,
     "artifact_id": 11382681039,
@@ -74,8 +74,8 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping-approved subject to focused workflow reproduction",
-  "after": {
+  "status": "shipping expansion active; 04B9 reproduced, 0239 hash-approved pending focused reproduction",
+  "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
     "hd_coverage_fraction": 0.03748580083301779,
@@ -83,7 +83,7 @@
     "absolute_coverage_gain_percentage_points": 1.5145778114350625,
     "immediate_fallback_burden_removed_fraction": 0.015491866769945779
   },
-  "shipping": {
+  "shipping_04b9": {
     "representation_id": "ordinary-racer-0x04B9-p1-broader-frequency-reference",
     "approval_manifest": "analysis/data/racer-hd-art-approval-broader-04b9.json",
     "authored_rgba_sha256": "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed",
@@ -101,5 +101,88 @@
       "alpha_iou": 0.6810344827586207
     },
     "temporal_sequence": "ordinary-race-04b9-broader-static-1392-1393"
+  },
+  "expansions": [
+    {
+      "player": "p1",
+      "semantic_frame_id": "0x04B9",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames_removed": 80,
+      "episode_count": 60,
+      "synchronized_witness_state_count": 58,
+      "stock_rgba_sha256": "42d47919a4326d4b4ddfd1f249a46e218dcde421e1520e7f7399afc6aa7dcf68",
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-04b9.json",
+      "authored_rgba_sha256": "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed",
+      "review_alpha_iou": 0.6810344827586207,
+      "focused_reproduction": {
+        "workflow_run": 37396511165,
+        "artifact_id": 11382274524,
+        "status": "green"
+      },
+      "after": {
+        "hd_selected_player_frames": 198,
+        "original_fallback_player_frames": 5084,
+        "hd_coverage_fraction": 0.03748580083301779
+      }
+    },
+    {
+      "player": "p1",
+      "semantic_frame_id": "0x0239",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames_removed": 79,
+      "episode_count": 58,
+      "synchronized_witness_state_count": 49,
+      "stock_rgba_sha256": "f422bb38627c7333c7118a83001bab8b5a07753c19a909c5463b6907af33a0f0",
+      "normalized_geometry_sha256": "858ae4c5a37ff118992b4e7fa32ec3dd626ba231d11f175ed5f89b40a7873b8b",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-0239.json",
+      "authored_rgba_sha256": "a169c7f38b902b33c3126552688c0d2a9afbc6458b775ac297a5be9c14baa6c6",
+      "review_alpha_iou": 0.7134502923976608,
+      "review_evidence": {
+        "workflow_run": 37397706328,
+        "artifact_id": 11383711157
+      },
+      "after": {
+        "hd_selected_player_frames": 277,
+        "original_fallback_player_frames": 5005,
+        "hd_coverage_fraction": 0.05244225672093904
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 277,
+    "original_fallback_player_frames": 5005,
+    "hd_coverage_fraction": 0.05244225672093904,
+    "cumulative_player_frames_removed": 159,
+    "absolute_coverage_gain_percentage_points": 3.0102234002271864,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.030790085205267236
+  },
+  "next_discriminator": {
+    "status": "pending-corrected-post-0239-rerank",
+    "expected_leader_from_retained_after_0239_ranking": {
+      "player": "p1",
+      "semantic_frame_id": "0x0439",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 78,
+      "episode_count": 58
+    },
+    "rule": "Do not author until the corrected post-0239 probe proves one stock raster and checks exact/palette-normalized reuse."
   }
 }

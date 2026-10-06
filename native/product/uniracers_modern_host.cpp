@@ -3572,9 +3572,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (g_controls_visible) {
         // Controls navigation must respect the player's configured GamepadMap.
-        // Defer BOTH press and release before the generic paused-release path;
-        // otherwise SNESRecomp never clears its physical modifier state.
-        return 0;
+        // Defer BOTH press and release before the generic paused-release path.
+        // Negative means "resolve mapped P1 semantics only": framework/system
+        // commands and guest dispatch stay suppressed behind this modal panel.
+        return -1;
     }
 
     if (!pressed) {

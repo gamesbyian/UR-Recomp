@@ -349,17 +349,16 @@ The policy-only phase has advanced into a tested product substrate on this branc
 - `tools/compare_regional_course_payloads.py` plus `regional-retail-course-payloads.yml` decode the seven changed RNC streams and localize byte changes into header, coarse table, fine-record region, resource list and post-list payload without over-classifying their semantics;
 - the generated-product CMake patch now links the regional secret/runtime sources, so the feature is part of the shipping native product build rather than unit-test-only code.
 
-Still intentionally unwired:
+The production host now completes the hidden-switch input and persistence path:
 
-- platform event translation into the semantic matcher;
-- thin production-host binding of the already-proven `0x84` title admission policy;
-- save dispatch after `SaveRequired`;
-- title/logo rendering selection;
-- production consumption of the evidence experiments below.
+- keyboard letter events feed the semantic coordinator only at the proven `0x84` title-family surface;
+- profile/racer name editing is explicitly text-entry-gated and cannot feed the secret;
+- mapped SNES controller controls feed the controller matcher through the existing framework semantic-control hook, with no second controller map;
+- `0xD7` main-menu navigation remains guest-owned;
+- `SaveRequired` dispatches through the existing durable host-product store, while save failure leaves the running regional presentation well-defined;
+- native acceptance types `PAL`, proves Europe persistence in a fresh process, types `NTSC`, and proves NorthAmerica persistence in another fresh process.
 
-Experiment A/E now have reusable execution machinery; the next step is to inspect retained outputs, classify visible deltas, and promote only confirmed presentation differences.
-
-This keeps the active shared Modern host out of this PR until the current navigation/progression/controls branches are reconciled.
+Still intentionally unwired are the visible title/logo consumer and any later evidence-backed frontend/course presentation differences. Experiment A/E now have reusable execution machinery; the next product step is exact/provenance-bound Unirally title branding plus the selected stock transition primitive.
 
 ## Implementation phases
 

@@ -186,9 +186,24 @@ run_visual_process() {
 
 run_secret_process "p a l" "europe" "" "$PAL_LOG" "$PAL_DUMPS"
 grep -q "^regional_presentation=europe$" "$STATE"
+cp "$STATE" "$EUROPE_STATE_SNAPSHOT"
+
+run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG"
+verify_ppm_crop "$EUROPE_SCREENSHOT" "$TARGET_RGB_SHA"
+grep -q "UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1" "$EUROPE_VISUAL_LOG"
+
+run_visual_process "$EUROPE_STATE_SNAPSHOT" "europe" "$AUTHENTIC_SCREENSHOT" "$AUTHENTIC_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_LOG" "authentic"
+verify_ppm_crop "$AUTHENTIC_SCREENSHOT" "$SOURCE_RGB_SHA"
 
 run_secret_process "n t s c" "north_america" "europe" "$NTSC_LOG" "$NTSC_DUMPS"
 grep -q "^regional_presentation=north_america$" "$STATE"
+
+run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG"
+verify_ppm_crop "$NA_SCREENSHOT" "$SOURCE_RGB_SHA"
+
+for suffix in wram.bin sram.bin vram.bin cgram.bin oam.bin; do
+  cmp "$EUROPE_VISUAL_DUMPS/boot-300.$suffix" "$NA_VISUAL_DUMPS/boot-300.$suffix"
+done
 
 # Navigable main menu (0xD7) is explicitly not an admission surface.
 timeout 90s xvfb-run -a bash -c '
@@ -259,4 +274,7 @@ cat "$NTSC_LOG"
 cat "$MAIN_MENU_LOG"
 cat "$AUTHENTIC_LOG"
 cat "$VERIFY_LOG"
-echo "UR_REGIONAL_RESULT=pal_saved_reloaded_ntsc_saved_reloaded_main_menu_inert_authentic_inert"
+cat "$EUROPE_VISUAL_LOG"
+cat "$NA_VISUAL_LOG"
+cat "$AUTHENTIC_VISUAL_LOG"
+echo "UR_REGIONAL_RESULT=pal_saved_unirally_visible_ntsc_saved_uniracers_visible_guest_state_equal_main_menu_inert_authentic_canonical"

@@ -219,6 +219,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export SNESRECOMP_DUMP_DIR="'"$FIRST_DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$FIRST_LOG"'" 2>&1 &
             PID=$!
@@ -240,8 +241,12 @@ jobs:
             xdotool windowfocus "$WIN"
 
             # Active-race pause route to the existing Controls surface.
-            xdotool key Escape
-            sleep 0.2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$FIRST_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$FIRST_LOG"'"
             xdotool key Down Down Down Return
             for _ in $(seq 1 100); do
               grep -q "UR_PAUSE_CONTROLS OPENED" "'"$FIRST_LOG"'" && break
@@ -301,6 +306,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export SNESRECOMP_DUMP_DIR="'"$SECOND_DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$SECOND_LOG"'" 2>&1 &
             PID=$!
@@ -320,8 +326,12 @@ jobs:
             done
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
-            xdotool key Escape
-            sleep 0.2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SECOND_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SECOND_LOG"'"
             xdotool key Down Down Down Return
 
             for _ in $(seq 1 100); do
@@ -1259,6 +1269,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export UR_HOST_STATE_PATH="'"$STATE"'"
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$SAVE_LOG"'" 2>&1 &
@@ -1280,8 +1291,12 @@ jobs:
             [ -n "$WIN" ]
 
             xdotool windowfocus "$WIN"
-            xdotool key Escape
-            sleep 0.3
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SAVE_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SAVE_LOG"'"
 
             # Active race exposes Resume -> Restart -> Options.
             # Enter Options, toggle Focus Pause, then navigate to the
@@ -1498,6 +1513,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export UR_HOST_STATE_PATH="'"$STATE"'"
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
@@ -1519,8 +1535,12 @@ jobs:
             [ -n "$WIN" ]
 
             xdotool windowfocus "$WIN"
-            xdotool key Escape
-            sleep 0.2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'"
 
             # Active race: Resume -> Restart -> Options.
             xdotool key Down
@@ -1619,6 +1639,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export UR_TIMING_HUD_DIAGNOSTICS=all
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
@@ -1643,8 +1664,12 @@ jobs:
             [ -n "$WIN" ]
 
             xdotool windowfocus "$WIN"
-            xdotool key Escape
-            sleep 0.2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'"
 
             # Active race rows:
             # Resume -> Restart -> Focus Pause -> Controls -> Run Data.
@@ -1843,6 +1868,7 @@ jobs:
             set -euo pipefail
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
             PID=$!
@@ -1863,8 +1889,12 @@ jobs:
             [ -n "$WIN" ]
 
             xdotool windowfocus "$WIN"
-            xdotool key Escape
-            sleep 0.2
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$LOG"'"
 
             # Active race rows:
             # Resume -> Restart -> Options -> Controls -> Run Data ->

@@ -1,96 +1,75 @@
 # Windows Startup Diagnostics Contract
 
-Status: package-bootstrap subset implemented with focused contract coverage; full packaged-Windows acceptance is specified but still awaits a clean end-to-end run past shared native-framework blockers. Video/audio/log presentation remains deferred.
+Status: the portable Windows x64 startup-diagnostics contract is implemented at every currently observable release-facing bootstrap seam. Final-main assembled-package acceptance owns the end-to-end regression. Installer/signing/uninstall behavior remains outside this lane.
 
-## Implemented portable-package subset
+## Implemented consumer-package contract
 
-The assembled Windows x64 package now classifies four high-value startup failures without adding a second launcher or persistence authority:
+The assembled Windows x64 package and pinned desktop host classify these startup failures without adding another launcher, persistence authority or logging framework:
 
 - `UR-STARTUP-ROM-MISSING`: the packaged ROM is absent;
 - `UR-STARTUP-ROM-INVALID`: the explicit packaged ROM fails the framework's generated ROM-identity check;
-- `UR-STARTUP-SAVE-ROOT`: the shared per-user root is invalid (including a relative override, a non-absolute resolved `APPDATA` root, a location inside the extracted package tree, or a file/directory type conflict at a required persistence path), cannot be created/written, or the framework cannot adopt it;
-- `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent or the staged `mods/` payload is empty.
+- `UR-STARTUP-SAVE-ROOT`: the shared per-user root is invalid, unavailable, inside the extracted package, has a required path type conflict, cannot be created/written, cannot complete legacy migration, or cannot be adopted by the host;
+- `UR-STARTUP-RUNTIME-DATA`: the executable, `rom.cfg`, staged mod payload, or a non-empty `mods/` payload is missing;
+- `UR-STARTUP-VIDEO`: SDL video initialization, window creation, or the selected renderer initialization fails;
+- `UR-STARTUP-AUDIO`: SDL audio initialization or audio-device open fails;
+- `UR-STARTUP-UNKNOWN`: only the narrow residual controller-subsystem initialization failure after video and audio initialization have already succeeded.
 
-`run-uniracers.cmd` owns package-presence and user-root checks. The pinned desktop host owns the ROM-identity and final mutable-root adoption checks. Windows package acceptance deliberately breaks each representative prerequisite and requires the corresponding stable code.
+`UR-STARTUP-UNKNOWN` is not a blanket exception/catch-all around desktop startup. It deliberately sits only on the remaining fatal SDL controller-init return so it cannot swallow ROM, save-root, runtime-data, video or audio failures. Other later crashes continue to use the existing breadcrumb/crash-reporting pipeline until a concrete release-facing startup class justifies another stable code.
 
-`UR-STARTUP-VIDEO`, `UR-STARTUP-AUDIO`, optional retained startup-log presentation, and a generic `UR-STARTUP-UNKNOWN` catch-all remain open. Existing host breadcrumbs/crash reporting continue to own those failures until a similarly narrow implementation is available.
+`run-uniracers.cmd` owns package-presence, resolved user-root, migration and startup-log setup. The pinned desktop host owns ROM identity plus the real SDL/video/audio/controller initialization seams. Modern and Authentic modes use the same bootstrap because mode-specific guest/product behavior has not started yet.
 
-## Purpose
+## Purpose and ownership boundary
 
-The Windows consumer build must fail usefully when host-owned startup prerequisites are unavailable or invalid, without turning diagnostics into another gameplay state model. This contract owns only host/bootstrap failures before authoritative guest execution is established.
+The Windows consumer build must fail usefully when host-owned startup prerequisites are unavailable or invalid without turning diagnostics into another gameplay state model.
 
-## Ownership boundary
+Startup diagnostics may observe and report executable/build identity, Windows architecture, the resolved package/user-data paths, ROM validation status, SDL/video/audio/controller initialization, required runtime/data-file presence, host-owned persistence creation/read/write failures, and legacy migration stage/commit failures.
 
-Startup diagnostics may observe and report:
-
-- executable/build identity;
-- host product-state/save root resolution;
-- SDL/video/audio/controller initialization;
-- required runtime/data-file presence;
-- user-supplied ROM discovery and validation status;
-- creation/read/write failures for host-owned profile/settings/run directories;
-- legacy migration stage/commit failures in the shared user-data root.
-
-They must not repair, rewrite, or synthesize guest SRAM, progression, replay, ghost, physics, timing, or course state. Existing fail-closed codecs remain authoritative for those surfaces.
+They must not repair, rewrite or synthesize guest SRAM, progression, replay, ghost, physics, timing or course state. They must never record ROM bytes, SRAM contents, profile names, controller input streams or run-artifact payloads.
 
 ## Player-facing behavior
 
-For a recoverable startup failure, emit one concise message containing:
+Each classified fatal failure emits exactly one concise diagnosis containing the stable `UR-STARTUP-*` code, a plain-English explanation, the relevant path/subsystem when safe and useful, and one recovery action. Stack traces and low-level SDL text remain supporting diagnostics rather than the primary player-facing message.
 
-1. a stable machine-readable error code;
-2. a plain-English explanation;
-3. the exact path or subsystem involved when safe and useful;
-4. one actionable recovery instruction.
+Codes are product API. Tests and future support material may depend on them, so renaming requires an explicit compatibility decision.
 
-Do not expose stack dumps as the primary UI. Detailed diagnostics belong in a retained text log.
+## Retained startup log
 
-The initial stable codes are:
+After the user-data root has been validated as writable, the launcher creates one bounded log for the process at:
 
-- `UR-STARTUP-ROM-MISSING`
-- `UR-STARTUP-ROM-INVALID`
-- `UR-STARTUP-SAVE-ROOT`
-- `UR-STARTUP-VIDEO`
-- `UR-STARTUP-AUDIO`
-- `UR-STARTUP-RUNTIME-DATA`
-- `UR-STARTUP-UNKNOWN`
+`<user-data-root>/diagnostics/startup.log`
 
-Codes are product API: tests and future support material may depend on them, so renaming requires an explicit compatibility decision.
+The file is overwritten once at process launch rather than accumulated indefinitely. The launcher seeds deterministic fields:
 
-## Diagnostic log
+- `schema=ur-startup-log-v1`;
+- packaged source/build revision;
+- `architecture=x64`;
+- bootstrap subsystem;
+- resolved package root;
+- resolved user-data root;
+- initial result.
 
-Create at most one startup log per process in the resolved host diagnostics directory. If that directory itself cannot be created, fall back to stderr and the player-facing error surface rather than recursively attempting alternate persistence.
+A classified launcher or host failure appends only its stable code, subsystem and fatal result. Host startup uses the same path through `SNESRECOMP_STARTUP_LOG`. A normal host exit appends the process exit status.
 
-The log should contain deterministic fields where available:
-
-- product/build revision;
-- Windows architecture;
-- startup error code;
-- failing subsystem;
-- relevant resolved paths;
-- ROM validation result without embedding ROM bytes;
-- SDL initialization result;
-- final fatal/recoverable disposition.
-
-Do not log controller input streams, SRAM contents, profile names, run artifacts, ROM bytes, or unrelated filesystem inventory.
+If the user-data root or diagnostics directory cannot be created, diagnostics fall back to the one player-facing/stderr diagnosis rather than trying alternate log locations recursively. Failures that occur before a writable root exists therefore legitimately have no retained log.
 
 ## Acceptance
 
-A Windows release candidate is not startup-diagnostics-complete until automated acceptance covers at least these fresh-process cases:
+Final-main Windows package acceptance uses temporary directories and synthetic failure conditions only. It covers:
 
-1. valid normal startup reaches the established playable frontend/race baseline with no startup error;
-2. missing ROM exits cleanly with `UR-STARTUP-ROM-MISSING`;
-3. wrong ROM bytes exit cleanly with `UR-STARTUP-ROM-INVALID`;
-4. unavailable `APPDATA`, invalid/non-absolute/package-local user-data roots, required-path type conflicts, or an unwritable host save root exit cleanly with `UR-STARTUP-SAVE-ROOT`;
-5. deliberately missing required runtime data exits cleanly with `UR-STARTUP-RUNTIME-DATA`;
-6. every failure produces exactly one stable player-facing diagnosis and, where writable, one bounded diagnostic log;
-7. Authentic and Modern modes share the same bootstrap/error contract because no guest simulation has started yet.
+1. valid normal startup reaching the established frontend/race baseline;
+2. missing packaged ROM -> `UR-STARTUP-ROM-MISSING`;
+3. synthetically modified ROM bytes -> `UR-STARTUP-ROM-INVALID`;
+4. unavailable/relative/package-local/unwritable user-data roots and required-path type conflicts -> `UR-STARTUP-SAVE-ROOT`;
+5. deliberately missing or empty runtime payload -> `UR-STARTUP-RUNTIME-DATA`;
+6. a deliberately invalid SDL video driver -> `UR-STARTUP-VIDEO`;
+7. a deliberately invalid SDL audio driver -> `UR-STARTUP-AUDIO`;
+8. exactly one player-facing stable diagnosis for each classified failure;
+9. where the user-data root is writable, one `diagnostics/startup.log` containing deterministic build/subsystem/path/result fields and exactly one matching fatal code entry.
 
-The acceptance harness must use temporary directories and synthetic invalid data. It must never require committing or uploading proprietary ROM bytes.
+The harness never needs to add proprietary ROM material beyond the repository's existing private canonical package input, and synthetic invalid-ROM acceptance mutates only a temporary copy.
 
-## Implementation seam
+## Closure boundary
 
-Prefer a small typed result returned by the existing Windows/native bootstrap boundary and rendered by the current host UI/error path. Do not add a second process launcher, product-state store, or logging framework merely for this feature. The first implementation should wire only failures already observable at startup; add codes later only when a concrete new failure class is demonstrated.
+This diagnostics lane is closed at the currently observable bootstrap seams. Reopen it only when a new real initialization failure class reaches the consumer package without a useful stable diagnosis, or when final-main package acceptance demonstrates that one of the implemented classifications/log guarantees is incorrect.
 
-## Exit condition
-
-This lane closes when the packaged Windows x64 build has fresh-process acceptance for the cases above and the same stable codes are emitted by the real consumer startup path. Packaging itself remains separately owned by the release/package lane.
+Installer selection, signing, registration, uninstall, installer rollback, telemetry, generalized crash handling and later in-session device-loss UX are separate work.

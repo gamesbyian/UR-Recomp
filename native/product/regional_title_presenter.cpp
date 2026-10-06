@@ -29,8 +29,11 @@ int base85_value(char c) noexcept {
     return -1;
 }
 
-bool decode_index(std::size_t index, std::uint8_t* value) noexcept {
-    if (!value || index >= kIndexCount) {
+bool decode_index(
+    const char* encoded_indices,
+    std::size_t index,
+    std::uint8_t* value) noexcept {
+    if (!encoded_indices || !value || index >= kIndexCount) {
         return false;
     }
     const std::size_t group = index / kDecodedGroupBytes;
@@ -38,7 +41,7 @@ bool decode_index(std::size_t index, std::uint8_t* value) noexcept {
     const std::size_t encoded = group * kEncodedGroupChars;
     std::uint32_t block = 0;
     for (std::size_t i = 0; i < kEncodedGroupChars; ++i) {
-        const int digit = base85_value(kIndicesBase85[encoded + i]);
+        const int digit = base85_value(encoded_indices[encoded + i]);
         if (digit < 0) {
             return false;
         }
@@ -47,6 +50,48 @@ bool decode_index(std::size_t index, std::uint8_t* value) noexcept {
     const int shift = 24 - static_cast<int>(slot * 8u);
     *value = static_cast<std::uint8_t>((block >> shift) & 0xffu);
     return true;
+}
+
+template <std::size_t N>
+bool payload_valid(
+    const std::array<std::uint32_t, N>& palette,
+    const char* encoded_indices) noexcept {
+    for (std::size_t i = 0; i < kIndexCount; ++i) {
+        std::uint8_t palette_index = 0;
+        if (!decode_index(encoded_indices, i, &palette_index) ||
+            palette_index >= palette.size()) {
+            return false;
+        }
+    }
+    return true;
+}
+
+template <std::size_t N>
+bool paint_crop(
+    std::uint8_t* pixels,
+    std::size_t pitch,
+    const std::array<std::uint32_t, N>& palette,
+    const char* encoded_indices) noexcept {
+    std::size_t index = 0;
+    for (int y = 0; y < kHeight; ++y) {
+        std::uint8_t* row =
+            pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
+            static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
+        for (int x = 0; x < kWidth; ++x, ++index) {
+            std::uint8_t palette_index = 0;
+            if (!decode_index(encoded_indices, index, &palette_index) ||
+                palette_index >= palette.size()) {
+                return false;
+            }
+            const std::uint32_t bgrx = palette[palette_index];
+            std::uint8_t* pixel =
+                row + static_cast<std::size_t>(x) * kBytesPerPixel;
+            pixel[0] = static_cast<std::uint8_t>(bgrx & 0xffu);
+            pixel[1] = static_cast<std::uint8_t>((bgrx >> 8u) & 0xffu);
+            pixel[2] = static_cast<std::uint8_t>((bgrx >> 16u) & 0xffu);
+        }
+    }
+    return index == kIndexCount;
 }
 
 bool dimensions_admit(
@@ -108,38 +153,20 @@ RegionalTitlePresentationResult apply_regional_title_presentation(
         return RegionalTitlePresentationResult::FailedClosed;
     }
 
-    // Validate the compact evidence payload before touching a visible pixel.
-    for (std::size_t i = 0; i < kIndexCount; ++i) {
-        std::uint8_t palette_index = 0;
-        if (!decode_index(i, &palette_index) ||
-            palette_index >= kPalette.size()) {
-            return RegionalTitlePresentationResult::FailedClosed;
-        }
+    // Validate both retained payloads before touching a visible pixel so the
+    // Europe write and the emergency canonical repaint are both trustworthy.
+    if (!payload_valid(kPalette, kIndicesBase85) ||
+        !payload_valid(kSourcePalette, kSourceIndicesBase85)) {
+        return RegionalTitlePresentationResult::FailedClosed;
     }
 
-    std::size_t index = 0;
-    for (int y = 0; y < kHeight; ++y) {
-        std::uint8_t* row =
-            pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
-            static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
-        for (int x = 0; x < kWidth; ++x, ++index) {
-            std::uint8_t palette_index = 0;
-            if (!decode_index(index, &palette_index)) {
-                return RegionalTitlePresentationResult::FailedClosed;
-            }
-            const std::uint32_t bgrx = kPalette[palette_index];
-            std::uint8_t* pixel =
-                row + static_cast<std::size_t>(x) * kBytesPerPixel;
-            pixel[0] = static_cast<std::uint8_t>(bgrx & 0xffu);
-            pixel[1] = static_cast<std::uint8_t>((bgrx >> 8u) & 0xffu);
-            pixel[2] = static_cast<std::uint8_t>((bgrx >> 16u) & 0xffu);
-            // Preserve the host-owned X/alpha byte. Reference evidence uses
-            // BGRX8888 with X=0, but visible identity depends only on BGR.
-        }
-    }
-
-    if (regional_title_visible_crop_digest(pixels, pitch, width, height) !=
-        kTargetCropBgrFnv1a64) {
+    if (!paint_crop(pixels, pitch, kPalette, kIndicesBase85) ||
+        regional_title_visible_crop_digest(pixels, pitch, width, height) !=
+            kTargetCropBgrFnv1a64) {
+        // A post-write mismatch is treated as corrupt/inconsistent evidence.
+        // Repaint the exact retained canonical crop before returning failure.
+        (void)paint_crop(
+            pixels, pitch, kSourcePalette, kSourceIndicesBase85);
         return RegionalTitlePresentationResult::FailedClosed;
     }
     return RegionalTitlePresentationResult::EuropeApplied;

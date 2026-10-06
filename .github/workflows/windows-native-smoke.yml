@@ -92,8 +92,10 @@ jobs:
         run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 200 <= n <= 299 else 0)"
       - name: Package failure line 300-324
         run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 300 <= n <= 324 else 0)"
-      - name: Package failure line 325-349
-        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 325 <= n <= 349 else 0)"
+      - name: Package failure line 325-337
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 325 <= n <= 337 else 0)"
+      - name: Package failure line 338-349
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 338 <= n <= 349 else 0)"
       - name: Package failure line 350-399
         run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 350 <= n <= 399 else 0)"
       - name: Package failure line 400-499

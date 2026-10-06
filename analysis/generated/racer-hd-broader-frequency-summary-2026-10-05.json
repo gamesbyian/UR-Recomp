@@ -236,6 +236,11 @@
         "hd_selected_player_frames": 431,
         "original_fallback_player_frames": 4851,
         "hd_coverage_fraction": 0.08159787959106399
+      },
+      "focused_reproduction": {
+        "workflow_run": 37404756760,
+        "artifact_id": 11386765559,
+        "status": "green"
       }
     }
   ],
@@ -248,7 +253,7 @@
     "cumulative_baseline_fallback_burden_removed_fraction": 0.060611928737412855
   },
   "next_discriminator": {
-    "status": "post-0039-frequency-leader-awaiting-canonical-probe",
+    "status": "measured-post-0039-leader",
     "target": {
       "player": "p1",
       "semantic_frame_id": "0x00B9",
@@ -256,8 +261,25 @@
       "selector": 0,
       "gate": "0x0000",
       "player_frames": 75,
-      "episode_count": 56
+      "episode_count": 56,
+      "synchronized_witness_state_count": 48,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "4731c8eda730062bd4bf0157417a7147594221e38c689b48699bdf1e02ae0161",
+      "normalized_geometry_sha256": "c6cbc07d83c88ca3f45250e2b5f57964ca2cd1aec070eaa4d836cf629e06ef97",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "exact_same_player_reuse_matches": [],
+      "palette_normalized_reuse_matches": [],
+      "requires_new_pose": true
     },
-    "rule": "Do not author from raw burden alone. Require the post-0039 canonical visual-context probe to prove raster identity and exact/palette-normalized reuse disposition first."
+    "rule": "00B9 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission is complete."
   }
 }

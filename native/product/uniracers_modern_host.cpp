@@ -128,7 +128,6 @@ std::string g_profile_panel_acceptance_input_path;
 bool g_profile_panel_acceptance_open_fired;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
-unsigned g_ghost_target_acceptance_frames;
 bool g_ghost_target_acceptance_fired;
 unsigned g_recent_course_acceptance_frames;
 bool g_recent_course_acceptance_fired;
@@ -4096,31 +4095,26 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_fast_repeat_acceptance_frames = 0;
         }
 
-        // Exercise the real pause/options/ghost selection path without
-        // depending on desktop event timing. The active race is held for a
-        // deterministic dwell so the guest script first records its checkpoint.
+        // Exercise the real pause/options/ghost selection path on the first
+        // authoritative active-race frame. This acceptance does not consume a
+        // guest checkpoint before acting, so an extra dwell only creates a
+        // transient-state race without adding evidence.
         if (!g_ghost_target_acceptance_fired &&
             std::getenv("UR_GHOST_TARGET_ACCEPTANCE") &&
             g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
-            ++g_ghost_target_acceptance_frames;
-            if (g_ghost_target_acceptance_frames >= 120u) {
-                g_ghost_target_acceptance_fired = true;
-                g_ghost_target_acceptance_frames = 0;
-                if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
-                    const int restart =
-                        ur_modern_session_restart_available(g_session);
-                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
-                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
-                    if (activate_pause_selection()) {
-                        for (int row = 0; row < 7; ++row) {
-                            ur_modern_options_menu_move(&g_options_menu, 1);
-                        }
-                        (void)activate_options_selection();
+            g_ghost_target_acceptance_fired = true;
+            if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                const int restart =
+                    ur_modern_session_restart_available(g_session);
+                ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                if (activate_pause_selection()) {
+                    for (int row = 0; row < 7; ++row) {
+                        ur_modern_options_menu_move(&g_options_menu, 1);
                     }
+                    (void)activate_options_selection();
                 }
             }
-        } else if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
-            g_ghost_target_acceptance_frames = 0;
         }
 
         // After Exit Frontend has returned the source race to settled Modern

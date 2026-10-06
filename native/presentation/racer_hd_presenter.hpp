@@ -1863,7 +1863,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0239_p1_broader(
         authored_segment_contains(x, y, 133, 111, 177, 111, 1) ||
         authored_segment_contains(x, y, 144, 92, 166, 130, 1) ||
         authored_segment_contains(x, y, 166, 92, 144, 130, 1);
-    const bool seat = authored_segment_contains(x, y, 72, 20, 109, 43, 8);
+    const bool seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8);
     const bool neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5);
     const bool fork = authored_segment_contains(x, y, 121, 58, 151, 106, 5);
     const bool frame_brace = authored_segment_contains(x, y, 121, 58, 168, 106, 3);
@@ -1875,7 +1875,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0239_p1_broader(
     if (hub) return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
     if (crank || pedal) return authored_drivetrain_hardware_color(y, wheel_cy);
     if (rim || wheel_spokes) return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
-    if (seat) return authored_saddle_color(x, y, 91, 29, 12);
+    if (seat) return authored_saddle_color(x, y, 93, 31, 12);
     if (neck && y < 52) return authored_saddle_mount_color(y, 47);
     if (crown) return authored_frame_junction_color(x, y, 121, 58, false, fork || frame_brace || neck);
     if (neck || fork || frame_brace) return authored_red_frame_color(x, y);

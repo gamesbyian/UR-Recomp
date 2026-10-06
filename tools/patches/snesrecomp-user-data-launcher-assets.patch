@@ -15,7 +15,7 @@
  /* What the launcher opens on: the live settings, and what this host offers.
   * In session, netplay and Generate & rebuild are withheld -- the first would
   * replace a session that is still alive, the second the binary running it. */
-@@ -3415,7 +3423,7 @@ static void RunInGameLauncher(bool *running, const char **exit_reason) {
+@@ -3415,6 +3423,6 @@ static void RunInGameLauncher(bool *running, const char **exit_reason) {
    char rom[1024];
    rom[0] = '\0';
 -  int act = recomp_launcher_run_window(g_launcher_title, &ls, &gi, ".",

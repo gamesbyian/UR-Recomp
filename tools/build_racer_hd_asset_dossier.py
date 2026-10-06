@@ -1638,8 +1638,8 @@ def sample_authored_02b9_p1_broader_rgba(x: int, y: int) -> bytes:
     )
     seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8)
     neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5)
-    fork = authored_segment_contains(x, y, 121, 58, 150, 107, 5)
-    frame_brace = authored_segment_contains(x, y, 121, 58, 167, 107, 3)
+    fork = authored_segment_contains(x, y, 121, 58, 150, 116, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 166, 108, 3)
     crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
     pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
     crown_dx, crown_dy = x - 121, y - 58

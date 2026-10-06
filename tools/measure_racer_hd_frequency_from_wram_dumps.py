@@ -13,7 +13,8 @@ TOOLS = ROOT / "tools"
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
-from measure_racer_hd_fallback_frequency import build_report, state_key
+from measure_racer_hd_fallback_frequency import build_report as build_frequency_report, state_key
+from summarize_racer_semantic_trace import build_report as build_semantic_trace_report
 
 ADDR = {
     "p1_primary": 0x0FE9,
@@ -106,6 +107,7 @@ def main() -> int:
     )
     measure.add_argument("--json-out", type=Path)
     measure.add_argument("--workflow-run", type=int)
+    measure.add_argument("--trace-out", type=Path)
 
     args = ap.parse_args()
     if args.command == "script":
@@ -117,9 +119,10 @@ def main() -> int:
         return 0
 
     rows = load_rows(args.dump_dir, args.prefix)
-    report = build_report(
+    registry = json.loads(args.registry.read_text(encoding="utf-8"))
+    report = build_frequency_report(
         rows,
-        json.loads(args.registry.read_text(encoding="utf-8")),
+        registry,
         source={
             "kind": "ordinary-snes9x-reference-racer-wram-census",
             "workflow_run": args.workflow_run,
@@ -140,6 +143,13 @@ def main() -> int:
         "observed": target is not None,
         "measurement": target,
     }
+    if args.trace_out:
+        trace = build_semantic_trace_report(rows, registry)
+        args.trace_out.parent.mkdir(parents=True, exist_ok=True)
+        args.trace_out.write_text(
+            json.dumps(trace, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
     payload = json.dumps(report, indent=2, sort_keys=True) + "\n"
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)

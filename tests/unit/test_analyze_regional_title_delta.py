@@ -103,7 +103,7 @@ class RegionalTitleDeltaTests(unittest.TestCase):
             eur.mkdir()
 
             checkpoints = ["a", "b", "c"]
-            usa_frame = bytes([0, 0, 0, 0] * 4)
+            usa_frame = bytes([0, 0, 0, 0] * tool.FRAME_WIDTH)
             eur_frame = bytearray(usa_frame)
             eur_frame[4:8] = bytes([3, 2, 1, 0])
             for checkpoint in checkpoints[:2]:

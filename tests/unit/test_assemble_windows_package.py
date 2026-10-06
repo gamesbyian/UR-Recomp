@@ -94,6 +94,24 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("SNESRECOMP_STARTUP_LOG", launcher)
             self.assertIn(":startup_fail", launcher)
             self.assertIn("process_exit=%UR_GAME_RC%", launcher)
+            self.assertEqual(
+                launcher.count(
+                    '> "%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log" echo schema=ur-startup-log-v1'
+                ),
+                1,
+            )
+            self.assertEqual(
+                launcher.count(
+                    'set "SNESRECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log"'
+                ),
+                1,
+            )
+            self.assertEqual(
+                launcher.count(
+                    'if defined UR_RECOMP_STARTUP_LOG >> "%UR_RECOMP_STARTUP_LOG%" echo process_exit=%UR_GAME_RC%'
+                ),
+                1,
+            )
             self.assertIn(
                 "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",
                 launcher,

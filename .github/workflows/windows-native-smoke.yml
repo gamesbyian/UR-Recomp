@@ -496,6 +496,18 @@ jobs:
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-unwritable-root.log"
 
           set +e
+          env -u UR_RECOMP_USER_DATA_ROOT -u APPDATA \\
+            powershell.exe -NoProfile -Command \\
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+              >"$RUNNER_TEMP/package-missing-appdata.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-missing-appdata.log"
+          test "$RC" -eq 3
+          grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-missing-appdata.log"
+          grep -Fq "APPDATA is unavailable" "$RUNNER_TEMP/package-missing-appdata.log"
+
+          set +e
           UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\
             powershell.exe -NoProfile -Command \\
               "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\

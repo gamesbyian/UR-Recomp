@@ -176,6 +176,12 @@ The first such measured context is P1 `0x04B9 + companion 0x0000 / selector 0 / 
 
 The broader-route baseline is 118/5282 HD selections and 5164 Original fallbacks. The `04B9` player-local family must reproduce an after-state of 198/5282 HD and 5084 Original, removing exactly 80 measured fallbacks, before it is treated as complete. A real contiguous `1392–1393` occurrence supplies the single-player temporal hold; P2 remains Original rather than being falsely declared registered for review.
 
+That reproduction is now closed by focused run `37396511165` / artifact `11382274524`. Re-ranking the broader route after `04B9` identifies P1 `0x0239 + companion 0x0000 / selector 0 / gate 0x0000` as the next player-local burden: 79 fallback player-frames across 58 episodes and 49 synchronized opponent-state variants. All 49 reconstruct to one stock raster (SHA-256 `f422bb38627c7333c7118a83001bab8b5a07753c19a909c5463b6907af33a0f0`), with bounds `[18,5]..[47,36]` and contact `[77,72]`; no exact or palette-normalized approved reuse exists.
+
+The `0239` family therefore earns one new P1 pose and the same opt-in player-local guard discipline. Review run `37397706328` / artifact `11383711157` measures the authored candidate at exact stock bounds/contact, alpha IoU `0.7134502923976608`, and authored RGBA SHA-256 `a169c7f38b902b33c3126552688c0d2a9afbc6458b775ac297a5be9c14baa6c6`; the real `1406–1407` occurrence passes the single-player temporal gate. Shipping approval is hash-bound in `analysis/data/racer-hd-art-approval-broader-0239.json`. Its measured effect is 198/5282 → 277/5282 HD selections, leaving 5005 Original fallbacks. Together, `04B9` and `0239` remove 159/5164 = 3.08% of the broader-route baseline fallback burden and raise HD coverage by 3.01 percentage points.
+
+After every player-local admission, rank from the post-admission report rather than from the prior ranking. The next candidate is not authorized merely because its raw burden is high; the corrected post-`0239` probe must first establish one player-local stock raster and perform exact/palette-normalized reuse checks.
+
 ### Palette-normalized pose equivalence
 
 Exact RGBA equivalence is only the first deduplication layer. Racer color is a separate semantic input in the original game, so two stock sprites can encode the same pose and material structure while differing only in the racer-color palette. Treating those rasters as unrelated visual poses would duplicate authoring effort and permit red/blue variants to drift.

@@ -91,6 +91,9 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("UR-STARTUP-*", readme)
             self.assertIn("diagnostics\\startup.log", readme)
             self.assertIn("no ROM bytes", readme)
+            self.assertIn("save contents", readme)
+            self.assertIn("profile names", readme)
+            self.assertIn("controller input", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
                 '"%~dp0UniracersSNESRecomp.exe" "%~dp0Uniracers_USA.sfc" %*',

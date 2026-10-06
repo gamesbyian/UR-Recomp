@@ -588,6 +588,56 @@ jobs:
           test "$RC" -ne 0
           grep -Fq "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log"
           test -d "$INVALID_USER"
+          INVALID_LOG="$INVALID_USER/diagnostics/startup.log"
+          test -f "$INVALID_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-ROM-INVALID" "$INVALID_LOG")" -eq 1
+          grep -Fq "build_revision=" "$INVALID_LOG"
+          grep -Fq "architecture=x64" "$INVALID_LOG"
+          grep -Fq "subsystem=rom" "$INVALID_LOG"
+          grep -Fq "result=fatal" "$INVALID_LOG"
+
+          VIDEO_USER="$RUNNER_TEMP/package-video-failure-user"
+          rm -rf "$VIDEO_USER"
+          VIDEO_USER_WIN="$(cygpath -w "$VIDEO_USER")"
+          set +e
+          SDL_VIDEODRIVER=ur_invalid_video_driver \
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$VIDEO_USER_WIN" \
+            timeout 60 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --no-launcher; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-video-failure.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-video-failure.log"
+          test "$RC" -ne 0
+          test "$(grep -Fc "UR-STARTUP-VIDEO:" "$RUNNER_TEMP/package-video-failure.log")" -eq 1
+          VIDEO_LOG="$VIDEO_USER/diagnostics/startup.log"
+          test -f "$VIDEO_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-VIDEO" "$VIDEO_LOG")" -eq 1
+          grep -Fq "subsystem=video" "$VIDEO_LOG"
+          grep -Fq "result=fatal" "$VIDEO_LOG"
+
+          AUDIO_USER="$RUNNER_TEMP/package-audio-failure-user"
+          rm -rf "$AUDIO_USER"
+          AUDIO_USER_WIN="$(cygpath -w "$AUDIO_USER")"
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=ur_invalid_audio_driver \
+          UR_RECOMP_USER_DATA_ROOT="$AUDIO_USER_WIN" \
+            timeout 60 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --no-launcher; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-audio-failure.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-audio-failure.log"
+          test "$RC" -ne 0
+          test "$(grep -Fc "UR-STARTUP-AUDIO:" "$RUNNER_TEMP/package-audio-failure.log")" -eq 1
+          AUDIO_LOG="$AUDIO_USER/diagnostics/startup.log"
+          test -f "$AUDIO_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-AUDIO" "$AUDIO_LOG")" -eq 1
+          grep -Fq "subsystem=audio" "$AUDIO_LOG"
+          grep -Fq "result=fatal" "$AUDIO_LOG"
+
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
       - name: Upload Windows evidence

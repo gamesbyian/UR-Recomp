@@ -52,6 +52,10 @@
 +      snes = SnesInit(kRom, kRom_SIZE);
 +      if (!snes)
 +        Die("session reboot failed to initialize the guest");
++      /* Runtime helpers use the framework-global machine authority. Refresh
++       * it before any post-reboot helper can touch the newly initialized SNES;
++       * otherwise g_snes still points at the freed pre-reboot machine. */
++      g_snes = snes;
 +      debug_server_set_ram(snes->ram, 0x20000);
 +      RtlReadSram();
 +      if (session_reboot_sram_digest() != g_session_reboot_sram_digest)

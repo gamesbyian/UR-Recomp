@@ -582,7 +582,7 @@ jobs:
             for _ in $(seq 1 100); do
               grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
-              xdotool key F2
+              xdotool key --window "$WIN" F2
               sleep 0.1
             done
             grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'"

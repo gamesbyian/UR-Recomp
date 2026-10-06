@@ -62,8 +62,8 @@ jobs:
       - name: Localize title presentation deltas
         run: |
           python3 tools/analyze_regional_title_delta.py \
-            "$RUNNER_TEMP/regional-frontend/title-transition/usa" \
-            "$RUNNER_TEMP/regional-frontend/title-transition/europe" \
+            "$RUNNER_TEMP/regional-frontend/dumps/title-transition/usa" \
+            "$RUNNER_TEMP/regional-frontend/dumps/title-transition/europe" \
             --out "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
           cat "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
 

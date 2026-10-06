@@ -57,6 +57,7 @@ extern "C" {
 #include <algorithm>
 #include <array>
 #include <cstdlib>
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <cstring>
@@ -112,7 +113,6 @@ ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
 std::array<ur::product::LocalInputSource, 2> g_local_multiplayer_sources{};
 bool g_local_multiplayer_join_visible;
 bool g_local_multiplayer_two_player_visit;
-bool g_local_multiplayer_join_completed;
 
 bool g_practice_active;
 bool g_practice_acceptance_fired;
@@ -309,14 +309,12 @@ void update_local_multiplayer_join_surface() {
     if (!two_player_select) {
         g_local_multiplayer_join_visible = false;
         g_local_multiplayer_two_player_visit = false;
-        g_local_multiplayer_join_completed = false;
         g_local_multiplayer_setup = {};
         return;
     }
 
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
-        g_local_multiplayer_join_completed = false;
         g_local_multiplayer_setup = {};
         g_local_multiplayer_join_visible = true;
         product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
@@ -332,7 +330,6 @@ bool local_multiplayer_assign_source(
     g_local_multiplayer_setup = result.state;
     if (ur::product::local_multiplayer_launch_eligible(g_local_multiplayer_setup)) {
         g_local_multiplayer_join_visible = false;
-        g_local_multiplayer_join_completed = true;
         product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_READY");
     }
     return true;
@@ -3521,7 +3518,6 @@ extern "C" int ur_uniracers_modern_system_key_down(
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
             g_local_multiplayer_join_visible = false;
-            g_local_multiplayer_join_completed = true;
             product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK");
             return 1;
         }

@@ -79,7 +79,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-console-reset-request.patch",
-      "sha256": "c97157fefcbe4c33badce0d641742a1e24e3850b65515e439d7d4fbaaea8c617"
+      "sha256": "a763b8ca74a9b2a15c87d577b1edad70f7a72dd3760437c3661cc57e88e50bb8"
     },
     {
       "path": "tools/patches/snesrecomp-nested-deadline-unwind.patch",

@@ -666,18 +666,18 @@ int main() {
             const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
             const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
             if (sample_racer_hd_asset(*broader_04b9, sx, sy, false, false) == 0) continue;
-            broader_min_lx = std::min(broader_min_lx, lx);
-            broader_min_ly = std::min(broader_min_ly, ly);
-            broader_max_lx = std::max(broader_max_lx, lx);
-            broader_max_ly = std::max(broader_max_ly, ly);
+            if (lx < broader_min_lx) broader_min_lx = lx;
+            if (ly < broader_min_ly) broader_min_ly = ly;
+            if (lx > broader_max_lx) broader_max_lx = lx;
+            if (ly > broader_max_ly) broader_max_ly = ly;
         }
     }
     for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
         const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
         const int sy = broader_max_ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
         if (sample_racer_hd_asset(*broader_04b9, sx, sy, false, false) == 0) continue;
-        broader_bottom_min_lx = std::min(broader_bottom_min_lx, lx);
-        broader_bottom_max_lx = std::max(broader_bottom_max_lx, lx);
+        if (lx < broader_bottom_min_lx) broader_bottom_min_lx = lx;
+        if (lx > broader_bottom_max_lx) broader_bottom_max_lx = lx;
     }
     assert(broader_min_lx == 18);
     assert(broader_min_ly == 5);

@@ -218,6 +218,23 @@ class WindowsPackageTests(unittest.TestCase):
                 json.dumps(manifest, indent=2, sort_keys=True) + "\n"
             )
 
+            mismatch_manifest = json.loads(json.dumps(manifest))
+            mismatch_manifest["source_revision"] = "different-revision"
+            manifest_path.write_text(
+                json.dumps(mismatch_manifest, indent=2, sort_keys=True) + "\n"
+            )
+            mismatch_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(mismatch_failed.returncode, 0)
+            self.assertIn(
+                "README source revision does not match manifest",
+                mismatch_failed.stderr,
+            )
+            manifest_path.write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+            )
+
             archive1 = root / "package-1.zip"
             archive2 = root / "package-2.zip"
             archived = self.run_tool(
@@ -440,6 +457,20 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "source revision is required for a shippable package",
                 result.stderr,
+            )
+
+            multiline = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", root / "package-multiline",
+                "--source-revision", "abc123\nspoofed",
+                check=False,
+            )
+            self.assertNotEqual(multiline.returncode, 0)
+            self.assertIn(
+                "source revision is required for a shippable package",
+                multiline.stderr,
             )
 
 

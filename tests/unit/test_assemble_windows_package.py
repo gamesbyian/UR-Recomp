@@ -56,6 +56,9 @@ class WindowsPackageTests(unittest.TestCase):
                 (package / "README.txt").read_text(),
             )
             launcher = (package / "run-uniracers.cmd").read_text()
+            readme = (package / "README.txt").read_text()
+            self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
+            self.assertIn("Source revision: abc123", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
                 '"UniracersSNESRecomp.exe" "Uniracers_USA.sfc" %*',

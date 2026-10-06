@@ -625,13 +625,13 @@ jobs:
           equivalence = json.loads(pathlib.Path(sys.argv[2]).read_text())
           review_packet = json.loads(pathlib.Path(sys.argv[3]).read_text())
           readiness = json.loads(pathlib.Path(sys.argv[4]).read_text())
-          assert dossier["temporal_window"] == {
-              "start": 1205,
-              "end": 1220,
-              "frame_count": 16,
-              "source": "registered_composition_coverage from deterministic native semantic trace",
-              "all_frames_exactly_registered": True,
-          }
+          window = dossier["temporal_window"]
+          assert window["start"] == 1205
+          assert window["end"] == 1220
+          assert window["frame_count"] == 16
+          assert window["source"] == "registered_composition_coverage from deterministic native semantic trace"
+          assert window["all_frames_exactly_registered"] is True
+          assert window["all_review_players_exactly_registered"] is True
           assert dossier["validation"]["ready_for_art_review"] is True
           assert dossier["validation"]["registered_anchors_match_rederived_stock"] is True
           assert dossier["validation"]["candidate_status_is_contract_only"] is True

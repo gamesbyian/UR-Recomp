@@ -1060,6 +1060,13 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         return 1;
     }
 
+    // Modern Controls owns raw controller events only long enough to let
+    // SNESRecomp resolve the configured GamepadMap and call the semantic
+    // control hook. Do this before the paused X/Y Records/Run Data shortcuts.
+    if (ur_uniracers_modern_controls_active()) {
+        return ur_uniracers_modern_system_gamepad_button(button, pressed);
+    }
+
     if (g_browser_visible) {
         if (!pressed) return 1;
         if (button == kGamepadBtn_DpadUp) {

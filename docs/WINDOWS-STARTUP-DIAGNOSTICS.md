@@ -1,6 +1,6 @@
 # Windows Startup Diagnostics Contract
 
-Status: package-bootstrap subset implemented and acceptance-covered; video/audio/log presentation remains deferred.
+Status: package-bootstrap subset implemented with focused contract coverage; full packaged-Windows acceptance is specified but still awaits a clean end-to-end run past shared native-framework blockers. Video/audio/log presentation remains deferred.
 
 ## Implemented portable-package subset
 
@@ -8,7 +8,7 @@ The assembled Windows x64 package now classifies four high-value startup failure
 
 - `UR-STARTUP-ROM-MISSING`: the packaged ROM is absent;
 - `UR-STARTUP-ROM-INVALID`: the explicit packaged ROM fails the framework's generated ROM-identity check;
-- `UR-STARTUP-SAVE-ROOT`: the shared per-user root cannot be created/written or the framework cannot adopt it;
+- `UR-STARTUP-SAVE-ROOT`: the shared per-user root is invalid (including a relative override), cannot be created/written, or the framework cannot adopt it;
 - `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent.
 
 `run-uniracers.cmd` owns package-presence and user-root checks. The pinned desktop host owns the ROM-identity and final mutable-root adoption checks. Windows package acceptance deliberately breaks each representative prerequisite and requires the corresponding stable code.
@@ -79,7 +79,7 @@ A Windows release candidate is not startup-diagnostics-complete until automated 
 1. valid normal startup reaches the established playable frontend/race baseline with no startup error;
 2. missing ROM exits cleanly with `UR-STARTUP-ROM-MISSING`;
 3. wrong ROM bytes exit cleanly with `UR-STARTUP-ROM-INVALID`;
-4. unwritable host save root exits cleanly with `UR-STARTUP-SAVE-ROOT`;
+4. invalid or unwritable host save root, including a relative `UR_RECOMP_USER_DATA_ROOT`, exits cleanly with `UR-STARTUP-SAVE-ROOT`;
 5. deliberately missing required runtime data exits cleanly with `UR-STARTUP-RUNTIME-DATA`;
 6. every failure produces exactly one stable player-facing diagnosis and, where writable, one bounded diagnostic log;
 7. Authentic and Modern modes share the same bootstrap/error contract because no guest simulation has started yet.

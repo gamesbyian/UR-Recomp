@@ -78,7 +78,7 @@ class RacerHdTemporalCoherenceTests(unittest.TestCase):
                 "semantic_frame_id": "0x04B9",
                 "player": "p1",
                 "registration": {
-                    "semantic_anchors": {"wheel_contact_x2_y2": [1, 0]}
+                    "semantic_anchors": {"wheel_contact_x2_y2": [0, 0]}
                 },
                 "authored_candidate": {"kind": "test"},
             }],

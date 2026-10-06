@@ -106,6 +106,8 @@ def write_launcher(path: Path) -> None:
         "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\" (del /q \"%UR_MIGRATE_KEYS%\" >nul 2>&1) else (echo UR-STARTUP-SAVE-ROOT: could not commit legacy keybinds.ini migration. 1>&2 & exit /b 3)\r\n"
         ")\r\n"
         "if exist \"saves\\\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (\r\n"
+        "  mkdir \"%UR_MIGRATE_SAVES%\" >nul 2>&1\r\n"
+        "  if not exist \"%UR_MIGRATE_SAVES%\\\" (echo UR-STARTUP-SAVE-ROOT: could not create legacy saves staging directory. 1>&2 & exit /b 3)\r\n"
         "  xcopy \"saves\" \"%UR_MIGRATE_SAVES%\\\" /e /i /h /y >nul\r\n"
         "  if errorlevel 2 (rmdir /s /q \"%UR_MIGRATE_SAVES%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: could not stage legacy saves migration. 1>&2 & exit /b 3)\r\n"
         "  ren \"%UR_MIGRATE_SAVES%\" \"saves\" >nul 2>&1\r\n"

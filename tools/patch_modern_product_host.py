@@ -77,6 +77,18 @@ def patch_main_text(source: str) -> str:
                 1,
             )
 
+    if "filter_player_input" not in source:
+        semantic_input_anchor = (
+            "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n"
+        )
+        if semantic_input_anchor in source:
+            source = source.replace(
+                semantic_input_anchor,
+                semantic_input_anchor
+                + "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n",
+                1,
+            )
+
     if "ur_uniracers_modern_presentation_scale" in source:
         return source
 
@@ -145,6 +157,7 @@ def patch_main_text(source: str) -> str:
         + "    .system_key_down       = &ur_uniracers_product_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
         + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n"
+        + "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
         + "    .system_gamepad_source_button = &ur_uniracers_modern_system_gamepad_source_button,\n"
         + "    .system_gamepad_source_connection = &ur_uniracers_modern_system_gamepad_source_connection,\n"
         + "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"

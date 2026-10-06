@@ -39,6 +39,7 @@ extern "C" {
 #include "local_multiplayer_setup.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
+#include "modern_profile_reset.hpp"
 #include "modern_options_menu.h"
 #include "modern_controls_binding_authority.hpp"
 #include "modern_controls_presenter.hpp"
@@ -146,6 +147,7 @@ std::size_t g_profile_preset_index;
 std::string g_profile_edit_name;
 bool g_profile_edit_pristine;
 bool g_profile_cool_name_notice;
+ur::product::ModernProfileResetState g_profile_reset;
 bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
@@ -1556,6 +1558,7 @@ void open_profile_menu() {
     product_diagnostic("UR_PROFILE_UI OPENED");
     g_profile_edit_mode = ProfileEditMode::None;
     g_profile_cool_name_notice = false;
+    g_profile_reset = {};
     g_profile_menu_index = 0;
     if (g_product_state.active_profile_id) {
         for (std::size_t i = 0; i < g_profile_catalog.size(); ++i) {
@@ -1586,6 +1589,99 @@ void begin_profile_rename() {
     g_profile_cool_name_notice = false;
 }
 
+bool selected_profile_is_active() {
+    return g_product_state.active_profile_id &&
+           g_profile_menu_index < g_profile_catalog.size() &&
+           g_profile_catalog[g_profile_menu_index].profile_id ==
+               *g_product_state.active_profile_id;
+}
+
+bool active_profile_reset_authoritative() {
+    return modern_mode() && g_profile_state && g_profile_state_writable &&
+           !g_profile_state_path.empty() &&
+           g_profile_state->racer_identity &&
+           g_profile_state->stock_sram &&
+           g_sram &&
+           g_sram_size == static_cast<int>(ur::product::kStockSramBytes);
+}
+
+bool execute_active_profile_progress_reset() {
+    if (!active_profile_reset_authoritative() ||
+        !selected_profile_is_active()) {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
+        return false;
+    }
+
+    auto reset_sram = ur::product::clean_stock_sram();
+    reset_sram[0x0748] = g_profile_state->racer_identity->rider_index;
+
+    auto candidate = *g_profile_state;
+    candidate.tour_continuation.reset();
+    if (ur::product::capture_stock_sram_for_profile(
+            ur::product::ExecutionMode::Modern,
+            candidate,
+            reset_sram.data(),
+            reset_sram.size()) !=
+        ur::product::HostProfileTransferStatus::Applied) {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_SNAPSHOT");
+        return false;
+    }
+
+    const auto original_state = *g_profile_state;
+    std::array<std::uint8_t, ur::product::kStockSramBytes> original_sram{};
+    std::memcpy(original_sram.data(), g_sram, original_sram.size());
+
+    // Publish host metadata first. If the framework SRAM write then fails,
+    // restore both the live bytes and the original host profile state.
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        product_diagnostic("UR_PROFILE_RESET PROFILE_SAVE_FAILED");
+        return false;
+    }
+
+    std::memcpy(g_sram, reset_sram.data(), reset_sram.size());
+    if (!RtlTryWriteSram()) {
+        std::memcpy(g_sram, original_sram.data(), original_sram.size());
+        const bool profile_rolled_back =
+            ur::product::save_host_profile_state_file(
+                ur::product::ExecutionMode::Modern,
+                g_profile_state_path,
+                original_state) == ur::product::HostProfileSaveStatus::Saved;
+        const bool sram_rolled_back = RtlTryWriteSram();
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PROFILE_RESET ROLLED_BACK profile=%d sram=%d\n",
+                profile_rolled_back ? 1 : 0,
+                sram_rolled_back ? 1 : 0);
+            std::fflush(stderr);
+        }
+        return false;
+    }
+
+    g_profile_state = candidate;
+    g_tour_continue = {};
+    g_tour_continue_profile_id.clear();
+    product_diagnostic("UR_PROFILE_RESET APPLIED");
+    return true;
+}
+
+void open_profile_reset_confirmation() {
+    g_profile_reset = ur::product::modern_profile_reset_open(
+        modern_mode()
+            ? ur::product::ExecutionMode::Modern
+            : ur::product::ExecutionMode::Authentic,
+        active_profile_reset_authoritative(),
+        selected_profile_is_active());
+    if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
+        product_diagnostic("UR_PROFILE_RESET CONFIRM_OPENED");
+    } else {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
+    }
+}
+
 bool append_profile_editor_key(int key) {
     if (g_profile_edit_mode == ProfileEditMode::None) return false;
     if (key == SDLK_BACKSPACE) {
@@ -1608,6 +1704,61 @@ bool append_profile_editor_key(int key) {
 
 bool handle_profile_menu_key(int key) {
     ensure_profile_catalog();
+    if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
+        product_diagnostic("UR_PROFILE_RESET CONFIRM_OPENED");
+    } else {
+        product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
+    }
+}
+
+bool append_profile_editor_key(int key) {
+    if (g_profile_edit_mode == ProfileEditMode::None) return false;
+    if (key == SDLK_BACKSPACE) {
+        if (!g_profile_edit_name.empty()) g_profile_edit_name.pop_back();
+        g_profile_edit_pristine = false;
+        return true;
+    }
+    char ch = 0;
+    if (key >= SDLK_a && key <= SDLK_z) ch = static_cast<char>('A' + key - SDLK_a);
+    else if (key >= SDLK_0 && key <= SDLK_9) ch = static_cast<char>('0' + key - SDLK_0);
+    else if (key == SDLK_SPACE) ch = ' ';
+    if (!ch) return false;
+    if (g_profile_edit_pristine) {
+        g_profile_edit_name.clear();
+        g_profile_edit_pristine = false;
+    }
+    if (g_profile_edit_name.size() < 16) g_profile_edit_name += ch;
+    return true;
+}
+
+bool handle_profile_menu_key(int key) {
+    ensure_profile_catalog();
+
+    if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
+        if (key == SDLK_ESCAPE || key == SDLK_b) {
+            g_profile_reset = ur::product::modern_profile_reset_cancel(
+                g_profile_reset);
+            product_diagnostic("UR_PROFILE_RESET CANCELLED");
+            return true;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            const auto decision = ur::product::modern_profile_reset_confirm(
+                g_profile_reset,
+                modern_mode()
+                    ? ur::product::ExecutionMode::Modern
+                    : ur::product::ExecutionMode::Authentic,
+                active_profile_reset_authoritative(),
+                selected_profile_is_active());
+            g_profile_reset = decision.state;
+            if (decision.action ==
+                ur::product::ModernProfileResetAction::Execute) {
+                (void)execute_active_profile_progress_reset();
+            }
+            return true;
+        }
+        return true;
+    }
+
     if (g_profile_edit_mode != ProfileEditMode::None) {
         if (key == SDLK_ESCAPE) {
             g_profile_edit_mode = ProfileEditMode::None;
@@ -1647,6 +1798,7 @@ bool handle_profile_menu_key(int key) {
     }
     if (key == SDLK_n) { begin_profile_create(); return true; }
     if (key == SDLK_r) { begin_profile_rename(); return true; }
+    if (key == SDLK_d) { open_profile_reset_confirmation(); return true; }
     if (key == SDLK_UP && !g_profile_catalog.empty()) {
         g_profile_menu_index =
             (g_profile_menu_index + g_profile_catalog.size() - 1) %
@@ -3803,6 +3955,15 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (g_profile_menu_visible) {
         if (!pressed) return 1;
+        if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
+            if (button == kGamepadBtn_A) {
+                (void)handle_profile_menu_key(SDLK_RETURN);
+            } else if (button == kGamepadBtn_B ||
+                       button == kGamepadBtn_Start) {
+                (void)handle_profile_menu_key(SDLK_ESCAPE);
+            }
+            return 1;
+        }
         if (g_profile_edit_mode == ProfileEditMode::Create &&
             button == kGamepadBtn_DpadLeft) {
             (void)handle_profile_menu_key(SDLK_LEFT);
@@ -3812,6 +3973,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         } else if (g_profile_edit_mode == ProfileEditMode::None &&
                    button == kGamepadBtn_X) {
             (void)handle_profile_menu_key(SDLK_n);
+        } else if (g_profile_edit_mode == ProfileEditMode::None &&
+                   button == kGamepadBtn_Y) {
+            (void)handle_profile_menu_key(SDLK_d);
         } else if (button == kGamepadBtn_DpadUp) {
             (void)handle_profile_menu_key(SDLK_UP);
         } else if (button == kGamepadBtn_DpadDown) {
@@ -4000,6 +4164,23 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         return 1;
     }
     return 0;
+}
+
+extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
+    // This seam sees the final HUMAN P1 word after both keyboard and gamepad
+    // mapping but before guest dispatch. L/R have no ordinary settled-main
+    // action, so removing only those two bits makes the stock Left+A+L+R
+    // erase-all gesture impossible in Modern mode without disturbing Left/A
+    // navigation. Scripted/reference input bypasses this filter, and
+    // Authentic mode returns the word byte-for-byte.
+    const bool settled_main_menu =
+        g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+    return ur::product::modern_profile_admin_filter_human_input(
+        modern_mode()
+            ? ur::product::ExecutionMode::Modern
+            : ur::product::ExecutionMode::Authentic,
+        settled_main_menu,
+        inputs);
 }
 
 extern "C" void ur_uniracers_modern_system_overlay(
@@ -4205,7 +4386,29 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(pixels, stride, height, x + 8, y + 7,
             "RACERS / PROFILES", 0xFFFFFFFFu, 1);
 
-        if (g_profile_edit_mode != ProfileEditMode::None) {
+        if (ur::product::modern_profile_reset_confirming(
+                g_profile_reset)) {
+            const char* racer =
+                g_profile_menu_index < g_profile_catalog.size()
+                    ? g_profile_catalog[g_profile_menu_index].identity.name.c_str()
+                    : "CURRENT RACER";
+            char reset_row[96];
+            std::snprintf(
+                reset_row,
+                sizeof(reset_row),
+                "RESET %s PROGRESS?",
+                racer);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
+                reset_row, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 57,
+                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 82,
+                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 112,
+                "ENTER / PAD A  RESET", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 132,
+                "ESC / PAD B  CANCEL", 0xFFFFFFFFu, 1);
+        } else if (g_profile_edit_mode != ProfileEditMode::None) {
             char name_row[64];
             char preset_row[64];
             std::snprintf(name_row, sizeof(name_row), "NAME  %s_", g_profile_edit_name.c_str());
@@ -4255,6 +4458,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(pixels, stride, height, x + 8, y + 97,
                 "N/PAD X CREATE  R RENAME", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(pixels, stride, height, x + 8, y + 117,
+                "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 137,
                 "ESC / F2  CLOSE", 0xFFFFFFFFu, 1);
         }
         if (g_profile_cool_name_notice) {

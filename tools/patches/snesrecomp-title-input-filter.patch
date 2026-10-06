@@ -1,0 +1,24 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -4118,5 +4118,7 @@
+-    uint32 human = OverlayFilterGuestInput(
+-        snes_savestate_menu_filter_guest_input(OverlayNavInputs()));
++    uint32 human = OverlayFilterGuestInput(
++        snes_savestate_menu_filter_guest_input(OverlayNavInputs()));
++    if (g_game->filter_player_input)
++      human = g_game->filter_player_input(human);
+     uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);
+ 
+     /* Overlay self-test (SNESRECOMP_OVERLAY_SELFTEST=<frame>, off by default).
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -215,3 +215,10 @@
+   int (*system_gamepad_control)(int control, int pressed);
++
++  /* Optional title-owned filter for the final human controller word after
++   * keyboard/gamepad mapping and overlay release filtering, immediately
++   * before guest dispatch. Scripted/debug input remains outside this seam so
++   * reference fixtures can still exercise stock behavior. */
++  uint32_t (*filter_player_input)(uint32_t inputs);
+ 
+   /* Optional post-compose title overlay. Runs after the title frame and frame

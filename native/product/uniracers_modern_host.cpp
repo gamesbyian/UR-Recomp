@@ -125,6 +125,7 @@ bool g_practice_race_ready_reported;
 unsigned g_practice_cancel_acceptance_frames;
 bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
+bool g_suppress_human_input_once;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -3038,6 +3039,17 @@ bool host_subview_visible() {
            g_quit_confirm_visible;
 }
 
+bool host_owns_human_player_input() {
+    return modern_mode() &&
+           (g_local_multiplayer_join_visible ||
+            practice_routing() ||
+            g_tour_action_visible ||
+            onboarding_surface_active() ||
+            tour_continue_routing() ||
+            g_profile_menu_visible ||
+            host_subview_visible());
+}
+
 UrUniracersRunData current_run_data() {
     return ur_uniracers_read_run_data(g_ram, 0x20000u);
 }
@@ -4265,6 +4277,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int repeat) {
     if (repeat || !ensure_session()) return 0;
 
+    // Host-owned surfaces consume the corresponding human input word too.
+    // Capture ownership before handlers can close/change the surface so the
+    // closing edge cannot leak into the stock game later in this frame.
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
+
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
             g_local_multiplayer_join_visible = false;
@@ -4505,6 +4524,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     int pressed) {
     if (!ensure_session()) return 0;
 
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
+
     if (g_tour_action_visible) {
         // Defer physical buttons to SNESRecomp's configured GamepadMap, then
         // consume only the resulting P1 semantic controls below.
@@ -4689,6 +4712,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
     int pressed) {
     if (!ensure_session()) return 0;
 
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
+
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
     if (g_tour_action_visible) {
@@ -4774,10 +4801,11 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
-    // mapping but before guest dispatch. Host-modal input must not also reach
-    // the stock game underneath: key callbacks consume the host action, but
-    // mapped SNES input is assembled independently later in the frame.
-    if (modern_mode() && g_profile_menu_visible) {
+    // mapping but before guest dispatch. Host-owned input must not also reach
+    // the stock game underneath. The latch covers the closing edge, where the
+    // handler may have already hidden the modal before this filter runs.
+    if (g_suppress_human_input_once || host_owns_human_player_input()) {
+        g_suppress_human_input_once = false;
         return 0u;
     }
 

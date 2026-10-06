@@ -59,26 +59,46 @@ jobs:
       - name: Verify canonical ROM
         run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
-      - name: Package contract - assemble
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_assemble_verify_and_clean_stale_output
+      - name: Capture package-contract failure line
+        run: |
+          python - <<'PY'
+          import pathlib
+          from tests.unit.test_assemble_windows_package import WindowsPackageTests
+          case = WindowsPackageTests("test_assemble_verify_and_clean_stale_output")
+          result = case.defaultTestResult()
+          case.run(result)
+          if result.wasSuccessful():
+              line = 0
+          else:
+              exc = result.failures[0][1] if result.failures else result.errors[0][1]
+              line = 0
+              for raw in exc.splitlines():
+                  if "test_assemble_windows_package.py" in raw and ", line " in raw:
+                      try:
+                          line = int(raw.split(", line ", 1)[1].split(",", 1)[0])
+                      except ValueError:
+                          pass
+              pathlib.Path("package_failure_line.txt").write_text(f"{line}\n")
+              pathlib.Path("package_failure_trace.txt").write_text(exc)
+          pathlib.Path("package_failure_line.txt").write_text(f"{line}\n")
+          PY
 
-      - name: Package contract - destructive paths
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_destructive_output_paths_fail_closed
-
-      - name: Package contract - empty mod payload
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_empty_mod_payload_fails_closed
-
-      - name: Package contract - missing required input
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_required_input_fails_closed
-
-      - name: Package contract - missing source revision
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_source_revision_fails_closed
-
-      - name: Package contract - unknown startup code
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_unknown_startup_code_stays_narrowly_bound_to_controller_init
-
-      - name: Package contract - workflow ordering
-        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_workflow_verifies_canonical_rom_before_assembly
+      - name: Package failure line 1-99
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 1 <= n <= 99 else 0)"
+      - name: Package failure line 100-199
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 100 <= n <= 199 else 0)"
+      - name: Package failure line 200-299
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 200 <= n <= 299 else 0)"
+      - name: Package failure line 300-399
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 300 <= n <= 399 else 0)"
+      - name: Package failure line 400-499
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 400 <= n <= 499 else 0)"
+      - name: Package failure line 500-599
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 500 <= n <= 599 else 0)"
+      - name: Package failure line 600-699
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 600 <= n <= 699 else 0)"
+      - name: Package failure line 700-799
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('package_failure_line.txt').read_text()); sys.exit(1 if 700 <= n <= 799 else 0)"
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

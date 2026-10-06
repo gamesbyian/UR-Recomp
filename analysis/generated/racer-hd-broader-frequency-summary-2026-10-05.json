@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; 04B9, 0239, 0439, 0039, and 00B9 measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; 04B9, 0239, 0439, 0039, 00B9, and 02B9 measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -282,27 +282,16 @@
         "artifact_id": 11387666991,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 506,
-    "original_fallback_player_frames": 4776,
-    "hd_coverage_fraction": 0.09579704657326771,
-    "cumulative_player_frames_removed": 388,
-    "absolute_coverage_gain_percentage_points": 7.3457023854600525,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.07513555383423702
-  },
-  "next_discriminator": {
-    "status": "measured-post-00b9-leader",
-    "target": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x02B9",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 74,
+      "player_frames_removed": 74,
       "episode_count": 55,
-      "unique_stock_raster_count": 1,
+      "synchronized_witness_state_count": 47,
       "stock_rgba_sha256": "2b6eeb77ba73f8fbaaa0b258c7c0f63d74780a64e9b0d4e7aeb40e823cfb2c52",
       "normalized_geometry_sha256": "46905e5bd39ffac65d0a18f8638c442589089c149c8f28be23a7768ba41e0829",
       "alpha_bounds": [
@@ -315,10 +304,31 @@
         77,
         72
       ],
-      "exact_same_player_reuse_matches": [],
-      "palette_normalized_reuse_matches": [],
-      "requires_new_pose": true
-    },
-    "rule": "02B9 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission is complete."
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-02b9.json",
+      "authored_rgba_sha256": "48653f2f0cad1d5939fccf1449111886f708985bd3d58d6dadd0f5fa3e7aa79f",
+      "review_alpha_iou": 0.7312138728323699,
+      "review_evidence": {
+        "workflow_run": 37425292835,
+        "artifact_id": 11394902163
+      },
+      "after": {
+        "hd_selected_player_frames": 580,
+        "original_fallback_player_frames": 4702,
+        "hd_coverage_fraction": 0.10980689132904203
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 580,
+    "original_fallback_player_frames": 4702,
+    "hd_coverage_fraction": 0.10980689132904203,
+    "cumulative_player_frames_removed": 462,
+    "absolute_coverage_gain_percentage_points": 8.746686861037487,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.08946553059643687
+  },
+  "next_discriminator": {
+    "status": "pending-approval-gated-post-02b9-rerank",
+    "rule": "Do not authorize another pose until the 02B9 approval-gated reproduction is green and its canonical post-02B9 visual-context probe selects the next leader."
   }
 }

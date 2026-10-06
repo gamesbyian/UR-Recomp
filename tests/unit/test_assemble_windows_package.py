@@ -304,6 +304,26 @@ class WindowsPackageTests(unittest.TestCase):
                 mismatch_archive_result.stderr,
             )
 
+            metadata_archive = root / "package-metadata-drift.zip"
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                metadata_archive, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                for info in source.infolist():
+                    payload = source.read(info.filename)
+                    if info.filename.endswith("/README.txt"):
+                        info.date_time = (2026, 1, 1, 0, 0, 0)
+                    target.writestr(info, payload)
+            metadata_result = self.run_tool(
+                "verify-archive",
+                "--archive", metadata_archive,
+                check=False,
+            )
+            self.assertNotEqual(metadata_result.returncode, 0)
+            self.assertIn(
+                "package archive metadata is not normalized",
+                metadata_result.stderr,
+            )
+
             with zipfile.ZipFile(archive1) as package_zip:
                 names = package_zip.namelist()
             self.assertIn(

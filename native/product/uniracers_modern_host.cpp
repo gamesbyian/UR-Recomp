@@ -129,6 +129,8 @@ unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 unsigned g_ghost_target_acceptance_frames;
 bool g_ghost_target_acceptance_fired;
+unsigned g_recent_course_acceptance_frames;
+bool g_recent_course_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
@@ -4104,6 +4106,25 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             }
         } else if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
             g_ghost_target_acceptance_frames = 0;
+        }
+
+        // After Exit Frontend has returned the source race to settled Modern
+        // main, launch the already-observed Recent Course through the real
+        // product command on an emulated-frame boundary. This replaces the
+        // workflow's wall-clock F6 injection while preserving the production
+        // Quick Practice route and profile/course identity checks.
+        if (!g_recent_course_acceptance_fired &&
+            std::getenv("UR_RECENT_COURSE_ACCEPTANCE") &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+            recent_course_available_for_active_profile()) {
+            ++g_recent_course_acceptance_frames;
+            if (g_recent_course_acceptance_frames >= 90u) {
+                g_recent_course_acceptance_fired = true;
+                g_recent_course_acceptance_frames = 0;
+                (void)launch_recent_course_practice();
+            }
+        } else if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
+            g_recent_course_acceptance_frames = 0;
         }
     }
 

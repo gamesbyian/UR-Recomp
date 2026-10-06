@@ -625,13 +625,13 @@ jobs:
           equivalence = json.loads(pathlib.Path(sys.argv[2]).read_text())
           review_packet = json.loads(pathlib.Path(sys.argv[3]).read_text())
           readiness = json.loads(pathlib.Path(sys.argv[4]).read_text())
-          assert dossier["temporal_window"] == {
-              "start": 1205,
-              "end": 1220,
-              "frame_count": 16,
-              "source": "registered_composition_coverage from deterministic native semantic trace",
-              "all_frames_exactly_registered": True,
-          }
+          window = dossier["temporal_window"]
+          assert window["start"] == 1205
+          assert window["end"] == 1220
+          assert window["frame_count"] == 16
+          assert window["source"] == "registered_composition_coverage from deterministic native semantic trace"
+          assert window["all_frames_exactly_registered"] is True
+          assert window["all_review_players_exactly_registered"] is True
           assert dossier["validation"]["ready_for_art_review"] is True
           assert dossier["validation"]["registered_anchors_match_rederived_stock"] is True
           assert dossier["validation"]["candidate_status_is_contract_only"] is True
@@ -1282,11 +1282,14 @@ jobs:
 
           assert retained["before"]["hd_selected_player_frames"] == 150
           assert retained["after"]["hd_selected_player_frames"] == 162
-          assert retained["current_after"]["hd_selected_player_frames"] == 174
-          assert retained["current_after"]["original_fallback_player_frames"] == 708
+          assert retained["current_after"]["hd_selected_player_frames"] == 177
+          assert retained["current_after"]["original_fallback_player_frames"] == 705
+          spill = retained["broader_player_local_spill_in"]
+          assert spill["player_frames_added"] == 3
+          assert [x["semantic_frame_id"] for x in spill["states"]] == ["0x04B9", "0x0239", "0x0439"]
           assert current["measurement"]["player_frame_observations"] == 882
-          assert current["measurement"]["hd_selected_player_frames"] == 174
-          assert current["measurement"]["original_fallback_player_frames"] == 708
+          assert current["measurement"]["hd_selected_player_frames"] == 177
+          assert current["measurement"]["original_fallback_player_frames"] == 705
 
           assert dossier["temporal_window"]["start"] == 1354
           assert dossier["temporal_window"]["end"] == 1356
@@ -1314,7 +1317,7 @@ jobs:
               assert all(pair["transition_class"] == "static" for pair in pairs)
               assert all(pair["static_edge_preserved"] for pair in pairs)
 
-          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=174/882 removed=24")
+          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=177/882 removed=27")
           PY
 
       - name: Upload compact acceptance log

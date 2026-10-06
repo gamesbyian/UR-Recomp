@@ -647,5 +647,43 @@ int main() {
         }
     }
 
+    RacerCompositionState broader_04b9_context{
+        0x04B9, 0x0578, 0x0000, 0x0EC3, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_04b9 =
+        find_racer_registration_for_state(0x04B9, broader_04b9_context, 1);
+    assert(broader_04b9 != nullptr);
+    assert(is_authored_broader_04b9_p1_registration(*broader_04b9));
+
+    int broader_min_lx = kRacerHdLogicalSize;
+    int broader_min_ly = kRacerHdLogicalSize;
+    int broader_max_lx = -1;
+    int broader_max_ly = -1;
+    int broader_bottom_min_lx = kRacerHdLogicalSize;
+    int broader_bottom_max_lx = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*broader_04b9, sx, sy, false, false) == 0) continue;
+            broader_min_lx = std::min(broader_min_lx, lx);
+            broader_min_ly = std::min(broader_min_ly, ly);
+            broader_max_lx = std::max(broader_max_lx, lx);
+            broader_max_ly = std::max(broader_max_ly, ly);
+        }
+    }
+    for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+        const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        const int sy = broader_max_ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        if (sample_racer_hd_asset(*broader_04b9, sx, sy, false, false) == 0) continue;
+        broader_bottom_min_lx = std::min(broader_bottom_min_lx, lx);
+        broader_bottom_max_lx = std::max(broader_bottom_max_lx, lx);
+    }
+    assert(broader_min_lx == 18);
+    assert(broader_min_ly == 5);
+    assert(broader_max_lx == 47);
+    assert(broader_max_ly == 36);
+    assert(broader_bottom_min_lx + broader_bottom_max_lx == 77);
+
     return 0;
 }

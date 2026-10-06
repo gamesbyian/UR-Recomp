@@ -346,6 +346,37 @@ class WindowsPackageTests(unittest.TestCase):
                 duplicate_manifest_result.stderr,
             )
 
+            unsafe_manifest_archive = root / "package-unsafe-manifest.zip"
+            unsafe_manifest = json.loads(json.dumps(manifest))
+            unsafe_manifest["files"][0]["path"] = "../escape.bin"
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                unsafe_manifest_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        target.writestr(
+                            info,
+                            json.dumps(
+                                unsafe_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n",
+                        )
+                    else:
+                        target.writestr(info, source.read(info.filename))
+            unsafe_manifest_result = self.run_tool(
+                "verify-archive",
+                "--archive", unsafe_manifest_archive,
+                check=False,
+            )
+            self.assertNotEqual(unsafe_manifest_result.returncode, 0)
+            self.assertIn(
+                "unsafe package archive manifest path: ../escape.bin",
+                unsafe_manifest_result.stderr,
+            )
+
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")
             failed = self.run_tool(
                 "verify", "--package", package, check=False

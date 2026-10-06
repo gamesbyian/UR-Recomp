@@ -52,6 +52,7 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertFalse((package / "stale.txt").exists())
             self.assertTrue((package / "run-uniracers.cmd").is_file())
             launcher = (package / "run-uniracers.cmd").read_text()
+            self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
                 '"UniracersSNESRecomp.exe" "Uniracers_USA.sfc" %*',
                 launcher,

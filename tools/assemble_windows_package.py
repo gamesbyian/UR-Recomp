@@ -171,7 +171,7 @@ def write_launcher(path: Path) -> None:
         "rmdir /s /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp\" >nul 2>&1\r\n"
         "set \"SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%\"\r\n"
         "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"\r\n"
-        f"\"{EXE_NAME}\" \"{ROM_NAME}\" %*\r\n"
+        f"\"%~dp0{EXE_NAME}\" \"%~dp0{ROM_NAME}\" %*\r\n"
         "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8",
         newline="",

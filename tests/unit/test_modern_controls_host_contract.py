@@ -54,6 +54,24 @@ class ModernControlsHostContractTests(unittest.TestCase):
         self.assertIn("handle_controls_action(action)", body)
         self.assertIn("UR_CONTROLS CAPTURE_CANCELLED", body)
 
+    def test_controls_precede_paused_records_gamepad_shortcuts(self):
+        source = WRAPPER.read_text(encoding="utf-8")
+        start = source.index(
+            'extern "C" int ur_uniracers_product_system_gamepad_button(')
+        end = source.index(
+            'extern "C" int ur_uniracers_product_system_gamepad_control(', start)
+        body = source[start:end]
+
+        controls = body.index("ur_uniracers_modern_controls_active()")
+        records_y = body.index("pressed && button == kGamepadBtn_Y")
+        run_data_x = body.index("pressed && button == kGamepadBtn_X")
+        self.assertLess(controls, records_y)
+        self.assertLess(controls, run_data_x)
+        self.assertIn(
+            "return ur_uniracers_modern_system_gamepad_button(button, pressed);",
+            body[controls:controls + 320],
+        )
+
     def test_product_wrapper_forwards_semantic_controls(self):
         source = WRAPPER.read_text(encoding="utf-8")
         start = source.index(

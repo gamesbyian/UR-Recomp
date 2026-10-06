@@ -474,6 +474,52 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("required package input empty", result.stderr)
 
 
+    def test_destructive_output_paths_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+
+            result = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", root,
+                "--source-revision", "test-revision",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "package output must be outside",
+                result.stderr,
+            )
+            self.assertTrue((build / "UniracersSNESRecomp.exe").is_file())
+            self.assertTrue(rom.is_file())
+
+            package = root / "safe-package"
+            self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", package,
+                "--source-revision", "test-revision",
+            )
+            inside_archive = package / "inside.zip"
+            archived = self.run_tool(
+                "archive",
+                "--package", package,
+                "--output", inside_archive,
+                check=False,
+            )
+            self.assertNotEqual(archived.returncode, 0)
+            self.assertIn(
+                "package archive must be written outside the package tree",
+                archived.stderr,
+            )
+            self.assertFalse(inside_archive.exists())
+            verified = self.run_tool("verify", "--package", package)
+            self.assertIn("WINDOWS_PACKAGE_VERIFIED", verified.stdout)
+
+
     def test_missing_source_revision_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

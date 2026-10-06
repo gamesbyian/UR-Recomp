@@ -18,7 +18,7 @@ The portable package contains:
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - generated `rom.cfg`;
 - the staged `mods/` tree;
-- `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, supplies the packaged ROM, and emits stable startup diagnostic codes for package/root failures;
+- `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, launches both the executable and ROM through explicit package-root paths so later cwd relocation cannot redirect them, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, and emits stable startup diagnostic codes for package/root failures;
 - `README.txt` documenting the source revision plus the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with one canonical non-empty source-revision line plus SHA-256 and size for every packaged payload file; `README.txt` repeats that revision and verification requires the two to agree.
 

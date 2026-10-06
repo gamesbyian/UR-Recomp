@@ -163,6 +163,19 @@ That re-ranking has now been performed. The next tied-maximum exact state is `05
 
 The measured expansion loop therefore stops here rather than authoring two new poses for one six-frame episode. The next concrete discriminator is broader representative ordinary Windows play: only if that wider route shows this state/family recurring enough to justify the doubled art cost, or new equivalence evidence reduces that cost, should the family re-enter shipping review. Until then both exact states continue through fail-closed Original rendering.
 
+That discriminator has now been executed on a substantially longer ordinary two-player Dragster route. The independent Snes9x reference census samples every guest frame from 1180 through 3820, 2,641 frames / 5,282 player-frame observations, using the same eight WRAM words consumed by the native selector. A dedicated overlap run on frames 1180–1620 reproduces the retained native selector census exactly at 174/882 HD and 708 Original, including the prior `0545/057C` state at 12 player-frames / one episode. This establishes sampling-phase parity before using the longer route for ranking.
+
+The broader route invalidates the narrow-route art priority: `0545/057C + 0000/0C27` does not occur at all. Under active movement, exact synchronized states also fragment because the opponent's independently moving presentation fields create many exact keys for one player's identical visual output. The pipeline therefore adds a strictly bounded **player-local guard** option. This is not a wildcard semantic match. It is permitted only when both of the following hold:
+
+1. the composition algorithm proves the opposite player's data cannot affect the target player's raster (the racer staging columns are disjoint and player rasterization filters by player); and
+2. retained deterministic extraction across every measured synchronized witness for the proposed local context yields byte-identical stock RGBA.
+
+When those proofs hold, the runtime may ignore only the opposite player's four composition fields while continuing to match the target player's primary, companion, selector and companion gate exactly. All registrations remain synchronized-exact unless they explicitly declare `guard_scope=player_local`; unknown or mismatching local fields still fail closed to Original.
+
+The first such measured context is P1 `0x04B9 + companion 0x0000 / selector 0 / gate 0x0000`: 80 fallback player-frames across 60 independent episodes and 58 synchronized opponent-state variants. All 58 variants collapse to one stock raster (SHA-256 `42d47919a4326d4b4ddfd1f249a46e218dcde421e1520e7f7399afc6aa7dcf68`), bounds `[18,5]..[47,36]`, contact `[77,72]`. No exact or palette-normalized approved reuse exists, so this earns one genuinely new authored pose. Its 4× authored candidate preserves the exact envelope/contact, records alpha IoU `0.6810344827586207`, and is hash-bound as `3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed` in `analysis/data/racer-hd-art-approval-broader-04b9.json`.
+
+The broader-route baseline is 118/5282 HD selections and 5164 Original fallbacks. The `04B9` player-local family must reproduce an after-state of 198/5282 HD and 5084 Original, removing exactly 80 measured fallbacks, before it is treated as complete. A real contiguous `1392–1393` occurrence supplies the single-player temporal hold; P2 remains Original rather than being falsely declared registered for review.
+
 ### Palette-normalized pose equivalence
 
 Exact RGBA equivalence is only the first deduplication layer. Racer color is a separate semantic input in the original game, so two stock sprites can encode the same pose and material structure while differing only in the racer-color palette. Treating those rasters as unrelated visual poses would duplicate authoring effort and permit red/blue variants to drift.

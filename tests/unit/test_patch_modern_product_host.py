@@ -29,6 +29,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_product_system_key_down", patched)
         self.assertIn("ur_uniracers_product_system_gamepad_button", patched)
         self.assertIn("ur_uniracers_product_system_gamepad_control", patched)
+        self.assertIn("ur_uniracers_modern_filter_player_input", patched)
         self.assertIn("ur_uniracers_modern_system_gamepad_source_button", patched)
         self.assertIn("ur_uniracers_modern_system_gamepad_source_connection", patched)
         self.assertIn("ur_uniracers_product_system_overlay", patched)

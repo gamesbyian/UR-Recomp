@@ -30,6 +30,10 @@ class RegionalPresentationNativeAcceptanceContractTests(unittest.TestCase):
         self.assertIn("test \"$EUROPE_VISIBLE_SHA\" != \"$NA_VISIBLE_SHA\"", source)
         self.assertIn("test \"$AUTHENTIC_VISIBLE_SHA\" = \"$NA_VISIBLE_SHA\"", source)
         self.assertIn("UR_REGIONAL_VISIBLE_SHA europe=", source)
+        self.assertIn("profile=regional-visual", source)
+        self.assertIn("UR_PROFILE_SAVE_ROOT=\"$save_root\"", source)
+        self.assertIn("regional-europe-save-root", source)
+        self.assertIn("regional-na-save-root", source)
         self.assertIn("cmp \"$EUROPE_VISUAL_DUMPS/boot-300.$suffix\" \"$NA_VISUAL_DUMPS/boot-300.$suffix\"", source)
         self.assertIn(
             "UR_REGIONAL_RESULT="

@@ -255,6 +255,10 @@ def assemble(
         raise ValueError(f"required package input empty: {mods}")
 
     if output.exists():
+        if not output.is_dir():
+            raise ValueError(
+                "package output exists and is not a directory"
+            )
         shutil.rmtree(output)
     output.mkdir(parents=True)
 
@@ -329,6 +333,10 @@ def create_archive(package: Path, archive: Path) -> dict[str, object]:
         raise ValueError("package archive must be written outside the package tree")
     manifest = verify(package)
     if archive.exists():
+        if not archive.is_file():
+            raise ValueError(
+                "package archive output exists and is not a file"
+            )
         archive.unlink()
     archive.parent.mkdir(parents=True, exist_ok=True)
 

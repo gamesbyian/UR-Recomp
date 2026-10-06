@@ -541,7 +541,7 @@ jobs:
           SAVE_ROOT="$(dirname "$EXE")/saves/profile-steve"
           SECOND_ROOT="$(dirname "$EXE")/saves/profile-mike"
           rm -rf "$ROOT" "$SAVE_ROOT" "$SECOND_ROOT"
-          mkdir -p "$DUMPS"
+          mkdir -p "$DUMPS" "$ROOT/user-data" "$ROOT/auth-user-data"
           cat >"$STATE" <<'EOF'
           UR-HOST-STATE/6
           profile=

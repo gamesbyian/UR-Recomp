@@ -359,7 +359,7 @@ The production host now completes the hidden-switch input and persistence path:
 - mapped SNES controller controls feed the controller matcher through the existing framework semantic-control hook, with no second controller map;
 - `0xD7` main-menu navigation remains guest-owned;
 - `SaveRequired` dispatches through the existing durable host-product store, while save failure leaves the running regional presentation well-defined;
-- native acceptance types `PAL`, proves Europe persistence in a fresh process, verifies the exact Unirally player-visible crop, types `NTSC`, proves NorthAmerica persistence and the exact Uniracers crop, and byte-compares WRAM/SRAM/VRAM/CGRAM/OAM at frame 300 across the two Modern presentations; Authentic with Europe persisted still renders canonical Uniracers.
+- native acceptance types `PAL`, proves Europe persistence in a fresh process, requires the presenter to verify and apply the exact retained Unirally raster, then confirms the downstream player-visible Europe crop differs from NorthAmerica; `NTSC` restores NorthAmerica, Authentic with Europe persisted matches canonical NorthAmerica presentation, and WRAM/SRAM/VRAM/CGRAM/OAM are byte-identical at frame 300 across the two Modern regional choices.
 
 The first visible regional consumer is therefore shipped-path complete: NorthAmerica preserves the canonical guest title raster; Europe substitutes the exact proven Unirally crop in host presentation only. The exact stock horizontal/title transition is **not** yet sufficiently characterized and remains the next explicit presentation task rather than being replaced with a new modern effect. Any additional frontend/course/audio differences remain evidence-gated.
 

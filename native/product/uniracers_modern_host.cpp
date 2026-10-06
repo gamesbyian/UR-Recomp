@@ -32,6 +32,7 @@ extern "C" {
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
 #include "regional_presentation_input_coordinator.hpp"
+#include "regional_presentation_input_policy.hpp"
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "modern_pause_input.h"

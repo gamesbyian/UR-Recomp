@@ -53,4 +53,4 @@ An installer is still deferred. The storage/migration prerequisite is now satisf
 
 ## Failure policy
 
-Packaging failures are release failures. Missing executable, ROM, `rom.cfg`, staged mods, manifest mismatch, stale output contamination, or inability to boot the assembled package must fail CI rather than silently falling back to the build tree.
+Packaging failures are release failures. Missing executable, ROM, `rom.cfg`, missing or empty staged mods, manifest mismatch, stale output contamination, or inability to boot the assembled package must fail CI rather than silently falling back to the build tree.

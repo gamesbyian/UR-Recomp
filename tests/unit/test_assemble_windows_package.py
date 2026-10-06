@@ -41,6 +41,14 @@ class WindowsPackageTests(unittest.TestCase):
             package.mkdir()
             (package / "stale.txt").write_text("stale")
 
+            # A dirty build tree may contain mutable runtime leftovers from a
+            # developer launch. The consumer assembler must never absorb them.
+            (build / "config.ini").write_text("build-local-config\n")
+            (build / "keybinds.ini").write_text("build-local-keybinds\n")
+            (build / "host-state-v1.txt").write_text("build-local-host-state\n")
+            (build / "saves").mkdir()
+            (build / "saves" / "dirty.srm").write_bytes(b"dirty-save")
+
             result = self.run_tool(
                 "assemble",
                 "--build-dir", build,
@@ -50,6 +58,10 @@ class WindowsPackageTests(unittest.TestCase):
             )
             self.assertIn("WINDOWS_PACKAGE_ASSEMBLED", result.stdout)
             self.assertFalse((package / "stale.txt").exists())
+            self.assertFalse((package / "config.ini").exists())
+            self.assertFalse((package / "keybinds.ini").exists())
+            self.assertFalse((package / "host-state-v1.txt").exists())
+            self.assertFalse((package / "saves").exists())
             self.assertTrue((package / "run-uniracers.cmd").is_file())
             self.assertIn(
                 "Source revision: abc123",

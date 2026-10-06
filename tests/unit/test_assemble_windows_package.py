@@ -127,19 +127,31 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                ".ur-recomp-config.ini.migrate.tmp",
+                'set "UR_MIGRATE_TOKEN=%RANDOM%-%RANDOM%"',
                 launcher,
             )
             self.assertIn(
-                ".ur-recomp-saves.migrate.tmp",
+                'set "UR_MIGRATE_CONFIG=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.%UR_MIGRATE_TOKEN%.migrate.tmp"',
                 launcher,
             )
             self.assertIn(
-                'ren "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp" "saves"',
+                'set "UR_MIGRATE_SAVES=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.%UR_MIGRATE_TOKEN%.migrate.tmp"',
                 launcher,
             )
             self.assertIn(
-                'ren "%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.migrate.tmp" "config.ini"',
+                'ren "%UR_MIGRATE_SAVES%" "saves"',
+                launcher,
+            )
+            self.assertIn(
+                'ren "%UR_MIGRATE_CONFIG%" "config.ini"',
+                launcher,
+            )
+            self.assertIn(
+                '.ur-recomp-config.ini*.migrate.tmp',
+                launcher,
+            )
+            self.assertIn(
+                '.ur-recomp-saves*.migrate.tmp',
                 launcher,
             )
             self.assertNotIn("move /y", launcher)

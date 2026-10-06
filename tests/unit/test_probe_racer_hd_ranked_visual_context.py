@@ -1,6 +1,7 @@
 import importlib.util
 from pathlib import Path
 import unittest
+from unittest.mock import patch
 
 ROOT = Path(__file__).resolve().parents[2]
 SPEC = importlib.util.spec_from_file_location(
@@ -28,6 +29,35 @@ class RacerHdRankedVisualContextProbeTests(unittest.TestCase):
         self.assertEqual(guards["p1_primary"], "0x0239")
         self.assertEqual(guards["p2_companion"], "0x0EB2")
         self.assertEqual(guards["p2_companion_gate_word"], "0x0001")
+
+    def test_player_local_stock_does_not_decode_opponent_records(self):
+        composition = {
+            "p1_primary": "0x0439",
+            "p2_primary": "0x057A",
+            "p1_companion": "0x0000",
+            "p2_companion": "0x0EEE",
+            "p1_selector": 0,
+            "p2_selector": 0,
+            "p1_gate": "0x0000",
+            "p2_gate": "0x0001",
+        }
+        seen = []
+
+        def fake_extract(_rom, frame_id):
+            seen.append(frame_id)
+            return {"record_header_hex": "00000000", "pieces": []}
+
+        with patch.object(MOD, "extract_frame", side_effect=fake_extract), patch.object(
+            MOD, "compose_racer_staging", return_value={"cells": []}
+        ), patch.object(
+            MOD, "rasterize_composed_player_rgba", return_value=bytes(64 * 64 * 4)
+        ):
+            MOD.build_player_local_stock_rgba(
+                b"", "p1", "0x06", composition
+            )
+
+        self.assertEqual(seen, [0x0439, 0x0000])
+        self.assertNotIn(0x0EEE, seen)
 
     def test_local_match_ignores_peer_only_for_visual_grouping(self):
         target = {

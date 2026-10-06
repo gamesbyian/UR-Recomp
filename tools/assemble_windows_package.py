@@ -19,6 +19,13 @@ LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
 ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
 ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
+REQUIRED_PACKAGE_FILES = {
+    EXE_NAME,
+    ROM_NAME,
+    "rom.cfg",
+    LAUNCHER_NAME,
+    README_NAME,
+}
 
 
 def sha256(path: Path) -> str:
@@ -43,6 +50,18 @@ def package_files(root: Path) -> list[dict[str, object]]:
             }
         )
     return files
+
+
+def validate_required_package_paths(
+    paths: set[str], *, context: str = "package"
+) -> None:
+    missing = sorted(REQUIRED_PACKAGE_FILES - paths)
+    if missing:
+        raise ValueError(
+            f"required {context} files missing: " + ", ".join(missing)
+        )
+    if not any(path.startswith("mods/") for path in paths):
+        raise ValueError(f"{context} mods directory is empty")
 
 
 def write_launcher(path: Path) -> None:
@@ -238,19 +257,8 @@ def verify(package: Path) -> dict[str, object]:
     if actual != expected:
         raise ValueError("package contents do not match PACKAGE-MANIFEST.json")
 
-    required = {
-        EXE_NAME,
-        ROM_NAME,
-        "rom.cfg",
-        LAUNCHER_NAME,
-        README_NAME,
-    }
     actual_paths = {entry["path"] for entry in actual}
-    missing = sorted(required - actual_paths)
-    if missing:
-        raise ValueError("required packaged files missing: " + ", ".join(missing))
-    if not any(path.startswith("mods/") for path in actual_paths):
-        raise ValueError("packaged mods directory is empty")
+    validate_required_package_paths(actual_paths, context="packaged")
 
     return manifest
 
@@ -314,6 +322,7 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError("unsupported or malformed package archive manifest")
 
             expected_names = {manifest_name}
+            relative_paths: set[str] = set()
             for entry in manifest["files"]:
                 if not isinstance(entry, dict):
                     raise ValueError("malformed package archive file entry")
@@ -326,6 +335,7 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     or not isinstance(expected_hash, str)
                 ):
                     raise ValueError("malformed package archive file entry")
+                relative_paths.add(relative)
                 name = f"{ARCHIVE_ROOT}/{relative}"
                 expected_names.add(name)
                 try:
@@ -342,6 +352,10 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     raise ValueError(
                         f"package archive checksum mismatch: {relative}"
                     )
+
+            validate_required_package_paths(
+                relative_paths, context="archive package"
+            )
 
             if set(names) != expected_names:
                 raise ValueError(

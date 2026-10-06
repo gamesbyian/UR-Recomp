@@ -39,6 +39,11 @@ bool tour_resume_source_matches_sram(
     const std::uint8_t* sram,
     std::size_t sram_size) noexcept;
 
+bool tour_resume_frontend_source_matches_sram(
+    const TourProgress& continuation,
+    const std::uint8_t* sram,
+    std::size_t sram_size) noexcept;
+
 bool tour_qualification_row_empty(
     std::uint8_t tour_row,
     const std::uint8_t* sram,

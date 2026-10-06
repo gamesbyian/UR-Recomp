@@ -244,20 +244,25 @@ def build_settled_asset(
         if _crop(other[0], bbox) != usa_crop or _crop(other[1], bbox) != europe_crop:
             raise ValueError("repeated framebuffer hashes disagree at crop level")
 
-    palette = sorted(
-        {
-            int.from_bytes(europe_crop[i:i + FRAME_BPP], "little")
-            for i in range(0, len(europe_crop), FRAME_BPP)
-        }
-    )
-    if len(palette) > 256:
-        raise ValueError(f"settled title crop needs {len(palette)} colors")
-    palette_index = {value: index for index, value in enumerate(palette)}
-    indices = bytes(
-        palette_index[int.from_bytes(europe_crop[i:i + FRAME_BPP], "little")]
-        for i in range(0, len(europe_crop), FRAME_BPP)
-    )
-    padded_indices = indices + bytes((-len(indices)) % 4)
+    def indexed_payload(crop: bytes) -> tuple[list[int], bytes, bytes]:
+        palette = sorted(
+            {
+                int.from_bytes(crop[i:i + FRAME_BPP], "little")
+                for i in range(0, len(crop), FRAME_BPP)
+            }
+        )
+        if len(palette) > 256:
+            raise ValueError(f"settled title crop needs {len(palette)} colors")
+        palette_index = {value: index for index, value in enumerate(palette)}
+        indices = bytes(
+            palette_index[int.from_bytes(crop[i:i + FRAME_BPP], "little")]
+            for i in range(0, len(crop), FRAME_BPP)
+        )
+        padded = indices + bytes((-len(indices)) % 4)
+        return palette, indices, padded
+
+    source_palette, source_indices, source_padded_indices = indexed_payload(usa_crop)
+    palette, indices, padded_indices = indexed_payload(europe_crop)
     cgram_identical = all(
         by_checkpoint[checkpoint].get("cgram") is not None
         and by_checkpoint[checkpoint]["cgram"]["changed_bytes"] == 0
@@ -281,6 +286,11 @@ def build_settled_asset(
         "origin": [x0, y0],
         "width": x1 - x0 + 1,
         "height": y1 - y0 + 1,
+        "source_palette_u32_le": [f"0x{value:08x}" for value in source_palette],
+        "source_indices_encoding": "python-base85-padded-to-4",
+        "source_indices_base85": base64.b85encode(source_padded_indices).decode("ascii"),
+        "source_indices_decoded_bytes": len(source_indices),
+        "source_indices_padded_bytes": len(source_padded_indices),
         "palette_u32_le": [f"0x{value:08x}" for value in palette],
         "indices_encoding": "python-base85-padded-to-4",
         "indices_base85": base64.b85encode(padded_indices).decode("ascii"),

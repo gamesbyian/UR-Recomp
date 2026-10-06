@@ -210,6 +210,9 @@ FORTY_THIRD_AUTHORED_REPRESENTATION_ID = (
 FORTY_FOURTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x02B9-p1-broader-frequency-reference"
 )
+FORTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x01B9-p1-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1673,6 +1676,58 @@ def build_twenty_seventh_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_01b9_p1_broader_rgba(x: int, y: int) -> bytes:
+    """Author the measured P1 01B9 dynamic-play pose."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+    wheel_cx, wheel_cy = 155, 111
+    wx, wy = x - wheel_cx, y - wheel_cy
+    wr2 = wx * wx + wy * wy
+    tire = wr2 <= 36 * 36 and wr2 >= 26 * 26
+    rim = wr2 < 26 * 26 and wr2 >= 22 * 22
+    hub = wr2 <= 5 * 5
+    wheel_spokes = (
+        authored_segment_contains(x, y, 133, 111, 177, 111, 1)
+        or authored_segment_contains(x, y, 144, 92, 166, 130, 1)
+        or authored_segment_contains(x, y, 166, 92, 144, 130, 1)
+    )
+    seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8)
+    neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5)
+    fork = authored_segment_contains(x, y, 121, 58, 152, 120, 5)
+    frame_brace = authored_segment_contains(x, y, 121, 58, 167, 114, 3)
+    crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2)
+    pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2)
+    crown_dx, crown_dy = x - 121, y - 58
+    crown = crown_dx * crown_dx + crown_dy * crown_dy <= 8 * 8
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if crank or pedal:
+        return authored_drivetrain_hardware_rgba(y, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if seat:
+        return authored_saddle_rgba(x, y, 93, 31, 12)
+    if neck and y < 52:
+        return authored_saddle_mount_rgba(y, 47)
+    if crown:
+        return authored_frame_junction_rgba(
+            x, y, 121, 58, False, fork or frame_brace or neck
+        )
+    if neck or fork or frame_brace:
+        return authored_red_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_twenty_eighth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_01b9_p1_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -2022,6 +2077,12 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_twenty_seventh_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_twenty_seventh_authored_candidate_rgba",
             "sample_racer_hd_authored_02b9_p1_broader",
+        )
+    if rid == FORTY_FIFTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_twenty_eighth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_twenty_eighth_authored_candidate_rgba",
+            "sample_racer_hd_authored_01b9_p1_broader",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

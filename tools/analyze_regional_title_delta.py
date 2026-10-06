@@ -43,6 +43,15 @@ def fnv1a64(data: bytes) -> str:
     return f"0x{value:016x}"
 
 
+def bgr_bytes(bgrx: bytes) -> bytes:
+    if len(bgrx) % FRAME_BPP:
+        raise ValueError("BGRX payload length is not pixel-aligned")
+    out = bytearray()
+    for offset in range(0, len(bgrx), FRAME_BPP):
+        out.extend(bgrx[offset:offset + 3])
+    return bytes(out)
+
+
 def changed_offsets(a: bytes, b: bytes) -> list[int]:
     if len(a) != len(b):
         raise ValueError(f"binary sizes differ: {len(a)} != {len(b)}")
@@ -266,6 +275,8 @@ def build_settled_asset(
         "target_crop_sha256": sha256(europe_crop),
         "source_crop_fnv1a64": fnv1a64(usa_crop),
         "target_crop_fnv1a64": fnv1a64(europe_crop),
+        "source_crop_bgr_fnv1a64": fnv1a64(bgr_bytes(usa_crop)),
+        "target_crop_bgr_fnv1a64": fnv1a64(bgr_bytes(europe_crop)),
         "bbox_inclusive": bbox,
         "origin": [x0, y0],
         "width": x1 - x0 + 1,
@@ -331,6 +342,8 @@ def analyze(
             "target_crop_sha256": asset["target_crop_sha256"],
             "source_crop_fnv1a64": asset["source_crop_fnv1a64"],
             "target_crop_fnv1a64": asset["target_crop_fnv1a64"],
+            "source_crop_bgr_fnv1a64": asset["source_crop_bgr_fnv1a64"],
+            "target_crop_bgr_fnv1a64": asset["target_crop_bgr_fnv1a64"],
             "palette_entries": len(asset["palette_u32_le"]),
             "cgram_identical_across_evidence": asset[
                 "cgram_identical_across_evidence"

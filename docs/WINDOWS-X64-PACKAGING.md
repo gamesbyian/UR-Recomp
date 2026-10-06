@@ -19,7 +19,7 @@ The portable package contains:
 - generated `rom.cfg`;
 - the staged `mods/` tree;
 - `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, supplies the packaged ROM, and emits stable startup diagnostic codes for package/root failures;
-- `README.txt` documenting the per-user root, override and migration contract;
+- `README.txt` documenting the source revision plus the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with the non-empty source revision plus SHA-256 and size for every packaged payload file.
 
 `tools/assemble_windows_package.py` is the canonical assembler/verifier/archive producer. It removes stale output before assembly, fails closed on missing required inputs or source provenance, writes deterministic metadata apart from the explicitly supplied source revision, verifies exact package contents and non-empty revision against the manifest, writes a deterministic ZIP, and independently verifies every archived payload hash/size/path and revision contract against the embedded manifest.

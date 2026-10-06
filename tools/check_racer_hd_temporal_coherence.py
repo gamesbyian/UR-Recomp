@@ -132,6 +132,9 @@ def build_report(
     ratio_min = float(acceptance["dynamic_transition_ratio_min"])
     ratio_max = float(acceptance["dynamic_transition_ratio_max"])
     entries = {entry["representation_id"]: entry for entry in registry["entries"]}
+    players = tuple(review.get("players", ("p1", "p2")))
+    if not players or any(player not in ("p1", "p2") for player in players):
+        raise ValueError(f"invalid motion-review players: {players}")
 
     sequences: dict[str, dict] = {}
     all_authored = True
@@ -142,7 +145,7 @@ def build_report(
     ratio_bounded = True
     contact_delta_exact = True
 
-    for player in ("p1", "p2"):
+    for player in players:
         frames = []
         key = f"{player}_representation_id"
         for row in rows:
@@ -203,6 +206,7 @@ def build_report(
         "family": registry["family"],
         "sequence_key": sequence_key or "legacy-default",
         "sequence_order": "explicit promoted motion-review frame order",
+        "players": list(players),
         "window": [start, end],
         "sampling": review["sampling"],
         "acceptance": acceptance,

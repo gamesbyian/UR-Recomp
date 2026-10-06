@@ -39,6 +39,24 @@ class RacerHdFallbackFrequencyTests(unittest.TestCase):
         self.assertEqual(report["measurement"]["player_frame_observations"], 10)
         self.assertEqual(report["measurement"]["hd_selected_player_frames"], 2)
         self.assertEqual(report["measurement"]["original_fallback_player_frames"], 8)
+        self.assertEqual(
+            report["fallback_by_player_primary_semantic_id"][0],
+            {"player": "p1", "semantic_frame_id": "0x0540", "player_frames": 2},
+        )
+        self.assertEqual(
+            report["fallback_by_player_visual_context"][0],
+            {
+                "player": "p1",
+                "semantic_frame_id": "0x0540",
+                "companion": "0x0000",
+                "selector": 0,
+                "gate": "0x0000",
+                "player_frames": 2,
+                "frame_hits": 2,
+                "episode_count": 2,
+                "frames": [10, 12],
+            },
+        )
         top = report["unsupported_exact_states_ranked"][0]
         self.assertEqual(top["composition"]["p1_primary"], "0x0540")
         self.assertEqual(top["composition"]["p2_primary"], "0x0543")

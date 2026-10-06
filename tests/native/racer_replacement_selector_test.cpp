@@ -469,5 +469,56 @@ int main() {
         GraphicsPack::Remastered, 0x0578, frequency_near_miss, 2
     ).fallback_reason == FallbackReason::CompositionMismatch);
 
+    const RacerCompositionState broader_04b9_a{
+        0x04B9, 0x0546, 0x0000, 0x0EB2, 0, 0, 0x0000, 0x0001
+    };
+    const RacerCompositionState broader_04b9_b{
+        0x04B9, 0x0578, 0x0000, 0x0EC3, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_a =
+        find_racer_registration_for_state(0x04B9, broader_04b9_a, 1);
+    const auto* broader_b =
+        find_racer_registration_for_state(0x04B9, broader_04b9_b, 1);
+    assert(broader_a != nullptr);
+    assert(broader_b == broader_a);
+    assert(broader_a->player_local_guard);
+    assert(broader_a->contact_anchor.x2 == 77);
+    assert(broader_a->contact_anchor.y2 == 72);
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x04B9, broader_04b9_b, 1
+    ).registration == broader_a);
+
+    auto broader_local_miss = broader_04b9_b;
+    broader_local_miss.p1_companion = 0x0001;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x04B9, broader_local_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    const RacerCompositionState broader_0239_a{
+        0x0239, 0x057A, 0x0000, 0x0EC5, 0, 0, 0x0000, 0x0001
+    };
+    const RacerCompositionState broader_0239_b{
+        0x0239, 0x0544, 0x0000, 0x0EB0, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_0239 =
+        find_racer_registration_for_state(0x0239, broader_0239_a, 1);
+    assert(broader_0239 != nullptr);
+    assert(broader_0239->player_local_guard);
+    assert(find_racer_registration_for_state(
+        0x0239, broader_0239_b, 1
+    ) == broader_0239);
+    auto broader_0239_local_miss = broader_0239_b;
+    broader_0239_local_miss.p1_selector = 1;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0239, broader_0239_local_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    // Exact-scope registrations must still care about opponent fields.
+    auto exact_scope_opponent_miss = frequency_0544_0578_context;
+    exact_scope_opponent_miss.p2_companion = 0x0D64;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0544, exact_scope_opponent_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     return 0;
 }

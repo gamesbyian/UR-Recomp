@@ -26,6 +26,8 @@ from tools.build_racer_hd_asset_dossier import (
     THIRTY_FIFTH_AUTHORED_REPRESENTATION_ID,
     THIRTY_SEVENTH_AUTHORED_REPRESENTATION_ID,
     THIRTY_EIGHTH_AUTHORED_REPRESENTATION_ID,
+    THIRTY_NINTH_AUTHORED_REPRESENTATION_ID,
+    FORTIETH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     authored_candidate_rgba_for_entry,
@@ -48,6 +50,8 @@ from tools.build_racer_hd_asset_dossier import (
     build_nineteenth_authored_candidate_rgba,
     build_twentieth_authored_candidate_rgba,
     build_twenty_first_authored_candidate_rgba,
+    build_twenty_second_authored_candidate_rgba,
+    build_twenty_third_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -68,6 +72,8 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_057c_p1_fifth_family_rgba,
     sample_authored_0544_p1_frequency_rgba,
     sample_authored_0578_p2_frequency_rgba,
+    sample_authored_04b9_p1_broader_rgba,
+    sample_authored_0239_p1_broader_rgba,
     sample_authored_0543_p1_third_family_rgba,
     sample_authored_0540d2c_p2_third_family_rgba,
     sample_authored_0542_p1_third_family_rgba,
@@ -118,6 +124,22 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         }
         with self.assertRaisesRegex(ValueError, "not fully registered"):
             exact_window_rows(incomplete, 10, 12)
+
+    def test_single_player_window_requires_only_selected_player(self):
+        trace = {
+            "registered_composition_coverage": {
+                "frames": [
+                    row(10, "p1-local", None, fully=False),
+                    row(11, "p1-local", None, fully=False),
+                ]
+            }
+        }
+        rows = exact_window_rows(trace, 10, 11, ("p1",))
+        self.assertEqual([x["frame"] for x in rows], [10, 11])
+        observed = observation_map(rows, ("p1",))
+        self.assertEqual(observed["p1-local"]["frames"], [10, 11])
+        with self.assertRaisesRegex(ValueError, "not fully registered"):
+            exact_window_rows(trace, 10, 11)
 
     def test_observation_map_and_transition_context_use_observed_order(self):
         rows = [
@@ -712,6 +734,62 @@ class RacerHdAssetDossierTests(unittest.TestCase):
                 max(y for _, y in occupied),
             ],
             [17, 5, 47, 36],
+        )
+        bottom = [x for x, y in occupied if y == 36]
+        self.assertEqual(min(bottom) + max(bottom), 77)
+
+    def test_broader_04b9_authored_geometry(self):
+        self.assertEqual(
+            THIRTY_NINTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+        )
+        self.assertEqual(
+            len(build_twenty_second_authored_candidate_rgba()),
+            256 * 256 * 4,
+        )
+        occupied = [
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_04b9_p1_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        ]
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [18, 5, 47, 36],
+        )
+        bottom = [x for x, y in occupied if y == 36]
+        self.assertEqual(min(bottom) + max(bottom), 77)
+
+    def test_broader_0239_candidate_has_expected_envelope_and_contact(self):
+        self.assertEqual(
+            FORTIETH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0239-p1-broader-frequency-reference",
+        )
+        rgba = build_twenty_third_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        occupied = [
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_0239_p1_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        ]
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [18, 5, 47, 36],
         )
         bottom = [x for x, y in occupied if y == 36]
         self.assertEqual(min(bottom) + max(bottom), 77)

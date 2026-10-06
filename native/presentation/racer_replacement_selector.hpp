@@ -69,6 +69,7 @@ struct RacerRegistration {
     RacerAnchor2 contact_anchor;
     bool has_explicit_pivot;
     bool has_explicit_contact_anchor;
+    bool player_local_guard = false;
 };
 
 struct SelectionResult {
@@ -81,6 +82,26 @@ struct SelectionResult {
         return selected_pack != GraphicsPack::Original && registration != nullptr;
     }
 };
+
+constexpr bool player_local_composition_equal(
+    const RacerCompositionState& expected,
+    const RacerCompositionState& live,
+    std::uint8_t player
+) noexcept {
+    if (player == 1) {
+        return expected.p1_primary == live.p1_primary &&
+               expected.p1_companion == live.p1_companion &&
+               expected.p1_selector == live.p1_selector &&
+               expected.p1_companion_gate_word == live.p1_companion_gate_word;
+    }
+    if (player == 2) {
+        return expected.p2_primary == live.p2_primary &&
+               expected.p2_companion == live.p2_companion &&
+               expected.p2_selector == live.p2_selector &&
+               expected.p2_companion_gate_word == live.p2_companion_gate_word;
+    }
+    return false;
+}
 
 constexpr bool composition_equal(
     const RacerCompositionState& a,

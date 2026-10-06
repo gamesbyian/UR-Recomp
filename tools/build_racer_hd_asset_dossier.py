@@ -1717,9 +1717,16 @@ def registry_by_representation(registry: dict) -> dict[str, dict]:
     return out
 
 
-def exact_window_rows(trace_report: dict, start: int, end: int) -> list[dict]:
+def exact_window_rows(
+    trace_report: dict,
+    start: int,
+    end: int,
+    players: tuple[str, ...] = ("p1", "p2"),
+) -> list[dict]:
     if start > end:
         raise ValueError("window start must not exceed window end")
+    if not players or any(player not in ("p1", "p2") for player in players):
+        raise ValueError(f"invalid review players: {players}")
     coverage = trace_report.get("registered_composition_coverage")
     if not isinstance(coverage, dict):
         raise ValueError("trace report lacks registered_composition_coverage")
@@ -1732,19 +1739,23 @@ def exact_window_rows(trace_report: dict, start: int, end: int) -> list[dict]:
     if frames != expected:
         raise ValueError(f"trace window is not exact/contiguous: {frames} != {expected}")
     for row in rows:
-        if not row.get("fully_registered"):
+        if players == ("p1", "p2") and not row.get("fully_registered"):
             raise ValueError(f"frame {row['frame']} is not fully registered")
-        for key in ("p1_representation_id", "p2_representation_id"):
+        for player in players:
+            key = f"{player}_representation_id"
             if not row.get(key):
                 raise ValueError(f"frame {row['frame']} lacks {key}")
     return rows
 
 
-def observation_map(rows: list[dict]) -> dict[str, dict]:
+def observation_map(
+    rows: list[dict],
+    players: tuple[str, ...] = ("p1", "p2"),
+) -> dict[str, dict]:
     observed: dict[str, dict] = {}
     for row in rows:
         frame = int(row["frame"])
-        for player in ("p1", "p2"):
+        for player in players:
             rid = row[f"{player}_representation_id"]
             item = observed.setdefault(rid, {"player": player, "frames": []})
             if item["player"] != player:
@@ -1813,10 +1824,11 @@ def build_dossier(
     trace_report: dict,
     start: int,
     end: int,
+    players: tuple[str, ...] = ("p1", "p2"),
 ) -> tuple[dict, dict[str, dict[str, bytes]]]:
-    rows = exact_window_rows(trace_report, start, end)
+    rows = exact_window_rows(trace_report, start, end, players)
     entries = registry_by_representation(registry)
-    observed = observation_map(rows)
+    observed = observation_map(rows, players)
     assets: dict[str, dict[str, bytes]] = {}
     representations = []
 
@@ -2019,8 +2031,10 @@ def build_dossier(
     timeline = [
         {
             "frame": int(row["frame"]),
-            "p1_representation_id": row["p1_representation_id"],
-            "p2_representation_id": row["p2_representation_id"],
+            **{
+                f"{player}_representation_id": row[f"{player}_representation_id"]
+                for player in players
+            },
         }
         for row in rows
     ]
@@ -2029,15 +2043,17 @@ def build_dossier(
         "schema_version": 1,
         "family": registry["family"],
         "purpose": (
-            "Approval-oriented evidence packet for the first continuously "
-            "registered ordinary-race Racer HD temporal window."
+            "Approval-oriented evidence packet for a continuously registered "
+            "ordinary-race Racer HD review window."
         ),
+        "review_players": list(players),
         "temporal_window": {
             "start": start,
             "end": end,
             "frame_count": end - start + 1,
             "source": "registered_composition_coverage from deterministic native semantic trace",
-            "all_frames_exactly_registered": True,
+            "all_frames_exactly_registered": players == ("p1", "p2"),
+            "all_review_players_exactly_registered": True,
         },
         "authoritative_inputs": {
             "semantic_identity": registry["lookup"]["primary_key"],
@@ -2052,7 +2068,8 @@ def build_dossier(
         "timeline": timeline,
         "representations": representations,
         "validation": {
-            "fully_registered_window": True,
+            "fully_registered_window": players == ("p1", "p2"),
+            "review_players_registered_window": True,
             "registry_representation_ids_unique": True,
             "stock_geometry_rederived_from_rom": True,
             "registered_anchors_match_rederived_stock": True,
@@ -2114,7 +2131,14 @@ def main() -> int:
     ap.add_argument("--window-start", type=int, required=True)
     ap.add_argument("--window-end", type=int, required=True)
     ap.add_argument("--output-dir", type=Path, required=True)
+    ap.add_argument(
+        "--player",
+        action="append",
+        choices=("p1", "p2"),
+        help="review only this player; repeat for both. Omit to require both players.",
+    )
     args = ap.parse_args()
+    players = tuple(args.player) if args.player else ("p1", "p2")
 
     dossier, assets = build_dossier(
         args.rom.read_bytes(),
@@ -2122,6 +2146,7 @@ def main() -> int:
         json.loads(args.trace.read_text(encoding="utf-8")),
         args.window_start,
         args.window_end,
+        players,
     )
     write_dossier(args.output_dir, dossier, assets)
     print(json.dumps(dossier, indent=2, sort_keys=True))

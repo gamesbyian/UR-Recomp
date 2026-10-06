@@ -507,6 +507,22 @@ jobs:
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-missing-appdata.log"
           grep -Fq "APPDATA is unavailable" "$RUNNER_TEMP/package-missing-appdata.log"
 
+          BAD_TYPE_ROOT="$RUNNER_TEMP/package-bad-type-user-data"
+          rm -rf "$BAD_TYPE_ROOT"
+          mkdir -p "$BAD_TYPE_ROOT/config.ini"
+          BAD_TYPE_ROOT_WIN="$(cygpath -w "$BAD_TYPE_ROOT")"
+          set +e
+          UR_RECOMP_USER_DATA_ROOT="$BAD_TYPE_ROOT_WIN" \\
+            powershell.exe -NoProfile -Command \\
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \\
+              >"$RUNNER_TEMP/package-bad-type-root.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-bad-type-root.log"
+          test "$RC" -eq 3
+          grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-bad-type-root.log"
+          grep -Fq "user data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
+
           set +e
           UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\
             powershell.exe -NoProfile -Command \\

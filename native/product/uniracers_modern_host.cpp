@@ -111,6 +111,7 @@ std::string g_onboarding_seen_path;
 
 ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
 std::array<ur::product::LocalInputSource, 2> g_local_multiplayer_sources{};
+std::array<std::uint32_t, 2> g_local_multiplayer_consumed_buttons{};
 bool g_local_multiplayer_join_visible;
 bool g_local_multiplayer_two_player_visit;
 
@@ -3677,7 +3678,9 @@ extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
     if (player_index < 0 || player_index >= 2) return;
     auto source = local_multiplayer_controller_source(
         source_id, connected != 0);
-    g_local_multiplayer_sources[static_cast<std::size_t>(player_index)] = source;
+    const auto seat = static_cast<std::size_t>(player_index);
+    g_local_multiplayer_sources[seat] = source;
+    if (!connected) g_local_multiplayer_consumed_buttons[seat] = 0u;
     g_local_multiplayer_setup = ur::product::local_multiplayer_set_connected(
         g_local_multiplayer_setup, source, connected != 0);
     if (!connected && g_local_multiplayer_join_visible) {
@@ -3690,13 +3693,27 @@ extern "C" int ur_uniracers_modern_system_gamepad_source_button(
     uint64_t source_id,
     int button,
     int pressed) {
-    if (!ensure_session() || !g_local_multiplayer_join_visible) return 0;
-    if (player_index < 0 || player_index >= 2) return 1;
-    if (!pressed) return 1;
+    if (!ensure_session()) return 0;
+    if (player_index < 0 || player_index >= 2) {
+        return g_local_multiplayer_join_visible ? 1 : 0;
+    }
+
+    const auto seat = static_cast<std::size_t>(player_index);
+    const std::uint32_t button_bit =
+        button >= 0 && button < 32 ? (1u << static_cast<unsigned>(button)) : 0u;
+    if (!pressed) {
+        if (button_bit && (g_local_multiplayer_consumed_buttons[seat] & button_bit)) {
+            g_local_multiplayer_consumed_buttons[seat] &= ~button_bit;
+            return 1;
+        }
+        return g_local_multiplayer_join_visible ? 1 : 0;
+    }
+    if (!g_local_multiplayer_join_visible) return 0;
+    if (button_bit) g_local_multiplayer_consumed_buttons[seat] |= button_bit;
 
     const auto slot = local_multiplayer_slot_for_player(player_index);
     const auto source = local_multiplayer_controller_source(source_id, true);
-    g_local_multiplayer_sources[static_cast<std::size_t>(player_index)] = source;
+    g_local_multiplayer_sources[seat] = source;
 
     if (button == kGamepadBtn_B) {
         const auto left =

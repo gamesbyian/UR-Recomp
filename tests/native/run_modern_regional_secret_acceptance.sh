@@ -168,6 +168,7 @@ run_visual_process() {
   SNESRECOMP_SCREENSHOT="$screenshot" \
   SNESRECOMP_SCREENSHOT_FRAME=300 \
   timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$VISUAL_SCRIPT" >"$log" 2>&1
+  cat "$log"
 
   test -s "$screenshot"
   test -s "$dumps/boot-300.wram.bin"
@@ -185,15 +186,18 @@ cp "$STATE" "$EUROPE_STATE_SNAPSHOT"
 run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG"
 grep -q "UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1" "$EUROPE_VISUAL_LOG"
 EUROPE_VISIBLE_SHA="$(ppm_crop_sha "$EUROPE_SCREENSHOT")"
+echo "UR_REGIONAL_VISIBLE EUROPE=$EUROPE_VISIBLE_SHA"
 
 run_visual_process "$EUROPE_STATE_SNAPSHOT" "europe" "$AUTHENTIC_SCREENSHOT" "$AUTHENTIC_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_LOG" "authentic"
 AUTHENTIC_VISIBLE_SHA="$(ppm_crop_sha "$AUTHENTIC_SCREENSHOT")"
+echo "UR_REGIONAL_VISIBLE AUTHENTIC=$AUTHENTIC_VISIBLE_SHA"
 
 run_secret_process "n t s c" "north_america" "europe" "$NTSC_LOG" "$NTSC_DUMPS"
 grep -q "^regional_presentation=north_america$" "$STATE"
 
 run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG"
 NA_VISIBLE_SHA="$(ppm_crop_sha "$NA_SCREENSHOT")"
+echo "UR_REGIONAL_VISIBLE NORTH_AMERICA=$NA_VISIBLE_SHA"
 test "$EUROPE_VISIBLE_SHA" != "$NA_VISIBLE_SHA"
 test "$AUTHENTIC_VISIBLE_SHA" = "$NA_VISIBLE_SHA"
 echo "UR_REGIONAL_VISIBLE_SHA europe=$EUROPE_VISIBLE_SHA north_america=$NA_VISIBLE_SHA authentic=$AUTHENTIC_VISIBLE_SHA"

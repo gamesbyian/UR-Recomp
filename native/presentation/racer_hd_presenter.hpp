@@ -2071,8 +2071,8 @@ constexpr std::uint32_t sample_racer_hd_authored_02b9_p1_broader(
         authored_segment_contains(x, y, 166, 92, 144, 130, 1);
     const bool seat = authored_segment_contains(x, y, 74, 25, 111, 46, 8);
     const bool neck = authored_segment_contains(x, y, 106, 41, 124, 61, 5);
-    const bool fork = authored_segment_contains(x, y, 121, 58, 150, 107, 5);
-    const bool frame_brace = authored_segment_contains(x, y, 121, 58, 167, 107, 3);
+    const bool fork = authored_segment_contains(x, y, 121, 58, 150, 116, 5);
+    const bool frame_brace = authored_segment_contains(x, y, 121, 58, 166, 108, 3);
     const bool crank = authored_segment_contains(x, y, 155, 111, 170, 106, 2);
     const bool pedal = authored_segment_contains(x, y, 170, 106, 180, 106, 2);
     const int crown_dx = x - 121, crown_dy = y - 58;

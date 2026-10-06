@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -162,6 +162,42 @@ static const char *HostGetenv(const char *name) {
+@@ -162,5 +162,29 @@ static const char *HostGetenv(const char *name) {
    return NULL;
  }
  
@@ -30,7 +30,7 @@
 +
  static uint32 g_win_flags = SDL_WINDOW_RESIZABLE;
  static SDL_Window *g_window;
-@@ -3545,12 +3581,13 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3545,10 +3581,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
      int anchored = snesrecomp_anchor_to_exe_dir();
      if (!anchored) {
        if (HostGetenv("USER_DATA_DIR")) {
@@ -45,7 +45,7 @@
        }
        /* Read-only install: fall back to the historical walk-up so a Windows
         * copy in an unwritable directory still finds a config. */
-@@ -3830,12 +3867,14 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3830,10 +3867,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
                                                    g_rom_identity_ok ? g_rom_sha256
                                                                    : NULL)) {
          /* User cancelled the picker or repeatedly chose a non-matching ROM. */
@@ -61,7 +61,7 @@
          snesrecomp_host_args_usage(program_path, NULL);
          fprintf(stderr, "\nYou must legally own a copy of %s.\n",
                  game->display_name);
-@@ -3924,13 +3963,30 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3924,10 +3963,28 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
    SDL_SetMainReady();
 -  /* Return convention flipped in SDL3 (0 == success became true == success),
 -   * so this MUST go through the shim. */
@@ -96,7 +96,7 @@
    }
    host_report_breadcrumb("SDL init ok: video=%s audio=%s",
                           SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "(none)",
-@@ -3981,9 +4037,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3981,7 +4037,9 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
    SDL_Window *window = snesrecomp_sdl_create_window(
        g_window_title, window_width, window_height, g_win_flags);
    if(window == NULL) {
@@ -108,7 +108,7 @@
 +        "The game window could not be created.",
 +        "Reset the video settings or update the graphics driver and retry.");
    }
-@@ -3993,7 +4051,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3993,5 +4051,8 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
    if (!g_renderer_funcs.Initialize(window)) {
      host_report_breadcrumb("renderer init FAILED (output_method=%d)",
                             g_config.output_method);
@@ -118,7 +118,7 @@
 +        "The selected renderer could not initialize.",
 +        "Reset the video settings or choose another renderer and retry.");
    }
-@@ -4038,9 +4099,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -4038,6 +4099,8 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
  #endif
      if (g_audio_device == 0) {
        host_report_breadcrumb("audio device open FAILED: %s", SDL_GetError());

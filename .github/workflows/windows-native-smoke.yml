@@ -26,8 +26,6 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
-      - "tests/unit/test_assemble_windows_package.py"
-      - "docs/WINDOWS-X64-PACKAGING.md"
       - "native/product/**"
       - "native/title/**"
 

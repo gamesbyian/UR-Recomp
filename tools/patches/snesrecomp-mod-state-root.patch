@@ -18,7 +18,7 @@
      if (!fs::exists(path)) return true;
      std::ifstream file(path);
      if (!file) {
-@@ -1583,9 +1590,13 @@ std::string quote_toml(const std::string& value) {
+@@ -1583,9 +1590,15 @@ std::string quote_toml(const std::string& value) {
  
  bool save_state(Runtime& runtime, std::string* error) {
      std::error_code ec;
@@ -39,7 +39,7 @@
          set_error(error, "cannot write mod state");
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -3768,8 +3768,14 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+@@ -3768,7 +3768,12 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
        if (!g_mods_ready)
          fprintf(stderr, "mods: unavailable: %s\n", snes_mod_runtime_last_error_c());
 -      else

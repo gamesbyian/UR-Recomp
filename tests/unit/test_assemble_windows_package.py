@@ -61,6 +61,10 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn("UR-STARTUP-RUNTIME-DATA", launcher)
+            self.assertIn(
+                "required package directory is empty: mods",
+                launcher,
+            )
             self.assertIn("UR-STARTUP-SAVE-ROOT", launcher)
             self.assertIn(
                 "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",

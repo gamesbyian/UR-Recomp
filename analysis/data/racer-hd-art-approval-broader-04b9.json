@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "broader_frequency_summary": "analysis/generated/racer-hd-broader-frequency-summary-2026-10-05.json",
+    "source_workflow_run": 37394191595,
+    "source_artifact_id": 11382681039,
+    "temporal_window": [
+      1392,
+      1393
+    ],
+    "review_players": [
+      "p1"
+    ],
+    "review_surface": "broader ordinary-play census, canonical stock reconstruction, one-pose single-player dossier, equivalence review and real two-frame static temporal witness",
+    "guard_scope": "player_local",
+    "guard_scope_proof": "58 synchronized opponent-state witnesses / 80 player-frames reconstruct one identical P1 stock RGBA raster; P1/P2 staging columns are disjoint"
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed",
+      "review_metrics": {
+        "stock_alpha_bounds": [
+          18,
+          5,
+          47,
+          36
+        ],
+        "candidate_alpha_bounds": [
+          18,
+          5,
+          47,
+          36
+        ],
+        "stock_contact_x2_y2": [
+          77,
+          72
+        ],
+        "candidate_contact_x2_y2": [
+          77,
+          72
+        ],
+        "stock_opaque_pixels": 316,
+        "candidate_opaque_pixels": 269,
+        "alpha_intersection_pixels": 237,
+        "alpha_union_pixels": 348,
+        "alpha_iou": 0.6810344827586207
+      }
+    }
+  ]
+}

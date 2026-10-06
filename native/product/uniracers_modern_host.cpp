@@ -1704,35 +1704,6 @@ bool append_profile_editor_key(int key) {
 
 bool handle_profile_menu_key(int key) {
     ensure_profile_catalog();
-    if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
-        product_diagnostic("UR_PROFILE_RESET CONFIRM_OPENED");
-    } else {
-        product_diagnostic("UR_PROFILE_RESET REJECTED_CONTEXT");
-    }
-}
-
-bool append_profile_editor_key(int key) {
-    if (g_profile_edit_mode == ProfileEditMode::None) return false;
-    if (key == SDLK_BACKSPACE) {
-        if (!g_profile_edit_name.empty()) g_profile_edit_name.pop_back();
-        g_profile_edit_pristine = false;
-        return true;
-    }
-    char ch = 0;
-    if (key >= SDLK_a && key <= SDLK_z) ch = static_cast<char>('A' + key - SDLK_a);
-    else if (key >= SDLK_0 && key <= SDLK_9) ch = static_cast<char>('0' + key - SDLK_0);
-    else if (key == SDLK_SPACE) ch = ' ';
-    if (!ch) return false;
-    if (g_profile_edit_pristine) {
-        g_profile_edit_name.clear();
-        g_profile_edit_pristine = false;
-    }
-    if (g_profile_edit_name.size() < 16) g_profile_edit_name += ch;
-    return true;
-}
-
-bool handle_profile_menu_key(int key) {
-    ensure_profile_catalog();
 
     if (ur::product::modern_profile_reset_confirming(g_profile_reset)) {
         if (key == SDLK_ESCAPE || key == SDLK_b) {

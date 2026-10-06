@@ -2793,6 +2793,11 @@
                 "hd_selected_player_frames": 506,
                 "original_fallback_player_frames": 4776,
                 "hd_coverage_fraction": 0.09579704657326771
+              },
+              "focused_reproduction": {
+                "workflow_run": 37406146322,
+                "artifact_id": 11387666991,
+                "status": "green"
               }
             }
           ],
@@ -2805,8 +2810,33 @@
             "cumulative_baseline_fallback_burden_removed_fraction": 0.07513555383423702
           },
           "next_discriminator": {
-            "status": "awaiting-post-00b9-canonical-rerank",
-            "rule": "Use the approval-gated post-00B9 canonical visual-context probe. Do not choose the next family from pre-00B9 burden or ROM adjacency."
+            "status": "measured-post-00b9-leader",
+            "target": {
+              "player": "p1",
+              "semantic_frame_id": "0x02B9",
+              "companion": "0x0000",
+              "selector": 0,
+              "gate": "0x0000",
+              "player_frames": 74,
+              "episode_count": 55,
+              "unique_stock_raster_count": 1,
+              "stock_rgba_sha256": "2b6eeb77ba73f8fbaaa0b258c7c0f63d74780a64e9b0d4e7aeb40e823cfb2c52",
+              "normalized_geometry_sha256": "46905e5bd39ffac65d0a18f8638c442589089c149c8f28be23a7768ba41e0829",
+              "alpha_bounds": [
+                18,
+                5,
+                47,
+                36
+              ],
+              "contact_x2_y2": [
+                77,
+                72
+              ],
+              "exact_same_player_reuse_matches": [],
+              "palette_normalized_reuse_matches": [],
+              "requires_new_pose": true
+            },
+            "rule": "02B9 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission is complete."
           },
           "status": "shipping expansion active; 04B9, 0239, 0439, 0039, and 00B9 measured, reviewed, hash-approved, and runtime-registered"
         },

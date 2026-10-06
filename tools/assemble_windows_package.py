@@ -132,9 +132,10 @@ def write_launcher(path: Path) -> None:
     )
 
 
-def write_readme(path: Path) -> None:
+def write_readme(path: Path, source_revision: str) -> None:
     path.write_text(
         "UR-Recomp - Windows x64 portable package\n"
+        f"Source revision: {source_revision}\n"
         "\n"
         "This is the portable Windows build. Extract the whole folder before "
         "running it; do not run directly from inside the ZIP. The package "
@@ -195,7 +196,7 @@ def assemble(
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
     write_launcher(output / LAUNCHER_NAME)
-    write_readme(output / README_NAME)
+    write_readme(output / README_NAME, source_revision)
 
     manifest: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,

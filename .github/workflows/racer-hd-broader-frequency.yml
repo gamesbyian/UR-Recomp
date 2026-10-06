@@ -155,7 +155,11 @@ jobs:
           ref = json.loads(pathlib.Path(sys.argv[1]).read_text())
           native = json.loads(pathlib.Path(sys.argv[2]).read_text())
           m = ref["measurement"]
-          expected = native["current_after"]
+          expected = native["second_expansion"]["after"]
+          current = native["current_after"]
+          spill = native["broader_player_local_spill_in"]
+          assert current["hd_selected_player_frames"] == expected["hd_selected_player_frames"] + spill["player_frames_added"]
+          assert current["original_fallback_player_frames"] == expected["original_fallback_player_frames"] - spill["player_frames_added"]
           assert m["frames_observed"] == 441, m
           assert m["player_frame_observations"] == expected["player_frame_observations"], (m, expected)
           assert m["hd_selected_player_frames"] == expected["hd_selected_player_frames"], (m, expected)
@@ -321,6 +325,7 @@ jobs:
           excluded = {
               "ordinary-racer-0x0239-p1-broader-frequency-reference",
               "ordinary-racer-0x0439-p1-broader-frequency-reference",
+              "ordinary-racer-0x0039-p1-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -328,6 +333,7 @@ jobs:
           for key in (
               "ordinary-race-0239-broader-static-1406-1407",
               "ordinary-race-0439-broader-static-1414-1415",
+              "ordinary-race-0039-broader-static-1398-1399",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(json.dumps(source, indent=2) + "\n")

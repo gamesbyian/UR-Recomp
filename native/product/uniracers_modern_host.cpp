@@ -84,6 +84,7 @@ UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
 std::optional<ur::product::RegionalPresentationInputCoordinator>
     g_regional_input;
+bool g_regional_title_surface_previous;
 ur::product::HostPresentationFpsMode g_live_presentation_fps_mode =
     ur::product::HostPresentationFpsMode::Game;
 bool g_product_state_initialized;
@@ -268,6 +269,15 @@ bool apply_regional_input_decision(
         }
     }
     return decision.consume;
+}
+
+void observe_regional_title_surface() {
+    const bool current = current_regional_secret_context().idle_title_surface;
+    if (g_regional_input && g_regional_title_surface_previous && !current) {
+        g_regional_input->reset();
+        product_diagnostic("UR_REGIONAL MATCHER_RESET_TITLE_EXIT");
+    }
+    g_regional_title_surface_previous = current;
 }
 
 void apply_profile_save_root() {
@@ -3434,6 +3444,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         }
     }
 
+    observe_regional_title_surface();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
 }

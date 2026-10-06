@@ -156,10 +156,18 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                '.ur-recomp-config.ini*.migrate.tmp',
+                '.ur-recomp-config.ini.migrate.tmp',
                 launcher,
             )
             self.assertIn(
+                '.ur-recomp-saves.migrate.tmp',
+                launcher,
+            )
+            self.assertNotIn(
+                '.ur-recomp-config.ini*.migrate.tmp',
+                launcher,
+            )
+            self.assertNotIn(
                 '.ur-recomp-saves*.migrate.tmp',
                 launcher,
             )

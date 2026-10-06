@@ -37,6 +37,19 @@ class RegionalPresentationHostContractTests(unittest.TestCase):
         self.assertIn("g_ram[0x009F]", source)
         self.assertIn("regional_secret_context(", source)
 
+    def test_title_exit_resets_pending_matcher(self):
+        source = self.source
+        self.assertIn("void observe_regional_title_surface()", source)
+        self.assertIn("g_regional_input->reset()", source)
+        self.assertIn("g_regional_title_surface_previous && !current", source)
+
+        start = source.index(
+            'extern "C" void ur_uniracers_modern_after_run_frame(')
+        end = source.index(
+            'extern "C" int ur_uniracers_modern_system_key_down(', start)
+        body = source[start:end]
+        self.assertIn("observe_regional_title_surface();", body)
+
     def test_semantic_controller_route_uses_mapped_snes_controls(self):
         source = self.source
         start = source.index(

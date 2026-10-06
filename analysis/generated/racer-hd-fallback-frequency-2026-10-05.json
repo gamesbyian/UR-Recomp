@@ -141,12 +141,12 @@
   },
   "current_after": {
     "player_frame_observations": 882,
-    "hd_selected_player_frames": 174,
-    "original_fallback_player_frames": 708,
-    "hd_coverage_fraction": 0.19727891156462585,
-    "fallback_burden_removed_fraction": 0.016666666666666666,
-    "absolute_coverage_gain_percentage_points": 1.3605442176870748,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.03278688524590164
+    "hd_selected_player_frames": 177,
+    "original_fallback_player_frames": 705,
+    "hd_coverage_fraction": 0.20068027210884354,
+    "fallback_burden_removed_fraction": 0.036885245901639344,
+    "absolute_coverage_gain_percentage_points": 3.061224489795918,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.036885245901639344
   },
   "next_ranked_discriminator": {
     "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
@@ -201,5 +201,29 @@
     },
     "disposition": "stop-before-new-art",
     "reason": "This state has the same 12-player-frame payoff as the two accepted measured families but occurs in only one episode and requires two genuinely new poses. No exact or palette-normalized reuse exists for either player, so shipping it now would double the new-art cost of the previous family without increasing measured burden removed."
+  },
+  "broader_player_local_spill_in": {
+    "status": "measured-runtime-visible",
+    "player_frames_added": 3,
+    "states": [
+      {
+        "frame": 1585,
+        "player": "p1",
+        "semantic_frame_id": "0x04B9"
+      },
+      {
+        "frame": 1588,
+        "player": "p1",
+        "semantic_frame_id": "0x0239"
+      },
+      {
+        "frame": 1600,
+        "player": "p1",
+        "semantic_frame_id": "0x0439"
+      }
+    ],
+    "reason": "The three broader-route P1 player-local registrations also occur once each inside the retained 441-frame native window. Their P2 peers remain fail-closed Original.",
+    "workflow_run": 37402856706,
+    "artifact_id": 11386595434
   }
 }

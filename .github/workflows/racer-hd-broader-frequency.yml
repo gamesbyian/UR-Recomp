@@ -4,7 +4,9 @@ on:
   pull_request:
     paths:
       - "tools/measure_racer_hd_frequency_from_wram_dumps.py"
+      - "tools/measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_measure_racer_hd_frequency_from_wram_dumps.py"
+      - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - ".github/workflows/racer-hd-broader-frequency.yml"
   workflow_dispatch:
 
@@ -87,6 +89,9 @@ jobs:
               f"fallback={m['original_fallback_player_frames']}",
           )
           print("TARGET", json.dumps(t, sort_keys=True))
+          print("TOP_PLAYER_PRIMARY_FALLBACK")
+          for item in r["fallback_by_player_primary_semantic_id"][:20]:
+              print(item["player_frames"], item["player"], item["semantic_frame_id"])
           print("TOP_UNSUPPORTED")
           for item in r["unsupported_exact_states_ranked"][:12]:
               print(

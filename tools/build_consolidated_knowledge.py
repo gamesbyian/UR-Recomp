@@ -182,7 +182,7 @@ def presentation():
         "runtime":{
             "presenter":"native/product/regional_title_presenter.cpp",
             "north_america":"canonical guest raster unchanged",
-            "europe":"host-owned exact retail crop substitution after canonical-crop digest admission",
+            "europe":"host-owned exact retail crop substitution on the proven idle-title semantic surface",
             "fail_closed":"canonical Uniracers raster",
             "guest_state_authority":"none; presenter receives/writes host output pixels only",
             "authentic_mode":"inert",
@@ -191,7 +191,7 @@ def presentation():
             "status":"deferred",
             "reason":"settled title identity is characterized, but the exact stock horizontal/title transition is not yet sufficiently characterized for shipping integration",
         },
-        "admission_rule":"Regional title art is admitted only from repeated matched retail evidence. Europe substitution requires exact canonical crop identity and otherwise preserves canonical Uniracers.",
+        "admission_rule":"Regional title art is admitted only from repeated matched retail evidence. Europe substitution requires the proven idle-title semantic surface plus a self-consistent retained asset; NorthAmerica remains the live canonical USA guest raster, and any failed Europe write restores that live raster.",
     }
     return {"schema_version":1,"generated_by":"tools/build_consolidated_knowledge.py","purpose":"Multi-family semantic presentation-asset query surface.","families":[family,regional_title_family]}
 

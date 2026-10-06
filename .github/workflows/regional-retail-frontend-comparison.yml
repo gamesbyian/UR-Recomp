@@ -51,6 +51,14 @@ jobs:
             --out "$RUNNER_TEMP/regional-frontend/retail-frontend-comparison.json"
           cat "$RUNNER_TEMP/regional-frontend/retail-frontend-comparison.json"
 
+      - name: Localize title presentation deltas
+        run: |
+          python3 tools/analyze_regional_title_delta.py \
+            "$RUNNER_TEMP/regional-frontend/title-transition/usa" \
+            "$RUNNER_TEMP/regional-frontend/title-transition/europe" \
+            --out "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
+          cat "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
+
       - name: Upload matched regional frontend evidence
         if: always()
         uses: actions/upload-artifact@v4

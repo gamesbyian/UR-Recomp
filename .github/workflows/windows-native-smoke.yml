@@ -431,6 +431,22 @@ jobs:
           test "$RC" -eq 2
           grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log"
 
+          EMPTY_MODS="$RUNNER_TEMP/UR-Recomp-Windows-x64-empty-mods"
+          cp -R "$TEST_PACKAGE" "$EMPTY_MODS"
+          rm -rf "$EMPTY_MODS/mods"
+          mkdir "$EMPTY_MODS/mods"
+          EMPTY_MODS_WIN="$(cygpath -w "$EMPTY_MODS")"
+          set +e
+          powershell.exe -NoProfile -Command \
+            "& '${EMPTY_MODS_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
+            >"$RUNNER_TEMP/package-empty-mods.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-empty-mods.log"
+          test "$RC" -eq 2
+          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log"
+          grep -Fq "required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
+
           BAD_ROOT="$RUNNER_TEMP/not-a-user-data-directory"
           printf 'not a directory\n' > "$BAD_ROOT"
           PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"

@@ -434,7 +434,7 @@ jobs:
           EMPTY_MODS="$RUNNER_TEMP/UR-Recomp-Windows-x64-empty-mods"
           cp -R "$TEST_PACKAGE" "$EMPTY_MODS"
           rm -rf "$EMPTY_MODS/mods"
-          mkdir "$EMPTY_MODS/mods"
+          mkdir -p "$EMPTY_MODS/mods/preloaded/packages"
           EMPTY_MODS_WIN="$(cygpath -w "$EMPTY_MODS")"
           set +e
           powershell.exe -NoProfile -Command \

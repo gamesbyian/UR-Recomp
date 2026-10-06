@@ -83,6 +83,14 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                "user data directory must be outside the extracted package",
+                launcher,
+            )
+            self.assertIn(
+                ":check_user_root_location",
+                launcher,
+            )
+            self.assertIn(
                 "cannot create the configured user data directory",
                 launcher,
             )

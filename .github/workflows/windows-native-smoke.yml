@@ -503,7 +503,7 @@ jobs:
           EMPTY_MODS_LOG="$EMPTY_MODS_USER/diagnostics/startup.log"
           test -f "$EMPTY_MODS_LOG"
           test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$EMPTY_MODS_LOG")" -eq 1
-          grep -Fq "required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
+          grep -Fq "Required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
 
           BAD_ROOT="$RUNNER_TEMP/not-a-user-data-directory"
           printf 'not a directory\n' > "$BAD_ROOT"
@@ -546,7 +546,7 @@ jobs:
           cat "$RUNNER_TEMP/package-bad-type-root.log"
           test "$RC" -eq 3
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-bad-type-root.log"
-          grep -Fq "user data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
+          grep -Fq "User data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
 
           set +e
           UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\

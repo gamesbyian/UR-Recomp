@@ -83,6 +83,14 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                "cannot create the configured user data directory",
+                launcher,
+            )
+            self.assertNotIn(
+                "cannot create user data directory: %UR_RECOMP_USER_DATA_ROOT%",
+                launcher,
+            )
+            self.assertIn(
                 "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"",
                 launcher,
             )

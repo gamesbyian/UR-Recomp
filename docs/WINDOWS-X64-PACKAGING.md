@@ -45,6 +45,8 @@ The package remains self-contained with respect to immutable game/runtime payloa
 
 ## Save-location boundary
 
+Portable upgrades use whole-folder replacement rather than in-place overlay: close the game, remove or move the old extracted `UR-Recomp-Windows-x64/` folder, then extract the new ZIP fresh. Overlaying a new archive onto an old immutable package tree is unsupported because stale package files can survive an overlay even though user data is safely externalized.
+
 The portable package no longer requires a writable extraction directory for ordinary mutable state. The default Windows root is `%APPDATA%\\gamesbyian\\UR-Recomp`; `UR_RECOMP_USER_DATA_ROOT` exists as an explicit portable/testing override. The final resolved root must be an absolute drive-rooted or UNC path and must live outside the extracted package tree; relative overrides, non-absolute `APPDATA` resolution, and package-local/subdirectory roots fail closed before migration or launch. The launcher exports that resolved root to the framework and Modern host rather than maintaining feature-specific locations.
 
 Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. The framework ROM-path cache is redirected to the user-data root so launcher activity cannot rewrite packaged `rom.cfg`. User-owned config, bindings, cartridge/profile saves, mod selections, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.

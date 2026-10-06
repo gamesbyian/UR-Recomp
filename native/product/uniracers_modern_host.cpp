@@ -4092,7 +4092,17 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             // g_surface is observed before the Modern session receives this
             // frame's race-active update below. Treat a rejected first-frame
             // pause as retryable instead of consuming the one-shot trigger.
-            if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+            const bool paused_now = dispatch(UR_MODERN_PAUSE_TOGGLE);
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr,
+                    "UR_GHOST_ACCEPTANCE pause=%d paused=%d surface=%d\n",
+                    paused_now ? 1 : 0,
+                    paused() ? 1 : 0,
+                    static_cast<int>(g_surface));
+                std::fflush(stderr);
+            }
+            if (paused_now) {
                 const int restart =
                     ur_modern_session_restart_available(g_session);
                 for (int step = 0; step < 8 &&
@@ -4101,8 +4111,17 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                      ++step) {
                     ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
                 }
-                if (ur_modern_pause_menu_selected(&g_pause_menu, restart) ==
-                        UR_MODERN_PAUSE_OPTIONS &&
+                const auto pause_selected =
+                    ur_modern_pause_menu_selected(&g_pause_menu, restart);
+                if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                    std::fprintf(
+                        stderr,
+                        "UR_GHOST_ACCEPTANCE pause_selected=%d restart=%d\n",
+                        static_cast<int>(pause_selected),
+                        restart);
+                    std::fflush(stderr);
+                }
+                if (pause_selected == UR_MODERN_PAUSE_OPTIONS &&
                     activate_pause_selection()) {
                     for (int step = 0; step < 12 &&
                          ur_modern_options_menu_selected(&g_options_menu) !=
@@ -4110,10 +4129,19 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                          ++step) {
                         ur_modern_options_menu_move(&g_options_menu, 1);
                     }
-                    if (ur_modern_options_menu_selected(&g_options_menu) ==
-                            UR_MODERN_OPTIONS_GHOST &&
+                    const auto option_selected =
+                        ur_modern_options_menu_selected(&g_options_menu);
+                    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                        std::fprintf(
+                            stderr,
+                            "UR_GHOST_ACCEPTANCE option_selected=%d\n",
+                            static_cast<int>(option_selected));
+                        std::fflush(stderr);
+                    }
+                    if (option_selected == UR_MODERN_OPTIONS_GHOST &&
                         activate_options_selection()) {
                         g_ghost_target_acceptance_fired = true;
+                        product_diagnostic("UR_GHOST_ACCEPTANCE COMPLETE");
                     }
                 }
             }

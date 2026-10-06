@@ -1,0 +1,17 @@
+--- a/runner/src/launcher_cache.c
++++ b/runner/src/launcher_cache.c
+@@ -3,9 +3,14 @@
+ #include "host_paths.h"
+ 
+ #include <stdio.h>
++#include <stdlib.h>
+ #include <string.h>
+ 
+ static void rom_cache_path(char *out, size_t max_len) {
++    const char *user_data = getenv("SNESRECOMP_USER_DATA_DIR");
++    if (user_data && user_data[0] &&
++        snprintf(out, max_len, "%s/rom.cfg", user_data) < (int)max_len)
++        return;
+     if (!snesrecomp_exe_dir_path("rom.cfg", out, max_len))
+         snprintf(out, max_len, "rom.cfg");
+ }

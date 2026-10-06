@@ -1,0 +1,144 @@
+--- a/runner/src/host_paths.c
++++ b/runner/src/host_paths.c
+@@ -146,31 +146,50 @@
+-static int dir_is_writable(const char *dir) {
+-    char probe[1024];
+-    if (snprintf(probe, sizeof(probe), "%s.snesrecomp_write_probe",
+-                 dir) >= (int)sizeof(probe))
+-        return 0;
+-    FILE *f = fopen(probe, "wb");
+-    if (!f) return 0;
+-    fclose(f);
+-    remove(probe);
+-    return 1;
+-}
+-
+-int snesrecomp_anchor_to_exe_dir(void) {
+-    char dir[1024];
+-    get_exe_dir(dir, sizeof(dir));
+-    if (dir[0] == '.' &&
+-        (dir[1] == '/' || dir[1] == '\\' || dir[1] == '\0'))
+-        return 0;
+-    if (!dir_is_writable(dir)) {
+-        fprintf(stderr,
+-                "[Launcher] Executable directory '%s' is not writable; "
+-                "config and saves stay in the current directory.\n", dir);
+-        return 0;
+-    }
+-    if (snesrecomp_chdir(dir) != 0) {
+-        fprintf(stderr, "[Launcher] Could not change directory to '%s'.\n", dir);
+-        return 0;
+-    }
+-    fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
+-    return 1;
+-}
++static int dir_is_writable(const char *dir) {
++    char probe[1024];
++    size_t len = dir ? strlen(dir) : 0;
++    const char *sep =
++        (len > 0 && dir[len - 1] != '/' && dir[len - 1] != '\\') ? "/" : "";
++    if (!dir || !dir[0] ||
++        snprintf(probe, sizeof(probe), "%s%s.snesrecomp_write_probe",
++                 dir, sep) >= (int)sizeof(probe))
++        return 0;
++    FILE *f = fopen(probe, "wb");
++    if (!f) return 0;
++    fclose(f);
++    remove(probe);
++    return 1;
++}
++
++int snesrecomp_anchor_to_exe_dir(void) {
++    char dir[1024];
++    const char *user_data = getenv("SNESRECOMP_USER_DATA_DIR");
++    if (user_data && user_data[0]) {
++        if (snprintf(dir, sizeof(dir), "%s", user_data) >= (int)sizeof(dir)) {
++            fprintf(stderr,
++                    "[Launcher] Config/save root is too long: '%s'.\n",
++                    user_data);
++            return 0;
++        }
++    } else {
++        get_exe_dir(dir, sizeof(dir));
++    }
++    if ((!user_data || !user_data[0]) &&
++        dir[0] == '.' &&
++        (dir[1] == '/' || dir[1] == '\\' || dir[1] == '\0'))
++        return 0;
++    if (!dir_is_writable(dir)) {
++        fprintf(stderr,
++                "[Launcher] Executable directory '%s' is not writable; "
++                "config and saves stay in the current directory.\n", dir);
++        return 0;
++    }
++    if (snesrecomp_chdir(dir) != 0) {
++        fprintf(stderr, "[Launcher] Could not change directory to '%s'.\n", dir);
++        return 0;
++    }
++    if (user_data && user_data[0])
++        fprintf(stderr,
++                "[Launcher] Config/saves anchored to user data '%s'.\n", dir);
++    else
++        fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
++    return 1;
++}
+--- a/runner/src/keybinds.c
++++ b/runner/src/keybinds.c
+@@ -1,8 +1,9 @@
+ /*
+  * keybinds.c — SNES controller keybinds, INI-driven.
+  *
+- * INI lives next to the exe as keybinds.ini. Auto-generated with sane
+- * defaults when missing. Edit and restart to apply.
++ * INI lives in the active mutable-data root as keybinds.ini (next to the exe
++ * for legacy hosts that do not select a separate root). Auto-generated with
++ * sane defaults when missing. Edit and restart to apply.
+  */
+ #include "keybinds.h"
+ 
+@@ -124,5 +125,12 @@ static char s_ini_path[512] = {0};
+ 
+ static void derive_ini_path(const char *exe_path) {
++    /* snesrecomp_anchor_to_exe_dir() has already moved cwd to the explicit
++     * mutable-data root. Keep keyboard bindings with config and saves rather
++     * than reaching back into an immutable package directory. */
++    if (getenv("SNESRECOMP_USER_DATA_DIR")) {
++        strcpy(s_ini_path, "keybinds.ini");
++        return;
++    }
+     if (!exe_path || !*exe_path) {
+         strcpy(s_ini_path, "keybinds.ini");
+         return;
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -3545,6 +3545,12 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+      * rather than inside the read-only squashfs mount. */
+     int anchored = snesrecomp_anchor_to_exe_dir();
+     if (!anchored) {
++      if (HostGetenv("USER_DATA_DIR")) {
++        fprintf(stderr,
++                "UR-STARTUP-SAVE-ROOT: user data directory is unavailable or "
++                "not writable. Choose a writable per-user location and retry.\n");
++        return 7;
++      }
+       /* Read-only install: fall back to the historical walk-up so a Windows
+        * copy in an unwritable directory still finds a config. */
+       SwitchDirectory();
+@@ -3830,6 +3837,10 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+                                                   g_rom_identity_ok ? g_rom_sha256
+                                                                   : NULL)) {
+         /* User cancelled the picker or repeatedly chose a non-matching ROM. */
++        if (arg_rom)
++          fprintf(stderr,
++                  "UR-STARTUP-ROM-INVALID: ROM '%s' does not match the build. "
++                  "Restore the packaged ROM and retry.\n", arg_rom);
+         snesrecomp_host_args_usage(program_path, NULL);
+         fprintf(stderr, "\nYou must legally own a copy of %s.\n",
+                 game->display_name);
+@@ -3935,5 +3946,5 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
+                          SDL_GetCurrentVideoDriver() ? SDL_GetCurrentVideoDriver() : "(none)",
+                          SDL_GetCurrentAudioDriver() ? SDL_GetCurrentAudioDriver() : "(none)");
+ 
+-  /* Load (or generate) keybinds.ini next to the executable. */
++  /* Load (or generate) keybinds.ini from the active mutable-data root. */
+   keybinds_init(program_path);

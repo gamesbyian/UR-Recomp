@@ -19,6 +19,38 @@ LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
 ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
 ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
+REQUIRED_PACKAGE_FILES = {
+    EXE_NAME,
+    ROM_NAME,
+    "rom.cfg",
+    LAUNCHER_NAME,
+    README_NAME,
+}
+
+
+def normalize_source_revision(value: object) -> str:
+    if not isinstance(value, str):
+        raise ValueError("source revision must be a string")
+    revision = value.strip()
+    if (
+        not revision
+        or revision != value
+        or any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in revision)
+    ):
+        raise ValueError("source revision must be one non-empty canonical line")
+    return revision
+
+
+def expected_readme_revision_line(source_revision: str) -> str:
+    return f"Source revision: {source_revision}\n"
+
+
+def is_same_or_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
 
 
 def sha256(path: Path) -> str:
@@ -45,39 +77,146 @@ def package_files(root: Path) -> list[dict[str, object]]:
     return files
 
 
+def validate_required_package_paths(
+    paths: set[str], *, context: str = "package"
+) -> None:
+    missing = sorted(REQUIRED_PACKAGE_FILES - paths)
+    if missing:
+        raise ValueError(
+            f"required {context} files missing: " + ", ".join(missing)
+        )
+    if not any(path.startswith("mods/") for path in paths):
+        raise ValueError(f"{context} mods directory is empty")
+
+
 def write_launcher(path: Path) -> None:
     path.write_text(
         "@echo off\r\n"
-        "setlocal\r\n"
+        "setlocal DisableDelayedExpansion\r\n"
         "cd /d \"%~dp0\"\r\n"
-        f"if not exist \"{EXE_NAME}\" (echo UR-Recomp cannot start: required file missing: {EXE_NAME} 1>&2 & exit /b 2)\r\n"
-        f"if not exist \"{ROM_NAME}\" (echo UR-Recomp cannot start: required file missing: {ROM_NAME} 1>&2 & exit /b 2)\r\n"
-        "if not exist \"rom.cfg\" (echo UR-Recomp cannot start: required file missing: rom.cfg 1>&2 & exit /b 2)\r\n"
-        f"\"{EXE_NAME}\" \"{ROM_NAME}\" %*\r\n"
+        f"if not exist \"{EXE_NAME}\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: {EXE_NAME}. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
+        f"if not exist \"{ROM_NAME}\" (echo UR-STARTUP-ROM-MISSING: packaged ROM is missing: {ROM_NAME}. Restore the package or your verified personal dump. 1>&2 & exit /b 2)\r\n"
+        "if not exist \"rom.cfg\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: rom.cfg. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
+        "if not exist \"mods\\\" (echo UR-STARTUP-RUNTIME-DATA: required package directory is missing: mods. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
+        "for /f \"delims=\" %%I in ('dir /b /s /a-d \"mods\\*\" 2^>nul') do goto mods_payload_ready\r\n"
+        "echo UR-STARTUP-RUNTIME-DATA: required package directory is empty: mods. Re-extract the complete package. 1>&2\r\n"
+        "exit /b 2\r\n"
+        ":mods_payload_ready\r\n"
+        "if defined UR_RECOMP_USER_DATA_ROOT goto validate_user_root\r\n"
+        "if not defined APPDATA (echo UR-STARTUP-SAVE-ROOT: APPDATA is unavailable. Set UR_RECOMP_USER_DATA_ROOT to a writable absolute directory and retry. 1>&2 & exit /b 3)\r\n"
+        "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"\r\n"
+        ":validate_user_root\r\n"
+        "if \"%UR_RECOMP_USER_DATA_ROOT:~1,2%\"==\":\\\" goto user_root_ready\r\n"
+        "if \"%UR_RECOMP_USER_DATA_ROOT:~0,2%\"==\"\\\\\" goto user_root_ready\r\n"
+        "echo UR-STARTUP-SAVE-ROOT: resolved user data root must be an absolute Windows path. 1>&2\r\n"
+        "exit /b 3\r\n"
+        ":user_root_ready\r\n"
+        "for %%I in (\"%UR_RECOMP_USER_DATA_ROOT%\") do set \"UR_RECOMP_USER_DATA_ROOT=%%~fI\"\r\n"
+        "for %%I in (\"%~dp0.\") do set \"UR_PACKAGE_ROOT=%%~fI\"\r\n"
+        "set \"UR_PATH_CHECK=%UR_RECOMP_USER_DATA_ROOT%\"\r\n"
+        ":check_user_root_location\r\n"
+        "if /I \"%UR_PATH_CHECK%\"==\"%UR_PACKAGE_ROOT%\" goto package_root_rejected\r\n"
+        "for %%I in (\"%UR_PATH_CHECK%\\..\") do set \"UR_PATH_PARENT=%%~fI\"\r\n"
+        "if /I \"%UR_PATH_PARENT%\"==\"%UR_PATH_CHECK%\" goto user_root_outside_package\r\n"
+        "set \"UR_PATH_CHECK=%UR_PATH_PARENT%\"\r\n"
+        "goto check_user_root_location\r\n"
+        ":package_root_rejected\r\n"
+        "echo UR-STARTUP-SAVE-ROOT: user data directory must be outside the extracted package. Choose another absolute location and retry. 1>&2\r\n"
+        "exit /b 3\r\n"
+        ":user_root_outside_package\r\n"
+        "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\\" mkdir \"%UR_RECOMP_USER_DATA_ROOT%\" 2>nul\r\n"
+        "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\\" (echo UR-STARTUP-SAVE-ROOT: cannot create the configured user data directory. Choose a writable absolute location and retry. 1>&2 & exit /b 3)\r\n"
+        "set \"UR_WRITE_PROBE=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-write-probe-%RANDOM%-%RANDOM%.tmp\"\r\n"
+        "> \"%UR_WRITE_PROBE%\" echo writable\r\n"
+        "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory is not writable. Check permissions or choose another absolute location. 1>&2 & exit /b 3)\r\n"
+        "del /q \"%UR_WRITE_PROBE%\" >nul 2>&1\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\\\" (echo UR-STARTUP-SAVE-ROOT: user data config.ini is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\\\" (echo UR-STARTUP-SAVE-ROOT: user data keybinds.ini is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\\\" (echo UR-STARTUP-SAVE-ROOT: user data mod-state.toml is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\rom.cfg\\\" (echo UR-STARTUP-SAVE-ROOT: user data rom.cfg is a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (echo UR-STARTUP-SAVE-ROOT: user data saves path is not a directory. Remove or rename it and retry. 1>&2 & exit /b 3)\r\n"
+        "set \"UR_MIGRATE_TOKEN=%RANDOM%-%RANDOM%\"\r\n"
+        "set \"UR_MIGRATE_CONFIG=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
+        "set \"UR_MIGRATE_KEYS=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-keybinds.ini.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
+        "set \"UR_MIGRATE_SAVES=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
+        "set \"UR_MIGRATE_MOD=%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-mod-state.toml.%UR_MIGRATE_TOKEN%.migrate.tmp\"\r\n"
+        "if exist \"config.ini\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\" (\r\n"
+        "  copy /b /y \"config.ini\" \"%UR_MIGRATE_CONFIG%\" >nul\r\n"
+        "  if errorlevel 1 (del /q \"%UR_MIGRATE_CONFIG%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: could not stage legacy config.ini migration. 1>&2 & exit /b 3)\r\n"
+        "  ren \"%UR_MIGRATE_CONFIG%\" \"config.ini\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\" attrib -R \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\config.ini\" (del /q \"%UR_MIGRATE_CONFIG%\" >nul 2>&1) else (echo UR-STARTUP-SAVE-ROOT: could not commit legacy config.ini migration. 1>&2 & exit /b 3)\r\n"
+        ")\r\n"
+        "if exist \"keybinds.ini\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\" (\r\n"
+        "  copy /b /y \"keybinds.ini\" \"%UR_MIGRATE_KEYS%\" >nul\r\n"
+        "  if errorlevel 1 (del /q \"%UR_MIGRATE_KEYS%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: could not stage legacy keybinds.ini migration. 1>&2 & exit /b 3)\r\n"
+        "  ren \"%UR_MIGRATE_KEYS%\" \"keybinds.ini\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\" attrib -R \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\keybinds.ini\" (del /q \"%UR_MIGRATE_KEYS%\" >nul 2>&1) else (echo UR-STARTUP-SAVE-ROOT: could not commit legacy keybinds.ini migration. 1>&2 & exit /b 3)\r\n"
+        ")\r\n"
+        "if exist \"saves\\\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (\r\n"
+        "  mkdir \"%UR_MIGRATE_SAVES%\" >nul 2>&1\r\n"
+        "  if not exist \"%UR_MIGRATE_SAVES%\\\" (echo UR-STARTUP-SAVE-ROOT: could not create legacy saves staging directory. 1>&2 & exit /b 3)\r\n"
+        "  xcopy \"saves\" \"%UR_MIGRATE_SAVES%\\\" /e /i /h /y >nul\r\n"
+        "  if errorlevel 2 (rmdir /s /q \"%UR_MIGRATE_SAVES%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: could not stage legacy saves migration. 1>&2 & exit /b 3)\r\n"
+        "  ren \"%UR_MIGRATE_SAVES%\" \"saves\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" attrib -R \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\*\" /s /d >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\saves\\\" (rmdir /s /q \"%UR_MIGRATE_SAVES%\" >nul 2>&1) else (echo UR-STARTUP-SAVE-ROOT: could not commit legacy saves migration. 1>&2 & exit /b 3)\r\n"
+        ")\r\n"
+        "if exist \"mods\\preloaded\\state.toml\" if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" (\r\n"
+        "  copy /b /y \"mods\\preloaded\\state.toml\" \"%UR_MIGRATE_MOD%\" >nul\r\n"
+        "  if errorlevel 1 (del /q \"%UR_MIGRATE_MOD%\" >nul 2>&1 & echo UR-STARTUP-SAVE-ROOT: could not stage legacy mod-state migration. 1>&2 & exit /b 3)\r\n"
+        "  ren \"%UR_MIGRATE_MOD%\" \"mod-state.toml\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" attrib -R \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" >nul 2>&1\r\n"
+        "  if exist \"%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\" (del /q \"%UR_MIGRATE_MOD%\" >nul 2>&1) else (echo UR-STARTUP-SAVE-ROOT: could not commit legacy mod-state migration. 1>&2 & exit /b 3)\r\n"
+        ")\r\n"
+        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-config.ini.migrate.tmp\" >nul 2>&1\r\n"
+        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-keybinds.ini.migrate.tmp\" >nul 2>&1\r\n"
+        "del /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-mod-state.toml.migrate.tmp\" >nul 2>&1\r\n"
+        "rmdir /s /q \"%UR_RECOMP_USER_DATA_ROOT%\\.ur-recomp-saves.migrate.tmp\" >nul 2>&1\r\n"
+        "set \"SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%\"\r\n"
+        "set \"SNESRECOMP_MOD_STATE_PATH=%UR_RECOMP_USER_DATA_ROOT%\\mod-state.toml\"\r\n"
+        f"\"%~dp0{EXE_NAME}\" \"%~dp0{ROM_NAME}\" %*\r\n"
         "exit /b %ERRORLEVEL%\r\n",
         encoding="utf-8",
         newline="",
     )
 
 
-def write_readme(path: Path) -> None:
+def write_readme(path: Path, source_revision: str) -> None:
     path.write_text(
         "UR-Recomp - Windows x64 portable package\n"
+        f"Source revision: {source_revision}\n"
         "\n"
-        "This is the portable Windows build. Extract the whole folder to a "
-        "normal user-writable location before running it. Do not run directly "
-        "from inside the ZIP, and do not install this version under Program "
-        "Files.\n"
+        "This is the portable Windows build. Extract the whole folder before "
+        "running it; do not run directly from inside the ZIP. The package "
+        "files themselves are treated as read-only. This ZIP does not register "
+        "an installer or uninstaller.\n"
         "\n"
         f"Start the game with {LAUNCHER_NAME}. Keep {EXE_NAME}, {ROM_NAME}, "
         "rom.cfg and the mods directory together.\n"
         "\n"
-        "The current desktop host creates framework config/keybind/save files "
-        "relative to this package directory. Modern profile metadata and run "
-        "history may additionally use the platform per-user preference "
-        "directory. A future installer may move all mutable state to a "
-        "per-user data root; this portable package deliberately does not "
-        "pretend that migration is complete.\n"
+        "Mutable user data is stored outside the extracted package under "
+        "%APPDATA%\\\\gamesbyian\\\\UR-Recomp by default. Set "
+        "UR_RECOMP_USER_DATA_ROOT before launching to choose another writable "
+        "absolute Windows path (drive-rooted or UNC). Relative overrides and a "
+        "non-absolute resolved APPDATA root are rejected. The resolved root must "
+        "also be outside the extracted package and all of its subdirectories. "
+        "Config, keyboard bindings, cartridge/profile saves, mod "
+        "selection state, Modern settings/profile metadata and run history "
+        "share this policy.\n"
+        "\n"
+        "If an older portable folder already contains config.ini, "
+        "keybinds.ini, saves, or mods/preloaded/state.toml, the launcher "
+        "copies them into an empty corresponding user-data location on first "
+        "launch. Existing user-data "
+        "files always win, so migration is deterministic and safe to repeat.\n"
+        "\n"
+        "To update this portable build, close the game, delete or move the old "
+        "extracted UR-Recomp-Windows-x64 folder, then extract the new ZIP as a "
+        "fresh folder. Do not overlay a new ZIP onto an old package tree. Your "
+        "normal settings, profiles, bindings and run history live outside the "
+        "package and are preserved across that replacement.\n"
         "\n"
         "Private personal-use preservation/remaster build.\n",
         encoding="utf-8",
@@ -93,6 +232,22 @@ def assemble(
     build_dir = build_dir.resolve()
     rom = rom.resolve()
     output = output.resolve()
+    try:
+        source_revision = normalize_source_revision(source_revision)
+    except ValueError as exc:
+        raise ValueError(
+            "source revision is required for a shippable package"
+        ) from exc
+
+    if (
+        is_same_or_within(output, build_dir)
+        or is_same_or_within(build_dir, output)
+    ):
+        raise ValueError(
+            "package output must be outside and must not contain the build directory"
+        )
+    if is_same_or_within(rom, output):
+        raise ValueError("package output must not contain the source ROM")
 
     required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
     for path in required_files:
@@ -101,8 +256,14 @@ def assemble(
     mods = build_dir / "mods"
     if not mods.is_dir():
         raise ValueError(f"required package input missing: {mods}")
+    if not any(path.is_file() for path in mods.rglob("*")):
+        raise ValueError(f"required package input empty: {mods}")
 
     if output.exists():
+        if not output.is_dir():
+            raise ValueError(
+                "package output exists and is not a directory"
+            )
         shutil.rmtree(output)
     output.mkdir(parents=True)
 
@@ -111,7 +272,7 @@ def assemble(
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
     write_launcher(output / LAUNCHER_NAME)
-    write_readme(output / README_NAME)
+    write_readme(output / README_NAME, source_revision)
 
     manifest: dict[str, object] = {
         "schema_version": SCHEMA_VERSION,
@@ -143,25 +304,29 @@ def verify(package: Path) -> dict[str, object]:
         or not isinstance(manifest.get("files"), list)
     ):
         raise ValueError("unsupported or malformed package manifest")
+    try:
+        source_revision = normalize_source_revision(manifest.get("source_revision"))
+    except ValueError as exc:
+        raise ValueError("unsupported or malformed package manifest") from exc
 
     expected = manifest["files"]
     actual = package_files(package)
     if actual != expected:
         raise ValueError("package contents do not match PACKAGE-MANIFEST.json")
 
-    required = {
-        EXE_NAME,
-        ROM_NAME,
-        "rom.cfg",
-        LAUNCHER_NAME,
-        README_NAME,
-    }
     actual_paths = {entry["path"] for entry in actual}
-    missing = sorted(required - actual_paths)
-    if missing:
-        raise ValueError("required packaged files missing: " + ", ".join(missing))
-    if not any(path.startswith("mods/") for path in actual_paths):
-        raise ValueError("packaged mods directory is empty")
+    validate_required_package_paths(actual_paths, context="packaged")
+    try:
+        readme = (package / README_NAME).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ValueError(f"cannot read packaged README: {exc}") from exc
+    if (
+        expected_readme_revision_line(source_revision)
+        not in readme.splitlines(keepends=True)
+    ):
+        raise ValueError(
+            "package README source revision does not match manifest"
+        )
 
     return manifest
 
@@ -169,8 +334,14 @@ def verify(package: Path) -> dict[str, object]:
 def create_archive(package: Path, archive: Path) -> dict[str, object]:
     package = package.resolve()
     archive = archive.resolve()
+    if is_same_or_within(archive, package):
+        raise ValueError("package archive must be written outside the package tree")
     manifest = verify(package)
     if archive.exists():
+        if not archive.is_file():
+            raise ValueError(
+                "package archive output exists and is not a file"
+            )
         archive.unlink()
     archive.parent.mkdir(parents=True, exist_ok=True)
 
@@ -183,6 +354,7 @@ def create_archive(package: Path, archive: Path) -> dict[str, object]:
                 f"{ARCHIVE_ROOT}/{relative}", date_time=ARCHIVE_TIMESTAMP
             )
             info.compress_type = zipfile.ZIP_DEFLATED
+            info.create_system = 3
             info.external_attr = 0o100644 << 16
             output.writestr(info, path.read_bytes(), compresslevel=9)
     return manifest
@@ -196,7 +368,18 @@ def verify_archive(archive: Path) -> dict[str, object]:
     manifest_name = f"{ARCHIVE_ROOT}/{MANIFEST_NAME}"
     try:
         with zipfile.ZipFile(archive, "r") as source:
-            names = source.namelist()
+            infos = source.infolist()
+            names = [info.filename for info in infos]
+            for info in infos:
+                if (
+                    info.date_time != ARCHIVE_TIMESTAMP
+                    or info.compress_type != zipfile.ZIP_DEFLATED
+                    or info.create_system != 3
+                    or info.external_attr != (0o100644 << 16)
+                ):
+                    raise ValueError(
+                        f"package archive metadata is not normalized: {info.filename}"
+                    )
             if len(names) != len(set(names)):
                 raise ValueError("package archive contains duplicate paths")
             if any(
@@ -221,8 +404,17 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 or not isinstance(manifest.get("files"), list)
             ):
                 raise ValueError("unsupported or malformed package archive manifest")
+            try:
+                source_revision = normalize_source_revision(
+                    manifest.get("source_revision")
+                )
+            except ValueError as exc:
+                raise ValueError(
+                    "unsupported or malformed package archive manifest"
+                ) from exc
 
             expected_names = {manifest_name}
+            relative_paths: set[str] = set()
             for entry in manifest["files"]:
                 if not isinstance(entry, dict):
                     raise ValueError("malformed package archive file entry")
@@ -235,6 +427,22 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     or not isinstance(expected_hash, str)
                 ):
                     raise ValueError("malformed package archive file entry")
+                relative_path = Path(relative)
+                if (
+                    not relative
+                    or relative.startswith("/")
+                    or "\\" in relative
+                    or ".." in relative_path.parts
+                    or relative_path.as_posix() != relative
+                ):
+                    raise ValueError(
+                        f"unsafe package archive manifest path: {relative}"
+                    )
+                if relative in relative_paths:
+                    raise ValueError(
+                        f"duplicate package archive manifest path: {relative}"
+                    )
+                relative_paths.add(relative)
                 name = f"{ARCHIVE_ROOT}/{relative}"
                 expected_names.add(name)
                 try:
@@ -251,6 +459,22 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     raise ValueError(
                         f"package archive checksum mismatch: {relative}"
                     )
+
+            validate_required_package_paths(
+                relative_paths, context="archive package"
+            )
+            readme_name = f"{ARCHIVE_ROOT}/{README_NAME}"
+            try:
+                readme = source.read(readme_name).decode("utf-8")
+            except (KeyError, UnicodeDecodeError) as exc:
+                raise ValueError("cannot read package archive README") from exc
+            if (
+                expected_readme_revision_line(source_revision)
+                not in readme.splitlines(keepends=True)
+            ):
+                raise ValueError(
+                    "package archive README source revision does not match manifest"
+                )
 
             if set(names) != expected_names:
                 raise ValueError(

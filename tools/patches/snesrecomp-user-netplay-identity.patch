@@ -1,0 +1,13 @@
+--- a/runner/src/netplay/snes_netplay_identity.c
++++ b/runner/src/netplay/snes_netplay_identity.c
+@@ -14,6 +14,10 @@
+ 
+ static void ident_path(char *out, size_t cap)
+ {
++    const char *user_data = getenv("SNESRECOMP_USER_DATA_DIR");
++    if (user_data && user_data[0] &&
++        snprintf(out, cap, "%s/config.ini", user_data) < (int)cap)
++        return;
+     if (!snesrecomp_exe_dir_path("config.ini", out, cap))
+         snprintf(out, cap, "config.ini");
+ }

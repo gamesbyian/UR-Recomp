@@ -27,6 +27,8 @@ struct ModernTourContinueState {
     bool retire_continuation_after_stock_wipe = false;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
+    bool menu_settled = false;
+    std::uint16_t menu_settle_observations = 0;
     std::uint32_t observations_remaining = 0;
 };
 
@@ -104,6 +106,32 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
         out.state.waiting_for_selection_change = false;
     }
 
+    // Stock exposes frontend menu bytes before those surfaces are guaranteed
+    // to accept a confirm edge. Reuse the same 60-frame settle contract proven
+    // by Quick Practice instead of racing first visibility.
+    std::uint8_t expected_menu = 0;
+    switch (out.state.stage) {
+    case ModernTourContinueStage::AwaitMain: expected_menu = 0xD7; break;
+    case ModernTourContinueStage::AwaitRider: expected_menu = 0x3C; break;
+    case ModernTourContinueStage::AwaitTour: expected_menu = 0x6D; break;
+    case ModernTourContinueStage::AwaitTrack: expected_menu = 0xF6; break;
+    case ModernTourContinueStage::Ready:
+    case ModernTourContinueStage::Idle:
+        break;
+    }
+
+    if (expected_menu != 0 && !out.state.menu_settled) {
+        if (observation.menu_id != expected_menu) {
+            out.state.menu_settle_observations = 0;
+            return out;
+        }
+        if (++out.state.menu_settle_observations <
+            kQuickPracticeMenuSettleObservations) {
+            return out;
+        }
+        out.state.menu_settled = true;
+    }
+
     const auto emit_selection_input = [&](
         QuickPracticeMenuInput desired
     ) constexpr -> ModernTourContinueStep {
@@ -123,12 +151,16 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
         if (observation.menu_id == 0xD7) {
             out.input = QuickPracticeMenuInput::Accept;
             out.state.stage = ModernTourContinueStage::AwaitRider;
+            out.state.menu_settled = false;
+            out.state.menu_settle_observations = 0;
         }
         break;
     case ModernTourContinueStage::AwaitRider:
         if (observation.menu_id == 0x3C) {
             out.input = QuickPracticeMenuInput::Accept;
             out.state.stage = ModernTourContinueStage::AwaitTour;
+            out.state.menu_settled = false;
+            out.state.menu_settle_observations = 0;
         }
         break;
     case ModernTourContinueStage::AwaitTour:
@@ -139,6 +171,8 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
             if (desired == QuickPracticeMenuInput::Accept) {
                 out.input = QuickPracticeMenuInput::Accept;
                 out.state.stage = ModernTourContinueStage::AwaitTrack;
+                out.state.menu_settled = false;
+                out.state.menu_settle_observations = 0;
             } else {
                 return emit_selection_input(desired);
             }

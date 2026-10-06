@@ -83,7 +83,7 @@ class WindowsPackageTests(unittest.TestCase):
             )
             self.assertIn("UR-STARTUP-RUNTIME-DATA", launcher)
             self.assertIn(
-                "required package directory is empty: mods",
+                "Required package directory is empty: mods",
                 launcher,
             )
             self.assertIn("UR-STARTUP-SAVE-ROOT", launcher)
@@ -115,11 +115,11 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                "user data config.ini is a directory",
+                "User data config.ini is a directory",
                 launcher,
             )
             self.assertIn(
-                "user data saves path is not a directory",
+                "User data saves path is not a directory",
                 launcher,
             )
             self.assertIn(

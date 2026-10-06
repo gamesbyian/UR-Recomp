@@ -1,5 +1,11 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
+@@ -64,4 +64,5 @@
+ #include "spc_player.h"
+ #include "launcher.h"
++#include "rom_image_verify.h"
+ #include "launcher_cache.h"
+ #include "host_paths.h"
 @@ -162,5 +162,29 @@ static const char *HostGetenv(const char *name) {
    return NULL;
  }
@@ -45,6 +51,18 @@
        }
        /* Read-only install: fall back to the historical walk-up so a Windows
         * copy in an unwritable directory still finds a config. */
+@@ -2995,5 +2995,11 @@
+     const char *arg_rom = (args.rom && args.rom[0]) ? args.rom : NULL;
+     int have_positional = (arg_rom != NULL);
++    if (arg_rom && g_rom_identity_ok &&
++        !snesrecomp_rom_verify_sha256(arg_rom, g_rom_sha256))
++      return StartupFail(
++          "UR-STARTUP-ROM-INVALID", "rom", arg_rom,
++          "The packaged ROM does not match this build.",
++          "Restore the packaged ROM or your verified personal dump and retry.");
+     if (!have_positional)
+       FindRomBesideExe(beside_exe, sizeof(beside_exe));
+ 
 @@ -3830,10 +3867,11 @@ int snesrecomp_desktop_main(const SnesDesktopHostGame *game, int argc, char **ar
                                                    g_rom_identity_ok ? g_rom_sha256
                                                                    : NULL)) {

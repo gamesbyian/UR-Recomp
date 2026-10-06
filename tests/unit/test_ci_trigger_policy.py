@@ -217,10 +217,14 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertTrue(_pushes_main(text))
         self.assertFalse(_block(text, "pull_request"))
 
-    def test_native_ui_evidence_does_not_rebuild_per_shard(self):
+    def test_native_ui_evidence_scope_is_bounded(self):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
-        self.assertNotIn("matrix.shard", text)
         self.assertNotIn('"native/product/**"', text)
+        self.assertIn("fail-fast: false", text)
+        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertLessEqual(len(shards), 5)
 
 
     def test_onboarding_acceptance_does_not_trigger_on_docs_only(self):

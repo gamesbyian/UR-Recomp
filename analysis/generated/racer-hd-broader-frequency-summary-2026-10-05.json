@@ -74,12 +74,32 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "expected_after_registration": {
+  "status": "shipping-approved subject to focused workflow reproduction",
+  "after": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
+    "hd_coverage_fraction": 0.03748580083301779,
     "player_frames_removed": 80,
     "absolute_coverage_gain_percentage_points": 1.5145778114350625,
     "immediate_fallback_burden_removed_fraction": 0.015491866769945779
   },
-  "status": "review in progress; shipping hash not yet bound"
+  "shipping": {
+    "representation_id": "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+    "approval_manifest": "analysis/data/racer-hd-art-approval-broader-04b9.json",
+    "authored_rgba_sha256": "3e026afb7e237b3a440f048b7c2d9801ab6475a48a8cb4ab42eba096c9c666ed",
+    "review_metrics": {
+      "candidate_alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "candidate_contact_x2_y2": [
+        77,
+        72
+      ],
+      "alpha_iou": 0.6810344827586207
+    },
+    "temporal_sequence": "ordinary-race-04b9-broader-static-1392-1393"
+  }
 }

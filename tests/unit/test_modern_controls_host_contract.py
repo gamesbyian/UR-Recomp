@@ -38,8 +38,8 @@ class ModernControlsHostContractTests(unittest.TestCase):
         controls_block = body[controls:controls + 520]
         self.assertLess(controls, generic_release)
         self.assertIn("configured GamepadMap", controls_block)
-        self.assertIn("BOTH press and release", controls_block)
-        self.assertIn("return 0;", controls_block)
+        self.assertIn("mapped P1 semantics only", controls_block)
+        self.assertIn("return -1;", controls_block)
 
     def test_semantic_controls_path_uses_tested_policy(self):
         source = HOST.read_text(encoding="utf-8")

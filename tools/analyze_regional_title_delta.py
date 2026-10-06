@@ -248,6 +248,7 @@ def build_settled_asset(
         palette_index[int.from_bytes(europe_crop[i:i + FRAME_BPP], "little")]
         for i in range(0, len(europe_crop), FRAME_BPP)
     )
+    padded_indices = indices + bytes((-len(indices)) % 4)
     cgram_identical = all(
         by_checkpoint[checkpoint].get("cgram") is not None
         and by_checkpoint[checkpoint]["cgram"]["changed_bytes"] == 0
@@ -270,9 +271,10 @@ def build_settled_asset(
         "width": x1 - x0 + 1,
         "height": y1 - y0 + 1,
         "palette_u32_le": [f"0x{value:08x}" for value in palette],
-        "indices_encoding": "python-base85",
-        "indices_base85": base64.b85encode(indices).decode("ascii"),
+        "indices_encoding": "python-base85-padded-to-4",
+        "indices_base85": base64.b85encode(padded_indices).decode("ascii"),
         "indices_decoded_bytes": len(indices),
+        "indices_padded_bytes": len(padded_indices),
         "cgram_identical_across_evidence": cgram_identical,
         "admission": (
             "Apply only on the Modern idle title surface when the current "

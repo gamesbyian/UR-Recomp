@@ -71,11 +71,19 @@ jobs:
           import json, pathlib, sys
           src = pathlib.Path("analysis/data/racer-hd-replacement-prototype.json")
           data = json.loads(src.read_text())
-          rid = "ordinary-racer-0x04B9-p1-broader-frequency-reference"
-          data["entries"] = [e for e in data["entries"] if e["representation_id"] != rid]
-          data.get("motion_review_sequences", {}).pop(
-              "ordinary-race-04b9-broader-static-1392-1393", None
-          )
+          broader_rids = {
+              "ordinary-racer-0x04B9-p1-broader-frequency-reference",
+              "ordinary-racer-0x0239-p1-broader-frequency-reference",
+          }
+          data["entries"] = [
+              e for e in data["entries"]
+              if e["representation_id"] not in broader_rids
+          ]
+          for key in (
+              "ordinary-race-04b9-broader-static-1392-1393",
+              "ordinary-race-0239-broader-static-1406-1407",
+          ):
+              data.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[1]).write_text(
               json.dumps(data, indent=2, sort_keys=True) + "\n"
           )

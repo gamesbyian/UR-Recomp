@@ -1,0 +1,109 @@
+name: Racer HD broader frequency census
+
+on:
+  pull_request:
+    paths:
+      - "tools/measure_racer_hd_frequency_from_wram_dumps.py"
+      - "tests/unit/test_measure_racer_hd_frequency_from_wram_dumps.py"
+      - ".github/workflows/racer-hd-broader-frequency.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: racer-hd-broader-frequency-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install reference-core build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Build Snes9x reference runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          git -C snesrecomp apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          git -C snesrecomp apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
+          python3 tools/bootstrap_toolchain.py --tool snes9x-libretro --jobs 2
+          cmake -S snesrecomp/tools/snesref -B "$RUNNER_TEMP/snesref-build" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-build" -j2
+
+      - name: Generate dense active-race census script
+        run: |
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py script \
+            --start 1180 \
+            --end 3820 \
+            --prefix racer-sample \
+            --out "$RUNNER_TEMP/racer-hd-broader.script"
+          test "$(grep -c '^dump racer-sample-' "$RUNNER_TEMP/racer-hd-broader.script")" -eq 2641
+
+      - name: Replay longer ordinary two-player route in Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/racer-hd-broader-dumps"
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-p1-win.input" \
+          SNESREF_SCRIPT="$RUNNER_TEMP/racer-hd-broader.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/racer-hd-broader-dumps" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/racer-hd-broader-snes9x.log"
+
+      - name: Measure broader Racer HD fallback burden
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
+            "$RUNNER_TEMP/racer-hd-broader-dumps" \
+            --prefix racer-sample \
+            --workflow-run "${{ github.run_id }}" \
+            --json-out "$RUNNER_TEMP/racer-hd-broader-frequency.json" \
+            > "$RUNNER_TEMP/racer-hd-broader-frequency.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-broader-frequency.json" <<'PY'
+          import json, pathlib, sys
+          r = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          m = r["measurement"]
+          t = r["target_discriminator"]
+          print(
+              "RACER_HD_BROADER_CENSUS",
+              f"frames={m['frames_observed']}",
+              f"hd={m['hd_selected_player_frames']}",
+              f"fallback={m['original_fallback_player_frames']}",
+          )
+          print("TARGET", json.dumps(t, sort_keys=True))
+          print("TOP_UNSUPPORTED")
+          for item in r["unsupported_exact_states_ranked"][:12]:
+              print(
+                  item["player_frames"],
+                  item["episode_count"],
+                  item["frame_hits"],
+                  item["state"],
+              )
+          PY
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: racer-hd-broader-frequency
+          path: |
+            ${{ runner.temp }}/racer-hd-broader-frequency.json
+            ${{ runner.temp }}/racer-hd-broader-frequency.txt
+            ${{ runner.temp }}/racer-hd-broader.script
+            ${{ runner.temp }}/racer-hd-broader-snes9x.log
+          retention-days: 7

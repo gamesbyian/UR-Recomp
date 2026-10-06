@@ -102,6 +102,17 @@ jobs:
           vibration_enabled=1
           STATEEOF
 
+          cat >"$PROFILE_STATE" <<'PROFILEEOF'
+          UR-HOST-PROFILE/4
+          profile=ghost-acceptance
+          generation=0
+          stock_sram=
+          tour_resume=
+          ghost_target=off
+          racer_name=
+          racer_index=
+          PROFILEEOF
+
           drive_ghost_row() {
             local log="$1"
             local dumps="$2"

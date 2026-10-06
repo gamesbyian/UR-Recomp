@@ -52,6 +52,59 @@ jobs:
             --out "$RUNNER_TEMP/racer-hd-broader.script"
           test "$(grep -c '^dump racer-sample-' "$RUNNER_TEMP/racer-hd-broader.script")" -eq 2641
 
+      - name: Validate WRAM census phase against retained native window
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py script \
+            --start 1180 \
+            --end 1620 \
+            --prefix racer-overlap \
+            --out "$RUNNER_TEMP/racer-hd-overlap.script"
+          mkdir -p "$RUNNER_TEMP/racer-hd-overlap-dumps"
+
+          SNESREF_HEADLESS=1 \
+          SNESREF_FAST=1 \
+          SNESREF_WRAM_FILL=0 \
+          SNESREF_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input" \
+          SNESREF_SCRIPT="$RUNNER_TEMP/racer-hd-overlap.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/racer-hd-overlap-dumps" \
+            "$RUNNER_TEMP/snesref-build/snesref" \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            > "$RUNNER_TEMP/racer-hd-overlap-snes9x.log"
+
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
+            "$RUNNER_TEMP/racer-hd-overlap-dumps" \
+            --prefix racer-overlap \
+            --workflow-run "${{ github.run_id }}" \
+            --json-out "$RUNNER_TEMP/racer-hd-overlap-frequency.json" \
+            > "$RUNNER_TEMP/racer-hd-overlap-frequency.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-overlap-frequency.json" \
+            analysis/generated/racer-hd-fallback-frequency-2026-10-05.json <<'PY'
+          import json, pathlib, sys
+          ref = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          native = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          m = ref["measurement"]
+          expected = native["current_after"]
+          assert m["frames_observed"] == 441, m
+          assert m["player_frame_observations"] == expected["player_frame_observations"], (m, expected)
+          assert m["hd_selected_player_frames"] == expected["hd_selected_player_frames"], (m, expected)
+          assert m["original_fallback_player_frames"] == expected["original_fallback_player_frames"], (m, expected)
+          target = ref["target_discriminator"]
+          assert target["observed"] is True, target
+          assert target["measurement"]["player_frames"] == 12, target
+          assert target["measurement"]["episode_count"] == 1, target
+          print(
+              "RACER_HD_REFERENCE_PHASE_PARITY",
+              f"frames={m['frames_observed']}",
+              f"hd={m['hd_selected_player_frames']}",
+              f"fallback={m['original_fallback_player_frames']}",
+              "target=12/1",
+          )
+          PY
+
       - name: Replay longer ordinary two-player route in Snes9x
         shell: bash
         run: |
@@ -139,6 +192,10 @@ jobs:
         with:
           name: racer-hd-broader-frequency
           path: |
+            ${{ runner.temp }}/racer-hd-overlap-frequency.json
+            ${{ runner.temp }}/racer-hd-overlap-frequency.txt
+            ${{ runner.temp }}/racer-hd-overlap.script
+            ${{ runner.temp }}/racer-hd-overlap-snes9x.log
             ${{ runner.temp }}/racer-hd-broader-frequency.json
             ${{ runner.temp }}/racer-hd-broader-frequency.txt
             ${{ runner.temp }}/racer-hd-broader.script

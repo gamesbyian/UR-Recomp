@@ -28,7 +28,12 @@ from probe_racer_hd_fallback_family import (
     palette_role_indices,
 )
 from probe_racer_hd_state_reuse import approved_entries
-from extract_racer_presentation_family import rgba_palette
+from extract_racer_presentation_family import (
+    compose_racer_staging,
+    extract_frame,
+    rasterize_composed_player_rgba,
+    rgba_palette,
+)
 
 
 def sha256(data: bytes) -> str:
@@ -58,6 +63,52 @@ def local_matches(composition: dict, target: dict) -> bool:
     )
 
 
+def build_player_local_stock_rgba(
+    rom: bytes,
+    player: str,
+    palette_id: str,
+    composition: dict,
+) -> bytes:
+    """Reconstruct only one player's staged raster.
+
+    P1 and P2 occupy disjoint six-cell columns in the staging lattice. A
+    player-local proof must therefore not decode the opponent's primary or
+    companion records merely to establish the target player's pixels.
+    """
+    primary = extract_frame(rom, int(composition[f"{player}_primary"], 16))
+    companion = extract_frame(rom, int(composition[f"{player}_companion"], 16))
+    blank = {"record_header_hex": "00000000", "pieces": []}
+
+    if player == "p1":
+        staged = compose_racer_staging(
+            primary,
+            blank,
+            companion,
+            blank,
+            p1_selector=int(composition["p1_selector"]),
+            p2_selector=0,
+            p1_companion_enabled=int(composition["p1_gate"], 16) != 0,
+            p2_companion_enabled=False,
+        )
+    elif player == "p2":
+        staged = compose_racer_staging(
+            blank,
+            primary,
+            blank,
+            companion,
+            p1_selector=0,
+            p2_selector=int(composition["p2_selector"]),
+            p1_companion_enabled=False,
+            p2_companion_enabled=int(composition["p2_gate"], 16) != 0,
+        )
+    else:
+        raise ValueError(f"unsupported player: {player}")
+
+    return rasterize_composed_player_rgba(
+        rom, staged, player, int(palette_id, 16)
+    )
+
+
 def build_report(
     rom: bytes,
     registry: dict,
@@ -84,12 +135,9 @@ def build_report(
     samples = []
     rasters: dict[str, bytes] = {}
     for item in matching_states:
-        entry = {
-            "player": player,
-            "palette_asset_id": palette_id,
-            "composition_guards": composition_guards(item["composition"]),
-        }
-        stock = build_stock_rgba(rom, entry)
+        stock = build_player_local_stock_rgba(
+            rom, player, palette_id, item["composition"]
+        )
         digest = sha256(stock)
         rasters.setdefault(digest, stock)
         samples.append({
@@ -115,8 +163,24 @@ def build_report(
 
     catalog = []
     for entry in approved_entries(registry):
-        stock = build_stock_rgba(rom, entry)
         source_player = entry["player"]
+        if entry.get("guard_scope") == "player_local":
+            g = entry["composition_guards"]
+            composition = {
+                "p1_primary": g["p1_primary"],
+                "p2_primary": g["p2_primary"],
+                "p1_companion": g["p1_companion"],
+                "p2_companion": g["p2_companion"],
+                "p1_selector": g["p1_selector"],
+                "p2_selector": g["p2_selector"],
+                "p1_gate": g["p1_companion_gate_word"],
+                "p2_gate": g["p2_companion_gate_word"],
+            }
+            stock = build_player_local_stock_rgba(
+                rom, source_player, entry["palette_asset_id"], composition
+            )
+        else:
+            stock = build_stock_rgba(rom, entry)
         catalog.append({
             "representation_id": entry["representation_id"],
             "player": source_player,

@@ -27,6 +27,12 @@ ALLOWED_ARTIFACT_STATE = {
     "dead-link",
     "metadata-only",
     "unknown",
+    "public-prose",
+    "public-prose-and-existing-local-evidence",
+    "public-prose-and-local-runtime",
+    "public-prose-and-existing-local-corpus",
+    "public-embedded",
+    "public-web",
 }
 
 CATALOG_ID_RE = re.compile(r'^\s*-\s+id:\s*"?([^"\s#]+)"?\s*$')

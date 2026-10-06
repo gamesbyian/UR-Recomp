@@ -51,7 +51,7 @@
        }
        /* Read-only install: fall back to the historical walk-up so a Windows
         * copy in an unwritable directory still finds a config. */
-@@ -2995,5 +2995,11 @@
+@@ -2995,5 +2995,12 @@
      const char *arg_rom = (args.rom && args.rom[0]) ? args.rom : NULL;
      int have_positional = (arg_rom != NULL);
 +    if (arg_rom && g_rom_identity_ok &&

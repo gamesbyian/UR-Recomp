@@ -105,58 +105,16 @@ jobs:
           rm -rf "$DUMPS" "$PRACTICE_ROOT"
           mkdir -p "$DUMPS" "$PRACTICE_ROOT"
 
-          timeout 120s xvfb-run -a bash -c '
-            set -euo pipefail
-            export SDL_AUDIODRIVER=dummy
-            export UR_PRODUCT_DIAGNOSTICS=1
-            export UR_ONBOARDING_STATE_PATH="'"$MARKER"'"
-            export UR_PRACTICE_SAVE_ROOT="'"$PRACTICE_ROOT"'"
-            export UR_PRACTICE_INPUT_PATH="'"$PRACTICE_INPUT"'"
-            export UR_PRACTICE_ACCEPTANCE=1
-            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
-
-            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
-            PID=$!
-
-            for _ in $(seq 1 600); do
-              [ -s "'"$DUMPS"'/practice-cancel-main.wram.bin" ] && break
-              kill -0 "$PID" 2>/dev/null || exit 1
-              sleep 0.1
-            done
-            [ -s "'"$DUMPS"'/practice-cancel-main.wram.bin" ]
-
-            WIN=""
-            for _ in $(seq 1 100); do
-              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
-              [ -n "$WIN" ] && break
-              sleep 0.1
-            done
-            [ -n "$WIN" ]
-            xdotool windowfocus "$WIN"
-
-            # The guest advances at 60 Hz while shell polling is wall-clock
-            # driven. Poll this single checkpoint tightly, freeze the process
-            # as soon as rider select is captured, queue Escape to the focused
-            # window, then resume so cancellation is tested at the intended
-            # route stage instead of racing into the track selector.
-            for _ in $(seq 1 12000); do
-              [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break
-              kill -0 "$PID" 2>/dev/null || exit 1
-              sleep 0.005
-            done
-            [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ]
-            kill -STOP "$PID"
-            xdotool key Escape
-            kill -CONT "$PID"
-
-            for _ in $(seq 1 600); do
-              [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ] && break
-              kill -0 "$PID" 2>/dev/null || exit 1
-              sleep 0.1
-            done
-            [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ]
-            wait "$PID"
-          '
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_ONBOARDING_STATE_PATH="$MARKER" \
+          UR_PRACTICE_SAVE_ROOT="$PRACTICE_ROOT" \
+          UR_PRACTICE_INPUT_PATH="$PRACTICE_INPUT" \
+          UR_PRACTICE_ACCEPTANCE=1 \
+          UR_PRACTICE_CANCEL_ACCEPTANCE=1 \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$LOG" 2>&1
 
           cat "$LOG"
           grep -q "UR_PRACTICE STARTED" "$LOG"

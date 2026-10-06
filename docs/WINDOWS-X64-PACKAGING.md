@@ -1,6 +1,6 @@
 # Windows x64 Portable Packaging
 
-Status: portable consumer-package lifecycle implementation is complete and its focused package/unit contracts are covered. Per repository CI policy, full assembled-package Windows acceptance is the final-`main` regression and therefore runs after integration rather than duplicating PR validation. Windows x64 is the primary reference deliverable; an installer remains deferred.
+Status: portable consumer-package lifecycle and release-facing startup diagnostics are implemented with focused package/unit contracts. Per repository CI policy, full assembled-package Windows acceptance is the final-`main` regression and therefore runs after integration rather than duplicating PR validation. Windows x64 is the primary reference deliverable; installer/signing/uninstall work remains deferred.
 
 ## Shipping format for the current milestone
 
@@ -18,7 +18,7 @@ The portable package contains:
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - generated `rom.cfg`;
 - the staged `mods/` tree;
-- `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, launches both the executable and ROM through explicit package-root paths so later cwd relocation cannot redirect them, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, and emits stable startup diagnostic codes for package/root failures;
+- `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, launches both the executable and ROM through explicit package-root paths so later cwd relocation cannot redirect them, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, seeds one bounded per-process diagnostics log where writable, and emits stable startup diagnostic codes for package/root failures;
 - `README.txt` documenting the source revision plus the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with one canonical non-empty source-revision line plus SHA-256 and size for every packaged payload file; `README.txt` repeats that revision and verification requires the two to agree.
 
@@ -38,10 +38,16 @@ The implemented acceptance sequence covers:
 6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state and completed-run data under that user root, replace the extracted package from the clean ZIP, prove every seeded user-data artifact survives byte-identically, then boot the replacement package against that same root and re-verify the package remains immutable;
 7. construct a legacy portable folder containing package-local config, bindings and save data, pre-seed obsolete fixed-name migration remnants from the earlier launcher format, launch against the user root, and prove all state migrates successfully, those obsolete remnants are removed, and the legacy source remains untouched;
 8. launch that legacy folder again after changing the migrated destination and prove destination-wins/idempotent migration does not overwrite newer user data;
-9. exercise representative startup failures for missing ROM, missing runtime payload, invalid/non-absolute/package-local user-data roots and invalid ROM, requiring the stable diagnostic codes documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
+9. exercise representative startup failures for missing ROM, missing runtime payload, invalid/non-absolute/package-local user-data roots, invalid ROM, synthetic video initialization failure and synthetic audio initialization failure, requiring exactly one stable diagnosis and one retained startup log where the root is writable as documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
 10. re-verify the clean source package/archive and retain the deterministic ZIP as the consumer CI artifact.
 
 The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies.
+
+## Startup-diagnostics boundary
+
+The consumer package owns only bootstrap/release-facing failure presentation. After a writable user-data root is established, each launch overwrites one bounded `diagnostics/startup.log` and passes that same log path into the pinned desktop host. The log records deterministic build/architecture/subsystem/path/result fields and never ROM bytes, SRAM contents, profile names, run payloads or controller input.
+
+The package/host contract now covers missing/invalid ROM, save-root and migration failures, missing runtime payload, SDL video/window/renderer initialization, SDL audio/device initialization, and one narrow residual controller-init `UR-STARTUP-UNKNOWN` path. It is shared by Modern and Authentic startup. Later in-session device loss, generalized crash handling, telemetry and installer-specific diagnostics are outside this package milestone.
 
 ## Save-location boundary
 

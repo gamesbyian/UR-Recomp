@@ -4070,7 +4070,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             std::getenv("UR_FAST_REPEAT_ACCEPTANCE") &&
             g_surface == UR_UNIRACERS_RESTART_RESULTS) {
             ++g_fast_repeat_acceptance_frames;
-            if (g_fast_repeat_acceptance_frames >= 30u) {
+            if (g_fast_repeat_acceptance_frames >= 90u) {
                 g_fast_repeat_acceptance_fired = true;
                 g_fast_repeat_acceptance_frames = 0;
                 (void)repeat_current_attempt();
@@ -4086,7 +4086,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             std::getenv("UR_GHOST_TARGET_ACCEPTANCE") &&
             g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
             ++g_ghost_target_acceptance_frames;
-            if (g_ghost_target_acceptance_frames >= 30u) {
+            if (g_ghost_target_acceptance_frames >= 120u) {
                 g_ghost_target_acceptance_fired = true;
                 g_ghost_target_acceptance_frames = 0;
                 if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {

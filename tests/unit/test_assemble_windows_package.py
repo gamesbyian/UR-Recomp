@@ -268,6 +268,40 @@ class WindowsPackageTests(unittest.TestCase):
                 missing_exe.stderr,
             )
 
+            empty_mods_archive = root / "package-empty-mods.zip"
+            empty_mods_manifest = json.loads(json.dumps(manifest))
+            empty_mods_manifest["files"] = [
+                entry for entry in empty_mods_manifest["files"]
+                if not entry["path"].startswith("mods/")
+            ]
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                empty_mods_archive, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                for info in source.infolist():
+                    if "/mods/" in info.filename:
+                        continue
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        target.writestr(
+                            info,
+                            json.dumps(
+                                empty_mods_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n",
+                        )
+                    else:
+                        target.writestr(info, source.read(info.filename))
+            empty_mods = self.run_tool(
+                "verify-archive",
+                "--archive", empty_mods_archive,
+                check=False,
+            )
+            self.assertNotEqual(empty_mods.returncode, 0)
+            self.assertIn(
+                "archive package mods directory is empty",
+                empty_mods.stderr,
+            )
+
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")
             failed = self.run_tool(
                 "verify", "--package", package, check=False

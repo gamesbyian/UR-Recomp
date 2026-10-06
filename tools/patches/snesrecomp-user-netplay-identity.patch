@@ -1,6 +1,6 @@
 --- a/runner/src/netplay/snes_netplay_identity.c
 +++ b/runner/src/netplay/snes_netplay_identity.c
-@@ -14,6 +14,12 @@
+@@ -14,6 +14,10 @@
  
  static void ident_path(char *out, size_t cap)
  {

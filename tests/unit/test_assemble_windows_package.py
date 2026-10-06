@@ -403,6 +403,25 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("required package input missing", result.stderr)
 
 
+    def test_empty_mod_payload_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            for path in (build / "mods").rglob("*"):
+                if path.is_file():
+                    path.unlink()
+            result = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", root / "package",
+                "--source-revision", "test-revision",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("required package input empty", result.stderr)
+
+
     def test_missing_source_revision_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

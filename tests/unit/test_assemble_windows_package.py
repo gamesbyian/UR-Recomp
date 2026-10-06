@@ -79,7 +79,7 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                "UR_RECOMP_USER_DATA_ROOT must be an absolute Windows path",
+                "resolved user data root must be an absolute Windows path",
                 launcher,
             )
             self.assertIn(

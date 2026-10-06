@@ -10,6 +10,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TOOL = ROOT / "tools" / "assemble_windows_package.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "windows-native-smoke.yml"
+STARTUP_PATCH = ROOT / "tools" / "patches" / "snesrecomp-startup-failure-presentation.patch"
 
 
 class WindowsPackageTests(unittest.TestCase):
@@ -33,6 +34,21 @@ class WindowsPackageTests(unittest.TestCase):
             capture_output=True,
             check=check,
         )
+
+    def test_unknown_startup_code_stays_narrowly_bound_to_controller_init(self):
+        patch = STARTUP_PATCH.read_text()
+        controller_anchor = "if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER))"
+        unknown_return = 'return StartupFail(\n+        "UR-STARTUP-UNKNOWN", "controller", NULL,'
+        self.assertEqual(patch.count(controller_anchor), 1)
+        self.assertEqual(patch.count(unknown_return), 1)
+        controller_pos = patch.index(controller_anchor)
+        unknown_pos = patch.index(unknown_return)
+        self.assertGreater(unknown_pos, controller_pos)
+        self.assertLess(unknown_pos - controller_pos, 300)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "video"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "audio"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "rom"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "save-root"', patch)
 
     def test_assemble_verify_and_clean_stale_output(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -72,21 +88,84 @@ class WindowsPackageTests(unittest.TestCase):
             readme = (package / "README.txt").read_text()
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("Source revision: abc123", readme)
+            self.assertIn("UR-STARTUP-*", readme)
+            self.assertIn("diagnostics\\startup.log", readme)
+            self.assertIn("no ROM bytes", readme)
+            self.assertIn("save contents", readme)
+            self.assertIn("profile names", readme)
+            self.assertIn("controller input", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
                 '"%~dp0UniracersSNESRecomp.exe" "%~dp0Uniracers_USA.sfc" %*',
                 launcher,
             )
             self.assertIn(
-                "UR-STARTUP-ROM-MISSING: packaged ROM is missing",
+                "UR-STARTUP-ROM-MISSING",
                 launcher,
             )
             self.assertIn("UR-STARTUP-RUNTIME-DATA", launcher)
             self.assertIn(
-                "required package directory is empty: mods",
+                "Required package directory is empty: mods",
                 launcher,
             )
             self.assertIn("UR-STARTUP-SAVE-ROOT", launcher)
+            self.assertIn("diagnostics\\startup.log", launcher)
+            self.assertIn("schema=ur-startup-log-v1", launcher)
+            self.assertIn("build_revision=abc123", launcher)
+            self.assertIn("architecture=x64", launcher)
+            self.assertIn("SNESRECOMP_STARTUP_LOG", launcher)
+            self.assertIn(":startup_fail", launcher)
+            self.assertIn("process_exit=%UR_GAME_RC%", launcher)
+            self.assertEqual(
+                launcher.count(
+                    '> "%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log" echo schema=ur-startup-log-v1'
+                ),
+                1,
+            )
+            self.assertEqual(
+                launcher.count(
+                    'set "SNESRECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log"'
+                ),
+                1,
+            )
+            self.assertEqual(
+                launcher.count(
+                    'if defined UR_RECOMP_STARTUP_LOG >> "%UR_RECOMP_STARTUP_LOG%" echo process_exit=%UR_GAME_RC%'
+                ),
+                1,
+            )
+            startup_log_writes = [
+                line
+                for line in launcher.splitlines()
+                if "startup.log" in line or "UR_RECOMP_STARTUP_LOG" in line
+                if " echo " in line
+            ]
+            startup_log_text = "\n".join(startup_log_writes).lower()
+            for forbidden in (
+                "profile",
+                "sram",
+                "controller_input",
+                "rom_bytes",
+                "save_contents",
+            ):
+                self.assertNotIn(forbidden, startup_log_text)
+            expected_log_keys = {
+                "schema",
+                "build_revision",
+                "architecture",
+                "subsystem",
+                "package_root",
+                "user_data_root",
+                "result",
+                "process_exit",
+                "code",
+            }
+            observed_log_keys = set()
+            for line in startup_log_writes:
+                payload = line.split(" echo ", 1)[1]
+                key = payload.split("=", 1)[0].strip().lower()
+                observed_log_keys.add(key)
+            self.assertEqual(observed_log_keys, expected_log_keys)
             self.assertIn(
                 "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",
                 launcher,
@@ -108,11 +187,11 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                "user data config.ini is a directory",
+                "User data config.ini is a directory",
                 launcher,
             )
             self.assertIn(
-                "user data saves path is not a directory",
+                "User data saves path is not a directory",
                 launcher,
             )
             self.assertIn(
@@ -203,7 +282,7 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn('attrib -R "%UR_RECOMP_USER_DATA_ROOT%\\saves\\*" /s /d', launcher)
             self.assertNotIn("UR_MIGRATE_FILE", launcher)
             self.assertNotIn("UR_MIGRATE_DIR", launcher)
-            self.assertIn("exit /b %ERRORLEVEL%", launcher)
+            self.assertIn("exit /b %UR_GAME_RC%", launcher)
 
             manifest = json.loads(
                 (package / "PACKAGE-MANIFEST.json").read_text()

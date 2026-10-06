@@ -440,45 +440,70 @@ jobs:
           cp -R "$TEST_PACKAGE" "$BROKEN_ROM"
           rm "$BROKEN_ROM/Uniracers_USA.sfc"
           BROKEN_ROM_WIN="$(cygpath -w "$BROKEN_ROM")"
+          BROKEN_ROM_USER="$RUNNER_TEMP/package-missing-rom-user"
+          rm -rf "$BROKEN_ROM_USER"
+          BROKEN_ROM_USER_WIN="$(cygpath -w "$BROKEN_ROM_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$BROKEN_ROM_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${BROKEN_ROM_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-rom.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-missing-rom.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log"
+          test "$(grep -Fc "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log")" -eq 1
+          BROKEN_ROM_LOG="$BROKEN_ROM_USER/diagnostics/startup.log"
+          test -f "$BROKEN_ROM_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-ROM-MISSING" "$BROKEN_ROM_LOG")" -eq 1
+          grep -Fq "subsystem=rom" "$BROKEN_ROM_LOG"
+          grep -Fq "result=fatal" "$BROKEN_ROM_LOG"
 
           BROKEN_DATA="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-runtime"
           cp -R "$TEST_PACKAGE" "$BROKEN_DATA"
           rm -rf "$BROKEN_DATA/mods"
           BROKEN_DATA_WIN="$(cygpath -w "$BROKEN_DATA")"
+          BROKEN_DATA_USER="$RUNNER_TEMP/package-missing-runtime-user"
+          rm -rf "$BROKEN_DATA_USER"
+          BROKEN_DATA_USER_WIN="$(cygpath -w "$BROKEN_DATA_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$BROKEN_DATA_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${BROKEN_DATA_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-runtime.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-missing-runtime.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log"
+          test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log")" -eq 1
+          BROKEN_DATA_LOG="$BROKEN_DATA_USER/diagnostics/startup.log"
+          test -f "$BROKEN_DATA_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$BROKEN_DATA_LOG")" -eq 1
+          grep -Fq "subsystem=runtime-data" "$BROKEN_DATA_LOG"
+          grep -Fq "result=fatal" "$BROKEN_DATA_LOG"
 
           EMPTY_MODS="$RUNNER_TEMP/UR-Recomp-Windows-x64-empty-mods"
           cp -R "$TEST_PACKAGE" "$EMPTY_MODS"
           rm -rf "$EMPTY_MODS/mods"
           mkdir -p "$EMPTY_MODS/mods/preloaded/packages"
           EMPTY_MODS_WIN="$(cygpath -w "$EMPTY_MODS")"
+          EMPTY_MODS_USER="$RUNNER_TEMP/package-empty-mods-user"
+          rm -rf "$EMPTY_MODS_USER"
+          EMPTY_MODS_USER_WIN="$(cygpath -w "$EMPTY_MODS_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$EMPTY_MODS_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${EMPTY_MODS_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-empty-mods.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-empty-mods.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log"
-          grep -Fq "required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
+          test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log")" -eq 1
+          EMPTY_MODS_LOG="$EMPTY_MODS_USER/diagnostics/startup.log"
+          test -f "$EMPTY_MODS_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$EMPTY_MODS_LOG")" -eq 1
+          grep -Fq "Required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
 
           BAD_ROOT="$RUNNER_TEMP/not-a-user-data-directory"
           printf 'not a directory\n' > "$BAD_ROOT"
@@ -521,7 +546,7 @@ jobs:
           cat "$RUNNER_TEMP/package-bad-type-root.log"
           test "$RC" -eq 3
           grep -Fq "UR-STARTUP-SAVE-ROOT:" "$RUNNER_TEMP/package-bad-type-root.log"
-          grep -Fq "user data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
+          grep -Fq "User data config.ini is a directory" "$RUNNER_TEMP/package-bad-type-root.log"
 
           set +e
           UR_RECOMP_USER_DATA_ROOT="relative-user-data" \\
@@ -586,8 +611,66 @@ jobs:
           set -e
           cat "$RUNNER_TEMP/package-invalid-rom.log"
           test "$RC" -ne 0
-          grep -Fq "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log"
+          test "$(grep -Fc "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log")" -eq 1
           test -d "$INVALID_USER"
+          INVALID_LOG="$INVALID_USER/diagnostics/startup.log"
+          test -f "$INVALID_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-ROM-INVALID" "$INVALID_LOG")" -eq 1
+          grep -Fq "build_revision=" "$INVALID_LOG"
+          grep -Fq "architecture=x64" "$INVALID_LOG"
+          grep -Fq "subsystem=rom" "$INVALID_LOG"
+          grep -Fq "result=fatal" "$INVALID_LOG"
+
+          VIDEO_USER="$RUNNER_TEMP/package-video-failure-user"
+          rm -rf "$VIDEO_USER"
+          VIDEO_USER_WIN="$(cygpath -w "$VIDEO_USER")"
+          set +e
+          SDL_VIDEODRIVER=ur_invalid_video_driver \
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$VIDEO_USER_WIN" \
+            timeout 60 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --no-launcher; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-video-failure.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-video-failure.log"
+          test "$RC" -ne 0
+          test "$(grep -Fc "UR-STARTUP-VIDEO:" "$RUNNER_TEMP/package-video-failure.log")" -eq 1
+          VIDEO_LOG="$VIDEO_USER/diagnostics/startup.log"
+          test -f "$VIDEO_LOG"
+          test "$(grep -Fc "schema=ur-startup-log-v1" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "build_revision=" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "architecture=x64" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "code=UR-STARTUP-VIDEO" "$VIDEO_LOG")" -eq 1
+          grep -Fq "subsystem=video" "$VIDEO_LOG"
+          test "$(grep -Fc "result=fatal" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "process_exit=" "$VIDEO_LOG")" -eq 1
+
+          AUDIO_USER="$RUNNER_TEMP/package-audio-failure-user"
+          rm -rf "$AUDIO_USER"
+          AUDIO_USER_WIN="$(cygpath -w "$AUDIO_USER")"
+          set +e
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIODRIVER=ur_invalid_audio_driver \
+          UR_RECOMP_USER_DATA_ROOT="$AUDIO_USER_WIN" \
+            timeout 60 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --no-launcher; exit \$LASTEXITCODE" \
+              >"$RUNNER_TEMP/package-audio-failure.log" 2>&1
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-audio-failure.log"
+          test "$RC" -ne 0
+          test "$(grep -Fc "UR-STARTUP-AUDIO:" "$RUNNER_TEMP/package-audio-failure.log")" -eq 1
+          AUDIO_LOG="$AUDIO_USER/diagnostics/startup.log"
+          test -f "$AUDIO_LOG"
+          test "$(grep -Fc "schema=ur-startup-log-v1" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "build_revision=" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "architecture=x64" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "code=UR-STARTUP-AUDIO" "$AUDIO_LOG")" -eq 1
+          grep -Fq "subsystem=audio" "$AUDIO_LOG"
+          test "$(grep -Fc "result=fatal" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "process_exit=" "$AUDIO_LOG")" -eq 1
+
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 
       - name: Upload Windows evidence

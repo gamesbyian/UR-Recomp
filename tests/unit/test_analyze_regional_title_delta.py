@@ -92,6 +92,45 @@ class RegionalTitleDeltaTests(unittest.TestCase):
             self.assertEqual(stable_colors["intersection"], [3])
             self.assertEqual(stable_colors["union"], [3, 8])
 
+
+    def test_settled_asset_requires_repeated_exact_frame_pair(self):
+        tool = load_tool()
+        with tempfile.TemporaryDirectory() as td:
+            root = pathlib.Path(td)
+            usa = root / "usa"
+            eur = root / "europe"
+            usa.mkdir()
+            eur.mkdir()
+
+            checkpoints = ["a", "b", "c"]
+            usa_frame = bytes([0, 0, 0, 0] * 4)
+            eur_frame = bytearray(usa_frame)
+            eur_frame[4:8] = bytes([3, 2, 1, 0])
+            for checkpoint in checkpoints[:2]:
+                (usa / f"{checkpoint}.fb.bgrx").write_bytes(usa_frame)
+                (eur / f"{checkpoint}.fb.bgrx").write_bytes(bytes(eur_frame))
+                (usa / f"{checkpoint}.cgram.bin").write_bytes(bytes(tool.CGRAM_BYTES))
+                (eur / f"{checkpoint}.cgram.bin").write_bytes(bytes(tool.CGRAM_BYTES))
+
+            other = bytearray(usa_frame)
+            other[8:12] = bytes([4, 5, 6, 0])
+            (usa / "c.fb.bgrx").write_bytes(usa_frame)
+            (eur / "c.fb.bgrx").write_bytes(bytes(other))
+            (usa / "c.cgram.bin").write_bytes(bytes(tool.CGRAM_BYTES))
+            (eur / "c.cgram.bin").write_bytes(bytes(tool.CGRAM_BYTES))
+
+            rows = [tool.compare_checkpoint(usa, eur, cp) for cp in checkpoints]
+            asset = tool.build_settled_asset(usa, eur, rows)
+            self.assertEqual(asset["evidence_checkpoints"], ["a", "b"])
+            self.assertEqual(asset["bbox_inclusive"], [1, 0, 1, 0])
+            self.assertEqual(asset["width"], 1)
+            self.assertEqual(asset["height"], 1)
+            self.assertEqual(asset["indices_decoded_bytes"], 1)
+            self.assertEqual(len(asset["palette_u32_le"]), 1)
+            self.assertTrue(asset["cgram_identical_across_evidence"])
+            self.assertIn("source_crop_sha256", asset)
+            self.assertIn("target_crop_sha256", asset)
+
     def test_missing_checkpoint_is_retained_without_fake_evidence(self):
         tool = load_tool()
         with tempfile.TemporaryDirectory() as td:

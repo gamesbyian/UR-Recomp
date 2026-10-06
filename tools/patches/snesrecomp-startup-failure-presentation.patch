@@ -53,12 +53,11 @@
 -          fprintf(stderr,
 -                  "UR-STARTUP-ROM-INVALID: ROM '%s' does not match the build. "
 -                  "Restore the packaged ROM and retry.\n", arg_rom);
-+        if (arg_rom) {
-+          StartupLogFailure("UR-STARTUP-ROM-INVALID", "rom", arg_rom, "fatal");
-+          fprintf(stderr,
-+                  "UR-STARTUP-ROM-INVALID: The packaged ROM does not match this build. "
-+                  "Restore the packaged ROM or your verified personal dump and retry.\n");
-+        }
++        if (arg_rom)
++          return StartupFail(
++              "UR-STARTUP-ROM-INVALID", "rom", arg_rom,
++              "The packaged ROM does not match this build.",
++              "Restore the packaged ROM or your verified personal dump and retry.");
          snesrecomp_host_args_usage(program_path, NULL);
          fprintf(stderr, "\nYou must legally own a copy of %s.\n",
                  game->display_name);

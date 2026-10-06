@@ -80,7 +80,7 @@ A Windows release candidate is not startup-diagnostics-complete until automated 
 1. valid normal startup reaches the established playable frontend/race baseline with no startup error;
 2. missing ROM exits cleanly with `UR-STARTUP-ROM-MISSING`;
 3. wrong ROM bytes exit cleanly with `UR-STARTUP-ROM-INVALID`;
-4. invalid or unwritable host save root, including a relative `UR_RECOMP_USER_DATA_ROOT` or non-absolute resolved `APPDATA`, exits cleanly with `UR-STARTUP-SAVE-ROOT`;
+4. unavailable `APPDATA`, invalid/non-absolute/package-local user-data roots, or an unwritable host save root exit cleanly with `UR-STARTUP-SAVE-ROOT`;
 5. deliberately missing required runtime data exits cleanly with `UR-STARTUP-RUNTIME-DATA`;
 6. every failure produces exactly one stable player-facing diagnosis and, where writable, one bounded diagnostic log;
 7. Authentic and Modern modes share the same bootstrap/error contract because no guest simulation has started yet.

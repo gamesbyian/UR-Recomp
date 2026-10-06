@@ -134,11 +134,20 @@ jobs:
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
 
-            # Cancel immediately after the script proves settled main.
-            # Waiting for a later simulated-frame checkpoint lets a 60 Hz guest
-            # outrun a 100 ms shell polling interval and turns this into a
-            # wall-clock race rather than a cancellation test.
+            # The guest advances at 60 Hz while shell polling is wall-clock
+            # driven. Poll this single checkpoint tightly, freeze the process
+            # as soon as rider select is captured, queue Escape to the focused
+            # window, then resume so cancellation is tested at the intended
+            # route stage instead of racing into the track selector.
+            for _ in $(seq 1 12000); do
+              [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.005
+            done
+            [ -s "'"$DUMPS"'/practice-cancel-routing.wram.bin" ]
+            kill -STOP "$PID"
             xdotool key Escape
+            kill -CONT "$PID"
 
             for _ in $(seq 1 600); do
               [ -s "'"$DUMPS"'/practice-cancel-returned-main.wram.bin" ] && break
@@ -162,14 +171,14 @@ jobs:
           test -n "$START_DIGEST"
           test "$START_DIGEST" = "$RESTORE_DIGEST"
 
-          python3 - "$DUMPS/practice-cancel-main.wram.bin" "$DUMPS/practice-cancel-returned-main.wram.bin" <<'PY'
+          python3 - "$DUMPS/practice-cancel-routing.wram.bin" "$DUMPS/practice-cancel-returned-main.wram.bin" <<'PY'
           from pathlib import Path
           import sys
 
-          started = Path(sys.argv[1]).read_bytes()
+          routing = Path(sys.argv[1]).read_bytes()
           returned = Path(sys.argv[2]).read_bytes()
-          if started[0x009F] != 0xD7 or started[0x0313] == 1:
-              raise SystemExit("Practice acceptance did not begin from settled Modern main")
+          if routing[0x009F] != 0x3C or routing[0x0313] == 1:
+              raise SystemExit("cancel was not issued during stock rider-select routing")
           if returned[0x009F] != 0xD7 or returned[0x0313] == 1:
               raise SystemExit("cancel did not return to settled Modern main menu")
           print("UR_PRACTICE_CANCEL_RESULT=restored frontend=main race_entered=0")

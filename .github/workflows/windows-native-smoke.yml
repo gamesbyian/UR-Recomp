@@ -440,44 +440,69 @@ jobs:
           cp -R "$TEST_PACKAGE" "$BROKEN_ROM"
           rm "$BROKEN_ROM/Uniracers_USA.sfc"
           BROKEN_ROM_WIN="$(cygpath -w "$BROKEN_ROM")"
+          BROKEN_ROM_USER="$RUNNER_TEMP/package-missing-rom-user"
+          rm -rf "$BROKEN_ROM_USER"
+          BROKEN_ROM_USER_WIN="$(cygpath -w "$BROKEN_ROM_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$BROKEN_ROM_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${BROKEN_ROM_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-rom.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-missing-rom.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log"
+          test "$(grep -Fc "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log")" -eq 1
+          BROKEN_ROM_LOG="$BROKEN_ROM_USER/diagnostics/startup.log"
+          test -f "$BROKEN_ROM_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-ROM-MISSING" "$BROKEN_ROM_LOG")" -eq 1
+          grep -Fq "subsystem=rom" "$BROKEN_ROM_LOG"
+          grep -Fq "result=fatal" "$BROKEN_ROM_LOG"
 
           BROKEN_DATA="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-runtime"
           cp -R "$TEST_PACKAGE" "$BROKEN_DATA"
           rm -rf "$BROKEN_DATA/mods"
           BROKEN_DATA_WIN="$(cygpath -w "$BROKEN_DATA")"
+          BROKEN_DATA_USER="$RUNNER_TEMP/package-missing-runtime-user"
+          rm -rf "$BROKEN_DATA_USER"
+          BROKEN_DATA_USER_WIN="$(cygpath -w "$BROKEN_DATA_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$BROKEN_DATA_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${BROKEN_DATA_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-missing-runtime.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-missing-runtime.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log"
+          test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log")" -eq 1
+          BROKEN_DATA_LOG="$BROKEN_DATA_USER/diagnostics/startup.log"
+          test -f "$BROKEN_DATA_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$BROKEN_DATA_LOG")" -eq 1
+          grep -Fq "subsystem=runtime-data" "$BROKEN_DATA_LOG"
+          grep -Fq "result=fatal" "$BROKEN_DATA_LOG"
 
           EMPTY_MODS="$RUNNER_TEMP/UR-Recomp-Windows-x64-empty-mods"
           cp -R "$TEST_PACKAGE" "$EMPTY_MODS"
           rm -rf "$EMPTY_MODS/mods"
           mkdir -p "$EMPTY_MODS/mods/preloaded/packages"
           EMPTY_MODS_WIN="$(cygpath -w "$EMPTY_MODS")"
+          EMPTY_MODS_USER="$RUNNER_TEMP/package-empty-mods-user"
+          rm -rf "$EMPTY_MODS_USER"
+          EMPTY_MODS_USER_WIN="$(cygpath -w "$EMPTY_MODS_USER")"
           set +e
-          powershell.exe -NoProfile -Command \
+          UR_RECOMP_USER_DATA_ROOT="$EMPTY_MODS_USER_WIN" \
+            powershell.exe -NoProfile -Command \
             "& '${EMPTY_MODS_WIN}\\run-uniracers.cmd'; exit \$LASTEXITCODE" \
             >"$RUNNER_TEMP/package-empty-mods.log" 2>&1
           RC=$?
           set -e
           cat "$RUNNER_TEMP/package-empty-mods.log"
           test "$RC" -eq 2
-          grep -Fq "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log"
+          test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log")" -eq 1
+          EMPTY_MODS_LOG="$EMPTY_MODS_USER/diagnostics/startup.log"
+          test -f "$EMPTY_MODS_LOG"
+          test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$EMPTY_MODS_LOG")" -eq 1
           grep -Fq "required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
 
           BAD_ROOT="$RUNNER_TEMP/not-a-user-data-directory"
@@ -586,7 +611,7 @@ jobs:
           set -e
           cat "$RUNNER_TEMP/package-invalid-rom.log"
           test "$RC" -ne 0
-          grep -Fq "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log"
+          test "$(grep -Fc "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log")" -eq 1
           test -d "$INVALID_USER"
           INVALID_LOG="$INVALID_USER/diagnostics/startup.log"
           test -f "$INVALID_LOG"

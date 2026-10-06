@@ -2844,28 +2844,16 @@
                 "artifact_id": 11395021756,
                 "status": "green"
               }
-            }
-          ],
-          "current_after": {
-            "hd_selected_player_frames": 580,
-            "original_fallback_player_frames": 4702,
-            "hd_coverage_fraction": 0.10980689132904203,
-            "cumulative_player_frames_removed": 462,
-            "absolute_coverage_gain_percentage_points": 8.746686861037487,
-            "cumulative_baseline_fallback_burden_removed_fraction": 0.08946553059643687
-          },
-          "next_discriminator": {
-            "status": "measured-post-02b9-leader",
-            "target": {
+            },
+            {
               "player": "p1",
               "semantic_frame_id": "0x01B9",
               "companion": "0x0000",
               "selector": 0,
               "gate": "0x0000",
-              "player_frames": 73,
+              "player_frames_removed": 73,
               "episode_count": 54,
               "synchronized_witness_state_count": 51,
-              "unique_stock_raster_count": 1,
               "stock_rgba_sha256": "0ffa3306bf60693c085354bd5c04876a2f6835bffb239f069e9d2bdc8209d4e7",
               "normalized_geometry_sha256": "61a9a3633a9bc92c8a15e93be3ae807df5a6376ff1912fa43f7e2e369ec92675",
               "alpha_bounds": [
@@ -2878,13 +2866,34 @@
                 77,
                 72
               ],
-              "exact_same_player_reuse_matches": [],
-              "palette_normalized_reuse_matches": [],
-              "requires_new_pose": true
-            },
-            "rule": "01B9 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+              "guard_scope": "player_local",
+              "approval_manifest": "analysis/data/racer-hd-art-approval-broader-01b9.json",
+              "authored_rgba_sha256": "37d4244188d1a00fbf0efae1e37f278bcb11102070a9eaffde09620dcdcb3ba5",
+              "review_alpha_iou": 0.7346938775510204,
+              "review_evidence": {
+                "workflow_run": 37426933828,
+                "artifact_id": 11394613923
+              },
+              "after": {
+                "hd_selected_player_frames": 653,
+                "original_fallback_player_frames": 4629,
+                "hd_coverage_fraction": 0.12362741385838698
+              }
+            }
+          ],
+          "current_after": {
+            "hd_selected_player_frames": 653,
+            "original_fallback_player_frames": 4629,
+            "hd_coverage_fraction": 0.12362741385838698,
+            "cumulative_player_frames_removed": 535,
+            "absolute_coverage_gain_percentage_points": 10.128739113971982,
+            "cumulative_baseline_fallback_burden_removed_fraction": 0.1036018590240124
           },
-          "status": "shipping expansion active; 04B9, 0239, 0439, 0039, 00B9, and 02B9 measured, reviewed, hash-approved, and runtime-registered"
+          "next_discriminator": {
+            "status": "pending-approval-gated-post-01b9-rerank",
+            "rule": "Do not authorize another pose until the 01B9 approval-gated reproduction is green and its canonical post-01B9 visual-context probe selects the next leader."
+          },
+          "status": "shipping expansion active; broader P1 player-local families through 01B9 are measured, reviewed, hash-approved, and runtime-registered"
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring."
       }

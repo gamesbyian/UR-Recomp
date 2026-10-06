@@ -302,6 +302,42 @@ class WindowsPackageTests(unittest.TestCase):
                 empty_mods.stderr,
             )
 
+            duplicate_manifest_archive = root / "package-duplicate-manifest.zip"
+            duplicate_manifest = json.loads(json.dumps(manifest))
+            duplicate_entry = next(
+                entry for entry in duplicate_manifest["files"]
+                if entry["path"] == "UniracersSNESRecomp.exe"
+            )
+            duplicate_manifest["files"].append(dict(duplicate_entry))
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                duplicate_manifest_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        target.writestr(
+                            info,
+                            json.dumps(
+                                duplicate_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n",
+                        )
+                    else:
+                        target.writestr(info, source.read(info.filename))
+            duplicate_manifest_result = self.run_tool(
+                "verify-archive",
+                "--archive", duplicate_manifest_archive,
+                check=False,
+            )
+            self.assertNotEqual(duplicate_manifest_result.returncode, 0)
+            self.assertIn(
+                "duplicate package archive manifest path: "
+                "UniracersSNESRecomp.exe",
+                duplicate_manifest_result.stderr,
+            )
+
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")
             failed = self.run_tool(
                 "verify", "--package", package, check=False

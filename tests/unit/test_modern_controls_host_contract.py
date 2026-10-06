@@ -5,6 +5,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 WRAPPER = ROOT / "native" / "product" / "completed_run_browser_host.cpp"
 PATCHER = ROOT / "tools" / "patch_modern_product_host.py"
+GAMEPAD_PATCH = ROOT / "tools" / "patches" / "snesrecomp-title-gamepad-hook.patch"
 
 
 class ModernControlsHostContractTests(unittest.TestCase):
@@ -30,35 +31,26 @@ class ModernControlsHostContractTests(unittest.TestCase):
             'extern "C" int ur_uniracers_modern_system_gamepad_control(', start)
         body = source[start:end]
 
-        ownership = body.index("deferred_controls_release")
+        controls = body.index("if (g_controls_visible)")
         generic_release = body.index(
             "if (!pressed) {\n"
             "        if (button == g_practice_cancel_gamepad_button)"
         )
-        controls_block = body[ownership:ownership + 1300]
-        self.assertLess(ownership, generic_release)
-        self.assertIn("g_controls_visible || deferred_controls_release", controls_block)
+        controls_block = body[controls:controls + 520]
+        self.assertLess(controls, generic_release)
         self.assertIn("mapped P1 semantics only", controls_block)
-        self.assertIn("pressed != 0", controls_block)
         self.assertIn("return -1;", controls_block)
 
-    def test_stale_deferred_release_expires_on_new_press(self):
-        source = HOST.read_text(encoding="utf-8")
-        start = source.index(
-            'extern "C" int ur_uniracers_modern_system_gamepad_button(')
-        end = source.index(
-            'extern "C" int ur_uniracers_modern_system_gamepad_control(', start)
-        body = source[start:end]
+    def test_framework_bookkeeps_gamepad_edge_before_title_callback(self):
+        source = GAMEPAD_PATCH.read_text(encoding="utf-8")
+        bookkeeping = source.index("gi->modifiers ^= 1 << button;")
+        callback = source.index("g_game->system_gamepad_button(button, pressed)")
+        semantic = source.index("g_game->system_gamepad_control(")
+        dispatch = source.index("SetPadButtonOrFallthrough")
 
-        stale_clear = body.index(
-            "if (valid_button && pressed && !g_controls_visible)"
-        )
-        deferred_check = body.index("const bool deferred_controls_release")
-        self.assertLess(stale_clear, deferred_check)
-        self.assertIn(
-            "g_controls_deferred_gamepad_buttons",
-            body[stale_clear:deferred_check],
-        )
+        self.assertLess(bookkeeping, callback)
+        self.assertLess(callback, semantic)
+        self.assertLess(semantic, dispatch)
 
     def test_semantic_controls_path_uses_tested_policy(self):
         source = HOST.read_text(encoding="utf-8")

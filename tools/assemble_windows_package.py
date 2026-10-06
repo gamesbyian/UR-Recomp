@@ -48,7 +48,7 @@ def package_files(root: Path) -> list[dict[str, object]]:
 def write_launcher(path: Path) -> None:
     path.write_text(
         "@echo off\r\n"
-        "setlocal\r\n"
+        "setlocal DisableDelayedExpansion\r\n"
         "cd /d \"%~dp0\"\r\n"
         f"if not exist \"{EXE_NAME}\" (echo UR-STARTUP-RUNTIME-DATA: required package file is missing: {EXE_NAME}. Re-extract the complete package. 1>&2 & exit /b 2)\r\n"
         f"if not exist \"{ROM_NAME}\" (echo UR-STARTUP-ROM-MISSING: packaged ROM is missing: {ROM_NAME}. Restore the package or your verified personal dump. 1>&2 & exit /b 2)\r\n"

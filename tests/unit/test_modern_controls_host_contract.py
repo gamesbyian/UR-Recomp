@@ -30,16 +30,35 @@ class ModernControlsHostContractTests(unittest.TestCase):
             'extern "C" int ur_uniracers_modern_system_gamepad_control(', start)
         body = source[start:end]
 
-        controls = body.index("if (g_controls_visible)")
+        ownership = body.index("deferred_controls_release")
         generic_release = body.index(
             "if (!pressed) {\n"
             "        if (button == g_practice_cancel_gamepad_button)"
         )
-        controls_block = body[controls:controls + 520]
-        self.assertLess(controls, generic_release)
-        self.assertIn("configured GamepadMap", controls_block)
+        controls_block = body[ownership:ownership + 1300]
+        self.assertLess(ownership, generic_release)
+        self.assertIn("g_controls_visible || deferred_controls_release", controls_block)
         self.assertIn("mapped P1 semantics only", controls_block)
+        self.assertIn("pressed != 0", controls_block)
         self.assertIn("return -1;", controls_block)
+
+    def test_stale_deferred_release_expires_on_new_press(self):
+        source = HOST.read_text(encoding="utf-8")
+        start = source.index(
+            'extern "C" int ur_uniracers_modern_system_gamepad_button(')
+        end = source.index(
+            'extern "C" int ur_uniracers_modern_system_gamepad_control(', start)
+        body = source[start:end]
+
+        stale_clear = body.index(
+            "if (valid_button && pressed && !g_controls_visible)"
+        )
+        deferred_check = body.index("const bool deferred_controls_release")
+        self.assertLess(stale_clear, deferred_check)
+        self.assertIn(
+            "g_controls_deferred_gamepad_buttons",
+            body[stale_clear:deferred_check],
+        )
 
     def test_semantic_controls_path_uses_tested_policy(self):
         source = HOST.read_text(encoding="utf-8")

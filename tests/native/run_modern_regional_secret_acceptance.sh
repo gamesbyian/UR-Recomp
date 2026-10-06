@@ -35,7 +35,6 @@ EUROPE_VISUAL_LOG="$TMPROOT/regional-europe-visual.log"
 NA_VISUAL_LOG="$TMPROOT/regional-na-visual.log"
 AUTHENTIC_VISUAL_LOG="$TMPROOT/regional-authentic-visual.log"
 EUROPE_STATE_SNAPSHOT="$TMPROOT/regional-europe-host-state.txt"
-SOURCE_RGB_SHA="f2e8abef59271b4e05b3fc49e6d8b70ae695a6e813347756c293ab7a4a023b5f"
 TARGET_RGB_SHA="40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
 
 rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG" \

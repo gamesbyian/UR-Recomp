@@ -356,6 +356,11 @@
         "hd_selected_player_frames": 653,
         "original_fallback_player_frames": 4629,
         "hd_coverage_fraction": 0.12362741385838698
+      },
+      "focused_reproduction": {
+        "workflow_run": 37427286826,
+        "artifact_id": 11394369816,
+        "status": "green"
       }
     }
   ],
@@ -368,7 +373,33 @@
     "cumulative_baseline_fallback_burden_removed_fraction": 0.1036018590240124
   },
   "next_discriminator": {
-    "status": "pending-approval-gated-post-01b9-rerank",
-    "rule": "Do not authorize another pose until the 01B9 approval-gated reproduction is green and its canonical post-01B9 visual-context probe selects the next leader."
+    "status": "measured-post-01b9-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x0139",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 71,
+      "episode_count": 53,
+      "synchronized_witness_state_count": 44,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "35875a76754641b4c2751a19f69d0f9e446f67ef08ac753092c549003b42b8fe",
+      "normalized_geometry_sha256": "3617e550739823848b8ba9767708ac7341d95c56477ca663696c56a1449a8b70",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "exact_same_player_reuse_matches": [],
+      "palette_normalized_reuse_matches": [],
+      "requires_new_pose": true
+    },
+    "rule": "0139 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

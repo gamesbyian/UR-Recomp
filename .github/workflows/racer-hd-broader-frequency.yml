@@ -89,6 +89,23 @@ jobs:
           )
           PY
 
+          python3 - "$RUNNER_TEMP/racer-hd-after-04b9-registry.json" <<'PY'
+          import json, pathlib, sys
+          data = json.loads(
+              pathlib.Path("analysis/data/racer-hd-replacement-prototype.json").read_text()
+          )
+          rid = "ordinary-racer-0x0239-p1-broader-frequency-reference"
+          data["entries"] = [
+              e for e in data["entries"] if e["representation_id"] != rid
+          ]
+          data.get("motion_review_sequences", {}).pop(
+              "ordinary-race-0239-broader-static-1406-1407", None
+          )
+          pathlib.Path(sys.argv[1]).write_text(
+              json.dumps(data, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+
       - name: Validate WRAM census phase against retained native window
         shell: bash
         run: |
@@ -183,6 +200,7 @@ jobs:
           python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
             "$RUNNER_TEMP/racer-hd-broader-dumps" \
             --prefix racer-sample \
+            --registry "$RUNNER_TEMP/racer-hd-after-04b9-registry.json" \
             --workflow-run "${{ github.run_id }}" \
             --json-out "$RUNNER_TEMP/racer-hd-broader-after.json" \
             --trace-out "$RUNNER_TEMP/racer-hd-broader-trace.json" \

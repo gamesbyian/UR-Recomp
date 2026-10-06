@@ -9,7 +9,7 @@ The assembled Windows x64 package now classifies four high-value startup failure
 - `UR-STARTUP-ROM-MISSING`: the packaged ROM is absent;
 - `UR-STARTUP-ROM-INVALID`: the explicit packaged ROM fails the framework's generated ROM-identity check;
 - `UR-STARTUP-SAVE-ROOT`: the shared per-user root is invalid (including a relative override, a non-absolute resolved `APPDATA` root, or a location inside the extracted package tree), cannot be created/written, or the framework cannot adopt it;
-- `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent.
+- `UR-STARTUP-RUNTIME-DATA`: required executable, `rom.cfg` or staged mod payload is absent or the staged `mods/` payload is empty.
 
 `run-uniracers.cmd` owns package-presence and user-root checks. The pinned desktop host owns the ROM-identity and final mutable-root adoption checks. Windows package acceptance deliberately breaks each representative prerequisite and requires the corresponding stable code.
 

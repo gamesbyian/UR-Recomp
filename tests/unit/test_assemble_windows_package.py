@@ -233,6 +233,41 @@ class WindowsPackageTests(unittest.TestCase):
                 "UR-Recomp-Windows-x64/UniracersSNESRecomp.exe", names
             )
 
+            missing_exe_archive = root / "package-missing-exe.zip"
+            missing_exe_manifest = json.loads(json.dumps(manifest))
+            missing_exe_manifest["files"] = [
+                entry for entry in missing_exe_manifest["files"]
+                if entry["path"] != "UniracersSNESRecomp.exe"
+            ]
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                missing_exe_archive, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/UniracersSNESRecomp.exe"):
+                        continue
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        target.writestr(
+                            info,
+                            json.dumps(
+                                missing_exe_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n",
+                        )
+                    else:
+                        target.writestr(info, source.read(info.filename))
+            missing_exe = self.run_tool(
+                "verify-archive",
+                "--archive", missing_exe_archive,
+                check=False,
+            )
+            self.assertNotEqual(missing_exe.returncode, 0)
+            self.assertIn(
+                "required archive package files missing: "
+                "UniracersSNESRecomp.exe",
+                missing_exe.stderr,
+            )
+
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")
             failed = self.run_tool(
                 "verify", "--package", package, check=False

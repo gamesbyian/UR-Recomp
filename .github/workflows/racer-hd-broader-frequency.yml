@@ -308,15 +308,11 @@ jobs:
           assert dossier["validation"]["fully_registered_window"] is False
           reps = dossier["representations"]
           print(
-              "RACER_HD_02B9_REPRESENTATIONS",
-              json.dumps([
-                  {
-                      "representation_id": rep["representation_id"],
-                      "player": rep["player"],
-                      "frames": rep["observed"]["frames"],
-                  }
-                  for rep in reps
-              ], sort_keys=True),
+              "RACER_HD_04B9_REPRESENTATIONS",
+              json.dumps(
+                  [rep["representation_id"] for rep in reps],
+                  sort_keys=True,
+              ),
               flush=True,
           )
           assert len(reps) == 1, [rep["representation_id"] for rep in reps]

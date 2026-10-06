@@ -50,6 +50,7 @@ def build_report(
 
     unsupported: dict[str, dict[str, Any]] = {}
     fallback_by_primary = Counter()
+    fallback_by_player_primary = Counter()
     supported = 0
     observations = 0
 
@@ -73,6 +74,7 @@ def build_report(
                 continue
 
             fallback_by_primary[semantic] += 1
+            fallback_by_player_primary[(player, semantic)] += 1
             item = unsupported.setdefault(key, {
                 "state": key,
                 "composition": {
@@ -132,6 +134,17 @@ def build_report(
             for semantic, count in sorted(
                 fallback_by_primary.items(),
                 key=lambda item: (-item[1], item[0]),
+            )
+        ],
+        "fallback_by_player_primary_semantic_id": [
+            {
+                "player": player,
+                "semantic_frame_id": semantic,
+                "player_frames": count,
+            }
+            for (player, semantic), count in sorted(
+                fallback_by_player_primary.items(),
+                key=lambda item: (-item[1], item[0][0], item[0][1]),
             )
         ],
         "ranking_rule": (

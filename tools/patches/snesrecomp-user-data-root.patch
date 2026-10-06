@@ -1,25 +1,35 @@
 --- a/runner/src/host_paths.c
 +++ b/runner/src/host_paths.c
-@@ -130,7 +130,11 @@ int snesrecomp_exe_dir_path(const char *leaf, char *out, size_t max_len) {
- static int dir_is_writable(const char *dir) {
-     char probe[1024];
+@@ -146,11 +146,50 @@
+-static int dir_is_writable(const char *dir) {
+-    char probe[1024];
 -    if (snprintf(probe, sizeof(probe), "%s.snesrecomp_write_probe",
 -                 dir) >= (int)sizeof(probe))
+-        return 0;
+-    FILE *f = fopen(probe, "wb");
+-    if (!f) return 0;
+-    fclose(f);
+-    remove(probe);
+-    return 1;
+-}
++static int dir_is_writable(const char *dir) {
++    char probe[1024];
 +    size_t len = dir ? strlen(dir) : 0;
 +    const char *sep =
 +        (len > 0 && dir[len - 1] != '/' && dir[len - 1] != '\\') ? "/" : "";
 +    if (!dir || !dir[0] ||
 +        snprintf(probe, sizeof(probe), "%s%s.snesrecomp_write_probe",
 +                 dir, sep) >= (int)sizeof(probe))
-         return 0;
-     FILE *f = fopen(probe, "wb");
-     if (!f) return 0;
-@@ -142,8 +147,19 @@ static int dir_is_writable(const char *dir) {
- 
- int snesrecomp_anchor_to_exe_dir(void) {
-     char dir[1024];
--    get_exe_dir(dir, sizeof(dir));
--    if (dir[0] == '.' &&
++        return 0;
++    FILE *f = fopen(probe, "wb");
++    if (!f) return 0;
++    fclose(f);
++    remove(probe);
++    return 1;
++}
++
++int snesrecomp_anchor_to_exe_dir(void) {
++    char dir[1024];
 +    const char *user_data = getenv("SNESRECOMP_USER_DATA_DIR");
 +    if (user_data && user_data[0]) {
 +        if (snprintf(dir, sizeof(dir), "%s", user_data) >= (int)sizeof(dir)) {
@@ -33,21 +43,25 @@
 +    }
 +    if ((!user_data || !user_data[0]) &&
 +        dir[0] == '.' &&
-         (dir[1] == '/' || dir[1] == '\\' || dir[1] == '\0'))
-         return 0;
-     if (!dir_is_writable(dir)) {
-@@ -159,6 +177,10 @@ int snesrecomp_anchor_to_exe_dir(void) {
-                 "[Launcher] Could not change directory to '%s'.\n", dir);
-         return 0;
-     }
--    fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
++        (dir[1] == '/' || dir[1] == '\\' || dir[1] == '\0'))
++        return 0;
++    if (!dir_is_writable(dir)) {
++        fprintf(stderr,
++                "[Launcher] Executable directory '%s' is not writable; "
++                "config and saves stay in the current directory.\n", dir);
++        return 0;
++    }
++    if (snesrecomp_chdir(dir) != 0) {
++        fprintf(stderr, "[Launcher] Could not change directory to '%s'.\n", dir);
++        return 0;
++    }
 +    if (user_data && user_data[0])
 +        fprintf(stderr,
 +                "[Launcher] Config/saves anchored to user data '%s'.\n", dir);
 +    else
 +        fprintf(stderr, "[Launcher] Config/saves anchored to '%s'.\n", dir);
-     return 1;
- }
++    return 1;
++}
 --- a/runner/src/keybinds.c
 +++ b/runner/src/keybinds.c
 @@ -1,8 +1,9 @@

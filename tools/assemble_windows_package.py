@@ -42,7 +42,7 @@ def normalize_source_revision(value: object) -> str:
 
 
 def expected_readme_revision_line(source_revision: str) -> str:
-    return f"Source revision: {source_revision}\n"
+    return f"Source revision: {source_revision}"
 
 
 def is_same_or_within(path: Path, root: Path) -> bool:
@@ -351,7 +351,7 @@ def verify(package: Path) -> dict[str, object]:
         raise ValueError(f"cannot read packaged README: {exc}") from exc
     if (
         expected_readme_revision_line(source_revision)
-        not in readme.splitlines(keepends=True)
+        not in readme.splitlines()
     ):
         raise ValueError(
             "package README source revision does not match manifest"
@@ -499,7 +499,7 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError("cannot read package archive README") from exc
             if (
                 expected_readme_revision_line(source_revision)
-                not in readme.splitlines(keepends=True)
+                not in readme.splitlines()
             ):
                 raise ValueError(
                     "package archive README source revision does not match manifest"

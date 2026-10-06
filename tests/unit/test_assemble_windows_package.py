@@ -131,6 +131,38 @@ class WindowsPackageTests(unittest.TestCase):
                 ),
                 1,
             )
+            startup_log_writes = [
+                line
+                for line in launcher.splitlines()
+                if "startup.log" in line or "UR_RECOMP_STARTUP_LOG" in line
+                if " echo " in line
+            ]
+            startup_log_text = "\n".join(startup_log_writes).lower()
+            for forbidden in (
+                "profile",
+                "sram",
+                "controller_input",
+                "rom_bytes",
+                "save_contents",
+            ):
+                self.assertNotIn(forbidden, startup_log_text)
+            expected_log_keys = {
+                "schema",
+                "build_revision",
+                "architecture",
+                "subsystem",
+                "package_root",
+                "user_data_root",
+                "result",
+                "process_exit",
+                "code",
+            }
+            observed_log_keys = set()
+            for line in startup_log_writes:
+                payload = line.split(" echo ", 1)[1]
+                key = payload.split("=", 1)[0].strip().lower()
+                observed_log_keys.add(key)
+            self.assertEqual(observed_log_keys, expected_log_keys)
             self.assertIn(
                 "set \"UR_RECOMP_USER_DATA_ROOT=%APPDATA%\\gamesbyian\\UR-Recomp\"",
                 launcher,

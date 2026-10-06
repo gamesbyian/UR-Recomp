@@ -96,7 +96,7 @@ The host-state store may physically exist while Authentic mode is active, but it
 These are settled product policy, not open research questions:
 
 - Modern's top-level information architecture is **Play / Practice / Multiplayer / Records / Options**. Options contains settings only.
-- profile identity/persistence is separate from racer identity and from guest SRAM slots;
+- profile identity/persistence is separate from racer identity and from guest SRAM slots;\n- destructive stock save administration is not exposed as a controller chord in Modern mode: the active authoritative profile has an explicit confirmed **Reset Progress** action that installs the retained exact clean stock SRAM image, preserves that profile's Modern racer identity, clears its unfinished-tour continuation, and does not delete host-owned completed-run/replay history. The profile metadata and framework SRAM update are transactional with rollback on a failed SRAM write. Authentic keeps the original stock erase chord;
 - local multiplayer uses simultaneous independent join/racer selection in Modern; Authentic keeps stock sequential selection;
 - Modern tour play supports host-owned Resume Tour / Restart Tour persistence;
 - Modern tour challenge is player-selectable Bronze/Silver/Gold using canonical stock thresholds/opponents, and higher-tier completion satisfies lower tiers;

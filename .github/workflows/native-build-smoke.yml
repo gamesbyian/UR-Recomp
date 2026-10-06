@@ -872,17 +872,27 @@ jobs:
           drive_ghost_row() {
             local log="$1"
             local dumps="$2"
-            SDL_AUDIODRIVER=dummy \
-            UR_PRODUCT_DIAGNOSTICS=1 \
-            UR_HOST_STATE_PATH="$STATE" \
-            UR_PROFILE_SAVE_ROOT="$PROFILE_ROOT" \
-            UR_GHOST_TARGET_ACCEPTANCE=1 \
-            SNESRECOMP_DUMP_DIR="$dumps" \
-              timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
-                >"$log" 2>&1
+            timeout 90s xvfb-run -a bash -c '
+              set -euo pipefail
+              export SDL_AUDIODRIVER=dummy
+              export UR_PRODUCT_DIAGNOSTICS=1
+              export UR_HOST_STATE_PATH="'"$STATE"'"
+              export UR_PROFILE_SAVE_ROOT="'"$PROFILE_ROOT"'"
+              export UR_GHOST_TARGET_ACCEPTANCE=1
+              export SNESRECOMP_DUMP_DIR="'"$dumps"'"
 
-            grep -q "UR_PAUSE_OPTIONS OPENED" "$log"
-            grep -q "UR_RUN_GHOST TARGET_SELECTED" "$log"
+              "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$log"'" 2>&1 &
+              PID=$!
+              for _ in $(seq 1 600); do
+                grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'" && break
+                kill -0 "$PID" 2>/dev/null || exit 1
+                sleep 0.1
+              done
+              grep -q "UR_PAUSE_OPTIONS OPENED" "'"$log"'"
+              grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'"
+              kill "$PID" 2>/dev/null || true
+              wait "$PID" 2>/dev/null || true
+            '
           }
 
           drive_ghost_row "$FIRST_LOG" "$ROOT/first-dumps"

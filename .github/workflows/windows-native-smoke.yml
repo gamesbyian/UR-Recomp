@@ -120,15 +120,40 @@ jobs:
           b.ensure_source(tool, src_root, island, offline=True)
           PY
 
-      - name: Apply SNESRecomp patch stack
+      - name: Locate failing SNESRecomp patch
         run: |
           python - <<'PY'
-          from tools import bootstrap_toolchain as b
-          manifest = b.load_manifest()
-          tool = next(t for t in manifest["tools"] if t["id"] == "snesrecomp")
-          dest = b.ROOT / manifest.get("install_root", ".tools") / "src" / "snesrecomp"
-          b.apply_patches(tool, dest)
+          import json, pathlib, subprocess
+          root = pathlib.Path(".").resolve()
+          manifest = json.loads((root / "tools/toolchain-entries/snesrecomp.json").read_text())
+          dest = (root / ".tools/src/snesrecomp").resolve()
+          staged_rel = dest.relative_to(root).as_posix()
+          failure = -1
+          for index, spec in enumerate(manifest["patches"]):
+              patch = root / spec["path"]
+              check = subprocess.run(
+                  ["git", "apply", "--check", f"--directory={staged_rel}", str(patch)],
+                  cwd=root,
+              )
+              if check.returncode:
+                  failure = index
+                  break
+              subprocess.run(
+                  ["git", "apply", f"--directory={staged_rel}", str(patch)],
+                  cwd=root,
+                  check=True,
+              )
+          pathlib.Path("failing_patch_index.txt").write_text(f"{failure}\n")
           PY
+
+      - name: Failing SNES patch 0-9
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 0 <= n <= 9 else 0)"
+
+      - name: Failing SNES patch 10-19
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 10 <= n <= 19 else 0)"
+
+      - name: Failing SNES patch 20-28
+        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 20 <= n <= 28 else 0)"
 
       - name: Stage SNESRecomp framework
         run: |

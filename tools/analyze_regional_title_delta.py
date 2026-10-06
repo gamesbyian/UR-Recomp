@@ -35,6 +35,14 @@ def sha256(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
+def fnv1a64(data: bytes) -> str:
+    value = 1469598103934665603
+    for byte in data:
+        value ^= byte
+        value = (value * 1099511628211) & 0xFFFFFFFFFFFFFFFF
+    return f"0x{value:016x}"
+
+
 def changed_offsets(a: bytes, b: bytes) -> list[int]:
     if len(a) != len(b):
         raise ValueError(f"binary sizes differ: {len(a)} != {len(b)}")
@@ -255,6 +263,8 @@ def build_settled_asset(
         "target_full_frame_sha256": europe_full_sha,
         "source_crop_sha256": sha256(usa_crop),
         "target_crop_sha256": sha256(europe_crop),
+        "source_crop_fnv1a64": fnv1a64(usa_crop),
+        "target_crop_fnv1a64": fnv1a64(europe_crop),
         "bbox_inclusive": bbox,
         "origin": [x0, y0],
         "width": x1 - x0 + 1,
@@ -317,6 +327,8 @@ def analyze(
             "bbox_inclusive": asset["bbox_inclusive"],
             "source_crop_sha256": asset["source_crop_sha256"],
             "target_crop_sha256": asset["target_crop_sha256"],
+            "source_crop_fnv1a64": asset["source_crop_fnv1a64"],
+            "target_crop_fnv1a64": asset["target_crop_fnv1a64"],
             "palette_entries": len(asset["palette_u32_le"]),
             "cgram_identical_across_evidence": asset[
                 "cgram_identical_across_evidence"

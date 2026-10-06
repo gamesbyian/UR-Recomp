@@ -10,6 +10,7 @@ name: Windows native build and boot smoke
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     branches: [main]
     paths:
@@ -55,10 +56,29 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Verify canonical ROM and package contracts
-        run: |
-          python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package
+      - name: Verify canonical ROM
+        run: python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Package contract - assemble
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_assemble_verify_and_clean_stale_output
+
+      - name: Package contract - destructive paths
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_destructive_output_paths_fail_closed
+
+      - name: Package contract - empty mod payload
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_empty_mod_payload_fails_closed
+
+      - name: Package contract - missing required input
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_required_input_fails_closed
+
+      - name: Package contract - missing source revision
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_missing_source_revision_fails_closed
+
+      - name: Package contract - unknown startup code
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_unknown_startup_code_stays_narrowly_bound_to_controller_init
+
+      - name: Package contract - workflow ordering
+        run: python -m unittest tests.unit.test_assemble_windows_package.WindowsPackageTests.test_windows_workflow_verifies_canonical_rom_before_assembly
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

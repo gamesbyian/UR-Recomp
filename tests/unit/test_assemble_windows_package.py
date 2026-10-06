@@ -72,6 +72,9 @@ class WindowsPackageTests(unittest.TestCase):
             readme = (package / "README.txt").read_text()
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("Source revision: abc123", readme)
+            self.assertIn("UR-STARTUP-*", readme)
+            self.assertIn("diagnostics\\startup.log", readme)
+            self.assertIn("no ROM bytes", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
             self.assertIn(
                 '"%~dp0UniracersSNESRecomp.exe" "%~dp0Uniracers_USA.sfc" %*',

@@ -144,6 +144,10 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                'mkdir "%UR_MIGRATE_SAVES%"',
+                launcher,
+            )
+            self.assertIn(
                 'ren "%UR_MIGRATE_SAVES%" "saves"',
                 launcher,
             )

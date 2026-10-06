@@ -4095,13 +4095,24 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
                 const int restart =
                     ur_modern_session_restart_available(g_session);
-                ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
-                ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
-                if (activate_pause_selection()) {
-                    for (int row = 0; row < 7; ++row) {
+                for (int step = 0; step < 8 &&
+                     ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+                         UR_MODERN_PAUSE_OPTIONS;
+                     ++step) {
+                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                }
+                if (ur_modern_pause_menu_selected(&g_pause_menu, restart) ==
+                        UR_MODERN_PAUSE_OPTIONS &&
+                    activate_pause_selection()) {
+                    for (int step = 0; step < 12 &&
+                         ur_modern_options_menu_selected(&g_options_menu) !=
+                             UR_MODERN_OPTIONS_GHOST;
+                         ++step) {
                         ur_modern_options_menu_move(&g_options_menu, 1);
                     }
-                    if (activate_options_selection()) {
+                    if (ur_modern_options_menu_selected(&g_options_menu) ==
+                            UR_MODERN_OPTIONS_GHOST &&
+                        activate_options_selection()) {
                         g_ghost_target_acceptance_fired = true;
                     }
                 }

@@ -423,6 +423,23 @@ jobs:
             --output-dir "$RUNNER_TEMP/racer-hd-next-visual-probe" \
             > "$RUNNER_TEMP/racer-hd-next-visual-probe.txt"
 
+          python3 - "$RUNNER_TEMP/racer-hd-next-visual-probe.json" <<'PY'
+          import json, pathlib, sys
+          probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          target = probe["target"]
+          assert target["player"] == "p1", target
+          assert target["semantic_frame_id"] == "0x0439", target
+          assert target["player_frames"] == 78, target
+          assert target["episode_count"] == 58, target
+          assert probe["witness_player_frames"] == 78, probe
+          print("RACER_HD_NEXT_CONTEXT", json.dumps({
+              "target": target,
+              "unique_stock_raster_count": probe["unique_stock_raster_count"],
+              "disposition": probe["disposition"],
+              "canonical": probe["canonical"],
+          }, sort_keys=True))
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

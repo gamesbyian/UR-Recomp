@@ -495,6 +495,23 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertTrue((build / "UniracersSNESRecomp.exe").is_file())
             self.assertTrue(rom.is_file())
 
+            output_file = root / "package-as-file"
+            output_file.write_text("not a directory")
+            output_file_result = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", output_file,
+                "--source-revision", "test-revision",
+                check=False,
+            )
+            self.assertNotEqual(output_file_result.returncode, 0)
+            self.assertIn(
+                "package output exists and is not a directory",
+                output_file_result.stderr,
+            )
+            self.assertEqual(output_file.read_text(), "not a directory")
+
             package = root / "safe-package"
             self.run_tool(
                 "assemble",
@@ -516,6 +533,22 @@ class WindowsPackageTests(unittest.TestCase):
                 archived.stderr,
             )
             self.assertFalse(inside_archive.exists())
+
+            archive_dir = root / "archive-as-directory.zip"
+            archive_dir.mkdir()
+            archive_dir_result = self.run_tool(
+                "archive",
+                "--package", package,
+                "--output", archive_dir,
+                check=False,
+            )
+            self.assertNotEqual(archive_dir_result.returncode, 0)
+            self.assertIn(
+                "package archive output exists and is not a file",
+                archive_dir_result.stderr,
+            )
+            self.assertTrue(archive_dir.is_dir())
+
             verified = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verified.stdout)
 

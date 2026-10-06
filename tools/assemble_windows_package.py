@@ -35,7 +35,7 @@ def normalize_source_revision(value: object) -> str:
     if (
         not revision
         or revision != value
-        or any(ch in revision for ch in "\r\n\x00")
+        or any(ord(ch) < 0x20 or ord(ch) == 0x7F for ch in revision)
     ):
         raise ValueError("source revision must be one non-empty canonical line")
     return revision

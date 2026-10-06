@@ -13,6 +13,7 @@ void ur_uniracers_product_after_run_frame(
     const struct SnesDesktopHostFrameStats* stats);
 int ur_uniracers_product_system_key_down(int key, int mod, int repeat);
 int ur_uniracers_product_system_gamepad_button(int button, int pressed);
+int ur_uniracers_product_system_gamepad_control(int control, int pressed);
 void ur_uniracers_product_system_overlay(
     uint8_t* dst,
     size_t pitch,

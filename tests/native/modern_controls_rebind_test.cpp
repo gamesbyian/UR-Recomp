@@ -47,6 +47,20 @@ int main() {
     assert(command.key_scancode == 42);
     assert(!state.capturing);
 
+    // Duplicate physical keys are intentionally legal. The model emits the
+    // same scancode for another logical SNES control without deduplication.
+    (void)modern_controls_handle_action(&state, ModernControlsAction::Next);
+    command = modern_controls_handle_action(&state, ModernControlsAction::Confirm);
+    assert(state.capturing);
+    command = modern_controls_capture_key(&state, 42);
+    assert(command.kind == ModernControlsCommandKind::ApplyCapturedKey);
+    assert(command.binding == ModernControlBinding::B);
+    assert(command.key_scancode == 42);
+    assert(!state.capturing);
+
+    // Return to A so the existing navigation assertions retain their intent.
+    (void)modern_controls_handle_action(&state, ModernControlsAction::Previous);
+
     (void)modern_controls_handle_action(
         &state, ModernControlsAction::Next);
     assert(state.selected == ModernControlBinding::B);
@@ -71,6 +85,27 @@ int main() {
     command = modern_controls_handle_action(
         &state, ModernControlsAction::Back);
     assert(command.kind == ModernControlsCommandKind::Close);
+
+    ModernControlsAction action{};
+    assert(modern_controls_action_for_snes_control(0, &action));
+    assert(action == ModernControlsAction::Previous);
+    assert(modern_controls_action_for_snes_control(1, &action));
+    assert(action == ModernControlsAction::Next);
+    assert(modern_controls_action_for_snes_control(5, &action));
+    assert(action == ModernControlsAction::Back);
+    assert(modern_controls_action_for_snes_control(6, &action));
+    assert(action == ModernControlsAction::Confirm);
+    assert(modern_controls_action_for_snes_control(7, &action));
+    assert(action == ModernControlsAction::Back);
+    assert(modern_controls_action_for_snes_control(8, &action));
+    assert(action == ModernControlsAction::Clear);
+    assert(modern_controls_action_for_snes_control(9, &action));
+    assert(action == ModernControlsAction::Reset);
+
+    for (const int ignored : {2, 3, 4, 10, 11, -1, 12}) {
+        assert(!modern_controls_action_for_snes_control(ignored, &action));
+    }
+    assert(!modern_controls_action_for_snes_control(6, nullptr));
 
     return 0;
 }

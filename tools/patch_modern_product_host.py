@@ -22,6 +22,7 @@ def patch_main_text(source: str) -> str:
         ("&ur_uniracers_modern_after_run_frame", "&ur_uniracers_product_after_run_frame"),
         ("&ur_uniracers_modern_system_key_down", "&ur_uniracers_product_system_key_down"),
         ("&ur_uniracers_modern_system_gamepad_button", "&ur_uniracers_product_system_gamepad_button"),
+        ("&ur_uniracers_modern_system_gamepad_control", "&ur_uniracers_product_system_gamepad_control"),
         ("&ur_uniracers_modern_system_overlay", "&ur_uniracers_product_system_overlay"),
     ):
         source = source.replace(original, wrapped)
@@ -47,6 +48,21 @@ def patch_main_text(source: str) -> str:
             + "    .after_config          = &ur_uniracers_modern_after_config,\n",
             1,
         )
+
+    if "system_gamepad_control" not in source:
+        raw_gamepad_anchor = (
+            "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
+        )
+        # Existing Modern hosts already have the raw-button callback and need
+        # an in-place semantic upgrade. A pristine generated host has neither;
+        # its full callback block is injected by the fresh-host path below.
+        if raw_gamepad_anchor in source:
+            source = source.replace(
+                raw_gamepad_anchor,
+                raw_gamepad_anchor
+                + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n",
+                1,
+            )
 
     if "ur_uniracers_modern_presentation_scale" in source:
         return source
@@ -115,6 +131,7 @@ def patch_main_text(source: str) -> str:
         + "    .after_run_frame       = &ur_uniracers_product_after_run_frame,\n"
         + "    .system_key_down       = &ur_uniracers_product_system_key_down,\n"
         + "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
+        + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n"
         + "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"
         + "    .presentation_hz        = &ur_uniracers_modern_presentation_hz,\n"
         + widescreen_fields,
@@ -191,6 +208,9 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "modern_pause_menu.cpp",
         "modern_pause_input.cpp",
         "modern_options_menu.cpp",
+        "modern_controls_rebind.cpp",
+        "modern_controls_binding_authority.cpp",
+        "modern_controls_presenter.cpp",
         "uniracers_modern_host.cpp",
     ]
     source_lines = "\n".join(

@@ -60,11 +60,29 @@ int main() {
         authority));
     assert(saves == 3);
 
+    // Invalid captures and incomplete authority fail closed without saving.
+    assert(!apply_modern_controls_command(
+        {ModernControlsCommandKind::ApplyCapturedKey,
+         ModernControlBinding::A,
+         0},
+        authority));
+    assert(saves == 3);
+
     ModernControlsBindingAuthority incomplete{};
     assert(!apply_modern_controls_command(
         {ModernControlsCommandKind::ApplyCapturedKey,
          ModernControlBinding::A,
          42},
+        incomplete));
+    assert(!apply_modern_controls_command(
+        {ModernControlsCommandKind::ClearBinding,
+         ModernControlBinding::A,
+         0},
+        incomplete));
+    assert(!apply_modern_controls_command(
+        {ModernControlsCommandKind::ResetPlayer,
+         ModernControlBinding::A,
+         0},
         incomplete));
 
     return 0;

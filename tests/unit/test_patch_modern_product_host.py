@@ -28,6 +28,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_product_after_run_frame", patched)
         self.assertIn("ur_uniracers_product_system_key_down", patched)
         self.assertIn("ur_uniracers_product_system_gamepad_button", patched)
+        self.assertIn("ur_uniracers_product_system_gamepad_control", patched)
         self.assertIn("ur_uniracers_product_system_overlay", patched)
         self.assertIn("ur_uniracers_modern_after_config", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
@@ -55,6 +56,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
         self.assertIn("ur_uniracers_product_after_run_frame", patched)
         self.assertIn("ur_uniracers_product_system_key_down", patched)
         self.assertIn("ur_uniracers_product_system_gamepad_button", patched)
+        self.assertIn("ur_uniracers_product_system_gamepad_control", patched)
         self.assertIn("ur_uniracers_product_system_overlay", patched)
         self.assertIn("ur_uniracers_modern_presentation_hz", patched)
         self.assertIn("ur_uniracers_modern_native_widescreen_enabled", patched)
@@ -119,6 +121,9 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "modern_pause_menu.cpp",
             "modern_pause_input.cpp",
             "modern_options_menu.cpp",
+            "modern_controls_rebind.cpp",
+            "modern_controls_binding_authority.cpp",
+            "modern_controls_presenter.cpp",
             "uniracers_modern_host.cpp",
             "uniracers_restart_policy.cpp",
             "uniracers_course_identity.cpp",

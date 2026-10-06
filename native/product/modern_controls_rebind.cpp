@@ -99,6 +99,38 @@ ModernControlsCommand modern_controls_handle_action(
     return {};
 }
 
+bool modern_controls_action_for_snes_control(
+    int control,
+    ModernControlsAction* action) noexcept {
+    if (!action) return false;
+
+    // SNESRecomp GamepadMap semantic order:
+    // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    switch (control) {
+    case 0:
+        *action = ModernControlsAction::Previous;
+        return true;
+    case 1:
+        *action = ModernControlsAction::Next;
+        return true;
+    case 5:
+    case 7:
+        *action = ModernControlsAction::Back;
+        return true;
+    case 6:
+        *action = ModernControlsAction::Confirm;
+        return true;
+    case 8:
+        *action = ModernControlsAction::Clear;
+        return true;
+    case 9:
+        *action = ModernControlsAction::Reset;
+        return true;
+    default:
+        return false;
+    }
+}
+
 ModernControlsCommand modern_controls_capture_key(
     ModernControlsRebindState* state,
     int key_scancode) noexcept {

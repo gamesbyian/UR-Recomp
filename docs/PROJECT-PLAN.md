@@ -1172,7 +1172,7 @@ Because implementation is performed by autonomous agents, this is a dependency g
 The current product-critical lanes are:
 
 1. **Modern progression continuity.** Complete controlled profile lifecycle integration and host-owned tour/event continuation without changing guest progression semantics or allowing profiles to share cartridge backing state.
-2. **Controls and accessibility.** Turn the existing read-only/live binding authority into practical player-facing rebinding/hot-plug UX and add host-only accessibility features that do not alter authoritative simulation.
+2. **Controls and accessibility.** Player-facing persistent P1 keyboard rebinding is now integrated through the existing Modern Controls surface and SNESRecomp authority, and Controls navigation follows SNESRecomp's configured GamepadMap semantic controls rather than hard-coded physical button positions. Continue with controller hot-plug/physical-device UX and host-only accessibility features that do not alter authoritative simulation.
 3. **Run/timing/statistics UX.** Build on the already accepted completed-run, PB/Previous, split/delta and Local Runs substrates. The next work is presentation and navigation, not a replacement data model.
 4. **Fast play loop.** Extend Quick Practice and Restart with repeat/rematch, recent-course and next-event affordances while continuing to route authoritative race setup through the recovered stock menu/initializer contracts.
 5. **Remastered coverage.** Expand Racer HD only where measured fallback frequency or another visible product requirement justifies it. Reuse canonical geometry, deterministic palette-equivalence, temporal review and hash-bound approval.

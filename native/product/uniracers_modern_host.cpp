@@ -93,6 +93,7 @@ UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_controls_visible;
 ur::product::ModernControlsRebindState g_controls_rebind;
+std::array<bool, kGamepadBtn_Count> g_controls_deferred_gamepad_buttons{};
 bool g_run_data_visible;
 bool g_quit_confirm_visible;
 bool g_onboarding_initialized;
@@ -3570,11 +3571,22 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
 
-    if (g_controls_visible) {
+    const bool deferred_controls_release =
+        !pressed &&
+        button >= 0 &&
+        button < kGamepadBtn_Count &&
+        g_controls_deferred_gamepad_buttons[
+            static_cast<std::size_t>(button)];
+    if (g_controls_visible || deferred_controls_release) {
         // Controls navigation must respect the player's configured GamepadMap.
-        // Defer BOTH press and release before the generic paused-release path.
-        // Negative means "resolve mapped P1 semantics only": framework/system
-        // commands and guest dispatch stay suppressed behind this modal panel.
+        // Track every raw button handed back to the framework so its matching
+        // release is also handed back even if mapped B/Start closes the panel
+        // on the press. Negative means "resolve mapped P1 semantics only":
+        // framework/system commands and guest dispatch stay suppressed.
+        if (button >= 0 && button < kGamepadBtn_Count) {
+            g_controls_deferred_gamepad_buttons[
+                static_cast<std::size_t>(button)] = pressed != 0;
+        }
         return -1;
     }
 

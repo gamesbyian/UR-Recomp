@@ -20,10 +20,27 @@ class RegionalPresentationNativeAcceptanceContractTests(unittest.TestCase):
         self.assertIn("regional-main-menu-ready.wram.bin", source)
         self.assertIn("UR_EXECUTION_MODE=authentic", source)
         self.assertIn("UR_HOST_STATE AUTHENTIC_INERT", source)
+        self.assertIn("ppm_crop_sha", source)
+        self.assertIn("regional-europe-title.ppm", source)
+        self.assertIn("regional-na-title.ppm", source)
+        self.assertIn("regional-authentic-title.ppm", source)
+        self.assertIn("UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1", source)
+        self.assertIn("TARGET_RGB_SHA=\"40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb\"", source)
+        self.assertIn("test \"$EUROPE_VISIBLE_SHA\" = \"$TARGET_RGB_SHA\"", source)
+        self.assertIn("test \"$EUROPE_VISIBLE_SHA\" != \"$NA_VISIBLE_SHA\"", source)
+        self.assertIn("test \"$AUTHENTIC_VISIBLE_SHA\" = \"$NA_VISIBLE_SHA\"", source)
+        self.assertIn("UR_REGIONAL_VISIBLE_SHA europe=", source)
+        self.assertIn("profile=regional-visual", source)
+        self.assertIn("UR_PROFILE_SAVE_ROOT=\"$save_root\"", source)
+        self.assertIn("regional-europe-save-root", source)
+        self.assertIn("regional-na-save-root", source)
+        self.assertGreaterEqual(source.count('kill "$PID" 2>/dev/null || true'), 2)
+        self.assertGreaterEqual(source.count('! grep -q "UR_REGIONAL SWITCH" "$LOG"'), 2)
+        self.assertIn("cmp \"$EUROPE_VISUAL_DUMPS/boot-300.$suffix\" \"$NA_VISUAL_DUMPS/boot-300.$suffix\"", source)
         self.assertIn(
             "UR_REGIONAL_RESULT="
-            "pal_saved_reloaded_ntsc_saved_reloaded_"
-            "main_menu_inert_authentic_inert",
+            "pal_saved_unirally_visible_ntsc_saved_uniracers_visible_"
+            "guest_state_equal_main_menu_inert_authentic_canonical",
             source,
         )
 

@@ -54,10 +54,14 @@ jobs:
       - name: Localize title presentation deltas
         run: |
           python3 tools/analyze_regional_title_delta.py \
-            "$RUNNER_TEMP/regional-frontend/title-transition/usa" \
-            "$RUNNER_TEMP/regional-frontend/title-transition/europe" \
-            --out "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
+            "$RUNNER_TEMP/regional-frontend/dumps/title-transition/usa" \
+            "$RUNNER_TEMP/regional-frontend/dumps/title-transition/europe" \
+            --out "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json" \
+            --asset-out "$RUNNER_TEMP/regional-frontend/title-transition/settled-title-asset.json"
           cat "$RUNNER_TEMP/regional-frontend/title-transition/title-delta-provenance.json"
+          echo "REGIONAL_TITLE_ASSET_BEGIN"
+          cat "$RUNNER_TEMP/regional-frontend/title-transition/settled-title-asset.json"
+          echo "REGIONAL_TITLE_ASSET_END"
 
       - name: Upload matched regional frontend evidence
         if: always()

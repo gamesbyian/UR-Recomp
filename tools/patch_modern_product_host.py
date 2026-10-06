@@ -178,6 +178,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "regional_presentation_secret.cpp",
         "regional_presentation_runtime.cpp",
         "regional_presentation_input_coordinator.cpp",
+        "regional_title_presenter.cpp",
         "modern_racer_identity.cpp",
         "clean_stock_sram.cpp",
         "host_profile_catalog.cpp",

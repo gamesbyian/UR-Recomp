@@ -1,6 +1,6 @@
 # Regional Presentation Switch
 
-Status: planned Windows x64 Modern-product feature.
+Status: first player-visible Windows x64 Modern consumer shipping-path integrated; transition animation remains evidence-gated.
 
 This document owns the regional-presentation feature that lets the shipped game present itself as either the North American **Uniracers** release or the European **Unirally** release without introducing a second authoritative gameplay ruleset.
 
@@ -347,7 +347,10 @@ The policy-only phase has advanced into a tested product substrate on this branc
 - `tools/compare_retail_frontend.py` plus `regional-retail-frontend-comparison.yml` now run the same semantic snesref UI routes against both retail ROMs and retain matched framebuffer/text differences plus route failures for interpretation; the route now includes title checkpoints at frames 300/360/420 plus first/settled main menu;
 - `tools/compare_regional_audio_packages.py` plus `regional-retail-audio-packages.yml` compare the known 50-block ROM-side APU package pool independently of potentially relocated PAL selector tables;
 - `tools/compare_regional_course_payloads.py` plus `regional-retail-course-payloads.yml` decode the seven changed RNC streams and localize byte changes into header, coarse table, fine-record region, resource list and post-list payload without over-classifying their semantics;
-- the generated-product CMake patch now links the regional secret/runtime sources, so the feature is part of the shipping native product build rather than unit-test-only code.
+- `tools/analyze_regional_title_delta.py` now promotes only a repeated settled retail title pair: USA and Europe frames 300/360 are internally stable, the visible delta is bounded to `[10,1]..[247,81]`, CGRAM is identical at those checkpoints, and exact crop/full-frame hashes are retained;
+- `native/product/regional_title_retail_asset.hpp` carries the compact exact retail-derived USA/Europe title rasters with verified ROM/workflow/artifact provenance; `analysis/data/presentation-assets.json` exposes the same family through the consolidated query surface;
+- `native/product/regional_title_presenter.{hpp,cpp}` applies Europe/Unirally only on the proven idle-title semantic surface after validating the retained Europe payload; NorthAmerica remains the live canonical USA guest raster, and any failed Europe write restores that live raster;
+- the generated-product CMake patch now links the regional secret/runtime and title-presenter sources, so the feature is part of the shipping native product build rather than unit-test-only code.
 
 The production host now completes the hidden-switch input and persistence path:
 
@@ -356,9 +359,9 @@ The production host now completes the hidden-switch input and persistence path:
 - mapped SNES controller controls feed the controller matcher through the existing framework semantic-control hook, with no second controller map;
 - `0xD7` main-menu navigation remains guest-owned;
 - `SaveRequired` dispatches through the existing durable host-product store, while save failure leaves the running regional presentation well-defined;
-- native acceptance types `PAL`, proves Europe persistence in a fresh process, types `NTSC`, and proves NorthAmerica persistence in another fresh process.
+- native acceptance types `PAL`, proves Europe persistence in a fresh process, requires the presenter to verify and apply the exact retained Unirally raster, then confirms the downstream player-visible Europe crop differs from NorthAmerica; `NTSC` restores NorthAmerica, Authentic with Europe persisted matches canonical NorthAmerica presentation, and WRAM/SRAM/VRAM/CGRAM/OAM are byte-identical at frame 300 across the two Modern regional choices.
 
-Still intentionally unwired are the visible title/logo consumer and any later evidence-backed frontend/course presentation differences. Experiment A/E now have reusable execution machinery; the next product step is exact/provenance-bound Unirally title branding plus the selected stock transition primitive.
+The first visible regional consumer is therefore shipped-path complete: NorthAmerica preserves the canonical guest title raster; Europe substitutes the exact proven Unirally crop in host presentation only. The exact stock horizontal/title transition is **not** yet sufficiently characterized and remains the next explicit presentation task rather than being replaced with a new modern effect. Any additional frontend/course/audio differences remain evidence-gated.
 
 ## Implementation phases
 
@@ -382,15 +385,7 @@ No rendering change is required in this phase.
 
 ### Phase 2: exact title branding switch
 
-Bind the regional state to the proven title/logo presentation seam.
-
-Requirements:
-
-- NorthAmerica remains pixel/reference-compatible with current title behavior before HD substitution;
-- Europe uses exact extracted Unirally source art or its provenance-bound approved HD derivative;
-- no race simulation state changes;
-- switch can occur from the title without process restart if the title presentation seam supports clean invalidation/rebuild;
-- if a clean live swap is unsafe, restart only the frontend/title presentation state, never the authoritative cartridge runtime.
+**Complete for the first settled-title consumer.** NorthAmerica remains the canonical USA guest raster. Europe uses the exact repeated Europe-retail title raster crop derived from matched snesref evidence, admitted only on the proven idle-title semantic surface after retained-payload validation. The substitution occurs in the host compositor, requires no process or guest restart, and has no guest-memory authority. Any provenance mismatch fails closed to canonical Uniracers.
 
 ### Phase 3: remaining proven frontend deltas
 

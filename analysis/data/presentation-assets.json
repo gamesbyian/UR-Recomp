@@ -2928,6 +2928,71 @@
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring."
       }
+    },
+    {
+      "id": "regional-title-identity",
+      "semantic_owner": "RegionalPresentation::{NorthAmerica,Europe}",
+      "status": "shipping_exact_retail_raster",
+      "surface": "idle title family state 0x84",
+      "geometry": {
+        "bbox_inclusive": [
+          10,
+          1,
+          247,
+          81
+        ],
+        "width": 238,
+        "height": 81
+      },
+      "variants": [
+        {
+          "presentation": "NorthAmerica",
+          "visible_identity": "Uniracers",
+          "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+          "full_frame_sha256": "9c96180d76c259d03ce605e29d8442fd55db8052f9e72789198ba000a95267ac",
+          "crop_bgrx_sha256": "70feb3f884aaf774241807a24e3dcf2ffe315028786ed5f2878ec0f9b1539bb9",
+          "crop_rgb_sha256": "f2e8abef59271b4e05b3fc49e6d8b70ae695a6e813347756c293ab7a4a023b5f"
+        },
+        {
+          "presentation": "Europe",
+          "visible_identity": "Unirally",
+          "rom_sha256": "a1105819d48c04d680c8292bbfa9abbce05224f1bc231afd66af43b7e0a1fd4e",
+          "full_frame_sha256": "9845116be09c25357274d22d777c27a8fa4b146e2336622aa807ff9e505f9905",
+          "crop_bgrx_sha256": "091da25741dc381b268330d0ca4a4bcc9947b8234860762639f74653d41bf0fe",
+          "crop_rgb_sha256": "40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
+        }
+      ],
+      "evidence": {
+        "workflow_run": 37401751411,
+        "artifact_id": 11385114202,
+        "checkpoints": [
+          "boot-300",
+          "boot-360"
+        ],
+        "repeated_full_frames_exact": true,
+        "cgram_identical": true,
+        "delta_bbox_inclusive": [
+          10,
+          1,
+          247,
+          81
+        ],
+        "analyzer": "tools/analyze_regional_title_delta.py",
+        "asset": "native/product/regional_title_retail_asset.hpp"
+      },
+      "runtime": {
+        "presenter": "native/product/regional_title_presenter.cpp",
+        "north_america": "canonical guest raster unchanged",
+        "europe": "host-owned exact retail crop substitution on the proven idle-title semantic surface",
+        "fail_closed": "canonical Uniracers raster",
+        "guest_state_authority": "none; presenter receives/writes host output pixels only",
+        "authentic_mode": "inert"
+      },
+      "transition": {
+        "status": "deferred",
+        "reason": "settled title identity is characterized, but the exact stock horizontal/title transition is not yet sufficiently characterized for shipping integration"
+      },
+      "admission_rule": "Regional title art is admitted only from repeated matched retail evidence. Europe substitution requires the proven idle-title semantic surface plus a self-consistent retained asset; NorthAmerica remains the live canonical USA guest raster, and any failed Europe write restores that live raster."
     }
   ]
 }

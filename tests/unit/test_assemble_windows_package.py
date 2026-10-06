@@ -71,11 +71,11 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
-                'if "%UR_RECOMP_USER_DATA_ROOT:~1,2%"==":\\\\" goto user_root_ready',
+                'if "%UR_RECOMP_USER_DATA_ROOT:~1,2%"==":\\" goto user_root_ready',
                 launcher,
             )
             self.assertIn(
-                'if "%UR_RECOMP_USER_DATA_ROOT:~0,2%"=="\\\\\\\\" goto user_root_ready',
+                'if "%UR_RECOMP_USER_DATA_ROOT:~0,2%"=="\\\\" goto user_root_ready',
                 launcher,
             )
             self.assertIn(

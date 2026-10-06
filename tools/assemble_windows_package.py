@@ -275,10 +275,12 @@ def verify(package: Path) -> dict[str, object]:
         manifest.get("schema_version") != SCHEMA_VERSION
         or manifest.get("package_format") != PACKAGE_FORMAT
         or not isinstance(manifest.get("files"), list)
-        or not isinstance(manifest.get("source_revision"), str)
-        or not manifest["source_revision"].strip()
     ):
         raise ValueError("unsupported or malformed package manifest")
+    try:
+        source_revision = normalize_source_revision(manifest.get("source_revision"))
+    except ValueError as exc:
+        raise ValueError("unsupported or malformed package manifest") from exc
 
     expected = manifest["files"]
     actual = package_files(package)
@@ -287,6 +289,17 @@ def verify(package: Path) -> dict[str, object]:
 
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
+    try:
+        readme = (package / README_NAME).read_text(encoding="utf-8")
+    except OSError as exc:
+        raise ValueError(f"cannot read packaged README: {exc}") from exc
+    if (
+        expected_readme_revision_line(source_revision)
+        not in readme.splitlines(keepends=True)
+    ):
+        raise ValueError(
+            "package README source revision does not match manifest"
+        )
 
     return manifest
 
@@ -344,10 +357,16 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 manifest.get("schema_version") != SCHEMA_VERSION
                 or manifest.get("package_format") != PACKAGE_FORMAT
                 or not isinstance(manifest.get("files"), list)
-                or not isinstance(manifest.get("source_revision"), str)
-                or not manifest["source_revision"].strip()
             ):
                 raise ValueError("unsupported or malformed package archive manifest")
+            try:
+                source_revision = normalize_source_revision(
+                    manifest.get("source_revision")
+                )
+            except ValueError as exc:
+                raise ValueError(
+                    "unsupported or malformed package archive manifest"
+                ) from exc
 
             expected_names = {manifest_name}
             relative_paths: set[str] = set()
@@ -399,6 +418,18 @@ def verify_archive(archive: Path) -> dict[str, object]:
             validate_required_package_paths(
                 relative_paths, context="archive package"
             )
+            readme_name = f"{ARCHIVE_ROOT}/{README_NAME}"
+            try:
+                readme = source.read(readme_name).decode("utf-8")
+            except (KeyError, UnicodeDecodeError) as exc:
+                raise ValueError("cannot read package archive README") from exc
+            if (
+                expected_readme_revision_line(source_revision)
+                not in readme.splitlines(keepends=True)
+            ):
+                raise ValueError(
+                    "package archive README source revision does not match manifest"
+                )
 
             if set(names) != expected_names:
                 raise ValueError(

@@ -1,6 +1,6 @@
 --- a/runner/src/launcher_cache.c
 +++ b/runner/src/launcher_cache.c
-@@ -3,9 +3,15 @@
+@@ -3,9 +3,14 @@
  #include "host_paths.h"
  
  #include <stdio.h>

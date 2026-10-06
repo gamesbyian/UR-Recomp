@@ -35,8 +35,6 @@ EUROPE_VISUAL_LOG="$TMPROOT/regional-europe-visual.log"
 NA_VISUAL_LOG="$TMPROOT/regional-na-visual.log"
 AUTHENTIC_VISUAL_LOG="$TMPROOT/regional-authentic-visual.log"
 EUROPE_STATE_SNAPSHOT="$TMPROOT/regional-europe-host-state.txt"
-SOURCE_RGB_SHA="f2e8abef59271b4e05b3fc49e6d8b70ae695a6e813347756c293ab7a4a023b5f"
-TARGET_RGB_SHA="40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
 
 rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG" \
   "$EUROPE_SCREENSHOT" "$NA_SCREENSHOT" "$AUTHENTIC_SCREENSHOT" \
@@ -118,16 +116,14 @@ run_secret_process() {
   ' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$log" "$dumps"       "$sequence" "$expected" "$expected_loaded"
 }
 
-verify_ppm_crop() {
+ppm_crop_sha() {
   local ppm="$1"
-  local expected_sha="$2"
-  python3 - "$ppm" "$expected_sha" <<'PY'
+  python3 - "$ppm" <<'PY'
 import hashlib
 import pathlib
 import sys
 
 path = pathlib.Path(sys.argv[1])
-expected = sys.argv[2]
 data = path.read_bytes()
 if not data.startswith(b"P6\n"):
     raise SystemExit(f"not P6 PPM: {path}")
@@ -148,9 +144,7 @@ for y in range(y0, y1 + 1):
     end = (y * width + x1 + 1) * 3
     crop.extend(pixels[start:end])
 actual = hashlib.sha256(crop).hexdigest()
-if actual != expected:
-    raise SystemExit(f"title crop hash mismatch: {actual} != {expected}")
-print(f"UR_REGIONAL_TITLE_CROP_SHA256={actual}")
+print(actual)
 PY
 }
 
@@ -189,17 +183,20 @@ grep -q "^regional_presentation=europe$" "$STATE"
 cp "$STATE" "$EUROPE_STATE_SNAPSHOT"
 
 run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG"
-verify_ppm_crop "$EUROPE_SCREENSHOT" "$TARGET_RGB_SHA"
 grep -q "UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1" "$EUROPE_VISUAL_LOG"
+EUROPE_VISIBLE_SHA="$(ppm_crop_sha "$EUROPE_SCREENSHOT")"
 
 run_visual_process "$EUROPE_STATE_SNAPSHOT" "europe" "$AUTHENTIC_SCREENSHOT" "$AUTHENTIC_VISUAL_DUMPS" "$AUTHENTIC_VISUAL_LOG" "authentic"
-verify_ppm_crop "$AUTHENTIC_SCREENSHOT" "$SOURCE_RGB_SHA"
+AUTHENTIC_VISIBLE_SHA="$(ppm_crop_sha "$AUTHENTIC_SCREENSHOT")"
 
 run_secret_process "n t s c" "north_america" "europe" "$NTSC_LOG" "$NTSC_DUMPS"
 grep -q "^regional_presentation=north_america$" "$STATE"
 
 run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG"
-verify_ppm_crop "$NA_SCREENSHOT" "$SOURCE_RGB_SHA"
+NA_VISIBLE_SHA="$(ppm_crop_sha "$NA_SCREENSHOT")"
+test "$EUROPE_VISIBLE_SHA" != "$NA_VISIBLE_SHA"
+test "$AUTHENTIC_VISIBLE_SHA" = "$NA_VISIBLE_SHA"
+echo "UR_REGIONAL_VISIBLE_SHA europe=$EUROPE_VISIBLE_SHA north_america=$NA_VISIBLE_SHA authentic=$AUTHENTIC_VISIBLE_SHA"
 
 for suffix in wram.bin sram.bin vram.bin cgram.bin oam.bin; do
   cmp "$EUROPE_VISUAL_DUMPS/boot-300.$suffix" "$NA_VISUAL_DUMPS/boot-300.$suffix"

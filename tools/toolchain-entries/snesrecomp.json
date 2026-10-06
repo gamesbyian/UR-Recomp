@@ -51,11 +51,11 @@
     },
     {
       "path": "tools/patches/snesrecomp-title-input-filter.patch",
-      "sha256": "c4eb36f8bdff80ea9d57cb3f964d4a9365e88025ae8387597c2f3d39f66264fe"
+      "sha256": "5e1feb8eb38c7227fcfed6de9ad04c28b5f4c04d6fad2ac3cce0435a773ec661"
     },
     {
       "path": "tools/patches/snesrecomp-source-gamepad-hook.patch",
-      "sha256": "6e751832aab998211e775cd331033f599c6c504798851f91e81e1a4f8041e625"
+      "sha256": "941c4e3d143b9083aaab927a2285427e06cd8eb59ca4e0eb0e8bb9045a598bd8"
     },
     {
       "path": "tools/patches/snesrecomp-rewind-audio-timing-lock.patch",

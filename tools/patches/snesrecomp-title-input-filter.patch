@@ -7,7 +7,7 @@
  
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -215,3 +215,9 @@
+@@ -215,3 +215,25 @@
    int (*system_gamepad_control)(int control, int pressed);
 +
 +  /* Optional title-owned filter for the final human controller word after
@@ -15,5 +15,21 @@
 +   * before guest dispatch. Scripted/debug input remains outside this seam so
 +   * reference fixtures can still exercise stock behavior. */
 +  uint32_t (*filter_player_input)(uint32_t inputs);
++
++  /* Optional title-owned source-aware physical gamepad seam. The framework
++   * player index is the already-established host seat, while source_id is the
++   * SDL joystick instance identity for the lifetime of this process. This is
++   * intentionally separate from mapped guest controls so product UI can
++   * implement independent local-player join without inventing a second input
++   * map. Return nonzero to consume the physical edge before ordinary title or
++   * guest dispatch. */
++  int (*system_gamepad_source_button)(
++      int player_index, uint64_t source_id, int button, int pressed);
++
++  /* Optional source connection notification for title-owned local-player UI.
++   * connected=0 is delivered before the framework clears the seat; connected=1
++   * is delivered after a controller/raw joystick acquires a framework seat. */
++  void (*system_gamepad_source_connection)(
++      int player_index, uint64_t source_id, int connected);
  
    /* Optional post-compose title overlay. Runs after the title frame and frame

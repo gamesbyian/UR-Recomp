@@ -554,6 +554,7 @@ jobs:
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
             export UR_HOST_STATE_PATH="'"$STATE"'"
+            export UR_RECOMP_USER_DATA_ROOT="'"$ROOT"'/user-data"
             export UR_PROFILE_PANEL_ACCEPTANCE=1
             export UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH="'"$ROOT"'/profile-panel-input.txt"
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
@@ -728,6 +729,7 @@ jobs:
             export UR_PRODUCT_DIAGNOSTICS=1
             export UR_EXECUTION_MODE=authentic
             export UR_HOST_STATE_PATH="'"$STATE"'"
+            export UR_RECOMP_USER_DATA_ROOT="'"$ROOT"'/auth-user-data"
             export SNESRECOMP_DUMP_DIR="'"$AUTH_DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$AUTH_LOG"'" 2>&1 &
             PID=$!

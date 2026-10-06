@@ -35,6 +35,8 @@ EUROPE_VISUAL_LOG="$TMPROOT/regional-europe-visual.log"
 NA_VISUAL_LOG="$TMPROOT/regional-na-visual.log"
 AUTHENTIC_VISUAL_LOG="$TMPROOT/regional-authentic-visual.log"
 EUROPE_STATE_SNAPSHOT="$TMPROOT/regional-europe-host-state.txt"
+EUROPE_SAVE_ROOT="$TMPROOT/regional-europe-save-root"
+NA_SAVE_ROOT="$TMPROOT/regional-na-save-root"
 TARGET_RGB_SHA="40405f18ff1b856f2afe9e5ddfac77bcbd71e5ac9357532ef311e9509f6695bb"
 
 rm -f "$STATE" "$PAL_LOG" "$NTSC_LOG" "$VERIFY_LOG" "$MAIN_MENU_LOG" "$AUTHENTIC_LOG" \
@@ -156,15 +158,27 @@ run_visual_process() {
   local dumps="$4"
   local log="$5"
   local execution_mode="${6:-modern}"
+  local save_root="${7:-}"
+  local run_state="$state"
 
   rm -f "$screenshot" "$log"
   rm -rf "$dumps"
   mkdir -p "$dumps"
 
+  if [ "$execution_mode" = modern ]; then
+    test -n "$save_root"
+    rm -rf "$save_root"
+    mkdir -p "$save_root"
+    run_state="$dumps/host-state.txt"
+    cp "$state" "$run_state"
+    sed -i 's/^profile=.*/profile=regional-visual/' "$run_state"
+  fi
+
   SDL_AUDIODRIVER=dummy \
   UR_PRODUCT_DIAGNOSTICS=1 \
   UR_EXECUTION_MODE="$execution_mode" \
-  UR_HOST_STATE_PATH="$state" \
+  UR_HOST_STATE_PATH="$run_state" \
+  UR_PROFILE_SAVE_ROOT="$save_root" \
   SNESRECOMP_DUMP_DIR="$dumps" \
   SNESRECOMP_SCREENSHOT="$screenshot" \
   SNESRECOMP_SCREENSHOT_FRAME=300 \
@@ -184,7 +198,7 @@ run_secret_process "p a l" "europe" "" "$PAL_LOG" "$PAL_DUMPS"
 grep -q "^regional_presentation=europe$" "$STATE"
 cp "$STATE" "$EUROPE_STATE_SNAPSHOT"
 
-run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG"
+run_visual_process "$STATE" "europe" "$EUROPE_SCREENSHOT" "$EUROPE_VISUAL_DUMPS" "$EUROPE_VISUAL_LOG" "modern" "$EUROPE_SAVE_ROOT"
 grep -q "UR_REGIONAL_TITLE visible=unirally guest_state_unchanged=1" "$EUROPE_VISUAL_LOG"
 EUROPE_VISIBLE_SHA="$(ppm_crop_sha "$EUROPE_SCREENSHOT")"
 test "$EUROPE_VISIBLE_SHA" = "$TARGET_RGB_SHA"
@@ -197,7 +211,7 @@ echo "UR_REGIONAL_VISIBLE AUTHENTIC=$AUTHENTIC_VISIBLE_SHA"
 run_secret_process "n t s c" "north_america" "europe" "$NTSC_LOG" "$NTSC_DUMPS"
 grep -q "^regional_presentation=north_america$" "$STATE"
 
-run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG"
+run_visual_process "$STATE" "north_america" "$NA_SCREENSHOT" "$NA_VISUAL_DUMPS" "$NA_VISUAL_LOG" "modern" "$NA_SAVE_ROOT"
 NA_VISIBLE_SHA="$(ppm_crop_sha "$NA_SCREENSHOT")"
 echo "UR_REGIONAL_VISIBLE NORTH_AMERICA=$NA_VISIBLE_SHA"
 test "$EUROPE_VISIBLE_SHA" != "$NA_VISIBLE_SHA"

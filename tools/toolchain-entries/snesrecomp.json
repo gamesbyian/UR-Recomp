@@ -26,7 +26,7 @@
     "note": "Framework staging is repository-owned and fail-closed offline. Command-line snesref remains headless; the native game runner intentionally treats system SDL2 as a host prerequisite and configures SDL3 fetching off.",
     "status": "native"
   },
-  "id": "snesrecomp",
+  "id" : "snesrecomp",
   "install_mode": "build",
   "patches": [
     {

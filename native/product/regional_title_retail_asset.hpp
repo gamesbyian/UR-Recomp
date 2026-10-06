@@ -164,7 +164,7 @@ inline constexpr std::array<std::uint32_t, 134> kSourcePalette = {{
     0x00efef94u,
     0x00efefceu,
     0x00efefefu
-};
+}};
 
 inline constexpr char kSourceIndicesBase85[] =
     "8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ8X6iJ"
@@ -562,7 +562,7 @@ inline constexpr std::array<std::uint32_t, 152> kPalette = {{
     0x00efefb5u,
     0x00efefceu,
     0x00efefefu
-};
+}};
 
 inline constexpr char kIndicesBase85[] =
     "A|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIpA|fIp"

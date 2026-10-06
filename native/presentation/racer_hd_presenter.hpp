@@ -33,7 +33,8 @@ constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcep
            semantic_frame_id == 0x057D || semantic_frame_id == 0x0542 ||
            semantic_frame_id == 0x0543 || semantic_frame_id == 0x057E ||
            semantic_frame_id == 0x057F || semantic_frame_id == 0x0544 ||
-           semantic_frame_id == 0x057C || semantic_frame_id == 0x0578;
+           semantic_frame_id == 0x057C || semantic_frame_id == 0x0578 ||
+           semantic_frame_id == 0x04B9;
 }
 
 // The generic candidate remains a deterministic contract-only fallback for

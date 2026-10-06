@@ -107,6 +107,14 @@ class WindowsPackageTests(unittest.TestCase):
                 launcher,
             )
             self.assertIn(
+                "user data config.ini is a directory",
+                launcher,
+            )
+            self.assertIn(
+                "user data saves path is not a directory",
+                launcher,
+            )
+            self.assertIn(
                 "user data directory must be outside the extracted package",
                 launcher,
             )

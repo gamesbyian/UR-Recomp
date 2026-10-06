@@ -125,6 +125,10 @@ bool g_practice_race_ready_reported;
 unsigned g_practice_cancel_acceptance_frames;
 bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
+unsigned g_fast_repeat_acceptance_frames;
+bool g_fast_repeat_acceptance_fired;
+unsigned g_ghost_target_acceptance_frames;
+bool g_ghost_target_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
@@ -4056,6 +4060,50 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                 product_diagnostic(
                     "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED");
             }
+        }
+
+        // Results acceptance uses the same production rematch command as the
+        // R / pad-X surface, but fires on the emulated-frame boundary after
+        // the results screen has remained stable long enough for the scripted
+        // checkpoint to be captured.
+        if (!g_fast_repeat_acceptance_fired &&
+            std::getenv("UR_FAST_REPEAT_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_RESULTS) {
+            ++g_fast_repeat_acceptance_frames;
+            if (g_fast_repeat_acceptance_frames >= 30u) {
+                g_fast_repeat_acceptance_fired = true;
+                g_fast_repeat_acceptance_frames = 0;
+                (void)repeat_current_attempt();
+            }
+        } else if (g_surface != UR_UNIRACERS_RESTART_RESULTS) {
+            g_fast_repeat_acceptance_frames = 0;
+        }
+
+        // Exercise the real pause/options/ghost selection path without
+        // depending on desktop event timing. The active race is held for a
+        // deterministic dwell so the guest script first records its checkpoint.
+        if (!g_ghost_target_acceptance_fired &&
+            std::getenv("UR_GHOST_TARGET_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            ++g_ghost_target_acceptance_frames;
+            if (g_ghost_target_acceptance_frames >= 30u) {
+                g_ghost_target_acceptance_fired = true;
+                g_ghost_target_acceptance_frames = 0;
+                if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                    const int restart =
+                        ur_modern_session_restart_available(g_session);
+                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                    if (activate_pause_selection()) {
+                        for (int row = 0; row < 7; ++row) {
+                            ur_modern_options_menu_move(&g_options_menu, 1);
+                        }
+                        (void)activate_options_selection();
+                    }
+                }
+            }
+        } else if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            g_ghost_target_acceptance_frames = 0;
         }
     }
 

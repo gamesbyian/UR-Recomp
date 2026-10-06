@@ -307,7 +307,19 @@ jobs:
           assert dossier["validation"]["review_players_registered_window"] is True
           assert dossier["validation"]["fully_registered_window"] is False
           reps = dossier["representations"]
-          assert len(reps) == 1
+          print(
+              "RACER_HD_02B9_REPRESENTATIONS",
+              json.dumps([
+                  {
+                      "representation_id": rep["representation_id"],
+                      "player": rep["player"],
+                      "frames": rep["observed"]["frames"],
+                  }
+                  for rep in reps
+              ], sort_keys=True),
+              flush=True,
+          )
+          assert len(reps) == 1, [rep["representation_id"] for rep in reps]
           review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
           assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
@@ -1002,9 +1014,9 @@ jobs:
           review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
           assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
           assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
-          print("RACER_HD_02B9_REVIEW", json.dumps(review, sort_keys=True))
-          print("RACER_HD_02B9_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"])
-          print("RACER_HD_02B9_TEMPORAL", json.dumps(temporal, sort_keys=True))
+          print("RACER_HD_02B9_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_02B9_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"], flush=True)
+          print("RACER_HD_02B9_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
           assert review["candidate_contact_x2_y2"] == [77, 72], review
           assert review["alpha_iou"] >= 0.70, review
           assert temporal["players"] == ["p1"], temporal

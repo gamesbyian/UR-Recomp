@@ -146,15 +146,35 @@ jobs:
           pathlib.Path("failing_patch_index.txt").write_text(f"{failure}\n")
           PY
 
-      - name: Failing SNES patch 0-9
-        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 0 <= n <= 9 else 0)"
+      - name: Failing SNES patch 0
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 0 else 0)"
 
-      - name: Failing SNES patch 10-19
-        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 10 <= n <= 19 else 0)"
+      - name: Failing SNES patch 1
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 1 else 0)"
 
-      - name: Failing SNES patch 20-28
-        run: python -c "import pathlib,sys; n=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if 20 <= n <= 28 else 0)"
+      - name: Failing SNES patch 2
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 2 else 0)"
 
+      - name: Failing SNES patch 3
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 3 else 0)"
+
+      - name: Failing SNES patch 4
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 4 else 0)"
+
+      - name: Failing SNES patch 5
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 5 else 0)"
+
+      - name: Failing SNES patch 6
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 6 else 0)"
+
+      - name: Failing SNES patch 7
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 7 else 0)"
+
+      - name: Failing SNES patch 8
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 8 else 0)"
+
+      - name: Failing SNES patch 9
+        run: python -c "import pathlib,sys; i=int(pathlib.Path('failing_patch_index.txt').read_text()); sys.exit(1 if i == 9 else 0)"
       - name: Stage SNESRecomp framework
         run: |
           set -euo pipefail

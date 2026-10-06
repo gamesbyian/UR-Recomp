@@ -1,0 +1,170 @@
+name: Ghost target native acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/**"
+      - "tests/input/modern-focus-pause.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/**"
+      - "tools/patches/**"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/patch_modern_product_host.py"
+      - "reference/roms/retail/Uniracers_USA.sfc"
+      - ".github/workflows/ghost-target-native-acceptance.yml"
+
+concurrency:
+  group: ghost-target-native-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ghost-target:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            cmake ninja-build pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Build native target
+        id: build
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ghost-target-build"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" --name "Uniracers" --players 2 --yes \
+              --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/ghost-target-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          echo "exe=$EXE" >> "$GITHUB_OUTPUT"
+
+      - name: Ghost target profile persistence acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="${{ steps.build.outputs.exe }}"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
+          ROOT="$RUNNER_TEMP/ghost-target-profile"
+          STATE="$ROOT/host-state-v6.txt"
+          PROFILE_ROOT="$ROOT/profile-save"
+          PROFILE_STATE="$PROFILE_ROOT/host-profile.txt"
+          FIRST_LOG="$ROOT/previous.log"
+          SECOND_LOG="$ROOT/personal-best.log"
+          AUTH_LOG="$ROOT/authentic.log"
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT/first-dumps" "$ROOT/second-dumps" "$PROFILE_ROOT"
+
+          cat >"$STATE" <<'STATEEOF'
+          UR-HOST-STATE/6
+          profile=ghost-acceptance
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          STATEEOF
+
+          drive_ghost_row() {
+            local log="$1"
+            local dumps="$2"
+            timeout 75s xvfb-run -a bash -c '
+              set -euo pipefail
+              export SDL_AUDIODRIVER=dummy
+              export UR_PRODUCT_DIAGNOSTICS=1
+              export UR_HOST_STATE_PATH="'"$STATE"'"
+              export UR_PROFILE_SAVE_ROOT="'"$PROFILE_ROOT"'"
+              export UR_GHOST_TARGET_ACCEPTANCE=1
+              export SNESRECOMP_DUMP_DIR="'"$dumps"'"
+              "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$log"'" 2>&1 &
+              PID=$!
+              for _ in $(seq 1 450); do
+                grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'" && break
+                kill -0 "$PID" 2>/dev/null || { cat "'"$log"'"; exit 1; }
+                sleep 0.1
+              done
+              if ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'"; then
+                cat "'"$log"'"
+                exit 1
+              fi
+              grep -q "UR_PAUSE_OPTIONS OPENED" "'"$log"'"
+              kill "$PID" 2>/dev/null || true
+              wait "$PID" 2>/dev/null || true
+            '
+          }
+
+          drive_ghost_row "$FIRST_LOG" "$ROOT/first-dumps"
+          test -s "$PROFILE_STATE"
+          grep -q "^profile=ghost-acceptance$" "$PROFILE_STATE"
+          grep -q "^ghost_target=previous$" "$PROFILE_STATE"
+          grep -q "UR_RUN_GHOST TARGET_SELECTED target=previous" "$FIRST_LOG"
+
+          drive_ghost_row "$SECOND_LOG" "$ROOT/second-dumps"
+          grep -q "^ghost_target=personal-best$" "$PROFILE_STATE"
+          grep -q "UR_RUN_GHOST TARGET_SELECTED target=personal-best" "$SECOND_LOG"
+          cp "$PROFILE_STATE" "$ROOT/profile-before-authentic.txt"
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_EXECUTION_MODE=authentic \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_PROFILE_SAVE_ROOT="$PROFILE_ROOT" \
+          timeout 6s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
+          AUTH_STATUS=$?
+          set -e
+          if [ "$AUTH_STATUS" -ne 0 ] && [ "$AUTH_STATUS" -ne 124 ]; then
+            cat "$AUTH_LOG"
+            exit "$AUTH_STATUS"
+          fi
+          cmp "$ROOT/profile-before-authentic.txt" "$PROFILE_STATE"
+          ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"
+          echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
+
+      - name: Upload targeted diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-target-native-acceptance
+          path: |
+            ${{ runner.temp }}/ghost-target-profile/*.log
+            ${{ runner.temp }}/ghost-target-profile/profile-save/host-profile.txt
+            ${{ runner.temp }}/ghost-target-profile/*-dumps/*.wram.bin
+          if-no-files-found: ignore

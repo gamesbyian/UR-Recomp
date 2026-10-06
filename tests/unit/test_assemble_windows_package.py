@@ -140,6 +140,24 @@ class WindowsPackageTests(unittest.TestCase):
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
 
+            manifest_path = package / "PACKAGE-MANIFEST.json"
+            provenance_manifest = json.loads(manifest_path.read_text())
+            provenance_manifest["source_revision"] = ""
+            manifest_path.write_text(
+                json.dumps(provenance_manifest, indent=2, sort_keys=True) + "\\n"
+            )
+            provenance_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(provenance_failed.returncode, 0)
+            self.assertIn(
+                "unsupported or malformed package manifest",
+                provenance_failed.stderr,
+            )
+            manifest_path.write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\\n"
+            )
+
             archive1 = root / "package-1.zip"
             archive2 = root / "package-2.zip"
             archived = self.run_tool(

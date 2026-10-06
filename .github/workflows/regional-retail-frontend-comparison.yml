@@ -2,14 +2,14 @@ name: Regional retail frontend comparison
 
 on:
   workflow_dispatch:
-  push:
+  pull_request:
     branches:
-      - chatgpt/regional-title-visible-consumer-2026-10-05
+      - main
     paths:
       - .github/workflows/regional-retail-frontend-comparison.yml
       - tools/compare_retail_frontend.py
       - tools/analyze_regional_title_delta.py
-      - tests/input/regional-title-transition.script
+      - tests/input/title-transition-recon.script
 
 permissions:
   contents: read

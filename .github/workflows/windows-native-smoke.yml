@@ -96,6 +96,18 @@ jobs:
       - name: Package failure line 450-560
         run: python -c "import pathlib,sys; n=int(pathlib.Path('failure_line.txt').read_text()); sys.exit(1 if 450 <= n <= 560 else 0)"
 
+      - name: Verify SNESRecomp patch digests
+        run: |
+          python - <<'PY'
+          import hashlib, json, pathlib
+          root = pathlib.Path(".")
+          manifest = json.loads((root / "tools/toolchain-entries/snesrecomp.json").read_text())
+          for spec in manifest["patches"]:
+              actual = hashlib.sha256((root / spec["path"]).read_bytes()).hexdigest()
+              if actual != spec["sha256"]:
+                  raise SystemExit(f"{spec['path']}: {actual} != {spec['sha256']}")
+          PY
+
       - name: Stage SNESRecomp framework
         run: |
           set -euo pipefail

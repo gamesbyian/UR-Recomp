@@ -10,6 +10,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TOOL = ROOT / "tools" / "assemble_windows_package.py"
 WORKFLOW = ROOT / ".github" / "workflows" / "windows-native-smoke.yml"
+STARTUP_PATCH = ROOT / "tools" / "patches" / "snesrecomp-startup-failure-presentation.patch"
 
 
 class WindowsPackageTests(unittest.TestCase):
@@ -33,6 +34,21 @@ class WindowsPackageTests(unittest.TestCase):
             capture_output=True,
             check=check,
         )
+
+    def test_unknown_startup_code_stays_narrowly_bound_to_controller_init(self):
+        patch = STARTUP_PATCH.read_text()
+        controller_anchor = "if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER))"
+        unknown_return = 'return StartupFail(\n+        "UR-STARTUP-UNKNOWN", "controller", NULL,'
+        self.assertEqual(patch.count(controller_anchor), 1)
+        self.assertEqual(patch.count(unknown_return), 1)
+        controller_pos = patch.index(controller_anchor)
+        unknown_pos = patch.index(unknown_return)
+        self.assertGreater(unknown_pos, controller_pos)
+        self.assertLess(unknown_pos - controller_pos, 300)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "video"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "audio"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "rom"', patch)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "save-root"', patch)
 
     def test_assemble_verify_and_clean_stale_output(self):
         with tempfile.TemporaryDirectory() as tmp:

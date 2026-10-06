@@ -185,10 +185,30 @@ class WindowsPackageTests(unittest.TestCase):
                 "--build-dir", build,
                 "--rom", rom,
                 "--output", root / "package",
+                "--source-revision", "test-revision",
                 check=False,
             )
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("required package input missing", result.stderr)
+
+
+    def test_missing_source_revision_fails_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            result = self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", root / "package",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn(
+                "source revision is required for a shippable package",
+                result.stderr,
+            )
+
 
 
 if __name__ == "__main__":

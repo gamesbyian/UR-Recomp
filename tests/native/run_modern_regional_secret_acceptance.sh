@@ -245,6 +245,9 @@ timeout 90s xvfb-run -a bash -c '
   [ -n "$WIN" ]
   xdotool windowfocus "$WIN"
   xdotool key --delay 40 p a l
+  sleep 1
+  ! grep -q "UR_REGIONAL SWITCH" "$LOG"
+  kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
 ' _ "$EXE" "$ROM" "$MAIN_MENU_SCRIPT" "$STATE" "$MAIN_MENU_LOG" "$MAIN_MENU_DUMPS"
 ! grep -q "UR_REGIONAL SWITCH" "$MAIN_MENU_LOG"
@@ -274,6 +277,9 @@ timeout 90s xvfb-run -a bash -c '
   [ -n "$WIN" ]
   xdotool windowfocus "$WIN"
   xdotool key --delay 40 p a l
+  sleep 1
+  ! grep -q "UR_REGIONAL SWITCH" "$LOG"
+  kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
 ' _ "$EXE" "$ROM" "$TITLE_SCRIPT" "$STATE" "$AUTHENTIC_LOG" "$AUTHENTIC_DUMPS"
 grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTHENTIC_LOG"

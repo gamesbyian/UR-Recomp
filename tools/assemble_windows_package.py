@@ -45,6 +45,14 @@ def expected_readme_revision_line(source_revision: str) -> str:
     return f"Source revision: {source_revision}\n"
 
 
+def is_same_or_within(path: Path, root: Path) -> bool:
+    try:
+        path.relative_to(root)
+        return True
+    except ValueError:
+        return False
+
+
 def sha256(path: Path) -> str:
     digest = hashlib.sha256()
     with path.open("rb") as handle:
@@ -226,6 +234,16 @@ def assemble(
             "source revision is required for a shippable package"
         ) from exc
 
+    if (
+        is_same_or_within(output, build_dir)
+        or is_same_or_within(build_dir, output)
+    ):
+        raise ValueError(
+            "package output must be outside and must not contain the build directory"
+        )
+    if is_same_or_within(rom, output):
+        raise ValueError("package output must not contain the source ROM")
+
     required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
     for path in required_files:
         if not path.is_file():
@@ -307,6 +325,8 @@ def verify(package: Path) -> dict[str, object]:
 def create_archive(package: Path, archive: Path) -> dict[str, object]:
     package = package.resolve()
     archive = archive.resolve()
+    if is_same_or_within(archive, package):
+        raise ValueError("package archive must be written outside the package tree")
     manifest = verify(package)
     if archive.exists():
         archive.unlink()

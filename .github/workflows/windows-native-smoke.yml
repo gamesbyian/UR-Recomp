@@ -96,14 +96,18 @@ jobs:
       - name: Package failure line 450-560
         run: python -c "import pathlib,sys; n=int(pathlib.Path('failure_line.txt').read_text()); sys.exit(1 if 450 <= n <= 560 else 0)"
 
-      - name: Stage repository-owned SNESRecomp framework
+      - name: Stage SNESRecomp framework
         run: |
           set -euo pipefail
           python tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
-          python tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
-          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
           test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
           test -f .tools/src/snesrecomp/runner/runner.cmake
+
+      - name: Stage SDL3 framework
+        run: |
+          set -euo pipefail
+          python tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
 
       - name: Scaffold and generate
         run: |

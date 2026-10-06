@@ -4651,6 +4651,90 @@
         "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-broader-00b9.json",
         "shipping_approval_source": "analysis/data/racer-hd-art-approval-broader-00b9.json"
       }
+    },
+    {
+      "semantic_frame_id": "0x02B9",
+      "representation_id": "ordinary-racer-0x02B9-p1-broader-frequency-reference",
+      "player": "p1",
+      "guard_scope": "player_local",
+      "composition_guards": {
+        "p1_primary": "0x02B9",
+        "p2_primary": "0x057E",
+        "p1_companion": "0x0000",
+        "p2_companion": "0x0C29",
+        "p1_selector": 0,
+        "p2_selector": 0,
+        "p1_companion_gate_word": "0x0000",
+        "p2_companion_gate_word": "0x0001"
+      },
+      "palette_asset_id": "0x06",
+      "registration": {
+        "logical_canvas_pixels": [
+          64,
+          64
+        ],
+        "object_origin": [
+          0,
+          0
+        ],
+        "occupancy_tile_offset": [
+          1,
+          0
+        ],
+        "orientation_policy": "apply runtime OAM H/V flip after asset selection",
+        "pivot_policy": "use semantic_anchors.flip_pivot_x2_y2; apply runtime OAM H/V reflection after semantic selection",
+        "contact_policy": "use semantic_anchors.wheel_contact_x2_y2 as the stock registration target for independently drawn replacement art",
+        "semantic_anchors": {
+          "coordinate_space": "object-local pixel centres",
+          "fixed_point_scale": 2,
+          "flip_pivot_x2_y2": [
+            63,
+            63
+          ],
+          "wheel_contact_x2_y2": [
+            77,
+            72
+          ],
+          "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic stock composed P1 raster"
+        },
+        "native_draw_status": "ready through the accepted split-screen four-instance host draw seam",
+        "guard_scope_proof": {
+          "scope": "player_local",
+          "structural_basis": "compose_racer_staging partitions P1 and P2 into disjoint object columns and rasterize_composed_player_rgba filters by player",
+          "empirical_basis": "47 synchronized exact-state witnesses / 74 player-frames collapse to one P1 stock RGBA raster",
+          "workflow_run": 37406146322,
+          "artifact_id": 11387666991,
+          "stock_rgba_sha256": "2b6eeb77ba73f8fbaaa0b258c7c0f63d74780a64e9b0d4e7aeb40e823cfb2c52"
+        }
+      },
+      "original": {
+        "kind": "deterministic_rom_composition",
+        "source": "tools/extract_racer_presentation_family.py::compose_racer_staging + rasterize_composed_player_rgba",
+        "scale_policy": "nearest-neighbor only when a higher-density comparison surface is required"
+      },
+      "remastered_candidate": {
+        "kind": "deterministic_derived_candidate",
+        "generator": "tools/prototype_racer_hd_replacement.py::scale2x_rgba",
+        "passes": 2,
+        "density_scale": 4,
+        "approval_status": "contract-only candidate; not approved shipping art",
+        "intent": "Provide a provenance-labelled high-resolution substitute preserving source registration and transparency while exercising a non-nearest replacement path.",
+        "alpha_policy": "Scale2x RGB candidate with final alpha locked to nearest-scaled Original coverage",
+        "contact_preservation": "Exact stock alpha footprint at 4x density; object-local origin unchanged"
+      },
+      "fallback": "If replacement is disabled, missing, or the exact player-local primary/companion/selector/gate guard does not match, render Original.",
+      "authored_candidate": {
+        "kind": "authored_procedural_4x",
+        "native_sampler": "native/presentation/racer_hd_presenter.hpp::sample_racer_hd_authored_02b9_p1_broader",
+        "artifact_generator": "tools/build_racer_hd_asset_dossier.py::build_twenty_seventh_authored_candidate_rgba",
+        "density_scale": 4,
+        "approval_status": "authored candidate; shipping status resolved by hash-bound approval ledger",
+        "visual_language_authority": "docs/HD-ART-DIRECTION.md",
+        "intent": "One measured dynamic-play P1 pose for the 0x02B9 local visual context, preserving stock envelope [18,5]..[47,36] and contact [77,72].",
+        "shipping_approval_ledger": "analysis/data/racer-hd-art-approval-broader-02b9.json",
+        "shipping_approval_source": "analysis/data/racer-hd-art-approval-broader-02b9.json"
+      }
     }
   ],
   "motion_review_sequence": {
@@ -5266,6 +5350,28 @@
         {
           "frame": 1401,
           "p1_representation_id": "ordinary-racer-0x00B9-p1-broader-frequency-reference"
+        }
+      ],
+      "acceptance": {
+        "dynamic_transition_ratio_min": 0.25,
+        "dynamic_transition_ratio_max": 4
+      }
+    },
+    "ordinary-race-02b9-broader-static-1408-1409": {
+      "window_start": 1408,
+      "window_end": 1409,
+      "players": [
+        "p1"
+      ],
+      "sampling": "logical 64x64 alpha sampled from authored 4x pixel centres",
+      "frames": [
+        {
+          "frame": 1408,
+          "p1_representation_id": "ordinary-racer-0x02B9-p1-broader-frequency-reference"
+        },
+        {
+          "frame": 1409,
+          "p1_representation_id": "ordinary-racer-0x02B9-p1-broader-frequency-reference"
         }
       ],
       "acceptance": {

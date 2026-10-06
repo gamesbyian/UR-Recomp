@@ -638,9 +638,13 @@ jobs:
           test "$(grep -Fc "UR-STARTUP-VIDEO:" "$RUNNER_TEMP/package-video-failure.log")" -eq 1
           VIDEO_LOG="$VIDEO_USER/diagnostics/startup.log"
           test -f "$VIDEO_LOG"
+          test "$(grep -Fc "schema=ur-startup-log-v1" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "build_revision=" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "architecture=x64" "$VIDEO_LOG")" -eq 1
           test "$(grep -Fc "code=UR-STARTUP-VIDEO" "$VIDEO_LOG")" -eq 1
           grep -Fq "subsystem=video" "$VIDEO_LOG"
-          grep -Fq "result=fatal" "$VIDEO_LOG"
+          test "$(grep -Fc "result=fatal" "$VIDEO_LOG")" -eq 1
+          test "$(grep -Fc "process_exit=" "$VIDEO_LOG")" -eq 1
 
           AUDIO_USER="$RUNNER_TEMP/package-audio-failure-user"
           rm -rf "$AUDIO_USER"
@@ -659,9 +663,13 @@ jobs:
           test "$(grep -Fc "UR-STARTUP-AUDIO:" "$RUNNER_TEMP/package-audio-failure.log")" -eq 1
           AUDIO_LOG="$AUDIO_USER/diagnostics/startup.log"
           test -f "$AUDIO_LOG"
+          test "$(grep -Fc "schema=ur-startup-log-v1" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "build_revision=" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "architecture=x64" "$AUDIO_LOG")" -eq 1
           test "$(grep -Fc "code=UR-STARTUP-AUDIO" "$AUDIO_LOG")" -eq 1
           grep -Fq "subsystem=audio" "$AUDIO_LOG"
-          grep -Fq "result=fatal" "$AUDIO_LOG"
+          test "$(grep -Fc "result=fatal" "$AUDIO_LOG")" -eq 1
+          test "$(grep -Fc "process_exit=" "$AUDIO_LOG")" -eq 1
 
           echo "WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok"
 

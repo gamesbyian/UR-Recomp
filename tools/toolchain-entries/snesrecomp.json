@@ -115,7 +115,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-user-data-root.patch",
-      "sha256": "8f1d327a67e012fb5c672eefd530f202a740384f359405bdeba16312df2b518d"
+      "sha256": "b79d3632953e8c9618f06d165737b8aa1a0e6cf2c7a440797cd093d97ec27b23"
     },
     {
       "path": "tools/patches/snesrecomp-user-data-launcher-assets.patch",

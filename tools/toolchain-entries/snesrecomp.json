@@ -119,7 +119,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-startup-failure-presentation.patch",
-      "sha256": "f2e1606bef460d94450b829514039ad7f13fe81dca2c6edbcc90529f6825f58b"
+      "sha256": "c7195840814e2067a9f2f0a78f16d756eea97d9327dbcdf58301760fb220e2ef"
     },
     {
       "path": "tools/patches/snesrecomp-user-data-launcher-assets.patch",

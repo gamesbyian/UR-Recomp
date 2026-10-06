@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; 04B9 reproduced, 0239 hash-approved pending focused reproduction",
+  "status": "shipping expansion active; 04B9, 0239, and 0439 measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -162,27 +162,83 @@
         "original_fallback_player_frames": 5005,
         "hd_coverage_fraction": 0.05244225672093904
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 277,
-    "original_fallback_player_frames": 5005,
-    "hd_coverage_fraction": 0.05244225672093904,
-    "cumulative_player_frames_removed": 159,
-    "absolute_coverage_gain_percentage_points": 3.0102234002271864,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.030790085205267236
-  },
-  "next_discriminator": {
-    "status": "pending-corrected-post-0239-rerank",
-    "expected_leader_from_retained_after_0239_ranking": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x0439",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 78,
-      "episode_count": 58
+      "player_frames_removed": 78,
+      "episode_count": 58,
+      "synchronized_witness_state_count": 55,
+      "stock_rgba_sha256": "52ef7bf51094f673ef022eb1f232e7825d452bd3e5b2ce1a32b673b9ab127ee5",
+      "normalized_geometry_sha256": "9e98639db3d6295bbe405d7cb12395c8514ac612e4cd165daef0438da2a6daf7",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-0439.json",
+      "authored_rgba_sha256": "564e43faa8eeaef15c28eef07be2de3e04783f87d655e3c651f6c4d8618fd4a8",
+      "review_alpha_iou": 0.746268656716418,
+      "review_evidence": {
+        "workflow_run": 37401641131,
+        "artifact_id": 11385566329
+      },
+      "after": {
+        "hd_selected_player_frames": 355,
+        "original_fallback_player_frames": 4927,
+        "hd_coverage_fraction": 0.0672093903824309
+      },
+      "focused_reproduction": {
+        "workflow_run": 37402653034,
+        "artifact_id": 11386435456,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 355,
+    "original_fallback_player_frames": 4927,
+    "hd_coverage_fraction": 0.0672093903824309,
+    "cumulative_player_frames_removed": 237,
+    "absolute_coverage_gain_percentage_points": 4.486936766376372,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.04589465530596437
+  },
+  "next_discriminator": {
+    "status": "measured-post-0439-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x0039",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 76,
+      "episode_count": 56,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "1662bc84037f21e697d8a4e25276c19e027f374f90124f95b022b7f9447cf259",
+      "normalized_geometry_sha256": "ab93302f6d9994840c035ce43f173855cbe8201850f0adc0612a1a5a6af076d9",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "exact_same_player_reuse_matches": [],
+      "palette_normalized_reuse_matches": [],
+      "requires_new_pose": true
     },
-    "rule": "Do not author until the corrected post-0239 probe proves one stock raster and checks exact/palette-normalized reuse."
+    "rule": "0039 remains high-value by measured burden; start it as the next bounded shipping slice from the green post-0439 baseline."
   }
 }

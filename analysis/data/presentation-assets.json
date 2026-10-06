@@ -2691,6 +2691,11 @@
                 "hd_selected_player_frames": 355,
                 "original_fallback_player_frames": 4927,
                 "hd_coverage_fraction": 0.0672093903824309
+              },
+              "focused_reproduction": {
+                "workflow_run": 37402653034,
+                "artifact_id": 11386435456,
+                "status": "green"
               }
             }
           ],
@@ -2729,7 +2734,7 @@
               "palette_normalized_reuse_matches": [],
               "requires_new_pose": true
             },
-            "rule": "0039 remains high-value by measured burden, but start its own bounded shipping slice only after this 0439 approval reproduces green on the current branch."
+            "rule": "0039 remains high-value by measured burden; start it as the next bounded shipping slice from the green post-0439 baseline."
           }
         }
       }

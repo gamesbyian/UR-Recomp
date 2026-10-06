@@ -17,7 +17,6 @@ on:
       - "third_party/archives/SDL3-3.4.10.tar.gz"
       - "third_party/cargo/snesrecomp-analyzer/**"
       - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain.json"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/patches/snesrecomp-user-data-root.patch"
       - "tools/patches/snesrecomp-user-data-launcher-assets.patch"

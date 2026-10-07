@@ -28,6 +28,10 @@ class PauseRecordsIntegrationContractTests(unittest.TestCase):
         self.assertIn("ur_uniracers_product_open_records(void)", header)
         self.assertIn("open_records_browser_impl(false)", browser)
         self.assertIn("UR_RECORDS_BROWSER OPENED_FROM_PAUSE_MENU", browser)
+        self.assertGreaterEqual(
+            browser.count('std::getenv("UR_PAUSE_RECORDS_ACCEPTANCE")'),
+            2,
+        )
 
 
 if __name__ == "__main__":

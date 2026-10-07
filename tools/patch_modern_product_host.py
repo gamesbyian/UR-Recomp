@@ -275,6 +275,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         + f'    "{title_dir}/uniracers_restart_policy.cpp"\n'
         + f'    "{title_dir}/uniracers_course_identity.cpp"\n'
         + f'    "{title_dir}/uniracers_run_data.cpp"\n'
+        + f'    "{title_dir}/uniracers_two_player_result.cpp"\n'
         + f'    "{title_dir}/uniracers_ws_margins.c"\n'
         + f'    "{title_dir}/uniracers_tour_resume.cpp"\n'
         + f'    "{title_dir}/uniracers_challenge_generation.cpp"\n'

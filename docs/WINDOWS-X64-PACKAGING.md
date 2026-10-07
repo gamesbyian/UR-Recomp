@@ -10,7 +10,7 @@ This is deliberate. The portable package now separates immutable package payload
 
 Older portable folders are migrated deterministically on launch: package-local `config.ini`, `keybinds.ini`, `saves/` and legacy `mods/preloaded/state.toml` are staged to per-launch tokenized temporary siblings inside the user-data root and committed by same-directory rename only after a successful copy. Concurrent first-launch staging is isolated, and an already-created destination wins rather than being overwritten. Failed operations clean their own staging; obsolete fixed-name temporaries from the earlier migration format are also removed. A hard process termination may leave a uniquely named inert temporary behind, but it cannot block or overwrite a later retry and the launcher deliberately does not wildcard-delete other processes' staging. Read-only attributes from an old portable folder are stripped from migrated mutable state. Final destinations are therefore crash-recoverable, writable and idempotent without allowing an old extracted folder to overwrite newer settings or progress.
 
-The shipping artifact is a deterministic `UR-Recomp-Windows-x64.zip` with a single `UR-Recomp-Windows-x64/` root. The ZIP uses normalized timestamps/path metadata and is reproducible byte-for-byte from identical payload and source revision.
+The shipping artifact is a deterministic `UR-Recomp-Windows-x64.zip` with a single `UR-Recomp-Windows-x64/` root, accompanied by `UR-Recomp-Windows-x64.zip.sha256`. The checksum file is an adjacent release sidecar, not a member of the package ZIP. The ZIP uses normalized timestamps/path metadata and is reproducible byte-for-byte from identical payload and source revision; the package tool writes and strictly re-verifies the canonical lowercase SHA-256 sidecar before either file is eligible for consumer-artifact upload.
 
 The portable package contains:
 
@@ -28,7 +28,7 @@ The portable package contains:
 
 The Windows x64 workflow is the authoritative end-to-end validator for the **assembled package**, not only the CMake build tree. Repository CI policy deliberately keeps that workflow on final `main`, so PRs rely on focused unit/static contracts and the integrated tree performs the full Windows package/boot acceptance.
 
-Because that regression is path-filtered, every source surface compiled into the shipping Windows consumer must retrigger it. The current contract explicitly includes `native/product/**`, `native/presentation/**`, and `native/title/**`; unit policy coverage guards those triggers so presenter/runtime changes cannot silently bypass assembled-package acceptance.
+Because that regression is path-filtered, every source surface compiled into the shipping Windows consumer must retrigger it. The current contract explicitly includes `native/product/**`, `native/presentation/**`, and `native/title/**`; unit policy coverage guards those triggers so presenter/runtime changes cannot silently bypass assembled-package acceptance. Framework changes remain narrow without a blanket `tools/patches/**` trigger: the applied SNESRecomp patches are SHA-256-pinned in `tools/toolchain-entries/snesrecomp.json`, and any valid patch edit must update that manifest, which is itself a Windows-package trigger.
 
 The implemented acceptance sequence covers:
 
@@ -37,7 +37,7 @@ The implemented acceptance sequence covers:
 3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
 5. prove fresh-run `config.ini`, `keybinds.ini`, mod-selection state and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory, and re-verify the launched extracted package against its manifest;
-6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state and completed-run data under that user root, replace the extracted package from the clean ZIP, prove every seeded user-data artifact survives byte-identically, then boot the replacement package against that same root and re-verify the package remains immutable;
+6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state, 1P completed-run data and ordinary-2P `.urrun` + `.urmatch` data under that user root, replace the extracted package from the clean ZIP, prove every seeded user-data artifact survives byte-identically, then boot the replacement package against that same root and re-verify the package remains immutable;
 7. construct a legacy portable folder containing package-local config, bindings and save data, pre-seed obsolete fixed-name migration remnants from the earlier launcher format, launch against the user root, and prove all state migrates successfully, those obsolete remnants are removed, and the legacy source remains untouched;
 8. launch that legacy folder again after changing the migrated destination and prove destination-wins/idempotent migration does not overwrite newer user data;
 9. exercise representative startup failures for missing ROM, missing runtime payload, invalid/non-absolute/package-local user-data roots, invalid ROM, synthetic video initialization failure and synthetic audio initialization failure, requiring exactly one stable diagnosis and one retained startup log where the root is writable as documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
@@ -63,4 +63,4 @@ An installer is still deferred. The storage/migration prerequisite is now satisf
 
 ## Failure policy
 
-Packaging failures are release failures. Missing executable, ROM, `rom.cfg`, missing or empty staged mods, manifest mismatch, stale output contamination, or inability to boot the assembled package must fail CI rather than silently falling back to the build tree.
+Packaging failures are release failures. Missing executable, ROM, `rom.cfg`, missing or empty staged mods, manifest mismatch, stale output contamination, or inability to boot the assembled package must fail CI rather than silently falling back to the build tree. Diagnostic/evidence upload remains best-effort on failure, but the consumer ZIP + `.sha256` artifact is success-gated so an absent package cannot create a second misleading failure after an earlier build or acceptance failure.

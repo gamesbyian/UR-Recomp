@@ -2824,6 +2824,104 @@ jobs:
           print("RACER_HD_03F9_GAIN before=1159/5282 after=1215/5282 removed=56")
           PY
 
+      - name: Review and rerank P1 03F9 context
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+          DOSSIER="$RUNNER_TEMP/racer-hd-03f9-dossier"
+
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-after-03f9-trace.json" \
+            --window-start 1444 \
+            --window-end 1445 \
+            --player p1 \
+            --output-dir "$DOSSIER" \
+            > "$RUNNER_TEMP/racer-hd-03f9-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$DOSSIER/manifest.json" \
+            --out "$DOSSIER/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-03f9-equivalence.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-03f9-broader-static-1444-1445 \
+            --json-out "$RUNNER_TEMP/racer-hd-03f9-temporal.json" \
+            > "$RUNNER_TEMP/racer-hd-03f9-temporal.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-03f9-temporal.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          authored_hash = reps[0]["art_review"]["authored_candidate"]["rgba_sha256"]
+          print("RACER_HD_03F9_PREAPPROVAL_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_03F9_PREAPPROVAL_HASH", authored_hash, flush=True)
+          print("RACER_HD_03F9_PREAPPROVAL_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
+          assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.75, review
+          assert temporal["players"] == ["p1"], temporal
+          failed = [key for key, value in temporal["validation"].items() if not value]
+          assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-broader-03f9.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-03f9-shipping-readiness.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$DOSSIER/manifest.json" \
+            "$DOSSIER/pose-equivalence.json" \
+            --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
+            > "$RUNNER_TEMP/racer-hd-03f9-review.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-03f9-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          print("RACER_HD_03F9_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_03F9_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"], flush=True)
+          print("RACER_HD_03F9_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
+          assert readiness["shipping_ready"] is True, readiness
+          assert readiness["counts"]["approved"] == 1, readiness
+          failed = [key for key, value in temporal["validation"].items() if not value]
+          assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
+          python3 tools/probe_racer_hd_ranked_visual_context.py \
+            "$ROM" \
+            "$RUNNER_TEMP/racer-hd-after-03f9.json" \
+            --rank 0 \
+            --json-out "$RUNNER_TEMP/racer-hd-post-03f9-next-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-post-03f9-next-probe" \
+            > "$RUNNER_TEMP/racer-hd-post-03f9-next-probe.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-post-03f9-next-probe.json" <<'PY'
+          import json, pathlib, sys
+          probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          print("RACER_HD_POST_03F9_NEXT", json.dumps({
+              "target": probe["target"],
+              "witness_exact_state_count": probe["witness_exact_state_count"],
+              "unique_stock_raster_count": probe["unique_stock_raster_count"],
+              "disposition": probe["disposition"],
+              "canonical": probe["canonical"],
+          }, sort_keys=True))
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

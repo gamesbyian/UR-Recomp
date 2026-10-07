@@ -1,0 +1,3 @@
+# The join acceptance hook quits once both seats have joined and confirmed.
+wait 4000
+quit

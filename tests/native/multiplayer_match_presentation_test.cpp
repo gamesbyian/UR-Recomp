@@ -7,7 +7,7 @@ using namespace ur::title;
 
 int main() {
     StoredMultiplayerMatch stored;
-    stored.run_path = "run.urrun";
+    stored.run_path = "run-0000000000000000-0001.urrun";
     stored.run.provenance.mode = "race-2p";
     stored.match.run_artifact_checksum = "0123456789abcdef";
     stored.match.context.course_id = "course:01";
@@ -29,6 +29,8 @@ int main() {
         kOrdinaryTwoPlayerNoTimeHundredths) == "NO TIME");
 
     const auto row = present_multiplayer_match_row(stored);
+    assert(row.date_text.size() == 10);
+    assert(row.date_text != "--");
     assert(row.course_text == "course:01");
     assert(row.player1_text == "MIKE / alpha");
     assert(row.player2_text == "ANDREW / beta");

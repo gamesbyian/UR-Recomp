@@ -13,6 +13,30 @@ struct StoredRunRecord {
     CompletedRunRecord record;
 };
 
+struct InspectedRunRecordArtifact {
+    std::string path;
+    RunRecordLoadStatus status = RunRecordLoadStatus::Malformed;
+    std::string detail;
+    std::optional<CompletedRunRecord> record;
+
+    bool loaded() const noexcept {
+        return status == RunRecordLoadStatus::Loaded && record.has_value();
+    }
+};
+
+struct RunRecordArtifactHealth {
+    std::size_t total_artifacts = 0;
+    std::size_t loaded_artifacts = 0;
+    std::size_t io_errors = 0;
+    std::size_t malformed_artifacts = 0;
+    std::size_t unsupported_artifacts = 0;
+    std::size_t corrupt_artifacts = 0;
+
+    std::size_t unavailable_artifacts() const noexcept {
+        return total_artifacts - loaded_artifacts;
+    }
+};
+
 /* Append one immutable run artifact to a directory. The filename is
  * host-owned ordering metadata; the record body remains the authoritative
  * portable artifact. */
@@ -21,6 +45,15 @@ bool append_completed_run_record(
     const CompletedRunRecord& record,
     std::string* stored_path = nullptr,
     std::string* detail = nullptr);
+
+/* Inspect every .urrun artifact in filename order without granting invalid
+ * artifacts record authority. Callers may surface health/status information
+ * while statistics/replay continue to consume only loaded records. */
+std::vector<InspectedRunRecordArtifact> inspect_completed_run_record_artifacts(
+    const std::string& directory);
+
+RunRecordArtifactHealth summarize_run_record_artifact_health(
+    const std::vector<InspectedRunRecordArtifact>& artifacts);
 
 /* Load compatible records in filename order. Malformed/corrupt/incompatible
  * files are ignored rather than poisoning the usable catalog. */

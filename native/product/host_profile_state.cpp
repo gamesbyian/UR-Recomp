@@ -13,6 +13,7 @@ constexpr std::string_view kHeaderV1 = "UR-HOST-PROFILE/1";
 constexpr std::string_view kHeaderV2 = "UR-HOST-PROFILE/2";
 constexpr std::string_view kHeaderV3 = "UR-HOST-PROFILE/3";
 constexpr std::string_view kHeaderV4 = "UR-HOST-PROFILE/4";
+constexpr std::string_view kHeaderV5 = "UR-HOST-PROFILE/5";
 
 int hex_value(char ch) noexcept {
     if (ch >= '0' && ch <= '9') return ch - '0';
@@ -174,11 +175,15 @@ std::string encode_host_profile_state(const HostProfileState& state) {
         return {};
     }
 
+    if (state.recent_track && !valid_recent_track(*state.recent_track)) {
+        return {};
+    }
+
     std::ostringstream out;
     const auto ghost_target = encode_ghost_target(state.ghost_target);
     if (ghost_target.empty()) return {};
 
-    out << kHeaderV4 << '\n';
+    out << kHeaderV5 << '\n';
     out << "profile=" << state.profile_id << '\n';
     out << "generation=" << state.autosave_generation << '\n';
     out << "stock_sram=";
@@ -198,6 +203,9 @@ std::string encode_host_profile_state(const HostProfileState& state) {
         out << static_cast<unsigned>(state.racer_identity->rider_index);
     }
     out << '\n';
+    out << "recent_track=";
+    if (state.recent_track) out << static_cast<unsigned>(*state.recent_track);
+    out << '\n';
     return out.str();
 }
 
@@ -210,7 +218,10 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
     const bool legacy_v1 = line == kHeaderV1;
     const bool legacy_v2 = line == kHeaderV2;
     const bool legacy_v3 = line == kHeaderV3;
-    const bool current_v4 = line == kHeaderV4;
+    const bool legacy_v4 = line == kHeaderV4;
+    const bool current_v5 = line == kHeaderV5;
+    // v5 carries every v4 field; only recent_track is new.
+    const bool current_v4 = legacy_v4 || current_v5;
     if (!legacy_v1 && !legacy_v2 && !legacy_v3 && !current_v4) {
         return {std::nullopt, false, "unsupported or missing profile-state header"};
     }
@@ -230,7 +241,9 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
     }
 
     const std::size_t expected =
-        legacy_v1 ? 3u : (legacy_v2 ? 4u : (legacy_v3 ? 5u : 7u));
+        legacy_v1 ? 3u
+                  : (legacy_v2 ? 4u
+                               : (legacy_v3 ? 5u : (legacy_v4 ? 7u : 8u)));
     if (fields.size() != expected ||
         fields.find("profile") == fields.end() ||
         fields.find("generation") == fields.end() ||
@@ -238,7 +251,8 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
         (!legacy_v1 && fields.find("tour_resume") == fields.end()) ||
         ((legacy_v3 || current_v4) && fields.find("ghost_target") == fields.end()) ||
         (current_v4 && (fields.find("racer_name") == fields.end() ||
-                        fields.find("racer_index") == fields.end()))) {
+                        fields.find("racer_index") == fields.end())) ||
+        (current_v5 && fields.find("recent_track") == fields.end())) {
         return {std::nullopt, false, "unexpected profile-state field set"};
     }
 
@@ -284,7 +298,16 @@ HostProfileDecodeResult decode_host_profile_state(std::string_view encoded) {
         }
     }
 
-    return {state, legacy_v1 || legacy_v2 || legacy_v3, {}};
+    if (current_v5 && !fields["recent_track"].empty()) {
+        std::uint8_t track = 0;
+        if (!parse_unsigned(fields["recent_track"], track) ||
+            !valid_recent_track(track)) {
+            return {std::nullopt, false, "invalid recent track"};
+        }
+        state->recent_track = track;
+    }
+
+    return {state, legacy_v1 || legacy_v2 || legacy_v3 || legacy_v4, {}};
 }
 
 HostProfileTransferStatus capture_stock_sram_for_profile(

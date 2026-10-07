@@ -2969,30 +2969,70 @@
                 "artifact_id": 11460950790,
                 "status": "green"
               }
-            }
-          ],
-          "current_after": {
-            "hd_selected_player_frames": 792,
-            "original_fallback_player_frames": 4490,
-            "hd_coverage_fraction": 0.14994320333207117,
-            "cumulative_player_frames_removed": 674,
-            "absolute_coverage_gain_percentage_points": 12.760318061340401,
-            "cumulative_baseline_fallback_burden_removed_fraction": 0.13051897753679317
-          },
-          "next_discriminator": {
-            "status": "measured-post-0539-leader",
-            "target": {
+            },
+            {
               "player": "p1",
               "semantic_frame_id": "0x05B9",
               "companion": "0x0000",
               "selector": 0,
               "gate": "0x0000",
-              "player_frames": 66,
+              "player_frames_removed": 66,
               "episode_count": 46,
               "synchronized_witness_state_count": 44,
-              "unique_stock_raster_count": 1,
               "stock_rgba_sha256": "243fb71c2326888f303df5552fe96eebf0c1b89e0e4e1e6c2e6171937e96aec6",
               "normalized_geometry_sha256": "263c42b83e0a9ebb59f30e1215757a867fa9bf9a3dea467a31aa9dd42825a691",
+              "alpha_bounds": [
+                18,
+                5,
+                47,
+                36
+              ],
+              "contact_x2_y2": [
+                77,
+                72
+              ],
+              "guard_scope": "player_local",
+              "approval_manifest": "analysis/data/racer-hd-art-approval-broader-05b9.json",
+              "authored_rgba_sha256": "886a47eec4f64ee61ae997b408ed3336e78e3fb4c4a83c2fbaef8549d3e9f822",
+              "review_alpha_iou": 0.75,
+              "review_evidence": {
+                "workflow_run": 37572860794,
+                "artifact_id": 11461393360
+              },
+              "after": {
+                "hd_selected_player_frames": 858,
+                "original_fallback_player_frames": 4424,
+                "hd_coverage_fraction": 0.16243847027641045
+              },
+              "focused_reproduction": {
+                "workflow_run": 37573034620,
+                "artifact_id": 11461607828,
+                "status": "green"
+              }
+            }
+          ],
+          "current_after": {
+            "hd_selected_player_frames": 858,
+            "original_fallback_player_frames": 4424,
+            "hd_coverage_fraction": 0.16243847027641045,
+            "cumulative_player_frames_removed": 740,
+            "absolute_coverage_gain_percentage_points": 14.009844755774328,
+            "cumulative_baseline_fallback_burden_removed_fraction": 0.14329976762199845
+          },
+          "next_discriminator": {
+            "status": "measured-post-05b9-leader",
+            "target": {
+              "player": "p1",
+              "semantic_frame_id": "0x03B9",
+              "companion": "0x0000",
+              "selector": 0,
+              "gate": "0x0000",
+              "player_frames": 65,
+              "episode_count": 46,
+              "synchronized_witness_state_count": 46,
+              "unique_stock_raster_count": 1,
+              "stock_rgba_sha256": "64933ea28bb7ed5b2a109e5d5d20abad93962556b631d3c4c8e96b2a3f36adeb",
+              "normalized_geometry_sha256": "46689b8d6c68cc0a2e1fd7e6456aa25ac5d899df59b2072422f4ab33da3e2d49",
               "alpha_bounds": [
                 18,
                 5,
@@ -3007,9 +3047,9 @@
               "palette_normalized_reuse_matches": [],
               "requires_new_pose": true
             },
-            "rule": "05B9 is the next bounded shipping slice by measured post-0539 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+            "rule": "03B9 is the next bounded shipping slice by measured post-05B9 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
           },
-          "status": "shipping expansion active; broader P1 player-local families through 0539 are measured, reviewed, hash-approved, and runtime-registered"
+          "status": "shipping expansion active; broader P1 player-local families through 05B9 are measured, reviewed, hash-approved, and runtime-registered"
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring."
       }

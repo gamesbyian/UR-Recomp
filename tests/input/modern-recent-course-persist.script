@@ -1,0 +1,30 @@
+# Durable Recent Course acceptance, source run. Reach an authoritative stock
+# race through ordinary guest input with a named Modern profile active, let
+# the host observe the validated course, then quit before any results
+# autosave. Addresses are WRAM offsets (7E:xxxx -> xxxx).
+
+until 009F == D7 3600
+wait 60
+press a 2
+
+until 009F == 3C 1200
+wait 60
+press a 2
+
+until 009F == 6D 1200
+wait 60
+press a 2
+
+until 009F == F6 1200
+wait 60
+press a 2
+
+until 009F != F6 1200
+until 009F == 16 1200
+wait 60
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump recent-persist-race
+quit

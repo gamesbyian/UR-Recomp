@@ -51,7 +51,9 @@ int main() {
     assert(decoded.state->racer_identity);
     assert(decoded.state->racer_identity->name == "SONIC");
     assert(decoded.state->racer_identity->rider_index == 7);
-    assert(encoded.rfind("UR-HOST-PROFILE/4\n", 0) == 0);
+    assert(encoded.rfind("UR-HOST-PROFILE/5\n", 0) == 0);
+    assert(encoded.find("recent_track=\n") != std::string::npos);
+    assert(!decoded.state->recent_track);
     assert(encoded.find("ghost_target=personal-best\n") != std::string::npos);
     assert(encoded.find("racer_name=SONIC\n") != std::string::npos);
     assert(encoded.find("racer_index=7\n") != std::string::npos);
@@ -67,7 +69,7 @@ int main() {
     assert(!legacy.state->tour_continuation);
     assert(legacy.state->ghost_target == CompletedRunGhostTarget::Off);
     assert(encode_host_profile_state(*legacy.state).rfind(
-               "UR-HOST-PROFILE/4\n", 0) == 0);
+               "UR-HOST-PROFILE/5\n", 0) == 0);
 
     const auto legacy_v2 = decode_host_profile_state(
         "UR-HOST-PROFILE/2\n"
@@ -104,6 +106,75 @@ int main() {
         "racer_name=MIKE\n"
         "racer_index=\n");
     assert(!incomplete_identity);
+
+    // v4 files remain readable and gain no Recent Course.
+    const auto legacy_v4 = decode_host_profile_state(
+        "UR-HOST-PROFILE/4\n"
+        "profile=profile.alpha\n"
+        "generation=3\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=off\n"
+        "racer_name=MIKE\n"
+        "racer_index=0\n");
+    assert(legacy_v4);
+    assert(legacy_v4.migrated);
+    assert(legacy_v4.state->racer_identity);
+    assert(!legacy_v4.state->recent_track);
+    // A v4 header must not smuggle in the v5-only field.
+    assert(!decode_host_profile_state(
+        "UR-HOST-PROFILE/4\n"
+        "profile=profile.alpha\n"
+        "generation=3\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=off\n"
+        "racer_name=\n"
+        "racer_index=\n"
+        "recent_track=4\n"));
+
+    // Recent Course round-trips byte-stably at both catalog bounds.
+    for (const std::uint8_t track : {std::uint8_t{0}, std::uint8_t{44}}) {
+        HostProfileState recent = state;
+        recent.recent_track = track;
+        const std::string recent_encoded = encode_host_profile_state(recent);
+        assert(!recent_encoded.empty());
+        const auto recent_decoded = decode_host_profile_state(recent_encoded);
+        assert(recent_decoded);
+        assert(!recent_decoded.migrated);
+        assert(*recent_decoded.state == recent);
+        assert(encode_host_profile_state(*recent_decoded.state) ==
+               recent_encoded);
+    }
+
+    // Out-of-catalog values are never written and fail closed on read.
+    HostProfileState out_of_range = state;
+    out_of_range.recent_track = 45;
+    assert(encode_host_profile_state(out_of_range).empty());
+    const char* const kBadRecent[] = {"45", "255", "256", "-1", "x", "4 ", "04x"};
+    for (const char* bad : kBadRecent) {
+        const std::string text =
+            std::string("UR-HOST-PROFILE/5\n"
+                        "profile=profile.alpha\n"
+                        "generation=3\n"
+                        "stock_sram=\n"
+                        "tour_resume=\n"
+                        "ghost_target=off\n"
+                        "racer_name=\n"
+                        "racer_index=\n"
+                        "recent_track=") + bad + "\n";
+        assert(!decode_host_profile_state(text));
+    }
+    // v5 requires the field to be present (empty means none).
+    assert(!decode_host_profile_state(
+        "UR-HOST-PROFILE/5\n"
+        "profile=profile.alpha\n"
+        "generation=3\n"
+        "stock_sram=\n"
+        "tour_resume=\n"
+        "ghost_target=off\n"
+        "racer_name=\n"
+        "racer_index=\n"));
 
     HostTourContinuation no_progress = continuation;
     no_progress.qualified = {0, 0, 0, 0, 0};

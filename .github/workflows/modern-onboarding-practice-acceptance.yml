@@ -10,7 +10,9 @@ on:
       - "native/product/modern_tour_*.hpp"
       - "native/product/next_event_derivation.hpp"
       - "tests/native/run_modern_next_event_acceptance.sh"
+      - "tests/native/run_modern_tour_entry_acceptance.sh"
       - "tests/input/modern-tour-next-event-acceptance.script"
+      - "tests/input/modern-tour-continue-*.script"
       - "tests/native/modern_controls_*"
       - "tools/patch_modern_product_host.py"
       - "tests/input/modern-main-menu.script"
@@ -41,7 +43,7 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+          sudo apt-get install -y             cmake ninja-build pkg-config xvfb xdotool             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Stage framework and SDL3
         shell: bash
@@ -347,6 +349,16 @@ jobs:
           grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
           ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
 
+      - name: Modern Tour Resume Restart acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_tour_entry_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/tour-entry"
+
       - name: Prove Next Event reaches the one remaining tour event
         shell: bash
         run: |
@@ -427,6 +439,7 @@ jobs:
             ${{ runner.temp }}/recent-course-dumps/
             ${{ runner.temp }}/controller-hotplug-modern.log
             ${{ runner.temp }}/controller-hotplug-authentic.log
+            ${{ runner.temp }}/tour-entry/*.log
             ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn

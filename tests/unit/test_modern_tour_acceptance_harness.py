@@ -4,6 +4,7 @@ import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HARNESS = ROOT / "tests" / "native" / "run_modern_tour_entry_acceptance.sh"
+WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
 
 
 class ModernTourAcceptanceHarnessTests(unittest.TestCase):
@@ -36,6 +37,15 @@ class ModernTourAcceptanceHarnessTests(unittest.TestCase):
             '"$RESTART_FAIL_ROOT/host-profile.txt"',
             source,
         )
+
+    def test_harness_is_run_by_a_pull_request_workflow(self):
+        # The fast smoke gate delegates this journey; it must stay owned by a
+        # focused acceptance workflow rather than silently dropping out of CI.
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        self.assertIn("Modern Tour Resume Restart acceptance", workflow)
+        self.assertIn("tests/native/run_modern_tour_entry_acceptance.sh", workflow)
+        self.assertIn('"tests/native/run_modern_tour_entry_acceptance.sh"', workflow)
+        self.assertIn("xdotool", workflow)
 
 
 if __name__ == "__main__":

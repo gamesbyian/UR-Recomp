@@ -20,6 +20,8 @@ class RunRecordCapturePolicyCppTests(unittest.TestCase):
                     "-pedantic",
                     "-I",
                     str(ROOT / "native" / "product"),
+                    "-I",
+                    str(ROOT / "native" / "title"),
                     str(ROOT / "tests" / "native" / "run_record_capture_policy_test.cpp"),
                     "-o",
                     str(exe),

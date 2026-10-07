@@ -64,4 +64,11 @@ MultiplayerMatchDecodeResult load_multiplayer_match_record_for_run(
     const std::string& run_path,
     const CompletedRunRecord& run);
 
+bool append_multiplayer_match_pair(
+    const std::string& directory,
+    const CompletedRunRecord& run,
+    const MultiplayerMatchRecord& record,
+    std::string* stored_run_path = nullptr,
+    std::string* detail = nullptr);
+
 }  // namespace ur::product

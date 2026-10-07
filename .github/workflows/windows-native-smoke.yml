@@ -509,7 +509,9 @@ jobs:
           assert_bounded_startup_log() {
             local log="$1"
             test -f "$log"
-            echo "===== retained startup log: $log ====="\n            cat "$log"\n            test "$(wc -l < "$log")" -le 11
+            echo "===== retained startup log: $log ====="
+            cat "$log"
+            test "$(wc -l < "$log")" -le 11
           }
 
 

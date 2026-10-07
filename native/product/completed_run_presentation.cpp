@@ -177,13 +177,23 @@ std::optional<RunResultSummaryPresentation> present_run_result_summary_against(
         return std::nullopt;
     }
 
+    const RunPlaybackTarget compatibility_target{
+        current.provenance.game_id,
+        current.provenance.rom_sha256,
+        current.provenance.build_compat_id,
+        current.provenance.course_id,
+        current.provenance.mode,
+    };
+    if (!compatible_for_playback(target, compatibility_target, &detail)) {
+        return std::nullopt;
+    }
+
     const auto target_presentation = present_run_target(target, kind);
     const auto finish_delta =
         present_run_finish_delta(target, current.elapsed_ticks60);
+    if (!target_presentation || !finish_delta) return std::nullopt;
+
     const auto splits = present_run_split_table(current, target, kind);
-    if (!target_presentation || !finish_delta || !splits) {
-        return std::nullopt;
-    }
 
     RunResultSummaryPresentation summary;
     summary.finish.clock_label = "FINISH";
@@ -194,7 +204,7 @@ std::optional<RunResultSummaryPresentation> present_run_result_summary_against(
     summary.finish.comparison_text = finish_delta->delta_text;
     summary.finish.target_available = true;
     summary.finish.comparison_available = true;
-    summary.splits = splits->rows;
+    if (splits) summary.splits = splits->rows;
     return summary;
 }
 

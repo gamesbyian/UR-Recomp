@@ -140,6 +140,15 @@ int main() {
     assert(previous_summary->splits[1].target_text == "0:29.10/60");
     assert(previous_summary->splits[1].delta_text == "-0:00.25/60");
 
+    auto partial_previous_target = previous_target;
+    partial_previous_target.splits[0].id = "other-checkpoint";
+    const auto partial_previous_summary = present_run_result_summary_against(
+        current, partial_previous_target, RunDataTargetKind::Previous);
+    assert(partial_previous_summary);
+    assert(partial_previous_summary->finish.target_label == "PREVIOUS");
+    assert(partial_previous_summary->finish.comparison_text == "-0:00.25/60");
+    assert(partial_previous_summary->splits.empty());
+
     auto incompatible_summary_target = previous_target;
     incompatible_summary_target.provenance.course_id = "course:02";
     assert(!present_run_result_summary_against(

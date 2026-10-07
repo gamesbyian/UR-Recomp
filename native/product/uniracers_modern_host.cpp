@@ -6633,9 +6633,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
     const int panel_w = panel_layout.presentation_rect.width;
     const int panel_h = panel_layout.presentation_rect.height;
     const int x = panel_layout.presentation_rect.x;
+    // The results strip sits above the bottom 14 output pixels, which belong
+    // to the one-line F8 / Y RECORDS hint (drawn unscaled at height - 13).
+    constexpr int kResultsRecordsHintBand = 14;
     const int y = is_paused
         ? panel_layout.presentation_rect.y
-        : height - panel_h - 8 * modal_scale;
+        : height - panel_h - 8 * modal_scale - kResultsRecordsHintBand;
 
     snes_ovl_fill_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);

@@ -76,6 +76,19 @@ class ModernOverlayTextFitTests(unittest.TestCase):
         ):
             self.assertNotIn(retired, source)
 
+    def test_results_strip_clears_the_records_hint_band(self):
+        source = HOST.read_text(encoding="utf-8")
+        self.assertIn(
+            ": height - panel_h - 8 * modal_scale - kResultsRecordsHintBand;",
+            source,
+        )
+        self.assertIn("constexpr int kResultsRecordsHintBand = 14;", source)
+        browser = (ROOT / "native/product/completed_run_browser_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        hint = _body(browser, "void draw_results_records_hint(", "\n}\n")
+        self.assertIn("8, height - 13,", hint)
+
     def test_onboarding_rows_are_fitted(self):
         source = HOST.read_text(encoding="utf-8")
         onboarding = _body(

@@ -112,8 +112,9 @@ std::optional<RunTimingSplitTablePresentation> present_run_split_table(
     RunDataTargetKind kind);
 
 /* Build post-run detail against one explicit compatible canonical target.
- * The target kind affects presentation labels only; compatibility and exact
- * timing/split arithmetic remain delegated to the existing comparison model. */
+ * The target kind affects presentation labels only. Exact finish comparison
+ * remains available for compatible records even when checkpoint identities do
+ * not line up; in that case the split table is intentionally empty. */
 std::optional<RunResultSummaryPresentation> present_run_result_summary_against(
     const CompletedRunRecord& current,
     const CompletedRunRecord& target,

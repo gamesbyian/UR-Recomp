@@ -1541,7 +1541,7 @@ constexpr RacerRegistration kRegistrations[] = {
             0x0000,
             0x0001,
         },
-        0x06,
+        0x07,
         64,
         64,
         1,

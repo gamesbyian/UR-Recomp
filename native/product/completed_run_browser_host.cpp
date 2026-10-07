@@ -756,6 +756,10 @@ void draw_records_browser(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 56,
             comparison, 0xFFFFFFFFu, 1);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 56,
+            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
+
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,
@@ -829,7 +833,7 @@ void draw_records_browser(
         char split_header[64];
         std::snprintf(
             split_header, sizeof(split_header),
-            "SPLITS VS %s  LEFT / RIGHT", split_target_label);
+            "SPLITS VS %s  CURRENT / TARGET / DELTA", split_target_label);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 97,
             split_header, 0xFFFFFFFFu, 1);
@@ -845,9 +849,10 @@ void draw_records_browser(
                 }
                 char split_line[96];
                 std::snprintf(
-                    split_line, sizeof(split_line), "%s  %s  %s",
+                    split_line, sizeof(split_line), "%s  %s  %s  %s",
                     label.c_str(),
                     split.current_text.c_str(),
+                    split.target_text.c_str(),
                     split.delta_text.c_str());
                 snes_ovl_draw_text(
                     pixels, stride, height, x + 8, split_y,

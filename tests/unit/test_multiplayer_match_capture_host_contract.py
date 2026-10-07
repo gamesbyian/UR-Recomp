@@ -128,13 +128,18 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         )
         body = source[live:observe]
 
+        self.assertIn("if (run_active)", body)
         self.assertIn("ur_uniracers_identify_course(", body)
-        self.assertIn("current_course.course_index !=", body)
+        self.assertIn("current_course.course_index ==", body)
         self.assertIn("*g_local_multiplayer_participants.player1 ==", body)
         self.assertIn("*g_local_multiplayer_participants.player2 ==", body)
         self.assertIn('"UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT"', body)
+        active_guard = body.index("if (run_active)")
+        course_read = body.index("ur_uniracers_identify_course(", active_guard)
         stale = body.index('"UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT"')
         reset = body.index("reset_multiplayer_run_capture();", stale)
+        self.assertLess(active_guard, course_read)
+        self.assertLess(course_read, stale)
         self.assertLess(stale, reset)
 
     def test_both_finish_fixture_mirrors_p2_horizontal_drive(self):

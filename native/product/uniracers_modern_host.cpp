@@ -2996,16 +2996,26 @@ bool begin_tour_continue() {
 void advance_tour_continue_route(uint64_t next_frame) {
     if (!tour_continue_routing()) return;
 
+    const bool result_route_context_ok =
+        g_results_tour_route_active &&
+        g_results_route_progress &&
+        g_results_route_progress->tour_row == g_tour_continue.tour_row &&
+        g_results_route_profile_id == g_tour_continue_profile_id;
+    const bool continuation_route_context_ok =
+        !g_results_tour_route_active &&
+        g_profile_state &&
+        g_profile_state->tour_continuation &&
+        ur::product::valid_tour_continuation(
+            *g_profile_state->tour_continuation) &&
+        g_profile_state->tour_continuation->tour_row ==
+            g_tour_continue.tour_row;
     if (!modern_mode() || !g_profile_state ||
         !g_profile_state_writable ||
         g_tour_continue_profile_id.empty() ||
         g_profile_state->profile_id != g_tour_continue_profile_id ||
-        !g_profile_state->tour_continuation ||
-        !ur::product::valid_tour_continuation(
-            *g_profile_state->tour_continuation) ||
-        g_profile_state->tour_continuation->tour_row !=
-            g_tour_continue.tour_row) {
+        (!result_route_context_ok && !continuation_route_context_ok)) {
         abort_tour_continue("UR_TOUR_CONTINUE ABORTED_CONTEXT");
+        if (g_results_tour_route_active) clear_results_navigation_route();
         return;
     }
 
@@ -3024,6 +3034,21 @@ void advance_tour_continue_route(uint64_t next_frame) {
         abort_tour_continue(
             "UR_TOUR_CONTINUE ABORTED_TIMEOUT",
             crossed_stock_rider_wipe);
+        return;
+    }
+    if (step.tour_select_ready && g_results_tour_route_active) {
+        const bool restore =
+            g_results_route_progress &&
+            ur::title::valid_unfinished_tour_progress(
+                *g_results_route_progress);
+        if (restore && !rollback_tour_entry_to_profile_snapshot()) {
+            abort_tour_continue(
+                "UR_RESULTS_NAV TOUR_SELECT_ROLLBACK_FAILED", true);
+            clear_results_navigation_route();
+            return;
+        }
+        cancel_tour_continue("UR_RESULTS_NAV TOUR_SELECT_READY");
+        clear_results_navigation_route();
         return;
     }
     if (step.next_event_race_entered) {

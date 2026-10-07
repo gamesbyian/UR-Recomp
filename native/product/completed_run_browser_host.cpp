@@ -175,6 +175,8 @@ void close_records_browser() {
     diagnostic("UR_RECORDS_BROWSER CLOSED");
 }
 
+bool open_records_browser();
+
 bool records_results_surface() {
     return ur_uniracers_classify_restart_surface(
                g_ram[0x0313], g_ram[0x009F]) ==

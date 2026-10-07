@@ -453,7 +453,7 @@ void maybe_run_records_browser_acceptance() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s pb_delta=%s previous=%s previous_delta=%s\n",
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s previous=%s previous_delta=%s\n",
             pause_handled,
             opened ? 1 : 0,
             drilled ? 1 : 0,

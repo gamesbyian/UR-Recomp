@@ -164,9 +164,128 @@ static void prove_all_tours_reach_track_select() {
     }
 }
 
+static void prove_next_event_selects_derived_slot_then_confirms() {
+    ModernTourEntryContext context{
+        ExecutionMode::Modern,
+        true,
+        true,
+        true,
+    };
+    // Without a unique remaining event, Next Event is never authorized.
+    assert(resolve_modern_tour_entry(
+               context, ModernTourEntryIntent::NextEvent).intent ==
+           ModernTourEntryIntent::None);
+
+    context.next_event_unique = true;
+    const auto decision = resolve_modern_tour_entry(
+        context, ModernTourEntryIntent::NextEvent);
+    assert(decision.intent == ModernTourEntryIntent::NextEvent);
+    assert(decision.route_stock_frontend);
+    assert(decision.restore_continuation_at_track_select);
+    assert(!decision.retire_continuation_after_stock_wipe);
+
+    assert(begin_modern_tour_next_event(0, decision, 5).stage ==
+           ModernTourContinueStage::Idle);
+    const auto resume = resolve_modern_tour_entry(
+        context, ModernTourEntryIntent::Resume);
+    assert(begin_modern_tour_next_event(0, resume, 3).stage ==
+           ModernTourContinueStage::Idle);
+
+    for (std::uint8_t slot = 0; slot < 5; ++slot) {
+        auto state = begin_modern_tour_next_event(1, decision, slot);
+        assert(state.stage == ModernTourContinueStage::AwaitMain);
+        assert(state.next_event_slot == slot);
+
+        // Selection cannot begin before the Resume restore reaches Ready.
+        assert(enter_modern_tour_next_event_selection(state).stage ==
+               ModernTourContinueStage::AwaitMain);
+
+        auto step = advance_until_action(state, {0xD7, 0, false});
+        step = advance_until_action(step.state, {0x3C, 0, false});
+        step = advance_until_action(step.state, {0x6D, 0, false});
+        assert(step.input == QuickPracticeMenuInput::Right);
+        step = advance_until_action(step.state, {0x6D, 1, false});
+        assert(step.input == QuickPracticeMenuInput::Accept);
+        step = advance_until_action(step.state, {0xF6, 0, false});
+        assert(step.track_select_ready);
+        assert(step.state.stage == ModernTourContinueStage::Ready);
+
+        state = enter_modern_tour_next_event_selection(step.state);
+        assert(state.stage == ModernTourContinueStage::SelectNextEvent);
+
+        ModernTourContinueObservation observation{0xF6, 0, false};
+        for (std::uint8_t row = 0; row < slot; ++row) {
+            step = advance_modern_tour_continue(state, observation);
+            assert(step.input == QuickPracticeMenuInput::Down);
+            state = step.state;
+            // Wait for stock to move the cursor before another edge.
+            step = advance_modern_tour_continue(state, observation);
+            assert(step.input == QuickPracticeMenuInput::None);
+            state = step.state;
+            ++observation.selected_option;
+            // Then leave the two-frame press released before the next edge.
+            for (std::uint8_t gap = 0;
+                 gap < kModernTourNextEventReleaseObservations;
+                 ++gap) {
+                step = advance_modern_tour_continue(state, observation);
+                assert(step.input == QuickPracticeMenuInput::None);
+                state = step.state;
+            }
+        }
+        step = advance_modern_tour_continue(state, observation);
+        assert(step.input == QuickPracticeMenuInput::Accept);
+        assert(step.state.stage ==
+               ModernTourContinueStage::AwaitNextEventNowPlaying);
+
+        // NOW_PLAYING gets the same settle window before its confirm.
+        step = advance_until_action(step.state, {0x16, 0, false});
+        assert(step.input == QuickPracticeMenuInput::Accept);
+        assert(step.state.stage ==
+               ModernTourContinueStage::AwaitNextEventRace);
+
+        step = advance_modern_tour_continue(step.state, {0x16, 0, false});
+        assert(step.input == QuickPracticeMenuInput::None);
+        step = advance_modern_tour_continue(step.state, {0x16, 0, true});
+        assert(step.next_event_race_entered);
+        assert(step.state.stage == ModernTourContinueStage::Idle);
+    }
+
+    // The cursor is moved upward too, and never confirmed off TRACK_SELECT.
+    {
+        auto state = begin_modern_tour_next_event(0, decision, 1);
+        state.stage = ModernTourContinueStage::Ready;
+        state = enter_modern_tour_next_event_selection(state);
+        auto step = advance_modern_tour_continue(state, {0xF6, 4, false});
+        assert(step.input == QuickPracticeMenuInput::Up);
+        step = advance_modern_tour_continue(step.state, {0x6D, 3, false});
+        assert(step.input == QuickPracticeMenuInput::None);
+        assert(step.state.stage == ModernTourContinueStage::SelectNextEvent);
+    }
+
+    // A race reached before the Next Event confirm is not Next Event.
+    {
+        auto state = begin_modern_tour_next_event(0, decision, 2);
+        state.stage = ModernTourContinueStage::Ready;
+        state = enter_modern_tour_next_event_selection(state);
+        const auto early = advance_modern_tour_continue(
+            state, {0xF6, 0, true});
+        assert(!early.next_event_race_entered);
+        assert(early.state.stage == ModernTourContinueStage::Idle);
+    }
+
+    // Ordinary Resume never acquires the Next Event selection stages.
+    {
+        auto state = begin_modern_tour_continue(0);
+        state.stage = ModernTourContinueStage::Ready;
+        assert(enter_modern_tour_next_event_selection(state).stage ==
+               ModernTourContinueStage::Ready);
+    }
+}
+
 int main() {
     prove_all_tours_reach_track_select();
     prove_restart_uses_same_stock_route_without_restore();
+    prove_next_event_selects_derived_slot_then_confirms();
 
     {
         auto state = begin_modern_tour_continue(0);

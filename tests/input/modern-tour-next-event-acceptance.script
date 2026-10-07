@@ -1,0 +1,16 @@
+# Modern Next Event acceptance. The harness opens the Tour surface with F3 at
+# settled MAIN_MENU and confirms the preselected Next Event row. Every stock
+# menu edge after that comes from the host-owned route; this script only
+# observes and dumps. Addresses are WRAM offsets (7E:xxxx -> xxxx).
+
+until 009F == D7 3600
+dump tour-entry-main-ready
+
+until 009F == F6 360000
+dump next-event-track-select
+
+until 0313 == 01 360000
+wait 120
+dump next-event-race-entered
+
+quit

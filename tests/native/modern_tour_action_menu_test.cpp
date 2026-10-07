@@ -87,5 +87,38 @@ int main() {
     assert(selected_modern_tour_action(activated.menu) ==
            ModernTourActionRow::RestartTour);
 
+    {
+        ModernTourEntryContext next = valid;
+        next.next_event_unique = true;
+        auto next_menu = make_modern_tour_action_menu(next);
+        assert(next_menu.row_count == 4);
+        assert(selected_modern_tour_action(next_menu) ==
+               ModernTourActionRow::NextEvent);
+        assert(next_menu.rows[1] == ModernTourActionRow::ResumeTour);
+        assert(next_menu.rows[2] == ModernTourActionRow::RestartTour);
+        assert(next_menu.rows[3] == ModernTourActionRow::Back);
+
+        auto chosen = activate_modern_tour_action_menu(
+            next_menu, next, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(chosen.intent == ModernTourEntryIntent::NextEvent);
+        assert(chosen.close_menu);
+
+        // Context can lose uniqueness while the menu is open (stale row):
+        // activation then fails closed instead of guessing an event.
+        chosen = activate_modern_tour_action_menu(
+            next_menu, valid, UR_MODERN_HOST_NAV_CONFIRM);
+        assert(chosen.intent == ModernTourEntryIntent::None);
+        assert(!chosen.close_menu);
+
+        // Authentic never exposes it.
+        ModernTourEntryContext authentic_next = next;
+        authentic_next.mode = ExecutionMode::Authentic;
+        const auto authentic_menu =
+            make_modern_tour_action_menu(authentic_next);
+        assert(authentic_menu.row_count == 1);
+        assert(selected_modern_tour_action(authentic_menu) ==
+               ModernTourActionRow::Back);
+    }
+
     return 0;
 }

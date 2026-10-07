@@ -14,9 +14,18 @@ enum class ModernTourContinueStage {
     AwaitTour,
     AwaitTrack,
     Ready,
+    // Next Event only: after the Resume restore has settled at TRACK_SELECT,
+    // keep input ownership and drive the stock cursor to the derived slot.
+    SelectNextEvent,
+    AwaitNextEventNowPlaying,
+    AwaitNextEventRace,
 };
 
 constexpr std::uint32_t kModernTourContinueMaxObservations = 3600;
+// Each routed menu press is held for two frames. After the stock cursor has
+// moved, wait long enough for that press to be released before the next
+// directional edge so consecutive presses can never merge into one hold.
+constexpr std::uint8_t kModernTourNextEventReleaseObservations = 4;
 
 struct ModernTourContinueState {
     ModernTourContinueStage stage = ModernTourContinueStage::Idle;
@@ -25,6 +34,8 @@ struct ModernTourContinueState {
     std::uint8_t tour_option = 0;
     bool restore_continuation_at_track_select = false;
     bool retire_continuation_after_stock_wipe = false;
+    std::uint8_t next_event_slot = 0;
+    std::uint8_t release_observations = 0;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
     bool menu_settled = false;
@@ -43,6 +54,9 @@ struct ModernTourContinueStep {
     QuickPracticeMenuInput input = QuickPracticeMenuInput::None;
     bool track_select_ready = false;
     bool timed_out = false;
+    // The stock NOW_PLAYING confirm entered an active race for Next Event.
+    // The route is finished; the caller verifies course identity.
+    bool next_event_race_entered = false;
 };
 
 constexpr ModernTourContinueState begin_modern_tour_entry(
@@ -63,6 +77,40 @@ constexpr ModernTourContinueState begin_modern_tour_entry(
         decision.restore_continuation_at_track_select;
     state.retire_continuation_after_stock_wipe =
         decision.retire_continuation_after_stock_wipe;
+    state.observations_remaining = kModernTourContinueMaxObservations;
+    return state;
+}
+
+constexpr ModernTourContinueState begin_modern_tour_next_event(
+    std::uint8_t tour_row,
+    ModernTourEntryDecision decision,
+    std::uint8_t next_event_slot
+) noexcept {
+    if (decision.intent != ModernTourEntryIntent::NextEvent ||
+        next_event_slot >= 5) {
+        return {};
+    }
+    auto state = begin_modern_tour_entry(tour_row, decision);
+    if (state.stage == ModernTourContinueStage::Idle) return {};
+    state.next_event_slot = next_event_slot;
+    return state;
+}
+
+// Called by the host only after the Resume restore has been applied at a
+// settled TRACK_SELECT. Any other state is returned unchanged.
+constexpr ModernTourContinueState enter_modern_tour_next_event_selection(
+    ModernTourContinueState state
+) noexcept {
+    if (state.intent != ModernTourEntryIntent::NextEvent ||
+        state.stage != ModernTourContinueStage::Ready ||
+        state.next_event_slot >= 5) {
+        return state;
+    }
+    state.stage = ModernTourContinueStage::SelectNextEvent;
+    state.release_observations = kModernTourNextEventReleaseObservations;
+    state.menu_settled = true;
+    state.menu_settle_observations = 0;
+    state.waiting_for_selection_change = false;
     state.observations_remaining = kModernTourContinueMaxObservations;
     return state;
 }
@@ -95,6 +143,8 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     }
     --out.state.observations_remaining;
     if (observation.in_race) {
+        out.next_event_race_entered =
+            state.stage == ModernTourContinueStage::AwaitNextEventRace;
         out.state = {};
         return out;
     }
@@ -104,6 +154,7 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
             return out;
         }
         out.state.waiting_for_selection_change = false;
+        out.state.release_observations = 0;
     }
 
     // Stock exposes frontend menu bytes before those surfaces are guaranteed
@@ -115,6 +166,11 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     case ModernTourContinueStage::AwaitRider: expected_menu = 0x3C; break;
     case ModernTourContinueStage::AwaitTour: expected_menu = 0x6D; break;
     case ModernTourContinueStage::AwaitTrack: expected_menu = 0xF6; break;
+    case ModernTourContinueStage::SelectNextEvent: expected_menu = 0xF6; break;
+    case ModernTourContinueStage::AwaitNextEventNowPlaying:
+        expected_menu = 0x16;
+        break;
+    case ModernTourContinueStage::AwaitNextEventRace:
     case ModernTourContinueStage::Ready:
     case ModernTourContinueStage::Idle:
         break;
@@ -187,6 +243,38 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     case ModernTourContinueStage::Ready:
         out.track_select_ready = observation.menu_id == 0xF6;
         break;
+    case ModernTourContinueStage::SelectNextEvent:
+        if (out.state.release_observations <
+            kModernTourNextEventReleaseObservations) {
+            ++out.state.release_observations;
+            return out;
+        }
+        // Never confirm off TRACK_SELECT; a surface change waits for the
+        // bounded observation budget instead of guessing.
+        if (observation.menu_id == 0xF6) {
+            const auto desired = quick_practice_track_input(
+                out.state.next_event_slot,
+                observation.selected_option);
+            if (desired == QuickPracticeMenuInput::Accept) {
+                out.input = QuickPracticeMenuInput::Accept;
+                out.state.stage =
+                    ModernTourContinueStage::AwaitNextEventNowPlaying;
+                out.state.menu_settled = false;
+                out.state.menu_settle_observations = 0;
+            } else {
+                return emit_selection_input(desired);
+            }
+        }
+        break;
+    case ModernTourContinueStage::AwaitNextEventNowPlaying:
+        if (observation.menu_id == 0x16) {
+            out.input = QuickPracticeMenuInput::Accept;
+            out.state.stage = ModernTourContinueStage::AwaitNextEventRace;
+            out.state.menu_settled = false;
+            out.state.menu_settle_observations = 0;
+        }
+        break;
+    case ModernTourContinueStage::AwaitNextEventRace:
     case ModernTourContinueStage::Idle:
         break;
     }

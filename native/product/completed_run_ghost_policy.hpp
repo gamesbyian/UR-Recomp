@@ -19,6 +19,11 @@ struct CompletedRunGhostSelection {
     }
 };
 
+/* Stable product order for the profile-local Ghost option.
+ * Invalid values fail closed to Off rather than entering an undefined cycle. */
+CompletedRunGhostTarget next_completed_run_ghost_target(
+    CompletedRunGhostTarget target) noexcept;
+
 /* Stable machine vocabulary for persistence and diagnostics. */
 const char* completed_run_ghost_target_name(CompletedRunGhostTarget target);
 

@@ -19,6 +19,7 @@ extern "C" {
 #include "completed_run_record.hpp"
 #include "completed_run_store.hpp"
 #include "clean_stock_sram.hpp"
+#include "controller_hotplug_policy.hpp"
 #include "focus_pause_policy.hpp"
 #include "fast_repeat_navigation.hpp"
 #include "host_product_state.hpp"
@@ -114,6 +115,17 @@ bool g_binding_diagnostics_reported;
 std::string g_onboarding_seen_path;
 
 ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
+ur::product::ControllerHotplugState g_controller_hotplug;
+std::array<std::string, ur::product::kControllerSeatCount>
+    g_controller_seat_names{};
+bool g_controller_hotplug_acceptance_done;
+int g_controller_hotplug_acceptance_stage;
+unsigned g_controller_hotplug_acceptance_frames;
+std::uint64_t g_controller_hotplug_acceptance_source;
+std::uint32_t g_controller_hotplug_acceptance_held;
+std::uint32_t g_last_human_input_word;
+std::uint64_t g_human_input_observations;
+std::uint64_t g_controller_hotplug_acceptance_observation;
 std::array<ur::product::LocalInputSource, 2> g_local_multiplayer_sources{};
 std::array<std::uint32_t, 2> g_local_multiplayer_consumed_buttons{};
 bool g_local_multiplayer_join_visible;
@@ -3613,6 +3625,216 @@ void apply_focus_pause_policy() {
     }
 }
 
+std::string controller_display_name(std::uint64_t source_id) {
+    const auto id = static_cast<SDL_JoystickID>(source_id);
+    const char* raw = nullptr;
+    if (SDL_GameController* pad = SDL_GameControllerFromInstanceID(id)) {
+        raw = SDL_GameControllerName(pad);
+    }
+    if (!raw) {
+        if (SDL_Joystick* joystick = SDL_JoystickFromInstanceID(id)) {
+            raw = SDL_JoystickName(joystick);
+        }
+    }
+    // The overlay font is uppercase ASCII; keep the label short enough for
+    // the Controls panel and never trust device-provided bytes verbatim.
+    std::string out;
+    if (raw) {
+        for (const char* p = raw; *p && out.size() < 18u; ++p) {
+            char ch = *p;
+            if (ch >= 'a' && ch <= 'z') ch = static_cast<char>(ch - 'a' + 'A');
+            const bool keep = (ch >= 'A' && ch <= 'Z') ||
+                              (ch >= '0' && ch <= '9') || ch == '-';
+            if (keep) {
+                out.push_back(ch);
+            } else if (!out.empty() && out.back() != ' ') {
+                out.push_back(' ');
+            }
+        }
+    }
+    while (!out.empty() && out.back() == ' ') out.pop_back();
+    return out.empty() ? std::string("CONTROLLER") : out;
+}
+
+void apply_controller_disconnect_pause() {
+    if (!g_session) return;
+    const auto decision = ur::product::controller_hotplug_take_pause(
+        g_controller_hotplug,
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        restart_surface(),
+        paused());
+    g_controller_hotplug = decision.state;
+    if (decision.pause &&
+        ur_modern_session_pause(g_session) == UR_MODERN_SESSION_APPLIED) {
+        product_diagnostic("UR_CONTROLLER DISCONNECT_PAUSED");
+    }
+    // Notices explain why the game paused; they retire once play resumes.
+    if (!paused() &&
+        ur::product::controller_hotplug_any_notice(g_controller_hotplug)) {
+        g_controller_hotplug =
+            ur::product::controller_hotplug_clear_notices(g_controller_hotplug);
+    }
+}
+
+#if SNESRECOMP_SDL3
+SDL_JoystickID g_controller_hotplug_acceptance_pad_id;
+SDL_Joystick* g_controller_hotplug_acceptance_pad;
+
+bool attach_controller_hotplug_acceptance_pad() {
+    SDL_VirtualJoystickDesc desc;
+    SDL_INIT_INTERFACE(&desc);
+    desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+    desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+    desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+    desc.name = "UR hotplug acceptance pad";
+    g_controller_hotplug_acceptance_pad_id = SDL_AttachVirtualJoystick(&desc);
+    g_controller_hotplug_acceptance_pad =
+        g_controller_hotplug_acceptance_pad_id
+            ? SDL_OpenJoystick(g_controller_hotplug_acceptance_pad_id)
+            : nullptr;
+    return g_controller_hotplug_acceptance_pad != nullptr;
+}
+
+void detach_controller_hotplug_acceptance_pad() {
+    if (g_controller_hotplug_acceptance_pad) {
+        SDL_CloseJoystick(g_controller_hotplug_acceptance_pad);
+        g_controller_hotplug_acceptance_pad = nullptr;
+    }
+    if (g_controller_hotplug_acceptance_pad_id) {
+        (void)SDL_DetachVirtualJoystick(g_controller_hotplug_acceptance_pad_id);
+        g_controller_hotplug_acceptance_pad_id = 0;
+    }
+}
+#endif
+
+// Native acceptance for device removal: attach a real SDL virtual gamepad
+// during an authoritative race, hold a mapped direction until the framework
+// delivers it in the human input word, then unplug it while still held. The
+// framework must release the held control before clearing the seat, and
+// Modern must pause through the ordinary session command. Reconnection is
+// then observed through the framework's own seat assignment while paused.
+void run_controller_hotplug_acceptance() {
+#if SNESRECOMP_SDL3
+    if (g_controller_hotplug_acceptance_done ||
+        !std::getenv("UR_CONTROLLER_HOTPLUG_ACCEPTANCE")) {
+        return;
+    }
+    switch (g_controller_hotplug_acceptance_stage) {
+    case 0:
+        if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE || paused()) {
+            g_controller_hotplug_acceptance_frames = 0;
+            return;
+        }
+        if (++g_controller_hotplug_acceptance_frames < 120u) return;
+        if (!attach_controller_hotplug_acceptance_pad()) {
+            product_diagnostic("UR_CONTROLLER_HOTPLUG_ACCEPTANCE ATTACH_FAILED");
+            g_controller_hotplug_acceptance_done = true;
+            return;
+        }
+        g_controller_hotplug_acceptance_source =
+            static_cast<std::uint64_t>(g_controller_hotplug_acceptance_pad_id);
+        g_controller_hotplug_acceptance_frames = 0;
+        g_controller_hotplug_acceptance_stage = 1;
+        return;
+    case 1: {
+        const auto& seat = g_controller_hotplug.seats[0];
+        if (!seat.connected ||
+            seat.source_id != g_controller_hotplug_acceptance_source) {
+            if (++g_controller_hotplug_acceptance_frames > 300u) {
+                product_diagnostic(
+                    "UR_CONTROLLER_HOTPLUG_ACCEPTANCE SEAT_TIMEOUT");
+                detach_controller_hotplug_acceptance_pad();
+                g_controller_hotplug_acceptance_done = true;
+            }
+            return;
+        }
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_CONTROLLER_HOTPLUG_ACCEPTANCE SEATED seat=1 name=%s\n",
+                g_controller_seat_names[0].c_str());
+            std::fflush(stderr);
+        }
+        g_controller_hotplug_acceptance_held = g_last_human_input_word;
+        (void)SDL_SetJoystickVirtualButton(
+            g_controller_hotplug_acceptance_pad,
+            SDL_GAMEPAD_BUTTON_DPAD_LEFT,
+            true);
+        g_controller_hotplug_acceptance_frames = 0;
+        g_controller_hotplug_acceptance_stage = 2;
+        return;
+    }
+    case 2: {
+        const std::uint32_t baseline = g_controller_hotplug_acceptance_held;
+        const std::uint32_t held =
+            g_last_human_input_word & ~baseline & 0x0FFFu;
+        if (!held) {
+            if (++g_controller_hotplug_acceptance_frames > 120u) {
+                product_diagnostic(
+                    "UR_CONTROLLER_HOTPLUG_ACCEPTANCE HOLD_TIMEOUT");
+                detach_controller_hotplug_acceptance_pad();
+                g_controller_hotplug_acceptance_done = true;
+            }
+            return;
+        }
+        g_controller_hotplug_acceptance_held = held;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_CONTROLLER_HOTPLUG_ACCEPTANCE HELD bits=%03X\n",
+                static_cast<unsigned>(held));
+            std::fflush(stderr);
+        }
+        // Unplug while the direction is still physically held.
+        detach_controller_hotplug_acceptance_pad();
+        g_controller_hotplug_acceptance_observation = g_human_input_observations;
+        g_controller_hotplug_acceptance_stage = 3;
+        return;
+    }
+    case 3: {
+        if (g_human_input_observations ==
+            g_controller_hotplug_acceptance_observation) {
+            return;
+        }
+        if (g_controller_hotplug.seats[0].connected) return;
+        const std::uint32_t remaining =
+            g_last_human_input_word & g_controller_hotplug_acceptance_held;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=%03X after=%03X "
+                "seat_connected=0 paused=%d modern=%d\n",
+                static_cast<unsigned>(g_controller_hotplug_acceptance_held),
+                static_cast<unsigned>(remaining),
+                paused() ? 1 : 0,
+                modern_mode() ? 1 : 0);
+            std::fflush(stderr);
+        }
+        if (!paused()) {
+            // Authentic, or a Modern failure: nothing further to observe.
+            g_controller_hotplug_acceptance_done = true;
+            (void)request_desktop_quit();
+            return;
+        }
+        // Reconnect while paused. Seat choice stays framework-owned; the
+        // connection callback reports the outcome and ends the run.
+        if (!attach_controller_hotplug_acceptance_pad()) {
+            product_diagnostic(
+                "UR_CONTROLLER_HOTPLUG_ACCEPTANCE REATTACH_FAILED");
+            g_controller_hotplug_acceptance_done = true;
+            (void)request_desktop_quit();
+            return;
+        }
+        g_controller_hotplug_acceptance_stage = 4;
+        return;
+    }
+    default:
+        return;
+    }
+#endif
+}
+
 bool dispatch(UrModernPauseAction action) {
     if (!ensure_session()) return false;
     const UrModernSessionResult result =
@@ -4274,6 +4496,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     update_local_multiplayer_join_surface();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
+    apply_controller_disconnect_pause();
+    run_controller_hotplug_acceptance();
 }
 
 extern "C" int ur_uniracers_modern_system_key_down(
@@ -4472,6 +4696,44 @@ extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
     uint64_t source_id,
     int connected) {
     if (player_index < 0 || player_index >= 2) return;
+    g_controller_hotplug = ur::product::controller_hotplug_observe(
+        g_controller_hotplug, player_index, source_id, connected != 0);
+    const auto seat_index = static_cast<std::size_t>(player_index);
+    if (connected) {
+        g_controller_seat_names[seat_index] = controller_display_name(source_id);
+    } else if (!g_controller_hotplug.seats[seat_index].connected) {
+        g_controller_seat_names[seat_index].clear();
+    }
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_CONTROLLER SEAT_%s seat=%d name=%s\n",
+            connected ? "CONNECTED" : "DISCONNECTED",
+            player_index + 1,
+            connected ? g_controller_seat_names[seat_index].c_str() : "-");
+        std::fflush(stderr);
+    }
+#if SNESRECOMP_SDL3
+    if (connected && g_controller_hotplug_acceptance_stage == 4 &&
+        !g_controller_hotplug_acceptance_done &&
+        source_id ==
+            static_cast<std::uint64_t>(g_controller_hotplug_acceptance_pad_id)) {
+        const char* notice =
+            ur::product::controller_hotplug_notice_text(g_controller_hotplug);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RECONNECTED seat=%d paused=%d notice=%s\n",
+                player_index + 1,
+                paused() ? 1 : 0,
+                notice ? notice : "-");
+            std::fflush(stderr);
+        }
+        g_controller_hotplug_acceptance_done = true;
+        detach_controller_hotplug_acceptance_pad();
+        (void)request_desktop_quit();
+    }
+#endif
     auto source = local_multiplayer_controller_source(
         source_id, connected != 0);
     const auto seat = static_cast<std::size_t>(player_index);
@@ -4805,6 +5067,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 }
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
+    g_last_human_input_word = inputs;
+    ++g_human_input_observations;
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
     // mapping but before guest dispatch. Host-owned input must not also reach
     // the stock game underneath. The latch covers the closing edge, where the
@@ -5303,6 +5567,26 @@ extern "C" void ur_uniracers_modern_system_overlay(
     snes_ovl_stroke_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
 
+    const char* controller_notice =
+        is_paused
+            ? ur::product::controller_hotplug_notice_text(g_controller_hotplug)
+            : nullptr;
+    if (controller_notice) {
+        // Above every pause subview, below the Practice hint strip.
+        const int notice_y = g_practice_active ? 34 : 8;
+        const int notice_w = width < 236 ? width - 16 : 220;
+        const int notice_x = (width - notice_w) / 2;
+        snes_ovl_fill_rect(
+            pixels, stride, height, notice_x, notice_y, notice_w, 22,
+            0xE0402020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height, notice_x, notice_y, notice_w, 22,
+            0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height, notice_x + 6, notice_y + 7,
+            controller_notice, 0xFFFFFFFFu, 1);
+    }
+
     if (is_paused) {
         if (g_options_visible) {
             const int options_h = 189;
@@ -5466,8 +5750,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, controls_y + 7,
                 "CONTROLS - KEYBOARD P1", 0xFFFFFFFFu, 1);
+            char pad_row[40];
+            std::snprintf(
+                pad_row, sizeof(pad_row), "PAD P1  %s",
+                g_controller_hotplug.seats[0].connected
+                    ? g_controller_seat_names[0].c_str()
+                    : "NONE");
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, controls_y + 18,
+                pad_row,
+                g_controller_hotplug.seats[0].connected
+                    ? 0xFFA0F0A0u : 0xFFA0A0A0u,
+                1);
 
-            int row_y = controls_y + 27;
+            int row_y = controls_y + 31;
             for (const auto& row : presentation.rows) {
                 char row_text[128];
                 std::snprintf(

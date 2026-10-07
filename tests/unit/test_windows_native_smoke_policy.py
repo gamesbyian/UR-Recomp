@@ -105,6 +105,39 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         ):
             self.assertIn(marker, self.text)
 
+    def test_startup_diagnostics_enforce_current_log_line_bound(self) -> None:
+        self.assertIn("assert_bounded_startup_log()", self.text)
+        self.assertIn('test "$(wc -l < "$log")" -le 10', self.text)
+        for name in (
+            "BROKEN_ROM_LOG",
+            "BROKEN_DATA_LOG",
+            "EMPTY_MODS_LOG",
+            "INVALID_LOG",
+            "VIDEO_LOG",
+            "AUDIO_LOG",
+        ):
+            self.assertIn(
+                'assert_bounded_startup_log "        self.assertIn("Assemble and verify portable Windows package", self.text)
+        self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)
+        self.assertIn("tools/assemble_windows_package.py verify-archive-checksum", self.text)
+        self.assertIn("Clean-package boot and per-user state anchoring", self.text)
+        self.assertIn(
+            'python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"',
+            self.text,
+        )
+        self.assertIn(
+            'python tools/verify_rom.py "$TEST_PACKAGE/Uniracers_USA.sfc"',
+            self.text,
+        )
+        self.assertIn("WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok", self.text)
+
+
+if __name__ == "__main__":
+    unittest.main()
+ + name + '"',
+                self.text,
+            )
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

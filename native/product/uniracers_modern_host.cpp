@@ -9,6 +9,7 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "keybinds.h"
+#include "completed_run_browser_host.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
 #include "completed_run_ghost_frame.hpp"
@@ -4042,6 +4043,21 @@ bool activate_pause_selection() {
         }
         return true;
     }
+    if (selected == UR_MODERN_PAUSE_RECORDS) {
+        g_options_visible = false;
+        g_controls_visible = false;
+        g_run_data_visible = false;
+        g_quit_confirm_visible = false;
+        const int opened = ur_uniracers_product_open_records();
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PAUSE_RECORDS OPENED opened=%d\n",
+                opened);
+            std::fflush(stderr);
+        }
+        return opened != 0;
+    }
     if (selected == UR_MODERN_PAUSE_QUIT) {
         g_options_visible = false;
         g_controls_visible = false;
@@ -5938,7 +5954,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 129 : 114) : 30;
+    const int panel_h = is_paused ? (restart ? 144 : 129) : 30;
     const int x = (width - panel_w) / 2;
     const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
 
@@ -6345,7 +6361,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
             selected == UR_MODERN_PAUSE_RUN_DATA
                 ? "> RUN DATA" : "  RUN DATA",
             0xFFFFFFFFu, 1);
-        const int exit_y = run_data_y + 15;
+        const int records_y = run_data_y + 15;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, records_y,
+            selected == UR_MODERN_PAUSE_RECORDS
+                ? "> RECORDS" : "  RECORDS",
+            0xFFFFFFFFu, 1);
+        const int exit_y = records_y + 15;
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, exit_y,
             selected == UR_MODERN_PAUSE_EXIT_FRONTEND

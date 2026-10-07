@@ -447,11 +447,13 @@ void maybe_run_records_browser_acceptance() {
     const bool current_course =
         detail && records_selected_matches_current_course();
     const auto summary = g_records_browser.selected_run_summary();
+    const auto previous_delta =
+        g_records_browser.selected_run_previous_delta();
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s\n",
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s pb_delta=%s previous=%s previous_delta=%s\n",
             pause_handled,
             opened ? 1 : 0,
             drilled ? 1 : 0,
@@ -460,7 +462,9 @@ void maybe_run_records_browser_acceptance() {
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             summary ? summary->finish.clock_text.c_str() : "--",
-            summary ? summary->finish.comparison_text.c_str() : "--");
+            summary ? summary->finish.comparison_text.c_str() : "--",
+            previous_delta ? previous_delta->target_text.c_str() : "--",
+            previous_delta ? previous_delta->delta_text.c_str() : "--");
         std::fflush(stderr);
     }
 
@@ -680,6 +684,8 @@ void draw_records_browser(
         const auto* course = g_records_browser.selected_course();
         const auto* selected = g_records_browser.selected_run();
         const auto summary = g_records_browser.selected_run_summary();
+        const auto previous_delta =
+            g_records_browser.selected_run_previous_delta();
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
@@ -701,17 +707,19 @@ void draw_records_browser(
             run_label, 0xFFFFFFFFu, 1);
 
         char finish[80];
-        char pb[80];
-        char delta[80];
+        char pb[96];
+        char previous[96];
         std::snprintf(
             finish, sizeof(finish), "FINISH  %s",
             summary ? summary->finish.clock_text.c_str() : "--");
         std::snprintf(
-            pb, sizeof(pb), "PB      %s",
-            summary ? summary->finish.target_text.c_str() : "--");
-        std::snprintf(
-            delta, sizeof(delta), "DELTA   %s",
+            pb, sizeof(pb), "PB      %s  %s",
+            summary ? summary->finish.target_text.c_str() : "--",
             summary ? summary->finish.comparison_text.c_str() : "--");
+        std::snprintf(
+            previous, sizeof(previous), "PREV    %s  %s",
+            previous_delta ? previous_delta->target_text.c_str() : "--",
+            previous_delta ? previous_delta->delta_text.c_str() : "--");
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 47,
             finish, 0xFFFFFFFFu, 1);
@@ -720,7 +728,7 @@ void draw_records_browser(
             pb, 0xFFFFFFFFu, 1);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 77,
-            delta, 0xFFFFFFFFu, 1);
+            previous, 0xFFFFFFFFu, 1);
 
         if (summary) {
             int split_y = y + 97;

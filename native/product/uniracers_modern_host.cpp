@@ -3680,17 +3680,20 @@ void complete_multiplayer_run_record_capture() {
         return;
     }
 
-    ur::product::MultiplayerMatchRecord match;
-    match.run_artifact_checksum =
-        ur::product::completed_run_record_artifact_checksum(*run);
-    match.context = *context.context;
+    const auto match =
+        ur::product::make_multiplayer_match_record(*run, *context.context);
+    if (!match) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH METADATA_REJECTED");
+        reset_multiplayer_run_capture();
+        return;
+    }
 
     const std::string directory = default_multiplayer_run_directory();
     std::string stored_path;
     std::string detail;
     if (directory.empty() ||
         !ur::product::append_multiplayer_match_pair(
-            directory, *run, match, &stored_path, &detail)) {
+            directory, *run, *match, &stored_path, &detail)) {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
@@ -3707,10 +3710,10 @@ void complete_multiplayer_run_record_capture() {
             stderr,
             "UR_MULTIPLAYER_MATCH CAPTURED path=%s course=%s p1=%s p2=%s outcome=%u origin_frame=%llu inputs=%zu\n",
             stored_path.c_str(),
-            match.context.course_id.c_str(),
-            match.context.match.player1.profile_id.c_str(),
-            match.context.match.player2.profile_id.c_str(),
-            static_cast<unsigned>(match.context.match.result.outcome),
+            match->context.course_id.c_str(),
+            match->context.match.player1.profile_id.c_str(),
+            match->context.match.player2.profile_id.c_str(),
+            static_cast<unsigned>(match->context.match.result.outcome),
             static_cast<unsigned long long>(
                 g_multiplayer_capture_origin_frame),
             run->inputs.size());

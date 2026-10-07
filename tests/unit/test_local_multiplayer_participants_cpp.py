@@ -22,6 +22,8 @@ class LocalMultiplayerParticipantsCppTests(unittest.TestCase):
                     "-I",
                     str(ROOT / "native" / "product"),
                     str(ROOT / "native" / "product" / "modern_racer_identity.cpp"),
+                    str(ROOT / "native" / "product" / "output_resolution_policy.cpp"),
+                    str(ROOT / "native" / "product" / "host_product_state.cpp"),
                     str(ROOT / "native" / "product" / "host_profile_runtime.cpp"),
                     str(ROOT / "native" / "product" / "local_multiplayer_participants.cpp"),
                     str(ROOT / "tests" / "native" / "local_multiplayer_participants_test.cpp"),

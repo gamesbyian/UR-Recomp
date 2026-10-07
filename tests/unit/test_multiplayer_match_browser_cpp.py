@@ -15,6 +15,7 @@ class MultiplayerMatchBrowserCppTests(unittest.TestCase):
                     "g++", "-std=c++17", "-Wall", "-Wextra", "-Werror", "-pedantic",
                     "-I", str(ROOT / "native" / "product"),
                     "-I", str(ROOT / "native" / "title"),
+                    str(ROOT / "native" / "product" / "run_artifact_date.cpp"),
                     str(ROOT / "native" / "product" / "multiplayer_match_presentation.cpp"),
                     str(ROOT / "native" / "product" / "multiplayer_match_browser.cpp"),
                     str(ROOT / "tests" / "native" / "multiplayer_match_browser_test.cpp"),

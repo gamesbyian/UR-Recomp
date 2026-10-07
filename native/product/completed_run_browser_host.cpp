@@ -1060,24 +1060,130 @@ void draw_records_browser(
                 "ENTER / A  VIEW TRACKS", 0xFFFFFFFFu, 1);
         } else if (g_records_root_section ==
                    RecordsRootSection::MultiplayerTournament) {
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 7,
-                "RECORDS / MULTIPLAYER-TOURNAMENT", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 42,
-                "NO STORED MATCH HISTORY", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 57,
-                "HISTORY AUTHORITY NOT YET AVAILABLE", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 72,
-                "LIVE 2P RESULTS ARE NOT PERSISTED", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 41,
-                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 26,
-                "ESC / B    BACK", 0xFFFFFFFFu, 1);
+            if (g_multiplayer_match_browser.view() ==
+                ur::product::MultiplayerMatchBrowserView::Detail) {
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 7,
+                    "RECORDS / MULTIPLAYER DETAIL", 0xFFFFFFFFu, 1);
+
+                const auto detail =
+                    g_multiplayer_match_browser.selected_detail_presentation();
+                if (detail) {
+                    const std::string course =
+                        records_course_label(detail->summary.course_text);
+                    char line[96];
+                    std::snprintf(
+                        line, sizeof(line), "COURSE %.20s", course.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 32,
+                        line, 0xFFFFFFFFu, 1);
+
+                    std::snprintf(
+                        line, sizeof(line), "P1 %.23s",
+                        detail->summary.player1_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 52,
+                        line, 0xFFFFFFFFu, 1);
+                    std::snprintf(
+                        line, sizeof(line), "   TIME %s",
+                        detail->player1_result_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 67,
+                        line, 0xFFFFFFFFu, 1);
+
+                    std::snprintf(
+                        line, sizeof(line), "P2 %.23s",
+                        detail->summary.player2_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 87,
+                        line, 0xFFFFFFFFu, 1);
+                    std::snprintf(
+                        line, sizeof(line), "   TIME %s",
+                        detail->player2_result_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 102,
+                        line, 0xFFFFFFFFu, 1);
+
+                    std::snprintf(
+                        line, sizeof(line), "RESULT %.20s",
+                        detail->outcome_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 127,
+                        line, 0xFFFFFFFFu, 1);
+                }
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + panel_h - 26,
+                    "ESC / B    BACK", 0xFFFFFFFFu, 1);
+            } else {
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 7,
+                    "RECORDS / MULTIPLAYER-TOURNAMENT", 0xFFFFFFFFu, 1);
+
+                char summary[96];
+                if (g_multiplayer_match_health.unavailable_pairs()) {
+                    std::snprintf(
+                        summary, sizeof(summary),
+                        "%zu MATCHES / %zu UNAVAILABLE",
+                        g_multiplayer_match_browser.size(),
+                        g_multiplayer_match_health.unavailable_pairs());
+                } else {
+                    std::snprintf(
+                        summary, sizeof(summary), "%zu MATCHES",
+                        g_multiplayer_match_browser.size());
+                }
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 22,
+                    summary, 0xFFFFFFFFu, 1);
+
+                if (g_multiplayer_match_browser.empty()) {
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 42,
+                        "NO STORED MATCH HISTORY", 0xFFFFFFFFu, 1);
+                    if (g_multiplayer_match_health.unavailable_pairs()) {
+                        snes_ovl_draw_text(
+                            pixels, stride, height, x + 8, y + 57,
+                            "INVALID / UNBOUND PAIRS IGNORED",
+                            0xFFFFFFFFu, 1);
+                    }
+                }
+
+                std::size_t first = 0;
+                if (g_multiplayer_match_browser.selected_index() >=
+                    static_cast<std::size_t>(row_count)) {
+                    first = g_multiplayer_match_browser.selected_index() -
+                        static_cast<std::size_t>(row_count) + 1;
+                }
+                for (int row = 0; row < row_count; ++row) {
+                    const std::size_t index =
+                        first + static_cast<std::size_t>(row);
+                    const auto item =
+                        g_multiplayer_match_browser.row_presentation(index);
+                    if (!item) break;
+                    const std::string course =
+                        records_course_label(item->course_text);
+                    char line[96];
+                    std::snprintf(
+                        line, sizeof(line), "%c %-12.12s %-12.12s",
+                        g_multiplayer_match_browser.selected_index() == index
+                            ? '>' : ' ',
+                        course.c_str(),
+                        item->result_text.c_str());
+                    snes_ovl_draw_text(
+                        pixels, stride, height, x + 8, y + 42 + row * 15,
+                        line, 0xFFFFFFFFu, 1);
+                }
+
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + panel_h - 41,
+                    "LEFT / RIGHT  TRACKS / RACERS / MULTI",
+                    0xFFFFFFFFu, 1);
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + panel_h - 26,
+                    g_multiplayer_match_browser.empty()
+                        ? "ESC / B    BACK"
+                        : "ENTER / A  DETAIL   ESC / B BACK",
+                    0xFFFFFFFFu, 1);
+            }
         } else {
             const std::string profile_name = records_view_profile_name();
             char title[96];

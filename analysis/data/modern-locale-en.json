@@ -1,0 +1,11 @@
+{
+  "schema": "ur-recomp-modern-locale-v1",
+  "locale": "en",
+  "entries": {
+    "root.play": "PLAY",
+    "root.practice": "PRACTICE",
+    "root.multiplayer": "MULTIPLAYER",
+    "root.records": "RECORDS",
+    "root.options": "OPTIONS"
+  }
+}

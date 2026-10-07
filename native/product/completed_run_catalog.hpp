@@ -73,6 +73,7 @@ struct RunRecordsProfileSource {
 
 struct RunRecordsProfileIndex {
     std::vector<RunRecordsProfileSummary> profiles;
+    std::optional<std::size_t> active_profile;
     std::size_t total_completed_runs = 0;
 };
 
@@ -103,6 +104,7 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
 
 RunRecordsProfileIndex build_run_records_profile_index(
     const std::vector<RunRecordsProfileSource>& profiles,
-    const RunRecordsScope& scope);
+    const RunRecordsScope& scope,
+    const std::optional<std::string>& active_profile_id = std::nullopt);
 
 }  // namespace ur::product

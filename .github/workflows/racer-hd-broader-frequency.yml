@@ -31,6 +31,7 @@ on:
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_probe_racer_hd_ranked_visual_context.py"
       - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
       - ".github/workflows/racer-hd-broader-frequency.yml"
   workflow_dispatch:
 

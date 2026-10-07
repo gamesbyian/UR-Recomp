@@ -49,6 +49,9 @@ extern "C" {
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
 #include "local_multiplayer_participants.hpp"
+#include "local_multiplayer_match_binding.hpp"
+#include "multiplayer_match_record.hpp"
+#include "run_record_capture_policy.hpp"
 #include "local_multiplayer_seat_text.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
@@ -67,6 +70,7 @@ extern "C" {
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
+#include "uniracers_two_player_result.hpp"
 #include "uniracers_ws_margins.h"
 #include "uniracers_tour_resume.hpp"
 #include "widescreen_output_composition.hpp"
@@ -215,6 +219,14 @@ unsigned g_exit_frontend_acceptance_surface_frames;
 bool g_pause_records_acceptance_fired;
 unsigned g_pause_records_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
+ur::product::CompletedRunCapture g_multiplayer_run_capture;
+std::optional<ur::product::HostProfileCatalogEntry>
+    g_multiplayer_capture_player1;
+std::optional<ur::product::HostProfileCatalogEntry>
+    g_multiplayer_capture_player2;
+UrUniracersCourseIdentity g_multiplayer_capture_course{};
+std::uint64_t g_multiplayer_capture_origin_frame;
+bool g_multiplayer_match_acceptance_seeded;
 ur::product::CompletedRunGhostState g_run_ghosts;
 ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
 std::optional<ur::product::CompletedRunGhostTrace> g_run_ghost_playback_trace;
@@ -533,6 +545,56 @@ void local_multiplayer_move_profile(
             delta);
     if (moved.applied()) {
         g_local_multiplayer_participants = moved.state;
+    }
+}
+
+void maybe_run_multiplayer_match_acceptance() {
+    if (g_multiplayer_match_acceptance_seeded ||
+        !std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE") ||
+        !modern_mode() || !g_ram ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0x3D) {
+        return;
+    }
+
+    ensure_profile_catalog();
+    if (g_profile_catalog.size() < 2u) {
+        g_profile_catalog = {
+            {"accept-p1", {"MIKE", 0}},
+            {"accept-p2", {"ANDREW", 1}},
+        };
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
+    }
+
+    const auto p1_slot = ur::product::LocalMultiplayerSlot::Player1;
+    const auto p2_slot = ur::product::LocalMultiplayerSlot::Player2;
+    const bool p1_joined = local_multiplayer_assign_source(
+        p1_slot,
+        {ur::product::LocalInputKind::Keyboard, 1u, true});
+    const bool p2_joined = local_multiplayer_assign_source(
+        p2_slot,
+        {ur::product::LocalInputKind::Controller, 2u, true});
+    const bool p1_profile =
+        p1_joined && local_multiplayer_confirm_profile(p1_slot);
+    local_multiplayer_move_profile(p2_slot, 1);
+    const bool p2_profile =
+        p2_joined && local_multiplayer_confirm_profile(p2_slot);
+
+    if (!p1_profile || !p2_profile ||
+        !g_local_multiplayer_participants_ready) {
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILE_REJECTED");
+        return;
+    }
+
+    g_multiplayer_match_acceptance_seeded = true;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_READY p1=%s p2=%s\n",
+            g_local_multiplayer_participants.player1->profile_id.c_str(),
+            g_local_multiplayer_participants.player2->profile_id.c_str());
+        std::fflush(stderr);
     }
 }
 
@@ -3402,6 +3464,31 @@ bool run_record_capture_enabled() {
                ur::product::HostRacePresentationMode::OnePlayer;
 }
 
+bool multiplayer_participant_session_ready() {
+    return g_local_multiplayer_participants_ready &&
+           g_local_multiplayer_participants.player1.has_value() &&
+           g_local_multiplayer_participants.player2.has_value();
+}
+
+std::string default_multiplayer_run_directory() {
+    if (!modern_mode()) return {};
+    if (const char* override_path =
+            std::getenv("UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY")) {
+        if (*override_path) return override_path;
+    }
+    return product_user_data_path("multiplayer-runs");
+}
+
+void reset_multiplayer_run_capture() {
+    if (g_multiplayer_run_capture.capturing()) {
+        g_multiplayer_run_capture.abort_attempt();
+    }
+    g_multiplayer_capture_player1.reset();
+    g_multiplayer_capture_player2.reset();
+    g_multiplayer_capture_course = {};
+    g_multiplayer_capture_origin_frame = 0;
+}
+
 std::string default_run_record_directory() {
     if (!run_record_capture_enabled()) return {};
     ensure_product_state();
@@ -3566,6 +3653,58 @@ bool begin_run_record_capture(uint64_t host_frame) {
     return true;
 }
 
+bool begin_multiplayer_run_record_capture(std::uint64_t host_frame) {
+    reset_multiplayer_run_capture();
+
+    const UrUniracersCourseIdentity course =
+        ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
+    if (!course.valid) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH COURSE_IDENTITY_REJECTED");
+        return false;
+    }
+
+    const int tour_slot = ((course.course_index - 1) % 5) + 1;
+    const bool ordinary_race_course = tour_slot == 1 || tour_slot == 4;
+    const auto plan = ur::product::resolve_run_record_capture_plan(
+        modern_mode(),
+        g_practice_active,
+        g_widescreen_scene_state.race_mode,
+        multiplayer_participant_session_ready(),
+        ordinary_race_course);
+    if (!plan.enabled() ||
+        plan.kind != ur::product::RunRecordCaptureKind::OrdinaryTwoPlayerRace ||
+        !plan.require_match_record) {
+        if (!ordinary_race_course) {
+            product_diagnostic("UR_MULTIPLAYER_MATCH NON_RACE_TRACK_INERT");
+        }
+        return false;
+    }
+
+    char course_id[32];
+    std::snprintf(
+        course_id, sizeof(course_id), "course:%02d", course.course_index);
+    ur::product::RunRecordProvenance provenance{
+        "uniracers-usa",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
+        course_id,
+        std::string(plan.provenance_mode),
+    };
+    if (!g_multiplayer_run_capture.begin_attempt(provenance)) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH BEGIN_REJECTED");
+        return false;
+    }
+
+    g_multiplayer_capture_player1 =
+        *g_local_multiplayer_participants.player1;
+    g_multiplayer_capture_player2 =
+        *g_local_multiplayer_participants.player2;
+    g_multiplayer_capture_course = course;
+    g_multiplayer_capture_origin_frame = host_frame;
+    product_diagnostic("UR_MULTIPLAYER_MATCH CAPTURE_STARTED");
+    return true;
+}
+
 void observe_run_ghost_trace_sample() {
     if (!g_run_capture.capturing() ||
         !g_run_ghost_trace_capture.capturing() ||
@@ -3675,6 +3814,101 @@ void observe_run_record_split() {
         }
     }
     g_run_capture_checkpoint = checkpoint;
+}
+
+bool request_desktop_quit();
+
+void complete_multiplayer_run_record_capture() {
+    if (!g_multiplayer_run_capture.capturing()) return;
+
+    if (!g_local_multiplayer_participants_ready ||
+        !g_multiplayer_capture_player1 ||
+        !g_multiplayer_capture_player2 ||
+        !g_multiplayer_capture_course.valid ||
+        !g_sram || g_sram_size <= 0) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH SESSION_IDENTITY_LOST");
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    const auto observed =
+        ur::title::observe_ordinary_two_player_race_result(
+            true,
+            g_ram,
+            0x20000u,
+            g_sram,
+            static_cast<std::size_t>(g_sram_size));
+    if (!observed) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH RESULT_REJECTED");
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    const auto context = ur::product::bind_local_multiplayer_match_context(
+        *observed,
+        *g_multiplayer_capture_player1,
+        *g_multiplayer_capture_player2,
+        g_multiplayer_capture_course);
+    if (!context.bound()) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH PARTICIPANT_BIND_REJECTED");
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    const std::uint64_t carrier_ticks60 =
+        ur::product::ordinary_two_player_carrier_elapsed_ticks60(*observed);
+    const auto run =
+        g_multiplayer_run_capture.complete(carrier_ticks60);
+    if (!run) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH FINALIZE_REJECTED");
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    const auto match =
+        ur::product::make_multiplayer_match_record(*run, *context.context);
+    if (!match) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH METADATA_REJECTED");
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    const std::string directory = default_multiplayer_run_directory();
+    std::string stored_path;
+    std::string detail;
+    if (directory.empty() ||
+        !ur::product::append_multiplayer_match_pair(
+            directory, *run, *match, &stored_path, &detail)) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_MULTIPLAYER_MATCH STORE_FAILED detail=%s\n",
+                detail.c_str());
+            std::fflush(stderr);
+        }
+        reset_multiplayer_run_capture();
+        return;
+    }
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_MULTIPLAYER_MATCH CAPTURED path=%s course=%s p1=%s p2=%s outcome=%u origin_frame=%llu inputs=%zu\n",
+            stored_path.c_str(),
+            match->context.course_id.c_str(),
+            match->context.match.player1.profile_id.c_str(),
+            match->context.match.player2.profile_id.c_str(),
+            static_cast<unsigned>(match->context.match.result.outcome),
+            static_cast<unsigned long long>(
+                g_multiplayer_capture_origin_frame),
+            run->inputs.size());
+        std::fflush(stderr);
+    }
+
+    reset_multiplayer_run_capture();
+    if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
+        (void)request_desktop_quit();
+    }
 }
 
 void complete_run_record_capture() {
@@ -5406,8 +5640,20 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                 g_run_capture.captured_frames() - 1u);
         }
     }
+    if (stats && g_run_capture_previous_active &&
+        g_multiplayer_run_capture.capturing()) {
+        if (!g_local_multiplayer_participants_ready) {
+            product_diagnostic(
+                "UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST");
+            reset_multiplayer_run_capture();
+        } else {
+            (void)g_multiplayer_run_capture.observe_guest_frame(
+                stats->controller_word);
+        }
+    }
     if (stats && !g_run_capture_previous_active && run_active) {
         (void)begin_run_record_capture(stats->frame);
+        (void)begin_multiplayer_run_record_capture(stats->frame);
     }
     if (run_active && g_run_capture.capturing()) {
         observe_run_record_split();
@@ -5416,11 +5662,19 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_run_capture.capturing()) {
         complete_run_record_capture();
     }
+    if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
+        g_multiplayer_run_capture.capturing()) {
+        complete_multiplayer_run_record_capture();
+    }
     if (decision.retire_attempt && g_run_capture.capturing()) {
         g_run_capture.abort_attempt();
         g_run_ghost_trace_capture.abort_attempt();
         g_run_ghost_playback_trace.reset();
         g_run_ghost_presentation_frame.reset();
+    }
+    if (decision.retire_attempt &&
+        g_multiplayer_run_capture.capturing()) {
+        reset_multiplayer_run_capture();
     }
     g_run_capture_previous_active = run_active;
 
@@ -5466,6 +5720,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     observe_regional_title_surface();
     update_local_multiplayer_join_surface();
     observe_local_multiplayer_seat_lines();
+    maybe_run_multiplayer_match_acceptance();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
     apply_controller_disconnect_pause();

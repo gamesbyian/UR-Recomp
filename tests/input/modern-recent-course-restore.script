@@ -1,0 +1,13 @@
+# Durable Recent Course acceptance, fresh-process run. Only observe: the
+# UR_RECENT_COURSE_ACCEPTANCE hook issues the real Recent Course launch from
+# settled MAIN_MENU, and the isolated Quick Practice router drives the stock
+# menus. Addresses are WRAM offsets (7E:xxxx -> xxxx).
+
+until 009F == D7 3600
+wait 30
+dump recent-restore-main
+
+until 0313 == 01 3600
+wait 60
+dump recent-restore-race
+quit

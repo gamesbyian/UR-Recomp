@@ -464,6 +464,21 @@ void apply_profile_save_root() {
         product_diagnostic("UR_PROFILE_STATE LOAD_FAILED");
     }
 
+    // A named profile's durable Recent Course becomes this process's Recent
+    // Course for that profile. The codec has already rejected out-of-catalog
+    // values, and the existing profile-key scoping keeps it off other profiles.
+    if (g_profile_state && g_profile_state->recent_track) {
+        g_recent_course_track_id = *g_profile_state->recent_track;
+        g_recent_course_profile_key = g_profile_state->profile_id;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_FAST_NAV RECENT_RESTORED track=%u\n",
+                static_cast<unsigned>(*g_profile_state->recent_track));
+            std::fflush(stderr);
+        }
+    }
+
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
@@ -935,6 +950,41 @@ bool practice_routing() {
                g_practice_launch);
 }
 
+// Recent Course is navigation metadata on the active named profile. Persist it
+// without touching progression: re-save the in-memory profile (which mirrors
+// the durable file, including its exact SRAM snapshot and generation) with
+// only recent_track changed. Live and Practice SRAM are never captured here.
+void persist_recent_course_for_active_profile(std::uint8_t track_id) {
+    if (!modern_mode() || !g_profile_state || !g_profile_state_writable ||
+        g_profile_state_path.empty() ||
+        g_profile_state->profile_id != active_profile_key() ||
+        !ur::product::valid_recent_track(track_id) ||
+        g_profile_state->recent_track == track_id) {
+        return;
+    }
+    auto candidate = *g_profile_state;
+    candidate.recent_track = track_id;
+    if (ur::product::save_host_profile_state_file(
+            ur::product::ExecutionMode::Modern,
+            g_profile_state_path,
+            candidate) != ur::product::HostProfileSaveStatus::Saved) {
+        // The in-memory recent still works for this process; the durable
+        // profile keeps its previous value.
+        product_diagnostic("UR_FAST_NAV RECENT_PERSIST_FAILED");
+        return;
+    }
+    g_profile_state = std::move(candidate);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_FAST_NAV RECENT_PERSISTED track=%u generation=%llu\n",
+            static_cast<unsigned>(track_id),
+            static_cast<unsigned long long>(
+                g_profile_state->autosave_generation));
+        std::fflush(stderr);
+    }
+}
+
 void observe_recent_course_identity() {
     if (!modern_mode()) return;
     // During Practice launch, do not let an attract/demo or wrong-course race
@@ -964,6 +1014,9 @@ void observe_recent_course_identity() {
             static_cast<unsigned>(track_id),
             profile_key.empty() ? "none" : "named");
         std::fflush(stderr);
+    }
+    if (!profile_key.empty()) {
+        persist_recent_course_for_active_profile(track_id);
     }
 }
 

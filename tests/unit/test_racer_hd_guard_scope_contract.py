@@ -1,3 +1,5 @@
+import json
+from pathlib import Path
 import unittest
 
 from tools.measure_racer_hd_fallback_frequency import build_report as build_frequency_report
@@ -50,6 +52,9 @@ def row_for(entry):
         "p1_gate": g["p1_companion_gate_word"],
         "p2_gate": g["p2_companion_gate_word"],
     }
+
+
+ROOT = Path(__file__).resolve().parents[2]
 
 
 class RacerHdGuardScopeContractTests(unittest.TestCase):
@@ -112,6 +117,31 @@ class RacerHdGuardScopeContractTests(unittest.TestCase):
             ValueError, "malformed-unobserved.*representation-level"
         ):
             validate_registry_guard_scopes(registry)
+
+    def test_canonical_registry_and_p2_rescue_entry_obey_contract(self):
+        registry = json.loads(
+            (ROOT / "analysis/data/racer-hd-replacement-prototype.json").read_text()
+        )
+        validate_registry_guard_scopes(registry)
+        entry = next(
+            item
+            for item in registry["entries"]
+            if item["representation_id"]
+            == "ordinary-racer-0x0546-p2-companion-0EB2-broader-frequency-reference"
+        )
+        self.assertEqual(entry["guard_scope"], "player_local")
+        self.assertNotIn("guard_scope", entry["registration"])
+        self.assertEqual(
+            entry["registration"]["guard_scope_proof"]["scope"], "player_local"
+        )
+
+        row = row_for(entry)
+        self.assertTrue(row_matches_registration(row, entry))
+        row["p1_primary"] = "0xAAAA"
+        row["p1_companion"] = "0xBBBB"
+        row["p1_selector"] = 7
+        row["p1_gate"] = "0xCCCC"
+        self.assertTrue(row_matches_registration(row, entry))
 
     def test_frequency_measurement_validates_registry_before_counting(self):
         entry = player_local_entry()

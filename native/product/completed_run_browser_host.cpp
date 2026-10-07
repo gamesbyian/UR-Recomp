@@ -202,9 +202,10 @@ bool open_records_browser() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu profile=%s\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
+            g_records_browser.unavailable_artifact_count(),
             active_profile_id().c_str());
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
@@ -560,11 +561,21 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 7,
             "RECORDS / TRACKS", 0xFFFFFFFFu, 1);
 
-        char summary[64];
-        std::snprintf(
-            summary, sizeof(summary), "%zu COURSES / %zu RUNS",
-            g_records_browser.index().courses.size(),
-            g_records_browser.index().total_completed_runs);
+        char summary[80];
+        const std::size_t unavailable =
+            g_records_browser.unavailable_artifact_count();
+        if (unavailable) {
+            std::snprintf(
+                summary, sizeof(summary), "%zu TRACKS / %zu RUNS  %zu UNAVAILABLE",
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs,
+                unavailable);
+        } else {
+            std::snprintf(
+                summary, sizeof(summary), "%zu TRACKS / %zu RUNS",
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 22,
             summary, 0xFFFFFFFFu, 1);

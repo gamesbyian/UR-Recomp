@@ -94,7 +94,85 @@ def normalized_guard(value):
     return value
 
 
+def validate_registration_guard_scope(entry: dict) -> None:
+    representation_id = entry.get("representation_id", "<unknown>")
+    registration = entry.get("registration")
+    nested_scope = registration.get("guard_scope") if isinstance(registration, dict) else None
+    if nested_scope is not None:
+        raise ValueError(
+            f"{representation_id}: guard_scope must be representation-level; "
+            "registration.guard_scope is invalid"
+        )
+
+    scope = entry.get("guard_scope")
+    if scope not in (None, "player_local"):
+        raise ValueError(
+            f"{representation_id}: unsupported guard_scope {scope!r}; "
+            "expected omitted/exact or 'player_local'"
+        )
+
+    proof = registration.get("guard_scope_proof") if isinstance(registration, dict) else None
+    if scope != "player_local":
+        if proof is not None:
+            raise ValueError(
+                f"{representation_id}: guard_scope_proof requires "
+                "representation-level guard_scope='player_local'"
+            )
+        return
+
+    player = entry.get("player")
+    if player not in ("p1", "p2"):
+        raise ValueError(
+            f"{representation_id}: player_local guard requires player p1 or p2"
+        )
+    guards = entry.get("composition_guards")
+    if not isinstance(guards, dict):
+        raise ValueError(
+            f"{representation_id}: player_local guard requires composition_guards"
+        )
+    required = (
+        f"{player}_primary",
+        f"{player}_companion",
+        f"{player}_selector",
+        f"{player}_companion_gate_word",
+    )
+    missing = [key for key in required if key not in guards]
+    if missing:
+        raise ValueError(
+            f"{representation_id}: player_local guard is missing local keys: "
+            + ", ".join(missing)
+        )
+    if not isinstance(proof, dict) or proof.get("scope") != "player_local":
+        raise ValueError(
+            f"{representation_id}: player_local guard requires matching "
+            "registration.guard_scope_proof"
+        )
+    for field in ("structural_basis", "empirical_basis"):
+        value = proof.get(field)
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(
+                f"{representation_id}: guard_scope_proof lacks {field}"
+            )
+    for field in ("workflow_run", "artifact_id"):
+        value = proof.get(field)
+        if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
+            raise ValueError(
+                f"{representation_id}: guard_scope_proof lacks positive {field}"
+            )
+
+
+def validate_registry_guard_scopes(registry: dict) -> None:
+    entries = registry.get("entries")
+    if not isinstance(entries, list):
+        raise ValueError("Racer HD registry entries must be a list")
+    for entry in entries:
+        if not isinstance(entry, dict):
+            raise ValueError("Racer HD registry entries must be objects")
+        validate_registration_guard_scope(entry)
+
+
 def row_matches_registration(row: dict, entry: dict) -> bool:
+    validate_registration_guard_scope(entry)
     guards = entry["composition_guards"]
     mapping = {
         "p1_primary": "p1_primary",
@@ -208,6 +286,8 @@ def registered_composition_coverage(rows: list[dict], registry: dict) -> dict:
 
 
 def build_report(rows: list[dict], registry: dict | None = None) -> dict:
+    if registry is not None:
+        validate_registry_guard_scopes(registry)
     frames = [r["frame"] for r in rows]
     contiguous = bool(rows) and frames == list(range(frames[0], frames[-1] + 1))
     players = {}

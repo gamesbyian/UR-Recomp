@@ -54,6 +54,7 @@ extern "C" {
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "presentation_density_compositor.hpp"
+#include "presentation_sampling_policy.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -4344,6 +4345,28 @@ void draw_run_timing_hud(
 
 extern "C" void ur_uniracers_modern_after_config(void) {
     apply_profile_save_root();
+
+    // Final-window sampling is host presentation only. Authentic execution
+    // leaves the framework's own configured treatment untouched. Modern uses
+    // crisp nearest filtering for the current mixed-source compositor; avoid
+    // a renderer reconfigure when the loaded framework config already agrees.
+    if (modern_mode()) {
+        const int linear =
+            ur::product::default_final_window_filter() ==
+                    ur::product::HostFinalWindowFilter::Linear
+                ? 1
+                : 0;
+        if (snesrecomp_desktop_get_linear_filtering() != linear) {
+            (void)snesrecomp_desktop_set_linear_filtering(linear);
+        }
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PRESENTATION FINAL_WINDOW_FILTER mode=%s\n",
+                linear ? "linear" : "nearest");
+            std::fflush(stderr);
+        }
+    }
 }
 
 extern "C" int ur_uniracers_modern_native_widescreen_enabled(void) {

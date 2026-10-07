@@ -180,6 +180,19 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertNotIn("forcepoke", script)
         self.assertNotIn("poke ", script)
 
+    def test_acceptance_uses_exact_process_local_profiles(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+        begin = source.index("void maybe_run_multiplayer_match_acceptance()")
+        end = source.index("void observe_regional_title_surface()", begin)
+        body = source[begin:end]
+
+        self.assertIn('{"accept-p1", {"MIKE", 0}}', body)
+        self.assertIn('{"accept-p2", {"ANDREW", 1}}', body)
+        self.assertNotIn("persist_profile_catalog(", body)
+        self.assertNotIn("save_host_profile_catalog_file(", body)
+
     def test_generated_product_build_registers_multiplayer_authority(self):
         patcher = (
             ROOT / "tools" / "patch_modern_product_host.py"

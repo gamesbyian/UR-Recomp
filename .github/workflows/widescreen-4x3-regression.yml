@@ -57,7 +57,7 @@ jobs:
           ninja --version
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
-            pkg-config xvfb \
+            ccache pkg-config xvfb \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
@@ -90,13 +90,20 @@ jobs:
                 --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
                 --no-github --no-submodules --no-generate --no-build
           }
+          export CCACHE_DIR="$RUNNER_TEMP/ccache"
+          export CCACHE_BASEDIR="$RUNNER_TEMP"
+          export CCACHE_NOHASHDIR=true
+          ccache --zero-stats
+
           build() {
             cmake -S "$1" -B "$1/build" -G Ninja \
               -DCMAKE_BUILD_TYPE=Release \
               -DSNESRECOMP_ROOT="$FRAMEWORK" \
               -DSNESRECOMP_SDL_BACKEND=SDL3 \
               -DSNESRECOMP_SDL3_FETCH=ON \
-              -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+              -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+              -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+              -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
             cmake --build "$1/build" -j2
             test -x "$1/build/UniracersSNESRecomp"
           }
@@ -119,6 +126,7 @@ jobs:
             --game-rtl "$PROD/src/game_rtl.c" --cmake "$PROD/CMakeLists.txt"
           build "$PROD"
 
+          ccache --show-stats
           # Same generated program; only the presentation hook may differ.
           diff -rq "$BASE/recomp" "$PROD/recomp"
 
@@ -164,8 +172,24 @@ jobs:
 
           compare_route() {
             local route="$1" script="$2" input="$3" min_frames="$4"
-            run_route baseline "$route" "$script" "$input"
-            run_route product "$route" "$script" "$input"
+            run_route baseline "$route" "$script" "$input" &
+            local baseline_pid=$!
+            run_route product "$route" "$script" "$input" &
+            local product_pid=$!
+
+            set +e
+            wait "$baseline_pid"
+            local baseline_rc=$?
+            wait "$product_pid"
+            local product_rc=$?
+            set -e
+            if [ "$baseline_rc" -ne 0 ] || [ "$product_rc" -ne 0 ]; then
+              echo "::error::$route route failed: baseline=$baseline_rc product=$product_rc"
+              cat "$RUNNER_TEMP/runs/$route-baseline/run.log" 2>/dev/null || true
+              cat "$RUNNER_TEMP/runs/$route-product/run.log" 2>/dev/null || true
+              return 1
+            fi
+
             local r="$RUNNER_TEMP/runs/$route"
             local overlay_args=()
             if [ "$route" = "one-player" ]; then

@@ -458,6 +458,20 @@ constexpr bool is_authored_broader_0579_p2_0ec4_registration(
 }
 
 
+constexpr bool is_authored_broader_0579_p1_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x0579 &&
+           registration.player_local_guard &&
+           c.p1_primary == 0x0579 &&
+           c.p1_companion == 0x0000 &&
+           c.p1_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000;
+}
+
+
 constexpr bool is_authored_frequency_0544_p1_0578_registration(
     const RacerRegistration& registration
 ) noexcept {
@@ -2571,6 +2585,22 @@ constexpr std::uint32_t sample_racer_hd_authored_0579_p2_0ec4_broader(
 }
 
 
+constexpr std::uint32_t sample_racer_hd_authored_0579_p1_broader(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+    const std::uint32_t base =
+        sample_racer_hd_authored_05f9_p1_broader(x, y, false, false);
+    if (base != 0) return base;
+    if (authored_segment_contains(x, y, 134, 114, 142, 114, 1)) {
+        return authored_rim_hardware_color(x, y, 155, 111);
+    }
+    return 0;
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -2781,6 +2811,11 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_broader_0579_p2_0ec4_registration(registration)) {
         return sample_racer_hd_authored_0579_p2_0ec4_broader(
+            x, y, hflip, vflip
+        );
+    }
+    if (is_authored_broader_0579_p1_registration(registration)) {
+        return sample_racer_hd_authored_0579_p1_broader(
             x, y, hflip, vflip
         );
     }

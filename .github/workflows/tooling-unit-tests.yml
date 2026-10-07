@@ -65,9 +65,16 @@ jobs:
           mapfile -t tests < <(find tests/unit -maxdepth 1 -type f -name 'test_*.py' -printf '%f\n' | sort)
           shard0=()
           shard1=()
-          for i in "${!tests[@]}"; do
-            module="tests.unit.${tests[$i]%.py}"
-            if (( i % 2 == 0 )); then shard0+=("$module"); else shard1+=("$module"); fi
+          for test_file in "${tests[@]}"; do
+            module="tests.unit.${test_file%.py}"
+            # Stable hash partitioning keeps every discovered module in exactly
+            # one shard without moving half the suite when a filename is added.
+            first_byte=$(printf '%s' "$module" | sha256sum | cut -c1-2)
+            if (( 16#$first_byte % 2 == 0 )); then
+              shard0+=("$module")
+            else
+              shard1+=("$module")
+            fi
           done
 
           run_shard() {

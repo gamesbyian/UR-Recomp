@@ -4,7 +4,7 @@ Status: first usable Windows x64 Modern Local Runs browser/replay plus the first
 
 ## Player-facing behavior
 
-During a supported Modern one-player timed Race context, pause the game and open **Local Runs** with **Ctrl+B** on keyboard or **X** on a gamepad. The browser is host-owned and profile-scoped. On a settled stock results surface, **F8** or controller **Y** opens the profile-wide Records surface in one action by entering the existing host-owned pause state first; no guest result state is rewritten.
+During a supported Modern one-player timed Race context, pause the game and open **Local Runs** with **Ctrl+B** on keyboard or **X** on a gamepad. The browser is host-owned and profile-scoped. On a supported settled stock results surface, a host-owned **F8 / Y RECORDS** hint makes the route visible; **F8** or controller **Y** opens the profile-wide Records surface in one action by entering the existing host-owned pause state first. No guest result state is rewritten.
 
 The same wrapper now exposes the first profile-wide **Records → Tracks → Runs/Replays** surface with **F8** on keyboard or **Y** on a gamepad while paused. Its top level now has peer **Tracks** and **Racers/Profiles** views, switched with **Left/Right** or D-pad **Left/Right**. Racers/Profiles is read-only: it loads the authoritative profile catalog, preserves catalogued racers with zero run history, marks the active racer, and shows each racer's in-scope run and track counts. Confirming a racer drills into that profile's own **Tracks → Runs → Run Detail** history without changing the active profile or writing profile state. Back returns from that profile's Tracks view to Racers/Profiles. Run-history and detail titles keep the racer identity visible throughout the drilldown.
 

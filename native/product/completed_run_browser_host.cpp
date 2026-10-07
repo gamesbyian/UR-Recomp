@@ -660,13 +660,18 @@ void draw_records_browser(
                 std::string tags;
                 if (entry.is_personal_best) tags += " PB";
                 if (entry.is_previous) tags += " PREV";
-                char line[96];
+                const std::string date =
+                    ur::product::completed_run_browser_date_text(entry.path);
+                const std::string short_date =
+                    date.size() == 10 ? date.substr(5) : date;
+                char line[112];
                 std::snprintf(
-                    line, sizeof(line), "%c #%03zu %s%s",
+                    line, sizeof(line), "%c #%03zu %s %s%s",
                     g_records_browser.selected_run_index() &&
                             *g_records_browser.selected_run_index() == index
                         ? '>' : ' ',
                     entry.source_index + 1,
+                    short_date.c_str(),
                     entry.time_text.c_str(),
                     tags.c_str());
                 snes_ovl_draw_text(
@@ -707,10 +712,14 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);
 
-        char run_label[64];
+        const std::string run_date = selected
+            ? ur::product::completed_run_browser_date_text(selected->path)
+            : "--";
+        char run_label[96];
         std::snprintf(
-            run_label, sizeof(run_label), "RUN #%03zu%s%s",
+            run_label, sizeof(run_label), "RUN #%03zu  %s%s%s",
             selected ? selected->source_index + 1 : 0u,
+            run_date.c_str(),
             selected && selected->is_personal_best ? "  PB" : "",
             selected && selected->is_previous ? "  PREV" : "");
         snes_ovl_draw_text(

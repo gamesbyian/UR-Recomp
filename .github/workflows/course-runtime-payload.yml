@@ -7,6 +7,9 @@ concurrency:
   group: course-runtime-payload-${{ github.ref }}
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   probe:
     runs-on: ubuntu-latest

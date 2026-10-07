@@ -23,12 +23,16 @@ class ResultsRetryDensityContractTests(unittest.TestCase):
             body,
         )
 
-    def test_results_retry_strip_uses_modal_density(self):
-        marker = '"R/PAD X  REMATCH"'
-        pos = self.source.index(marker)
-        body = self.source[pos - 400:pos + 200]
+    def test_results_action_menu_uses_modal_density(self):
+        start = self.source.index(
+            "const auto selected =\n"
+            "            ur::product::selected_modern_results_action("
+        )
+        end = self.source.index("\n    }\n}\n", start)
+        body = self.source[start:end]
+        self.assertIn('"RETRY / REMATCH  R/X"', body)
         self.assertIn("x + 8 * modal_scale", body)
-        self.assertIn("y + 11 * modal_scale", body)
+        self.assertIn("row_y += 15 * modal_scale", body)
         self.assertIn("0xFFFFFFFFu, modal_scale", body)
 
 

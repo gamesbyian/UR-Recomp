@@ -40,7 +40,11 @@ observe_ordinary_two_player_race_result(
 
     const std::uint16_t p1 = read_le16(sram, kLastRaceResultP1);
     const std::uint16_t p2 = read_le16(sram, kLastRaceResultP2);
-    if (p1 > kOrdinaryTwoPlayerNoTimeHundredths ||
+    // The stock 0xF9 result menu becomes visible before these SRAM result
+    // words are populated. 0/0 is therefore a transient boundary, not a
+    // completed draw. A real ordinary race cannot finish at 0.00 seconds.
+    if ((p1 == 0u && p2 == 0u) ||
+        p1 > kOrdinaryTwoPlayerNoTimeHundredths ||
         p2 > kOrdinaryTwoPlayerNoTimeHundredths) {
         return std::nullopt;
     }

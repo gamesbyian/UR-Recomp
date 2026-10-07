@@ -30,6 +30,7 @@ on:
       - "tests/unit/test_measure_racer_hd_frequency_from_wram_dumps.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_probe_racer_hd_ranked_visual_context.py"
+      - "tools/bootstrap_toolchain.py"
       - ".github/workflows/racer-hd-broader-frequency.yml"
   workflow_dispatch:
 

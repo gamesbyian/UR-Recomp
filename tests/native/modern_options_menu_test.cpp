@@ -36,10 +36,14 @@ int main() {
     assert(ur_modern_options_menu_selected(&menu) ==
            UR_MODERN_OPTIONS_GHOST);
 
-    // Vibration is appended last so earlier rows keep their positions.
+    // Vibration and Volume are appended so earlier rows keep their positions.
     ur_modern_options_menu_move(&menu, 1);
     assert(ur_modern_options_menu_selected(&menu) ==
            UR_MODERN_OPTIONS_VIBRATION);
+
+    ur_modern_options_menu_move(&menu, 1);
+    assert(ur_modern_options_menu_selected(&menu) ==
+           UR_MODERN_OPTIONS_VOLUME);
 
     ur_modern_options_menu_move(&menu, 1);
     assert(ur_modern_options_menu_selected(&menu) ==
@@ -47,7 +51,7 @@ int main() {
 
     ur_modern_options_menu_move(&menu, -1);
     assert(ur_modern_options_menu_selected(&menu) ==
-           UR_MODERN_OPTIONS_VIBRATION);
+           UR_MODERN_OPTIONS_VOLUME);
 
     menu.selected = 99;
     assert(ur_modern_options_menu_selected(&menu) ==

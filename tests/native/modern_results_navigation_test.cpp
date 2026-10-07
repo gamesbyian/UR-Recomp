@@ -78,6 +78,21 @@ int main() {
     }
 
     {
+        auto unsupported = ordinary();
+        unsupported.ordinary_tour_result = false;
+        const auto menu = make_modern_results_navigation_menu(unsupported);
+        assert(menu.row_count == 2);
+        assert(menu.rows[0] == ModernResultsAction::Retry);
+        assert(menu.rows[1] == ModernResultsAction::Records);
+        assert(!modern_results_action_available(
+            ModernResultsAction::NextEvent, unsupported));
+        assert(!modern_results_action_available(
+            ModernResultsAction::TrackSelect, unsupported));
+        assert(!modern_results_action_available(
+            ModernResultsAction::TourSelect, unsupported));
+    }
+
+    {
         auto practice = ordinary();
         practice.practice_active = true;
         const auto menu = make_modern_results_navigation_menu(practice);

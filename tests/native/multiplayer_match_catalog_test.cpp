@@ -113,6 +113,17 @@ int main() {
     assert(loaded[0].run_path == valid_path.string());
     assert(loaded[0].run.provenance.mode == "race-2p");
 
+    const auto alpha =
+        filter_multiplayer_matches_for_profile(loaded, "alpha");
+    assert(alpha.size() == 1);
+    assert(filter_multiplayer_matches_for_profile(loaded, "missing").empty());
+
+    const auto course =
+        filter_multiplayer_matches_for_course(loaded, "course:01");
+    assert(course.size() == 1);
+    assert(filter_multiplayer_matches_for_course(
+        loaded, "course:02").empty());
+
     std::filesystem::remove_all(root);
     return 0;
 }

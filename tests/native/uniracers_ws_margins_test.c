@@ -78,7 +78,7 @@ int main(void) {
 
     /* Public calibration bounds are part of the guest-memory contract. */
     assert(!ur_ws_calibrate_bg1(wram, vram, 0, 0, 0, -1, 1, 0, 0, 0, 0,
-                                &vram[0], &vram[1]));
+                                NULL, NULL));
     assert(!ur_ws_calibrate_bg1(wram, vram, 0, 0, 0, 223, 2, 0, 0, 0, 0,
                                 NULL, NULL));
 

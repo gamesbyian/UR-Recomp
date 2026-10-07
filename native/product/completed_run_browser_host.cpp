@@ -669,6 +669,37 @@ void maybe_run_records_browser_acceptance() {
         ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
     const bool opened = pause_handled && open_records_browser();
 
+    if (std::strcmp(acceptance, "profiles-malformed") == 0) {
+        const bool tracks_preserved =
+            opened &&
+            g_records_browser.index().total_completed_runs > 0 &&
+            !g_records_browser.index().courses.empty();
+        const bool profiles_failed_closed =
+            !g_records_profiles_available &&
+            g_records_profile_index.profiles.empty();
+        const bool profiles_opened =
+            opened &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) &&
+            g_records_root_section == RecordsRootSection::Profiles;
+
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER PROFILES_MALFORMED pause=%d opened=%d tracks_preserved=%d runs=%zu profiles_failed_closed=%d profiles_opened=%d\n",
+                pause_handled,
+                opened ? 1 : 0,
+                tracks_preserved ? 1 : 0,
+                g_records_browser.index().total_completed_runs,
+                profiles_failed_closed ? 1 : 0,
+                profiles_opened ? 1 : 0);
+            std::fflush(stderr);
+        }
+        SDL_Event event{};
+        event.type = SDL_QUIT;
+        (void)SDL_PushEvent(&event);
+        return;
+    }
+
     if (std::strcmp(acceptance, "profiles") == 0) {
         const bool profiles_opened =
             opened &&

@@ -68,23 +68,37 @@ void diagnostic(const char* message) {
     std::fflush(stderr);
 }
 
-std::string pref_root() {
+std::string product_user_data_root() {
+    const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
+    if (override_root && *override_root) {
+        std::string root(override_root);
+        while (!root.empty() &&
+               (root.back() == '/' || root.back() == '\\')) {
+            root.pop_back();
+        }
+        return root;
+    }
+
     char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
     if (!pref_path) return {};
     std::string root(pref_path);
     SDL_free(pref_path);
+    while (!root.empty() &&
+           (root.back() == '/' || root.back() == '\\')) {
+        root.pop_back();
+    }
     return root;
 }
 
 std::string active_profile_id() {
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return "default";
 
     const char* override_path = std::getenv("UR_HOST_STATE_PATH");
     const std::string state_path =
         override_path && *override_path
             ? std::string(override_path)
-            : root + "host-state-v1.txt";
+            : (fs::path(root) / "host-state-v1.txt").string();
     const auto loaded = ur::product::load_host_product_state_file(
         state_path);
     if (!loaded.loaded() || !loaded.state ||
@@ -104,9 +118,9 @@ std::string active_run_directory() {
         }
     }
 
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return {};
-    return root + "runs/" + active_profile_id();
+    return (fs::path(root) / "runs" / active_profile_id()).string();
 }
 
 ur::product::RunRecordsScope records_scope() {
@@ -289,7 +303,7 @@ bool open_browser() {
 }
 
 std::string replay_input_path() {
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return {};
     const fs::path directory = fs::path(root) / "replay";
     std::error_code ec;

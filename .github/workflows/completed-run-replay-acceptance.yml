@@ -265,6 +265,33 @@ jobs:
             exit 1
           fi
 
+      - name: Resolve Records through custom user-data root
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/records-user-data-root"
+          RUNS="$USER_ROOT/runs/default"
+          LOG="$RUNNER_TEMP/records-user-data-root.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_RECORDS_BROWSER_ACCEPTANCE=quit-after-open \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default" "$LOG"
+          grep -q "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 drilled=1 detail=1 current_course=1 courses=1 runs=1" "$LOG"
+
       - name: Open Records directly from results
         shell: bash
         run: |
@@ -310,6 +337,7 @@ jobs:
             ${{ runner.temp }}/replayed.log
             ${{ runner.temp }}/browser-replay.log
             ${{ runner.temp }}/records-browser.log
+            ${{ runner.temp }}/records-user-data-root.log
             ${{ runner.temp }}/results-records.log
             ${{ runner.temp }}/compare.log
             ${{ runner.temp }}/original-ghost-trace.log

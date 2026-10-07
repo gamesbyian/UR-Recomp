@@ -4433,10 +4433,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_product_state.regional_presentation ==
             ur::product::RegionalPresentation::Europe &&
         current_regional_secret_context().idle_title_surface;
-    const bool logical_overlay_active =
-        regional_title ||
-        (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
-         g_session && ur_modern_session_restart_available(g_session));
+    const bool logical_overlay_active = regional_title;
 
     return ur::product::resolve_internal_render_scale(
         modern_mode(),
@@ -6639,10 +6636,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
             0xFFFFFFFFu, modal_scale);
     } else {
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 11,
+            pixels, stride, height,
+            x + 8 * modal_scale, y + 11 * modal_scale,
             g_practice_active
                 ? "R / PAD X  REPEAT PRACTICE"
                 : "R / PAD X  REMATCH   CTRL+R RETRY",
-            0xFFFFFFFFu, 1);
+            0xFFFFFFFFu, modal_scale);
     }
 }

@@ -29,8 +29,19 @@ int main() {
         ur_modern_pause_menu_move(&menu, 1, 0);
         assert(ur_modern_pause_menu_selected(&menu, 0) == expected);
     }
-    ur_modern_pause_menu_move(&menu, -1, 0);
-    assert(ur_modern_pause_menu_selected(&menu, 0) == UR_MODERN_PAUSE_QUIT);
+    const UrModernPauseItem reverse_without_restart[] = {
+        UR_MODERN_PAUSE_QUIT,
+        UR_MODERN_PAUSE_EXIT_FRONTEND,
+        UR_MODERN_PAUSE_RECORDS,
+        UR_MODERN_PAUSE_RUN_DATA,
+        UR_MODERN_PAUSE_CONTROLS,
+        UR_MODERN_PAUSE_OPTIONS,
+        UR_MODERN_PAUSE_RESUME,
+    };
+    for (const auto expected : reverse_without_restart) {
+        ur_modern_pause_menu_move(&menu, -1, 0);
+        assert(ur_modern_pause_menu_selected(&menu, 0) == expected);
+    }
 
     ur_modern_pause_menu_reset(&menu);
     const UrModernPauseItem with_restart[] = {

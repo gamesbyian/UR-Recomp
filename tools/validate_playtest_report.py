@@ -128,7 +128,7 @@ def validate_report(report: object) -> dict:
     environment = report["environment"]
     if not isinstance(environment, dict):
         raise ValueError("report.environment: must be an object")
-    _require_exact_keys(environment, REQUIRED_ENVIRONMENT, {}, "report.environment")
+    _require_exact_keys(environment, REQUIRED_ENVIRONMENT, set(), "report.environment")
     _enum(environment["region"], ALLOWED_REGION, "report.environment.region")
     _enum(environment["execution_mode"], ALLOWED_EXECUTION, "report.environment.execution_mode")
     _enum(environment["view"], ALLOWED_VIEW, "report.environment.view")

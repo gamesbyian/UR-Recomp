@@ -42,12 +42,14 @@ int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
     const uint64_t fine_addr64 =
         (uint64_t)kFineRecords + (uint64_t)record * UINT64_C(32) +
         (uint64_t)(((cell_y & 3) * 4) + (cell_x & 3)) * UINT64_C(2);
-    const uint32_t fine_addr = (uint32_t)fine_addr64;
     /* Mirrors the hook materializer: a sentinel/non-record entry renders
      * blank in stock, so an out-of-bank record is a blank cell. */
-    *out = fine_addr64 <= UINT64_C(0xFFFE)
-        ? read16(wram, kWramBank7F + fine_addr)
-        : 0;
+    if (fine_addr64 > UINT64_C(0xFFFE)) {
+        *out = 0;
+        return 1;
+    }
+    const uint32_t fine_addr = (uint32_t)fine_addr64;
+    *out = read16(wram, kWramBank7F + fine_addr);
     return 1;
 }
 
@@ -203,7 +205,7 @@ static int floor_div_pow2_i64(int64_t value, unsigned shift, int* out) {
 
 static int apply_scroll_delta(uint32_t value, uint16_t delta,
                               uint32_t* out) {
-    delta &= 0x3FFu;
+    delta = (uint16_t)(delta & UINT16_C(0x03FF));
     const int32_t signed_delta =
         delta >= 0x200u ? (int32_t)delta - 0x400 : (int32_t)delta;
     const int64_t next = (int64_t)value + signed_delta;
@@ -375,10 +377,10 @@ static int update_band(int index, const UrWsBg1Band* band) {
             const int world_cell_y =
                 (band->scroll_y >> UR_WS_BG1_TILE_SHIFT) + offset_y;
             if (world_cell_x < 0 || world_cell_y < 0 ||
-                (uint64_t)(uint32_t)world_cell_x >
-                    (UINT32_MAX >> UR_WS_BG1_TILE_SHIFT) ||
-                (uint64_t)(uint32_t)world_cell_y >
-                    (UINT32_MAX >> UR_WS_BG1_TILE_SHIFT)) {
+                (uint64_t)world_cell_x >
+                    (uint64_t)(UINT32_MAX >> UR_WS_BG1_TILE_SHIFT) ||
+                (uint64_t)world_cell_y >
+                    (uint64_t)(UINT32_MAX >> UR_WS_BG1_TILE_SHIFT)) {
                 state->calibrated = 0;
                 state->consecutive_bad_frames = 0;
             } else {

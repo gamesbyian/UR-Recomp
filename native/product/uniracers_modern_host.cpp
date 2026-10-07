@@ -6277,10 +6277,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height, x + 8 * scale, y + 7 * scale,
             "LOCAL MULTIPLAYER", 0xFFFFFFFFu, scale);
 
+        // Every line must fit the panel: 8-pixel cells inside an 8-pixel
+        // margin on each side.
+        const std::size_t row_cells = static_cast<std::size_t>(
+            (panel_w_logical - 16) / 8);
         auto participant_row = [&](ur::product::LocalMultiplayerSlot slot,
-                                   const char* label,
                                    bool joined) {
-            char row[96];
+            using RowState =
+                ur::product::LocalMultiplayerParticipantRowState;
             const auto& selected =
                 ur::product::local_multiplayer_participant(
                     g_local_multiplayer_participants, slot);
@@ -6289,26 +6293,24 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     g_local_multiplayer_participants,
                     g_profile_catalog,
                     slot);
+            const char* label =
+                ur::product::local_multiplayer_slot_label(slot);
             if (!joined) {
-                std::snprintf(
-                    row, sizeof(row), "%s  PRESS A / START", label);
-            } else if (selected) {
-                std::snprintf(
-                    row, sizeof(row), "%s  %s / %s  READY",
-                    label,
-                    selected->identity.name.c_str(),
-                    selected->profile_id.c_str());
-            } else if (candidate) {
-                std::snprintf(
-                    row, sizeof(row), "%s  < %s / %s >  A=CONFIRM",
-                    label,
-                    candidate->identity.name.c_str(),
-                    candidate->profile_id.c_str());
-            } else {
-                std::snprintf(
-                    row, sizeof(row), "%s  NO PROFILES", label);
+                return ur::product::local_multiplayer_participant_row_text(
+                    label, RowState::NotJoined, {}, {}, row_cells);
             }
-            return std::string(row);
+            if (selected) {
+                return ur::product::local_multiplayer_participant_row_text(
+                    label, RowState::Ready, selected->identity.name,
+                    selected->profile_id, row_cells);
+            }
+            if (candidate) {
+                return ur::product::local_multiplayer_participant_row_text(
+                    label, RowState::Choosing, candidate->identity.name,
+                    candidate->profile_id, row_cells);
+            }
+            return ur::product::local_multiplayer_participant_row_text(
+                label, RowState::NoProfiles, {}, {}, row_cells);
         };
 
         const bool p1_joined =
@@ -6318,31 +6320,49 @@ extern "C" void ur_uniracers_modern_system_overlay(
             g_local_multiplayer_setup.player2.assigned &&
             g_local_multiplayer_setup.player2.source.connected;
         const std::string p1 = participant_row(
-            ur::product::LocalMultiplayerSlot::Player1,
-            "PLAYER 1", p1_joined);
+            ur::product::LocalMultiplayerSlot::Player1, p1_joined);
         const std::string p2 = participant_row(
-            ur::product::LocalMultiplayerSlot::Player2,
-            "PLAYER 2", p2_joined);
+            ur::product::LocalMultiplayerSlot::Player2, p2_joined);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 32 * scale,
             p1.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 52 * scale,
             p2.c_str(), 0xFFFFFFFFu, scale);
+
+        auto draw_device_line = [&](ur::product::LocalMultiplayerSlot slot,
+                                    int line_y) {
+            const std::string line = local_multiplayer_seat_device_line(slot);
+            if (line.empty()) return;
+            const bool connected =
+                ur::product::local_multiplayer_seat_connected(
+                    ur::product::local_multiplayer_seat_presentation(
+                        g_local_multiplayer_setup, slot));
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 24 * scale, y + line_y * scale,
+                line.c_str(),
+                connected ? 0xFFA0F0A0u : 0xFFA0A0A0u,
+                scale);
+        };
+        draw_device_line(
+            ur::product::LocalMultiplayerSlot::Player1, 42);
+        draw_device_line(
+            ur::product::LocalMultiplayerSlot::Player2, 62);
+
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 77 * scale,
-            "LEFT / RIGHT = PROFILE   A = JOIN / CONFIRM",
+            "L/R PROFILE  A JOIN/CONFIRM",
             0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 94 * scale,
-            "B / BACKSPACE = CLEAR / LEAVE", 0xFFFFFFFFu, scale);
+            "B/BKSP  CLEAR / LEAVE", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 111 * scale,
-            "ENTER = KEYBOARD P1   ESC = STOCK 2P",
+            "ENTER=KEYS P1  ESC=STOCK 2P",
             0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 128 * scale,
-            "STOCK RIDER PICKS MUST MATCH PROFILES",
+            "PICK MATCHING STOCK RIDERS",
             0xFFFFFFFFu, scale);
         return;
     }

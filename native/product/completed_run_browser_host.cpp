@@ -1409,6 +1409,10 @@ extern "C" void ur_uniracers_product_after_run_frame(
     }
 }
 
+extern "C" int ur_uniracers_product_open_records(void) {
+    return open_records_browser() ? 1 : 0;
+}
+
 extern "C" int ur_uniracers_product_system_key_down(
     int key,
     int mod,

@@ -3486,6 +3486,138 @@ bool abort_practice_route_to_frontend(const char* diagnostic) {
     return requested;
 }
 
+void clear_results_navigation_route() {
+    g_results_route_pending = ur::product::ModernResultsAction::None;
+    g_results_tour_route_active = false;
+    g_results_route_progress.reset();
+    g_results_route_profile_id.clear();
+}
+
+bool begin_pending_results_navigation_route() {
+    const auto action = g_results_route_pending;
+    if (action != ur::product::ModernResultsAction::NextEvent &&
+        action != ur::product::ModernResultsAction::TrackSelect &&
+        action != ur::product::ModernResultsAction::TourSelect) {
+        return false;
+    }
+    if (!modern_mode() || !g_ram || g_ram[0x0313] == 0x01 ||
+        g_ram[0x009F] != 0xD7 || !g_results_route_progress ||
+        !g_profile_state || !g_profile_state_writable ||
+        g_results_route_profile_id.empty() ||
+        g_profile_state->profile_id != g_results_route_profile_id) {
+        product_diagnostic("UR_RESULTS_NAV ROUTE_REJECTED_STALE");
+        clear_results_navigation_route();
+        return false;
+    }
+
+    const auto progress = *g_results_route_progress;
+    const bool unfinished =
+        ur::title::valid_unfinished_tour_progress(progress);
+    if (unfinished) {
+        const auto expected = product_continuation(progress);
+        if (!g_profile_state->tour_continuation ||
+            *g_profile_state->tour_continuation != expected ||
+            !tour_continue_available()) {
+            product_diagnostic("UR_RESULTS_NAV ROUTE_REJECTED_CONTEXT");
+            clear_results_navigation_route();
+            return false;
+        }
+    } else if (action == ur::product::ModernResultsAction::NextEvent) {
+        product_diagnostic("UR_RESULTS_NAV NEXT_EVENT_REJECTED");
+        clear_results_navigation_route();
+        return false;
+    }
+
+    bool started = false;
+    if (action == ur::product::ModernResultsAction::NextEvent) {
+        started = begin_tour_entry(
+            ur::product::ModernTourEntryIntent::NextEvent);
+    } else {
+        g_tour_continue = ur::product::begin_modern_tour_results_route(
+            progress.tour_row,
+            action == ur::product::ModernResultsAction::TourSelect,
+            unfinished);
+        started =
+            g_tour_continue.stage != ur::product::ModernTourContinueStage::Idle;
+        if (started) {
+            g_tour_continue_profile_id = g_profile_state->profile_id;
+            g_next_event_target_track.reset();
+            g_next_event_verify_track.reset();
+            g_results_tour_route_active = true;
+        }
+    }
+
+    g_results_route_pending = ur::product::ModernResultsAction::None;
+    if (!started) {
+        product_diagnostic("UR_RESULTS_NAV ROUTE_START_FAILED");
+        clear_results_navigation_route();
+        return false;
+    }
+    product_diagnostic(
+        action == ur::product::ModernResultsAction::NextEvent
+            ? "UR_RESULTS_NAV NEXT_EVENT_STARTED"
+            : action == ur::product::ModernResultsAction::TrackSelect
+                ? "UR_RESULTS_NAV TRACK_SELECT_STARTED"
+                : "UR_RESULTS_NAV TOUR_SELECT_STARTED");
+    return true;
+}
+
+bool activate_results_navigation_action(
+    ur::product::ModernResultsAction action) {
+    refresh_results_navigation_menu();
+    const auto context = current_results_navigation_context();
+    if (!ur::product::modern_results_action_available(action, context)) {
+        product_diagnostic("UR_RESULTS_NAV ACTION_REJECTED");
+        return false;
+    }
+
+    if (action == ur::product::ModernResultsAction::Retry ||
+        action == ur::product::ModernResultsAction::RepeatPractice) {
+        return repeat_current_attempt();
+    }
+    if (action == ur::product::ModernResultsAction::Records) {
+        if (!paused() && !dispatch(UR_MODERN_PAUSE_TOGGLE)) return false;
+        return paused() && ur_uniracers_product_open_records() != 0;
+    }
+
+    const auto progress = current_results_tour_progress();
+    if (!progress || !g_profile_state ||
+        !g_product_state.active_profile_id ||
+        *g_product_state.active_profile_id != g_profile_state->profile_id ||
+        !profile_snapshot_matches_live_sram(*g_profile_state)) {
+        product_diagnostic("UR_RESULTS_NAV ROUTE_REJECTED_STALE");
+        return false;
+    }
+
+    g_results_route_progress = *progress;
+    g_results_route_profile_id = g_profile_state->profile_id;
+    g_results_route_pending = action;
+    if (!request_frontend_reboot(true)) {
+        clear_results_navigation_route();
+        return false;
+    }
+    return true;
+}
+
+bool handle_results_navigation(
+    UrModernHostNavigationAction action) {
+    if (!results_navigation_active()) return false;
+    if (ur_modern_host_navigation_vertical_delta(action) != 0) {
+        g_results_navigation_menu =
+            ur::product::navigate_modern_results_navigation_menu(
+                g_results_navigation_menu, action);
+        return true;
+    }
+    if (!ur_modern_host_navigation_is_confirm(action)) return false;
+    const auto selected = ur::product::activate_modern_results_navigation_menu(
+        g_results_navigation_menu,
+        current_results_navigation_context(),
+        action);
+    if (selected == ur::product::ModernResultsAction::None) return true;
+    (void)activate_results_navigation_action(selected);
+    return true;
+}
+
 bool paused() {
     return g_session && ur_modern_session_is_paused(g_session);
 }

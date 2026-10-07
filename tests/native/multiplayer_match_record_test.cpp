@@ -178,6 +178,17 @@ int main() {
         assert(std::filesystem::exists(pair_path));
         assert(std::filesystem::exists(
             multiplayer_match_record_path_for_run(pair_path)));
+        assert(std::filesystem::path(pair_path).parent_path() == pair_root);
+
+        std::size_t public_files = 0;
+        for (const auto& entry :
+             std::filesystem::directory_iterator(pair_root)) {
+            assert(entry.is_regular_file());
+            ++public_files;
+            assert(entry.path().filename().string().find(
+                       ".urpair-stage-") == std::string::npos);
+        }
+        assert(public_files == 2);
 
         const auto pair_run = load_completed_run_record_file(pair_path);
         assert(pair_run.loaded());

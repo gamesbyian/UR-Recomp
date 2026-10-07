@@ -3,6 +3,7 @@
 #include "completed_run_record.hpp"
 #include "multiplayer_match_binding.hpp"
 
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>

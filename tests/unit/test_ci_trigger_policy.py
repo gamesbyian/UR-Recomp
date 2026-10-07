@@ -237,6 +237,30 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
 
 
+    def test_native_build_smoke_stays_fast_and_bounded(self):
+        text = (WORKFLOWS / "native-build-smoke.yml").read_text()
+        self.assertIn("    timeout-minutes: 8", text)
+        for required in (
+            "Native boot smoke",
+            "Deterministic native input route",
+            "Shipping Widescreen composition acceptance",
+        ):
+            self.assertIn(required, text)
+        for delegated in (
+            "Modern Tour Resume Restart acceptance",
+            "Modern racer profile panel acceptance",
+            "Modern ghost target profile persistence acceptance",
+            "Shipping Widescreen stock-parity acceptance",
+            "Modern pause-settings row persistence acceptance",
+            "Modern Exit to Frontend acceptance",
+        ):
+            self.assertNotIn(
+                delegated,
+                text,
+                f"{delegated} is a focused feature journey and must not regrow the fast smoke gate",
+            )
+
+
     def test_workflow_dispatch_has_a_yaml_boundary(self):
         offenders = []
         bad = re.compile(r"workflow_dispatch:(?:jobs:|permissions:|concurrency:|env:)")

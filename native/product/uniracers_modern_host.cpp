@@ -43,6 +43,7 @@ extern "C" {
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
+#include "local_multiplayer_participants.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_profile_reset.hpp"
@@ -121,6 +122,9 @@ bool g_binding_diagnostics_reported;
 std::string g_onboarding_seen_path;
 
 ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
+ur::product::LocalMultiplayerParticipantSelection
+    g_local_multiplayer_participants;
+bool g_local_multiplayer_participants_ready;
 ur::product::ControllerHotplugState g_controller_hotplug;
 std::array<std::string, ur::product::kControllerSeatCount>
     g_controller_seat_names{};
@@ -346,51 +350,130 @@ ur::product::LocalMultiplayerSlot local_multiplayer_slot_for_player(
         : ur::product::LocalMultiplayerSlot::Player1;
 }
 
+void clear_local_multiplayer_session() {
+    g_local_multiplayer_join_visible = false;
+    g_local_multiplayer_two_player_visit = false;
+    g_local_multiplayer_setup = {};
+    g_local_multiplayer_participants = {};
+    g_local_multiplayer_participants_ready = false;
+}
+
 void update_local_multiplayer_join_surface() {
     if (!modern_mode() || !g_ram) {
-        g_local_multiplayer_join_visible = false;
-        g_local_multiplayer_two_player_visit = false;
+        clear_local_multiplayer_session();
         return;
     }
 
     const bool two_player_select = g_ram[0x009F] == 0x3D;
+    const bool settled_frontend =
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+    if (settled_frontend) {
+        clear_local_multiplayer_session();
+        return;
+    }
+
     if (!two_player_select) {
         g_local_multiplayer_join_visible = false;
         g_local_multiplayer_two_player_visit = false;
-        g_local_multiplayer_setup = {};
+        // Once both explicit participant profiles are confirmed, retain the
+        // session identity through stock setup, race, result and track choice.
+        // It is retired only on return to the settled frontend above.
+        if (!g_local_multiplayer_participants_ready) {
+            g_local_multiplayer_setup = {};
+            g_local_multiplayer_participants = {};
+        }
         return;
     }
 
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
         g_local_multiplayer_setup = {};
+        g_local_multiplayer_participants = {};
+        g_local_multiplayer_participants_ready = false;
+        ensure_profile_catalog();
         const bool has_controller_source = std::any_of(
             g_local_multiplayer_sources.begin(),
             g_local_multiplayer_sources.end(),
             [](const ur::product::LocalInputSource& source) {
                 return source.connected;
             });
-        g_local_multiplayer_join_visible = has_controller_source;
-        if (has_controller_source) {
+        g_local_multiplayer_join_visible =
+            has_controller_source && !g_profile_catalog.empty();
+        if (g_local_multiplayer_join_visible) {
             product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        } else if (g_profile_catalog.empty()) {
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_PROFILES");
         } else {
-            product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
         }
     }
+}
+
+bool local_multiplayer_refresh_ready() {
+    const bool ready = ur::product::local_multiplayer_participants_ready(
+        g_local_multiplayer_setup,
+        g_local_multiplayer_participants);
+    g_local_multiplayer_participants_ready = ready;
+    if (ready) {
+        g_local_multiplayer_join_visible = false;
+        product_diagnostic("UR_LOCAL_MULTIPLAYER SESSION_READY");
+    }
+    return ready;
 }
 
 bool local_multiplayer_assign_source(
     ur::product::LocalMultiplayerSlot slot,
     ur::product::LocalInputSource source) {
     const auto result =
-        ur::product::local_multiplayer_assign(g_local_multiplayer_setup, slot, source);
+        ur::product::local_multiplayer_assign(
+            g_local_multiplayer_setup, slot, source);
     if (!result.applied()) return false;
     g_local_multiplayer_setup = result.state;
-    if (ur::product::local_multiplayer_launch_eligible(g_local_multiplayer_setup)) {
-        g_local_multiplayer_join_visible = false;
-        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_READY");
-    }
     return true;
+}
+
+bool local_multiplayer_confirm_profile(
+    ur::product::LocalMultiplayerSlot slot) {
+    ensure_profile_catalog();
+    const auto* candidate =
+        ur::product::local_multiplayer_profile_candidate(
+            g_local_multiplayer_participants,
+            g_profile_catalog,
+            slot);
+    if (!candidate) return false;
+    const auto selected = ur::product::local_multiplayer_select_profile(
+        g_local_multiplayer_participants,
+        g_local_multiplayer_setup,
+        slot,
+        *candidate);
+    if (!selected.applied()) {
+        if (selected.status ==
+            ur::product::LocalMultiplayerParticipantStatus::DuplicateProfile) {
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER PROFILE_DUPLICATE");
+        }
+        return false;
+    }
+    g_local_multiplayer_participants = selected.state;
+    (void)local_multiplayer_refresh_ready();
+    return true;
+}
+
+void local_multiplayer_move_profile(
+    ur::product::LocalMultiplayerSlot slot,
+    int delta) {
+    ensure_profile_catalog();
+    const auto moved =
+        ur::product::local_multiplayer_move_profile_cursor(
+            g_local_multiplayer_participants,
+            g_profile_catalog,
+            slot,
+            delta);
+    if (moved.applied()) {
+        g_local_multiplayer_participants = moved.state;
+    }
 }
 
 void observe_regional_title_surface() {

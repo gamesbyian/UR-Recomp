@@ -74,6 +74,17 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             self.text,
         )
 
+    def test_package_refresh_rechecks_durable_state_after_replacement_boot(self) -> None:
+        for marker in (
+            'test "$MODERN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt"',
+            'test "$PROFILE_CATALOG_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/profiles-v1.txt"',
+            'test "$PROFILE_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt"',
+            'test "$RUN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun"',
+            'test "$MULTIPLAYER_RUN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urrun"',
+            'test "$MULTIPLAYER_MATCH_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urmatch"',
+        ):
+            self.assertIn(marker, self.text)
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

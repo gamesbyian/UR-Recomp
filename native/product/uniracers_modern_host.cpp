@@ -45,6 +45,7 @@ extern "C" {
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
 #include "local_multiplayer_participants.hpp"
+#include "local_multiplayer_seat_text.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_profile_reset.hpp"
@@ -281,6 +282,7 @@ void ensure_product_state();
 bool persist_product_state(const ur::product::HostProductState& candidate);
 void ensure_profile_catalog();
 void product_diagnostic(const char* message);
+std::string controller_display_name(std::uint64_t source_id);
 bool paused();
 bool restart_surface();
 bool dispatch(UrModernPauseAction action);
@@ -363,6 +365,45 @@ void clear_local_multiplayer_session() {
     g_local_multiplayer_setup = {};
     g_local_multiplayer_participants = {};
     g_local_multiplayer_participants_ready = false;
+}
+
+std::string local_multiplayer_seat_device_line(
+    ur::product::LocalMultiplayerSlot slot) {
+    const auto presentation = ur::product::local_multiplayer_seat_presentation(
+        g_local_multiplayer_setup, slot);
+    const auto& assignment = ur::product::local_multiplayer_assignment(
+        g_local_multiplayer_setup, slot);
+    std::string name;
+    if (assignment.assigned &&
+        assignment.source.kind == ur::product::LocalInputKind::Controller &&
+        assignment.source.stable_id != 0u) {
+        name = controller_display_name(assignment.source.stable_id - 1u);
+    }
+    return ur::product::local_multiplayer_seat_device_text(presentation, name);
+}
+
+void observe_local_multiplayer_seat_lines() {
+    static std::array<std::string, 2> last{};
+    if (!g_local_multiplayer_join_visible) {
+        last = {};
+        return;
+    }
+    constexpr ur::product::LocalMultiplayerSlot kSlots[2] = {
+        ur::product::LocalMultiplayerSlot::Player1,
+        ur::product::LocalMultiplayerSlot::Player2,
+    };
+    for (std::size_t i = 0; i < 2; ++i) {
+        std::string line = local_multiplayer_seat_device_line(kSlots[i]);
+        if (line == last[i]) continue;
+        last[i] = line;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr, "UR_LOCAL_MULTIPLAYER SEAT slot=%s device=%s\n",
+                ur::product::local_multiplayer_slot_label(kSlots[i]),
+                line.empty() ? "EMPTY" : line.c_str());
+            std::fflush(stderr);
+        }
+    }
 }
 
 void update_local_multiplayer_join_surface() {
@@ -5255,6 +5296,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
 
     observe_regional_title_surface();
     update_local_multiplayer_join_surface();
+    observe_local_multiplayer_seat_lines();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
     apply_controller_disconnect_pause();

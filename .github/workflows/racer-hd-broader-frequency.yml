@@ -3163,6 +3163,22 @@ jobs:
             ${{ runner.temp }}/racer-hd-post-p2-0546-0eb2-next-probe.json
             ${{ runner.temp }}/racer-hd-post-p2-0546-0eb2-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-p2-0546-0eb2-next-probe/
+            ${{ runner.temp }}/racer-hd-03f9-probe.json
+            ${{ runner.temp }}/racer-hd-03f9-probe.txt
+            ${{ runner.temp }}/racer-hd-03f9-probe/
+            ${{ runner.temp }}/racer-hd-after-03f9.json
+            ${{ runner.temp }}/racer-hd-after-03f9.txt
+            ${{ runner.temp }}/racer-hd-after-03f9-trace.json
+            ${{ runner.temp }}/racer-hd-03f9-dossier/
+            ${{ runner.temp }}/racer-hd-03f9-dossier.txt
+            ${{ runner.temp }}/racer-hd-03f9-equivalence.txt
+            ${{ runner.temp }}/racer-hd-03f9-review.txt
+            ${{ runner.temp }}/racer-hd-03f9-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-03f9-temporal.json
+            ${{ runner.temp }}/racer-hd-03f9-temporal.txt
+            ${{ runner.temp }}/racer-hd-post-03f9-next-probe.json
+            ${{ runner.temp }}/racer-hd-post-03f9-next-probe.txt
+            ${{ runner.temp }}/racer-hd-post-03f9-next-probe/
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe.json
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-00b9-next-probe/

@@ -45,7 +45,8 @@ constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcep
            semantic_frame_id == 0x0379 ||
            semantic_frame_id == 0x05F9 ||
            semantic_frame_id == 0x0546 ||
-           semantic_frame_id == 0x03F9;
+           semantic_frame_id == 0x03F9 ||
+           semantic_frame_id == 0x0579;
 }
 
 // The generic candidate remains a deterministic contract-only fallback for
@@ -440,6 +441,20 @@ constexpr bool is_authored_broader_03f9_p1_registration(
            c.p1_companion == 0x0000 &&
            c.p1_selector == 0 &&
            c.p1_companion_gate_word == 0x0000;
+}
+
+
+constexpr bool is_authored_broader_0579_p2_0ec4_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0579 &&
+           registration.player_local_guard &&
+           c.p2_primary == 0x0579 &&
+           c.p2_companion == 0x0EC4 &&
+           c.p2_selector == 0 &&
+           c.p2_companion_gate_word == 0x0001;
 }
 
 
@@ -2511,6 +2526,51 @@ constexpr std::uint32_t sample_racer_hd_authored_03f9_p1_broader(
 }
 
 
+constexpr std::uint32_t recolor_authored_frame_color(
+    std::uint32_t pixel,
+    bool blue_frame
+) noexcept {
+    if (!blue_frame) return pixel;
+    switch (pixel) {
+        case 0xFF5353E8u: return 0xFFE87353u;
+        case 0xFF3434C9u: return 0xFFC94D34u;
+        case 0xFF2525A3u: return 0xFFA33A25u;
+        case 0xFF181878u: return 0xFF782818u;
+        case 0xFF232396u: return 0xFF963323u;
+        default: return pixel;
+    }
+}
+
+
+constexpr std::uint32_t sample_racer_hd_authored_0579_p2_0ec4_broader(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    const int upper_dx = x - 98;
+    const int upper_dy = y - 52;
+    const bool upper =
+        x >= 84 &&
+        y >= 20 &&
+        y < 78 &&
+        upper_dx * upper_dx * 44 * 44 +
+            upper_dy * upper_dy * 28 * 28 <=
+            28 * 28 * 44 * 44;
+    if (upper) {
+        return authored_saddle_color(x, y, 98, 52, 44);
+    }
+
+    if (x < 84 || y < 78) return 0;
+
+    return recolor_authored_frame_color(
+        sample_racer_hd_authored_05f9_p1_broader(x, y, false, false),
+        true
+    );
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -2718,6 +2778,11 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_broader_03f9_p1_registration(registration)) {
         return sample_racer_hd_authored_03f9_p1_broader(x, y, hflip, vflip);
+    }
+    if (is_authored_broader_0579_p2_0ec4_registration(registration)) {
+        return sample_racer_hd_authored_0579_p2_0ec4_broader(
+            x, y, hflip, vflip
+        );
     }
     if (is_authored_frequency_0544_p1_0578_registration(registration)) {
         return sample_racer_hd_authored_0544_p1_frequency(x, y, hflip, vflip);

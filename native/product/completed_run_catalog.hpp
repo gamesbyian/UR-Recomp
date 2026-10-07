@@ -65,6 +65,18 @@ struct RunRecordsProfileSummary {
     std::size_t tracks_with_runs = 0;
 };
 
+struct RunRecordsProfileSource {
+    std::string profile_id;
+    HostRacerIdentity racer_identity;
+    std::vector<StoredRunRecord> records;
+};
+
+struct RunRecordsProfileIndex {
+    std::vector<RunRecordsProfileSummary> profiles;
+    std::optional<std::size_t> active_profile;
+    std::size_t total_completed_runs = 0;
+};
+
 /* Build presentation metadata over an already compatibility-filtered store
  * catalog. Selection delegates to the canonical previous/PB selectors; this
  * layer adds no new ranking or replay rules. */
@@ -89,5 +101,10 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
     const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
     const RunRecordsScope& scope);
+
+RunRecordsProfileIndex build_run_records_profile_index(
+    const std::vector<RunRecordsProfileSource>& profiles,
+    const RunRecordsScope& scope,
+    const std::optional<std::string>& active_profile_id = std::nullopt);
 
 }  // namespace ur::product

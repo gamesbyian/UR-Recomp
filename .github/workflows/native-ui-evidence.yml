@@ -419,13 +419,13 @@ jobs:
           internal_render_scale=2x
           EOF
 
+          # 1219 is an observed HD-composited frame in both the pre-move green smoke route and this shard.
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$STATE" \
           UR_RACER_HD=1 \
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           SNESRECOMP_INPUT_FILE="$INPUT" \
-          # 1219 is an observed HD-composited frame in both the pre-move green smoke route and this shard.
           SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=1219 \
           timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1

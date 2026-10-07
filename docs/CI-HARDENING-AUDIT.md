@@ -188,18 +188,42 @@ exercising the real presentation and persistence path. Until that seam exists,
 cursor-driven tests should remain focused, heavily diagnosed and outside the
 generic smoke gate.
 
-### Shared native candidate across focused workflows
+### Shared native candidate and bounded acceptance fan-out
 
 Several focused automatic workflows still independently build materially the
-same Linux native candidate. Native UI was the clearest duplication and has
-been corrected first.
+same Linux native candidate. The October 7 ready-for-review validation made the
+cost concrete: eleven heavyweight workflows started together, repeatedly
+installing the same development packages and building overlapping candidates.
+Seven gates completed successfully, while Native Smoke, Profile Panel and
+Native UI were cancelled during prolonged Ubuntu mirror stalls and Racer
+Presentation was cancelled after producing evidence. Those cancellations are
+runner/dependency pressure, not evidence that shorter test timeouts are safe.
 
-A later optimization should measure whether a reusable workflow or trusted
-build-candidate artifact can safely serve Profile Panel, Ghost Target, Modern
-Onboarding, Completed Run Replay and similar gates. Do not centralize merely to
-reduce YAML: the shared producer must preserve each consumer's required patch,
-instrumentation and source inputs, and artifact transfer must be cheaper than
-the build it replaces.
+Native UI is the reference architecture for the next CI phase: one producer
+builds and uploads an immutable candidate, independent consumer jobs download
+that exact candidate with runtime-only dependencies, and an aggregate job owns
+the final gate. Equivalent Modern Linux acceptance gates should converge on
+that shape where their generated host, patches and instrumentation are truly
+identical.
+
+Fan-out is deliberately bounded. A two-core runner should normally execute no
+more than two CPU-bound emulator processes at once. Pacing-heavy cases may
+temporarily tolerate more local concurrency, but once frame delay is removed
+they should move into a small matrix of chunky shards rather than oversubscribe
+one runner. Prefer roughly three to five useful consumer shards over one job per
+test case so repository-level Actions concurrency is spent on wall-clock
+reduction rather than scheduler overhead.
+
+Candidate sharing must be semantic, not merely YAML deduplication. Before a
+consumer joins the shared producer it must prove that its setup-project flags,
+SNESRecomp patches, Modern host patch, SDL backend, generated sources and
+instrumentation requirements match the producer. A gate requiring a genuinely
+different binary remains a separate producer.
+
+Until repeated package installation has been removed, install-heavy jobs need
+enough timeout headroom to survive transient mirror stalls. Timeout tightening
+follows measured execution time and must not turn dependency-service latency
+into routine false-red CI.
 
 ## Wall-clock operating policy
 

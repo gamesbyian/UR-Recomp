@@ -32,6 +32,8 @@ Native acceptance binds the live HUD to the same authoritative WRAM timer digits
 
 ## Records profile-summary model
 
+The read-only Racers / Profiles model now carries both authoritative in-scope run counts and the total stored `.urrun` artifact population for each profile. `unavailable_artifacts` is deliberately broader than corruption: it is the difference between all observed profile artifacts and the runs admitted by the current game/ROM/build/mode Records scope. That means malformed/corrupt artifacts and valid records from another incompatible scope remain visible as unavailable evidence without gaining PB, Previous, statistics or replay authority. The profile index also aggregates this count across catalogued profiles.
+
 The Records layer now has a storage-agnostic profile summary primitive for the planned **Racers / Profiles** view. It accepts the already-authoritative profile ID and racer identity plus that profile's completed-run catalog, then derives only two aggregate values from the existing game/ROM/build/mode-scoped Records index: completed runs and tracks with records. It does not add racer identity to `.urrun`, does not scan or mutate profile storage itself, and does not introduce cross-profile ranking semantics.
 
 The UI integration remains intentionally read-only and deferred until the active Modern profile/navigation host seam is free of overlapping work. When wired, it should load identities from the established profile catalog and load each profile's run namespace through the same completed-run store/index path used by the active profile.

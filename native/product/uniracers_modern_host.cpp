@@ -551,15 +551,15 @@ void maybe_run_multiplayer_match_acceptance() {
         return;
     }
 
-    ensure_profile_catalog();
-    if (g_profile_catalog.size() < 2u) {
-        g_profile_catalog = {
-            {"accept-p1", {"MIKE", 0}},
-            {"accept-p2", {"ANDREW", 1}},
-        };
-        product_diagnostic(
-            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
-    }
+    // Acceptance owns a process-local deterministic participant catalog.
+    // Do not depend on whichever user/default catalog happens to be present,
+    // and do not persist these synthetic acceptance identities.
+    g_profile_catalog = {
+        {"accept-p1", {"MIKE", 0}},
+        {"accept-p2", {"ANDREW", 1}},
+    };
+    product_diagnostic(
+        "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
 
     const auto p1_slot = ur::product::LocalMultiplayerSlot::Player1;
     const auto p2_slot = ur::product::LocalMultiplayerSlot::Player2;

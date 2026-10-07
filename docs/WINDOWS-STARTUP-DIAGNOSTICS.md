@@ -48,7 +48,7 @@ The file is overwritten once at process launch rather than accumulated indefinit
 - resolved user-data root;
 - initial result.
 
-A classified launcher or host failure appends only its stable code, subsystem and fatal result. Host startup uses the same path through `SNESRECOMP_STARTUP_LOG`. A normal host exit appends the process exit status.
+A classified launcher or host failure appends only its stable code, subsystem and fatal result. Host startup uses the same path through `SNESRECOMP_STARTUP_LOG`. A normal host exit appends the process exit status. Under the current `ur-startup-log-v1` schema this yields at most 10 lines: six launcher seed lines, at most four host-failure lines (including an optional safe path), or one normal `process_exit` line. Final-main acceptance enforces that structural ceiling for every representative retained failure log.
 
 If the user-data root or diagnostics directory cannot be created, diagnostics fall back to the one player-facing/stderr diagnosis rather than trying alternate log locations recursively. Failures that occur before a writable root exists therefore legitimately have no retained log.
 

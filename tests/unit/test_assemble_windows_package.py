@@ -27,6 +27,13 @@ class WindowsPackageTests(unittest.TestCase):
         rom.write_bytes(b"rom")
         return build, rom
 
+    def write_manifest(self, path, manifest):
+        path.write_bytes(
+            (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(
+                "utf-8"
+            )
+        )
+
     def run_tool(self, *args, check=True):
         return subprocess.run(
             [sys.executable, str(TOOL), *map(str, args)],
@@ -67,6 +74,9 @@ class WindowsPackageTests(unittest.TestCase):
             (build / "host-state-v1.txt").write_text("build-local-host-state\n")
             (build / "saves").mkdir()
             (build / "saves" / "dirty.srm").write_bytes(b"dirty-save")
+            (build / "mods" / "preloaded" / "state.toml").write_text(
+                "build-local-mod-state\n"
+            )
 
             result = self.run_tool(
                 "assemble",
@@ -81,6 +91,9 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertFalse((package / "keybinds.ini").exists())
             self.assertFalse((package / "host-state-v1.txt").exists())
             self.assertFalse((package / "saves").exists())
+            self.assertFalse(
+                (package / "mods" / "preloaded" / "state.toml").exists()
+            )
             self.assertTrue((package / "run-uniracers.cmd").is_file())
             self.assertIn(
                 "Source revision: abc123",
@@ -88,7 +101,21 @@ class WindowsPackageTests(unittest.TestCase):
             )
             launcher = (package / "run-uniracers.cmd").read_text()
             readme = (package / "README.txt").read_text()
+            self.assertNotIn(b"\r", (package / "README.txt").read_bytes())
+            self.assertNotIn(
+                b"\r", (package / "PACKAGE-MANIFEST.json").read_bytes()
+            )
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
+            self.assertIn("static MSVC runtime", readme)
+            self.assertIn("Visual C++ Redistributable", readme)
+            self.assertIn(
+                r"%APPDATA%\gamesbyian\UR-Recomp by default.",
+                readme,
+            )
+            self.assertNotIn(
+                r"%APPDATA%\\gamesbyian\\UR-Recomp",
+                readme,
+            )
             self.assertIn("Source revision: abc123", readme)
             self.assertIn("UR-STARTUP-*", readme)
             self.assertIn("Startup code guide:", readme)
@@ -310,16 +337,126 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("UniracersSNESRecomp.exe", paths)
             self.assertIn("Uniracers_USA.sfc", paths)
             self.assertIn("mods/preloaded/packages/catalog.json", paths)
+            self.assertEqual(
+                (package / "rom.cfg").read_bytes(),
+                b"Uniracers_USA.sfc\n",
+            )
 
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
 
+            unexpected_file = package / "surprise.dll"
+            unexpected_file.write_bytes(b"unexpected")
+            unexpected_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            unexpected_manifest["files"] = [
+                {
+                    "path": p.relative_to(package).as_posix(),
+                    "size": p.stat().st_size,
+                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                }
+                for p in sorted(package.rglob("*"))
+                if p.is_file() and p.name != "PACKAGE-MANIFEST.json"
+            ]
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                unexpected_manifest,
+            )
+            unexpected_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(unexpected_failed.returncode, 0)
+            self.assertIn(
+                "unexpected packaged files: surprise.dll",
+                unexpected_failed.stderr,
+            )
+            unexpected_file.unlink()
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
+            )
+
+            mutable_state = package / "mods" / "preloaded" / "state.toml"
+            mutable_state.write_text("leaked-mod-state\n")
+            mutable_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            mutable_manifest["files"] = [
+                {
+                    "path": p.relative_to(package).as_posix(),
+                    "size": p.stat().st_size,
+                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                }
+                for p in sorted(package.rglob("*"))
+                if p.is_file() and p.name != "PACKAGE-MANIFEST.json"
+            ]
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                mutable_manifest,
+            )
+            mutable_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(mutable_failed.returncode, 0)
+            self.assertIn(
+                "contains mutable user state: mods/preloaded/state.toml",
+                mutable_failed.stderr,
+            )
+            mutable_state.unlink()
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
+            )
+
+            absolute_rom_cfg = b"C:\\build\\checkout\\Uniracers_USA.sfc\n"
+            (package / "rom.cfg").write_bytes(absolute_rom_cfg)
+            blessed_absolute_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            for entry in blessed_absolute_manifest["files"]:
+                if entry["path"] == "rom.cfg":
+                    entry["size"] = len(absolute_rom_cfg)
+                    entry["sha256"] = hashlib.sha256(
+                        absolute_rom_cfg
+                    ).hexdigest()
+                    break
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                blessed_absolute_manifest,
+            )
+            absolute_cfg = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(absolute_cfg.returncode, 0)
+            self.assertIn(
+                "rom.cfg must contain canonical package-relative ROM path",
+                absolute_cfg.stderr,
+            )
+            (package / "rom.cfg").write_bytes(b"Uniracers_USA.sfc\n")
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
+            )
+
+
             manifest_path = package / "PACKAGE-MANIFEST.json"
+            canonical_manifest_bytes = manifest_path.read_bytes()
+            manifest_path.write_bytes(
+                canonical_manifest_bytes.replace(b"\n", b"\r\n")
+            )
+            crlf_manifest = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(crlf_manifest.returncode, 0)
+            self.assertIn(
+                "manifest is not canonical UTF-8/LF JSON",
+                crlf_manifest.stderr,
+            )
+            manifest_path.write_bytes(canonical_manifest_bytes)
             provenance_manifest = json.loads(manifest_path.read_text())
             provenance_manifest["source_revision"] = ""
-            manifest_path.write_text(
-                json.dumps(provenance_manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, provenance_manifest)
             provenance_failed = self.run_tool(
                 "verify", "--package", package, check=False
             )
@@ -328,15 +465,11 @@ class WindowsPackageTests(unittest.TestCase):
                 "unsupported or malformed package manifest",
                 provenance_failed.stderr,
             )
-            manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, manifest)
 
             mismatch_manifest = json.loads(json.dumps(manifest))
             mismatch_manifest["source_revision"] = "different-revision"
-            manifest_path.write_text(
-                json.dumps(mismatch_manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, mismatch_manifest)
             mismatch_failed = self.run_tool(
                 "verify", "--package", package, check=False
             )
@@ -345,9 +478,7 @@ class WindowsPackageTests(unittest.TestCase):
                 "README source revision does not match manifest",
                 mismatch_failed.stderr,
             )
-            manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, manifest)
 
             archive1 = root / "package-1.zip"
             archive2 = root / "package-2.zip"
@@ -365,6 +496,28 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "WINDOWS_PACKAGE_ARCHIVE_VERIFIED",
                 verified_archive.stdout,
+            )
+
+            crlf_manifest_archive = root / "package-crlf-manifest.zip"
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                crlf_manifest_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    payload = source.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        payload = payload.replace(b"\n", b"\r\n")
+                    target.writestr(info, payload)
+            crlf_manifest_result = self.run_tool(
+                "verify-archive",
+                "--archive", crlf_manifest_archive,
+                check=False,
+            )
+            self.assertNotEqual(crlf_manifest_result.returncode, 0)
+            self.assertIn(
+                "archive manifest is not canonical UTF-8/LF JSON",
+                crlf_manifest_result.stderr,
             )
 
             mismatch_archive = root / "package-mismatch-revision.zip"
@@ -561,6 +714,46 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "unsafe package archive manifest path: ../escape.bin",
                 unsafe_manifest_result.stderr,
+            )
+
+            absolute_rom_archive = root / "package-absolute-rom-config.zip"
+            absolute_rom_manifest = json.loads(json.dumps(manifest))
+            absolute_rom_payload = b"C:\\runner\\checkout\\Uniracers_USA.sfc\n"
+            for entry in absolute_rom_manifest["files"]:
+                if entry["path"] == "rom.cfg":
+                    entry["size"] = len(absolute_rom_payload)
+                    entry["sha256"] = hashlib.sha256(
+                        absolute_rom_payload
+                    ).hexdigest()
+                    break
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                absolute_rom_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        payload = (
+                            json.dumps(
+                                absolute_rom_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n"
+                        ).encode("utf-8")
+                    elif info.filename.endswith("/rom.cfg"):
+                        payload = absolute_rom_payload
+                    else:
+                        payload = source.read(info.filename)
+                    target.writestr(info, payload)
+            absolute_archive_result = self.run_tool(
+                "verify-archive",
+                "--archive", absolute_rom_archive,
+                check=False,
+            )
+            self.assertNotEqual(absolute_archive_result.returncode, 0)
+            self.assertIn(
+                "rom.cfg must contain canonical package-relative ROM path",
+                absolute_archive_result.stderr,
             )
 
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")

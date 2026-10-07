@@ -156,8 +156,9 @@ print("UR_RESULTS_TOUR_SELECT_NATIVE=stock_menu=1 rollback_preserved=1")
 PY
 
 # Four events are prequalified with Crawler as the sole remaining event.
-# That keeps the deterministic Crawler drive script valid while proving the
-# existing unique-continuation authority exposes exactly one Next Event.
+# Replaying the proven Crawler finish does not invent a new qualification, so
+# the authoritative 01111 row remains four-of-five at Results and Crawler is
+# still the one unique Next Event target.
 run_case next 01111 next
 cat "$WORK/next.log"
 grep -q "UR_RESULTS_NAV MENU .*next=1 track=1 tour=1 .*records=1 practice=0" "$WORK/next.log"

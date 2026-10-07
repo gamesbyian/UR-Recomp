@@ -686,6 +686,8 @@ void maybe_run_records_browser_acceptance() {
             g_records_browser.index().courses.size();
         const std::size_t viewed_runs =
             g_records_browser.index().total_completed_runs;
+        const bool handoff_allowed =
+            profile_drilled && records_selected_matches_current_course();
         const bool returned =
             profile_drilled &&
             records_browser_navigation(UR_MODERN_HOST_NAV_BACK) &&
@@ -694,7 +696,7 @@ void maybe_run_records_browser_acceptance() {
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
-                "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=%d opened=%d profiles_opened=%d profiles=%zu drilled=%d profile=%s tracks=%zu runs=%zu returned=%d\n",
+                "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=%d opened=%d profiles_opened=%d profiles=%zu drilled=%d profile=%s tracks=%zu runs=%zu handoff_allowed=%d returned=%d\n",
                 pause_handled,
                 opened ? 1 : 0,
                 profiles_opened ? 1 : 0,
@@ -703,6 +705,7 @@ void maybe_run_records_browser_acceptance() {
                 viewed_profile.c_str(),
                 viewed_tracks,
                 viewed_runs,
+                handoff_allowed ? 1 : 0,
                 returned ? 1 : 0);
             std::fflush(stderr);
         }

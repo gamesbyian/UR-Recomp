@@ -6,6 +6,8 @@ WORKFLOW = ROOT / ".github" / "workflows" / "tooling-unit-tests.yml"
 
 PURE_MODEL_PATHS = (
     "native/product/completed_run_ghost_target.hpp",
+    "native/product/display_treatment_policy.hpp",
+    "tests/native/display_treatment_policy_test.cpp",
     "tests/native/completed_run_ghost_target_test.cpp",
     "native/product/local_multiplayer_setup.hpp",
     "native/product/modern_root_menu.hpp",

@@ -1,0 +1,133 @@
+name: Ordinary 2P match capture acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - "native/product/uniracers_modern_host.cpp"
+      - "native/product/local_multiplayer_*.cpp"
+      - "native/product/local_multiplayer_*.hpp"
+      - "native/product/multiplayer_match_record.*"
+      - "native/product/run_record_capture_policy.hpp"
+      - "native/title/uniracers_two_player_result.*"
+      - "tests/input/two-player-p1-win.input"
+      - "tests/native/multiplayer_match_pair_check.cpp"
+      - "tools/patch_modern_product_host.py"
+      - ".github/workflows/multiplayer-match-capture-acceptance.yml"
+
+concurrency:
+  group: ordinary-2p-match-capture-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake pkg-config libsdl2-dev xvfb libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Scaffold and build Modern two-player target
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-2p-match"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/widescreen-product-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+
+          grep -q "local_multiplayer_participants.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "local_multiplayer_match_binding.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "multiplayer_match_record.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "uniracers_two_player_result.cpp" "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+      - name: Capture authoritative ordinary 2P pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-2p-match/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          MATCHES="$RUNNER_TEMP/matches"
+          LOG="$RUNNER_TEMP/capture.log"
+          mkdir -p "$MATCHES"
+          rm -rf "$(dirname "$EXE")/saves"
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-p1-win.input" \
+          UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
+          UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 90s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+          RC=$?
+          set -e
+
+          cat "$LOG"
+          test "$RC" -eq 0
+          grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_READY p1=accept-p1 p2=accept-p2" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH CAPTURE_STARTED" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH CAPTURED" "$LOG"
+          test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f | wc -l)" -eq 1
+          test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun.urmatch' -type f | wc -l)" -eq 1
+          find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f > "$RUNNER_TEMP/run-path.txt"
+
+      - name: Verify pair in a fresh process
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECK="$RUNNER_TEMP/check-2p-match-pair"
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            -I "$GITHUB_WORKSPACE/native/title" \
+            "$GITHUB_WORKSPACE/native/product/modern_racer_identity.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_runtime.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_product_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/output_resolution_policy.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_store.cpp" \
+            "$GITHUB_WORKSPACE/native/product/local_multiplayer_match_binding.cpp" \
+            "$GITHUB_WORKSPACE/native/product/multiplayer_match_record.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/multiplayer_match_pair_check.cpp" \
+            -o "$CHECK"
+
+          RUN="$(cat "$RUNNER_TEMP/run-path.txt")"
+          "$CHECK" "$RUN" "$RUNNER_TEMP/captured-relative.input" | tee "$RUNNER_TEMP/pair-check.log"
+          grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01" "$RUNNER_TEMP/pair-check.log"

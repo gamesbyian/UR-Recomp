@@ -78,6 +78,20 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
         ):
             self.assertNotIn(shortcut, hook)
 
+    def test_disconnect_reopens_join_only_on_stock_2p_select(self):
+        source = HOST.read_text(encoding="utf-8")
+        callback = _body(
+            source,
+            'extern "C" void ur_uniracers_modern_system_gamepad_source_connection(',
+            'extern "C" int ur_uniracers_modern_system_gamepad_source_button(',
+        )
+        self.assertIn("g_ram[0x009F] == 0x3D", callback)
+        self.assertIn("g_local_multiplayer_join_visible = true;", callback)
+        self.assertIn(
+            'product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED")',
+            callback,
+        )
+
     def test_native_acceptance_is_wired(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
         harness = HARNESS.read_text(encoding="utf-8")
@@ -88,6 +102,9 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             'test "$DUP" -lt "$READY"',
             "DONE ready=1 overlay=0 p1=join.alpha p2=join.bravo",
             "UR_EXECUTION_MODE=authentic",
+            "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DETACHED pad=2 ready=0 overlay=1",
+            "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE REATTACHED pad=2 ready=0 overlay=1",
+            "UR_TWO_PLAYER_JOIN_DISCONNECT=blocked_while_unplugged rejoined ready",
         ):
             self.assertIn(marker, harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")

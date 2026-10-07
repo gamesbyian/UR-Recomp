@@ -69,6 +69,15 @@ struct HostOverlayCompositionRequest {
  * logical coordinates; output coordinates are deterministic projections into
  * the already-resolved final viewport.
  */
+/* Validate the host's authoritative integer density against the concrete
+ * presentation surface. Any mismatch falls back to 1x rather than letting a
+ * stale setting reinterpret physical pixels as logical coordinates. */
+int resolve_modern_overlay_surface_scale(
+    int authoritative_scale,
+    int surface_width,
+    int surface_height,
+    int logical_height = 224) noexcept;
+
 HostOverlayCompositionPlan resolve_modern_overlay_composition(
     const HostOverlayCompositionRequest& request) noexcept;
 

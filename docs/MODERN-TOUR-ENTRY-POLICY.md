@@ -62,7 +62,7 @@ Pure coverage proves:
 - the empty-row proof is provided by the title adapter rather than duplicated SRAM offsets in product/UI code;
 - Resume never permits Restart-style retirement.
 
-The player-facing Windows x64 integration is now thin and direct. At a valid settled Modern main menu, F3 or mapped semantic controller Y opens the existing action model as a modal Resume Tour / Restart Tour / Back surface. Keyboard Up/Down/Enter/Escape and mapped P1 semantic controller Up/Down/A/B-or-Start feed the same `UrModernHostNavigationAction` model. Restart still requires its second explicit confirmation.
+The player-facing Windows x64 integration is now thin and direct. At a valid settled Modern main menu, F3 or physical pad Y opens the existing action model (a physical product shortcut like pad X Quick Practice: under the positional default GamepadMap, SNES Y comes from physical X, which Quick Practice owns) as a modal Resume Tour / Restart Tour / Back surface. Keyboard Up/Down/Enter/Escape and mapped P1 semantic controller Up/Down/A/B-or-Start feed the same `UrModernHostNavigationAction` model. Restart still requires its second explicit confirmation.
 
 The panel also surfaces the existing challenge-tier state without persisting another progression value: the displayed Bronze/Silver/Gold tier is derived from the continuation's authoritative stock medal through `default_modern_challenge_tier()`. No tier shadow state is introduced.
 

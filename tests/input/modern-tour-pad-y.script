@@ -1,0 +1,8 @@
+# Main-menu pad-Y Tour acceptance. Only observe: UR_MAIN_MENU_PAD_ACCEPTANCE=y
+# taps physical Y about 90 frames after MAIN_MENU settles. Quit well before
+# the stock attract demo can start behind the Tour surface.
+
+until 009F == D7 3600
+wait 240
+dump tour-pad-y-main
+quit

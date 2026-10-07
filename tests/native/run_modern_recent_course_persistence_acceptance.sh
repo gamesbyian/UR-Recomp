@@ -19,6 +19,7 @@ REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PERSIST_SCRIPT="$REPO/tests/input/modern-recent-course-persist.script"
 RESTORE_SCRIPT="$REPO/tests/input/modern-recent-course-restore.script"
 MAIN_SCRIPT="$REPO/tests/input/modern-main-menu.script"
+TOUR_PAD_Y_SCRIPT="$REPO/tests/input/modern-tour-pad-y.script"
 CLEAN="$REPO/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm"
 
 STATE="$WORK/recent-host-state.txt"
@@ -190,6 +191,23 @@ grep -q "UR_PRACTICE RACE_READY" "$E_LOG"
 cmp "$WORK/pad-r-before.txt" "$E_ROOT/host-profile.txt"
 echo "UR_RECENT_PAD_R_NATIVE=strip_rows=2 launched=recent tour_opened=0"
 
+# F. Same resumable-tour fixture: a real virtual-gamepad Y press (the strip's
+#    F3/Y) opens the Tour surface and does not launch Recent Course.
+F_ROOT="$WORK/pad-y-profile"
+F_LOG="$WORK/pad-y.log"
+make_fixture "$F_ROOT" 5 2 11110
+cp "$F_ROOT/host-profile.txt" "$WORK/pad-y-before.txt"
+run_native "$F_ROOT" "$WORK/pad-y-dumps" "$F_LOG" "$TOUR_PAD_Y_SCRIPT" \
+  UR_MAIN_MENU_PAD_ACCEPTANCE=y
+cat "$F_LOG"
+grep -q "UR_MAIN_MENU_STRIP rows=2 | F3/Y NEXT EVENT Monster | F6/R RECENT Bowl" "$F_LOG"
+grep -q "UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED" "$F_LOG"
+grep -q "UR_TOUR_ENTRY MENU_OPENED" "$F_LOG"
+! grep -q "UR_FAST_NAV RECENT_PRACTICE" "$F_LOG"
+! grep -q "UR_PRACTICE STARTED" "$F_LOG"
+cmp "$WORK/pad-y-before.txt" "$F_ROOT/host-profile.txt"
+echo "UR_TOUR_PAD_Y_NATIVE=strip_rows=2 tour_opened=1 recent_launched=0"
+
 # C. An out-of-catalog Recent Course fails closed: the profile is not
 #    trusted, nothing is restored, and the file is not rewritten.
 C_ROOT="$WORK/malformed-profile"
@@ -215,4 +233,4 @@ grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$D_LOG"
 ! grep -q "UR_FAST_NAV RECENT_RESTORED" "$D_LOG"
 cmp "$WORK/authentic-before.txt" "$D_ROOT/host-profile.txt"
 
-echo "UR_RECENT_COURSE_PERSISTENCE_ACCEPTANCE_RESULT=metadata_only_persist_fresh_restore_pad_r_strip_malformed_fail_closed_authentic_inert"
+echo "UR_RECENT_COURSE_PERSISTENCE_ACCEPTANCE_RESULT=metadata_only_persist_fresh_restore_pad_r_strip_pad_y_tour_malformed_fail_closed_authentic_inert"

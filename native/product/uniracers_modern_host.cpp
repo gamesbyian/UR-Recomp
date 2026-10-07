@@ -5940,8 +5940,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
              button == kGamepadBtn_X) ||
             (settled_main && button == kGamepadBtn_X) ||
             (settled_main && button == kGamepadBtn_Y &&
-             !tour_continue_available() &&
-             recent_course_available_for_active_profile()) ||
+             (tour_continue_available() ||
+              recent_course_available_for_active_profile())) ||
             (settled_main && button == kGamepadBtn_R1 &&
              recent_course_available_for_active_profile());
         return fast_nav_release || paused() || onboarding_surface_active()
@@ -5963,9 +5963,18 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         (void)begin_practice();
         return 1;
     }
+    // Pad Y opens the Tour surface while a tour is resumable, matching the
+    // main-menu strip's F3/Y. Like X, this is a physical product shortcut:
+    // under the positional default GamepadMap, SNES Y comes from physical X,
+    // which Quick Practice already owns.
     if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
-        !tour_continue_available() &&
+        tour_continue_available()) {
+        (void)open_tour_action_menu();
+        return 1;
+    }
+    if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
         recent_course_available_for_active_profile()) {
         (void)launch_recent_course_practice();
         return 1;
@@ -6080,13 +6089,6 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         default:
             break;
         }
-        return 1;
-    }
-
-    if (modern_mode() && pressed && control == 9 && !paused() &&
-        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
-        tour_continue_available()) {
-        (void)open_tour_action_menu();
         return 1;
     }
 

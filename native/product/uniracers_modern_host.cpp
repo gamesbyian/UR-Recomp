@@ -5698,8 +5698,12 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         g_run_capture.capturing()) {
         complete_run_record_capture();
     }
-    if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
-        g_multiplayer_run_capture.capturing()) {
+    if (g_multiplayer_run_capture.capturing() && g_ram &&
+        g_ram[0x009F] ==
+            ur::title::kOrdinaryTwoPlayerRaceResultMenu) {
+        // Ordinary 2P owns a distinct stock result surface (0xF9). Do not
+        // route it through the generic 1P Restart/result classifier; the
+        // multiplayer result observer independently validates this boundary.
         complete_multiplayer_run_record_capture();
     }
     if (decision.retire_attempt && g_run_capture.capturing()) {

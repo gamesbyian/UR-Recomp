@@ -658,6 +658,50 @@ void maybe_run_records_browser_acceptance() {
     const int pause_handled =
         ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
     const bool opened = pause_handled && open_records_browser();
+
+    if (std::strcmp(acceptance, "profiles") == 0) {
+        const bool profiles_opened =
+            opened &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) &&
+            g_records_root_section == RecordsRootSection::Profiles;
+        const std::size_t profile_count =
+            g_records_profile_index.profiles.size();
+        const bool profile_drilled =
+            profiles_opened &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) &&
+            g_records_root_section == RecordsRootSection::Tracks &&
+            g_records_return_to_profiles;
+        const std::string viewed_profile = g_records_view_profile_id;
+        const std::size_t viewed_tracks =
+            g_records_browser.index().courses.size();
+        const std::size_t viewed_runs =
+            g_records_browser.index().total_completed_runs;
+        const bool returned =
+            profile_drilled &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_BACK) &&
+            g_records_root_section == RecordsRootSection::Profiles;
+
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=%d opened=%d profiles_opened=%d profiles=%zu drilled=%d profile=%s tracks=%zu runs=%zu returned=%d\n",
+                pause_handled,
+                opened ? 1 : 0,
+                profiles_opened ? 1 : 0,
+                profile_count,
+                profile_drilled ? 1 : 0,
+                viewed_profile.c_str(),
+                viewed_tracks,
+                viewed_runs,
+                returned ? 1 : 0);
+            std::fflush(stderr);
+        }
+        SDL_Event event{};
+        event.type = SDL_QUIT;
+        (void)SDL_PushEvent(&event);
+        return;
+    }
+
     const bool drilled =
         opened &&
         records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM);

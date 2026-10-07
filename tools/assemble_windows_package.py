@@ -380,6 +380,40 @@ def write_archive_checksum(archive: Path, output: Path) -> str:
     return digest
 
 
+def verify_archive_checksum(archive: Path, checksum: Path) -> str:
+    archive = archive.resolve()
+    checksum = checksum.resolve()
+    if not archive.is_file():
+        raise ValueError(f"package archive missing: {archive}")
+    if not checksum.is_file():
+        raise ValueError(f"archive checksum missing: {checksum}")
+
+    try:
+        raw = checksum.read_text(encoding="ascii")
+    except (OSError, UnicodeDecodeError) as exc:
+        raise ValueError(f"cannot read archive checksum: {exc}") from exc
+
+    expected_name = archive.name
+    lines = raw.splitlines()
+    if len(lines) != 1 or raw != raw.rstrip("\r\n") + "\n":
+        raise ValueError("archive checksum must be one canonical LF-terminated line")
+    line = lines[0]
+    if len(line) != 64 + 2 + len(expected_name) or line[64:66] != "  ":
+        raise ValueError("archive checksum has malformed canonical format")
+    digest = line[:64]
+    filename = line[66:]
+    if (
+        filename != expected_name
+        or any(ch not in "0123456789abcdef" for ch in digest)
+    ):
+        raise ValueError("archive checksum does not identify this archive")
+
+    actual = sha256(archive)
+    if digest != actual:
+        raise ValueError("archive checksum does not match package archive")
+    return actual
+
+
 def create_archive(package: Path, archive: Path) -> dict[str, object]:
     package = package.resolve()
     archive = archive.resolve()
@@ -559,6 +593,10 @@ def main() -> int:
     checksum_parser.add_argument("--archive", type=Path, required=True)
     checksum_parser.add_argument("--output", type=Path)
 
+    verify_checksum_parser = subparsers.add_parser("verify-archive-checksum")
+    verify_checksum_parser.add_argument("--archive", type=Path, required=True)
+    verify_checksum_parser.add_argument("--checksum", type=Path, required=True)
+
     args = parser.parse_args()
     try:
         if args.command == "assemble":
@@ -587,7 +625,7 @@ def main() -> int:
                 f"WINDOWS_PACKAGE_ARCHIVE_VERIFIED files={len(manifest['files'])} "
                 f"archive={args.archive}"
             )
-        else:
+        elif args.command == "checksum-archive":
             output = args.output or Path(
                 str(args.archive) + ARCHIVE_CHECKSUM_SUFFIX
             )
@@ -595,6 +633,12 @@ def main() -> int:
             print(
                 f"WINDOWS_PACKAGE_ARCHIVE_SHA256 sha256={digest} "
                 f"output={output}"
+            )
+        else:
+            digest = verify_archive_checksum(args.archive, args.checksum)
+            print(
+                f"WINDOWS_PACKAGE_ARCHIVE_SHA256_VERIFIED sha256={digest} "
+                f"archive={args.archive}"
             )
     except ValueError as exc:
         parser.error(str(exc))

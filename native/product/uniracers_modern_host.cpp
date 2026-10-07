@@ -3888,10 +3888,8 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // dimensions to a logical-coordinate renderer. The HD compositor resumes
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
-        g_onboarding_visible ||
-        g_tour_action_visible ||
+        host_owns_human_player_input() ||
         tour_continue_available() ||
-        tour_continue_routing() ||
         (g_practice_active &&
          g_practice_launch.stage ==
              ur::product::QuickPracticeLaunchStage::Active) ||

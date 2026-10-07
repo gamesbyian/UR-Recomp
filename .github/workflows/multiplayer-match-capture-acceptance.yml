@@ -103,7 +103,11 @@ jobs:
           UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
           UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
           UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 90s xvfb-run -a "$EXE" "$ROM" \
+            # CI currently advances this native route at ~240 guest frames/s;
+            # the stock P2 NO TIME boundary is ~37,670, so 90s cannot reach it.
+            # Keep a bounded outer deadman with headroom while still requiring
+            # the natural stock result and success-owned product shutdown.
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
               --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" \
               >"$LOG" 2>&1
           RC=$?

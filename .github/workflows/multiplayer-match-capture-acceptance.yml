@@ -13,6 +13,9 @@ on:
       - "tests/input/two-player-p1-win.input"
       - "tests/native/multiplayer_match_pair_check.cpp"
       - "tools/patch_modern_product_host.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/sdl3.json"
+      - "tools/toolchain-entries/snesrecomp.json"
       - ".github/workflows/multiplayer-match-capture-acceptance.yml"
 
 concurrency:

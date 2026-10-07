@@ -46,6 +46,7 @@ extern "C" {
 #include "modern_controls_binding_authority.hpp"
 #include "modern_controls_presenter.hpp"
 #include "modern_controls_rebind.hpp"
+#include "modern_overlay_composition.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "uniracers_course_identity.h"
@@ -3765,25 +3766,53 @@ void draw_run_timing_hud(
         comparison_row, sizeof(comparison_row), "%s  %s",
         panel.comparison_label.c_str(), panel.comparison_text.c_str());
 
+    int presentation_scale = 1;
+    if (height % 224 == 0) {
+        const int candidate = height / 224;
+        if (candidate >= 1 && candidate <= 4 &&
+            width % candidate == 0) {
+            presentation_scale = candidate;
+        }
+    }
+    const int logical_width = width / presentation_scale;
+    const int logical_height = height / presentation_scale;
+    ur::product::HostOverlayCompositionRequest layout_request{};
+    layout_request.logical_surface_width = logical_width;
+    layout_request.logical_surface_height = logical_height;
+    layout_request.presentation_scale = presentation_scale;
+    layout_request.output_viewport = {0, 0, width, height};
+    layout_request.anchor = ur::product::HostOverlayAnchor::TopRight;
+    layout_request.preferred_width = 178;
+    layout_request.preferred_height = 52;
+    layout_request.minimum_width = 178;
+    layout_request.minimum_height = 52;
+    layout_request.edge_margin = 8;
+    const auto layout =
+        ur::product::resolve_modern_overlay_composition(layout_request);
+    if (!layout.visible) return;
+
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const int panel_w = width < 190 ? width - 12 : 178;
-    const int panel_h = 52;
-    const int x = width - panel_w - 8;
-    const int y = 8;
+    const auto& panel = layout.presentation_rect;
+    const int text_scale = layout.presentation_scale;
     snes_ovl_fill_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xC0202020u);
+        pixels, stride, height,
+        panel.x, panel.y, panel.width, panel.height, 0xC0202020u);
     snes_ovl_stroke_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        pixels, stride, height,
+        panel.x, panel.y, panel.width, panel.height, 0xFFF0F0F0u);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 6,
-        clock_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel.x + 7 * text_scale, panel.y + 6 * text_scale,
+        clock_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 21,
-        pb_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel.x + 7 * text_scale, panel.y + 21 * text_scale,
+        pb_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 36,
-        comparison_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel.x + 7 * text_scale, panel.y + 36 * text_scale,
+        comparison_row, 0xFFFFFFFFu, text_scale);
 
     if (const char* timing_diagnostics =
             std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {

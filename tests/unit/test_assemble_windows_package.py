@@ -312,9 +312,46 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("UniracersSNESRecomp.exe", paths)
             self.assertIn("Uniracers_USA.sfc", paths)
             self.assertIn("mods/preloaded/packages/catalog.json", paths)
+            self.assertEqual(
+                (package / "rom.cfg").read_bytes(),
+                b"Uniracers_USA.sfc\n",
+            )
 
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
+
+            absolute_rom_cfg = b"C:\\build\\checkout\\Uniracers_USA.sfc\n"
+            (package / "rom.cfg").write_bytes(absolute_rom_cfg)
+            blessed_absolute_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            for entry in blessed_absolute_manifest["files"]:
+                if entry["path"] == "rom.cfg":
+                    entry["size"] = len(absolute_rom_cfg)
+                    entry["sha256"] = hashlib.sha256(
+                        absolute_rom_cfg
+                    ).hexdigest()
+                    break
+            (package / "PACKAGE-MANIFEST.json").write_text(
+                json.dumps(
+                    blessed_absolute_manifest,
+                    indent=2,
+                    sort_keys=True,
+                ) + "\n"
+            )
+            absolute_cfg = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(absolute_cfg.returncode, 0)
+            self.assertIn(
+                "rom.cfg must contain canonical package-relative ROM path",
+                absolute_cfg.stderr,
+            )
+            (package / "rom.cfg").write_bytes(b"Uniracers_USA.sfc\n")
+            (package / "PACKAGE-MANIFEST.json").write_text(
+                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+            )
+
 
             manifest_path = package / "PACKAGE-MANIFEST.json"
             provenance_manifest = json.loads(manifest_path.read_text())
@@ -563,6 +600,46 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "unsafe package archive manifest path: ../escape.bin",
                 unsafe_manifest_result.stderr,
+            )
+
+            absolute_rom_archive = root / "package-absolute-rom-config.zip"
+            absolute_rom_manifest = json.loads(json.dumps(manifest))
+            absolute_rom_payload = b"C:\\runner\\checkout\\Uniracers_USA.sfc\n"
+            for entry in absolute_rom_manifest["files"]:
+                if entry["path"] == "rom.cfg":
+                    entry["size"] = len(absolute_rom_payload)
+                    entry["sha256"] = hashlib.sha256(
+                        absolute_rom_payload
+                    ).hexdigest()
+                    break
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                absolute_rom_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        payload = (
+                            json.dumps(
+                                absolute_rom_manifest,
+                                indent=2,
+                                sort_keys=True,
+                            ) + "\n"
+                        ).encode("utf-8")
+                    elif info.filename.endswith("/rom.cfg"):
+                        payload = absolute_rom_payload
+                    else:
+                        payload = source.read(info.filename)
+                    target.writestr(info, payload)
+            absolute_archive_result = self.run_tool(
+                "verify-archive",
+                "--archive", absolute_rom_archive,
+                check=False,
+            )
+            self.assertNotEqual(absolute_archive_result.returncode, 0)
+            self.assertIn(
+                "rom.cfg must contain canonical package-relative ROM path",
+                absolute_archive_result.stderr,
             )
 
             (package / "Uniracers_USA.sfc").write_bytes(b"tampered")

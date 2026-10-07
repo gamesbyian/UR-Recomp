@@ -14,6 +14,8 @@ SCHEMA_VERSION = 1
 PACKAGE_FORMAT = "ur-recomp-windows-x64-portable-v1"
 EXE_NAME = "UniracersSNESRecomp.exe"
 ROM_NAME = "Uniracers_USA.sfc"
+ROM_CONFIG_NAME = "rom.cfg"
+ROM_CONFIG_BYTES = f"{ROM_NAME}\n".encode("ascii")
 MANIFEST_NAME = "PACKAGE-MANIFEST.json"
 LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
@@ -23,7 +25,7 @@ ARCHIVE_CHECKSUM_SUFFIX = ".sha256"
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
     ROM_NAME,
-    "rom.cfg",
+    ROM_CONFIG_NAME,
     LAUNCHER_NAME,
     README_NAME,
 }
@@ -117,6 +119,14 @@ def package_files(root: Path) -> list[dict[str, object]]:
             }
         )
     return files
+
+
+def validate_rom_config(payload: bytes, *, context: str) -> None:
+    if payload != ROM_CONFIG_BYTES:
+        raise ValueError(
+            f"{context} rom.cfg must contain canonical package-relative ROM path "
+            f"{ROM_NAME}"
+        )
 
 
 def validate_required_package_paths(
@@ -324,7 +334,7 @@ def assemble(
     if is_same_or_within(rom, output):
         raise ValueError("package output must not contain the source ROM")
 
-    required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
+    required_files = [build_dir / EXE_NAME, build_dir / ROM_CONFIG_NAME, rom]
     for path in required_files:
         if not path.is_file():
             raise ValueError(f"required package input missing: {path}")
@@ -343,7 +353,7 @@ def assemble(
     output.mkdir(parents=True)
 
     shutil.copy2(build_dir / EXE_NAME, output / EXE_NAME)
-    shutil.copy2(build_dir / "rom.cfg", output / "rom.cfg")
+    (output / ROM_CONFIG_NAME).write_bytes(ROM_CONFIG_BYTES)
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
     write_launcher(output / LAUNCHER_NAME, source_revision)
@@ -391,6 +401,12 @@ def verify(package: Path) -> dict[str, object]:
 
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
+    try:
+        validate_rom_config(
+            (package / ROM_CONFIG_NAME).read_bytes(), context="packaged"
+        )
+    except OSError as exc:
+        raise ValueError(f"cannot read packaged rom.cfg: {exc}") from exc
     try:
         readme = (package / README_NAME).read_text(encoding="utf-8")
     except OSError as exc:
@@ -592,6 +608,13 @@ def verify_archive(archive: Path) -> dict[str, object]:
             validate_required_package_paths(
                 relative_paths, context="archive package"
             )
+            try:
+                validate_rom_config(
+                    source.read(f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}"),
+                    context="archive package",
+                )
+            except KeyError as exc:
+                raise ValueError("cannot read package archive rom.cfg") from exc
             readme_name = f"{ARCHIVE_ROOT}/{README_NAME}"
             try:
                 readme = source.read(readme_name).decode("utf-8")

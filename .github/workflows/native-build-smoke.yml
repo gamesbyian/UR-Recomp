@@ -1405,7 +1405,7 @@ jobs:
           '
 
           set +e
-          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_HOST_STATE_PATH="$STATE"           timeout 6s xvfb-run -a "$EXE" "$ROM" >"$LOAD_LOG" 2>&1
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_HOST_STATE_PATH="$STATE"           SNESRECOMP_RUN_FRAMES=120           timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOAD_LOG" 2>&1
           LOAD_STATUS=$?
           set -e
           if [ "$LOAD_STATUS" -ne 0 ] && [ "$LOAD_STATUS" -ne 124 ]; then
@@ -1421,7 +1421,7 @@ jobs:
           grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOAD_LOG"
 
           set +e
-          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_EXECUTION_MODE=authentic           UR_HOST_STATE_PATH="$STATE"           timeout 6s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
+          SDL_AUDIODRIVER=dummy           UR_PRODUCT_DIAGNOSTICS=1           UR_EXECUTION_MODE=authentic           UR_HOST_STATE_PATH="$STATE"           SNESRECOMP_RUN_FRAMES=120           timeout 12s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
           AUTH_STATUS=$?
           set -e
           if [ "$AUTH_STATUS" -ne 0 ] && [ "$AUTH_STATUS" -ne 124 ]; then
@@ -1595,7 +1595,8 @@ jobs:
             # Make the already-loaded state file read-only. The candidate
             # resolution must apply live first, persistence must fail, and the
             # host must restore the previously persisted fullscreen mode.
-            chmod 444 "'"$STATE"'"
+            chmod 555 "'"$ROLLBACK_DIR"'"
+            trap 'chmod 755 "'"$ROLLBACK_DIR"'"' EXIT
             xdotool key --window "$WIN" Return
 
             for _ in $(seq 1 100); do
@@ -1605,11 +1606,12 @@ jobs:
             done
             grep -q "UR_HOST_STATE SAVE_FAILED" "'"$LOG"'"
 
+            chmod 755 "'"$ROLLBACK_DIR"'"
+            trap - EXIT
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true
           '
 
-          chmod 644 "$STATE"
           cmp "$BEFORE" "$STATE"
 
           APPLIES=$(grep -c "UR_OUTPUT_RESOLUTION APPLIED" "$LOG")
@@ -1790,6 +1792,16 @@ jobs:
           mkdir -p "$RESULTS_ROOT"
           cp "$GITHUB_WORKSPACE/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm" \
             "$RESULTS_ROOT/save.srm"
+          cat >"$RESULTS_ROOT/host-profile.txt" <<'EOF'
+          UR-HOST-PROFILE/4
+          profile=exit.results
+          generation=0
+          stock_sram=
+          tour_resume=
+          ghost_target=off
+          racer_name=
+          racer_index=
+          EOF
           cat >"$RESULTS_STATE" <<'EOF'
           UR-HOST-STATE/6
           profile=exit.results
@@ -2037,6 +2049,10 @@ jobs:
             ${{ runner.temp }}/host-state-save.log
             ${{ runner.temp }}/host-state-load.log
             ${{ runner.temp }}/host-state-authentic.log
+            ${{ runner.temp }}/output-resolution-rollback/
+            ${{ runner.temp }}/exit-frontend-*.log
+            ${{ runner.temp }}/exit-frontend-*-dumps/
+            ${{ runner.temp }}/exit-frontend-results-profile/
             ${{ runner.temp }}/render-scale-2x.state
             ${{ runner.temp }}/render-scale-2x.log
             ${{ runner.temp }}/render-scale-2x.ppm

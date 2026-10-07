@@ -3913,8 +3913,11 @@ void complete_multiplayer_run_record_capture() {
 
     reset_multiplayer_run_capture();
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
-        product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
-        (void)request_desktop_quit();
+        if (request_desktop_quit()) {
+            product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
+        } else {
+            product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_QUIT_REJECTED");
+        }
     }
 }
 

@@ -317,7 +317,14 @@ jobs:
           echo "$EXE"
           SHOT="$RUNNER_TEMP/native-frame-300.ppm"
           PRESENTS="$RUNNER_TEMP/native-presents.csv"
+          USER_DIR="$RUNNER_TEMP/native-boot-unpaced-user"
+          mkdir -p "$USER_DIR"
+          cat >"$USER_DIR/config.ini" <<'EOF'
+          [General]
+          DisableFrameDelay = 1
+          EOF
           # evidence-frame-anchor: bounded boot/frame sanity at the established main-menu observation point.
+          SNESRECOMP_USER_DATA_DIR="$USER_DIR" \
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=300 \
@@ -388,9 +395,15 @@ jobs:
           SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
           LOG="$RUNNER_TEMP/race-smoke.log"
           DUMPS="$RUNNER_TEMP/race-dumps"
-          mkdir -p "$DUMPS"
+          USER_DIR="$RUNNER_TEMP/native-route-unpaced-user"
+          mkdir -p "$DUMPS" "$USER_DIR"
+          cat >"$USER_DIR/config.ini" <<'EOF'
+          [General]
+          DisableFrameDelay = 1
+          EOF
 
           echo "== scripted native input route =="
+          SNESRECOMP_USER_DATA_DIR="$USER_DIR" \
           SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
           timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1

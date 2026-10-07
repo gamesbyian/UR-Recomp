@@ -348,6 +348,33 @@ jobs:
           grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default profiles=0 profiles_available=0" "$LOG"
           grep -q "UR_RECORDS_BROWSER PROFILES_MALFORMED pause=1 opened=1 tracks_preserved=1 runs=1 profiles_failed_closed=1 profiles_opened=1" "$LOG"
 
+      - name: Open Records through pause menu
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          RUNS="$RUNNER_TEMP/pause-records-runs"
+          LOG="$RUNNER_TEMP/pause-records.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_PAUSE_RECORDS_ACCEPTANCE=1 \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER .* selected=1 opened=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED_FROM_PAUSE_MENU" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0" "$LOG"
+
       - name: Open Records directly from results
         shell: bash
         run: |
@@ -394,6 +421,7 @@ jobs:
             ${{ runner.temp }}/browser-replay.log
             ${{ runner.temp }}/records-browser.log
             ${{ runner.temp }}/records-user-data-root.log
+            ${{ runner.temp }}/pause-records.log
             ${{ runner.temp }}/records-profiles.log
             ${{ runner.temp }}/records-malformed-profiles.log
             ${{ runner.temp }}/results-records.log

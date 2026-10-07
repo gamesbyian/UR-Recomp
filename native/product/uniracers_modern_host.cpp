@@ -172,6 +172,8 @@ unsigned g_recent_course_acceptance_frames;
 bool g_recent_course_acceptance_fired;
 int g_next_event_acceptance_stage;
 unsigned g_next_event_acceptance_frames;
+int g_results_navigation_acceptance_stage;
+unsigned g_results_navigation_acceptance_frames;
 unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
@@ -5648,6 +5650,138 @@ void run_next_event_acceptance() {
     }
 }
 
+const char* results_navigation_action_name(
+    ur::product::ModernResultsAction action) {
+    switch (action) {
+    case ur::product::ModernResultsAction::NextEvent: return "next";
+    case ur::product::ModernResultsAction::Retry: return "retry";
+    case ur::product::ModernResultsAction::TrackSelect: return "track";
+    case ur::product::ModernResultsAction::TourSelect: return "tour";
+    case ur::product::ModernResultsAction::Records: return "records";
+    case ur::product::ModernResultsAction::RepeatPractice: return "repeat";
+    case ur::product::ModernResultsAction::None:
+    default: return "none";
+    }
+}
+
+void run_results_navigation_acceptance() {
+    const char* mode = std::getenv("UR_RESULTS_NAV_ACCEPTANCE");
+    if (!mode || !*mode || !modern_mode() ||
+        g_results_navigation_acceptance_stage < 0) {
+        return;
+    }
+
+    if (g_results_navigation_acceptance_stage == 0) {
+        if (g_surface != UR_UNIRACERS_RESTART_RESULTS || paused()) {
+            g_results_navigation_acceptance_frames = 0;
+            return;
+        }
+        if (++g_results_navigation_acceptance_frames < 90u) return;
+        g_results_navigation_acceptance_frames = 0;
+        refresh_results_navigation_menu();
+
+        bool next = false;
+        bool track = false;
+        bool tour = false;
+        bool repeat = false;
+        bool records = false;
+        for (std::size_t i = 0;
+             i < g_results_navigation_menu.row_count;
+             ++i) {
+            switch (g_results_navigation_menu.rows[i]) {
+            case ur::product::ModernResultsAction::NextEvent: next = true; break;
+            case ur::product::ModernResultsAction::TrackSelect: track = true; break;
+            case ur::product::ModernResultsAction::TourSelect: tour = true; break;
+            case ur::product::ModernResultsAction::RepeatPractice: repeat = true; break;
+            case ur::product::ModernResultsAction::Records: records = true; break;
+            default: break;
+            }
+        }
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RESULTS_NAV MENU rows=%zu next=%d track=%d tour=%d repeat=%d records=%d practice=%d\n",
+                g_results_navigation_menu.row_count,
+                next ? 1 : 0,
+                track ? 1 : 0,
+                tour ? 1 : 0,
+                repeat ? 1 : 0,
+                records ? 1 : 0,
+                g_practice_active ? 1 : 0);
+            std::fflush(stderr);
+        }
+
+        if (std::strcmp(mode, "inspect") == 0 ||
+            std::strcmp(mode, "practice") == 0) {
+            g_results_navigation_acceptance_stage = -1;
+            (void)request_desktop_quit();
+            return;
+        }
+
+        ur::product::ModernResultsAction target =
+            ur::product::ModernResultsAction::None;
+        if (std::strcmp(mode, "track") == 0) {
+            target = ur::product::ModernResultsAction::TrackSelect;
+        } else if (std::strcmp(mode, "tour") == 0) {
+            target = ur::product::ModernResultsAction::TourSelect;
+        } else if (std::strcmp(mode, "next") == 0) {
+            target = ur::product::ModernResultsAction::NextEvent;
+        }
+        if (target == ur::product::ModernResultsAction::None) {
+            g_results_navigation_acceptance_stage = -1;
+            return;
+        }
+
+        for (std::size_t guard = 0;
+             guard < g_results_navigation_menu.row_count &&
+             ur::product::selected_modern_results_action(
+                 g_results_navigation_menu) != target;
+             ++guard) {
+            (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+        }
+        if (ur::product::selected_modern_results_action(
+                g_results_navigation_menu) != target) {
+            product_diagnostic("UR_RESULTS_NAV ACCEPTANCE_TARGET_MISSING");
+            g_results_navigation_acceptance_stage = -1;
+            (void)request_desktop_quit();
+            return;
+        }
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RESULTS_NAV ACCEPT target=%s\n",
+                results_navigation_action_name(target));
+            std::fflush(stderr);
+        }
+        (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+        g_results_navigation_acceptance_stage = 1;
+        return;
+    }
+
+    if (g_results_navigation_acceptance_stage == 1) {
+        const bool route_idle =
+            g_results_route_pending == ur::product::ModernResultsAction::None &&
+            !g_results_tour_route_active &&
+            !tour_continue_routing();
+        if (std::strcmp(mode, "track") == 0 &&
+            route_idle && g_ram[0x0313] != 0x01 &&
+            g_ram[0x009F] == 0xF6) {
+            product_diagnostic("UR_RESULTS_NAV ACCEPT_TRACK_READY");
+        } else if (std::strcmp(mode, "tour") == 0 &&
+                   route_idle && g_ram[0x0313] != 0x01 &&
+                   g_ram[0x009F] == 0x6D) {
+            product_diagnostic("UR_RESULTS_NAV ACCEPT_TOUR_READY");
+        } else if (std::strcmp(mode, "next") == 0 &&
+                   g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            product_diagnostic("UR_RESULTS_NAV ACCEPT_NEXT_RACE");
+        } else {
+            return;
+        }
+        g_results_navigation_acceptance_stage = -1;
+        (void)request_desktop_quit();
+    }
+}
+
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     report_display_capabilities_once();
@@ -5952,6 +6086,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     g_run_capture_previous_active = run_active;
 
     reconcile_tour_resume();
+    run_results_navigation_acceptance();
 
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
         ur_modern_session_observe_race_active(g_session, 1);

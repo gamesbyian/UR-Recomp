@@ -63,8 +63,9 @@ Final-main Windows package acceptance uses temporary directories and synthetic f
 5. deliberately missing or empty runtime payload -> `UR-STARTUP-RUNTIME-DATA`;
 6. a deliberately invalid SDL video driver -> `UR-STARTUP-VIDEO`;
 7. a deliberately invalid SDL audio driver -> `UR-STARTUP-AUDIO`;
-8. exactly one player-facing stable diagnosis for each classified failure;
-9. where the user-data root is writable, one `diagnostics/startup.log` containing deterministic build/subsystem/path/result fields and exactly one matching fatal code entry.
+8. the controller-initialization classification remains pinned by the focused package/unit contract to `UR-STARTUP-CONTROLLER` / `subsystem=controller` through the same `StartupFail` log path; the assembled-package lane does not invent an unstable Windows/SDL fault-injection knob solely to force that subsystem to fail;
+9. exactly one player-facing stable diagnosis for each runtime-injected classified failure;
+10. where the user-data root is writable, one `diagnostics/startup.log` containing deterministic build/subsystem/path/result fields and exactly one matching fatal code entry.
 
 The harness never needs to add proprietary ROM material beyond the repository's existing private canonical package input, and synthetic invalid-ROM acceptance mutates only a temporary copy.
 

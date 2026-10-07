@@ -507,6 +507,12 @@ jobs:
       - name: Representative package startup diagnostics
         run: |
           set -euo pipefail
+          assert_bounded_startup_log() {
+            local log="$1"
+            test -f "$log"
+            test "$(wc -l < "$log")" -le 10
+          }
+
 
           BROKEN_ROM="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-rom"
           cp -R "$TEST_PACKAGE" "$BROKEN_ROM"
@@ -526,7 +532,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log")" -eq 1
           BROKEN_ROM_LOG="$BROKEN_ROM_USER/diagnostics/startup.log"
-          test -f "$BROKEN_ROM_LOG"
+          assert_bounded_startup_log "$BROKEN_ROM_LOG"
           test "$(grep -Fc "code=UR-STARTUP-ROM-MISSING" "$BROKEN_ROM_LOG")" -eq 1
           grep -Fq "subsystem=rom" "$BROKEN_ROM_LOG"
           grep -Fq "result=fatal" "$BROKEN_ROM_LOG"
@@ -549,7 +555,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log")" -eq 1
           BROKEN_DATA_LOG="$BROKEN_DATA_USER/diagnostics/startup.log"
-          test -f "$BROKEN_DATA_LOG"
+          assert_bounded_startup_log "$BROKEN_DATA_LOG"
           test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$BROKEN_DATA_LOG")" -eq 1
           grep -Fq "subsystem=runtime-data" "$BROKEN_DATA_LOG"
           grep -Fq "result=fatal" "$BROKEN_DATA_LOG"
@@ -573,7 +579,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log")" -eq 1
           EMPTY_MODS_LOG="$EMPTY_MODS_USER/diagnostics/startup.log"
-          test -f "$EMPTY_MODS_LOG"
+          assert_bounded_startup_log "$EMPTY_MODS_LOG"
           test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$EMPTY_MODS_LOG")" -eq 1
           grep -Fq "Required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
 
@@ -686,7 +692,7 @@ jobs:
           test "$(grep -Fc "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log")" -eq 1
           test -d "$INVALID_USER"
           INVALID_LOG="$INVALID_USER/diagnostics/startup.log"
-          test -f "$INVALID_LOG"
+          assert_bounded_startup_log "$INVALID_LOG"
           test "$(grep -Fc "code=UR-STARTUP-ROM-INVALID" "$INVALID_LOG")" -eq 1
           grep -Fq "build_revision=" "$INVALID_LOG"
           grep -Fq "architecture=x64" "$INVALID_LOG"
@@ -709,7 +715,7 @@ jobs:
           test "$RC" -ne 0
           test "$(grep -Fc "UR-STARTUP-VIDEO:" "$RUNNER_TEMP/package-video-failure.log")" -eq 1
           VIDEO_LOG="$VIDEO_USER/diagnostics/startup.log"
-          test -f "$VIDEO_LOG"
+          assert_bounded_startup_log "$VIDEO_LOG"
           test "$(grep -Fc "schema=ur-startup-log-v1" "$VIDEO_LOG")" -eq 1
           test "$(grep -Fc "build_revision=" "$VIDEO_LOG")" -eq 1
           test "$(grep -Fc "architecture=x64" "$VIDEO_LOG")" -eq 1
@@ -734,7 +740,7 @@ jobs:
           test "$RC" -ne 0
           test "$(grep -Fc "UR-STARTUP-AUDIO:" "$RUNNER_TEMP/package-audio-failure.log")" -eq 1
           AUDIO_LOG="$AUDIO_USER/diagnostics/startup.log"
-          test -f "$AUDIO_LOG"
+          assert_bounded_startup_log "$AUDIO_LOG"
           test "$(grep -Fc "schema=ur-startup-log-v1" "$AUDIO_LOG")" -eq 1
           test "$(grep -Fc "build_revision=" "$AUDIO_LOG")" -eq 1
           test "$(grep -Fc "architecture=x64" "$AUDIO_LOG")" -eq 1

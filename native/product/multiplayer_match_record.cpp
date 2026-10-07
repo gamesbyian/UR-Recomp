@@ -321,6 +321,19 @@ MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     return result;
 }
 
+bool multiplayer_match_record_matches_run(
+    const MultiplayerMatchRecord& record,
+    const CompletedRunRecord& run) noexcept {
+    std::string detail;
+    if (!validate_multiplayer_match_record(record, &detail) ||
+        !validate_completed_run_record(run, &detail)) {
+        return false;
+    }
+    return record.run_artifact_checksum ==
+               completed_run_record_artifact_checksum(run) &&
+           record.match.course_id == run.provenance.course_id;
+}
+
 bool save_multiplayer_match_record_file(
     const std::string& path,
     const MultiplayerMatchRecord& record,

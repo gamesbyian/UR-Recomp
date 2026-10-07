@@ -16,13 +16,13 @@ The portable package contains:
 
 - `UniracersSNESRecomp.exe`, built with the static MSVC runtime so the portable package does not require a separately installed Visual C++ Redistributable;
 - the canonical `Uniracers_USA.sfc` used by this private project;
-- generated `rom.cfg`;
+- canonical package-relative `rom.cfg`, containing only `Uniracers_USA.sfc` rather than the generated build/check-out path; the mutable framework ROM cache is redirected to the user-data root after launch;
 - the staged `mods/` tree;
 - `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, launches both the executable and ROM through explicit package-root paths so later cwd relocation cannot redirect them, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, seeds one bounded per-process diagnostics log where writable, and emits stable startup diagnostic codes for package/root failures;
 - `README.txt` documenting the source revision plus the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with one canonical non-empty source-revision line plus SHA-256 and size for every packaged payload file; `README.txt` repeats that revision and verification requires the two to agree.
 
-`tools/assemble_windows_package.py` is the canonical assembler/verifier/archive producer. It removes stale output before assembly, fails closed on missing required inputs or malformed source provenance, writes deterministic metadata apart from the explicitly supplied source revision, verifies exact package contents and README/manifest revision agreement, writes a deterministic ZIP, and independently verifies every archived payload hash/size/path plus the same provenance agreement against the embedded manifest.
+`tools/assemble_windows_package.py` is the canonical assembler/verifier/archive producer. It removes stale output before assembly, fails closed on missing required inputs or malformed source provenance, canonicalizes the generated build-tree `rom.cfg` into the package-relative `Uniracers_USA.sfc` form, writes deterministic metadata apart from the explicitly supplied source revision, verifies exact package contents plus canonical ROM config and README/manifest revision agreement, writes a deterministic ZIP, and independently verifies every archived payload hash/size/path, canonical ROM config and the same provenance agreement against the embedded manifest.
 
 ## Clean-install and upgrade acceptance
 

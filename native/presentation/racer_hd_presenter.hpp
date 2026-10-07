@@ -457,6 +457,20 @@ constexpr bool is_authored_broader_0579_p2_0ec4_registration(
            c.p2_companion_gate_word == 0x0001;
 }
 
+constexpr bool is_authored_broader_0578_p2_0ec3_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& s = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0578 &&
+           registration.player_local_guard &&
+           s.p2_primary == 0x0578 &&
+           s.p2_companion == 0x0EC3 &&
+           s.p2_selector == 0 &&
+           s.p2_companion_gate_word == 0x0001;
+}
+
+
 
 constexpr bool is_authored_broader_0579_p1_registration(
     const RacerRegistration& registration
@@ -2585,6 +2599,35 @@ constexpr std::uint32_t sample_racer_hd_authored_0579_p2_0ec4_broader(
 }
 
 
+constexpr std::uint32_t sample_racer_hd_authored_0578_p2_0ec3_broader(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    const int upper_dx = x - 94;
+    const int upper_dy = y - 56;
+    const bool upper =
+        x >= 76 &&
+        y >= 24 &&
+        y < 90 &&
+        upper_dx * upper_dx * 44 * 44 +
+            upper_dy * upper_dy * 28 * 28 <=
+            28 * 28 * 44 * 44;
+    if (upper) {
+        return authored_saddle_color(x, y, 94, 56, 44);
+    }
+
+    if (x < 84 || y < 78) return 0;
+
+    return recolor_authored_frame_color(
+        sample_racer_hd_authored_05f9_p1_broader(x, y, false, false),
+        true
+    );
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0579_p1_broader(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -2811,6 +2854,11 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_broader_0579_p2_0ec4_registration(registration)) {
         return sample_racer_hd_authored_0579_p2_0ec4_broader(
+            x, y, hflip, vflip
+        );
+    }
+    if (is_authored_broader_0578_p2_0ec3_registration(registration)) {
+        return sample_racer_hd_authored_0578_p2_0ec3_broader(
             x, y, hflip, vflip
         );
     }

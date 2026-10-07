@@ -18,6 +18,7 @@ WORK="$3"
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 PERSIST_SCRIPT="$REPO/tests/input/modern-recent-course-persist.script"
 RESTORE_SCRIPT="$REPO/tests/input/modern-recent-course-restore.script"
+ATTRACT_SCRIPT="$REPO/tests/input/modern-recent-course-attract.script"
 MAIN_SCRIPT="$REPO/tests/input/modern-main-menu.script"
 CLEAN="$REPO/reference/imported/reverse-engineering/dessyreqt/SRAM/Clean.srm"
 
@@ -202,6 +203,22 @@ grep -q "UR_PROFILE_STATE MALFORMED_READ_ONLY" "$C_LOG"
 ! grep -q "UR_FAST_NAV RECENT_RESTORED" "$C_LOG"
 cmp "$WORK/malformed-before.txt" "$C_ROOT/host-profile.txt"
 echo "UR_RECENT_MALFORMED_NATIVE=fail_closed restored=0 rewritten=0"
+
+# G. Left idle, the stock main menu plays the attract demo race. That course
+#    was never chosen by the player, so the restored Recent Course (Crawler
+#    slot 4, Monster) is neither replaced nor rewritten.
+G_ROOT="$WORK/attract-profile"
+G_LOG="$WORK/attract.log"
+make_fixture "$G_ROOT" 5 4
+cp "$G_ROOT/host-profile.txt" "$WORK/attract-before.txt"
+run_native "$G_ROOT" "$WORK/attract-dumps" "$G_LOG" "$ATTRACT_SCRIPT"
+cat "$G_LOG"
+grep -q "UR_FAST_NAV RECENT_RESTORED track=4" "$G_LOG"
+grep -q "UR_FAST_NAV RECENT_IGNORED_ATTRACT" "$G_LOG"
+! grep -q "UR_FAST_NAV RECENT_OBSERVED" "$G_LOG"
+! grep -q "UR_FAST_NAV RECENT_PERSISTED" "$G_LOG"
+cmp "$WORK/attract-before.txt" "$G_ROOT/host-profile.txt"
+echo "UR_RECENT_ATTRACT_NATIVE=demo_race_ignored recent_track=4 profile_unchanged=1"
 
 # D. Authentic mode never reads or applies Modern profile metadata.
 D_ROOT="$WORK/authentic-profile"

@@ -38,6 +38,7 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
+#include "recent_course_origin.hpp"
 #include "regional_presentation_input_policy.hpp"
 #include "regional_presentation_input_coordinator.hpp"
 #include "regional_title_presenter.hpp"
@@ -173,6 +174,8 @@ int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
+ur::product::RecentCourseOriginState g_recent_course_origin;
+bool g_recent_course_attract_reported = false;
 std::optional<std::uint32_t> g_fast_repeat_sram_before;
 std::optional<std::uint8_t> g_fast_repeat_course_before;
 std::vector<uint8_t> g_practice_sram_snapshot;
@@ -1134,6 +1137,18 @@ void persist_recent_course_for_active_profile(std::uint8_t track_id) {
 
 void observe_recent_course_identity() {
     if (!modern_mode()) return;
+    g_recent_course_origin = ur::product::observe_recent_course_origin(
+        g_recent_course_origin, g_ram[0x0313], g_ram[0x009F]);
+    // The idle attract demo is a validated live course the player never
+    // chose; it must not replace the profile's Recent Course.
+    if (!ur::product::recent_course_origin_admits(g_recent_course_origin)) {
+        if (g_ram[0x0313] == 0x01 && !g_recent_course_attract_reported) {
+            g_recent_course_attract_reported = true;
+            product_diagnostic("UR_FAST_NAV RECENT_IGNORED_ATTRACT");
+        }
+        return;
+    }
+    g_recent_course_attract_reported = false;
     // During Practice launch, do not let an attract/demo or wrong-course race
     // poison Recent Course before the target-aware router has validated it.
     if (g_practice_active &&

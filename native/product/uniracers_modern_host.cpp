@@ -4412,8 +4412,6 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         current_regional_secret_context().idle_title_surface;
     const bool logical_overlay_active =
         regional_title ||
-        g_local_multiplayer_join_visible ||
-        g_tour_action_visible ||
         onboarding_surface_active() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
@@ -5680,17 +5678,29 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (g_local_multiplayer_join_visible && modern_mode()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 276 ? width - 16 : 268;
-        const int panel_h = 112;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 276
+            ? logical_width - 16
+            : 268;
+        constexpr int kLocalMultiplayerPanelHeight = 112;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kLocalMultiplayerPanelHeight,
+            panel_w_logical, kLocalMultiplayerPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "LOCAL MULTIPLAYER", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 7 * scale,
+            "LOCAL MULTIPLAYER", 0xFFFFFFFFu, scale);
         const char* p1 =
             g_local_multiplayer_setup.player1.assigned &&
             g_local_multiplayer_setup.player1.source.connected
@@ -5700,17 +5710,17 @@ extern "C" void ur_uniracers_modern_system_overlay(
             g_local_multiplayer_setup.player2.source.connected
                 ? "PLAYER 2  JOINED" : "PLAYER 2  PRESS A / START";
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 32,
-            p1, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 32 * scale,
+            p1, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 52,
-            p2, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 52 * scale,
+            p2, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 77,
-            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 77 * scale,
+            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 94,
-            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 94 * scale,
+            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, scale);
         return;
     }
 
@@ -5718,10 +5728,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
         g_profile_state && g_profile_state->tour_continuation) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 260 ? width - 16 : 252;
-        const int panel_h = 142;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 260
+            ? logical_width - 16
+            : 252;
+        constexpr int kTourActionPanelHeight = 142;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kTourActionPanelHeight,
+            panel_w_logical, kTourActionPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         const auto& continuation = *g_profile_state->tour_continuation;
         const auto tier = ur::product::default_modern_challenge_tier(
             continuation.medal_value);
@@ -5729,12 +5749,15 @@ extern "C" void ur_uniracers_modern_system_overlay(
             static_cast<std::uint8_t>(continuation.tour_row * 5u));
 
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "TOUR", 0xFFFFFFFFu, 1);
+            pixels, stride, height,
+            x + 8 * scale, y + 7 * scale,
+            "TOUR", 0xFFFFFFFFu, scale);
 
         char detail[96];
         std::snprintf(
@@ -5743,27 +5766,27 @@ extern "C" void ur_uniracers_modern_system_overlay(
             course ? course->tour_name.data() : "TOUR",
             challenge_tier_name(tier));
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 25,
-            detail, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 25 * scale,
+            detail, 0xFFFFFFFFu, scale);
 
         unsigned completed = 0;
         for (const auto flag : continuation.qualified) completed += flag;
         std::snprintf(
             detail, sizeof(detail), "PROGRESS %u/5", completed);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 42,
-            detail, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 42 * scale,
+            detail, 0xFFFFFFFFu, scale);
 
         if (g_tour_action_menu.confirming_restart) {
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 67,
-                "RESTART TOUR?", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 67 * scale,
+                "RESTART TOUR?", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 86,
-                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 86 * scale,
+                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 105,
-                "ESC / PAD B CANCEL", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 105 * scale,
+                "ESC / PAD B CANCEL", 0xFFFFFFFFu, scale);
         } else {
             const char* row_labels[] = {
                 "RESUME TOUR", "RESTART TOUR", "BACK", "NEXT EVENT"
@@ -5791,9 +5814,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         row_labels[idx]);
                 }
                 snes_ovl_draw_text(
-                    pixels, stride, height, x + 8,
-                    y + 66 + static_cast<int>(i) * 18,
-                    row, 0xFFFFFFFFu, 1);
+                    pixels, stride, height, x + 8 * scale,
+                    y + (66 + static_cast<int>(i) * 18) * scale,
+                    row, 0xFFFFFFFFu, scale);
             }
         }
         return;

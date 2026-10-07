@@ -624,8 +624,10 @@ class WindowsPackageTests(unittest.TestCase):
 
             original = sidecar.read_text(encoding="ascii")
 
+            wrong_archive_name = "XR-Recomp-Windows-x64.zip"
+            self.assertEqual(len(wrong_archive_name), len(archive.name))
             sidecar.write_text(
-                original.replace(archive.name, "different.zip"),
+                original.replace(archive.name, wrong_archive_name),
                 encoding="ascii",
                 newline="\n",
             )
@@ -676,6 +678,23 @@ class WindowsPackageTests(unittest.TestCase):
             )
 
             sidecar.write_text(
+                original.replace("\n", "\r\n"),
+                encoding="ascii",
+                newline="",
+            )
+            crlf = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(crlf.returncode, 0)
+            self.assertIn(
+                "archive checksum must be one canonical LF-terminated line",
+                crlf.stderr,
+            )
+
+            sidecar.write_text(
                 original + "extra\n",
                 encoding="ascii",
                 newline="\n",
@@ -691,6 +710,20 @@ class WindowsPackageTests(unittest.TestCase):
                 "archive checksum must be one canonical LF-terminated line",
                 extra_line.stderr,
             )
+
+    def test_archive_checksum_verifier_fails_closed_for_missing_sidecar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            archive.write_bytes(b"archive")
+            result = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", root / "missing.sha256",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("archive checksum missing", result.stderr)
 
     def test_archive_checksum_fails_closed_for_missing_archive(self):
         with tempfile.TemporaryDirectory() as tmp:

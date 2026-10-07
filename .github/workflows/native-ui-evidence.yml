@@ -34,6 +34,9 @@ on:
       - "native/title/uniracers_restart_policy.*"
       - "tests/input/reach-first-race.script"
       - "tests/input/modern-focus-pause.script"
+      - "tests/input/two-player-first-race.input"
+      - "tests/input/two-player-first-race-observe.script"
+      - "tools/check_ppm.py"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"
       - "tests/input/ui-vs-handoff.script"
@@ -246,6 +249,194 @@ jobs:
             echo "::warning::One or more optional probes failed in shard $SHARD; aggregate validation will decide whether evidence is sufficient."
           fi
 
+      - name: Modern settings persistence acceptance
+        if: matrix.shard == 'core'
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
+          STATE="$RUNNER_TEMP/host-state-v6.txt"
+          SAVE_LOG="$RUNNER_TEMP/host-state-save.log"
+          LOAD_LOG="$RUNNER_TEMP/host-state-load.log"
+          AUTH_LOG="$RUNNER_TEMP/host-state-authentic.log"
+          DUMPS="$RUNNER_TEMP/host-state-dumps"
+          rm -f "$STATE"
+          mkdir -p "$DUMPS"
+
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_PAUSE_OPEN_ACCEPTANCE=1
+            export UR_HOST_STATE_PATH="'"$STATE"'"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$SAVE_LOG"'" 2>&1 &
+            PID=$!
+
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/race-entered.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/race-entered.wram.bin" ]
+
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SAVE_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SAVE_LOG"'"
+
+            # Active race exposes Resume -> Restart -> Options.
+            xdotool key --window "$WIN" Down Down Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PAUSE_OPTIONS OPENED" "'"$SAVE_LOG"'"
+
+            # Focus Pause: On -> Off.
+            xdotool key --window "$WIN" Return
+            # Display: Windowed -> Borderless -> Fullscreen.
+            xdotool key --window "$WIN" Down Return Return
+            # VSync: On -> Adaptive.
+            xdotool key --window "$WIN" Down Return
+            # Presentation FPS: Game -> 60 -> 90 -> 120.
+            xdotool key --window "$WIN" Down Return Return Return
+            # Output Resolution: Native -> first explicit monitor mode.
+            xdotool key --window "$WIN" Down Return
+            # Internal Render Scale: 4x -> 1x.
+            xdotool key --window "$WIN" Down Return
+            # Widescreen: Original -> 16:9.
+            xdotool key --window "$WIN" Down Return
+
+            for _ in $(seq 1 100); do
+              grep -q "^widescreen=16x9$" "'"$STATE"'" 2>/dev/null && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            for _ in $(seq 1 100); do
+              grep -q "^output_resolution=[0-9][0-9]*x[0-9][0-9]*$" "'"$STATE"'" 2>/dev/null && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+
+            grep -q "^UR-HOST-STATE/6$" "'"$STATE"'"
+            grep -q "^pause_on_focus_loss=0$" "'"$STATE"'"
+            grep -q "^display_mode=fullscreen$" "'"$STATE"'"
+            grep -q "^vsync=adaptive$" "'"$STATE"'"
+            grep -q "^presentation_fps=120$" "'"$STATE"'"
+            grep -q "^internal_render_scale=1x$" "'"$STATE"'"
+            grep -q "^widescreen=16x9$" "'"$STATE"'"
+            RESOLUTION=$(sed -n "s/^output_resolution=//p" "'"$STATE"'")
+            test -n "$RESOLUTION"
+            test "$RESOLUTION" != native
+            grep -Eq "^output_resolution=[0-9]+x[0-9]+$" "'"$STATE"'"
+            grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "'"$SAVE_LOG"'"
+            grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "'"$SAVE_LOG"'"
+            grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "'"$SAVE_LOG"'"
+            grep -q "UR_OUTPUT_RESOLUTION SELECTED value=$RESOLUTION" "'"$SAVE_LOG"'"
+            grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "'"$SAVE_LOG"'"
+            grep -q "UR_RENDER_SCALE APPLIED scale=1x" "'"$SAVE_LOG"'"
+            grep -q "UR_WIDESCREEN SELECTED mode=16x9" "'"$SAVE_LOG"'"
+            grep -q "UR_HOST_STATE SAVED" "'"$SAVE_LOG"'"
+            kill "$PID" 2>/dev/null || true
+            wait "$PID" 2>/dev/null || true
+          '
+
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          SNESRECOMP_RUN_FRAMES=120 \
+          timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOAD_LOG" 2>&1
+
+          RESOLUTION=$(sed -n "s/^output_resolution=//p" "$STATE")
+          grep -Eq "UR_HOST_STATE LOADED .*pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=${RESOLUTION} widescreen=16x9 internal_render_scale=1x" "$LOAD_LOG"
+          grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
+          grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "$LOAD_LOG"
+          grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"
+          grep -q "UR_PRESENTATION_FPS APPLIED mode=120 target=120 decoupled=1" "$LOAD_LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOAD_LOG"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_EXECUTION_MODE=authentic \
+          UR_HOST_STATE_PATH="$STATE" \
+          SNESRECOMP_RUN_FRAMES=120 \
+          timeout 12s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
+
+          grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTH_LOG"
+          ! grep -q "UR_HOST_STATE LOADED" "$AUTH_LOG"
+          ! grep -q "UR_DISPLAY_MODE APPLIED" "$AUTH_LOG"
+          ! grep -q "UR_VSYNC APPLIED" "$AUTH_LOG"
+          ! grep -q "UR_PRESENTATION_FPS APPLIED" "$AUTH_LOG"
+          ! grep -q "UR_OUTPUT_RESOLUTION" "$AUTH_LOG"
+          ! grep -q "UR_WIDESCREEN" "$AUTH_LOG"
+          if grep -q "UR_RENDER_SCALE" "$AUTH_LOG"; then
+            echo "::error::Authentic mode touched modern Internal Render Scale policy"
+            exit 1
+          fi
+
+          echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_render_scale_widescreen_saved_loaded_and_authentic_inert"
+
+      - name: Internal Render Scale compositor acceptance
+        if: matrix.shard == 'core'
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          STATE="$RUNNER_TEMP/render-scale-2x.state"
+          SHOT="$RUNNER_TEMP/render-scale-2x.ppm"
+          LOG="$RUNNER_TEMP/render-scale-2x.log"
+          DUMPS="$RUNNER_TEMP/render-scale-2x-dumps"
+          mkdir -p "$DUMPS"
+
+          cat > "$STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          display_mode=windowed
+          vsync=on
+          presentation_fps=game
+          output_resolution=native
+          widescreen=original
+          internal_render_scale=2x
+          EOF
+
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_RACER_HD=1 \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SNESRECOMP_INPUT_FILE="$INPUT" \
+          SNESRECOMP_SCREENSHOT="$SHOT" \
+          SNESRECOMP_SCREENSHOT_FRAME=1220 \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*internal_render_scale=2x" "$LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=2x" "$LOG"
+          grep -q "UR_RACER_HD_DRAW PASS .*output_scale=2" "$LOG"
+          test -s "$SHOT"
+          python3 tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2
+          echo "UR_RENDER_SCALE_FRAME PASS dimensions=512x448 scale=2"
+
       - name: Upload shard evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -254,6 +445,10 @@ jobs:
           path: |
             ${{ runner.temp }}/*-dumps/
             ${{ runner.temp }}/*.log
+            ${{ runner.temp }}/host-state-v6.txt
+            ${{ runner.temp }}/render-scale-2x.state
+            ${{ runner.temp }}/render-scale-2x.ppm
+            ${{ runner.temp }}/render-scale-2x-dumps/
           if-no-files-found: warn
           retention-days: 7
 

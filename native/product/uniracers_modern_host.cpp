@@ -3739,8 +3739,8 @@ void maybe_run_pause_records_acceptance() {
     if (++g_pause_records_acceptance_surface_frames < 90) return;
 
     g_pause_records_acceptance_fired = true;
-    const UrModernSessionResult pause_result =
-        ur_modern_session_pause(g_session);
+    const int pause_handled =
+        ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
     const int restart = ur_modern_session_restart_available(g_session);
     ur_modern_pause_menu_reset(&g_pause_menu);
 
@@ -3760,7 +3760,7 @@ void maybe_run_pause_records_acceptance() {
         std::fprintf(
             stderr,
             "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER pause=%d restart=%d moves=%d selected=%d opened=%d\n",
-            static_cast<int>(pause_result),
+            pause_handled,
             restart,
             moves,
             selected ? 1 : 0,

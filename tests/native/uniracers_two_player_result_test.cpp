@@ -26,6 +26,11 @@ int main() {
     wram[0x017D] = 0;
     wram[0x017F] = 1;
 
+    // The stock result menu can appear one boundary before result SRAM is
+    // populated. The all-zero transient must not be persisted as a draw.
+    assert(!observe_ordinary_two_player_race_result(
+        true, wram.data(), wram.size(), sram.data(), sram.size()));
+
     // Promoted ordinary-2P fixture: MIKE finishes in 28.76, ANDREW has NO TIME.
     write_le16(sram, 0x0618, 2876);
     write_le16(sram, 0x061A, kOrdinaryTwoPlayerNoTimeHundredths);

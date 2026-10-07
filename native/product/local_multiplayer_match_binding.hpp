@@ -13,9 +13,10 @@ namespace ur::product {
 enum class LocalMultiplayerMatchBindingStatus : std::uint8_t {
     Bound = 0,
     MissingProfileIdentity = 1,
-    DuplicateProfileIdentity = 2,
-    InvalidRacerIdentity = 3,
-    RiderMismatch = 4,
+    InvalidProfileIdentity = 2,
+    DuplicateProfileIdentity = 3,
+    InvalidRacerIdentity = 4,
+    RiderMismatch = 5,
 };
 
 struct BoundOrdinaryTwoPlayerMatch {

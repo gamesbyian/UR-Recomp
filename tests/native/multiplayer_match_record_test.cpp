@@ -78,6 +78,20 @@ int main() {
     corrupted[pos] = '3';
     assert(!decode_multiplayer_match_record(corrupted));
 
+    {
+        auto unsafe = original;
+        unsafe.context.match.player2.profile_id = "CON";
+        assert(!validate_multiplayer_match_record(unsafe));
+        assert(encode_multiplayer_match_record(unsafe).empty());
+    }
+
+    {
+        auto alias = original;
+        alias.context.match.player2.profile_id = "IAN";
+        assert(!validate_multiplayer_match_record(alias));
+        assert(encode_multiplayer_match_record(alias).empty());
+    }
+
     auto wrong_outcome = original;
     wrong_outcome.context.match.result.outcome =
         OrdinaryTwoPlayerRaceOutcome::Player2Win;

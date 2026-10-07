@@ -1,8 +1,27 @@
 #include "local_multiplayer_match_binding.hpp"
 
+#include "host_profile_runtime.hpp"
+
+#include <cctype>
 #include <cstdio>
+#include <string_view>
 
 namespace ur::product {
+namespace {
+
+bool same_profile_storage_identity(
+    std::string_view lhs,
+    std::string_view rhs) noexcept {
+    if (lhs.size() != rhs.size()) return false;
+    for (std::size_t i = 0; i < lhs.size(); ++i) {
+        const unsigned char a = static_cast<unsigned char>(lhs[i]);
+        const unsigned char b = static_cast<unsigned char>(rhs[i]);
+        if (std::tolower(a) != std::tolower(b)) return false;
+    }
+    return true;
+}
+
+}  // namespace
 
 LocalMultiplayerMatchBindingResult bind_local_multiplayer_match(
     const ur::title::OrdinaryTwoPlayerRaceResult& result,
@@ -14,7 +33,15 @@ LocalMultiplayerMatchBindingResult bind_local_multiplayer_match(
             std::nullopt,
         };
     }
-    if (player1.profile_id == player2.profile_id) {
+    if (!is_safe_profile_storage_id(player1.profile_id) ||
+        !is_safe_profile_storage_id(player2.profile_id)) {
+        return {
+            LocalMultiplayerMatchBindingStatus::InvalidProfileIdentity,
+            std::nullopt,
+        };
+    }
+    if (same_profile_storage_identity(
+            player1.profile_id, player2.profile_id)) {
         return {
             LocalMultiplayerMatchBindingStatus::DuplicateProfileIdentity,
             std::nullopt,

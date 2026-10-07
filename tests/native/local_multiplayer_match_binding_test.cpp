@@ -53,6 +53,26 @@ int main() {
     }
 
     {
+        auto unsafe = p2;
+        unsafe.profile_id = "CON";
+        const auto rejected =
+            bind_local_multiplayer_match(result(), p1, unsafe);
+        assert(!rejected.bound());
+        assert(rejected.status ==
+               LocalMultiplayerMatchBindingStatus::InvalidProfileIdentity);
+    }
+
+    {
+        auto alias = p2;
+        alias.profile_id = "IAN";
+        const auto rejected =
+            bind_local_multiplayer_match(result(), p1, alias);
+        assert(!rejected.bound());
+        assert(rejected.status ==
+               LocalMultiplayerMatchBindingStatus::DuplicateProfileIdentity);
+    }
+
+    {
         auto duplicate = p2;
         duplicate.profile_id = p1.profile_id;
         const auto rejected =

@@ -5654,9 +5654,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                 "UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST");
             reset_multiplayer_run_capture();
         } else {
-            const auto current_course =
-                ur_uniracers_identify_course(
-                    g_ram + 0x10000u, 0x10000u);
             const bool participant_context_matches =
                 g_multiplayer_capture_player1 &&
                 g_multiplayer_capture_player2 &&
@@ -5666,10 +5663,18 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                     *g_multiplayer_capture_player1 &&
                 *g_local_multiplayer_participants.player2 ==
                     *g_multiplayer_capture_player2;
-            if (!current_course.valid ||
-                current_course.course_index !=
-                    g_multiplayer_capture_course.course_index ||
-                !participant_context_matches) {
+            bool course_context_matches = true;
+            if (run_active) {
+                const auto current_course =
+                    ur_uniracers_identify_course(
+                        g_ram + 0x10000u, 0x10000u);
+                course_context_matches =
+                    current_course.valid &&
+                    current_course.course_index ==
+                        g_multiplayer_capture_course.course_index;
+            }
+            if (!participant_context_matches ||
+                !course_context_matches) {
                 product_diagnostic(
                     "UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT");
                 reset_multiplayer_run_capture();

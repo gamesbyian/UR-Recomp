@@ -132,7 +132,7 @@ The deterministic source-sampling policy is represented by `native/product/prese
 - Remastered and Reimagined rasters are sampled at their declared native density rather than being round-tripped through the guest surface;
 - Modern primitives and glyphs rasterize directly at presentation density.
 
-This policy does not silently select a CRT/NTSC treatment or a final-window filter. Those remain separate post-composition display-treatment choices. The first migrated runtime consumers are the live timing HUD, Recent-course hint, and Quick Practice routing banner. Their anchors, panels where present, and glyphs preserve logical size at supported integer presentation densities; unmigrated interactive/modal overlays fail safely to 1x until converted.
+This policy does not silently select a CRT/NTSC treatment or a final-window filter. Those remain separate post-composition display-treatment choices. The first migrated runtime consumers are the live timing HUD plus the non-modal Recent, Quick Practice and Tour hint/banner surfaces. Their anchors, panels where present, and glyphs preserve logical size at supported integer presentation densities; unmigrated interactive/modal overlays fail safely to 1x until converted.
 
 ## Presentation cadence
 

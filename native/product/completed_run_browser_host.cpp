@@ -336,12 +336,13 @@ bool open_records_from_results() {
     return opened;
 }
 
-bool open_records_browser() {
+bool open_records_browser_impl(bool normalize_pause_surface) {
     if (!modern_mode() || !snesrecomp_desktop_is_paused()) {
         return false;
     }
     g_records_active_profile_id = active_profile_id();
-    if (!normalize_base_pause_surface() || !refresh_records_browser()) {
+    if ((normalize_pause_surface && !normalize_base_pause_surface()) ||
+        !refresh_records_browser()) {
         g_records_active_profile_id.clear();
         return false;
     }
@@ -374,6 +375,10 @@ bool open_records_browser() {
         std::fflush(stderr);
     }
     return true;
+}
+
+bool open_records_browser() {
+    return open_records_browser_impl(true);
 }
 
 bool open_browser() {
@@ -1410,7 +1415,9 @@ extern "C" void ur_uniracers_product_after_run_frame(
 }
 
 extern "C" int ur_uniracers_product_open_records(void) {
-    return open_records_browser() ? 1 : 0;
+    const bool opened = open_records_browser_impl(false);
+    if (opened) diagnostic("UR_RECORDS_BROWSER OPENED_FROM_PAUSE_MENU");
+    return opened ? 1 : 0;
 }
 
 extern "C" int ur_uniracers_product_system_key_down(

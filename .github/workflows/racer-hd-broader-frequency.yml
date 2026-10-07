@@ -1398,6 +1398,9 @@ jobs:
           probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
           print("RACER_HD_POST_0139_NEXT", json.dumps({
               "target": probe["target"],
+              "witness_exact_state_count": probe["witness_exact_state_count"],
+              "witness_player_frames": probe["witness_player_frames"],
+              "witnesses": probe["witnesses"],
               "unique_stock_raster_count": probe["unique_stock_raster_count"],
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],

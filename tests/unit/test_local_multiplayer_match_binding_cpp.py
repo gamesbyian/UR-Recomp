@@ -25,6 +25,7 @@ class LocalMultiplayerMatchBindingCppTests(unittest.TestCase):
                     str(ROOT / "tests/native/local_multiplayer_match_binding_test.cpp"),
                     str(ROOT / "native/product/local_multiplayer_match_binding.cpp"),
                     str(ROOT / "native/product/modern_racer_identity.cpp"),
+                    str(ROOT / "native/title/uniracers_course_identity.cpp"),
                     "-o",
                     str(exe),
                 ],

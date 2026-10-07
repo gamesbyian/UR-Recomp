@@ -104,6 +104,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
             "ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0)",
             acceptance,
         )
+        self.assertIn("!g_next_event_verify_track", acceptance)
         self.assertNotIn("activate_results_navigation_action(", acceptance)
 
     def test_quick_practice_and_authentic_are_explicit_acceptance_cases(self):

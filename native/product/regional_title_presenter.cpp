@@ -72,12 +72,10 @@ bool paint_crop(
     std::uint8_t* pixels,
     std::size_t pitch,
     const std::array<std::uint32_t, N>& palette,
-    const char* encoded_indices) noexcept {
+    const char* encoded_indices,
+    int presentation_scale) noexcept {
     std::size_t index = 0;
     for (int y = 0; y < kHeight; ++y) {
-        std::uint8_t* row =
-            pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
-            static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
         for (int x = 0; x < kWidth; ++x, ++index) {
             std::uint8_t palette_index = 0;
             if (!decode_index(encoded_indices, index, &palette_index) ||
@@ -85,11 +83,22 @@ bool paint_crop(
                 return false;
             }
             const std::uint32_t bgrx = palette[palette_index];
-            std::uint8_t* pixel =
-                row + static_cast<std::size_t>(x) * kBytesPerPixel;
-            pixel[0] = static_cast<std::uint8_t>(bgrx & 0xffu);
-            pixel[1] = static_cast<std::uint8_t>((bgrx >> 8u) & 0xffu);
-            pixel[2] = static_cast<std::uint8_t>((bgrx >> 16u) & 0xffu);
+            for (int sy = 0; sy < presentation_scale; ++sy) {
+                std::uint8_t* row =
+                    pixels +
+                    static_cast<std::size_t>(
+                        (kOriginY + y) * presentation_scale + sy) * pitch +
+                    static_cast<std::size_t>(
+                        kOriginX * presentation_scale) * kBytesPerPixel;
+                for (int sx = 0; sx < presentation_scale; ++sx) {
+                    std::uint8_t* pixel =
+                        row + static_cast<std::size_t>(
+                            x * presentation_scale + sx) * kBytesPerPixel;
+                    pixel[0] = static_cast<std::uint8_t>(bgrx & 0xffu);
+                    pixel[1] = static_cast<std::uint8_t>((bgrx >> 8u) & 0xffu);
+                    pixel[2] = static_cast<std::uint8_t>((bgrx >> 16u) & 0xffu);
+                }
+            }
         }
     }
     return index == kIndexCount;
@@ -99,11 +108,14 @@ bool dimensions_admit(
     const std::uint8_t* pixels,
     std::size_t pitch,
     int width,
-    int height) noexcept {
-    if (!pixels || width <= 0 || height <= 0) {
+    int height,
+    int presentation_scale = 1) noexcept {
+    if (!pixels || width <= 0 || height <= 0 ||
+        presentation_scale < 1 || presentation_scale > 4) {
         return false;
     }
-    if (width < kOriginX + kWidth || height < kOriginY + kHeight) {
+    if (width < (kOriginX + kWidth) * presentation_scale ||
+        height < (kOriginY + kHeight) * presentation_scale) {
         return false;
     }
     return pitch >= static_cast<std::size_t>(width) * kBytesPerPixel;
@@ -140,12 +152,14 @@ RegionalTitlePresentationResult apply_regional_title_presentation(
     std::uint8_t* pixels,
     std::size_t pitch,
     int width,
-    int height) noexcept {
+    int height,
+    int presentation_scale) noexcept {
     if (presentation == RegionalPresentation::NorthAmerica ||
         !idle_title_surface) {
         return RegionalTitlePresentationResult::Canonical;
     }
-    if (!dimensions_admit(pixels, pitch, width, height) ||
+    if (!dimensions_admit(
+            pixels, pitch, width, height, presentation_scale) ||
         !kCgramIdenticalAcrossEvidence) {
         return RegionalTitlePresentationResult::FailedClosed;
     }
@@ -158,39 +172,16 @@ RegionalTitlePresentationResult apply_regional_title_presentation(
         return RegionalTitlePresentationResult::FailedClosed;
     }
 
-    std::array<std::uint8_t, kIndexCount * 3u> canonical_bgr{};
-    std::size_t backup_index = 0;
-    for (int y = 0; y < kHeight; ++y) {
-        const std::uint8_t* row =
-            pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
-            static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
-        for (int x = 0; x < kWidth; ++x) {
-            const std::uint8_t* pixel =
-                row + static_cast<std::size_t>(x) * kBytesPerPixel;
-            canonical_bgr[backup_index++] = pixel[0];
-            canonical_bgr[backup_index++] = pixel[1];
-            canonical_bgr[backup_index++] = pixel[2];
-        }
+    // Payload validation above is complete and deterministic, so painting is
+    // all-or-nothing with respect to encoded input. The caller owns the
+    // canonical background and may precompose it at any supported density.
+    if (!paint_crop(
+            pixels, pitch, kPalette, kIndicesBase85, presentation_scale)) {
+        return RegionalTitlePresentationResult::FailedClosed;
     }
-
-    if (!paint_crop(pixels, pitch, kPalette, kIndicesBase85) ||
+    if (presentation_scale == 1 &&
         regional_title_visible_crop_digest(pixels, pitch, width, height) !=
             kTargetCropBgrFnv1a64) {
-        // Fail closed to the exact live canonical guest raster, not to a
-        // renderer-specific reference-emulator reconstruction.
-        backup_index = 0;
-        for (int y = 0; y < kHeight; ++y) {
-            std::uint8_t* row =
-                pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
-                static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
-            for (int x = 0; x < kWidth; ++x) {
-                std::uint8_t* pixel =
-                    row + static_cast<std::size_t>(x) * kBytesPerPixel;
-                pixel[0] = canonical_bgr[backup_index++];
-                pixel[1] = canonical_bgr[backup_index++];
-                pixel[2] = canonical_bgr[backup_index++];
-            }
-        }
         return RegionalTitlePresentationResult::FailedClosed;
     }
     return RegionalTitlePresentationResult::EuropeApplied;

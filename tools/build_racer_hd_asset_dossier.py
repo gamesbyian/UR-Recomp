@@ -246,6 +246,9 @@ FIFTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
 FIFTY_SIXTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0579-p1-broader-frequency-reference"
 )
+FIFTY_SEVENTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -2109,6 +2112,44 @@ def build_thirty_ninth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0578_p2_0ec3_broader_rgba(x: int, y: int) -> bytes:
+    """Fresh measured P2 0578/0EC3 geometry with shifted upper body mass."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    # 0578/0EC3 moves the measured P2 upper mass left/down relative to
+    # 0579/0EC4 while retaining the same lower contact anchor. Keep this as a
+    # distinct authored pose rather than claiming cross-state reuse.
+    upper_dx = x - 94
+    upper_dy = y - 56
+    upper = (
+        x >= 76
+        and y >= 24
+        and y < 90
+        and upper_dx * upper_dx * 44 * 44
+        + upper_dy * upper_dy * 28 * 28
+        <= 28 * 28 * 44 * 44
+    )
+    if upper:
+        return authored_saddle_rgba(x, y, 94, 56, 44)
+
+    if x < 84 or y < 78:
+        return b"\x00\x00\x00\x00"
+
+    return recolor_authored_frame_rgba(
+        sample_authored_05f9_p1_broader_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def build_fortieth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0578_p2_0ec3_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -2530,6 +2571,12 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_thirty_ninth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_thirty_ninth_authored_candidate_rgba",
             "sample_racer_hd_authored_0579_p1_broader",
+        )
+    if rid == FIFTY_SEVENTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_fortieth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_fortieth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0578_p2_0ec3_broader",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

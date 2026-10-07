@@ -17,6 +17,7 @@ on:
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/check_ppm.py"
+      - "tools/ci_log_assert.py"
       - "tools/prepare_native_widescreen_product.py"
       - "tools/seed_native_widescreen_aot.py"
       - "tools/apply_native_widescreen_hook.py"
@@ -445,7 +446,7 @@ jobs:
           if [ -d "$SAVES" ]; then cp -a "$SAVES" "$RUNNER_TEMP/ws-saves-post"; fi
 
           cat "$LOG"
-          grep -q "UR_HOST_STATE LOADED .*widescreen=16x9" "$LOG"
+          python3 tools/ci_log_assert.py "$LOG" --event "UR_HOST_STATE LOADED" --field "widescreen=16x9"
           grep -q "URWS_PREP_EXT margin=48" "$LOG"
           grep -q "URWS_SHADOW_EXT provider=course-runtime margin=48" "$LOG"
 

@@ -156,6 +156,12 @@ int main() {
             scaled_height,
             scale);
         assert(result == RegionalTitlePresentationResult::EuropeApplied);
+        assert(regional_title_visible_crop_digest(
+                   frame.data(),
+                   scaled_pitch,
+                   scaled_width,
+                   scaled_height,
+                   scale) == kTargetCropBgrFnv1a64);
 
         std::size_t index = 0;
         for (int y = 0; y < kHeight; ++y) {

@@ -30,6 +30,15 @@ class CiLogAssertTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def test_event_name_is_prefix_exact(self) -> None:
+        result = self.run_tool(
+            "NOT_UR_HOST_STATE LOADED widescreen=16x9\n",
+            "--event", "UR_HOST_STATE LOADED",
+            "--field", "widescreen=16x9",
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("missing event", result.stderr)
+
     def test_missing_field_reports_matching_event(self) -> None:
         result = self.run_tool(
             "UR_HOST_STATE LOADED widescreen=original display_mode=windowed\n",

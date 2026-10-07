@@ -192,6 +192,7 @@ RunRecordsProfileIndex build_run_records_profile_index(
             profile.total_artifacts);
         if (!summary) continue;
         index.total_completed_runs += summary->completed_runs;
+        index.total_unavailable_artifacts += summary->unavailable_artifacts;
         index.profiles.push_back(*summary);
         if (active_profile_id &&
             summary->profile_id == *active_profile_id) {

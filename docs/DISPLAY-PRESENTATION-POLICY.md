@@ -142,7 +142,7 @@ The composition contract is regression-tested over common Windows desktop/window
 
 With Remastered Racer HD enabled, Internal Render Scale is resolved from the persisted product setting for the whole supported fixed scene, not from whether a particular racer pose has HD art. Authored replacement frames use the Racer HD compositor; stock fallback frames use exact nearest-neighbour integer expansion of the guest raster at the same density. This keeps output dimensions and pixel sampling deterministic across replacement/fallback transitions.
 
-Widened world composition and regional-title replacement retain their existing 1x fail-safe until those presenters own the corresponding transform. Current host-owned Modern modal overlays and the results retry/rematch strip have completed that migration and no longer require a global 1x guard.
+Widened world composition retains the final explicit 1x fail-safe until its world presenter owns the corresponding transform. Regional-title replacement now preserves its logical retail crop at 1x–4x by nearest-composing the canonical guest title at the selected density, painting the proven Europe crop in logical coordinates expanded by that same integer scale, verifying the density-aware crop digest, and restoring the canonical composed frame on any failure. Current host-owned Modern modal overlays and the results retry/rematch strip likewise no longer require global 1x guards.
 
 ## Presentation cadence
 

@@ -119,16 +119,6 @@ jobs:
           test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun.urmatch' -type f | wc -l)" -eq 1
           find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f > "$RUNNER_TEMP/run-path.txt"
 
-      - name: Retain failed capture diagnostics
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ordinary-2p-capture-failure
-          if-no-files-found: ignore
-          path: |
-            ${{ runner.temp }}/capture.log
-            ${{ runner.temp }}/acceptance-dumps/
-
       - name: Verify pair in a fresh process
         shell: bash
         run: |
@@ -151,3 +141,14 @@ jobs:
           RUN="$(cat "$RUNNER_TEMP/run-path.txt")"
           "$CHECK" "$RUN" "$RUNNER_TEMP/captured-relative.input" | tee "$RUNNER_TEMP/pair-check.log"
           grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01" "$RUNNER_TEMP/pair-check.log"
+
+      - name: Retain failed capture diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-2p-capture-failure
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/capture.log
+            ${{ runner.temp }}/acceptance-dumps/
+

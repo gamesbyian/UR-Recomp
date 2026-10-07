@@ -8,12 +8,13 @@ permissions:
 
 concurrency:
   group: course-stream-pointer-search-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   scan:
     if: github.ref_type == 'branch'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
         with:

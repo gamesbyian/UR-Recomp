@@ -71,7 +71,7 @@
     },
     {
       "path": "tools/patches/snesrecomp-live-linear-filtering.patch",
-      "sha256": "068b7e04bfb1b5e302fbe804f5b59135d31fed7e111af3193246b0405c9437f7"
+      "sha256": "7f9134e72399eb40aba67aa07d71fd4d5a30e0e5960cea1471ba3be65bcbfcf1"
     },
     {
       "path": "tools/patches/snesrecomp-display-mode-capability.patch",

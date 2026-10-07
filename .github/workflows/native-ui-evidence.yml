@@ -60,6 +60,7 @@ on:
       - "tests/input/ui-define-player-explore.script"
       - "tests/input/ui-pre-race-timing.script"
       - "tests/input/ui-name-league-route.script"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/native-ui-evidence.yml"
 concurrency:
   group: native-ui-evidence-${{ github.ref }}

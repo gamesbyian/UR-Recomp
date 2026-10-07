@@ -4130,6 +4130,107 @@ void detach_controller_hotplug_acceptance_pad() {
         g_controller_hotplug_acceptance_pad_id = 0;
     }
 }
+
+struct LocalMultiplayerJoinAcceptanceStep {
+    int pad;
+    SDL_GamepadButton button;
+};
+constexpr LocalMultiplayerJoinAcceptanceStep kLocalMultiplayerJoinSteps[] = {
+    {0, SDL_GAMEPAD_BUTTON_SOUTH},
+    {1, SDL_GAMEPAD_BUTTON_SOUTH},
+    {0, SDL_GAMEPAD_BUTTON_SOUTH},
+    {1, SDL_GAMEPAD_BUTTON_SOUTH},
+    {1, SDL_GAMEPAD_BUTTON_DPAD_RIGHT},
+    {1, SDL_GAMEPAD_BUTTON_SOUTH},
+};
+std::array<SDL_JoystickID, 2> g_local_multiplayer_acceptance_pad_ids{};
+std::array<SDL_Joystick*, 2> g_local_multiplayer_acceptance_pads{};
+int g_local_multiplayer_acceptance_stage = -1;
+unsigned g_local_multiplayer_acceptance_frames;
+
+void run_local_multiplayer_join_acceptance() {
+    if (!std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE")) return;
+    if (g_local_multiplayer_acceptance_stage == -1) {
+        constexpr const char* kNames[2] = {
+            "UR JOIN PAD ONE", "UR JOIN PAD TWO"};
+        for (std::size_t i = 0; i < 2; ++i) {
+            SDL_VirtualJoystickDesc desc;
+            SDL_INIT_INTERFACE(&desc);
+            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+            desc.name = kNames[i];
+            desc.vendor_id = 0x1209;
+            desc.product_id = static_cast<Uint16>(0x5501 + i);
+            g_local_multiplayer_acceptance_pad_ids[i] =
+                SDL_AttachVirtualJoystick(&desc);
+            g_local_multiplayer_acceptance_pads[i] =
+                g_local_multiplayer_acceptance_pad_ids[i]
+                    ? SDL_OpenJoystick(g_local_multiplayer_acceptance_pad_ids[i])
+                    : nullptr;
+        }
+        const bool attached = g_local_multiplayer_acceptance_pads[0] &&
+                              g_local_multiplayer_acceptance_pads[1];
+        product_diagnostic(
+            attached ? "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE PADS_ATTACHED"
+                     : "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE ATTACH_FAILED");
+        g_local_multiplayer_acceptance_stage = attached ? 0 : 1000;
+        g_local_multiplayer_acceptance_frames = 0;
+        if (!attached) (void)request_desktop_quit();
+        return;
+    }
+    constexpr int kStepCount = static_cast<int>(
+        sizeof(kLocalMultiplayerJoinSteps) / sizeof(kLocalMultiplayerJoinSteps[0]));
+    if (g_local_multiplayer_acceptance_stage >= 1000) return;
+    ++g_local_multiplayer_acceptance_frames;
+    if (g_local_multiplayer_acceptance_stage == 0) {
+        if (!g_local_multiplayer_join_visible) {
+            if (g_local_multiplayer_acceptance_frames > 3000u) {
+                product_diagnostic(
+                    "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE JOIN_NOT_OPENED");
+                g_local_multiplayer_acceptance_stage = 1000;
+                (void)request_desktop_quit();
+            }
+            return;
+        }
+        g_local_multiplayer_acceptance_stage = 1;
+        g_local_multiplayer_acceptance_frames = 0;
+        return;
+    }
+    const int step = g_local_multiplayer_acceptance_stage - 1;
+    if (step < kStepCount) {
+        const auto& action = kLocalMultiplayerJoinSteps[step];
+        SDL_Joystick* pad = g_local_multiplayer_acceptance_pads[
+            static_cast<std::size_t>(action.pad)];
+        if (g_local_multiplayer_acceptance_frames == 1u) {
+            (void)SDL_SetJoystickVirtualButton(pad, action.button, true);
+        } else if (g_local_multiplayer_acceptance_frames == 5u) {
+            (void)SDL_SetJoystickVirtualButton(pad, action.button, false);
+        } else if (g_local_multiplayer_acceptance_frames >= 13u) {
+            ++g_local_multiplayer_acceptance_stage;
+            g_local_multiplayer_acceptance_frames = 0;
+        }
+        return;
+    }
+    const auto& p1 = ur::product::local_multiplayer_participant(
+        g_local_multiplayer_participants,
+        ur::product::LocalMultiplayerSlot::Player1);
+    const auto& p2 = ur::product::local_multiplayer_participant(
+        g_local_multiplayer_participants,
+        ur::product::LocalMultiplayerSlot::Player2);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DONE ready=%d overlay=%d p1=%s p2=%s\n",
+            g_local_multiplayer_participants_ready ? 1 : 0,
+            g_local_multiplayer_join_visible ? 1 : 0,
+            p1 ? p1->profile_id.c_str() : "-",
+            p2 ? p2->profile_id.c_str() : "-");
+        std::fflush(stderr);
+    }
+    g_local_multiplayer_acceptance_stage = 1000;
+    (void)request_desktop_quit();
+}
 #endif
 
 // Native Options acceptance for Vibration: from an authoritative race, press
@@ -5305,6 +5406,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     run_haptic_acceptance();
     run_vibration_options_acceptance();
     run_volume_options_acceptance();
+#if SNESRECOMP_SDL3
+    run_local_multiplayer_join_acceptance();
+#endif
 }
 
 extern "C" int ur_uniracers_modern_system_key_down(

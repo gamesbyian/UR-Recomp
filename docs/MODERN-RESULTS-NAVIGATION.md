@@ -1,6 +1,6 @@
 # Modern Results Navigation Contract
 
-Status: bounded Windows x64 implementation contract.
+Status: bounded Windows x64 implementation contract; production wiring is carried by PR #698 and remains gated on its dedicated native acceptance before `main` can claim the slice.
 
 ## Purpose
 
@@ -64,6 +64,8 @@ Keyboard and controller navigation use the existing semantic input map. Do not a
 The surface must use the shared Modern overlay-composition contract so logical geometry and glyph density remain stable through configured 1x–4x presentation density.
 
 ## Acceptance
+
+PR #698 adds deterministic action/host contracts plus `modern-results-navigation-acceptance.yml`, which builds the real Modern native host and drives the shipping keyboard entry path from authoritative stock results. The route cases cover ambiguous Next Event omission, Track Select settlement, Tour Select settlement with the existing profile-snapshot rollback after the stock rider wipe, unique Next Event through the existing continuation authority, Quick Practice isolation, and Authentic inertness. These are authored merge gates, not claimed passing evidence until CI reports them green.
 
 A production implementation is complete only when deterministic/native evidence proves:
 

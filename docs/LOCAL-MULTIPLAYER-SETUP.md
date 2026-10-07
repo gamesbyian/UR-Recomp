@@ -4,14 +4,17 @@ Status: implementation-ready Windows x64 product contract.
 
 ## Goal
 
-Make ordinary local two-player play reachable without recreating the stock League administration layer. The guest remains authoritative for two-player race simulation, course rules, timing, collision, results and progression semantics. The host owns only device assignment and the route into an ordinary stock two-player session.
+Make ordinary local two-player play reachable without recreating the stock League administration layer. The guest remains authoritative for two-player race simulation, course rules, timing, collision, results and progression semantics. The host owns device assignment, explicit Modern participant-profile selection, and the route into an ordinary stock two-player session. Device identity and participant identity remain separate authorities.
 
 ## Product policy
 
 Modern mode exposes a compact local multiplayer setup surface with two player slots.
 
-- P1 must be assigned before launch.
-- P2 joins explicitly from an unassigned connected device or keyboard partition.
+- P1 and P2 each require both a usable input assignment and an explicitly confirmed Modern profile before the Modern join surface releases control to stock setup.
+- P2 joins explicitly from an unassigned connected device. Keyboard remains P1-only unless the framework later provides genuinely independent keyboard partitions.
+- Joining a device never chooses a profile. Profile cursors may be pre-positioned, but participant identity exists only after explicit confirmation.
+- The same profile cannot occupy both player slots.
+- A confirmed participant session survives stock setup, active race, result and track-choice surfaces and retires on return to the settled frontend.
 - One physical controller cannot own both slots.
 - Disconnecting an assigned controller marks that slot unavailable and blocks launch until the device returns or the slot is reassigned.
 - Reconnection of the same framework device restores its prior slot when unambiguous.
@@ -31,7 +34,9 @@ Keyboard support may expose a single P1 mapping initially if the framework canno
 Launch is refused when:
 
 - P1 or P2 lacks a usable assigned input source;
+- P1 or P2 lacks an explicitly confirmed valid Modern profile;
 - both slots resolve to the same exclusive physical device;
+- both slots resolve to the same Modern profile;
 - an assigned device disconnects between confirmation and stock route entry;
 - the current frontend context is not the validated Modern multiplayer entry surface;
 - another product-owned navigation router is in flight.
@@ -40,17 +45,18 @@ A refused launch leaves guest state and SRAM untouched.
 
 ## First implementation slice
 
-1. Add a pure `LocalMultiplayerSetupState` model that consumes framework device-presence/identity events and exposes P1/P2 assignment, join, leave, disconnect and reconnect outcomes.
-2. Add focused C++ tests for duplicate-device rejection, deterministic join order, disconnect/reconnect, reassignment and launch eligibility.
-3. Integrate only the settled Modern frontend setup surface after the model is accepted. Keep device enumeration in the host adapter.
-4. Route an accepted launch through the existing stock two-player menu/input machinery.
-5. Reuse the existing fast-navigation Restart/rematch path rather than creating multiplayer-specific rollback.
+1. **[implemented]** `LocalMultiplayerSetupState` owns framework device assignment only.
+2. **[implemented]** `LocalMultiplayerParticipantSelection` owns explicit P1/P2 profile confirmation independently of device assignment; duplicate profiles, invalid profiles and selection for an unjoined slot fail closed.
+3. **[implemented]** The settled Modern 2P join overlay lets each joined seat cycle and explicitly confirm a profile. Keyboard can join/confirm P1; each physical controller operates its own seat. Disconnect clears that seat's participant identity.
+4. The stock rider picker remains authoritative. The Modern overlay does not write rider IDs; subsequent match-history binding accepts a result only when the guest-observed rider indices match the two confirmed profile identities.
+5. Route the accepted session through the existing stock two-player menu/input machinery and retain participant identity through the session until frontend return.
+6. Reuse the existing fast-navigation Restart/rematch path rather than creating multiplayer-specific rollback.
 
 ## Acceptance
 
 A Windows fresh-process acceptance must prove:
 
-- two distinct framework devices can join P1/P2 and enter an ordinary stock two-player race;
+- two distinct framework devices can join P1/P2, each explicitly confirm a distinct Modern profile, and enter an ordinary stock two-player race;
 - simultaneous P1/P2 input reaches the already-validated guest input boundary;
 - swapping host assignments swaps only input ownership, not racer/course/progression state;
 - disconnecting either assigned controller prevents launch or pauses setup without leaking input to the guest;

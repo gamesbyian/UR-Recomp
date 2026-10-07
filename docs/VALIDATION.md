@@ -61,6 +61,12 @@ Second, the resulting behavior must still satisfy the owning game-fidelity oracl
 
 Do not extend these warning requirements mechanically into vendored or imported C. Generated recompilation output remains disposable; recurring generated-code issues belong in the generator/runtime or a narrow project-owned seam.
 
+## Windows release artifact identity
+
+The portable Windows x64 release path verifies the assembled package tree, verifies the final ZIP, and boots the extracted ZIP rather than the build tree. Package files remain read-only; mutable state lives outside the extracted package.
+
+The ZIP constructor normalizes archive entry order, timestamp, compression metadata, and file mode. Release acceptance rebuilds a second ZIP from the same verified package tree and requires byte-for-byte equality before upload. It also retains a canonical .sha256 sidecar for the uploaded ZIP so the exact distribution artifact can be identified before extraction. The internal PACKAGE-MANIFEST.json remains the per-file integrity authority after extraction.
+
 ## Widescreen invariant
 
 Same initial state + same inputs + same elapsed frames should produce the same simulation state in 4:3 and widescreen unless a narrow, documented exception is intentional.

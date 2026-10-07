@@ -77,6 +77,8 @@ For deterministic native acceptance, `UR_RUN_RECORD_CAPTURE_PATH` overrides the 
 
 Current production eligibility is deliberately narrower than the file format: Crawler-style timed Race slots (tour slots 1 and 4) are recorded now; Circuit and Stunt completion remain inert until their distinct best-lap and score semantics are attached to the record/comparison model. This prevents a generic lowest-elapsed-time PB rule from being applied to incompatible event types.
 
+The host-independent admission policy now also defines the future bounded ordinary-2P Race use of the same carrier. A valid Modern 2P session with two confirmed participants may use `race-2p` provenance and the existing P1/P2 resolved-input stream, but it must produce a checksum-bound multiplayer match sidecar and must not inherit the 1P timing HUD, PB/Previous selection, or ghost trace path. This is policy substrate only: the live host remains 1P-only until authoritative 2P result completion and paired persistence are wired and accepted.
+
 
 ## Replay-equivalence note
 

@@ -130,6 +130,18 @@ A useful end state is a structured presentation trace validator that consumes
 events and relative relationships rather than dozens of independent
 `grep -F "... frame=N ..."` statements.
 
+The first non-authoritative shadow seam now exists in
+`tools/check_racer_presentation_trace.py`. It parses the existing
+`UR_RACER_PRESENTATION_TRACE/OBS` and `UR_RACER_HD_DRAW PASS` records and,
+for every complete four-instance draw transition it observes, verifies the
+frame-independent slot/semantic relationship: top 98 / bottom 97 must carry
+the traced P1 primary and top 99 / bottom 96 the traced P2 primary. The
+automatic Racer presentation workflow runs this validator with
+`continue-on-error: true` and retains its JSON report. No absolute-frame
+assertion has been removed or relaxed. Promote this seam to authority only
+after retained runs demonstrate that the relationship is stable and the
+remaining frame assertions have been classified deliberately.
+
 ### Cursor-count UI automation
 
 Profile Panel and the Modern settings acceptance still drive SDL windows with

@@ -5,8 +5,14 @@ on:
   pull_request:
     paths:
       - "native/product/local_multiplayer_*.hpp"
+      - "native/product/local_multiplayer_*.cpp"
+      - "native/product/multiplayer_match_record.*"
       - "tests/native/local_multiplayer_*_test.cpp"
+      - "tests/native/multiplayer_match_record_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
+      - "tests/unit/test_local_multiplayer_host_contract.py"
+      - "tests/unit/test_multiplayer_match_record_cpp.py"
+      - "native/product/uniracers_modern_host.cpp"
       - ".github/workflows/local-multiplayer-product-contracts.yml"
 
 concurrency:
@@ -22,4 +28,10 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run local multiplayer product contracts
-        run: python3 -m unittest tests.unit.test_local_multiplayer_setup_cpp
+        run: |
+          python3 -m unittest \
+            tests.unit.test_local_multiplayer_setup_cpp \
+            tests.unit.test_local_multiplayer_participants_cpp \
+            tests.unit.test_local_multiplayer_match_binding_cpp \
+            tests.unit.test_multiplayer_match_record_cpp \
+            tests.unit.test_local_multiplayer_host_contract

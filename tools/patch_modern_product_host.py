@@ -219,6 +219,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "multiplayer_match_catalog.cpp",
         "multiplayer_match_presentation.cpp",
         "multiplayer_match_browser.cpp",
+        "run_artifact_date.cpp",
         "completed_run_record.cpp",
         "completed_run_capture.cpp",
         "completed_run_comparison.cpp",

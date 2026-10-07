@@ -373,10 +373,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
             required = []
             if "bootstrap_toolchain.py" in jobs:
                 required.append("tools/bootstrap_toolchain.py")
-            if "--tool snesrecomp" in jobs:
-                required.append("tools/toolchain-entries/snesrecomp.json")
-            if "--tool sdl3" in jobs:
-                required.append("tools/toolchain-entries/sdl3.json")
+            for tool in sorted(set(re.findall(r"--tool\s+([A-Za-z0-9_-]+)", jobs))):
+                required.append(f"tools/toolchain-entries/{tool}.json")
             missing = [item for item in required if f'"{item}"' not in triggers]
             if missing:
                 offenders.append((path.name, missing))

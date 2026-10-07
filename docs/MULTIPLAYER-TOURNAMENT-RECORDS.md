@@ -1,6 +1,6 @@
 # Multiplayer / Tournament Records Authority
 
-Status: Records destination exists; durable match-history production is deliberately blocked on missing authoritative result semantics.
+Status: Records destination exists. A typed read-only ordinary-2P Race result observer now consumes the already-promoted stock result surface, rider identities and last-result pair; durable match-history production remains blocked on participant binding and persistence.
 
 ## Existing reusable substrate
 
@@ -41,7 +41,7 @@ Tracks, Racers/Profiles and Runs/Replays continue to use the established complet
 
 The next implementation should begin at the authoritative stock 2P results boundary, not in Records UI.
 
-1. Promote a typed, read-only title result observation for the validated ordinary 2P results surface.
+1. **[implemented]** Promote a typed, read-only title result observation for the validated ordinary 2P Race result surface. `native/title/uniracers_two_player_result.*` admits only an explicitly classified ordinary-2P context plus stock menu `0xF9`, stock rider indices `7E:017D/017F`, and the stock `77:0618/061A` last-result pair. It classifies P1 win, P2 win or draw with `60000` as `NO TIME`, and fails closed on invalid riders/result values. It writes nothing.
 2. Bind the observed result to explicit participant identity supplied by the Modern multiplayer/session layer.
 3. Decide whether those additional semantics can be represented as an additive sidecar bound to the existing `.urrun` checksum or require a deliberate schema evolution. Do not silently overload existing fields.
 4. Prove fresh-process persistence and deterministic replay compatibility independently from result metadata.

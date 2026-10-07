@@ -2573,6 +2573,10 @@ void racer_hd_prepare_frame(
 
 bool racer_hd_set_internal_render_scale(int scale) noexcept;
 int racer_hd_internal_render_scale() noexcept;
+/* Stable requested density while the Remastered presenter is enabled.
+ * Unlike racer_hd_presentation_scale(), this does not depend on whether the
+ * current frame has an authored replacement. */
+int racer_hd_requested_presentation_scale() noexcept;
 int racer_hd_presentation_scale() noexcept;
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept;

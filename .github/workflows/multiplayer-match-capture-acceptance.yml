@@ -43,9 +43,6 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
           python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
-          git -C "$FRAMEWORK" apply --check "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
-          git -C "$FRAMEWORK" apply "$GITHUB_WORKSPACE/tools/patches/snesrecomp-dual-controller-input.patch"
-
           TMP="$RUNNER_TEMP/ur-2p-match"
           mkdir -p "$TMP"
           SNESRECOMP_ROOT="$FRAMEWORK" \

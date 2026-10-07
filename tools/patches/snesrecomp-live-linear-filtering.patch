@@ -1,7 +1,8 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -407,6 +407,17 @@ int snesrecomp_desktop_get_display_mode(void) {
-   return g_config.fullscreen <= 2 ? (int)g_config.fullscreen : 0;
+@@ -526,6 +526,17 @@ int snesrecomp_desktop_set_output_mode(
+   return 0;
+ #endif
  }
  
 +int snesrecomp_desktop_set_linear_filtering(int enabled) {
@@ -17,15 +18,14 @@
 +
  /* Set by the hotkeys; consumed once in the frame loop. */
  static int g_savestate_menu_hotkey;
- static int g_rewind_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -226,5 +226,11 @@ int snesrecomp_desktop_set_display_mode(int mode);
- int snesrecomp_desktop_get_display_mode(void);
+@@ -244,5 +244,11 @@ int snesrecomp_desktop_set_output_mode(
+     const SnesDesktopOutputMode *mode);
  
 +/* Live final-window texture filtering policy. Both SDL and OpenGL renderer
-+ * Reconfigure paths already reread Config.linear_filtering, so this changes
-+ * presentation sampling without altering guest geometry or simulation. */
++ * paths already reread Config.linear_filtering, so this changes presentation
++ * sampling without altering guest geometry or simulation. */
 +int snesrecomp_desktop_set_linear_filtering(int enabled);
 +int snesrecomp_desktop_get_linear_filtering(void);
 +

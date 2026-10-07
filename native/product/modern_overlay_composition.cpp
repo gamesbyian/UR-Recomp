@@ -35,6 +35,20 @@ int project_edge(
 
 }  // namespace
 
+int resolve_modern_overlay_surface_scale(
+    int authoritative_scale,
+    int surface_width,
+    int surface_height,
+    int logical_height) noexcept {
+    if (authoritative_scale < 1 || authoritative_scale > 4 ||
+        surface_width <= 0 || surface_height <= 0 || logical_height <= 0 ||
+        surface_height != logical_height * authoritative_scale ||
+        surface_width % authoritative_scale != 0) {
+        return 1;
+    }
+    return authoritative_scale;
+}
+
 HostOverlayCompositionPlan resolve_modern_overlay_composition(
     const HostOverlayCompositionRequest& request) noexcept {
     HostOverlayCompositionPlan plan{};

@@ -2,6 +2,19 @@
 
 namespace ur::product {
 
+CompletedRunGhostTarget next_completed_run_ghost_target(
+    CompletedRunGhostTarget target) noexcept {
+    switch (target) {
+    case CompletedRunGhostTarget::Off:
+        return CompletedRunGhostTarget::Previous;
+    case CompletedRunGhostTarget::Previous:
+        return CompletedRunGhostTarget::PersonalBest;
+    case CompletedRunGhostTarget::PersonalBest:
+        return CompletedRunGhostTarget::Off;
+    }
+    return CompletedRunGhostTarget::Off;
+}
+
 const char* completed_run_ghost_target_name(CompletedRunGhostTarget target) {
     switch (target) {
     case CompletedRunGhostTarget::Off:

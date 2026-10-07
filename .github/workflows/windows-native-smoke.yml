@@ -28,6 +28,11 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - "tools/verify_rom.py"
+      - "tools/check_result_screen_time.py"
+      - "tests/input/ui-race-result-route.script"
+      - "tests/unit/test_assemble_windows_package.py"
+      - "reference/roms/retail/Uniracers_USA.sfc"
       - ".github/workflows/windows-native-smoke.yml"
       - "native/product/**"
       - "native/presentation/**"
@@ -114,12 +119,35 @@ jobs:
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
             -DSNESRECOMP_SDL3_FETCH=ON \
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" --config Release --parallel 4
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"
           echo "EXE=$EXE" >> "$GITHUB_ENV"
           ls -la "$(dirname "$EXE")"
+
+          # Portable-package runtime boundary: SDL is static, and the app must
+          # not require a separately installed Visual C++ Redistributable.
+          EXE_WIN="$(cygpath -w "$EXE")"
+          export EXE_WIN
+          powershell.exe -NoProfile -Command '
+            $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+            $vs = & $vswhere -latest -property installationPath
+            if (-not $vs) { throw "Visual Studio installation not found" }
+            $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
+            $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
+              Sort-Object Name -Descending | Select-Object -First 1
+            if (-not $tools) { throw "MSVC tools directory not found" }
+            $dumpbin = Join-Path $tools.FullName "bin\Hostx64\x64\dumpbin.exe"
+            if (-not (Test-Path -LiteralPath $dumpbin)) { throw "dumpbin.exe not found" }
+            & $dumpbin /dependents $env:EXE_WIN
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ' | tee "$RUNNER_TEMP/windows-runtime-dependencies.log"
+          if grep -Eiq '(MSVCP[0-9_]*|VCRUNTIME[0-9_]*)\.dll'               "$RUNNER_TEMP/windows-runtime-dependencies.log"; then
+            echo "Portable executable unexpectedly depends on the Visual C++ Redistributable." >&2
+            exit 1
+          fi
 
       - name: Assemble and verify portable Windows package
         run: |
@@ -131,6 +159,7 @@ jobs:
             --output "$PACKAGE" \
             --source-revision "$GITHUB_SHA"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"
           ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64.zip"
           python tools/assemble_windows_package.py archive \
             --package "$PACKAGE" \
@@ -174,6 +203,7 @@ jobs:
           echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_USER_DATA=$USER_DATA" >> "$GITHUB_ENV"
           test -f "$TEST_PACKAGE/PACKAGE-MANIFEST.json"
+          python tools/verify_rom.py "$TEST_PACKAGE/Uniracers_USA.sfc"
           printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
 
           PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
@@ -271,6 +301,7 @@ jobs:
           KEYBINDS_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
           MOD_STATE_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/mod-state.toml" | cut -d' ' -f1)"
           MODERN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
+          PROFILE_CATALOG_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/profiles-v1.txt" | cut -d' ' -f1)"
           PROFILE_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
           MULTIPLAYER_RUN_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urrun" | cut -d' ' -f1)"
@@ -283,6 +314,7 @@ jobs:
           KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"
           MOD_STATE_AFTER="$(sha256sum "$PACKAGE_USER_DATA/mod-state.toml" | cut -d' ' -f1)"
           MODERN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
+          PROFILE_CATALOG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/profiles-v1.txt" | cut -d' ' -f1)"
           PROFILE_AFTER="$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
           RUN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
           MULTIPLAYER_RUN_AFTER="$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urrun" | cut -d' ' -f1)"
@@ -291,6 +323,7 @@ jobs:
           test "$KEYBINDS_BEFORE" = "$KEYBINDS_AFTER"
           test "$MOD_STATE_BEFORE" = "$MOD_STATE_AFTER"
           test "$MODERN_BEFORE" = "$MODERN_AFTER"
+          test "$PROFILE_CATALOG_BEFORE" = "$PROFILE_CATALOG_AFTER"
           test "$PROFILE_BEFORE" = "$PROFILE_AFTER"
           test "$RUN_BEFORE" = "$RUN_AFTER"
           test "$MULTIPLAYER_RUN_BEFORE" = "$MULTIPLAYER_RUN_AFTER"
@@ -320,6 +353,12 @@ jobs:
           test "$RC" -eq 0
           grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-refresh-boot.log"
           grep -Fq "$USER_DATA_WIN" "$RUNNER_TEMP/package-refresh-boot.log"
+          test "$MODERN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/host-state-v1.txt" | cut -d' ' -f1)"
+          test "$PROFILE_CATALOG_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/profiles-v1.txt" | cut -d' ' -f1)"
+          test "$PROFILE_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/saves/profile-default/host-profile.txt" | cut -d' ' -f1)"
+          test "$RUN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun" | cut -d' ' -f1)"
+          test "$MULTIPLAYER_RUN_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urrun" | cut -d' ' -f1)"
+          test "$MULTIPLAYER_MATCH_BEFORE" = "$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urmatch" | cut -d' ' -f1)"
           test ! -e "$TEST_PACKAGE/config.ini"
           test ! -e "$TEST_PACKAGE/keybinds.ini"
           test ! -e "$TEST_PACKAGE/saves"
@@ -468,6 +507,12 @@ jobs:
       - name: Representative package startup diagnostics
         run: |
           set -euo pipefail
+          assert_bounded_startup_log() {
+            local log="$1"
+            test -f "$log"
+            test "$(wc -l < "$log")" -le 10
+          }
+
 
           BROKEN_ROM="$RUNNER_TEMP/UR-Recomp-Windows-x64-missing-rom"
           cp -R "$TEST_PACKAGE" "$BROKEN_ROM"
@@ -487,7 +532,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-ROM-MISSING:" "$RUNNER_TEMP/package-missing-rom.log")" -eq 1
           BROKEN_ROM_LOG="$BROKEN_ROM_USER/diagnostics/startup.log"
-          test -f "$BROKEN_ROM_LOG"
+          assert_bounded_startup_log "$BROKEN_ROM_LOG"
           test "$(grep -Fc "code=UR-STARTUP-ROM-MISSING" "$BROKEN_ROM_LOG")" -eq 1
           grep -Fq "subsystem=rom" "$BROKEN_ROM_LOG"
           grep -Fq "result=fatal" "$BROKEN_ROM_LOG"
@@ -510,7 +555,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-missing-runtime.log")" -eq 1
           BROKEN_DATA_LOG="$BROKEN_DATA_USER/diagnostics/startup.log"
-          test -f "$BROKEN_DATA_LOG"
+          assert_bounded_startup_log "$BROKEN_DATA_LOG"
           test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$BROKEN_DATA_LOG")" -eq 1
           grep -Fq "subsystem=runtime-data" "$BROKEN_DATA_LOG"
           grep -Fq "result=fatal" "$BROKEN_DATA_LOG"
@@ -534,7 +579,7 @@ jobs:
           test "$RC" -eq 2
           test "$(grep -Fc "UR-STARTUP-RUNTIME-DATA:" "$RUNNER_TEMP/package-empty-mods.log")" -eq 1
           EMPTY_MODS_LOG="$EMPTY_MODS_USER/diagnostics/startup.log"
-          test -f "$EMPTY_MODS_LOG"
+          assert_bounded_startup_log "$EMPTY_MODS_LOG"
           test "$(grep -Fc "code=UR-STARTUP-RUNTIME-DATA" "$EMPTY_MODS_LOG")" -eq 1
           grep -Fq "Required package directory is empty: mods" "$RUNNER_TEMP/package-empty-mods.log"
 
@@ -647,7 +692,7 @@ jobs:
           test "$(grep -Fc "UR-STARTUP-ROM-INVALID:" "$RUNNER_TEMP/package-invalid-rom.log")" -eq 1
           test -d "$INVALID_USER"
           INVALID_LOG="$INVALID_USER/diagnostics/startup.log"
-          test -f "$INVALID_LOG"
+          assert_bounded_startup_log "$INVALID_LOG"
           test "$(grep -Fc "code=UR-STARTUP-ROM-INVALID" "$INVALID_LOG")" -eq 1
           grep -Fq "build_revision=" "$INVALID_LOG"
           grep -Fq "architecture=x64" "$INVALID_LOG"
@@ -670,7 +715,7 @@ jobs:
           test "$RC" -ne 0
           test "$(grep -Fc "UR-STARTUP-VIDEO:" "$RUNNER_TEMP/package-video-failure.log")" -eq 1
           VIDEO_LOG="$VIDEO_USER/diagnostics/startup.log"
-          test -f "$VIDEO_LOG"
+          assert_bounded_startup_log "$VIDEO_LOG"
           test "$(grep -Fc "schema=ur-startup-log-v1" "$VIDEO_LOG")" -eq 1
           test "$(grep -Fc "build_revision=" "$VIDEO_LOG")" -eq 1
           test "$(grep -Fc "architecture=x64" "$VIDEO_LOG")" -eq 1
@@ -695,7 +740,7 @@ jobs:
           test "$RC" -ne 0
           test "$(grep -Fc "UR-STARTUP-AUDIO:" "$RUNNER_TEMP/package-audio-failure.log")" -eq 1
           AUDIO_LOG="$AUDIO_USER/diagnostics/startup.log"
-          test -f "$AUDIO_LOG"
+          assert_bounded_startup_log "$AUDIO_LOG"
           test "$(grep -Fc "schema=ur-startup-log-v1" "$AUDIO_LOG")" -eq 1
           test "$(grep -Fc "build_revision=" "$AUDIO_LOG")" -eq 1
           test "$(grep -Fc "architecture=x64" "$AUDIO_LOG")" -eq 1

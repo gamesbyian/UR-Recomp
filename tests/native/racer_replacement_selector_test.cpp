@@ -646,6 +646,22 @@ int main() {
         GraphicsPack::Remastered, 0x0539, broader_0539_local_miss, 1
     ).fallback_reason == FallbackReason::CompositionMismatch);
 
+    broader_0539_local_miss = broader_0539_b;
+    broader_0539_local_miss.p1_companion = 0x0001;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0539, broader_0539_local_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    broader_0539_local_miss = broader_0539_b;
+    broader_0539_local_miss.p1_companion_gate_word = 0x0001;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0539, broader_0539_local_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0539, broader_0539_b, 2
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     // Exact-scope registrations must still care about opponent fields.
     auto exact_scope_opponent_miss = frequency_0544_0578_context;
     exact_scope_opponent_miss.p2_companion = 0x0D64;

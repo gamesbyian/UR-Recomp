@@ -4,7 +4,8 @@ namespace ur::product {
 
 ModernControlsPresentation present_modern_controls(
     const ModernControlsRebindState& state,
-    const std::array<std::string_view, 12>& key_labels) {
+    const std::array<std::string_view, 12>& key_labels,
+    const ModernControlsPadGlyphs& pad) {
     ModernControlsPresentation out;
 
     for (int i = 0; i < modern_control_binding_count(); ++i) {
@@ -22,10 +23,12 @@ ModernControlsPresentation present_modern_controls(
 
     if (state.capturing) {
         out.instruction = "PRESS A KEY";
-        out.instruction_detail = "ESC / B CANCEL";
+        out.instruction_detail = "ESC / " + pad.back + " CANCEL";
     } else {
-        out.instruction = "A/ENTER SET  B/ESC BACK";
-        out.instruction_detail = "X/DEL CLEAR  Y/R RESET";
+        out.instruction =
+            pad.confirm + "/ENTER SET  " + pad.back + "/ESC BACK";
+        out.instruction_detail =
+            pad.clear + "/DEL CLEAR  " + pad.reset + "/R RESET";
     }
     return out;
 }

@@ -1,0 +1,4 @@
+# First-run onboarding draws at the settled main menu and reports the live
+# keyboard/pad bindings it displays; nothing else is needed.
+wait 700
+quit

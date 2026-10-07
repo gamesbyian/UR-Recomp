@@ -1,6 +1,6 @@
 # Controller Prompt Policy
 
-Status: semantic prompt substrate implemented; physical-brand glyph selection deferred.
+Status: semantic prompt substrate implemented; positional physical-button labels from the live GamepadMap implemented; physical-brand artwork deferred.
 
 ## Authority
 
@@ -24,16 +24,20 @@ These are semantic SNES prompts, not claims about the label printed on the playe
 
 Unknown or out-of-range semantic input fails closed to `[?]`.
 
-## Future physical glyphs
+## Physical-button labels from the live GamepadMap
 
-A future controller-family glyph layer is allowed only after the framework exposes a trustworthy presentation-safe reverse mapping from the active semantic control to the currently bound physical input for that seat.
+The framework's own lookup, `FindCmdForGamepadButton(button, 0)`, is the reverse-map seam this policy waited for. `native/product/modern_pad_glyphs.hpp` (`modern_pad_glyph_for_control`) walks the positional `kGamepadBtn` order and returns the first physical button whose unmodified binding produces a given SNES control, or `NONE` when nothing is bound. The host wraps it as `live_gamepad_binding_label`, so a remapped `[GamepadMap]` changes the hint on the next draw.
 
-That later layer should keep three things independent:
+Labels are positional (`A` = south, `B` = east, `X` = west, `Y` = north, plus `LB`/`RB`/`LT`/`RT`/`BACK`/`START`/`L3`/`R3`/D-pad), matching the names `[GamepadMap]` itself uses. They name the button position, not a vendor legend.
+
+Onboarding, Controls instructions and the tour restart confirm use these live labels. Host shortcuts that test a fixed physical `kGamepadBtn_*` position (Quick Practice `PAD X`, results `PAD X`, profile `PAD X`/`PAD Y`, cancel `PAD B`) keep fixed labels because they are not routed through GamepadMap.
+
+## Future brand artwork
+
+Brand-specific artwork (Xbox/PlayStation/Nintendo legends) remains deferred. If added, keep three things independent:
 
 1. semantic action ownership;
-2. active physical binding;
+2. active physical binding (the reverse map above);
 3. artwork/glyph family.
 
-Do not derive physical glyphs from a controller brand string, opaque source ID, SDL button ordinal, or a hard-coded Xbox-style assumption.
-
-Until that reverse-map seam exists, semantic prompts are the truthful player-facing fallback.
+Do not derive physical glyphs from a controller brand string, opaque source ID or SDL button ordinal alone.

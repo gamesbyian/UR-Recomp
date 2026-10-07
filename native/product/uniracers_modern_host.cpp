@@ -5,7 +5,11 @@ extern "C" {
 #include "snes_overlay_draw.h"
 }
 
+// config.h is a plain C header without __cplusplus guards; give its
+// functions (e.g. the live GamepadMap lookup) C linkage.
+extern "C" {
 #include "desktop/config.h"
+}
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "keybinds.h"
@@ -59,6 +63,7 @@ extern "C" {
 #include "modern_controls_rebind.hpp"
 #include "modern_overlay_composition.hpp"
 #include "modern_overlay_text_fit.hpp"
+#include "modern_pad_glyphs.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "presentation_density_compositor.hpp"
@@ -859,25 +864,14 @@ bool onboarding_surface_active() {
 }
 
 std::string live_gamepad_binding_label(int control_offset) {
-    // The title hook receives normalized SNES controls after the framework's
-    // physical gamepad mapping. Describe that stable semantic surface here
-    // instead of linking the framework's optional launcher/config backend
-    // merely to reverse-map physical buttons for presentation.
-    switch (control_offset) {
-    case 0: return "UP";
-    case 1: return "DOWN";
-    case 2: return "LEFT";
-    case 3: return "RIGHT";
-    case 4: return "SELECT";
-    case 5: return "START";
-    case 6: return "A";
-    case 7: return "B";
-    case 8: return "X";
-    case 9: return "Y";
-    case 10: return "L";
-    case 11: return "R";
-    default: return "NONE";
-    }
+    // Name the physical P1 pad button the live [GamepadMap] binds to this
+    // SNES control (0..11, Up..R), reverse-looked-up through the framework's
+    // own GamepadMap authority. The default map is positional, so SNES B
+    // (jump) is the south button printed "A" -- never guess from the SNES
+    // letter or the controller brand.
+    return ur::product::modern_pad_glyph_for_control(
+        control_offset, kKeys_Controls,
+        [](int button) { return FindCmdForGamepadButton(button, 0); });
 }
 
 std::string resolve_practice_root() {
@@ -6784,12 +6778,19 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 67 * scale,
                 "RESTART TOUR?", 0xFFFFFFFFu, scale);
+            // While the Tour surface is open, pad buttons reach it through
+            // the live GamepadMap (SNES A confirms, SNES B cancels), so name
+            // the physical buttons that produce those controls.
+            const std::string confirm_hint =
+                "ENTER / PAD " + live_gamepad_binding_label(6) + " CONFIRM";
+            const std::string cancel_hint =
+                "ESC / PAD " + live_gamepad_binding_label(7) + " CANCEL";
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 86 * scale,
-                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, scale);
+                confirm_hint.c_str(), 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 105 * scale,
-                "ESC / PAD B CANCEL", 0xFFFFFFFFu, scale);
+                cancel_hint.c_str(), 0xFFFFFFFFu, scale);
         } else {
             const char* row_labels[] = {
                 "RESUME TOUR", "RESTART TOUR", "BACK", "NEXT EVENT"
@@ -7369,8 +7370,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 key_labels[static_cast<std::size_t>(i)] =
                     key_label_storage[static_cast<std::size_t>(i)];
             }
+            const ur::product::ModernControlsPadGlyphs pad_glyphs{
+                live_gamepad_binding_label(6),
+                live_gamepad_binding_label(7),
+                live_gamepad_binding_label(8),
+                live_gamepad_binding_label(9),
+            };
             const auto presentation = ur::product::present_modern_controls(
-                g_controls_rebind, key_labels);
+                g_controls_rebind, key_labels, pad_glyphs);
 
             snes_ovl_fill_rect(
                 pixels, stride, height, controls_x, controls_y, panel_w, controls_h,

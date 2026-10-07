@@ -126,7 +126,8 @@ std::string active_profile_id() {
 
 std::string active_run_directory() {
     if (std::getenv("UR_RUN_BROWSER_ACCEPTANCE") ||
-        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE")) {
+        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE") ||
+        std::getenv("UR_PAUSE_RECORDS_ACCEPTANCE")) {
         const char* override_directory =
             std::getenv("UR_RUN_BROWSER_DIRECTORY");
         if (override_directory && *override_directory) {

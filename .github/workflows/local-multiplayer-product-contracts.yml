@@ -8,6 +8,8 @@ on:
       - "native/product/local_multiplayer_*.cpp"
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
+      - "tests/unit/test_local_multiplayer_host_contract.py"
+      - "native/product/uniracers_modern_host.cpp"
       - ".github/workflows/local-multiplayer-product-contracts.yml"
 
 concurrency:
@@ -26,4 +28,6 @@ jobs:
         run: |
           python3 -m unittest \
             tests.unit.test_local_multiplayer_setup_cpp \
-            tests.unit.test_local_multiplayer_match_binding_cpp
+            tests.unit.test_local_multiplayer_participants_cpp \
+            tests.unit.test_local_multiplayer_match_binding_cpp \
+            tests.unit.test_local_multiplayer_host_contract

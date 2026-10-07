@@ -1,6 +1,7 @@
 import importlib.util
 import json
 import pathlib
+import re
 import tempfile
 import unittest
 
@@ -25,8 +26,8 @@ class ModernLocaleValidationTests(unittest.TestCase):
 
     def test_validator_keys_match_cpp_catalog(self):
         header = HEADER.read_text(encoding="utf-8")
-        for key in module.KNOWN_KEYS:
-            self.assertIn(f'"{key}"', header)
+        header_keys = set(re.findall(r'"(root\.[a-z]+)"', header))
+        self.assertEqual(header_keys, set(module.KNOWN_KEYS))
 
     def test_missing_or_unknown_keys_fail_closed(self):
         payload = self.load_example()

@@ -53,6 +53,8 @@ int main() {
     assert(browser.selected_index() == 0);
     assert(browser.selected_match()->run_path == "001.urrun");
     assert(browser.selected_row_presentation()->course_text == "course:01");
+    assert(browser.row_presentation(1)->course_text == "course:04");
+    assert(!browser.row_presentation(2));
 
     assert(browser.move(1));
     assert(browser.selected_index() == 1);

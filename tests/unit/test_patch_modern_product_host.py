@@ -131,6 +131,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "modern_controls_binding_authority.cpp",
             "modern_controls_presenter.cpp",
             "modern_overlay_composition.cpp",
+            "presentation_density_compositor.cpp",
             "uniracers_modern_host.cpp",
             "uniracers_restart_policy.cpp",
             "uniracers_course_identity.cpp",

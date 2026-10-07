@@ -5861,7 +5861,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int panel_w_logical = logical_width < 276
             ? logical_width - 16
             : 268;
-        constexpr int kLocalMultiplayerPanelHeight = 112;
+        constexpr int kLocalMultiplayerPanelHeight = 142;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
             panel_w_logical, kLocalMultiplayerPanelHeight,
@@ -5879,26 +5879,74 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 7 * scale,
             "LOCAL MULTIPLAYER", 0xFFFFFFFFu, scale);
-        const char* p1 =
+
+        auto participant_row = [&](ur::product::LocalMultiplayerSlot slot,
+                                   const char* label,
+                                   bool joined) {
+            char row[96];
+            const auto& selected =
+                ur::product::local_multiplayer_participant(
+                    g_local_multiplayer_participants, slot);
+            const auto* candidate =
+                ur::product::local_multiplayer_profile_candidate(
+                    g_local_multiplayer_participants,
+                    g_profile_catalog,
+                    slot);
+            if (!joined) {
+                std::snprintf(
+                    row, sizeof(row), "%s  PRESS A / START", label);
+            } else if (selected) {
+                std::snprintf(
+                    row, sizeof(row), "%s  %s / %s  READY",
+                    label,
+                    selected->identity.name.c_str(),
+                    selected->profile_id.c_str());
+            } else if (candidate) {
+                std::snprintf(
+                    row, sizeof(row), "%s  < %s / %s >  A=CONFIRM",
+                    label,
+                    candidate->identity.name.c_str(),
+                    candidate->profile_id.c_str());
+            } else {
+                std::snprintf(
+                    row, sizeof(row), "%s  NO PROFILES", label);
+            }
+            return std::string(row);
+        };
+
+        const bool p1_joined =
             g_local_multiplayer_setup.player1.assigned &&
-            g_local_multiplayer_setup.player1.source.connected
-                ? "PLAYER 1  JOINED" : "PLAYER 1  PRESS A / START";
-        const char* p2 =
+            g_local_multiplayer_setup.player1.source.connected;
+        const bool p2_joined =
             g_local_multiplayer_setup.player2.assigned &&
-            g_local_multiplayer_setup.player2.source.connected
-                ? "PLAYER 2  JOINED" : "PLAYER 2  PRESS A / START";
+            g_local_multiplayer_setup.player2.source.connected;
+        const std::string p1 = participant_row(
+            ur::product::LocalMultiplayerSlot::Player1,
+            "PLAYER 1", p1_joined);
+        const std::string p2 = participant_row(
+            ur::product::LocalMultiplayerSlot::Player2,
+            "PLAYER 2", p2_joined);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 32 * scale,
-            p1, 0xFFFFFFFFu, scale);
+            p1.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 52 * scale,
-            p2, 0xFFFFFFFFu, scale);
+            p2.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 77 * scale,
-            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, scale);
+            "LEFT / RIGHT = PROFILE   A = JOIN / CONFIRM",
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 94 * scale,
-            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, scale);
+            "B / BACKSPACE = CLEAR / LEAVE", 0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8 * scale, y + 111 * scale,
+            "ENTER = KEYBOARD P1   ESC = STOCK 2P",
+            0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8 * scale, y + 128 * scale,
+            "STOCK RIDER PICKS MUST MATCH PROFILES",
+            0xFFFFFFFFu, scale);
         return;
     }
 

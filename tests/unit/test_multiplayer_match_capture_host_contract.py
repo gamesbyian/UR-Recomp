@@ -19,6 +19,7 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertIn("bind_local_multiplayer_match_context(", source)
         self.assertIn("append_multiplayer_match_pair(", source)
         self.assertIn("ordinary_two_player_carrier_elapsed_ticks60(", source)
+        self.assertIn("kOrdinaryTwoPlayerRaceResultMenu", source)
         self.assertIn('"race-1p"', source)
         self.assertIn("CompletedRunCapture g_run_capture", source)
 
@@ -52,6 +53,13 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         )
         self.assertLess(multiplayer_live, multiplayer_observe)
         self.assertLess(multiplayer_observe, next_frame_arg)
+
+        # Ordinary 2P result ownership is distinct from the generic Restart
+        # classifier; completion must key off the validated 0xF9 authority.
+        self.assertIn(
+            "g_ram[0x009F] ==\n            ur::title::kOrdinaryTwoPlayerRaceResultMenu",
+            source,
+        )
 
         # A dropped live participant session invalidates the in-flight match.
         self.assertIn(

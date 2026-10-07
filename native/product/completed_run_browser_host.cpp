@@ -13,6 +13,7 @@ extern "C" {
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
+#include "multiplayer_match_browser.hpp"
 #include "quick_practice_catalog.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_modern_host.h"
@@ -33,6 +34,8 @@ namespace fs = std::filesystem;
 ur::product::CompletedRunBrowser g_browser;
 ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
+ur::product::MultiplayerMatchBrowser g_multiplayer_match_browser;
+ur::product::MultiplayerMatchArtifactHealth g_multiplayer_match_health;
 UrUniracersRestartPolicyState g_replay_policy;
 bool g_browser_visible;
 bool g_records_browser_visible;
@@ -140,6 +143,51 @@ std::string active_run_directory() {
     const std::string root = product_user_data_root();
     if (root.empty()) return {};
     return (fs::path(root) / "runs" / active_profile_id()).string();
+}
+
+std::string multiplayer_run_directory() {
+    if (const char* override_directory =
+            std::getenv("UR_MULTIPLAYER_RECORDS_DIRECTORY")) {
+        if (*override_directory) return override_directory;
+    }
+
+    const std::string root = product_user_data_root();
+    if (root.empty()) return {};
+    return (fs::path(root) / "multiplayer-runs").string();
+}
+
+bool refresh_multiplayer_match_browser() {
+    g_multiplayer_match_health = {};
+    const std::string directory = multiplayer_run_directory();
+    if (directory.empty()) {
+        g_multiplayer_match_browser.set_matches({});
+        return false;
+    }
+
+    const auto artifacts =
+        ur::product::inspect_multiplayer_match_artifacts(directory);
+    g_multiplayer_match_health =
+        ur::product::summarize_multiplayer_match_artifact_health(artifacts);
+
+    std::vector<ur::product::StoredMultiplayerMatch> matches;
+    matches.reserve(g_multiplayer_match_health.loaded_pairs);
+    for (const auto& artifact : artifacts) {
+        if (artifact.loaded()) matches.push_back(*artifact.stored);
+    }
+    g_multiplayer_match_browser.set_matches(std::move(matches));
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RECORDS_BROWSER MULTIPLAYER_REFRESH matches=%zu unavailable=%zu unreadable=%zu wrong_mode=%zu missing_match=%zu\n",
+            g_multiplayer_match_browser.size(),
+            g_multiplayer_match_health.unavailable_pairs(),
+            g_multiplayer_match_health.unreadable_runs,
+            g_multiplayer_match_health.wrong_mode_runs,
+            g_multiplayer_match_health.unavailable_match_metadata);
+        std::fflush(stderr);
+    }
+    return true;
 }
 
 std::string run_directory_for_profile(const std::string& profile_id) {
@@ -351,6 +399,7 @@ bool open_records_browser_impl(bool normalize_pause_surface) {
         return false;
     }
     (void)refresh_records_profiles();
+    (void)refresh_multiplayer_match_browser();
     g_records_root_section = RecordsRootSection::Tracks;
     g_records_return_to_profiles = false;
 

@@ -3794,25 +3794,30 @@ void draw_run_timing_hud(
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const auto& panel = layout.presentation_rect;
+    const auto& panel_rect = layout.presentation_rect;
     const int text_scale = layout.presentation_scale;
     snes_ovl_fill_rect(
         pixels, stride, height,
-        panel.x, panel.y, panel.width, panel.height, 0xC0202020u);
+        panel_rect.x, panel_rect.y,
+        panel_rect.width, panel_rect.height, 0xC0202020u);
     snes_ovl_stroke_rect(
         pixels, stride, height,
-        panel.x, panel.y, panel.width, panel.height, 0xFFF0F0F0u);
+        panel_rect.x, panel_rect.y,
+        panel_rect.width, panel_rect.height, 0xFFF0F0F0u);
     snes_ovl_draw_text(
         pixels, stride, height,
-        panel.x + 7 * text_scale, panel.y + 6 * text_scale,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 6 * text_scale,
         clock_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
         pixels, stride, height,
-        panel.x + 7 * text_scale, panel.y + 21 * text_scale,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 21 * text_scale,
         pb_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
         pixels, stride, height,
-        panel.x + 7 * text_scale, panel.y + 36 * text_scale,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 36 * text_scale,
         comparison_row, 0xFFFFFFFFu, text_scale);
 
     if (const char* timing_diagnostics =

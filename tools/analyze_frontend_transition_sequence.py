@@ -132,6 +132,86 @@ def horizontal_agreement(
     return matched / total if total else 0.0
 
 
+
+def vertical_agreement(
+    before: bytes,
+    after: bytes,
+    *,
+    width: int,
+    shift: int,
+    sample_step: int = 4,
+) -> float:
+    """Agreement if content in before moved vertically by shift.
+
+    Positive shift means content moved down: after(x,y) is compared to
+    before(x,y-shift). Sampling is deterministic and excludes newly exposed
+    edge rows.
+    """
+    if len(before) != len(after):
+        raise ValueError("frame sizes differ")
+    if width <= 0 or sample_step <= 0:
+        raise ValueError("width/sample_step must be positive")
+    row_bytes = width * BYTES_PER_PIXEL
+    if not before or len(before) % row_bytes:
+        raise ValueError("invalid frame geometry")
+
+    height = len(before) // row_bytes
+    if abs(shift) >= height:
+        return 0.0
+    y_start = max(0, shift)
+    y_end = min(height, height + shift)
+    matched = 0
+    total = 0
+    for y in range(y_start, y_end, sample_step):
+        before_y = y - shift
+        before_row = before_y * row_bytes
+        after_row = y * row_bytes
+        for x in range(0, width, sample_step):
+            a = before_row + x * BYTES_PER_PIXEL
+            b = after_row + x * BYTES_PER_PIXEL
+            total += 1
+            if before[a : a + BYTES_PER_PIXEL] == after[b : b + BYTES_PER_PIXEL]:
+                matched += 1
+    return matched / total if total else 0.0
+
+
+def best_vertical_shift(
+    before: bytes,
+    after: bytes,
+    *,
+    width: int,
+    max_shift: int = 16,
+    sample_step: int = 4,
+) -> dict:
+    if max_shift < 0:
+        raise ValueError("max_shift must be non-negative")
+    row_bytes = width * BYTES_PER_PIXEL
+    if width <= 0 or not before or len(before) % row_bytes:
+        raise ValueError("invalid frame geometry")
+    height = len(before) // row_bytes
+    bounded = min(max_shift, max(0, height - 1))
+    scores = {
+        shift: vertical_agreement(
+            before,
+            after,
+            width=width,
+            shift=shift,
+            sample_step=sample_step,
+        )
+        for shift in range(-bounded, bounded + 1)
+    }
+    best = max(
+        scores,
+        key=lambda shift: (scores[shift], -abs(shift), -shift),
+    )
+    zero = scores.get(0, 0.0)
+    return {
+        "best_vertical_shift_pixels": best,
+        "best_vertical_agreement": scores[best],
+        "zero_vertical_shift_agreement": zero,
+        "vertical_agreement_gain": scores[best] - zero,
+    }
+
 def best_horizontal_shift(
     before: bytes,
     after: bytes,
@@ -187,23 +267,45 @@ def analyze_sequence(
             max_shift=max_shift,
             sample_step=sample_step,
         )
+        vertical_motion = best_vertical_shift(
+            before,
+            after,
+            width=width,
+            max_shift=max_shift,
+            sample_step=sample_step,
+        )
         pairs.append({
             "from_index": left_index,
             "to_index": right_index,
             **change,
             **motion,
+            **vertical_motion,
         })
 
     useful_motion = [
         row for row in pairs
         if row["best_shift_pixels"] != 0 and row["agreement_gain"] >= 0.05
     ]
+    useful_vertical_motion = [
+        row for row in pairs
+        if row["best_vertical_shift_pixels"] != 0
+        and row["vertical_agreement_gain"] >= 0.05
+    ]
     histogram = Counter(row["best_shift_pixels"] for row in useful_motion)
+    vertical_histogram = Counter(
+        row["best_vertical_shift_pixels"] for row in useful_vertical_motion
+    )
     changed_pairs = [row for row in pairs if row["changed_pixels"] > 0]
     dominant = None
+    dominant_vertical = None
     if histogram:
         dominant = sorted(
             histogram.items(),
+            key=lambda item: (-item[1], abs(item[0]), item[0]),
+        )[0][0]
+    if vertical_histogram:
+        dominant_vertical = sorted(
+            vertical_histogram.items(),
             key=lambda item: (-item[1], abs(item[0]), item[0]),
         )[0][0]
 
@@ -219,15 +321,22 @@ def analyze_sequence(
             changed_pairs[-1]["to_index"] if changed_pairs else None
         ),
         "motion_candidate_pair_count": len(useful_motion),
+        "vertical_motion_candidate_pair_count": len(useful_vertical_motion),
         "dominant_horizontal_shift_pixels": dominant,
+        "dominant_vertical_shift_pixels": dominant_vertical,
         "motion_shift_histogram": {
             str(key): value for key, value in sorted(histogram.items())
         },
+        "vertical_motion_shift_histogram": {
+            str(key): value
+            for key, value in sorted(vertical_histogram.items())
+        },
         "pairs": pairs,
         "interpretation": (
-            "Non-zero horizontal shift is only a candidate when sampled "
-            "agreement improves over the zero-shift baseline by >= 0.05. "
-            "Palette/layer changes may still require separate interpretation."
+            "Non-zero horizontal or vertical shift is only a candidate when "
+            "sampled agreement improves over that axis's zero-shift baseline "
+            "by >= 0.05. Palette/layer changes may still require separate "
+            "interpretation."
         ),
     }
 

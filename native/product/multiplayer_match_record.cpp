@@ -315,12 +315,34 @@ MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     return result;
 }
 
+std::optional<MultiplayerMatchRecord> make_multiplayer_match_record(
+    const CompletedRunRecord& run,
+    const BoundOrdinaryTwoPlayerMatchContext& context) noexcept {
+    std::string detail;
+    if (!validate_completed_run_record(run, &detail) ||
+        run.provenance.mode != "race-2p" ||
+        context.course_id != run.provenance.course_id) {
+        return std::nullopt;
+    }
+
+    MultiplayerMatchRecord record;
+    record.run_artifact_checksum =
+        completed_run_record_artifact_checksum(run);
+    record.context = context;
+    if (record.run_artifact_checksum.empty() ||
+        !validate_multiplayer_match_record(record, &detail)) {
+        return std::nullopt;
+    }
+    return record;
+}
+
 bool multiplayer_match_record_matches_run(
     const MultiplayerMatchRecord& record,
     const CompletedRunRecord& run) noexcept {
     std::string detail;
     if (!validate_multiplayer_match_record(record, &detail) ||
-        !validate_completed_run_record(run, &detail)) {
+        !validate_completed_run_record(run, &detail) ||
+        run.provenance.mode != "race-2p") {
         return false;
     }
     return record.run_artifact_checksum ==

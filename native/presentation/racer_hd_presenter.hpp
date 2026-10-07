@@ -2584,8 +2584,8 @@ constexpr std::uint32_t sample_racer_hd_authored_0579_p2_0ec4_broader(
         y >= 20 &&
         y < 78 &&
         upper_dx * upper_dx * 44 * 44 +
-            upper_dy * upper_dy * 28 * 28 <=
-            28 * 28 * 44 * 44;
+            upper_dy * upper_dy * 30 * 30 <=
+            30 * 30 * 44 * 44;
     if (upper) {
         return authored_saddle_color(x, y, 98, 52, 44);
     }

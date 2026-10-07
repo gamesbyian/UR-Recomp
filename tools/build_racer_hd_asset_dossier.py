@@ -240,6 +240,9 @@ FIFTY_THIRD_AUTHORED_REPRESENTATION_ID = (
 FIFTY_FOURTH_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x03F9-p1-broader-frequency-reference"
 )
+FIFTY_FIFTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -2046,6 +2049,44 @@ def build_thirty_seventh_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0579_p2_0ec4_broader_rgba(x: int, y: int) -> bytes:
+    """Fresh measured P2 0579/0EC4 geometry in the established material language."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    # The measured stock pose has a compact upper saddle/body mass shifted left
+    # relative to the P1 sequence, while its lower unicycle geometry follows
+    # the established ordinary-race construction. Keep those pieces separate
+    # instead of claiming cross-player pose reuse.
+    upper_dx = x - 98
+    upper_dy = y - 52
+    upper = (
+        x >= 84
+        and y < 78
+        and upper_dx * upper_dx * 44 * 44
+        + upper_dy * upper_dy * 28 * 28
+        <= 28 * 28 * 44 * 44
+    )
+    if upper:
+        return authored_saddle_rgba(x, y, 98, 52, 44)
+
+    if x < 84 or y < 78:
+        return b"\x00\x00\x00\x00"
+
+    return recolor_authored_frame_rgba(
+        sample_authored_05f9_p1_broader_rgba(x, y),
+        blue_frame=True,
+    )
+
+
+def build_thirty_eighth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0579_p2_0ec4_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -2455,6 +2496,12 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_thirty_seventh_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_thirty_seventh_authored_candidate_rgba",
             "sample_racer_hd_authored_03f9_p1_broader",
+        )
+    if rid == FIFTY_FIFTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_thirty_eighth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_thirty_eighth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0579_p2_0ec4_broader",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

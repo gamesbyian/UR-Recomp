@@ -26,6 +26,12 @@ The repository-wide CI audit is tracked in `docs/CI-HARDENING-AUDIT.md`. Treat i
 
 Two CI debts are intentionally contained rather than casually rewritten: exact-frame Racer Native Presentation assertions and cursor-count `xdotool` UI journeys. Do not "fix" either by weakening coverage. Exact-frame assertions require semantic classification into timing invariant vs relative/evidence anchor; UI journeys require a named semantic harness before cursor-count navigation is removed.
 
+## Recomp C guardrail
+
+First-party handwritten C and C ABI seams that touch guest state, guest memory or machine-shaped values follow `docs/RECOMP-C-PRACTICES.md`. The current portable title-C seams are strict-C11 checked under GCC and Clang and run under ASan/UBSan through their existing unit harnesses; `tooling-unit-tests.yml` is triggered by those source/test paths. Preserve this as a maintenance invariant.
+
+For future work: widen potentially growing address arithmetic before checking it, prove the complete guest-memory byte range before narrowing/dereferencing, make wrap/endianness explicit, reject unsafe host-API narrowing, and do not rely on signed overflow or implementation-defined signed shifts. Keep generated C disposable and leave vendored/imported C outside project warning-cleanup policy. A new C seam should extend the existing guard rather than create a parallel compiler/style regime.
+
 ## Platform portability guardrail
 
 Windows x64 is the primary consumer/reference build. macOS, Web, Switch homebrew and PS5 remain later peer/feasibility targets behind the same simulation/product interfaces. Reject new desktop-only assumptions when an equally small portable seam exists, but **do not assign agents to secondary-platform reconnaissance, compile feasibility or port implementation while unfinished Windows x64 baseline requirements remain**. Platform-specific plans remain reference material for future work, not active queue authorization.

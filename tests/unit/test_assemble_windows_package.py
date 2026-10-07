@@ -74,6 +74,9 @@ class WindowsPackageTests(unittest.TestCase):
             (build / "host-state-v1.txt").write_text("build-local-host-state\n")
             (build / "saves").mkdir()
             (build / "saves" / "dirty.srm").write_bytes(b"dirty-save")
+            (build / "mods" / "preloaded" / "state.toml").write_text(
+                "build-local-mod-state\n"
+            )
 
             result = self.run_tool(
                 "assemble",
@@ -88,6 +91,9 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertFalse((package / "keybinds.ini").exists())
             self.assertFalse((package / "host-state-v1.txt").exists())
             self.assertFalse((package / "saves").exists())
+            self.assertFalse(
+                (package / "mods" / "preloaded" / "state.toml").exists()
+            )
             self.assertTrue((package / "run-uniracers.cmd").is_file())
             self.assertIn(
                 "Source revision: abc123",
@@ -338,6 +344,38 @@ class WindowsPackageTests(unittest.TestCase):
 
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
+
+            mutable_state = package / "mods" / "preloaded" / "state.toml"
+            mutable_state.write_text("leaked-mod-state\n")
+            mutable_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            mutable_manifest["files"] = [
+                {
+                    "path": p.relative_to(package).as_posix(),
+                    "size": p.stat().st_size,
+                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                }
+                for p in sorted(package.rglob("*"))
+                if p.is_file() and p.name != "PACKAGE-MANIFEST.json"
+            ]
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                mutable_manifest,
+            )
+            mutable_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(mutable_failed.returncode, 0)
+            self.assertIn(
+                "contains mutable user state: mods/preloaded/state.toml",
+                mutable_failed.stderr,
+            )
+            mutable_state.unlink()
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
+            )
 
             absolute_rom_cfg = b"C:\\build\\checkout\\Uniracers_USA.sfc\n"
             (package / "rom.cfg").write_bytes(absolute_rom_cfg)

@@ -168,6 +168,36 @@ std::optional<RunTimingSplitTablePresentation> present_run_split_table(
     return table;
 }
 
+std::optional<RunResultSummaryPresentation> present_run_result_summary_against(
+    const CompletedRunRecord& current,
+    const CompletedRunRecord& target,
+    RunDataTargetKind kind) {
+    std::string detail;
+    if (!validate_completed_run_record(current, &detail)) {
+        return std::nullopt;
+    }
+
+    const auto target_presentation = present_run_target(target, kind);
+    const auto finish_delta =
+        present_run_finish_delta(target, current.elapsed_ticks60);
+    const auto splits = present_run_split_table(current, target, kind);
+    if (!target_presentation || !finish_delta || !splits) {
+        return std::nullopt;
+    }
+
+    RunResultSummaryPresentation summary;
+    summary.finish.clock_label = "FINISH";
+    summary.finish.clock_text = format_run_ticks60(current.elapsed_ticks60);
+    summary.finish.target_label = target_presentation->label;
+    summary.finish.target_text = target_presentation->time_text;
+    summary.finish.comparison_label = "DELTA";
+    summary.finish.comparison_text = finish_delta->delta_text;
+    summary.finish.target_available = true;
+    summary.finish.comparison_available = true;
+    summary.splits = splits->rows;
+    return summary;
+}
+
 std::optional<RunResultSummaryPresentation> present_run_result_summary(
     const CompletedRunRecord& current,
     const CompletedRunRecord* personal_best) {

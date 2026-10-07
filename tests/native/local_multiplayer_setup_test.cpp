@@ -1,6 +1,7 @@
 #include "local_multiplayer_setup.hpp"
 
 #include <cassert>
+#include <cstring>
 
 using namespace ur::product;
 
@@ -67,6 +68,84 @@ int main() {
     assert(keyboard_p2.applied());
     assert(keyboard_p2.slot == LocalMultiplayerSlot::Player2);
     assert(local_multiplayer_launch_eligible(keyboard_p2.state));
+
+    {
+        LocalMultiplayerSetupState presentation_state{};
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player1) ==
+            LocalMultiplayerSeatPresentation::Empty);
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player2) ==
+            LocalMultiplayerSeatPresentation::Empty);
+        assert(
+            !local_multiplayer_seat_connected(
+                LocalMultiplayerSeatPresentation::Empty));
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::Empty),
+                   "EMPTY") == 0);
+
+        presentation_state = local_multiplayer_assign(
+            presentation_state,
+            LocalMultiplayerSlot::Player1,
+            controller(101)).state;
+        const LocalInputSource keyboard_source{
+            LocalInputKind::Keyboard, 202, true};
+        presentation_state = local_multiplayer_assign(
+            presentation_state,
+            LocalMultiplayerSlot::Player2,
+            keyboard_source).state;
+
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player1) ==
+            LocalMultiplayerSeatPresentation::ControllerConnected);
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player2) ==
+            LocalMultiplayerSeatPresentation::KeyboardConnected);
+        assert(
+            local_multiplayer_seat_connected(
+                LocalMultiplayerSeatPresentation::ControllerConnected));
+        assert(
+            local_multiplayer_seat_connected(
+                LocalMultiplayerSeatPresentation::KeyboardConnected));
+        assert(std::strcmp(
+                   local_multiplayer_slot_label(LocalMultiplayerSlot::Player1),
+                   "P1") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_slot_label(LocalMultiplayerSlot::Player2),
+                   "P2") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::ControllerConnected),
+                   "CONTROLLER") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::KeyboardConnected),
+                   "KEYBOARD") == 0);
+
+        presentation_state = local_multiplayer_set_connected(
+            presentation_state, controller(101), false);
+        presentation_state = local_multiplayer_set_connected(
+            presentation_state, keyboard_source, false);
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player1) ==
+            LocalMultiplayerSeatPresentation::ControllerDisconnected);
+        assert(
+            local_multiplayer_seat_presentation(
+                presentation_state, LocalMultiplayerSlot::Player2) ==
+            LocalMultiplayerSeatPresentation::KeyboardDisconnected);
+        assert(
+            !local_multiplayer_seat_connected(
+                LocalMultiplayerSeatPresentation::ControllerDisconnected));
+        assert(
+            !local_multiplayer_seat_connected(
+                LocalMultiplayerSeatPresentation::KeyboardDisconnected));
+    }
 
     return 0;
 }

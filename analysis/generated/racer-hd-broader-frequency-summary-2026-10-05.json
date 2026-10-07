@@ -422,7 +422,6 @@
       "gate": "0x0000",
       "player_frames": 68,
       "episode_count": 49,
-      "synchronized_witness_state_count": 49,
       "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "ba0464a8c49010fa6647de488f01abbc4cadda4fa6ad02643acd13913fbd2c36",
       "normalized_geometry_sha256": "62d339ded8473e00b8a8df7449a9b1fb1be25eb6be915d3f5e9b70c603ea0f02",

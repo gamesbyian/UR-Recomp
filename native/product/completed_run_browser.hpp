@@ -69,8 +69,11 @@ public:
     const RunRecordsCourseIndexEntry* selected_course() const noexcept;
     const RunDataCatalogEntry* selected_run() const noexcept;
     const CompletedRunRecord* selected_run_record() const noexcept;
+    const CompletedRunRecord* previous_run_record() const noexcept;
     std::optional<RunResultSummaryPresentation>
     selected_run_summary() const;
+    std::optional<RunDataDeltaPresentation>
+    selected_run_previous_delta() const;
 
     bool move(int delta) noexcept;
     bool open_selected_course() noexcept;

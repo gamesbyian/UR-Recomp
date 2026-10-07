@@ -2608,6 +2608,80 @@ std::optional<std::uint8_t> available_next_event_slot() {
         g_profile_state->tour_continuation->qualified);
 }
 
+std::optional<ur::title::TourProgress> current_results_tour_progress() {
+    if (!modern_mode() || g_practice_active || !g_ram || !g_sram ||
+        g_surface != UR_UNIRACERS_RESTART_RESULTS ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return std::nullopt;
+    }
+    return ur::title::observe_tour_progress(
+        g_ram,
+        0x20000,
+        g_sram,
+        static_cast<std::size_t>(g_sram_size));
+}
+
+bool results_navigation_router_available() {
+    return modern_mode() && !paused() &&
+           !g_exit_frontend_waiting_for_main &&
+           !g_exit_frontend_waiting_for_usable &&
+           !practice_routing() &&
+           !tour_continue_routing() &&
+           !g_tour_action_visible &&
+           g_results_route_pending == ur::product::ModernResultsAction::None &&
+           !g_results_tour_route_active;
+}
+
+ur::product::ModernResultsNavigationContext
+current_results_navigation_context() {
+    const auto progress = current_results_tour_progress();
+    const bool profile_matches =
+        progress &&
+        g_profile_state &&
+        g_profile_state_writable &&
+        g_profile_state->stock_sram &&
+        g_product_state.active_profile_id &&
+        *g_product_state.active_profile_id == g_profile_state->profile_id &&
+        profile_snapshot_matches_live_sram(*g_profile_state);
+    return {
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        g_surface == UR_UNIRACERS_RESTART_RESULTS,
+        g_practice_active,
+        progress.has_value(),
+        g_profile_state.has_value() && g_profile_state_writable,
+        profile_matches,
+        results_navigation_router_available(),
+        g_session && ur_modern_session_restart_available(g_session),
+        progress &&
+            ur::product::unique_remaining_tour_slot(
+                progress->qualified).has_value(),
+    };
+}
+
+void refresh_results_navigation_menu() {
+    const auto previous =
+        ur::product::selected_modern_results_action(g_results_navigation_menu);
+    auto next = ur::product::make_modern_results_navigation_menu(
+        current_results_navigation_context());
+    for (std::size_t i = 0; i < next.row_count; ++i) {
+        if (next.rows[i] == previous) {
+            next.selected = i;
+            break;
+        }
+    }
+    g_results_navigation_menu = next;
+}
+
+bool results_navigation_active() {
+    if (!modern_mode() || paused() ||
+        g_surface != UR_UNIRACERS_RESTART_RESULTS) {
+        return false;
+    }
+    refresh_results_navigation_menu();
+    return g_results_navigation_menu.row_count != 0;
+}
+
 ur::product::ModernTourEntryContext current_tour_entry_context() {
     const bool available = tour_continue_available();
     return {

@@ -22,6 +22,7 @@ README_NAME = "README.txt"
 ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
 ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 ARCHIVE_CHECKSUM_SUFFIX = ".sha256"
+MUTABLE_PACKAGE_PATHS = {"mods/preloaded/state.toml"}
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
     ROM_NAME,
@@ -145,6 +146,11 @@ def validate_required_package_paths(
         )
     if not any(path.startswith("mods/") for path in paths):
         raise ValueError(f"{context} mods directory is empty")
+    mutable = sorted(MUTABLE_PACKAGE_PATHS & paths)
+    if mutable:
+        raise ValueError(
+            f"{context} contains mutable user state: " + ", ".join(mutable)
+        )
 
 
 def write_launcher(path: Path, source_revision: str) -> None:
@@ -365,6 +371,10 @@ def assemble(
     (output / ROM_CONFIG_NAME).write_bytes(ROM_CONFIG_BYTES)
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
+    for relative in MUTABLE_PACKAGE_PATHS:
+        candidate = output / relative
+        if candidate.is_file() or candidate.is_symlink():
+            candidate.unlink()
     write_launcher(output / LAUNCHER_NAME, source_revision)
     write_readme(output / README_NAME, source_revision)
 

@@ -17,7 +17,7 @@ The portable package contains:
 - `UniracersSNESRecomp.exe`, built with the static MSVC runtime so the portable package does not require a separately installed Visual C++ Redistributable;
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - canonical package-relative `rom.cfg`, containing only `Uniracers_USA.sfc` rather than the generated build/check-out path; the mutable framework ROM cache is redirected to the user-data root after launch;
-- the staged `mods/` tree;
+- the staged immutable `mods/` tree, with legacy mutable `mods/preloaded/state.toml` explicitly excluded and rejected by verification;
 - `run-uniracers.cmd`, which keeps package payload lookup anchored to the extracted directory, launches both the executable and ROM through explicit package-root paths so later cwd relocation cannot redirect them, resolves/probes the shared per-user mutable root, performs destination-wins legacy migration, seeds one bounded per-process diagnostics log where writable, and emits stable startup diagnostic codes for package/root failures;
 - `README.txt` documenting the source revision plus the per-user root, override and migration contract;
 - `PACKAGE-MANIFEST.json` with one canonical non-empty source-revision line plus SHA-256 and size for every packaged payload file; `README.txt` repeats that revision and verification requires the two to agree.
@@ -57,7 +57,7 @@ Portable upgrades use whole-folder replacement rather than in-place overlay: clo
 
 The portable package no longer requires a writable extraction directory for ordinary mutable state. The default Windows root is `%APPDATA%\gamesbyian\UR-Recomp`; `UR_RECOMP_USER_DATA_ROOT` exists as an explicit portable/testing override. The final resolved root must be an absolute drive-rooted or UNC path and must live outside the extracted package tree; relative overrides, non-absolute `APPDATA` resolution, and package-local/subdirectory roots fail closed before migration or launch. The launcher exports that resolved root to the framework and Modern host rather than maintaining feature-specific locations.
 
-Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. The framework ROM-path cache is redirected to the user-data root so launcher activity cannot rewrite packaged `rom.cfg`. User-owned config, bindings, cartridge/profile saves, mod selections, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.
+Package-owned executable, ROM, `rom.cfg`, mod payload and manifest files remain immutable inputs. Legacy build-tree `mods/preloaded/state.toml` is mutable selection state and is therefore stripped during assembly and rejected if it appears in a package/archive. The framework ROM-path cache is redirected to the user-data root so launcher activity cannot rewrite packaged `rom.cfg`. User-owned config, bindings, cartridge/profile saves, mod selections, Modern settings/profile metadata, onboarding state, practice helper files and completed-run history remain outside the package. Replacing or deleting the extracted package therefore does not delete normal user progress.
 
 An installer is still deferred. The storage/migration prerequisite is now satisfied, but installer selection, registration/uninstall behavior, signed release policy and installer-specific upgrade/rollback acceptance are separate work and must not be implied by the portable ZIP.
 

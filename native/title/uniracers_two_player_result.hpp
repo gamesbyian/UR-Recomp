@@ -7,6 +7,7 @@
 namespace ur::title {
 
 constexpr std::uint16_t kOrdinaryTwoPlayerNoTimeHundredths = 60000u;
+constexpr std::uint8_t kOrdinaryTwoPlayerRaceResultMenu = 0xF9u;
 
 enum class OrdinaryTwoPlayerRaceOutcome : std::uint8_t {
     Draw = 0,

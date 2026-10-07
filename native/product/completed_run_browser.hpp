@@ -45,6 +45,8 @@ struct CompletedRunBrowserEntry {
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept;
 
+std::string completed_run_browser_date_text(const std::string& path);
+
 enum class CompletedRunRecordsView : std::uint8_t {
     Courses = 0,
     Runs = 1,

@@ -39,6 +39,7 @@ from tools.build_racer_hd_asset_dossier import (
     FORTY_NINTH_AUTHORED_REPRESENTATION_ID,
     FIFTIETH_AUTHORED_REPRESENTATION_ID,
     FIFTY_FIRST_AUTHORED_REPRESENTATION_ID,
+    FIFTY_SECOND_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     authored_candidate_rgba_for_entry,
@@ -74,6 +75,7 @@ from tools.build_racer_hd_asset_dossier import (
     build_thirty_second_authored_candidate_rgba,
     build_thirty_third_authored_candidate_rgba,
     build_thirty_fourth_authored_candidate_rgba,
+    build_thirty_fifth_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -107,6 +109,7 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_03b9_p1_broader_rgba,
     sample_authored_0339_p1_broader_rgba,
     sample_authored_0379_p1_broader_rgba,
+    sample_authored_05f9_p1_broader_rgba,
     sample_authored_0543_p1_third_family_rgba,
     sample_authored_0540d2c_p2_third_family_rgba,
     sample_authored_0542_p1_third_family_rgba,
@@ -1181,6 +1184,47 @@ class RacerHdAssetDossierTests(unittest.TestCase):
         self.assertEqual(
             occupied - previous,
             {(34, 29), (35, 29), (38, 31), (41, 23)},
+        )
+        self.assertEqual(previous - occupied, set())
+
+    def test_broader_05f9_candidate_has_expected_envelope_contact_and_delta(self):
+        self.assertEqual(
+            FIFTY_SECOND_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x05F9-p1-broader-frequency-reference",
+        )
+        rgba = build_thirty_fifth_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        occupied = {
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_05f9_p1_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        }
+        previous = {
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_0379_p1_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        }
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [18, 5, 47, 36],
+        )
+        bottom = [x for x, y in occupied if y == 36]
+        self.assertEqual(min(bottom) + max(bottom), 77)
+        self.assertEqual(
+            occupied - previous,
+            {(37, 24), (38, 25), (38, 26), (36, 30),
+             (37, 30), (38, 29), (38, 30)},
         )
         self.assertEqual(previous - occupied, set())
 

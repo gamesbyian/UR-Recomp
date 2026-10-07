@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; broader P1 player-local families through 0379 are measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; broader player-local families through P1 05F9 are measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -602,28 +602,16 @@
         "artifact_id": 11463312320,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 1045,
-    "original_fallback_player_frames": 4237,
-    "hd_coverage_fraction": 0.19784172661870503,
-    "cumulative_player_frames_removed": 927,
-    "absolute_coverage_gain_percentage_points": 17.550170390003785,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.1795120061967467
-  },
-  "next_discriminator": {
-    "status": "measured-post-0379-leader",
-    "target": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x05F9",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 57,
+      "player_frames_removed": 57,
       "episode_count": 44,
       "synchronized_witness_state_count": 40,
-      "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "9c79b220acb1f7932888baef9ba49d96514d9dfdfdd08a4d95b887e65bb7777d",
       "normalized_geometry_sha256": "d1676f52b51bc50fed5fcbd5af8db3d50b4c9b3b59974d8be3ce713960560f75",
       "alpha_bounds": [
@@ -636,10 +624,62 @@
         77,
         72
       ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-05f9.json",
+      "authored_rgba_sha256": "d8b8bb4370607a201783d36308dc7bd7761ffc9d7bddac98d5ff0f5fbf4c3930",
+      "review_alpha_iou": 0.7542372881355932,
+      "review_evidence": {
+        "workflow_run": 37579988636,
+        "artifact_id": 11464695490
+      },
+      "after": {
+        "hd_selected_player_frames": 1102,
+        "original_fallback_player_frames": 4180,
+        "hd_coverage_fraction": 0.20863309352517986
+      },
+      "focused_reproduction": {
+        "workflow_run": 37580184113,
+        "artifact_id": 11464860358,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 1102,
+    "original_fallback_player_frames": 4180,
+    "hd_coverage_fraction": 0.20863309352517986,
+    "cumulative_player_frames_removed": 984,
+    "absolute_coverage_gain_percentage_points": 18.62930708065127,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.19054996127033308
+  },
+  "next_discriminator": {
+    "status": "measured-post-05f9-leader",
+    "target": {
+      "player": "p2",
+      "semantic_frame_id": "0x0546",
+      "companion": "0x0EB2",
+      "selector": 0,
+      "gate": "0x0001",
+      "player_frames": 57,
+      "episode_count": 22,
+      "synchronized_witness_state_count": 27,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "3a41fa3f1590b5024632021f74ec10ebe1dedbd81d0f710ffc744fddedf16d6d",
+      "normalized_geometry_sha256": "2afda291f9afdd8521b36278198215e6860114687d01ef3b1e5f7a9d276cb485",
+      "alpha_bounds": [
+        17,
+        4,
+        41,
+        37
+      ],
+      "contact_x2_y2": [
+        51,
+        74
+      ],
       "exact_same_player_reuse_matches": [],
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "05F9 is the next bounded shipping slice by measured post-0379 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+    "rule": "P2 0546 + companion 0EB2 / selector 0 / gate 0001 is the next measured shipping slice. Its changed envelope/contact and P2 ownership require a fresh witness-first authored review rather than inheriting the preceding P1 geometry."
   }
 }

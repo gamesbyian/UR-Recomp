@@ -3633,8 +3633,10 @@ bool activate_results_navigation_action(
         return repeat_current_attempt();
     }
     if (action == ur::product::ModernResultsAction::Records) {
-        if (!paused() && !dispatch(UR_MODERN_PAUSE_TOGGLE)) return false;
-        return paused() && ur_uniracers_product_open_records() != 0;
+        // Re-enter the existing F8 results path owned by the completed-run
+        // browser. That path already acquires pause authority before opening
+        // Records and preserves the shipping F8 / physical-Y behavior.
+        return ur_uniracers_product_system_key_down(SDLK_F8, 0, 0) != 0;
     }
 
     const auto progress = current_results_tour_progress();

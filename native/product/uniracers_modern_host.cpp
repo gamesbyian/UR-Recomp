@@ -4139,48 +4139,94 @@ void detach_controller_hotplug_acceptance_pad() {
 // through SDL so every join/profile action arrives through the framework's
 // source-aware callbacks. P2 first tries P1's profile (refused as a
 // duplicate), then moves right and confirms a distinct profile.
+enum class JoinAcceptanceStepKind : std::uint8_t { Press, Detach, Attach };
 struct LocalMultiplayerJoinAcceptanceStep {
     int pad;
     SDL_GamepadButton button;
+    JoinAcceptanceStepKind kind;
 };
+constexpr auto kJoinPress = JoinAcceptanceStepKind::Press;
+// P2 first tries P1's profile (refused as a duplicate), then moves right and
+// confirms a distinct profile.
 constexpr LocalMultiplayerJoinAcceptanceStep kLocalMultiplayerJoinSteps[] = {
-    {0, SDL_GAMEPAD_BUTTON_SOUTH},       // P1 joins
-    {1, SDL_GAMEPAD_BUTTON_SOUTH},       // P2 joins
-    {0, SDL_GAMEPAD_BUTTON_SOUTH},       // P1 confirms the first profile
-    {1, SDL_GAMEPAD_BUTTON_SOUTH},       // P2 tries the same profile
-    {1, SDL_GAMEPAD_BUTTON_DPAD_RIGHT},  // P2 moves to the next profile
-    {1, SDL_GAMEPAD_BUTTON_SOUTH},       // P2 confirms it
+    {0, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P1 joins
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P2 joins
+    {0, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P1 confirms profile 1
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P2 tries the same one
+    {1, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, kJoinPress},  // P2 moves on
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P2 confirms it
+};
+// P2's pad is unplugged after joining, which must block the session; a pad
+// plugged back in (a new SDL instance) leaves the stale seat with B, joins
+// again and confirms; the seat's profile cursor survives the unplug.
+constexpr LocalMultiplayerJoinAcceptanceStep kLocalMultiplayerDisconnectSteps[] = {
+    {0, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P1 joins
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P2 joins
+    {0, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // P1 confirms profile 1
+    {1, SDL_GAMEPAD_BUTTON_DPAD_RIGHT, kJoinPress},  // P2 moves to profile 2
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, JoinAcceptanceStepKind::Detach},
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, JoinAcceptanceStepKind::Attach},
+    {1, SDL_GAMEPAD_BUTTON_EAST, kJoinPress},        // leave the stale seat
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // join again
+    {1, SDL_GAMEPAD_BUTTON_SOUTH, kJoinPress},       // confirm the retained
+                                                     // profile-2 cursor
 };
 std::array<SDL_JoystickID, 2> g_local_multiplayer_acceptance_pad_ids{};
 std::array<SDL_Joystick*, 2> g_local_multiplayer_acceptance_pads{};
 int g_local_multiplayer_acceptance_stage = -1;
 unsigned g_local_multiplayer_acceptance_frames;
 
+bool attach_local_multiplayer_acceptance_pad(std::size_t i) {
+    constexpr const char* kNames[2] = {"UR JOIN PAD ONE", "UR JOIN PAD TWO"};
+    SDL_VirtualJoystickDesc desc;
+    SDL_INIT_INTERFACE(&desc);
+    desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+    desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+    desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+    desc.name = kNames[i];
+    // Distinct USB identities, as two different physical pads would have;
+    // SDL derives a gamepad's mapping (and name) from its GUID.
+    desc.vendor_id = 0x1209;
+    desc.product_id = static_cast<Uint16>(0x5501 + i);
+    g_local_multiplayer_acceptance_pad_ids[i] = SDL_AttachVirtualJoystick(&desc);
+    g_local_multiplayer_acceptance_pads[i] =
+        g_local_multiplayer_acceptance_pad_ids[i]
+            ? SDL_OpenJoystick(g_local_multiplayer_acceptance_pad_ids[i])
+            : nullptr;
+    return g_local_multiplayer_acceptance_pads[i] != nullptr;
+}
+
+void detach_local_multiplayer_acceptance_pad(std::size_t i) {
+    if (g_local_multiplayer_acceptance_pads[i]) {
+        SDL_CloseJoystick(g_local_multiplayer_acceptance_pads[i]);
+        g_local_multiplayer_acceptance_pads[i] = nullptr;
+    }
+    if (g_local_multiplayer_acceptance_pad_ids[i]) {
+        (void)SDL_DetachVirtualJoystick(g_local_multiplayer_acceptance_pad_ids[i]);
+        g_local_multiplayer_acceptance_pad_ids[i] = 0;
+    }
+}
+
+// Native acceptance for the Modern 2P join surface. Two named SDL virtual
+// gamepads are seated by the framework; once the stock route reaches the 2P
+// select surface and the join overlay opens, their real buttons are pulsed
+// through SDL so every join/profile action arrives through the framework's
+// source-aware callbacks. UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=disconnect
+// runs the unplug/replug variant.
 void run_local_multiplayer_join_acceptance() {
-    if (!std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE")) return;
+    const char* mode = std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE");
+    if (!mode) return;
+    const bool disconnect = std::strcmp(mode, "disconnect") == 0;
+    const LocalMultiplayerJoinAcceptanceStep* steps =
+        disconnect ? kLocalMultiplayerDisconnectSteps : kLocalMultiplayerJoinSteps;
+    const int step_count = disconnect
+        ? static_cast<int>(sizeof(kLocalMultiplayerDisconnectSteps) /
+                           sizeof(kLocalMultiplayerDisconnectSteps[0]))
+        : static_cast<int>(sizeof(kLocalMultiplayerJoinSteps) /
+                           sizeof(kLocalMultiplayerJoinSteps[0]));
     if (g_local_multiplayer_acceptance_stage == -1) {
-        constexpr const char* kNames[2] = {
-            "UR JOIN PAD ONE", "UR JOIN PAD TWO"};
-        for (std::size_t i = 0; i < 2; ++i) {
-            SDL_VirtualJoystickDesc desc;
-            SDL_INIT_INTERFACE(&desc);
-            desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
-            desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
-            desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
-            desc.name = kNames[i];
-            // Distinct USB identities, as two different physical pads would
-            // have; SDL derives a gamepad's mapping (and name) from its GUID.
-            desc.vendor_id = 0x1209;
-            desc.product_id = static_cast<Uint16>(0x5501 + i);
-            g_local_multiplayer_acceptance_pad_ids[i] =
-                SDL_AttachVirtualJoystick(&desc);
-            g_local_multiplayer_acceptance_pads[i] =
-                g_local_multiplayer_acceptance_pad_ids[i]
-                    ? SDL_OpenJoystick(g_local_multiplayer_acceptance_pad_ids[i])
-                    : nullptr;
-        }
-        const bool attached = g_local_multiplayer_acceptance_pads[0] &&
-                              g_local_multiplayer_acceptance_pads[1];
+        const bool attached = attach_local_multiplayer_acceptance_pad(0) &&
+                              attach_local_multiplayer_acceptance_pad(1);
         product_diagnostic(
             attached ? "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE PADS_ATTACHED"
                      : "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE ATTACH_FAILED");
@@ -4189,8 +4235,6 @@ void run_local_multiplayer_join_acceptance() {
         if (!attached) (void)request_desktop_quit();
         return;
     }
-    constexpr int kStepCount = static_cast<int>(
-        sizeof(kLocalMultiplayerJoinSteps) / sizeof(kLocalMultiplayerJoinSteps[0]));
     if (g_local_multiplayer_acceptance_stage >= 1000) return;
     ++g_local_multiplayer_acceptance_frames;
     if (g_local_multiplayer_acceptance_stage == 0) {
@@ -4207,18 +4251,43 @@ void run_local_multiplayer_join_acceptance() {
         g_local_multiplayer_acceptance_frames = 0;
         return;
     }
-    // Each step holds its button for 4 frames, then releases for 8 frames so
-    // the framework sees distinct press and release edges.
+    // Each press holds its button for 4 frames, then releases for 8 frames so
+    // the framework sees distinct press and release edges; an unplug or
+    // replug gets 30 frames for the framework to observe the device change.
     const int step = g_local_multiplayer_acceptance_stage - 1;
-    if (step < kStepCount) {
-        const auto& action = kLocalMultiplayerJoinSteps[step];
-        SDL_Joystick* pad = g_local_multiplayer_acceptance_pads[
-            static_cast<std::size_t>(action.pad)];
+    if (step < step_count) {
+        const auto& action = steps[step];
+        const auto pad_index = static_cast<std::size_t>(action.pad);
+        if (action.kind == JoinAcceptanceStepKind::Press) {
+            SDL_Joystick* pad = g_local_multiplayer_acceptance_pads[pad_index];
+            if (g_local_multiplayer_acceptance_frames == 1u) {
+                (void)SDL_SetJoystickVirtualButton(pad, action.button, true);
+            } else if (g_local_multiplayer_acceptance_frames == 5u) {
+                (void)SDL_SetJoystickVirtualButton(pad, action.button, false);
+            } else if (g_local_multiplayer_acceptance_frames >= 13u) {
+                ++g_local_multiplayer_acceptance_stage;
+                g_local_multiplayer_acceptance_frames = 0;
+            }
+            return;
+        }
         if (g_local_multiplayer_acceptance_frames == 1u) {
-            (void)SDL_SetJoystickVirtualButton(pad, action.button, true);
-        } else if (g_local_multiplayer_acceptance_frames == 5u) {
-            (void)SDL_SetJoystickVirtualButton(pad, action.button, false);
-        } else if (g_local_multiplayer_acceptance_frames >= 13u) {
+            if (action.kind == JoinAcceptanceStepKind::Detach) {
+                detach_local_multiplayer_acceptance_pad(pad_index);
+            } else {
+                (void)attach_local_multiplayer_acceptance_pad(pad_index);
+            }
+        } else if (g_local_multiplayer_acceptance_frames >= 30u) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr,
+                    "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE %s pad=%d ready=%d overlay=%d\n",
+                    action.kind == JoinAcceptanceStepKind::Detach
+                        ? "DETACHED" : "REATTACHED",
+                    action.pad + 1,
+                    g_local_multiplayer_participants_ready ? 1 : 0,
+                    g_local_multiplayer_join_visible ? 1 : 0);
+                std::fflush(stderr);
+            }
             ++g_local_multiplayer_acceptance_stage;
             g_local_multiplayer_acceptance_frames = 0;
         }

@@ -50,8 +50,10 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             "void run_local_multiplayer_join_acceptance() {",
             "\n}\n",
         )
-        self.assertIn("SDL_AttachVirtualJoystick(&desc)", hook)
+        self.assertIn("attach_local_multiplayer_acceptance_pad(", hook)
+        self.assertIn("detach_local_multiplayer_acceptance_pad(pad_index)", hook)
         self.assertIn("SDL_SetJoystickVirtualButton(pad, action.button, true)", hook)
+        self.assertIn("SDL_AttachVirtualJoystick(&desc)", source)
         # Joins and confirms must arrive through the framework callbacks, not
         # by calling the host's join helpers directly.
         for shortcut in (
@@ -71,6 +73,10 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             'test "$DUP" -lt "$READY"',
             "DONE ready=1 overlay=0 p1=join.alpha p2=join.bravo",
             "UR_EXECUTION_MODE=authentic",
+            "JOIN_MODE=disconnect run_native disconnect",
+            "SEAT slot=P2 device=CONTROLLER DISCONNECTED",
+            "DETACHED pad=2 ready=0 overlay=1",
+            'test "$REJOIN" -lt "$DREADY"',
         ):
             self.assertIn(marker, harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")

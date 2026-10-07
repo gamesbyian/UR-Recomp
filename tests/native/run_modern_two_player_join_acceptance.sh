@@ -7,7 +7,8 @@ set -Eeuo pipefail
 # P2 with their real buttons; the overlay names each seat's device from the
 # presentation-safe seat projection. P2 first tries P1's profile and is
 # refused as a duplicate, then confirms a distinct profile, and the session
-# becomes ready. Authentic never opens the join surface.
+# becomes ready. Unplugging a joined pad blocks the session until a pad
+# rejoins the seat. Authentic never opens the join surface.
 
 if [ "$#" -ne 3 ]; then
   echo "usage: $0 <native-exe> <retail-rom> <work-dir>" >&2
@@ -55,7 +56,7 @@ run_native() {
     XDG_DATA_HOME="$PREF_ROOT" \
     UR_PRODUCT_DIAGNOSTICS=1 \
     UR_HOST_STATE_PATH="$STATE" \
-    UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=1 \
+    UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE="${JOIN_MODE:-1}" \
     SNESRECOMP_INPUT_FILE="$INPUT" \
     timeout 200s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
       >"$WORK/$name.log" 2>&1
@@ -89,4 +90,25 @@ grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE JOIN_NOT_OPENED" "$WORK/authentic.
 ! grep -q "UR_LOCAL_MULTIPLAYER SEAT " "$WORK/authentic.log"
 echo "UR_TWO_PLAYER_JOIN_AUTHENTIC=inert"
 
-echo "UR_TWO_PLAYER_JOIN_ACCEPTANCE_RESULT=two_devices_joined_named_duplicate_refused_distinct_profiles_ready_authentic_inert"
+# 3. Unplugging P2's joined pad blocks the session and shows the seat as
+#    disconnected; a replugged pad (new SDL instance) leaves the stale seat,
+#    joins again and confirms the profile its cursor kept.
+JOIN_MODE=disconnect run_native disconnect
+DLOG="$WORK/disconnect.log"
+grep -v '^script ' "$DLOG" | grep -E 'UR_LOCAL_MULTIPLAYER|UR_CONTROLLER SEAT' || true
+grep -q "UR_CONTROLLER SEAT_DISCONNECTED seat=2" "$DLOG"
+grep -q "UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED" "$DLOG"
+grep -q "UR_LOCAL_MULTIPLAYER SEAT slot=P2 device=CONTROLLER DISCONNECTED" "$DLOG"
+grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DETACHED pad=2 ready=0 overlay=1" "$DLOG"
+grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE REATTACHED pad=2 ready=0 overlay=1" "$DLOG"
+test "$(grep -c 'UR_LOCAL_MULTIPLAYER SESSION_READY' "$DLOG")" -eq 1
+# The session becomes ready only after the replugged pad rejoined.
+REJOIN=$(grep -n "UR_LOCAL_MULTIPLAYER SEAT slot=P2 device=PAD UR JOIN PAD TWO" "$DLOG" | tail -n 1 | cut -d: -f1)
+DETACH=$(grep -n "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DETACHED" "$DLOG" | cut -d: -f1)
+DREADY=$(grep -n "UR_LOCAL_MULTIPLAYER SESSION_READY" "$DLOG" | cut -d: -f1)
+test "$DETACH" -lt "$REJOIN"
+test "$REJOIN" -lt "$DREADY"
+grep -q "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE DONE ready=1 overlay=0 p1=join.alpha p2=join.bravo" "$DLOG"
+echo "UR_TWO_PLAYER_JOIN_DISCONNECT=blocked_while_unplugged rejoined ready"
+
+echo "UR_TWO_PLAYER_JOIN_ACCEPTANCE_RESULT=two_devices_joined_named_duplicate_refused_distinct_profiles_ready_unplug_blocks_rejoin_ready_authentic_inert"

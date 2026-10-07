@@ -9,6 +9,7 @@ on:
       - "native/product/multiplayer_match_record.*"
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_presentation.*"
+      - "native/product/multiplayer_match_browser.*"
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/native/multiplayer_match_record_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
@@ -16,6 +17,7 @@ on:
       - "tests/unit/test_multiplayer_match_record_cpp.py"
       - "tests/unit/test_multiplayer_match_catalog_cpp.py"
       - "tests/unit/test_multiplayer_match_presentation_cpp.py"
+      - "tests/unit/test_multiplayer_match_browser_cpp.py"
       - "native/product/uniracers_modern_host.cpp"
       - ".github/workflows/local-multiplayer-product-contracts.yml"
 
@@ -40,4 +42,5 @@ jobs:
             tests.unit.test_multiplayer_match_record_cpp \
             tests.unit.test_multiplayer_match_catalog_cpp \
             tests.unit.test_multiplayer_match_presentation_cpp \
+            tests.unit.test_multiplayer_match_browser_cpp \
             tests.unit.test_local_multiplayer_host_contract

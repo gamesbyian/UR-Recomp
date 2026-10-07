@@ -1,6 +1,8 @@
 #include "uniracers_ws_margins.h"
 
+#include <limits.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* Live course presentation tables in bank $7F (docs/COURSE-FORMAT.md):
  * $7F:000F is the u16 coarse-sector index (64 px sectors), $7F:800F holds
@@ -15,7 +17,31 @@ enum {
 };
 
 static uint16_t read16(const uint8_t* wram, uint32_t addr) {
-    return (uint16_t)(wram[addr] | (wram[addr + 1] << 8));
+    return (uint16_t)((uint16_t)wram[addr] |
+                      ((uint16_t)wram[addr + 1u] << 8));
+}
+
+static int floor_div_pow2_i64(int64_t value, unsigned shift, int* out) {
+    const int64_t divisor = INT64_C(1) << shift;
+    int64_t quotient = value / divisor;
+    if (value < 0 && value % divisor != 0)
+        quotient--;
+    if (quotient < INT_MIN || quotient > INT_MAX)
+        return 0;
+    *out = (int)quotient;
+    return 1;
+}
+
+static int apply_scroll_delta(uint32_t value, uint16_t delta,
+                              uint32_t* out) {
+    delta &= 0x3FFu;
+    const int32_t signed_delta =
+        delta >= 0x200u ? (int32_t)delta - 0x400 : (int32_t)delta;
+    const int64_t next = (int64_t)value + signed_delta;
+    if (next < 0 || (uint64_t)next > UINT32_MAX)
+        return 0;
+    *out = (uint32_t)next;
+    return 1;
 }
 
 int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
@@ -27,17 +53,24 @@ int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
     if (coarse_w <= 0 || coarse_h <= 0 || cell_x < 0 || cell_y < 0 ||
         cell_x >= coarse_w * 4 || cell_y >= coarse_h * 4)
         return 0;
-    const uint32_t coarse_index =
-        (uint32_t)(cell_y >> 2) * (uint32_t)coarse_w + (uint32_t)(cell_x >> 2);
-    const uint32_t coarse_addr = kCoarseTable + coarse_index * 2u;
-    if (coarse_addr > 0xFFFEu)
+    const uint64_t coarse_index =
+        (uint64_t)(uint32_t)(cell_y >> 2) * (uint32_t)coarse_w +
+        (uint32_t)(cell_x >> 2);
+    const uint64_t coarse_addr64 =
+        (uint64_t)kCoarseTable + coarse_index * UINT64_C(2);
+    if (coarse_addr64 > UINT64_C(0xFFFE))
         return 0;
+    const uint32_t coarse_addr = (uint32_t)coarse_addr64;
     const uint16_t record = read16(wram, kWramBank7F + coarse_addr);
-    const uint32_t fine_addr = kFineRecords + (uint32_t)record * 32u +
-                               (uint32_t)(((cell_y & 3) * 4) + (cell_x & 3)) * 2u;
+    const uint64_t fine_addr64 =
+        (uint64_t)kFineRecords + (uint64_t)record * UINT64_C(32) +
+        (uint64_t)(((cell_y & 3) * 4) + (cell_x & 3)) * UINT64_C(2);
+    const uint32_t fine_addr = (uint32_t)fine_addr64;
     /* Mirrors the hook materializer: a sentinel/non-record entry renders
      * blank in stock, so an out-of-bank record is a blank cell. */
-    *out = fine_addr <= 0xFFFEu ? read16(wram, kWramBank7F + fine_addr) : 0;
+    *out = fine_addr64 <= UINT64_C(0xFFFE)
+        ? read16(wram, kWramBank7F + fine_addr)
+        : 0;
     return 1;
 }
 
@@ -90,7 +123,9 @@ int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
                         uint16_t scroll_y, int first_line, int line_count,
                         int guess_cell_x, int guess_cell_y, int radius,
                         int min_nonzero, int* offset_x, int* offset_y) {
-    if (!wram || !vram || radius < 0 || line_count <= 0)
+    if (!wram || !vram || radius < 0 || first_line < 0 ||
+        first_line >= 224 || line_count <= 0 ||
+        line_count > 224 - first_line)
         return 0;
     const int base_x = guess_cell_x - (scroll_x >> UR_WS_BG1_TILE_SHIFT);
     /* The guess is the camera, which sits at the band's first line: a lower
@@ -223,11 +258,6 @@ int ur_ws_margins_calibrated(void) {
         if (!s_band[i].calibrated)
             return 0;
     return 1;
-}
-
-static int32_t signed10(uint16_t delta) {
-    delta &= 0x3FF;
-    return delta >= 0x200 ? (int32_t)delta - 0x400 : (int32_t)delta;
 }
 
 /* Margins are served from the course model, which is the content the game

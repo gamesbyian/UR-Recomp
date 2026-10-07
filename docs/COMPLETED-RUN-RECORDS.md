@@ -8,6 +8,8 @@ Completed-run records are host-owned artifacts. The authoritative Uniracers simu
 
 The v1 primary representation contains strong game/ROM/build/course/mode provenance, exact elapsed time in authoritative 60 Hz guest timer ticks, named split/checkpoint times in the same unit, an optional terminal authoritative simulation digest, and run-length encoded P1/P2 12-bit controller words.
 
+P1/P2 input capacity does not by itself make v1 a multiplayer standings record. Durable participant identity and authoritative terminal match-result semantics are still absent from production Records; that boundary is specified in `MULTIPLAYER-TOURNAMENT-RECORDS.md`.
+
 native/product/completed_run_record.{hpp,cpp} owns the typed record, strict validation, persistence checksum, compatibility checks and replay lookup.
 
 ## Replay interoperability

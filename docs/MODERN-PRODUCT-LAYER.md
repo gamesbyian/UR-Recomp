@@ -103,7 +103,7 @@ These are settled product policy, not open research questions:
 - secret/Hunter progression remains undisclosed discovery content;
 - the result ritual is preserved, then Modern adds Next Event / Retry / Track Select / Tour Select / Records actions;
 - stock League administration becomes Modern Local Tournament, defaulting to round-robin/points play while retaining original standings presentation;
-- one unified Records browser owns Tracks, Racers/Profiles, Runs/Replays and Multiplayer/Tournament views while retaining classic tables as views; the first Windows x64 Runs/Replays slice now exists as a profile-wide host overlay with course summaries and per-course run history, while Tracks/Racers/Multiplayer views and permanent top-level navigation remain follow-on work;
+- one unified Records browser owns Tracks, Racers/Profiles, Runs/Replays and Multiplayer/Tournament views while retaining classic tables as views; Windows x64 now has permanent Modern pause-menu Records navigation, profile-wide Tracks and Racers/Profiles browsing, run history/detail, and a fail-closed Multiplayer/Tournament destination. The multiplayer view deliberately reports no stored history until a durable authoritative match/tournament-history producer exists; session-local controller assignment and 1P run artifacts are not promoted into invented standings;
 - Modern text entry uses native keyboard input plus controller on-screen entry; guest-compatible names use a deterministic stock-width projection when needed;
 - all 16 classic racer presets remain exact, but no new canonical personalities are invented; Bronsen/Silvia/Goldwyn/ANTI-UNI retain their established opponent roles;
 - the original attract/demo cycle remains default; any Local Showcase is explicit and optional.

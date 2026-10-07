@@ -1,10 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -526,6 +526,17 @@ int snesrecomp_desktop_set_output_mode(
-   return 0;
- #endif
- }
- 
+@@ -411,1 +411,12 @@
 +int snesrecomp_desktop_set_linear_filtering(int enabled) {
 +  g_config.linear_filtering = enabled != 0;
 +  if (g_renderer_funcs.Reconfigure)
@@ -16,19 +12,14 @@
 +  return g_config.linear_filtering ? 1 : 0;
 +}
 +
- /* Set by the hotkeys; consumed once in the frame loop. */
- static int g_savestate_menu_hotkey;
+ static void OutputModeFromSdl(
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -244,5 +244,11 @@ int snesrecomp_desktop_set_output_mode(
-     const SnesDesktopOutputMode *mode);
- 
+@@ -203,1 +203,7 @@
 +/* Live final-window texture filtering policy. Both SDL and OpenGL renderer
 + * paths already reread Config.linear_filtering, so this changes presentation
 + * sampling without altering guest geometry or simulation. */
 +int snesrecomp_desktop_set_linear_filtering(int enabled);
 +int snesrecomp_desktop_get_linear_filtering(void);
 +
- /* Ask the host to reset its pacing clock at the next opportunity (a title
-  * that just changed its presentation settings). */
- void snesrecomp_desktop_request_clock_reset(void);
+ #ifdef __cplusplus

@@ -69,6 +69,14 @@ typedef struct UrWsBg1Band {
 int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
                           int max_bands);
 
+/* Compute whole-tile spans that lie strictly outside the authored 256px
+ * centre for a horizontally expanded view. Straddling boundary tiles are
+ * deliberately excluded so margin materialization can never overwrite
+ * stock-authored centre pixels. */
+void ur_ws_margin_tile_bounds(int world_left, int extra_pixels,
+                              int* left_first, int* left_last,
+                              int* right_first, int* right_last);
+
 /* Per-frame entry point, called from the title's prepare_frame hook.
  * `enabled` is nonzero only for a live world-expand race. */
 void ur_ws_margins_prepare_frame(int enabled, int extra_pixels);

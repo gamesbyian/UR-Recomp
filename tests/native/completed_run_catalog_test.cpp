@@ -117,6 +117,20 @@ int main() {
     assert(incompatible_index.total_completed_runs == 0);
     assert(incompatible_index.courses.empty());
 
+    const std::string profile_id = "profile-alpha";
+    const HostRacerIdentity racer_identity{"ALPHA", 3};
+    const auto profile_summary = present_run_records_profile_summary(
+        profile_id, racer_identity, mixed_records, scope);
+    assert(profile_summary);
+    assert(profile_summary->profile_id == "profile-alpha");
+    assert(profile_summary->racer_identity.name == "ALPHA");
+    assert(profile_summary->racer_identity.rider_index == 3);
+    assert(profile_summary->completed_runs == 7);
+    assert(profile_summary->tracks_with_runs == 2);
+
+    assert(!present_run_records_profile_summary(
+        "", racer_identity, mixed_records, scope));
+
     const std::vector<StoredRunRecord> empty;
     const auto none = build_run_data_catalog(empty, target());
     assert(none.entries.empty());

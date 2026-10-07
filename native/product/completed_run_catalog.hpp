@@ -3,6 +3,7 @@
 #include "completed_run_capture.hpp"
 #include "completed_run_presentation.hpp"
 #include "completed_run_store.hpp"
+#include "modern_racer_identity.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -57,6 +58,13 @@ struct RunRecordsIndex {
     std::vector<RunRecordsCourseIndexEntry> courses;
 };
 
+struct RunRecordsProfileSummary {
+    std::string profile_id;
+    HostRacerIdentity racer_identity;
+    std::size_t completed_runs = 0;
+    std::size_t tracks_with_runs = 0;
+};
+
 /* Build presentation metadata over an already compatibility-filtered store
  * catalog. Selection delegates to the canonical previous/PB selectors; this
  * layer adds no new ranking or replay rules. */
@@ -73,6 +81,12 @@ RunDataStatisticsPresentation present_run_data_statistics(
  * game/ROM/build/mode scope. Records are grouped by their stored course_id and
  * each group delegates PB/Previous selection to build_run_data_catalog(). */
 RunRecordsIndex build_run_records_index(
+    const std::vector<StoredRunRecord>& records,
+    const RunRecordsScope& scope);
+
+std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
+    const std::string& profile_id,
+    const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
     const RunRecordsScope& scope);
 

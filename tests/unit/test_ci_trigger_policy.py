@@ -329,6 +329,27 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/MODERN-PRODUCT-LAYER.md"', _block(text, "pull_request"))
 
 
+    def test_onboarding_uses_one_candidate_with_bounded_fanout(self):
+        text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        self.assertIn("  build:", text)
+        self.assertIn("modern-onboarding-native-candidate", text)
+        self.assertIn("  core-acceptance:", text)
+        self.assertIn("  independent-acceptance:", text)
+        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertLessEqual(len(shards), 3)
+        consumer = text.split("  core-acceptance:", 1)[1]
+        self.assertIn("Install native runtime dependencies", consumer)
+        runtime_install = consumer.split(
+            "- name: Install native runtime dependencies", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("xvfb xdotool", runtime_install)
+        self.assertNotIn("-dev", runtime_install)
+        self.assertNotIn("cmake", runtime_install)
+        self.assertNotIn("ninja", runtime_install)
+
+
     def test_local_multiplayer_contract_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "local-multiplayer-product-contracts.yml").read_text()
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))

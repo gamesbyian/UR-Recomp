@@ -6,20 +6,18 @@
       3088,
       3089
     ],
-    "workflow_run": 0,
-    "artifact_id": 0,
-    "review_surface": "Pending measured broader-route P2-only dossier, pose-equivalence, authored review, and real 3088-3089 player-local temporal hold."
+    "workflow_run": 37599336930,
+    "artifact_id": 11471284912,
+    "review_surface": "Broader-route P2-only deterministic dossier, pose-equivalence, authored review, and real 3088-3089 player-local temporal hold."
   },
   "family_blockers": [],
   "decisions": [
     {
       "authored_source_representation_id": "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
-      "status": "needs-refinement",
-      "shipping_art_approved": false,
-      "blocker_codes": [
-        "pending-measured-review"
-      ],
-      "reviewed_authored_rgba_sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "dad22d7e9e0d25ab7a3f32e16522c0dcead1ad5695b57d90e463230ebc533cbb",
       "review_metrics": {
         "stock_alpha_bounds": [
           21,
@@ -41,7 +39,7 @@
           77,
           72
         ],
-        "alpha_iou": 0
+        "alpha_iou": 0.8168674698795181
       }
     }
   ]

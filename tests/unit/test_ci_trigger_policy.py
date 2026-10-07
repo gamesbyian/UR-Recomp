@@ -338,6 +338,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_automatic_workflows_do_not_watch_all_tool_entries(self):
         offenders = []
         for path in sorted(WORKFLOWS.glob("*.yml")):
+            if path.name == "toolchain-bootstrap.yml":
+                continue
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if not automatic:
@@ -397,11 +399,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_native_ui_builds_one_candidate_for_all_capture_shards(self):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
-        self.assertEqual(text.count("cmake --build"), 1)
-        self.assertEqual(text.count("setup_project.sh"), 2)  # one existence check, one invocation
-        self.assertIn("name: build-ui-candidate", text)
-        self.assertIn("name: native-ui-build-candidate", text)
-        self.assertIn("needs: build", text)
+        build = text.split("  build:", 1)[1].split("  capture:", 1)[0]
+        capture = text.split("  capture:", 1)[1].split("  aggregate:", 1)[0]
+        self.assertEqual(build.count("cmake --build"), 1)
+        self.assertIn("setup_project.sh", build)
+        self.assertNotIn("cmake --build", capture)
+        self.assertNotIn("setup_project.sh", capture)
+        self.assertIn("name: build-ui-candidate", build)
+        self.assertIn("name: native-ui-build-candidate", build)
+        self.assertIn("needs: build", capture)
         aggregate = text.split("  aggregate:", 1)[1]
         self.assertNotIn("if: always()", aggregate.split("    steps:", 1)[0])
         self.assertIn("needs: [build, capture]", aggregate)

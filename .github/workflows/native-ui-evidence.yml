@@ -37,6 +37,7 @@ on:
       - "tests/input/two-player-first-race.input"
       - "tests/input/two-player-first-race-observe.script"
       - "tools/check_ppm.py"
+      - "tools/ci_log_assert.py"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"
       - "tests/input/ui-vs-handoff.script"
@@ -411,14 +412,15 @@ jobs:
           timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOAD_LOG" 2>&1
 
           RESOLUTION=$(sed -n "s/^output_resolution=//p" "$STATE")
-          grep -q "UR_HOST_STATE LOADED" "$LOAD_LOG"
-          for field in             "pause_on_focus_loss=0"             "display_mode=fullscreen"             "vsync=adaptive"             "presentation_fps=120"             "output_resolution=${RESOLUTION}"             "widescreen=16x9"             "internal_render_scale=1x"; do
-            grep -Eq "UR_HOST_STATE LOADED .*${field}([[:space:]]|$)" "$LOAD_LOG" || {
-              echo "::error::Reloaded host state missing field: $field"
-              cat "$LOAD_LOG"
-              exit 1
-            }
-          done
+          python3 tools/ci_log_assert.py "$LOAD_LOG" \
+            --event "UR_HOST_STATE LOADED" \
+            --field "pause_on_focus_loss=0" \
+            --field "display_mode=fullscreen" \
+            --field "vsync=adaptive" \
+            --field "presentation_fps=120" \
+            --field "output_resolution=${RESOLUTION}" \
+            --field "widescreen=16x9" \
+            --field "internal_render_scale=1x"
           grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
           grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "$LOAD_LOG"
           grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"

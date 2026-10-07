@@ -48,6 +48,67 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
             '"UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST"', source
         )
 
+    def test_acceptance_quits_only_after_successful_pair_persistence(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+
+        complete = source.index("void complete_multiplayer_run_record_capture()")
+        complete_end = source.index("void complete_run_record_capture()", complete)
+        body = source[complete:complete_end]
+
+        store = body.index("append_multiplayer_match_pair(")
+        captured = body.index('"UR_MULTIPLAYER_MATCH CAPTURED')
+        reset = body.index("reset_multiplayer_run_capture();", captured)
+        acceptance = body.index(
+            'if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE"))',
+            reset,
+        )
+        quit_request = body.index("request_desktop_quit();", acceptance)
+
+        self.assertLess(store, captured)
+        self.assertLess(captured, reset)
+        self.assertLess(reset, acceptance)
+        self.assertLess(acceptance, quit_request)
+
+        # Every terminal authority failure must retire the isolated 2P capture
+        # instead of leaving it armed for stale profile/course/result context.
+        for diagnostic in (
+            "SESSION_IDENTITY_LOST",
+            "RESULT_REJECTED",
+            "PARTICIPANT_BIND_REJECTED",
+            "FINALIZE_REJECTED",
+            "METADATA_REJECTED",
+            "STORE_FAILED",
+        ):
+            marker = body.index(diagnostic)
+            following_reset = body.index(
+                "reset_multiplayer_run_capture();", marker
+            )
+            self.assertLess(marker, following_reset)
+
+    def test_live_capture_rejects_lost_participant_context(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+
+        frame_hook = source.index(
+            'extern "C" void ur_uniracers_modern_after_run_frame'
+        )
+        live = source.index(
+            "g_multiplayer_run_capture.capturing()", frame_hook
+        )
+        lost = source.index(
+            '"UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST"', live
+        )
+        reset = source.index("reset_multiplayer_run_capture();", lost)
+        observe = source.index(
+            "g_multiplayer_run_capture.observe_guest_frame(", reset
+        )
+        self.assertLess(live, lost)
+        self.assertLess(lost, reset)
+        self.assertLess(reset, observe)
+
     def test_generated_product_build_registers_multiplayer_authority(self):
         patcher = (
             ROOT / "tools" / "patch_modern_product_host.py"

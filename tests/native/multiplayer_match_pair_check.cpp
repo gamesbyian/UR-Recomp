@@ -29,6 +29,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool saw_p1_input = false;
+    bool saw_p2_input = false;
+    for (const auto& input : run.record->inputs) {
+        saw_p1_input = saw_p1_input || input.p1_mask != 0;
+        saw_p2_input = saw_p2_input || input.p2_mask != 0;
+    }
+    if (!saw_p1_input || !saw_p2_input) {
+        std::cerr << "captured 2P carrier is missing a resolved input lane\n";
+        return 1;
+    }
+
     const auto match =
         load_multiplayer_match_record_for_run(run_path, *run.record);
     if (!match) {

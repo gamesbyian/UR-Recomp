@@ -345,6 +345,38 @@ class WindowsPackageTests(unittest.TestCase):
             verify = self.run_tool("verify", "--package", package)
             self.assertIn("WINDOWS_PACKAGE_VERIFIED", verify.stdout)
 
+            unexpected_file = package / "surprise.dll"
+            unexpected_file.write_bytes(b"unexpected")
+            unexpected_manifest = json.loads(
+                (package / "PACKAGE-MANIFEST.json").read_text()
+            )
+            unexpected_manifest["files"] = [
+                {
+                    "path": p.relative_to(package).as_posix(),
+                    "size": p.stat().st_size,
+                    "sha256": hashlib.sha256(p.read_bytes()).hexdigest(),
+                }
+                for p in sorted(package.rglob("*"))
+                if p.is_file() and p.name != "PACKAGE-MANIFEST.json"
+            ]
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                unexpected_manifest,
+            )
+            unexpected_failed = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(unexpected_failed.returncode, 0)
+            self.assertIn(
+                "unexpected packaged files: surprise.dll",
+                unexpected_failed.stderr,
+            )
+            unexpected_file.unlink()
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
+            )
+
             mutable_state = package / "mods" / "preloaded" / "state.toml"
             mutable_state.write_text("leaked-mod-state\n")
             mutable_manifest = json.loads(

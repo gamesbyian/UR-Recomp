@@ -146,6 +146,15 @@ def validate_required_package_paths(
         )
     if not any(path.startswith("mods/") for path in paths):
         raise ValueError(f"{context} mods directory is empty")
+    unexpected = sorted(
+        path
+        for path in paths
+        if path not in REQUIRED_PACKAGE_FILES and not path.startswith("mods/")
+    )
+    if unexpected:
+        raise ValueError(
+            f"unexpected {context} files: " + ", ".join(unexpected)
+        )
     mutable = sorted(MUTABLE_PACKAGE_PATHS & paths)
     if mutable:
         raise ValueError(

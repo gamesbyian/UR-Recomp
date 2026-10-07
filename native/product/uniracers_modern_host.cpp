@@ -51,6 +51,7 @@ extern "C" {
 #include "modern_overlay_composition.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
+#include "presentation_density_compositor.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -4176,11 +4177,17 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     const bool world_expanded =
         authentic_16x9_view_enabled() &&
         g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand;
-    // Product overlays currently draw in logical SNES coordinates. Keep them
-    // readable and correctly centred instead of handing physical 2x-4x
-    // dimensions to a logical-coordinate renderer. The HD compositor resumes
-    // as soon as the modal/hint surface is gone.
+    // Density is a stable presentation setting while the Remastered presenter
+    // is enabled. It must not collapse to 1x merely because this particular
+    // frame has no authored racer replacement. Surfaces whose renderers still
+    // use direct logical coordinates remain on the explicit 1x fail-safe path.
+    const bool regional_title =
+        modern_mode() &&
+        g_product_state.regional_presentation ==
+            ur::product::RegionalPresentation::Europe &&
+        current_regional_secret_context().idle_title_surface;
     const bool logical_overlay_active =
+        regional_title ||
         g_local_multiplayer_join_visible ||
         g_tour_action_visible ||
         onboarding_surface_active() ||
@@ -4193,7 +4200,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         modern_mode(),
         world_expanded,
         logical_overlay_active,
-        ur::presentation::racer_hd_presentation_scale());
+        ur::presentation::racer_hd_requested_presentation_scale());
 }
 
 extern "C" int ur_uniracers_modern_draw_frame(
@@ -4250,8 +4257,27 @@ extern "C" int ur_uniracers_modern_draw_frame(
         return 1;
     }
 
-    return ur::presentation::racer_hd_draw_frame(
-        dst, pitch, field, frame_width, frame_height, alpha);
+    if (ur::presentation::racer_hd_draw_frame(
+            dst, pitch, field, frame_width, frame_height, alpha)) {
+        return 1;
+    }
+
+    const int presentation_scale = ur_uniracers_modern_presentation_scale();
+    if (presentation_scale <= 1) return 0;
+
+    // A missing authored replacement is still a presentation-density frame.
+    // Preserve the guest raster exactly with deterministic nearest-neighbour
+    // expansion instead of letting the framework reinterpret a 2x-4x surface
+    // as an unscaled logical frame.
+    return ur::product::compose_nearest_density_frame(
+        dst,
+        pitch,
+        field,
+        frame_width,
+        frame_height,
+        presentation_scale)
+        ? 1
+        : 0;
 }
 
 extern "C" void ur_uniracers_modern_compute_viewport(

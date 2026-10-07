@@ -35,6 +35,9 @@ struct ModernTourContinueState {
     bool restore_continuation_at_track_select = false;
     bool retire_continuation_after_stock_wipe = false;
     std::uint8_t next_event_slot = 0;
+    // Results navigation reuses this router but may intentionally stop on the
+    // settled stock TOUR_SELECT surface instead of choosing a tour.
+    bool stop_at_tour_select = false;
     std::uint8_t release_observations = 0;
     bool waiting_for_selection_change = false;
     std::uint8_t selection_before_input = 0;
@@ -53,6 +56,7 @@ struct ModernTourContinueStep {
     ModernTourContinueState state{};
     QuickPracticeMenuInput input = QuickPracticeMenuInput::None;
     bool track_select_ready = false;
+    bool tour_select_ready = false;
     bool timed_out = false;
     // The stock NOW_PLAYING confirm entered an active race for Next Event.
     // The route is finished; the caller verifies course identity.
@@ -126,6 +130,23 @@ constexpr ModernTourContinueState begin_modern_tour_continue(
             true,
             false,
         });
+}
+
+constexpr ModernTourContinueState begin_modern_tour_results_route(
+    std::uint8_t tour_row,
+    bool stop_at_tour_select,
+    bool restore_continuation
+) noexcept {
+    auto state = begin_modern_tour_entry(
+        tour_row,
+        {
+            ModernTourEntryIntent::Resume,
+            true,
+            restore_continuation,
+            false,
+        });
+    state.stop_at_tour_select = stop_at_tour_select;
+    return state;
 }
 
 constexpr ModernTourContinueStep advance_modern_tour_continue(
@@ -221,6 +242,11 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
         break;
     case ModernTourContinueStage::AwaitTour:
         if (observation.menu_id == 0x6D) {
+            if (out.state.stop_at_tour_select) {
+                out.state.stage = ModernTourContinueStage::Ready;
+                out.tour_select_ready = true;
+                break;
+            }
             const auto desired = quick_practice_tour_input(
                 out.state.tour_option,
                 observation.selected_option);

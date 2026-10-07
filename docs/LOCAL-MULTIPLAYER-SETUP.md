@@ -47,7 +47,7 @@ A refused launch leaves guest state and SRAM untouched.
 
 1. **[implemented]** `LocalMultiplayerSetupState` owns framework device assignment only.
 2. **[implemented]** `LocalMultiplayerParticipantSelection` owns explicit P1/P2 profile confirmation independently of device assignment; duplicate profiles, invalid profiles and selection for an unjoined slot fail closed.
-3. **[implemented]** The settled Modern 2P join overlay lets each joined seat cycle and explicitly confirm a profile. Keyboard can join/confirm P1; each physical controller operates its own seat. Disconnect clears that seat's participant identity.
+3. **[implemented]** The settled Modern 2P join overlay lets each joined seat cycle and explicitly confirm a profile. Keyboard can join/confirm P1; each physical controller operates its own seat. Disconnect clears that seat's participant identity. Each joined seat shows its device beneath its row (`PAD <framework device name>`, `KEYBOARD`, or `… DISCONNECTED`), derived only from the presentation-safe seat projection (`local_multiplayer_seat_text.hpp`); opaque source IDs are never shown.
 4. The stock rider picker remains authoritative. The Modern overlay does not write rider IDs; subsequent match-history binding accepts a result only when the guest-observed rider indices match the two confirmed profile identities.
 5. Route the accepted session through the existing stock two-player menu/input machinery and retain participant identity through the session until frontend return.
 6. **[decided]** Rematch/rotation is the stock `0x5A` choice. Do not add multiplayer-specific rollback, and do not extend host Restart to the 2P result surface.
@@ -64,6 +64,8 @@ A Windows fresh-process acceptance must prove:
 - results SAME TRACK re-enters the same authoritative two-player course through the stock `0x5A` choice while the confirmed participant session persists;
 - SRAM and guest simulation remain identical to the equivalent stock two-player route at the accepted semantic checkpoints;
 - Authentic mode exposes none of the Modern setup UI or host assignment authority.
+
+**Partial evidence (2P join surface):** `tests/native/run_modern_two_player_join_acceptance.sh` reaches the stock 2P select surface by the ordinary route, then two distinct SDL virtual gamepads seated by the framework join P1/P2 with their real buttons. Each seat's device line names its own pad. P2's attempt to take P1's profile is refused (`PROFILE_DUPLICATE`), P2 then confirms a distinct profile, and the session becomes ready exactly once with the overlay released to stock setup. Authentic with the same pads and route never opens the join surface. Race entry, input swapping, disconnect during setup and the `0x5A` replay remain to be proven.
 
 ## Stop condition
 

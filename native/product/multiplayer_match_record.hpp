@@ -1,5 +1,6 @@
 #pragma once
 
+#include "completed_run_record.hpp"
 #include "multiplayer_match_binding.hpp"
 
 #include <optional>
@@ -32,6 +33,10 @@ std::string encode_multiplayer_match_record(
 
 MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     std::string_view encoded);
+
+bool multiplayer_match_record_matches_run(
+    const MultiplayerMatchRecord& record,
+    const CompletedRunRecord& run) noexcept;
 
 bool save_multiplayer_match_record_file(
     const std::string& path,

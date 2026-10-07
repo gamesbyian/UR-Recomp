@@ -213,10 +213,9 @@ CompletedRunRecordsBrowser::selected_run_target_summary(
 bool CompletedRunRecordsBrowser::adjust_detail_target(int delta) noexcept {
     if (view_ != CompletedRunRecordsView::Detail || delta == 0) return false;
 
-    const RunDataTargetKind requested =
-        detail_target_kind_ == RunDataTargetKind::PersonalBest
-            ? RunDataTargetKind::Previous
-            : RunDataTargetKind::PersonalBest;
+    const RunDataTargetKind requested = delta < 0
+        ? RunDataTargetKind::PersonalBest
+        : RunDataTargetKind::Previous;
     if (!selected_run_target_summary(requested)) return false;
 
     detail_target_kind_ = requested;

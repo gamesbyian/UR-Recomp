@@ -2684,6 +2684,14 @@ bool results_navigation_active() {
         g_surface != UR_UNIRACERS_RESTART_RESULTS) {
         return false;
     }
+    const auto context = current_results_navigation_context();
+    // This slice intentionally owns only ordinary one-player tour results and
+    // Quick Practice results. Preserve the existing stock/host presentation
+    // for VS and other unsupported result families instead of broadening the
+    // feature by virtue of generic Retry/Records availability.
+    if (!context.practice_active && !context.ordinary_tour_result) {
+        return false;
+    }
     refresh_results_navigation_menu();
     return g_results_navigation_menu.row_count != 0;
 }
@@ -7583,19 +7591,23 @@ extern "C" void ur_uniracers_modern_system_overlay(
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
     const int restart = ur_modern_session_restart_available(g_session);
-    if (!is_paused && !results) return;
-    if (results && !is_paused) refresh_results_navigation_menu();
+    const bool results_menu_active =
+        !is_paused && results && results_navigation_active();
+    if (!is_paused && !(results && (restart || results_menu_active))) return;
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int modal_scale = modern_overlay_surface_scale(width, height);
     const int logical_width = width / modal_scale;
-    const int results_rows =
-        static_cast<int>(g_results_navigation_menu.row_count);
+    const int results_rows = results_menu_active
+        ? static_cast<int>(g_results_navigation_menu.row_count)
+        : 0;
     const int panel_h_logical =
         is_paused
             ? (restart ? 144 : 129)
-            : std::max(44, 25 + results_rows * 15);
+            : (results_menu_active
+                ? std::max(44, 25 + results_rows * 15)
+                : (g_practice_active ? 30 : 44));
     const int panel_w_logical = logical_width < 220 ? logical_width - 16 : 212;
     const auto panel_layout = centered_modern_modal_layout(
         width, height, modal_scale,
@@ -8086,7 +8098,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             selected == UR_MODERN_PAUSE_QUIT
                 ? "> QUIT DESKTOP" : "  QUIT DESKTOP",
             0xFFFFFFFFu, modal_scale);
-    } else {
+    } else if (results_menu_active) {
         const auto selected =
             ur::product::selected_modern_results_action(
                 g_results_navigation_menu);
@@ -8135,5 +8147,21 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height,
             x + 8 * modal_scale, y + (panel_h_logical - 13) * modal_scale,
             "UP/DN + CONFIRM", 0xFFA0A0A0u, modal_scale);
+    } else {
+        // Preserve the established result strip on unsupported result families
+        // (notably VS), which are outside this navigation slice.
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * modal_scale, y + 11 * modal_scale,
+            g_practice_active
+                ? "R/PAD X  REPEAT PRACTICE"
+                : "R/PAD X  REMATCH",
+            0xFFFFFFFFu, modal_scale);
+        if (!g_practice_active) {
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * modal_scale, y + 25 * modal_scale,
+                "CTRL+R   RETRY", 0xFFFFFFFFu, modal_scale);
+        }
     }
 }

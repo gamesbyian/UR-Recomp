@@ -10,6 +10,7 @@ Task routing lives in [`../AGENTS.md`](../AGENTS.md). This file inventories owne
 | [`RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`](RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md) | Current combined research/execution strategy and next discriminating work |
 | [`BRINGUP.md`](BRINGUP.md) | Chronological native build/runtime attempts and empirical outcomes |
 | [`VALIDATION.md`](VALIDATION.md) | Fidelity hierarchy, deterministic comparison strategy, and finish-line validation principles |
+| [`RECOMP-C-PRACTICES.md`](RECOMP-C-PRACTICES.md) | First-party handwritten C/C-ABI semantics, guest/host ownership, integer/address safety, warnings, and sanitizer policy |
 | [`COURSE-FORMAT.md`](COURSE-FORMAT.md) | RNC/course-format investigation and current structural understanding |
 | [`UI-STATE-MAP.md`](UI-STATE-MAP.md) | Frontend/menu state graph, navigation evidence, screenshot-atlas workflow, and unresolved UI transitions |
 | [`RESEARCH-LEDGER.md`](RESEARCH-LEDGER.md) | Evidence-backed ROM/hardware/runtime claims, including hypotheses and rejected interpretations |

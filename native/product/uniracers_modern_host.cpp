@@ -8129,6 +8129,6 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height,
             x + 8 * modal_scale, y + (panel_h_logical - 13) * modal_scale,
-            "UP/DN + ENTER/A", 0xFFA0A0A0u, modal_scale);
+            "UP/DN + CONFIRM", 0xFFA0A0A0u, modal_scale);
     }
 }

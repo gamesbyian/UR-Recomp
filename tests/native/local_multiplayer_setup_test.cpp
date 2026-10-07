@@ -1,6 +1,7 @@
 #include "local_multiplayer_setup.hpp"
 
 #include <cassert>
+#include <cstring>
 
 using namespace ur::product;
 
@@ -81,9 +82,10 @@ int main() {
         assert(
             !local_multiplayer_seat_connected(
                 LocalMultiplayerSeatPresentation::Empty));
-        assert(
-            local_multiplayer_seat_source_label(
-                LocalMultiplayerSeatPresentation::Empty)[0] == 'E');
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::Empty),
+                   "EMPTY") == 0);
 
         presentation_state = local_multiplayer_assign(
             presentation_state,
@@ -110,8 +112,20 @@ int main() {
         assert(
             local_multiplayer_seat_connected(
                 LocalMultiplayerSeatPresentation::KeyboardConnected));
-        assert(local_multiplayer_slot_label(LocalMultiplayerSlot::Player1)[1] == '1');
-        assert(local_multiplayer_slot_label(LocalMultiplayerSlot::Player2)[1] == '2');
+        assert(std::strcmp(
+                   local_multiplayer_slot_label(LocalMultiplayerSlot::Player1),
+                   "P1") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_slot_label(LocalMultiplayerSlot::Player2),
+                   "P2") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::ControllerConnected),
+                   "CONTROLLER") == 0);
+        assert(std::strcmp(
+                   local_multiplayer_seat_source_label(
+                       LocalMultiplayerSeatPresentation::KeyboardConnected),
+                   "KEYBOARD") == 0);
 
         presentation_state = local_multiplayer_set_connected(
             presentation_state, controller(101), false);

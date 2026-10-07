@@ -175,6 +175,12 @@ void close_records_browser() {
     diagnostic("UR_RECORDS_BROWSER CLOSED");
 }
 
+bool records_results_surface() {
+    return ur_uniracers_classify_restart_surface(
+               g_ram[0x0313], g_ram[0x009F]) ==
+           UR_UNIRACERS_RESTART_RESULTS;
+}
+
 bool normalize_base_pause_surface() {
     if (!snesrecomp_desktop_is_paused()) return false;
 
@@ -187,6 +193,24 @@ bool normalize_base_pause_surface() {
         (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
     }
     return snesrecomp_desktop_is_paused() != 0;
+}
+
+bool open_records_from_results() {
+    if (!modern_mode() || snesrecomp_desktop_is_paused() ||
+        !records_results_surface()) {
+        return false;
+    }
+
+    // Enter the same host-owned pause authority used everywhere else before
+    // opening Records. The browser remains a paused product surface and no
+    // guest result state is mutated.
+    if (!ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0) ||
+        !snesrecomp_desktop_is_paused()) {
+        return false;
+    }
+    const bool opened = open_records_browser();
+    if (opened) diagnostic("UR_RECORDS_BROWSER OPENED_FROM_RESULTS");
+    return opened;
 }
 
 bool open_records_browser() {
@@ -1032,10 +1056,15 @@ extern "C" int ur_uniracers_product_system_key_down(
         return 1;
     }
 
-    if (key == SDLK_F8 &&
-        snesrecomp_desktop_is_paused()) {
-        (void)open_records_browser();
-        return 1;
+    if (key == SDLK_F8) {
+        if (snesrecomp_desktop_is_paused()) {
+            (void)open_records_browser();
+            return 1;
+        }
+        if (records_results_surface()) {
+            (void)open_records_from_results();
+            return 1;
+        }
     }
 
     if (key == SDLK_b && (mod & KMOD_CTRL) &&
@@ -1112,10 +1141,15 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         return 1;
     }
 
-    if (pressed && button == kGamepadBtn_Y &&
-        snesrecomp_desktop_is_paused()) {
-        (void)open_records_browser();
-        return 1;
+    if (pressed && button == kGamepadBtn_Y) {
+        if (snesrecomp_desktop_is_paused()) {
+            (void)open_records_browser();
+            return 1;
+        }
+        if (records_results_surface()) {
+            (void)open_records_from_results();
+            return 1;
+        }
     }
 
     if (pressed && button == kGamepadBtn_X &&

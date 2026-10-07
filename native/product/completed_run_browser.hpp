@@ -91,6 +91,10 @@ public:
         return detail_target_kind_;
     }
     bool adjust_detail_target(int delta) noexcept;
+    std::size_t detail_split_offset() const noexcept {
+        return detail_split_offset_;
+    }
+    bool adjust_detail_split_offset(int delta);
 
     bool move(int delta) noexcept;
     bool open_selected_course() noexcept;
@@ -105,6 +109,7 @@ private:
     std::optional<std::size_t> selected_course_;
     std::optional<std::size_t> selected_run_;
     RunDataTargetKind detail_target_kind_ = RunDataTargetKind::PersonalBest;
+    std::size_t detail_split_offset_ = 0;
 };
 
 class CompletedRunBrowser {

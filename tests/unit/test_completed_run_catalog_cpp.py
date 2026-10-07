@@ -27,6 +27,7 @@ class CompletedRunCatalogCppTests(unittest.TestCase):
                     str(ROOT / "native" / "product" / "completed_run_comparison.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_presentation.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_catalog.cpp"),
+                    str(ROOT / "native" / "product" / "modern_racer_identity.cpp"),
                     str(ROOT / "tests" / "native" / "completed_run_catalog_test.cpp"),
                     "-o",
                     str(exe),

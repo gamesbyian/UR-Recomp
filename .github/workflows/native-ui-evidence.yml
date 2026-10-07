@@ -170,10 +170,15 @@ jobs:
             mkdir -p "$dumps"
 
             echo "== $name =="
+            # GitHub invokes bash with -e before this script body. Optional
+            # reconnaissance routes must be allowed to return nonzero so this
+            # function can preserve their partial evidence and continue.
+            set +e
             SNESRECOMP_DUMP_DIR="$dumps" SDL_AUDIODRIVER=dummy \
               timeout "${limit}s" xvfb-run -a "$EXE" "$ROM" --script "$GITHUB_WORKSPACE/tests/input/$script" \
               >"$log" 2>&1
             status=$?
+            set -e
             cat "$log"
             echo "$name status=$status"
 

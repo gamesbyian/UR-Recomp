@@ -122,6 +122,17 @@ bool g_local_multiplayer_two_player_visit;
 bool g_practice_active;
 bool g_practice_acceptance_fired;
 bool g_practice_race_ready_reported;
+unsigned g_practice_cancel_acceptance_frames;
+bool g_profile_panel_acceptance_confirm_pending;
+std::string g_profile_panel_acceptance_input_path;
+bool g_suppress_human_input_once;
+unsigned g_fast_repeat_acceptance_frames;
+bool g_fast_repeat_acceptance_fired;
+bool g_ghost_target_acceptance_fired;
+unsigned g_recent_course_acceptance_frames;
+bool g_recent_course_acceptance_fired;
+unsigned g_pause_open_acceptance_frames;
+bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 std::optional<std::uint8_t> g_recent_course_track_id;
@@ -324,8 +335,18 @@ void update_local_multiplayer_join_surface() {
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
         g_local_multiplayer_setup = {};
-        g_local_multiplayer_join_visible = true;
-        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        const bool has_controller_source = std::any_of(
+            g_local_multiplayer_sources.begin(),
+            g_local_multiplayer_sources.end(),
+            [](const ur::product::LocalInputSource& source) {
+                return source.connected;
+            });
+        g_local_multiplayer_join_visible = has_controller_source;
+        if (has_controller_source) {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        } else {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
+        }
     }
 }
 
@@ -441,6 +462,9 @@ const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
 }
 
 void synchronize_widescreen_provider_selector() {
+    // Explicit probe selectors own the guest-lane policy. Shipping Modern
+    // presentation does not: its margins are materialized host-side and the
+    // hook's hypothetical future strip must never mutate the stock VRAM ring.
     if (std::getenv("URRECOMP_WS_MARGIN")) return;
     const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");
     if (explicit_view && *explicit_view) return;
@@ -449,8 +473,10 @@ void synchronize_widescreen_provider_selector() {
         g_product_state.settings.widescreen_mode ==
         ur::product::HostWidescreenMode::Authentic16x9;
 #if defined(_WIN32)
+    _putenv_s("URRECOMP_WS_GUEST_LANE", "0");
     _putenv_s("URRECOMP_WS_VIEW", enabled ? "authentic-16x9" : "");
 #else
+    setenv("URRECOMP_WS_GUEST_LANE", "0", 1);
     if (enabled) {
         setenv("URRECOMP_WS_VIEW", "authentic-16x9", 1);
     } else {
@@ -626,6 +652,14 @@ std::string resolve_tour_continue_input_path() {
     if (override_path && *override_path) return override_path;
 
     return product_user_data_path("tour-continue-input.txt");
+}
+
+std::string resolve_profile_panel_acceptance_input_path() {
+    const char* override_path =
+        std::getenv("UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH");
+    if (override_path && *override_path) return override_path;
+
+    return product_user_data_path("profile-panel-acceptance-input.txt");
 }
 
 bool queue_relative_menu_input(
@@ -1769,6 +1803,10 @@ bool handle_profile_menu_key(int key) {
 
     if (key == SDLK_ESCAPE || key == SDLK_F2) {
         g_profile_menu_visible = false;
+        if (std::getenv("UR_PROFILE_PANEL_ACCEPTANCE")) {
+            g_profile_panel_acceptance_confirm_pending = true;
+            product_diagnostic("UR_PROFILE_UI ACCEPTANCE_CONFIRM_ARMED");
+        }
         return true;
     }
     if (key == SDLK_n) { begin_profile_create(); return true; }
@@ -3006,6 +3044,17 @@ bool host_subview_visible() {
            g_quit_confirm_visible;
 }
 
+bool host_owns_human_player_input() {
+    return modern_mode() &&
+           (g_local_multiplayer_join_visible ||
+            practice_routing() ||
+            g_tour_action_visible ||
+            onboarding_surface_active() ||
+            tour_continue_routing() ||
+            g_profile_menu_visible ||
+            host_subview_visible());
+}
+
 UrUniracersRunData current_run_data() {
     return ur_uniracers_read_run_data(g_ram, 0x20000u);
 }
@@ -3992,6 +4041,167 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (stats) {
         advance_practice_route(stats->frame + 1u);
         advance_tour_continue_route(stats->frame + 1u);
+
+        // Acceptance-only synchronization belongs on the emulated-frame
+        // boundary, not in wall-clock X11 polling. Hold the real Practice
+        // router at rider select long enough for the script to retain its
+        // checkpoint, then exercise the ordinary abort/reboot path.
+        if (std::getenv("UR_PRACTICE_CANCEL_ACCEPTANCE") &&
+            g_practice_active && g_ram[0x0313] != 0x01 &&
+            g_ram[0x009F] == 0x3C) {
+            ++g_practice_cancel_acceptance_frames;
+            if (g_practice_cancel_acceptance_frames >= 30u) {
+                g_practice_cancel_acceptance_frames = 0;
+                (void)abort_practice_route_to_frontend(
+                    "UR_PRACTICE ROUTE_CANCELLED");
+            }
+        } else {
+            g_practice_cancel_acceptance_frames = 0;
+        }
+
+        // The profile acceptance still drives the real host UI, but once that
+        // modal surface closes, hand stock rider confirmation back to the
+        // deterministic guest-input transport on an observed rider-select
+        // frame. This removes the host/guest wall-clock race without bypassing
+        // stock confirmation or rider initialization.
+        if (g_profile_panel_acceptance_confirm_pending &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0x3C) {
+            project_profile_identity_to_stock_rider();
+            if (g_profile_panel_acceptance_input_path.empty()) {
+                g_profile_panel_acceptance_input_path =
+                    resolve_profile_panel_acceptance_input_path();
+            }
+            if (queue_relative_menu_input(
+                    g_profile_panel_acceptance_input_path,
+                    stats->frame + 1u,
+                    ur::product::quick_practice_runner_mask(
+                        ur::product::QuickPracticeLaunchInput::Accept))) {
+                g_profile_panel_acceptance_confirm_pending = false;
+                product_diagnostic(
+                    "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED");
+            }
+        }
+
+        // Results acceptance uses the same production rematch command as the
+        // R / pad-X surface, but fires on the emulated-frame boundary after
+        // the results screen has remained stable long enough for the scripted
+        // checkpoint to be captured.
+        if (!g_fast_repeat_acceptance_fired &&
+            std::getenv("UR_FAST_REPEAT_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_RESULTS) {
+            ++g_fast_repeat_acceptance_frames;
+            if (g_fast_repeat_acceptance_frames >= 90u) {
+                g_fast_repeat_acceptance_fired = true;
+                g_fast_repeat_acceptance_frames = 0;
+                (void)repeat_current_attempt();
+            }
+        } else if (g_surface != UR_UNIRACERS_RESTART_RESULTS) {
+            g_fast_repeat_acceptance_frames = 0;
+        }
+
+        // Exercise the real pause/options/ghost selection path on the first
+        // authoritative active-race frame. This acceptance does not consume a
+        // guest checkpoint before acting, so an extra dwell only creates a
+        // transient-state race without adding evidence.
+        if (!g_ghost_target_acceptance_fired &&
+            std::getenv("UR_GHOST_TARGET_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            // g_surface is observed before the Modern session receives this
+            // frame's race-active update below. Treat a rejected first-frame
+            // pause as retryable instead of consuming the one-shot trigger.
+            const bool paused_now = dispatch(UR_MODERN_PAUSE_TOGGLE);
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr,
+                    "UR_GHOST_ACCEPTANCE pause=%d paused=%d surface=%d\n",
+                    paused_now ? 1 : 0,
+                    paused() ? 1 : 0,
+                    static_cast<int>(g_surface));
+                std::fflush(stderr);
+            }
+            if (paused_now) {
+                const int restart =
+                    ur_modern_session_restart_available(g_session);
+                for (int step = 0; step < 8 &&
+                     ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+                         UR_MODERN_PAUSE_OPTIONS;
+                     ++step) {
+                    ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+                }
+                const auto pause_selected =
+                    ur_modern_pause_menu_selected(&g_pause_menu, restart);
+                if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                    std::fprintf(
+                        stderr,
+                        "UR_GHOST_ACCEPTANCE pause_selected=%d restart=%d\n",
+                        static_cast<int>(pause_selected),
+                        restart);
+                    std::fflush(stderr);
+                }
+                if (pause_selected == UR_MODERN_PAUSE_OPTIONS &&
+                    activate_pause_selection()) {
+                    for (int step = 0; step < 12 &&
+                         ur_modern_options_menu_selected(&g_options_menu) !=
+                             UR_MODERN_OPTIONS_GHOST;
+                         ++step) {
+                        ur_modern_options_menu_move(&g_options_menu, 1);
+                    }
+                    const auto option_selected =
+                        ur_modern_options_menu_selected(&g_options_menu);
+                    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                        std::fprintf(
+                            stderr,
+                            "UR_GHOST_ACCEPTANCE option_selected=%d\n",
+                            static_cast<int>(option_selected));
+                        std::fflush(stderr);
+                    }
+                    if (option_selected == UR_MODERN_OPTIONS_GHOST &&
+                        activate_options_selection()) {
+                        g_ghost_target_acceptance_fired = true;
+                        product_diagnostic("UR_GHOST_ACCEPTANCE COMPLETE");
+                    }
+                }
+            }
+        }
+
+        // After Exit Frontend has returned the source race to settled Modern
+        // main, launch the already-observed Recent Course through the real
+        // product command on an emulated-frame boundary. This replaces the
+        // workflow's wall-clock F6 injection while preserving the production
+        // Quick Practice route and profile/course identity checks.
+        if (!g_recent_course_acceptance_fired &&
+            std::getenv("UR_RECENT_COURSE_ACCEPTANCE") &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+            recent_course_available_for_active_profile()) {
+            ++g_recent_course_acceptance_frames;
+            if (g_recent_course_acceptance_frames >= 90u) {
+                g_recent_course_acceptance_fired = true;
+                g_recent_course_acceptance_frames = 0;
+                (void)launch_recent_course_practice();
+            }
+        } else if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
+            g_recent_course_acceptance_frames = 0;
+        }
+
+        // Native pause-surface acceptances need to enter the host layer only
+        // after an authoritative active-race checkpoint is observable. Do that
+        // once on the emulated-frame boundary; individual tests can still drive
+        // the real pause/options/controls surfaces through desktop input.
+        if (!g_pause_open_acceptance_fired &&
+            std::getenv("UR_PAUSE_OPEN_ACCEPTANCE") &&
+            g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE && !paused()) {
+            ++g_pause_open_acceptance_frames;
+            if (g_pause_open_acceptance_frames >= 120u) {
+                g_pause_open_acceptance_fired = true;
+                g_pause_open_acceptance_frames = 0;
+                if (dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                    diagnose_pause_state();
+                    product_diagnostic("UR_PAUSE_ACCEPTANCE OPENED");
+                }
+            }
+        } else if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            g_pause_open_acceptance_frames = 0;
+        }
     }
 
     const bool run_active =
@@ -4071,6 +4281,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
     int mod,
     int repeat) {
     if (repeat || !ensure_session()) return 0;
+
+    // Host-owned surfaces consume the corresponding human input word too.
+    // Capture ownership before handlers can close/change the surface so the
+    // closing edge cannot leak into the stock game later in this frame.
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
 
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
@@ -4312,6 +4529,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     int pressed) {
     if (!ensure_session()) return 0;
 
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
+
     if (g_tour_action_visible) {
         // Defer physical buttons to SNESRecomp's configured GamepadMap, then
         // consume only the resulting P1 semantic controls below.
@@ -4496,6 +4717,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
     int pressed) {
     if (!ensure_session()) return 0;
 
+    if (host_owns_human_player_input()) {
+        g_suppress_human_input_once = true;
+    }
+
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
     if (g_tour_action_visible) {
@@ -4581,11 +4806,18 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
-    // mapping but before guest dispatch. L/R have no ordinary settled-main
-    // action, so removing only those two bits makes the stock Left+A+L+R
-    // erase-all gesture impossible in Modern mode without disturbing Left/A
-    // navigation. Scripted/reference input bypasses this filter, and
-    // Authentic mode returns the word byte-for-byte.
+    // mapping but before guest dispatch. Host-owned input must not also reach
+    // the stock game underneath. The latch covers the closing edge, where the
+    // handler may have already hidden the modal before this filter runs.
+    if (g_suppress_human_input_once || host_owns_human_player_input()) {
+        g_suppress_human_input_once = false;
+        return 0u;
+    }
+
+    // L/R have no ordinary settled-main action, so removing only those two
+    // bits makes the stock Left+A+L+R erase-all gesture impossible in Modern
+    // mode without disturbing Left/A navigation. Scripted/reference input
+    // bypasses this filter, and Authentic mode returns the word byte-for-byte.
     const bool settled_main_menu =
         g_ram && g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
     return ur::product::modern_profile_admin_filter_human_input(

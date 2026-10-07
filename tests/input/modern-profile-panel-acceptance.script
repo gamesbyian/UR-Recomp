@@ -1,7 +1,8 @@
 # Hold on the stock one-player rider-select frontend while the host-side
 # Modern profile acceptance drives F2/create/rename through real desktop input.
-# After the host panel closes, continue through the ordinary guest confirmation
-# so acceptance can prove the selected Modern identity reached stock rider init.
+# After the host panel closes, the acceptance-only host hook queues the ordinary
+# guest A edge on an observed rider-select frame so the test can prove the
+# selected Modern identity reached stock rider init without wall-clock racing.
 
 until 009F == D7 3600
 wait 60
@@ -10,10 +11,8 @@ press a 2
 until 009F == 3C 1200
 wait 60
 dump profile-panel-rider-select-ready
-wait 1200
 
-press a 2
-until 009F == 6D 1200
+until 009F == 6D 2400
 wait 60
 dump profile-panel-tour-ready
 quit

@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; broader player-local families through P1 05F9 are measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; broader player-local families through P2 0546/0EB2 are measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -642,28 +642,16 @@
         "artifact_id": 11464860358,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 1102,
-    "original_fallback_player_frames": 4180,
-    "hd_coverage_fraction": 0.20863309352517986,
-    "cumulative_player_frames_removed": 984,
-    "absolute_coverage_gain_percentage_points": 18.62930708065127,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.19054996127033308
-  },
-  "next_discriminator": {
-    "status": "measured-post-05f9-leader",
-    "target": {
+    },
+    {
       "player": "p2",
       "semantic_frame_id": "0x0546",
       "companion": "0x0EB2",
       "selector": 0,
       "gate": "0x0001",
-      "player_frames": 57,
+      "player_frames_removed": 57,
       "episode_count": 22,
       "synchronized_witness_state_count": 27,
-      "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "3a41fa3f1590b5024632021f74ec10ebe1dedbd81d0f710ffc744fddedf16d6d",
       "normalized_geometry_sha256": "2afda291f9afdd8521b36278198215e6860114687d01ef3b1e5f7a9d276cb485",
       "alpha_bounds": [
@@ -676,10 +664,62 @@
         51,
         74
       ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-p2-0546-0eb2.json",
+      "authored_rgba_sha256": "63ae1c30fc340350a28b25a305f9d985db0e5af31852a7b437ae9b31ecc36331",
+      "review_alpha_iou": 0.7797927461139896,
+      "review_evidence": {
+        "workflow_run": 37583612477,
+        "artifact_id": 11465129980
+      },
+      "after": {
+        "hd_selected_player_frames": 1159,
+        "original_fallback_player_frames": 4123,
+        "hd_coverage_fraction": 0.21942446043165467
+      },
+      "focused_reproduction": {
+        "workflow_run": 37583832315,
+        "artifact_id": 11465972380,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 1159,
+    "original_fallback_player_frames": 4123,
+    "hd_coverage_fraction": 0.21942446043165467,
+    "cumulative_player_frames_removed": 1041,
+    "absolute_coverage_gain_percentage_points": 19.70844377129875,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.20158791634391945
+  },
+  "next_discriminator": {
+    "status": "measured-post-p2-0546-0eb2-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x03F9",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 56,
+      "episode_count": 42,
+      "synchronized_witness_state_count": 38,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "7d8be8f829327d2a8e25f487fa1843f49c5abe3e2555892585ed2ed78233b353",
+      "normalized_geometry_sha256": "999ca178aabc4a48c65426e3d9eca75a7e344d093c3161794cf767f151ce93fe",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
       "exact_same_player_reuse_matches": [],
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "P2 0546 + companion 0EB2 / selector 0 / gate 0001 is the next measured shipping slice. Its changed envelope/contact and P2 ownership require a fresh witness-first authored review rather than inheriting the preceding P1 geometry."
+    "rule": "P1 03F9 + companion 0000 / selector 0 / gate 0000 is the next bounded shipping slice by measured post-P2-0546 burden. It requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

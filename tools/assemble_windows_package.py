@@ -14,6 +14,8 @@ SCHEMA_VERSION = 1
 PACKAGE_FORMAT = "ur-recomp-windows-x64-portable-v1"
 EXE_NAME = "UniracersSNESRecomp.exe"
 ROM_NAME = "Uniracers_USA.sfc"
+ROM_CONFIG_NAME = "rom.cfg"
+ROM_CONFIG_BYTES = f"{ROM_NAME}\n".encode("ascii")
 MANIFEST_NAME = "PACKAGE-MANIFEST.json"
 LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
@@ -23,7 +25,7 @@ ARCHIVE_CHECKSUM_SUFFIX = ".sha256"
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
     ROM_NAME,
-    "rom.cfg",
+    ROM_CONFIG_NAME,
     LAUNCHER_NAME,
     README_NAME,
 }
@@ -87,6 +89,12 @@ def expected_readme_revision_line(source_revision: str) -> str:
     return f"Source revision: {source_revision}"
 
 
+def canonical_manifest_bytes(manifest: dict[str, object]) -> bytes:
+    return (
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+    ).encode("utf-8")
+
+
 def is_same_or_within(path: Path, root: Path) -> bool:
     try:
         path.relative_to(root)
@@ -117,6 +125,14 @@ def package_files(root: Path) -> list[dict[str, object]]:
             }
         )
     return files
+
+
+def validate_rom_config(payload: bytes, *, context: str) -> None:
+    if payload != ROM_CONFIG_BYTES:
+        raise ValueError(
+            f"{context} rom.cfg must contain canonical package-relative ROM path "
+            f"{ROM_NAME}"
+        )
 
 
 def validate_required_package_paths(
@@ -248,8 +264,8 @@ def write_launcher(path: Path, source_revision: str) -> None:
     )
 
 
-def write_readme(path: Path, source_revision: str) -> None:
-    path.write_text(
+def readme_text(source_revision: str) -> str:
+    return (
         "UR-Recomp - Windows x64 portable package\n"
         f"Source revision: {source_revision}\n"
         "\n"
@@ -293,9 +309,12 @@ def write_readme(path: Path, source_revision: str) -> None:
         "normal settings, profiles, bindings and run history live outside the "
         "package and are preserved across that replacement.\n"
         "\n"
-        "Private personal-use preservation/remaster build.\n",
-        encoding="utf-8",
+        "Private personal-use preservation/remaster build.\n"
     )
+
+
+def write_readme(path: Path, source_revision: str) -> None:
+    path.write_bytes(readme_text(source_revision).encode("utf-8"))
 
 
 def assemble(
@@ -324,7 +343,7 @@ def assemble(
     if is_same_or_within(rom, output):
         raise ValueError("package output must not contain the source ROM")
 
-    required_files = [build_dir / EXE_NAME, build_dir / "rom.cfg", rom]
+    required_files = [build_dir / EXE_NAME, build_dir / ROM_CONFIG_NAME, rom]
     for path in required_files:
         if not path.is_file():
             raise ValueError(f"required package input missing: {path}")
@@ -343,7 +362,7 @@ def assemble(
     output.mkdir(parents=True)
 
     shutil.copy2(build_dir / EXE_NAME, output / EXE_NAME)
-    shutil.copy2(build_dir / "rom.cfg", output / "rom.cfg")
+    (output / ROM_CONFIG_NAME).write_bytes(ROM_CONFIG_BYTES)
     shutil.copy2(rom, output / ROM_NAME)
     shutil.copytree(mods, output / "mods")
     write_launcher(output / LAUNCHER_NAME, source_revision)
@@ -355,10 +374,7 @@ def assemble(
         "source_revision": source_revision,
         "files": package_files(output),
     }
-    (output / MANIFEST_NAME).write_text(
-        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
-        encoding="utf-8",
-    )
+    (output / MANIFEST_NAME).write_bytes(canonical_manifest_bytes(manifest))
     return manifest
 
 
@@ -369,9 +385,12 @@ def verify(package: Path) -> dict[str, object]:
         raise ValueError(f"package manifest missing: {manifest_path}")
 
     try:
-        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
+        manifest_bytes = manifest_path.read_bytes()
+        manifest = json.loads(manifest_bytes.decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise ValueError(f"cannot read package manifest: {exc}") from exc
+    if manifest_bytes != canonical_manifest_bytes(manifest):
+        raise ValueError("package manifest is not canonical UTF-8/LF JSON")
 
     if (
         manifest.get("schema_version") != SCHEMA_VERSION
@@ -392,8 +411,15 @@ def verify(package: Path) -> dict[str, object]:
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
     try:
-        readme = (package / README_NAME).read_text(encoding="utf-8")
+        validate_rom_config(
+            (package / ROM_CONFIG_NAME).read_bytes(), context="packaged"
+        )
     except OSError as exc:
+        raise ValueError(f"cannot read packaged rom.cfg: {exc}") from exc
+    try:
+        readme_bytes = (package / README_NAME).read_bytes()
+        readme = readme_bytes.decode("utf-8")
+    except (OSError, UnicodeDecodeError) as exc:
         raise ValueError(f"cannot read packaged README: {exc}") from exc
     if (
         expected_readme_revision_line(source_revision)
@@ -402,6 +428,8 @@ def verify(package: Path) -> dict[str, object]:
         raise ValueError(
             "package README source revision does not match manifest"
         )
+    if readme_bytes != readme_text(source_revision).encode("utf-8"):
+        raise ValueError("package README is not canonical UTF-8/LF content")
 
     return manifest
 
@@ -519,9 +547,8 @@ def verify_archive(archive: Path) -> dict[str, object]:
             if manifest_name not in names:
                 raise ValueError("package archive manifest missing")
             try:
-                manifest = json.loads(
-                    source.read(manifest_name).decode("utf-8")
-                )
+                manifest_bytes = source.read(manifest_name)
+                manifest = json.loads(manifest_bytes.decode("utf-8"))
             except (KeyError, UnicodeDecodeError, json.JSONDecodeError) as exc:
                 raise ValueError(
                     f"cannot read package archive manifest: {exc}"
@@ -533,6 +560,10 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 or not isinstance(manifest.get("files"), list)
             ):
                 raise ValueError("unsupported or malformed package archive manifest")
+            if manifest_bytes != canonical_manifest_bytes(manifest):
+                raise ValueError(
+                    "package archive manifest is not canonical UTF-8/LF JSON"
+                )
             try:
                 source_revision = normalize_source_revision(
                     manifest.get("source_revision")
@@ -592,9 +623,17 @@ def verify_archive(archive: Path) -> dict[str, object]:
             validate_required_package_paths(
                 relative_paths, context="archive package"
             )
+            try:
+                validate_rom_config(
+                    source.read(f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}"),
+                    context="archive package",
+                )
+            except KeyError as exc:
+                raise ValueError("cannot read package archive rom.cfg") from exc
             readme_name = f"{ARCHIVE_ROOT}/{README_NAME}"
             try:
-                readme = source.read(readme_name).decode("utf-8")
+                readme_bytes = source.read(readme_name)
+                readme = readme_bytes.decode("utf-8")
             except (KeyError, UnicodeDecodeError) as exc:
                 raise ValueError("cannot read package archive README") from exc
             if (
@@ -603,6 +642,10 @@ def verify_archive(archive: Path) -> dict[str, object]:
             ):
                 raise ValueError(
                     "package archive README source revision does not match manifest"
+                )
+            if readme_bytes != readme_text(source_revision).encode("utf-8"):
+                raise ValueError(
+                    "package archive README is not canonical UTF-8/LF content"
                 )
 
             if set(names) != expected_names:

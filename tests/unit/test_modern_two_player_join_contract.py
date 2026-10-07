@@ -34,7 +34,7 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             "if (g_local_multiplayer_join_visible && modern_mode()) {",
             "if (g_tour_action_visible && modern_mode()",
         )
-        self.assertGreaterEqual(overlay.count("draw_device_line("), 3)
+        self.assertEqual(overlay.count("draw_device_line("), 2)
         self.assertIn("LocalMultiplayerSlot::Player1", overlay)
         self.assertIn("LocalMultiplayerSlot::Player2", overlay)
         self.assertIn(", 42);", overlay)

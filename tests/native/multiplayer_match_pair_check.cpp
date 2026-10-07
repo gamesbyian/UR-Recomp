@@ -24,6 +24,10 @@ int main(int argc, char** argv) {
         std::cerr << "unexpected mode\n";
         return 1;
     }
+    if (run.record->elapsed_ticks60 != 1726 || !run.record->splits.empty()) {
+        std::cerr << "unexpected 2P carrier timing\n";
+        return 1;
+    }
 
     const auto match =
         load_multiplayer_match_record_for_run(run_path, *run.record);

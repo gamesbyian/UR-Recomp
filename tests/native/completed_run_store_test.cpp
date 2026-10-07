@@ -58,9 +58,37 @@ int main(int argc, char** argv) {
         dir.string(), other_course, &path3, &detail));
 
     {
-        std::ofstream bad(dir / "run-9999999999999999-9999.urrun");
+        std::ofstream bad(dir / "run-9999999999999998-9998.urrun");
         bad << "not a completed run\n";
     }
+    {
+        std::string corrupt = encode_completed_run_record(run(1500));
+        assert(!corrupt.empty());
+        const auto checksum = corrupt.rfind("checksum ");
+        assert(checksum != std::string::npos);
+        corrupt[checksum + 9] = corrupt[checksum + 9] == '0' ? '1' : '0';
+        std::ofstream bad(dir / "run-9999999999999999-9999.urrun");
+        bad << corrupt;
+    }
+
+    const auto artifacts = inspect_completed_run_record_artifacts(dir.string());
+    assert(artifacts.size() == 5);
+    assert(artifacts[0].loaded());
+    assert(artifacts[1].loaded());
+    assert(artifacts[2].loaded());
+    assert(artifacts[3].status == RunRecordLoadStatus::Malformed);
+    assert(!artifacts[3].record);
+    assert(artifacts[4].status == RunRecordLoadStatus::Corrupt);
+    assert(!artifacts[4].record);
+
+    const auto health = summarize_run_record_artifact_health(artifacts);
+    assert(health.total_artifacts == 5);
+    assert(health.loaded_artifacts == 3);
+    assert(health.malformed_artifacts == 1);
+    assert(health.corrupt_artifacts == 1);
+    assert(health.io_errors == 0);
+    assert(health.unsupported_artifacts == 0);
+    assert(health.unavailable_artifacts() == 2);
 
     const auto all_valid = load_valid_run_records(dir.string());
     assert(all_valid.size() == 3);

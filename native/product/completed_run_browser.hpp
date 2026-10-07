@@ -45,6 +45,8 @@ struct CompletedRunBrowserEntry {
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept;
 
+std::string completed_run_browser_date_text(const std::string& path);
+
 enum class CompletedRunRecordsView : std::uint8_t {
     Courses = 0,
     Runs = 1,
@@ -60,6 +62,14 @@ public:
 
     CompletedRunRecordsView view() const noexcept { return view_; }
     const RunRecordsIndex& index() const noexcept { return index_; }
+    const RunRecordArtifactHealth& artifact_health() const noexcept {
+        return artifact_health_;
+    }
+    std::size_t unavailable_artifact_count() const noexcept {
+        return artifact_health_.total_artifacts > index_.total_completed_runs
+            ? artifact_health_.total_artifacts - index_.total_completed_runs
+            : 0;
+    }
     std::optional<std::size_t> selected_course_index() const noexcept {
         return selected_course_;
     }
@@ -83,6 +93,7 @@ public:
 
 private:
     RunRecordsIndex index_;
+    RunRecordArtifactHealth artifact_health_;
     CompletedRunRecordsView view_ = CompletedRunRecordsView::Courses;
     std::optional<std::size_t> selected_course_;
     std::optional<std::size_t> selected_run_;

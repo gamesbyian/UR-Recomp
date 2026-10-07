@@ -202,9 +202,10 @@ bool open_records_browser() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu profile=%s\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
+            g_records_browser.unavailable_artifact_count(),
             active_profile_id().c_str());
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
@@ -560,11 +561,21 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 7,
             "RECORDS / TRACKS", 0xFFFFFFFFu, 1);
 
-        char summary[64];
-        std::snprintf(
-            summary, sizeof(summary), "%zu COURSES / %zu RUNS",
-            g_records_browser.index().courses.size(),
-            g_records_browser.index().total_completed_runs);
+        char summary[80];
+        const std::size_t unavailable =
+            g_records_browser.unavailable_artifact_count();
+        if (unavailable) {
+            std::snprintf(
+                summary, sizeof(summary), "%zu TRACKS / %zu RUNS  %zu UNAVAILABLE",
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs,
+                unavailable);
+        } else {
+            std::snprintf(
+                summary, sizeof(summary), "%zu TRACKS / %zu RUNS",
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 22,
             summary, 0xFFFFFFFFu, 1);
@@ -649,13 +660,18 @@ void draw_records_browser(
                 std::string tags;
                 if (entry.is_personal_best) tags += " PB";
                 if (entry.is_previous) tags += " PREV";
-                char line[96];
+                const std::string date =
+                    ur::product::completed_run_browser_date_text(entry.path);
+                const std::string short_date =
+                    date.size() == 10 ? date.substr(5) : date;
+                char line[112];
                 std::snprintf(
-                    line, sizeof(line), "%c #%03zu %s%s",
+                    line, sizeof(line), "%c #%03zu %s %s%s",
                     g_records_browser.selected_run_index() &&
                             *g_records_browser.selected_run_index() == index
                         ? '>' : ' ',
                     entry.source_index + 1,
+                    short_date.c_str(),
                     entry.time_text.c_str(),
                     tags.c_str());
                 snes_ovl_draw_text(
@@ -696,10 +712,14 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);
 
-        char run_label[64];
+        const std::string run_date = selected
+            ? ur::product::completed_run_browser_date_text(selected->path)
+            : "--";
+        char run_label[96];
         std::snprintf(
-            run_label, sizeof(run_label), "RUN #%03zu%s%s",
+            run_label, sizeof(run_label), "RUN #%03zu  %s%s%s",
             selected ? selected->source_index + 1 : 0u,
+            run_date.c_str(),
             selected && selected->is_personal_best ? "  PB" : "",
             selected && selected->is_previous ? "  PREV" : "");
         snes_ovl_draw_text(

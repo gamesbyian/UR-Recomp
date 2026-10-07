@@ -232,6 +232,20 @@ jobs:
 
           mkdir -p "$RUNS"
           cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+          cp "$ORIGINAL" "$RUNS/run-0002.urrun"
+          python3 - "$RUNS/run-0002.urrun" <<'PY'
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          data = bytearray(path.read_bytes())
+          marker = data.rfind(b"checksum ")
+          if marker < 0:
+              raise SystemExit("missing checksum marker")
+          pos = marker + len(b"checksum ")
+          data[pos] = ord("1") if data[pos] != ord("1") else ord("0")
+          path.write_bytes(data)
+          PY
 
           SDL_AUDIODRIVER=dummy \
           UR_RECORDS_BROWSER_ACCEPTANCE=quit-after-open \
@@ -242,7 +256,7 @@ jobs:
               >"$LOG" 2>&1
 
           cat "$LOG"
-          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=1" "$LOG"
           grep -q "UR_RECORDS_BROWSER COURSE course=course:01 runs=1" "$LOG"
           grep -q "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 drilled=1 detail=1 current_course=1 courses=1 runs=1" "$LOG"
           grep -Eq "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER .* finish=[0-9]+:[0-9]{2}\.[0-9]{2}/60 delta=\+0:00\.00/60" "$LOG"

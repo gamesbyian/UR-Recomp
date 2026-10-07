@@ -40,6 +40,10 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
             source,
         )
 
+        self.assertIn("void draw_results_records_hint(", source)
+        self.assertIn("records_results_surface()", source)
+        self.assertIn('"F8 / Y      RECORDS"', source)
+
 
 if __name__ == "__main__":
     unittest.main()

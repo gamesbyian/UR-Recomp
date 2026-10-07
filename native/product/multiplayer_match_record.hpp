@@ -33,4 +33,12 @@ std::string encode_multiplayer_match_record(
 MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     std::string_view encoded);
 
+bool save_multiplayer_match_record_file(
+    const std::string& path,
+    const MultiplayerMatchRecord& record,
+    std::string* detail = nullptr);
+
+MultiplayerMatchDecodeResult load_multiplayer_match_record_file(
+    const std::string& path);
+
 }  // namespace ur::product

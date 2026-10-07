@@ -33,6 +33,15 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
             source.index('"NO MATCHING CHECKPOINT DATA"'),
         )
 
+        self.assertIn('"RECORDS / RACERS-PROFILES"', source)
+        self.assertIn("RecordsRootSection::Profiles", source)
+        self.assertIn("UR_RECORDS_BROWSER PROFILE_OPEN", source)
+        self.assertIn("load_run_records_profile_sources(root)", source)
+        self.assertIn(
+            "return records_viewing_active_profile() && selected && target",
+            source,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

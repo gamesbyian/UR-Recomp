@@ -3913,6 +3913,7 @@ void complete_multiplayer_run_record_capture() {
 
     reset_multiplayer_run_capture();
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
+        product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
         (void)request_desktop_quit();
     }
 }
@@ -5653,8 +5654,29 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                 "UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST");
             reset_multiplayer_run_capture();
         } else {
-            (void)g_multiplayer_run_capture.observe_guest_frame(
-                stats->controller_word);
+            const auto current_course =
+                ur_uniracers_identify_course(
+                    g_ram + 0x10000u, 0x10000u);
+            const bool participant_context_matches =
+                g_multiplayer_capture_player1 &&
+                g_multiplayer_capture_player2 &&
+                g_local_multiplayer_participants.player1 &&
+                g_local_multiplayer_participants.player2 &&
+                *g_local_multiplayer_participants.player1 ==
+                    *g_multiplayer_capture_player1 &&
+                *g_local_multiplayer_participants.player2 ==
+                    *g_multiplayer_capture_player2;
+            if (!current_course.valid ||
+                current_course.course_index !=
+                    g_multiplayer_capture_course.course_index ||
+                !participant_context_matches) {
+                product_diagnostic(
+                    "UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT");
+                reset_multiplayer_run_capture();
+            } else {
+                (void)g_multiplayer_run_capture.observe_guest_frame(
+                    stats->controller_word);
+            }
         }
     }
     if (stats && !g_run_capture_previous_active && run_active) {

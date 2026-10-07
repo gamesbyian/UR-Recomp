@@ -30,6 +30,9 @@ on:
       - "tests/native/racer_oam_placement_test.cpp"
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-first-race.input"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/racer-native-presentation-acceptance.yml"
 
 concurrency:

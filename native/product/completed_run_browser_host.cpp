@@ -9,6 +9,7 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "completed_run_browser.hpp"
+#include "completed_run_profile_sources.hpp"
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
@@ -40,6 +41,21 @@ unsigned g_browser_acceptance_active_frames;
 bool g_browser_acceptance_fired;
 unsigned g_records_browser_acceptance_active_frames;
 bool g_records_browser_acceptance_fired;
+
+ur::product::RunRecordsScope records_scope();
+
+enum class RecordsRootSection {
+    Tracks,
+    Profiles,
+};
+
+RecordsRootSection g_records_root_section = RecordsRootSection::Tracks;
+ur::product::RunRecordsProfileIndex g_records_profile_index;
+std::size_t g_records_profile_selected = 0;
+bool g_records_profiles_available = true;
+bool g_records_return_to_profiles = false;
+std::string g_records_active_profile_id;
+std::string g_records_view_profile_id;
 
 std::string records_course_label(const std::string& course_id) {
     if (course_id.size() == 9 &&
@@ -123,6 +139,87 @@ std::string active_run_directory() {
     return (fs::path(root) / "runs" / active_profile_id()).string();
 }
 
+std::string run_directory_for_profile(const std::string& profile_id) {
+    if (profile_id.empty()) return {};
+    if (profile_id == g_records_active_profile_id &&
+        (std::getenv("UR_RUN_BROWSER_ACCEPTANCE") ||
+         std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE"))) {
+        const char* override_directory =
+            std::getenv("UR_RUN_BROWSER_DIRECTORY");
+        if (override_directory && *override_directory) {
+            return override_directory;
+        }
+    }
+
+    const std::string root = product_user_data_root();
+    if (root.empty()) return {};
+    return (fs::path(root) / "runs" / profile_id).string();
+}
+
+const ur::product::RunRecordsProfileSummary* selected_records_profile() {
+    if (g_records_profile_selected >= g_records_profile_index.profiles.size()) {
+        return nullptr;
+    }
+    return &g_records_profile_index.profiles[g_records_profile_selected];
+}
+
+std::string records_view_profile_name() {
+    for (const auto& profile : g_records_profile_index.profiles) {
+        if (profile.profile_id == g_records_view_profile_id) {
+            return profile.racer_identity.name;
+        }
+    }
+    return g_records_view_profile_id.empty()
+        ? std::string("DEFAULT")
+        : g_records_view_profile_id;
+}
+
+bool records_viewing_active_profile() {
+    return !g_records_active_profile_id.empty() &&
+           g_records_view_profile_id == g_records_active_profile_id;
+}
+
+bool refresh_records_profiles() {
+    const std::string root = product_user_data_root();
+    const auto sources =
+        ur::product::load_run_records_profile_sources(root);
+    if (!sources) {
+        g_records_profile_index = {};
+        g_records_profile_selected = 0;
+        g_records_profiles_available = false;
+        return false;
+    }
+
+    g_records_profile_index =
+        ur::product::build_run_records_profile_index(
+            *sources, records_scope(), g_records_active_profile_id);
+    g_records_profiles_available = true;
+    g_records_profile_selected =
+        g_records_profile_index.active_profile.value_or(0);
+    if (g_records_profile_selected >=
+        g_records_profile_index.profiles.size()) {
+        g_records_profile_selected = 0;
+    }
+    return true;
+}
+
+bool move_records_profile(int delta) {
+    if (delta == 0 || g_records_profile_index.profiles.empty()) {
+        return false;
+    }
+    const std::size_t count = g_records_profile_index.profiles.size();
+    if (delta > 0) {
+        g_records_profile_selected =
+            (g_records_profile_selected + 1) % count;
+    } else {
+        g_records_profile_selected =
+            g_records_profile_selected == 0
+                ? count - 1
+                : g_records_profile_selected - 1;
+    }
+    return true;
+}
+
 ur::product::RunRecordsScope records_scope() {
     return {
         "uniracers-usa",
@@ -156,17 +253,27 @@ std::optional<ur::product::RunPlaybackTarget> current_target() {
 bool records_selected_matches_current_course() {
     const auto* selected = g_records_browser.selected_course();
     const auto target = current_target();
-    return selected && target &&
+    return records_viewing_active_profile() && selected && target &&
            selected->course_id == target->course_id;
 }
 
-bool refresh_records_browser() {
-    const std::string directory = active_run_directory();
+bool refresh_records_browser_for_profile(
+    const std::string& profile_id) {
+    const std::string directory = run_directory_for_profile(profile_id);
     if (directory.empty()) {
         g_records_browser.clear();
         return false;
     }
-    return g_records_browser.refresh(directory, records_scope());
+    if (!g_records_browser.refresh(directory, records_scope())) {
+        return false;
+    }
+    g_records_view_profile_id = profile_id;
+    return true;
+}
+
+bool refresh_records_browser() {
+    return !g_records_active_profile_id.empty() &&
+           refresh_records_browser_for_profile(g_records_active_profile_id);
 }
 
 bool refresh_browser() {
@@ -233,20 +340,27 @@ bool open_records_browser() {
     if (!modern_mode() || !snesrecomp_desktop_is_paused()) {
         return false;
     }
+    g_records_active_profile_id = active_profile_id();
     if (!normalize_base_pause_surface() || !refresh_records_browser()) {
+        g_records_active_profile_id.clear();
         return false;
     }
+    (void)refresh_records_profiles();
+    g_records_root_section = RecordsRootSection::Tracks;
+    g_records_return_to_profiles = false;
 
     g_browser_visible = false;
     g_records_browser_visible = true;
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             g_records_browser.unavailable_artifact_count(),
-            active_profile_id().c_str());
+            g_records_active_profile_id.c_str(),
+            g_records_profile_index.profiles.size(),
+            g_records_profiles_available ? 1 : 0);
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
                 stderr,
@@ -407,11 +521,29 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
 
     const int delta = ur_modern_host_navigation_vertical_delta(action);
     if (delta != 0) {
-        (void)g_records_browser.move(delta);
+        if (g_records_browser.view() ==
+                ur::product::CompletedRunRecordsView::Courses &&
+            g_records_root_section == RecordsRootSection::Profiles) {
+            (void)move_records_profile(delta);
+        } else {
+            (void)g_records_browser.move(delta);
+        }
         return true;
     }
+
     const int adjustment =
         ur_modern_host_navigation_adjustment_delta(action);
+    if (adjustment != 0 &&
+        g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Courses) {
+        g_records_root_section = adjustment < 0
+            ? RecordsRootSection::Tracks
+            : RecordsRootSection::Profiles;
+        if (g_records_root_section == RecordsRootSection::Profiles) {
+            g_records_return_to_profiles = false;
+        }
+        return true;
+    }
     if (adjustment != 0 &&
         g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Detail) {
@@ -420,7 +552,27 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     }
     if (ur_modern_host_navigation_is_confirm(action)) {
         if (g_records_browser.view() ==
-            ur::product::CompletedRunRecordsView::Courses) {
+                ur::product::CompletedRunRecordsView::Courses &&
+            g_records_root_section == RecordsRootSection::Profiles) {
+            const auto* profile = selected_records_profile();
+            if (profile &&
+                refresh_records_browser_for_profile(profile->profile_id)) {
+                g_records_root_section = RecordsRootSection::Tracks;
+                g_records_return_to_profiles = true;
+                if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                    std::fprintf(
+                        stderr,
+                        "UR_RECORDS_BROWSER PROFILE_OPEN profile=%s runs=%zu tracks=%zu active=%d\n",
+                        profile->profile_id.c_str(),
+                        profile->completed_runs,
+                        profile->tracks_with_runs,
+                        profile->profile_id == g_records_active_profile_id
+                            ? 1 : 0);
+                    std::fflush(stderr);
+                }
+            }
+        } else if (g_records_browser.view() ==
+                   ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Runs) {
@@ -435,6 +587,9 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Runs) {
             (void)g_records_browser.back_to_courses();
+        } else if (g_records_return_to_profiles) {
+            g_records_root_section = RecordsRootSection::Profiles;
+            g_records_return_to_profiles = false;
         } else {
             close_records_browser();
         }
@@ -512,6 +667,50 @@ void maybe_run_records_browser_acceptance() {
     const int pause_handled =
         ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
     const bool opened = pause_handled && open_records_browser();
+
+    if (std::strcmp(acceptance, "profiles") == 0) {
+        const bool profiles_opened =
+            opened &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) &&
+            g_records_root_section == RecordsRootSection::Profiles;
+        const std::size_t profile_count =
+            g_records_profile_index.profiles.size();
+        const bool profile_drilled =
+            profiles_opened &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) &&
+            g_records_root_section == RecordsRootSection::Tracks &&
+            g_records_return_to_profiles;
+        const std::string viewed_profile = g_records_view_profile_id;
+        const std::size_t viewed_tracks =
+            g_records_browser.index().courses.size();
+        const std::size_t viewed_runs =
+            g_records_browser.index().total_completed_runs;
+        const bool returned =
+            profile_drilled &&
+            records_browser_navigation(UR_MODERN_HOST_NAV_BACK) &&
+            g_records_root_section == RecordsRootSection::Profiles;
+
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=%d opened=%d profiles_opened=%d profiles=%zu drilled=%d profile=%s tracks=%zu runs=%zu returned=%d\n",
+                pause_handled,
+                opened ? 1 : 0,
+                profiles_opened ? 1 : 0,
+                profile_count,
+                profile_drilled ? 1 : 0,
+                viewed_profile.c_str(),
+                viewed_tracks,
+                viewed_runs,
+                returned ? 1 : 0);
+            std::fflush(stderr);
+        }
+        SDL_Event event{};
+        event.type = SDL_QUIT;
+        (void)SDL_PushEvent(&event);
+        return;
+    }
+
     const bool drilled =
         opened &&
         records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM);
@@ -639,82 +838,159 @@ void draw_records_browser(
 
     if (g_records_browser.view() ==
         ur::product::CompletedRunRecordsView::Courses) {
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "RECORDS / TRACKS", 0xFFFFFFFFu, 1);
+        if (g_records_root_section == RecordsRootSection::Profiles) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 7,
+                "RECORDS / RACERS-PROFILES", 0xFFFFFFFFu, 1);
 
-        char summary[80];
-        const std::size_t unavailable =
-            g_records_browser.unavailable_artifact_count();
-        if (unavailable) {
+            char summary[80];
             std::snprintf(
-                summary, sizeof(summary), "%zu TRACKS / %zu RUNS  %zu UNAVAILABLE",
-                g_records_browser.index().courses.size(),
-                g_records_browser.index().total_completed_runs,
-                unavailable);
-        } else {
-            std::snprintf(
-                summary, sizeof(summary), "%zu TRACKS / %zu RUNS",
-                g_records_browser.index().courses.size(),
-                g_records_browser.index().total_completed_runs);
-        }
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 22,
-            summary, 0xFFFFFFFFu, 1);
+                summary, sizeof(summary), "%zu RACERS / %zu RUNS",
+                g_records_profile_index.profiles.size(),
+                g_records_profile_index.total_completed_runs);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 22,
+                summary, 0xFFFFFFFFu, 1);
 
-        std::size_t first = 0;
-        if (const auto selected = g_records_browser.selected_course_index()) {
-            if (*selected >= static_cast<std::size_t>(row_count)) {
-                first = *selected - static_cast<std::size_t>(row_count) + 1;
+            if (!g_records_profiles_available) {
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42,
+                    "PROFILE CATALOG UNAVAILABLE", 0xFFFFFFFFu, 1);
+            } else if (g_records_profile_index.profiles.empty()) {
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42,
+                    "NO RACERS / PROFILES", 0xFFFFFFFFu, 1);
             }
-        }
 
-        if (g_records_browser.index().courses.empty()) {
+            std::size_t first = 0;
+            if (g_records_profile_selected >=
+                static_cast<std::size_t>(row_count)) {
+                first = g_records_profile_selected -
+                    static_cast<std::size_t>(row_count) + 1;
+            }
+            for (int row = 0; row < row_count; ++row) {
+                const std::size_t index =
+                    first + static_cast<std::size_t>(row);
+                if (index >= g_records_profile_index.profiles.size()) break;
+                const auto& profile =
+                    g_records_profile_index.profiles[index];
+                const bool active =
+                    g_records_profile_index.active_profile &&
+                    *g_records_profile_index.active_profile == index;
+                char line[96];
+                std::snprintf(
+                    line, sizeof(line), "%c %-12s %2zu RUNS %2zu TRACKS%s",
+                    g_records_profile_selected == index ? '>' : ' ',
+                    profile.racer_identity.name.c_str(),
+                    profile.completed_runs,
+                    profile.tracks_with_runs,
+                    active ? " ACTIVE" : "");
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42 + row * 15,
+                    line, 0xFFFFFFFFu, 1);
+            }
+
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 42,
-                "NO RUNS RECORDED YET", 0xFFFFFFFFu, 1);
-        }
-
-        for (int row = 0; row < row_count; ++row) {
-            const std::size_t index = first + static_cast<std::size_t>(row);
-            if (index >= g_records_browser.index().courses.size()) break;
-            const auto& course = g_records_browser.index().courses[index];
-            const std::string course_label =
-                records_course_label(course.course_id);
-            char line[96];
+                pixels, stride, height, x + 8, y + panel_h - 41,
+                "LEFT / RIGHT  TRACKS / RACERS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 26,
+                "ENTER / A  VIEW TRACKS", 0xFFFFFFFFu, 1);
+        } else {
+            const std::string profile_name = records_view_profile_name();
+            char title[96];
             std::snprintf(
-                line, sizeof(line), "%c %-13s %2zu PB %s",
-                g_records_browser.selected_course_index() &&
-                        *g_records_browser.selected_course_index() == index
-                    ? '>' : ' ',
-                course_label.c_str(),
-                course.statistics.completed_runs,
-                course.statistics.personal_best_text.c_str());
+                title, sizeof(title), "RECORDS / TRACKS / %s",
+                profile_name.c_str());
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 42 + row * 15,
-                line, 0xFFFFFFFFu, 1);
-        }
+                pixels, stride, height, x + 8, y + 7,
+                title, 0xFFFFFFFFu, 1);
 
-        const auto* selected = g_records_browser.selected_course();
-        char previous[80];
-        std::snprintf(
-            previous, sizeof(previous), "PREV %s  VS PB %s",
-            selected ? selected->statistics.previous_text.c_str() : "--",
-            selected ? selected->statistics.previous_vs_pb_text.c_str() : "--");
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 41,
-            previous, 0xFFFFFFFFu, 1);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 26,
-            "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
+            char summary[80];
+            const std::size_t unavailable =
+                g_records_browser.unavailable_artifact_count();
+            if (unavailable) {
+                std::snprintf(
+                    summary, sizeof(summary),
+                    "%zu TRACKS / %zu RUNS  %zu UNAVAILABLE",
+                    g_records_browser.index().courses.size(),
+                    g_records_browser.index().total_completed_runs,
+                    unavailable);
+            } else {
+                std::snprintf(
+                    summary, sizeof(summary), "%zu TRACKS / %zu RUNS",
+                    g_records_browser.index().courses.size(),
+                    g_records_browser.index().total_completed_runs);
+            }
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 22,
+                summary, 0xFFFFFFFFu, 1);
+
+            std::size_t first = 0;
+            if (const auto selected =
+                    g_records_browser.selected_course_index()) {
+                if (*selected >= static_cast<std::size_t>(row_count)) {
+                    first = *selected -
+                        static_cast<std::size_t>(row_count) + 1;
+                }
+            }
+
+            if (g_records_browser.index().courses.empty()) {
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42,
+                    "NO RUNS RECORDED YET", 0xFFFFFFFFu, 1);
+            }
+
+            for (int row = 0; row < row_count; ++row) {
+                const std::size_t index =
+                    first + static_cast<std::size_t>(row);
+                if (index >= g_records_browser.index().courses.size()) break;
+                const auto& course =
+                    g_records_browser.index().courses[index];
+                const std::string course_label =
+                    records_course_label(course.course_id);
+                char line[96];
+                std::snprintf(
+                    line, sizeof(line), "%c %-13s %2zu PB %s",
+                    g_records_browser.selected_course_index() &&
+                            *g_records_browser.selected_course_index() == index
+                        ? '>' : ' ',
+                    course_label.c_str(),
+                    course.statistics.completed_runs,
+                    course.statistics.personal_best_text.c_str());
+                snes_ovl_draw_text(
+                    pixels, stride, height, x + 8, y + 42 + row * 15,
+                    line, 0xFFFFFFFFu, 1);
+            }
+
+            const auto* selected = g_records_browser.selected_course();
+            char previous[80];
+            std::snprintf(
+                previous, sizeof(previous), "PREV %s  VS PB %s",
+                selected ? selected->statistics.previous_text.c_str() : "--",
+                selected
+                    ? selected->statistics.previous_vs_pb_text.c_str()
+                    : "--");
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 56,
+                previous, 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 41,
+                "LEFT / RIGHT  TRACKS / RACERS", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 26,
+                "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
+        }
     } else if (g_records_browser.view() ==
                ur::product::CompletedRunRecordsView::Runs) {
         const auto* course = g_records_browser.selected_course();
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
-        char title[64];
+        const std::string profile_name = records_view_profile_name();
+        char title[96];
         std::snprintf(
-            title, sizeof(title), "RECORDS / %s", course_label.c_str());
+            title, sizeof(title), "RECORDS / %s / %s",
+            profile_name.c_str(), course_label.c_str());
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);
@@ -791,9 +1067,11 @@ void draw_records_browser(
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
-        char title[80];
+        const std::string profile_name = records_view_profile_name();
+        char title[112];
         std::snprintf(
-            title, sizeof(title), "RECORDS / %s / RUN", course_label.c_str());
+            title, sizeof(title), "RECORDS / %s / %s / RUN",
+            profile_name.c_str(), course_label.c_str());
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);
@@ -844,7 +1122,7 @@ void draw_records_browser(
         char split_header[64];
         std::snprintf(
             split_header, sizeof(split_header),
-            "SPLITS VS %s  CURRENT / TARGET / DELTA", split_target_label);
+            "SPLITS < %s >  CURRENT / TARGET / DELTA", split_target_label);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 97,
             split_header, 0xFFFFFFFFu, 1);
@@ -857,7 +1135,7 @@ void draw_records_browser(
             int split_y = y + 112;
             int shown = 0;
             for (const auto& split : split_summary->splits) {
-                if (split.id == "finish" || shown >= 4) continue;
+                if (split.id == "finish" || shown >= 3) continue;
                 std::string label = split.id;
                 if (label.rfind("checkpoint-", 0) == 0) {
                     label = "CP " + label.substr(11);
@@ -877,9 +1155,6 @@ void draw_records_browser(
             }
         }
 
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 56,
-            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,

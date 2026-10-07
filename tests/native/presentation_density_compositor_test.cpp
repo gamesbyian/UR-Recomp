@@ -36,7 +36,6 @@ void assert_2x() {
 
 void assert_3x_with_padded_pitch() {
     const std::array<std::uint32_t, 2> src{A, B};
-    constexpr int width = 6;
     constexpr int stride = 8;
     std::array<std::uint32_t, stride * 3> dst{};
     dst.fill(0xDEADBEEFu);

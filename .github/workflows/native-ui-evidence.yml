@@ -73,7 +73,7 @@ jobs:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: build-ui-candidate
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4

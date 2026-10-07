@@ -3,6 +3,7 @@ name: Modern results navigation acceptance
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/product/uniracers_modern_host.cpp"
       - "native/product/modern_results_navigation.hpp"
@@ -30,6 +31,7 @@ concurrency:
 
 jobs:
   native-acceptance:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

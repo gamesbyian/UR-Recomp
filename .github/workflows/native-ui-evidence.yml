@@ -3,6 +3,7 @@ name: Native UI evidence
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
@@ -69,6 +70,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     name: build-ui-candidate
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -3,6 +3,7 @@ name: Native build and boot smoke
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
@@ -43,6 +44,7 @@ concurrency:
 
 jobs:
   build-and-smoke:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:

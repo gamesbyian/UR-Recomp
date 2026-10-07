@@ -2,6 +2,7 @@ name: Native racer presentation acceptance
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
@@ -45,6 +46,7 @@ concurrency:
 
 jobs:
   acceptance:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:

@@ -34,10 +34,19 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
         for path in PURE_MODEL_PATHS:
             self.assertIn(f'- "{path}"', workflow)
 
+        # The dependency-free Python suite may be sharded for wall-clock speed,
+        # but discovery must still enumerate every test_*.py deterministically
+        # and assign each discovered module to exactly one shard.
         self.assertIn(
-            "python3 -m unittest discover -s tests/unit -p 'test_*.py' -v",
+            "find tests/unit -maxdepth 1 -type f -name 'test_*.py'",
             workflow,
         )
+        self.assertIn("| sort", workflow)
+        self.assertIn('module="tests.unit.${tests[$i]%.py}"', workflow)
+        self.assertIn("i % 2 == 0", workflow)
+        self.assertIn('python3 -m unittest -v "$@"', workflow)
+        self.assertIn('wait "$p0"; r0=$?', workflow)
+        self.assertIn('wait "$p1"; r1=$?', workflow)
 
     def test_trigger_scope_stays_narrow(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

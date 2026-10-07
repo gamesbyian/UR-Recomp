@@ -42,13 +42,13 @@ Tracks, Racers/Profiles and Runs/Replays continue to use the established complet
 The next implementation should begin at the authoritative stock 2P results boundary, not in Records UI.
 
 1. **[implemented]** Promote a typed, read-only title result observation for the validated ordinary 2P Race result surface. `native/title/uniracers_two_player_result.*` admits only an explicitly classified ordinary-2P context plus stock menu `0xF9`, stock rider indices `7E:017D/017F`, and the stock `77:0618/061A` last-result pair. It classifies P1 win, P2 win or draw with `60000` as `NO TIME`, and fails closed on invalid riders/result values. It writes nothing.
-2. Bind the observed result to explicit participant identity supplied by the Modern multiplayer/session layer.
-3. Decide whether those additional semantics can be represented as an additive sidecar bound to the existing `.urrun` checksum or require a deliberate schema evolution. Do not silently overload existing fields.
-4. Prove fresh-process persistence and deterministic replay compatibility independently from result metadata.
+2. **[model implemented]** Bind the observed result to explicit participant identity without treating controller seats as people. `multiplayer_match_binding.*` accepts optional authoritative Modern profile entries that must agree with the stock rider actually used. An unprofiled participant remains explicitly a local guest and retains the exact selected legacy racer identity; it does not acquire a fake profile.
+3. **[sidecar path selected and implemented]** Keep replay authority in `.urrun` and store match semantics in strict `UR-MULTIPLAYER-MATCH/1` `.urmatch` metadata. The sidecar carries participants, course, race result/outcome and the exact existing run-artifact checksum, has its own deterministic checksum, bounded file I/O, and is admitted only when its checksum/course binding matches a validated decoded `.urrun`. The existing run schema is not overloaded.
+4. Prove production ordinary-2P capture + fresh-process paired `.urrun`/`.urmatch` persistence while preserving deterministic replay compatibility independently from result metadata.
 5. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
 
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition
 
-Do not broaden production 2P capture merely because the input format can encode P2. The lane is unblocked only when participant identity and the authoritative terminal result are both observable and can be durably bound to the same completed match without writing guest state.
+Production 2P capture may now advance only through the bounded ordinary-2P Race slice: participant identity, authoritative terminal result, strict sidecar persistence and exact `.urrun` binding all have typed fail-closed models. Do not generalize to Circuit, Stunt, VS or tournament standings until their distinct result/session semantics are explicitly admitted.

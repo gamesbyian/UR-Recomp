@@ -1,0 +1,5 @@
+# Ordinary stock route from clean boot to the 2P select surface (0x3D),
+# where Modern opens the local multiplayer join overlay.
+# Neutral two-pad grammar: start:duration:p1-mask:p2-mask
+500:1:020:000
+534:2:100:000

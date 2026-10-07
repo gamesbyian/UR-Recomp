@@ -396,6 +396,14 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         (void)g_records_browser.move(delta);
         return true;
     }
+    const int adjustment =
+        ur_modern_host_navigation_adjustment_delta(action);
+    if (adjustment != 0 &&
+        g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Detail) {
+        (void)g_records_browser.adjust_detail_target(adjustment);
+        return true;
+    }
     if (ur_modern_host_navigation_is_confirm(action)) {
         if (g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Courses) {
@@ -752,6 +760,9 @@ void draw_records_browser(
         const auto summary = g_records_browser.selected_run_summary();
         const auto previous_delta =
             g_records_browser.selected_run_previous_delta();
+        const auto split_summary =
+            g_records_browser.selected_run_target_summary(
+                g_records_browser.detail_target_kind());
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
@@ -800,10 +811,23 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 77,
             previous, 0xFFFFFFFFu, 1);
 
-        if (summary) {
-            int split_y = y + 97;
+        const char* split_target_label =
+            g_records_browser.detail_target_kind() ==
+                    ur::product::RunDataTargetKind::PersonalBest
+                ? "PB"
+                : "PREVIOUS";
+        char split_header[64];
+        std::snprintf(
+            split_header, sizeof(split_header),
+            "SPLITS VS %s  LEFT / RIGHT", split_target_label);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 97,
+            split_header, 0xFFFFFFFFu, 1);
+
+        if (split_summary) {
+            int split_y = y + 112;
             int shown = 0;
-            for (const auto& split : summary->splits) {
+            for (const auto& split : split_summary->splits) {
                 if (split.id == "finish" || shown >= 4) continue;
                 std::string label = split.id;
                 if (label.rfind("checkpoint-", 0) == 0) {
@@ -1044,6 +1068,12 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_DOWN) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
         }
+        if (key == SDLK_LEFT) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_LEFT) ? 1 : 0;
+        }
+        if (key == SDLK_RIGHT) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) ? 1 : 0;
+        }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
         }
@@ -1121,6 +1151,12 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         }
         if (button == kGamepadBtn_DpadDown) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_DpadLeft) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_LEFT) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_DpadRight) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) ? 1 : 0;
         }
         if (button == kGamepadBtn_A) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;

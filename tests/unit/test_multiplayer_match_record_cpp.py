@@ -24,6 +24,7 @@ class MultiplayerMatchRecordCppTests(unittest.TestCase):
                     "-I",
                     str(ROOT / "native" / "title"),
                     str(ROOT / "native" / "product" / "modern_racer_identity.cpp"),
+                    str(ROOT / "native" / "product" / "completed_run_record.cpp"),
                     str(ROOT / "native" / "product" / "multiplayer_match_record.cpp"),
                     str(
                         ROOT

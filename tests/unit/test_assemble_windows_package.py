@@ -559,7 +559,7 @@ class WindowsPackageTests(unittest.TestCase):
                 "package contents do not match", failed.stderr
             )
 
-    def test_archive_is_reproducible_and_checksum_sidecar_is_canonical(self):
+    def test_archive_checksum_sidecar_is_canonical(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)
             build, rom = self.make_inputs(root)
@@ -572,22 +572,19 @@ class WindowsPackageTests(unittest.TestCase):
                 "--source-revision", "test-revision",
             )
 
-            archive1 = root / "package-1.zip"
-            archive2 = root / "package-2.zip"
-            self.run_tool("archive", "--package", package, "--output", archive1)
-            self.run_tool("archive", "--package", package, "--output", archive2)
-            self.assertEqual(archive1.read_bytes(), archive2.read_bytes())
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            self.run_tool("archive", "--package", package, "--output", archive)
 
             sidecar = root / "UR-Recomp-Windows-x64.zip.sha256"
             result = self.run_tool(
                 "checksum-archive",
-                "--archive", archive1,
+                "--archive", archive,
                 "--output", sidecar,
             )
-            expected = hashlib.sha256(archive1.read_bytes()).hexdigest()
+            expected = hashlib.sha256(archive.read_bytes()).hexdigest()
             self.assertEqual(
                 sidecar.read_text(encoding="ascii"),
-                f"{expected}  {archive1.name}\n",
+                f"{expected}  {archive.name}\n",
             )
             self.assertIn(
                 f"WINDOWS_PACKAGE_ARCHIVE_SHA256 sha256={expected}",
@@ -750,12 +747,17 @@ class WindowsPackageTests(unittest.TestCase):
             "python tools/assemble_windows_package.py checksum-archive",
             compare,
         )
-        upload = workflow.index("name: Upload Windows evidence", checksum)
+        checksum_verify = workflow.index(
+            'sha256sum -c "$(basename "$CHECKSUM")"',
+            checksum,
+        )
+        upload = workflow.index("name: Upload Windows evidence", checksum_verify)
         self.assertLess(archive, verify)
         self.assertLess(verify, repro)
         self.assertLess(repro, compare)
         self.assertLess(compare, checksum)
-        self.assertLess(checksum, upload)
+        self.assertLess(checksum, checksum_verify)
+        self.assertLess(checksum_verify, upload)
         self.assertIn("UR-Recomp-Windows-x64.zip.sha256", workflow)
 
 

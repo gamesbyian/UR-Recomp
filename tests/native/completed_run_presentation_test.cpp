@@ -107,13 +107,6 @@ int main() {
     assert(split_table->rows[1].id == "finish");
     assert(split_table->rows[1].delta_text == "+0:00.12/60");
 
-    auto incompatible_summary_target = previous_target;
-    incompatible_summary_target.provenance.course_id = "course:02";
-    assert(!present_run_result_summary_against(
-        current,
-        incompatible_summary_target,
-        RunDataTargetKind::Previous));
-
     auto incompatible_table_target = record;
     incompatible_table_target.provenance.course_id = "course:02";
     assert(!present_run_split_table(
@@ -146,6 +139,13 @@ int main() {
     assert(previous_summary->splits[0].delta_text == "-0:00.06/60");
     assert(previous_summary->splits[1].target_text == "0:29.10/60");
     assert(previous_summary->splits[1].delta_text == "-0:00.25/60");
+
+    auto incompatible_summary_target = previous_target;
+    incompatible_summary_target.provenance.course_id = "course:02";
+    assert(!present_run_result_summary_against(
+        current,
+        incompatible_summary_target,
+        RunDataTargetKind::Previous));
 
     const auto result_summary =
         present_run_result_summary(current, &record);

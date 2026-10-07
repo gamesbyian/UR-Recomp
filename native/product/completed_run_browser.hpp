@@ -79,11 +79,18 @@ public:
     const RunRecordsCourseIndexEntry* selected_course() const noexcept;
     const RunDataCatalogEntry* selected_run() const noexcept;
     const CompletedRunRecord* selected_run_record() const noexcept;
+    const CompletedRunRecord* personal_best_run_record() const noexcept;
     const CompletedRunRecord* previous_run_record() const noexcept;
     std::optional<RunResultSummaryPresentation>
     selected_run_summary() const;
     std::optional<RunDataDeltaPresentation>
     selected_run_previous_delta() const;
+    std::optional<RunResultSummaryPresentation>
+    selected_run_target_summary(RunDataTargetKind kind) const;
+    RunDataTargetKind detail_target_kind() const noexcept {
+        return detail_target_kind_;
+    }
+    bool adjust_detail_target(int delta) noexcept;
 
     bool move(int delta) noexcept;
     bool open_selected_course() noexcept;
@@ -97,6 +104,7 @@ private:
     CompletedRunRecordsView view_ = CompletedRunRecordsView::Courses;
     std::optional<std::size_t> selected_course_;
     std::optional<std::size_t> selected_run_;
+    RunDataTargetKind detail_target_kind_ = RunDataTargetKind::PersonalBest;
 };
 
 class CompletedRunBrowser {

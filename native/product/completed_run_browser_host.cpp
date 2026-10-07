@@ -68,23 +68,37 @@ void diagnostic(const char* message) {
     std::fflush(stderr);
 }
 
-std::string pref_root() {
+std::string product_user_data_root() {
+    const char* override_root = std::getenv("UR_RECOMP_USER_DATA_ROOT");
+    if (override_root && *override_root) {
+        std::string root(override_root);
+        while (!root.empty() &&
+               (root.back() == '/' || root.back() == '\\')) {
+            root.pop_back();
+        }
+        return root;
+    }
+
     char* pref_path = SDL_GetPrefPath("gamesbyian", "UR-Recomp");
     if (!pref_path) return {};
     std::string root(pref_path);
     SDL_free(pref_path);
+    while (!root.empty() &&
+           (root.back() == '/' || root.back() == '\\')) {
+        root.pop_back();
+    }
     return root;
 }
 
 std::string active_profile_id() {
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return "default";
 
     const char* override_path = std::getenv("UR_HOST_STATE_PATH");
     const std::string state_path =
         override_path && *override_path
             ? std::string(override_path)
-            : root + "host-state-v1.txt";
+            : (fs::path(root) / "host-state-v1.txt").string();
     const auto loaded = ur::product::load_host_product_state_file(
         state_path);
     if (!loaded.loaded() || !loaded.state ||
@@ -104,9 +118,9 @@ std::string active_run_directory() {
         }
     }
 
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return {};
-    return root + "runs/" + active_profile_id();
+    return (fs::path(root) / "runs" / active_profile_id()).string();
 }
 
 ur::product::RunRecordsScope records_scope() {
@@ -289,7 +303,7 @@ bool open_browser() {
 }
 
 std::string replay_input_path() {
-    const std::string root = pref_root();
+    const std::string root = product_user_data_root();
     if (root.empty()) return {};
     const fs::path directory = fs::path(root) / "replay";
     std::error_code ec;
@@ -396,6 +410,14 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         (void)g_records_browser.move(delta);
         return true;
     }
+    const int adjustment =
+        ur_modern_host_navigation_adjustment_delta(action);
+    if (adjustment != 0 &&
+        g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Detail) {
+        (void)g_records_browser.adjust_detail_target(adjustment);
+        return true;
+    }
     if (ur_modern_host_navigation_is_confirm(action)) {
         if (g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Courses) {
@@ -500,6 +522,11 @@ void maybe_run_records_browser_acceptance() {
             ur::product::CompletedRunRecordsView::Detail;
     const bool current_course =
         detail && records_selected_matches_current_course();
+    const bool target_changed =
+        detail &&
+        records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) &&
+        g_records_browser.detail_target_kind() ==
+            ur::product::RunDataTargetKind::Previous;
     const auto summary = g_records_browser.selected_run_summary();
     const auto previous_delta =
         g_records_browser.selected_run_previous_delta();
@@ -507,7 +534,7 @@ void maybe_run_records_browser_acceptance() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s previous=%s previous_delta=%s\n",
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s previous=%s previous_delta=%s target_changed=%d split_target=%s\n",
             pause_handled,
             opened ? 1 : 0,
             drilled ? 1 : 0,
@@ -518,7 +545,12 @@ void maybe_run_records_browser_acceptance() {
             summary ? summary->finish.clock_text.c_str() : "--",
             summary ? summary->finish.comparison_text.c_str() : "--",
             previous_delta ? previous_delta->target_text.c_str() : "--",
-            previous_delta ? previous_delta->delta_text.c_str() : "--");
+            previous_delta ? previous_delta->delta_text.c_str() : "--",
+            target_changed ? 1 : 0,
+            g_records_browser.detail_target_kind() ==
+                    ur::product::RunDataTargetKind::Previous
+                ? "PREVIOUS"
+                : "PB");
         std::fflush(stderr);
     }
 
@@ -738,6 +770,7 @@ void draw_records_browser(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 56,
             comparison, 0xFFFFFFFFu, 1);
+
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,
@@ -752,6 +785,9 @@ void draw_records_browser(
         const auto summary = g_records_browser.selected_run_summary();
         const auto previous_delta =
             g_records_browser.selected_run_previous_delta();
+        const auto split_summary =
+            g_records_browser.selected_run_target_summary(
+                g_records_browser.detail_target_kind());
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
@@ -800,10 +836,27 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 77,
             previous, 0xFFFFFFFFu, 1);
 
-        if (summary) {
-            int split_y = y + 97;
+        const char* split_target_label =
+            g_records_browser.detail_target_kind() ==
+                    ur::product::RunDataTargetKind::PersonalBest
+                ? "PB"
+                : "PREVIOUS";
+        char split_header[64];
+        std::snprintf(
+            split_header, sizeof(split_header),
+            "SPLITS VS %s  CURRENT / TARGET / DELTA", split_target_label);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + 97,
+            split_header, 0xFFFFFFFFu, 1);
+
+        if (split_summary && split_summary->splits.empty()) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 112,
+                "NO MATCHING CHECKPOINT DATA", 0xFFFFFFFFu, 1);
+        } else if (split_summary) {
+            int split_y = y + 112;
             int shown = 0;
-            for (const auto& split : summary->splits) {
+            for (const auto& split : split_summary->splits) {
                 if (split.id == "finish" || shown >= 4) continue;
                 std::string label = split.id;
                 if (label.rfind("checkpoint-", 0) == 0) {
@@ -811,9 +864,10 @@ void draw_records_browser(
                 }
                 char split_line[96];
                 std::snprintf(
-                    split_line, sizeof(split_line), "%s  %s  %s",
+                    split_line, sizeof(split_line), "%s  %s  %s  %s",
                     label.c_str(),
                     split.current_text.c_str(),
+                    split.target_text.c_str(),
                     split.delta_text.c_str());
                 snes_ovl_draw_text(
                     pixels, stride, height, x + 8, split_y,
@@ -823,6 +877,9 @@ void draw_records_browser(
             }
         }
 
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 56,
+            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,
@@ -1044,6 +1101,12 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_DOWN) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
         }
+        if (key == SDLK_LEFT) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_LEFT) ? 1 : 0;
+        }
+        if (key == SDLK_RIGHT) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) ? 1 : 0;
+        }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
         }
@@ -1121,6 +1184,12 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         }
         if (button == kGamepadBtn_DpadDown) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_DpadLeft) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_LEFT) ? 1 : 0;
+        }
+        if (button == kGamepadBtn_DpadRight) {
+            return records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) ? 1 : 0;
         }
         if (button == kGamepadBtn_A) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;

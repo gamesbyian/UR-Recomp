@@ -183,6 +183,28 @@ int main(int argc, char** argv) {
 
     assert(records_browser.open_selected_run_detail());
     assert(records_browser.view() == CompletedRunRecordsView::Detail);
+    assert(records_browser.detail_target_kind() ==
+           RunDataTargetKind::PersonalBest);
+    const auto pb_detail =
+        records_browser.selected_run_target_summary(
+            RunDataTargetKind::PersonalBest);
+    assert(pb_detail);
+    assert(pb_detail->finish.target_label == "PB");
+    assert(pb_detail->splits[0].delta_text == "+0:00.10/60");
+    assert(records_browser.adjust_detail_target(1));
+    assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
+    assert(records_browser.adjust_detail_target(1));
+    assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
+    const auto previous_detail =
+        records_browser.selected_run_target_summary(
+            RunDataTargetKind::Previous);
+    assert(previous_detail);
+    assert(previous_detail->finish.target_label == "PREVIOUS");
+    assert(previous_detail->finish.comparison_text == "+0:00.00/60");
+    assert(previous_detail->splits[0].delta_text == "+0:00.00/60");
+    assert(records_browser.adjust_detail_target(-1));
+    assert(records_browser.detail_target_kind() ==
+           RunDataTargetKind::PersonalBest);
     assert(records_browser.move(1));
     assert(records_browser.selected_run()->personal_best_delta_text ==
            "+0:00.37/60");

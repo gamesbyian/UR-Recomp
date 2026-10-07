@@ -22,10 +22,14 @@ MultiplayerMatchBrowser::selected_match() const noexcept {
 }
 
 std::optional<MultiplayerMatchRowPresentation>
+MultiplayerMatchBrowser::row_presentation(std::size_t index) const {
+    if (index >= matches_.size()) return std::nullopt;
+    return present_multiplayer_match_row(matches_[index]);
+}
+
+std::optional<MultiplayerMatchRowPresentation>
 MultiplayerMatchBrowser::selected_row_presentation() const {
-    const auto* match = selected_match();
-    if (!match) return std::nullopt;
-    return present_multiplayer_match_row(*match);
+    return row_presentation(selected_);
 }
 
 std::optional<MultiplayerMatchDetailPresentation>

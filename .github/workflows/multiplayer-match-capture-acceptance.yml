@@ -92,12 +92,14 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           MATCHES="$RUNNER_TEMP/matches"
           LOG="$RUNNER_TEMP/capture.log"
-          mkdir -p "$MATCHES"
+          DUMPS="$RUNNER_TEMP/acceptance-dumps"
+          mkdir -p "$MATCHES" "$DUMPS"
           rm -rf "$(dirname "$EXE")/saves"
 
           set +e
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.input" \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
           UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
           UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
           UR_PRODUCT_DIAGNOSTICS=1 \
@@ -116,6 +118,16 @@ jobs:
           test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f | wc -l)" -eq 1
           test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun.urmatch' -type f | wc -l)" -eq 1
           find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f > "$RUNNER_TEMP/run-path.txt"
+
+      - name: Retain failed capture diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-2p-capture-failure
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/capture.log
+            ${{ runner.temp }}/acceptance-dumps/
 
       - name: Verify pair in a fresh process
         shell: bash

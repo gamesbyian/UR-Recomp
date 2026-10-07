@@ -331,7 +331,7 @@ You can put all de CRT glow on it you want.
 
 Course-format lane keep diggin’.
 
-One useful correction come when an interpreter bridge scope entry got treated like exact store location.
+One useful correction come in work followin’ PR #9, when an interpreter bridge scope entry got treated like exact store location.
 
 Static source alignment say otherwise.
 
@@ -821,12 +821,12 @@ Could be host cadence.
 
 So project classify before panic.
 
-Next question become:
+PR #202 update de plan so next question become:
 
-1. checkpoint alignment?
-2. bookkeeping?
-3. presentation timing perturbation?
-4. real simulation dependency?
+1. checkpoint/capture alignment?
+2. harness bookkeeping?
+3. host-presentation timing perturbation what leave meaningful simulation intact?
+4. genuine simulation dependency on presentation width?
 
 ### PR #204: scary divergence turn out to be clocks wearin’ costumes
 
@@ -2161,7 +2161,7 @@ Host surface only decide whether two valid sources joined.
 
 Then a parity failure teach a useful lesson: controllerless deterministic routes accidentally enter de new overlay.
 
-PR #561 tighten runtime gate so Modern join surface require a real connected physical controller source.
+Runtime gate get tightened so Modern join surface require a real connected physical controller source.
 
 Windows package quit actin’ like a clever ZIP an’ start actin’ like a durable consumer application.
 
@@ -2246,11 +2246,6 @@ Evidence writers what mutate retained reports get serialized.
 
 Mechanical tests now reject several fragility patterns what caused de day’s failures.
 
-PR #560 reconcile stale tooling tests with current policy.
-
-PR #561 fix multiplayer-overlay parity regression by requiring real connected controller source.
-
-PRs #557–#559 close remaining startup/manifest/evidence contract failures.
 
 Result matter more than whether one particular run green.
 

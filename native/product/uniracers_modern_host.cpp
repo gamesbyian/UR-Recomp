@@ -387,6 +387,12 @@ void update_local_multiplayer_join_surface() {
 
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
+        if (g_local_multiplayer_participants_ready) {
+            // A confirmed session may revisit this stock menu while remaining
+            // the same local multiplayer session. Do not erase identity or
+            // reopen the Modern join/profile surface.
+            return;
+        }
         g_local_multiplayer_setup = {};
         g_local_multiplayer_participants = {};
         g_local_multiplayer_participants_ready = false;
@@ -5046,7 +5052,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
-            clear_local_multiplayer_session();
+            // Suppress this Modern surface for the remainder of the current
+            // stock 0x3D visit without causing it to reopen next frame.
+            g_local_multiplayer_join_visible = false;
+            g_local_multiplayer_setup = {};
+            g_local_multiplayer_participants = {};
+            g_local_multiplayer_participants_ready = false;
             product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK");
             return 1;
         }

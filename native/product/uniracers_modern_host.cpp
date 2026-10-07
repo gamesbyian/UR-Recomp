@@ -2615,6 +2615,8 @@ std::optional<std::uint8_t> available_next_event_slot() {
 std::optional<ur::title::TourProgress> current_results_tour_progress() {
     if (!modern_mode() || g_practice_active || !g_ram || !g_sram ||
         g_surface != UR_UNIRACERS_RESTART_RESULTS ||
+        g_widescreen_scene_state.race_mode !=
+            ur::product::HostRacePresentationMode::OnePlayer ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return std::nullopt;
     }

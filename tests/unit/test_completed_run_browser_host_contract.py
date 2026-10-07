@@ -39,6 +39,9 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
             "return records_viewing_active_profile() && selected && target",
             source,
         )
+        self.assertIn("total_unavailable_artifacts", source)
+        self.assertIn("%zu RACERS / %zu RUNS / %zu UNAVAILABLE", source)
+        self.assertIn("profile_unavailable=%zu", source)
 
         self.assertIn("void draw_results_records_hint(", source)
         self.assertIn("records_results_surface()", source)

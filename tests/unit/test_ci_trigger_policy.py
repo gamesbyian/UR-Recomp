@@ -336,7 +336,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()
-        self.assertIn("    timeout-minutes: 8", text)
+        self.assertIn("    timeout-minutes: 15", text)
         for required in (
             "Native boot smoke",
             "Deterministic native input route",

@@ -42,6 +42,7 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("total_unavailable_artifacts", source)
         self.assertIn("%zu RACERS / %zu RUNS / %zu UNAVAILABLE", source)
         self.assertIn("profile_unavailable=%zu", source)
+        self.assertIn('"ESC / B    TRACKS"', source)
 
         self.assertIn("void draw_results_records_hint(", source)
         self.assertIn("records_results_surface()", source)

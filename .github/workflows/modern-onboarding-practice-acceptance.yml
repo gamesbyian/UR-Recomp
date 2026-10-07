@@ -6,6 +6,7 @@ on:
     paths:
       - "native/product/uniracers_modern_host.*"
       - "native/product/modern_controls_*"
+      - "native/product/controller_hotplug_policy.hpp"
       - "tests/native/modern_controls_*"
       - "tools/patch_modern_product_host.py"
       - "tests/input/modern-main-menu.script"
@@ -14,6 +15,7 @@ on:
       - "tests/input/modern-practice-repeat-results.script"
       - "tests/input/modern-practice-cancel.script"
       - "tests/input/modern-recent-course-practice.script"
+      - "tests/input/modern-focus-pause.script"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
@@ -301,6 +303,46 @@ jobs:
               "UR_RECENT_COURSE_RESULT=same_authoritative_course "
               "isolated_practice=1 direct_state_write=0")
           PY
+      - name: Prove controller removal releases input and pauses only Modern
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
+          MODERN_LOG="$RUNNER_TEMP/controller-hotplug-modern.log"
+          AUTHENTIC_LOG="$RUNNER_TEMP/controller-hotplug-authentic.log"
+
+          # A real SDL virtual gamepad is attached during an authoritative
+          # race, holds a mapped direction until it reaches the human input
+          # word, and is unplugged while still held. The title ends the run.
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_CONTROLLER_HOTPLUG_ACCEPTANCE=1 \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$MODERN_LOG" 2>&1
+
+          cat "$MODERN_LOG"
+          grep -q "UR_CONTROLLER SEAT_CONNECTED seat=1" "$MODERN_LOG"
+          grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE HELD bits=[0-9A-F]{3}" "$MODERN_LOG"
+          grep -q "UR_CONTROLLER SEAT_DISCONNECTED seat=1" "$MODERN_LOG"
+          grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$MODERN_LOG"
+          grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=1 modern=1" "$MODERN_LOG"
+          grep -q "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RECONNECTED seat=1 paused=1 notice=P1 CONTROLLER RECONNECTED" "$MODERN_LOG"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_EXECUTION_MODE=authentic \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_CONTROLLER_HOTPLUG_ACCEPTANCE=1 \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
+              >"$AUTHENTIC_LOG" 2>&1
+
+          cat "$AUTHENTIC_LOG"
+          grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTHENTIC_LOG"
+          grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
+          ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
+
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
         run: |
@@ -369,6 +411,8 @@ jobs:
             ${{ runner.temp }}/practice-repeat-dumps/
             ${{ runner.temp }}/recent-course.log
             ${{ runner.temp }}/recent-course-dumps/
+            ${{ runner.temp }}/controller-hotplug-modern.log
+            ${{ runner.temp }}/controller-hotplug-authentic.log
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

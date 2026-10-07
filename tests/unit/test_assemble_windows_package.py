@@ -27,6 +27,13 @@ class WindowsPackageTests(unittest.TestCase):
         rom.write_bytes(b"rom")
         return build, rom
 
+    def write_manifest(self, path, manifest):
+        path.write_bytes(
+            (json.dumps(manifest, indent=2, sort_keys=True) + "\n").encode(
+                "utf-8"
+            )
+        )
+
     def run_tool(self, *args, check=True):
         return subprocess.run(
             [sys.executable, str(TOOL), *map(str, args)],
@@ -336,12 +343,9 @@ class WindowsPackageTests(unittest.TestCase):
                         absolute_rom_cfg
                     ).hexdigest()
                     break
-            (package / "PACKAGE-MANIFEST.json").write_text(
-                json.dumps(
-                    blessed_absolute_manifest,
-                    indent=2,
-                    sort_keys=True,
-                ) + "\n"
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                blessed_absolute_manifest,
             )
             absolute_cfg = self.run_tool(
                 "verify", "--package", package, check=False
@@ -352,8 +356,9 @@ class WindowsPackageTests(unittest.TestCase):
                 absolute_cfg.stderr,
             )
             (package / "rom.cfg").write_bytes(b"Uniracers_USA.sfc\n")
-            (package / "PACKAGE-MANIFEST.json").write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
+            self.write_manifest(
+                package / "PACKAGE-MANIFEST.json",
+                manifest,
             )
 
 
@@ -373,9 +378,7 @@ class WindowsPackageTests(unittest.TestCase):
             manifest_path.write_bytes(canonical_manifest_bytes)
             provenance_manifest = json.loads(manifest_path.read_text())
             provenance_manifest["source_revision"] = ""
-            manifest_path.write_text(
-                json.dumps(provenance_manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, provenance_manifest)
             provenance_failed = self.run_tool(
                 "verify", "--package", package, check=False
             )
@@ -384,15 +387,11 @@ class WindowsPackageTests(unittest.TestCase):
                 "unsupported or malformed package manifest",
                 provenance_failed.stderr,
             )
-            manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, manifest)
 
             mismatch_manifest = json.loads(json.dumps(manifest))
             mismatch_manifest["source_revision"] = "different-revision"
-            manifest_path.write_text(
-                json.dumps(mismatch_manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, mismatch_manifest)
             mismatch_failed = self.run_tool(
                 "verify", "--package", package, check=False
             )
@@ -401,9 +400,7 @@ class WindowsPackageTests(unittest.TestCase):
                 "README source revision does not match manifest",
                 mismatch_failed.stderr,
             )
-            manifest_path.write_text(
-                json.dumps(manifest, indent=2, sort_keys=True) + "\n"
-            )
+            self.write_manifest(manifest_path, manifest)
 
             archive1 = root / "package-1.zip"
             archive2 = root / "package-2.zip"

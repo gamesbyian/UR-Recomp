@@ -30,6 +30,9 @@ class LocalMultiplayerHostContractTests(unittest.TestCase):
     def test_modern_join_is_contextual_to_stock_two_player_select(self):
         source = HOST.read_text(encoding="utf-8")
         self.assertIn("g_ram[0x009F] == 0x3D", source)
+        self.assertIn("has_controller_source", source)
+        self.assertIn("source.connected", source)
+        self.assertIn("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER JOIN_OPENED", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER JOIN_READY", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK", source)

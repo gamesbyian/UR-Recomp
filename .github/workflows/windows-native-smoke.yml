@@ -135,8 +135,19 @@ jobs:
             --output "$ARCHIVE"
           python tools/assemble_windows_package.py verify-archive \
             --archive "$ARCHIVE"
+          REPRO_ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64-repro.zip"
+          python tools/assemble_windows_package.py archive \
+            --package "$PACKAGE" \
+            --output "$REPRO_ARCHIVE"
+          cmp "$ARCHIVE" "$REPRO_ARCHIVE"
+          CHECKSUM="$ARCHIVE.sha256"
+          python tools/assemble_windows_package.py checksum-archive \
+            --archive "$ARCHIVE" \
+            --output "$CHECKSUM"
+          test -s "$CHECKSUM"
           echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+          echo "PACKAGE_ARCHIVE_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
           test -f "$PACKAGE/UniracersSNESRecomp.exe"
           test -f "$PACKAGE/Uniracers_USA.sfc"
           test -f "$PACKAGE/rom.cfg"
@@ -695,6 +706,7 @@ jobs:
             ${{ runner.temp }}/package-race-result-dumps/race-results.*
             ${{ runner.temp }}/UR-Recomp-Windows-x64/PACKAGE-MANIFEST.json
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
+            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
           if-no-files-found: warn
           retention-days: 7
 
@@ -703,6 +715,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ur-recomp-windows-x64-portable
-          path: ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
+          path: |
+            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
+            ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
           if-no-files-found: error
           retention-days: 7

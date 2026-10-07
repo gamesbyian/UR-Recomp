@@ -2071,8 +2071,8 @@ def sample_authored_0579_p2_0ec4_broader_rgba(x: int, y: int) -> bytes:
         and y >= 20
         and y < 78
         and upper_dx * upper_dx * 44 * 44
-        + upper_dy * upper_dy * 28 * 28
-        <= 28 * 28 * 44 * 44
+        + upper_dy * upper_dy * 30 * 30
+        <= 30 * 30 * 44 * 44
     )
     if upper:
         return authored_saddle_rgba(x, y, 98, 52, 44)
@@ -2120,18 +2120,18 @@ def sample_authored_0578_p2_0ec3_broader_rgba(x: int, y: int) -> bytes:
     # 0578/0EC3 moves the measured P2 upper mass left/down relative to
     # 0579/0EC4 while retaining the same lower contact anchor. Keep this as a
     # distinct authored pose rather than claiming cross-state reuse.
-    upper_dx = x - 94
-    upper_dy = y - 56
+    upper_dx = x - 96
+    upper_dy = y - 68
     upper = (
-        x >= 76
+        x >= 78
         and y >= 24
         and y < 90
         and upper_dx * upper_dx * 44 * 44
-        + upper_dy * upper_dy * 28 * 28
-        <= 28 * 28 * 44 * 44
+        + upper_dy * upper_dy * 30 * 30
+        <= 30 * 30 * 44 * 44
     )
     if upper:
-        return authored_saddle_rgba(x, y, 94, 56, 44)
+        return authored_saddle_rgba(x, y, 96, 68, 44)
 
     if x < 84 or y < 78:
         return b"\x00\x00\x00\x00"

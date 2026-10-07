@@ -42,8 +42,9 @@ class ToolingUnitWorkflowContractTests(unittest.TestCase):
             workflow,
         )
         self.assertIn("| sort", workflow)
-        self.assertIn('module="tests.unit.${tests[$i]%.py}"', workflow)
-        self.assertIn("i % 2 == 0", workflow)
+        self.assertIn('module="tests.unit.${test_file%.py}"', workflow)
+        self.assertIn("sha256sum", workflow)
+        self.assertIn("16#$first_byte % 2 == 0", workflow)
         self.assertIn('python3 -m unittest -v "$@"', workflow)
         self.assertIn('wait "$p0"; r0=$?', workflow)
         self.assertIn('wait "$p1"; r1=$?', workflow)

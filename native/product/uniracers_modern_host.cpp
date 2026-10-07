@@ -7430,16 +7430,19 @@ extern "C" void ur_uniracers_modern_system_overlay(
     const int is_paused = paused() ? 1 : 0;
     const int results = g_surface == UR_UNIRACERS_RESTART_RESULTS;
     const int restart = ur_modern_session_restart_available(g_session);
-    if (!is_paused && !(results && restart)) return;
+    if (!is_paused && !results) return;
+    if (results && !is_paused) refresh_results_navigation_menu();
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
     const int modal_scale = modern_overlay_surface_scale(width, height);
     const int logical_width = width / modal_scale;
-    // The results strip is one 24-cell line for Practice and two for races
-    // (REMATCH and RETRY), so neither hint spills past the panel.
+    const int results_rows =
+        static_cast<int>(g_results_navigation_menu.row_count);
     const int panel_h_logical =
-        is_paused ? (restart ? 144 : 129) : (g_practice_active ? 30 : 44);
+        is_paused
+            ? (restart ? 144 : 129)
+            : std::max(44, 25 + results_rows * 15);
     const int panel_w_logical = logical_width < 220 ? logical_width - 16 : 212;
     const auto panel_layout = centered_modern_modal_layout(
         width, height, modal_scale,
@@ -7931,18 +7934,53 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 ? "> QUIT DESKTOP" : "  QUIT DESKTOP",
             0xFFFFFFFFu, modal_scale);
     } else {
-        snes_ovl_draw_text(
-            pixels, stride, height,
-            x + 8 * modal_scale, y + 11 * modal_scale,
-            g_practice_active
-                ? "R/PAD X  REPEAT PRACTICE"
-                : "R/PAD X  REMATCH",
-            0xFFFFFFFFu, modal_scale);
-        if (!g_practice_active) {
+        const auto selected =
+            ur::product::selected_modern_results_action(
+                g_results_navigation_menu);
+        auto action_label = [](ur::product::ModernResultsAction action) {
+            switch (action) {
+            case ur::product::ModernResultsAction::NextEvent:
+                return "NEXT EVENT";
+            case ur::product::ModernResultsAction::Retry:
+                return "RETRY / REMATCH  R/X";
+            case ur::product::ModernResultsAction::TrackSelect:
+                return "TRACK SELECT";
+            case ur::product::ModernResultsAction::TourSelect:
+                return "TOUR SELECT";
+            case ur::product::ModernResultsAction::Records:
+                return "RECORDS  F8/Y";
+            case ur::product::ModernResultsAction::RepeatPractice:
+                return "REPEAT PRACTICE  R/X";
+            case ur::product::ModernResultsAction::None:
+            default:
+                return "";
+            }
+        };
+
+        int row_y = y + 7 * modal_scale;
+        for (std::size_t i = 0;
+             i < g_results_navigation_menu.row_count;
+             ++i) {
+            const auto action = g_results_navigation_menu.rows[i];
+            char row[64];
+            std::snprintf(
+                row, sizeof(row), "%c %s",
+                action == selected ? '>' : ' ',
+                action_label(action));
+            const std::string fitted =
+                ur::product::fit_modern_overlay_text(
+                    row,
+                    ur::product::modern_overlay_text_cells(
+                        panel_w_logical));
             snes_ovl_draw_text(
                 pixels, stride, height,
-                x + 8 * modal_scale, y + 25 * modal_scale,
-                "CTRL+R   RETRY", 0xFFFFFFFFu, modal_scale);
+                x + 8 * modal_scale, row_y,
+                fitted.c_str(), 0xFFFFFFFFu, modal_scale);
+            row_y += 15 * modal_scale;
         }
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * modal_scale, y + (panel_h_logical - 13) * modal_scale,
+            "UP/DN + ENTER/A", 0xFFA0A0A0u, modal_scale);
     }
 }

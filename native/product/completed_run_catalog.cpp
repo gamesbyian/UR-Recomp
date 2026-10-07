@@ -157,9 +157,7 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
     const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
     const RunRecordsScope& scope) {
-    if (profile_id.empty() || !valid_racer_identity(racer_identity)) {
-        return std::nullopt;
-    }
+    if (profile_id.empty()) return std::nullopt;
 
     const auto index = build_run_records_index(records, scope);
     return RunRecordsProfileSummary{

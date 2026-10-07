@@ -120,6 +120,20 @@ The product should retain at least:
 
 Do not crop gameplay-critical information merely to hit an integer multiple of 1080p or 4K. Integer-scaling convenience is subordinate to title evidence.
 
+## Modern overlay composition and sampling
+
+Modern product UI uses a host-owned composition contract rather than screen-specific coordinates leaking into guest geometry. `native/product/modern_overlay_composition.*` keeps logical placement, integer presentation density, reserved stock-content bands, and final output projection separate. Callers own the reserved bands for the scene they already understand; the generic resolver only anchors inside the resulting usable rectangle and fails closed when the requested minimum cannot fit.
+
+This is intentionally independent of Widescreen scene classification. A 256x224 fixed scene and a 342x224 widened scene use the same overlay policy with different logical surface widths. High-DPI output likewise does not change logical anchors: density multiplies the complete logical overlay geometry, then final window scaling happens after composition.
+
+The deterministic source-sampling policy is represented by `native/product/presentation_sampling_policy.hpp`:
+
+- Original pixel art uses nearest-neighbour for integer presentation transforms;
+- Remastered and Reimagined rasters are sampled at their declared native density rather than being round-tripped through the guest surface;
+- Modern primitives and glyphs rasterize directly at presentation density.
+
+This policy does not silently select a CRT/NTSC treatment or a final-window filter. Those remain separate post-composition display-treatment choices. The first migrated runtime consumer is the live timing HUD, whose panel and glyphs now preserve their logical size at supported integer presentation densities.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

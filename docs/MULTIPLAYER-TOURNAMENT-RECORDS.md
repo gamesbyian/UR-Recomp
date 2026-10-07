@@ -1,6 +1,6 @@
 # Multiplayer / Tournament Records Authority
 
-Status: Records destination exists. A typed read-only ordinary-2P Race result observer now consumes the already-promoted stock result surface, rider identities and last-result pair; durable match-history production remains blocked on participant binding and persistence.
+Status: Records destination exists. A typed read-only ordinary-2P Race result observer consumes the already-promoted stock result surface, rider identities and last-result pair. A pure product binder now joins that result to two explicit Modern profile catalog identities only when both identities are valid, distinct and their rider indices match the guest-observed P1/P2 riders. Durable match-history production remains blocked on course/event binding and persistence.
 
 ## Existing reusable substrate
 
@@ -42,13 +42,14 @@ Tracks, Racers/Profiles and Runs/Replays continue to use the established complet
 The next implementation should begin at the authoritative stock 2P results boundary, not in Records UI.
 
 1. **[implemented]** Promote a typed, read-only title result observation for the validated ordinary 2P Race result surface. `native/title/uniracers_two_player_result.*` admits only an explicitly classified ordinary-2P context plus stock menu `0xF9`, stock rider indices `7E:017D/017F`, and the stock `77:0618/061A` last-result pair. It classifies P1 win, P2 win or draw with `60000` as `NO TIME`, and fails closed on invalid riders/result values. It writes nothing.
-2. Bind the observed result to explicit participant identity supplied by the Modern multiplayer/session layer.
-3. Decide whether those additional semantics can be represented as an additive sidecar bound to the existing `.urrun` checksum or require a deliberate schema evolution. Do not silently overload existing fields.
-4. Prove fresh-process persistence and deterministic replay compatibility independently from result metadata.
-5. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
+2. **[pure binding implemented]** `native/product/local_multiplayer_match_binding.*` accepts the authoritative title result plus two explicit `HostProfileCatalogEntry` values supplied by the Modern session layer. It rejects missing or duplicate profile IDs, invalid racer identities, and any mismatch between the supplied identity rider index and the stock rider observed for that player. It does not infer identity from controller seats, active profile, timing, filenames or input payloads, and it does not persist anything.
+3. Integrate that binder only after the live multiplayer/session layer can supply an explicit P2 profile identity. The current device-assignment model is not participant identity and must not be promoted into one.
+4. Bind the same completed match to authoritative course/event identity, then decide whether the additional semantics belong in an additive sidecar bound to the existing `.urrun` checksum or require deliberate schema evolution. Do not silently overload existing fields.
+5. Prove fresh-process persistence and deterministic replay compatibility independently from result metadata.
+6. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
 
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition
 
-Do not broaden production 2P capture merely because the input format can encode P2. The lane is unblocked only when participant identity and the authoritative terminal result are both observable and can be durably bound to the same completed match without writing guest state.
+Do not broaden production 2P capture merely because the input format can encode P2. Participant/result binding is now available as a pure fail-closed seam, but the lane is not durable-history ready until the live session can supply explicit P2 profile identity, authoritative course/event identity is bound to the same match, and the resulting metadata has a deliberate persistence contract without writing guest state.

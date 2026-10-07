@@ -991,9 +991,6 @@ void draw_records_browser(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 56,
             comparison, 0xFFFFFFFFu, 1);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 56,
-            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
 
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
@@ -1101,6 +1098,9 @@ void draw_records_browser(
             }
         }
 
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, y + panel_h - 56,
+            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,

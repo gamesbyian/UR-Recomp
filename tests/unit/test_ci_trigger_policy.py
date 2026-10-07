@@ -6,6 +6,17 @@ import unittest
 WORKFLOWS = Path(".github/workflows")
 MAIN_PUSH_ALLOWLIST = set()
 
+ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
+    "native-build-smoke.yml",
+    "native-ui-evidence.yml",
+    "racer-native-presentation-acceptance.yml",
+}
+
+DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
+    "native-ui-evidence.yml",
+    "profile-panel-native-acceptance.yml",
+}
+
 DORMANT_MANUAL_ONLY = {
     "regional-retail-static-analysis.yml",
     "regional-retail-frontend-comparison.yml",
@@ -394,6 +405,42 @@ class CiTriggerPolicyTest(unittest.TestCase):
         aggregate = text.split("  aggregate:", 1)[1]
         self.assertNotIn("if: always()", aggregate.split("    steps:", 1)[0])
         self.assertIn("needs: [build, capture]", aggregate)
+
+    def test_absolute_frame_coupling_does_not_spread(self):
+        offenders = []
+        frame_pattern = re.compile(
+            r"(?:SNESRECOMP_SCREENSHOT_FRAME=\d+|\bframe=\d+)"
+        )
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic or path.name in ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST:
+                continue
+            if frame_pattern.search(text):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "absolute-frame assertions are audited semantic debt and must not "
+            f"spread to new automatic workflows: {offenders}",
+        )
+
+    def test_desktop_cursor_driving_does_not_spread(self):
+        offenders = []
+        driver = re.compile(r"\bxdotool\s+(?:key|search|windowfocus|windowactivate)\b")
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic or path.name in DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST:
+                continue
+            if driver.search(text):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "cursor-count desktop UI automation is audited debt; add a semantic "
+            f"harness instead of spreading xdotool navigation: {offenders}",
+        )
 
     def test_full_toolchain_build_matrix_is_manual_only(self):
         text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()

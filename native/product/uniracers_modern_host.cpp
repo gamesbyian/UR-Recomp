@@ -3234,6 +3234,18 @@ void reconcile_tour_resume() {
         abort_tour_continue("UR_TOUR_ENTRY SETTLEMENT_LEFT_TRACK_SELECT");
     }
 
+    if (g_results_tour_route_active &&
+        g_tour_continue.stage ==
+            ur::product::ModernTourContinueStage::Ready &&
+        g_ram[0x009F] == 0xF6 &&
+        g_results_route_progress &&
+        !ur::title::valid_unfinished_tour_progress(
+            *g_results_route_progress)) {
+        cancel_tour_continue("UR_RESULTS_NAV TRACK_SELECT_READY");
+        clear_results_navigation_route();
+        return;
+    }
+
     if (g_ram[0x009F] == 0xF6 && g_profile_state->tour_continuation) {
         const auto saved =
             title_continuation(*g_profile_state->tour_continuation);
@@ -3337,7 +3349,12 @@ void reconcile_tour_resume() {
                         std::fflush(stderr);
                     }
                 } else {
-                    cancel_tour_continue(nullptr);
+                    const bool results_route = g_results_tour_route_active;
+                    cancel_tour_continue(
+                        results_route
+                            ? "UR_RESULTS_NAV TRACK_SELECT_READY"
+                            : nullptr);
+                    if (results_route) clear_results_navigation_route();
                 }
             } else {
                 product_diagnostic("UR_TOUR_RESUME ROUTE_SETTLEMENT_FAILED");

@@ -149,6 +149,30 @@ int main() {
     assert((tour_banner_plan.logical_rect == HostOverlayRect{8, 190, 240, 22}));
     assert((tour_banner_plan.presentation_rect == HostOverlayRect{16, 380, 480, 44}));
 
+    // A full-height pause subview keeps its logical footprint across density.
+    // The Controls panel is the tightest shipping modal: 220 logical lines
+    // plus the shared 2-pixel top/bottom safe margin exactly fills 224.
+    HostOverlayCompositionRequest modal{};
+    modal.logical_surface_width = 256;
+    modal.logical_surface_height = 224;
+    modal.output_viewport = HostOutputViewport{0, 0, 1024, 896};
+    modal.anchor = HostOverlayAnchor::Center;
+    modal.preferred_width = 212;
+    modal.preferred_height = 220;
+    modal.minimum_width = 212;
+    modal.minimum_height = 220;
+    modal.edge_margin = 2;
+    const auto modal_1x = resolve_modern_overlay_composition(modal);
+    assert(modal_1x.visible);
+    assert((modal_1x.logical_rect == HostOverlayRect{22, 2, 212, 220}));
+
+    modal.presentation_scale = 4;
+    const auto modal_4x = resolve_modern_overlay_composition(modal);
+    assert(modal_4x.visible);
+    assert(modal_4x.logical_rect == modal_1x.logical_rect);
+    assert((modal_4x.presentation_rect == HostOverlayRect{88, 8, 848, 880}));
+    assert(modal_4x.output_rect == modal_1x.output_rect);
+
     HostOverlayCompositionRequest bottom{};
     bottom.logical_surface_width = 256;
     bottom.logical_surface_height = 224;

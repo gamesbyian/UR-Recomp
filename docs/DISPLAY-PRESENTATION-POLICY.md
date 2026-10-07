@@ -132,7 +132,7 @@ The deterministic source-sampling policy is represented by `native/product/prese
 - Remastered and Reimagined rasters are sampled at their declared native density rather than being round-tripped through the guest surface;
 - Modern primitives and glyphs rasterize directly at presentation density.
 
-This policy does not silently select a CRT/NTSC treatment or a final-window filter. Those remain separate post-composition display-treatment choices. The first migrated runtime consumers are the live timing HUD plus the non-modal Recent, Quick Practice and Tour hint/banner surfaces. Their anchors, panels where present, and glyphs preserve logical size at supported integer presentation densities; unmigrated interactive/modal overlays fail safely to 1x until converted.
+This policy does not silently select a CRT/NTSC treatment. Final-window filtering remains a separate post-composition display-treatment axis, but the current Windows x64 Modern product now binds that axis explicitly to nearest through SNESRecomp's live renderer seam. That is deliberate for the current mixed-source compositor: one completed frame may contain nearest-expanded Original pixels, native-density Remastered raster content, and Modern primitives/glyphs, so whole-frame linear filtering would blur sources whose sampling contract is already resolved. Authentic execution leaves the framework/config-owned final-window filter untouched. A future CRT/NTSC reconstruction or curated scaler must therefore arrive as an explicit treatment policy rather than by changing source-sampling semantics. The live timing HUD, non-modal Recent / Quick Practice / Tour hints and all current host-owned Modern modals preserve logical size at supported integer presentation densities.
 
 ### Resize/high-DPI acceptance
 
@@ -142,7 +142,7 @@ The composition contract is regression-tested over common Windows desktop/window
 
 With Remastered Racer HD enabled, Internal Render Scale is resolved from the persisted product setting for the whole supported fixed scene, not from whether a particular racer pose has HD art. Authored replacement frames use the Racer HD compositor; stock fallback frames use exact nearest-neighbour integer expansion of the guest raster at the same density. This keeps output dimensions and pixel sampling deterministic across replacement/fallback transitions.
 
-Widened world composition, regional-title replacement, and unmigrated direct-coordinate modal overlays retain their existing 1x fail-safe until those presenters own the corresponding transform.
+Widened world composition and regional-title replacement retain their existing 1x fail-safe until those presenters own the corresponding transform. Current host-owned Modern modal overlays and the results retry/rematch strip have completed that migration and no longer require a global 1x guard.
 
 ## Presentation cadence
 

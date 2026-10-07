@@ -9,6 +9,7 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "keybinds.h"
+#include "completed_run_browser_host.h"
 #include "completed_run_capture.hpp"
 #include "completed_run_ghost.hpp"
 #include "completed_run_ghost_frame.hpp"
@@ -54,6 +55,7 @@ extern "C" {
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "presentation_density_compositor.hpp"
+#include "presentation_sampling_policy.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_restart_policy.h"
 #include "uniracers_run_data.h"
@@ -197,6 +199,8 @@ bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
+bool g_pause_records_acceptance_fired;
+unsigned g_pause_records_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunGhostState g_run_ghosts;
 ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
@@ -3814,6 +3818,54 @@ void maybe_run_exit_frontend_acceptance() {
     }
 }
 
+bool activate_pause_selection();
+
+void maybe_run_pause_records_acceptance() {
+    if (g_pause_records_acceptance_fired || !modern_mode() || !g_session ||
+        !std::getenv("UR_PAUSE_RECORDS_ACCEPTANCE")) {
+        return;
+    }
+    if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE || paused()) {
+        g_pause_records_acceptance_surface_frames = 0;
+        return;
+    }
+    if (++g_pause_records_acceptance_surface_frames < 90) return;
+
+    g_pause_records_acceptance_fired = true;
+    const int pause_handled =
+        ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+    const int restart = ur_modern_session_restart_available(g_session);
+    ur_modern_pause_menu_reset(&g_pause_menu);
+
+    int moves = 0;
+    while (moves < 10 &&
+           ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+               UR_MODERN_PAUSE_RECORDS) {
+        ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+        ++moves;
+    }
+    const bool selected =
+        ur_modern_pause_menu_selected(&g_pause_menu, restart) ==
+        UR_MODERN_PAUSE_RECORDS;
+    const bool opened = selected && activate_pause_selection();
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER pause=%d restart=%d moves=%d selected=%d opened=%d\n",
+            pause_handled,
+            restart,
+            moves,
+            selected ? 1 : 0,
+            opened ? 1 : 0);
+        std::fflush(stderr);
+    }
+
+    SDL_Event event{};
+    event.type = SDL_QUIT;
+    (void)SDL_PushEvent(&event);
+}
+
 void apply_focus_pause_policy() {
     if (!g_session || !restart_surface()) return;
     const bool focused = SDL_GetKeyboardFocus() != nullptr;
@@ -4276,6 +4328,21 @@ bool activate_pause_selection() {
         }
         return true;
     }
+    if (selected == UR_MODERN_PAUSE_RECORDS) {
+        g_options_visible = false;
+        g_controls_visible = false;
+        g_run_data_visible = false;
+        g_quit_confirm_visible = false;
+        const int opened = ur_uniracers_product_open_records();
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PAUSE_RECORDS OPENED opened=%d\n",
+                opened);
+            std::fflush(stderr);
+        }
+        return opened != 0;
+    }
     if (selected == UR_MODERN_PAUSE_QUIT) {
         g_options_visible = false;
         g_controls_visible = false;
@@ -4297,6 +4364,28 @@ int modern_overlay_surface_scale(int width, int height) {
         ur_uniracers_modern_presentation_scale(),
         width,
         height);
+}
+
+ur::product::HostOverlayCompositionPlan centered_modern_modal_layout(
+    int width,
+    int height,
+    int presentation_scale,
+    int preferred_width,
+    int preferred_height,
+    int minimum_width,
+    int minimum_height) {
+    ur::product::HostOverlayCompositionRequest request{};
+    request.logical_surface_width = width / presentation_scale;
+    request.logical_surface_height = height / presentation_scale;
+    request.presentation_scale = presentation_scale;
+    request.output_viewport = {0, 0, width, height};
+    request.anchor = ur::product::HostOverlayAnchor::Center;
+    request.preferred_width = preferred_width;
+    request.preferred_height = preferred_height;
+    request.minimum_width = minimum_width;
+    request.minimum_height = minimum_height;
+    request.edge_margin = 2;
+    return ur::product::resolve_modern_overlay_composition(request);
 }
 
 void draw_run_timing_hud(
@@ -4419,6 +4508,28 @@ void draw_run_timing_hud(
 
 extern "C" void ur_uniracers_modern_after_config(void) {
     apply_profile_save_root();
+
+    // Final-window sampling is host presentation only. Authentic execution
+    // leaves the framework's own configured treatment untouched. Modern uses
+    // crisp nearest filtering for the current mixed-source compositor; avoid
+    // a renderer reconfigure when the loaded framework config already agrees.
+    if (modern_mode()) {
+        const int linear =
+            ur::product::default_final_window_filter() ==
+                    ur::product::HostFinalWindowFilter::Linear
+                ? 1
+                : 0;
+        if (snesrecomp_desktop_get_linear_filtering() != linear) {
+            (void)snesrecomp_desktop_set_linear_filtering(linear);
+        }
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_PRESENTATION FINAL_WINDOW_FILTER mode=%s\n",
+                linear ? "linear" : "nearest");
+            std::fflush(stderr);
+        }
+    }
 }
 
 extern "C" int ur_uniracers_modern_native_widescreen_enabled(void) {
@@ -4485,16 +4596,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_product_state.regional_presentation ==
             ur::product::RegionalPresentation::Europe &&
         current_regional_secret_context().idle_title_surface;
-    const bool logical_overlay_active =
-        regional_title ||
-        g_local_multiplayer_join_visible ||
-        g_tour_action_visible ||
-        onboarding_surface_active() ||
-        g_profile_menu_visible ||
-        host_subview_visible() ||
-        paused() ||
-        (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
-         g_session && ur_modern_session_restart_available(g_session));
+    const bool logical_overlay_active = regional_title;
 
     return ur::product::resolve_internal_render_scale(
         modern_mode(),
@@ -4963,6 +5065,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
 
     maybe_run_exit_frontend_acceptance();
+    maybe_run_pause_records_acceptance();
 
     if (g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
@@ -5615,10 +5718,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (onboarding_surface_active()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 340 ? width - 16 : 324;
-        const int panel_h = 189;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 340
+            ? logical_width - 16
+            : 324;
+        constexpr int kOnboardingPanelHeight = 189;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kOnboardingPanelHeight,
+            panel_w_logical, kOnboardingPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         const KeyBinds* binds = keybinds_get();
         const PlayerBinds fallback{};
         const PlayerBinds& p1 = binds ? binds->p1 : fallback;
@@ -5674,42 +5787,44 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 7 * scale,
+            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 27,
-            move_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 27 * scale,
+            move_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 42,
-            jump_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 42 * scale,
+            jump_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 57,
-            brake_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 57 * scale,
+            brake_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 72,
-            stunt_row1, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 72 * scale,
+            stunt_row1, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 87,
-            stunt_row2, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 87 * scale,
+            stunt_row2, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 107,
-            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 107 * scale,
+            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 122,
-            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 122 * scale,
+            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 142,
-            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 142 * scale,
+            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 157,
-            "F2 / PAD X  RACERS (RIDER SELECT)", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 157 * scale,
+            "F2 / PAD X  RACERS (RIDER SELECT)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 172,
-            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 172 * scale,
+            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, scale);
         return;
     }
 
@@ -5759,17 +5874,29 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (g_local_multiplayer_join_visible && modern_mode()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 276 ? width - 16 : 268;
-        const int panel_h = 112;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 276
+            ? logical_width - 16
+            : 268;
+        constexpr int kLocalMultiplayerPanelHeight = 112;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kLocalMultiplayerPanelHeight,
+            panel_w_logical, kLocalMultiplayerPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "LOCAL MULTIPLAYER", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 7 * scale,
+            "LOCAL MULTIPLAYER", 0xFFFFFFFFu, scale);
         const char* p1 =
             g_local_multiplayer_setup.player1.assigned &&
             g_local_multiplayer_setup.player1.source.connected
@@ -5779,17 +5906,17 @@ extern "C" void ur_uniracers_modern_system_overlay(
             g_local_multiplayer_setup.player2.source.connected
                 ? "PLAYER 2  JOINED" : "PLAYER 2  PRESS A / START";
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 32,
-            p1, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 32 * scale,
+            p1, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 52,
-            p2, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 52 * scale,
+            p2, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 77,
-            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 77 * scale,
+            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 94,
-            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 94 * scale,
+            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, scale);
         return;
     }
 
@@ -5797,10 +5924,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
         g_profile_state && g_profile_state->tour_continuation) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 260 ? width - 16 : 252;
-        const int panel_h = 142;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 260
+            ? logical_width - 16
+            : 252;
+        constexpr int kTourActionPanelHeight = 142;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kTourActionPanelHeight,
+            panel_w_logical, kTourActionPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         const auto& continuation = *g_profile_state->tour_continuation;
         const auto tier = ur::product::default_modern_challenge_tier(
             continuation.medal_value);
@@ -5808,12 +5945,15 @@ extern "C" void ur_uniracers_modern_system_overlay(
             static_cast<std::uint8_t>(continuation.tour_row * 5u));
 
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "TOUR", 0xFFFFFFFFu, 1);
+            pixels, stride, height,
+            x + 8 * scale, y + 7 * scale,
+            "TOUR", 0xFFFFFFFFu, scale);
 
         char detail[96];
         std::snprintf(
@@ -5822,27 +5962,27 @@ extern "C" void ur_uniracers_modern_system_overlay(
             course ? course->tour_name.data() : "TOUR",
             challenge_tier_name(tier));
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 25,
-            detail, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 25 * scale,
+            detail, 0xFFFFFFFFu, scale);
 
         unsigned completed = 0;
         for (const auto flag : continuation.qualified) completed += flag;
         std::snprintf(
             detail, sizeof(detail), "PROGRESS %u/5", completed);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 42,
-            detail, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 42 * scale,
+            detail, 0xFFFFFFFFu, scale);
 
         if (g_tour_action_menu.confirming_restart) {
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 67,
-                "RESTART TOUR?", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 67 * scale,
+                "RESTART TOUR?", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 86,
-                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 86 * scale,
+                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 105,
-                "ESC / PAD B CANCEL", 0xFFFFFFFFu, 1);
+                pixels, stride, height, x + 8 * scale, y + 105 * scale,
+                "ESC / PAD B CANCEL", 0xFFFFFFFFu, scale);
         } else {
             const char* row_labels[] = {
                 "RESUME TOUR", "RESTART TOUR", "BACK", "NEXT EVENT"
@@ -5870,9 +6010,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         row_labels[idx]);
                 }
                 snes_ovl_draw_text(
-                    pixels, stride, height, x + 8,
-                    y + 66 + static_cast<int>(i) * 18,
-                    row, 0xFFFFFFFFu, 1);
+                    pixels, stride, height, x + 8 * scale,
+                    y + (66 + static_cast<int>(i) * 18) * scale,
+                    row, 0xFFFFFFFFu, scale);
             }
         }
         return;
@@ -5882,14 +6022,34 @@ extern "C" void ur_uniracers_modern_system_overlay(
         ensure_profile_catalog();
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 260 ? width - 16 : 252;
-        const int panel_h = 154;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
-        snes_ovl_fill_rect(pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
-        snes_ovl_stroke_rect(pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
-        snes_ovl_draw_text(pixels, stride, height, x + 8, y + 7,
-            "RACERS / PROFILES", 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 260
+            ? logical_width - 16
+            : 252;
+        constexpr int kProfilePanelHeight = 154;
+        const auto layout = centered_modern_modal_layout(
+            width,
+            height,
+            scale,
+            panel_w_logical,
+            kProfilePanelHeight,
+            panel_w_logical,
+            kProfilePanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        snes_ovl_fill_rect(
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * scale, y + 7 * scale,
+            "RACERS / PROFILES", 0xFFFFFFFFu, scale);
 
         if (ur::product::modern_profile_reset_confirming(
                 g_profile_reset)) {
@@ -5903,45 +6063,45 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 sizeof(reset_row),
                 "RESET %s PROGRESS?",
                 racer);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
-                reset_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 57,
-                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 82,
-                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 112,
-                "ENTER / PAD A  RESET", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 132,
-                "ESC / PAD B  CANCEL", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
+                reset_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 57 * scale,
+                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 82 * scale,
+                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
+                "ENTER / PAD A  RESET", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 132 * scale,
+                "ESC / PAD B  CANCEL", 0xFFFFFFFFu, scale);
         } else if (g_profile_edit_mode != ProfileEditMode::None) {
             char name_row[64];
             char preset_row[64];
             std::snprintf(name_row, sizeof(name_row), "NAME  %s_", g_profile_edit_name.c_str());
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
                 g_profile_edit_mode == ProfileEditMode::Create
                     ? "CREATE RACER" : "RENAME RACER",
-                0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 52,
-                name_row, 0xFFFFFFFFu, 1);
+                0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 52 * scale,
+                name_row, 0xFFFFFFFFu, scale);
             if (g_profile_edit_mode == ProfileEditMode::Create) {
                 const auto& preset =
                     ur::product::legacy_racer_presets()[g_profile_preset_index];
                 std::snprintf(preset_row, sizeof(preset_row),
                     "PRESET %s / %s", preset.name.data(), preset.colour_label.data());
-                snes_ovl_draw_text(pixels, stride, height, x + 8, y + 72,
-                    preset_row, 0xFFFFFFFFu, 1);
-                snes_ovl_draw_text(pixels, stride, height, x + 8, y + 92,
-                    "LEFT/RIGHT  PRESET", 0xFFFFFFFFu, 1);
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 72 * scale,
+                    preset_row, 0xFFFFFFFFu, scale);
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 92 * scale,
+                    "LEFT/RIGHT  PRESET", 0xFFFFFFFFu, scale);
             }
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 112,
-                "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
+                "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, scale);
         } else if (g_profile_catalog.empty()) {
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 37,
-                "NO RACERS YET", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 62,
-                "N / PAD X  CREATE RACER", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 87,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 37 * scale,
+                "NO RACERS YET", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 62 * scale,
+                "N / PAD X  CREATE RACER", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 87 * scale,
+                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
         } else {
             const auto& entry = g_profile_catalog[g_profile_menu_index];
             char name_row[64];
@@ -5954,22 +6114,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 ur::product::legacy_racer_presets()[entry.identity.rider_index];
             std::snprintf(preset_row, sizeof(preset_row), "%s / %s",
                 preset.name.data(), preset.colour_label.data());
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
-                name_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 52,
-                preset_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 77,
-                "UP/DOWN CHOOSE  ENTER SELECT", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 97,
-                "N/PAD X CREATE  R RENAME", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 117,
-                "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 137,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
+                name_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 52 * scale,
+                preset_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 77 * scale,
+                "UP/DOWN CHOOSE  ENTER SELECT", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 97 * scale,
+                "N/PAD X CREATE  R RENAME", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 117 * scale,
+                "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
+                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 137,
-                "COOL NAME!", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
+                "COOL NAME!", 0xFFFFFFFFu, scale);
         }
         return;
     }
@@ -6171,10 +6331,21 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const int panel_w = width < 220 ? width - 16 : 212;
-    const int panel_h = is_paused ? (restart ? 129 : 114) : 30;
-    const int x = (width - panel_w) / 2;
-    const int y = is_paused ? (height - panel_h) / 2 : height - panel_h - 8;
+    const int modal_scale = modern_overlay_surface_scale(width, height);
+    const int logical_width = width / modal_scale;
+    const int panel_h_logical = is_paused ? (restart ? 144 : 129) : 30;
+    const int panel_w_logical = logical_width < 220 ? logical_width - 16 : 212;
+    const auto panel_layout = centered_modern_modal_layout(
+        width, height, modal_scale,
+        panel_w_logical, panel_h_logical,
+        panel_w_logical, panel_h_logical);
+    if (!panel_layout.visible) return;
+    const int panel_w = panel_layout.presentation_rect.width;
+    const int panel_h = panel_layout.presentation_rect.height;
+    const int x = panel_layout.presentation_rect.x;
+    const int y = is_paused
+        ? panel_layout.presentation_rect.y
+        : height - panel_h - 8 * modal_scale;
 
     snes_ovl_fill_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
@@ -6187,24 +6358,34 @@ extern "C" void ur_uniracers_modern_system_overlay(
             : nullptr;
     if (controller_notice) {
         // Above every pause subview, below the Practice hint strip.
-        const int notice_y = g_practice_active ? 34 : 8;
-        const int notice_w = width < 236 ? width - 16 : 220;
+        const int notice_y = (g_practice_active ? 34 : 8) * modal_scale;
+        const int notice_w_logical =
+            logical_width < 236 ? logical_width - 16 : 220;
+        const int notice_w = notice_w_logical * modal_scale;
         const int notice_x = (width - notice_w) / 2;
         snes_ovl_fill_rect(
-            pixels, stride, height, notice_x, notice_y, notice_w, 22,
-            0xE0402020u);
+            pixels, stride, height, notice_x, notice_y,
+            notice_w, 22 * modal_scale, 0xE0402020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, notice_x, notice_y, notice_w, 22,
-            0xFFF0F0F0u);
+            pixels, stride, height, notice_x, notice_y,
+            notice_w, 22 * modal_scale, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, notice_x + 6, notice_y + 7,
-            controller_notice, 0xFFFFFFFFu, 1);
+            pixels, stride, height,
+            notice_x + 6 * modal_scale, notice_y + 7 * modal_scale,
+            controller_notice, 0xFFFFFFFFu, modal_scale);
     }
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h = 204;
-            const int options_y = (height - options_h) / 2;
+            const int options_h_logical = 204;
+            const auto options_layout = centered_modern_modal_layout(
+                width, height, modal_scale,
+                panel_w_logical, options_h_logical,
+                panel_w_logical, options_h_logical);
+            if (!options_layout.visible) return;
+            const int options_h = options_layout.presentation_rect.height;
+            const int options_y = options_layout.presentation_rect.y;
+            const int options_x = options_layout.presentation_rect.x;
             const UrModernOptionsItem selected =
                 ur_modern_options_menu_selected(&g_options_menu);
             const char* focus_text =
@@ -6305,53 +6486,60 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
                 ghost_status.c_str());
             snes_ovl_fill_rect(
-                pixels, stride, height, x, options_y, panel_w, options_h,
+                pixels, stride, height, options_x, options_y, panel_w, options_h,
                 0xE0202020u);
             snes_ovl_stroke_rect(
-                pixels, stride, height, x, options_y, panel_w, options_h,
+                pixels, stride, height, options_x, options_y, panel_w, options_h,
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 7,
-                "OPTIONS", 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 7 * modal_scale,
+                "OPTIONS", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 27,
-                focus_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 27 * modal_scale,
+                focus_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 42,
-                display_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 42 * modal_scale,
+                display_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 57,
-                vsync_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 57 * modal_scale,
+                vsync_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 72,
-                presentation_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 72 * modal_scale,
+                presentation_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 87,
-                resolution_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 87 * modal_scale,
+                resolution_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 102,
-                render_scale_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 102 * modal_scale,
+                render_scale_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 117,
-                widescreen_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 117 * modal_scale,
+                widescreen_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 132,
-                ghost_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 132 * modal_scale,
+                ghost_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 147,
-                vibration_row, 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 147 * modal_scale,
+                vibration_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 167,
-                "A / ENTER  CHANGE", 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 167 * modal_scale,
+                "A / ENTER  CHANGE", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, options_y + 187,
-                "B / ESC    BACK", 0xFFFFFFFFu, 1);
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 187 * modal_scale,
+                "B / ESC    BACK", 0xFFFFFFFFu, modal_scale);
             return;
         }
 
         if (g_controls_visible) {
-            const int controls_h = 220;
-            const int controls_y = (height - controls_h) / 2;
+            const int controls_h_logical = 220;
+            const auto controls_layout = centered_modern_modal_layout(
+                width, height, modal_scale,
+                panel_w_logical, controls_h_logical,
+                panel_w_logical, controls_h_logical);
+            if (!controls_layout.visible) return;
+            const int controls_h = controls_layout.presentation_rect.height;
+            const int controls_y = controls_layout.presentation_rect.y;
+            const int controls_x = controls_layout.presentation_rect.x;
             std::array<std::string, 12> key_label_storage{};
             std::array<std::string_view, 12> key_labels{};
             for (int i = 0; i < ur::product::modern_control_binding_count(); ++i) {
@@ -6364,14 +6552,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 g_controls_rebind, key_labels);
 
             snes_ovl_fill_rect(
-                pixels, stride, height, x, controls_y, panel_w, controls_h,
+                pixels, stride, height, controls_x, controls_y, panel_w, controls_h,
                 0xE0202020u);
             snes_ovl_stroke_rect(
-                pixels, stride, height, x, controls_y, panel_w, controls_h,
+                pixels, stride, height, controls_x, controls_y, panel_w, controls_h,
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 7,
-                "CONTROLS - KEYBOARD P1", 0xFFFFFFFFu, 1);
+                pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 7 * modal_scale,
+                "CONTROLS - KEYBOARD P1", 0xFFFFFFFFu, modal_scale);
             char pad_row[40];
             std::snprintf(
                 pad_row, sizeof(pad_row), "PAD P1  %s",
@@ -6379,13 +6567,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? g_controller_seat_names[0].c_str()
                     : "NONE");
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 18,
+                pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 18 * modal_scale,
                 pad_row,
                 g_controller_hotplug.seats[0].connected
                     ? 0xFFA0F0A0u : 0xFFA0A0A0u,
-                1);
+                modal_scale);
 
-            int row_y = controls_y + 31;
+            int row_y = controls_y + 31 * modal_scale;
             for (const auto& row : presentation.rows) {
                 char row_text[128];
                 std::snprintf(
@@ -6397,45 +6585,59 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     row.key_label.c_str(),
                     row.capturing ? " <PRESS KEY>" : "");
                 snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, row_y,
-                    row_text, 0xFFFFFFFFu, 1);
-                row_y += 13;
+                    pixels, stride, height, controls_x + 8 * modal_scale, row_y,
+                    row_text, 0xFFFFFFFFu, modal_scale);
+                row_y += 13 * modal_scale;
             }
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 188,
-                presentation.instruction.c_str(), 0xFFFFFFFFu, 1);
+                pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 188 * modal_scale,
+                presentation.instruction.c_str(), 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, controls_y + 205,
+                pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 205 * modal_scale,
                 "PAD: UP/DOWN A=REBIND X=CLEAR Y=RESET B=BACK",
-                0xFFFFFFFFu, 1);
+                0xFFFFFFFFu, modal_scale);
             return;
         }
 
         if (g_quit_confirm_visible) {
-            const int quit_h = 69;
-            const int quit_y = (height - quit_h) / 2;
+            const int quit_h_logical = 69;
+            const auto quit_layout = centered_modern_modal_layout(
+                width, height, modal_scale,
+                panel_w_logical, quit_h_logical,
+                panel_w_logical, quit_h_logical);
+            if (!quit_layout.visible) return;
+            const int quit_h = quit_layout.presentation_rect.height;
+            const int quit_y = quit_layout.presentation_rect.y;
+            const int quit_x = quit_layout.presentation_rect.x;
             snes_ovl_fill_rect(
-                pixels, stride, height, x, quit_y, panel_w, quit_h,
+                pixels, stride, height, quit_x, quit_y, panel_w, quit_h,
                 0xE0202020u);
             snes_ovl_stroke_rect(
-                pixels, stride, height, x, quit_y, panel_w, quit_h,
+                pixels, stride, height, quit_x, quit_y, panel_w, quit_h,
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, quit_y + 7,
-                "QUIT TO DESKTOP?", 0xFFFFFFFFu, 1);
+                pixels, stride, height, quit_x + 8 * modal_scale, quit_y + 7 * modal_scale,
+                "QUIT TO DESKTOP?", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, quit_y + 27,
-                "A / ENTER  CONFIRM", 0xFFFFFFFFu, 1);
+                pixels, stride, height, quit_x + 8 * modal_scale, quit_y + 27 * modal_scale,
+                "A / ENTER  CONFIRM", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, quit_y + 47,
-                "B / ESC    CANCEL", 0xFFFFFFFFu, 1);
+                pixels, stride, height, quit_x + 8 * modal_scale, quit_y + 47 * modal_scale,
+                "B / ESC    CANCEL", 0xFFFFFFFFu, modal_scale);
             return;
         }
 
         if (g_run_data_visible) {
             const UrUniracersRunData data = current_run_data();
-            const int run_h = 144;
-            const int run_y = (height - run_h) / 2;
+            const int run_h_logical = 144;
+            const auto run_layout = centered_modern_modal_layout(
+                width, height, modal_scale,
+                panel_w_logical, run_h_logical,
+                panel_w_logical, run_h_logical);
+            if (!run_layout.visible) return;
+            const int run_h = run_layout.presentation_rect.height;
+            const int run_y = run_layout.presentation_rect.y;
+            const int run_x = run_layout.presentation_rect.x;
             char current_text[40];
             char previous_text[40];
             char pb_text[40];
@@ -6517,38 +6719,38 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     ? "RETRY    READY" : "RETRY    UNAVAILABLE";
 
             snes_ovl_fill_rect(
-                pixels, stride, height, x, run_y, panel_w, run_h,
+                pixels, stride, height, run_x, run_y, panel_w, run_h,
                 0xE0202020u);
             snes_ovl_stroke_rect(
-                pixels, stride, height, x, run_y, panel_w, run_h,
+                pixels, stride, height, run_x, run_y, panel_w, run_h,
                 0xFFF0F0F0u);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 7,
-                "RUN DATA", 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 7 * modal_scale,
+                "RUN DATA", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 22,
-                current_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 22 * modal_scale,
+                current_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 37,
-                previous_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 37 * modal_scale,
+                previous_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 52,
-                pb_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 52 * modal_scale,
+                pb_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 67,
-                ghost_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 67 * modal_scale,
+                ghost_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 82,
-                delta_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 82 * modal_scale,
+                delta_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 97,
-                surface_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 97 * modal_scale,
+                surface_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 112,
-                retry_text, 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 112 * modal_scale,
+                retry_text, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, run_y + 127,
-                "BACK     B / ESC", 0xFFFFFFFFu, 1);
+                pixels, stride, height, run_x + 8 * modal_scale, run_y + 127 * modal_scale,
+                "BACK     B / ESC", 0xFFFFFFFFu, modal_scale);
             return;
         }
 
@@ -6556,55 +6758,62 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const UrModernPauseItem selected =
             ur_modern_pause_menu_selected(&g_pause_menu, restart);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "PAUSED", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * modal_scale, y + 7 * modal_scale,
+            "PAUSED", 0xFFFFFFFFu, modal_scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 22,
+            pixels, stride, height, x + 8 * modal_scale, y + 22 * modal_scale,
             selected == UR_MODERN_PAUSE_RESUME ? "> RESUME" : "  RESUME",
-            0xFFFFFFFFu, 1);
+            0xFFFFFFFFu, modal_scale);
         if (restart) {
             snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 37,
+                pixels, stride, height, x + 8 * modal_scale, y + 37 * modal_scale,
                 selected == UR_MODERN_PAUSE_RESTART
                     ? "> RESTART" : "  RESTART",
-                0xFFFFFFFFu, 1);
+                0xFFFFFFFFu, modal_scale);
         }
-        const int options_y = restart ? y + 52 : y + 37;
+        const int options_y = restart ? y + 52 * modal_scale : y + 37 * modal_scale;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, options_y,
+            pixels, stride, height, x + 8 * modal_scale, options_y,
             selected == UR_MODERN_PAUSE_OPTIONS
                 ? "> OPTIONS" : "  OPTIONS",
-            0xFFFFFFFFu, 1);
-        const int controls_y = options_y + 15;
+            0xFFFFFFFFu, modal_scale);
+        const int controls_y = options_y + 15 * modal_scale;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, controls_y,
+            pixels, stride, height, x + 8 * modal_scale, controls_y,
             selected == UR_MODERN_PAUSE_CONTROLS
                 ? "> CONTROLS" : "  CONTROLS",
-            0xFFFFFFFFu, 1);
-        const int run_data_y = controls_y + 15;
+            0xFFFFFFFFu, modal_scale);
+        const int run_data_y = controls_y + 15 * modal_scale;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, run_data_y,
+            pixels, stride, height, x + 8 * modal_scale, run_data_y,
             selected == UR_MODERN_PAUSE_RUN_DATA
                 ? "> RUN DATA" : "  RUN DATA",
-            0xFFFFFFFFu, 1);
-        const int exit_y = run_data_y + 15;
+            0xFFFFFFFFu, modal_scale);
+        const int records_y = run_data_y + 15 * modal_scale;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, exit_y,
+            pixels, stride, height, x + 8 * modal_scale, records_y,
+            selected == UR_MODERN_PAUSE_RECORDS
+                ? "> RECORDS" : "  RECORDS",
+            0xFFFFFFFFu, modal_scale);
+        const int exit_y = records_y + 15 * modal_scale;
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8 * modal_scale, exit_y,
             selected == UR_MODERN_PAUSE_EXIT_FRONTEND
                 ? "> EXIT FRONTEND" : "  EXIT FRONTEND",
-            0xFFFFFFFFu, 1);
-        const int quit_y = exit_y + 15;
+            0xFFFFFFFFu, modal_scale);
+        const int quit_y = exit_y + 15 * modal_scale;
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, quit_y,
+            pixels, stride, height, x + 8 * modal_scale, quit_y,
             selected == UR_MODERN_PAUSE_QUIT
                 ? "> QUIT DESKTOP" : "  QUIT DESKTOP",
-            0xFFFFFFFFu, 1);
+            0xFFFFFFFFu, modal_scale);
     } else {
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 11,
+            pixels, stride, height,
+            x + 8 * modal_scale, y + 11 * modal_scale,
             g_practice_active
                 ? "R / PAD X  REPEAT PRACTICE"
                 : "R / PAD X  REMATCH   CTRL+R RETRY",
-            0xFFFFFFFFu, 1);
+            0xFFFFFFFFu, modal_scale);
     }
 }

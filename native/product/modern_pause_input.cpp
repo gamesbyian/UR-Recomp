@@ -52,6 +52,7 @@ extern "C" UrModernSessionResult ur_modern_pause_handle_action(
         if (selected == UR_MODERN_PAUSE_FOCUS_PAUSE ||
             selected == UR_MODERN_PAUSE_CONTROLS ||
             selected == UR_MODERN_PAUSE_RUN_DATA ||
+            selected == UR_MODERN_PAUSE_RECORDS ||
             selected == UR_MODERN_PAUSE_QUIT ||
             selected == UR_MODERN_PAUSE_OPTIONS) {
             return UR_MODERN_SESSION_NO_OP;

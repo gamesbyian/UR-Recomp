@@ -168,22 +168,6 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
     return count;
 }
 
-void ur_ws_margin_tile_bounds(int world_left, int extra_pixels,
-                              int* left_first, int* left_last,
-                              int* right_first, int* right_last) {
-    const int tile = 1 << UR_WS_BG1_TILE_SHIFT;
-    const int world_right = world_left + 256;
-    if (left_first)
-        *left_first = (world_left - extra_pixels) >> UR_WS_BG1_TILE_SHIFT;
-    if (left_last)
-        *left_last = (world_left >> UR_WS_BG1_TILE_SHIFT) - 1;
-    if (right_first)
-        *right_first = (world_right + tile - 1) >> UR_WS_BG1_TILE_SHIFT;
-    if (right_last)
-        *right_last =
-            (world_right + extra_pixels - 1) >> UR_WS_BG1_TILE_SHIFT;
-}
-
 #ifndef UR_WS_MARGINS_NO_RUNTIME
 
 #include <stdio.h>
@@ -248,51 +232,29 @@ static int32_t signed10(uint16_t delta) {
 
 /* Margins are served from the course model, which is the content the game
  * itself streams; force it so stale captures never win. */
-static void force_margin_span(const UrWsBg1Band* band,
-                              int row_first, int row_last,
-                              int tx_first, int tx_last) {
-    (void)band;
-    for (int tx = tx_first; tx <= tx_last; tx++) {
-        for (int ty = row_first; ty <= row_last; ty++) {
-            uint16_t entry = 0;
-            if (tx < 0 || ty < 0 ||
-                !ur_ws_course_tile(g_ram, tx, ty, &entry))
-                continue;
-            WsShadowForceTile(0, (uint32_t)tx, (uint32_t)ty, entry);
-        }
-    }
-}
-
 static void force_margins(const UrWsBg1Band* band, const BandState* state,
                           int extra_pixels) {
     const int row_first = (int)(state->world_y + band->first_line + 1) >>
                           UR_WS_BG1_TILE_SHIFT;
     const int row_last = (int)(state->world_y + band->first_line +
                                band->line_count) >> UR_WS_BG1_TILE_SHIFT;
-    const int world_left = (int)state->world_x;
-
-    /*
-     * Force only tiles wholly outside the authored 256px centre. A margin
-     * boundary usually cuts through a 16px BG tile when fine scroll is
-     * non-zero. Forcing that straddling tile would replace stock-authored
-     * pixels inside the centre (for example finish-line/checker tiles at the
-     * right edge), violating the defining widescreen parity contract.
-     *
-     * The straddling tile is already present in the stock shadow; only the
-     * fully off-screen tiles need course-model materialization.
-     */
-    int left_first = 0;
-    int left_last = -1;
-    int right_first = 0;
-    int right_last = -1;
-    ur_ws_margin_tile_bounds(
-        world_left, extra_pixels,
-        &left_first, &left_last, &right_first, &right_last);
-
-    force_margin_span(band, row_first, row_last, left_first, left_last);
-    force_margin_span(band, row_first, row_last, right_first, right_last);
+    const int left_px = (int)state->world_x - extra_pixels;
+    const int right_px = (int)state->world_x + 256;
+    const int span = extra_pixels + 16;
+    for (int side = 0; side < 2; side++) {
+        const int start_px = side ? right_px : left_px;
+        const int tx_first = start_px >> UR_WS_BG1_TILE_SHIFT;
+        const int tx_last = (start_px + span - 1) >> UR_WS_BG1_TILE_SHIFT;
+        for (int tx = tx_first; tx <= tx_last; tx++) {
+            for (int ty = row_first; ty <= row_last; ty++) {
+                uint16_t entry = 0;
+                if (tx < 0 || ty < 0 || !ur_ws_course_tile(g_ram, tx, ty, &entry))
+                    continue;
+                WsShadowForceTile(0, (uint32_t)tx, (uint32_t)ty, entry);
+            }
+        }
+    }
 }
-
 static void deactivate(void) {
     if (s_ever_active) {
         if (trace_enabled())

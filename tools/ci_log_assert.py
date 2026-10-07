@@ -14,7 +14,11 @@ import sys
 
 
 def event_lines(text: str, event: str) -> list[str]:
-    return [line for line in text.splitlines() if event in line]
+    return [
+        line
+        for line in text.splitlines()
+        if line == event or line.startswith(event + " ")
+    ]
 
 
 def line_has_fields(line: str, fields: list[str]) -> bool:

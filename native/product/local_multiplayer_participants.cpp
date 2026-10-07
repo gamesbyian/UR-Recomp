@@ -1,7 +1,24 @@
 #include "local_multiplayer_participants.hpp"
 
+#include "host_profile_runtime.hpp"
+
+#include <cctype>
+#include <string_view>
+
 namespace ur::product {
 namespace {
+
+bool same_profile_storage_identity(
+    std::string_view lhs,
+    std::string_view rhs) noexcept {
+    if (lhs.size() != rhs.size()) return false;
+    for (std::size_t i = 0; i < lhs.size(); ++i) {
+        const unsigned char a = static_cast<unsigned char>(lhs[i]);
+        const unsigned char b = static_cast<unsigned char>(rhs[i]);
+        if (std::tolower(a) != std::tolower(b)) return false;
+    }
+    return true;
+}
 
 std::optional<HostProfileCatalogEntry>& participant(
     LocalMultiplayerParticipantSelection& state,
@@ -53,9 +70,11 @@ bool local_multiplayer_participants_ready(
         !participants.player1 || !participants.player2) {
         return false;
     }
-    if (participants.player1->profile_id.empty() ||
-        participants.player2->profile_id.empty() ||
-        participants.player1->profile_id == participants.player2->profile_id) {
+    if (!is_safe_profile_storage_id(participants.player1->profile_id) ||
+        !is_safe_profile_storage_id(participants.player2->profile_id) ||
+        same_profile_storage_identity(
+            participants.player1->profile_id,
+            participants.player2->profile_id)) {
         return false;
     }
     return valid_racer_identity(participants.player1->identity) &&
@@ -74,7 +93,7 @@ LocalMultiplayerParticipantResult local_multiplayer_select_profile(
             slot,
         };
     }
-    if (profile.profile_id.empty() ||
+    if (!is_safe_profile_storage_id(profile.profile_id) ||
         !valid_racer_identity(profile.identity)) {
         return {
             state,
@@ -83,7 +102,8 @@ LocalMultiplayerParticipantResult local_multiplayer_select_profile(
         };
     }
     const auto& other = other_participant(state, slot);
-    if (other && other->profile_id == profile.profile_id) {
+    if (other &&
+        same_profile_storage_identity(other->profile_id, profile.profile_id)) {
         return {
             state,
             LocalMultiplayerParticipantStatus::DuplicateProfile,

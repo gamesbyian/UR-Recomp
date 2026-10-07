@@ -22,6 +22,7 @@ extern "C" {
 #include "clean_stock_sram.hpp"
 #include "controller_hotplug_policy.hpp"
 #include "focus_pause_policy.hpp"
+#include "haptic_feedback_policy.hpp"
 #include "fast_repeat_navigation.hpp"
 #include "host_product_state.hpp"
 #include "host_product_store.hpp"
@@ -129,6 +130,10 @@ ur::product::ControllerHotplugState g_controller_hotplug;
 std::array<std::string, ur::product::kControllerSeatCount>
     g_controller_seat_names{};
 bool g_controller_hotplug_acceptance_done;
+bool g_vibration_options_acceptance_done;
+unsigned g_vibration_options_acceptance_frames;
+int g_haptic_acceptance_stage;
+unsigned g_haptic_acceptance_device_rumbles;
 int g_main_menu_pad_acceptance_stage;
 unsigned g_main_menu_pad_acceptance_frames;
 std::string g_main_menu_strip_reported;
@@ -2034,6 +2039,24 @@ bool toggle_focus_pause_setting() {
     return true;
 }
 
+bool toggle_vibration_setting() {
+    if (!modern_mode()) return false;
+    ur::product::HostProductState candidate = g_product_state;
+    candidate.settings.vibration_enabled =
+        !candidate.settings.vibration_enabled;
+    if (!persist_product_state(candidate)) {
+        return false;
+    }
+    g_product_state = candidate;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr, "UR_VIBRATION SELECTED enabled=%d\n",
+            g_product_state.settings.vibration_enabled ? 1 : 0);
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool restore_video_output_settings(
     const ur::product::HostSettings& settings) {
     if (!apply_display_mode_setting(settings)) {
@@ -2314,6 +2337,8 @@ bool activate_options_selection() {
         return cycle_widescreen_setting();
     case UR_MODERN_OPTIONS_GHOST:
         return cycle_ghost_target_setting();
+    case UR_MODERN_OPTIONS_VIBRATION:
+        return toggle_vibration_setting();
     }
     return false;
 }
@@ -3507,6 +3532,64 @@ void observe_run_ghost_trace_sample() {
     }
 }
 
+// Sends a policy-approved pulse to the controller in the P1 framework seat.
+// SDL owns the device; a missing or rumble-less device simply does nothing.
+bool rumble_p1_controller(const ur::product::HapticPulse& pulse) {
+    if (!g_controller_hotplug.seats[0].connected) return false;
+    const auto id = static_cast<SDL_JoystickID>(
+        g_controller_hotplug.seats[0].source_id);
+#if SNESRECOMP_SDL3
+    if (SDL_Gamepad* pad = SDL_GetGamepadFromID(id)) {
+        return SDL_RumbleGamepad(
+            pad, pulse.low_frequency, pulse.high_frequency,
+            pulse.duration_ms);
+    }
+    if (SDL_Joystick* joystick = SDL_GetJoystickFromID(id)) {
+        return SDL_RumbleJoystick(
+            joystick, pulse.low_frequency, pulse.high_frequency,
+            pulse.duration_ms);
+    }
+#else
+    if (SDL_GameController* pad = SDL_GameControllerFromInstanceID(id)) {
+        return SDL_GameControllerRumble(
+                   pad, pulse.low_frequency, pulse.high_frequency,
+                   pulse.duration_ms) == 0;
+    }
+    if (SDL_Joystick* joystick = SDL_JoystickFromInstanceID(id)) {
+        return SDL_JoystickRumble(
+                   joystick, pulse.low_frequency, pulse.high_frequency,
+                   pulse.duration_ms) == 0;
+    }
+#endif
+    return false;
+}
+
+void emit_haptic_event(ur::product::HapticEvent event) {
+    const ur::product::HapticContext context{
+        modern_mode() ? ur::product::ExecutionMode::Modern
+                      : ur::product::ExecutionMode::Authentic,
+        g_run_timing_supported && g_run_capture.capturing(),
+        g_controller_hotplug.seats[0].connected,
+        paused(),
+    };
+    const auto pulse = ur::product::haptic_pulse_for(
+        g_product_state.settings, context, event);
+    if (!pulse) return;
+    const bool sent = rumble_p1_controller(*pulse);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_HAPTIC PULSE event=%s low=%u high=%u ms=%u sent=%d\n",
+            event == ur::product::HapticEvent::Finish ? "finish"
+                                                      : "checkpoint",
+            static_cast<unsigned>(pulse->low_frequency),
+            static_cast<unsigned>(pulse->high_frequency),
+            static_cast<unsigned>(pulse->duration_ms),
+            sent ? 1 : 0);
+        std::fflush(stderr);
+    }
+}
+
 void observe_run_record_split() {
     if (!g_run_capture.capturing()) return;
     const uint16_t checkpoint = read_run_word(0x1199u);
@@ -3517,6 +3600,7 @@ void observe_run_record_split() {
         const std::string id = "checkpoint-" + std::to_string(checkpoint);
         (void)g_run_capture.observe_split(
             id, static_cast<uint64_t>(ticks60));
+        emit_haptic_event(ur::product::HapticEvent::Checkpoint);
         g_run_timing_last_split.reset();
         const auto* personal_best = g_run_ghosts.record(
             ur::product::CompletedRunGhostKind::PersonalBest);
@@ -3552,6 +3636,8 @@ void complete_run_record_capture() {
         return;
     }
 
+    // The pulse needs the capture still active to prove 1P split ownership.
+    emit_haptic_event(ur::product::HapticEvent::Finish);
     (void)g_run_capture.observe_split(
         "finish", static_cast<uint64_t>(ticks60));
     const auto record =
@@ -3944,13 +4030,31 @@ void apply_controller_disconnect_pause() {
 SDL_JoystickID g_controller_hotplug_acceptance_pad_id;
 SDL_Joystick* g_controller_hotplug_acceptance_pad;
 
-bool attach_controller_hotplug_acceptance_pad() {
+bool SDLCALL record_acceptance_pad_rumble(
+    void*, Uint16 low_frequency, Uint16 high_frequency) {
+    // SDL also delivers a zero-strength stop when a pulse expires.
+    if (low_frequency == 0 && high_frequency == 0) return true;
+    ++g_haptic_acceptance_device_rumbles;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE low=%u high=%u count=%u\n",
+            static_cast<unsigned>(low_frequency),
+            static_cast<unsigned>(high_frequency),
+            g_haptic_acceptance_device_rumbles);
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool attach_controller_hotplug_acceptance_pad(bool with_rumble = false) {
     SDL_VirtualJoystickDesc desc;
     SDL_INIT_INTERFACE(&desc);
     desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
     desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
     desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
     desc.name = "UR hotplug acceptance pad";
+    if (with_rumble) desc.Rumble = &record_acceptance_pad_rumble;
     g_controller_hotplug_acceptance_pad_id = SDL_AttachVirtualJoystick(&desc);
     g_controller_hotplug_acceptance_pad =
         g_controller_hotplug_acceptance_pad_id
@@ -3970,6 +4074,65 @@ void detach_controller_hotplug_acceptance_pad() {
     }
 }
 #endif
+
+// Native Options acceptance for Vibration: from an authoritative race, press
+// the real keys a player would (Escape, Down to OPTIONS, Enter, Down to
+// VIBRATION, Enter) through the production keyboard handler on one frame
+// boundary, then quit so the next process proves the persisted value.
+void run_vibration_options_acceptance() {
+    if (g_vibration_options_acceptance_done ||
+        !std::getenv("UR_VIBRATION_OPTIONS_ACCEPTANCE")) {
+        return;
+    }
+    if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE || paused()) {
+        g_vibration_options_acceptance_frames = 0;
+        return;
+    }
+    if (++g_vibration_options_acceptance_frames < 120u) return;
+    g_vibration_options_acceptance_done = true;
+
+    (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+    const int restart = ur_modern_session_restart_available(g_session);
+    for (int step = 0; step < 12 && paused() &&
+         ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+             UR_MODERN_PAUSE_OPTIONS;
+         ++step) {
+        (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+    }
+    (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+    for (int step = 0; step < 12 && g_options_visible &&
+         ur_modern_options_menu_selected(&g_options_menu) !=
+             UR_MODERN_OPTIONS_VIBRATION;
+         ++step) {
+        (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+    }
+    if (!g_options_visible ||
+        ur_modern_options_menu_selected(&g_options_menu) !=
+            UR_MODERN_OPTIONS_VIBRATION) {
+        product_diagnostic("UR_VIBRATION_ACCEPTANCE ROW_NOT_REACHED");
+    } else {
+        (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+    }
+    (void)request_desktop_quit();
+}
+
+// Native vibration acceptance: seat a real SDL virtual gamepad whose Rumble
+// callback records what actually reaches the device, then let the scripted
+// race run. The production split/finish observers decide every pulse.
+void run_haptic_acceptance() {
+#if SNESRECOMP_SDL3
+    if (!std::getenv("UR_HAPTIC_ACCEPTANCE") ||
+        g_haptic_acceptance_stage != 0 ||
+        g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01) {
+        return;
+    }
+    g_haptic_acceptance_stage = 1;
+    product_diagnostic(
+        attach_controller_hotplug_acceptance_pad(true)
+            ? "UR_HAPTIC_ACCEPTANCE PAD_ATTACHED"
+            : "UR_HAPTIC_ACCEPTANCE ATTACH_FAILED");
+#endif
+}
 
 // Native acceptance for main-menu controller shortcuts: from the settled
 // Modern main menu, attach a real SDL virtual gamepad and tap one physical
@@ -5035,6 +5198,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     apply_controller_disconnect_pause();
     run_controller_hotplug_acceptance();
     run_main_menu_pad_acceptance();
+    run_haptic_acceptance();
+    run_vibration_options_acceptance();
 }
 
 extern "C" int ur_uniracers_modern_system_key_down(
@@ -6418,7 +6583,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h_logical = 189;
+            const int options_h_logical = 204;
             const auto options_layout = centered_modern_modal_layout(
                 width, height, modal_scale,
                 panel_w_logical, options_h_logical,
@@ -6482,6 +6647,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char render_scale_row[32];
             char widescreen_row[32];
             char ghost_row[32];
+            char vibration_row[32];
             const auto ghost_target = active_run_ghost_target();
             const std::string ghost_status =
                 ur::product::completed_run_ghost_target_status_label(
@@ -6517,6 +6683,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 g_product_state.settings.widescreen_mode ==
                         ur::product::HostWidescreenMode::Authentic16x9
                     ? "16:9" : "ORIGINAL");
+            std::snprintf(
+                vibration_row, sizeof(vibration_row), "%c VIBRATION %s",
+                selected == UR_MODERN_OPTIONS_VIBRATION ? '>' : ' ',
+                g_product_state.settings.vibration_enabled ? "ON" : "OFF");
             std::snprintf(
                 ghost_row, sizeof(ghost_row), "%c GHOST    %s",
                 selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
@@ -6555,10 +6725,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, options_x + 8 * modal_scale, options_y + 132 * modal_scale,
                 ghost_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, options_x + 8 * modal_scale, options_y + 152 * modal_scale,
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 147 * modal_scale,
+                vibration_row, 0xFFFFFFFFu, modal_scale);
+            snes_ovl_draw_text(
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 167 * modal_scale,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, options_x + 8 * modal_scale, options_y + 172 * modal_scale,
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 187 * modal_scale,
                 "B / ESC    BACK", 0xFFFFFFFFu, modal_scale);
             return;
         }

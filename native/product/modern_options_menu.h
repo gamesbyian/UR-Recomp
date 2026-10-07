@@ -13,6 +13,7 @@ typedef enum UrModernOptionsItem {
     UR_MODERN_OPTIONS_RENDER_SCALE = 5,
     UR_MODERN_OPTIONS_WIDESCREEN = 6,
     UR_MODERN_OPTIONS_GHOST = 7,
+    UR_MODERN_OPTIONS_VIBRATION = 8,
 } UrModernOptionsItem;
 
 typedef struct UrModernOptionsMenu {

@@ -25,9 +25,9 @@
       "storage_type": "bool",
       "default": true,
       "introduced_codec_version": 1,
-      "menu_symbol": null,
-      "menu_visible": false,
-      "runtime_status": "persisted-reserved",
+      "menu_symbol": "UR_MODERN_OPTIONS_VIBRATION",
+      "menu_visible": true,
+      "runtime_status": "integrated",
       "authentic_inert": true
     },
     {

@@ -213,6 +213,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "host_profile_state.cpp",
         "host_profile_store.cpp",
         "host_profile_runtime.cpp",
+        "local_multiplayer_participants.cpp",
         "completed_run_record.cpp",
         "completed_run_capture.cpp",
         "completed_run_comparison.cpp",

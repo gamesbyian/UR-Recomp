@@ -24,6 +24,14 @@ These are host targets, not separate gameplay rewrites. Platform-specific lifecy
 
 Console builds are private personal-use feasibility targets, not commercial/storefront deliverables. Do not commit proprietary SDK material, confidential platform documentation, keys or device-unique secrets. The canonical matrix and portability rules live in `PLATFORM-TARGETS.md`; Switch-specific planning lives in `SWITCH-HOMEBREW-PORT.md`.
 
+## CI and evidence architecture
+
+CI is part of the product's evidence system. The durable rules and current remediation state live in `CI-WORKFLOW-BEST-PRACTICES.md` and `CI-HARDENING-AUDIT.md`.
+
+Automatic CI should answer bounded shipping questions quickly. Reuse one compiled native candidate across evidence shards when provenance permits; do not multiply equivalent native builds merely because matrix syntax is convenient. Diagnostic records are append-only key/value interfaces, so consumers must assert the fields they own without depending on field order. Failed capture/build prerequisites remain the root failure; downstream aggregate validators must not create a second misleading red from absent artifacts.
+
+Absolute frame numbers and cursor-count desktop navigation are allowed only where explicitly audited. Do not spread either pattern. Replace them only with equally strong semantic evidence, never by deleting coverage.
+
 ## Product definition
 
 The target is **Uniracers itself**, not a mechanically similar recreation.

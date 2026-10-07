@@ -1596,7 +1596,6 @@ jobs:
             # resolution must apply live first, persistence must fail, and the
             # host must restore the previously persisted fullscreen mode.
             chmod 555 "'"$ROLLBACK_DIR"'"
-            trap 'chmod 755 "$ROLLBACK_DIR"' EXIT
             xdotool key --window "$WIN" Return
 
             for _ in $(seq 1 100); do
@@ -1607,7 +1606,6 @@ jobs:
             grep -q "UR_HOST_STATE SAVE_FAILED" "'"$LOG"'"
 
             chmod 755 "'"$ROLLBACK_DIR"'"
-            trap - EXIT
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true
           '

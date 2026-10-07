@@ -3822,6 +3822,8 @@ void observe_run_record_split() {
     g_run_capture_checkpoint = checkpoint;
 }
 
+bool request_desktop_quit();
+
 void complete_multiplayer_run_record_capture() {
     if (!g_multiplayer_run_capture.capturing()) return;
 

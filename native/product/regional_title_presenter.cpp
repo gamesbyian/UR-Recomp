@@ -127,18 +127,26 @@ std::uint64_t regional_title_visible_crop_digest(
     const std::uint8_t* pixels,
     std::size_t pitch,
     int width,
-    int height) noexcept {
-    if (!dimensions_admit(pixels, pitch, width, height)) {
+    int height,
+    int presentation_scale) noexcept {
+    if (!dimensions_admit(
+            pixels, pitch, width, height, presentation_scale)) {
         return 0;
     }
     std::uint64_t digest = kFnvOffsetBasis;
     for (int y = 0; y < kHeight; ++y) {
         const std::uint8_t* row =
-            pixels + static_cast<std::size_t>(kOriginY + y) * pitch +
-            static_cast<std::size_t>(kOriginX) * kBytesPerPixel;
+            pixels +
+            static_cast<std::size_t>(
+                (kOriginY + y) * presentation_scale) * pitch +
+            static_cast<std::size_t>(
+                kOriginX * presentation_scale) * kBytesPerPixel;
         for (int x = 0; x < kWidth; ++x) {
+            const std::uint8_t* pixel =
+                row + static_cast<std::size_t>(
+                    x * presentation_scale) * kBytesPerPixel;
             for (std::size_t channel = 0; channel < 3u; ++channel) {
-                digest ^= row[static_cast<std::size_t>(x) * kBytesPerPixel + channel];
+                digest ^= pixel[channel];
                 digest *= kFnvPrime;
             }
         }
@@ -179,9 +187,9 @@ RegionalTitlePresentationResult apply_regional_title_presentation(
             pixels, pitch, kPalette, kIndicesBase85, presentation_scale)) {
         return RegionalTitlePresentationResult::FailedClosed;
     }
-    if (presentation_scale == 1 &&
-        regional_title_visible_crop_digest(pixels, pitch, width, height) !=
-            kTargetCropBgrFnv1a64) {
+    if (regional_title_visible_crop_digest(
+            pixels, pitch, width, height, presentation_scale) !=
+        kTargetCropBgrFnv1a64) {
         return RegionalTitlePresentationResult::FailedClosed;
     }
     return RegionalTitlePresentationResult::EuropeApplied;

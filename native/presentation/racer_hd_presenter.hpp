@@ -42,7 +42,8 @@ constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcep
            semantic_frame_id == 0x05B9 ||
            semantic_frame_id == 0x03B9 ||
            semantic_frame_id == 0x0339 ||
-           semantic_frame_id == 0x0379;
+           semantic_frame_id == 0x0379 ||
+           semantic_frame_id == 0x05F9;
 }
 
 // The generic candidate remains a deterministic contract-only fallback for
@@ -392,6 +393,20 @@ constexpr bool is_authored_broader_0379_p1_registration(
            registration.semantic_frame_id == 0x0379 &&
            registration.player_local_guard &&
            c.p1_primary == 0x0379 &&
+           c.p1_companion == 0x0000 &&
+           c.p1_selector == 0 &&
+           c.p1_companion_gate_word == 0x0000;
+}
+
+
+constexpr bool is_authored_broader_05f9_p1_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 1 &&
+           registration.semantic_frame_id == 0x05F9 &&
+           registration.player_local_guard &&
+           c.p1_primary == 0x05F9 &&
            c.p1_companion == 0x0000 &&
            c.p1_selector == 0 &&
            c.p1_companion_gate_word == 0x0000;
@@ -2398,6 +2413,22 @@ constexpr std::uint32_t sample_racer_hd_authored_0379_p1_broader(
 }
 
 
+constexpr std::uint32_t sample_racer_hd_authored_05f9_p1_broader(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+    const std::uint32_t base =
+        sample_racer_hd_authored_0379_p1_broader(x, y, false, false);
+    if (base != 0) return base;
+    if (authored_segment_contains(x, y, 150, 98, 150, 122, 4)) {
+        return authored_rim_hardware_color(x, y, 155, 111);
+    }
+    return 0;
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -2596,6 +2627,9 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_broader_0379_p1_registration(registration)) {
         return sample_racer_hd_authored_0379_p1_broader(x, y, hflip, vflip);
+    }
+    if (is_authored_broader_05f9_p1_registration(registration)) {
+        return sample_racer_hd_authored_05f9_p1_broader(x, y, hflip, vflip);
     }
     if (is_authored_frequency_0544_p1_0578_registration(registration)) {
         return sample_racer_hd_authored_0544_p1_frequency(x, y, hflip, vflip);

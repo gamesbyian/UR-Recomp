@@ -534,6 +534,9 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         g_records_root_section = adjustment < 0
             ? RecordsRootSection::Tracks
             : RecordsRootSection::Profiles;
+        if (g_records_root_section == RecordsRootSection::Profiles) {
+            g_records_return_to_profiles = false;
+        }
         return true;
     }
     if (adjustment != 0 &&
@@ -977,9 +980,11 @@ void draw_records_browser(
         const auto* course = g_records_browser.selected_course();
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
-        char title[64];
+        const std::string profile_name = records_view_profile_name();
+        char title[96];
         std::snprintf(
-            title, sizeof(title), "RECORDS / %s", course_label.c_str());
+            title, sizeof(title), "RECORDS / %s / %s",
+            profile_name.c_str(), course_label.c_str());
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);
@@ -1056,9 +1061,11 @@ void draw_records_browser(
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
-        char title[80];
+        const std::string profile_name = records_view_profile_name();
+        char title[112];
         std::snprintf(
-            title, sizeof(title), "RECORDS / %s / RUN", course_label.c_str());
+            title, sizeof(title), "RECORDS / %s / %s / RUN",
+            profile_name.c_str(), course_label.c_str());
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
             title, 0xFFFFFFFFu, 1);

@@ -53,6 +53,8 @@ The next implementation should begin at the authoritative stock 2P results bound
 
 A read-only catalog substrate now exists independently of production capture: `multiplayer_match_catalog.*` scans the shared namespace in filename order but admits only a valid `race-2p` run whose sibling `.urmatch` reloads and binds to that exact run. Standalone/corrupt/wrong-mode runs and missing/bad sidecars contribute only unavailable-artifact health; they never become match rows. `multiplayer_match_presentation.*` formats only those already-admitted pairs into course, participant, outcome and exact stock-result text. This is query/presentation substrate, not standings aggregation, and it does not assume the live producer has passed native acceptance.
 
+`multiplayer_match_browser.*` now adds host-independent list/detail navigation over already-admitted match pairs. It owns only selection and view state, delegates all row/detail text to `multiplayer_match_presentation.*`, and has no standings, replay-routing or filesystem authority. This keeps the eventual Records host integration thin and prevents the UI from reinterpreting result semantics. The browser also exposes a bounded selected-centered visible-row projection for list rendering; it preserves catalog order and returns authoritative row presentations plus selected state, so the eventual host renderer does not invent clipping, paging, result text or selection semantics.
+
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition

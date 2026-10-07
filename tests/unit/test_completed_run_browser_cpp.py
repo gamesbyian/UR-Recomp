@@ -28,6 +28,7 @@ class CompletedRunBrowserCppTests(unittest.TestCase):
                     str(ROOT / "native" / "product" / "completed_run_presentation.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_catalog.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_browser.cpp"),
+                    str(ROOT / "native" / "product" / "run_artifact_date.cpp"),
                     str(ROOT / "tests" / "native" / "completed_run_browser_test.cpp"),
                     "-o",
                     str(exe),

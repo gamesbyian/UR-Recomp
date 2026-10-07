@@ -1,5 +1,7 @@
 #include "multiplayer_match_presentation.hpp"
 
+#include "run_artifact_date.hpp"
+
 #include <cstdio>
 
 namespace ur::product {
@@ -40,6 +42,7 @@ std::string format_multiplayer_result_hundredths(std::uint16_t hundredths) {
 MultiplayerMatchRowPresentation present_multiplayer_match_row(
     const StoredMultiplayerMatch& match) {
     return {
+        run_artifact_date_text(match.run_path),
         match.match.context.course_id,
         participant_text(match.match.context.match.player1),
         participant_text(match.match.context.match.player2),

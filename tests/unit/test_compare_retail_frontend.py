@@ -49,6 +49,12 @@ class RetailFrontendComparisonTests(unittest.TestCase):
 
     def test_case_catalog_uses_semantic_routes(self):
         tool = load_tool()
+        self.assertIn("title-motion", tool.CASES)
+        self.assertFalse(tool.CASES["title-motion"]["default"])
+        self.assertEqual(
+            tool.CASES["title-motion"]["checkpoints"],
+            ["title-motion-000", "title-motion-180"],
+        )
         self.assertIn("title-transition", tool.CASES)
         self.assertEqual(
             tool.CASES["title-transition"]["checkpoints"],
@@ -68,6 +74,13 @@ class RetailFrontendComparisonTests(unittest.TestCase):
         for case in tool.CASES.values():
             self.assertTrue((ROOT / case["script"]).is_file())
             self.assertTrue(case["checkpoints"])
+        default_cases = sorted(
+            name
+            for name, case in tool.CASES.items()
+            if case.get("default", True)
+        )
+        self.assertNotIn("title-motion", default_cases)
+        self.assertIn("title-transition", default_cases)
 
 
 if __name__ == "__main__":

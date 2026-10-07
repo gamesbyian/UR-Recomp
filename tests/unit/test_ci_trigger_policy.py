@@ -357,6 +357,36 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"automatic workflows must name the toolchain entries they consume: {offenders}",
         )
 
+    def test_staged_tool_inputs_are_declared_as_triggers(self):
+        offenders = []
+        for path in _workflow_paths():
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            jobs = text.split("\njobs:", 1)[1] if "\njobs:" in text else ""
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            required = []
+            if "bootstrap_toolchain.py" in jobs:
+                required.append("tools/bootstrap_toolchain.py")
+            if "--tool snesrecomp" in jobs:
+                required.append("tools/toolchain-entries/snesrecomp.json")
+            if "--tool sdl3" in jobs:
+                required.append("tools/toolchain-entries/sdl3.json")
+            missing = [item for item in required if f'"{item}"' not in triggers]
+            if missing:
+                offenders.append((path.name, missing))
+        self.assertEqual(
+            offenders,
+            [],
+            "automatic workflows must declare the bootstrapper and exact staged "
+            f"tool entries they consume: {offenders}",
+        )
+
+    def test_toolchain_contract_watches_patch_bytes(self):
+        text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()
+        self.assertIn('"tools/patches/**"', _block(text, "pull_request"))
+
     def test_main_push_does_not_self_trigger_on_workflow_yaml(self):
         offenders = []
         for path in _workflow_paths():

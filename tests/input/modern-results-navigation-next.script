@@ -1,0 +1,139 @@
+# Deterministic first-race route derived from Dessyreqt's 2014 state-driven bot.
+# Addresses are WRAM offsets (7E:xxxx -> xxxx).
+#
+# This first whole-race probe intentionally stays simple. It reuses the verified
+# clean frontend and acceleration path, then repeats the already-validated
+# 24-frame sustained-B / 24-frame release jump rhythm while holding Right.
+# If this does not finish Dragster, the terminal/progress dumps make the missing
+# steering/rotation/timing requirement measurable rather than speculative.
+
+until 009F == D7 3600
+wait 60
+dump main-menu-ready
+press a 2
+
+until 009F == 3C 1200
+wait 60
+dump rider-select-ready
+press a 2
+
+until 009F == 6D 1200
+wait 60
+dump tours-ready
+press a 2
+
+until 009F == F6 1200
+wait 60
+dump tracks-ready
+# Four-of-five fixture restores the stock cursor to the only unqualified
+# event (Monster, slot 4). Move through the real stock menu back to Crawler
+# so the already-proven deterministic Crawler drive can reach Results while
+# the authoritative qualification row remains 11110.
+press left 2
+wait 4
+press left 2
+wait 4
+press left 2
+wait 4
+press left 2
+wait 4
+until 009B == 00 120
+dump crawler-track-ready
+press a 2
+
+until 009F != F6 1200
+wait 60
+dump after-track-confirm
+until 009F == 16 1200
+wait 60
+dump now-playing-ready
+press a 2
+
+until 0313 == 01 1800
+wait 60
+dump race-entered
+
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+dump finish-probe-start
+
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-05
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-10
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-15
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-20
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-25
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump finish-probe-30
+
+dump finish-probe-terminal
+# Dessyreqt labels raceResults = 153 decimal = 0x99.
+# Stop only on an observed stock results screen; do not poke guest state.
+until 009F == 99 600
+dump race-results
+# The frame-boundary host acceptance driver selects the requested Modern
+# results action. Successful routed cases quit from the authoritative target;
+# inspect/Authentic cases fall through to this bounded observation window.
+wait 3600
+quit

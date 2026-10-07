@@ -102,7 +102,7 @@ constexpr bool modern_results_action_available(
     return false;
 }
 
-constexpr ModernResultsAction activate_modern_results_navigation_menu(
+inline ModernResultsAction activate_modern_results_navigation_menu(
     const ModernResultsNavigationMenu& menu,
     ModernResultsNavigationContext context,
     UrModernHostNavigationAction action) noexcept {

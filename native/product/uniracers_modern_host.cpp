@@ -3720,13 +3720,10 @@ bool activate_pause_selection() {
 }
 
 int modern_overlay_surface_scale(int width, int height) {
-    int scale = ur_uniracers_modern_presentation_scale();
-    if (scale < 1 || scale > 4 ||
-        height != 224 * scale ||
-        width <= 0 || width % scale != 0) {
-        return 1;
-    }
-    return scale;
+    return ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(),
+        width,
+        height);
 }
 
 void draw_run_timing_hud(

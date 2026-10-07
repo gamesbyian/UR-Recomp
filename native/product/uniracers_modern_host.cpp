@@ -6091,6 +6091,23 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (results_navigation_active()) {
+        if (key == SDLK_UP) {
+            return handle_results_navigation(
+                UR_MODERN_HOST_NAV_UP) ? 1 : 0;
+        }
+        if (key == SDLK_DOWN) {
+            return handle_results_navigation(
+                UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            return handle_results_navigation(
+                UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
+        }
+        // Keep the established Escape pause and R / Ctrl+R retry shortcuts
+        // below. Their edge is still suppressed from the guest by ownership.
+    }
+
     {
         const auto regional = regional_input_coordinator().keyboard_key(
             g_product_state,
@@ -6436,6 +6453,18 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return 1;
     }
 
+    if (results_navigation_active()) {
+        if (!pressed) return 1;
+        // Preserve the established one-button Rematch / Repeat Practice
+        // shortcut. All other physical buttons are resolved through the live
+        // framework GamepadMap and the semantic callback below.
+        if (button == kGamepadBtn_X) {
+            (void)repeat_current_attempt();
+            return 1;
+        }
+        return -1;
+    }
+
     if (g_controls_visible) {
         // Framework physical/modifier bookkeeping already happened before this
         // callback. Negative means "resolve mapped P1 semantics only":
@@ -6592,6 +6621,29 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         case 5:
         case 7:
             (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_BACK);
+            break;
+        default:
+            break;
+        }
+        return 1;
+    }
+
+    if (results_navigation_active()) {
+        if (!pressed) return 1;
+        switch (control) {
+        case 0:
+            (void)handle_results_navigation(UR_MODERN_HOST_NAV_UP);
+            break;
+        case 1:
+            (void)handle_results_navigation(UR_MODERN_HOST_NAV_DOWN);
+            break;
+        case 6:
+            (void)handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM);
+            break;
+        case 5:
+        case 7:
+            (void)dispatch(UR_MODERN_PAUSE_TOGGLE);
+            diagnose_pause_state();
             break;
         default:
             break;

@@ -218,6 +218,7 @@ std::optional<ur::product::CompletedRunGhostTrace> g_run_ghost_playback_trace;
 std::optional<ur::product::CompletedRunGhostPresentationFrame>
     g_run_ghost_presentation_frame;
 bool g_run_capture_previous_active;
+bool g_multiplayer_match_acceptance_seeded;
 bool g_run_ghost_draw_reported;
 uint64_t g_run_capture_origin_frame;
 uint16_t g_run_capture_checkpoint;
@@ -490,6 +491,53 @@ void local_multiplayer_move_profile(
             delta);
     if (moved.applied()) {
         g_local_multiplayer_participants = moved.state;
+    }
+}
+
+void maybe_run_multiplayer_match_acceptance() {
+    if (g_multiplayer_match_acceptance_seeded ||
+        !std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE") ||
+        !modern_mode() || !g_ram ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0x3D) {
+        return;
+    }
+
+    ensure_profile_catalog();
+    if (g_profile_catalog.size() < 2u) {
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_NO_PROFILES");
+        return;
+    }
+
+    const auto p1_slot = ur::product::LocalMultiplayerSlot::Player1;
+    const auto p2_slot = ur::product::LocalMultiplayerSlot::Player2;
+    const bool p1_joined = local_multiplayer_assign_source(
+        p1_slot,
+        {ur::product::LocalInputKind::Keyboard, 1u, true});
+    const bool p2_joined = local_multiplayer_assign_source(
+        p2_slot,
+        {ur::product::LocalInputKind::Controller, 2u, true});
+    const bool p1_profile =
+        p1_joined && local_multiplayer_confirm_profile(p1_slot);
+    local_multiplayer_move_profile(p2_slot, 1);
+    const bool p2_profile =
+        p2_joined && local_multiplayer_confirm_profile(p2_slot);
+
+    if (!p1_profile || !p2_profile ||
+        !g_local_multiplayer_participants_ready) {
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILE_REJECTED");
+        return;
+    }
+
+    g_multiplayer_match_acceptance_seeded = true;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_READY p1=%s p2=%s\n",
+            g_local_multiplayer_participants.player1->profile_id.c_str(),
+            g_local_multiplayer_participants.player2->profile_id.c_str());
+        std::fflush(stderr);
     }
 }
 
@@ -5232,6 +5280,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
 
     observe_regional_title_surface();
     update_local_multiplayer_join_surface();
+    maybe_run_multiplayer_match_acceptance();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
     apply_controller_disconnect_pause();

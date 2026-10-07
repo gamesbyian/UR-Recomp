@@ -1,6 +1,8 @@
 # Ordinary-2P Records native acceptance pacing only.
 # Turbo removes host wall-clock pacing; it does not change guest simulation or input.
-# The product hook requests desktop quit after the bound .urrun + .urmatch pair commits.
+# Success exits from the product hook after the bound .urrun + .urmatch pair commits.
+# If that never happens, stop at a bounded guest-frame horizon with a state dump.
 turbo on
 wait 50000
+dump records-acceptance-unresolved
 quit

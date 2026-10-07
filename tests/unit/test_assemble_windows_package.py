@@ -88,6 +88,10 @@ class WindowsPackageTests(unittest.TestCase):
             )
             launcher = (package / "run-uniracers.cmd").read_text()
             readme = (package / "README.txt").read_text()
+            self.assertNotIn(b"\r", (package / "README.txt").read_bytes())
+            self.assertNotIn(
+                b"\r", (package / "PACKAGE-MANIFEST.json").read_bytes()
+            )
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("static MSVC runtime", readme)
             self.assertIn("Visual C++ Redistributable", readme)
@@ -354,6 +358,19 @@ class WindowsPackageTests(unittest.TestCase):
 
 
             manifest_path = package / "PACKAGE-MANIFEST.json"
+            canonical_manifest_bytes = manifest_path.read_bytes()
+            manifest_path.write_bytes(
+                canonical_manifest_bytes.replace(b"\n", b"\r\n")
+            )
+            crlf_manifest = self.run_tool(
+                "verify", "--package", package, check=False
+            )
+            self.assertNotEqual(crlf_manifest.returncode, 0)
+            self.assertIn(
+                "manifest is not canonical UTF-8/LF JSON",
+                crlf_manifest.stderr,
+            )
+            manifest_path.write_bytes(canonical_manifest_bytes)
             provenance_manifest = json.loads(manifest_path.read_text())
             provenance_manifest["source_revision"] = ""
             manifest_path.write_text(
@@ -404,6 +421,28 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "WINDOWS_PACKAGE_ARCHIVE_VERIFIED",
                 verified_archive.stdout,
+            )
+
+            crlf_manifest_archive = root / "package-crlf-manifest.zip"
+            with zipfile.ZipFile(archive1, "r") as source, zipfile.ZipFile(
+                crlf_manifest_archive,
+                "w",
+                compression=zipfile.ZIP_DEFLATED,
+            ) as target:
+                for info in source.infolist():
+                    payload = source.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        payload = payload.replace(b"\n", b"\r\n")
+                    target.writestr(info, payload)
+            crlf_manifest_result = self.run_tool(
+                "verify-archive",
+                "--archive", crlf_manifest_archive,
+                check=False,
+            )
+            self.assertNotEqual(crlf_manifest_result.returncode, 0)
+            self.assertIn(
+                "archive manifest is not canonical UTF-8/LF JSON",
+                crlf_manifest_result.stderr,
             )
 
             mismatch_archive = root / "package-mismatch-revision.zip"

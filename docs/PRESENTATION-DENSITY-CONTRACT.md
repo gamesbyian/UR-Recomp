@@ -83,6 +83,12 @@ The first shipping consumers are the live run-timing HUD and the non-modal Recen
 
 Deterministic model coverage includes stock 256x224, widened 342x224, 1x/2x/3x/4x density, caller-reserved HUD bands, constrained-width compaction, minimum-size fail-closed behavior, and output-viewport projection. Native visual acceptance should remain bounded to representative migrated surfaces rather than turning every overlay into a screenshot oracle.
 
+## Resize acceptance matrix
+
+The deterministic contract is exercised across common Windows drawable sizes (640×480, 800×600, 1024×768, 1280×720, 1366×768, 1600×900, 1920×1080, 2560×1440 and 3840×2160) plus deliberately awkward 853×479, 1277×719, 1001×733 and 311×197 windows. The matrix covers fixed 256×224 and widened 342×224 logical surfaces, Original and Remastered output composition, and presentation densities 1x through 4x.
+
+Acceptance requires logical overlay rectangles to remain invariant as drawable size changes, integer density to affect only the presentation rectangle, output projection to remain fully inside the already-resolved viewport, and constrained logical space to compact only down to the caller-owned minimum before failing closed. Letterboxing and pillarboxing therefore move/scale only the output projection; they cannot change title-space anchors.
+
 ## Sampling policy
 
 Default policy is deterministic and deliberately boring:

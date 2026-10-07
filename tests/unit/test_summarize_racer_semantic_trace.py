@@ -75,6 +75,15 @@ class RacerSemanticTraceTests(unittest.TestCase):
             "representation_id": "p1-local",
             "player": "p1",
             "guard_scope": "player_local",
+            "registration": {
+                "guard_scope_proof": {
+                    "scope": "player_local",
+                    "structural_basis": "players occupy disjoint object columns",
+                    "empirical_basis": "multiple exact witnesses collapse to one local raster",
+                    "workflow_run": 1,
+                    "artifact_id": 1,
+                }
+            },
             "composition_guards": {
                 "p1_primary": "0x04B9", "p2_primary": "0x0546",
                 "p1_companion": "0x0000", "p2_companion": "0x0EB2",

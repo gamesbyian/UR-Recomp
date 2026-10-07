@@ -145,10 +145,9 @@ jobs:
             --archive "$ARCHIVE" \
             --output "$CHECKSUM"
           test -s "$CHECKSUM"
-          (
-            cd "$RUNNER_TEMP"
-            sha256sum -c "$(basename "$CHECKSUM")"
-          )
+          python tools/assemble_windows_package.py verify-archive-checksum \
+            --archive "$ARCHIVE" \
+            --checksum "$CHECKSUM"
           echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
           echo "PACKAGE_ARCHIVE_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"

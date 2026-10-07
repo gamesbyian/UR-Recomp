@@ -591,6 +591,140 @@ class WindowsPackageTests(unittest.TestCase):
                 result.stdout,
             )
 
+    def test_archive_checksum_sidecar_verifies_fail_closed(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            package = root / "package"
+            self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", package,
+                "--source-revision", "test-revision",
+            )
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            sidecar = root / "UR-Recomp-Windows-x64.zip.sha256"
+            self.run_tool("archive", "--package", package, "--output", archive)
+            self.run_tool(
+                "checksum-archive",
+                "--archive", archive,
+                "--output", sidecar,
+            )
+
+            verified = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+            )
+            self.assertIn(
+                "WINDOWS_PACKAGE_ARCHIVE_SHA256_VERIFIED",
+                verified.stdout,
+            )
+
+            original = sidecar.read_text(encoding="ascii")
+
+            wrong_archive_name = "XR-Recomp-Windows-x64.zip"
+            self.assertEqual(len(wrong_archive_name), len(archive.name))
+            sidecar.write_text(
+                original.replace(archive.name, wrong_archive_name),
+                encoding="ascii",
+                newline="\n",
+            )
+            wrong_name = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(wrong_name.returncode, 0)
+            self.assertIn(
+                "archive checksum does not identify this archive",
+                wrong_name.stderr,
+            )
+
+            sidecar.write_text(
+                "A" + original[1:],
+                encoding="ascii",
+                newline="\n",
+            )
+            uppercase = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(uppercase.returncode, 0)
+            self.assertIn(
+                "archive checksum does not identify this archive",
+                uppercase.stderr,
+            )
+
+            sidecar.write_text(
+                "0" * 64 + "  " + archive.name + "\n",
+                encoding="ascii",
+                newline="\n",
+            )
+            mismatch = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(mismatch.returncode, 0)
+            self.assertIn(
+                "archive checksum does not match package archive",
+                mismatch.stderr,
+            )
+
+            sidecar.write_text(
+                original.replace("\n", "\r\n"),
+                encoding="ascii",
+                newline="",
+            )
+            crlf = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(crlf.returncode, 0)
+            self.assertIn(
+                "archive checksum must be one canonical LF-terminated line",
+                crlf.stderr,
+            )
+
+            sidecar.write_text(
+                original + "extra\n",
+                encoding="ascii",
+                newline="\n",
+            )
+            extra_line = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", sidecar,
+                check=False,
+            )
+            self.assertNotEqual(extra_line.returncode, 0)
+            self.assertIn(
+                "archive checksum must be one canonical LF-terminated line",
+                extra_line.stderr,
+            )
+
+    def test_archive_checksum_verifier_fails_closed_for_missing_sidecar(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            archive.write_bytes(b"archive")
+            result = self.run_tool(
+                "verify-archive-checksum",
+                "--archive", archive,
+                "--checksum", root / "missing.sha256",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("archive checksum missing", result.stderr)
+
     def test_archive_checksum_fails_closed_for_missing_archive(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)
@@ -748,7 +882,7 @@ class WindowsPackageTests(unittest.TestCase):
             compare,
         )
         checksum_verify = workflow.index(
-            'sha256sum -c "$(basename "$CHECKSUM")"',
+            "python tools/assemble_windows_package.py verify-archive-checksum",
             checksum,
         )
         upload = workflow.index("name: Upload Windows evidence", checksum_verify)

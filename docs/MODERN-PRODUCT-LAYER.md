@@ -95,9 +95,9 @@ The host-state store may physically exist while Authentic mode is active, but it
 
 These are settled product policy, not open research questions:
 
-- Modern's top-level information architecture is **Play / Practice / Multiplayer / Records / Options**. Options contains settings only.
+- Modern's top-level information architecture is **Play / Practice / Multiplayer / Records / Options**. Options contains settings only. `native/product/modern_root_menu.hpp` now owns this ordering as a pure typed navigation model: it wraps deterministically, normalizes invalid selection to Play, and names destinations without performing any guest/frontend routing. The live host integration remains a separate step so each destination can reuse its already-established authority instead of creating another route model.
 - profile identity/persistence is separate from racer identity and from guest SRAM slots;\n- destructive stock save administration is not exposed as a controller chord in Modern mode: the active authoritative profile has an explicit confirmed **Reset Progress** action that installs the retained exact clean stock SRAM image, preserves that profile's Modern racer identity, clears its unfinished-tour continuation, and does not delete host-owned completed-run/replay history. The profile metadata and framework SRAM update are transactional with rollback on a failed SRAM write. Authentic keeps the original stock erase chord;
-- local multiplayer uses simultaneous independent join/racer selection in Modern; Authentic keeps stock sequential selection;
+- local multiplayer uses simultaneous independent join/racer selection in Modern; Authentic keeps stock sequential selection. The shared setup model now also owns a presentation-safe per-seat projection for P1/P2 (`EMPTY`, controller, or keyboard, with connected/disconnected state) without exposing opaque framework device IDs as player-facing identity. Controller-brand glyphs remain deferred until they can be derived from the authoritative remapped input surface rather than guessed from hardware family;
 - Modern tour play supports host-owned Resume Tour / Restart Tour persistence;
 - Modern tour challenge is player-selectable Bronze/Silver/Gold using canonical stock thresholds/opponents, and higher-tier completion satisfies lower tiers;
 - secret/Hunter progression remains undisclosed discovery content;

@@ -389,7 +389,8 @@ def verify_archive_checksum(archive: Path, checksum: Path) -> str:
         raise ValueError(f"archive checksum missing: {checksum}")
 
     try:
-        raw = checksum.read_text(encoding="ascii")
+        # Bytes, not text mode: universal newlines would hide a CRLF sidecar.
+        raw = checksum.read_bytes().decode("ascii")
     except (OSError, UnicodeDecodeError) as exc:
         raise ValueError(f"cannot read archive checksum: {exc}") from exc
 

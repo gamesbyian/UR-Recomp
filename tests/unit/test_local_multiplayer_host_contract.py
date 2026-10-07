@@ -34,10 +34,16 @@ class LocalMultiplayerHostContractTests(unittest.TestCase):
         self.assertIn("source.connected", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER JOIN_OPENED", source)
-        self.assertIn("UR_LOCAL_MULTIPLAYER JOIN_READY", source)
+        self.assertIn("UR_LOCAL_MULTIPLAYER SESSION_READY", source)
         self.assertIn("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK", source)
+        self.assertIn("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_PROFILES", source)
         self.assertIn("PLAYER 1  PRESS A / START", source)
         self.assertIn("PLAYER 2  PRESS A / START", source)
+        self.assertIn("STOCK RIDER PICKS MUST MATCH PROFILES", source)
+        self.assertIn("local_multiplayer_participants_ready", source)
+        self.assertIn("g_local_multiplayer_participants_ready", source)
+        self.assertIn("local_multiplayer_confirm_profile", source)
+        self.assertIn("local_multiplayer_profile_candidate", source)
 
     def test_source_button_assigns_framework_seat_and_consumes_modal_edges(self):
         source = HOST.read_text(encoding="utf-8")
@@ -49,9 +55,14 @@ class LocalMultiplayerHostContractTests(unittest.TestCase):
         self.assertIn("local_multiplayer_slot_for_player(player_index)", body)
         self.assertIn("button == kGamepadBtn_A || button == kGamepadBtn_Start", body)
         self.assertIn("local_multiplayer_assign_source(slot, source)", body)
+        self.assertIn("local_multiplayer_confirm_profile(slot)", body)
+        self.assertIn("local_multiplayer_move_profile(", body)
+        self.assertIn("local_multiplayer_clear_profile(", body)
         self.assertIn("g_local_multiplayer_consumed_buttons", body)
         self.assertIn("g_local_multiplayer_consumed_buttons[seat] &= ~button_bit;", body)
         self.assertIn("button == kGamepadBtn_B", body)
+        self.assertIn("button == kGamepadBtn_DpadLeft", body)
+        self.assertIn("button == kGamepadBtn_DpadRight", body)
 
     def test_generated_host_binds_source_callbacks(self):
         source = PATCHER.read_text(encoding="utf-8")

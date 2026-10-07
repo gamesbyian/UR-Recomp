@@ -13,6 +13,7 @@ on:
       - "tools/build_racer_pose_equivalence.py"
       - "tools/build_racer_hd_review_packet.py"
       - "tools/check_ppm.py"
+      - "tools/check_racer_presentation_trace.py"
       - "tools/build_racer_hd_shipping_readiness.py"
       - "analysis/data/racer-hd-art-approval.json"
       - "analysis/data/racer-hd-art-approval-1354-1356.json"
@@ -23,6 +24,7 @@ on:
       - "tests/unit/test_build_racer_hd_shipping_readiness.py"
       - "tests/unit/test_apply_native_racer_presentation_probe.py"
       - "tests/unit/test_summarize_racer_semantic_trace.py"
+      - "tests/unit/test_check_racer_presentation_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -1258,6 +1260,13 @@ jobs:
           )
           PY
 
+      - name: Shadow structured Racer HD trace relationships
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/check_racer_presentation_trace.py             "$RUNNER_TEMP/racer-hd.log"             --json-out "$RUNNER_TEMP/racer-hd-structured-trace-validation.json"             --min-complete-frames 1
+
       - name: Measure fallback frequency and validate measured family
         shell: bash
         run: |
@@ -1343,6 +1352,7 @@ jobs:
             ${{ runner.temp }}/racer-original-a-semantic-trace.txt
             ${{ runner.temp }}/racer-original-b-semantic-trace.txt
             ${{ runner.temp }}/racer-hd-semantic-trace.txt
+            ${{ runner.temp }}/racer-hd-structured-trace-validation.json
             ${{ runner.temp }}/racer-hd-asset-dossier/
             ${{ runner.temp }}/racer-hd-asset-dossier.txt
             ${{ runner.temp }}/racer-hd-baseline-dossier/

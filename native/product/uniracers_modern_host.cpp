@@ -4415,7 +4415,6 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_local_multiplayer_join_visible ||
         g_tour_action_visible ||
         onboarding_surface_active() ||
-        g_profile_menu_visible ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
 
@@ -5804,14 +5803,34 @@ extern "C" void ur_uniracers_modern_system_overlay(
         ensure_profile_catalog();
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 260 ? width - 16 : 252;
-        const int panel_h = 154;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
-        snes_ovl_fill_rect(pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
-        snes_ovl_stroke_rect(pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
-        snes_ovl_draw_text(pixels, stride, height, x + 8, y + 7,
-            "RACERS / PROFILES", 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 260
+            ? logical_width - 16
+            : 252;
+        constexpr int kProfilePanelHeight = 154;
+        const auto layout = centered_modern_modal_layout(
+            width,
+            height,
+            scale,
+            panel_w_logical,
+            kProfilePanelHeight,
+            panel_w_logical,
+            kProfilePanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        snes_ovl_fill_rect(
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
+        snes_ovl_stroke_rect(
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * scale, y + 7 * scale,
+            "RACERS / PROFILES", 0xFFFFFFFFu, scale);
 
         if (ur::product::modern_profile_reset_confirming(
                 g_profile_reset)) {
@@ -5825,45 +5844,45 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 sizeof(reset_row),
                 "RESET %s PROGRESS?",
                 racer);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
-                reset_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 57,
-                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 82,
-                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 112,
-                "ENTER / PAD A  RESET", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 132,
-                "ESC / PAD B  CANCEL", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
+                reset_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 57 * scale,
+                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 82 * scale,
+                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
+                "ENTER / PAD A  RESET", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 132 * scale,
+                "ESC / PAD B  CANCEL", 0xFFFFFFFFu, scale);
         } else if (g_profile_edit_mode != ProfileEditMode::None) {
             char name_row[64];
             char preset_row[64];
             std::snprintf(name_row, sizeof(name_row), "NAME  %s_", g_profile_edit_name.c_str());
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
                 g_profile_edit_mode == ProfileEditMode::Create
                     ? "CREATE RACER" : "RENAME RACER",
-                0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 52,
-                name_row, 0xFFFFFFFFu, 1);
+                0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 52 * scale,
+                name_row, 0xFFFFFFFFu, scale);
             if (g_profile_edit_mode == ProfileEditMode::Create) {
                 const auto& preset =
                     ur::product::legacy_racer_presets()[g_profile_preset_index];
                 std::snprintf(preset_row, sizeof(preset_row),
                     "PRESET %s / %s", preset.name.data(), preset.colour_label.data());
-                snes_ovl_draw_text(pixels, stride, height, x + 8, y + 72,
-                    preset_row, 0xFFFFFFFFu, 1);
-                snes_ovl_draw_text(pixels, stride, height, x + 8, y + 92,
-                    "LEFT/RIGHT  PRESET", 0xFFFFFFFFu, 1);
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 72 * scale,
+                    preset_row, 0xFFFFFFFFu, scale);
+                snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 92 * scale,
+                    "LEFT/RIGHT  PRESET", 0xFFFFFFFFu, scale);
             }
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 112,
-                "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
+                "ENTER SAVE   ESC CANCEL", 0xFFFFFFFFu, scale);
         } else if (g_profile_catalog.empty()) {
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 37,
-                "NO RACERS YET", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 62,
-                "N / PAD X  CREATE RACER", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 87,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 37 * scale,
+                "NO RACERS YET", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 62 * scale,
+                "N / PAD X  CREATE RACER", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 87 * scale,
+                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
         } else {
             const auto& entry = g_profile_catalog[g_profile_menu_index];
             char name_row[64];
@@ -5876,22 +5895,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 ur::product::legacy_racer_presets()[entry.identity.rider_index];
             std::snprintf(preset_row, sizeof(preset_row), "%s / %s",
                 preset.name.data(), preset.colour_label.data());
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 32,
-                name_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 52,
-                preset_row, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 77,
-                "UP/DOWN CHOOSE  ENTER SELECT", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 97,
-                "N/PAD X CREATE  R RENAME", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 117,
-                "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 137,
-                "ESC / F2  CLOSE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
+                name_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 52 * scale,
+                preset_row, 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 77 * scale,
+                "UP/DOWN CHOOSE  ENTER SELECT", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 97 * scale,
+                "N/PAD X CREATE  R RENAME", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 117 * scale,
+                "D/PAD Y RESET PROGRESS", 0xFFFFFFFFu, scale);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
+                "ESC / F2  CLOSE", 0xFFFFFFFFu, scale);
         }
         if (g_profile_cool_name_notice) {
-            snes_ovl_draw_text(pixels, stride, height, x + 8, y + 137,
-                "COOL NAME!", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
+                "COOL NAME!", 0xFFFFFFFFu, scale);
         }
         return;
     }

@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; broader P1 player-local families through 05B9 are measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; broader P1 player-local families through 03B9 are measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -482,30 +482,70 @@
         "artifact_id": 11461607828,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 858,
-    "original_fallback_player_frames": 4424,
-    "hd_coverage_fraction": 0.16243847027641045,
-    "cumulative_player_frames_removed": 740,
-    "absolute_coverage_gain_percentage_points": 14.009844755774328,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.14329976762199845
-  },
-  "next_discriminator": {
-    "status": "measured-post-05b9-leader",
-    "target": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x03B9",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 65,
+      "player_frames_removed": 65,
       "episode_count": 46,
       "synchronized_witness_state_count": 46,
-      "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "64933ea28bb7ed5b2a109e5d5d20abad93962556b631d3c4c8e96b2a3f36adeb",
       "normalized_geometry_sha256": "46689b8d6c68cc0a2e1fd7e6456aa25ac5d899df59b2072422f4ab33da3e2d49",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-03b9.json",
+      "authored_rgba_sha256": "7e538225e9012d7991741e34a8e68f9e6ee1a45be75a7380a3da0207de4cc4a6",
+      "review_alpha_iou": 0.7616279069767442,
+      "review_evidence": {
+        "workflow_run": 37574097612,
+        "artifact_id": 11461928005
+      },
+      "after": {
+        "hd_selected_player_frames": 923,
+        "original_fallback_player_frames": 4359,
+        "hd_coverage_fraction": 0.17474441499432034
+      },
+      "focused_reproduction": {
+        "workflow_run": 37574349855,
+        "artifact_id": 11461749726,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 923,
+    "original_fallback_player_frames": 4359,
+    "hd_coverage_fraction": 0.17474441499432034,
+    "cumulative_player_frames_removed": 805,
+    "absolute_coverage_gain_percentage_points": 15.240439227565316,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.1558869093725794
+  },
+  "next_discriminator": {
+    "status": "measured-post-03b9-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x0339",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 63,
+      "episode_count": 45,
+      "synchronized_witness_state_count": 35,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "78458063a1618fc6ed5fc31d15b0f23aea076690c1cf6ad2d2fe4da145fa158b",
+      "normalized_geometry_sha256": "d8bfee82f6e0f1eddd753eafe611b37d517d5cc370f0e514ff2af9c607595d6b",
       "alpha_bounds": [
         18,
         5,
@@ -520,6 +560,6 @@
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "03B9 is the next bounded shipping slice by measured post-05B9 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+    "rule": "0339 is the next bounded shipping slice by measured post-03B9 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

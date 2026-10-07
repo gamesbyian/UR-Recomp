@@ -551,15 +551,15 @@ void maybe_run_multiplayer_match_acceptance() {
         return;
     }
 
-    ensure_profile_catalog();
-    if (g_profile_catalog.size() < 2u) {
-        g_profile_catalog = {
-            {"accept-p1", {"MIKE", 0}},
-            {"accept-p2", {"ANDREW", 1}},
-        };
-        product_diagnostic(
-            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
-    }
+    // Acceptance owns a process-local deterministic participant catalog.
+    // Do not depend on whichever user/default catalog happens to be present,
+    // and do not persist these synthetic acceptance identities.
+    g_profile_catalog = {
+        {"accept-p1", {"MIKE", 0}},
+        {"accept-p2", {"ANDREW", 1}},
+    };
+    product_diagnostic(
+        "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
 
     const auto p1_slot = ur::product::LocalMultiplayerSlot::Player1;
     const auto p2_slot = ur::product::LocalMultiplayerSlot::Player2;
@@ -3913,7 +3913,11 @@ void complete_multiplayer_run_record_capture() {
 
     reset_multiplayer_run_capture();
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
-        (void)request_desktop_quit();
+        if (request_desktop_quit()) {
+            product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
+        } else {
+            product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_QUIT_REJECTED");
+        }
     }
 }
 
@@ -5653,8 +5657,34 @@ extern "C" void ur_uniracers_modern_after_run_frame(
                 "UR_MULTIPLAYER_MATCH ABORTED_IDENTITY_LOST");
             reset_multiplayer_run_capture();
         } else {
-            (void)g_multiplayer_run_capture.observe_guest_frame(
-                stats->controller_word);
+            const bool participant_context_matches =
+                g_multiplayer_capture_player1 &&
+                g_multiplayer_capture_player2 &&
+                g_local_multiplayer_participants.player1 &&
+                g_local_multiplayer_participants.player2 &&
+                *g_local_multiplayer_participants.player1 ==
+                    *g_multiplayer_capture_player1 &&
+                *g_local_multiplayer_participants.player2 ==
+                    *g_multiplayer_capture_player2;
+            bool course_context_matches = true;
+            if (run_active) {
+                const auto current_course =
+                    ur_uniracers_identify_course(
+                        g_ram + 0x10000u, 0x10000u);
+                course_context_matches =
+                    current_course.valid &&
+                    current_course.course_index ==
+                        g_multiplayer_capture_course.course_index;
+            }
+            if (!participant_context_matches ||
+                !course_context_matches) {
+                product_diagnostic(
+                    "UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT");
+                reset_multiplayer_run_capture();
+            } else {
+                (void)g_multiplayer_run_capture.observe_guest_frame(
+                    stats->controller_word);
+            }
         }
     }
     if (stats && !g_run_capture_previous_active && run_active) {

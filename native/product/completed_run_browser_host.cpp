@@ -1116,7 +1116,7 @@ void draw_records_browser(
         char split_header[64];
         std::snprintf(
             split_header, sizeof(split_header),
-            "SPLITS VS %s  CURRENT / TARGET / DELTA", split_target_label);
+            "SPLITS < %s >  CURRENT / TARGET / DELTA", split_target_label);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 97,
             split_header, 0xFFFFFFFFu, 1);
@@ -1129,7 +1129,7 @@ void draw_records_browser(
             int split_y = y + 112;
             int shown = 0;
             for (const auto& split : split_summary->splits) {
-                if (split.id == "finish" || shown >= 4) continue;
+                if (split.id == "finish" || shown >= 3) continue;
                 std::string label = split.id;
                 if (label.rfind("checkpoint-", 0) == 0) {
                     label = "CP " + label.substr(11);
@@ -1149,9 +1149,6 @@ void draw_records_browser(
             }
         }
 
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 56,
-            "LEFT / RIGHT  CHANGE TARGET", 0xFFFFFFFFu, 1);
         if (records_selected_matches_current_course()) {
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,

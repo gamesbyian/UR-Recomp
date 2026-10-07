@@ -58,6 +58,12 @@ MultiplayerMatchRecord record(const CompletedRunRecord& run) {
 int main() {
     const auto run = run_record();
     const auto original = record(run);
+    const auto constructed =
+        make_multiplayer_match_record(run, original.context);
+    assert(constructed.has_value());
+    assert(constructed->run_artifact_checksum ==
+           original.run_artifact_checksum);
+    assert(constructed->context.course_id == "course:01");
     assert(validate_multiplayer_match_record(original));
     assert(multiplayer_match_record_matches_run(original, run));
 
@@ -100,6 +106,14 @@ int main() {
     auto wrong_course_run = run;
     wrong_course_run.provenance.course_id = "course:02";
     assert(!multiplayer_match_record_matches_run(original, wrong_course_run));
+    assert(!make_multiplayer_match_record(
+        wrong_course_run, original.context));
+
+    auto one_player_run = run;
+    one_player_run.provenance.mode = "race-1p";
+    assert(!multiplayer_match_record_matches_run(original, one_player_run));
+    assert(!make_multiplayer_match_record(
+        one_player_run, original.context));
 
     const auto path =
         std::filesystem::temp_directory_path() / "ur-records-match.urmatch";

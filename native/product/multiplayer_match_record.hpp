@@ -35,6 +35,10 @@ std::string encode_multiplayer_match_record(
 MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     std::string_view encoded);
 
+std::optional<MultiplayerMatchRecord> make_multiplayer_match_record(
+    const CompletedRunRecord& run,
+    const BoundOrdinaryTwoPlayerMatchContext& context) noexcept;
+
 bool multiplayer_match_record_matches_run(
     const MultiplayerMatchRecord& record,
     const CompletedRunRecord& run) noexcept;

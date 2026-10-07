@@ -2,6 +2,12 @@ name: Regional retail frontend comparison
 
 on:
   workflow_dispatch:
+    inputs:
+      dense_title_motion:
+        description: "Capture and analyze the opt-in dense title transition sequence"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -13,7 +19,7 @@ concurrency:
 jobs:
   compare:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -62,6 +68,32 @@ jobs:
           echo "REGIONAL_TITLE_ASSET_BEGIN"
           cat "$RUNNER_TEMP/regional-frontend/title-transition/settled-title-asset.json"
           echo "REGIONAL_TITLE_ASSET_END"
+
+      - name: Capture dense title transition motion evidence
+        if: ${{ inputs.dense_title_motion }}
+        run: |
+          python3 tools/compare_retail_frontend.py \
+            --snesref "$RUNNER_TEMP/snesref-build/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --usa-rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --europe-rom "$GITHUB_WORKSPACE/reference/roms/retail/Unirally_Europe.sfc" \
+            --case title-motion \
+            --retain-dir "$RUNNER_TEMP/regional-frontend/dense-title-motion/dumps" \
+            --out "$RUNNER_TEMP/regional-frontend/dense-title-motion/comparison.json"
+
+          python3 tools/analyze_frontend_transition_sequence.py \
+            "$RUNNER_TEMP/regional-frontend/dense-title-motion/dumps/title-motion/usa" \
+            --out "$RUNNER_TEMP/regional-frontend/dense-title-motion/usa-motion.json"
+          python3 tools/analyze_frontend_transition_sequence.py \
+            "$RUNNER_TEMP/regional-frontend/dense-title-motion/dumps/title-motion/europe" \
+            --out "$RUNNER_TEMP/regional-frontend/dense-title-motion/europe-motion.json"
+
+          echo "USA_TITLE_MOTION_BEGIN"
+          cat "$RUNNER_TEMP/regional-frontend/dense-title-motion/usa-motion.json"
+          echo "USA_TITLE_MOTION_END"
+          echo "EUROPE_TITLE_MOTION_BEGIN"
+          cat "$RUNNER_TEMP/regional-frontend/dense-title-motion/europe-motion.json"
+          echo "EUROPE_TITLE_MOTION_END"
 
       - name: Upload matched regional frontend evidence
         if: always()

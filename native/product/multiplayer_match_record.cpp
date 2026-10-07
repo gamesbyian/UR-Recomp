@@ -360,4 +360,40 @@ MultiplayerMatchDecodeResult load_multiplayer_match_record_file(
     return decode_multiplayer_match_record(encoded);
 }
 
+std::string multiplayer_match_record_path_for_run(
+    std::string_view run_path) {
+    if (run_path.empty()) return {};
+    return std::string(run_path) + ".urmatch";
+}
+
+bool save_multiplayer_match_record_for_run(
+    const std::string& run_path,
+    const CompletedRunRecord& run,
+    const MultiplayerMatchRecord& record,
+    std::string* detail) {
+    const std::string sidecar =
+        multiplayer_match_record_path_for_run(run_path);
+    if (sidecar.empty()) return fail(detail, "missing completed-run path");
+    if (!multiplayer_match_record_matches_run(record, run)) {
+        return fail(detail, "match record does not bind completed run");
+    }
+    return save_multiplayer_match_record_file(sidecar, record, detail);
+}
+
+MultiplayerMatchDecodeResult load_multiplayer_match_record_for_run(
+    const std::string& run_path,
+    const CompletedRunRecord& run) {
+    const std::string sidecar =
+        multiplayer_match_record_path_for_run(run_path);
+    if (sidecar.empty()) {
+        return {std::nullopt, "missing completed-run path"};
+    }
+    auto loaded = load_multiplayer_match_record_file(sidecar);
+    if (!loaded) return loaded;
+    if (!multiplayer_match_record_matches_run(*loaded.record, run)) {
+        return {std::nullopt, "match record does not bind completed run"};
+    }
+    return loaded;
+}
+
 }  // namespace ur::product

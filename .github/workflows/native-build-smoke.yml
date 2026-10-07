@@ -311,8 +311,9 @@ jobs:
           echo "$EXE"
           SHOT="$RUNNER_TEMP/native-frame-300.ppm"
           PRESENTS="$RUNNER_TEMP/native-presents.csv"
+          # evidence-frame-anchor: bounded boot/frame sanity at the established main-menu observation point.
           SDL_AUDIODRIVER=dummy \
-          # evidence-frame-anchor: bounded boot/frame sanity at the established main-menu observation point.\n          SNESRECOMP_SCREENSHOT="$SHOT" \
+          SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=300 \
           SNESRECOMP_PRESENT_LOG="$PRESENTS" \
           timeout 20s xvfb-run -a "$EXE" "$ROM" \

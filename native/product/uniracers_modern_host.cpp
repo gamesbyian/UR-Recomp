@@ -5767,7 +5767,16 @@ extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
             ur::product::local_multiplayer_clear_profile(
                 g_local_multiplayer_participants, slot).state;
         g_local_multiplayer_participants_ready = false;
-        if (g_local_multiplayer_join_visible) {
+
+        // If the session is still on the stock 2P select surface, a lost
+        // source must return ownership to the Modern join overlay. Outside
+        // that surface (for example during a race), do not invent a modal
+        // frontend interruption; the ordinary controller-disconnect policy
+        // remains responsible there.
+        const bool two_player_select =
+            modern_mode() && g_ram && g_ram[0x009F] == 0x3D;
+        if (two_player_select) {
+            g_local_multiplayer_join_visible = true;
             product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
         }
     }

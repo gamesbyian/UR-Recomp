@@ -1,12 +1,12 @@
 # Presentation Density Contract
 
-Status: bounded Windows x64 implementation contract
+Status: implemented Windows x64 contract; maintenance/reference
 
 ## Why this exists
 
-`SEMANTIC-SUFFICIENCY.md` records an intentional asymmetry in the current product: Internal Render Scale is acceptance-backed at 2x for Racer HD, while widened world composition and logical-coordinate Modern overlays remain at 1x until their renderers own the required transforms. `WORK-QUEUE.md` consequently keeps high-density overlay composition and deterministic sampling/filter policy open under Presentation polish.
+`SEMANTIC-SUFFICIENCY.md` now records the closed result of this work: Internal Render Scale is stable across authored Racer HD, stock fallback, evidence-backed widened world composition, regional-title replacement and every current host-owned Modern overlay/modal surface. No current Modern presentation surface requires a global 1x density clamp.
 
-This document turns that gap into a finite implementation/acceptance target. It does not authorize guest geometry, timing, simulation, or state changes.
+This document is retained as the implementation/maintenance contract for that closure. It does not authorize guest geometry, timing, simulation, or state changes.
 
 ## Ownership
 
@@ -18,13 +18,13 @@ The compositor owns three coordinate spaces explicitly:
 2. **Presentation surface space**: logical coordinates multiplied by the active integer internal render scale where a renderer declares density support.
 3. **Output/window space**: the final window/fullscreen target after display-mode, output-resolution and aspect policy. Scaling into this space must not feed back into guest or presentation state.
 
-A feature that has not declared presentation-surface support remains on the existing 1x path. Do not silently multiply only part of its geometry.
+A future feature that has not declared presentation-surface support must fail closed rather than partially applying density. Current shipping Modern presentation consumers have completed that migration; do not reintroduce per-surface 1x clamps as an accidental fallback.
 
-## First shipping slice
+## Implemented shipping slice
 
-The first high-density composition slice should cover host-owned Modern overlays that already use logical anchors and contain no simulation authority: pause/options/controls, run-data/timing overlays, Records/Local Runs, profile/progression continuation prompts and Quick Practice/onboarding surfaces.
+Host-owned Modern overlays using logical anchors now share the same composition contract across pause/options/controls, run-data/timing overlays, Records/Local Runs, profile/progression continuation prompts, Quick Practice/onboarding surfaces and the remaining modal families.
 
-Racer HD already owns its independent density transform and is the control case. Widescreen world margins remain on their current path until the world compositor owns the same explicit transform; this slice must not couple overlay density to logical view width.
+Racer HD remains the authored-density control case. Evidence-backed widened world fields now use the same configured density through the generic nearest-density fallback when Racer HD declines the widened frame, without coupling density to logical view width. Regional-title replacement likewise owns an explicit integer-density transform over the canonical title frame.
 
 For an integer render scale `S`:
 
@@ -41,9 +41,9 @@ No overlay may infer `S` from output resolution. Internal Render Scale is the on
 
 - Authentic mode remains on the established authentic presentation path and acquires no Modern overlay authority.
 - Unsupported or invalid render-scale values fall back through the existing settings policy rather than creating fractional transforms.
-- A renderer that cannot prove all of its anchors, clipping and asset sampling are density-aware stays at 1x.
+- A new renderer that cannot prove all of its anchors, clipping and asset sampling are density-aware must fail closed and may not silently reinterpret a high-density surface. Existing shipping Modern renderers have completed this proof.
 - Presentation density must not write WRAM/SRAM, alter controller input, advance timers, change replay/ghost selection, or affect completed-run/PB persistence.
-- View width and density remain independent. 4:3 at 2x and Widescreen at 1x are both valid states.
+- View width and density remain independent. Original and 16:9 views may each use any accepted 1x-4x Internal Render Scale; changing density never changes logical world extent.
 
 ## Deterministic acceptance matrix
 
@@ -79,7 +79,7 @@ The reusable composition seam lives in `native/product/modern_overlay_compositio
 
 The resolver anchors against the usable logical region, clamps only when the caller supplies a smaller-but-usable minimum, and otherwise fails closed when reserved stock content plus margins leave insufficient space. Density never changes logical placement. The same logical rectangle therefore produces exact 1x/2x/3x/4x presentation transforms while final window/output projection remains independent.
 
-The first shipping consumers are the live run-timing HUD and the non-modal Recent, Quick Practice and Tour hint/banner surfaces. They use the canonical presentation-scale authority, verify it against the actual presentation surface, resolve logical anchors through the shared contract, and scale glyph rasterization with panel geometry. Their logical footprints therefore stay stable instead of shrinking at 2x-4x. Interactive/modal product surfaces that still use direct physical-pixel coordinates remain on the existing fail-safe 1x path; removing that guard is permitted only surface-by-surface after migration to this contract.
+The initial shipping consumers were the live run-timing HUD and the non-modal Recent, Quick Practice and Tour hint/banner surfaces. The same contract now covers the complete current host-owned modal/non-modal Modern UI family. Consumers use the canonical presentation-scale authority, verify it against the actual presentation surface, resolve logical anchors through the shared contract, and scale glyph rasterization with panel geometry. Their logical footprints therefore remain stable through 1x-4x, with no remaining direct-coordinate modal 1x guard.
 
 Deterministic model coverage includes stock 256x224, widened 342x224, 1x/2x/3x/4x density, caller-reserved HUD bands, constrained-width compaction, minimum-size fail-closed behavior, and output-viewport projection. Native visual acceptance should remain bounded to representative migrated surfaces rather than turning every overlay into a screenshot oracle.
 
@@ -93,7 +93,7 @@ Acceptance requires logical overlay rectangles to remain invariant as drawable s
 
 Internal Render Scale is now a fixed-scene presentation property rather than a signal that appears only on frames with an authored Racer HD replacement. When Remastered Racer HD is enabled, the host resolves the configured 1x-4x density from product state for every supported fixed scene. The Racer HD compositor still gets first refusal; if the current frame has no authored replacement, the host composes the untouched logical guest raster with exact nearest-neighbour integer expansion at the same density.
 
-This removes density flicker across replacement/fallback pose transitions and gives Original fallback pixels an explicit deterministic sampling path. Widened world composition and any direct-coordinate modal surface that has not migrated to the shared overlay contract still force 1x. Regional title replacement likewise stays on its dedicated 1x path until its presenter owns a density transform.
+This removes density flicker across replacement/fallback pose transitions and gives Original fallback pixels an explicit deterministic sampling path. Widened world composition now preserves the configured density across the complete 342x224 logical field, including host-materialized margins. Regional title replacement also preserves the configured density by nearest-composing the canonical title frame, painting the verified Europe crop at the same integer scale, validating its logical-pixel digest, and restoring the canonical composed frame on failure.
 
 ## Sampling policy
 
@@ -108,4 +108,4 @@ Any later CRT/NTSC filter is a post-composition display treatment and cannot bec
 
 ## Stop condition
 
-This queue item is closed when the representative Modern overlays above have one shared explicit logical-to-presentation transform, deterministic 1x/2x acceptance with retained machine-readable geometry, and Authentic/guest-state invariants. Do not broaden the work into arbitrary fractional supersampling, shader redesign, CRT simulation, or Widescreen world-renderer refactoring.
+This queue item is closed. Current Modern overlays share one explicit logical-to-presentation transform; widened world and regional-title presenters preserve the same integer density; deterministic coverage spans 1x-4x and representative resize/high-DPI surfaces; Authentic and guest-state authority remain unchanged. Future work must not reopen this contract merely to add readable-text reflow, fractional supersampling, shader redesign or CRT/NTSC display treatment.

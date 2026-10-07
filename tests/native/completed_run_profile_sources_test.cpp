@@ -49,6 +49,10 @@ int main(int argc, char** argv) {
     std::string detail;
     assert(append_completed_run_record(
         alpha_runs.string(), run(), nullptr, &detail));
+    {
+        std::ofstream bad(alpha_runs / "run-bad.urrun");
+        bad << "not a completed run\n";
+    }
 
     const auto loaded = load_run_records_profile_sources(root.string());
     assert(loaded);
@@ -56,9 +60,11 @@ int main(int argc, char** argv) {
     assert((*loaded)[0].profile_id == "alpha");
     assert((*loaded)[0].racer_identity.name == "ALPHA");
     assert((*loaded)[0].records.size() == 1);
+    assert((*loaded)[0].total_artifacts == 2);
     assert((*loaded)[1].profile_id == "beta");
     assert((*loaded)[1].racer_identity.name == "BETA");
     assert((*loaded)[1].records.empty());
+    assert((*loaded)[1].total_artifacts == 0);
 
     const auto missing_root = root / "missing";
     std::filesystem::create_directories(missing_root);

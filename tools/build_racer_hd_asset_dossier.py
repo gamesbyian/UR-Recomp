@@ -237,6 +237,9 @@ FIFTY_SECOND_AUTHORED_REPRESENTATION_ID = (
 FIFTY_THIRD_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x0546-p2-companion-0EB2-broader-frequency-reference"
 )
+FIFTY_FOURTH_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x03F9-p1-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -2025,6 +2028,24 @@ def build_thirty_sixth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_03f9_p1_broader_rgba(x: int, y: int) -> bytes:
+    """Author measured P1 03F9 with a stock-supported lower-right hardware run."""
+    base = sample_authored_05f9_p1_broader_rgba(x, y)
+    if base != b"\x00\x00\x00\x00":
+        return base
+    if authored_segment_contains(x, y, 158, 122, 158, 130, 2):
+        return authored_rim_hardware_rgba(x, y, 155, 111)
+    return b"\x00\x00\x00\x00"
+
+
+def build_thirty_seventh_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_03f9_p1_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -2428,6 +2449,12 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_thirty_sixth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_thirty_sixth_authored_candidate_rgba",
             "sample_racer_hd_authored_0546_p2_0eb2_broader",
+        )
+    if rid == FIFTY_FOURTH_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_thirty_seventh_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_thirty_seventh_authored_candidate_rgba",
+            "sample_racer_hd_authored_03f9_p1_broader",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

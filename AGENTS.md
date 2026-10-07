@@ -13,6 +13,7 @@ Compact router for coding and research agents. Load the smallest current authori
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
+| First-party C / C ABI / guest-memory code | `docs/RECOMP-C-PRACTICES.md`, then `docs/VALIDATION.md` and the owning subsystem authority |
 | GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, then the affected workflow files |
 | ROM identity / preserved build comparison | `analysis/generated/reference-rom-inventory.md`, `analysis/generated/reference-rom-comparison.md` |
 | RNC / course-format work | `docs/COURSE-FORMAT.md`, then relevant generated analyses/tools |
@@ -91,6 +92,7 @@ At present the Windows x64 product path is **not** the old fidelity → Widescre
 43. Avoid duplicate builds. If several acceptance slices use the same native candidate, prefer one build feeding multiple checks over a matrix or sibling workflows that each rebuild it. Keep separate builds only when their toolchain/configuration identity is itself the invariant.
 44. Workflow retirement is part of finishing research. When a conclusion is promoted, remove branch-only triggers, manualize or delete the probe, and update `tests/unit/test_ci_trigger_policy.py` when the boundary should remain enforced.
 45. After broad workflow edits, validate YAML structure and inspect the merged-head Actions fan-out. A workflow filename appearing as a failed run name is a strong signal that GitHub could not parse the workflow definition.
+46. For first-party handwritten C or C ABI seams that touch guest state, guest memory, or machine-shaped values, follow `docs/RECOMP-C-PRACTICES.md`. Treat generated C as disposable; make widths, wrapping, byte order, narrowing and address bounds explicit; avoid undefined or implementation-defined host behavior; and preserve strict GCC/Clang plus sanitizer coverage for portable C seams. Do not apply warning-cleanup churn to vendored/imported C.
 
 ## Research before reinvention
 

@@ -5,6 +5,11 @@ on:
     paths:
       - "tools/**"
       - "tests/unit/**"
+      - "tests/native/**/*.c"
+      - "native/title/**/*.c"
+      - "native/title/**/*.h"
+      - "native/reference/**/*.c"
+      - "docs/RECOMP-C-PRACTICES.md"
       - "analysis/ui-state-map.yml"
       - "analysis/frontend-modernization-policy.json"
       - "analysis/evidence-envelope.schema.json"

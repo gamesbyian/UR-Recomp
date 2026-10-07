@@ -1,3 +1,4 @@
+#include <limits.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stdint.h>
@@ -97,6 +98,12 @@ int main(int argc, char **argv) {
     printf("UR-S2-DESKTOP-REFERENCE/1\n");
     printf("rom_size=%zu\n", rom_size);
     printf("simulation_requested_frames=120\n");
+
+    if (rom_size > (size_t)INT_MAX) {
+        fprintf(stderr, "ROM too large for runtime API: %zu bytes\n", rom_size);
+        free(rom);
+        return 67;
+    }
 
     RtlRegisterGame(&kGameInfo);
     snes = SnesInit(rom, (int)rom_size);

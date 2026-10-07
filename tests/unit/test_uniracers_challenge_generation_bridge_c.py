@@ -6,18 +6,31 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
+STRICT_C_FLAGS = [
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-Wshadow",
+    "-Wstrict-prototypes",
+    "-Wmissing-prototypes",
+]
+
+
 class ChallengeGenerationBridgeCTests(unittest.TestCase):
     def test_default_pass_through_and_typed_filter(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            exe = pathlib.Path(tmp) / "challenge-generation-bridge-test"
-            subprocess.run(
+        for compiler in ("gcc", "clang"):
+            with self.subTest(compiler=compiler), tempfile.TemporaryDirectory() as tmp:
+                exe = pathlib.Path(tmp) / "challenge-generation-bridge-test"
+                subprocess.run(
                 [
-                    "cc",
-                    "-std=c11",
-                    "-Wall",
-                    "-Wextra",
-                    "-Werror",
-                    "-pedantic",
+                    compiler,
+                    *STRICT_C_FLAGS,
+                    "-fsanitize=address,undefined",
+                    "-fno-omit-frame-pointer",
                     "-I",
                     str(ROOT / "native" / "title"),
                     str(ROOT / "native" / "title" /
@@ -27,10 +40,10 @@ class ChallengeGenerationBridgeCTests(unittest.TestCase):
                     "-o",
                     str(exe),
                 ],
-                cwd=ROOT,
-                check=True,
-            )
-            subprocess.run([str(exe)], cwd=ROOT, check=True)
+                    cwd=ROOT,
+                    check=True,
+                )
+                subprocess.run([str(exe)], cwd=ROOT, check=True)
 
 
 if __name__ == "__main__":

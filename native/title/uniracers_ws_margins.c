@@ -1,6 +1,8 @@
 #include "uniracers_ws_margins.h"
 
+#include <limits.h>
 #include <stddef.h>
+#include <stdint.h>
 
 /* Live course presentation tables in bank $7F (docs/COURSE-FORMAT.md):
  * $7F:000F is the u16 coarse-sector index (64 px sectors), $7F:800F holds
@@ -15,7 +17,8 @@ enum {
 };
 
 static uint16_t read16(const uint8_t* wram, uint32_t addr) {
-    return (uint16_t)(wram[addr] | (wram[addr + 1] << 8));
+    return (uint16_t)((uint16_t)wram[addr] |
+                      ((uint16_t)wram[addr + 1u] << 8));
 }
 
 int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
@@ -27,17 +30,26 @@ int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
     if (coarse_w <= 0 || coarse_h <= 0 || cell_x < 0 || cell_y < 0 ||
         cell_x >= coarse_w * 4 || cell_y >= coarse_h * 4)
         return 0;
-    const uint32_t coarse_index =
-        (uint32_t)(cell_y >> 2) * (uint32_t)coarse_w + (uint32_t)(cell_x >> 2);
-    const uint32_t coarse_addr = kCoarseTable + coarse_index * 2u;
-    if (coarse_addr > 0xFFFEu)
+    const uint64_t coarse_index =
+        (uint64_t)(uint32_t)(cell_y >> 2) * (uint32_t)coarse_w +
+        (uint32_t)(cell_x >> 2);
+    const uint64_t coarse_addr64 =
+        (uint64_t)kCoarseTable + coarse_index * UINT64_C(2);
+    if (coarse_addr64 > UINT64_C(0xFFFE))
         return 0;
+    const uint32_t coarse_addr = (uint32_t)coarse_addr64;
     const uint16_t record = read16(wram, kWramBank7F + coarse_addr);
-    const uint32_t fine_addr = kFineRecords + (uint32_t)record * 32u +
-                               (uint32_t)(((cell_y & 3) * 4) + (cell_x & 3)) * 2u;
+    const uint64_t fine_addr64 =
+        (uint64_t)kFineRecords + (uint64_t)record * UINT64_C(32) +
+        (uint64_t)(((cell_y & 3) * 4) + (cell_x & 3)) * UINT64_C(2);
     /* Mirrors the hook materializer: a sentinel/non-record entry renders
      * blank in stock, so an out-of-bank record is a blank cell. */
-    *out = fine_addr <= 0xFFFEu ? read16(wram, kWramBank7F + fine_addr) : 0;
+    if (fine_addr64 > UINT64_C(0xFFFE)) {
+        *out = 0;
+        return 1;
+    }
+    const uint32_t fine_addr = (uint32_t)fine_addr64;
+    *out = read16(wram, kWramBank7F + fine_addr);
     return 1;
 }
 
@@ -90,7 +102,9 @@ int ur_ws_calibrate_bg1(const uint8_t* wram, const uint16_t* vram,
                         uint16_t scroll_y, int first_line, int line_count,
                         int guess_cell_x, int guess_cell_y, int radius,
                         int min_nonzero, int* offset_x, int* offset_y) {
-    if (!wram || !vram || radius < 0 || line_count <= 0)
+    if (!wram || !vram || radius < 0 || first_line < 0 ||
+        first_line >= 224 || line_count <= 0 ||
+        line_count > 224 - first_line)
         return 0;
     const int base_x = guess_cell_x - (scroll_x >> UR_WS_BG1_TILE_SHIFT);
     /* The guess is the camera, which sits at the band's first line: a lower
@@ -178,6 +192,29 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
 #include "snes/ppu.h"
 #include "snes/ws_shadow.h"
 
+static int floor_div_pow2_i64(int64_t value, unsigned shift, int* out) {
+    const int64_t divisor = INT64_C(1) << shift;
+    int64_t quotient = value / divisor;
+    if (value < 0 && value % divisor != 0)
+        quotient--;
+    if (quotient < INT_MIN || quotient > INT_MAX)
+        return 0;
+    *out = (int)quotient;
+    return 1;
+}
+
+static int apply_scroll_delta(uint32_t value, uint16_t delta,
+                              uint32_t* out) {
+    delta = (uint16_t)(delta & UINT16_C(0x03FF));
+    const int32_t signed_delta =
+        delta >= 0x200u ? (int32_t)delta - 0x400 : (int32_t)delta;
+    const int64_t next = (int64_t)value + signed_delta;
+    if (next < 0 || (uint64_t)next > UINT32_MAX)
+        return 0;
+    *out = (uint32_t)next;
+    return 1;
+}
+
 enum {
     kCalibrationRadius = 3,
     kCalibrationMinNonzero = 4,
@@ -225,26 +262,30 @@ int ur_ws_margins_calibrated(void) {
     return 1;
 }
 
-static int32_t signed10(uint16_t delta) {
-    delta &= 0x3FF;
-    return delta >= 0x200 ? (int32_t)delta - 0x400 : (int32_t)delta;
-}
-
 /* Margins are served from the course model, which is the content the game
  * itself streams; force it so stale captures never win. */
 static void force_margins(const UrWsBg1Band* band, const BandState* state,
                           int extra_pixels) {
-    const int row_first = (int)(state->world_y + band->first_line + 1) >>
-                          UR_WS_BG1_TILE_SHIFT;
-    const int row_last = (int)(state->world_y + band->first_line +
-                               band->line_count) >> UR_WS_BG1_TILE_SHIFT;
-    const int left_px = (int)state->world_x - extra_pixels;
-    const int right_px = (int)state->world_x + 256;
-    const int span = extra_pixels + 16;
+    int row_first = 0;
+    int row_last = 0;
+    int tx_first = 0;
+    int tx_last = 0;
+    if (!floor_div_pow2_i64(
+            (int64_t)state->world_y + band->first_line + 1,
+            UR_WS_BG1_TILE_SHIFT, &row_first) ||
+        !floor_div_pow2_i64(
+            (int64_t)state->world_y + band->first_line + band->line_count,
+            UR_WS_BG1_TILE_SHIFT, &row_last))
+        return;
+    const int64_t left_px = (int64_t)state->world_x - extra_pixels;
+    const int64_t right_px = (int64_t)state->world_x + 256;
+    const int64_t span = (int64_t)extra_pixels + 16;
     for (int side = 0; side < 2; side++) {
-        const int start_px = side ? right_px : left_px;
-        const int tx_first = start_px >> UR_WS_BG1_TILE_SHIFT;
-        const int tx_last = (start_px + span - 1) >> UR_WS_BG1_TILE_SHIFT;
+        const int64_t start_px = side ? right_px : left_px;
+        if (!floor_div_pow2_i64(start_px, UR_WS_BG1_TILE_SHIFT, &tx_first) ||
+            !floor_div_pow2_i64(start_px + span - 1,
+                                UR_WS_BG1_TILE_SHIFT, &tx_last))
+            continue;
         for (int tx = tx_first; tx <= tx_last; tx++) {
             for (int ty = row_first; ty <= row_last; ty++) {
                 uint16_t entry = 0;
@@ -276,10 +317,24 @@ static void deactivate(void) {
 static int update_band(int index, const UrWsBg1Band* band) {
     BandState* state = &s_band[index];
     if (state->calibrated) {
-        state->world_x = (uint32_t)((int32_t)state->world_x +
-            signed10((uint16_t)(band->scroll_x - state->prev_scroll_x)));
-        state->world_y = (uint32_t)((int32_t)state->world_y +
-            signed10((uint16_t)(band->scroll_y - state->prev_scroll_y)));
+        uint32_t next_world_x = 0;
+        uint32_t next_world_y = 0;
+        if (!apply_scroll_delta(
+                state->world_x,
+                (uint16_t)(band->scroll_x - state->prev_scroll_x),
+                &next_world_x) ||
+            !apply_scroll_delta(
+                state->world_y,
+                (uint16_t)(band->scroll_y - state->prev_scroll_y),
+                &next_world_y)) {
+            state->calibrated = 0;
+            state->consecutive_bad_frames = 0;
+        } else {
+            state->world_x = next_world_x;
+            state->world_y = next_world_y;
+        }
+    }
+    if (state->calibrated) {
         const int offset_x = (int)(state->world_x >> UR_WS_BG1_TILE_SHIFT) -
                              (band->scroll_x >> UR_WS_BG1_TILE_SHIFT);
         const int offset_y = (int)(state->world_y >> UR_WS_BG1_TILE_SHIFT) -
@@ -317,15 +372,30 @@ static int update_band(int index, const UrWsBg1Band* band) {
                                 read16(g_ram, kCameraY[index]) >> 4,
                                 kCalibrationRadius, kCalibrationMinNonzero,
                                 &offset_x, &offset_y)) {
-            state->calibrated = 1;
-            state->consecutive_bad_frames = 0;
-            state->world_x = (uint32_t)(((band->scroll_x >> UR_WS_BG1_TILE_SHIFT) +
-                                         offset_x) << UR_WS_BG1_TILE_SHIFT) |
-                             (band->scroll_x & 15u);
-            state->world_y = (uint32_t)(((band->scroll_y >> UR_WS_BG1_TILE_SHIFT) +
-                                         offset_y) << UR_WS_BG1_TILE_SHIFT) |
-                             (band->scroll_y & 15u);
-            if (trace_enabled())
+            const int world_cell_x =
+                (band->scroll_x >> UR_WS_BG1_TILE_SHIFT) + offset_x;
+            const int world_cell_y =
+                (band->scroll_y >> UR_WS_BG1_TILE_SHIFT) + offset_y;
+            if (world_cell_x < 0 || world_cell_y < 0 ||
+                (uint64_t)world_cell_x >
+                    (uint64_t)(UINT32_MAX >> UR_WS_BG1_TILE_SHIFT) ||
+                (uint64_t)world_cell_y >
+                    (uint64_t)(UINT32_MAX >> UR_WS_BG1_TILE_SHIFT)) {
+                state->calibrated = 0;
+                state->consecutive_bad_frames = 0;
+            } else {
+                state->calibrated = 1;
+                state->consecutive_bad_frames = 0;
+                state->world_x =
+                    (uint32_t)world_cell_x *
+                        (UINT32_C(1) << UR_WS_BG1_TILE_SHIFT) |
+                    (band->scroll_x & UINT16_C(15));
+                state->world_y =
+                    (uint32_t)world_cell_y *
+                        (UINT32_C(1) << UR_WS_BG1_TILE_SHIFT) |
+                    (band->scroll_y & UINT16_C(15));
+            }
+            if (state->calibrated && trace_enabled())
                 fprintf(stderr,
                         "URWS_MARGINS CALIBRATED band=%d lines=%d+%d offset=%d,%d world=%u,%u scroll=%u,%u\n",
                         index, band->first_line, band->line_count, offset_x,

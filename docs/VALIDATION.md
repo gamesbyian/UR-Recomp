@@ -51,6 +51,16 @@ Use `tools/mutate_rom.py` for byte-level hypothesis experiments. It refuses in-p
 
 Mutation outputs and bulk captures are scratch artifacts and should remain untracked unless deliberately promoted. A mutation result becomes evidence only when paired with a deterministic fixture and a recorded observable consequence.
 
+## First-party C semantic safety
+
+For handwritten C/C ABI code that observes guest state or models machine-shaped values, fidelity validation has two independent layers.
+
+First, the host-language implementation must stay within explicit portable C semantics. Follow `RECOMP-C-PRACTICES.md`: fixed-width guest values, explicit byte order, range-checked narrowing, bounds-before-dereference address derivation, and no reliance on signed overflow or implementation-defined negative shifts. Portable first-party C seams compile as C11 under both GCC and Clang with the documented strict warning floor and run their pure/testable paths under ASan/UBSan.
+
+Second, the resulting behavior must still satisfy the owning game-fidelity oracle. Sanitizers cannot prove SNES behavior, and a matching deterministic fixture does not excuse undefined host-C behavior. Use both layers where the seam can affect guest-derived behavior.
+
+Do not extend these warning requirements mechanically into vendored or imported C. Generated recompilation output remains disposable; recurring generated-code issues belong in the generator/runtime or a narrow project-owned seam.
+
 ## Widescreen invariant
 
 Same initial state + same inputs + same elapsed frames should produce the same simulation state in 4:3 and widescreen unless a narrow, documented exception is intentional.

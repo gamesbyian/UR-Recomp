@@ -1,0 +1,26 @@
+--- a/runner/src/snes/ws_shadow.c
++++ b/runner/src/snes/ws_shadow.c
+@@ -1287,15 +1287,15 @@ uint16_t WsShadowTile(int layerIndex, int screenX, uint32_t wrappedY,
+   if (layerIndex < 0 || layerIndex >= kLayers)
+     return realTile;
+   WsShadowLayer *layer = &s_layers[layerIndex];
+   /*
+-   * The 8x8 background renderers call once per tile chunk. A hardware window
+-   * can make the final chunk start inside the native viewport but extend into
+-   * the right margin (for example x=255..262). Treat that whole straddling
+-   * chunk as world-keyed shadow data; returning the circular VRAM tile inserts
+-   * an exact one-tile seam before margin rendering begins.
++   * Preserve every chunk whose origin lies inside the authored 256px centre.
++   * A 16px BG tile can straddle x=256 when fine scroll is non-zero; that tile
++   * is still the stock-authored tile for its native half, and naturally
++   * continues into the first margin pixels. Replacing the whole chunk with a
++   * shadow entry changes authored centre pixels (typically x=248..255).
++   * Shadow lookup begins only once a chunk itself starts outside the centre.
+    */
+-  const int tile_pixels = 1 << (layer->tileShift ? layer->tileShift : 3);
+-  if (!layer->active ||
+-      (screenX >= 0 && screenX + tile_pixels <= 256))
++  if (!layer->active || (screenX >= 0 && screenX < 256))
+     return realTile;
+ 
+   /* Layered margin sources, exact-first: (1) the world-keyed history —

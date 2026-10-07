@@ -280,7 +280,7 @@ def readme_text(source_revision: str) -> str:
         "rom.cfg and the mods directory together.\n"
         "\n"
         "Mutable user data is stored outside the extracted package under "
-        "%APPDATA%\\\\gamesbyian\\\\UR-Recomp by default. Set "
+        "%APPDATA%\\gamesbyian\\UR-Recomp by default. Set "
         "UR_RECOMP_USER_DATA_ROOT before launching to choose another writable "
         "absolute Windows path (drive-rooted or UNC). Relative overrides and a "
         "non-absolute resolved APPDATA root are rejected. The resolved root must "

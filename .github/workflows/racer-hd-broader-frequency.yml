@@ -50,57 +50,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Expose retained post-05B9 03B9 witness evidence
-        uses: actions/download-artifact@v4
-        with:
-          name: racer-hd-broader-frequency
-          path: ${{ runner.temp }}/retained-post-05b9
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          run-id: 37573034620
-
-      - name: Print retained post-05B9 probe
-        shell: bash
-        run: |
-          set -euo pipefail
-          PROBE="$(find "$RUNNER_TEMP/retained-post-05b9" -name racer-hd-post-05b9-next-probe.json -print -quit)"
-          test -n "$PROBE"
-          python3 - "$PROBE" <<'PY'
-          import json, pathlib, sys
-          report = json.loads(pathlib.Path(sys.argv[1]).read_text())
-          assert report["target"]["semantic_frame_id"] == "0x03B9"
-          assert report["witness_exact_state_count"] == 46
-          assert report["unique_stock_raster_count"] == 1
-          print("RACER_HD_03B9_RETAINED_PROBE", json.dumps(report, sort_keys=True), flush=True)
-
-          from tools.probe_racer_hd_ranked_visual_context import build_player_local_stock_rgba
-          state = report["witnesses"][0]["state"]
-          primary, rest = state.split(" + ", 1)
-          companion, rest = rest.split(" sel ", 1)
-          selector, gate = rest.split(" gate ", 1)
-          p1_primary, p2_primary = primary.split("/", 1)
-          p1_companion, p2_companion = companion.split("/", 1)
-          p1_selector, p2_selector = selector.split("/", 1)
-          p1_gate, p2_gate = gate.split("/", 1)
-          composition = {
-              "p1_primary": p1_primary,
-              "p2_primary": p2_primary,
-              "p1_companion": p1_companion,
-              "p2_companion": p2_companion,
-              "p1_selector": int(p1_selector),
-              "p2_selector": int(p2_selector),
-              "p1_gate": p1_gate,
-              "p2_gate": p2_gate,
-          }
-          rom = pathlib.Path("reference/roms/retail/Uniracers_USA.sfc").read_bytes()
-          rgba = build_player_local_stock_rgba(rom, "p1", "0x06", composition)
-          rows = []
-          for y in range(64):
-              xs = [x for x in range(64) if rgba[(y * 64 + x) * 4 + 3]]
-              if xs:
-                  rows.append({"y": y, "xs": xs})
-          print("RACER_HD_03B9_ALPHA", json.dumps(rows, separators=(",", ":")), flush=True)
-          PY
-
       - name: Install reference-core build dependencies
         run: |
           sudo apt-get update

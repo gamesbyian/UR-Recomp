@@ -77,6 +77,7 @@ struct RunRecordsProfileIndex {
     std::vector<RunRecordsProfileSummary> profiles;
     std::optional<std::size_t> active_profile;
     std::size_t total_completed_runs = 0;
+    std::size_t total_unavailable_artifacts = 0;
 };
 
 /* Build presentation metadata over an already compatibility-filtered store

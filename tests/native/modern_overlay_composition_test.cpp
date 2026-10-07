@@ -87,6 +87,39 @@ int main() {
     assert(resized_plan.logical_rect == at_1x.logical_rect);
     assert((resized_plan.output_rect == HostOverlayRect{423, 178, 667, 167}));
 
+    HostOverlayCompositionRequest routing{};
+    routing.logical_surface_width = 256;
+    routing.logical_surface_height = 224;
+    routing.presentation_scale = 2;
+    routing.output_viewport = HostOutputViewport{0, 0, 512, 448};
+    routing.anchor = HostOverlayAnchor::TopCenter;
+    routing.preferred_width = 304;
+    routing.preferred_height = 22;
+    routing.minimum_width = 220;
+    routing.minimum_height = 22;
+    routing.edge_margin = 8;
+    const auto routing_plan = resolve_modern_overlay_composition(routing);
+    assert(routing_plan.visible);
+    assert(routing_plan.compact);
+    assert((routing_plan.logical_rect == HostOverlayRect{8, 8, 240, 22}));
+    assert((routing_plan.presentation_rect == HostOverlayRect{16, 16, 480, 44}));
+
+    HostOverlayCompositionRequest recent{};
+    recent.logical_surface_width = 256;
+    recent.logical_surface_height = 224;
+    recent.presentation_scale = 2;
+    recent.output_viewport = HostOutputViewport{0, 0, 512, 448};
+    recent.reserved.left = 8;
+    recent.anchor = HostOverlayAnchor::BottomLeft;
+    recent.preferred_width = 240;
+    recent.preferred_height = 13;
+    recent.minimum_width = 160;
+    recent.minimum_height = 13;
+    const auto recent_plan = resolve_modern_overlay_composition(recent);
+    assert(recent_plan.visible);
+    assert((recent_plan.logical_rect == HostOverlayRect{8, 211, 240, 13}));
+    assert((recent_plan.presentation_rect == HostOverlayRect{16, 422, 480, 26}));
+
     HostOverlayCompositionRequest bottom{};
     bottom.logical_surface_width = 256;
     bottom.logical_surface_height = 224;

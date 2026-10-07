@@ -160,6 +160,18 @@ PY
 # the authoritative 01111 row remains four-of-five at Results and Crawler is
 # still the one unique Next Event target.
 run_case next 01111 next
+python3 - "$WORK/next-dumps/race-results.sram.bin" <<'PY'
+from pathlib import Path
+import sys
+
+sram = Path(sys.argv[1]).read_bytes()
+row = sram[0x1075:0x107A]
+if row != bytes((0, 1, 1, 1, 1)):
+    raise SystemExit(
+        f"Next Event fixture lost authoritative four-of-five row: {list(row)}"
+    )
+print("UR_RESULTS_NEXT_FIXTURE_NATIVE=results_row=01111 unique_track=0")
+PY
 cat "$WORK/next.log"
 grep -q "UR_RESULTS_NAV MENU .*next=1 track=1 tour=1 .*records=1 practice=0" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT target=next" "$WORK/next.log"

@@ -25,6 +25,8 @@ public:
 
     const StoredMultiplayerMatch* selected_match() const noexcept;
     std::optional<MultiplayerMatchRowPresentation>
+    row_presentation(std::size_t index) const;
+    std::optional<MultiplayerMatchRowPresentation>
     selected_row_presentation() const;
     std::optional<MultiplayerMatchDetailPresentation>
     selected_detail_presentation() const;

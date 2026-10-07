@@ -152,9 +152,12 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertLess(course_read, stale)
         self.assertLess(stale, reset)
 
-    def test_both_finish_fixture_mirrors_p2_horizontal_drive(self):
+    def test_records_acceptance_fixture_exercises_both_resolved_lanes(self):
         fixture = (
-            ROOT / "tests" / "input" / "two-player-both-finish.input"
+            ROOT / "tests" / "input" / "two-player-records-acceptance.input"
+        ).read_text(encoding="utf-8")
+        script = (
+            ROOT / "tests" / "input" / "two-player-records-acceptance.script"
         ).read_text(encoding="utf-8")
 
         race_rows = []
@@ -170,13 +173,12 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
             )
 
         self.assertTrue(race_rows)
-        for start, duration, p1, p2 in race_rows:
-            self.assertGreater(duration, 0, msg=f"frame {start}")
-            self.assertEqual(p1 & 0x080, 0x080, msg=f"frame {start}")
-            self.assertEqual(p2 & 0x040, 0x040, msg=f"frame {start}")
-            self.assertEqual(p1 & 0x001, p2 & 0x001, msg=f"frame {start}")
-            self.assertEqual(p1 & 0x040, 0, msg=f"frame {start}")
-            self.assertEqual(p2 & 0x080, 0, msg=f"frame {start}")
+        self.assertTrue(any(p1 != 0 for _, _, p1, _ in race_rows))
+        self.assertTrue(any(p2 != 0 for _, _, _, p2 in race_rows))
+        self.assertIn((1518, 24, 0x081, 0x040), race_rows)
+        self.assertIn("turbo on", script)
+        self.assertNotIn("forcepoke", script)
+        self.assertNotIn("poke ", script)
 
     def test_generated_product_build_registers_multiplayer_authority(self):
         patcher = (

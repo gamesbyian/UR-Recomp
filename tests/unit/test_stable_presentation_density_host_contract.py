@@ -25,8 +25,10 @@ class StablePresentationDensityHostContractTests(unittest.TestCase):
         self.assertIn("internal_render_scale_value(", scale_body)
         self.assertNotIn("racer_hd_presentation_scale()", scale_body)
         self.assertIn("world_expanded", scale_body)
-        self.assertIn("logical_overlay_active", scale_body)
-        self.assertIn("regional_title", scale_body)
+        self.assertIn(
+            "const bool logical_overlay_active = false;", scale_body
+        )
+        self.assertNotIn("regional_title", scale_body)
 
         draw_end = source.index(
             'extern "C" void ur_uniracers_modern_compute_viewport', draw_start
@@ -34,9 +36,11 @@ class StablePresentationDensityHostContractTests(unittest.TestCase):
         draw_body = source[draw_start:draw_end]
         self.assertIn("racer_hd_draw_frame(", draw_body)
         self.assertIn("compose_nearest_density_frame(", draw_body)
+        # The regional title composes first on its own early-return path;
+        # the generic fallback still follows the Racer-HD presenter.
         self.assertLess(
             draw_body.index("racer_hd_draw_frame("),
-            draw_body.index("compose_nearest_density_frame("),
+            draw_body.rindex("compose_nearest_density_frame("),
         )
         self.assertIn("presentation_scale <= 1", draw_body)
 

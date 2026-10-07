@@ -19,12 +19,12 @@ class PauseModalDensityContractTests(unittest.TestCase):
         body = self.source[start:end]
         self.assertNotIn("host_subview_visible()", body)
         self.assertNotIn("paused() ||", body)
-        self.assertIn("g_profile_menu_visible", body)
-        self.assertIn("UR_UNIRACERS_RESTART_RESULTS", body)
+        self.assertNotIn("g_profile_menu_visible", body)
+        self.assertNotIn("UR_UNIRACERS_RESTART_RESULTS", body)
 
     def test_pause_family_uses_shared_composition_and_density(self):
         start = self.source.index(
-            'extern "C" void ur_uniracers_modern_draw_overlay'
+            'extern "C" void ur_uniracers_modern_system_overlay('
         )
         body = self.source[start:]
         self.assertIn("centered_modern_modal_layout(", body)
@@ -43,7 +43,7 @@ class PauseModalDensityContractTests(unittest.TestCase):
         self.assertIn("22 * modal_scale", body)
         self.assertIn("row_y += 13 * modal_scale;", body)
 
-    def test_unmigrated_modal_guards_remain_fail_closed(self):
+    def test_no_modal_guard_forces_one_x(self):
         start = self.source.index(
             'extern "C" int ur_uniracers_modern_presentation_scale(void)'
         )
@@ -51,6 +51,8 @@ class PauseModalDensityContractTests(unittest.TestCase):
             'extern "C" int ur_uniracers_modern_draw_frame', start
         )
         body = self.source[start:end]
+        # Every modal and the regional title now compose at the configured
+        # density, so none of them may pin presentation to 1x.
         for guard in (
             "regional_title",
             "g_local_multiplayer_join_visible",
@@ -58,7 +60,8 @@ class PauseModalDensityContractTests(unittest.TestCase):
             "onboarding_surface_active()",
             "g_profile_menu_visible",
         ):
-            self.assertIn(guard, body)
+            self.assertNotIn(guard, body)
+        self.assertIn("const bool logical_overlay_active = false;", body)
 
 
 if __name__ == "__main__":

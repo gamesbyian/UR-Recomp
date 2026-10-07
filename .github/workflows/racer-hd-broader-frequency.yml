@@ -3308,6 +3308,7 @@ jobs:
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],
           }, sort_keys=True))
+          print("RACER_HD_POST_P1_0579_FULL", json.dumps(probe, sort_keys=True), flush=True)
           PY
 
           python3 tools/compare_racer_hd_local_stock_contexts.py \

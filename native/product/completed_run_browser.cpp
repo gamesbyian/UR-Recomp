@@ -132,6 +132,19 @@ CompletedRunRecordsBrowser::selected_run_record() const noexcept {
     return &course->records[entry->source_index].record;
 }
 
+const CompletedRunRecord*
+CompletedRunRecordsBrowser::previous_run_record() const noexcept {
+    const auto* course = selected_course();
+    if (!course || !course->catalog.previous_entry ||
+        *course->catalog.previous_entry >= course->catalog.entries.size()) {
+        return nullptr;
+    }
+    const auto& entry =
+        course->catalog.entries[*course->catalog.previous_entry];
+    if (entry.source_index >= course->records.size()) return nullptr;
+    return &course->records[entry.source_index].record;
+}
+
 std::optional<RunResultSummaryPresentation>
 CompletedRunRecordsBrowser::selected_run_summary() const {
     const auto* course = selected_course();
@@ -152,6 +165,14 @@ CompletedRunRecordsBrowser::selected_run_summary() const {
     return present_run_result_summary(
         *current,
         &course->records[pb_entry.source_index].record);
+}
+
+std::optional<RunDataDeltaPresentation>
+CompletedRunRecordsBrowser::selected_run_previous_delta() const {
+    const auto* current = selected_run_record();
+    const auto* previous = previous_run_record();
+    if (!current || !previous) return std::nullopt;
+    return present_run_finish_delta(*previous, current->elapsed_ticks60);
 }
 
 bool CompletedRunRecordsBrowser::move(int delta) noexcept {

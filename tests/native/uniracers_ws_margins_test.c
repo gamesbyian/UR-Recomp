@@ -68,6 +68,20 @@ int main(void) {
     assert(!ur_ws_course_tile(wram, -1, 0, &v));
     assert(!ur_ws_course_tile(wram, 0, 16, &v));
 
+    /* Corrupt dimensions must not wrap the bank-$7F coarse-table address back
+     * into a readable range. */
+    put16(wram, 0x04F1, 0xFFFF);
+    put16(wram, 0x04F3, 0xFFFF);
+    assert(!ur_ws_course_tile(wram, 262139, 262139, &v));
+    put16(wram, 0x04F1, kCoarseW);
+    put16(wram, 0x04F3, kCoarseH);
+
+    /* Public calibration bounds are part of the guest-memory contract. */
+    assert(!ur_ws_calibrate_bg1(wram, vram, 0, 0, 0, -1, 1, 0, 0, 0, 0,
+                                &vram[0], &vram[1]));
+    assert(!ur_ws_calibrate_bg1(wram, vram, 0, 0, 0, 223, 2, 0, 0, 0, 0,
+                                NULL, NULL));
+
     /* Scroll cell (9,12) shows course cell (10,0): offset (+1,-12). The
      * course is only 32 wide, so keep the view inside it. */
     const uint16_t base = 0x0C00;

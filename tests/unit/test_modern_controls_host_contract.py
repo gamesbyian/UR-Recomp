@@ -140,7 +140,10 @@ class ModernControlsHostContractTests(unittest.TestCase):
             body[unexpected_abort:unexpected_abort + 220],
         )
 
-    def test_tour_controller_shortcut_is_semantic_end_to_end(self):
+    def test_tour_controller_shortcut_is_physical_y(self):
+        # The main-menu strip says F3/Y TOUR. Under the positional default
+        # GamepadMap, SNES Y comes from physical X, which Quick Practice owns,
+        # so Tour is a physical pad-Y shortcut like the other main-menu ones.
         source = HOST.read_text(encoding="utf-8")
         raw_start = source.index(
             'extern "C" int ur_uniracers_modern_system_gamepad_button(')
@@ -149,23 +152,32 @@ class ModernControlsHostContractTests(unittest.TestCase):
             raw_start,
         )
         raw = source[raw_start:raw_end]
-        semantic_start = raw_end
         semantic_end = source.index(
-            'extern "C" void ur_uniracers_modern_system_overlay(',
-            semantic_start,
-        )
-        semantic = source[semantic_start:semantic_end]
+            'extern "C" void ur_uniracers_modern_system_overlay(', raw_end)
+        semantic = source[raw_end:semantic_end]
 
-        self.assertNotIn(
-            "button == kGamepadBtn_Y &&\n"
-            "             (tour_continue_available()",
+        tour = raw.index(
+            "button == kGamepadBtn_Y && !paused() &&\n"
+            "        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&\n"
+            "        tour_continue_available()) {\n"
+            "        (void)open_tour_action_menu();"
+        )
+        recent = raw.index(
+            "button == kGamepadBtn_Y && !paused() &&\n"
+            "        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&\n"
+            "        recent_course_available_for_active_profile()"
+        )
+        practice = raw.index("(void)begin_practice();")
+        self.assertLess(practice, tour)
+        self.assertLess(tour, recent)
+        # The release edge of a consumed Tour press is consumed too.
+        self.assertIn(
+            "(settled_main && button == kGamepadBtn_Y &&\n"
+            "             (tour_continue_available() ||",
             raw,
         )
-        self.assertIn(
-            "pressed && control == 9",
-            semantic,
-        )
-        self.assertIn("open_tour_action_menu()", semantic)
+        self.assertNotIn("control == 9", semantic)
+        self.assertNotIn("open_tour_action_menu()", semantic)
 
     def test_framework_bookkeeps_gamepad_edge_before_title_callback(self):
         source = GAMEPAD_PATCH.read_text(encoding="utf-8")

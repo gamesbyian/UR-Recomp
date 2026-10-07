@@ -134,6 +134,10 @@ The deterministic source-sampling policy is represented by `native/product/prese
 
 This policy does not silently select a CRT/NTSC treatment or a final-window filter. Those remain separate post-composition display-treatment choices. The first migrated runtime consumers are the live timing HUD plus the non-modal Recent, Quick Practice and Tour hint/banner surfaces. Their anchors, panels where present, and glyphs preserve logical size at supported integer presentation densities; unmigrated interactive/modal overlays fail safely to 1x until converted.
 
+### Resize/high-DPI acceptance
+
+The composition contract is regression-tested over common Windows desktop/window sizes and arbitrary odd-sized drawables, across fixed and widened logical views and 1x–4x internal presentation density. Window resizing may change the resolved output viewport and final projected rectangle, but it must not change the logical overlay rectangle. Any constrained logical layout must remain inside caller-declared safe bands, compact only to its declared minimum, then disappear rather than overlap protected content.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

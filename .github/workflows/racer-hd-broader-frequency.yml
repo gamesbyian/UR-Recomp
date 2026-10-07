@@ -1407,6 +1407,33 @@ jobs:
           }, sort_keys=True))
           PY
 
+          python3 - "$ROM" "$RUNNER_TEMP/racer-hd-post-0139-next-probe.json" <<'PY'
+          import json, pathlib, sys
+          from tools.probe_racer_hd_ranked_visual_context import build_player_local_stock_rgba
+          report = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          assert report["unique_stock_raster_count"] == 1
+          witness = report["witnesses"][0]["state"]
+          composition = {
+              "p1_primary": witness["p1_primary"],
+              "p2_primary": witness["p2_primary"],
+              "p1_companion": witness["p1_companion"],
+              "p2_companion": witness["p2_companion"],
+              "p1_selector": witness["p1_selector"],
+              "p2_selector": witness["p2_selector"],
+              "p1_gate": witness["p1_companion_gate_word"],
+              "p2_gate": witness["p2_companion_gate_word"],
+          }
+          rgba = build_player_local_stock_rgba(
+              pathlib.Path(sys.argv[1]).read_bytes(), "p1", "0x06", composition
+          )
+          rows = []
+          for y in range(64):
+              xs = [x for x in range(64) if rgba[(y * 64 + x) * 4 + 3]]
+              if xs:
+                  rows.append({"y": y, "xs": xs})
+          print("RACER_HD_POST_0139_NEXT_ALPHA", json.dumps(rows, separators=(",", ":")))
+          PY
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:

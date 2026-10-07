@@ -7,11 +7,13 @@ on:
       - "native/product/local_multiplayer_*.hpp"
       - "native/product/local_multiplayer_*.cpp"
       - "native/product/multiplayer_match_record.*"
+      - "native/product/multiplayer_match_catalog.*"
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/native/multiplayer_match_record_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
       - "tests/unit/test_local_multiplayer_host_contract.py"
       - "tests/unit/test_multiplayer_match_record_cpp.py"
+      - "tests/unit/test_multiplayer_match_catalog_cpp.py"
       - "native/product/uniracers_modern_host.cpp"
       - ".github/workflows/local-multiplayer-product-contracts.yml"
 
@@ -34,4 +36,5 @@ jobs:
             tests.unit.test_local_multiplayer_participants_cpp \
             tests.unit.test_local_multiplayer_match_binding_cpp \
             tests.unit.test_multiplayer_match_record_cpp \
+            tests.unit.test_multiplayer_match_catalog_cpp \
             tests.unit.test_local_multiplayer_host_contract

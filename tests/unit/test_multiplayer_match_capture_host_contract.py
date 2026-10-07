@@ -37,11 +37,21 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertNotIn('observe_split("finish"', completion_body)
 
         # The resolved framework controller word is the common replay carrier.
-        self.assertIn(
-            "g_multiplayer_run_capture.observe_guest_frame(\n"
-            "                stats->controller_word)",
-            source,
+        frame_hook = source.index(
+            'extern "C" void ur_uniracers_modern_after_run_frame'
         )
+        multiplayer_live = source.index(
+            "g_multiplayer_run_capture.capturing()", frame_hook
+        )
+        multiplayer_observe = source.index(
+            "g_multiplayer_run_capture.observe_guest_frame(",
+            multiplayer_live,
+        )
+        next_frame_arg = source.index(
+            "stats->controller_word", multiplayer_observe
+        )
+        self.assertLess(multiplayer_live, multiplayer_observe)
+        self.assertLess(multiplayer_observe, next_frame_arg)
 
         # A dropped live participant session invalidates the in-flight match.
         self.assertIn(

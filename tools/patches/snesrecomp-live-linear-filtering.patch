@@ -1,6 +1,6 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -407,6 +407,18 @@ int snesrecomp_desktop_get_display_mode(void) {
+@@ -407,6 +407,17 @@ int snesrecomp_desktop_get_display_mode(void) {
    return g_config.fullscreen <= 2 ? (int)g_config.fullscreen : 0;
  }
  
@@ -20,7 +20,7 @@
  static int g_rewind_hotkey;
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -226,5 +226,13 @@ int snesrecomp_desktop_set_display_mode(int mode);
+@@ -226,5 +226,11 @@ int snesrecomp_desktop_set_display_mode(int mode);
  int snesrecomp_desktop_get_display_mode(void);
  
 +/* Live final-window texture filtering policy. Both SDL and OpenGL renderer

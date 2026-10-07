@@ -177,6 +177,8 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertTrue(any(p2 != 0 for _, _, _, p2 in race_rows))
         self.assertIn((1518, 24, 0x081, 0x040), race_rows)
         self.assertIn("turbo on", script)
+        self.assertIn("wait 50000", script)
+        self.assertIn("dump records-acceptance-unresolved", script)
         self.assertNotIn("forcepoke", script)
         self.assertNotIn("poke ", script)
 

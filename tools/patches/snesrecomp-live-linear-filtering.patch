@@ -1,0 +1,25 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -411,1 +411,12 @@
++int snesrecomp_desktop_set_linear_filtering(int enabled) {
++  g_config.linear_filtering = enabled != 0;
++  if (g_renderer_funcs.Reconfigure)
++    g_renderer_funcs.Reconfigure();
++  return 1;
++}
++
++int snesrecomp_desktop_get_linear_filtering(void) {
++  return g_config.linear_filtering ? 1 : 0;
++}
++
+ static void OutputModeFromSdl(
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -203,1 +203,7 @@
++/* Live final-window texture filtering policy. Both SDL and OpenGL renderer
++ * paths already reread Config.linear_filtering, so this changes presentation
++ * sampling without altering guest geometry or simulation. */
++int snesrecomp_desktop_set_linear_filtering(int enabled);
++int snesrecomp_desktop_get_linear_filtering(void);
++
+ #ifdef __cplusplus

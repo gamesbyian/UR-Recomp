@@ -54,5 +54,37 @@ int main() {
     assert(local_multiplayer_seat_device_text(
                LocalMultiplayerSeatPresentation::KeyboardDisconnected, "") ==
            std::string("KEYBOARD DISCONNECTED"));
+
+    // Participant rows always fit the 28-cell panel; the racer name stays
+    // whole and the profile id is truncated first.
+    using ur::product::LocalMultiplayerParticipantRowState;
+    using ur::product::local_multiplayer_participant_row_text;
+    assert(local_multiplayer_participant_row_text(
+               "P1", LocalMultiplayerParticipantRowState::NotJoined, "", "",
+               28) == std::string("P1 PRESS A / START"));
+    assert(local_multiplayer_participant_row_text(
+               "P2", LocalMultiplayerParticipantRowState::NoProfiles, "", "",
+               28) == std::string("P2 NO PROFILES"));
+    assert(local_multiplayer_participant_row_text(
+               "P1", LocalMultiplayerParticipantRowState::Choosing, "MIKE",
+               "join.alpha", 28) == std::string("P1 <MIKE> join.alpha"));
+    assert(local_multiplayer_participant_row_text(
+               "P2", LocalMultiplayerParticipantRowState::Ready, "ANNA",
+               "join.bravo", 28) == std::string("P2 READY ANNA join.bravo"));
+    const std::string long_id(40, 'x');
+    const std::string sixteen = "ABCDEFGHIJKLMNOP";
+    const auto choosing = local_multiplayer_participant_row_text(
+        "P1", LocalMultiplayerParticipantRowState::Choosing, sixteen, long_id,
+        28);
+    assert(choosing.size() == 28u);
+    assert(choosing.find("<" + sixteen + ">") == 3u);
+    const auto ready = local_multiplayer_participant_row_text(
+        "P2", LocalMultiplayerParticipantRowState::Ready, sixteen, long_id, 28);
+    assert(ready.size() <= 28u);
+    assert(ready.find("READY " + sixteen) == 3u);
+    // No room for even one id character: the id is omitted, not squeezed.
+    assert(local_multiplayer_participant_row_text(
+               "P2", LocalMultiplayerParticipantRowState::Ready, sixteen,
+               "id", 25) == "P2 READY " + sixteen);
     return 0;
 }

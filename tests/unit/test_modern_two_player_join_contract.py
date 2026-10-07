@@ -43,6 +43,23 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             overlay,
         )
 
+    def test_every_overlay_literal_fits_the_narrowest_panel(self):
+        # 256-pixel frame -> 240-pixel panel -> 28 cells inside the margins.
+        import re
+
+        source = HOST.read_text(encoding="utf-8")
+        overlay = _body(
+            source,
+            "if (g_local_multiplayer_join_visible && modern_mode()) {",
+            "if (g_tour_action_visible && modern_mode()",
+        )
+        literals = re.findall(r'^\s+"([^"%\\]+)",', overlay, re.MULTILINE)
+        literals += re.findall(r'scale,\s*"([^"%\\]+)",', overlay)
+        self.assertGreaterEqual(len(literals), 5, literals)
+        for text in literals:
+            self.assertLessEqual(len(text), 28, text)
+        self.assertIn("(panel_w_logical - 16) / 8", overlay)
+
     def test_acceptance_uses_real_sdl_pad_buttons(self):
         source = HOST.read_text(encoding="utf-8")
         hook = _body(

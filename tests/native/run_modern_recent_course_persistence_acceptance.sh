@@ -56,30 +56,39 @@ recent.alpha|0|MIKE
 CATALOG_EOF
 printf 'seen-v1\n' >"$PREF_DIR/onboarding-v1.seen"
 
-# make_fixture <root> <header-version> <recent-track-or-empty>
+# make_fixture <root> <header-version> <recent-track-or-empty> [tour-flags]
 make_fixture() {
   local root="$1"
   local version="$2"
   local recent="$3"
+  local flags="${4:-}"
   rm -rf "$root"
   mkdir -p "$root"
   python3 - "$CLEAN" "$root/save.srm" "$root/host-profile.txt" \
-    "$version" "$recent" <<'PY'
+    "$version" "$recent" "$flags" <<'PY'
 from pathlib import Path
 import sys
 
 source, sram_path, profile_path = map(Path, sys.argv[1:4])
-version, recent = sys.argv[4], sys.argv[5]
-sram = source.read_bytes()
+version, recent, flags = sys.argv[4], sys.argv[5], sys.argv[6]
+sram = bytearray(source.read_bytes())
 if len(sram) != 8192:
     raise SystemExit(f"unexpected clean SRAM size: {len(sram)}")
+tour_resume = ""
+if flags:
+    # Unfinished Crawler tour for rider 0 (same layout as the Tour harness).
+    sram[0x10AD] = 1
+    sram[0x0748] = 0
+    sram[0x1075:0x107A] = bytes(int(ch) for ch in flags)
+    tour_resume = f"0:0:{sram[0x069C]}:{flags}"
+sram = bytes(sram)
 sram_path.write_bytes(sram)
 lines = [
     f"UR-HOST-PROFILE/{version}",
     "profile=recent.alpha",
     "generation=1",
     f"stock_sram={sram.hex()}",
-    "tour_resume=",
+    f"tour_resume={tour_resume}",
     "ghost_target=off",
     "racer_name=MIKE",
     "racer_index=0",
@@ -161,6 +170,26 @@ grep -q "UR_PRACTICE RACE_READY" "$B_LOG"
 cmp "$WORK/restore-before.txt" "$B_ROOT/host-profile.txt"
 echo "UR_RECENT_RESTORE_NATIVE=fresh_process track=4 practice_isolated=1 profile_unchanged=1"
 
+# E. With a resumable tour, pad Y belongs to the Tour surface, so the main
+#    menu strip names pad R for Recent Course. A real virtual-gamepad R press
+#    must launch Recent Course (Crawler slot 2, Bowl) and not open Tour.
+E_ROOT="$WORK/pad-r-profile"
+E_LOG="$WORK/pad-r.log"
+make_fixture "$E_ROOT" 5 2 11110
+cp "$E_ROOT/host-profile.txt" "$WORK/pad-r-before.txt"
+run_native "$E_ROOT" "$WORK/pad-r-dumps" "$E_LOG" "$RESTORE_SCRIPT" \
+  UR_MAIN_MENU_PAD_ACCEPTANCE=r \
+  UR_PRACTICE_SAVE_ROOT="$WORK/pad-r-practice-save" \
+  UR_PRACTICE_INPUT_PATH="$WORK/pad-r-practice-input.txt"
+cat "$E_LOG"
+grep -q "UR_MAIN_MENU_STRIP rows=2 | F3/Y NEXT EVENT Monster | F6/R RECENT Bowl" "$E_LOG"
+grep -q "UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED" "$E_LOG"
+grep -q "UR_FAST_NAV RECENT_PRACTICE track=2" "$E_LOG"
+grep -q "UR_PRACTICE RACE_READY" "$E_LOG"
+! grep -q "UR_TOUR_ENTRY MENU_OPENED" "$E_LOG"
+cmp "$WORK/pad-r-before.txt" "$E_ROOT/host-profile.txt"
+echo "UR_RECENT_PAD_R_NATIVE=strip_rows=2 launched=recent tour_opened=0"
+
 # C. An out-of-catalog Recent Course fails closed: the profile is not
 #    trusted, nothing is restored, and the file is not rewritten.
 C_ROOT="$WORK/malformed-profile"
@@ -186,4 +215,4 @@ grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$D_LOG"
 ! grep -q "UR_FAST_NAV RECENT_RESTORED" "$D_LOG"
 cmp "$WORK/authentic-before.txt" "$D_ROOT/host-profile.txt"
 
-echo "UR_RECENT_COURSE_PERSISTENCE_ACCEPTANCE_RESULT=metadata_only_persist_fresh_restore_malformed_fail_closed_authentic_inert"
+echo "UR_RECENT_COURSE_PERSISTENCE_ACCEPTANCE_RESULT=metadata_only_persist_fresh_restore_pad_r_strip_malformed_fail_closed_authentic_inert"

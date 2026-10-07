@@ -264,17 +264,26 @@ int ur_ws_margins_calibrated(void) {
  * itself streams; force it so stale captures never win. */
 static void force_margins(const UrWsBg1Band* band, const BandState* state,
                           int extra_pixels) {
-    const int row_first = (int)(state->world_y + band->first_line + 1) >>
-                          UR_WS_BG1_TILE_SHIFT;
-    const int row_last = (int)(state->world_y + band->first_line +
-                               band->line_count) >> UR_WS_BG1_TILE_SHIFT;
-    const int left_px = (int)state->world_x - extra_pixels;
-    const int right_px = (int)state->world_x + 256;
-    const int span = extra_pixels + 16;
+    int row_first = 0;
+    int row_last = 0;
+    int tx_first = 0;
+    int tx_last = 0;
+    if (!floor_div_pow2_i64(
+            (int64_t)state->world_y + band->first_line + 1,
+            UR_WS_BG1_TILE_SHIFT, &row_first) ||
+        !floor_div_pow2_i64(
+            (int64_t)state->world_y + band->first_line + band->line_count,
+            UR_WS_BG1_TILE_SHIFT, &row_last))
+        return;
+    const int64_t left_px = (int64_t)state->world_x - extra_pixels;
+    const int64_t right_px = (int64_t)state->world_x + 256;
+    const int64_t span = (int64_t)extra_pixels + 16;
     for (int side = 0; side < 2; side++) {
-        const int start_px = side ? right_px : left_px;
-        const int tx_first = start_px >> UR_WS_BG1_TILE_SHIFT;
-        const int tx_last = (start_px + span - 1) >> UR_WS_BG1_TILE_SHIFT;
+        const int64_t start_px = side ? right_px : left_px;
+        if (!floor_div_pow2_i64(start_px, UR_WS_BG1_TILE_SHIFT, &tx_first) ||
+            !floor_div_pow2_i64(start_px + span - 1,
+                                UR_WS_BG1_TILE_SHIFT, &tx_last))
+            continue;
         for (int tx = tx_first; tx <= tx_last; tx++) {
             for (int ty = row_first; ty <= row_last; ty++) {
                 uint16_t entry = 0;
@@ -306,10 +315,24 @@ static void deactivate(void) {
 static int update_band(int index, const UrWsBg1Band* band) {
     BandState* state = &s_band[index];
     if (state->calibrated) {
-        state->world_x = (uint32_t)((int32_t)state->world_x +
-            signed10((uint16_t)(band->scroll_x - state->prev_scroll_x)));
-        state->world_y = (uint32_t)((int32_t)state->world_y +
-            signed10((uint16_t)(band->scroll_y - state->prev_scroll_y)));
+        uint32_t next_world_x = 0;
+        uint32_t next_world_y = 0;
+        if (!apply_scroll_delta(
+                state->world_x,
+                (uint16_t)(band->scroll_x - state->prev_scroll_x),
+                &next_world_x) ||
+            !apply_scroll_delta(
+                state->world_y,
+                (uint16_t)(band->scroll_y - state->prev_scroll_y),
+                &next_world_y)) {
+            state->calibrated = 0;
+            state->consecutive_bad_frames = 0;
+        } else {
+            state->world_x = next_world_x;
+            state->world_y = next_world_y;
+        }
+    }
+    if (state->calibrated) {
         const int offset_x = (int)(state->world_x >> UR_WS_BG1_TILE_SHIFT) -
                              (band->scroll_x >> UR_WS_BG1_TILE_SHIFT);
         const int offset_y = (int)(state->world_y >> UR_WS_BG1_TILE_SHIFT) -
@@ -347,15 +370,30 @@ static int update_band(int index, const UrWsBg1Band* band) {
                                 read16(g_ram, kCameraY[index]) >> 4,
                                 kCalibrationRadius, kCalibrationMinNonzero,
                                 &offset_x, &offset_y)) {
-            state->calibrated = 1;
-            state->consecutive_bad_frames = 0;
-            state->world_x = (uint32_t)(((band->scroll_x >> UR_WS_BG1_TILE_SHIFT) +
-                                         offset_x) << UR_WS_BG1_TILE_SHIFT) |
-                             (band->scroll_x & 15u);
-            state->world_y = (uint32_t)(((band->scroll_y >> UR_WS_BG1_TILE_SHIFT) +
-                                         offset_y) << UR_WS_BG1_TILE_SHIFT) |
-                             (band->scroll_y & 15u);
-            if (trace_enabled())
+            const int world_cell_x =
+                (band->scroll_x >> UR_WS_BG1_TILE_SHIFT) + offset_x;
+            const int world_cell_y =
+                (band->scroll_y >> UR_WS_BG1_TILE_SHIFT) + offset_y;
+            if (world_cell_x < 0 || world_cell_y < 0 ||
+                (uint64_t)(uint32_t)world_cell_x >
+                    (UINT32_MAX >> UR_WS_BG1_TILE_SHIFT) ||
+                (uint64_t)(uint32_t)world_cell_y >
+                    (UINT32_MAX >> UR_WS_BG1_TILE_SHIFT)) {
+                state->calibrated = 0;
+                state->consecutive_bad_frames = 0;
+            } else {
+                state->calibrated = 1;
+                state->consecutive_bad_frames = 0;
+                state->world_x =
+                    (uint32_t)world_cell_x *
+                        (UINT32_C(1) << UR_WS_BG1_TILE_SHIFT) |
+                    (band->scroll_x & UINT16_C(15));
+                state->world_y =
+                    (uint32_t)world_cell_y *
+                        (UINT32_C(1) << UR_WS_BG1_TILE_SHIFT) |
+                    (band->scroll_y & UINT16_C(15));
+            }
+            if (state->calibrated && trace_enabled())
                 fprintf(stderr,
                         "URWS_MARGINS CALIBRATED band=%d lines=%d+%d offset=%d,%d world=%u,%u scroll=%u,%u\n",
                         index, band->first_line, band->line_count, offset_x,

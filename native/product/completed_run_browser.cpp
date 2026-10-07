@@ -91,6 +91,7 @@ void CompletedRunRecordsBrowser::clear() noexcept {
     view_ = CompletedRunRecordsView::Courses;
     selected_course_.reset();
     selected_run_.reset();
+    detail_target_kind_ = RunDataTargetKind::PersonalBest;
 }
 
 bool CompletedRunRecordsBrowser::refresh(
@@ -142,6 +143,19 @@ CompletedRunRecordsBrowser::selected_run_record() const noexcept {
 }
 
 const CompletedRunRecord*
+CompletedRunRecordsBrowser::personal_best_run_record() const noexcept {
+    const auto* course = selected_course();
+    if (!course || !course->catalog.personal_best_entry ||
+        *course->catalog.personal_best_entry >= course->catalog.entries.size()) {
+        return nullptr;
+    }
+    const auto& entry =
+        course->catalog.entries[*course->catalog.personal_best_entry];
+    if (entry.source_index >= course->records.size()) return nullptr;
+    return &course->records[entry.source_index].record;
+}
+
+const CompletedRunRecord*
 CompletedRunRecordsBrowser::previous_run_record() const noexcept {
     const auto* course = selected_course();
     if (!course || !course->catalog.previous_entry ||
@@ -182,6 +196,31 @@ CompletedRunRecordsBrowser::selected_run_previous_delta() const {
     const auto* previous = previous_run_record();
     if (!current || !previous) return std::nullopt;
     return present_run_finish_delta(*previous, current->elapsed_ticks60);
+}
+
+std::optional<RunResultSummaryPresentation>
+CompletedRunRecordsBrowser::selected_run_target_summary(
+    RunDataTargetKind kind) const {
+    const auto* current = selected_run_record();
+    if (!current) return std::nullopt;
+    const auto* target = kind == RunDataTargetKind::PersonalBest
+        ? personal_best_run_record()
+        : previous_run_record();
+    if (!target) return std::nullopt;
+    return present_run_result_summary_against(*current, *target, kind);
+}
+
+bool CompletedRunRecordsBrowser::adjust_detail_target(int delta) noexcept {
+    if (view_ != CompletedRunRecordsView::Detail || delta == 0) return false;
+
+    const RunDataTargetKind requested =
+        detail_target_kind_ == RunDataTargetKind::PersonalBest
+            ? RunDataTargetKind::Previous
+            : RunDataTargetKind::PersonalBest;
+    if (!selected_run_target_summary(requested)) return false;
+
+    detail_target_kind_ = requested;
+    return true;
 }
 
 bool CompletedRunRecordsBrowser::move(int delta) noexcept {
@@ -235,6 +274,7 @@ bool CompletedRunRecordsBrowser::open_selected_run_detail() noexcept {
         return false;
     }
     view_ = CompletedRunRecordsView::Detail;
+    detail_target_kind_ = RunDataTargetKind::PersonalBest;
     return true;
 }
 

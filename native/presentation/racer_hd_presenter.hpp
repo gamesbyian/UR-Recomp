@@ -2606,17 +2606,17 @@ constexpr std::uint32_t sample_racer_hd_authored_0578_p2_0ec3_broader(
     if (hflip) x = kRacerHdAssetSize - 1 - x;
     if (vflip) y = kRacerHdAssetSize - 1 - y;
 
-    const int upper_dx = x - 94;
-    const int upper_dy = y - 56;
+    const int upper_dx = x - 96;
+    const int upper_dy = y - 68;
     const bool upper =
-        x >= 76 &&
+        x >= 78 &&
         y >= 24 &&
         y < 90 &&
         upper_dx * upper_dx * 44 * 44 +
             upper_dy * upper_dy * 28 * 28 <=
             28 * 28 * 44 * 44;
     if (upper) {
-        return authored_saddle_color(x, y, 94, 56, 44);
+        return authored_saddle_color(x, y, 96, 68, 44);
     }
 
     if (x < 84 || y < 78) return 0;

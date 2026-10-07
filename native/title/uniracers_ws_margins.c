@@ -168,6 +168,22 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
     return count;
 }
 
+void ur_ws_margin_tile_bounds(int world_left, int extra_pixels,
+                              int* left_first, int* left_last,
+                              int* right_first, int* right_last) {
+    const int tile = 1 << UR_WS_BG1_TILE_SHIFT;
+    const int world_right = world_left + 256;
+    if (left_first)
+        *left_first = (world_left - extra_pixels) >> UR_WS_BG1_TILE_SHIFT;
+    if (left_last)
+        *left_last = (world_left >> UR_WS_BG1_TILE_SHIFT) - 1;
+    if (right_first)
+        *right_first = (world_right + tile - 1) >> UR_WS_BG1_TILE_SHIFT;
+    if (right_last)
+        *right_last =
+            (world_right + extra_pixels - 1) >> UR_WS_BG1_TILE_SHIFT;
+}
+
 #ifndef UR_WS_MARGINS_NO_RUNTIME
 
 #include <stdio.h>
@@ -254,7 +270,6 @@ static void force_margins(const UrWsBg1Band* band, const BandState* state,
     const int row_last = (int)(state->world_y + band->first_line +
                                band->line_count) >> UR_WS_BG1_TILE_SHIFT;
     const int world_left = (int)state->world_x;
-    const int world_right = world_left + 256;
 
     /*
      * Force only tiles wholly outside the authored 256px centre. A margin
@@ -266,15 +281,13 @@ static void force_margins(const UrWsBg1Band* band, const BandState* state,
      * The straddling tile is already present in the stock shadow; only the
      * fully off-screen tiles need course-model materialization.
      */
-    const int left_first =
-        (world_left - extra_pixels) >> UR_WS_BG1_TILE_SHIFT;
-    const int left_last =
-        (world_left >> UR_WS_BG1_TILE_SHIFT) - 1;
-    const int right_first =
-        (world_right + ((1 << UR_WS_BG1_TILE_SHIFT) - 1)) >>
-        UR_WS_BG1_TILE_SHIFT;
-    const int right_last =
-        (world_right + extra_pixels - 1) >> UR_WS_BG1_TILE_SHIFT;
+    int left_first = 0;
+    int left_last = -1;
+    int right_first = 0;
+    int right_last = -1;
+    ur_ws_margin_tile_bounds(
+        world_left, extra_pixels,
+        &left_first, &left_last, &right_first, &right_last);
 
     force_margin_span(band, row_first, row_last, left_first, left_last);
     force_margin_span(band, row_first, row_last, right_first, right_last);

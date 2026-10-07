@@ -197,6 +197,7 @@ typedef struct BandState {
     uint32_t world_y;
     uint16_t prev_scroll_x;
     uint16_t prev_scroll_y;
+    unsigned consecutive_bad_frames;
 } BandState;
 
 static BandState s_band[kMaxBands];
@@ -294,10 +295,17 @@ static int update_band(int index, const UrWsBg1Band* band) {
                 s_max_mismatches = mismatches;
         }
         if (mismatches > kMaxFrameMismatches) {
-            state->calibrated = 0;
-            if (trace_enabled())
-                fprintf(stderr, "URWS_MARGINS LOST band=%d mismatches=%d\n",
-                        index, mismatches);
+            state->consecutive_bad_frames++;
+            if (state->consecutive_bad_frames >= 2u) {
+                state->calibrated = 0;
+                state->consecutive_bad_frames = 0;
+                if (trace_enabled())
+                    fprintf(stderr,
+                            "URWS_MARGINS LOST band=%d mismatches=%d sustained=2\n",
+                            index, mismatches);
+            }
+        } else {
+            state->consecutive_bad_frames = 0;
         }
     }
     if (!state->calibrated) {
@@ -311,6 +319,7 @@ static int update_band(int index, const UrWsBg1Band* band) {
                                 kCalibrationRadius, kCalibrationMinNonzero,
                                 &offset_x, &offset_y)) {
             state->calibrated = 1;
+            state->consecutive_bad_frames = 0;
             state->world_x = (uint32_t)(((band->scroll_x >> UR_WS_BG1_TILE_SHIFT) +
                                          offset_x) << UR_WS_BG1_TILE_SHIFT) |
                              (band->scroll_x & 15u);

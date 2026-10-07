@@ -7,6 +7,7 @@
 namespace ur::product {
 
 struct MultiplayerMatchRowPresentation {
+    std::string date_text;
     std::string course_text;
     std::string player1_text;
     std::string player2_text;

@@ -16,6 +16,7 @@ class MultiplayerMatchPresentationCppTests(unittest.TestCase):
                     "-I", str(ROOT / "native" / "product"),
                     "-I", str(ROOT / "native" / "title"),
                     str(ROOT / "native" / "product" / "multiplayer_match_presentation.cpp"),
+                    str(ROOT / "native" / "product" / "run_artifact_date.cpp"),
                     str(ROOT / "tests" / "native" / "multiplayer_match_presentation_test.cpp"),
                     "-o", str(exe),
                 ],

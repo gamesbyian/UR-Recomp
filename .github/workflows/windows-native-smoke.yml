@@ -28,6 +28,7 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - "tools/verify_rom.py"
       - ".github/workflows/windows-native-smoke.yml"
       - "native/product/**"
       - "native/presentation/**"
@@ -154,6 +155,7 @@ jobs:
             --output "$PACKAGE" \
             --source-revision "$GITHUB_SHA"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"
           ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64.zip"
           python tools/assemble_windows_package.py archive \
             --package "$PACKAGE" \
@@ -197,6 +199,7 @@ jobs:
           echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_USER_DATA=$USER_DATA" >> "$GITHUB_ENV"
           test -f "$TEST_PACKAGE/PACKAGE-MANIFEST.json"
+          python tools/verify_rom.py "$TEST_PACKAGE/Uniracers_USA.sfc"
           printf 'until 009F == D7 3600\nwait 30\ndump package-main-menu\nquit\n' > "$SCRIPT"
 
           PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"

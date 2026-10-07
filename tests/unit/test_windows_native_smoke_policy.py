@@ -17,6 +17,7 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
     def test_shipping_runtime_surfaces_retrigger_final_main_package_acceptance(self) -> None:
         for path in (
             '      - ".github/workflows/windows-native-smoke.yml"',
+            '      - "tools/verify_rom.py"',
             '      - "native/product/**"',
             '      - "native/presentation/**"',
             '      - "native/title/**"',
@@ -90,6 +91,14 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive-checksum", self.text)
         self.assertIn("Clean-package boot and per-user state anchoring", self.text)
+        self.assertIn(
+            'python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"',
+            self.text,
+        )
+        self.assertIn(
+            'python tools/verify_rom.py "$TEST_PACKAGE/Uniracers_USA.sfc"',
+            self.text,
+        )
         self.assertIn("WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok", self.text)
 
 

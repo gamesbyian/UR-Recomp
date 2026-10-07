@@ -5046,14 +5046,40 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
-            g_local_multiplayer_join_visible = false;
+            clear_local_multiplayer_session();
             product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK");
             return 1;
         }
-        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-            (void)local_multiplayer_assign_source(
+        if (key == SDLK_LEFT || key == SDLK_RIGHT) {
+            local_multiplayer_move_profile(
                 ur::product::LocalMultiplayerSlot::Player1,
-                {ur::product::LocalInputKind::Keyboard, 1u, true});
+                key == SDLK_RIGHT ? 1 : -1);
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            const auto slot = ur::product::LocalMultiplayerSlot::Player1;
+            if (!g_local_multiplayer_setup.player1.assigned) {
+                (void)local_multiplayer_assign_source(
+                    slot,
+                    {ur::product::LocalInputKind::Keyboard, 1u, true});
+            } else {
+                (void)local_multiplayer_confirm_profile(slot);
+            }
+            return 1;
+        }
+        if (key == SDLK_BACKSPACE) {
+            const auto slot = ur::product::LocalMultiplayerSlot::Player1;
+            if (ur::product::local_multiplayer_participant(
+                    g_local_multiplayer_participants, slot)) {
+                g_local_multiplayer_participants =
+                    ur::product::local_multiplayer_clear_profile(
+                        g_local_multiplayer_participants, slot).state;
+                g_local_multiplayer_participants_ready = false;
+            } else {
+                const auto left = ur::product::local_multiplayer_leave(
+                    g_local_multiplayer_setup, slot);
+                if (left.applied()) g_local_multiplayer_setup = left.state;
+            }
             return 1;
         }
         return 1;
@@ -5272,8 +5298,15 @@ extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
     if (!connected) g_local_multiplayer_consumed_buttons[seat] = 0u;
     g_local_multiplayer_setup = ur::product::local_multiplayer_set_connected(
         g_local_multiplayer_setup, source, connected != 0);
-    if (!connected && g_local_multiplayer_join_visible) {
-        product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
+    if (!connected) {
+        const auto slot = local_multiplayer_slot_for_player(player_index);
+        g_local_multiplayer_participants =
+            ur::product::local_multiplayer_clear_profile(
+                g_local_multiplayer_participants, slot).state;
+        g_local_multiplayer_participants_ready = false;
+        if (g_local_multiplayer_join_visible) {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
+        }
     }
 }
 
@@ -5304,14 +5337,35 @@ extern "C" int ur_uniracers_modern_system_gamepad_source_button(
     const auto source = local_multiplayer_controller_source(source_id, true);
     g_local_multiplayer_sources[seat] = source;
 
+    if (button == kGamepadBtn_DpadLeft ||
+        button == kGamepadBtn_DpadRight) {
+        local_multiplayer_move_profile(
+            slot, button == kGamepadBtn_DpadRight ? 1 : -1);
+        return 1;
+    }
     if (button == kGamepadBtn_B) {
-        const auto left =
-            ur::product::local_multiplayer_leave(g_local_multiplayer_setup, slot);
-        if (left.applied()) g_local_multiplayer_setup = left.state;
+        if (ur::product::local_multiplayer_participant(
+                g_local_multiplayer_participants, slot)) {
+            g_local_multiplayer_participants =
+                ur::product::local_multiplayer_clear_profile(
+                    g_local_multiplayer_participants, slot).state;
+            g_local_multiplayer_participants_ready = false;
+        } else {
+            const auto left = ur::product::local_multiplayer_leave(
+                g_local_multiplayer_setup, slot);
+            if (left.applied()) g_local_multiplayer_setup = left.state;
+        }
         return 1;
     }
     if (button == kGamepadBtn_A || button == kGamepadBtn_Start) {
-        (void)local_multiplayer_assign_source(slot, source);
+        const auto& assignment =
+            ur::product::local_multiplayer_assignment(
+                g_local_multiplayer_setup, slot);
+        if (!assignment.assigned) {
+            (void)local_multiplayer_assign_source(slot, source);
+        } else {
+            (void)local_multiplayer_confirm_profile(slot);
+        }
         return 1;
     }
     return 1;

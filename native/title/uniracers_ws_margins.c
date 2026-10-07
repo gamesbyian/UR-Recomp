@@ -21,29 +21,6 @@ static uint16_t read16(const uint8_t* wram, uint32_t addr) {
                       ((uint16_t)wram[addr + 1u] << 8));
 }
 
-static int floor_div_pow2_i64(int64_t value, unsigned shift, int* out) {
-    const int64_t divisor = INT64_C(1) << shift;
-    int64_t quotient = value / divisor;
-    if (value < 0 && value % divisor != 0)
-        quotient--;
-    if (quotient < INT_MIN || quotient > INT_MAX)
-        return 0;
-    *out = (int)quotient;
-    return 1;
-}
-
-static int apply_scroll_delta(uint32_t value, uint16_t delta,
-                              uint32_t* out) {
-    delta &= 0x3FFu;
-    const int32_t signed_delta =
-        delta >= 0x200u ? (int32_t)delta - 0x400 : (int32_t)delta;
-    const int64_t next = (int64_t)value + signed_delta;
-    if (next < 0 || (uint64_t)next > UINT32_MAX)
-        return 0;
-    *out = (uint32_t)next;
-    return 1;
-}
-
 int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
                       uint16_t* out) {
     if (!wram || !out)
@@ -212,6 +189,29 @@ int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
 #include "common_rtl.h"
 #include "snes/ppu.h"
 #include "snes/ws_shadow.h"
+
+static int floor_div_pow2_i64(int64_t value, unsigned shift, int* out) {
+    const int64_t divisor = INT64_C(1) << shift;
+    int64_t quotient = value / divisor;
+    if (value < 0 && value % divisor != 0)
+        quotient--;
+    if (quotient < INT_MIN || quotient > INT_MAX)
+        return 0;
+    *out = (int)quotient;
+    return 1;
+}
+
+static int apply_scroll_delta(uint32_t value, uint16_t delta,
+                              uint32_t* out) {
+    delta &= 0x3FFu;
+    const int32_t signed_delta =
+        delta >= 0x200u ? (int32_t)delta - 0x400 : (int32_t)delta;
+    const int64_t next = (int64_t)value + signed_delta;
+    if (next < 0 || (uint64_t)next > UINT32_MAX)
+        return 0;
+    *out = (uint32_t)next;
+    return 1;
+}
 
 enum {
     kCalibrationRadius = 3,

@@ -24,8 +24,9 @@ int main() {
     assert(view.rows[11].key_label == "NONE");
     assert(view.rows[11].selected);
     assert(!view.rows[11].capturing);
-    assert(view.instruction == "A/ENTER SET  B/ESC BACK");
-    assert(view.instruction_detail == "X/DEL CLEAR  Y/R RESET");
+    // Default glyphs are the positional pad buttons that produce SNES A/B/X/Y.
+    assert(view.instruction == "B/ENTER SET  A/ESC BACK");
+    assert(view.instruction_detail == "Y/DEL CLEAR  X/R RESET");
     // Both lines fit the narrowest pause-family panel (24 cells).
     assert(view.instruction.size() <= 24u);
     assert(view.instruction_detail.size() <= 24u);
@@ -34,7 +35,16 @@ int main() {
     view = present_modern_controls(state, keys);
     assert(view.rows[11].capturing);
     assert(view.instruction == "PRESS A KEY");
-    assert(view.instruction_detail == "ESC / B CANCEL");
+    assert(view.instruction_detail == "ESC / A CANCEL");
+
+    // Hints follow the live map rather than the SNES letters.
+    ur::product::ModernControlsPadGlyphs remapped;
+    remapped.confirm = "RT";
+    remapped.back = "LT";
+    state.capturing = false;
+    view = present_modern_controls(state, keys, remapped);
+    // Width is the host's job: it fits every Controls line to the panel.
+    assert(view.instruction == "RT/ENTER SET  LT/ESC BACK");
 
     return 0;
 }

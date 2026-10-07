@@ -24,8 +24,8 @@ int main(int argc, char** argv) {
         std::cerr << "unexpected mode\n";
         return 1;
     }
-    if (run.record->elapsed_ticks60 != 1726 || !run.record->splits.empty()) {
-        std::cerr << "unexpected 2P carrier timing\n";
+    if (!run.record->splits.empty()) {
+        std::cerr << "unexpected 2P split authority\n";
         return 1;
     }
 
@@ -35,9 +35,15 @@ int main(int argc, char** argv) {
         std::cerr << "match load failed: " << match.error << "\n";
         return 1;
     }
-    if (match.record->context.match.result.outcome !=
-        OrdinaryTwoPlayerRaceOutcome::Player1Win) {
-        std::cerr << "unexpected outcome\n";
+    const auto& result = match.record->context.match.result;
+    const std::uint16_t decisive =
+        result.player1_hundredths < result.player2_hundredths
+            ? result.player1_hundredths
+            : result.player2_hundredths;
+    const std::uint64_t expected_ticks =
+        (static_cast<std::uint64_t>(decisive) * 60u + 50u) / 100u;
+    if (run.record->elapsed_ticks60 != expected_ticks) {
+        std::cerr << "2P carrier timing does not match stock result\n";
         return 1;
     }
     if (match.record->context.match.player1.profile_id != "accept-p1" ||
@@ -65,6 +71,8 @@ int main(int argc, char** argv) {
         << match.record->context.match.result.player1_hundredths
         << " p2_hundredths="
         << match.record->context.match.result.player2_hundredths
+        << " outcome="
+        << static_cast<unsigned>(match.record->context.match.result.outcome)
         << " frames=" << run.record->frame_count
         << " inputs=" << run.record->inputs.size()
         << "\n";

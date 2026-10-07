@@ -58,6 +58,8 @@ on:
       - "tests/unit/test_completed_run_ghost_racer_selector_cpp.py"
       - "tests/unit/test_completed_run_ghost_raster_cpp.py"
       - "tests/unit/test_completed_run_ghost_trace_cpp.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/completed-run-replay-acceptance.yml"
 
 concurrency:

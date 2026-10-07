@@ -1106,7 +1106,7 @@ void draw_records_browser(
         }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + panel_h - 26,
-            "ESC / B    COURSES", 0xFFFFFFFFu, 1);
+            "ESC / B    TRACKS", 0xFFFFFFFFu, 1);
     } else {
         const auto* course = g_records_browser.selected_course();
         const auto* selected = g_records_browser.selected_run();

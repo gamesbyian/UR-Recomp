@@ -47,7 +47,7 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("g_multiplayer_match_browser.move(delta)", source)
         self.assertIn("g_multiplayer_match_browser.open_selected()", source)
         self.assertIn("g_multiplayer_match_browser.back()", source)
-        self.assertIn("g_multiplayer_match_browser.row_presentation(index)", source)
+        self.assertIn("g_multiplayer_match_browser.visible_rows(", source)
         self.assertIn(
             "g_multiplayer_match_browser.selected_detail_presentation()", source
         )

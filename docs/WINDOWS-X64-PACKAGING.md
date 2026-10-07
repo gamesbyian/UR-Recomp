@@ -28,6 +28,8 @@ The portable package contains:
 
 The Windows x64 workflow is the authoritative end-to-end validator for the **assembled package**, not only the CMake build tree. Repository CI policy deliberately keeps that workflow on final `main`, so PRs rely on focused unit/static contracts and the integrated tree performs the full Windows package/boot acceptance.
 
+Because that regression is path-filtered, every source surface compiled into the shipping Windows consumer must retrigger it. The current contract explicitly includes `native/product/**`, `native/presentation/**`, and `native/title/**`; unit policy coverage guards those triggers so presenter/runtime changes cannot silently bypass assembled-package acceptance.
+
 The implemented acceptance sequence covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;

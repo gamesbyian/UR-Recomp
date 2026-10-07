@@ -121,6 +121,32 @@ int main() {
         mismatched_split_target,
         RunDataTargetKind::PersonalBest));
 
+    auto previous_target = record;
+    previous_target.elapsed_ticks60 = 1750;
+    previous_target.splits = {
+        {"checkpoint-1", 850},
+        {"finish", 1750},
+    };
+    const auto previous_summary = present_run_result_summary_against(
+        current, previous_target, RunDataTargetKind::Previous);
+    assert(previous_summary);
+    assert(previous_summary->finish.target_label == "PREVIOUS");
+    assert(previous_summary->finish.target_text == "0:29.10/60");
+    assert(previous_summary->finish.comparison_text == "-0:00.25/60");
+    assert(previous_summary->splits.size() == 2);
+    assert(previous_summary->splits[0].current_text == "0:14.04/60");
+    assert(previous_summary->splits[0].target_text == "0:14.10/60");
+    assert(previous_summary->splits[0].delta_text == "-0:00.06/60");
+    assert(previous_summary->splits[1].target_text == "0:29.10/60");
+    assert(previous_summary->splits[1].delta_text == "-0:00.25/60");
+
+    auto incompatible_summary_target = previous_target;
+    incompatible_summary_target.provenance.course_id = "course:02";
+    assert(!present_run_result_summary_against(
+        current,
+        incompatible_summary_target,
+        RunDataTargetKind::Previous));
+
     const auto result_summary =
         present_run_result_summary(current, &record);
     assert(result_summary);

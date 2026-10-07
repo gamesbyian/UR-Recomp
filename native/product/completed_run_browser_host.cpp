@@ -1117,7 +1117,7 @@ void draw_records_browser(
             } else {
                 snes_ovl_draw_text(
                     pixels, stride, height, x + 8, y + 7,
-                    "RECORDS / MULTIPLAYER-TOURNAMENT", 0xFFFFFFFFu, 1);
+                    "RECORDS / MULTIPLAYER", 0xFFFFFFFFu, 1);
 
                 char summary[96];
                 if (g_multiplayer_match_health.unavailable_pairs()) {
@@ -1181,7 +1181,7 @@ void draw_records_browser(
                     pixels, stride, height, x + 8, y + panel_h - 26,
                     g_multiplayer_match_browser.empty()
                         ? "ESC / B    BACK"
-                        : "ENTER / A  DETAIL   ESC / B BACK",
+                        : "ENTER/A DETAIL  ESC/B BACK",
                     0xFFFFFFFFu, 1);
             }
         } else {

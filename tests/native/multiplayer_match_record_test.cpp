@@ -167,6 +167,41 @@ int main() {
     }
 
     {
+        const auto pair_root =
+            std::filesystem::temp_directory_path() / "ur-records-match-pair";
+        std::filesystem::remove_all(pair_root);
+        std::string pair_path;
+        detail.clear();
+        assert(append_multiplayer_match_pair(
+            pair_root.string(), run, original, &pair_path, &detail));
+        assert(!pair_path.empty());
+        assert(std::filesystem::exists(pair_path));
+        assert(std::filesystem::exists(
+            multiplayer_match_record_path_for_run(pair_path)));
+
+        const auto pair_run =
+            load_completed_run_record_file(pair_path);
+        assert(pair_run.loaded());
+        const auto pair_match =
+            load_multiplayer_match_record_for_run(
+                pair_path, *pair_run.record);
+        assert(pair_match);
+
+        auto unbound = original;
+        unbound.run_artifact_checksum = "0123456789abcdef";
+        const auto before = std::distance(
+            std::filesystem::directory_iterator(pair_root),
+            std::filesystem::directory_iterator{});
+        assert(!append_multiplayer_match_pair(
+            pair_root.string(), run, unbound, nullptr, &detail));
+        const auto after = std::distance(
+            std::filesystem::directory_iterator(pair_root),
+            std::filesystem::directory_iterator{});
+        assert(before == after);
+        std::filesystem::remove_all(pair_root);
+    }
+
+    {
         std::ofstream oversized(path, std::ios::binary | std::ios::trunc);
         oversized << std::string(4097, 'x');
     }

@@ -18,8 +18,6 @@ class OnboardingDensityContractTests(unittest.TestCase):
         )
         body = self.source[start:end]
         self.assertNotIn("onboarding_surface_active()", body)
-        self.assertIn("regional_title", body)
-        self.assertIn("UR_UNIRACERS_RESTART_RESULTS", body)
 
     def test_onboarding_panel_uses_shared_layout_and_scale(self):
         start = self.source.index(

@@ -620,8 +620,10 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                        ur::product::CompletedRunRecordsView::Courses &&
                    g_records_root_section ==
                        RecordsRootSection::MultiplayerTournament) {
-            // No durable match rows exist yet; do not move the hidden Tracks
-            // cursor while the fail-closed multiplayer view is selected.
+            if (g_multiplayer_match_browser.view() ==
+                ur::product::MultiplayerMatchBrowserView::List) {
+                (void)g_multiplayer_match_browser.move(delta);
+            }
         } else {
             (void)g_records_browser.move(delta);
         }
@@ -633,6 +635,12 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     if (adjustment != 0 &&
         g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Courses) {
+        if (g_records_root_section ==
+                RecordsRootSection::MultiplayerTournament &&
+            g_multiplayer_match_browser.view() ==
+                ur::product::MultiplayerMatchBrowserView::Detail) {
+            return true;
+        }
         adjust_records_root_section(adjustment);
         return true;
     }
@@ -667,8 +675,10 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                        ur::product::CompletedRunRecordsView::Courses &&
                    g_records_root_section ==
                        RecordsRootSection::MultiplayerTournament) {
-            // The destination exists before its history authority. Confirm is
-            // deliberately inert until durable match rows can be populated.
+            if (g_multiplayer_match_browser.view() ==
+                ur::product::MultiplayerMatchBrowserView::List) {
+                (void)g_multiplayer_match_browser.open_selected();
+            }
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();
@@ -680,6 +690,13 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     }
     if (ur_modern_host_navigation_is_back(action)) {
         if (g_records_browser.view() ==
+                ur::product::CompletedRunRecordsView::Courses &&
+            g_records_root_section ==
+                RecordsRootSection::MultiplayerTournament &&
+            g_multiplayer_match_browser.view() ==
+                ur::product::MultiplayerMatchBrowserView::Detail) {
+            (void)g_multiplayer_match_browser.back();
+        } else if (g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Detail) {
             (void)g_records_browser.back_to_runs();
         } else if (g_records_browser.view() ==

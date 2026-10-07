@@ -43,7 +43,8 @@ constexpr bool racer_hd_asset_available(std::uint16_t semantic_frame_id) noexcep
            semantic_frame_id == 0x03B9 ||
            semantic_frame_id == 0x0339 ||
            semantic_frame_id == 0x0379 ||
-           semantic_frame_id == 0x05F9;
+           semantic_frame_id == 0x05F9 ||
+           semantic_frame_id == 0x0546;
 }
 
 // The generic candidate remains a deterministic contract-only fallback for
@@ -410,6 +411,20 @@ constexpr bool is_authored_broader_05f9_p1_registration(
            c.p1_companion == 0x0000 &&
            c.p1_selector == 0 &&
            c.p1_companion_gate_word == 0x0000;
+}
+
+
+constexpr bool is_authored_broader_0546_p2_0eb2_registration(
+    const RacerRegistration& registration
+) noexcept {
+    const auto& c = registration.composition;
+    return registration.player == 2 &&
+           registration.semantic_frame_id == 0x0546 &&
+           registration.player_local_guard &&
+           c.p2_primary == 0x0546 &&
+           c.p2_companion == 0x0EB2 &&
+           c.p2_selector == 0 &&
+           c.p2_companion_gate_word == 0x0001;
 }
 
 
@@ -2429,6 +2444,42 @@ constexpr std::uint32_t sample_racer_hd_authored_05f9_p1_broader(
 }
 
 
+constexpr std::uint32_t sample_racer_hd_authored_0546_p2_0eb2_broader(
+    int x, int y, bool hflip, bool vflip
+) noexcept {
+    if (x < 0 || y < 0 || x >= kRacerHdAssetSize || y >= kRacerHdAssetSize) return 0;
+    if (hflip) x = kRacerHdAssetSize - 1 - x;
+    if (vflip) y = kRacerHdAssetSize - 1 - y;
+
+    constexpr int wheel_cx = 104;
+    constexpr int wheel_cy = 115;
+    const int dx = x - wheel_cx;
+    const int dy = y - wheel_cy;
+    const int r2 = dx * dx + dy * dy;
+    const bool tire = r2 <= 38 * 38 && r2 >= 25 * 25;
+    const bool rim = r2 < 25 * 25 && r2 >= 22 * 22;
+    const bool hub = r2 <= 5 * 5;
+    const bool wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy);
+
+    const bool frame = authored_segment_contains(x, y, 104, 112, 152, 48, 7);
+    const bool saddle_upper =
+        authored_segment_contains(x, y, 128, 28, 168, 28, 10);
+    const bool saddle_lower =
+        authored_segment_contains(x, y, 136, 48, 168, 48, 6);
+
+    if (hub) return authored_hub_hardware_color(x, y, wheel_cx, wheel_cy);
+    if (rim || wheel_spokes) {
+        return authored_rim_hardware_color(x, y, wheel_cx, wheel_cy);
+    }
+    if (saddle_upper || saddle_lower) {
+        return authored_saddle_color(x, y, 148, 32, 12);
+    }
+    if (frame) return authored_blue_frame_color(x, y);
+    if (tire) return authored_rubber_color(x, y, wheel_cx, wheel_cy);
+    return 0;
+}
+
+
 constexpr std::uint32_t sample_racer_hd_authored_0543_p1_third_family(
     int x, int y, bool hflip, bool vflip
 ) noexcept {
@@ -2630,6 +2681,9 @@ constexpr std::uint32_t sample_racer_hd_asset(
     }
     if (is_authored_broader_05f9_p1_registration(registration)) {
         return sample_racer_hd_authored_05f9_p1_broader(x, y, hflip, vflip);
+    }
+    if (is_authored_broader_0546_p2_0eb2_registration(registration)) {
+        return sample_racer_hd_authored_0546_p2_0eb2_broader(x, y, hflip, vflip);
     }
     if (is_authored_frequency_0544_p1_0578_registration(registration)) {
         return sample_racer_hd_authored_0544_p1_frequency(x, y, hflip, vflip);

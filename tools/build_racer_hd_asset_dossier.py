@@ -234,6 +234,9 @@ FIFTY_FIRST_AUTHORED_REPRESENTATION_ID = (
 FIFTY_SECOND_AUTHORED_REPRESENTATION_ID = (
     "ordinary-racer-0x05F9-p1-broader-frequency-reference"
 )
+FIFTY_THIRD_AUTHORED_REPRESENTATION_ID = (
+    "ordinary-racer-0x0546-p2-companion-0EB2-broader-frequency-reference"
+)
 
 
 def _rgba32(r: int, g: int, b: int, a: int = 255) -> bytes:
@@ -1984,6 +1987,44 @@ def build_thirty_fifth_authored_candidate_rgba() -> bytes:
     )
 
 
+def sample_authored_0546_p2_0eb2_broader_rgba(x: int, y: int) -> bytes:
+    """Fresh measured P2 0546/0EB2 pose in the established material language."""
+    if x < 0 or y < 0 or x >= W * 4 or y >= H * 4:
+        return b"\x00\x00\x00\x00"
+
+    wheel_cx, wheel_cy = 104, 115
+    dx, dy = x - wheel_cx, y - wheel_cy
+    r2 = dx * dx + dy * dy
+    tire = r2 <= 38 * 38 and r2 >= 25 * 25
+    rim = r2 < 25 * 25 and r2 >= 22 * 22
+    hub = r2 <= 5 * 5
+    wheel_spokes = authored_wheel_spokes(x, y, wheel_cx, wheel_cy)
+
+    frame = authored_segment_contains(x, y, 104, 112, 152, 48, 7)
+    saddle_upper = authored_segment_contains(x, y, 128, 28, 168, 28, 10)
+    saddle_lower = authored_segment_contains(x, y, 136, 48, 168, 48, 6)
+
+    if hub:
+        return authored_hub_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if rim or wheel_spokes:
+        return authored_rim_hardware_rgba(x, y, wheel_cx, wheel_cy)
+    if saddle_upper or saddle_lower:
+        return authored_saddle_rgba(x, y, 148, 32, 12)
+    if frame:
+        return authored_blue_frame_rgba(x, y)
+    if tire:
+        return authored_rubber_rgba(x, y, wheel_cx, wheel_cy)
+    return b"\x00\x00\x00\x00"
+
+
+def build_thirty_sixth_authored_candidate_rgba() -> bytes:
+    return b"".join(
+        sample_authored_0546_p2_0eb2_broader_rgba(x, y)
+        for y in range(H * 4)
+        for x in range(W * 4)
+    )
+
+
 
 _RED_TO_BLUE_FRAME_RGBA = {
     _rgba32(232, 83, 83): _rgba32(83, 115, 232),
@@ -2381,6 +2422,12 @@ def authored_candidate_rgba_for_entry(entry: dict) -> tuple[bytes, str, str]:
             build_thirty_fifth_authored_candidate_rgba(),
             "tools/build_racer_hd_asset_dossier.py::build_thirty_fifth_authored_candidate_rgba",
             "sample_racer_hd_authored_05f9_p1_broader",
+        )
+    if rid == FIFTY_THIRD_AUTHORED_REPRESENTATION_ID:
+        return (
+            build_thirty_sixth_authored_candidate_rgba(),
+            "tools/build_racer_hd_asset_dossier.py::build_thirty_sixth_authored_candidate_rgba",
+            "sample_racer_hd_authored_0546_p2_0eb2_broader",
         )
     raise ValueError(f"unsupported authored candidate registration: {rid}")
 

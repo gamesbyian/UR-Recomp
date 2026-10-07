@@ -70,9 +70,9 @@ bool append_completed_run_record(
     return false;
 }
 
-std::vector<StoredRunRecord> load_valid_run_records(
-    const std::string& directory) {
-    std::vector<StoredRunRecord> out;
+std::vector<InspectedRunRecordArtifact>
+inspect_completed_run_record_artifacts(const std::string& directory) {
+    std::vector<InspectedRunRecordArtifact> out;
     std::error_code ec;
     if (!fs::exists(directory, ec) || ec) return out;
 
@@ -85,11 +85,56 @@ std::vector<StoredRunRecord> load_valid_run_records(
     if (ec) return {};
 
     std::sort(paths.begin(), paths.end());
+    out.reserve(paths.size());
     for (const auto& path : paths) {
         auto loaded = load_completed_run_record_file(path.string());
-        if (loaded.loaded()) {
-            out.push_back({path.string(), std::move(*loaded.record)});
+        InspectedRunRecordArtifact artifact;
+        artifact.path = path.string();
+        artifact.status = loaded.status;
+        artifact.detail = std::move(loaded.detail);
+        artifact.record = std::move(loaded.record);
+        out.push_back(std::move(artifact));
+    }
+    return out;
+}
+
+RunRecordArtifactHealth summarize_run_record_artifact_health(
+    const std::vector<InspectedRunRecordArtifact>& artifacts) {
+    RunRecordArtifactHealth health;
+    health.total_artifacts = artifacts.size();
+    for (const auto& artifact : artifacts) {
+        switch (artifact.status) {
+        case RunRecordLoadStatus::Loaded:
+            if (artifact.record) ++health.loaded_artifacts;
+            else ++health.malformed_artifacts;
+            break;
+        case RunRecordLoadStatus::IoError:
+            ++health.io_errors;
+            break;
+        case RunRecordLoadStatus::UnsupportedVersion:
+            ++health.unsupported_artifacts;
+            break;
+        case RunRecordLoadStatus::Corrupt:
+            ++health.corrupt_artifacts;
+            break;
+        case RunRecordLoadStatus::Malformed:
+        case RunRecordLoadStatus::Incompatible:
+        default:
+            ++health.malformed_artifacts;
+            break;
         }
+    }
+    return health;
+}
+
+std::vector<StoredRunRecord> load_valid_run_records(
+    const std::string& directory) {
+    std::vector<StoredRunRecord> out;
+    auto artifacts = inspect_completed_run_record_artifacts(directory);
+    out.reserve(artifacts.size());
+    for (auto& artifact : artifacts) {
+        if (!artifact.loaded()) continue;
+        out.push_back({artifact.path, std::move(*artifact.record)});
     }
     return out;
 }

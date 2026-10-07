@@ -29,6 +29,12 @@ For temporal/video divergences, first localize with machine-friendly methods: fr
 Rigor should scale with downstream consequence. A claim that changes authoritative simulation or a hardware-compatibility rule deserves stronger independent corroboration than a cosmetic/layout observation or an archival inference. Once additional evidence is unlikely to change implementation, a gate, or the confidence class, stop.
 
 
+## Human playtest evidence
+
+Expert/community playtesting is a **discriminator surface**, not an alternate simulation oracle. `EXPERT-PLAYTEST-PROTOCOL.md` defines the release-readiness pass and the privacy-safe `ur-recomp-playtest-report-v1` intake format. Valid reports bind one finding to an exact build revision and distribution-artifact SHA-256, record the tested region/execution/view/graphics context, and deliberately exclude tester identity/contact data.
+
+A human report may directly motivate a host/product test for a presentation or UX issue. A report that could imply a physics, collision, timing, camera/gameplay, AI, RNG or progression difference must first be reproduced against the canonical original/reference route. Promote resolved simulation findings into `tests/fixtures.json` or an already-established title-specific acceptance harness rather than creating a parallel replay/evidence system.
+
 ## Deterministic cases
 
 The machine-readable fixture catalog is `tests/fixtures.json`. Each fixture names its controller script, purpose, execution engines, checkpoints, current comparison surfaces, and intended extensions. Add a fixture there when a replay becomes a durable regression workload.

@@ -109,7 +109,8 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             self.assertIn(marker, self.text)
 
     def test_startup_diagnostics_enforce_current_log_line_bound(self) -> None:
-        self.assertIn("assert_bounded_startup_log()", self.text)\n        self.assertIn('cat "$log"', self.text)
+        self.assertIn("assert_bounded_startup_log()", self.text)
+        self.assertIn('cat "$log"', self.text)
         self.assertIn('test "$(wc -l < "$log")" -le 11', self.text)
         for name in (
             "BROKEN_ROM_LOG",

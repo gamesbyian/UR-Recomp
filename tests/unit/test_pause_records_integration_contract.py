@@ -21,6 +21,9 @@ class PauseRecordsIntegrationContractTests(unittest.TestCase):
         self.assertIn('"> RECORDS"', modern)
         self.assertIn("ur_uniracers_product_open_records()", modern)
         self.assertIn("UR_PAUSE_RECORDS OPENED", modern)
+        self.assertIn("restart ? 144 : 129", modern)
+        self.assertIn("const int records_y = run_data_y + 15", modern)
+        self.assertIn("const int exit_y = records_y + 15", modern)
 
         self.assertIn("ur_uniracers_product_open_records(void)", header)
         self.assertIn("open_records_browser_impl(false)", browser)

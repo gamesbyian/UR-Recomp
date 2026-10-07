@@ -51,6 +51,8 @@ The next implementation should begin at the authoritative stock 2P results bound
 8. Broaden production capture only for that admitted ordinary-2P Race slice: retain the confirmed participant session, capture the existing P1/P2 resolved input stream, observe the authoritative result/course tuple, persist the paired artifacts, and prove fresh-process deterministic replay remains unchanged.
 9. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
 
+A read-only catalog substrate now exists independently of production capture: `multiplayer_match_catalog.*` scans the shared namespace in filename order but admits only a valid `race-2p` run whose sibling `.urmatch` reloads and binds to that exact run. Standalone/corrupt/wrong-mode runs and missing/bad sidecars contribute only unavailable-artifact health; they never become match rows. This is query substrate, not standings aggregation, and does not assume the live producer has passed native acceptance.
+
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition

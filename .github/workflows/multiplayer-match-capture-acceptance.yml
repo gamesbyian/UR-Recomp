@@ -11,7 +11,8 @@ on:
       - "native/product/run_record_capture_policy.hpp"
       - "native/title/uniracers_two_player_result.*"
       - "tests/input/two-player-p1-win.input"
-      - "tests/input/two-player-both-finish.input"
+      - "tests/input/two-player-records-acceptance.input"
+      - "tests/input/two-player-records-acceptance.script"
       - "tests/native/multiplayer_match_pair_check.cpp"
       - "tools/patch_modern_product_host.py"
       - "tools/bootstrap_toolchain.py"
@@ -96,11 +97,13 @@ jobs:
 
           set +e
           SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-both-finish.input" \
+          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.input" \
           UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
           UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
           UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 90s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+            timeout 90s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" \
+              >"$LOG" 2>&1
           RC=$?
           set -e
 

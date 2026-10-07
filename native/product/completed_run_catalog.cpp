@@ -170,7 +170,8 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
 
 RunRecordsProfileIndex build_run_records_profile_index(
     const std::vector<RunRecordsProfileSource>& profiles,
-    const RunRecordsScope& scope) {
+    const RunRecordsScope& scope,
+    const std::optional<std::string>& active_profile_id) {
     RunRecordsProfileIndex index;
     index.profiles.reserve(profiles.size());
 
@@ -183,6 +184,10 @@ RunRecordsProfileIndex build_run_records_profile_index(
         if (!summary) continue;
         index.total_completed_runs += summary->completed_runs;
         index.profiles.push_back(*summary);
+        if (active_profile_id &&
+            summary->profile_id == *active_profile_id) {
+            index.active_profile = index.profiles.size() - 1;
+        }
     }
     return index;
 }

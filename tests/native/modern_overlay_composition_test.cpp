@@ -5,6 +5,15 @@
 using namespace ur::product;
 
 int main() {
+    assert(resolve_modern_overlay_surface_scale(1, 256, 224) == 1);
+    assert(resolve_modern_overlay_surface_scale(2, 512, 448) == 2);
+    assert(resolve_modern_overlay_surface_scale(3, 1026, 672) == 3);
+    assert(resolve_modern_overlay_surface_scale(4, 1024, 896) == 4);
+    assert(resolve_modern_overlay_surface_scale(2, 511, 448) == 1);
+    assert(resolve_modern_overlay_surface_scale(2, 512, 447) == 1);
+    assert(resolve_modern_overlay_surface_scale(0, 256, 224) == 1);
+    assert(resolve_modern_overlay_surface_scale(5, 1280, 1120) == 1);
+
     const HostOutputViewport out_1080{0, 0, 1920, 1080};
 
     HostOverlayCompositionRequest timing{};

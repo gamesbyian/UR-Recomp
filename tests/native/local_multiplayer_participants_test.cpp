@@ -64,6 +64,16 @@ int main() {
            LocalMultiplayerParticipantStatus::DuplicateProfile);
     assert(!duplicate.state.player2);
 
+    const auto case_alias = profile("IAN", "ANDREW", 1);
+    auto case_duplicate = local_multiplayer_select_profile(
+        participants,
+        joined_devices(),
+        LocalMultiplayerSlot::Player2,
+        case_alias);
+    assert(!case_duplicate.applied());
+    assert(case_duplicate.status ==
+           LocalMultiplayerParticipantStatus::DuplicateProfile);
+
     auto p2 = local_multiplayer_select_profile(
         participants,
         joined_devices(),
@@ -117,7 +127,7 @@ int main() {
     assert(!local_multiplayer_participants_ready(
         joined_devices(), cleared.state));
 
-    HostProfileCatalogEntry invalid{"", HostRacerIdentity{"MIKE", 0}};
+    HostProfileCatalogEntry invalid{"CON", HostRacerIdentity{"MIKE", 0}};
     auto invalid_result = local_multiplayer_select_profile(
         participants,
         joined_devices(),

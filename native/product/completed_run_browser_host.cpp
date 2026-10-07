@@ -1149,29 +1149,24 @@ void draw_records_browser(
                     }
                 }
 
-                std::size_t first = 0;
-                if (g_multiplayer_match_browser.selected_index() >=
-                    static_cast<std::size_t>(row_count)) {
-                    first = g_multiplayer_match_browser.selected_index() -
-                        static_cast<std::size_t>(row_count) + 1;
-                }
-                for (int row = 0; row < row_count; ++row) {
-                    const std::size_t index =
-                        first + static_cast<std::size_t>(row);
-                    const auto item =
-                        g_multiplayer_match_browser.row_presentation(index);
-                    if (!item) break;
+                const auto visible_matches =
+                    g_multiplayer_match_browser.visible_rows(
+                        static_cast<std::size_t>(row_count));
+                for (std::size_t row = 0;
+                     row < visible_matches.size();
+                     ++row) {
+                    const auto& item = visible_matches[row];
                     const std::string course =
-                        records_course_label(item->course_text);
+                        records_course_label(item.presentation.course_text);
                     char line[96];
                     std::snprintf(
                         line, sizeof(line), "%c %-12.12s %-12.12s",
-                        g_multiplayer_match_browser.selected_index() == index
-                            ? '>' : ' ',
+                        item.selected ? '>' : ' ',
                         course.c_str(),
-                        item->result_text.c_str());
+                        item.presentation.result_text.c_str());
                     snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 42 + row * 15,
+                        pixels, stride, height, x + 8,
+                        y + 42 + static_cast<int>(row) * 15,
                         line, 0xFFFFFFFFu, 1);
                 }
 

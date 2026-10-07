@@ -32,6 +32,13 @@ int main() {
     assert((at_2x.presentation_rect == HostOverlayRect{140, 16, 356, 104}));
     assert(at_2x.output_rect == at_1x.output_rect);
 
+    timing.presentation_scale = 3;
+    const auto at_3x = resolve_modern_overlay_composition(timing);
+    assert(at_3x.visible);
+    assert(at_3x.logical_rect == at_1x.logical_rect);
+    assert((at_3x.presentation_rect == HostOverlayRect{210, 24, 534, 156}));
+    assert(at_3x.output_rect == at_1x.output_rect);
+
     timing.presentation_scale = 4;
     const auto at_4x = resolve_modern_overlay_composition(timing);
     assert(at_4x.visible);
@@ -71,6 +78,14 @@ int main() {
     HostOverlayCompositionRequest invalid = timing;
     invalid.presentation_scale = 5;
     assert(!resolve_modern_overlay_composition(invalid).visible);
+
+    HostOverlayCompositionRequest resized = timing;
+    resized.presentation_scale = 2;
+    resized.output_viewport = HostOutputViewport{160, 152, 960, 720};
+    const auto resized_plan = resolve_modern_overlay_composition(resized);
+    assert(resized_plan.visible);
+    assert(resized_plan.logical_rect == at_1x.logical_rect);
+    assert((resized_plan.output_rect == HostOverlayRect{423, 178, 667, 167}));
 
     HostOverlayCompositionRequest bottom{};
     bottom.logical_surface_width = 256;

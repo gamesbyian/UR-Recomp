@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; broader P1 player-local families through 0139 are measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; broader P1 player-local families through 0539 are measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -402,29 +402,70 @@
         "artifact_id": 11459174438,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 724,
-    "original_fallback_player_frames": 4558,
-    "hd_coverage_fraction": 0.13706929193487316,
-    "cumulative_player_frames_removed": 606,
-    "absolute_coverage_gain_percentage_points": 11.4729269216206,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.11735089078233928
-  },
-  "next_discriminator": {
-    "status": "measured-post-0139-leader",
-    "target": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x0539",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 68,
+      "player_frames_removed": 68,
       "episode_count": 49,
-      "unique_stock_raster_count": 1,
+      "synchronized_witness_state_count": 47,
       "stock_rgba_sha256": "ba0464a8c49010fa6647de488f01abbc4cadda4fa6ad02643acd13913fbd2c36",
       "normalized_geometry_sha256": "62d339ded8473e00b8a8df7449a9b1fb1be25eb6be915d3f5e9b70c603ea0f02",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-0539.json",
+      "authored_rgba_sha256": "49128053e4bdef20f5bf5b307c5cbe9be347b2b8ebf142501a96f4e9fa118d03",
+      "review_alpha_iou": 0.747093023255814,
+      "review_evidence": {
+        "workflow_run": 37570066553,
+        "artifact_id": 11460247831
+      },
+      "after": {
+        "hd_selected_player_frames": 792,
+        "original_fallback_player_frames": 4490,
+        "hd_coverage_fraction": 0.14994320333207117
+      },
+      "focused_reproduction": {
+        "workflow_run": 37571071082,
+        "artifact_id": 11460950790,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 792,
+    "original_fallback_player_frames": 4490,
+    "hd_coverage_fraction": 0.14994320333207117,
+    "cumulative_player_frames_removed": 674,
+    "absolute_coverage_gain_percentage_points": 12.760318061340401,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.13051897753679317
+  },
+  "next_discriminator": {
+    "status": "measured-post-0539-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x05B9",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 66,
+      "episode_count": 46,
+      "synchronized_witness_state_count": 44,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "243fb71c2326888f303df5552fe96eebf0c1b89e0e4e1e6c2e6171937e96aec6",
+      "normalized_geometry_sha256": "263c42b83e0a9ebb59f30e1215757a867fa9bf9a3dea467a31aa9dd42825a691",
       "alpha_bounds": [
         18,
         5,
@@ -439,6 +480,6 @@
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "0539 is the next bounded shipping slice by measured post-0139 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+    "rule": "05B9 is the next bounded shipping slice by measured post-0539 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

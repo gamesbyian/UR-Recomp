@@ -65,4 +65,13 @@ MultiplayerMatchArtifactHealth summarize_multiplayer_match_artifact_health(
 std::vector<StoredMultiplayerMatch> load_valid_multiplayer_matches(
     const std::string& directory);
 
+/* Query only already-admitted pairs. These helpers do not compute standings. */
+std::vector<StoredMultiplayerMatch> filter_multiplayer_matches_for_profile(
+    const std::vector<StoredMultiplayerMatch>& matches,
+    const std::string& profile_id);
+
+std::vector<StoredMultiplayerMatch> filter_multiplayer_matches_for_course(
+    const std::vector<StoredMultiplayerMatch>& matches,
+    const std::string& course_id);
+
 }  // namespace ur::product

@@ -75,6 +75,12 @@ Some strong public statements were surfaced by search, but the indexed result di
 - Reddit, r/videogames, 2024: commenter answered an “official remake” question with “Uniracers, obviously,” describing it as one of their favorite games.
   - https://www.reddit.com/r/videogames/comments/1d5z9l1/
 
+## Playtest intake contract
+
+When any lead or other tester eventually participates, retain findings through `EXPERT-PLAYTEST-PROTOCOL.md` and the canonical `ur-recomp-playtest-report-v1` report contract. The report deliberately does **not** carry names, handles, email addresses, private-message text or other contact data; this lead list remains the public-provenance surface.
+
+Bind every retained finding to the exact build revision and tested artifact SHA-256, and keep one bounded finding per report. Player testimony identifies where to measure. Simulation-affecting changes still require canonical runtime/reference evidence and promotion into the existing deterministic fixture system.
+
 ## Suggested use
 
 Prioritize testers who combine:

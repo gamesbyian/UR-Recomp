@@ -29,6 +29,12 @@ For temporal/video divergences, first localize with machine-friendly methods: fr
 Rigor should scale with downstream consequence. A claim that changes authoritative simulation or a hardware-compatibility rule deserves stronger independent corroboration than a cosmetic/layout observation or an archival inference. Once additional evidence is unlikely to change implementation, a gate, or the confidence class, stop.
 
 
+## Human playtest evidence
+
+Expert/community playtesting is a **discriminator surface**, not an alternate simulation oracle. `EXPERT-PLAYTEST-PROTOCOL.md` defines the release-readiness pass and the privacy-safe `ur-recomp-playtest-report-v1` intake format. Valid reports bind one finding to an exact build revision and distribution-artifact SHA-256, record the tested region/execution/view/graphics context, and deliberately exclude tester identity/contact data.
+
+A human report may directly motivate a host/product test for a presentation or UX issue. A report that could imply a physics, collision, timing, camera/gameplay, AI, RNG or progression difference must first be reproduced against the canonical original/reference route. Promote resolved simulation findings into `tests/fixtures.json` or an already-established title-specific acceptance harness rather than creating a parallel replay/evidence system.
+
 ## Deterministic cases
 
 The machine-readable fixture catalog is `tests/fixtures.json`. Each fixture names its controller script, purpose, execution engines, checkpoints, current comparison surfaces, and intended extensions. Add a fixture there when a replay becomes a durable regression workload.
@@ -63,7 +69,7 @@ Do not extend these warning requirements mechanically into vendored or imported 
 
 ## Windows release artifact identity
 
-The portable Windows x64 release path verifies the assembled package tree, verifies the final ZIP, and boots the extracted ZIP rather than the build tree. Package files remain read-only; mutable state lives outside the extracted package.
+The portable Windows x64 release path verifies the assembled package tree, verifies the final ZIP, and boots the extracted ZIP rather than the build tree. Package files remain read-only; mutable state lives outside the extracted package. Release-facing startup failures are classified by known subsystem where the host can already identify ownership: ROM, save-root/runtime data, video, audio, and controller initialization each have stable `UR-STARTUP-*` codes. `UR-STARTUP-UNKNOWN` remains only a defensive logging fallback for a caller that supplies no code; no currently classified startup path intentionally emits it.
 
 The ZIP constructor normalizes archive entry order, timestamp, compression metadata, and file mode. Release acceptance rebuilds a second ZIP from the same verified package tree and requires byte-for-byte equality before upload. It also retains a canonical `.sha256` sidecar for the uploaded ZIP so the exact distribution artifact can be identified before extraction. Release acceptance verifies that sidecar with the project-owned package tool itself, requiring one canonical LF-terminated lowercase-SHA256 line naming the exact archive and recomputing the digest before upload; this keeps release identity verification available on a plain Python-equipped Windows host rather than depending on a Unix checksum utility. The internal `PACKAGE-MANIFEST.json` remains the per-file integrity authority after extraction.
 

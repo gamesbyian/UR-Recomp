@@ -87,6 +87,19 @@ int main() {
     assert(!missing_pb.active());
     assert(!missing_pb.kind);
 
+    assert(next_completed_run_ghost_target(
+               CompletedRunGhostTarget::Off) ==
+           CompletedRunGhostTarget::Previous);
+    assert(next_completed_run_ghost_target(
+               CompletedRunGhostTarget::Previous) ==
+           CompletedRunGhostTarget::PersonalBest);
+    assert(next_completed_run_ghost_target(
+               CompletedRunGhostTarget::PersonalBest) ==
+           CompletedRunGhostTarget::Off);
+    assert(next_completed_run_ghost_target(
+               static_cast<CompletedRunGhostTarget>(255)) ==
+           CompletedRunGhostTarget::Off);
+
     assert(std::string(completed_run_ghost_target_name(
         CompletedRunGhostTarget::Off)) == "off");
     assert(std::string(completed_run_ghost_target_name(

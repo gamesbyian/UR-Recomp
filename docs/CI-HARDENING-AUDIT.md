@@ -79,6 +79,8 @@ ROM Baseline no longer depends on a recursive `snesrecomp` submodule checkout.
 It stages the repository-owned pinned SNESRecomp source through the same offline
 bootstrap path as the rest of the product.
 
+Pure header-only product models with Python compile/run wrappers must also trigger the tooling suite when the model header or native driver changes, not only when `tests/unit/**` happens to change in the same PR. The current narrow trigger set names the local-multiplayer setup, Modern root, semantic text catalog and readable-text layout contracts plus their native test drivers individually. Do not replace this with a broad `native/product/**` watch; add another exact path only when a concrete pure-model wrapper exists.
+
 ### Writer safety and timeouts
 
 Evidence workflows that commit and push generated reports serialize with

@@ -155,7 +155,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar -czf "$RUNNER_TEMP/native-ui-build.tar.gz"             -C "$RUNNER_TEMP" ur-recomp-build
+          tar -czf "$RUNNER_TEMP/native-ui-build.tar.gz" \
+            -C "$RUNNER_TEMP" ur-recomp-build
           test -s "$RUNNER_TEMP/native-ui-build.tar.gz"
 
       - name: Upload native UI candidate
@@ -183,7 +184,11 @@ jobs:
         shell: bash
         run: |
           sudo apt-get update
-          sudo apt-get install -y             xvfb xdotool             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+          sudo apt-get install -y \
+            xvfb xdotool \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
@@ -198,7 +203,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          tar -xzf "$RUNNER_TEMP/native-ui-build-artifact/native-ui-build.tar.gz"             -C "$RUNNER_TEMP"
+          tar -xzf "$RUNNER_TEMP/native-ui-build-artifact/native-ui-build.tar.gz" \
+            -C "$RUNNER_TEMP"
           EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
           test -x "$EXE"
 

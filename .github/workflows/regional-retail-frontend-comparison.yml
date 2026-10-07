@@ -88,12 +88,20 @@ jobs:
             "$RUNNER_TEMP/regional-frontend/dense-title-motion/dumps/title-motion/europe" \
             --out "$RUNNER_TEMP/regional-frontend/dense-title-motion/europe-motion.json"
 
+          python3 tools/compare_frontend_transition_reports.py \
+            "$RUNNER_TEMP/regional-frontend/dense-title-motion/usa-motion.json" \
+            "$RUNNER_TEMP/regional-frontend/dense-title-motion/europe-motion.json" \
+            --out "$RUNNER_TEMP/regional-frontend/dense-title-motion/retail-motion-comparison.json"
+
           echo "USA_TITLE_MOTION_BEGIN"
           cat "$RUNNER_TEMP/regional-frontend/dense-title-motion/usa-motion.json"
           echo "USA_TITLE_MOTION_END"
           echo "EUROPE_TITLE_MOTION_BEGIN"
           cat "$RUNNER_TEMP/regional-frontend/dense-title-motion/europe-motion.json"
           echo "EUROPE_TITLE_MOTION_END"
+          echo "RETAIL_TITLE_MOTION_COMPARISON_BEGIN"
+          cat "$RUNNER_TEMP/regional-frontend/dense-title-motion/retail-motion-comparison.json"
+          echo "RETAIL_TITLE_MOTION_COMPARISON_END"
 
       - name: Upload matched regional frontend evidence
         if: always()

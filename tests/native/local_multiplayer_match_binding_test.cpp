@@ -83,6 +83,43 @@ int main() {
     }
 
     {
+        const auto context = bind_local_multiplayer_match_context(
+            result(), p1, p2, UrUniracersCourseIdentity{1, 45});
+        assert(context.bound());
+        assert(context.participant_status ==
+               LocalMultiplayerMatchBindingStatus::Bound);
+        assert(context.context->course_id == "course:45");
+        assert(context.context->match.player1 == p1);
+        assert(context.context->match.player2 == p2);
+    }
+
+    {
+        const auto invalid = bind_local_multiplayer_match_context(
+            result(), p1, p2, UrUniracersCourseIdentity{0, 12});
+        assert(!invalid.bound());
+        assert(invalid.status ==
+               LocalMultiplayerMatchContextStatus::InvalidCourseIdentity);
+
+        const auto out_of_range = bind_local_multiplayer_match_context(
+            result(), p1, p2, UrUniracersCourseIdentity{1, 46});
+        assert(!out_of_range.bound());
+        assert(out_of_range.status ==
+               LocalMultiplayerMatchContextStatus::InvalidCourseIdentity);
+    }
+
+    {
+        auto wrong = p2;
+        wrong.identity.rider_index = 6;
+        const auto rejected = bind_local_multiplayer_match_context(
+            result(), p1, wrong, UrUniracersCourseIdentity{1, 12});
+        assert(!rejected.bound());
+        assert(rejected.status ==
+               LocalMultiplayerMatchContextStatus::ParticipantBindingRejected);
+        assert(rejected.participant_status ==
+               LocalMultiplayerMatchBindingStatus::RiderMismatch);
+    }
+
+    {
         // Outcome/timing are carried through from the title observer; the
         // identity binder neither recomputes nor ranks them.
         auto draw = result();

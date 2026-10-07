@@ -89,6 +89,8 @@ class WindowsPackageTests(unittest.TestCase):
             launcher = (package / "run-uniracers.cmd").read_text()
             readme = (package / "README.txt").read_text()
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
+            self.assertIn("static MSVC runtime", readme)
+            self.assertIn("Visual C++ Redistributable", readme)
             self.assertIn("Source revision: abc123", readme)
             self.assertIn("UR-STARTUP-*", readme)
             self.assertIn("Startup code guide:", readme)

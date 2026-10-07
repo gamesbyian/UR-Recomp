@@ -114,12 +114,35 @@ jobs:
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
             -DSNESRECOMP_SDL3_FETCH=ON \
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
             -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" --config Release --parallel 4
           EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
           test -n "$EXE"
           echo "EXE=$EXE" >> "$GITHUB_ENV"
           ls -la "$(dirname "$EXE")"
+
+          # Portable-package runtime boundary: SDL is static, and the app must
+          # not require a separately installed Visual C++ Redistributable.
+          EXE_WIN="$(cygpath -w "$EXE")"
+          export EXE_WIN
+          powershell.exe -NoProfile -Command '
+            $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+            $vs = & $vswhere -latest -property installationPath
+            if (-not $vs) { throw "Visual Studio installation not found" }
+            $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
+            $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
+              Sort-Object Name -Descending | Select-Object -First 1
+            if (-not $tools) { throw "MSVC tools directory not found" }
+            $dumpbin = Join-Path $tools.FullName "bin\Hostx64\x64\dumpbin.exe"
+            if (-not (Test-Path -LiteralPath $dumpbin)) { throw "dumpbin.exe not found" }
+            & $dumpbin /dependents $env:EXE_WIN
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ' | tee "$RUNNER_TEMP/windows-runtime-dependencies.log"
+          if grep -Eiq '(MSVCP[0-9_]*|VCRUNTIME[0-9_]*)\.dll'               "$RUNNER_TEMP/windows-runtime-dependencies.log"; then
+            echo "Portable executable unexpectedly depends on the Visual C++ Redistributable." >&2
+            exit 1
+          fi
 
       - name: Assemble and verify portable Windows package
         run: |

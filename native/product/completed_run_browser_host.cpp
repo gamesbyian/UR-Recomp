@@ -567,6 +567,12 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                        ur::product::CompletedRunRecordsView::Courses &&
                    g_records_root_section == RecordsRootSection::Profiles) {
             (void)move_records_profile(delta);
+        } else if (g_records_browser.view() ==
+                       ur::product::CompletedRunRecordsView::Courses &&
+                   g_records_root_section ==
+                       RecordsRootSection::MultiplayerTournament) {
+            // No durable match rows exist yet; do not move the hidden Tracks
+            // cursor while the fail-closed multiplayer view is selected.
         } else {
             (void)g_records_browser.move(delta);
         }
@@ -608,6 +614,12 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                     std::fflush(stderr);
                 }
             }
+        } else if (g_records_browser.view() ==
+                       ur::product::CompletedRunRecordsView::Courses &&
+                   g_records_root_section ==
+                       RecordsRootSection::MultiplayerTournament) {
+            // The destination exists before its history authority. Confirm is
+            // deliberately inert until durable match rows can be populated.
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();

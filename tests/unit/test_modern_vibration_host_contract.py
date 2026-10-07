@@ -45,7 +45,7 @@ class ModernVibrationHostContractTests(unittest.TestCase):
         for marker in (
             "UR_VIBRATION SELECTED enabled=0",
             "'^vibration_enabled=0$'",
-            'cmp "$WORK/on.urrun$suffix" "$WORK/off.urrun$suffix"',
+            "vibration changed the authoritative race outcome",
             '! grep -q "UR_HAPTIC PULSE" "$WORK/off.log"',
             '! grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log"',
         ):

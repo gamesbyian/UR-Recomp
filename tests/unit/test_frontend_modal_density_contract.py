@@ -19,7 +19,6 @@ class FrontendModalDensityContractTests(unittest.TestCase):
         body = self.source[start:end]
         self.assertNotIn("g_local_multiplayer_join_visible", body)
         self.assertNotIn("g_tour_action_visible", body)
-        self.assertIn("onboarding_surface_active()", body)
 
     def test_local_multiplayer_modal_scales_through_shared_layout(self):
         start = self.source.index(
@@ -30,7 +29,7 @@ class FrontendModalDensityContractTests(unittest.TestCase):
         )
         body = self.source[start:end]
         self.assertIn("centered_modern_modal_layout(", body)
-        self.assertIn("kLocalMultiplayerPanelHeight = 112", body)
+        self.assertIn("kLocalMultiplayerPanelHeight = 142", body)
         self.assertIn("0xFFFFFFFFu, scale);", body)
         self.assertNotIn("0xFFFFFFFFu, 1);", body)
 

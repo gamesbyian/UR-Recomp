@@ -9,3 +9,9 @@ The user proposed a secret title-screen switch between Uniracers and Unirally, i
 The conversation expanded into a retail NTSC-versus-PAL presentation catalog, persistence policy where platform storage permits, and a stock-style animated transition plan. PR #500 added the regional presentation substrate. PR #508, **Plan stock-style transition for Uniracers / Unirally switch**, documented directional PAL/NTSC transition behavior, preferred stock horizontal movement, fallback fade/title-transition options and capture requirements without retiming the guest or rebooting it.
 
 The user specifically wanted the regional state to persist across relaunches on platforms where that is practical.
+
+## Follow-through captured 2026-10-06
+
+The presentation-only substrate became a real player-visible consumer. PR #528 bound the verified Europe retail Unirally title raster on the admitted idle-title surface while keeping NorthAmerica canonical, Authentic unchanged and guest WRAM/SRAM/VRAM/CGRAM/OAM equivalent across the Modern choices. Failure restores the live canonical Uniracers crop.
+
+The planned stock-style animated transition remains deliberately deferred. The agent was able to ship the part supported by exact evidence without filling the uncharacterized transition gap with a plausible-looking invention. That “ship the proven slice, leave the ambiguous flourish closed” pattern has been one of the safer ways to use autonomous agents on remaster presentation work.

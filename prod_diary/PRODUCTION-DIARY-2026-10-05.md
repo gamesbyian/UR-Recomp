@@ -64,7 +64,9 @@ The first Racer HD family is no longer being expanded by sprite adjacency or gen
 
 This is a meaningful maturation of the HD pipeline. Semantic selection, equivalence, temporal coherence, review packets and shipping-readiness machinery now exist. The question is no longer “what sprite comes next?” but “what missing state is the player actually seeing most often?”
 
-At the moment this diary was captured, that measured-coverage lane had only just started and had not yet produced a new PR.
+At the moment this diary was first captured, that measured-coverage lane had only just started and had not yet produced a new PR.
+
+**Retrospective, October 6:** the selection rule worked. The lane produced a sequence of bounded, review-gated additions chosen by observed fallback burden rather than ROM adjacency, moving the broader ordinary-play census from 118/5282 HD selections (2.23%) to 653/5282 (12.36%) by the 01B9 slice. The useful process result was not merely the extra art. Once the agent was given a quantitative work-selection oracle, it stopped spending context on deciding what looked promising and could iterate through measure → author → review → hash-bind → remeasure with comparatively little supervision.
 
 ### CI briefly becomes the product's biggest scalability bug
 
@@ -83,6 +85,12 @@ This is an important production lesson. In an agent-heavy repository, CI is a sh
 ### End-of-day state
 
 By late October 5, the repository had no meaningful orphaned work left from the CI reconciliation sweep, and current `main` had reached `74040131...` after PR #511. PR #512 then opened for full player-facing Controls rebinding.
+
+### Overnight follow-through and a warning from the next day
+
+Several October 5 “next lanes” became merged product work within hours. Resume/Restart Tour moved from policy into a player-facing confirmed flow; the regional secret gained its first exact retail Unirally title consumer; local multiplayer gained an independent source-aware join overlay; portable state moved into a durable per-user root; and Racer HD began climbing its measured fallback ranking.
+
+That velocity came with a sharp caveat. The repository had become capable of generating changes faster than its integration machinery could cheaply validate them. Session stalls were survivable because agents had been told to commit often, update owning docs and leave bounded branches that another session could rescue. CI stalls were more dangerous because shared framework patches, generated snapshots and broad workflow assertions turned otherwise independent work into hidden coupling. The October 6 cascade would make this the next major engineering problem.
 
 The project has crossed another boundary. The major remaining Windows work is now recognizable consumer-product work:
 

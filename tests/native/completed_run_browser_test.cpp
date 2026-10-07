@@ -193,6 +193,8 @@ int main(int argc, char** argv) {
     assert(pb_detail->splits[0].delta_text == "+0:00.10/60");
     assert(records_browser.adjust_detail_target(1));
     assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
+    assert(records_browser.adjust_detail_target(1));
+    assert(records_browser.detail_target_kind() == RunDataTargetKind::Previous);
     const auto previous_detail =
         records_browser.selected_run_target_summary(
             RunDataTargetKind::Previous);

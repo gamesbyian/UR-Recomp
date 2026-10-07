@@ -3727,6 +3727,8 @@ void maybe_run_exit_frontend_acceptance() {
     }
 }
 
+bool activate_pause_selection();
+
 void maybe_run_pause_records_acceptance() {
     if (g_pause_records_acceptance_fired || !modern_mode() || !g_session ||
         !std::getenv("UR_PAUSE_RECORDS_ACCEPTANCE")) {

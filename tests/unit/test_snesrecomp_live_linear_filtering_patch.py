@@ -17,14 +17,14 @@ class LiveLinearFilteringPatchTests(unittest.TestCase):
         self.assertNotIn("Rtl", text)
         self.assertNotIn("g_ram", text)
 
-    def test_patch_is_registered_after_live_display_mode(self):
+    def test_patch_is_registered_after_display_mode_capability(self):
         manifest = json.loads(
             (ROOT / "tools" / "toolchain-entries" / "snesrecomp.json").read_text(
                 encoding="utf-8"
             )
         )
         paths = [entry["path"] for entry in manifest["patches"]]
-        display = paths.index("tools/patches/snesrecomp-live-display-mode.patch")
+        display = paths.index("tools/patches/snesrecomp-display-mode-capability.patch")
         filtering = paths.index(
             "tools/patches/snesrecomp-live-linear-filtering.patch"
         )

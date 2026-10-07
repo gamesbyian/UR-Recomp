@@ -4414,10 +4414,10 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand;
 
     // Internal Render Scale is a stable product setting, not a per-pose
-    // Racer-HD signal. When the Remastered presenter is enabled, fixed scenes
-    // keep the configured density even if the current racer pose falls back
-    // to the stock raster. Unmigrated direct-coordinate surfaces and widened
-    // world composition still fail closed to 1x.
+    // Racer-HD signal. Fixed and evidence-backed widened scenes keep the
+    // configured density even when the authored replacement presenter
+    // declines the current frame; the generic nearest-density compositor then
+    // preserves the complete logical field, including widened world margins.
     const char* racer_hd = std::getenv("UR_RACER_HD");
     const bool racer_hd_enabled =
         racer_hd != nullptr && racer_hd[0] != '\0' &&

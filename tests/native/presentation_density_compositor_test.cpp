@@ -4,6 +4,7 @@
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
+#include <vector>
 
 using ur::product::compose_nearest_density_frame;
 
@@ -66,6 +67,40 @@ void assert_3x_with_padded_pitch() {
 int main() {
     assert_2x();
     assert_3x_with_padded_pitch();
+
+    {
+        constexpr int logical_width = 342;
+        constexpr int scale = 4;
+        std::vector<std::uint32_t> src(
+            static_cast<std::size_t>(logical_width), 0u);
+        for (int x = 0; x < logical_width; ++x) {
+            src[static_cast<std::size_t>(x)] =
+                0xFF000000u | static_cast<std::uint32_t>(x);
+        }
+        std::vector<std::uint32_t> wide(
+            static_cast<std::size_t>(logical_width * scale * scale), 0u);
+        const std::size_t pitch =
+            static_cast<std::size_t>(logical_width * scale) *
+            sizeof(std::uint32_t);
+        assert(compose_nearest_density_frame(
+            reinterpret_cast<std::uint8_t*>(wide.data()),
+            pitch,
+            reinterpret_cast<const std::uint8_t*>(src.data()),
+            logical_width,
+            1,
+            scale));
+        for (int sy = 0; sy < scale; ++sy) {
+            const auto row =
+                static_cast<std::size_t>(sy * logical_width * scale);
+            for (int x = 0; x < logical_width; ++x) {
+                for (int sx = 0; sx < scale; ++sx) {
+                    assert(wide[
+                        row + static_cast<std::size_t>(x * scale + sx)] ==
+                        src[static_cast<std::size_t>(x)]);
+                }
+            }
+        }
+    }
 
     const std::array<std::uint32_t, 1> src{A};
     std::array<std::uint32_t, 16> dst{};

@@ -1322,6 +1322,32 @@ jobs:
             --out "$DOSSIER/pose-equivalence.json" \
             > "$RUNNER_TEMP/racer-hd-0139-equivalence.txt"
 
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-0139-broader-static-1402-1403 \
+            --json-out "$RUNNER_TEMP/racer-hd-0139-temporal.json" \
+            > "$RUNNER_TEMP/racer-hd-0139-temporal.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-0139-temporal.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          print("RACER_HD_0139_PREAPPROVAL_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_0139_PREAPPROVAL_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"], flush=True)
+          print("RACER_HD_0139_PREAPPROVAL_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
+          assert review["stock_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_alpha_bounds"] == [18, 5, 47, 36], review
+          assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.70, review
+          assert reps[0]["art_review"]["authored_candidate"]["rgba_sha256"] == "d208f606712a1234f31fdc0f7c441fc4144043669b229ba1e00210bdf1ca98bd"
+          assert temporal["players"] == ["p1"], temporal
+          failed = [key for key, value in temporal["validation"].items() if not value]
+          assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
           python3 tools/build_racer_hd_shipping_readiness.py \
             "$DOSSIER/pose-equivalence.json" \
             --decisions analysis/data/racer-hd-art-approval-broader-0139.json \
@@ -1335,12 +1361,6 @@ jobs:
             --output-dir "$DOSSIER/review" \
             --readiness "$DOSSIER/shipping-readiness.json" \
             > "$RUNNER_TEMP/racer-hd-0139-review.txt"
-
-          python3 tools/check_racer_hd_temporal_coherence.py \
-            "$ROM" \
-            --sequence-key ordinary-race-0139-broader-static-1402-1403 \
-            --json-out "$RUNNER_TEMP/racer-hd-0139-temporal.json" \
-            > "$RUNNER_TEMP/racer-hd-0139-temporal.txt"
 
           python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-0139-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
           import json, pathlib, sys

@@ -30,6 +30,7 @@ extern "C" {
 #include "modern_racer_identity.hpp"
 #include "modern_tour_action_menu.hpp"
 #include "modern_tour_continue.hpp"
+#include "modern_main_menu_strip.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -122,6 +123,9 @@ ur::product::ControllerHotplugState g_controller_hotplug;
 std::array<std::string, ur::product::kControllerSeatCount>
     g_controller_seat_names{};
 bool g_controller_hotplug_acceptance_done;
+int g_main_menu_pad_acceptance_stage;
+unsigned g_main_menu_pad_acceptance_frames;
+std::string g_main_menu_strip_reported;
 int g_controller_hotplug_acceptance_stage;
 unsigned g_controller_hotplug_acceptance_frames;
 std::uint64_t g_controller_hotplug_acceptance_source;
@@ -3826,6 +3830,73 @@ void detach_controller_hotplug_acceptance_pad() {
 }
 #endif
 
+// Native acceptance for main-menu controller shortcuts: from the settled
+// Modern main menu, attach a real SDL virtual gamepad and tap one physical
+// button through SDL -> SNESRecomp -> the title gamepad hook. Only the
+// production handler decides what the button does.
+void run_main_menu_pad_acceptance() {
+#if SNESRECOMP_SDL3
+    const char* button_name = std::getenv("UR_MAIN_MENU_PAD_ACCEPTANCE");
+    if (!button_name || !*button_name || g_main_menu_pad_acceptance_stage < 0) {
+        return;
+    }
+    SDL_GamepadButton button = SDL_GAMEPAD_BUTTON_INVALID;
+    if (std::strcmp(button_name, "r") == 0) {
+        button = SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
+    } else if (std::strcmp(button_name, "y") == 0) {
+        button = SDL_GAMEPAD_BUTTON_NORTH;
+    }
+    if (button == SDL_GAMEPAD_BUTTON_INVALID) {
+        g_main_menu_pad_acceptance_stage = -1;
+        return;
+    }
+    switch (g_main_menu_pad_acceptance_stage) {
+    case 0:
+        if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
+            g_main_menu_pad_acceptance_frames = 0;
+            return;
+        }
+        if (++g_main_menu_pad_acceptance_frames < 90u) return;
+        if (!attach_controller_hotplug_acceptance_pad()) {
+            product_diagnostic("UR_MAIN_MENU_PAD_ACCEPTANCE ATTACH_FAILED");
+            g_main_menu_pad_acceptance_stage = -1;
+            return;
+        }
+        g_main_menu_pad_acceptance_frames = 0;
+        g_main_menu_pad_acceptance_stage = 1;
+        return;
+    case 1:
+        // Wait for the framework to seat the pad before pressing.
+        if (!g_controller_hotplug.seats[0].connected) {
+            if (++g_main_menu_pad_acceptance_frames > 300u) {
+                product_diagnostic("UR_MAIN_MENU_PAD_ACCEPTANCE SEAT_TIMEOUT");
+                detach_controller_hotplug_acceptance_pad();
+                g_main_menu_pad_acceptance_stage = -1;
+            }
+            return;
+        }
+        (void)SDL_SetJoystickVirtualButton(
+            g_controller_hotplug_acceptance_pad, button, true);
+        product_diagnostic("UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED");
+        g_main_menu_pad_acceptance_frames = 0;
+        g_main_menu_pad_acceptance_stage = 2;
+        return;
+    case 2:
+        if (++g_main_menu_pad_acceptance_frames < 3u) return;
+        (void)SDL_SetJoystickVirtualButton(
+            g_controller_hotplug_acceptance_pad, button, false);
+        g_main_menu_pad_acceptance_stage = 3;
+        return;
+    case 3:
+        // Leave the pad seated so the release edge is delivered normally.
+        g_main_menu_pad_acceptance_stage = -1;
+        return;
+    default:
+        return;
+    }
+#endif
+}
+
 // Native acceptance for device removal: attach a real SDL virtual gamepad
 // during an authoritative race, hold a mapped direction until the framework
 // delivers it in the human input word, then unplug it while still held. The
@@ -4761,6 +4832,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     apply_focus_pause_policy();
     apply_controller_disconnect_pause();
     run_controller_hotplug_acceptance();
+    run_main_menu_pad_acceptance();
 }
 
 extern "C" int ur_uniracers_modern_system_key_down(
@@ -5146,6 +5218,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
             (settled_main && button == kGamepadBtn_X) ||
             (settled_main && button == kGamepadBtn_Y &&
              !tour_continue_available() &&
+             recent_course_available_for_active_profile()) ||
+            (settled_main && button == kGamepadBtn_R1 &&
              recent_course_available_for_active_profile());
         return fast_nav_release || paused() || onboarding_surface_active()
             ? 1 : 0;
@@ -5169,6 +5243,15 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (modern_mode() && button == kGamepadBtn_Y && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
         !tour_continue_available() &&
+        recent_course_available_for_active_profile()) {
+        (void)launch_recent_course_practice();
+        return 1;
+    }
+    // R always reaches Recent Course from the settled main menu, including
+    // when pad Y is taken by the Tour surface. Modern already filters L/R out
+    // of the guest word there, so the stock menu loses nothing.
+    if (modern_mode() && button == kGamepadBtn_R1 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
         recent_course_available_for_active_profile()) {
         (void)launch_recent_course_practice();
         return 1;
@@ -5726,41 +5809,90 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
 
-    if (modern_mode() && !g_practice_active &&
-        recent_course_available_for_active_profile() &&
-        g_recent_course_track_id && g_ram[0x0313] != 0x01 &&
-        g_ram[0x009F] == 0xD7) {
-        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
-        const int stride = static_cast<int>(pitch / 4u);
-        const auto* course =
-            ur::product::quick_practice_course(*g_recent_course_track_id);
-        // Pad Y belongs to the Tour surface whenever a tour is resumable, so
-        // only advertise the inputs that will actually launch Recent Course.
-        char hint[96];
-        std::snprintf(
-            hint, sizeof(hint), "%s  RECENT: %s",
-            tour_continue_available() ? "F6" : "F6 / PAD Y",
-            course ? course->name.data() : "COURSE");
-        const int scale = modern_overlay_surface_scale(width, height);
-        ur::product::HostOverlayCompositionRequest request{};
-        request.logical_surface_width = width / scale;
-        request.logical_surface_height = height / scale;
-        request.presentation_scale = scale;
-        request.output_viewport = {0, 0, width, height};
-        request.reserved.left = 8;
-        request.anchor = ur::product::HostOverlayAnchor::BottomLeft;
-        request.preferred_width = 240;
-        request.preferred_height = 13;
-        request.minimum_width = 160;
-        request.minimum_height = 13;
-        const auto layout =
-            ur::product::resolve_modern_overlay_composition(request);
-        if (layout.visible) {
-            snes_ovl_draw_text(
-                pixels, stride, height,
-                layout.presentation_rect.x,
-                layout.presentation_rect.y,
-                hint, 0xFFFFFFFFu, scale);
+    // Modern main-menu continue strip: one row for the Tour surface (Next
+    // Event when it is unique) and one for Recent Course, each naming the
+    // inputs that actually trigger it. It sits below the stock menu items and
+    // fails closed rather than overlapping them.
+    if (modern_mode() && !g_practice_active && !paused() &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+        !g_tour_action_visible && !tour_continue_routing() &&
+        !onboarding_surface_active()) {
+        ur::product::ModernMainMenuStripInput strip_input;
+        if (tour_continue_available()) {
+            const auto& continuation = *g_profile_state->tour_continuation;
+            const auto* tour_course = ur::product::quick_practice_course(
+                static_cast<std::uint8_t>(continuation.tour_row * 5u));
+            const auto next_track = ur::product::unique_next_track_id(
+                continuation.tour_row, continuation.qualified);
+            const auto* next_course = next_track
+                ? ur::product::quick_practice_course(*next_track)
+                : nullptr;
+            std::uint8_t completed = 0;
+            for (const auto flag : continuation.qualified) completed += flag;
+            strip_input.tour = ur::product::ModernMainMenuTourEntry{
+                next_course ? next_course->name : std::string_view{},
+                tour_course ? tour_course->tour_name : std::string_view{},
+                completed,
+            };
+        }
+        if (recent_course_available_for_active_profile()) {
+            if (const auto* recent = ur::product::quick_practice_course(
+                    *g_recent_course_track_id)) {
+                strip_input.recent_course = recent->name;
+            }
+        }
+        const auto strip =
+            ur::product::build_modern_main_menu_strip(strip_input);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::string summary = std::to_string(strip.row_count);
+            for (std::size_t i = 0; i < strip.row_count; ++i) {
+                summary += " | " + strip.rows[i];
+            }
+            if (summary != g_main_menu_strip_reported) {
+                g_main_menu_strip_reported = summary;
+                std::fprintf(
+                    stderr, "UR_MAIN_MENU_STRIP rows=%s\n", summary.c_str());
+                std::fflush(stderr);
+            }
+        }
+        if (strip.row_count > 0) {
+            uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+            const int stride = static_cast<int>(pitch / 4u);
+            const int scale = modern_overlay_surface_scale(width, height);
+            const int strip_w = static_cast<int>(
+                ur::product::kModernMainMenuStripMaxChars) * 8 + 12;
+            const int strip_h = 6 + 12 * static_cast<int>(strip.row_count);
+            ur::product::HostOverlayCompositionRequest request{};
+            request.logical_surface_width = width / scale;
+            request.logical_surface_height = height / scale;
+            request.presentation_scale = scale;
+            request.output_viewport = {0, 0, width, height};
+            request.reserved.left = 2;
+            request.reserved.right = 2;
+            request.reserved.bottom = 2;
+            request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
+            request.preferred_width = strip_w;
+            request.preferred_height = strip_h;
+            request.minimum_width = strip_w;
+            request.minimum_height = strip_h;
+            const auto layout =
+                ur::product::resolve_modern_overlay_composition(request);
+            if (layout.visible) {
+                const auto& rect = layout.presentation_rect;
+                snes_ovl_fill_rect(
+                    pixels, stride, height,
+                    rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+                snes_ovl_stroke_rect(
+                    pixels, stride, height,
+                    rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+                for (std::size_t i = 0; i < strip.row_count; ++i) {
+                    snes_ovl_draw_text(
+                        pixels, stride, height,
+                        rect.x + 6 * scale,
+                        rect.y + (4 + 12 * static_cast<int>(i)) * scale,
+                        strip.rows[i].c_str(), 0xFFFFFFFFu, scale);
+                }
+            }
         }
     }
 
@@ -5813,69 +5945,6 @@ extern "C" void ur_uniracers_modern_system_overlay(
         request.minimum_width = 220;
         request.minimum_height = 22;
         request.edge_margin = 8;
-        const auto layout =
-            ur::product::resolve_modern_overlay_composition(request);
-        if (layout.visible) {
-            const auto& rect = layout.presentation_rect;
-            snes_ovl_fill_rect(
-                pixels, stride, height,
-                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
-            snes_ovl_stroke_rect(
-                pixels, stride, height,
-                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
-            snes_ovl_draw_text(
-                pixels, stride, height,
-                rect.x + 8 * scale, rect.y + 7 * scale,
-                hint, 0xFFFFFFFFu, scale);
-        }
-    }
-
-    if (tour_continue_available()) {
-        const auto& continuation = *g_profile_state->tour_continuation;
-        const auto* course = ur::product::quick_practice_course(
-            static_cast<std::uint8_t>(continuation.tour_row * 5u));
-        unsigned completed = 0;
-        for (const auto flag : continuation.qualified) completed += flag;
-
-        char hint[128];
-        const auto next_track = ur::product::unique_next_track_id(
-            continuation.tour_row, continuation.qualified);
-        const auto* next_course = next_track
-            ? ur::product::quick_practice_course(*next_track)
-            : nullptr;
-        if (next_course) {
-            std::snprintf(
-                hint, sizeof(hint), "F3 / PAD Y  NEXT EVENT: %.*s",
-                static_cast<int>(next_course->name.size()),
-                next_course->name.data());
-        } else if (course) {
-            std::snprintf(
-                hint, sizeof(hint), "F3 / PAD Y TOUR %.*s  %u/5",
-                static_cast<int>(course->tour_name.size()),
-                course->tour_name.data(),
-                completed);
-        } else {
-            std::snprintf(
-                hint, sizeof(hint), "F3 / PAD Y TOUR  %u/5",
-                completed);
-        }
-
-        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
-        const int stride = static_cast<int>(pitch / 4u);
-        const int scale = modern_overlay_surface_scale(width, height);
-        ur::product::HostOverlayCompositionRequest request{};
-        request.logical_surface_width = width / scale;
-        request.logical_surface_height = height / scale;
-        request.presentation_scale = scale;
-        request.output_viewport = {0, 0, width, height};
-        request.reserved.left = 8;
-        request.reserved.right = 8;
-        request.reserved.bottom = 12;
-        request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
-        request.preferred_width = 274;
-        request.preferred_height = 22;
-        request.minimum_width = 200;
-        request.minimum_height = 22;
         const auto layout =
             ur::product::resolve_modern_overlay_composition(request);
         if (layout.visible) {

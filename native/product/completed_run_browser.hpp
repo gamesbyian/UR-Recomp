@@ -64,7 +64,9 @@ public:
         return artifact_health_;
     }
     std::size_t unavailable_artifact_count() const noexcept {
-        return artifact_health_.total_artifacts - index_.total_completed_runs;
+        return artifact_health_.total_artifacts > index_.total_completed_runs
+            ? artifact_health_.total_artifacts - index_.total_completed_runs
+            : 0;
     }
     std::optional<std::size_t> selected_course_index() const noexcept {
         return selected_course_;

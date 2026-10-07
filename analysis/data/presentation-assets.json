@@ -3249,28 +3249,16 @@
                 "artifact_id": 11470987758,
                 "status": "green"
               }
-            }
-          ],
-          "current_after": {
-            "hd_selected_player_frames": 1215,
-            "original_fallback_player_frames": 4067,
-            "hd_coverage_fraction": 0.2300265051117001,
-            "cumulative_player_frames_removed": 1097,
-            "absolute_coverage_gain_percentage_points": 20.768648239303296,
-            "cumulative_baseline_fallback_burden_removed_fraction": 0.21243222308288148
-          },
-          "next_discriminator": {
-            "status": "measured-post-03f9-leader",
-            "target": {
+            },
+            {
               "player": "p2",
               "semantic_frame_id": "0x0579",
               "companion": "0x0EC4",
               "selector": 0,
               "gate": "0x0001",
-              "player_frames": 56,
+              "player_frames_removed": 56,
               "episode_count": 20,
               "synchronized_witness_state_count": 27,
-              "unique_stock_raster_count": 1,
               "stock_rgba_sha256": "7487add1fda21528b049ffe946730cf8a75f562fcef30db97056c355e7a2f060",
               "normalized_geometry_sha256": "d40ede4ffdfec27958b204bc942ff61f708c70d5a0b035fd8a40f334375341e0",
               "alpha_bounds": [
@@ -3283,13 +3271,65 @@
                 77,
                 72
               ],
+              "guard_scope": "player_local",
+              "approval_manifest": "analysis/data/racer-hd-art-approval-broader-p2-0579-0ec4.json",
+              "authored_rgba_sha256": "dad22d7e9e0d25ab7a3f32e16522c0dcead1ad5695b57d90e463230ebc533cbb",
+              "review_alpha_iou": 0.8168674698795181,
+              "review_evidence": {
+                "workflow_run": 37599336930,
+                "artifact_id": 11471284912
+              },
+              "after": {
+                "hd_selected_player_frames": 1271,
+                "original_fallback_player_frames": 4011,
+                "hd_coverage_fraction": 0.24062854979174556
+              },
+              "focused_reproduction": {
+                "workflow_run": 37607516010,
+                "artifact_id": 11475104301,
+                "status": "green"
+              }
+            }
+          ],
+          "current_after": {
+            "hd_selected_player_frames": 1271,
+            "original_fallback_player_frames": 4011,
+            "hd_coverage_fraction": 0.24062854979174556,
+            "cumulative_player_frames_removed": 1153,
+            "absolute_coverage_gain_percentage_points": 21.82885270730784,
+            "cumulative_baseline_fallback_burden_removed_fraction": 0.22327652982184354
+          },
+          "next_discriminator": {
+            "status": "measured-post-p2-0579-0ec4-leader",
+            "target": {
+              "player": "p1",
+              "semantic_frame_id": "0x0579",
+              "companion": "0x0000",
+              "selector": 0,
+              "gate": "0x0000",
+              "player_frames": 55,
+              "episode_count": 43,
+              "synchronized_witness_state_count": 40,
+              "unique_stock_raster_count": 1,
+              "stock_rgba_sha256": "1b49488baa5ffc6ff9bc5975c53e4e6fc6eb8e0920b6a6f1e69f2deed95a80ed",
+              "normalized_geometry_sha256": "beacffb700c043ecae2a7a0405d74c08273c7fb8570d7aad0a7d24ab317e28da",
+              "alpha_bounds": [
+                18,
+                5,
+                47,
+                36
+              ],
+              "contact_x2_y2": [
+                77,
+                72
+              ],
               "exact_same_player_reuse_matches": [],
               "palette_normalized_reuse_matches": [],
               "requires_new_pose": true
             },
-            "rule": "P2 0579/0EC4 is the next bounded shipping slice by measured post-03F9 burden. It requires fresh P2 geometry review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+            "rule": "P1 0579/0000 is the next bounded shipping slice by measured post-P2-0579 burden. It requires fresh P1 authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
           },
-          "status": "shipping expansion active; measured broader P1/P2 families through P1 03F9 are reviewed, hash-approved, and runtime-registered"
+          "status": "shipping expansion active; measured player-local families through P2 0579/0EC4 are reviewed, hash-approved, and runtime-registered"
         },
         "admission_rule": "Choose future Racer HD families from measured player-visible fallback burden, not ROM adjacency. Use exact synchronized-state ranking for stable compositions; when dynamic opponent state fragments exact keys, admit a player-local guard only after structural independence plus multi-witness byte-identical stock-raster proof. Prefer exact or palette-normalized geometry reuse before authoring."
       }

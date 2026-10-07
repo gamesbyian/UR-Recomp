@@ -36,20 +36,21 @@ class WindowsPackageTests(unittest.TestCase):
             check=check,
         )
 
-    def test_unknown_startup_code_stays_narrowly_bound_to_controller_init(self):
+    def test_controller_startup_failure_has_specific_release_code(self):
         patch = STARTUP_PATCH.read_text()
         controller_anchor = "if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER))"
-        unknown_return = 'return StartupFail(\n+        "UR-STARTUP-UNKNOWN", "controller", NULL,'
+        controller_return = 'return StartupFail(\n+        "UR-STARTUP-CONTROLLER", "controller", NULL,'
         self.assertEqual(patch.count(controller_anchor), 1)
-        self.assertEqual(patch.count(unknown_return), 1)
+        self.assertEqual(patch.count(controller_return), 1)
         controller_pos = patch.index(controller_anchor)
-        unknown_pos = patch.index(unknown_return)
-        self.assertGreater(unknown_pos, controller_pos)
-        self.assertLess(unknown_pos - controller_pos, 300)
-        self.assertNotIn('"UR-STARTUP-UNKNOWN", "video"', patch)
-        self.assertNotIn('"UR-STARTUP-UNKNOWN", "audio"', patch)
-        self.assertNotIn('"UR-STARTUP-UNKNOWN", "rom"', patch)
-        self.assertNotIn('"UR-STARTUP-UNKNOWN", "save-root"', patch)
+        code_pos = patch.index(controller_return)
+        self.assertGreater(code_pos, controller_pos)
+        self.assertLess(code_pos - controller_pos, 300)
+        self.assertNotIn('"UR-STARTUP-UNKNOWN", "controller"', patch)
+        self.assertNotIn('"UR-STARTUP-CONTROLLER", "video"', patch)
+        self.assertNotIn('"UR-STARTUP-CONTROLLER", "audio"', patch)
+        self.assertNotIn('"UR-STARTUP-CONTROLLER", "rom"', patch)
+        self.assertNotIn('"UR-STARTUP-CONTROLLER", "save-root"', patch)
 
     def test_assemble_verify_and_clean_stale_output(self):
         with tempfile.TemporaryDirectory() as tmp:

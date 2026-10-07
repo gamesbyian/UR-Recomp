@@ -109,8 +109,8 @@
 +  if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER)) {
 +    host_report_breadcrumb("SDL controller init FAILED: %s", SDL_GetError());
 +    return StartupFail(
-+        "UR-STARTUP-UNKNOWN", "controller", NULL,
-+        "A required host input subsystem could not initialize.",
++        "UR-STARTUP-CONTROLLER", "controller", NULL,
++        "Controller initialization failed.",
 +        "Reconnect controllers or restart Windows, then retry.");
    }
    host_report_breadcrumb("SDL init ok: video=%s audio=%s",

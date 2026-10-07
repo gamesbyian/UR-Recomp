@@ -1293,8 +1293,8 @@ jobs:
           assert spill["player_frames_added"] == 5
           assert [x["semantic_frame_id"] for x in spill["states"]] == ["0x04B9", "0x0239", "0x00B9", "0x0439", "0x01B9"]
           assert current["measurement"]["player_frame_observations"] == 882
-          assert current["measurement"]["hd_selected_player_frames"] == 179
-          assert current["measurement"]["original_fallback_player_frames"] == 703
+          assert current["measurement"]["hd_selected_player_frames"] == 184
+          assert current["measurement"]["original_fallback_player_frames"] == 698
 
           assert dossier["temporal_window"]["start"] == 1354
           assert dossier["temporal_window"]["end"] == 1356
@@ -1322,7 +1322,7 @@ jobs:
               assert all(pair["transition_class"] == "static" for pair in pairs)
               assert all(pair["static_edge_preserved"] for pair in pairs)
 
-          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=179/882 removed=29")
+          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=184/882 removed=34")
           PY
 
       - name: Upload compact acceptance log

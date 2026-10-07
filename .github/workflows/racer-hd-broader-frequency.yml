@@ -50,6 +50,29 @@ jobs:
         with:
           submodules: recursive
 
+      - name: Expose retained post-0539 05B9 witness evidence
+        uses: actions/download-artifact@v4
+        with:
+          name: racer-hd-broader-frequency
+          path: ${{ runner.temp }}/retained-post-0539
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: 37571071082
+
+      - name: Print retained post-0539 probe
+        shell: bash
+        run: |
+          set -euo pipefail
+          PROBE="$(find "$RUNNER_TEMP/retained-post-0539" -name racer-hd-post-0539-next-probe.json -print -quit)"
+          test -n "$PROBE"
+          python3 - "$PROBE" <<'PY'
+          import json, pathlib, sys
+          report = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          assert report["target"]["semantic_frame_id"] == "0x05B9"
+          assert report["witness_exact_state_count"] == 44
+          assert report["unique_stock_raster_count"] == 1
+          print("RACER_HD_05B9_RETAINED_PROBE", json.dumps(report, sort_keys=True), flush=True)
+          PY
+
       - name: Install reference-core build dependencies
         run: |
           sudo apt-get update

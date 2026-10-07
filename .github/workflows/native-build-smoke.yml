@@ -247,7 +247,7 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$FIRST_LOG"'"
-            xdotool key Down Down Down Return
+            xdotool key --window "$WIN" Down Down Down Return
             for _ in $(seq 1 100); do
               grep -q "UR_PAUSE_CONTROLS OPENED" "'"$FIRST_LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
@@ -257,7 +257,7 @@ jobs:
 
             # Establish a known baseline through the same player-facing
             # authority instead of assuming where the framework stores its file.
-            xdotool key r
+            xdotool key --window "$WIN" r
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=4 .*applied=1" "'"$FIRST_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=X b=Z x=S y=A " "'"$FIRST_LOG"'" && break
@@ -269,8 +269,8 @@ jobs:
             # Real player-facing capture edits A and persists immediately.
             # F3 is also a global Modern shortcut, so accepting it here proves
             # the Controls modal owns keyboard input while capture is active.
-            xdotool key Return
-            xdotool key F3
+            xdotool key --window "$WIN" Return
+            xdotool key --window "$WIN" F3
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=2 binding=0 .*applied=1" "'"$FIRST_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=F3 " "'"$FIRST_LOG"'" && break
@@ -281,15 +281,15 @@ jobs:
             grep -q "UR_CONTROLS BINDINGS a=F3 " "'"$FIRST_LOG"'"
 
             # Capture cancel is modal and leaves the accepted binding unchanged.
-            xdotool key Return
-            xdotool key Escape
+            xdotool key --window "$WIN" Return
+            xdotool key --window "$WIN" Escape
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS CAPTURE_CANCELLED" "'"$FIRST_LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
               sleep 0.1
             done
             grep -q "UR_CONTROLS CAPTURE_CANCELLED" "'"$FIRST_LOG"'"
-            xdotool key Escape
+            xdotool key --window "$WIN" Escape
             for _ in $(seq 1 100); do
               grep -q "UR_PAUSE_CONTROLS CLOSED" "'"$FIRST_LOG"'" && break
               kill -0 "$PID" 2>/dev/null || exit 1
@@ -332,7 +332,7 @@ jobs:
               sleep 0.1
             done
             grep -q "UR_PAUSE_ACCEPTANCE OPENED" "'"$SECOND_LOG"'"
-            xdotool key Down Down Down Return
+            xdotool key --window "$WIN" Down Down Down Return
 
             for _ in $(seq 1 100); do
               grep -q "UR_PAUSE_CONTROLS OPENED" "'"$SECOND_LOG"'" &&
@@ -345,7 +345,7 @@ jobs:
             # Duplicate physical keys are intentionally legal. Bind the
             # selected B control to the same F3 key through the real panel and
             # require the live framework authority to report both.
-            xdotool key Down Return F3
+            xdotool key --window "$WIN" Down Return F3
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=2 binding=1 .*scancode=.* applied=1" "'"$SECOND_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=F3 b=F3 " "'"$SECOND_LOG"'" && break
@@ -356,7 +356,7 @@ jobs:
 
             # Return to A. Clear and reset use the same live authority and
             # immediately redraw from it rather than mutating a shadow map.
-            xdotool key Up Delete
+            xdotool key --window "$WIN" Up Delete
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=3 binding=0 .*applied=1" "'"$SECOND_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=NONE " "'"$SECOND_LOG"'" && break
@@ -365,7 +365,7 @@ jobs:
             done
             grep -q "UR_CONTROLS BINDINGS a=NONE " "'"$SECOND_LOG"'"
 
-            xdotool key r
+            xdotool key --window "$WIN" r
             for _ in $(seq 1 100); do
               grep -q "UR_CONTROLS command=4 .*applied=1" "'"$SECOND_LOG"'" &&
                 grep -q "UR_CONTROLS BINDINGS a=X b=Z x=S y=A " "'"$SECOND_LOG"'" && break
@@ -374,7 +374,7 @@ jobs:
             done
             grep -q "UR_CONTROLS BINDINGS a=X b=Z x=S y=A " "'"$SECOND_LOG"'"
 
-            xdotool key Escape
+            xdotool key --window "$WIN" Escape
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true
           '
@@ -749,7 +749,7 @@ jobs:
             done
             [ -n "$WIN" ]
             xdotool windowfocus "$WIN"
-            xdotool key F2
+            xdotool key --window "$WIN" F2
             sleep 0.5
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true

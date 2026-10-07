@@ -1,0 +1,29 @@
+{
+  "schema": "ur-recomp-playtest-report-v1",
+  "build_revision": "example-revision",
+  "artifact_sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+  "tester_context": {
+    "experience": "high-skill",
+    "comparison_familiarity": "Regular original-cart player; knows Dragster routes."
+  },
+  "environment": {
+    "region": "NTSC-U",
+    "execution_mode": "Modern",
+    "view": "16:9",
+    "graphics": "Original"
+  },
+  "course": "Dragster",
+  "finding": {
+    "area": "camera",
+    "summary": "Camera appears to settle one beat later after the second loop.",
+    "reproducibility": "often",
+    "severity": "major",
+    "steps": "Start Dragster from a clean race, hold the normal acceleration line through the first two loops, and compare the camera settle after loop two.",
+    "expected": "Camera timing should match the original under the same route and input timing.",
+    "observed": "The widened build appeared to settle roughly one frame later on repeated attempts.",
+    "comparison_source": "original-hardware",
+    "input_anchor": "Use the same controller route on both builds.",
+    "reference": "Tester can provide a short comparison clip if needed."
+  },
+  "notes": "Example only. No tester name, account, email, or other contact data belongs in this report."
+}

@@ -19,12 +19,13 @@ class PauseModalDensityContractTests(unittest.TestCase):
         body = self.source[start:end]
         self.assertNotIn("host_subview_visible()", body)
         self.assertNotIn("paused() ||", body)
-        self.assertIn("g_profile_menu_visible", body)
-        self.assertIn("UR_UNIRACERS_RESTART_RESULTS", body)
+        self.assertIn("const bool logical_overlay_active = false;", body)
+        self.assertNotIn("g_profile_menu_visible", body)
+        self.assertNotIn("UR_UNIRACERS_RESTART_RESULTS", body)
 
     def test_pause_family_uses_shared_composition_and_density(self):
         start = self.source.index(
-            'extern "C" void ur_uniracers_modern_draw_overlay'
+            'extern "C" void ur_uniracers_modern_system_overlay'
         )
         body = self.source[start:]
         self.assertIn("centered_modern_modal_layout(", body)
@@ -51,6 +52,7 @@ class PauseModalDensityContractTests(unittest.TestCase):
             'extern "C" int ur_uniracers_modern_draw_frame', start
         )
         body = self.source[start:end]
+        self.assertIn("const bool logical_overlay_active = false;", body)
         for guard in (
             "regional_title",
             "g_local_multiplayer_join_visible",
@@ -58,7 +60,7 @@ class PauseModalDensityContractTests(unittest.TestCase):
             "onboarding_surface_active()",
             "g_profile_menu_visible",
         ):
-            self.assertIn(guard, body)
+            self.assertNotIn(guard, body)
 
 
 if __name__ == "__main__":

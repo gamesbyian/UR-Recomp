@@ -103,6 +103,10 @@ DORMANT_MANUAL_ONLY = {
 }
 
 
+def _workflow_paths() -> list[Path]:
+    return sorted({*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")})
+
+
 def _block(text: str, key: str) -> str:
     match = re.search(
         rf"(?ms)^  {re.escape(key)}:\s*\n(.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:\s*$|^[A-Za-z_][A-Za-z0-9_-]*:\s*$|\Z)",
@@ -124,7 +128,7 @@ def _pushes_main(text: str) -> bool:
 class CiTriggerPolicyTest(unittest.TestCase):
     def test_pr_validation_is_not_repeated_after_merge(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             has_pr = bool(_block(text, "pull_request"))
             if has_pr and _pushes_main(text) and path.name not in MAIN_PUSH_ALLOWLIST:
@@ -139,7 +143,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_pull_requests_are_path_scoped(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             pull_request = _block(text, "pull_request")
             if pull_request and "    paths:\n" not in pull_request:
@@ -152,7 +156,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_main_pushes_are_path_scoped(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             push = _block(text, "push")
             if _pushes_main(text) and "    paths:\n" not in push:
@@ -165,7 +169,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_automatic_workflows_declare_concurrency(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if automatic and not re.search(r"(?m)^concurrency:\s*$", text):
@@ -183,7 +187,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "docs/SEMANTIC-SUFFICIENCY.md",
         }
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             pull_request = _block(text, "pull_request")
             push = _block(text, "push")
@@ -275,7 +279,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_workflow_dispatch_has_a_yaml_boundary(self):
         offenders = []
         bad = re.compile(r"workflow_dispatch:(?:jobs:|permissions:|concurrency:|env:)")
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             if bad.search(path.read_text()):
                 offenders.append(path.name)
         self.assertEqual(
@@ -287,7 +291,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_automatic_jobs_have_timeouts(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if not automatic:
@@ -304,7 +308,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_git_writers_serialize_without_cancellation(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             if not re.search(r"(?m)^\s*git push(?:\s|$)", text):
                 continue
@@ -319,7 +323,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_automatic_specialists_do_not_follow_global_toolchain_registry(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             if path.name == "toolchain-bootstrap.yml":
                 continue
             text = path.read_text()
@@ -337,7 +341,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_automatic_workflows_do_not_watch_all_tool_entries(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             if path.name == "toolchain-bootstrap.yml":
                 continue
             text = path.read_text()
@@ -355,7 +359,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_main_push_does_not_self_trigger_on_workflow_yaml(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             push = _block(text, "push")
             own_path = f'.github/workflows/{path.name}'
@@ -369,7 +373,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_shell_continuations_are_not_interrupted_by_comments(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             lines = path.read_text().splitlines()
             for index, line in enumerate(lines[:-1]):
                 if line.rstrip().endswith("\\") and lines[index + 1].lstrip().startswith("#"):
@@ -384,7 +388,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_host_state_log_checks_do_not_depend_on_field_order(self):
         offenders = []
         assignment = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             for index, line in enumerate(path.read_text().splitlines(), start=1):
                 if "grep" not in line or "UR_HOST_STATE LOADED" not in line:
                     continue
@@ -417,7 +421,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
         frame_pattern = re.compile(
             r"(?:SNESRECOMP_SCREENSHOT_FRAME=\d+|\bframe=\d+)"
         )
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if not automatic or path.name in ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST:
@@ -434,7 +438,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
     def test_desktop_cursor_driving_does_not_spread(self):
         offenders = []
         driver = re.compile(r"\bxdotool\s+(?:key|search|windowfocus|windowactivate)\b")
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if not automatic or path.name in DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST:

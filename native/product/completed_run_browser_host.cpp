@@ -9,6 +9,7 @@ extern "C" {
 #include "desktop/host_main.h"
 #include "desktop/sdl_compat.h"
 #include "completed_run_browser.hpp"
+#include "completed_run_profile_sources.hpp"
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
@@ -40,6 +41,18 @@ unsigned g_browser_acceptance_active_frames;
 bool g_browser_acceptance_fired;
 unsigned g_records_browser_acceptance_active_frames;
 bool g_records_browser_acceptance_fired;
+
+enum class RecordsRootSection {
+    Tracks,
+    Profiles,
+};
+
+RecordsRootSection g_records_root_section = RecordsRootSection::Tracks;
+ur::product::RunRecordsProfileIndex g_records_profile_index;
+std::size_t g_records_profile_selected = 0;
+bool g_records_profiles_available = true;
+bool g_records_return_to_profiles = false;
+std::string g_records_view_profile_id;
 
 std::string records_course_label(const std::string& course_id) {
     if (course_id.size() == 9 &&
@@ -123,6 +136,86 @@ std::string active_run_directory() {
     return (fs::path(root) / "runs" / active_profile_id()).string();
 }
 
+std::string run_directory_for_profile(const std::string& profile_id) {
+    if (profile_id.empty()) return {};
+    if (profile_id == active_profile_id() &&
+        (std::getenv("UR_RUN_BROWSER_ACCEPTANCE") ||
+         std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE"))) {
+        const char* override_directory =
+            std::getenv("UR_RUN_BROWSER_DIRECTORY");
+        if (override_directory && *override_directory) {
+            return override_directory;
+        }
+    }
+
+    const std::string root = product_user_data_root();
+    if (root.empty()) return {};
+    return (fs::path(root) / "runs" / profile_id).string();
+}
+
+const ur::product::RunRecordsProfileSummary* selected_records_profile() {
+    if (g_records_profile_selected >= g_records_profile_index.profiles.size()) {
+        return nullptr;
+    }
+    return &g_records_profile_index.profiles[g_records_profile_selected];
+}
+
+std::string records_view_profile_name() {
+    for (const auto& profile : g_records_profile_index.profiles) {
+        if (profile.profile_id == g_records_view_profile_id) {
+            return profile.racer_identity.name;
+        }
+    }
+    return g_records_view_profile_id.empty()
+        ? std::string("DEFAULT")
+        : g_records_view_profile_id;
+}
+
+bool records_viewing_active_profile() {
+    return g_records_view_profile_id == active_profile_id();
+}
+
+bool refresh_records_profiles() {
+    const std::string root = product_user_data_root();
+    const auto sources =
+        ur::product::load_run_records_profile_sources(root);
+    if (!sources) {
+        g_records_profile_index = {};
+        g_records_profile_selected = 0;
+        g_records_profiles_available = false;
+        return false;
+    }
+
+    g_records_profile_index =
+        ur::product::build_run_records_profile_index(
+            *sources, records_scope(), active_profile_id());
+    g_records_profiles_available = true;
+    g_records_profile_selected =
+        g_records_profile_index.active_profile.value_or(0);
+    if (g_records_profile_selected >=
+        g_records_profile_index.profiles.size()) {
+        g_records_profile_selected = 0;
+    }
+    return true;
+}
+
+bool move_records_profile(int delta) {
+    if (delta == 0 || g_records_profile_index.profiles.empty()) {
+        return false;
+    }
+    const std::size_t count = g_records_profile_index.profiles.size();
+    if (delta > 0) {
+        g_records_profile_selected =
+            (g_records_profile_selected + 1) % count;
+    } else {
+        g_records_profile_selected =
+            g_records_profile_selected == 0
+                ? count - 1
+                : g_records_profile_selected - 1;
+    }
+    return true;
+}
+
 ur::product::RunRecordsScope records_scope() {
     return {
         "uniracers-usa",
@@ -160,13 +253,22 @@ bool records_selected_matches_current_course() {
            selected->course_id == target->course_id;
 }
 
-bool refresh_records_browser() {
-    const std::string directory = active_run_directory();
+bool refresh_records_browser_for_profile(
+    const std::string& profile_id) {
+    const std::string directory = run_directory_for_profile(profile_id);
     if (directory.empty()) {
         g_records_browser.clear();
         return false;
     }
-    return g_records_browser.refresh(directory, records_scope());
+    if (!g_records_browser.refresh(directory, records_scope())) {
+        return false;
+    }
+    g_records_view_profile_id = profile_id;
+    return true;
+}
+
+bool refresh_records_browser() {
+    return refresh_records_browser_for_profile(active_profile_id());
 }
 
 bool refresh_browser() {

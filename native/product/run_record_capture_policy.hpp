@@ -1,6 +1,7 @@
 #pragma once
 
 #include "widescreen_output_composition.hpp"
+#include "uniracers_two_player_result.hpp"
 
 #include <cstdint>
 #include <string_view>
@@ -80,6 +81,22 @@ constexpr RunRecordCapturePlan resolve_run_record_capture_plan(
     default:
         return {};
     }
+}
+
+/*
+ * CompletedRunRecord requires one elapsed_ticks60 carrier value even though
+ * ordinary 2P standings are owned by the stock result pair in hundredths.
+ * Use the earliest authoritative result value only as replay-carrier timing.
+ * This value must never be used for multiplayer ranking/PB semantics.
+ */
+constexpr std::uint64_t ordinary_two_player_carrier_elapsed_ticks60(
+    const ur::title::OrdinaryTwoPlayerRaceResult& result) noexcept {
+    const std::uint16_t decisive_hundredths =
+        result.player1_hundredths < result.player2_hundredths
+            ? result.player1_hundredths
+            : result.player2_hundredths;
+    return (
+        static_cast<std::uint64_t>(decisive_hundredths) * 60u + 50u) / 100u;
 }
 
 }  // namespace ur::product

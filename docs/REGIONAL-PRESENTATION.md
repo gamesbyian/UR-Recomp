@@ -1,6 +1,6 @@
 # Regional Presentation Switch
 
-Status: first player-visible Windows x64 Modern consumer shipping-path integrated; transition animation remains evidence-gated.
+Status: first player-visible Windows x64 Modern consumer shipping-path integrated and density-stable at 1x–4x; transition animation remains evidence-gated.
 
 This document owns the regional-presentation feature that lets the shipped game present itself as either the North American **Uniracers** release or the European **Unirally** release without introducing a second authoritative gameplay ruleset.
 
@@ -88,6 +88,10 @@ Introduce a semantic regional presentation state with two values:
 Do not name the internal state `PalMode` or `NtscMode`; those names imply timing/simulation behavior that this feature deliberately does not own.
 
 The state may control only evidence-backed presentation differences.
+
+The current title/logo consumer is presentation-density aware: on a supported fixed title scene the authoritative USA guest frame is nearest-composed at the configured integer density, then the verified Europe retail crop is painted at the same logical coordinates with each source pixel expanded to the same integer block. The crop digest is verified in logical-pixel order independent of density. Any admission, payload, geometry or post-paint verification failure restores the exact nearest-composed canonical USA frame. This changes no guest PPU/WRAM state and introduces no regional timing authority.
+
+
 
 Expected first consumers:
 

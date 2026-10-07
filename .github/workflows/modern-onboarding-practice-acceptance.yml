@@ -374,75 +374,54 @@ jobs:
           grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
           ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
 
-      - name: Modern Tour Resume Restart acceptance
+      - name: Run independent Modern acceptances concurrently
         shell: bash
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_tour_entry_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/tour-entry"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          DRIVER="$RUNNER_TEMP/parallel-modern-acceptance"
+          mkdir -p "$DRIVER"
 
-      - name: Prove Next Event reaches the one remaining tour event
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_next_event_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/next-event"
+          names=()
+          pids=()
+          launch() {
+            local name="$1"
+            local script="$2"
+            local work="$3"
+            (
+              bash "$GITHUB_WORKSPACE/tests/native/$script" "$EXE" "$ROM" "$RUNNER_TEMP/$work"
+            ) >"$DRIVER/$name.log" 2>&1 &
+            names+=("$name")
+            pids+=("$!")
+          }
 
-      - name: Prove Recent Course persists per profile as metadata only
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_recent_course_persistence_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/recent-persistence"
+          launch tour-entry run_modern_tour_entry_acceptance.sh tour-entry
+          launch next-event run_modern_next_event_acceptance.sh next-event
+          launch recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
+          launch vibration run_modern_vibration_acceptance.sh vibration
+          launch volume run_modern_volume_acceptance.sh volume
+          launch pad-glyphs run_modern_pad_glyph_acceptance.sh pad-glyphs
+          launch two-player-join run_modern_two_player_join_acceptance.sh two-player-join
 
-      - name: Prove Vibration toggles, persists and never touches simulation
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_vibration_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/vibration"
+          status=0
+          set +e
+          for i in "${!pids[@]}"; do
+            wait "${pids[$i]}"
+            rc=$?
+            if [ "$rc" -ne 0 ]; then
+              echo "::error::Parallel acceptance ${names[$i]} failed with status $rc"
+              status=1
+            fi
+          done
+          set -e
 
-      - name: Prove the Volume row steps and persists the framework volume
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_volume_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/volume"
-
-      - name: Prove pad hints name the physical buttons of the live GamepadMap
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_pad_glyph_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/pad-glyphs"
-
-      - name: Prove two pads join 2P with named devices and distinct profiles
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_two_player_join_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/two-player-join"
+          for name in "${names[@]}"; do
+            echo "===== parallel acceptance: $name ====="
+            cat "$DRIVER/$name.log"
+          done
+          exit "$status"
 
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
@@ -518,6 +497,10 @@ jobs:
             ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/vibration/*.log
+            ${{ runner.temp }}/volume/*.log
+            ${{ runner.temp }}/pad-glyphs/*.log
+            ${{ runner.temp }}/two-player-join/*.log
+            ${{ runner.temp }}/parallel-modern-acceptance/*.log
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

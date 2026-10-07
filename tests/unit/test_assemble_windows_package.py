@@ -1,4 +1,5 @@
 import json
+import hashlib
 import pathlib
 import subprocess
 import sys
@@ -558,6 +559,50 @@ class WindowsPackageTests(unittest.TestCase):
                 "package contents do not match", failed.stderr
             )
 
+    def test_archive_checksum_sidecar_is_canonical(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            package = root / "package"
+            self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", package,
+                "--source-revision", "test-revision",
+            )
+
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            self.run_tool("archive", "--package", package, "--output", archive)
+
+            sidecar = root / "UR-Recomp-Windows-x64.zip.sha256"
+            result = self.run_tool(
+                "checksum-archive",
+                "--archive", archive,
+                "--output", sidecar,
+            )
+            expected = hashlib.sha256(archive.read_bytes()).hexdigest()
+            self.assertEqual(
+                sidecar.read_text(encoding="ascii"),
+                f"{expected}  {archive.name}\n",
+            )
+            self.assertIn(
+                f"WINDOWS_PACKAGE_ARCHIVE_SHA256 sha256={expected}",
+                result.stdout,
+            )
+
+    def test_archive_checksum_fails_closed_for_missing_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            result = self.run_tool(
+                "checksum-archive",
+                "--archive", root / "missing.zip",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("package archive missing", result.stderr)
+
+
     def test_missing_required_input_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)
@@ -682,6 +727,38 @@ class WindowsPackageTests(unittest.TestCase):
             "python tools/assemble_windows_package.py assemble"
         )
         self.assertLess(verify, assemble)
+
+
+    def test_windows_workflow_proves_archive_identity_before_upload(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        archive = workflow.index(
+            "python tools/assemble_windows_package.py archive"
+        )
+        verify = workflow.index(
+            "python tools/assemble_windows_package.py verify-archive",
+            archive,
+        )
+        repro = workflow.index(
+            'REPRO_ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64-repro.zip"',
+            verify,
+        )
+        compare = workflow.index('cmp "$ARCHIVE" "$REPRO_ARCHIVE"', repro)
+        checksum = workflow.index(
+            "python tools/assemble_windows_package.py checksum-archive",
+            compare,
+        )
+        checksum_verify = workflow.index(
+            'sha256sum -c "$(basename "$CHECKSUM")"',
+            checksum,
+        )
+        upload = workflow.index("name: Upload Windows evidence", checksum_verify)
+        self.assertLess(archive, verify)
+        self.assertLess(verify, repro)
+        self.assertLess(repro, compare)
+        self.assertLess(compare, checksum)
+        self.assertLess(checksum, checksum_verify)
+        self.assertLess(checksum_verify, upload)
+        self.assertIn("UR-Recomp-Windows-x64.zip.sha256", workflow)
 
 
     def test_missing_source_revision_fails_closed(self):

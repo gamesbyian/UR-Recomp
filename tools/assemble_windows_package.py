@@ -19,6 +19,7 @@ LAUNCHER_NAME = "run-uniracers.cmd"
 README_NAME = "README.txt"
 ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
 ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
+ARCHIVE_CHECKSUM_SUFFIX = ".sha256"
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
     ROM_NAME,
@@ -360,6 +361,25 @@ def verify(package: Path) -> dict[str, object]:
     return manifest
 
 
+def write_archive_checksum(archive: Path, output: Path) -> str:
+    archive = archive.resolve()
+    output = output.resolve()
+    if not archive.is_file():
+        raise ValueError(f"package archive missing: {archive}")
+    if output == archive:
+        raise ValueError("archive checksum output must be separate from the archive")
+    if output.exists() and not output.is_file():
+        raise ValueError("archive checksum output exists and is not a file")
+    output.parent.mkdir(parents=True, exist_ok=True)
+    digest = sha256(archive)
+    output.write_text(
+        f"{digest}  {archive.name}\n",
+        encoding="ascii",
+        newline="\n",
+    )
+    return digest
+
+
 def create_archive(package: Path, archive: Path) -> dict[str, object]:
     package = package.resolve()
     archive = archive.resolve()
@@ -535,6 +555,10 @@ def main() -> int:
     verify_archive_parser = subparsers.add_parser("verify-archive")
     verify_archive_parser.add_argument("--archive", type=Path, required=True)
 
+    checksum_parser = subparsers.add_parser("checksum-archive")
+    checksum_parser.add_argument("--archive", type=Path, required=True)
+    checksum_parser.add_argument("--output", type=Path)
+
     args = parser.parse_args()
     try:
         if args.command == "assemble":
@@ -557,11 +581,20 @@ def main() -> int:
                 f"WINDOWS_PACKAGE_ARCHIVED files={len(manifest['files'])} "
                 f"archive={args.output}"
             )
-        else:
+        elif args.command == "verify-archive":
             manifest = verify_archive(args.archive)
             print(
                 f"WINDOWS_PACKAGE_ARCHIVE_VERIFIED files={len(manifest['files'])} "
                 f"archive={args.archive}"
+            )
+        else:
+            output = args.output or Path(
+                str(args.archive) + ARCHIVE_CHECKSUM_SUFFIX
+            )
+            digest = write_archive_checksum(args.archive, output)
+            print(
+                f"WINDOWS_PACKAGE_ARCHIVE_SHA256 sha256={digest} "
+                f"output={output}"
             )
     except ValueError as exc:
         parser.error(str(exc))

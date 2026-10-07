@@ -169,6 +169,46 @@ reduce YAML: the shared producer must preserve each consumer's required patch,
 instrumentation and source inputs, and artifact transfer must be cheaper than
 the build it replaces.
 
+## Wall-clock operating policy
+
+Measured CI runtime is now treated as an architecture constraint, not a cosmetic
+workflow concern.
+
+For expensive pull-request gates:
+
+- keep the PR in draft while a workstream is still producing commits;
+- push one coherent logical change rather than one file at a time;
+- expensive native gates must skip draft PRs and include
+  `ready_for_review` in their pull-request event types so the full evidence
+  fleet runs when the change is actually presented for review;
+- cheap policy/unit/hygiene checks may continue to run on drafts so structural
+  mistakes are caught before the expensive gates are released;
+- do not add a fixed debounce sleep. Draft deferral and narrow path triggers are
+  the debounce mechanism;
+- do not treat cancelled superseded runs as signal.
+
+Dependency setup is also part of the runtime budget. GitHub-hosted Ubuntu
+already supplies CMake and Ninja; automatic native gates must not repeatedly
+download them, and SDL2 development packages must not be pulled into canonical
+SDL3 builds. Runtime-only artifact consumers should install runtime tools only,
+not compiler/development stacks.
+
+Acceptance pacing may be removed only where it is explicitly proven not to
+change the evidence contract. `DisableFrameDelay = 1` is preferred for
+deterministic script-driven CI because it removes host waiting without the
+presentation-skipping behavior of Turbo. Keep wall-clock-driven `xdotool`
+journeys paced. Promote additional unpaced routes one bounded gate at a time,
+with byte/state evidence or an equivalently strong semantic comparison.
+
+Independent acceptances may share one compiled candidate and run concurrently
+when they own separate mutable state, dump, log and display roots. Do not
+parallelize cases merely because their YAML steps are adjacent.
+
+The runtime report must retain enough timing detail to distinguish queueing,
+dependency setup, compilation, acceptance execution and cancelled wall time.
+Optimization decisions should be based on those components rather than whole-run
+duration alone.
+
 ## Operating rules
 
 When a CI job turns red:

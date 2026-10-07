@@ -161,6 +161,12 @@ int main(int argc, char** argv) {
     assert(run_summary->finish.comparison_text == "+0:00.37/60");
     assert(run_summary->splits.size() == 2);
     assert(run_summary->splits[0].delta_text == "+0:00.10/60");
+    assert(records_browser.previous_run_record());
+    assert(records_browser.previous_run_record()->elapsed_ticks60 == 1750);
+    const auto previous_delta = records_browser.selected_run_previous_delta();
+    assert(previous_delta);
+    assert(previous_delta->target_text == "0:29.10/60");
+    assert(previous_delta->delta_text == "+0:00.00/60");
 
     assert(records_browser.open_selected_run_detail());
     assert(records_browser.view() == CompletedRunRecordsView::Detail);
@@ -174,6 +180,11 @@ int main(int argc, char** argv) {
     assert(records_browser.move(1));
     assert(records_browser.selected_run());
     assert(records_browser.selected_run()->path != first_run_path);
+    const auto historical_previous_delta =
+        records_browser.selected_run_previous_delta();
+    assert(historical_previous_delta);
+    assert(historical_previous_delta->target_text == "0:29.10/60");
+    assert(historical_previous_delta->delta_text == "-0:00.37/60");
     assert(records_browser.back_to_courses());
     assert(records_browser.view() == CompletedRunRecordsView::Courses);
     assert(!records_browser.selected_run_index());

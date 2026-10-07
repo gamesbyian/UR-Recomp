@@ -43,6 +43,7 @@ extern "C" {
 #include "host_profile_store.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
+#include "local_multiplayer_participants.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_menu.h"
 #include "modern_profile_reset.hpp"
@@ -121,6 +122,9 @@ bool g_binding_diagnostics_reported;
 std::string g_onboarding_seen_path;
 
 ur::product::LocalMultiplayerSetupState g_local_multiplayer_setup;
+ur::product::LocalMultiplayerParticipantSelection
+    g_local_multiplayer_participants;
+bool g_local_multiplayer_participants_ready;
 ur::product::ControllerHotplugState g_controller_hotplug;
 std::array<std::string, ur::product::kControllerSeatCount>
     g_controller_seat_names{};
@@ -346,51 +350,136 @@ ur::product::LocalMultiplayerSlot local_multiplayer_slot_for_player(
         : ur::product::LocalMultiplayerSlot::Player1;
 }
 
+void clear_local_multiplayer_session() {
+    g_local_multiplayer_join_visible = false;
+    g_local_multiplayer_two_player_visit = false;
+    g_local_multiplayer_setup = {};
+    g_local_multiplayer_participants = {};
+    g_local_multiplayer_participants_ready = false;
+}
+
 void update_local_multiplayer_join_surface() {
     if (!modern_mode() || !g_ram) {
-        g_local_multiplayer_join_visible = false;
-        g_local_multiplayer_two_player_visit = false;
+        clear_local_multiplayer_session();
         return;
     }
 
     const bool two_player_select = g_ram[0x009F] == 0x3D;
+    const bool settled_frontend =
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7;
+    if (settled_frontend) {
+        clear_local_multiplayer_session();
+        return;
+    }
+
     if (!two_player_select) {
         g_local_multiplayer_join_visible = false;
         g_local_multiplayer_two_player_visit = false;
-        g_local_multiplayer_setup = {};
+        // Once both explicit participant profiles are confirmed, retain the
+        // session identity through stock setup, race, result and track choice.
+        // It is retired only on return to the settled frontend above.
+        if (!g_local_multiplayer_participants_ready) {
+            g_local_multiplayer_setup = {};
+            g_local_multiplayer_participants = {};
+        }
         return;
     }
 
     if (!g_local_multiplayer_two_player_visit) {
         g_local_multiplayer_two_player_visit = true;
+        if (g_local_multiplayer_participants_ready) {
+            // A confirmed session may revisit this stock menu while remaining
+            // the same local multiplayer session. Do not erase identity or
+            // reopen the Modern join/profile surface.
+            return;
+        }
         g_local_multiplayer_setup = {};
+        g_local_multiplayer_participants = {};
+        g_local_multiplayer_participants_ready = false;
+        ensure_profile_catalog();
         const bool has_controller_source = std::any_of(
             g_local_multiplayer_sources.begin(),
             g_local_multiplayer_sources.end(),
             [](const ur::product::LocalInputSource& source) {
                 return source.connected;
             });
-        g_local_multiplayer_join_visible = has_controller_source;
-        if (has_controller_source) {
+        g_local_multiplayer_join_visible =
+            has_controller_source && !g_profile_catalog.empty();
+        if (g_local_multiplayer_join_visible) {
             product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_OPENED");
+        } else if (g_profile_catalog.empty()) {
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_PROFILES");
         } else {
-            product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER STOCK_FALLBACK_NO_CONTROLLER");
         }
     }
+}
+
+bool local_multiplayer_refresh_ready() {
+    const bool ready = ur::product::local_multiplayer_participants_ready(
+        g_local_multiplayer_setup,
+        g_local_multiplayer_participants);
+    g_local_multiplayer_participants_ready = ready;
+    if (ready) {
+        g_local_multiplayer_join_visible = false;
+        product_diagnostic("UR_LOCAL_MULTIPLAYER SESSION_READY");
+    }
+    return ready;
 }
 
 bool local_multiplayer_assign_source(
     ur::product::LocalMultiplayerSlot slot,
     ur::product::LocalInputSource source) {
     const auto result =
-        ur::product::local_multiplayer_assign(g_local_multiplayer_setup, slot, source);
+        ur::product::local_multiplayer_assign(
+            g_local_multiplayer_setup, slot, source);
     if (!result.applied()) return false;
     g_local_multiplayer_setup = result.state;
-    if (ur::product::local_multiplayer_launch_eligible(g_local_multiplayer_setup)) {
-        g_local_multiplayer_join_visible = false;
-        product_diagnostic("UR_LOCAL_MULTIPLAYER JOIN_READY");
-    }
     return true;
+}
+
+bool local_multiplayer_confirm_profile(
+    ur::product::LocalMultiplayerSlot slot) {
+    ensure_profile_catalog();
+    const auto* candidate =
+        ur::product::local_multiplayer_profile_candidate(
+            g_local_multiplayer_participants,
+            g_profile_catalog,
+            slot);
+    if (!candidate) return false;
+    const auto selected = ur::product::local_multiplayer_select_profile(
+        g_local_multiplayer_participants,
+        g_local_multiplayer_setup,
+        slot,
+        *candidate);
+    if (!selected.applied()) {
+        if (selected.status ==
+            ur::product::LocalMultiplayerParticipantStatus::DuplicateProfile) {
+            product_diagnostic(
+                "UR_LOCAL_MULTIPLAYER PROFILE_DUPLICATE");
+        }
+        return false;
+    }
+    g_local_multiplayer_participants = selected.state;
+    (void)local_multiplayer_refresh_ready();
+    return true;
+}
+
+void local_multiplayer_move_profile(
+    ur::product::LocalMultiplayerSlot slot,
+    int delta) {
+    ensure_profile_catalog();
+    const auto moved =
+        ur::product::local_multiplayer_move_profile_cursor(
+            g_local_multiplayer_participants,
+            g_profile_catalog,
+            slot,
+            delta);
+    if (moved.applied()) {
+        g_local_multiplayer_participants = moved.state;
+    }
 }
 
 void observe_regional_title_surface() {
@@ -4963,14 +5052,45 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
     if (g_local_multiplayer_join_visible) {
         if (key == SDLK_ESCAPE) {
+            // Suppress this Modern surface for the remainder of the current
+            // stock 0x3D visit without causing it to reopen next frame.
             g_local_multiplayer_join_visible = false;
+            g_local_multiplayer_setup = {};
+            g_local_multiplayer_participants = {};
+            g_local_multiplayer_participants_ready = false;
             product_diagnostic("UR_LOCAL_MULTIPLAYER STOCK_FALLBACK");
             return 1;
         }
-        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
-            (void)local_multiplayer_assign_source(
+        if (key == SDLK_LEFT || key == SDLK_RIGHT) {
+            local_multiplayer_move_profile(
                 ur::product::LocalMultiplayerSlot::Player1,
-                {ur::product::LocalInputKind::Keyboard, 1u, true});
+                key == SDLK_RIGHT ? 1 : -1);
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            const auto slot = ur::product::LocalMultiplayerSlot::Player1;
+            if (!g_local_multiplayer_setup.player1.assigned) {
+                (void)local_multiplayer_assign_source(
+                    slot,
+                    {ur::product::LocalInputKind::Keyboard, 1u, true});
+            } else {
+                (void)local_multiplayer_confirm_profile(slot);
+            }
+            return 1;
+        }
+        if (key == SDLK_BACKSPACE) {
+            const auto slot = ur::product::LocalMultiplayerSlot::Player1;
+            if (ur::product::local_multiplayer_participant(
+                    g_local_multiplayer_participants, slot)) {
+                g_local_multiplayer_participants =
+                    ur::product::local_multiplayer_clear_profile(
+                        g_local_multiplayer_participants, slot).state;
+                g_local_multiplayer_participants_ready = false;
+            } else {
+                const auto left = ur::product::local_multiplayer_leave(
+                    g_local_multiplayer_setup, slot);
+                if (left.applied()) g_local_multiplayer_setup = left.state;
+            }
             return 1;
         }
         return 1;
@@ -5189,8 +5309,15 @@ extern "C" void ur_uniracers_modern_system_gamepad_source_connection(
     if (!connected) g_local_multiplayer_consumed_buttons[seat] = 0u;
     g_local_multiplayer_setup = ur::product::local_multiplayer_set_connected(
         g_local_multiplayer_setup, source, connected != 0);
-    if (!connected && g_local_multiplayer_join_visible) {
-        product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
+    if (!connected) {
+        const auto slot = local_multiplayer_slot_for_player(player_index);
+        g_local_multiplayer_participants =
+            ur::product::local_multiplayer_clear_profile(
+                g_local_multiplayer_participants, slot).state;
+        g_local_multiplayer_participants_ready = false;
+        if (g_local_multiplayer_join_visible) {
+            product_diagnostic("UR_LOCAL_MULTIPLAYER SOURCE_DISCONNECTED");
+        }
     }
 }
 
@@ -5221,14 +5348,35 @@ extern "C" int ur_uniracers_modern_system_gamepad_source_button(
     const auto source = local_multiplayer_controller_source(source_id, true);
     g_local_multiplayer_sources[seat] = source;
 
+    if (button == kGamepadBtn_DpadLeft ||
+        button == kGamepadBtn_DpadRight) {
+        local_multiplayer_move_profile(
+            slot, button == kGamepadBtn_DpadRight ? 1 : -1);
+        return 1;
+    }
     if (button == kGamepadBtn_B) {
-        const auto left =
-            ur::product::local_multiplayer_leave(g_local_multiplayer_setup, slot);
-        if (left.applied()) g_local_multiplayer_setup = left.state;
+        if (ur::product::local_multiplayer_participant(
+                g_local_multiplayer_participants, slot)) {
+            g_local_multiplayer_participants =
+                ur::product::local_multiplayer_clear_profile(
+                    g_local_multiplayer_participants, slot).state;
+            g_local_multiplayer_participants_ready = false;
+        } else {
+            const auto left = ur::product::local_multiplayer_leave(
+                g_local_multiplayer_setup, slot);
+            if (left.applied()) g_local_multiplayer_setup = left.state;
+        }
         return 1;
     }
     if (button == kGamepadBtn_A || button == kGamepadBtn_Start) {
-        (void)local_multiplayer_assign_source(slot, source);
+        const auto& assignment =
+            ur::product::local_multiplayer_assignment(
+                g_local_multiplayer_setup, slot);
+        if (!assignment.assigned) {
+            (void)local_multiplayer_assign_source(slot, source);
+        } else {
+            (void)local_multiplayer_confirm_profile(slot);
+        }
         return 1;
     }
     return 1;
@@ -5724,7 +5872,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int panel_w_logical = logical_width < 276
             ? logical_width - 16
             : 268;
-        constexpr int kLocalMultiplayerPanelHeight = 112;
+        constexpr int kLocalMultiplayerPanelHeight = 142;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
             panel_w_logical, kLocalMultiplayerPanelHeight,
@@ -5742,26 +5890,74 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 7 * scale,
             "LOCAL MULTIPLAYER", 0xFFFFFFFFu, scale);
-        const char* p1 =
+
+        auto participant_row = [&](ur::product::LocalMultiplayerSlot slot,
+                                   const char* label,
+                                   bool joined) {
+            char row[96];
+            const auto& selected =
+                ur::product::local_multiplayer_participant(
+                    g_local_multiplayer_participants, slot);
+            const auto* candidate =
+                ur::product::local_multiplayer_profile_candidate(
+                    g_local_multiplayer_participants,
+                    g_profile_catalog,
+                    slot);
+            if (!joined) {
+                std::snprintf(
+                    row, sizeof(row), "%s  PRESS A / START", label);
+            } else if (selected) {
+                std::snprintf(
+                    row, sizeof(row), "%s  %s / %s  READY",
+                    label,
+                    selected->identity.name.c_str(),
+                    selected->profile_id.c_str());
+            } else if (candidate) {
+                std::snprintf(
+                    row, sizeof(row), "%s  < %s / %s >  A=CONFIRM",
+                    label,
+                    candidate->identity.name.c_str(),
+                    candidate->profile_id.c_str());
+            } else {
+                std::snprintf(
+                    row, sizeof(row), "%s  NO PROFILES", label);
+            }
+            return std::string(row);
+        };
+
+        const bool p1_joined =
             g_local_multiplayer_setup.player1.assigned &&
-            g_local_multiplayer_setup.player1.source.connected
-                ? "PLAYER 1  JOINED" : "PLAYER 1  PRESS A / START";
-        const char* p2 =
+            g_local_multiplayer_setup.player1.source.connected;
+        const bool p2_joined =
             g_local_multiplayer_setup.player2.assigned &&
-            g_local_multiplayer_setup.player2.source.connected
-                ? "PLAYER 2  JOINED" : "PLAYER 2  PRESS A / START";
+            g_local_multiplayer_setup.player2.source.connected;
+        const std::string p1 = participant_row(
+            ur::product::LocalMultiplayerSlot::Player1,
+            "PLAYER 1", p1_joined);
+        const std::string p2 = participant_row(
+            ur::product::LocalMultiplayerSlot::Player2,
+            "PLAYER 2", p2_joined);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 32 * scale,
-            p1, 0xFFFFFFFFu, scale);
+            p1.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 52 * scale,
-            p2, 0xFFFFFFFFu, scale);
+            p2.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 77 * scale,
-            "ENTER = KEYBOARD P1   B = LEAVE", 0xFFFFFFFFu, scale);
+            "LEFT / RIGHT = PROFILE   A = JOIN / CONFIRM",
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 94 * scale,
-            "ESC = STOCK 2P SETUP", 0xFFFFFFFFu, scale);
+            "B / BACKSPACE = CLEAR / LEAVE", 0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8 * scale, y + 111 * scale,
+            "ENTER = KEYBOARD P1   ESC = STOCK 2P",
+            0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8 * scale, y + 128 * scale,
+            "STOCK RIDER PICKS MUST MATCH PROFILES",
+            0xFFFFFFFFu, scale);
         return;
     }
 

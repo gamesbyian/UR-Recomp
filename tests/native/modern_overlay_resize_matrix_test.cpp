@@ -128,7 +128,7 @@ int main() {
         timing_request(fixed_original, viewport_ultrawide, 2));
     assert(plan_4x3.logical_rect == plan_ultrawide.logical_rect);
     assert(plan_4x3.presentation_rect == plan_ultrawide.presentation_rect);
-    assert(plan_4x3.output_rect != plan_ultrawide.output_rect);
+    assert(!(plan_4x3.output_rect == plan_ultrawide.output_rect));
     assert_rect_inside(plan_4x3.output_rect, viewport_4x3);
     assert_rect_inside(plan_ultrawide.output_rect, viewport_ultrawide);
 

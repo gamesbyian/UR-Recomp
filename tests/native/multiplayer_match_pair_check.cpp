@@ -29,6 +29,17 @@ int main(int argc, char** argv) {
         return 1;
     }
 
+    bool saw_p1_input = false;
+    bool saw_p2_input = false;
+    for (const auto& input : run.record->inputs) {
+        saw_p1_input = saw_p1_input || input.p1_mask != 0;
+        saw_p2_input = saw_p2_input || input.p2_mask != 0;
+    }
+    if (!saw_p1_input || !saw_p2_input) {
+        std::cerr << "captured 2P carrier is missing a resolved input lane\n";
+        return 1;
+    }
+
     const auto match =
         load_multiplayer_match_record_for_run(run_path, *run.record);
     if (!match) {
@@ -36,6 +47,13 @@ int main(int argc, char** argv) {
         return 1;
     }
     const auto& result = match.record->context.match.result;
+    if (!result.player1_finished() ||
+        result.player2_hundredths != kOrdinaryTwoPlayerNoTimeHundredths ||
+        result.outcome != OrdinaryTwoPlayerRaceOutcome::Player1Win) {
+        std::cerr << "acceptance did not resolve through stock P1-win/NO-TIME result\n";
+        return 1;
+    }
+
     const std::uint16_t decisive =
         result.player1_hundredths < result.player2_hundredths
             ? result.player1_hundredths

@@ -10,7 +10,11 @@ on:
       - "native/product/modern_tour_*.hpp"
       - "native/product/next_event_derivation.hpp"
       - "tests/native/run_modern_next_event_acceptance.sh"
+      - "tests/native/run_modern_recent_course_persistence_acceptance.sh"
+      - "native/product/host_profile_state.*"
       - "tests/input/modern-tour-next-event-acceptance.script"
+      - "tests/input/modern-recent-course-persist.script"
+      - "tests/input/modern-recent-course-restore.script"
       - "tests/native/modern_controls_*"
       - "tools/patch_modern_product_host.py"
       - "tests/input/modern-main-menu.script"
@@ -357,6 +361,16 @@ jobs:
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             "$RUNNER_TEMP/next-event"
 
+      - name: Prove Recent Course persists per profile as metadata only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_recent_course_persistence_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/recent-persistence"
+
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
         run: |
@@ -428,6 +442,7 @@ jobs:
             ${{ runner.temp }}/controller-hotplug-modern.log
             ${{ runner.temp }}/controller-hotplug-authentic.log
             ${{ runner.temp }}/next-event/*.log
+            ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

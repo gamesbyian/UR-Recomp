@@ -5,6 +5,8 @@
 using namespace ur::product;
 
 int main() {
+    assert(default_final_window_filter() ==
+           HostFinalWindowFilter::Nearest);
     assert(resolve_presentation_sampling(
                HostPresentationSource::OriginalPixelArt) ==
            HostPresentationSampling::NearestInteger);

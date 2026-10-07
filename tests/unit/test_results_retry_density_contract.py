@@ -19,7 +19,7 @@ class ResultsRetryDensityContractTests(unittest.TestCase):
         body = self.source[start:end]
         self.assertNotIn("UR_UNIRACERS_RESTART_RESULTS", body)
         self.assertIn(
-            "const bool logical_overlay_active = regional_title;",
+            "const bool logical_overlay_active = false;",
             body,
         )
 

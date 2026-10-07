@@ -21,6 +21,7 @@ class MultiplayerMatchRecordCppTests(unittest.TestCase):
                     str(ROOT / "native" / "product" / "host_product_state.cpp"),
                     str(ROOT / "native" / "product" / "output_resolution_policy.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_record.cpp"),
+                    str(ROOT / "native" / "product" / "completed_run_store.cpp"),
                     str(ROOT / "native" / "product" / "local_multiplayer_match_binding.cpp"),
                     str(ROOT / "native" / "product" / "multiplayer_match_record.cpp"),
                     str(ROOT / "tests" / "native" / "multiplayer_match_record_test.cpp"),

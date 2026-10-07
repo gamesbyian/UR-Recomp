@@ -1032,6 +1032,8 @@ jobs:
           PY
 
       - name: Shipping Widescreen stock-parity acceptance
+        id: ws_parity
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1064,6 +1066,11 @@ jobs:
             rm -rf "$SAVES"
             if [ -d "$RUNNER_TEMP/ws-saves-pre" ]; then cp -a "$RUNNER_TEMP/ws-saves-pre" "$SAVES"; fi
           }
+          restore_post_saves() {
+            rm -rf "$SAVES"
+            if [ -d "$RUNNER_TEMP/ws-saves-post" ]; then cp -a "$RUNNER_TEMP/ws-saves-post" "$SAVES"; fi
+          }
+          trap restore_post_saves EXIT
           reset_saves
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$ROOT/host-state-v6.txt" \
@@ -1169,10 +1176,12 @@ jobs:
           print("WIDESCREEN_PRODUCT_SPLIT widened=342x224")
           PY
 
-          rm -rf "$SAVES"
-          if [ -d "$RUNNER_TEMP/ws-saves-post" ]; then cp -a "$RUNNER_TEMP/ws-saves-post" "$SAVES"; fi
+          restore_post_saves
+          trap - EXIT
 
       - name: Build display-geometry review
+        id: display_geometry
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1219,6 +1228,8 @@ jobs:
           PY
 
       - name: Modern focus-loss pause acceptance
+        id: focus_pause
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1270,6 +1281,8 @@ jobs:
           echo "UR_FOCUS_PAUSE_RESULT=applied_through_native_product_host"
 
       - name: Modern pause-settings row persistence acceptance
+        id: pause_settings
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1456,6 +1469,8 @@ jobs:
           echo "UR_PAUSE_OPTIONS_RESULT=focus_fullscreen_vsync_presentation_fps_output_resolution_render_scale_widescreen_saved_loaded_and_authentic_inert"
 
       - name: Internal Render Scale compositor acceptance
+        id: render_scale
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1508,6 +1523,8 @@ jobs:
           echo "UR_RENDER_SCALE_FRAME PASS dimensions=512x448 scale=2"
 
       - name: Modern Output Resolution rollback acceptance
+        id: resolution_rollback
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1604,6 +1621,8 @@ jobs:
           echo "UR_OUTPUT_RESOLUTION_ROLLBACK_RESULT=live_candidate_reverted_after_save_failure"
 
       - name: Modern presentation FPS cadence acceptance
+        id: presentation_fps
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1644,6 +1663,8 @@ jobs:
           PY
 
       - name: Modern pause Run Data acceptance
+        id: run_data
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1755,6 +1776,8 @@ jobs:
           echo "UR_TIMING_HUD_AUTHENTIC_RESULT=inert"
 
       - name: Modern Exit to Frontend acceptance
+        id: exit_frontend
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1873,6 +1896,8 @@ jobs:
           echo "UR_EXIT_FRONTEND_RESULT=active_and_results_returned_to_usable_frontend_with_sram_preserved_result_autosaved"
 
       - name: Modern pause Quit to Desktop acceptance
+        id: quit_desktop
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -1966,6 +1991,31 @@ jobs:
 
           cat "$LOG"
           echo "UR_PAUSE_QUIT_RESULT=cancelled_then_clean_exit"
+
+      - name: Aggregate native smoke acceptance failures
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          failed=0
+          check() {
+            local name="$1" outcome="$2"
+            if [ "$outcome" != "success" ]; then
+              echo "::error::$name outcome=$outcome"
+              failed=1
+            fi
+          }
+          check "Shipping Widescreen stock-parity acceptance" "${{ steps.ws_parity.outcome }}"
+          check "Build display-geometry review" "${{ steps.display_geometry.outcome }}"
+          check "Modern focus-loss pause acceptance" "${{ steps.focus_pause.outcome }}"
+          check "Modern pause-settings row persistence acceptance" "${{ steps.pause_settings.outcome }}"
+          check "Internal Render Scale compositor acceptance" "${{ steps.render_scale.outcome }}"
+          check "Modern Output Resolution rollback acceptance" "${{ steps.resolution_rollback.outcome }}"
+          check "Modern presentation FPS cadence acceptance" "${{ steps.presentation_fps.outcome }}"
+          check "Modern pause Run Data acceptance" "${{ steps.run_data.outcome }}"
+          check "Modern Exit to Frontend acceptance" "${{ steps.exit_frontend.outcome }}"
+          check "Modern pause Quit to Desktop acceptance" "${{ steps.quit_desktop.outcome }}"
+          exit "$failed"
 
       - name: Upload fast-gate evidence
         if: always()

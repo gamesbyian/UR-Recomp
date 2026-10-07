@@ -103,4 +103,31 @@ std::vector<StoredMultiplayerMatch> load_valid_multiplayer_matches(
     return loaded;
 }
 
+std::vector<StoredMultiplayerMatch> filter_multiplayer_matches_for_profile(
+    const std::vector<StoredMultiplayerMatch>& matches,
+    const std::string& profile_id) {
+    std::vector<StoredMultiplayerMatch> filtered;
+    if (profile_id.empty()) return filtered;
+    for (const auto& match : matches) {
+        if (match.match.context.match.player1.profile_id == profile_id ||
+            match.match.context.match.player2.profile_id == profile_id) {
+            filtered.push_back(match);
+        }
+    }
+    return filtered;
+}
+
+std::vector<StoredMultiplayerMatch> filter_multiplayer_matches_for_course(
+    const std::vector<StoredMultiplayerMatch>& matches,
+    const std::string& course_id) {
+    std::vector<StoredMultiplayerMatch> filtered;
+    if (course_id.empty()) return filtered;
+    for (const auto& match : matches) {
+        if (match.match.context.course_id == course_id) {
+            filtered.push_back(match);
+        }
+    }
+    return filtered;
+}
+
 }  // namespace ur::product

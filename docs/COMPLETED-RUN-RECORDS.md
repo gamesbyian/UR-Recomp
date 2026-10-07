@@ -85,6 +85,12 @@ The host-independent admission policy now also defines the future bounded ordina
 `frame_count` remains persisted because it is useful lifecycle metadata for the captured attempt, but it is not an input to replay and is not required to match across fresh-process replay. The retained Dragster acceptance evidence showed identical provenance, `elapsed_ticks60`, all four split IDs/ticks, and all 65 RLE input runs while the host-observed active-race lifecycle window differed by one frame (2290 vs 2289). That one-frame lifecycle observation difference does not alter the guest input stream or authoritative timing, so deterministic replay acceptance treats it as diagnostic metadata rather than simulation equivalence.
 
 
+## Local ghost target availability
+
+The per-profile ghost preference already owns the durable choice: **Off**, **Previous**, or **Personal Best**. The product policy also owns the canonical option-cycle order, **Off → Previous → Personal Best → Off**, via `next_completed_run_ghost_target()`; invalid values fail closed to Off. The live host still performs the persistence transaction, but it should not invent a different ordering. Availability is now modeled separately from that persisted request. `resolve_completed_run_ghost_target()` accepts the requested target plus the current compatible Previous/PB availability and returns both the unchanged request and the effective target for this binding.
+
+If the requested artifact is unavailable for the current course/session, the effective target is **Off** only for that binding. The profile preference is not rewritten, and Personal Best never silently falls back to Previous (or vice versa). This keeps local ghost management predictable across courses with uneven history while preserving one preference authority.
+
 ## Presentation-only ghost selection
 
 `native/product/completed_run_ghost.{hpp,cpp}` is the first consumer of the persisted catalog. At an eligible Modern 1P race-entry edge, the host loads compatible records from the active profile namespace and binds two immutable selections: the most recent compatible run and the fastest compatible personal best. The state owns copies of those records and exposes race-relative controller lookup only.

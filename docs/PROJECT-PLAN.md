@@ -128,7 +128,7 @@ The following are **must-do modern product requirements** unless later technical
 - presentation refresh/FPS settings must never alter authoritative guest simulation cadence, physics, timers, AI, RNG, animation-state selection, input semantics or records; higher-refresh presentation must use host-side frame pacing, repeated presentation frames and/or presentation-only interpolation as appropriate;
 - three first-class graphics modes backed by swappable presentation assets: **Original** (literal/authentic SNES artwork), **Remastered** (faithful high-resolution reconstruction that preserves the original art decisions while removing low-resolution pixel-grid limitations), and **Reimagined** (new modern artwork closely derived from the original design language); optional CRT/NTSC-style presentation may sit on top of Original where useful;
 - fast navigation conveniences such as recent track, rematch, next event and direct practice access;
-- localization-ready text/UI architecture even if only one language is initially shipped;
+- localization-ready text/UI architecture even if only one language is initially shipped; the first implemented seam uses stable semantic Modern text IDs with built-in English fallback for settled top-level root copy, and should expand surface-by-surface as player-facing wording stabilizes rather than cataloging diagnostics or transient implementation text;
 - preservation of attract/demo behavior, with room for a modern showcase/demo presentation using recorded local runs;
 - architecture that does not unnecessarily prevent custom courses, local challenge packs, visual packs or other data-driven extensions later.
 

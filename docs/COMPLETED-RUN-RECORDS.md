@@ -30,6 +30,12 @@ The last exact checkpoint delta is retained as host presentation state until ano
 
 Native acceptance binds the live HUD to the same authoritative WRAM timer digits used by the title adapter, verifies Authentic execution emits no timing HUD in the same race route, and reuses the established ordinary-2P race route to prove unsupported contexts remain inert. Focused C++ presentation tests independently cover no-PB, malformed-target, split/finish delta and availability-gate behavior.
 
+## Records profile-summary model
+
+The Records layer now has a storage-agnostic profile summary primitive for the planned **Racers / Profiles** view. It accepts the already-authoritative profile ID and racer identity plus that profile's completed-run catalog, then derives only two aggregate values from the existing game/ROM/build/mode-scoped Records index: completed runs and tracks with records. It does not add racer identity to `.urrun`, does not scan or mutate profile storage itself, and does not introduce cross-profile ranking semantics.
+
+The UI integration remains intentionally read-only and deferred until the active Modern profile/navigation host seam is free of overlapping work. When wired, it should load identities from the established profile catalog and load each profile's run namespace through the same completed-run store/index path used by the active profile.
+
 ## Format evolution and failure policy
 
 Schema v1 is strict and self-identifying. Unknown fields, malformed values, duplicate required fields, overlapping inputs and checksum damage fail closed. A valid but unsupported future schema reports UnsupportedVersion. A valid record whose game/ROM/build/course/mode provenance does not match the playback target reports Incompatible.

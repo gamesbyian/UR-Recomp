@@ -431,28 +431,113 @@ bool append_multiplayer_match_pair(
         return fail(detail, "match record does not bind completed run");
     }
 
-    std::string run_path;
-    if (!append_completed_run_record(directory, run, &run_path, detail)) {
+    namespace fs = std::filesystem;
+    std::error_code ec;
+    fs::create_directories(directory, ec);
+    if (ec) return fail(detail, "cannot create multiplayer-run directory");
+
+    // Build both bound artifacts in a private same-filesystem directory.
+    // Catalogs scan only final *.urrun names, so an interrupted stage is inert.
+    fs::path staging_dir;
+    for (unsigned suffix = 0; suffix < 10000; ++suffix) {
+        const fs::path candidate =
+            fs::path(directory) / (".urpair-stage-" + std::to_string(suffix));
+        ec.clear();
+        if (fs::create_directory(candidate, ec)) {
+            staging_dir = candidate;
+            break;
+        }
+        if (ec) return fail(detail, "cannot create multiplayer-pair staging directory");
+    }
+    if (staging_dir.empty()) {
+        return fail(detail, "multiplayer-pair staging space exhausted");
+    }
+
+    const auto cleanup_staging = [&staging_dir]() {
+        std::error_code cleanup_ec;
+        fs::remove_all(staging_dir, cleanup_ec);
+    };
+
+    std::string staged_run;
+    if (!append_completed_run_record(
+            staging_dir.string(), run, &staged_run, detail)) {
+        cleanup_staging();
         return false;
     }
 
     std::string sidecar_detail;
     if (!save_multiplayer_match_record_for_run(
-            run_path, run, record, &sidecar_detail)) {
-        std::error_code sidecar_ec;
-        std::filesystem::remove(
-            multiplayer_match_record_path_for_run(run_path), sidecar_ec);
-        std::error_code run_ec;
-        std::filesystem::remove(run_path, run_ec);
+            staged_run, run, record, &sidecar_detail)) {
+        cleanup_staging();
+        if (detail) *detail = sidecar_detail;
+        return false;
+    }
+
+    const fs::path staged_run_path(staged_run);
+    const fs::path staged_sidecar_path(
+        multiplayer_match_record_path_for_run(staged_run));
+
+    // Reserve an unused public basename. A concurrent writer can still win
+    // after this check; rename then fails closed without replacing its pair.
+    fs::path final_run_path;
+    fs::path final_sidecar_path;
+    const std::string stem = staged_run_path.stem().string();
+    for (unsigned suffix = 0; suffix < 10000; ++suffix) {
+        const std::string filename =
+            suffix == 0
+                ? staged_run_path.filename().string()
+                : stem + "-pair-" + std::to_string(suffix) + ".urrun";
+        const fs::path candidate = fs::path(directory) / filename;
+        const fs::path candidate_sidecar(
+            multiplayer_match_record_path_for_run(candidate.string()));
+
+        ec.clear();
+        const bool run_exists = fs::exists(candidate, ec);
+        if (ec) {
+            cleanup_staging();
+            return fail(detail, "cannot inspect multiplayer-run path");
+        }
+        ec.clear();
+        const bool sidecar_exists = fs::exists(candidate_sidecar, ec);
+        if (ec) {
+            cleanup_staging();
+            return fail(detail, "cannot inspect multiplayer-match path");
+        }
+        if (!run_exists && !sidecar_exists) {
+            final_run_path = candidate;
+            final_sidecar_path = candidate_sidecar;
+            break;
+        }
+    }
+    if (final_run_path.empty()) {
+        cleanup_staging();
+        return fail(detail, "multiplayer-pair filename space exhausted");
+    }
+
+    // Publish the sidecar first. Until the run rename succeeds there is no
+    // catalog-visible *.urrun, so a crash cannot expose a half-bound run.
+    ec.clear();
+    fs::rename(staged_sidecar_path, final_sidecar_path, ec);
+    if (ec) {
+        cleanup_staging();
+        return fail(detail, "cannot commit multiplayer-match sidecar");
+    }
+
+    ec.clear();
+    fs::rename(staged_run_path, final_run_path, ec);
+    if (ec) {
+        std::error_code rollback_ec;
+        fs::remove(final_sidecar_path, rollback_ec);
+        cleanup_staging();
         if (detail) {
-            *detail = sidecar_detail;
-            if (run_ec) *detail += "; completed-run rollback failed";
-            if (sidecar_ec) *detail += "; sidecar rollback failed";
+            *detail = "cannot commit completed-run pair";
+            if (rollback_ec) *detail += "; sidecar rollback failed";
         }
         return false;
     }
 
-    if (stored_run_path) *stored_run_path = run_path;
+    cleanup_staging();
+    if (stored_run_path) *stored_run_path = final_run_path.string();
     return true;
 }
 

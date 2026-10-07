@@ -37,6 +37,7 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
+#include "run_record_capture_policy.hpp"
 #include "regional_presentation_input_policy.hpp"
 #include "regional_presentation_input_coordinator.hpp"
 #include "regional_title_presenter.hpp"
@@ -3335,17 +3336,14 @@ bool run_record_capture_enabled() {
                ur::product::HostRacePresentationMode::OnePlayer;
 }
 
-bool multiplayer_run_capture_enabled() {
-    return modern_mode() && !g_practice_active &&
-           g_widescreen_scene_state.race_mode ==
-               ur::product::HostRacePresentationMode::TwoPlayer &&
-           g_local_multiplayer_participants_ready &&
+bool multiplayer_participant_session_ready() {
+    return g_local_multiplayer_participants_ready &&
            g_local_multiplayer_participants.player1.has_value() &&
            g_local_multiplayer_participants.player2.has_value();
 }
 
 std::string default_multiplayer_run_directory() {
-    if (!multiplayer_run_capture_enabled()) return {};
+    if (!modern_mode()) return {};
     return product_user_data_path("multiplayer-runs");
 }
 
@@ -3525,7 +3523,6 @@ bool begin_run_record_capture(uint64_t host_frame) {
 
 bool begin_multiplayer_run_record_capture(std::uint64_t host_frame) {
     reset_multiplayer_run_capture();
-    if (!multiplayer_run_capture_enabled()) return false;
 
     const UrUniracersCourseIdentity course =
         ur_uniracers_identify_course(g_ram + 0x10000u, 0x10000u);
@@ -3534,8 +3531,19 @@ bool begin_multiplayer_run_record_capture(std::uint64_t host_frame) {
         return false;
     }
     const int tour_slot = ((course.course_index - 1) % 5) + 1;
-    if (tour_slot != 1 && tour_slot != 4) {
-        product_diagnostic("UR_MULTIPLAYER_MATCH NON_RACE_TRACK_INERT");
+    const bool ordinary_race_course = tour_slot == 1 || tour_slot == 4;
+    const auto plan = ur::product::resolve_run_record_capture_plan(
+        modern_mode(),
+        g_practice_active,
+        g_widescreen_scene_state.race_mode,
+        multiplayer_participant_session_ready(),
+        ordinary_race_course);
+    if (!plan.enabled() ||
+        plan.kind != ur::product::RunRecordCaptureKind::OrdinaryTwoPlayerRace ||
+        !plan.require_match_record) {
+        if (!ordinary_race_course) {
+            product_diagnostic("UR_MULTIPLAYER_MATCH NON_RACE_TRACK_INERT");
+        }
         return false;
     }
 
@@ -3547,7 +3555,7 @@ bool begin_multiplayer_run_record_capture(std::uint64_t host_frame) {
         "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
         "snesrecomp-cd5875cbdaf19f5e324272b1f8051d671fce9215-ur-sim-v1",
         course_id,
-        "race-2p",
+        std::string(plan.provenance_mode),
     };
     if (!g_multiplayer_run_capture.begin_attempt(provenance)) {
         product_diagnostic("UR_MULTIPLAYER_MATCH BEGIN_REJECTED");

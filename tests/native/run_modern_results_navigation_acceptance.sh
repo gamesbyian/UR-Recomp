@@ -111,7 +111,8 @@ run_case() {
       >"$log" 2>&1
 }
 
-# One prequalified event plus the scripted first event leaves an ambiguous row.
+# One prequalified event is already authoritative. The scripted race replays
+# an already-qualified stock event, so the row must remain ambiguous and unchanged.
 run_case ambiguous 01000 inspect
 cat "$WORK/ambiguous.log"
 grep -q "UR_RESULTS_NAV MENU .*next=0 track=1 tour=1 .*records=1 practice=0" "$WORK/ambiguous.log"
@@ -147,15 +148,16 @@ import sys
 sram = Path(sys.argv[1]).read_bytes()
 profile = Path(sys.argv[2]).read_text()
 row = sram[0x1075:0x107A]
-if row != bytes((1, 1, 0, 0, 0)):
-    raise SystemExit(f"Tour Select did not preserve result progression: {list(row)}")
-if "tour_resume=0:0:0:11000" not in profile:
+if row != bytes((0, 1, 0, 0, 0)):
+    raise SystemExit(f"Tour Select did not preserve authoritative progression: {list(row)}")
+if "tour_resume=0:0:0:01000" not in profile:
     raise SystemExit("Tour Select profile continuation diverged from result row")
 print("UR_RESULTS_TOUR_SELECT_NATIVE=stock_menu=1 rollback_preserved=1")
 PY
 
-# Three prequalified events plus the scripted first event leaves exactly slot 4.
-run_case next 01110 next
+# Four prequalified events are already authoritative; the scripted race replays
+# slot 0, leaving exactly slot 4 as the unique continuation target.
+run_case next 11110 next
 cat "$WORK/next.log"
 grep -q "UR_RESULTS_NAV MENU .*next=1 track=1 tour=1 .*records=1 practice=0" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT target=next" "$WORK/next.log"

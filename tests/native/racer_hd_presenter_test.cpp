@@ -1165,5 +1165,42 @@ int main() {
     assert(b05f9_max_y == 36);
     assert(b05f9_bottom_min_x + b05f9_bottom_max_x == 77);
 
+    assert(racer_hd_asset_available(0x0546));
+
+    RacerCompositionState broader_p2_0546_context{
+        0x03F9, 0x0546, 0x0000, 0x0EB2, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_p2_0546 =
+        find_racer_registration_for_state(0x0546, broader_p2_0546_context, 2);
+    assert(broader_p2_0546 != nullptr);
+    assert(is_authored_broader_0546_p2_0eb2_registration(*broader_p2_0546));
+
+    int b0546_min_x = kRacerHdLogicalSize, b0546_min_y = kRacerHdLogicalSize;
+    int b0546_max_x = -1, b0546_max_y = -1;
+    int b0546_bottom_min_x = kRacerHdLogicalSize, b0546_bottom_max_x = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*broader_p2_0546, sx, sy, false, false) == 0) continue;
+            if (lx < b0546_min_x) b0546_min_x = lx;
+            if (ly < b0546_min_y) b0546_min_y = ly;
+            if (lx > b0546_max_x) b0546_max_x = lx;
+            if (ly > b0546_max_y) b0546_max_y = ly;
+        }
+    }
+    for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+        const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        const int sy = b0546_max_y * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        if (sample_racer_hd_asset(*broader_p2_0546, sx, sy, false, false) == 0) continue;
+        if (lx < b0546_bottom_min_x) b0546_bottom_min_x = lx;
+        if (lx > b0546_bottom_max_x) b0546_bottom_max_x = lx;
+    }
+    assert(b0546_min_x == 17);
+    assert(b0546_min_y == 4);
+    assert(b0546_max_x == 41);
+    assert(b0546_max_y == 37);
+    assert(b0546_bottom_min_x + b0546_bottom_max_x == 51);
+
     return 0;
 }

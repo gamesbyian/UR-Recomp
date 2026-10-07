@@ -70,7 +70,7 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         mapped = _body(
             source,
             'extern "C" int ur_uniracers_modern_system_gamepad_control(',
-            'extern "C" int ur_uniracers_modern_system_should_suppress_human_input(',
+            'extern "C" uint32_t ur_uniracers_modern_filter_player_input(',
         )
         self.assertGreaterEqual(
             keyboard.count("handle_results_navigation("), 3)

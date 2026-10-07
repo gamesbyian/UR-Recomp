@@ -27,11 +27,9 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         )
         self.assertIn("adjust_detail_target(adjustment)", source)
 
-        self.assertEqual(source.count('"LEFT / RIGHT  CHANGE TARGET"'), 1)
-        self.assertGreater(
-            source.index('"LEFT / RIGHT  CHANGE TARGET"'),
-            source.index('"NO MATCHING CHECKPOINT DATA"'),
-        )
+        self.assertNotIn('"LEFT / RIGHT  CHANGE TARGET"', source)
+        self.assertIn('"SPLITS < %s >  CURRENT / TARGET / DELTA"', source)
+        self.assertIn("shown >= 3", source)
 
         self.assertIn('"RECORDS / RACERS-PROFILES"', source)
         self.assertIn("RecordsRootSection::Profiles", source)

@@ -15,7 +15,11 @@ TOOLS = ROOT / "tools"
 if str(TOOLS) not in sys.path:
     sys.path.insert(0, str(TOOLS))
 
-from summarize_racer_semantic_trace import parse_trace, row_matches_registration
+from summarize_racer_semantic_trace import (
+    parse_trace,
+    row_matches_registration,
+    validate_registry_guard_scopes,
+)
 
 
 def state_key(row: dict[str, Any]) -> str:
@@ -43,6 +47,7 @@ def build_report(
     *,
     source: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    validate_registry_guard_scopes(registry)
     entries_by_player = {
         player: [e for e in registry["entries"] if e["player"] == player]
         for player in ("p1", "p2")

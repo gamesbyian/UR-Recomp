@@ -70,6 +70,7 @@ jobs:
     name: build-ui-candidate
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    steps:
       - name: Check out project
         uses: actions/checkout@v4
 

@@ -1,0 +1,36 @@
+#pragma once
+
+#include "multiplayer_match_binding.hpp"
+
+#include <optional>
+#include <string>
+#include <string_view>
+
+namespace ur::product {
+
+constexpr std::uint32_t kMultiplayerMatchRecordSchemaVersion = 1;
+
+struct MultiplayerMatchRecord {
+    std::uint32_t schema_version = kMultiplayerMatchRecordSchemaVersion;
+    std::string run_artifact_checksum;
+    BoundOrdinaryTwoPlayerRaceMatch match;
+};
+
+struct MultiplayerMatchDecodeResult {
+    std::optional<MultiplayerMatchRecord> record;
+    std::string error;
+
+    explicit operator bool() const noexcept { return record.has_value(); }
+};
+
+bool validate_multiplayer_match_record(
+    const MultiplayerMatchRecord& record,
+    std::string* detail = nullptr) noexcept;
+
+std::string encode_multiplayer_match_record(
+    const MultiplayerMatchRecord& record);
+
+MultiplayerMatchDecodeResult decode_multiplayer_match_record(
+    std::string_view encoded);
+
+}  // namespace ur::product

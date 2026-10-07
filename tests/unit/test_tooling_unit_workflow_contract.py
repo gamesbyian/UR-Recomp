@@ -5,6 +5,8 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 WORKFLOW = ROOT / ".github" / "workflows" / "tooling-unit-tests.yml"
 
 PURE_MODEL_PATHS = (
+    "native/product/completed_run_ghost_target.hpp",
+    "tests/native/completed_run_ghost_target_test.cpp",
     "native/product/local_multiplayer_setup.hpp",
     "native/product/modern_root_menu.hpp",
     "native/product/modern_text_catalog.hpp",

@@ -19,7 +19,8 @@ RegionalTitlePresentationResult apply_regional_title_presentation(
     std::uint8_t* pixels,
     std::size_t pitch,
     int width,
-    int height) noexcept;
+    int height,
+    int presentation_scale = 1) noexcept;
 
 std::uint64_t regional_title_visible_crop_digest(
     const std::uint8_t* pixels,

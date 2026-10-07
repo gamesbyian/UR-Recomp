@@ -7,6 +7,10 @@ on:
       - "native/product/uniracers_modern_host.*"
       - "native/product/modern_controls_*"
       - "native/product/controller_hotplug_policy.hpp"
+      - "native/product/modern_tour_*.hpp"
+      - "native/product/next_event_derivation.hpp"
+      - "tests/native/run_modern_next_event_acceptance.sh"
+      - "tests/input/modern-tour-next-event-acceptance.script"
       - "tests/native/modern_controls_*"
       - "tools/patch_modern_product_host.py"
       - "tests/input/modern-main-menu.script"
@@ -343,6 +347,16 @@ jobs:
           grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
           ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
 
+      - name: Prove Next Event reaches the one remaining tour event
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_next_event_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/next-event"
+
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
         run: |
@@ -413,6 +427,7 @@ jobs:
             ${{ runner.temp }}/recent-course-dumps/
             ${{ runner.temp }}/controller-hotplug-modern.log
             ${{ runner.temp }}/controller-hotplug-authentic.log
+            ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/authentic.log
           if-no-files-found: warn
           retention-days: 7

@@ -44,10 +44,9 @@ constexpr FastNavigationAction resolve_fast_navigation(
             ? FastNavigationAction::LaunchRecentPractice
             : FastNavigationAction::None;
     case FastNavigationCommand::NextEvent:
-        // Routing a uniquely derived event remains a separate progression
-        // concern. This policy command stays inert until the caller supplies
-        // an accepted stock-menu route; the standalone Next Event derivation
-        // contract fails closed outside the four-of-five case.
+        // Next Event is owned by the Modern Tour surface, which routes it
+        // through the tour-continuation authority (ModernTourEntryIntent::
+        // NextEvent). This shortcut policy has no separate route for it.
         return FastNavigationAction::None;
     }
     return FastNavigationAction::None;

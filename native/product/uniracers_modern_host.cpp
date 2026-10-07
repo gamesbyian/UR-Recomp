@@ -30,6 +30,7 @@ extern "C" {
 #include "modern_racer_identity.hpp"
 #include "modern_tour_action_menu.hpp"
 #include "modern_tour_continue.hpp"
+#include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -144,6 +145,8 @@ bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
 unsigned g_recent_course_acceptance_frames;
 bool g_recent_course_acceptance_fired;
+int g_next_event_acceptance_stage;
+unsigned g_next_event_acceptance_frames;
 unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
@@ -158,6 +161,10 @@ std::string g_practice_input_path;
 
 ur::product::ModernTourContinueState g_tour_continue;
 std::string g_tour_continue_profile_id;
+// Next Event target for the in-flight route, and the track to verify once the
+// routed confirm has entered an authoritative race.
+std::optional<std::uint8_t> g_next_event_target_track;
+std::optional<std::uint8_t> g_next_event_verify_track;
 std::string g_tour_continue_input_path;
 bool g_tour_continue_acceptance_fired;
 bool g_tour_action_visible;
@@ -2290,6 +2297,14 @@ bool tour_continue_routing() {
                ur::product::ModernTourContinueStage::Ready;
 }
 
+std::optional<std::uint8_t> available_next_event_slot() {
+    if (!g_profile_state || !g_profile_state->tour_continuation) {
+        return std::nullopt;
+    }
+    return ur::product::unique_remaining_tour_slot(
+        g_profile_state->tour_continuation->qualified);
+}
+
 ur::product::ModernTourEntryContext current_tour_entry_context() {
     const bool available = tour_continue_available();
     return {
@@ -2298,6 +2313,7 @@ ur::product::ModernTourEntryContext current_tour_entry_context() {
         available,
         available,
         available,
+        available && available_next_event_slot().has_value(),
     };
 }
 
@@ -2308,6 +2324,8 @@ const char* tour_entry_intent_name(
         return "resume";
     case ur::product::ModernTourEntryIntent::Restart:
         return "restart";
+    case ur::product::ModernTourEntryIntent::NextEvent:
+        return "next_event";
     case ur::product::ModernTourEntryIntent::None:
     default:
         return "none";
@@ -2364,12 +2382,13 @@ bool open_tour_action_menu() {
             g_profile_state->tour_continuation->medal_value);
         std::fprintf(
             stderr,
-            "UR_TOUR_ENTRY MENU_OPENED rider=%u tour=%u tier=%s\n",
+            "UR_TOUR_ENTRY MENU_OPENED rider=%u tour=%u tier=%s next_event=%d\n",
             static_cast<unsigned>(
                 g_profile_state->tour_continuation->rider_index),
             static_cast<unsigned>(
                 g_profile_state->tour_continuation->tour_row),
-            challenge_tier_name(tier));
+            challenge_tier_name(tier),
+            context.next_event_unique ? 1 : 0);
         std::fflush(stderr);
     }
     return true;
@@ -2377,6 +2396,7 @@ bool open_tour_action_menu() {
 
 void cancel_tour_continue(const char* diagnostic) {
     g_tour_continue = {};
+    g_next_event_target_track.reset();
     g_tour_continue_profile_id.clear();
     if (diagnostic) product_diagnostic(diagnostic);
 }
@@ -2468,13 +2488,26 @@ bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {
     }
 
     const auto& continuation = *g_profile_state->tour_continuation;
-    g_tour_continue = ur::product::begin_modern_tour_entry(
-        continuation.tour_row, decision);
+    std::optional<std::uint8_t> next_event_track;
+    if (decision.intent == ur::product::ModernTourEntryIntent::NextEvent) {
+        const auto slot = available_next_event_slot();
+        next_event_track = ur::product::unique_next_track_id(
+            continuation.tour_row, continuation.qualified);
+        g_tour_continue = slot && next_event_track
+            ? ur::product::begin_modern_tour_next_event(
+                  continuation.tour_row, decision, *slot)
+            : ur::product::ModernTourContinueState{};
+    } else {
+        g_tour_continue = ur::product::begin_modern_tour_entry(
+            continuation.tour_row, decision);
+    }
     if (g_tour_continue.stage ==
         ur::product::ModernTourContinueStage::Idle) {
         return false;
     }
     g_tour_continue_profile_id = g_profile_state->profile_id;
+    g_next_event_target_track = next_event_track;
+    g_next_event_verify_track.reset();
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         unsigned completed = 0;
@@ -2614,6 +2647,13 @@ void advance_tour_continue_route(uint64_t next_frame) {
         abort_tour_continue(
             "UR_TOUR_CONTINUE ABORTED_TIMEOUT",
             crossed_stock_rider_wipe);
+        return;
+    }
+    if (step.next_event_race_entered) {
+        // The stock NOW_PLAYING confirm started an ordinary tour race. That
+        // race owns progression from here; never roll SRAM back under it.
+        g_next_event_verify_track = g_next_event_target_track;
+        cancel_tour_continue("UR_NEXT_EVENT RACE_ENTERED");
         return;
     }
     if (g_tour_continue.stage == ur::product::ModernTourContinueStage::Idle) {
@@ -2856,8 +2896,10 @@ void reconcile_tour_resume() {
         }
 
         if (settling_routed_entry &&
-            g_tour_continue.intent ==
-                ur::product::ModernTourEntryIntent::Resume) {
+            (g_tour_continue.intent ==
+                 ur::product::ModernTourEntryIntent::Resume ||
+             g_tour_continue.intent ==
+                 ur::product::ModernTourEntryIntent::NextEvent)) {
             const auto applied = ur::title::apply_tour_resume(
                 saved,
                 g_ram,
@@ -2873,7 +2915,28 @@ void reconcile_tour_resume() {
                         g_profile_state->tour_continuation,
                         "UR_TOUR_RESUME APPLIED");
                 }
-                cancel_tour_continue(nullptr);
+                if (g_tour_continue.intent ==
+                    ur::product::ModernTourEntryIntent::NextEvent) {
+                    // The restored row is now live. Keep input ownership and
+                    // select the derived event through the stock cursor.
+                    g_tour_continue =
+                        ur::product::enter_modern_tour_next_event_selection(
+                            g_tour_continue);
+                    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                        std::fprintf(
+                            stderr,
+                            "UR_NEXT_EVENT SELECTING track=%u slot=%u\n",
+                            g_next_event_target_track
+                                ? static_cast<unsigned>(
+                                      *g_next_event_target_track)
+                                : 255u,
+                            static_cast<unsigned>(
+                                g_tour_continue.next_event_slot));
+                        std::fflush(stderr);
+                    }
+                } else {
+                    cancel_tour_continue(nullptr);
+                }
             } else {
                 product_diagnostic("UR_TOUR_RESUME ROUTE_SETTLEMENT_FAILED");
             }
@@ -4225,6 +4288,60 @@ extern "C" double ur_uniracers_modern_presentation_hz(
         display_refresh);
 }
 
+// Native Next Event acceptance drives the real Modern keyboard handler on
+// emulated-frame boundaries instead of wall-clock window input: F3 at settled
+// MAIN_MENU, then Enter on the preselected row (or Escape to inspect/cancel).
+// Every stock menu edge after that comes from the production tour route.
+void run_next_event_acceptance() {
+    const char* mode = std::getenv("UR_NEXT_EVENT_ACCEPTANCE");
+    if (!mode || !*mode || !modern_mode() ||
+        g_next_event_acceptance_stage < 0) {
+        return;
+    }
+    const bool inspect = std::strcmp(mode, "inspect") == 0;
+    const bool cancel = std::strcmp(mode, "cancel") == 0;
+    switch (g_next_event_acceptance_stage) {
+    case 0:
+        if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
+            !tour_continue_available()) {
+            g_next_event_acceptance_frames = 0;
+            return;
+        }
+        if (++g_next_event_acceptance_frames < 90u) return;
+        (void)ur_uniracers_modern_system_key_down(SDLK_F3, 0, 0);
+        g_next_event_acceptance_stage = g_tour_action_visible ? 1 : -1;
+        return;
+    case 1:
+        (void)ur_uniracers_modern_system_key_down(
+            inspect ? SDLK_ESCAPE : SDLK_RETURN, 0, 0);
+        if (inspect) {
+            g_next_event_acceptance_stage = -1;
+            (void)request_desktop_quit();
+            return;
+        }
+        g_next_event_acceptance_stage = cancel ? 2 : -1;
+        return;
+    case 2:
+        if (g_tour_continue.stage !=
+            ur::product::ModernTourContinueStage::SelectNextEvent) {
+            // Ready is a released-input settlement stage, not the end of
+            // the route; only an Idle route ended without selection.
+            if (g_tour_continue.stage ==
+                ur::product::ModernTourContinueStage::Idle) {
+                g_next_event_acceptance_stage = -1;
+                (void)request_desktop_quit();
+            }
+            return;
+        }
+        (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+        g_next_event_acceptance_stage = -1;
+        (void)request_desktop_quit();
+        return;
+    default:
+        return;
+    }
+}
+
 extern "C" void ur_uniracers_modern_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     report_display_capabilities_once();
@@ -4249,6 +4366,25 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_ram[0x009F]);
     g_surface = decision.surface;
     observe_recent_course_identity();
+    if (g_next_event_verify_track) {
+        const int actual = g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE
+            ? authoritative_active_track_id()
+            : -1;
+        if (actual >= 0 ||
+            g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(
+                    stderr,
+                    "UR_NEXT_EVENT RACE_VERIFIED expected=%u actual=%d course_equal=%d\n",
+                    static_cast<unsigned>(*g_next_event_verify_track),
+                    actual,
+                    actual == static_cast<int>(*g_next_event_verify_track)
+                        ? 1 : 0);
+                std::fflush(stderr);
+            }
+            g_next_event_verify_track.reset();
+        }
+    }
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
         g_fast_repeat_sram_before) {
         const bool sram_equal =
@@ -4437,6 +4573,8 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         } else if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
             g_recent_course_acceptance_frames = 0;
         }
+
+        run_next_event_acceptance();
 
         // Native pause-surface acceptances need to enter the host layer only
         // after an authoritative active-race checkpoint is observable. Do that
@@ -5367,16 +5505,30 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "ESC / PAD B CANCEL", 0xFFFFFFFFu, 1);
         } else {
             const char* row_labels[] = {
-                "RESUME TOUR", "RESTART TOUR", "BACK"
+                "RESUME TOUR", "RESTART TOUR", "BACK", "NEXT EVENT"
             };
+            const auto next_track = ur::product::unique_next_track_id(
+                continuation.tour_row, continuation.qualified);
+            const auto* next_course = next_track
+                ? ur::product::quick_practice_course(*next_track)
+                : nullptr;
             for (std::size_t i = 0; i < g_tour_action_menu.row_count; ++i) {
                 char row[64];
-                const auto idx = static_cast<std::size_t>(
-                    g_tour_action_menu.rows[i]);
-                std::snprintf(
-                    row, sizeof(row), "%c %s",
-                    i == g_tour_action_menu.selected ? '>' : ' ',
-                    row_labels[idx]);
+                const auto action = g_tour_action_menu.rows[i];
+                const auto idx = static_cast<std::size_t>(action);
+                if (action == ur::product::ModernTourActionRow::NextEvent &&
+                    next_course) {
+                    std::snprintf(
+                        row, sizeof(row), "%c NEXT EVENT  %.*s",
+                        i == g_tour_action_menu.selected ? '>' : ' ',
+                        static_cast<int>(next_course->name.size()),
+                        next_course->name.data());
+                } else {
+                    std::snprintf(
+                        row, sizeof(row), "%c %s",
+                        i == g_tour_action_menu.selected ? '>' : ' ',
+                        row_labels[idx]);
+                }
                 snes_ovl_draw_text(
                     pixels, stride, height, x + 8,
                     y + 66 + static_cast<int>(i) * 18,
@@ -5490,9 +5642,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const auto* course =
             ur::product::quick_practice_course(*g_recent_course_track_id);
+        // Pad Y belongs to the Tour surface whenever a tour is resumable, so
+        // only advertise the inputs that will actually launch Recent Course.
         char hint[96];
         std::snprintf(
-            hint, sizeof(hint), "F6 / PAD Y  RECENT: %s",
+            hint, sizeof(hint), "%s  RECENT: %s",
+            tour_continue_available() ? "F6" : "F6 / PAD Y",
             course ? course->name.data() : "COURSE");
         const int scale = modern_overlay_surface_scale(width, height);
         ur::product::HostOverlayCompositionRequest request{};
@@ -5591,7 +5746,17 @@ extern "C" void ur_uniracers_modern_system_overlay(
         for (const auto flag : continuation.qualified) completed += flag;
 
         char hint[128];
-        if (course) {
+        const auto next_track = ur::product::unique_next_track_id(
+            continuation.tour_row, continuation.qualified);
+        const auto* next_course = next_track
+            ? ur::product::quick_practice_course(*next_track)
+            : nullptr;
+        if (next_course) {
+            std::snprintf(
+                hint, sizeof(hint), "F3 / PAD Y  NEXT EVENT: %.*s",
+                static_cast<int>(next_course->name.size()),
+                next_course->name.data());
+        } else if (course) {
             std::snprintf(
                 hint, sizeof(hint), "F3 / PAD Y TOUR %.*s  %u/5",
                 static_cast<int>(course->tour_name.size()),

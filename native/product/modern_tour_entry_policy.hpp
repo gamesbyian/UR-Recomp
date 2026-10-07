@@ -10,6 +10,8 @@ enum class ModernTourEntryIntent : std::uint8_t {
     None = 0,
     Resume = 1,
     Restart = 2,
+    // Resume, then select the one event the restored row leaves unfinished.
+    NextEvent = 3,
 };
 
 struct ModernTourEntryContext {
@@ -17,12 +19,16 @@ struct ModernTourEntryContext {
     bool authoritative_profile = false;
     bool unfinished_tour = false;
     bool continuation_source_matches = false;
+    // True only when the saved row has exactly one unqualified event (see
+    // next_event_derivation.hpp); ambiguous rows remain a player choice.
+    bool next_event_unique = false;
 };
 
 struct ModernTourEntryActions {
     bool resume_available = false;
     bool restart_available = false;
     bool restart_requires_confirmation = false;
+    bool next_event_available = false;
 };
 
 constexpr ModernTourEntryActions modern_tour_entry_actions(
@@ -33,7 +39,7 @@ constexpr ModernTourEntryActions modern_tour_entry_actions(
         !context.continuation_source_matches) {
         return {};
     }
-    return {true, true, true};
+    return {true, true, true, context.next_event_unique};
 }
 
 struct ModernTourEntryDecision {
@@ -53,6 +59,16 @@ constexpr ModernTourEntryDecision resolve_modern_tour_entry(
         if (!actions.resume_available) return {};
         return {
             ModernTourEntryIntent::Resume,
+            true,
+            true,
+            false,
+        };
+    case ModernTourEntryIntent::NextEvent:
+        // Same restore contract as Resume; only the post-restore selection
+        // differs, and it is driven through ordinary stock menu input.
+        if (!actions.next_event_available) return {};
+        return {
+            ModernTourEntryIntent::NextEvent,
             true,
             true,
             false,

@@ -108,6 +108,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "completed_run_presentation.cpp",
             "completed_run_store.cpp",
             "completed_run_catalog.cpp",
+            "completed_run_profile_sources.cpp",
             "completed_run_browser.cpp",
             "completed_run_replay.cpp",
             "completed_run_browser_host.cpp",

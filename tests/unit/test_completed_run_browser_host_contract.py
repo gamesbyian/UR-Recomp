@@ -27,12 +27,17 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         )
         self.assertIn("adjust_detail_target(adjustment)", source)
 
-        # The target-change prompt belongs to run detail, after the split table
-        # presentation. It must not cover the Runs-list VS-PB summary.
-        self.assertEqual(source.count('"LEFT / RIGHT  CHANGE TARGET"'), 1)
-        self.assertGreater(
-            source.index('"LEFT / RIGHT  CHANGE TARGET"'),
-            source.index('"NO MATCHING CHECKPOINT DATA"'),
+        self.assertNotIn('"LEFT / RIGHT  CHANGE TARGET"', source)
+        self.assertIn('"SPLITS < %s >  CURRENT / TARGET / DELTA"', source)
+        self.assertIn("shown >= 3", source)
+
+        self.assertIn('"RECORDS / RACERS-PROFILES"', source)
+        self.assertIn("RecordsRootSection::Profiles", source)
+        self.assertIn("UR_RECORDS_BROWSER PROFILE_OPEN", source)
+        self.assertIn("load_run_records_profile_sources(root)", source)
+        self.assertIn(
+            "return records_viewing_active_profile() && selected && target",
+            source,
         )
 
 

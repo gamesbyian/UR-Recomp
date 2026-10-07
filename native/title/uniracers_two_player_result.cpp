@@ -8,7 +8,6 @@ constexpr std::size_t kPlayer1Rider = 0x017Du;
 constexpr std::size_t kPlayer2Rider = 0x017Fu;
 constexpr std::size_t kLastRaceResultP1 = 0x0618u;
 constexpr std::size_t kLastRaceResultP2 = 0x061Au;
-constexpr std::uint8_t kMultiplayerRaceResultMenu = 0xF9u;
 constexpr std::uint8_t kStockRiderCount = 16u;
 
 std::uint16_t read_le16(const std::uint8_t* data, std::size_t offset) noexcept {
@@ -29,7 +28,7 @@ observe_ordinary_two_player_race_result(
     if (!ordinary_two_player || !wram || !sram ||
         wram_size <= kPlayer2Rider ||
         sram_size < kLastRaceResultP2 + 2u ||
-        wram[kCurrentMenu] != kMultiplayerRaceResultMenu) {
+        wram[kCurrentMenu] != kOrdinaryTwoPlayerRaceResultMenu) {
         return std::nullopt;
     }
 

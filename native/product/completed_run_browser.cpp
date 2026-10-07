@@ -251,6 +251,10 @@ bool CompletedRunRecordsBrowser::back_to_courses() noexcept {
     return true;
 }
 
+std::string completed_run_browser_date_text(const std::string& path) {
+    return run_date_text(fs::path(path));
+}
+
 const char* completed_run_browser_status_name(
     CompletedRunBrowserEntryStatus status) noexcept {
     switch (status) {

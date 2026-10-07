@@ -732,6 +732,33 @@ class WindowsPackageTests(unittest.TestCase):
         self.assertLess(verify, assemble)
 
 
+    def test_windows_workflow_proves_archive_identity_before_upload(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        archive = workflow.index(
+            "python tools/assemble_windows_package.py archive"
+        )
+        verify = workflow.index(
+            "python tools/assemble_windows_package.py verify-archive",
+            archive,
+        )
+        repro = workflow.index(
+            'REPRO_ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64-repro.zip"',
+            verify,
+        )
+        compare = workflow.index('cmp "$ARCHIVE" "$REPRO_ARCHIVE"', repro)
+        checksum = workflow.index(
+            "python tools/assemble_windows_package.py checksum-archive",
+            compare,
+        )
+        upload = workflow.index("name: Upload Windows evidence", checksum)
+        self.assertLess(archive, verify)
+        self.assertLess(verify, repro)
+        self.assertLess(repro, compare)
+        self.assertLess(compare, checksum)
+        self.assertLess(checksum, upload)
+        self.assertIn("UR-Recomp-Windows-x64.zip.sha256", workflow)
+
+
     def test_missing_source_revision_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = pathlib.Path(tmp)

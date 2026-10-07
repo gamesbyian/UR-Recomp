@@ -47,4 +47,17 @@ bool save_multiplayer_match_record_file(
 MultiplayerMatchDecodeResult load_multiplayer_match_record_file(
     const std::string& path);
 
+std::string multiplayer_match_record_path_for_run(
+    std::string_view run_path);
+
+bool save_multiplayer_match_record_for_run(
+    const std::string& run_path,
+    const CompletedRunRecord& run,
+    const MultiplayerMatchRecord& record,
+    std::string* detail = nullptr);
+
+MultiplayerMatchDecodeResult load_multiplayer_match_record_for_run(
+    const std::string& run_path,
+    const CompletedRunRecord& run);
+
 }  // namespace ur::product

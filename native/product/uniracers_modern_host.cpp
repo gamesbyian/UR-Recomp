@@ -3719,19 +3719,12 @@ void complete_multiplayer_run_record_capture() {
         return;
     }
 
-    const std::int64_t ticks60 =
-        ur_uniracers_run_data_ticks60(current_run_data());
-    if (ticks60 < 0) {
-        product_diagnostic("UR_MULTIPLAYER_MATCH FINISH_TIMER_REJECTED");
-        reset_multiplayer_run_capture();
-        return;
-    }
-
-    (void)g_multiplayer_run_capture.observe_split(
-        "finish", static_cast<std::uint64_t>(ticks60));
+    // The 2P result pair owns race-result timing semantics. Do not reuse the
+    // 1P run-data timer or create 1P-style split authority for this carrier.
+    const std::uint64_t carrier_ticks60 =
+        ur::product::ordinary_two_player_carrier_elapsed_ticks60(*observed);
     const auto run =
-        g_multiplayer_run_capture.complete(
-            static_cast<std::uint64_t>(ticks60));
+        g_multiplayer_run_capture.complete(carrier_ticks60);
     if (!run) {
         product_diagnostic("UR_MULTIPLAYER_MATCH FINALIZE_REJECTED");
         reset_multiplayer_run_capture();

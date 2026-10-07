@@ -356,13 +356,14 @@ bool open_records_browser_impl(bool normalize_pause_surface) {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d profile_unavailable=%zu\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             g_records_browser.unavailable_artifact_count(),
             g_records_active_profile_id.c_str(),
             g_records_profile_index.profiles.size(),
-            g_records_profiles_available ? 1 : 0);
+            g_records_profiles_available ? 1 : 0,
+            g_records_profile_index.total_unavailable_artifacts);
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
                 stderr,
@@ -884,11 +885,20 @@ void draw_records_browser(
                 pixels, stride, height, x + 8, y + 7,
                 "RECORDS / RACERS-PROFILES", 0xFFFFFFFFu, 1);
 
-            char summary[80];
-            std::snprintf(
-                summary, sizeof(summary), "%zu RACERS / %zu RUNS",
-                g_records_profile_index.profiles.size(),
-                g_records_profile_index.total_completed_runs);
+            char summary[96];
+            if (g_records_profile_index.total_unavailable_artifacts) {
+                std::snprintf(
+                    summary, sizeof(summary),
+                    "%zu RACERS / %zu RUNS / %zu UNAVAILABLE",
+                    g_records_profile_index.profiles.size(),
+                    g_records_profile_index.total_completed_runs,
+                    g_records_profile_index.total_unavailable_artifacts);
+            } else {
+                std::snprintf(
+                    summary, sizeof(summary), "%zu RACERS / %zu RUNS",
+                    g_records_profile_index.profiles.size(),
+                    g_records_profile_index.total_completed_runs);
+            }
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + 22,
                 summary, 0xFFFFFFFFu, 1);

@@ -53,6 +53,7 @@ extern "C" {
 #include "modern_controls_presenter.hpp"
 #include "modern_controls_rebind.hpp"
 #include "modern_overlay_composition.hpp"
+#include "modern_overlay_text_fit.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "presentation_density_compositor.hpp"
@@ -5984,26 +5985,31 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const std::string pad_x = live_gamepad_binding_label(8);
         const std::string pad_l = live_gamepad_binding_label(10);
         const std::string pad_r = live_gamepad_binding_label(11);
-        char move_row[128];
-        char jump_row[96];
-        char brake_row[96];
-        char stunt_row1[128];
-        char stunt_row2[128];
-        std::snprintf(
-            move_row, sizeof(move_row), "MOVE  %s/%s   PAD %s/%s",
-            left.c_str(), right.c_str(), pad_left.c_str(), pad_right.c_str());
-        std::snprintf(
-            jump_row, sizeof(jump_row), "JUMP B  %s   PAD %s",
-            jump.c_str(), pad_jump.c_str());
-        std::snprintf(
-            brake_row, sizeof(brake_row), "BRAKE Y %s   PAD %s",
-            brake.c_str(), pad_brake.c_str());
-        std::snprintf(
-            stunt_row1, sizeof(stunt_row1), "STUNTS A/X  %s/%s   PAD %s/%s",
-            a.c_str(), x_key.c_str(), pad_a.c_str(), pad_x.c_str());
-        std::snprintf(
-            stunt_row2, sizeof(stunt_row2), "STUNTS L/R  %s/%s   PAD %s/%s",
-            l.c_str(), r.c_str(), pad_l.c_str(), pad_r.c_str());
+        // ACTION / PAD / KEY columns, each row fitted to the panel (28 cells
+        // on a 256-pixel frame) so long rebound key names cannot spill out.
+        const std::size_t text_cells =
+            ur::product::modern_overlay_text_cells(panel_w_logical);
+        const std::string pad_move =
+            pad_left == "LEFT" && pad_right == "RIGHT"
+                ? std::string("DPAD")
+                : pad_left + "/" + pad_right;
+        auto binding_row = [&](const char* action,
+                               const std::string& pad,
+                               const std::string& keys) {
+            char row[160];
+            std::snprintf(
+                row, sizeof(row), "%-6s %-7s %s",
+                action, pad.c_str(), keys.c_str());
+            return ur::product::fit_modern_overlay_text(row, text_cells);
+        };
+        const std::string move_row =
+            binding_row("MOVE", pad_move, left + "/" + right);
+        const std::string jump_row = binding_row("JUMP", pad_jump, jump);
+        const std::string brake_row = binding_row("BRAKE", pad_brake, brake);
+        const std::string stunt_row = binding_row(
+            "STUNT",
+            pad_a + "/" + pad_x + "/" + pad_l + "/" + pad_r,
+            a + "/" + x_key + "/" + l + "/" + r);
 
         if (!g_binding_diagnostics_reported &&
             std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -6030,34 +6036,34 @@ extern "C" void ur_uniracers_modern_system_overlay(
             "WELCOME TO UNIRACERS", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 27 * scale,
-            move_row, 0xFFFFFFFFu, scale);
+            "       PAD     KEY", 0xFFA0A0A0u, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 42 * scale,
-            jump_row, 0xFFFFFFFFu, scale);
+            move_row.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 57 * scale,
-            brake_row, 0xFFFFFFFFu, scale);
+            jump_row.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 72 * scale,
-            stunt_row1, 0xFFFFFFFFu, scale);
+            brake_row.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 87 * scale,
-            stunt_row2, 0xFFFFFFFFu, scale);
+            stunt_row.c_str(), 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 107 * scale,
-            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, scale);
+            "STUNTS END WHEEL-DOWN.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 122 * scale,
             "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 142 * scale,
-            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, scale);
+            "F5/PAD X  QUICK PRACTICE", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 157 * scale,
-            "F2 / PAD X  RACERS (RIDER SELECT)", 0xFFFFFFFFu, scale);
+            "F2/PAD X  RACERS (PICKER)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 172 * scale,
-            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, scale);
+            "ENTER/PAD A  OK   F1 HELP", 0xFFFFFFFFu, scale);
         return;
     }
 
@@ -6342,14 +6348,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::snprintf(
                 reset_row,
                 sizeof(reset_row),
-                "RESET %s PROGRESS?",
+                "RESET %s?",
                 racer);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 32 * scale,
                 reset_row, 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 57 * scale,
-                "MEDALS / RECORDS / TOUR STATE", 0xFFFFFFFFu, scale);
+                "MEDALS/RECORDS/TOUR STATE", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 82 * scale,
-                "WILL RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, scale);
+                "RETURN TO CLEAN STOCK DATA", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 112 * scale,
                 "ENTER / PAD A  RESET", 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 132 * scale,
@@ -6505,7 +6511,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (modern_mode() && practice_routing()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const char* hint = "PRACTICE ROUTING...  ESC / B / START CANCEL";
+        const char* hint = "PRACTICE  ESC/B/START CANCEL";
         const int scale = modern_overlay_surface_scale(width, height);
         ur::product::HostOverlayCompositionRequest request{};
         request.logical_surface_width = width / scale;
@@ -6538,7 +6544,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (modern_mode() && tour_continue_routing()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const char* hint = "CONTINUING TOUR  ESC / PAD B CANCEL";
+        const char* hint = "CONTINUING  ESC/PAD B CANCEL";
         const int scale = modern_overlay_surface_scale(width, height);
         ur::product::HostOverlayCompositionRequest request{};
         request.logical_surface_width = width / scale;
@@ -6573,7 +6579,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             ur::product::QuickPracticeLaunchStage::Active) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const char* hint = "PRACTICE  START > EXIT FRONTEND TO RETURN";
+        const char* hint = "PRACTICE START>EXIT FRONTEND";
         const int scale = modern_overlay_surface_scale(width, height);
         ur::product::HostOverlayCompositionRequest request{};
         request.logical_surface_width = width / scale;
@@ -6614,7 +6620,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
     const int stride = static_cast<int>(pitch / 4u);
     const int modal_scale = modern_overlay_surface_scale(width, height);
     const int logical_width = width / modal_scale;
-    const int panel_h_logical = is_paused ? (restart ? 144 : 129) : 30;
+    // The results strip is one 24-cell line for Practice and two for races
+    // (REMATCH and RETRY), so neither hint spills past the panel.
+    const int panel_h_logical =
+        is_paused ? (restart ? 144 : 129) : (g_practice_active ? 30 : 44);
     const int panel_w_logical = logical_width < 220 ? logical_width - 16 : 212;
     const auto panel_layout = centered_modern_modal_layout(
         width, height, modal_scale,
@@ -6849,15 +6858,18 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 7 * modal_scale,
                 "CONTROLS - KEYBOARD P1", 0xFFFFFFFFu, modal_scale);
-            char pad_row[40];
-            std::snprintf(
-                pad_row, sizeof(pad_row), "PAD P1  %s",
-                g_controller_hotplug.seats[0].connected
-                    ? g_controller_seat_names[0].c_str()
-                    : "NONE");
+            // Every line stays inside the panel (24 cells at 212 pixels).
+            const std::size_t text_cells =
+                ur::product::modern_overlay_text_cells(panel_w_logical);
+            const std::string pad_row = ur::product::fit_modern_overlay_text(
+                std::string("PAD P1  ") +
+                    (g_controller_hotplug.seats[0].connected
+                         ? g_controller_seat_names[0]
+                         : std::string("NONE")),
+                text_cells);
             snes_ovl_draw_text(
                 pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 18 * modal_scale,
-                pad_row,
+                pad_row.c_str(),
                 g_controller_hotplug.seats[0].connected
                     ? 0xFFA0F0A0u : 0xFFA0A0A0u,
                 modal_scale);
@@ -6868,22 +6880,25 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 std::snprintf(
                     row_text,
                     sizeof(row_text),
-                    "%c %-6s  %-18s%s",
+                    "%c %-6s  %s",
                     row.selected ? '>' : ' ',
                     row.control_label.c_str(),
-                    row.key_label.c_str(),
-                    row.capturing ? " <PRESS KEY>" : "");
+                    row.capturing ? "PRESS A KEY" : row.key_label.c_str());
                 snes_ovl_draw_text(
                     pixels, stride, height, controls_x + 8 * modal_scale, row_y,
-                    row_text, 0xFFFFFFFFu, modal_scale);
+                    ur::product::fit_modern_overlay_text(row_text, text_cells).c_str(),
+                    row.capturing ? 0xFFF0F0A0u : 0xFFFFFFFFu, modal_scale);
                 row_y += 13 * modal_scale;
             }
             snes_ovl_draw_text(
                 pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 188 * modal_scale,
-                presentation.instruction.c_str(), 0xFFFFFFFFu, modal_scale);
+                ur::product::fit_modern_overlay_text(
+                    presentation.instruction, text_cells).c_str(),
+                0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
                 pixels, stride, height, controls_x + 8 * modal_scale, controls_y + 205 * modal_scale,
-                "PAD: UP/DOWN A=REBIND X=CLEAR Y=RESET B=BACK",
+                ur::product::fit_modern_overlay_text(
+                    presentation.instruction_detail, text_cells).c_str(),
                 0xFFFFFFFFu, modal_scale);
             return;
         }
@@ -7101,8 +7116,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
             pixels, stride, height,
             x + 8 * modal_scale, y + 11 * modal_scale,
             g_practice_active
-                ? "R / PAD X  REPEAT PRACTICE"
-                : "R / PAD X  REMATCH   CTRL+R RETRY",
+                ? "R/PAD X  REPEAT PRACTICE"
+                : "R/PAD X  REMATCH",
             0xFFFFFFFFu, modal_scale);
+        if (!g_practice_active) {
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * modal_scale, y + 25 * modal_scale,
+                "CTRL+R   RETRY", 0xFFFFFFFFu, modal_scale);
+        }
     }
 }

@@ -24,12 +24,17 @@ int main() {
     assert(view.rows[11].key_label == "NONE");
     assert(view.rows[11].selected);
     assert(!view.rows[11].capturing);
-    assert(view.instruction.find("ENTER REBIND") != std::string::npos);
+    assert(view.instruction == "A/ENTER SET  B/ESC BACK");
+    assert(view.instruction_detail == "X/DEL CLEAR  Y/R RESET");
+    // Both lines fit the narrowest pause-family panel (24 cells).
+    assert(view.instruction.size() <= 24u);
+    assert(view.instruction_detail.size() <= 24u);
 
     state.capturing = true;
     view = present_modern_controls(state, keys);
     assert(view.rows[11].capturing);
-    assert(view.instruction == "PRESS A KEY   ESC CANCEL");
+    assert(view.instruction == "PRESS A KEY");
+    assert(view.instruction_detail == "ESC / B CANCEL");
 
     return 0;
 }

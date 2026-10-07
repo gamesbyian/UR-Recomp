@@ -49,7 +49,7 @@ class ControllerHotplugHostContractTests(unittest.TestCase):
     def test_notice_and_device_line_are_presentation_only(self):
         source = HOST.read_text(encoding="utf-8")
         self.assertIn("controller_hotplug_notice_text(g_controller_hotplug)", source)
-        self.assertIn('"PAD P1  %s"', source)
+        self.assertIn('std::string("PAD P1  ")', source)
 
     def test_native_acceptance_covers_modern_and_authentic(self):
         text = WORKFLOW.read_text(encoding="utf-8")

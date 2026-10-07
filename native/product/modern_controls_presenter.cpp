@@ -20,9 +20,13 @@ ModernControlsPresentation present_modern_controls(
         row.capturing = row.selected && state.capturing;
     }
 
-    out.instruction = state.capturing
-        ? "PRESS A KEY   ESC CANCEL"
-        : "ENTER REBIND   DELETE CLEAR   R RESET   ESC BACK";
+    if (state.capturing) {
+        out.instruction = "PRESS A KEY";
+        out.instruction_detail = "ESC / B CANCEL";
+    } else {
+        out.instruction = "A/ENTER SET  B/ESC BACK";
+        out.instruction_detail = "X/DEL CLEAR  Y/R RESET";
+    }
     return out;
 }
 

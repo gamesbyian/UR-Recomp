@@ -144,6 +144,59 @@ constexpr LocalMultiplayerSetupState local_multiplayer_set_connected(
     return state;
 }
 
+enum class LocalMultiplayerSeatPresentation : std::uint8_t {
+    Empty,
+    ControllerConnected,
+    ControllerDisconnected,
+    KeyboardConnected,
+    KeyboardDisconnected,
+};
+
+constexpr LocalMultiplayerSeatPresentation local_multiplayer_seat_presentation(
+    const LocalMultiplayerSetupState& state,
+    LocalMultiplayerSlot slot) noexcept {
+    const auto& assignment = local_multiplayer_assignment(state, slot);
+    if (!assignment.assigned) {
+        return LocalMultiplayerSeatPresentation::Empty;
+    }
+    if (assignment.source.kind == LocalInputKind::Keyboard) {
+        return assignment.source.connected
+            ? LocalMultiplayerSeatPresentation::KeyboardConnected
+            : LocalMultiplayerSeatPresentation::KeyboardDisconnected;
+    }
+    return assignment.source.connected
+        ? LocalMultiplayerSeatPresentation::ControllerConnected
+        : LocalMultiplayerSeatPresentation::ControllerDisconnected;
+}
+
+constexpr const char* local_multiplayer_slot_label(
+    LocalMultiplayerSlot slot) noexcept {
+    return slot == LocalMultiplayerSlot::Player1 ? "P1" : "P2";
+}
+
+constexpr const char* local_multiplayer_seat_source_label(
+    LocalMultiplayerSeatPresentation presentation) noexcept {
+    switch (presentation) {
+    case LocalMultiplayerSeatPresentation::ControllerConnected:
+    case LocalMultiplayerSeatPresentation::ControllerDisconnected:
+        return "CONTROLLER";
+    case LocalMultiplayerSeatPresentation::KeyboardConnected:
+    case LocalMultiplayerSeatPresentation::KeyboardDisconnected:
+        return "KEYBOARD";
+    case LocalMultiplayerSeatPresentation::Empty:
+    default:
+        return "EMPTY";
+    }
+}
+
+constexpr bool local_multiplayer_seat_connected(
+    LocalMultiplayerSeatPresentation presentation) noexcept {
+    return presentation ==
+               LocalMultiplayerSeatPresentation::ControllerConnected ||
+           presentation ==
+               LocalMultiplayerSeatPresentation::KeyboardConnected;
+}
+
 constexpr bool local_multiplayer_launch_eligible(
     const LocalMultiplayerSetupState& state) noexcept {
     if (!state.player1.assigned || !state.player2.assigned) return false;

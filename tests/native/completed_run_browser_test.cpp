@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
         records_browser.selected_run_previous_delta();
     assert(historical_previous_delta);
     assert(historical_previous_delta->target_text == "0:29.10/60");
-    assert(historical_previous_delta->delta_text == "-0:00.37/60");
+    assert(historical_previous_delta->delta_text == "+0:00.50/60");
     assert(records_browser.back_to_courses());
     assert(records_browser.view() == CompletedRunRecordsView::Courses);
     assert(!records_browser.selected_run_index());

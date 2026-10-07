@@ -122,6 +122,10 @@
       "sha256": "82f018c76569fe296ef5a4f1e1f312f7a92d110684feac98271a794479a60d5a"
     },
     {
+      "path": "tools/patches/snesrecomp-ws-shadow-native-center-parity.patch",
+      "sha256": "95b5c77049b711d5e312baa678bda03baf65e02107b1fcc96a051f70cdac00a3"
+    },
+    {
       "path": "tools/patches/snesrecomp-user-data-root.patch",
       "sha256": "7ff51c17f69c039a819129ede4385f2d7189858cbced9696b0b75be5cc0bbcad"
     },

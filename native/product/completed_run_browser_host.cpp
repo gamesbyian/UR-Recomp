@@ -508,6 +508,11 @@ void maybe_run_records_browser_acceptance() {
             ur::product::CompletedRunRecordsView::Detail;
     const bool current_course =
         detail && records_selected_matches_current_course();
+    const bool target_changed =
+        detail &&
+        records_browser_navigation(UR_MODERN_HOST_NAV_RIGHT) &&
+        g_records_browser.detail_target_kind() ==
+            ur::product::RunDataTargetKind::Previous;
     const auto summary = g_records_browser.selected_run_summary();
     const auto previous_delta =
         g_records_browser.selected_run_previous_delta();
@@ -515,7 +520,7 @@ void maybe_run_records_browser_acceptance() {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s previous=%s previous_delta=%s\n",
+            "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=%d opened=%d drilled=%d detail=%d current_course=%d courses=%zu runs=%zu finish=%s delta=%s previous=%s previous_delta=%s target_changed=%d split_target=%s\n",
             pause_handled,
             opened ? 1 : 0,
             drilled ? 1 : 0,
@@ -526,7 +531,12 @@ void maybe_run_records_browser_acceptance() {
             summary ? summary->finish.clock_text.c_str() : "--",
             summary ? summary->finish.comparison_text.c_str() : "--",
             previous_delta ? previous_delta->target_text.c_str() : "--",
-            previous_delta ? previous_delta->delta_text.c_str() : "--");
+            previous_delta ? previous_delta->delta_text.c_str() : "--",
+            target_changed ? 1 : 0,
+            g_records_browser.detail_target_kind() ==
+                    ur::product::RunDataTargetKind::Previous
+                ? "PREVIOUS"
+                : "PB");
         std::fflush(stderr);
     }
 

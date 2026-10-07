@@ -54,6 +54,7 @@ ur::product::RunRecordsProfileIndex g_records_profile_index;
 std::size_t g_records_profile_selected = 0;
 bool g_records_profiles_available = true;
 bool g_records_return_to_profiles = false;
+std::string g_records_active_profile_id;
 std::string g_records_view_profile_id;
 
 std::string records_course_label(const std::string& course_id) {
@@ -140,7 +141,7 @@ std::string active_run_directory() {
 
 std::string run_directory_for_profile(const std::string& profile_id) {
     if (profile_id.empty()) return {};
-    if (profile_id == active_profile_id() &&
+    if (profile_id == g_records_active_profile_id &&
         (std::getenv("UR_RUN_BROWSER_ACCEPTANCE") ||
          std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE"))) {
         const char* override_directory =
@@ -174,7 +175,8 @@ std::string records_view_profile_name() {
 }
 
 bool records_viewing_active_profile() {
-    return g_records_view_profile_id == active_profile_id();
+    return !g_records_active_profile_id.empty() &&
+           g_records_view_profile_id == g_records_active_profile_id;
 }
 
 bool refresh_records_profiles() {
@@ -190,7 +192,7 @@ bool refresh_records_profiles() {
 
     g_records_profile_index =
         ur::product::build_run_records_profile_index(
-            *sources, records_scope(), active_profile_id());
+            *sources, records_scope(), g_records_active_profile_id);
     g_records_profiles_available = true;
     g_records_profile_selected =
         g_records_profile_index.active_profile.value_or(0);
@@ -270,7 +272,8 @@ bool refresh_records_browser_for_profile(
 }
 
 bool refresh_records_browser() {
-    return refresh_records_browser_for_profile(active_profile_id());
+    return !g_records_active_profile_id.empty() &&
+           refresh_records_browser_for_profile(g_records_active_profile_id);
 }
 
 bool refresh_browser() {
@@ -337,7 +340,9 @@ bool open_records_browser() {
     if (!modern_mode() || !snesrecomp_desktop_is_paused()) {
         return false;
     }
+    g_records_active_profile_id = active_profile_id();
     if (!normalize_base_pause_surface() || !refresh_records_browser()) {
+        g_records_active_profile_id.clear();
         return false;
     }
     (void)refresh_records_profiles();
@@ -353,7 +358,7 @@ bool open_records_browser() {
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             g_records_browser.unavailable_artifact_count(),
-            active_profile_id().c_str(),
+            g_records_active_profile_id.c_str(),
             g_records_profile_index.profiles.size(),
             g_records_profiles_available ? 1 : 0);
         for (const auto& course : g_records_browser.index().courses) {
@@ -561,7 +566,8 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                         profile->profile_id.c_str(),
                         profile->completed_runs,
                         profile->tracks_with_runs,
-                        profile->profile_id == active_profile_id() ? 1 : 0);
+                        profile->profile_id == g_records_active_profile_id
+                            ? 1 : 0);
                     std::fflush(stderr);
                 }
             }

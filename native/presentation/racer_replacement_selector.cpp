@@ -1420,6 +1420,33 @@ constexpr RacerRegistration kRegistrations[] = {
         true,
     },
 
+    {
+        0x03B9,
+        1,
+        {
+            0x03B9,
+            0x0541,
+            0x0000,
+            0x0C0D,
+            0,
+            0,
+            0x0000,
+            0x0001,
+        },
+        0x06,
+        64,
+        64,
+        1,
+        0,
+        4,
+        2,
+        {63, 63},
+        {77, 72},
+        true,
+        true,
+        true,
+    },
+
 };
 
 }  // namespace

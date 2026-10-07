@@ -27,6 +27,12 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         )
         self.assertIn("adjust_detail_target(adjustment)", source)
 
+        self.assertEqual(source.count('"LEFT / RIGHT  CHANGE TARGET"'), 1)
+        self.assertGreater(
+            source.index('"LEFT / RIGHT  CHANGE TARGET"'),
+            source.index('"NO MATCHING CHECKPOINT DATA"'),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

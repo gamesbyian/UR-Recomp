@@ -64,4 +64,14 @@ MultiplayerMatchDecodeResult load_multiplayer_match_record_for_run(
     const std::string& run_path,
     const CompletedRunRecord& run);
 
+/* Append one immutable ordinary-2P run plus its checksum-bound match
+ * sidecar as one product transaction. A sidecar failure removes the new run
+ * so a half-written pair never acquires multiplayer-history authority. */
+bool append_multiplayer_match_pair(
+    const std::string& directory,
+    const CompletedRunRecord& run,
+    const MultiplayerMatchRecord& record,
+    std::string* stored_run_path = nullptr,
+    std::string* detail = nullptr);
+
 }  // namespace ur::product

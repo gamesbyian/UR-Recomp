@@ -156,15 +156,23 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
     const std::string& profile_id,
     const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
-    const RunRecordsScope& scope) {
+    const RunRecordsScope& scope,
+    std::size_t total_artifacts) {
     if (profile_id.empty()) return std::nullopt;
 
     const auto index = build_run_records_index(records, scope);
+    const std::size_t observed_artifacts =
+        total_artifacts > records.size() ? total_artifacts : records.size();
+    const std::size_t unavailable =
+        observed_artifacts > index.total_completed_runs
+            ? observed_artifacts - index.total_completed_runs
+            : 0;
     return RunRecordsProfileSummary{
         profile_id,
         racer_identity,
         index.total_completed_runs,
         index.courses.size(),
+        unavailable,
     };
 }
 
@@ -180,7 +188,8 @@ RunRecordsProfileIndex build_run_records_profile_index(
             profile.profile_id,
             profile.racer_identity,
             profile.records,
-            scope);
+            scope,
+            profile.total_artifacts);
         if (!summary) continue;
         index.total_completed_runs += summary->completed_runs;
         index.profiles.push_back(*summary);

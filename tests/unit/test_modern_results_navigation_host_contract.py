@@ -14,6 +14,17 @@ def _body(source: str, start_marker: str, end_marker: str) -> str:
 
 
 class ModernResultsNavigationHostContractTests(unittest.TestCase):
+    def test_tour_results_require_latched_one_player_route(self):
+        source = HOST.read_text(encoding="utf-8")
+        body = _body(
+            source,
+            "std::optional<ur::title::TourProgress> current_results_tour_progress()",
+            "bool results_navigation_router_available()",
+        )
+        self.assertIn("HostRacePresentationMode::OnePlayer", body)
+        self.assertIn("g_practice_active", body)
+        self.assertIn("UR_UNIRACERS_RESTART_RESULTS", body)
+
     def test_progression_routes_use_existing_reboot_and_tour_transport(self):
         source = HOST.read_text(encoding="utf-8")
         activate = _body(

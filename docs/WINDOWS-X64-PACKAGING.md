@@ -49,7 +49,7 @@ The package remains self-contained with respect to immutable game/runtime payloa
 
 The consumer package owns only bootstrap/release-facing failure presentation. After a writable user-data root is established, each launch overwrites one bounded `diagnostics/startup.log` and passes that same log path into the pinned desktop host. The log records deterministic build/architecture/subsystem/path/result fields and never ROM bytes, SRAM contents, profile names, run payloads or controller input.
 
-The package/host contract now covers missing/invalid ROM, save-root and migration failures, missing runtime payload, SDL video/window/renderer initialization, SDL audio/device initialization, and one narrow residual controller-init `UR-STARTUP-UNKNOWN` path. It is shared by Modern and Authentic startup. Later in-session device loss, generalized crash handling, telemetry and installer-specific diagnostics are outside this package milestone.
+The package/host contract now covers missing/invalid ROM, save-root and migration failures, missing runtime payload, SDL video/window/renderer initialization, SDL audio/device initialization, and controller-subsystem initialization via the stable `UR-STARTUP-CONTROLLER` code; no currently classified consumer-package startup path uses `UR-STARTUP-UNKNOWN`. It is shared by Modern and Authentic startup. Later in-session device loss, generalized crash handling, telemetry and installer-specific diagnostics are outside this package milestone.
 
 ## Save-location boundary
 

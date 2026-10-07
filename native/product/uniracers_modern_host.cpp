@@ -4412,7 +4412,6 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         current_regional_secret_context().idle_title_surface;
     const bool logical_overlay_active =
         regional_title ||
-        onboarding_surface_active() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
 
@@ -5534,10 +5533,20 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (onboarding_surface_active()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int panel_w = width < 340 ? width - 16 : 324;
-        const int panel_h = 189;
-        const int x = (width - panel_w) / 2;
-        const int y = (height - panel_h) / 2;
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w_logical = logical_width < 340
+            ? logical_width - 16
+            : 324;
+        constexpr int kOnboardingPanelHeight = 189;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w_logical, kOnboardingPanelHeight,
+            panel_w_logical, kOnboardingPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
         const KeyBinds* binds = keybinds_get();
         const PlayerBinds fallback{};
         const PlayerBinds& p1 = binds ? binds->p1 : fallback;
@@ -5593,42 +5602,44 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
 
         snes_ovl_fill_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xE0202020u);
         snes_ovl_stroke_rect(
-            pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+            pixels, stride, height,
+            x, y, rect.width, rect.height, 0xFFF0F0F0u);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 7 * scale,
+            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 27,
-            move_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 27 * scale,
+            move_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 42,
-            jump_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 42 * scale,
+            jump_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 57,
-            brake_row, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 57 * scale,
+            brake_row, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 72,
-            stunt_row1, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 72 * scale,
+            stunt_row1, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 87,
-            stunt_row2, 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 87 * scale,
+            stunt_row2, 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 107,
-            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 107 * scale,
+            "LAND WHEEL-DOWN TO FINISH A STUNT.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 122,
-            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 122 * scale,
+            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 142,
-            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 142 * scale,
+            "F5 / PAD X  QUICK PRACTICE (MAIN MENU)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 157,
-            "F2 / PAD X  RACERS (RIDER SELECT)", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 157 * scale,
+            "F2 / PAD X  RACERS (RIDER SELECT)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 172,
-            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, 1);
+            pixels, stride, height, x + 8 * scale, y + 172 * scale,
+            "ENTER / PAD A  DISMISS   F1  HELP", 0xFFFFFFFFu, scale);
         return;
     }
 

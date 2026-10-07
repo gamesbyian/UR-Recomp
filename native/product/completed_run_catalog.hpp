@@ -3,7 +3,7 @@
 #include "completed_run_capture.hpp"
 #include "completed_run_presentation.hpp"
 #include "completed_run_store.hpp"
-#include "host_profile_catalog.hpp"
+#include "modern_racer_identity.hpp"
 
 #include <cstddef>
 #include <optional>
@@ -85,7 +85,8 @@ RunRecordsIndex build_run_records_index(
     const RunRecordsScope& scope);
 
 std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
-    const HostProfileCatalogEntry& profile,
+    const std::string& profile_id,
+    const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
     const RunRecordsScope& scope);
 

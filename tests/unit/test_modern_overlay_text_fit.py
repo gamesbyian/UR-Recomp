@@ -50,9 +50,10 @@ class ModernOverlayTextFitTests(unittest.TestCase):
         # results strip; 28 for 240-pixel panels and strips on a 256 frame.
         source = HOST.read_text(encoding="utf-8")
         expected = [
-            ("R/PAD X  REPEAT PRACTICE", 24),
-            ("R/PAD X  REMATCH", 24),
-            ("CTRL+R   RETRY", 24),
+            ("REPEAT PRACTICE  R/X", 24),
+            ("RETRY / REMATCH  R/X", 24),
+            ("RECORDS  F8/Y", 24),
+            ("UP/DN + CONFIRM", 24),
             ("PRACTICE  ESC/B/START CANCEL", 28),
             ("CONTINUING  ESC/PAD B CANCEL", 28),
             ("PRACTICE START>EXIT FRONTEND", 28),

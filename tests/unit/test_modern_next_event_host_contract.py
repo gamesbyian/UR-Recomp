@@ -18,9 +18,9 @@ class ModernNextEventHostContractTests(unittest.TestCase):
         source = HOST.read_text(encoding="utf-8")
         apply = source.index("const auto applied = ur::title::apply_tour_resume(")
         enter = source.index("enter_modern_tour_next_event_selection(", apply)
-        cancel = source.index("cancel_tour_continue(nullptr);", enter)
+        selecting = source.index('"UR_NEXT_EVENT SELECTING', enter)
         self.assertLess(apply, enter)
-        self.assertLess(enter, cancel)
+        self.assertLess(enter, selecting)
 
     def test_race_entry_never_rolls_back_progression(self):
         source = HOST.read_text(encoding="utf-8")

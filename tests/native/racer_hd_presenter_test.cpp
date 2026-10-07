@@ -1054,5 +1054,42 @@ int main() {
     assert(b03b9_max_y == 36);
     assert(b03b9_bottom_min_x + b03b9_bottom_max_x == 77);
 
+    assert(racer_hd_asset_available(0x0339));
+
+    RacerCompositionState broader_0339_context{
+        0x0339, 0x0540, 0x0000, 0x0C0C, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_0339 =
+        find_racer_registration_for_state(0x0339, broader_0339_context, 1);
+    assert(broader_0339 != nullptr);
+    assert(is_authored_broader_0339_p1_registration(*broader_0339));
+
+    int b0339_min_x = kRacerHdLogicalSize, b0339_min_y = kRacerHdLogicalSize;
+    int b0339_max_x = -1, b0339_max_y = -1;
+    int b0339_bottom_min_x = kRacerHdLogicalSize, b0339_bottom_max_x = -1;
+    for (int ly = 0; ly < kRacerHdLogicalSize; ++ly) {
+        for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+            const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            const int sy = ly * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+            if (sample_racer_hd_asset(*broader_0339, sx, sy, false, false) == 0) continue;
+            if (lx < b0339_min_x) b0339_min_x = lx;
+            if (ly < b0339_min_y) b0339_min_y = ly;
+            if (lx > b0339_max_x) b0339_max_x = lx;
+            if (ly > b0339_max_y) b0339_max_y = ly;
+        }
+    }
+    for (int lx = 0; lx < kRacerHdLogicalSize; ++lx) {
+        const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        const int sy = b0339_max_y * kRacerHdDensityScale + kRacerHdDensityScale / 2;
+        if (sample_racer_hd_asset(*broader_0339, sx, sy, false, false) == 0) continue;
+        if (lx < b0339_bottom_min_x) b0339_bottom_min_x = lx;
+        if (lx > b0339_bottom_max_x) b0339_bottom_max_x = lx;
+    }
+    assert(b0339_min_x == 18);
+    assert(b0339_min_y == 5);
+    assert(b0339_max_x == 47);
+    assert(b0339_max_y == 36);
+    assert(b0339_bottom_min_x + b0339_bottom_max_x == 77);
+
     return 0;
 }

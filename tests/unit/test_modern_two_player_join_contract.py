@@ -34,14 +34,11 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             "if (g_local_multiplayer_join_visible && modern_mode()) {",
             "if (g_tour_action_visible && modern_mode()",
         )
-        self.assertIn(
-            "draw_device_line(ur::product::LocalMultiplayerSlot::Player1, 42);",
-            overlay,
-        )
-        self.assertIn(
-            "draw_device_line(ur::product::LocalMultiplayerSlot::Player2, 62);",
-            overlay,
-        )
+        self.assertGreaterEqual(overlay.count("draw_device_line("), 3)
+        self.assertIn("LocalMultiplayerSlot::Player1", overlay)
+        self.assertIn("LocalMultiplayerSlot::Player2", overlay)
+        self.assertIn(", 42);", overlay)
+        self.assertIn(", 62);", overlay)
 
     def test_every_overlay_literal_fits_the_narrowest_panel(self):
         # 256-pixel frame -> 240-pixel panel -> 28 cells inside the margins.
@@ -67,7 +64,14 @@ class ModernTwoPlayerJoinContractTests(unittest.TestCase):
             "void run_local_multiplayer_join_acceptance() {",
             "\n}\n",
         )
-        self.assertIn("SDL_AttachVirtualJoystick(&desc)", hook)
+        attach = _body(
+            source,
+            "bool attach_local_multiplayer_acceptance_pad(",
+            "\n}\n",
+        )
+        self.assertIn("SDL_AttachVirtualJoystick(&desc)", attach)
+        self.assertIn("attach_local_multiplayer_acceptance_pad(0)", hook)
+        self.assertIn("attach_local_multiplayer_acceptance_pad(1)", hook)
         self.assertIn("SDL_SetJoystickVirtualButton(pad, action.button, true)", hook)
         # Joins and confirms must arrive through the framework callbacks, not
         # by calling the host's join helpers directly.

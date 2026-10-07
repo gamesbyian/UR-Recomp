@@ -33,6 +33,8 @@ on:
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
+      - "analysis/data/racer-hd-replacement-prototype.json"
+      - "analysis/generated/racer-hd-fallback-frequency-2026-10-05.json"
       - ".github/workflows/racer-native-presentation-acceptance.yml"
 
 concurrency:
@@ -1285,14 +1287,14 @@ jobs:
 
           assert retained["before"]["hd_selected_player_frames"] == 150
           assert retained["after"]["hd_selected_player_frames"] == 162
-          assert retained["current_after"]["hd_selected_player_frames"] == 178
-          assert retained["current_after"]["original_fallback_player_frames"] == 704
+          assert retained["current_after"]["hd_selected_player_frames"] == 179
+          assert retained["current_after"]["original_fallback_player_frames"] == 703
           spill = retained["broader_player_local_spill_in"]
-          assert spill["player_frames_added"] == 4
-          assert [x["semantic_frame_id"] for x in spill["states"]] == ["0x04B9", "0x0239", "0x00B9", "0x0439"]
+          assert spill["player_frames_added"] == 5
+          assert [x["semantic_frame_id"] for x in spill["states"]] == ["0x04B9", "0x0239", "0x00B9", "0x0439", "0x01B9"]
           assert current["measurement"]["player_frame_observations"] == 882
-          assert current["measurement"]["hd_selected_player_frames"] == 178
-          assert current["measurement"]["original_fallback_player_frames"] == 704
+          assert current["measurement"]["hd_selected_player_frames"] == 179
+          assert current["measurement"]["original_fallback_player_frames"] == 703
 
           assert dossier["temporal_window"]["start"] == 1354
           assert dossier["temporal_window"]["end"] == 1356
@@ -1320,7 +1322,7 @@ jobs:
               assert all(pair["transition_class"] == "static" for pair in pairs)
               assert all(pair["static_edge_preserved"] for pair in pairs)
 
-          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=178/882 removed=28")
+          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=179/882 removed=29")
           PY
 
       - name: Upload compact acceptance log

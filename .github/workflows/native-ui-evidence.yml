@@ -66,15 +66,10 @@ concurrency:
 
 
 jobs:
-  capture:
-    name: capture-${{ matrix.shard }}
+  build:
+    name: build-ui-candidate
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [core, navigation, results, records, profiles]
-    steps:
+    timeout-minutes: 10
       - name: Check out project
         uses: actions/checkout@v4
 
@@ -152,6 +147,58 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=ON -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
+
+
+      - name: Package native UI candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "$RUNNER_TEMP/native-ui-build.tar.gz"             -C "$RUNNER_TEMP" ur-recomp-build
+          test -s "$RUNNER_TEMP/native-ui-build.tar.gz"
+
+      - name: Upload native UI candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ui-build-candidate
+          path: ${{ runner.temp }}/native-ui-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  capture:
+    name: capture-${{ matrix.shard }}
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 16
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [core, navigation, results, records, profiles]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install native UI runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y             xvfb xdotool             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Download native UI candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: native-ui-build-candidate
+          path: ${{ runner.temp }}/native-ui-build-artifact
+
+      - name: Restore native UI candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/native-ui-build-artifact/native-ui-build.tar.gz"             -C "$RUNNER_TEMP"
+          EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$EXE"
 
       - name: Run UI evidence shard
         shell: bash
@@ -363,7 +410,14 @@ jobs:
           timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOAD_LOG" 2>&1
 
           RESOLUTION=$(sed -n "s/^output_resolution=//p" "$STATE")
-          grep -Eq "UR_HOST_STATE LOADED .*pause_on_focus_loss=0 display_mode=fullscreen vsync=adaptive presentation_fps=120 output_resolution=${RESOLUTION} widescreen=16x9 internal_render_scale=1x" "$LOAD_LOG"
+          grep -q "UR_HOST_STATE LOADED" "$LOAD_LOG"
+          for field in             "pause_on_focus_loss=0"             "display_mode=fullscreen"             "vsync=adaptive"             "presentation_fps=120"             "output_resolution=${RESOLUTION}"             "widescreen=16x9"             "internal_render_scale=1x"; do
+            grep -Eq "UR_HOST_STATE LOADED .*${field}([[:space:]]|$)" "$LOAD_LOG" || {
+              echo "::error::Reloaded host state missing field: $field"
+              cat "$LOAD_LOG"
+              exit 1
+            }
+          done
           grep -q "UR_DISPLAY_MODE APPLIED mode=fullscreen host=2" "$LOAD_LOG"
           grep -q "UR_OUTPUT_RESOLUTION APPLIED requested=$RESOLUTION effective=$RESOLUTION status=applied" "$LOAD_LOG"
           grep -q "UR_VSYNC APPLIED mode=adaptive host=2" "$LOAD_LOG"
@@ -419,6 +473,7 @@ jobs:
           internal_render_scale=2x
           EOF
 
+          # evidence-frame-anchor: exact frame is required only to prove the post-scale 512x448 surface.
           # 1219 is an observed HD-composited frame in both the pre-move green smoke route and this shard.
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \
@@ -455,8 +510,8 @@ jobs:
 
   aggregate:
     name: aggregate-ui-evidence
-    if: always()
-    needs: capture
+    needs: [build, capture]
+    if: ${{ needs.build.result == 'success' && needs.capture.result == 'success' }}
     runs-on: ubuntu-latest
     timeout-minutes: 13
     steps:

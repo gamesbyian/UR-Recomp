@@ -1,6 +1,6 @@
 --- a/runner/src/snes/ws_shadow.c
 +++ b/runner/src/snes/ws_shadow.c
-@@ -1287,15 +1287,15 @@ uint16_t WsShadowTile(int layerIndex, int screenX, uint32_t wrappedY,
+@@ -1277,16 +1277,15 @@ uint16_t WsShadowTile(int layerIndex, int screenX, uint32_t wrappedY,
    if (layerIndex < 0 || layerIndex >= kLayers)
      return realTile;
    WsShadowLayer *layer = &s_layers[layerIndex];

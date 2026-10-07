@@ -2062,6 +2062,7 @@ def sample_authored_0579_p2_0ec4_broader_rgba(x: int, y: int) -> bytes:
     upper_dy = y - 52
     upper = (
         x >= 84
+        and y >= 20
         and y < 78
         and upper_dx * upper_dx * 44 * 44
         + upper_dy * upper_dy * 28 * 28

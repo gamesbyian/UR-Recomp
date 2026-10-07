@@ -111,6 +111,48 @@ int main() {
     assert(multiplayer_match_record_matches_run(*loaded.record, run));
 
     {
+        const auto run_path =
+            std::filesystem::temp_directory_path() / "ur-records-paired.urrun";
+        const auto match_path =
+            std::filesystem::path(run_path.string() + ".urmatch");
+        std::filesystem::remove(run_path);
+        std::filesystem::remove(match_path);
+
+        assert(save_completed_run_record_file(
+            run_path.string(), run, &detail));
+        assert(save_multiplayer_match_record_for_run(
+            run_path.string(), run, original, &detail));
+        assert(multiplayer_match_record_path_for_run(run_path.string()) ==
+               match_path.string());
+
+        const auto fresh_run =
+            load_completed_run_record_file(run_path.string());
+        assert(fresh_run.loaded());
+        const auto fresh_match =
+            load_multiplayer_match_record_for_run(
+                run_path.string(), *fresh_run.record);
+        assert(fresh_match);
+        assert(fresh_match.record->context.match.player1.profile_id == "ian");
+        assert(fresh_match.record->context.match.player2.profile_id == "friend");
+
+        auto changed_run = *fresh_run.record;
+        changed_run.elapsed_ticks60 += 1;
+        const auto mismatch =
+            load_multiplayer_match_record_for_run(
+                run_path.string(), changed_run);
+        assert(!mismatch);
+        assert(mismatch.error == "match record does not bind completed run");
+
+        auto wrong_record = original;
+        wrong_record.context.course_id = "course:02";
+        assert(!save_multiplayer_match_record_for_run(
+            run_path.string(), run, wrong_record, &detail));
+
+        std::filesystem::remove(match_path);
+        std::filesystem::remove(run_path);
+    }
+
+    {
         std::ofstream oversized(path, std::ios::binary | std::ios::trunc);
         oversized << std::string(4097, 'x');
     }

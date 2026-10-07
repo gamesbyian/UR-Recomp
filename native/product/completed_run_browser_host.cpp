@@ -42,6 +42,8 @@ bool g_browser_acceptance_fired;
 unsigned g_records_browser_acceptance_active_frames;
 bool g_records_browser_acceptance_fired;
 
+ur::product::RunRecordsScope records_scope();
+
 enum class RecordsRootSection {
     Tracks,
     Profiles,
@@ -249,7 +251,7 @@ std::optional<ur::product::RunPlaybackTarget> current_target() {
 bool records_selected_matches_current_course() {
     const auto* selected = g_records_browser.selected_course();
     const auto target = current_target();
-    return selected && target &&
+    return records_viewing_active_profile() && selected && target &&
            selected->course_id == target->course_id;
 }
 
@@ -338,17 +340,22 @@ bool open_records_browser() {
     if (!normalize_base_pause_surface() || !refresh_records_browser()) {
         return false;
     }
+    (void)refresh_records_profiles();
+    g_records_root_section = RecordsRootSection::Tracks;
+    g_records_return_to_profiles = false;
 
     g_browser_visible = false;
     g_records_browser_visible = true;
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             g_records_browser.unavailable_artifact_count(),
-            active_profile_id().c_str());
+            active_profile_id().c_str(),
+            g_records_profile_index.profiles.size(),
+            g_records_profiles_available ? 1 : 0);
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
                 stderr,
@@ -509,11 +516,26 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
 
     const int delta = ur_modern_host_navigation_vertical_delta(action);
     if (delta != 0) {
-        (void)g_records_browser.move(delta);
+        if (g_records_browser.view() ==
+                ur::product::CompletedRunRecordsView::Courses &&
+            g_records_root_section == RecordsRootSection::Profiles) {
+            (void)move_records_profile(delta);
+        } else {
+            (void)g_records_browser.move(delta);
+        }
         return true;
     }
+
     const int adjustment =
         ur_modern_host_navigation_adjustment_delta(action);
+    if (adjustment != 0 &&
+        g_records_browser.view() ==
+            ur::product::CompletedRunRecordsView::Courses) {
+        g_records_root_section = adjustment < 0
+            ? RecordsRootSection::Tracks
+            : RecordsRootSection::Profiles;
+        return true;
+    }
     if (adjustment != 0 &&
         g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Detail) {
@@ -522,7 +544,26 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     }
     if (ur_modern_host_navigation_is_confirm(action)) {
         if (g_records_browser.view() ==
-            ur::product::CompletedRunRecordsView::Courses) {
+                ur::product::CompletedRunRecordsView::Courses &&
+            g_records_root_section == RecordsRootSection::Profiles) {
+            const auto* profile = selected_records_profile();
+            if (profile &&
+                refresh_records_browser_for_profile(profile->profile_id)) {
+                g_records_root_section = RecordsRootSection::Tracks;
+                g_records_return_to_profiles = true;
+                if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                    std::fprintf(
+                        stderr,
+                        "UR_RECORDS_BROWSER PROFILE_OPEN profile=%s runs=%zu tracks=%zu active=%d\n",
+                        profile->profile_id.c_str(),
+                        profile->completed_runs,
+                        profile->tracks_with_runs,
+                        profile->profile_id == active_profile_id() ? 1 : 0);
+                    std::fflush(stderr);
+                }
+            }
+        } else if (g_records_browser.view() ==
+                   ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Runs) {
@@ -537,6 +578,9 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Runs) {
             (void)g_records_browser.back_to_courses();
+        } else if (g_records_return_to_profiles) {
+            g_records_root_section = RecordsRootSection::Profiles;
+            g_records_return_to_profiles = false;
         } else {
             close_records_browser();
         }

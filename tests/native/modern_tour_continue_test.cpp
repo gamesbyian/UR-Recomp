@@ -14,7 +14,7 @@ static ModernTourContinueStep advance_until_action(
         step = advance_modern_tour_continue(state, observation);
         state = step.state;
         if (step.input != QuickPracticeMenuInput::None ||
-            step.track_select_ready || step.timed_out ||
+            step.track_select_ready || step.tour_select_ready || step.timed_out ||
             step.state.stage == ModernTourContinueStage::Idle) {
             return step;
         }
@@ -164,6 +164,41 @@ static void prove_all_tours_reach_track_select() {
     }
 }
 
+static void prove_results_route_can_stop_at_stock_tour_select() {
+    for (std::uint8_t tour = 0; tour < 9; ++tour) {
+        auto state = begin_modern_tour_results_route(tour, true, true);
+        assert(state.stage == ModernTourContinueStage::AwaitMain);
+        assert(state.stop_at_tour_select);
+        assert(state.restore_continuation_at_track_select);
+
+        auto step = advance_until_action(state, {0xD7, 0, false});
+        assert(step.input == QuickPracticeMenuInput::Accept);
+        step = advance_until_action(step.state, {0x3C, 0, false});
+        assert(step.input == QuickPracticeMenuInput::Accept);
+        step = advance_until_action(step.state, {0x6D, 0, false});
+        assert(step.input == QuickPracticeMenuInput::None);
+        assert(step.tour_select_ready);
+        assert(step.state.stage == ModernTourContinueStage::Ready);
+    }
+
+    auto completed = begin_modern_tour_results_route(3, false, false);
+    assert(!completed.stop_at_tour_select);
+    assert(!completed.restore_continuation_at_track_select);
+    auto step = advance_until_action(completed, {0xD7, 0, false});
+    step = advance_until_action(step.state, {0x3C, 0, false});
+    step = advance_until_action(step.state, {0x6D, 0, false});
+    while (step.input != QuickPracticeMenuInput::Accept) {
+        auto observation = ModernTourContinueObservation{
+            0x6D,
+            step.state.tour_option,
+            false,
+        };
+        step = advance_until_action(step.state, observation);
+    }
+    step = advance_until_action(step.state, {0xF6, 0, false});
+    assert(step.track_select_ready);
+}
+
 static void prove_next_event_selects_derived_slot_then_confirms() {
     ModernTourEntryContext context{
         ExecutionMode::Modern,
@@ -285,6 +320,7 @@ static void prove_next_event_selects_derived_slot_then_confirms() {
 int main() {
     prove_all_tours_reach_track_select();
     prove_restart_uses_same_stock_route_without_restore();
+    prove_results_route_can_stop_at_stock_tour_select();
     prove_next_event_selects_derived_slot_then_confirms();
 
     {

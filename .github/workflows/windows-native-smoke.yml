@@ -32,7 +32,7 @@ on:
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
       - "tests/unit/test_assemble_windows_package.py"
-- "reference/roms/retail/Uniracers_USA.sfc"
+      - "reference/roms/retail/Uniracers_USA.sfc"
       - ".github/workflows/windows-native-smoke.yml"
       - "native/product/**"
       - "native/presentation/**"

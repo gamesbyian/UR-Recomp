@@ -28,6 +28,21 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         ):
             self.assertIn(path, self.text)
 
+    def test_push_path_entries_are_structurally_indented(self) -> None:
+        paths_start = self.text.index("    paths:\n") + len("    paths:\n")
+        paths_end = self.text.index("\n\nconcurrency:", paths_start)
+        entries = [
+            line
+            for line in self.text[paths_start:paths_end].splitlines()
+            if line.strip()
+        ]
+        self.assertTrue(entries)
+        for line in entries:
+            self.assertTrue(
+                line.startswith('      - "'),
+                f"malformed push.paths entry: {line!r}",
+            )
+
     def test_multiplayer_acceptance_quit_helper_is_declared_before_use(self) -> None:
         host = HOST.read_text(encoding="utf-8")
         declaration = host.index("bool request_desktop_quit();")

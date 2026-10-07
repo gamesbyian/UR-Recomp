@@ -539,9 +539,6 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         g_records_root_section = adjustment < 0
             ? RecordsRootSection::Tracks
             : RecordsRootSection::Profiles;
-        if (g_records_root_section == RecordsRootSection::Profiles) {
-            g_records_return_to_profiles = false;
-        }
         return true;
     }
     if (adjustment != 0 &&
@@ -587,7 +584,11 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Runs) {
             (void)g_records_browser.back_to_courses();
-        } else if (g_records_return_to_profiles) {
+        } else if (g_records_root_section ==
+                   RecordsRootSection::Profiles) {
+            close_records_browser();
+        } else if (g_records_return_to_profiles ||
+                   !records_viewing_active_profile()) {
             g_records_root_section = RecordsRootSection::Profiles;
             g_records_return_to_profiles = false;
         } else {

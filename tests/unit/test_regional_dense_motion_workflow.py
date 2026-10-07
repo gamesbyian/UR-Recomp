@@ -27,6 +27,11 @@ class RegionalDenseMotionWorkflowContractTests(unittest.TestCase):
             workflow.count("tools/analyze_frontend_transition_sequence.py"),
             2,
         )
+        self.assertEqual(
+            workflow.count("tools/compare_frontend_transition_reports.py"),
+            1,
+        )
+        self.assertIn("retail-motion-comparison.json", workflow)
         self.assertIn(
             'path: ${{ runner.temp }}/regional-frontend/',
             workflow,

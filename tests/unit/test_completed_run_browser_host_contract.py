@@ -27,6 +27,14 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         )
         self.assertIn("adjust_detail_target(adjustment)", source)
 
+        # The target-change prompt belongs to run detail, after the split table
+        # presentation. It must not cover the Runs-list VS-PB summary.
+        self.assertEqual(source.count('"LEFT / RIGHT  CHANGE TARGET"'), 1)
+        self.assertGreater(
+            source.index('"LEFT / RIGHT  CHANGE TARGET"'),
+            source.index('"NO MATCHING CHECKPOINT DATA"'),
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

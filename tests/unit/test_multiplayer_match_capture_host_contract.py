@@ -101,7 +101,6 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         # instead of leaving it armed for stale profile/course/result context.
         for diagnostic in (
             "SESSION_IDENTITY_LOST",
-            "RESULT_REJECTED",
             "PARTICIPANT_BIND_REJECTED",
             "FINALIZE_REJECTED",
             "METADATA_REJECTED",
@@ -112,6 +111,20 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
                 "reset_multiplayer_run_capture();", marker
             )
             self.assertLess(marker, following_reset)
+
+    def test_unsettled_2p_result_keeps_capture_armed(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+        complete = source.index("void complete_multiplayer_run_record_capture()")
+        complete_end = source.index("void complete_run_record_capture()", complete)
+        body = source[complete:complete_end]
+        observed = body.index("if (!observed)")
+        context = body.index("bind_local_multiplayer_match_context(", observed)
+        transient = body[observed:context]
+        self.assertIn("return;", transient)
+        self.assertNotIn("reset_multiplayer_run_capture();", transient)
+        self.assertNotIn("RESULT_REJECTED", transient)
 
     def test_live_capture_rejects_lost_participant_context(self):
         source = (

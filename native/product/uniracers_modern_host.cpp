@@ -4469,6 +4469,18 @@ extern "C" int ur_uniracers_modern_draw_frame(
                 frame_width * presentation_scale,
                 frame_height * presentation_scale,
                 presentation_scale);
+        if (regional_result ==
+            ur::product::RegionalTitlePresentationResult::FailedClosed) {
+            // Restore the exact canonical field at the same presentation
+            // density if any provenance/paint verification fails.
+            (void)ur::product::compose_nearest_density_frame(
+                dst,
+                pitch,
+                field,
+                frame_width,
+                frame_height,
+                presentation_scale);
+        }
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             static ur::product::RegionalTitlePresentationResult last_result =
                 ur::product::RegionalTitlePresentationResult::Canonical;

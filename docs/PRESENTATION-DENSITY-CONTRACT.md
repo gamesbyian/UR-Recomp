@@ -89,6 +89,12 @@ The deterministic contract is exercised across common Windows drawable sizes (64
 
 Acceptance requires logical overlay rectangles to remain invariant as drawable size changes, integer density to affect only the presentation rectangle, output projection to remain fully inside the already-resolved viewport, and constrained logical space to compact only down to the caller-owned minimum before failing closed. Letterboxing and pillarboxing therefore move/scale only the output projection; they cannot change title-space anchors.
 
+## Stable fallback density
+
+Internal Render Scale is now a fixed-scene presentation property rather than a signal that appears only on frames with an authored Racer HD replacement. When Remastered Racer HD is enabled, the host resolves the configured 1x-4x density from product state for every supported fixed scene. The Racer HD compositor still gets first refusal; if the current frame has no authored replacement, the host composes the untouched logical guest raster with exact nearest-neighbour integer expansion at the same density.
+
+This removes density flicker across replacement/fallback pose transitions and gives Original fallback pixels an explicit deterministic sampling path. Widened world composition and any direct-coordinate modal surface that has not migrated to the shared overlay contract still force 1x. Regional title replacement likewise stays on its dedicated 1x path until its presenter owns a density transform.
+
 ## Sampling policy
 
 Default policy is deterministic and deliberately boring:

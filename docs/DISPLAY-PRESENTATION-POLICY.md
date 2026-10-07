@@ -138,6 +138,12 @@ This policy does not silently select a CRT/NTSC treatment or a final-window filt
 
 The composition contract is regression-tested over common Windows desktop/window sizes and arbitrary odd-sized drawables, across fixed and widened logical views and 1x–4x internal presentation density. Window resizing may change the resolved output viewport and final projected rectangle, but it must not change the logical overlay rectangle. Any constrained logical layout must remain inside caller-declared safe bands, compact only to its declared minimum, then disappear rather than overlap protected content.
 
+### Stable fixed-scene density
+
+With Remastered Racer HD enabled, Internal Render Scale is resolved from the persisted product setting for the whole supported fixed scene, not from whether a particular racer pose has HD art. Authored replacement frames use the Racer HD compositor; stock fallback frames use exact nearest-neighbour integer expansion of the guest raster at the same density. This keeps output dimensions and pixel sampling deterministic across replacement/fallback transitions.
+
+Widened world composition, regional-title replacement, and unmigrated direct-coordinate modal overlays retain their existing 1x fail-safe until those presenters own the corresponding transform.
+
 ## Presentation cadence
 
 The authoritative simulation remains fixed to original game cadence.

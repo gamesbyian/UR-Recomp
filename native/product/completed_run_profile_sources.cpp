@@ -25,11 +25,22 @@ load_run_records_profile_sources(const std::string& user_data_root) {
     std::vector<RunRecordsProfileSource> out;
     out.reserve(catalog->size());
     for (const auto& entry : *catalog) {
+        auto artifacts = inspect_completed_run_record_artifacts(
+            (root / "runs" / entry.profile_id).string());
+        std::vector<StoredRunRecord> records;
+        records.reserve(artifacts.size());
+        for (auto& artifact : artifacts) {
+            if (!artifact.loaded()) continue;
+            records.push_back({
+                artifact.path,
+                std::move(*artifact.record),
+            });
+        }
         out.push_back({
             entry.profile_id,
             entry.identity,
-            load_valid_run_records(
-                (root / "runs" / entry.profile_id).string()),
+            std::move(records),
+            artifacts.size(),
         });
     }
     return out;

@@ -63,18 +63,21 @@ struct RunRecordsProfileSummary {
     HostRacerIdentity racer_identity;
     std::size_t completed_runs = 0;
     std::size_t tracks_with_runs = 0;
+    std::size_t unavailable_artifacts = 0;
 };
 
 struct RunRecordsProfileSource {
     std::string profile_id;
     HostRacerIdentity racer_identity;
     std::vector<StoredRunRecord> records;
+    std::size_t total_artifacts = 0;
 };
 
 struct RunRecordsProfileIndex {
     std::vector<RunRecordsProfileSummary> profiles;
     std::optional<std::size_t> active_profile;
     std::size_t total_completed_runs = 0;
+    std::size_t total_unavailable_artifacts = 0;
 };
 
 /* Build presentation metadata over an already compatibility-filtered store
@@ -100,7 +103,8 @@ std::optional<RunRecordsProfileSummary> present_run_records_profile_summary(
     const std::string& profile_id,
     const HostRacerIdentity& racer_identity,
     const std::vector<StoredRunRecord>& records,
-    const RunRecordsScope& scope);
+    const RunRecordsScope& scope,
+    std::size_t total_artifacts = 0);
 
 RunRecordsProfileIndex build_run_records_profile_index(
     const std::vector<RunRecordsProfileSource>& profiles,

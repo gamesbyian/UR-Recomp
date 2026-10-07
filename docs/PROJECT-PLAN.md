@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-05
+Last updated: 2026-10-06
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -224,6 +224,8 @@ Generated C is disposable implementation output. Durable game-specific knowledge
 - asset manifests;
 - deterministic tests;
 - compact evidence reports.
+
+Project-owned handwritten C and C ABI seams that touch guest state are governed by `RECOMP-C-PRACTICES.md`. They must model machine semantics explicitly rather than inherit accidental host-C behavior: use fixed-width guest values, explicit byte order, range-checked narrowing, widened-and-bounded guest-address arithmetic, and no reliance on signed overflow or implementation-defined negative shifts. Portable first-party C seams retain strict GCC/Clang compilation plus sanitizer-backed unit coverage. These rules do not authorize hand-editing generated C or mass-cleaning vendored source; recurring generated-code issues belong in the generator/runtime or a narrow project-owned integration seam.
 
 ### Consolidated knowledge/query layer
 

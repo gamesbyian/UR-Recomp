@@ -504,9 +504,15 @@ void maybe_run_multiplayer_match_acceptance() {
 
     ensure_profile_catalog();
     if (g_profile_catalog.size() < 2u) {
+        // Acceptance-only identities exercise the production participant
+        // selector without requiring a pre-existing user profile directory.
+        // They never write guest rider state and exist only in this process.
+        g_profile_catalog = {
+            {"accept-p1", {"MIKE", 0}},
+            {"accept-p2", {"ANDREW", 1}},
+        };
         product_diagnostic(
-            "UR_MULTIPLAYER_MATCH ACCEPTANCE_NO_PROFILES");
-        return;
+            "UR_MULTIPLAYER_MATCH ACCEPTANCE_PROFILES_SEEDED");
     }
 
     const auto p1_slot = ur::product::LocalMultiplayerSlot::Player1;
@@ -3392,6 +3398,10 @@ bool multiplayer_participant_session_ready() {
 
 std::string default_multiplayer_run_directory() {
     if (!modern_mode()) return {};
+    if (const char* override_path =
+            std::getenv("UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY")) {
+        if (*override_path) return override_path;
+    }
     return product_user_data_path("multiplayer-runs");
 }
 

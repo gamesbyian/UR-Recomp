@@ -558,7 +558,7 @@ void draw_records_browser(
         ur::product::CompletedRunRecordsView::Courses) {
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 7,
-            "RECORDS / RUNS", 0xFFFFFFFFu, 1);
+            "RECORDS / TRACKS", 0xFFFFFFFFu, 1);
 
         char summary[64];
         std::snprintf(

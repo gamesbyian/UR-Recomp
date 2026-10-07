@@ -5977,6 +5977,13 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         }
     }
 
+    if (g_results_route_pending !=
+            ur::product::ModernResultsAction::None &&
+        !g_exit_frontend_waiting_for_main &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
+        (void)begin_pending_results_navigation_route();
+    }
+
     observe_regional_title_surface();
     update_local_multiplayer_join_surface();
     observe_local_multiplayer_seat_lines();

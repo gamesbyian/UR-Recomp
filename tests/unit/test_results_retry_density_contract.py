@@ -24,7 +24,7 @@ class ResultsRetryDensityContractTests(unittest.TestCase):
         )
 
     def test_results_retry_strip_uses_modal_density(self):
-        marker = '"R / PAD X  REMATCH   CTRL+R RETRY"'
+        marker = '"R/PAD X  REMATCH"'
         pos = self.source.index(marker)
         body = self.source[pos - 400:pos + 200]
         self.assertIn("x + 8 * modal_scale", body)

@@ -47,7 +47,7 @@ class ModernProfileResetHostContractTests(unittest.TestCase):
         self.assertIn("selected_profile_is_active()", HOST)
         self.assertIn("ModernProfileResetAction::Execute", HOST)
         self.assertIn("D/PAD Y RESET PROGRESS", HOST)
-        self.assertIn("RESET %s PROGRESS?", HOST)
+        self.assertIn('"RESET %s?"', HOST)
 
     def test_stock_erase_chord_uses_final_human_input_filter(self):
         fn_start = HOST.index(

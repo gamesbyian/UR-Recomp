@@ -18,7 +18,10 @@ struct ModernControlsBindingRow {
 
 struct ModernControlsPresentation {
     std::array<ModernControlsBindingRow, 12> rows{};
+    // Two short lines, each no wider than the narrowest pause-family panel
+    // (24 cells). Keyboard keys and the mapped SNES buttons share a line.
     std::string instruction;
+    std::string instruction_detail;
 };
 
 ModernControlsPresentation present_modern_controls(

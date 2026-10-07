@@ -627,6 +627,25 @@ int main() {
         GraphicsPack::Remastered, 0x0139, broader_0139_local_miss, 1
     ).fallback_reason == FallbackReason::CompositionMismatch);
 
+    const RacerCompositionState broader_0539_a{
+        0x0539, 0x0578, 0x0000, 0x0EC3, 0, 0, 0x0000, 0x0001
+    };
+    const RacerCompositionState broader_0539_b{
+        0x0539, 0x0543, 0x0000, 0x0000, 0, 0, 0x0000, 0x0000
+    };
+    const auto* broader_0539 =
+        find_racer_registration_for_state(0x0539, broader_0539_a, 1);
+    assert(broader_0539 != nullptr);
+    assert(broader_0539->player_local_guard);
+    assert(find_racer_registration_for_state(
+        0x0539, broader_0539_b, 1
+    ) == broader_0539);
+    auto broader_0539_local_miss = broader_0539_b;
+    broader_0539_local_miss.p1_selector = 1;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0539, broader_0539_local_miss, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     // Exact-scope registrations must still care about opponent fields.
     auto exact_scope_opponent_miss = frequency_0544_0578_context;
     exact_scope_opponent_miss.p2_companion = 0x0D64;

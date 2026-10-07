@@ -100,6 +100,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           data["entries"] = [
               e for e in data["entries"]
@@ -124,6 +125,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               data.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[1]).write_text(
@@ -154,6 +156,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           data["entries"] = [
               e for e in data["entries"] if e["representation_id"] not in excluded
@@ -176,6 +179,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               data.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[1]).write_text(
@@ -412,6 +416,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -434,6 +439,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(json.dumps(source, indent=2) + "\n")
@@ -459,6 +465,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -480,6 +487,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(json.dumps(source, indent=2) + "\n")
@@ -609,6 +617,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -629,6 +638,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -782,6 +792,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -801,6 +812,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -953,6 +965,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -971,6 +984,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -1123,6 +1137,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -1140,6 +1155,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -1293,6 +1309,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -1309,6 +1326,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -1461,6 +1479,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -1476,6 +1495,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -1650,6 +1670,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -1664,6 +1685,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -1831,6 +1853,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -1844,6 +1867,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2009,6 +2033,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2021,6 +2046,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2185,6 +2211,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2196,6 +2223,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2359,6 +2387,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2369,6 +2398,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2531,6 +2561,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2540,6 +2571,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2701,6 +2733,7 @@ jobs:
               "ordinary-racer-0x03F9-p1-broader-frequency-reference",
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2709,6 +2742,7 @@ jobs:
               "ordinary-race-03f9-broader-static-1444-1445",
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -2854,6 +2888,7 @@ jobs:
           excluded = {
               "ordinary-racer-0x0579-p2-companion-0EC4-broader-frequency-reference",
               "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
           }
           source["entries"] = [
               e for e in source["entries"] if e["representation_id"] not in excluded
@@ -2861,6 +2896,7 @@ jobs:
           for key in (
               "ordinary-race-p2-0579-0ec4-broader-static-3088-3089",
               "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
           ):
               source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
@@ -3026,13 +3062,18 @@ jobs:
           python3 - analysis/data/racer-hd-replacement-prototype.json "$RUNNER_TEMP/racer-hd-after-p2-0579-0ec4-registry.json" <<'PY'
           import json, pathlib, sys
           source = json.loads(pathlib.Path(sys.argv[1]).read_text())
-          rid = "ordinary-racer-0x0579-p1-broader-frequency-reference"
+          excluded = {
+              "ordinary-racer-0x0579-p1-broader-frequency-reference",
+              "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
+          }
           source["entries"] = [
-              e for e in source["entries"] if e["representation_id"] != rid
+              e for e in source["entries"] if e["representation_id"] not in excluded
           ]
-          source.get("motion_review_sequences", {}).pop(
-              "ordinary-race-p1-0579-broader-static-1884-1885", None
-          )
+          for key in (
+              "ordinary-race-p1-0579-broader-static-1884-1885",
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503",
+          ):
+              source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
               json.dumps(source, indent=2, sort_keys=True) + "\n"
           )
@@ -3166,6 +3207,25 @@ jobs:
           print("RACER_HD_POST_P2_0579_0EC4_FULL", json.dumps(probe, sort_keys=True), flush=True)
           PY
 
+      - name: Stage post-P1 0579 registry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - analysis/data/racer-hd-replacement-prototype.json "$RUNNER_TEMP/racer-hd-after-p1-0579-registry.json" <<'PY'
+          import json, pathlib, sys
+          source = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          rid = "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference"
+          source["entries"] = [
+              e for e in source["entries"] if e["representation_id"] != rid
+          ]
+          source.get("motion_review_sequences", {}).pop(
+              "ordinary-race-p2-0578-0ec3-broader-static-2502-2503", None
+          )
+          pathlib.Path(sys.argv[2]).write_text(
+              json.dumps(source, indent=2, sort_keys=True) + "\n"
+          )
+          PY
+
       - name: Measure and review P1 0579 context
         shell: bash
         run: |
@@ -3184,6 +3244,7 @@ jobs:
           python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
             "$RUNNER_TEMP/racer-hd-broader-dumps" \
             --prefix racer-sample \
+            --registry "$RUNNER_TEMP/racer-hd-after-p1-0579-registry.json" \
             --workflow-run "${{ github.run_id }}" \
             --json-out "$RUNNER_TEMP/racer-hd-after-p1-0579.json" \
             --trace-out "$RUNNER_TEMP/racer-hd-after-p1-0579-trace.json" \
@@ -3293,6 +3354,7 @@ jobs:
           python3 tools/probe_racer_hd_ranked_visual_context.py \
             "$ROM" \
             "$RUNNER_TEMP/racer-hd-after-p1-0579.json" \
+            --registry "$RUNNER_TEMP/racer-hd-after-p1-0579-registry.json" \
             --rank 0 \
             --json-out "$RUNNER_TEMP/racer-hd-post-p1-0579-next-probe.json" \
             --output-dir "$RUNNER_TEMP/racer-hd-post-p1-0579-next-probe" \
@@ -3308,7 +3370,6 @@ jobs:
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],
           }, sort_keys=True))
-          print("RACER_HD_POST_P1_0579_FULL", json.dumps(probe, sort_keys=True), flush=True)
           PY
 
           python3 tools/compare_racer_hd_local_stock_contexts.py \
@@ -3351,6 +3412,150 @@ jobs:
           assert delta["right"]["contact_x2_y2"] == canonical["contact_x2_y2"], delta
           assert delta["delta"]["changed_pixel_count"] > 0, delta
           print("RACER_HD_P2_0578_0EC3_PREAPPROVAL_DELTA", json.dumps(delta, sort_keys=True), flush=True)
+          PY
+
+      - name: Measure and review P2 0578 0EC3 context
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="reference/roms/retail/Uniracers_USA.sfc"
+
+          python3 tools/probe_racer_hd_ranked_visual_context.py \
+            "$ROM" \
+            "$RUNNER_TEMP/racer-hd-after-p1-0579.json" \
+            --registry "$RUNNER_TEMP/racer-hd-after-p1-0579-registry.json" \
+            --rank 0 \
+            --json-out "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-probe" \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-probe.txt"
+
+          python3 tools/measure_racer_hd_frequency_from_wram_dumps.py measure \
+            "$RUNNER_TEMP/racer-hd-broader-dumps" \
+            --prefix racer-sample \
+            --workflow-run "${{ github.run_id }}" \
+            --json-out "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3.json" \
+            --trace-out "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3-trace.json" \
+            > "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-after-p1-0579.json" "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3.json" "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-probe.json" <<'PY'
+          import json, pathlib, sys
+          before = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          after = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          probe = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          b, a = before["measurement"], after["measurement"]
+          target = probe["target"]
+          assert (b["hd_selected_player_frames"], b["original_fallback_player_frames"]) == (1326, 3956), b
+          assert target["player"] == "p2"
+          assert target["semantic_frame_id"] == "0x0578"
+          assert target["companion"] == "0x0EC3"
+          assert target["selector"] == 0
+          assert target["gate"] == "0x0001"
+          assert target["player_frames"] == 54
+          assert target["episode_count"] == 17
+          assert probe["witness_exact_state_count"] == 21
+          assert probe["witness_player_frames"] == 54
+          assert probe["unique_stock_raster_count"] == 1
+          assert probe["canonical"]["stock_rgba_sha256"] == "1ef9f5ac2df1ad694d11f0ecc31c035c009aa7f31f6b7f3ccd0c49a48c1bcff6"
+          assert probe["canonical"]["normalized_geometry_sha256"] == "08e5eae6fb849f7274e989c720647513d8652181beef4ee2a7a97499f8c5f28a"
+          assert probe["canonical"]["alpha_bounds"] == [19, 6, 47, 36]
+          assert probe["canonical"]["contact_x2_y2"] == [77, 72]
+          assert probe["canonical"]["exact_same_player_matches"] == []
+          assert probe["canonical"]["palette_normalized_matches"] == []
+          assert (a["hd_selected_player_frames"], a["original_fallback_player_frames"]) == (1380, 3902), a
+          assert a["hd_selected_player_frames"] - b["hd_selected_player_frames"] == 54
+          print("RACER_HD_P2_0578_0EC3_GAIN before=1326/5282 after=1380/5282 removed=54")
+          PY
+
+          DOSSIER="$RUNNER_TEMP/racer-hd-p2-0578-0ec3-dossier"
+          python3 tools/build_racer_hd_asset_dossier.py \
+            "$ROM" \
+            --trace "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3-trace.json" \
+            --window-start 2502 \
+            --window-end 2503 \
+            --player p2 \
+            --output-dir "$DOSSIER" \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-dossier.txt"
+
+          python3 tools/build_racer_pose_equivalence.py \
+            "$DOSSIER/manifest.json" \
+            --out "$DOSSIER/pose-equivalence.json" \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-equivalence.txt"
+
+          python3 tools/check_racer_hd_temporal_coherence.py \
+            "$ROM" \
+            --sequence-key ordinary-race-p2-0578-0ec3-broader-static-2502-2503 \
+            --json-out "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-temporal.json" \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-temporal.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-temporal.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          authored_hash = reps[0]["art_review"]["authored_candidate"]["rgba_sha256"]
+          print("RACER_HD_P2_0578_0EC3_PREAPPROVAL_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_P2_0578_0EC3_PREAPPROVAL_HASH", authored_hash, flush=True)
+          print("RACER_HD_P2_0578_0EC3_PREAPPROVAL_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
+          assert review["stock_alpha_bounds"] == [19, 6, 47, 36], review
+          assert review["candidate_alpha_bounds"] == [19, 6, 47, 36], review
+          assert review["candidate_contact_x2_y2"] == [77, 72], review
+          assert review["alpha_iou"] >= 0.75, review
+          assert temporal["players"] == ["p2"], temporal
+          failed = [key for key, value in temporal["validation"].items() if not value]
+          assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
+          python3 tools/build_racer_hd_shipping_readiness.py \
+            "$DOSSIER/pose-equivalence.json" \
+            --decisions analysis/data/racer-hd-art-approval-broader-p2-0578-0ec3.json \
+            --out "$DOSSIER/shipping-readiness.json" \
+            --require-shipping-ready \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-shipping-readiness.txt"
+
+          python3 tools/build_racer_hd_review_packet.py \
+            "$DOSSIER/manifest.json" \
+            "$DOSSIER/pose-equivalence.json" \
+            --output-dir "$DOSSIER/review" \
+            --readiness "$DOSSIER/shipping-readiness.json" \
+            > "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-review.txt"
+
+          python3 - "$DOSSIER/manifest.json" "$RUNNER_TEMP/racer-hd-p2-0578-0ec3-temporal.json" "$DOSSIER/shipping-readiness.json" <<'PY'
+          import json, pathlib, sys
+          dossier = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          temporal = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          readiness = json.loads(pathlib.Path(sys.argv[3]).read_text())
+          reps = dossier["representations"]
+          assert len(reps) == 1
+          review = reps[0]["art_review"]["authored_candidate"]["gameplay_scale_review"]
+          print("RACER_HD_P2_0578_0EC3_REVIEW", json.dumps(review, sort_keys=True), flush=True)
+          print("RACER_HD_P2_0578_0EC3_HASH", reps[0]["art_review"]["authored_candidate"]["rgba_sha256"], flush=True)
+          print("RACER_HD_P2_0578_0EC3_TEMPORAL", json.dumps(temporal, sort_keys=True), flush=True)
+          assert readiness["shipping_ready"] is True, readiness
+          assert readiness["counts"]["approved"] == 1, readiness
+          failed = [key for key, value in temporal["validation"].items() if not value]
+          assert not failed, {"failed_temporal_validation": failed, "temporal": temporal}
+          PY
+
+          python3 tools/probe_racer_hd_ranked_visual_context.py \
+            "$ROM" \
+            "$RUNNER_TEMP/racer-hd-after-p2-0578-0ec3.json" \
+            --rank 0 \
+            --json-out "$RUNNER_TEMP/racer-hd-post-p2-0578-0ec3-next-probe.json" \
+            --output-dir "$RUNNER_TEMP/racer-hd-post-p2-0578-0ec3-next-probe" \
+            > "$RUNNER_TEMP/racer-hd-post-p2-0578-0ec3-next-probe.txt"
+
+          python3 - "$RUNNER_TEMP/racer-hd-post-p2-0578-0ec3-next-probe.json" <<'PY'
+          import json, pathlib, sys
+          probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
+          print("RACER_HD_POST_P2_0578_0EC3_NEXT", json.dumps({
+              "target": probe["target"],
+              "witness_exact_state_count": probe["witness_exact_state_count"],
+              "unique_stock_raster_count": probe["unique_stock_raster_count"],
+              "disposition": probe["disposition"],
+              "canonical": probe["canonical"],
+          }, sort_keys=True))
           PY
 
       - uses: actions/upload-artifact@v4
@@ -3650,6 +3855,22 @@ jobs:
             ${{ runner.temp }}/racer-hd-post-p1-0579-next-probe/
             ${{ runner.temp }}/racer-hd-p2-0578-0ec3-stock-delta.json
             ${{ runner.temp }}/racer-hd-p2-0578-0ec3-stock-delta.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-probe.json
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-probe.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-probe/
+            ${{ runner.temp }}/racer-hd-after-p2-0578-0ec3.json
+            ${{ runner.temp }}/racer-hd-after-p2-0578-0ec3.txt
+            ${{ runner.temp }}/racer-hd-after-p2-0578-0ec3-trace.json
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-dossier/
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-dossier.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-equivalence.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-review.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-shipping-readiness.txt
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-temporal.json
+            ${{ runner.temp }}/racer-hd-p2-0578-0ec3-temporal.txt
+            ${{ runner.temp }}/racer-hd-post-p2-0578-0ec3-next-probe.json
+            ${{ runner.temp }}/racer-hd-post-p2-0578-0ec3-next-probe.txt
+            ${{ runner.temp }}/racer-hd-post-p2-0578-0ec3-next-probe/
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.json
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.txt
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe/

@@ -74,6 +74,10 @@
       "sha256": "0081034fde16304cbe5c0e2c5032b45d55d6521deba313cb9a47270607166388"
     },
     {
+      "path": "tools/patches/snesrecomp-live-linear-filtering.patch",
+      "sha256": "3e299ea402b6b0da5ef6be3c11e28279aad7a25850aac00cc87b5e9e7069a252"
+    },
+    {
       "path": "tools/patches/snesrecomp-presentation-scale.patch",
       "sha256": "d5ba3b4adc9b79b8a1d769357859e049ea0ab9e81e00bfe16a2527ed37cc9cd7"
     },

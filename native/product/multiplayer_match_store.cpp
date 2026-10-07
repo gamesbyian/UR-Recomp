@@ -38,6 +38,24 @@ bool append_multiplayer_match_artifacts(
 
     const std::string match_path =
         multiplayer_match_record_path_for_run(run_path);
+    std::error_code exists_ec;
+    const bool sidecar_exists =
+        std::filesystem::exists(match_path, exists_ec);
+    if (exists_ec || sidecar_exists) {
+        std::error_code rollback_ec;
+        const bool removed =
+            std::filesystem::remove(run_path, rollback_ec);
+        if (rollback_ec || !removed) {
+            set_detail(
+                detail,
+                "multiplayer sidecar path collision; "
+                "rollback failed for unpaired run artifact");
+        } else {
+            set_detail(detail, "multiplayer sidecar path collision");
+        }
+        return false;
+    }
+
     std::string match_detail;
     if (!save_multiplayer_match_record_for_run(
             run_path, run, *match, &match_detail)) {

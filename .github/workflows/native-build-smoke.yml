@@ -2012,6 +2012,13 @@ jobs:
             ${{ runner.temp }}/exit-frontend-results-pause-dumps/
             ${{ runner.temp }}/pause-quit.log
             ${{ runner.temp }}/modern-profile-panel/
+            ${{ runner.temp }}/widescreen-product/
+            ${{ runner.temp }}/widescreen-product-stock/
+            ${{ runner.temp }}/widescreen-product-parity.json
+            ${{ runner.temp }}/widescreen-product-vs-*/
+            ${{ runner.temp }}/widescreen-product-vs-parity.json
+            ${{ runner.temp }}/widescreen-product-two-player-*/
+            ${{ runner.temp }}/widescreen-product-two-player-parity.json
             ${{ runner.temp }}/modern-tour-entry/
           if-no-files-found: warn
           retention-days: 7

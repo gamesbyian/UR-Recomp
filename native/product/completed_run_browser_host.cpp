@@ -443,14 +443,41 @@ bool browser_navigation(UrModernHostNavigationAction action) {
 }
 
 void maybe_run_records_browser_acceptance() {
-    if (g_records_browser_acceptance_fired || !modern_mode() ||
-        !std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE")) {
+    const char* acceptance =
+        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE");
+    if (g_records_browser_acceptance_fired || !modern_mode() || !acceptance) {
         return;
     }
 
     const UrUniracersRestartSurface surface =
         ur_uniracers_classify_restart_surface(
             g_ram[0x0313], g_ram[0x009F]);
+
+    if (std::strcmp(acceptance, "results-shortcut") == 0) {
+        if (surface != UR_UNIRACERS_RESTART_RESULTS ||
+            !g_one_player_context) {
+            return;
+        }
+        g_records_browser_acceptance_fired = true;
+        const bool opened = open_records_from_results();
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER RESULTS_SHORTCUT opened=%d paused=%d courses=%zu runs=%zu\n",
+                opened ? 1 : 0,
+                snesrecomp_desktop_is_paused() ? 1 : 0,
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs);
+            std::fflush(stderr);
+        }
+        if (opened) {
+            SDL_Event event{};
+            event.type = SDL_QUIT;
+            (void)SDL_PushEvent(&event);
+        }
+        return;
+    }
+
     if (surface != UR_UNIRACERS_RESTART_ACTIVE_RACE ||
         !g_one_player_context) {
         g_records_browser_acceptance_active_frames = 0;
@@ -495,10 +522,7 @@ void maybe_run_records_browser_acceptance() {
         std::fflush(stderr);
     }
 
-    const char* acceptance =
-        std::getenv("UR_RECORDS_BROWSER_ACCEPTANCE");
-    if (acceptance &&
-        std::strcmp(acceptance, "quit-after-open") == 0) {
+    if (std::strcmp(acceptance, "quit-after-open") == 0) {
         SDL_Event event{};
         event.type = SDL_QUIT;
         (void)SDL_PushEvent(&event);

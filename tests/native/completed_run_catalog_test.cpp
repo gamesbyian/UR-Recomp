@@ -127,6 +127,7 @@ int main() {
     assert(profile_summary->racer_identity.rider_index == 3);
     assert(profile_summary->completed_runs == 7);
     assert(profile_summary->tracks_with_runs == 2);
+    assert(profile_summary->unavailable_artifacts == 1);
 
     assert(!present_run_records_profile_summary(
         "", racer_identity, mixed_records, scope));
@@ -134,10 +135,10 @@ int main() {
     auto beta_records = mixed_records;
     beta_records.push_back({"course3.urrun", run(1000, "course:03")});
     const std::vector<RunRecordsProfileSource> profile_sources = {
-        {"profile-alpha", {"ALPHA", 3}, mixed_records},
-        {"", {"INVALID", 0}, mixed_records},
-        {"profile-beta", {"BETA", 4}, beta_records},
-        {"profile-gamma", {"GAMMA", 5}, {}},
+        {"profile-alpha", {"ALPHA", 3}, mixed_records, 9},
+        {"", {"INVALID", 0}, mixed_records, 8},
+        {"profile-beta", {"BETA", 4}, beta_records, 11},
+        {"profile-gamma", {"GAMMA", 5}, {}, 0},
     };
     const auto profile_index =
         build_run_records_profile_index(
@@ -148,14 +149,18 @@ int main() {
     assert(profile_index.profiles[0].profile_id == "profile-alpha");
     assert(profile_index.profiles[0].completed_runs == 7);
     assert(profile_index.profiles[0].tracks_with_runs == 2);
+    assert(profile_index.profiles[0].unavailable_artifacts == 2);
     assert(profile_index.profiles[1].profile_id == "profile-beta");
     assert(profile_index.active_profile && *profile_index.active_profile == 1);
     assert(profile_index.profiles[1].completed_runs == 8);
     assert(profile_index.profiles[1].tracks_with_runs == 3);
+    assert(profile_index.profiles[1].unavailable_artifacts == 3);
     assert(profile_index.profiles[2].profile_id == "profile-gamma");
     assert(profile_index.profiles[2].completed_runs == 0);
     assert(profile_index.profiles[2].tracks_with_runs == 0);
+    assert(profile_index.profiles[2].unavailable_artifacts == 0);
     assert(profile_index.total_completed_runs == 15);
+    assert(profile_index.total_unavailable_artifacts == 5);
 
     const auto missing_active_profile =
         build_run_records_profile_index(

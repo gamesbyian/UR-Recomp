@@ -140,18 +140,29 @@ int main() {
         {"profile-gamma", {"GAMMA", 5}, {}},
     };
     const auto profile_index =
-        build_run_records_profile_index(profile_sources, scope);
+        build_run_records_profile_index(
+            profile_sources,
+            scope,
+            std::optional<std::string>{"profile-beta"});
     assert(profile_index.profiles.size() == 3);
     assert(profile_index.profiles[0].profile_id == "profile-alpha");
     assert(profile_index.profiles[0].completed_runs == 7);
     assert(profile_index.profiles[0].tracks_with_runs == 2);
     assert(profile_index.profiles[1].profile_id == "profile-beta");
+    assert(profile_index.active_profile && *profile_index.active_profile == 1);
     assert(profile_index.profiles[1].completed_runs == 8);
     assert(profile_index.profiles[1].tracks_with_runs == 3);
     assert(profile_index.profiles[2].profile_id == "profile-gamma");
     assert(profile_index.profiles[2].completed_runs == 0);
     assert(profile_index.profiles[2].tracks_with_runs == 0);
     assert(profile_index.total_completed_runs == 15);
+
+    const auto missing_active_profile =
+        build_run_records_profile_index(
+            profile_sources,
+            scope,
+            std::optional<std::string>{"missing"});
+    assert(!missing_active_profile.active_profile);
 
     const std::vector<StoredRunRecord> empty;
     const auto none = build_run_data_catalog(empty, target());

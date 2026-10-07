@@ -26,7 +26,8 @@ class StablePresentationDensityHostContractTests(unittest.TestCase):
         self.assertNotIn("racer_hd_presentation_scale()", scale_body)
         self.assertIn("world_expanded", scale_body)
         self.assertIn("logical_overlay_active", scale_body)
-        self.assertIn("regional_title", scale_body)
+        self.assertIn("const bool logical_overlay_active = false;", scale_body)
+        self.assertNotIn("regional_title", scale_body)
 
         draw_end = source.index(
             'extern "C" void ur_uniracers_modern_compute_viewport', draw_start

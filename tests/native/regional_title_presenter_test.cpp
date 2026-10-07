@@ -123,6 +123,87 @@ int main() {
     }
 
     {
+        auto logical = canonical;
+        constexpr int scale = 3;
+        constexpr int scaled_width = kFrameWidth * scale;
+        constexpr int scaled_height = kFrameHeight * scale;
+        constexpr std::size_t scaled_pitch =
+            static_cast<std::size_t>(scaled_width) * 4u;
+        std::vector<std::uint8_t> frame(
+            static_cast<std::size_t>(scaled_width) * scaled_height * 4u,
+            0u);
+        for (int y = 0; y < kFrameHeight; ++y) {
+            const auto* src = reinterpret_cast<const std::uint32_t*>(
+                logical.data() + static_cast<std::size_t>(y) * kPitch);
+            for (int sy = 0; sy < scale; ++sy) {
+                auto* dst = reinterpret_cast<std::uint32_t*>(
+                    frame.data() +
+                    static_cast<std::size_t>(y * scale + sy) * scaled_pitch);
+                for (int x = 0; x < kFrameWidth; ++x) {
+                    for (int sx = 0; sx < scale; ++sx) {
+                        dst[x * scale + sx] = src[x];
+                    }
+                }
+            }
+        }
+
+        const auto result = apply_regional_title_presentation(
+            RegionalPresentation::Europe,
+            true,
+            frame.data(),
+            scaled_pitch,
+            scaled_width,
+            scaled_height,
+            scale);
+        assert(result == RegionalTitlePresentationResult::EuropeApplied);
+        assert(regional_title_visible_crop_digest(
+                   frame.data(),
+                   scaled_pitch,
+                   scaled_width,
+                   scaled_height,
+                   scale) == kTargetCropBgrFnv1a64);
+
+        std::size_t index = 0;
+        for (int y = 0; y < kHeight; ++y) {
+            for (int x = 0; x < kWidth; ++x, ++index) {
+                const auto* first =
+                    frame.data() +
+                    static_cast<std::size_t>(
+                        (kOriginY + y) * scale) * scaled_pitch +
+                    static_cast<std::size_t>(
+                        (kOriginX + x) * scale) * 4u;
+                for (int sy = 0; sy < scale; ++sy) {
+                    for (int sx = 0; sx < scale; ++sx) {
+                        const auto* pixel =
+                            first +
+                            static_cast<std::size_t>(sy) * scaled_pitch +
+                            static_cast<std::size_t>(sx) * 4u;
+                        assert(pixel[0] == first[0]);
+                        assert(pixel[1] == first[1]);
+                        assert(pixel[2] == first[2]);
+                    }
+                }
+            }
+        }
+        assert(index == kIndexCount);
+    }
+
+    {
+        auto frame = canonical;
+        const auto before = frame;
+        const auto result = apply_regional_title_presentation(
+            RegionalPresentation::Europe,
+            true,
+            frame.data(),
+            kPitch,
+            kFrameWidth,
+            kFrameHeight,
+            5);
+        assert(result == RegionalTitlePresentationResult::FailedClosed);
+        assert(frame == before);
+    }
+
+    {
         auto frame = canonical;
         const auto before = frame;
         const auto result = apply_regional_title_presentation(

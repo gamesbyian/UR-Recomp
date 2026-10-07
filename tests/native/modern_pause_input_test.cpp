@@ -56,6 +56,7 @@ int main() {
              UR_MODERN_PAUSE_OPTIONS,
              UR_MODERN_PAUSE_CONTROLS,
              UR_MODERN_PAUSE_RUN_DATA,
+             UR_MODERN_PAUSE_RECORDS,
          }) {
         move_to(session, &menu, host_only);
         assert(ur_modern_pause_handle_action(session, &menu, UR_MODERN_PAUSE_ACTIVATE) ==

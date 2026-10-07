@@ -50,6 +50,12 @@ Do not create a second project-specific differential harness until `snesref` is 
 
 The scripts in `tools/` own reproducible ROM fingerprinting, reference-build comparison, RNC discovery/decompression, and current targeted analysis. Prefer extending a project-native script when the requirement is Uniracers-specific and small.
 
+### First-party C compilers and sanitizers
+
+Portable project-owned C seams use ordinary Ubuntu GCC and Clang as complementary conformance compilers. Their coding contract is `RECOMP-C-PRACTICES.md`; current unit harnesses compile the portable title-C surfaces as C11 with strict warnings and execute them under AddressSanitizer plus UndefinedBehaviorSanitizer.
+
+This is a project-owned-code guard, not a demand to rebuild or warning-clean vendored emulator/tool source under the same flags. Platform-specific C remains additionally subject to its platform toolchain. When a portable helper can be factored out of platform code, prefer giving that helper the ordinary GCC/Clang unit surface rather than making the console compiler its only oracle.
+
 ## Core scriptable tools
 
 ### Snes9x libretro core

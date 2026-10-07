@@ -29,8 +29,11 @@ enum {
     UR_WS_BG1_VIEW_ROWS = 15, /* 224 px of 16 px tiles plus fine phase */
 };
 
-/* Course tilemap word for a 16-pixel course cell from 128 KiB of WRAM.
- * Returns 0 when the cell lies outside the live course. */
+/* Course tilemap word for a 16-pixel course cell from exactly 128 KiB of
+ * SNES WRAM. The caller must provide the complete 0x20000-byte guest address
+ * space; dynamically derived bank-$7F offsets are validated before reads.
+ * Returns 0 when the cell lies outside the live course or the derived record
+ * address cannot fit in that bank. */
 int ur_ws_course_tile(const uint8_t* wram, int cell_x, int cell_y,
                       uint16_t* out);
 
@@ -64,8 +67,9 @@ typedef struct UrWsBg1Band {
     uint16_t map_base_word;
 } UrWsBg1Band;
 
-/* Returns the band count (0 when the tables are absent, in repeat mode,
- * misaligned, or describe more than max_bands origins). */
+/* `wram` must provide the complete 0x20000-byte guest WRAM image. Returns the
+ * band count (0 when the tables are absent, in repeat mode, misaligned, or
+ * describe more than max_bands origins). */
 int ur_ws_parse_bg1_bands(const uint8_t* wram, UrWsBg1Band* bands,
                           int max_bands);
 

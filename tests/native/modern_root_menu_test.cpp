@@ -53,6 +53,22 @@ int main() {
     assert(modern_root_menu_selected(unchanged) ==
            ModernRootDestination::Play);
 
+    assert(
+        modern_root_destination_text_id(ModernRootDestination::Play) ==
+        ModernTextId::RootPlay);
+    assert(
+        modern_root_destination_text_id(ModernRootDestination::Practice) ==
+        ModernTextId::RootPractice);
+    assert(
+        modern_root_destination_text_id(ModernRootDestination::Multiplayer) ==
+        ModernTextId::RootMultiplayer);
+    assert(
+        modern_root_destination_text_id(ModernRootDestination::Records) ==
+        ModernTextId::RootRecords);
+    assert(
+        modern_root_destination_text_id(ModernRootDestination::Options) ==
+        ModernTextId::RootOptions);
+
     assert(same(
         modern_root_destination_label(ModernRootDestination::Practice),
         "PRACTICE"));

@@ -6258,12 +6258,19 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 67 * scale,
                 "RESTART TOUR?", 0xFFFFFFFFu, scale);
+            // While the Tour surface is open, pad buttons reach it through
+            // the live GamepadMap (SNES A confirms, SNES B cancels), so name
+            // the physical buttons that produce those controls.
+            const std::string confirm_hint =
+                "ENTER / PAD " + live_gamepad_binding_label(6) + " CONFIRM";
+            const std::string cancel_hint =
+                "ESC / PAD " + live_gamepad_binding_label(7) + " CANCEL";
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 86 * scale,
-                "ENTER / PAD A CONFIRM", 0xFFFFFFFFu, scale);
+                confirm_hint.c_str(), 0xFFFFFFFFu, scale);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 105 * scale,
-                "ESC / PAD B CANCEL", 0xFFFFFFFFu, scale);
+                cancel_hint.c_str(), 0xFFFFFFFFu, scale);
         } else {
             const char* row_labels[] = {
                 "RESUME TOUR", "RESTART TOUR", "BACK", "NEXT EVENT"

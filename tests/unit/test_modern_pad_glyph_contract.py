@@ -33,6 +33,16 @@ class ModernPadGlyphContractTests(unittest.TestCase):
         self.assertIn("const ur::product::ModernControlsPadGlyphs pad_glyphs{", source)
         self.assertIn("g_controls_rebind, key_labels, pad_glyphs);", source)
 
+    def test_tour_confirm_hints_use_live_glyphs(self):
+        source = HOST.read_text(encoding="utf-8")
+        self.assertIn(
+            '"ENTER / PAD " + live_gamepad_binding_label(6) + " CONFIRM"', source
+        )
+        self.assertIn(
+            '"ESC / PAD " + live_gamepad_binding_label(7) + " CANCEL"', source
+        )
+        self.assertNotIn('"ENTER / PAD A CONFIRM"', source)
+
     def test_native_acceptance_is_wired(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)
         harness = HARNESS.read_text(encoding="utf-8")

@@ -39,6 +39,19 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertIn("if: success()", snippet)
         self.assertNotIn("if: always()", snippet)
 
+    def test_portable_build_uses_static_msvc_runtime_and_verifies_imports(self) -> None:
+        self.assertIn(
+            "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded",
+            self.text,
+        )
+        self.assertIn("dumpbin /dependents", self.text)
+        self.assertIn("windows-runtime-dependencies.log", self.text)
+        self.assertIn("MSVCP[0-9_]*|VCRUNTIME[0-9_]*", self.text)
+        self.assertIn(
+            "Portable executable unexpectedly depends on the Visual C++ Redistributable.",
+            self.text,
+        )
+
     def test_package_refresh_covers_current_run_stores(self) -> None:
         self.assertIn(
             '$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun',

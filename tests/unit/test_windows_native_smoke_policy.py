@@ -15,6 +15,7 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
 
     def test_shipping_runtime_surfaces_retrigger_final_main_package_acceptance(self) -> None:
         for path in (
+            '      - ".github/workflows/windows-native-smoke.yml"',
             '      - "native/product/**"',
             '      - "native/presentation/**"',
             '      - "native/title/**"',

@@ -6,10 +6,10 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
-class RunRecordCapturePolicyCppTests(unittest.TestCase):
-    def test_bounded_one_and_two_player_capture_admission(self):
+class LocalMultiplayerSeatTextCppTests(unittest.TestCase):
+    def test_seat_device_text_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
-            exe = pathlib.Path(tmp) / "run-record-capture-policy-test"
+            exe = pathlib.Path(tmp) / "local-multiplayer-seat-text-test"
             subprocess.run(
                 [
                     "g++",
@@ -19,10 +19,8 @@ class RunRecordCapturePolicyCppTests(unittest.TestCase):
                     "-Werror",
                     "-pedantic",
                     "-I",
-                    str(ROOT / "native" / "product"),
-                    "-I",
-                    str(ROOT / "native" / "title"),
-                    str(ROOT / "tests" / "native" / "run_record_capture_policy_test.cpp"),
+                    str(ROOT / "native/product"),
+                    str(ROOT / "tests/native/local_multiplayer_seat_text_test.cpp"),
                     "-o",
                     str(exe),
                 ],

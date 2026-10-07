@@ -28,6 +28,8 @@ The portable package contains:
 
 The Windows x64 workflow is the authoritative end-to-end validator for the **assembled package**, not only the CMake build tree. Repository CI policy deliberately keeps that workflow on final `main`, so PRs rely on focused unit/static contracts and the integrated tree performs the full Windows package/boot acceptance.
 
+Because that regression is path-filtered, every source surface compiled into the shipping Windows consumer must retrigger it. The current contract explicitly includes `native/product/**`, `native/presentation/**`, and `native/title/**`; unit policy coverage guards those triggers so presenter/runtime changes cannot silently bypass assembled-package acceptance.
+
 The implemented acceptance sequence covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;
@@ -47,7 +49,7 @@ The package remains self-contained with respect to immutable game/runtime payloa
 
 The consumer package owns only bootstrap/release-facing failure presentation. After a writable user-data root is established, each launch overwrites one bounded `diagnostics/startup.log` and passes that same log path into the pinned desktop host. The log records deterministic build/architecture/subsystem/path/result fields and never ROM bytes, SRAM contents, profile names, run payloads or controller input.
 
-The package/host contract now covers missing/invalid ROM, save-root and migration failures, missing runtime payload, SDL video/window/renderer initialization, SDL audio/device initialization, and one narrow residual controller-init `UR-STARTUP-UNKNOWN` path. It is shared by Modern and Authentic startup. Later in-session device loss, generalized crash handling, telemetry and installer-specific diagnostics are outside this package milestone.
+The package/host contract now covers missing/invalid ROM, save-root and migration failures, missing runtime payload, SDL video/window/renderer initialization, SDL audio/device initialization, and controller-subsystem initialization via the stable `UR-STARTUP-CONTROLLER` code; no currently classified consumer-package startup path uses `UR-STARTUP-UNKNOWN`. It is shared by Modern and Authentic startup. Later in-session device loss, generalized crash handling, telemetry and installer-specific diagnostics are outside this package milestone.
 
 ## Save-location boundary
 

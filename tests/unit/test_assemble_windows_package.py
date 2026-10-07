@@ -91,6 +91,18 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("Source revision: abc123", readme)
             self.assertIn("UR-STARTUP-*", readme)
+            self.assertIn("Startup code guide:", readme)
+            for startup_code in (
+                "UR-STARTUP-ROM-MISSING",
+                "UR-STARTUP-ROM-INVALID",
+                "UR-STARTUP-RUNTIME-DATA",
+                "UR-STARTUP-SAVE-ROOT",
+                "UR-STARTUP-VIDEO",
+                "UR-STARTUP-AUDIO",
+                "UR-STARTUP-CONTROLLER",
+            ):
+                self.assertEqual(readme.count(startup_code), 1)
+            self.assertNotIn("UR-STARTUP-UNKNOWN", readme)
             self.assertIn("diagnostics\\startup.log", readme)
             self.assertIn("no ROM bytes", readme)
             self.assertIn("save contents", readme)

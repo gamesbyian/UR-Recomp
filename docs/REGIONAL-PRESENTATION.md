@@ -148,9 +148,11 @@ The evidence instrument for that decision now exists without changing the shippi
 
 - `tests/input/title-transition-motion.script` retains 181 consecutive BGRX frames beginning after the proven settled-title checkpoint;
 - `compare_retail_frontend.py --case title-motion` runs that dense route only when explicitly requested and retains the complete sequence while comparing the first/last endpoints;
-- `tools/analyze_frontend_transition_sequence.py` reports exact changed-pixel bounds for every adjacent pair plus a sampled horizontal-translation discriminator over a bounded shift range;
-- each motion row carries both best-shift agreement and the zero-shift baseline; non-zero movement becomes a candidate only when agreement improves by at least 0.05, so palette/layer changes are not automatically mislabeled as scrolling;
-- synthetic unit evidence covers known rightward translation, identical frames, exact single-pixel deltas and non-consecutive-frame rejection.
+- `tools/analyze_frontend_transition_sequence.py` reports exact changed-pixel bounds for every adjacent pair plus independent sampled horizontal- and vertical-translation discriminators over a bounded shift range;
+- each axis carries both best-shift agreement and its zero-shift baseline; non-zero movement becomes a candidate only when agreement improves by at least 0.05, so palette/layer changes are not automatically mislabeled as scrolling;
+- the axes are intentionally evaluated separately rather than as an expensive free 2D registration search: this is a discriminator for the stock transition hypothesis, not an image-stabilization algorithm;
+- synthetic unit evidence covers known rightward and downward translation, identical frames, exact single-pixel deltas and non-consecutive-frame rejection.
+- `tools/compare_frontend_transition_reports.py` compares the two region reports at the semantic level: changed/not-changed timing plus horizontal and vertical candidate-shift sequences. It intentionally ignores branded pixel values, raw changed-pixel magnitudes and bounding boxes; matching motion signatures therefore support a shared transition rhythm without pretending the Uniracers and Unirally imagery is identical.
 
 A retained real-ROM run is still required before choosing the shipping primitive. This tooling narrows the remaining experiment; it does not declare horizontal motion merely because horizontal motion is the preferred design candidate.
 

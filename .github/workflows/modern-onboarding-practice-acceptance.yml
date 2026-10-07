@@ -15,6 +15,9 @@ on:
       - "tests/input/modern-onboarding-glyphs.script"
       - "native/product/modern_pad_glyphs.hpp"
       - "native/product/modern_controls_presenter.*"
+      - "tests/native/run_modern_two_player_join_acceptance.sh"
+      - "tests/input/modern-two-player-join.*"
+      - "native/product/local_multiplayer_*"
       - "tools/patches/snesrecomp-live-volume.patch"
       - "tests/input/race-finish-dragster.script"
       - "native/product/modern_tour_*.hpp"
@@ -422,6 +425,16 @@ jobs:
             "$ROOT/build/UniracersSNESRecomp" \
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             "$RUNNER_TEMP/pad-glyphs"
+
+      - name: Prove two pads join 2P with named devices and distinct profiles
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_two_player_join_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/two-player-join"
 
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash

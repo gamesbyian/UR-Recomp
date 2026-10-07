@@ -21,6 +21,20 @@ def frame(width, height, fn):
     return bytes(out)
 
 
+def shift_down(source, width, height, shift):
+    row_bytes = width * 4
+    out = bytearray(len(source))
+    black_row = bytes((0, 0, 0, 255)) * width
+    for y in range(height):
+        dst = y * row_bytes
+        if y >= shift:
+            src = (y - shift) * row_bytes
+            out[dst:dst + row_bytes] = source[src:src + row_bytes]
+        else:
+            out[dst:dst + row_bytes] = black_row
+    return bytes(out)
+
+
 def shift_right(source, width, height, shift):
     row_bytes = width * 4
     out = bytearray(len(source))
@@ -52,6 +66,23 @@ class FrontendTransitionSequenceTests(unittest.TestCase):
         self.assertEqual(result["best_shift_pixels"], 3)
         self.assertGreater(result["best_agreement"], 0.95)
         self.assertGreater(result["agreement_gain"], 0.5)
+
+    def test_detects_known_vertical_translation(self):
+        width = 24
+        height = 12
+        before = frame(width, height, lambda x, y: (x * 5 + y * 23) & 0xFF)
+        after = shift_down(before, width, height, 2)
+
+        result = module.best_vertical_shift(
+            before,
+            after,
+            width=width,
+            max_shift=4,
+            sample_step=1,
+        )
+        self.assertEqual(result["best_vertical_shift_pixels"], 2)
+        self.assertGreater(result["best_vertical_agreement"], 0.95)
+        self.assertGreater(result["vertical_agreement_gain"], 0.5)
 
     def test_identical_frame_prefers_zero_shift(self):
         width = 16
@@ -93,6 +124,8 @@ class FrontendTransitionSequenceTests(unittest.TestCase):
         self.assertEqual(report["changed_pair_count"], 1)
         self.assertEqual(report["motion_candidate_pair_count"], 1)
         self.assertEqual(report["dominant_horizontal_shift_pixels"], 2)
+        self.assertEqual(report["vertical_motion_candidate_pair_count"], 0)
+        self.assertIsNone(report["dominant_vertical_shift_pixels"])
 
     def test_loader_requires_consecutive_valid_bgrx_frames(self):
         with tempfile.TemporaryDirectory() as tmp:

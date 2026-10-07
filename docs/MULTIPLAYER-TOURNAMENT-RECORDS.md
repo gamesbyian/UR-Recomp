@@ -24,7 +24,7 @@ The current v1 `.urrun` schema therefore must not be reinterpreted as a tourname
 
 ## Records view policy
 
-The unified Records root exposes **Multiplayer/Tournament** now so the information architecture is stable. Until a durable producer exists, the view explicitly reports that no stored match history is available.
+The unified Records root exposes **Multiplayer/Tournament** with a read-only validated match list/detail surface. The host scans the shared `multiplayer-runs` namespace through `multiplayer_match_catalog.*`; only fully bound `race-2p` run+sidecar pairs become rows. Missing, corrupt, wrong-mode, or unbound evidence contributes only an unavailable count and never gains match authority. Until the production producer lands, an ordinary installation will usually remain in the explicit no-history state.
 
 This fail-closed state is intentional:
 
@@ -53,7 +53,7 @@ The next implementation should begin at the authoritative stock 2P results bound
 
 A read-only catalog substrate now exists independently of production capture: `multiplayer_match_catalog.*` scans the shared namespace in filename order but admits only a valid `race-2p` run whose sibling `.urmatch` reloads and binds to that exact run. Standalone/corrupt/wrong-mode runs and missing/bad sidecars contribute only unavailable-artifact health; they never become match rows. `multiplayer_match_presentation.*` formats only those already-admitted pairs into course, participant, outcome and exact stock-result text. This is query/presentation substrate, not standings aggregation, and it does not assume the live producer has passed native acceptance.
 
-`multiplayer_match_browser.*` now adds host-independent list/detail navigation over already-admitted match pairs. It owns only selection and view state, delegates all row/detail text to `multiplayer_match_presentation.*`, and has no standings, replay-routing or filesystem authority. This keeps the eventual Records host integration thin and prevents the UI from reinterpreting result semantics. The browser also exposes a bounded selected-centered visible-row projection for list rendering; it preserves catalog order and returns authoritative row presentations plus selected state, so the eventual host renderer does not invent clipping, paging, result text or selection semantics.
+`multiplayer_match_browser.*` adds host-independent list/detail navigation over already-admitted match pairs. It owns only selection and view state, delegates all row/detail text to `multiplayer_match_presentation.*`, and has no standings, replay-routing or filesystem authority. Its bounded selected-centered visible-row projection preserves catalog order and returns authoritative row presentations plus selected state, so the host renderer does not invent clipping, paging, result text or selection semantics. The Windows Records host now wires that model to the Multiplayer/Tournament tab, refreshes the catalog when Records opens, renders validated rows/detail, and preserves unavailable-artifact health without reinterpreting result semantics.
 
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 

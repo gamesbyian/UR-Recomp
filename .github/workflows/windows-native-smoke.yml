@@ -29,6 +29,7 @@ on:
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
       - "native/product/**"
+      - "native/presentation/**"
       - "native/title/**"
 
 concurrency:

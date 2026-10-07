@@ -5798,7 +5798,11 @@ void run_results_navigation_acceptance() {
                    g_ram[0x009F] == 0x6D) {
             product_diagnostic("UR_RESULTS_NAV ACCEPT_TOUR_READY");
         } else if (std::strcmp(mode, "next") == 0 &&
-                   g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE) {
+                   g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
+                   !g_next_event_verify_track) {
+            // Do not let acceptance quit on the first ACTIVE_RACE frame.
+            // The route's authoritative course identity may not be readable
+            // until a later frame; require that verifier to finish first.
             product_diagnostic("UR_RESULTS_NAV ACCEPT_NEXT_RACE");
         } else {
             return;

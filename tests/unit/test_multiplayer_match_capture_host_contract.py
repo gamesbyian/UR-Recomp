@@ -137,6 +137,32 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         reset = body.index("reset_multiplayer_run_capture();", stale)
         self.assertLess(stale, reset)
 
+    def test_both_finish_fixture_mirrors_p2_horizontal_drive(self):
+        fixture = (
+            ROOT / "tests" / "input" / "two-player-both-finish.input"
+        ).read_text(encoding="utf-8")
+
+        race_rows = []
+        for raw in fixture.splitlines():
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            start, duration, p1, p2 = line.split(":")
+            if int(start) < 1194:
+                continue
+            race_rows.append(
+                (int(start), int(duration), int(p1, 16), int(p2, 16))
+            )
+
+        self.assertTrue(race_rows)
+        for start, duration, p1, p2 in race_rows:
+            self.assertGreater(duration, 0, msg=f"frame {start}")
+            self.assertEqual(p1 & 0x080, 0x080, msg=f"frame {start}")
+            self.assertEqual(p2 & 0x040, 0x040, msg=f"frame {start}")
+            self.assertEqual(p1 & 0x001, p2 & 0x001, msg=f"frame {start}")
+            self.assertEqual(p1 & 0x040, 0, msg=f"frame {start}")
+            self.assertEqual(p2 & 0x080, 0, msg=f"frame {start}")
+
     def test_generated_product_build_registers_multiplayer_authority(self):
         patcher = (
             ROOT / "tools" / "patch_modern_product_host.py"

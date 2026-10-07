@@ -128,11 +128,12 @@ jobs:
         run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
-          cat >"$ROOT/build/config.ini" <<'EOF'
-          [General]
-          DisableFrameDelay = 1
-          EOF
-          grep -q '^DisableFrameDelay = 1
+          printf '[General]\nDisableFrameDelay = 1\n' > "$ROOT/build/config.ini"
+          grep -Fq 'DisableFrameDelay = 1' "$ROOT/build/config.ini"
+
+      - name: Capture completed Dragster run
+        shell: bash
+        run: |
           set -euo pipefail
           ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
           EXE="$ROOT/build/UniracersSNESRecomp"
@@ -140,7 +141,12 @@ jobs:
           RECORD="$RUNNER_TEMP/original.urrun"
           LOG="$RUNNER_TEMP/original.log"
 
-          SDL_AUDIODRIVER=dummy           UR_RUN_RECORD_CAPTURE_PATH="$RECORD"           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"               >"$LOG" 2>&1
+          SDL_AUDIODRIVER=dummy \
+          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+              >"$LOG" 2>&1
 
           cat "$LOG"
           test -s "$RECORD"
@@ -156,10 +162,7 @@ jobs:
           PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
           PACED_LOG="$RUNNER_TEMP/paced-proof.log"
           mkdir -p "$PACED_USER"
-          cat >"$PACED_USER/config.ini" <<'EOF'
-          [General]
-          DisableFrameDelay = 0
-          EOF
+          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
           UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \

@@ -1,6 +1,8 @@
 #include "multiplayer_match_record.hpp"
 
 #include <cassert>
+#include <filesystem>
+#include <fstream>
 #include <string>
 
 using namespace ur::product;
@@ -73,6 +75,25 @@ int main() {
     auto bad_checksum = original;
     bad_checksum.run_artifact_checksum = "short";
     assert(!validate_multiplayer_match_record(bad_checksum));
+
+    const auto path =
+        std::filesystem::temp_directory_path() / "ur-match-record-test.urmatch";
+    std::string detail;
+    assert(save_multiplayer_match_record_file(
+        path.string(), original, &detail));
+    const auto loaded = load_multiplayer_match_record_file(path.string());
+    assert(loaded);
+    assert(loaded.record->run_artifact_checksum ==
+           original.run_artifact_checksum);
+
+    {
+        std::ofstream oversized(path, std::ios::binary | std::ios::trunc);
+        oversized << std::string(4097, 'x');
+    }
+    const auto rejected = load_multiplayer_match_record_file(path.string());
+    assert(!rejected);
+    assert(rejected.error == "match record too large");
+    std::filesystem::remove(path);
 
     return 0;
 }

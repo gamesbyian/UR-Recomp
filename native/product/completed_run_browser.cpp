@@ -87,6 +87,7 @@ struct InspectedArtifact {
 
 void CompletedRunRecordsBrowser::clear() noexcept {
     index_ = {};
+    artifact_health_ = {};
     view_ = CompletedRunRecordsView::Courses;
     selected_course_.reset();
     selected_run_.reset();
@@ -96,7 +97,15 @@ bool CompletedRunRecordsBrowser::refresh(
     const std::string& directory,
     const RunRecordsScope& scope) {
     clear();
-    const auto records = load_valid_run_records(directory);
+    auto artifacts = inspect_completed_run_record_artifacts(directory);
+    artifact_health_ = summarize_run_record_artifact_health(artifacts);
+
+    std::vector<StoredRunRecord> records;
+    records.reserve(artifacts.size());
+    for (auto& artifact : artifacts) {
+        if (!artifact.loaded()) continue;
+        records.push_back({artifact.path, std::move(*artifact.record)});
+    }
     index_ = build_run_records_index(records, scope);
     if (!index_.courses.empty()) {
         selected_course_ = 0;

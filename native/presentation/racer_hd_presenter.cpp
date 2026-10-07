@@ -159,6 +159,10 @@ int racer_hd_internal_render_scale() noexcept {
     return g_internal_render_scale;
 }
 
+int racer_hd_requested_presentation_scale() noexcept {
+    return env_enabled() ? g_internal_render_scale : 1;
+}
+
 int racer_hd_presentation_scale() noexcept {
     return env_enabled() && g_frame_active ? g_internal_render_scale : 1;
 }

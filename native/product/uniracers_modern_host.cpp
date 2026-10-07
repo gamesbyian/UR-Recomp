@@ -4390,7 +4390,7 @@ extern "C" void ur_uniracers_modern_prepare_frame(
     if (!authentic_16x9_view_enabled()) return;
 
     const auto plan = ur::product::resolve_16x9_output_composition(
-        ur::product::HostGraphicsRepresentation::Original,
+        ur::product::resolve_output_geometry_representation(false),
         g_widescreen_scene);
     *frame_width = plan.logical_view_width;
     *frame_height = plan.logical_view_height;
@@ -4540,7 +4540,7 @@ extern "C" void ur_uniracers_modern_compute_viewport(
     }
 
     const auto plan = ur::product::resolve_16x9_output_composition(
-        ur::product::HostGraphicsRepresentation::Original,
+        ur::product::resolve_output_geometry_representation(false),
         g_widescreen_scene);
     const auto resolved = ur::product::resolve_output_viewport(
         plan, drawable_width, drawable_height);

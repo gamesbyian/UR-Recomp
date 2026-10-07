@@ -144,6 +144,16 @@ For each candidate transition, record:
 
 Acceptance criterion: choose the most recognizably stock transition that can be driven by regional presentation state without changing simulation, progression or guest timing. The selected transition must have a deterministic test/retained frame sequence before shipping.
 
+The evidence instrument for that decision now exists without changing the shipping runtime or default comparison workload:
+
+- `tests/input/title-transition-motion.script` retains 181 consecutive BGRX frames beginning after the proven settled-title checkpoint;
+- `compare_retail_frontend.py --case title-motion` runs that dense route only when explicitly requested and retains the complete sequence while comparing the first/last endpoints;
+- `tools/analyze_frontend_transition_sequence.py` reports exact changed-pixel bounds for every adjacent pair plus a sampled horizontal-translation discriminator over a bounded shift range;
+- each motion row carries both best-shift agreement and the zero-shift baseline; non-zero movement becomes a candidate only when agreement improves by at least 0.05, so palette/layer changes are not automatically mislabeled as scrolling;
+- synthetic unit evidence covers known rightward translation, identical frames, exact single-pixel deltas and non-consecutive-frame rejection.
+
+A retained real-ROM run is still required before choosing the shipping primitive. This tooling narrows the remaining experiment; it does not declare horizontal motion merely because horizontal motion is the preferred design candidate.
+
 ## Persistence policy
 
 Default to **NorthAmerica / Uniracers** on first launch.

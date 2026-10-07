@@ -20,6 +20,11 @@ import extract_menu_visual_language as mvl
 import probe_tier_opponents as tier
 
 CASES = {
+    "title-motion": {
+        "script": "tests/input/title-transition-motion.script",
+        "checkpoints": ["title-motion-000", "title-motion-180"],
+        "default": False,
+    },
     "title-transition": {
         "script": "tests/input/title-transition-recon.script",
         "checkpoints": [
@@ -220,7 +225,15 @@ def main() -> int:
     work_root.mkdir(parents=True, exist_ok=True)
 
     try:
-        for name in args.case or sorted(CASES):
+        selected_cases = (
+            args.case
+            or sorted(
+                name
+                for name, case in CASES.items()
+                if case.get("default", True)
+            )
+        )
+        for name in selected_cases:
             case = CASES[name]
             usa_dir = work_root / name / "usa"
             eur_dir = work_root / name / "europe"

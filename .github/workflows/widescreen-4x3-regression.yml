@@ -33,6 +33,8 @@ on:
       - "tests/input/vs-first-race-observe.script"
       - "tests/input/two-player-first-race.input"
       - "tests/input/two-player-first-race-observe.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/widescreen-4x3-regression.yml"
 concurrency:
   group: widescreen-4x3-regression-${{ github.ref }}

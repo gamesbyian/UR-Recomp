@@ -6,6 +6,17 @@ import unittest
 WORKFLOWS = Path(".github/workflows")
 MAIN_PUSH_ALLOWLIST = set()
 
+ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
+    "native-build-smoke.yml",
+    "native-ui-evidence.yml",
+    "racer-native-presentation-acceptance.yml",
+}
+
+DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
+    "native-ui-evidence.yml",
+    "profile-panel-native-acceptance.yml",
+}
+
 DORMANT_MANUAL_ONLY = {
     "regional-retail-static-analysis.yml",
     "regional-retail-frontend-comparison.yml",
@@ -92,6 +103,10 @@ DORMANT_MANUAL_ONLY = {
 }
 
 
+def _workflow_paths() -> list[Path]:
+    return sorted({*WORKFLOWS.glob("*.yml"), *WORKFLOWS.glob("*.yaml")})
+
+
 def _block(text: str, key: str) -> str:
     match = re.search(
         rf"(?ms)^  {re.escape(key)}:\s*\n(.*?)(?=^  [A-Za-z_][A-Za-z0-9_-]*:\s*$|^[A-Za-z_][A-Za-z0-9_-]*:\s*$|\Z)",
@@ -113,7 +128,7 @@ def _pushes_main(text: str) -> bool:
 class CiTriggerPolicyTest(unittest.TestCase):
     def test_pr_validation_is_not_repeated_after_merge(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             has_pr = bool(_block(text, "pull_request"))
             if has_pr and _pushes_main(text) and path.name not in MAIN_PUSH_ALLOWLIST:
@@ -128,7 +143,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_pull_requests_are_path_scoped(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             pull_request = _block(text, "pull_request")
             if pull_request and "    paths:\n" not in pull_request:
@@ -141,7 +156,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_main_pushes_are_path_scoped(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             push = _block(text, "push")
             if _pushes_main(text) and "    paths:\n" not in push:
@@ -154,7 +169,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_automatic_workflows_declare_concurrency(self):
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
             if automatic and not re.search(r"(?m)^concurrency:\s*$", text):
@@ -172,7 +187,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "docs/SEMANTIC-SUFFICIENCY.md",
         }
         offenders = []
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             text = path.read_text()
             pull_request = _block(text, "pull_request")
             push = _block(text, "push")
@@ -237,10 +252,34 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
 
 
+    def test_native_build_smoke_stays_fast_and_bounded(self):
+        text = (WORKFLOWS / "native-build-smoke.yml").read_text()
+        self.assertIn("    timeout-minutes: 8", text)
+        for required in (
+            "Native boot smoke",
+            "Deterministic native input route",
+            "Shipping Widescreen composition acceptance",
+        ):
+            self.assertIn(required, text)
+        for delegated in (
+            "Modern Tour Resume Restart acceptance",
+            "Modern racer profile panel acceptance",
+            "Modern ghost target profile persistence acceptance",
+            "Shipping Widescreen stock-parity acceptance",
+            "Modern pause-settings row persistence acceptance",
+            "Modern Exit to Frontend acceptance",
+        ):
+            self.assertNotIn(
+                delegated,
+                text,
+                f"{delegated} is a focused feature journey and must not regrow the fast smoke gate",
+            )
+
+
     def test_workflow_dispatch_has_a_yaml_boundary(self):
         offenders = []
         bad = re.compile(r"workflow_dispatch:(?:jobs:|permissions:|concurrency:|env:)")
-        for path in sorted(WORKFLOWS.glob("*.yml")):
+        for path in _workflow_paths():
             if bad.search(path.read_text()):
                 offenders.append(path.name)
         self.assertEqual(
@@ -249,6 +288,203 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"workflow_dispatch must be separated from the next top-level key: {offenders}",
         )
 
+
+    def test_automatic_jobs_have_timeouts(self):
+        offenders = []
+        for path in _workflow_paths():
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            runs_on = len(re.findall(r"(?m)^    runs-on:", text))
+            timeouts = len(re.findall(r"(?m)^    timeout-minutes:", text))
+            if timeouts < runs_on:
+                offenders.append((path.name, runs_on, timeouts))
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic jobs that can hang must declare job-level timeouts: {offenders}",
+        )
+
+    def test_git_writers_serialize_without_cancellation(self):
+        offenders = []
+        for path in _workflow_paths():
+            text = path.read_text()
+            if not re.search(r"(?m)^\s*git push(?:\s|$)", text):
+                continue
+            serialized = (
+                "cancel-in-progress: false" in text
+                or "cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}" in text
+            )
+            if "  contents: write" not in text or not serialized:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "workflows that push generated evidence must serialize and must not "
+            f"cancel an in-flight writer: {offenders}",
+        )
+
+    def test_automatic_specialists_do_not_follow_global_toolchain_registry(self):
+        offenders = []
+        for path in _workflow_paths():
+            if path.name == "toolchain-bootstrap.yml":
+                continue
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            if '"tools/toolchain.json"' in triggers:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"specialist automatic workflows must watch per-tool entries, not tools/toolchain.json: {offenders}",
+        )
+
+    def test_automatic_workflows_do_not_watch_all_tool_entries(self):
+        offenders = []
+        for path in _workflow_paths():
+            if path.name == "toolchain-bootstrap.yml":
+                continue
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            if '"tools/toolchain-entries/**"' in triggers:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic workflows must name the toolchain entries they consume: {offenders}",
+        )
+
+    def test_staged_tool_inputs_are_declared_as_triggers(self):
+        offenders = []
+        for path in _workflow_paths():
+            if path.name == "toolchain-bootstrap.yml":
+                continue
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            jobs = text.split("\njobs:", 1)[1] if "\njobs:" in text else ""
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            required = []
+            if "bootstrap_toolchain.py" in jobs:
+                required.append("tools/bootstrap_toolchain.py")
+            for tool in sorted(set(re.findall(r"--tool\s+([A-Za-z0-9_-]+)", jobs))):
+                required.append(f"tools/toolchain-entries/{tool}.json")
+            missing = [item for item in required if f'"{item}"' not in triggers]
+            if missing:
+                offenders.append((path.name, missing))
+        self.assertEqual(
+            offenders,
+            [],
+            "automatic workflows must declare the bootstrapper and exact staged "
+            f"tool entries they consume: {offenders}",
+        )
+
+    def test_toolchain_contract_watches_patch_bytes(self):
+        text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()
+        self.assertIn('"tools/patches/**"', _block(text, "pull_request"))
+
+    def test_main_push_does_not_self_trigger_on_workflow_yaml(self):
+        offenders = []
+        for path in _workflow_paths():
+            text = path.read_text()
+            push = _block(text, "push")
+            own_path = f'.github/workflows/{path.name}'
+            if _pushes_main(text) and own_path in push:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"main-push workflows must not rerun solely because their own YAML changed: {offenders}",
+        )
+
+    def test_shell_continuations_are_not_interrupted_by_comments(self):
+        offenders = []
+        for path in _workflow_paths():
+            lines = path.read_text().splitlines()
+            for index, line in enumerate(lines[:-1]):
+                if line.rstrip().endswith("\\") and lines[index + 1].lstrip().startswith("#"):
+                    offenders.append(f"{path.name}:{index + 1}")
+        self.assertEqual(
+            offenders,
+            [],
+            "a comment after a backslash-continued shell line terminates or mutates "
+            f"the command; move comments before the command: {offenders}",
+        )
+
+    def test_host_state_log_checks_do_not_depend_on_field_order(self):
+        offenders = []
+        assignment = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
+        for path in _workflow_paths():
+            for index, line in enumerate(path.read_text().splitlines(), start=1):
+                if "grep" not in line or "UR_HOST_STATE LOADED" not in line:
+                    continue
+                if len(assignment.findall(line)) > 1:
+                    offenders.append(f"{path.name}:{index}")
+        self.assertEqual(
+            offenders,
+            [],
+            "UR_HOST_STATE diagnostics are extensible key/value records; assert owned "
+            f"fields independently rather than depending on field order: {offenders}",
+        )
+
+    def test_native_ui_builds_one_candidate_for_all_capture_shards(self):
+        text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
+        build = text.split("  build:", 1)[1].split("  capture:", 1)[0]
+        capture = text.split("  capture:", 1)[1].split("  aggregate:", 1)[0]
+        self.assertEqual(build.count("cmake --build"), 1)
+        self.assertIn("setup_project.sh", build)
+        self.assertNotIn("cmake --build", capture)
+        self.assertNotIn("setup_project.sh", capture)
+        self.assertIn("name: build-ui-candidate", build)
+        self.assertIn("name: native-ui-build-candidate", build)
+        self.assertIn("needs: build", capture)
+        aggregate = text.split("  aggregate:", 1)[1]
+        self.assertNotIn("if: always()", aggregate.split("    steps:", 1)[0])
+        self.assertIn("needs: [build, capture]", aggregate)
+
+    def test_absolute_frame_coupling_does_not_spread(self):
+        offenders = []
+        frame_pattern = re.compile(
+            r"(?:SNESRECOMP_SCREENSHOT_FRAME=\d+|\bframe=\d+)"
+        )
+        for path in _workflow_paths():
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic or path.name in ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST:
+                continue
+            if frame_pattern.search(text):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "absolute-frame assertions are audited semantic debt and must not "
+            f"spread to new automatic workflows: {offenders}",
+        )
+
+    def test_desktop_cursor_driving_does_not_spread(self):
+        offenders = []
+        driver = re.compile(r"\bxdotool\s+(?:key|search|windowfocus|windowactivate)\b")
+        for path in _workflow_paths():
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic or path.name in DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST:
+                continue
+            if driver.search(text):
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "cursor-count desktop UI automation is audited debt; add a semantic "
+            f"harness instead of spreading xdotool navigation: {offenders}",
+        )
 
     def test_full_toolchain_build_matrix_is_manual_only(self):
         text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()

@@ -5,7 +5,7 @@ on:
 
 concurrency:
   group: historical-snes9x-medal-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write

@@ -14,6 +14,9 @@ on:
       - "tests/input/modern-practice-repeat-results.script"
       - "tests/input/modern-practice-cancel.script"
       - "tests/input/modern-recent-course-practice.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/modern-onboarding-practice-acceptance.yml"
 
 concurrency:

@@ -331,6 +331,25 @@ Operational conclusions:
 - reserve `always()` for diagnostics/cleanup rather than dependent assertions;
 - after changing many workflow files, verify YAML shape and inspect the live Actions fan-out on the merged head.
 
+## Failure-cascade lesson — 2026-10-06
+
+A long native-smoke repair session exposed a second class of CI waste: repeatedly fixing the first visible red, waiting for a long serial workflow, then discovering the next stale harness assumption.
+
+Permanent operating rules:
+
+- distinguish **product/runtime failures** from **harness/contract failures** before changing product code;
+- when independent acceptances share one build, allow the run to expose all independent outcomes in one pass rather than stopping at the first downstream red;
+- after fixing one harness defect, scan adjacent assertions, nested-shell quoting, persisted-state schema assumptions, artifact paths and aggregate bookkeeping before rerunning;
+- diagnostic text is extensible. Assertions should match the fields they own rather than require an exact whole-line field order unless ordering itself is the invariant;
+- nested `bash -c` bodies are a quoting boundary. Avoid adding cleanup traps or shell fragments whose quoting cannot be read locally without mentally reparsing two shells;
+- an aggregate step must only aggregate checks that actually ran. A green acceptance must never be turned red by stale aggregate bookkeeping;
+- if all substantive acceptances are green and only orchestration is red, fix orchestration. Do not perturb shipping behavior to satisfy a broken harness;
+- preserve enough failure evidence to diagnose the entire failed cluster from one run, then stop. Do not babysit superseded Actions runs.
+
+The 2026-10-06 incident also confirmed that a 15-minute serial "smoke" workflow had absorbed too many feature journeys. The native smoke gate is now intentionally bounded to build identity, boot/frame sanity, deterministic race entry, cheap host/profile sanity and one shipping Widescreen composition check. Long feature journeys belong to focused workflows or lower-level contracts and should run only when their true inputs change.
+
+**Native-smoke runtime budget:** target roughly four minutes on the current hosted runner class, with an 8-minute hard job timeout. Treat sustained growth past five minutes as a design regression to investigate before raising the timeout. Prefer moving a mature feature acceptance to its owning focused workflow over lengthening the smoke gate.
+
 ## Periodic maintenance
 
 The repository hygiene pass must review:

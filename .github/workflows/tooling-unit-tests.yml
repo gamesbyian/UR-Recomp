@@ -10,7 +10,7 @@ on:
       - "analysis/evidence-envelope.schema.json"
       - "analysis/modern-product-settings.json"
       - "analysis/agent-context-lanes.json"
-      - ".github/workflows/tooling-unit-tests.yml"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 concurrency:

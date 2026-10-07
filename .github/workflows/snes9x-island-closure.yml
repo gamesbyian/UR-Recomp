@@ -5,7 +5,7 @@ on:
 
 concurrency:
   group: snes9x-island-closure-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -13,6 +13,7 @@ permissions:
 jobs:
   measure:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 

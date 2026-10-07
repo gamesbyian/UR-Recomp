@@ -5,7 +5,10 @@ on:
 
 concurrency:
   group: course-runtime-payload-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+
+permissions:
+  contents: write
 
 jobs:
   probe:

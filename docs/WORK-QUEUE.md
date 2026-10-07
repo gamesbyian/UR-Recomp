@@ -20,6 +20,12 @@ The active roadmap should expose several runnable leaves at once. Unless an acti
 
 Keep at least three of these in agent-ready form when possible. If a lane must touch a current shared hotspot owned by another branch, move its pure model/tests/catalog work forward first and leave only the thin integration step blocked.
 
+## CI hardening guardrail — 2026-10-06
+
+The repository-wide CI audit is tracked in `docs/CI-HARDENING-AUDIT.md`. Treat its machine-enforced rules as part of the development contract, not optional cleanup. The generic native smoke gate must remain fast and bounded; Native UI evidence must build one candidate and fan it out to capture shards; automatic specialist workflows must use narrow per-tool triggers; aggregate jobs must not manufacture secondary failures after missing upstream evidence.
+
+Two CI debts are intentionally contained rather than casually rewritten: exact-frame Racer Native Presentation assertions and cursor-count `xdotool` UI journeys. Do not "fix" either by weakening coverage. Exact-frame assertions require semantic classification into timing invariant vs relative/evidence anchor; UI journeys require a named semantic harness before cursor-count navigation is removed.
+
 ## Platform portability guardrail
 
 Windows x64 is the primary consumer/reference build. macOS, Web, Switch homebrew and PS5 remain later peer/feasibility targets behind the same simulation/product interfaces. Reject new desktop-only assumptions when an equally small portable seam exists, but **do not assign agents to secondary-platform reconnaissance, compile feasibility or port implementation while unfinished Windows x64 baseline requirements remain**. Platform-specific plans remain reference material for future work, not active queue authorization.

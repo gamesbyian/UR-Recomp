@@ -5,7 +5,9 @@ on:
   pull_request:
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
-      - "snesrecomp"
+      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
       - ".github/workflows/rom-baseline.yml"
 concurrency:
   group: rom-baseline-${{ github.ref }}
@@ -14,11 +16,17 @@ concurrency:
 jobs:
   fingerprint:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Check out project
         uses: actions/checkout@v4
-        with:
-          submodules: recursive
+
+      - name: Stage repository-owned SNESRecomp
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          test -f .tools/src/snesrecomp/tools/new_project/probe_rom.py
 
       - name: Fingerprint canonical ROM
         shell: bash
@@ -43,4 +51,4 @@ jobs:
           PY
           echo
           echo "== SNESRecomp cartridge probe =="
-          python3 snesrecomp/tools/new_project/probe_rom.py "$ROM"
+          python3 .tools/src/snesrecomp/tools/new_project/probe_rom.py "$ROM"

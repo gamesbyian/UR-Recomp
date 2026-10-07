@@ -5,11 +5,12 @@ permissions:
   contents: write
 concurrency:
   group: analyze-reference-roms
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   analyze:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - run: |

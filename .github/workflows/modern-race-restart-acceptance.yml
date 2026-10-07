@@ -29,6 +29,8 @@ on:
       - "tests/unit/test_uniracers_restart_policy_cpp.py"
       - "tests/input/modern-restart-results-acceptance.script"
       - "tests/input/modern-restart-acceptance.script"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/sdl3.json"
       - ".github/workflows/modern-race-restart-acceptance.yml"
 
 concurrency:

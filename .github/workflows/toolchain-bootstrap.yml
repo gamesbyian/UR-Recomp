@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - "tools/bootstrap_toolchain.py"
+      - "tools/patches/**"
       - "tools/install_pure_python_tool.py"
       - "tools/validate_island.py"
       - "tools/toolchain.json"

@@ -159,6 +159,10 @@ int main(int argc, char** argv) {
     assert(records_browser.view() == CompletedRunRecordsView::Runs);
     assert(records_browser.selected_run());
     assert(records_browser.selected_run()->is_previous);
+    const auto selected_date = completed_run_browser_date_text(
+        records_browser.selected_run()->path);
+    assert(selected_date.size() == 10);
+    assert(selected_date != "--");
     assert(records_browser.selected_run()->personal_best_delta_text ==
            "+0:00.37/60");
     assert(records_browser.selected_run_record());

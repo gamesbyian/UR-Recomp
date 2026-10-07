@@ -5615,11 +5615,11 @@
             63
           ],
           "wheel_contact_x2_y2": [
-            51,
-            74
+            77,
+            72
           ],
           "flip_pivot_derivation": "exact centre of the 64x64 OBJ reflection domain",
-          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic measured stock composed P2 raster"
+          "wheel_contact_derivation": "centre of the lowest occupied alpha span in the deterministic measured stock composed P2 0579/0EC4 raster"
         },
         "native_draw_status": "ready through the accepted split-screen four-instance host draw seam",
         "guard_scope_proof": {

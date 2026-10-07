@@ -141,12 +141,12 @@
   },
   "current_after": {
     "player_frame_observations": 882,
-    "hd_selected_player_frames": 178,
-    "original_fallback_player_frames": 704,
-    "hd_coverage_fraction": 0.2018140589569161,
-    "fallback_burden_removed_fraction": 0.03825136612021858,
-    "absolute_coverage_gain_percentage_points": 3.1746031746031744,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.03825136612021858
+    "hd_selected_player_frames": 179,
+    "original_fallback_player_frames": 703,
+    "hd_coverage_fraction": 0.20294784580498867,
+    "fallback_burden_removed_fraction": 0.03961748633879782,
+    "absolute_coverage_gain_percentage_points": 3.2879818594104306,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.03961748633879782
   },
   "next_ranked_discriminator": {
     "state": "0x0545/0x057C + 0x0000/0x0C27 sel 0/0 gate 0x0000/0x0001",
@@ -204,7 +204,7 @@
   },
   "broader_player_local_spill_in": {
     "status": "measured-runtime-visible",
-    "player_frames_added": 4,
+    "player_frames_added": 5,
     "states": [
       {
         "frame": 1585,
@@ -225,10 +225,15 @@
         "frame": 1600,
         "player": "p1",
         "semantic_frame_id": "0x0439"
+      },
+      {
+        "frame": 1603,
+        "player": "p1",
+        "semantic_frame_id": "0x01B9"
       }
     ],
-    "reason": "The four broader-route P1 player-local registrations also occur once each inside the retained 441-frame native window. Their P2 peers remain fail-closed Original.",
-    "workflow_run": 37406495804,
-    "artifact_id": 11387313762
+    "reason": "Five broader-route P1 player-local registrations also occur once each inside the retained 441-frame native window. Their P2 peers remain fail-closed Original.",
+    "workflow_run": 37564309881,
+    "artifact_id": 11457807200
   }
 }

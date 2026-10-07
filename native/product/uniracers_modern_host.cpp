@@ -3766,13 +3766,11 @@ void draw_run_timing_hud(
         comparison_row, sizeof(comparison_row), "%s  %s",
         panel.comparison_label.c_str(), panel.comparison_text.c_str());
 
-    int presentation_scale = 1;
-    if (height % 224 == 0) {
-        const int candidate = height / 224;
-        if (candidate >= 1 && candidate <= 4 &&
-            width % candidate == 0) {
-            presentation_scale = candidate;
-        }
+    int presentation_scale = ur_uniracers_modern_presentation_scale();
+    if (presentation_scale < 1 || presentation_scale > 4 ||
+        height != 224 * presentation_scale ||
+        width % presentation_scale != 0) {
+        presentation_scale = 1;
     }
     const int logical_width = width / presentation_scale;
     const int logical_height = height / presentation_scale;

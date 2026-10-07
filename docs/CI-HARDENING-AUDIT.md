@@ -109,6 +109,38 @@ These tests are intended to make CI architecture failures cheap. A policy
 violation should fail in the tooling suite before an emulator or compiler run is
 needed to discover it.
 
+## Wall-clock performance policy
+
+The October 7 wall-clock audit adds a second CI objective alongside correctness:
+active development must not spend runner time proving superseded intermediate
+commits.
+
+The expensive automatic PR gates are draft-aware. They listen for
+`ready_for_review`, but their first job skips while the PR is draft. Agents
+working on a CI-heavy branch should therefore keep the PR draft while iterating,
+batch coherent edits into logical pushes, and mark it ready only when the head
+is worth running through the native fleet. Cheap tooling and hygiene remain
+active during draft work so workflow-policy and syntax mistakes still fail
+quickly.
+
+Recurring Linux native gates use the Ubuntu runner's supplied CMake/Ninja rather
+than downloading duplicate copies. SDL3 remains the canonical source/backend;
+SDL2 development packages must not creep back into SDL3 gates. Native UI capture
+shards install only the runtime tools they need after downloading the single
+producer-built candidate.
+
+The runtime report now records queue, job, dependency, build and execution
+timings rather than only whole-workflow duration. Use those measurements before
+adding caches or restructuring jobs. In particular, compiler caching is not an
+automatic win once draft gating suppresses most intermediate native builds.
+
+Modern Onboarding's independent fresh-process acceptance cases own distinct
+work/output roots and may run concurrently against the same read-only candidate.
+Native smoke's bounded boot and deterministic race-entry routes may disable
+per-frame delay because their semantic output was proven unchanged under
+unpaced execution. Presentation-sensitive routes should not inherit Turbo or
+presentation skipping merely for speed.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

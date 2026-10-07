@@ -18,6 +18,7 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertIn("observe_ordinary_two_player_race_result(", source)
         self.assertIn("bind_local_multiplayer_match_context(", source)
         self.assertIn("append_multiplayer_match_pair(", source)
+        self.assertIn("ordinary_two_player_carrier_elapsed_ticks60(", source)
         self.assertIn('"race-1p"', source)
         self.assertIn("CompletedRunCapture g_run_capture", source)
 
@@ -28,6 +29,12 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertNotIn("refresh_run_ghosts(", body)
         self.assertNotIn("refresh_run_ghost_playback_trace(", body)
         self.assertNotIn("g_run_ghost_trace_capture", body)
+
+        complete = source.index("void complete_multiplayer_run_record_capture()")
+        complete_end = source.index("void complete_run_record_capture()", complete)
+        completion_body = source[complete:complete_end]
+        self.assertNotIn("ur_uniracers_run_data_ticks60", completion_body)
+        self.assertNotIn('observe_split("finish"', completion_body)
 
         # The resolved framework controller word is the common replay carrier.
         self.assertIn(

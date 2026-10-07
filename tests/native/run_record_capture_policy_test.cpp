@@ -42,5 +42,24 @@ int main() {
     assert(!resolve_run_record_capture_plan(
         false, false, HostRacePresentationMode::TwoPlayer, true, true).enabled());
 
+    ur::title::OrdinaryTwoPlayerRaceResult p1_win;
+    p1_win.player1_hundredths = 2876;
+    p1_win.player2_hundredths =
+        ur::title::kOrdinaryTwoPlayerNoTimeHundredths;
+    assert(ordinary_two_player_carrier_elapsed_ticks60(p1_win) == 1726);
+
+    ur::title::OrdinaryTwoPlayerRaceResult p2_win;
+    p2_win.player1_hundredths =
+        ur::title::kOrdinaryTwoPlayerNoTimeHundredths;
+    p2_win.player2_hundredths = 3001;
+    assert(ordinary_two_player_carrier_elapsed_ticks60(p2_win) == 1801);
+
+    ur::title::OrdinaryTwoPlayerRaceResult timeout_draw;
+    timeout_draw.player1_hundredths =
+        ur::title::kOrdinaryTwoPlayerNoTimeHundredths;
+    timeout_draw.player2_hundredths =
+        ur::title::kOrdinaryTwoPlayerNoTimeHundredths;
+    assert(ordinary_two_player_carrier_elapsed_ticks60(timeout_draw) == 36000);
+
     return 0;
 }

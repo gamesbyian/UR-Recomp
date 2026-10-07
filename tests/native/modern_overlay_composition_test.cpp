@@ -129,6 +129,26 @@ int main() {
     assert((recent_plan.logical_rect == HostOverlayRect{8, 211, 240, 13}));
     assert((recent_plan.presentation_rect == HostOverlayRect{16, 422, 480, 26}));
 
+    HostOverlayCompositionRequest tour_banner{};
+    tour_banner.logical_surface_width = 256;
+    tour_banner.logical_surface_height = 224;
+    tour_banner.presentation_scale = 2;
+    tour_banner.output_viewport = HostOutputViewport{0, 0, 512, 448};
+    tour_banner.reserved.left = 8;
+    tour_banner.reserved.right = 8;
+    tour_banner.reserved.bottom = 12;
+    tour_banner.anchor = HostOverlayAnchor::BottomCenter;
+    tour_banner.preferred_width = 274;
+    tour_banner.preferred_height = 22;
+    tour_banner.minimum_width = 200;
+    tour_banner.minimum_height = 22;
+    const auto tour_banner_plan =
+        resolve_modern_overlay_composition(tour_banner);
+    assert(tour_banner_plan.visible);
+    assert(tour_banner_plan.compact);
+    assert((tour_banner_plan.logical_rect == HostOverlayRect{8, 190, 240, 22}));
+    assert((tour_banner_plan.presentation_rect == HostOverlayRect{16, 380, 480, 44}));
+
     HostOverlayCompositionRequest bottom{};
     bottom.logical_surface_width = 256;
     bottom.logical_surface_height = 224;

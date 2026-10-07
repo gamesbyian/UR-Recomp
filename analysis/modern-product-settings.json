@@ -119,9 +119,9 @@
         "4x"
       ],
       "introduced_codec_version": 6,
-      "menu_symbol": null,
-      "menu_visible": false,
-      "runtime_status": "policy-and-persistence-ready",
+      "menu_symbol": "UR_MODERN_OPTIONS_RENDER_SCALE",
+      "menu_visible": true,
+      "runtime_status": "integrated",
       "authentic_inert": true
     }
   ]

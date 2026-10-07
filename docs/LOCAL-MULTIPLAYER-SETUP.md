@@ -20,7 +20,7 @@ Modern mode exposes a compact local multiplayer setup surface with two player sl
 - Reconnection of the same framework device restores its prior slot when unambiguous.
 - Reassignment changes host input routing only. It must not synthesize guest progression, race state or SRAM.
 - Launch uses the existing stock two-player frontend/race path. Do not add a second multiplayer simulation or direct race-state writer.
-- Rematch and track rotation should reuse the existing Modern Restart/fast-navigation authority once a two-player session exists.
+- Rematch and track rotation use the stock post-race choice. An ordinary 2P result (`0xF9`) goes straight to the stock track choice `0x5A` (NEXT TRACK / SAME TRACK / SELECT TRACK / SELECT TOUR / QUIT), and SAME TRACK re-enters NOW PLAYING for the same course (`analysis/generated/vs-challenger-probe.json`, RESEARCH-LEDGER `two-player-result-decision`). Modern deliberately does not enable host Restart on `0xF9`: a restart there would discard the stock two-player session tally that the next `0x5A` choice carries forward.
 - Authentic mode remains unchanged and exposes the stock administration path only.
 
 ## Input authority
@@ -50,7 +50,7 @@ A refused launch leaves guest state and SRAM untouched.
 3. **[implemented]** The settled Modern 2P join overlay lets each joined seat cycle and explicitly confirm a profile. Keyboard can join/confirm P1; each physical controller operates its own seat. Disconnect clears that seat's participant identity.
 4. The stock rider picker remains authoritative. The Modern overlay does not write rider IDs; subsequent match-history binding accepts a result only when the guest-observed rider indices match the two confirmed profile identities.
 5. Route the accepted session through the existing stock two-player menu/input machinery and retain participant identity through the session until frontend return.
-6. Reuse the existing fast-navigation Restart/rematch path rather than creating multiplayer-specific rollback.
+6. **[decided]** Rematch/rotation is the stock `0x5A` choice. Do not add multiplayer-specific rollback, and do not extend host Restart to the 2P result surface.
 
 ## Acceptance
 
@@ -61,7 +61,7 @@ A Windows fresh-process acceptance must prove:
 - swapping host assignments swaps only input ownership, not racer/course/progression state;
 - disconnecting either assigned controller prevents launch or pauses setup without leaking input to the guest;
 - reconnecting/reassigning restores a valid launch path;
-- results Rematch re-enters the same authoritative two-player course through the existing Restart lifecycle;
+- results SAME TRACK re-enters the same authoritative two-player course through the stock `0x5A` choice while the confirmed participant session persists;
 - SRAM and guest simulation remain identical to the equivalent stock two-player route at the accepted semantic checkpoints;
 - Authentic mode exposes none of the Modern setup UI or host assignment authority.
 

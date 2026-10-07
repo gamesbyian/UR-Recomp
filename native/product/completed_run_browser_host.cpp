@@ -1305,6 +1305,24 @@ void draw_browser(
         "ESC / B    BACK", 0xFFFFFFFFu, 1);
 }
 
+void draw_results_records_hint(
+    uint8_t* dst,
+    size_t pitch,
+    int width,
+    int height) {
+    if (!modern_mode() || g_browser_visible || g_records_browser_visible ||
+        g_replay_flow.active() || !g_one_player_context ||
+        snesrecomp_desktop_is_paused() || !records_results_surface() ||
+        !dst || pitch < 4 || width <= 0 || height <= 0) {
+        return;
+    }
+    uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+    const int stride = static_cast<int>(pitch / 4u);
+    snes_ovl_draw_text(
+        pixels, stride, height, 8, height - 13,
+        "F8 / Y      RECORDS", 0xFFFFFFFFu, 1);
+}
+
 void draw_browser_hint(
     uint8_t* dst,
     size_t pitch,
@@ -1556,5 +1574,6 @@ extern "C" void ur_uniracers_product_system_overlay(
     }
     draw_records_browser(dst, pitch, width, height);
     draw_browser(dst, pitch, width, height);
+    draw_results_records_hint(dst, pitch, width, height);
     draw_browser_hint(dst, pitch, width, height);
 }

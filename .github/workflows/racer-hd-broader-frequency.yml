@@ -3103,6 +3103,7 @@ jobs:
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],
           }, sort_keys=True))
+          print("RACER_HD_POST_P2_0579_0EC4_FULL", json.dumps(probe, sort_keys=True), flush=True)
           PY
 
       - uses: actions/upload-artifact@v4
@@ -3378,6 +3379,12 @@ jobs:
             ${{ runner.temp }}/racer-hd-post-03f9-next-probe.json
             ${{ runner.temp }}/racer-hd-post-03f9-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-03f9-next-probe/
+            ${{ runner.temp }}/racer-hd-after-p2-0579-0ec4.json
+            ${{ runner.temp }}/racer-hd-after-p2-0579-0ec4.txt
+            ${{ runner.temp }}/racer-hd-after-p2-0579-0ec4-trace.json
+            ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe.json
+            ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe.txt
+            ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe/
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.json
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.txt
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe/

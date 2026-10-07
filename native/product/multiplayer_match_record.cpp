@@ -1,10 +1,13 @@
 #include "multiplayer_match_record.hpp"
 
+#include "completed_run_store.hpp"
+
 #include <array>
 #include <charconv>
 #include <cctype>
 #include <cstdint>
 #include <cstdio>
+#include <filesystem>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -394,6 +397,42 @@ MultiplayerMatchDecodeResult load_multiplayer_match_record_for_run(
         return {std::nullopt, "match record does not bind completed run"};
     }
     return loaded;
+}
+
+bool append_multiplayer_match_pair(
+    const std::string& directory,
+    const CompletedRunRecord& run,
+    const MultiplayerMatchRecord& record,
+    std::string* stored_run_path,
+    std::string* detail) {
+    if (!multiplayer_match_record_matches_run(record, run)) {
+        return fail(detail, "match record does not bind completed run");
+    }
+
+    std::string run_path;
+    if (!append_completed_run_record(
+            directory, run, &run_path, detail)) {
+        return false;
+    }
+
+    std::string sidecar_detail;
+    if (!save_multiplayer_match_record_for_run(
+            run_path, run, record, &sidecar_detail)) {
+        std::error_code ec_sidecar;
+        std::filesystem::remove(
+            multiplayer_match_record_path_for_run(run_path), ec_sidecar);
+        std::error_code ec_run;
+        std::filesystem::remove(run_path, ec_run);
+        if (detail) {
+            *detail = sidecar_detail;
+            if (ec_run) *detail += "; completed-run rollback failed";
+            if (ec_sidecar) *detail += "; sidecar rollback failed";
+        }
+        return false;
+    }
+
+    if (stored_run_path) *stored_run_path = run_path;
+    return true;
 }
 
 }  // namespace ur::product

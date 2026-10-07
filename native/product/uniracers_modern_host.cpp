@@ -131,6 +131,8 @@ std::array<std::string, ur::product::kControllerSeatCount>
     g_controller_seat_names{};
 bool g_controller_hotplug_acceptance_done;
 bool g_vibration_options_acceptance_done;
+bool g_volume_options_acceptance_done;
+unsigned g_volume_options_acceptance_frames;
 unsigned g_vibration_options_acceptance_frames;
 int g_haptic_acceptance_stage;
 unsigned g_haptic_acceptance_device_rumbles;
@@ -2057,6 +2059,18 @@ bool toggle_vibration_setting() {
     return true;
 }
 
+// Volume is the framework's own [Sound] Volume (config.ini, keypad +/-, OSD
+// bar). The Options row only steps that authority; Modern keeps no copy.
+bool step_volume_setting(int direction) {
+    if (!modern_mode()) return false;
+    const int percent = snesrecomp_desktop_step_volume(direction);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_VOLUME SELECTED percent=%d\n", percent);
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 bool restore_video_output_settings(
     const ur::product::HostSettings& settings) {
     if (!apply_display_mode_setting(settings)) {
@@ -2339,6 +2353,8 @@ bool activate_options_selection() {
         return cycle_ghost_target_setting();
     case UR_MODERN_OPTIONS_VIBRATION:
         return toggle_vibration_setting();
+    case UR_MODERN_OPTIONS_VOLUME:
+        return step_volume_setting(1);
     }
     return false;
 }
@@ -4116,6 +4132,52 @@ void run_vibration_options_acceptance() {
     (void)request_desktop_quit();
 }
 
+// Native Options acceptance for Volume. "adjust" walks the real keys a player
+// would (Escape, OPTIONS, Down to VOLUME, Left, Left, Enter) on one frame
+// boundary and quits, so the framework writes config.ini; "verify" only
+// reports the value a fresh process loaded.
+void run_volume_options_acceptance() {
+    const char* phase = std::getenv("UR_VOLUME_OPTIONS_ACCEPTANCE");
+    if (g_volume_options_acceptance_done || !phase) return;
+    if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE || paused()) {
+        g_volume_options_acceptance_frames = 0;
+        return;
+    }
+    if (++g_volume_options_acceptance_frames < 120u) return;
+    g_volume_options_acceptance_done = true;
+    std::fprintf(
+        stderr, "UR_VOLUME_ACCEPTANCE START percent=%d\n",
+        snesrecomp_desktop_get_volume());
+    std::fflush(stderr);
+    if (std::strcmp(phase, "adjust") == 0) {
+        (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+        const int restart = ur_modern_session_restart_available(g_session);
+        for (int step = 0; step < 12 && paused() &&
+             ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+                 UR_MODERN_PAUSE_OPTIONS;
+             ++step) {
+            (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+        }
+        (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+        for (int step = 0; step < 12 && g_options_visible &&
+             ur_modern_options_menu_selected(&g_options_menu) !=
+                 UR_MODERN_OPTIONS_VOLUME;
+             ++step) {
+            (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+        }
+        if (!g_options_visible ||
+            ur_modern_options_menu_selected(&g_options_menu) !=
+                UR_MODERN_OPTIONS_VOLUME) {
+            product_diagnostic("UR_VOLUME_ACCEPTANCE ROW_NOT_REACHED");
+        } else {
+            (void)ur_uniracers_modern_system_key_down(SDLK_LEFT, 0, 0);
+            (void)ur_uniracers_modern_system_key_down(SDLK_LEFT, 0, 0);
+            (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+        }
+    }
+    (void)request_desktop_quit();
+}
+
 // Native vibration acceptance: seat a real SDL virtual gamepad whose Rumble
 // callback records what actually reaches the device, then let the scripted
 // race run. The production split/finish observers decide every pulse.
@@ -5200,6 +5262,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     run_main_menu_pad_acceptance();
     run_haptic_acceptance();
     run_vibration_options_acceptance();
+    run_volume_options_acceptance();
 }
 
 extern "C" int ur_uniracers_modern_system_key_down(
@@ -5368,6 +5431,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         if (key == SDLK_DOWN) {
             ur_modern_options_menu_move(&g_options_menu, 1);
             return 1;
+        }
+        if ((key == SDLK_LEFT || key == SDLK_RIGHT) &&
+            ur_modern_options_menu_selected(&g_options_menu) ==
+                UR_MODERN_OPTIONS_VOLUME) {
+            return step_volume_setting(key == SDLK_RIGHT ? 1 : -1) ? 1 : 0;
         }
         if (key == SDLK_RETURN || key == SDLK_KP_ENTER) {
             return activate_options_selection() ? 1 : 0;
@@ -5706,6 +5774,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         if (button == kGamepadBtn_DpadDown) {
             ur_modern_options_menu_move(&g_options_menu, 1);
             return 1;
+        }
+        if ((button == kGamepadBtn_DpadLeft ||
+             button == kGamepadBtn_DpadRight) &&
+            ur_modern_options_menu_selected(&g_options_menu) ==
+                UR_MODERN_OPTIONS_VOLUME) {
+            return step_volume_setting(
+                       button == kGamepadBtn_DpadRight ? 1 : -1) ? 1 : 0;
         }
         if (button == kGamepadBtn_A) {
             return activate_options_selection() ? 1 : 0;
@@ -6583,7 +6658,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
     if (is_paused) {
         if (g_options_visible) {
-            const int options_h_logical = 204;
+            const int options_h_logical = 219;
             const auto options_layout = centered_modern_modal_layout(
                 width, height, modal_scale,
                 panel_w_logical, options_h_logical,
@@ -6648,6 +6723,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             char widescreen_row[32];
             char ghost_row[32];
             char vibration_row[32];
+            char volume_row[32];
             const auto ghost_target = active_run_ghost_target();
             const std::string ghost_status =
                 ur::product::completed_run_ghost_target_status_label(
@@ -6687,6 +6763,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 vibration_row, sizeof(vibration_row), "%c VIBRATION %s",
                 selected == UR_MODERN_OPTIONS_VIBRATION ? '>' : ' ',
                 g_product_state.settings.vibration_enabled ? "ON" : "OFF");
+            std::snprintf(
+                volume_row, sizeof(volume_row), "%c VOLUME  < %d%% >",
+                selected == UR_MODERN_OPTIONS_VOLUME ? '>' : ' ',
+                snesrecomp_desktop_get_volume());
             std::snprintf(
                 ghost_row, sizeof(ghost_row), "%c GHOST    %s",
                 selected == UR_MODERN_OPTIONS_GHOST ? '>' : ' ',
@@ -6728,10 +6808,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 pixels, stride, height, options_x + 8 * modal_scale, options_y + 147 * modal_scale,
                 vibration_row, 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, options_x + 8 * modal_scale, options_y + 167 * modal_scale,
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 162 * modal_scale,
+                volume_row, 0xFFFFFFFFu, modal_scale);
+            snes_ovl_draw_text(
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 182 * modal_scale,
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
-                pixels, stride, height, options_x + 8 * modal_scale, options_y + 187 * modal_scale,
+                pixels, stride, height, options_x + 8 * modal_scale, options_y + 202 * modal_scale,
                 "B / ESC    BACK", 0xFFFFFFFFu, modal_scale);
             return;
         }

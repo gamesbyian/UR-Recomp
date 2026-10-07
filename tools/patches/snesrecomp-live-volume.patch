@@ -1,0 +1,35 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -4823,6 +4823,18 @@
+   snes_osd_note_volume(g_config.volume);
+ }
+ 
++/* Live [Sound] Volume for a host-owned menu. Steps reuse the keypad path, so
++ * the clamp, mixer apply, OSD bar and config.ini write-back stay the same. */
++int snesrecomp_desktop_get_volume(void) {
++  return g_config.volume;
++}
++
++int snesrecomp_desktop_step_volume(int direction) {
++  if (direction != 0)
++    HandleVolumeAdjustment(direction > 0 ? 1 : -1);
++  return g_config.volume;
++}
++
+ // Approximates atan2(y, x) normalized to the [0,4) range
+ // with a maximum error of 0.1620 degrees
+ // normalized_atan(x) ~ (b x + x^2) / (1 + 2 b x + x^2)
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -331,6 +331,11 @@
+ int snesrecomp_desktop_set_linear_filtering(int enabled);
+ int snesrecomp_desktop_get_linear_filtering(void);
+ 
++/* Live [Sound] Volume (0..100). step_volume moves it one 5% step in the
++ * direction's sign exactly like VolumeUp/VolumeDown and returns the result. */
++int snesrecomp_desktop_get_volume(void);
++int snesrecomp_desktop_step_volume(int direction);
++
+ #ifdef __cplusplus
+ }
+ #endif

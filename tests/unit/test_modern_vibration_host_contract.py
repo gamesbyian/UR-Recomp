@@ -31,7 +31,7 @@ class ModernVibrationHostContractTests(unittest.TestCase):
 
     def test_options_row_persists_through_product_state(self):
         source = HOST.read_text(encoding="utf-8")
-        toggle = _body(source, "bool toggle_vibration_setting() {", "bool restore_video_output_settings(")
+        toggle = _body(source, "bool toggle_vibration_setting() {", "bool step_volume_setting(")
         self.assertIn("if (!modern_mode()) return false;", toggle)
         self.assertIn("persist_product_state(candidate)", toggle)
         persist = toggle.index("persist_product_state(candidate)")

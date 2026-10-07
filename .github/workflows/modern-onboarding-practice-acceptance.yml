@@ -10,6 +10,8 @@ on:
       - "native/product/haptic_feedback_policy.hpp"
       - "native/product/modern_options_menu.*"
       - "tests/native/run_modern_vibration_acceptance.sh"
+      - "tests/native/run_modern_volume_acceptance.sh"
+      - "tools/patches/snesrecomp-live-volume.patch"
       - "tests/input/race-finish-dragster.script"
       - "native/product/modern_tour_*.hpp"
       - "native/product/next_event_derivation.hpp"
@@ -396,6 +398,16 @@ jobs:
             "$ROOT/build/UniracersSNESRecomp" \
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             "$RUNNER_TEMP/vibration"
+
+      - name: Prove the Volume row steps and persists the framework volume
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_volume_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/volume"
 
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash

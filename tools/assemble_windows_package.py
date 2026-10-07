@@ -29,6 +29,47 @@ REQUIRED_PACKAGE_FILES = {
 }
 
 
+STARTUP_SUPPORT_GUIDANCE = (
+    (
+        "UR-STARTUP-ROM-MISSING",
+        "The packaged ROM is missing. Re-extract the complete ZIP and retry.",
+    ),
+    (
+        "UR-STARTUP-ROM-INVALID",
+        "The ROM does not match this build. Restore the packaged verified ROM.",
+    ),
+    (
+        "UR-STARTUP-RUNTIME-DATA",
+        "Required package files are missing. Re-extract the complete ZIP.",
+    ),
+    (
+        "UR-STARTUP-SAVE-ROOT",
+        "The user-data path is unusable. Choose a writable absolute path outside the package.",
+    ),
+    (
+        "UR-STARTUP-VIDEO",
+        "Video initialization failed. Reset display settings or update the graphics driver.",
+    ),
+    (
+        "UR-STARTUP-AUDIO",
+        "Audio initialization failed. Check the Windows audio device and driver.",
+    ),
+    (
+        "UR-STARTUP-CONTROLLER",
+        "Controller initialization failed. Reconnect controllers or restart Windows.",
+    ),
+)
+
+
+def startup_support_text() -> str:
+    lines = ["Startup code guide:"]
+    lines.extend(
+        f"  {code}: {guidance}"
+        for code, guidance in STARTUP_SUPPORT_GUIDANCE
+    )
+    return "\n".join(lines)
+
+
 def normalize_source_revision(value: object) -> str:
     if not isinstance(value, str):
         raise ValueError("source revision must be a string")
@@ -235,6 +276,8 @@ def write_readme(path: Path, source_revision: str) -> None:
         "the same launch retains diagnostics\\startup.log there for support; "
         "the file is replaced on the next launch and contains no ROM bytes, "
         "save contents, profile names or controller input.\n"
+        "\n"
+        f"{startup_support_text()}\n"
         "\n"
         "If an older portable folder already contains config.ini, "
         "keybinds.ini, saves, or mods/preloaded/state.toml, the launcher "

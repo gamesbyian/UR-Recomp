@@ -7,17 +7,31 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
+STRICT_C_FLAGS = [
+    "-std=c11",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror",
+    "-Wconversion",
+    "-Wsign-conversion",
+    "-Wshadow",
+    "-Wstrict-prototypes",
+    "-Wmissing-prototypes",
+]
+
+
 class UniracersWsMarginsCTests(unittest.TestCase):
     def test_c_core(self):
-        with tempfile.TemporaryDirectory() as tmp:
-            exe = pathlib.Path(tmp) / "uniracers-ws-margins-test"
-            subprocess.run(
+        for compiler in ("gcc", "clang"):
+            with self.subTest(compiler=compiler), tempfile.TemporaryDirectory() as tmp:
+                exe = pathlib.Path(tmp) / "uniracers-ws-margins-test"
+                subprocess.run(
                 [
-                    "gcc",
-                    "-std=c11",
-                    "-Wall",
-                    "-Wextra",
-                    "-Werror",
+                    compiler,
+                    *STRICT_C_FLAGS,
+                    "-fsanitize=address,undefined",
+                    "-fno-omit-frame-pointer",
                     "-DUR_WS_MARGINS_NO_RUNTIME",
                     "-I",
                     str(ROOT / "native" / "title"),
@@ -26,10 +40,10 @@ class UniracersWsMarginsCTests(unittest.TestCase):
                     "-o",
                     str(exe),
                 ],
-                cwd=ROOT,
-                check=True,
-            )
-            subprocess.run([str(exe)], cwd=ROOT, check=True)
+                    cwd=ROOT,
+                    check=True,
+                )
+                subprocess.run([str(exe)], cwd=ROOT, check=True)
 
 
 if __name__ == "__main__":

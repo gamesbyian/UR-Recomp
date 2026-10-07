@@ -12,9 +12,9 @@ The assembled Windows x64 package and pinned desktop host classify these startup
 - `UR-STARTUP-RUNTIME-DATA`: the executable, `rom.cfg`, staged mod payload, or a non-empty `mods/` payload is missing;
 - `UR-STARTUP-VIDEO`: SDL video initialization, window creation, or the selected renderer initialization fails;
 - `UR-STARTUP-AUDIO`: SDL audio initialization or audio-device open fails;
-- `UR-STARTUP-UNKNOWN`: only the narrow residual controller-subsystem initialization failure after video and audio initialization have already succeeded.
+- `UR-STARTUP-CONTROLLER`: SDL controller-subsystem initialization fails after video and audio initialization have already succeeded.
 
-`UR-STARTUP-UNKNOWN` is not a blanket exception/catch-all around desktop startup. It deliberately sits only on the remaining fatal SDL controller-init return so it cannot swallow ROM, save-root, runtime-data, video or audio failures. Other later crashes continue to use the existing breadcrumb/crash-reporting pipeline until a concrete release-facing startup class justifies another stable code.
+`UR-STARTUP-CONTROLLER` owns that remaining fatal SDL controller-init seam and cannot swallow ROM, save-root, runtime-data, video or audio failures. No currently classified consumer-package bootstrap path uses `UR-STARTUP-UNKNOWN`; other later crashes continue to use the existing breadcrumb/crash-reporting pipeline until a concrete release-facing startup class justifies another stable code.
 
 `run-uniracers.cmd` owns package-presence, resolved user-root, migration and startup-log setup. The pinned desktop host owns ROM identity plus the real SDL/video/audio/controller initialization seams. Modern and Authentic modes use the same bootstrap because mode-specific guest/product behavior has not started yet.
 

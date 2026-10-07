@@ -1,4 +1,5 @@
 import json
+import hashlib
 import pathlib
 import subprocess
 import sys
@@ -557,6 +558,53 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn(
                 "package contents do not match", failed.stderr
             )
+
+    def test_archive_is_reproducible_and_checksum_sidecar_is_canonical(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            package = root / "package"
+            self.run_tool(
+                "assemble",
+                "--build-dir", build,
+                "--rom", rom,
+                "--output", package,
+                "--source-revision", "test-revision",
+            )
+
+            archive1 = root / "package-1.zip"
+            archive2 = root / "package-2.zip"
+            self.run_tool("archive", "--package", package, "--output", archive1)
+            self.run_tool("archive", "--package", package, "--output", archive2)
+            self.assertEqual(archive1.read_bytes(), archive2.read_bytes())
+
+            sidecar = root / "UR-Recomp-Windows-x64.zip.sha256"
+            result = self.run_tool(
+                "checksum-archive",
+                "--archive", archive1,
+                "--output", sidecar,
+            )
+            expected = hashlib.sha256(archive1.read_bytes()).hexdigest()
+            self.assertEqual(
+                sidecar.read_text(encoding="ascii"),
+                f"{expected}  {archive1.name}\n",
+            )
+            self.assertIn(
+                f"WINDOWS_PACKAGE_ARCHIVE_SHA256 sha256={expected}",
+                result.stdout,
+            )
+
+    def test_archive_checksum_fails_closed_for_missing_archive(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            result = self.run_tool(
+                "checksum-archive",
+                "--archive", root / "missing.zip",
+                check=False,
+            )
+            self.assertNotEqual(result.returncode, 0)
+            self.assertIn("package archive missing", result.stderr)
+
 
     def test_missing_required_input_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:

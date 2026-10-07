@@ -28,6 +28,7 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - ".github/workflows/windows-native-smoke.yml"
       - "native/product/**"
       - "native/presentation/**"
       - "native/title/**"

@@ -16,6 +16,7 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
 
     def test_shipping_runtime_surfaces_retrigger_final_main_package_acceptance(self) -> None:
         for path in (
+            '      - ".github/workflows/windows-native-smoke.yml"',
             '      - "native/product/**"',
             '      - "native/presentation/**"',
             '      - "native/title/**"',
@@ -37,6 +38,28 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         snippet = self.text[upload : upload + 180]
         self.assertIn("if: success()", snippet)
         self.assertNotIn("if: always()", snippet)
+
+    def test_package_refresh_covers_current_run_stores(self) -> None:
+        self.assertIn(
+            '$PACKAGE_USER_DATA/runs/default/package-refresh-marker.urrun',
+            self.text,
+        )
+        self.assertIn(
+            '$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urrun',
+            self.text,
+        )
+        self.assertIn(
+            '$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urmatch',
+            self.text,
+        )
+        self.assertIn(
+            'test "$MULTIPLAYER_RUN_BEFORE" = "$MULTIPLAYER_RUN_AFTER"',
+            self.text,
+        )
+        self.assertIn(
+            'test "$MULTIPLAYER_MATCH_BEFORE" = "$MULTIPLAYER_MATCH_AFTER"',
+            self.text,
+        )
 
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)

@@ -47,6 +47,7 @@ extern "C" {
 #include "modern_controls_binding_authority.hpp"
 #include "modern_controls_presenter.hpp"
 #include "modern_controls_rebind.hpp"
+#include "modern_overlay_composition.hpp"
 #include "modern_session_c_api.h"
 #include "output_resolution_runtime_policy.hpp"
 #include "uniracers_course_identity.h"
@@ -3940,6 +3941,13 @@ bool activate_pause_selection() {
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
 }
 
+int modern_overlay_surface_scale(int width, int height) {
+    return ur::product::resolve_modern_overlay_surface_scale(
+        ur_uniracers_modern_presentation_scale(),
+        width,
+        height);
+}
+
 void draw_run_timing_hud(
     uint8_t* dst,
     size_t pitch,
@@ -3987,25 +3995,52 @@ void draw_run_timing_hud(
         comparison_row, sizeof(comparison_row), "%s  %s",
         panel.comparison_label.c_str(), panel.comparison_text.c_str());
 
+    const int presentation_scale =
+        modern_overlay_surface_scale(width, height);
+    const int logical_width = width / presentation_scale;
+    const int logical_height = height / presentation_scale;
+    ur::product::HostOverlayCompositionRequest layout_request{};
+    layout_request.logical_surface_width = logical_width;
+    layout_request.logical_surface_height = logical_height;
+    layout_request.presentation_scale = presentation_scale;
+    layout_request.output_viewport = {0, 0, width, height};
+    layout_request.anchor = ur::product::HostOverlayAnchor::TopRight;
+    layout_request.preferred_width = 178;
+    layout_request.preferred_height = 52;
+    layout_request.minimum_width = 178;
+    layout_request.minimum_height = 52;
+    layout_request.edge_margin = 8;
+    const auto layout =
+        ur::product::resolve_modern_overlay_composition(layout_request);
+    if (!layout.visible) return;
+
     uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
     const int stride = static_cast<int>(pitch / 4u);
-    const int panel_w = width < 190 ? width - 12 : 178;
-    const int panel_h = 52;
-    const int x = width - panel_w - 8;
-    const int y = 8;
+    const auto& panel_rect = layout.presentation_rect;
+    const int text_scale = layout.presentation_scale;
     snes_ovl_fill_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xC0202020u);
+        pixels, stride, height,
+        panel_rect.x, panel_rect.y,
+        panel_rect.width, panel_rect.height, 0xC0202020u);
     snes_ovl_stroke_rect(
-        pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
+        pixels, stride, height,
+        panel_rect.x, panel_rect.y,
+        panel_rect.width, panel_rect.height, 0xFFF0F0F0u);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 6,
-        clock_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 6 * text_scale,
+        clock_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 21,
-        pb_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 21 * text_scale,
+        pb_row, 0xFFFFFFFFu, text_scale);
     snes_ovl_draw_text(
-        pixels, stride, height, x + 7, y + 36,
-        comparison_row, 0xFFFFFFFFu, 1);
+        pixels, stride, height,
+        panel_rect.x + 7 * text_scale,
+        panel_rect.y + 36 * text_scale,
+        comparison_row, 0xFFFFFFFFu, text_scale);
 
     if (const char* timing_diagnostics =
             std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
@@ -4083,13 +4118,11 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
     // dimensions to a logical-coordinate renderer. The HD compositor resumes
     // as soon as the modal/hint surface is gone.
     const bool logical_overlay_active =
-        g_onboarding_visible ||
+        g_local_multiplayer_join_visible ||
         g_tour_action_visible ||
-        tour_continue_available() ||
-        tour_continue_routing() ||
-        (g_practice_active &&
-         g_practice_launch.stage ==
-             ur::product::QuickPracticeLaunchStage::Active) ||
+        onboarding_surface_active() ||
+        g_profile_menu_visible ||
+        host_subview_visible() ||
         paused() ||
         (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
          g_session && ur_modern_session_restart_available(g_session));
@@ -5461,39 +5494,93 @@ extern "C" void ur_uniracers_modern_system_overlay(
         std::snprintf(
             hint, sizeof(hint), "F6 / PAD Y  RECENT: %s",
             course ? course->name.data() : "COURSE");
-        snes_ovl_draw_text(
-            pixels, stride, height, 8, height - 13,
-            hint, 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.reserved.left = 8;
+        request.anchor = ur::product::HostOverlayAnchor::BottomLeft;
+        request.preferred_width = 240;
+        request.preferred_height = 13;
+        request.minimum_width = 160;
+        request.minimum_height = 13;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                layout.presentation_rect.x,
+                layout.presentation_rect.y,
+                hint, 0xFFFFFFFFu, scale);
+        }
     }
 
     if (modern_mode() && practice_routing()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const char* hint = "PRACTICE ROUTING...  ESC / B / START CANCEL";
-        const int hint_w = width < 320 ? width - 16 : 304;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, 15,
-            hint, 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.anchor = ur::product::HostOverlayAnchor::TopCenter;
+        request.preferred_width = 304;
+        request.preferred_height = 22;
+        request.minimum_width = 220;
+        request.minimum_height = 22;
+        request.edge_margin = 8;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                rect.x + 8 * scale, rect.y + 7 * scale,
+                hint, 0xFFFFFFFFu, scale);
+        }
     }
 
     if (modern_mode() && tour_continue_routing()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const char* hint = "CONTINUING TOUR  ESC / PAD B CANCEL";
-        const int hint_w = width < 300 ? width - 16 : 284;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, 15,
-            hint, 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.anchor = ur::product::HostOverlayAnchor::TopCenter;
+        request.preferred_width = 284;
+        request.preferred_height = 22;
+        request.minimum_width = 220;
+        request.minimum_height = 22;
+        request.edge_margin = 8;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                rect.x + 8 * scale, rect.y + 7 * scale,
+                hint, 0xFFFFFFFFu, scale);
+        }
     }
 
     if (tour_continue_available()) {
@@ -5518,17 +5605,35 @@ extern "C" void ur_uniracers_modern_system_overlay(
 
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
-        const int hint_w = width < 290 ? width - 16 : 274;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, height - 34, hint_w, 22,
-            0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, height - 34, hint_w, 22,
-            0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, height - 27,
-            hint, 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.reserved.left = 8;
+        request.reserved.right = 8;
+        request.reserved.bottom = 12;
+        request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
+        request.preferred_width = 274;
+        request.preferred_height = 22;
+        request.minimum_width = 200;
+        request.minimum_height = 22;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                rect.x + 8 * scale, rect.y + 7 * scale,
+                hint, 0xFFFFFFFFu, scale);
+        }
     }
 
     if (modern_mode() && g_practice_active &&
@@ -5537,15 +5642,33 @@ extern "C" void ur_uniracers_modern_system_overlay(
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
         const int stride = static_cast<int>(pitch / 4u);
         const char* hint = "PRACTICE  START > EXIT FRONTEND TO RETURN";
-        const int hint_w = width < 300 ? width - 16 : 284;
-        const int hint_x = (width - hint_w) / 2;
-        snes_ovl_fill_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xC0202020u);
-        snes_ovl_stroke_rect(
-            pixels, stride, height, hint_x, 8, hint_w, 22, 0xFFF0F0F0u);
-        snes_ovl_draw_text(
-            pixels, stride, height, hint_x + 8, 15,
-            hint, 0xFFFFFFFFu, 1);
+        const int scale = modern_overlay_surface_scale(width, height);
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.anchor = ur::product::HostOverlayAnchor::TopCenter;
+        request.preferred_width = 284;
+        request.preferred_height = 22;
+        request.minimum_width = 220;
+        request.minimum_height = 22;
+        request.edge_margin = 8;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(
+                pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                rect.x + 8 * scale, rect.y + 7 * scale,
+                hint, 0xFFFFFFFFu, scale);
+        }
     }
 
     draw_run_timing_hud(dst, pitch, width, height);

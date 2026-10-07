@@ -196,6 +196,21 @@ int main() {
             true,
             frame.data(),
             kPitch,
+            kFrameWidth,
+            kFrameHeight,
+            5);
+        assert(result == RegionalTitlePresentationResult::FailedClosed);
+        assert(frame == before);
+    }
+
+    {
+        auto frame = canonical;
+        const auto before = frame;
+        const auto result = apply_regional_title_presentation(
+            RegionalPresentation::Europe,
+            true,
+            frame.data(),
+            kPitch,
             kWidth - 1,
             kFrameHeight);
         assert(result == RegionalTitlePresentationResult::FailedClosed);

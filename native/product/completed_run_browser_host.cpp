@@ -18,6 +18,7 @@ extern "C" {
 #include "uniracers_modern_host.h"
 #include "uniracers_restart_policy.h"
 
+#include <algorithm>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -357,13 +358,14 @@ bool open_records_browser_impl(bool normalize_pause_surface) {
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(
             stderr,
-            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d\n",
+            "UR_RECORDS_BROWSER OPENED courses=%zu runs=%zu unavailable=%zu profile=%s profiles=%zu profiles_available=%d profile_unavailable=%zu\n",
             g_records_browser.index().courses.size(),
             g_records_browser.index().total_completed_runs,
             g_records_browser.unavailable_artifact_count(),
             g_records_active_profile_id.c_str(),
             g_records_profile_index.profiles.size(),
-            g_records_profiles_available ? 1 : 0);
+            g_records_profiles_available ? 1 : 0,
+            g_records_profile_index.total_unavailable_artifacts);
         for (const auto& course : g_records_browser.index().courses) {
             std::fprintf(
                 stderr,
@@ -529,8 +531,11 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     const int delta = ur_modern_host_navigation_vertical_delta(action);
     if (delta != 0) {
         if (g_records_browser.view() ==
-                ur::product::CompletedRunRecordsView::Courses &&
-            g_records_root_section == RecordsRootSection::Profiles) {
+            ur::product::CompletedRunRecordsView::Detail) {
+            (void)g_records_browser.adjust_detail_split_offset(delta);
+        } else if (g_records_browser.view() ==
+                       ur::product::CompletedRunRecordsView::Courses &&
+                   g_records_root_section == RecordsRootSection::Profiles) {
             (void)move_records_profile(delta);
         } else {
             (void)g_records_browser.move(delta);
@@ -885,11 +890,20 @@ void draw_records_browser(
                 pixels, stride, height, x + 8, y + 7,
                 "RECORDS / RACERS-PROFILES", 0xFFFFFFFFu, 1);
 
-            char summary[80];
-            std::snprintf(
-                summary, sizeof(summary), "%zu RACERS / %zu RUNS",
-                g_records_profile_index.profiles.size(),
-                g_records_profile_index.total_completed_runs);
+            char summary[96];
+            if (g_records_profile_index.total_unavailable_artifacts) {
+                std::snprintf(
+                    summary, sizeof(summary),
+                    "%zu RACERS / %zu RUNS / %zu UNAVAILABLE",
+                    g_records_profile_index.profiles.size(),
+                    g_records_profile_index.total_completed_runs,
+                    g_records_profile_index.total_unavailable_artifacts);
+            } else {
+                std::snprintf(
+                    summary, sizeof(summary), "%zu RACERS / %zu RUNS",
+                    g_records_profile_index.profiles.size(),
+                    g_records_profile_index.total_completed_runs);
+            }
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + 22,
                 summary, 0xFFFFFFFFu, 1);
@@ -1161,10 +1175,28 @@ void draw_records_browser(
                     ur::product::RunDataTargetKind::PersonalBest
                 ? "PB"
                 : "PREVIOUS";
-        char split_header[64];
-        std::snprintf(
-            split_header, sizeof(split_header),
-            "SPLITS < %s >  CURRENT / TARGET / DELTA", split_target_label);
+        std::size_t comparable_splits = 0;
+        if (split_summary) {
+            for (const auto& split : split_summary->splits) {
+                if (split.id != "finish") ++comparable_splits;
+            }
+        }
+        const std::size_t split_offset = g_records_browser.detail_split_offset();
+        char split_header[80];
+        if (comparable_splits > 3) {
+            const std::size_t first = split_offset + 1;
+            const std::size_t last =
+                std::min(split_offset + 3, comparable_splits);
+            std::snprintf(
+                split_header, sizeof(split_header),
+                "SPLITS < %s >  %zu-%zu/%zu  CUR / TGT / DELTA",
+                split_target_label, first, last, comparable_splits);
+        } else {
+            std::snprintf(
+                split_header, sizeof(split_header),
+                "SPLITS < %s >  CURRENT / TARGET / DELTA",
+                split_target_label);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8, y + 97,
             split_header, 0xFFFFFFFFu, 1);
@@ -1175,9 +1207,12 @@ void draw_records_browser(
                 "NO MATCHING CHECKPOINT DATA", 0xFFFFFFFFu, 1);
         } else if (split_summary) {
             int split_y = y + 112;
+            std::size_t split_index = 0;
             int shown = 0;
             for (const auto& split : split_summary->splits) {
-                if (split.id == "finish" || shown >= 3) continue;
+                if (split.id == "finish") continue;
+                if (split_index++ < split_offset) continue;
+                if (shown >= 3) break;
                 std::string label = split.id;
                 if (label.rfind("checkpoint-", 0) == 0) {
                     label = "CP " + label.substr(11);

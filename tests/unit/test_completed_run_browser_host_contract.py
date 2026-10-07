@@ -26,6 +26,9 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
             "ur_modern_host_navigation_adjustment_delta(action)", source
         )
         self.assertIn("adjust_detail_target(adjustment)", source)
+        self.assertIn("adjust_detail_split_offset(delta)", source)
+        self.assertIn("detail_split_offset()", source)
+        self.assertIn("CUR / TGT / DELTA", source)
 
         self.assertNotIn('"LEFT / RIGHT  CHANGE TARGET"', source)
         self.assertIn('"SPLITS < %s >  CURRENT / TARGET / DELTA"', source)
@@ -35,6 +38,9 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("RecordsRootSection::Profiles", source)
         self.assertIn("UR_RECORDS_BROWSER PROFILE_OPEN", source)
         self.assertIn("load_run_records_profile_sources(root)", source)
+        self.assertIn("total_unavailable_artifacts", source)
+        self.assertIn('"%zu RACERS / %zu RUNS / %zu UNAVAILABLE"', source)
+        self.assertIn("profile_unavailable=%zu", source)
         self.assertIn(
             "return records_viewing_active_profile() && selected && target",
             source,

@@ -224,6 +224,45 @@ int main(int argc, char** argv) {
     assert(records_browser.view() == CompletedRunRecordsView::Courses);
     assert(!records_browser.selected_run_index());
 
+    const auto scroll_root = root / "scroll";
+    std::filesystem::create_directories(scroll_root);
+    auto scroll_pb = run(1680, "course:01", 1600);
+    scroll_pb.splits = {
+        {"checkpoint-1", 1600},
+        {"checkpoint-2", 1620},
+        {"checkpoint-3", 1640},
+        {"checkpoint-4", 1660},
+        {"finish", 1680},
+    };
+    auto scroll_previous = run(1740, "course:01", 1610);
+    scroll_previous.splits = {
+        {"checkpoint-1", 1610},
+        {"checkpoint-2", 1630},
+        {"checkpoint-3", 1650},
+        {"checkpoint-4", 1670},
+        {"finish", 1740},
+    };
+    write_record(scroll_root / "run-0000000000000001-0001.urrun", scroll_pb);
+    write_record(
+        scroll_root / "run-0000000000000002-0002.urrun",
+        scroll_previous);
+
+    CompletedRunRecordsBrowser scroll_browser;
+    assert(scroll_browser.refresh(scroll_root.string(), records_scope));
+    assert(scroll_browser.open_selected_course());
+    assert(scroll_browser.open_selected_run_detail());
+    assert(scroll_browser.detail_split_offset() == 0);
+    assert(scroll_browser.adjust_detail_split_offset(1));
+    assert(scroll_browser.detail_split_offset() == 1);
+    assert(!scroll_browser.adjust_detail_split_offset(1));
+    assert(scroll_browser.adjust_detail_split_offset(-1));
+    assert(scroll_browser.detail_split_offset() == 0);
+    assert(!scroll_browser.adjust_detail_split_offset(-1));
+    assert(scroll_browser.adjust_detail_split_offset(1));
+    assert(scroll_browser.adjust_detail_target(1));
+    assert(scroll_browser.detail_target_kind() == RunDataTargetKind::Previous);
+    assert(scroll_browser.detail_split_offset() == 0);
+
     assert(std::string(completed_run_browser_status_name(
                CompletedRunBrowserEntryStatus::Corrupt)) == "CORRUPT");
     assert(std::string(completed_run_browser_status_name(

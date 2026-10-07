@@ -50,6 +50,8 @@ int main() {
 
     const auto unchanged = modern_root_menu_move(menu, 0);
     assert(unchanged.selected == ModernRootDestination::Play);
+    assert(modern_root_menu_selected(unchanged) ==
+           ModernRootDestination::Play);
 
     assert(same(
         modern_root_destination_label(ModernRootDestination::Practice),
@@ -66,6 +68,11 @@ int main() {
 
     ModernRootMenu invalid{
         static_cast<ModernRootDestination>(255)};
+    assert(modern_root_menu_selected(invalid) ==
+           ModernRootDestination::Play);
+    invalid = modern_root_menu_move(invalid, 0);
+    assert(invalid.selected == ModernRootDestination::Play);
+    invalid.selected = static_cast<ModernRootDestination>(255);
     invalid = modern_root_menu_move(invalid, 1);
     assert(invalid.selected == ModernRootDestination::Practice);
 

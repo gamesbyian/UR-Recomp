@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; broader P1 player-local families through 01B9 are measured, reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; broader P1 player-local families through 0139 are measured, reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -362,30 +362,69 @@
         "artifact_id": 11394369816,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 653,
-    "original_fallback_player_frames": 4629,
-    "hd_coverage_fraction": 0.12362741385838698,
-    "cumulative_player_frames_removed": 535,
-    "absolute_coverage_gain_percentage_points": 10.128739113971982,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.1036018590240124
-  },
-  "next_discriminator": {
-    "status": "measured-post-01b9-leader",
-    "target": {
+    },
+    {
       "player": "p1",
       "semantic_frame_id": "0x0139",
       "companion": "0x0000",
       "selector": 0,
       "gate": "0x0000",
-      "player_frames": 71,
+      "player_frames_removed": 71,
       "episode_count": 53,
       "synchronized_witness_state_count": 44,
-      "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "35875a76754641b4c2751a19f69d0f9e446f67ef08ac753092c549003b42b8fe",
       "normalized_geometry_sha256": "3617e550739823848b8ba9767708ac7341d95c56477ca663696c56a1449a8b70",
+      "alpha_bounds": [
+        18,
+        5,
+        47,
+        36
+      ],
+      "contact_x2_y2": [
+        77,
+        72
+      ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-0139.json",
+      "authored_rgba_sha256": "d208f606712a1234f31fdc0f7c441fc4144043669b229ba1e00210bdf1ca98bd",
+      "review_alpha_iou": 0.7196531791907514,
+      "review_evidence": {
+        "workflow_run": 37568170290,
+        "artifact_id": 11458979730
+      },
+      "after": {
+        "hd_selected_player_frames": 724,
+        "original_fallback_player_frames": 4558,
+        "hd_coverage_fraction": 0.13706929193487316
+      },
+      "focused_reproduction": {
+        "workflow_run": 37568357534,
+        "artifact_id": 11459174438,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 724,
+    "original_fallback_player_frames": 4558,
+    "hd_coverage_fraction": 0.13706929193487316,
+    "cumulative_player_frames_removed": 606,
+    "absolute_coverage_gain_percentage_points": 11.4729269216206,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.11735089078233928
+  },
+  "next_discriminator": {
+    "status": "measured-post-0139-leader",
+    "target": {
+      "player": "p1",
+      "semantic_frame_id": "0x0539",
+      "companion": "0x0000",
+      "selector": 0,
+      "gate": "0x0000",
+      "player_frames": 68,
+      "episode_count": 49,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "ba0464a8c49010fa6647de488f01abbc4cadda4fa6ad02643acd13913fbd2c36",
+      "normalized_geometry_sha256": "62d339ded8473e00b8a8df7449a9b1fb1be25eb6be915d3f5e9b70c603ea0f02",
       "alpha_bounds": [
         18,
         5,
@@ -400,6 +439,6 @@
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "0139 is the next bounded shipping slice by measured burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+    "rule": "0539 is the next bounded shipping slice by measured post-0139 burden. It still requires its own authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

@@ -33,6 +33,7 @@ from tools.build_racer_hd_asset_dossier import (
     FORTY_THIRD_AUTHORED_REPRESENTATION_ID,
     FORTY_FOURTH_AUTHORED_REPRESENTATION_ID,
     FORTY_FIFTH_AUTHORED_REPRESENTATION_ID,
+    FORTY_SIXTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     authored_candidate_rgba_for_entry,
@@ -62,6 +63,7 @@ from tools.build_racer_hd_asset_dossier import (
     build_twenty_sixth_authored_candidate_rgba,
     build_twenty_seventh_authored_candidate_rgba,
     build_twenty_eighth_authored_candidate_rgba,
+    build_twenty_ninth_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -89,6 +91,7 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_00b9_p1_broader_rgba,
     sample_authored_02b9_p1_broader_rgba,
     sample_authored_01b9_p1_broader_rgba,
+    sample_authored_0139_p1_broader_rgba,
     sample_authored_0543_p1_third_family_rgba,
     sample_authored_0540d2c_p2_third_family_rgba,
     sample_authored_0542_p1_third_family_rgba,
@@ -929,6 +932,33 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             for ly in range(64)
             for lx in range(64)
             if sample_authored_01b9_p1_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        ]
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [18, 5, 47, 36],
+        )
+        bottom = [x for x, y in occupied if y == 36]
+        self.assertEqual(min(bottom) + max(bottom), 77)
+
+    def test_broader_0139_candidate_has_expected_envelope_and_contact(self):
+        self.assertEqual(
+            FORTY_SIXTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0139-p1-broader-frequency-reference",
+        )
+        rgba = build_twenty_ninth_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        occupied = [
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_0139_p1_broader_rgba(
                 lx * 4 + 2, ly * 4 + 2
             )[3] != 0
         ]

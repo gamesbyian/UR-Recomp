@@ -33,8 +33,8 @@ Because that regression is path-filtered, every source surface compiled into the
 The implemented acceptance sequence covers:
 
 1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane, using the static MSVC runtime and rejecting any `MSVCP*.dll` / `VCRUNTIME*.dll` import before packaging;
-2. assemble and independently verify the clean package manifest, including a non-empty source revision, and the deterministic ZIP;
-3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
+2. assemble and independently verify the clean package manifest, re-verify the packaged ROM against the canonical USA retail fingerprint, including a non-empty source revision, and produce the deterministic ZIP;
+3. extract the ZIP to a fresh directory, re-verify the extracted ROM against the same canonical fingerprint, and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
 5. prove fresh-run `config.ini`, `keybinds.ini`, mod-selection state and `saves/` are created under an isolated user-data root, with no mutable state appearing in either the package directory or caller working directory, and re-verify the launched extracted package against its manifest;
 6. seed representative framework settings, mod selections, Modern settings, bindings, profile catalog/profile state, 1P completed-run data and ordinary-2P `.urrun` + `.urmatch` data under that user root, replace the extracted package from the clean ZIP, prove every seeded user-data artifact survives the replacement, boot the replacement package against that same root, then re-prove durable Modern/profile/1P/2P record state remains byte-identical after startup while re-verifying the package remains immutable;

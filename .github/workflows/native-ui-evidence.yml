@@ -425,8 +425,8 @@ jobs:
           UR_RACER_HD=1 \
           SNESRECOMP_DUMP_DIR="$DUMPS" \
           SNESRECOMP_INPUT_FILE="$INPUT" \
-          SNESRECOMP_SCREENSHOT="$SHOT" \
           # 1219 is an observed HD-composited frame in both the pre-move green smoke route and this shard.
+          SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=1219 \
           timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
 

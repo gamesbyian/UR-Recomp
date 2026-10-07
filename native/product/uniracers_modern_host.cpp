@@ -462,6 +462,9 @@ const char* widescreen_mode_name(ur::product::HostWidescreenMode mode) {
 }
 
 void synchronize_widescreen_provider_selector() {
+    // Explicit probe selectors own the guest-lane policy. Shipping Modern
+    // presentation does not: its margins are materialized host-side and the
+    // hook's hypothetical future strip must never mutate the stock VRAM ring.
     if (std::getenv("URRECOMP_WS_MARGIN")) return;
     const char* explicit_view = std::getenv("URRECOMP_WS_VIEW");
     if (explicit_view && *explicit_view) return;
@@ -470,8 +473,10 @@ void synchronize_widescreen_provider_selector() {
         g_product_state.settings.widescreen_mode ==
         ur::product::HostWidescreenMode::Authentic16x9;
 #if defined(_WIN32)
+    _putenv_s("URRECOMP_WS_GUEST_LANE", "0");
     _putenv_s("URRECOMP_WS_VIEW", enabled ? "authentic-16x9" : "");
 #else
+    setenv("URRECOMP_WS_GUEST_LANE", "0", 1);
     if (enabled) {
         setenv("URRECOMP_WS_VIEW", "authentic-16x9", 1);
     } else {

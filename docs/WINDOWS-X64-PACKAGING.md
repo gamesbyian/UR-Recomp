@@ -14,7 +14,7 @@ The shipping artifact is a deterministic `UR-Recomp-Windows-x64.zip` with a sing
 
 The portable package contains:
 
-- `UniracersSNESRecomp.exe`;
+- `UniracersSNESRecomp.exe`, built with the static MSVC runtime so the portable package does not require a separately installed Visual C++ Redistributable;
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - generated `rom.cfg`;
 - the staged `mods/` tree;
@@ -32,7 +32,7 @@ Because that regression is path-filtered, every source surface compiled into the
 
 The implemented acceptance sequence covers:
 
-1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane;
+1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane, using the static MSVC runtime and rejecting any `MSVCP*.dll` / `VCRUNTIME*.dll` import before packaging;
 2. assemble and independently verify the clean package manifest, including a non-empty source revision, and the deterministic ZIP;
 3. extract the ZIP to a fresh directory and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;

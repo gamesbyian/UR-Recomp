@@ -11,7 +11,8 @@ on:
       - "native/product/run_record_capture_policy.hpp"
       - "native/title/uniracers_two_player_result.*"
       - "tests/input/two-player-p1-win.input"
-      - "tests/input/two-player-both-finish.input"
+      - "tests/input/two-player-records-acceptance.input"
+      - "tests/input/two-player-records-acceptance.script"
       - "tests/native/multiplayer_match_pair_check.cpp"
       - "tools/patch_modern_product_host.py"
       - "tools/bootstrap_toolchain.py"
@@ -91,16 +92,20 @@ jobs:
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           MATCHES="$RUNNER_TEMP/matches"
           LOG="$RUNNER_TEMP/capture.log"
-          mkdir -p "$MATCHES"
+          DUMPS="$RUNNER_TEMP/acceptance-dumps"
+          mkdir -p "$MATCHES" "$DUMPS"
           rm -rf "$(dirname "$EXE")/saves"
 
           set +e
           SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-both-finish.input" \
+          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.input" \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
           UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
           UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
           UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 90s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+            timeout 90s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" \
+              >"$LOG" 2>&1
           RC=$?
           set -e
 
@@ -109,6 +114,7 @@ jobs:
           grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_READY p1=accept-p1 p2=accept-p2" "$LOG"
           grep -q "UR_MULTIPLAYER_MATCH CAPTURE_STARTED" "$LOG"
           grep -q "UR_MULTIPLAYER_MATCH CAPTURED" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE" "$LOG"
           test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f | wc -l)" -eq 1
           test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun.urmatch' -type f | wc -l)" -eq 1
           find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f > "$RUNNER_TEMP/run-path.txt"
@@ -135,3 +141,14 @@ jobs:
           RUN="$(cat "$RUNNER_TEMP/run-path.txt")"
           "$CHECK" "$RUN" "$RUNNER_TEMP/captured-relative.input" | tee "$RUNNER_TEMP/pair-check.log"
           grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01" "$RUNNER_TEMP/pair-check.log"
+
+      - name: Retain failed capture diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-2p-capture-failure
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/capture.log
+            ${{ runner.temp }}/acceptance-dumps/
+

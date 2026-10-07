@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-06
+Last updated: 2026-10-07
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 

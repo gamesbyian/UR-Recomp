@@ -292,7 +292,7 @@ jobs:
           grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default" "$LOG"
           grep -q "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 drilled=1 detail=1 current_course=1 courses=1 runs=1" "$LOG"
 
-      - name: Browse profile-owned Records read-only
+      - name: Open Records through pause menu
         shell: bash
         run: |
           set -euo pipefail
@@ -300,53 +300,24 @@ jobs:
           EXE="$ROOT/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           ORIGINAL="$RUNNER_TEMP/original.urrun"
-          USER_ROOT="$RUNNER_TEMP/records-profiles-root"
-          LOG="$RUNNER_TEMP/records-profiles.log"
+          RUNS="$RUNNER_TEMP/pause-records-runs"
+          LOG="$RUNNER_TEMP/pause-records.log"
 
-          mkdir -p "$USER_ROOT/runs/alpha" "$USER_ROOT/runs/beta"
-          printf "UR-PROFILE-CATALOG/1\nalpha|3|ALPHA\nbeta|4|BETA\n" > "$USER_ROOT/profiles-v1.txt"
-          cp "$ORIGINAL" "$USER_ROOT/runs/alpha/run-0001.urrun"
-          cp "$ORIGINAL" "$USER_ROOT/runs/beta/run-0001.urrun"
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
 
           SDL_AUDIODRIVER=dummy \
-          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
-          UR_RECORDS_BROWSER_ACCEPTANCE=profiles \
+          UR_PAUSE_RECORDS_ACCEPTANCE=1 \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
           UR_PRODUCT_DIAGNOSTICS=1 \
             timeout 180s xvfb-run -a "$EXE" "$ROM" \
               --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
               >"$LOG" 2>&1
 
           cat "$LOG"
-          grep -q "UR_RECORDS_BROWSER OPENED courses=0 runs=0 unavailable=0 profile=default profiles=2 profiles_available=1" "$LOG"
-          grep -q "UR_RECORDS_BROWSER PROFILE_OPEN profile=alpha runs=1 tracks=1 active=0" "$LOG"
-          grep -q "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=1 opened=1 profiles_opened=1 profiles=2 drilled=1 profile=alpha tracks=1 runs=1 handoff_allowed=0 returned=1" "$LOG"
-
-      - name: Fail closed on malformed profile catalog
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
-          EXE="$ROOT/build/UniracersSNESRecomp"
-          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          ORIGINAL="$RUNNER_TEMP/original.urrun"
-          USER_ROOT="$RUNNER_TEMP/records-malformed-profiles-root"
-          LOG="$RUNNER_TEMP/records-malformed-profiles.log"
-
-          mkdir -p "$USER_ROOT/runs/default"
-          printf "not a profile catalog\n" > "$USER_ROOT/profiles-v1.txt"
-          cp "$ORIGINAL" "$USER_ROOT/runs/default/run-0001.urrun"
-
-          SDL_AUDIODRIVER=dummy \
-          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
-          UR_RECORDS_BROWSER_ACCEPTANCE=profiles-malformed \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 180s xvfb-run -a "$EXE" "$ROM" \
-              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
-              >"$LOG" 2>&1
-
-          cat "$LOG"
-          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default profiles=0 profiles_available=0" "$LOG"
-          grep -q "UR_RECORDS_BROWSER PROFILES_MALFORMED pause=1 opened=1 tracks_preserved=1 runs=1 profiles_failed_closed=1 profiles_opened=1" "$LOG"
+          grep -q "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER .* selected=1 opened=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED_FROM_PAUSE_MENU" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0" "$LOG"
 
       - name: Open Records directly from results
         shell: bash
@@ -394,8 +365,7 @@ jobs:
             ${{ runner.temp }}/browser-replay.log
             ${{ runner.temp }}/records-browser.log
             ${{ runner.temp }}/records-user-data-root.log
-            ${{ runner.temp }}/records-profiles.log
-            ${{ runner.temp }}/records-malformed-profiles.log
+            ${{ runner.temp }}/pause-records.log
             ${{ runner.temp }}/results-records.log
             ${{ runner.temp }}/compare.log
             ${{ runner.temp }}/original-ghost-trace.log

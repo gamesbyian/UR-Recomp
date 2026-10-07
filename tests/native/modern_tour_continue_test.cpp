@@ -14,7 +14,7 @@ static ModernTourContinueStep advance_until_action(
         step = advance_modern_tour_continue(state, observation);
         state = step.state;
         if (step.input != QuickPracticeMenuInput::None ||
-            step.track_select_ready || step.timed_out ||
+            step.track_select_ready || step.tour_select_ready || step.timed_out ||
             step.state.stage == ModernTourContinueStage::Idle) {
             return step;
         }

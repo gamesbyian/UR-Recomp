@@ -3502,6 +3502,7 @@ bool host_owns_human_player_input() {
            (g_local_multiplayer_join_visible ||
             practice_routing() ||
             g_tour_action_visible ||
+            results_navigation_active() ||
             onboarding_surface_active() ||
             tour_continue_routing() ||
             g_profile_menu_visible ||

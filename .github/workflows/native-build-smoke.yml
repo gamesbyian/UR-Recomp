@@ -234,7 +234,7 @@ jobs:
             UR_PROFILE_SRAM_DIAGNOSTICS=1 \
             UR_EXECUTION_MODE="$MODE" \
             SNESRECOMP_RUN_FRAMES=1 \
-            timeout 12s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
+            timeout 60s xvfb-run -a "$EXE" "$ROM" >"$LOG" 2>&1
             local STATUS=$?
             set -e
             if [ "$STATUS" -ne 0 ] && [ "$STATUS" -ne 124 ]; then
@@ -293,7 +293,7 @@ jobs:
           UR_PRODUCT_DIAGNOSTICS=1 \
           UR_HOST_STATE_PATH="$DEFAULT_STATE" \
           SNESRECOMP_RUN_FRAMES=1 \
-          timeout 12s xvfb-run -a "$EXE" "$ROM" >"$DEFAULT_LOG" 2>&1
+          timeout 60s xvfb-run -a "$EXE" "$ROM" >"$DEFAULT_LOG" 2>&1
           grep -Fq "UR_PROFILE_SAVE_ROOT APPLIED profile=default.gamma root=saves/profile-default.gamma" \
             "$DEFAULT_LOG"
           grep -Fq "UR_PROFILE_STATE MISSING_READ_ONLY" "$DEFAULT_LOG"

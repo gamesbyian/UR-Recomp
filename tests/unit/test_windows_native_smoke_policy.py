@@ -16,7 +16,6 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
 
     def test_shipping_runtime_surfaces_retrigger_final_main_package_acceptance(self) -> None:
         for path in (
-            '      - ".github/workflows/windows-native-smoke.yml"',
             '      - "tools/verify_rom.py"',
             '      - "tools/check_result_screen_time.py"',
             '      - "tests/input/ui-race-result-route.script"',
@@ -27,6 +26,10 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             '      - "native/title/**"',
         ):
             self.assertIn(path, self.text)
+        self.assertNotIn(
+            '      - ".github/workflows/windows-native-smoke.yml"',
+            self.text,
+        )
 
     def test_push_path_entries_are_structurally_indented(self) -> None:
         paths_start = self.text.index("    paths:\n") + len("    paths:\n")
@@ -117,31 +120,17 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             "AUDIO_LOG",
         ):
             self.assertIn(
-                'assert_bounded_startup_log "        self.assertIn("Assemble and verify portable Windows package", self.text)
-        self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)
-        self.assertIn("tools/assemble_windows_package.py verify-archive-checksum", self.text)
-        self.assertIn("Clean-package boot and per-user state anchoring", self.text)
-        self.assertIn(
-            'python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"',
-            self.text,
-        )
-        self.assertIn(
-            'python tools/verify_rom.py "$TEST_PACKAGE/Uniracers_USA.sfc"',
-            self.text,
-        )
-        self.assertIn("WINDOWS_PACKAGE_STARTUP_DIAGNOSTICS ok", self.text)
-
-
-if __name__ == "__main__":
-    unittest.main()
- + name + '"',
+                'assert_bounded_startup_log "$' + name + '"',
                 self.text,
             )
 
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)
-        self.assertIn("tools/assemble_windows_package.py verify-archive-checksum", self.text)
+        self.assertIn(
+            "tools/assemble_windows_package.py verify-archive-checksum",
+            self.text,
+        )
         self.assertIn("Clean-package boot and per-user state anchoring", self.text)
         self.assertIn(
             'python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"',

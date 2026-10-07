@@ -28,7 +28,6 @@ on:
       - "tools/patches/snesrecomp-frame-input-observation.patch"
       - "tools/patches/snesrecomp-live-input-reload.patch"
       - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain.json"
       - "tests/input/race-finish-dragster.script"
       - "tests/input/completed-run-replay-dragster.script"
       - "tests/native/completed_run_replay_compare.cpp"

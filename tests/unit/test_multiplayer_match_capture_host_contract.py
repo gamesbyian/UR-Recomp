@@ -64,12 +64,16 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
             'if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE"))',
             reset,
         )
-        quit_request = body.index("request_desktop_quit();", acceptance)
+        completed = body.index(
+            '"UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE"', acceptance
+        )
+        quit_request = body.index("request_desktop_quit();", completed)
 
         self.assertLess(store, captured)
         self.assertLess(captured, reset)
         self.assertLess(reset, acceptance)
-        self.assertLess(acceptance, quit_request)
+        self.assertLess(acceptance, completed)
+        self.assertLess(completed, quit_request)
 
         # Every terminal authority failure must retire the isolated 2P capture
         # instead of leaving it armed for stale profile/course/result context.
@@ -108,6 +112,30 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
         self.assertLess(live, lost)
         self.assertLess(lost, reset)
         self.assertLess(reset, observe)
+
+    def test_active_capture_revalidates_captured_course_and_profiles(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+        frame_hook = source.index(
+            'extern "C" void ur_uniracers_modern_after_run_frame'
+        )
+        live = source.index(
+            "g_multiplayer_run_capture.capturing()", frame_hook
+        )
+        observe = source.index(
+            "g_multiplayer_run_capture.observe_guest_frame(", live
+        )
+        body = source[live:observe]
+
+        self.assertIn("ur_uniracers_identify_course(", body)
+        self.assertIn("current_course.course_index !=", body)
+        self.assertIn("*g_local_multiplayer_participants.player1 ==", body)
+        self.assertIn("*g_local_multiplayer_participants.player2 ==", body)
+        self.assertIn('"UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT"', body)
+        stale = body.index('"UR_MULTIPLAYER_MATCH STALE_SESSION_CONTEXT"')
+        reset = body.index("reset_multiplayer_run_capture();", stale)
+        self.assertLess(stale, reset)
 
     def test_generated_product_build_registers_multiplayer_authority(self):
         patcher = (

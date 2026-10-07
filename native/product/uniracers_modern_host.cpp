@@ -3845,8 +3845,8 @@ void complete_multiplayer_run_record_capture() {
             g_sram,
             static_cast<std::size_t>(g_sram_size));
     if (!observed) {
-        product_diagnostic("UR_MULTIPLAYER_MATCH RESULT_REJECTED");
-        reset_multiplayer_run_capture();
+        // 0xF9 appears before the stock SRAM result words settle. Keep the
+        // in-flight capture armed until the title observer sees a valid pair.
         return;
     }
 

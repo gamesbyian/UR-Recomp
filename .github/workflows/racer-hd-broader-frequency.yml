@@ -969,13 +969,18 @@ jobs:
           python3 - analysis/data/racer-hd-replacement-prototype.json "$RUNNER_TEMP/racer-hd-after-02b9-registry.json" <<'PY'
           import json, pathlib, sys
           source = json.loads(pathlib.Path(sys.argv[1]).read_text())
-          rid = "ordinary-racer-0x01B9-p1-broader-frequency-reference"
+          excluded = {
+              "ordinary-racer-0x01B9-p1-broader-frequency-reference",
+              "ordinary-racer-0x0139-p1-broader-frequency-reference",
+          }
           source["entries"] = [
-              e for e in source["entries"] if e["representation_id"] != rid
+              e for e in source["entries"] if e["representation_id"] not in excluded
           ]
-          source.get("motion_review_sequences", {}).pop(
-              "ordinary-race-01b9-broader-static-1404-1405", None
-          )
+          for key in (
+              "ordinary-race-01b9-broader-static-1404-1405",
+              "ordinary-race-0139-broader-static-1402-1403",
+          ):
+              source.get("motion_review_sequences", {}).pop(key, None)
           pathlib.Path(sys.argv[2]).write_text(
               json.dumps(source, indent=2, sort_keys=True) + "\n"
           )

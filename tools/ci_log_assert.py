@@ -14,10 +14,11 @@ import sys
 
 
 def event_lines(text: str, event: str) -> list[str]:
+    needle = f" {event} "
     return [
         line
         for line in text.splitlines()
-        if line == event or line.startswith(event + " ")
+        if needle in f" {line.strip()} "
     ]
 
 

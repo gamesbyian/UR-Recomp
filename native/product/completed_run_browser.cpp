@@ -371,7 +371,7 @@ bool CompletedRunBrowser::refresh(
 
         CompletedRunBrowserEntry entry;
         entry.path = item.path;
-        entry.date_text = run_date_text(fs::path(item.path));
+        entry.date_text = run_artifact_date_text(item.path);
         entry.chronological_order = source + 1;
         entry.status = browser_status(item.status);
         entry.detail = item.detail;

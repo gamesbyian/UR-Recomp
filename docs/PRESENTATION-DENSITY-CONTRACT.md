@@ -69,6 +69,20 @@ For every row, require:
 
 A screenshot-only visual comparison is insufficient: retain machine-readable logical bounds/clip rectangles alongside representative PNG evidence so failures distinguish layout-transform bugs from font/asset raster differences.
 
+## Implemented composition seam
+
+The first reusable composition seam now lives in `native/product/modern_overlay_composition.*`. It resolves a Modern overlay in three explicit spaces without learning title-specific HUD pixels:
+
+- a caller-owned logical surface plus reserved edge bands;
+- an exact integer-density presentation rectangle;
+- a deterministic projection into the already-resolved output viewport.
+
+The resolver anchors against the usable logical region, clamps only when the caller supplies a smaller-but-usable minimum, and otherwise fails closed when reserved stock content plus margins leave insufficient space. Density never changes logical placement. The same logical rectangle therefore produces exact 1x/2x/3x/4x presentation transforms while final window/output projection remains independent.
+
+The first shipping consumer is the live run-timing HUD. It now derives the active integer presentation density from the presentation surface, resolves the panel in logical coordinates, scales panel geometry and glyph rasterization together, and keeps its logical footprint stable instead of shrinking at 2x-4x. Modal product surfaces that still use direct physical-pixel coordinates continue to force the existing 1x path; removing that guard is permitted only surface-by-surface after migration to this contract.
+
+Deterministic model coverage includes stock 256x224, widened 342x224, 1x/2x/4x density, caller-reserved HUD bands, constrained-width compaction, minimum-size fail-closed behavior, and output-viewport projection. Native visual acceptance should remain bounded to representative migrated surfaces rather than turning every overlay into a screenshot oracle.
+
 ## Sampling policy
 
 Default policy is deterministic and deliberately boring:

@@ -121,6 +121,11 @@ int main(int argc, char** argv) {
     assert(!browser.entries()[1].personal_best_delta_ticks60);
     assert(browser.entries()[1].personal_best_delta_text == "--");
 
+    auto incompatible_scope = run(1400, "course:03");
+    incompatible_scope.provenance.build_compat_id = "other-build";
+    write_record(
+        root / "run-0000000000000000-0007.urrun", incompatible_scope);
+
     CompletedRunRecordsBrowser records_browser;
     const RunRecordsScope records_scope{
         "uniracers-usa",
@@ -132,6 +137,10 @@ int main(int argc, char** argv) {
     assert(records_browser.view() == CompletedRunRecordsView::Courses);
     assert(records_browser.index().total_completed_runs == 5);
     assert(records_browser.index().courses.size() == 2);
+    assert(records_browser.artifact_health().total_artifacts == 7);
+    assert(records_browser.artifact_health().loaded_artifacts == 6);
+    assert(records_browser.artifact_health().corrupt_artifacts == 1);
+    assert(records_browser.unavailable_artifact_count() == 2);
     assert(records_browser.selected_course());
     assert(records_browser.selected_course()->course_id == "course:01");
     assert(records_browser.selected_course()->statistics.completed_runs == 4);

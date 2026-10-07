@@ -3093,6 +3093,9 @@ jobs:
             --output-dir "$RUNNER_TEMP/racer-hd-post-p2-0579-0ec4-next-probe" \
             > "$RUNNER_TEMP/racer-hd-post-p2-0579-0ec4-next-probe.txt"
 
+          cp "$RUNNER_TEMP/racer-hd-post-p2-0579-0ec4-next-probe/stock.png" \
+            "$RUNNER_TEMP/racer-hd-p1-0579-stock.png"
+
           python3 - "$RUNNER_TEMP/racer-hd-post-p2-0579-0ec4-next-probe.json" <<'PY'
           import json, pathlib, sys
           probe = json.loads(pathlib.Path(sys.argv[1]).read_text())
@@ -3385,6 +3388,7 @@ jobs:
             ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe.json
             ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe.txt
             ${{ runner.temp }}/racer-hd-post-p2-0579-0ec4-next-probe/
+            ${{ runner.temp }}/racer-hd-p1-0579-stock.png
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.json
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe.txt
             ${{ runner.temp }}/racer-hd-p2-0579-0ec4-probe/

@@ -155,9 +155,9 @@ if "tour_resume=0:0:0:01000" not in profile:
 print("UR_RESULTS_TOUR_SELECT_NATIVE=stock_menu=1 rollback_preserved=1")
 PY
 
-# Four prequalified events are already authoritative; the scripted race replays
-# slot 0, leaving exactly slot 4 as the unique continuation target.
-run_case next 11110 next
+# Three prequalified events plus the scripted Crawler finish leaves exactly
+# slot 4 as the unique continuation target.
+run_case next 01110 next
 cat "$WORK/next.log"
 grep -q "UR_RESULTS_NAV MENU .*next=1 track=1 tour=1 .*records=1 practice=0" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT target=next" "$WORK/next.log"

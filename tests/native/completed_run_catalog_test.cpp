@@ -137,16 +137,20 @@ int main() {
         {"profile-alpha", {"ALPHA", 3}, mixed_records},
         {"", {"INVALID", 0}, mixed_records},
         {"profile-beta", {"BETA", 4}, beta_records},
+        {"profile-gamma", {"GAMMA", 5}, {}},
     };
     const auto profile_index =
         build_run_records_profile_index(profile_sources, scope);
-    assert(profile_index.profiles.size() == 2);
+    assert(profile_index.profiles.size() == 3);
     assert(profile_index.profiles[0].profile_id == "profile-alpha");
     assert(profile_index.profiles[0].completed_runs == 7);
     assert(profile_index.profiles[0].tracks_with_runs == 2);
     assert(profile_index.profiles[1].profile_id == "profile-beta");
     assert(profile_index.profiles[1].completed_runs == 8);
     assert(profile_index.profiles[1].tracks_with_runs == 3);
+    assert(profile_index.profiles[2].profile_id == "profile-gamma");
+    assert(profile_index.profiles[2].completed_runs == 0);
+    assert(profile_index.profiles[2].tracks_with_runs == 0);
     assert(profile_index.total_completed_runs == 15);
 
     const std::vector<StoredRunRecord> empty;

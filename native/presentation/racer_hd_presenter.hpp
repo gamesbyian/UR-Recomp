@@ -2553,6 +2553,7 @@ constexpr std::uint32_t sample_racer_hd_authored_0579_p2_0ec4_broader(
     const int upper_dy = y - 52;
     const bool upper =
         x >= 84 &&
+        y >= 20 &&
         y < 78 &&
         upper_dx * upper_dx * 44 * 44 +
             upper_dy * upper_dy * 28 * 28 <=

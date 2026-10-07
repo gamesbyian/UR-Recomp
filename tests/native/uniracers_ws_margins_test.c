@@ -121,6 +121,21 @@ int main(void) {
         free(bvram);
     }
 
+    /* Margin materialization must never force a tile that straddles the
+     * authored 256px centre. With an 8px fine phase, tile 78 overlaps the
+     * rightmost 8 authored pixels, so forcing starts at tile 79. */
+    {
+        int lf = 0, ll = 0, rf = 0, rl = 0;
+        ur_ws_margin_tile_bounds(1000, 48, &lf, &ll, &rf, &rl);
+        assert(lf == 59 && ll == 61);
+        assert(rf == 79 && rl == 81);
+
+        /* Aligned boundaries keep the immediately adjacent whole tiles. */
+        ur_ws_margin_tile_bounds(1008, 48, &lf, &ll, &rf, &rl);
+        assert(lf == 60 && ll == 62);
+        assert(rf == 79 && rl == 81);
+    }
+
     /* HDMA band tables: one 1P band, two split-screen bands, fail-closed
      * on repeat mode and misaligned tables. */
     {

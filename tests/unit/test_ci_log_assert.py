@@ -39,6 +39,15 @@ class CiLogAssertTests(unittest.TestCase):
         self.assertNotEqual(result.returncode, 0)
         self.assertIn("missing event", result.stderr)
 
+    def test_event_can_have_logger_prefix(self) -> None:
+        result = self.run_tool(
+            "[INFO] UR_HOST_STATE LOADED widescreen=16x9 display_mode=fullscreen\n",
+            "--event", "UR_HOST_STATE LOADED",
+            "--field", "display_mode=fullscreen",
+            "--field", "widescreen=16x9",
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_missing_field_reports_matching_event(self) -> None:
         result = self.run_tool(
             "UR_HOST_STATE LOADED widescreen=original display_mode=windowed\n",

@@ -1,6 +1,6 @@
 # Multiplayer / Tournament Records Authority
 
-Status: Records destination exists. A typed read-only ordinary-2P Race result observer consumes the already-promoted stock result surface, rider identities and last-result pair. A pure product binder now joins that result to two explicit Modern profile catalog identities only when both identities are valid, distinct and their rider indices match the guest-observed P1/P2 riders. Durable match-history production remains blocked on course/event binding and persistence.
+Status: Records destination exists. A typed read-only ordinary-2P Race result observer consumes the promoted stock result surface, and the pure product binder joins that result to two explicit Modern profile identities. A strict checksum-bound `UR-MULTIPLAYER-MATCH/1` sidecar now supplies the persistence contract without changing `.urrun`; live session integration remains blocked on explicit P2 profile selection and production paired capture.
 
 ## Existing reusable substrate
 
@@ -43,13 +43,13 @@ The next implementation should begin at the authoritative stock 2P results bound
 
 1. **[implemented]** Promote a typed, read-only title result observation for the validated ordinary 2P Race result surface. `native/title/uniracers_two_player_result.*` admits only an explicitly classified ordinary-2P context plus stock menu `0xF9`, stock rider indices `7E:017D/017F`, and the stock `77:0618/061A` last-result pair. It classifies P1 win, P2 win or draw with `60000` as `NO TIME`, and fails closed on invalid riders/result values. It writes nothing.
 2. **[pure binding implemented]** `native/product/local_multiplayer_match_binding.*` accepts the authoritative title result plus two explicit `HostProfileCatalogEntry` values supplied by the Modern session layer. It rejects missing or duplicate profile IDs, invalid racer identities, and any mismatch between the supplied identity rider index and the stock rider observed for that player. It does not infer identity from controller seats, active profile, timing, filenames or input payloads, and it does not persist anything.
-3. Integrate that binder only after the live multiplayer/session layer can supply an explicit P2 profile identity. The current device-assignment model is not participant identity and must not be promoted into one.
-4. Bind the same completed match to authoritative course/event identity, then decide whether the additional semantics belong in an additive sidecar bound to the existing `.urrun` checksum or require deliberate schema evolution. Do not silently overload existing fields.
-5. Prove fresh-process persistence and deterministic replay compatibility independently from result metadata.
+3. **[persistence contract implemented]** `native/product/multiplayer_match_record.*` encodes a bounded, deterministic `UR-MULTIPLAYER-MATCH/1` `.urmatch` sidecar. It stores the two already-bound profile/racer identities, authoritative Race result/outcome, course identity, and the exact existing `.urrun` artifact checksum. The sidecar has its own checksum, strict decoding and bounded file I/O; admission against a run requires both checksum and course equality with a validated decoded `.urrun`. Replay authority remains entirely in `.urrun`.
+4. Integrate the binder only after the live multiplayer/session layer can supply an explicit P2 profile identity. The current device-assignment model is not participant identity and must not be promoted into one.
+5. Broaden production capture only for the admitted ordinary-2P Race slice, persist the paired `.urrun` + `.urmatch`, and prove fresh-process pairing plus unchanged deterministic replay.
 6. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
 
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition
 
-Do not broaden production 2P capture merely because the input format can encode P2. Participant/result binding is now available as a pure fail-closed seam, but the lane is not durable-history ready until the live session can supply explicit P2 profile identity, authoritative course/event identity is bound to the same match, and the resulting metadata has a deliberate persistence contract without writing guest state.
+Do not broaden production 2P capture merely because the input format can encode P2. Result, participant binding and persistence format are now closed for the bounded ordinary-2P Race model, but live capture remains blocked until the session supplies explicit P2 profile identity. Device assignment alone is still insufficient.

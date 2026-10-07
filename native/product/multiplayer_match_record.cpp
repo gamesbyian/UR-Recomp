@@ -4,8 +4,10 @@
 #include <charconv>
 #include <cctype>
 #include <cstdint>
+#include <fstream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace ur::product {
@@ -13,6 +15,7 @@ namespace {
 
 constexpr std::string_view kMagic = "UR-MULTIPLAYER-MATCH/1";
 constexpr std::size_t kChecksumHexSize = 16;
+constexpr std::size_t kMaxMatchRecordBytes = 4096;
 
 bool set_error(std::string* detail, const char* message) noexcept {
     if (detail) *detail = message;
@@ -316,6 +319,41 @@ MultiplayerMatchDecodeResult decode_multiplayer_match_record(
     }
     result.record = std::move(record);
     return result;
+}
+
+bool save_multiplayer_match_record_file(
+    const std::string& path,
+    const MultiplayerMatchRecord& record,
+    std::string* detail) {
+    const std::string encoded = encode_multiplayer_match_record(record);
+    if (encoded.empty()) {
+        return set_error(detail, "match record validation failed");
+    }
+    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    if (!out) return set_error(detail, "cannot open match record");
+    out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
+    if (!out) return set_error(detail, "cannot write match record");
+    return true;
+}
+
+MultiplayerMatchDecodeResult load_multiplayer_match_record_file(
+    const std::string& path) {
+    std::ifstream in(path, std::ios::binary);
+    if (!in) return {std::nullopt, "cannot open match record"};
+
+    std::string encoded;
+    encoded.resize(kMaxMatchRecordBytes + 1u);
+    in.read(encoded.data(), static_cast<std::streamsize>(encoded.size()));
+    const std::streamsize count = in.gcount();
+    if (count < 0) return {std::nullopt, "cannot read match record"};
+    if (static_cast<std::size_t>(count) > kMaxMatchRecordBytes) {
+        return {std::nullopt, "match record too large"};
+    }
+    encoded.resize(static_cast<std::size_t>(count));
+    if (!in.eof() && in.fail()) {
+        return {std::nullopt, "cannot read match record"};
+    }
+    return decode_multiplayer_match_record(encoded);
 }
 
 }  // namespace ur::product

@@ -511,7 +511,7 @@ jobs:
             test -f "$log"
             echo "===== retained startup log: $log ====="
             cat "$log"
-            test "$(wc -l < "$log")" -le 11
+            test "$(wc -l < "$log")" -le 12
           }
 
 

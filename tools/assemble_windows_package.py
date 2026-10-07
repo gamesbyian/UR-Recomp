@@ -197,7 +197,10 @@ def write_launcher(path: Path, source_revision: str) -> None:
         "if errorlevel 1 (echo UR-STARTUP-SAVE-ROOT: the configured user data directory is not writable. Check permissions or choose another absolute location. 1>&2 & exit /b 3)\r\n"
         "del /q \"%UR_WRITE_PROBE%\" >nul 2>&1\r\n"
         "if not exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" mkdir \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\" 2>nul\r\n"
-        # ur-startup-log-v1 seeds seven bootstrap lines here. A host-side\n        # classified failure may append four more, including one safe path.\n        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" (\r\n"
+        # ur-startup-log-v1 seeds seven bootstrap lines here. A host-side
+        # classified failure may append four more, including one safe path,
+        # and the launcher then records the host process_exit line.
+        "if exist \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\\" (\r\n"
         "  set \"UR_RECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\"\r\n"
         "  set \"SNESRECOMP_STARTUP_LOG=%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\"\r\n"
         "  > \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo schema=ur-startup-log-v1\r\n"

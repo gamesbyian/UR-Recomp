@@ -5,6 +5,11 @@
 using namespace ur::product;
 
 int main() {
+    assert(resolve_output_geometry_representation(false) ==
+           HostGraphicsRepresentation::Original);
+    assert(resolve_output_geometry_representation(true) ==
+           HostGraphicsRepresentation::Remastered);
+
     const HostRational authentic_par{7, 6};
     const HostRational square_par{1, 1};
     const HostRational target_16x9{16, 9};

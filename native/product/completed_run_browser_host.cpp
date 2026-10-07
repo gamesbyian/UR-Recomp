@@ -48,6 +48,7 @@ ur::product::RunRecordsScope records_scope();
 enum class RecordsRootSection {
     Tracks,
     Profiles,
+    MultiplayerTournament,
 };
 
 RecordsRootSection g_records_root_section = RecordsRootSection::Tracks;
@@ -525,6 +526,35 @@ void return_to_browser(
     }
 }
 
+void adjust_records_root_section(int delta) {
+    if (delta == 0) return;
+    if (delta > 0) {
+        switch (g_records_root_section) {
+        case RecordsRootSection::Tracks:
+            g_records_root_section = RecordsRootSection::Profiles;
+            break;
+        case RecordsRootSection::Profiles:
+            g_records_root_section = RecordsRootSection::MultiplayerTournament;
+            break;
+        case RecordsRootSection::MultiplayerTournament:
+            g_records_root_section = RecordsRootSection::Tracks;
+            break;
+        }
+    } else {
+        switch (g_records_root_section) {
+        case RecordsRootSection::Tracks:
+            g_records_root_section = RecordsRootSection::MultiplayerTournament;
+            break;
+        case RecordsRootSection::Profiles:
+            g_records_root_section = RecordsRootSection::Tracks;
+            break;
+        case RecordsRootSection::MultiplayerTournament:
+            g_records_root_section = RecordsRootSection::Profiles;
+            break;
+        }
+    }
+}
+
 bool records_browser_navigation(UrModernHostNavigationAction action) {
     if (!g_records_browser_visible) return false;
 
@@ -537,6 +567,12 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                        ur::product::CompletedRunRecordsView::Courses &&
                    g_records_root_section == RecordsRootSection::Profiles) {
             (void)move_records_profile(delta);
+        } else if (g_records_browser.view() ==
+                       ur::product::CompletedRunRecordsView::Courses &&
+                   g_records_root_section ==
+                       RecordsRootSection::MultiplayerTournament) {
+            // No durable match rows exist yet; do not move the hidden Tracks
+            // cursor while the fail-closed multiplayer view is selected.
         } else {
             (void)g_records_browser.move(delta);
         }
@@ -548,9 +584,7 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
     if (adjustment != 0 &&
         g_records_browser.view() ==
             ur::product::CompletedRunRecordsView::Courses) {
-        g_records_root_section = adjustment < 0
-            ? RecordsRootSection::Tracks
-            : RecordsRootSection::Profiles;
+        adjust_records_root_section(adjustment);
         return true;
     }
     if (adjustment != 0 &&
@@ -580,6 +614,12 @@ bool records_browser_navigation(UrModernHostNavigationAction action) {
                     std::fflush(stderr);
                 }
             }
+        } else if (g_records_browser.view() ==
+                       ur::product::CompletedRunRecordsView::Courses &&
+                   g_records_root_section ==
+                       RecordsRootSection::MultiplayerTournament) {
+            // The destination exists before its history authority. Confirm is
+            // deliberately inert until durable match rows can be populated.
         } else if (g_records_browser.view() ==
                    ur::product::CompletedRunRecordsView::Courses) {
             (void)g_records_browser.open_selected_course();
@@ -948,10 +988,30 @@ void draw_records_browser(
 
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,
-                "LEFT / RIGHT  TRACKS / RACERS", 0xFFFFFFFFu, 1);
+                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 26,
                 "ENTER / A  VIEW TRACKS", 0xFFFFFFFFu, 1);
+        } else if (g_records_root_section ==
+                   RecordsRootSection::MultiplayerTournament) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 7,
+                "RECORDS / MULTIPLAYER-TOURNAMENT", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 42,
+                "NO STORED MATCH HISTORY", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 57,
+                "HISTORY AUTHORITY NOT YET AVAILABLE", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 72,
+                "LIVE 2P RESULTS ARE NOT PERSISTED", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 41,
+                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + panel_h - 26,
+                "ESC / B    BACK", 0xFFFFFFFFu, 1);
         } else {
             const std::string profile_name = records_view_profile_name();
             char title[96];
@@ -1032,7 +1092,7 @@ void draw_records_browser(
                 previous, 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 41,
-                "LEFT / RIGHT  TRACKS / RACERS", 0xFFFFFFFFu, 1);
+                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8, y + panel_h - 26,
                 "ENTER / A  RUNS", 0xFFFFFFFFu, 1);

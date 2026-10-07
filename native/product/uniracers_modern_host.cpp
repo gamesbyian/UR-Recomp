@@ -4553,7 +4553,7 @@ extern "C" void ur_uniracers_modern_prepare_frame(
     if (!authentic_16x9_view_enabled()) return;
 
     const auto plan = ur::product::resolve_16x9_output_composition(
-        ur::product::HostGraphicsRepresentation::Original,
+        ur::product::resolve_output_geometry_representation(false),
         g_widescreen_scene);
     *frame_width = plan.logical_view_width;
     *frame_height = plan.logical_view_height;
@@ -4577,10 +4577,10 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
         g_widescreen_scene == ur::product::HostSceneComposition::WorldExpand;
 
     // Internal Render Scale is a stable product setting, not a per-pose
-    // Racer-HD signal. When the Remastered presenter is enabled, fixed scenes
-    // keep the configured density even if the current racer pose falls back
-    // to the stock raster. Unmigrated direct-coordinate surfaces and widened
-    // world composition still fail closed to 1x.
+    // Racer-HD signal. Fixed and evidence-backed widened scenes keep the
+    // configured density even when the authored replacement presenter
+    // declines the current frame; the generic nearest-density compositor then
+    // preserves the complete logical field, including widened world margins.
     const char* racer_hd = std::getenv("UR_RACER_HD");
     const bool racer_hd_enabled =
         racer_hd != nullptr && racer_hd[0] != '\0' &&
@@ -4591,12 +4591,7 @@ extern "C" int ur_uniracers_modern_presentation_scale(void) {
                   g_product_state.settings.internal_render_scale)
             : 1;
 
-    const bool regional_title =
-        modern_mode() &&
-        g_product_state.regional_presentation ==
-            ur::product::RegionalPresentation::Europe &&
-        current_regional_secret_context().idle_title_surface;
-    const bool logical_overlay_active = regional_title;
+    const bool logical_overlay_active = false;
 
     return ur::product::resolve_internal_render_scale(
         modern_mode(),
@@ -4616,15 +4611,17 @@ extern "C" int ur_uniracers_modern_draw_frame(
             ur::product::RegionalPresentation::Europe &&
         current_regional_secret_context().idle_title_surface;
     if (regional_title && dst && field && frame_width > 0 &&
-        frame_height > 0 &&
-        pitch >= static_cast<std::size_t>(frame_width) * 4u) {
-        const std::size_t row_bytes =
-            static_cast<std::size_t>(frame_width) * 4u;
-        for (int y = 0; y < frame_height; ++y) {
-            std::memcpy(
-                dst + static_cast<std::size_t>(y) * pitch,
-                field + static_cast<std::size_t>(y) * row_bytes,
-                row_bytes);
+        frame_height > 0) {
+        const int presentation_scale =
+            ur_uniracers_modern_presentation_scale();
+        if (!ur::product::compose_nearest_density_frame(
+                dst,
+                pitch,
+                field,
+                frame_width,
+                frame_height,
+                presentation_scale)) {
+            return 0;
         }
         const auto regional_result =
             ur::product::apply_regional_title_presentation(
@@ -4632,8 +4629,21 @@ extern "C" int ur_uniracers_modern_draw_frame(
                 true,
                 dst,
                 pitch,
+                frame_width * presentation_scale,
+                frame_height * presentation_scale,
+                presentation_scale);
+        if (regional_result ==
+            ur::product::RegionalTitlePresentationResult::FailedClosed) {
+            // Restore the exact canonical field at the same presentation
+            // density if any provenance/paint verification fails.
+            (void)ur::product::compose_nearest_density_frame(
+                dst,
+                pitch,
+                field,
                 frame_width,
-                frame_height);
+                frame_height,
+                presentation_scale);
+        }
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             static ur::product::RegionalTitlePresentationResult last_result =
                 ur::product::RegionalTitlePresentationResult::Canonical;
@@ -4693,7 +4703,7 @@ extern "C" void ur_uniracers_modern_compute_viewport(
     }
 
     const auto plan = ur::product::resolve_16x9_output_composition(
-        ur::product::HostGraphicsRepresentation::Original,
+        ur::product::resolve_output_geometry_representation(false),
         g_widescreen_scene);
     const auto resolved = ur::product::resolve_output_viewport(
         plan, drawable_width, drawable_height);

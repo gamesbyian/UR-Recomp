@@ -9,6 +9,18 @@ enum class HostGraphicsRepresentation : std::uint8_t {
     Remastered = 1,
 };
 
+/* Final output geometry belongs to the completed frame, not to any one
+ * replacement layer inside it. A frame remains Original geometry while its
+ * background/HUD/margins are still stock, even when one racer is rendered
+ * from Remastered art. Only a future full-frame square-pixel presenter may
+ * opt into Remastered output geometry. */
+constexpr HostGraphicsRepresentation resolve_output_geometry_representation(
+    bool full_frame_remastered) noexcept {
+    return full_frame_remastered
+        ? HostGraphicsRepresentation::Remastered
+        : HostGraphicsRepresentation::Original;
+}
+
 enum class HostSceneComposition : std::uint8_t {
     FixedCenter = 0,
     WorldExpand = 1,

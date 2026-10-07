@@ -16,5 +16,20 @@ class ModernProductSettingsCatalogTest(unittest.TestCase):
         )
         self.assertEqual(errors, [])
 
+    def test_integrated_setting_requires_visible_row(self):
+        catalog = {
+            "host_state_codec_version": 1,
+            "settings": [{
+                "id": "hidden",
+                "persisted_key": "hidden",
+                "menu_symbol": None,
+                "menu_visible": False,
+                "runtime_status": "integrated",
+                "authentic_inert": True,
+            }],
+        }
+        errors = check_catalog(catalog, "schema_version = 1", '"hidden"', "")
+        self.assertIn("integrated setting must have a visible Options row: hidden", errors)
+
 if __name__ == "__main__":
     unittest.main()

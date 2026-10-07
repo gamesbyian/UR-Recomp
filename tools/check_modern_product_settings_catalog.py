@@ -34,6 +34,8 @@ def check_catalog(catalog: dict[str, Any], state_hpp: str, state_cpp: str, menu_
                 errors.append(f"menu-visible setting lacks menu_symbol: {sid}")
             elif symbol not in menu_h:
                 errors.append(f"menu symbol missing from modern_options_menu.h: {symbol}")
+        if setting.get("runtime_status") == "integrated" and not setting.get("menu_visible"):
+            errors.append(f"integrated setting must have a visible Options row: {sid}")
         if setting.get("authentic_inert") is not True:
             errors.append(f"host setting must remain Authentic-inert: {sid}")
     return errors

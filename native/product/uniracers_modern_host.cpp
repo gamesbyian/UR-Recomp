@@ -307,6 +307,7 @@ bool paused();
 bool restart_surface();
 bool dispatch(UrModernPauseAction action);
 bool abort_practice_route_to_frontend(const char* diagnostic);
+void clear_results_navigation_route();
 void rearm_run_capture_after_retry();
 uint32_t current_sram_digest();
 const char* regional_presentation_name(
@@ -2772,9 +2773,15 @@ bool open_tour_action_menu() {
 }
 
 void cancel_tour_continue(const char* diagnostic) {
+    const bool results_route = g_results_tour_route_active;
     g_tour_continue = {};
     g_next_event_target_track.reset();
     g_tour_continue_profile_id.clear();
+    if (results_route) {
+        g_results_tour_route_active = false;
+        g_results_route_progress.reset();
+        g_results_route_profile_id.clear();
+    }
     if (diagnostic) product_diagnostic(diagnostic);
 }
 
@@ -3590,6 +3597,12 @@ bool begin_pending_results_navigation_route() {
     }
 
     g_results_route_pending = ur::product::ModernResultsAction::None;
+    if (started && action == ur::product::ModernResultsAction::NextEvent) {
+        // From here the established continuation/Next Event route owns all
+        // validation; the result snapshot was only the reboot handoff token.
+        g_results_route_progress.reset();
+        g_results_route_profile_id.clear();
+    }
     if (!started) {
         product_diagnostic("UR_RESULTS_NAV ROUTE_START_FAILED");
         clear_results_navigation_route();

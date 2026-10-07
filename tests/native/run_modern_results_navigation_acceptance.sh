@@ -155,16 +155,17 @@ if "tour_resume=0:0:0:01000" not in profile:
 print("UR_RESULTS_TOUR_SELECT_NATIVE=stock_menu=1 rollback_preserved=1")
 PY
 
-# Three prequalified events plus the scripted Crawler finish leaves exactly
-# slot 4 as the unique continuation target.
-run_case next 01110 next
+# Four events are prequalified with Crawler as the sole remaining event.
+# That keeps the deterministic Crawler drive script valid while proving the
+# existing unique-continuation authority exposes exactly one Next Event.
+run_case next 01111 next
 cat "$WORK/next.log"
 grep -q "UR_RESULTS_NAV MENU .*next=1 track=1 tour=1 .*records=1 practice=0" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT target=next" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV NEXT_EVENT_STARTED" "$WORK/next.log"
-grep -q "UR_NEXT_EVENT SELECTING track=4 slot=4" "$WORK/next.log"
+grep -q "UR_NEXT_EVENT SELECTING track=0 slot=0" "$WORK/next.log"
 grep -q "UR_NEXT_EVENT RACE_ENTERED" "$WORK/next.log"
-grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=4 actual=4 course_equal=1" "$WORK/next.log"
+grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/next.log"
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next.log"
 ! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/next.log"
 

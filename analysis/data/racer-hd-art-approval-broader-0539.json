@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "family": "ordinary-racer",
+  "review_basis": {
+    "temporal_window": [1504, 1505],
+    "workflow_run": null,
+    "artifact_id": null,
+    "review_surface": "Broader-route P1-only deterministic dossier, pose-equivalence, authored review, and real 1504-1505 player-local temporal hold."
+  },
+  "family_blockers": [],
+  "decisions": [
+    {
+      "authored_source_representation_id": "ordinary-racer-0x0539-p1-broader-frequency-reference",
+      "status": "approved",
+      "shipping_art_approved": true,
+      "blocker_codes": [],
+      "reviewed_authored_rgba_sha256": "49128053e4bdef20f5bf5b307c5cbe9be347b2b8ebf142501a96f4e9fa118d03"
+    }
+  ]
+}

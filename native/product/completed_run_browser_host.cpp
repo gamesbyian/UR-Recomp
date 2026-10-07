@@ -838,7 +838,11 @@ void draw_records_browser(
             pixels, stride, height, x + 8, y + 97,
             split_header, 0xFFFFFFFFu, 1);
 
-        if (split_summary) {
+        if (split_summary && split_summary->splits.empty()) {
+            snes_ovl_draw_text(
+                pixels, stride, height, x + 8, y + 112,
+                "NO MATCHING CHECKPOINT DATA", 0xFFFFFFFFu, 1);
+        } else if (split_summary) {
             int split_y = y + 112;
             int shown = 0;
             for (const auto& split : split_summary->splits) {

@@ -14,6 +14,12 @@ enum class MultiplayerMatchBrowserView {
     Detail = 1,
 };
 
+struct MultiplayerMatchBrowserVisibleRow {
+    std::size_t index = 0;
+    bool selected = false;
+    MultiplayerMatchRowPresentation presentation;
+};
+
 class MultiplayerMatchBrowser {
 public:
     void set_matches(std::vector<StoredMultiplayerMatch> matches);
@@ -25,11 +31,12 @@ public:
 
     const StoredMultiplayerMatch* selected_match() const noexcept;
     std::optional<MultiplayerMatchRowPresentation>
-    row_presentation(std::size_t index) const;
-    std::optional<MultiplayerMatchRowPresentation>
     selected_row_presentation() const;
     std::optional<MultiplayerMatchDetailPresentation>
     selected_detail_presentation() const;
+
+    std::vector<MultiplayerMatchBrowserVisibleRow>
+    visible_rows(std::size_t capacity) const;
 
     bool move(int delta) noexcept;
     bool open_selected() noexcept;

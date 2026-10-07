@@ -74,16 +74,20 @@ class MultiplayerMatchCaptureHostContractTests(unittest.TestCase):
             'if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE"))',
             reset,
         )
+        quit_request = body.index("request_desktop_quit()", acceptance)
         completed = body.index(
-            '"UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE"', acceptance
+            '"UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE"', quit_request
         )
-        quit_request = body.index("request_desktop_quit();", completed)
+        rejected = body.index(
+            '"UR_MULTIPLAYER_MATCH ACCEPTANCE_QUIT_REJECTED"', completed
+        )
 
         self.assertLess(store, captured)
         self.assertLess(captured, reset)
         self.assertLess(reset, acceptance)
-        self.assertLess(acceptance, completed)
-        self.assertLess(completed, quit_request)
+        self.assertLess(acceptance, quit_request)
+        self.assertLess(quit_request, completed)
+        self.assertLess(completed, rejected)
 
         # Every terminal authority failure must retire the isolated 2P capture
         # instead of leaving it armed for stale profile/course/result context.

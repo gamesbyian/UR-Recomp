@@ -92,6 +92,7 @@ void CompletedRunRecordsBrowser::clear() noexcept {
     selected_course_.reset();
     selected_run_.reset();
     detail_target_kind_ = RunDataTargetKind::PersonalBest;
+    detail_split_offset_ = 0;
 }
 
 bool CompletedRunRecordsBrowser::refresh(
@@ -219,6 +220,28 @@ bool CompletedRunRecordsBrowser::adjust_detail_target(int delta) noexcept {
     if (!selected_run_target_summary(requested)) return false;
 
     detail_target_kind_ = requested;
+    detail_split_offset_ = 0;
+    return true;
+}
+
+bool CompletedRunRecordsBrowser::adjust_detail_split_offset(int delta) {
+    if (view_ != CompletedRunRecordsView::Detail || delta == 0) return false;
+
+    const auto summary = selected_run_target_summary(detail_target_kind_);
+    if (!summary) return false;
+
+    std::size_t comparable = 0;
+    for (const auto& split : summary->splits) {
+        if (split.id != "finish") ++comparable;
+    }
+    const std::size_t max_offset = comparable > 3 ? comparable - 3 : 0;
+    if (delta > 0) {
+        if (detail_split_offset_ >= max_offset) return false;
+        ++detail_split_offset_;
+    } else {
+        if (detail_split_offset_ == 0) return false;
+        --detail_split_offset_;
+    }
     return true;
 }
 
@@ -274,6 +297,7 @@ bool CompletedRunRecordsBrowser::open_selected_run_detail() noexcept {
     }
     view_ = CompletedRunRecordsView::Detail;
     detail_target_kind_ = RunDataTargetKind::PersonalBest;
+    detail_split_offset_ = 0;
     return true;
 }
 

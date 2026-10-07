@@ -31,6 +31,7 @@ extern "C" {
 #include "host_profile_catalog.hpp"
 #include "modern_racer_identity.hpp"
 #include "modern_tour_action_menu.hpp"
+#include "modern_results_navigation.hpp"
 #include "modern_tour_continue.hpp"
 #include "modern_main_menu_strip.hpp"
 #include "next_event_derivation.hpp"
@@ -193,6 +194,12 @@ std::string g_tour_continue_input_path;
 bool g_tour_continue_acceptance_fired;
 bool g_tour_action_visible;
 ur::product::ModernTourActionMenu g_tour_action_menu;
+ur::product::ModernResultsNavigationMenu g_results_navigation_menu;
+std::optional<ur::title::TourProgress> g_results_route_progress;
+std::string g_results_route_profile_id;
+ur::product::ModernResultsAction g_results_route_pending =
+    ur::product::ModernResultsAction::None;
+bool g_results_tour_route_active;
 
 bool g_display_caps_reported;
 bool g_profile_sram_reported;

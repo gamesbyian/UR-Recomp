@@ -46,11 +46,11 @@ The next implementation should begin at the authoritative stock 2P results bound
 3. Integrate that binder only after the live multiplayer/session layer can supply an explicit P2 profile identity. The current device-assignment model is not participant identity and must not be promoted into one.
 4. **[pure course/event binding implemented]** The same binder can now accept `UrUniracersCourseIdentity` from the established decoded-course observer and produces the canonical completed-run course key only for valid ordinals 1..45. Because the result observer already admits only ordinary 2P Race results, this completes the pure `{result, participants, course/event}` authority tuple without inferring from filenames, timers or controller seats.
 5. **[sidecar path implemented]** `native/product/multiplayer_match_record.*` stores the already-bound `{result, two profiles, course}` tuple as bounded deterministic `UR-MULTIPLAYER-MATCH/1` metadata. It has its own checksum, strict decoding/file limits, and carries the exact existing `.urrun` artifact checksum. Admission against a decoded run requires both checksum and canonical course equality. The replay schema and replay authority are unchanged.
-6. Integrate explicit P2 profile selection/supply into the live Modern multiplayer session, then persist paired `.urrun` + `.urmatch` artifacts and prove fresh-process pairing plus unchanged deterministic replay.
-7. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
-
+6. **[live participant selection implemented]** The Modern local-multiplayer join surface now keeps input-device assignment and participant identity separate. Each joined seat explicitly confirms a distinct catalogued profile; no device seat or active-profile inference creates identity. Confirmed identities survive stock setup/race/result until frontend return, while disconnect clears the affected identity. The stock rider picker remains authoritative and later result binding still rejects rider/profile mismatches.
+7. Broaden production capture only for the admitted ordinary-2P Race slice, persist paired `.urrun` + `.urmatch` artifacts, and prove fresh-process pairing plus unchanged deterministic replay.
+8. Only then let Multiplayer/Tournament Records aggregate completed matches and later tournament standings.
 Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
 
 ## Stop condition
 
-Do not broaden production 2P capture merely because the input format can encode P2. Result/participant/course authority and the persistence contract are now available; the remaining blocker is live explicit P2 profile identity. Device assignment alone remains insufficient.
+Do not broaden production 2P capture merely because the input format can encode P2. Result/participant/course authority, the persistence contract, and live explicit two-profile session identity are now available. The remaining blocker is production ordinary-2P Race capture plus paired `.urrun`/`.urmatch` persistence and fresh-process acceptance.

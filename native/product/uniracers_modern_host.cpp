@@ -189,6 +189,8 @@ bool g_exit_frontend_waiting_for_main;
 bool g_exit_frontend_waiting_for_usable;
 bool g_exit_frontend_acceptance_fired;
 unsigned g_exit_frontend_acceptance_surface_frames;
+bool g_pause_records_acceptance_fired;
+unsigned g_pause_records_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunGhostState g_run_ghosts;
 ur::product::CompletedRunGhostTraceCapture g_run_ghost_trace_capture;
@@ -3725,6 +3727,52 @@ void maybe_run_exit_frontend_acceptance() {
     }
 }
 
+void maybe_run_pause_records_acceptance() {
+    if (g_pause_records_acceptance_fired || !modern_mode() || !g_session ||
+        !std::getenv("UR_PAUSE_RECORDS_ACCEPTANCE")) {
+        return;
+    }
+    if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE || paused()) {
+        g_pause_records_acceptance_surface_frames = 0;
+        return;
+    }
+    if (++g_pause_records_acceptance_surface_frames < 90) return;
+
+    g_pause_records_acceptance_fired = true;
+    const UrModernSessionResult pause_result =
+        ur_modern_session_pause(g_session);
+    const int restart = ur_modern_session_restart_available(g_session);
+    ur_modern_pause_menu_reset(&g_pause_menu);
+
+    int moves = 0;
+    while (moves < 10 &&
+           ur_modern_pause_menu_selected(&g_pause_menu, restart) !=
+               UR_MODERN_PAUSE_RECORDS) {
+        ur_modern_pause_menu_move(&g_pause_menu, 1, restart);
+        ++moves;
+    }
+    const bool selected =
+        ur_modern_pause_menu_selected(&g_pause_menu, restart) ==
+        UR_MODERN_PAUSE_RECORDS;
+    const bool opened = selected && activate_pause_selection();
+
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER pause=%d restart=%d moves=%d selected=%d opened=%d\n",
+            static_cast<int>(pause_result),
+            restart,
+            moves,
+            selected ? 1 : 0,
+            opened ? 1 : 0);
+        std::fflush(stderr);
+    }
+
+    SDL_Event event{};
+    event.type = SDL_QUIT;
+    (void)SDL_PushEvent(&event);
+}
+
 void apply_focus_pause_policy() {
     if (!g_session || !restart_surface()) return;
     const bool focused = SDL_GetKeyboardFocus() != nullptr;
@@ -4745,6 +4793,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
 
     maybe_run_exit_frontend_acceptance();
+    maybe_run_pause_records_acceptance();
 
     if (g_exit_frontend_waiting_for_main &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {

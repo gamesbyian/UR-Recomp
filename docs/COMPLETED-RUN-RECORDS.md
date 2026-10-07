@@ -87,7 +87,7 @@ The host-independent admission policy now also defines the future bounded ordina
 
 ## Local ghost target availability
 
-The per-profile ghost preference already owns the durable choice: **Off**, **Previous**, or **Personal Best**. Availability is now modeled separately from that persisted request. `resolve_completed_run_ghost_target()` accepts the requested target plus the current compatible Previous/PB availability and returns both the unchanged request and the effective target for this binding.
+The per-profile ghost preference already owns the durable choice: **Off**, **Previous**, or **Personal Best**. The product policy also owns the canonical option-cycle order, **Off → Previous → Personal Best → Off**, via `next_completed_run_ghost_target()`; invalid values fail closed to Off. The live host still performs the persistence transaction, but it should not invent a different ordering. Availability is now modeled separately from that persisted request. `resolve_completed_run_ghost_target()` accepts the requested target plus the current compatible Previous/PB availability and returns both the unchanged request and the effective target for this binding.
 
 If the requested artifact is unavailable for the current course/session, the effective target is **Off** only for that binding. The profile preference is not rewritten, and Personal Best never silently falls back to Previous (or vice versa). This keeps local ghost management predictable across courses with uneven history while preserving one preference authority.
 

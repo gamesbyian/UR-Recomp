@@ -274,6 +274,127 @@ class CiTriggerPolicyTest(unittest.TestCase):
         )
 
 
+    def test_automatic_jobs_have_timeouts(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            runs_on = len(re.findall(r"(?m)^    runs-on:", text))
+            timeouts = len(re.findall(r"(?m)^    timeout-minutes:", text))
+            if timeouts < runs_on:
+                offenders.append((path.name, runs_on, timeouts))
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic jobs that can hang must declare job-level timeouts: {offenders}",
+        )
+
+    def test_git_writers_serialize_without_cancellation(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            if not re.search(r"(?m)^\s*git push(?:\s|$)", text):
+                continue
+            if "  contents: write" not in text or "cancel-in-progress: false" not in text:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            "workflows that push generated evidence must serialize and must not "
+            f"cancel an in-flight writer: {offenders}",
+        )
+
+    def test_automatic_specialists_do_not_follow_global_toolchain_registry(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            if path.name == "toolchain-bootstrap.yml":
+                continue
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            if '"tools/toolchain.json"' in triggers:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"specialist automatic workflows must watch per-tool entries, not tools/toolchain.json: {offenders}",
+        )
+
+    def test_automatic_workflows_do_not_watch_all_tool_entries(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            automatic = bool(_block(text, "pull_request")) or _pushes_main(text)
+            if not automatic:
+                continue
+            triggers = "\n".join((_block(text, "pull_request"), _block(text, "push")))
+            if '"tools/toolchain-entries/**"' in triggers:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"automatic workflows must name the toolchain entries they consume: {offenders}",
+        )
+
+    def test_main_push_does_not_self_trigger_on_workflow_yaml(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            text = path.read_text()
+            push = _block(text, "push")
+            own_path = f'.github/workflows/{path.name}'
+            if _pushes_main(text) and own_path in push:
+                offenders.append(path.name)
+        self.assertEqual(
+            offenders,
+            [],
+            f"main-push workflows must not rerun solely because their own YAML changed: {offenders}",
+        )
+
+    def test_shell_continuations_are_not_interrupted_by_comments(self):
+        offenders = []
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            lines = path.read_text().splitlines()
+            for index, line in enumerate(lines[:-1]):
+                if line.rstrip().endswith("\\") and lines[index + 1].lstrip().startswith("#"):
+                    offenders.append(f"{path.name}:{index + 1}")
+        self.assertEqual(
+            offenders,
+            [],
+            "a comment after a backslash-continued shell line terminates or mutates "
+            f"the command; move comments before the command: {offenders}",
+        )
+
+    def test_host_state_log_checks_do_not_depend_on_field_order(self):
+        offenders = []
+        assignment = re.compile(r"[A-Za-z_][A-Za-z0-9_]*=")
+        for path in sorted(WORKFLOWS.glob("*.yml")):
+            for index, line in enumerate(path.read_text().splitlines(), start=1):
+                if "grep" not in line or "UR_HOST_STATE LOADED" not in line:
+                    continue
+                if len(assignment.findall(line)) > 1:
+                    offenders.append(f"{path.name}:{index}")
+        self.assertEqual(
+            offenders,
+            [],
+            "UR_HOST_STATE diagnostics are extensible key/value records; assert owned "
+            f"fields independently rather than depending on field order: {offenders}",
+        )
+
+    def test_native_ui_builds_one_candidate_for_all_capture_shards(self):
+        text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
+        self.assertEqual(text.count("cmake --build"), 1)
+        self.assertEqual(text.count("setup_project.sh"), 2)  # one existence check, one invocation
+        self.assertIn("name: build-ui-candidate", text)
+        self.assertIn("name: native-ui-build-candidate", text)
+        self.assertIn("needs: build", text)
+        aggregate = text.split("  aggregate:", 1)[1]
+        self.assertNotIn("if: always()", aggregate.split("    steps:", 1)[0])
+        self.assertIn("needs: [build, capture]", aggregate)
+
     def test_full_toolchain_build_matrix_is_manual_only(self):
         text = (WORKFLOWS / "toolchain-bootstrap.yml").read_text()
         self.assertRegex(

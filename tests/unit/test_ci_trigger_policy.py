@@ -312,7 +312,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
             text = path.read_text()
             if not re.search(r"(?m)^\s*git push(?:\s|$)", text):
                 continue
-            if "  contents: write" not in text or "cancel-in-progress: false" not in text:
+            serialized = (
+                "cancel-in-progress: false" in text
+                or "cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}" in text
+            )
+            if "  contents: write" not in text or not serialized:
                 offenders.append(path.name)
         self.assertEqual(
             offenders,

@@ -503,6 +503,46 @@ jobs:
           python3 tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2
           echo "UR_RENDER_SCALE_FRAME PASS dimensions=512x448 scale=2"
 
+      - name: Internal Render Scale fallback-frame acceptance
+        if: matrix.shard == 'core'
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          STATE="$RUNNER_TEMP/render-scale-2x.state"
+          SHOT="$RUNNER_TEMP/render-scale-2x-fallback-1467.ppm"
+          LOG="$RUNNER_TEMP/render-scale-2x-fallback-1467.log"
+          DUMPS="$RUNNER_TEMP/render-scale-2x-fallback-1467-dumps"
+          mkdir -p "$DUMPS"
+
+          # Frame 1467 is the retained native Racer-HD fail-closed witness:
+          # P1 is an unauthored 0540+0D4C pose and must not enter the authored
+          # replacement draw path. Density must nevertheless remain at the
+          # persisted 2x setting through the exact stock-raster fallback.
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_RACER_HD=1 \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          SNESRECOMP_INPUT_FILE="$INPUT" \
+          SNESRECOMP_SCREENSHOT="$SHOT" \
+          SNESRECOMP_SCREENSHOT_FRAME=1467 \
+          timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*internal_render_scale=2x" "$LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=2x" "$LOG"
+          if grep -F "UR_RACER_HD_DRAW PASS frame=1467 " "$LOG"; then
+            echo "::error::fallback witness frame 1467 unexpectedly entered authored Racer HD"
+            exit 1
+          fi
+          test -s "$SHOT"
+          python3 tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2
+          echo "UR_RENDER_SCALE_FALLBACK PASS frame=1467 dimensions=512x448 scale=2"
+
       - name: Upload shard evidence
         if: always()
         uses: actions/upload-artifact@v4
@@ -515,6 +555,9 @@ jobs:
             ${{ runner.temp }}/render-scale-2x.state
             ${{ runner.temp }}/render-scale-2x.ppm
             ${{ runner.temp }}/render-scale-2x-dumps/
+            ${{ runner.temp }}/render-scale-2x-fallback-1467.ppm
+            ${{ runner.temp }}/render-scale-2x-fallback-1467.log
+            ${{ runner.temp }}/render-scale-2x-fallback-1467-dumps/
           if-no-files-found: warn
           retention-days: 7
 

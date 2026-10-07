@@ -30,6 +30,14 @@ constexpr ModernRootDestination modern_root_destination_from_index(
         index % kModernRootDestinationCount);
 }
 
+constexpr ModernRootDestination modern_root_menu_selected(
+    const ModernRootMenu& menu) noexcept {
+    const auto index = modern_root_destination_index(menu.selected);
+    return index < kModernRootDestinationCount
+        ? menu.selected
+        : ModernRootDestination::Play;
+}
+
 constexpr ModernRootMenu modern_root_menu_reset() noexcept {
     return {ModernRootDestination::Play};
 }
@@ -37,12 +45,12 @@ constexpr ModernRootMenu modern_root_menu_reset() noexcept {
 constexpr ModernRootMenu modern_root_menu_move(
     ModernRootMenu menu,
     int delta) noexcept {
+    menu.selected = modern_root_menu_selected(menu);
     if (delta == 0) return menu;
 
     const int count = static_cast<int>(kModernRootDestinationCount);
     int index = static_cast<int>(
         modern_root_destination_index(menu.selected));
-    if (index < 0 || index >= count) index = 0;
 
     const int step = delta > 0 ? 1 : -1;
     index = (index + step + count) % count;

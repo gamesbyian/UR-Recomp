@@ -10,6 +10,21 @@ using namespace ur::title;
 
 namespace {
 
+CompletedRunRecord run_record() {
+    CompletedRunRecord run;
+    run.provenance = {
+        "uniracers-usa",
+        "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "native-sim-v1",
+        "course:01",
+        "race-2p",
+    };
+    run.elapsed_ticks60 = 1726;
+    run.frame_count = 2;
+    run.inputs = {{0, 2, 0x080, 0x000}};
+    return run;
+}
+
 MultiplayerMatchRecord record() {
     MultiplayerMatchRecord value;
     value.run_artifact_checksum = "0123456789abcdef";
@@ -34,7 +49,11 @@ MultiplayerMatchRecord record() {
 }  // namespace
 
 int main() {
-    const auto original = record();
+    const auto run = run_record();
+    auto original = record();
+    original.run_artifact_checksum =
+        completed_run_record_artifact_checksum(run);
+    assert(multiplayer_match_record_matches_run(original, run));
     const std::string encoded = encode_multiplayer_match_record(original);
     assert(!encoded.empty());
     assert(encoded.find("UR-MULTIPLAYER-MATCH/1\n") == 0);
@@ -85,6 +104,11 @@ int main() {
     assert(loaded);
     assert(loaded.record->run_artifact_checksum ==
            original.run_artifact_checksum);
+    assert(multiplayer_match_record_matches_run(*loaded.record, run));
+
+    auto wrong_course_run = run;
+    wrong_course_run.provenance.course_id = "course:02";
+    assert(!multiplayer_match_record_matches_run(original, wrong_course_run));
 
     {
         std::ofstream oversized(path, std::ios::binary | std::ios::trunc);

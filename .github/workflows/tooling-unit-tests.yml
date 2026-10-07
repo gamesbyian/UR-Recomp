@@ -54,5 +54,9 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - name: Fast-fail Python and workflow syntax
+        run: |
+          python3 -m compileall -q tests/unit tools
+          ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
       - name: Run dependency-free Python unit tests
         run: python3 -m unittest discover -s tests/unit -p 'test_*.py' -v

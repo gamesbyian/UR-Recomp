@@ -57,12 +57,21 @@ def _stop_entire_tree(proc: subprocess.Popen) -> None:
             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
             timeout=15, check=False,
         )
+        try:
+            proc.wait(timeout=5)
+            return
+        except subprocess.TimeoutExpired:
+            pass
     if proc.poll() is None:
-        proc.kill()
+        try:
+            proc.kill()
+        except (ProcessLookupError, PermissionError):
+            # On Windows a process can terminate between poll and kill.
+            pass
     try:
         proc.wait(timeout=10)
-    except subprocess.TimeoutExpired:
-        proc.kill()
+    except subprocess.TimeoutExpired as error:
+        raise RuntimeError("failed to stop native paused Windows process") from error
 
 
 def capture(

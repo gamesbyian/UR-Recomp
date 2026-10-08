@@ -105,7 +105,7 @@ class RacerHdFallbackFrequencyTests(unittest.TestCase):
 
 
     def test_pair_gate_unlock_is_ranked_by_opponent_already_supported(self):
-        rows = parse_trace("\\n".join([
+        rows = parse_trace(chr(10).join([
             "UR_RACER_PRESENTATION_TRACE frame=50 p1_primary=0540 p2_primary=0543 p1_companion=0000 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0000 p2_gate=0000",
             "UR_RACER_PRESENTATION_TRACE frame=51 p1_primary=0540 p2_primary=0543 p1_companion=0000 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0000 p2_gate=0000",
             "UR_RACER_PRESENTATION_TRACE frame=52 p1_primary=0540 p2_primary=0544 p1_companion=0000 p2_companion=0000 p1_selector=0000 p2_selector=0000 p1_gate=0000 p2_gate=0000",

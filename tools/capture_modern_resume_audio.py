@@ -111,7 +111,7 @@ def verify_resume_audio(log: str, paused: dict, resumed: dict) -> dict:
 def _find_game_window(root_pid: int) -> int:
     # Launcher is PowerShell -> .cmd -> shipping EXE; never inject other apps.
     command = ("Get-CimInstance Win32_Process | "
-               "Select-Object ProcessId,ParentProcessId | ConvertTo-Json -Compress")
+               "Select-Object ProcessId,ParentProcessId,Name | ConvertTo-Json -Compress")
     report = subprocess.check_output(
         ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", command],
         text=True, timeout=15,
@@ -127,6 +127,16 @@ def _find_game_window(root_pid: int) -> int:
                            if int(p["ParentProcessId"]) in descendants)
         changed = len(descendants) != before
 
+    # The Windows package contract pins this executable name. Select its PID
+    # within *this* launch tree, rather than trusting an arbitrary window title
+    # (which can be localized or changed by the framework).
+    game_pids = {int(p["ProcessId"]) for p in entries
+                 if int(p["ProcessId"]) in descendants
+                 and str(p.get("Name", "")).lower() == "uniracerssnesrecomp.exe"}
+    if len(game_pids) != 1:
+        raise RuntimeError(
+            f"expected one packaged Uniracers executable in launch tree; got {len(game_pids)}"
+        )
     user32 = ctypes.WinDLL("user32", use_last_error=True)
     candidates = []
     callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
@@ -149,12 +159,9 @@ def _find_game_window(root_pid: int) -> int:
     def visit(hwnd, _):
         pid = wintypes.DWORD()
         user32.GetWindowThreadProcessId(hwnd, ctypes.byref(pid))
-        if pid.value in descendants and user32.IsWindowVisible(hwnd):
-            n = user32.GetWindowTextLengthW(hwnd)
-            title = ctypes.create_unicode_buffer(n + 1)
-            user32.GetWindowTextW(hwnd, title, n + 1)
-            if title.value and ("unirac" in title.value.lower() or
-                                "unirally" in title.value.lower()):
+        if pid.value in game_pids and user32.IsWindowVisible(hwnd):
+            # A zero-title helper window is not the primary game window.
+            if user32.GetWindowTextLengthW(hwnd) > 0:
                 candidates.append(int(hwnd))
         return True
 

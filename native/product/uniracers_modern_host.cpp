@@ -45,6 +45,7 @@ extern "C" {
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "modern_practice_visual_style.hpp"
+#include "modern_tour_overview_visual_style.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
 #include "../title/uniracers_tour_progress_overview.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -7547,7 +7548,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w = logical_width < 268 ? logical_width - 16 : 260;
+        const auto style =
+            ur::product::modern_tour_overview_visual_style(logical_width);
+        const int panel_w = style.panel_width_logical;
         constexpr int kPanelHeight = 207;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
@@ -7556,20 +7559,35 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const auto& rect = layout.presentation_rect;
         const int x = rect.x;
         const int y = rect.y;
+        // Reuse the stock yellow-title/grey-detail grammar from the
+        // measured BG2 menu, without changing the read-only medal model.
         snes_ovl_fill_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xE0202020u);
+            rect.width, rect.height, style.panel_fill);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, 26 * scale, 0xC0484848u);
         snes_ovl_stroke_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xFFF0F0F0u);
+            rect.width, rect.height, style.panel_outline);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 8 * scale,
-            "TOUR PROGRESS", 0xFFFFFFFFu, scale);
+            x + 9 * scale, y + (style.title_y_logical + 1) * scale,
+            "TOUR PROGRESS", style.dark_outline,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + style.title_y_logical * scale,
+            "TOUR PROGRESS", style.title_yellow,
+            style.title_glyph_scale * scale);
         char row[80];
         std::snprintf(row, sizeof(row), "BRONZE %u  SILVER %u  GOLD %u",
             g_progress_overview.bronze_or_better,
             g_progress_overview.silver_or_better,
             g_progress_overview.gold);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 30 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 30 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
+        snes_ovl_fill_rect(pixels, stride, height,
+            x + 8 * scale, y + 46 * scale,
+            rect.width - 16 * scale, scale, style.panel_outline);
         for (std::uint8_t tour = 0; tour < 8; ++tour) {
             // Catalog index is presentation identity; stock tour option
             // remains the only medal/unlock index. Never name hidden Hunter.
@@ -7579,21 +7597,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
             const auto stock_option = ur::product::kQuickPracticeTourOptions[tour];
             const bool visible = ur::title::stock_tour_progress_visible(
                 g_progress_overview, stock_option);
-            if (visible) {
-                std::snprintf(row, sizeof(row), "%u. %.*s  %s",
-                    static_cast<unsigned>(tour + 1),
-                    static_cast<int>(course->tour_name.size()),
-                    course->tour_name.data(),
-                    ur::title::stock_tour_progress_medal_name(
-                        g_progress_overview, stock_option));
-            } else {
-                std::snprintf(row, sizeof(row), "%u. LOCKED TOUR",
-                    static_cast<unsigned>(tour + 1));
-            }
+            const auto line = ur::product::modern_tour_overview_visual_row(
+                static_cast<unsigned>(tour + 1),
+                visible,
+                course->tour_name,
+                ur::title::stock_tour_progress_medal_name(
+                    g_progress_overview, stock_option),
+                ur::product::modern_overlay_text_cells(panel_w));
             snes_ovl_draw_text(pixels, stride, height,
                 x + 8 * scale,
-                y + (51 + static_cast<int>(tour) * 16) * scale,
-                row, visible ? 0xFFFFFFFFu : 0xFFA0A0A0u, scale);
+                y + (style.first_tour_y_logical +
+                     static_cast<int>(tour) *
+                         style.row_spacing_logical) * scale,
+                line.c_str(),
+                visible && g_progress_overview.medal_tiers[stock_option] > 0
+                    ? style.title_yellow : style.secondary_grey,
+                scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
             "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",

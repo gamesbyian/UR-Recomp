@@ -258,6 +258,42 @@ jobs:
               run_route ui-attract-route ui-attract-route.script ui-attract-dumps 90
               run_route ui-pause-route ui-pause-route.script ui-pause-dumps 90
               run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
+              # Temporary paired pristine-root evidence; preserve shipping route.
+              for pacing in paced unpaced; do
+                (
+                  export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-$pacing-user"
+                  mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                  delay=0
+                  if [ "$pacing" = unpaced ]; then delay=1; fi
+                  printf '[General]\nDisableFrameDelay = %s\n' "$delay" > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  grep -Fqx "DisableFrameDelay = $delay" "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  run_route "ui-race-result-$pacing" ui-race-result-route.script "ui-race-result-$pacing-dumps" 180 required || exit $?
+                  grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                    "$RUNNER_TEMP/ui-race-result-$pacing.log" || exit $?
+                ) || exit $?
+              done
+              python3 - "$RUNNER_TEMP/ui-race-result-paced-dumps" "$RUNNER_TEMP/ui-race-result-unpaced-dumps" "$RUNNER_TEMP/ui-race-result-dumps" <<'PY'
+          import hashlib
+          from pathlib import Path
+          import sys
+          def hashes(root):
+              return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in sorted(root.rglob("*")) if p.is_file()}
+          paced, unpaced, existing = [hashes(Path(p)) for p in sys.argv[1:4]]
+          script = Path("tests/input/ui-race-result-route.script").read_text()
+          required = [line.split(None,1)[1].strip() + ".wram.bin"
+                      for line in script.splitlines() if line.startswith("dump ")]
+          if len(required) != 18 or any(k not in paced or k not in unpaced for k in required):
+              raise SystemExit("Race result required 18 WRAM checkpoint evidence missing")
+          if set(paced) != set(unpaced):
+              raise SystemExit(f"Race result file set parity mismatch: {sorted(set(paced)^set(unpaced))}")
+          differ = sorted(k for k in paced if paced[k] != unpaced[k])
+          if differ:
+              raise SystemExit(f"Race result byte parity mismatch: {differ}")
+          drift = sum(existing.get(k) != paced.get(k) for k in existing.keys() | paced.keys())
+          manifest = hashlib.sha256("".join(f"{k}\t{v}\n" for k,v in sorted(paced.items())).encode()).hexdigest()
+          print(f"UR_RACE_RESULT_PACING_PARITY PASS files={len(paced)} checkpoints=18 baseline_drift={drift} sha256={manifest}")
+          PY
               run_route ui-erase-confirm ui-erase-confirm.script ui-erase-confirm-dumps 90
               ;;
             results-a)

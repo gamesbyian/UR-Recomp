@@ -293,6 +293,16 @@ int main() {
         p1_top, p1_bottom, p2_top, p2_bottom
     ));
     p2_bottom.height_pixels = 64;
+    p2_bottom.tile = 0x00;  // unknown P2 graphics family
+    assert(!racer_p1_only_no_stock_p2_occlusion(
+        p1_top, p1_bottom, p2_top, p2_bottom
+    ));
+    p2_bottom.tile = 0x88;
+    p2_top.large = false;
+    assert(!racer_p1_only_no_stock_p2_occlusion(
+        p1_top, p1_bottom, p2_top, p2_bottom
+    ));
+    p2_top.large = true;
     p2_bottom.x_signed = -200;
     assert(racer_p1_only_no_stock_p2_occlusion(
         p1_top, p1_bottom, p2_top, p2_bottom

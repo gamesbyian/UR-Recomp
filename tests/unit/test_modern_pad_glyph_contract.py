@@ -6,6 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 HARNESS = ROOT / "tests" / "native" / "run_modern_pad_glyph_acceptance.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
+ONBOARDING_PATHS = ROOT / ".github" / "ci" / "modern-native-onboarding-paths.txt"
 
 
 def _body(source: str, start: str, end: str) -> str:
@@ -53,8 +54,9 @@ class ModernPadGlyphContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")
+        paths = ONBOARDING_PATHS.read_text(encoding="utf-8")
         self.assertIn("run_modern_pad_glyph_acceptance.sh", workflow)
-        self.assertIn('"native/product/modern_pad_glyphs.hpp"', workflow)
+        self.assertIn("native/product/modern_pad_glyphs.hpp", paths)
 
 
 if __name__ == "__main__":

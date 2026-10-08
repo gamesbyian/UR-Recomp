@@ -61,7 +61,7 @@ jobs:
 
   build:
     needs: classify
-    if: needs.classify.outputs.shared == 'true' || needs.classify.outputs.ui == 'true'
+    if: needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -163,14 +163,21 @@ jobs:
 
   shared:
     needs: [classify, build]
-    if: needs.classify.outputs.shared == 'true'
+    if: ${{ always() && needs.classify.result == 'success' && needs.classify.outputs.shared == 'true' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     uses: ./.github/workflows/modern-shared-native-acceptance.yml
     with:
-      canonical_candidate: true
+      canonical_candidate: ${{ needs.build.result == 'success' }}
+
+  onboarding:
+    needs: [classify, build]
+    if: ${{ always() && needs.classify.result == 'success' && needs.classify.outputs.onboarding == 'true' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    uses: ./.github/workflows/modern-onboarding-practice-acceptance.yml
+    with:
+      canonical_candidate: ${{ needs.build.result == 'success' }}
 
   ui:
     needs: [classify, build]
-    if: needs.classify.outputs.ui == 'true'
+    if: ${{ always() && needs.classify.result == 'success' && needs.classify.outputs.ui == 'true' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
     uses: ./.github/workflows/native-ui-evidence.yml
     with:
-      canonical_candidate: true
+      canonical_candidate: ${{ needs.build.result == 'success' }}

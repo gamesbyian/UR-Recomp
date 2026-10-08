@@ -190,21 +190,24 @@ generic smoke gate.
 
 ### Shared native candidate and bounded acceptance fan-out
 
-Several focused automatic workflows still independently build materially the
-same Linux native candidate. The October 7 ready-for-review validation made the
-cost concrete: eleven heavyweight workflows started together, repeatedly
-installing the same development packages and building overlapping candidates.
-Seven gates completed successfully, while Native Smoke, Profile Panel and
-Native UI were cancelled during prolonged Ubuntu mirror stalls and Racer
-Presentation was cancelled after producing evidence. Those cancellations are
-runner/dependency pressure, not evidence that shorter test timeouts are safe.
+The heavyweight Modern Linux gates now use a classifier-driven router rather
+than paying blindly for duplicate producers. Shared Modern, Modern Onboarding
+and Native UI keep independent consumer graphs and suite-specific path
+manifests, but the router owns automatic PR selection. Artifact forensics on a
+completed three-gate PR proved that all three producers emitted the same native
+executable and the same patched main.c, game_rtl.c and CMakeLists.txt, so they
+are one semantic build seam rather than merely similar YAML.
 
-Native UI is the reference architecture for the next CI phase: one producer
-builds and uploads an immutable candidate, independent consumer jobs download
-that exact candidate with runtime-only dependencies, and an aggregate job owns
-the final gate. Equivalent Modern Linux acceptance gates should converge on
-that shape where their generated host, patches and instrumentation are truly
-identical.
+Build sharing is adaptive rather than unconditional. When all three heavyweight
+suites are selected, one canonical producer builds and uploads the immutable
+candidate and each reusable suite bridges that artifact into its existing
+consumer contract. When only one or two suites are selected, the canonical
+producer is skipped and the selected suites keep their standalone builds in
+parallel. The two-suite #835 pilot proved the reusable-workflow artifact handoff
+but was roughly 40 seconds slower in wall-clock than two parallel producers;
+the three-suite cohort is where sharing also improves the measured critical
+path because standalone Onboarding's producer was the long pole. This keeps the
+runner-minute and dependency-pressure win without serializing narrower PRs.
 
 Fan-out is deliberately bounded. A two-core runner should normally execute no
 more than two CPU-bound emulator processes at once. Pacing-heavy cases may

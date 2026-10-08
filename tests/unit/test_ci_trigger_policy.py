@@ -19,7 +19,6 @@ DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
 
 EXPENSIVE_PR_WORKFLOWS = {
     "modern-native-heavy-router.yml",
-    "modern-onboarding-practice-acceptance.yml",
     "modern-race-restart-acceptance.yml",
     "native-build-smoke.yml",
     "racer-native-presentation-acceptance.yml",
@@ -258,17 +257,29 @@ class CiTriggerPolicyTest(unittest.TestCase):
             text,
         )
         self.assertIn(
+            "uses: ./.github/workflows/modern-onboarding-practice-acceptance.yml",
+            text,
+        )
+        self.assertIn(
             "uses: ./.github/workflows/native-ui-evidence.yml",
             text,
         )
-        self.assertIn("canonical_candidate: true", text)
         self.assertIn(
-            "needs.classify.outputs.shared == 'true' || needs.classify.outputs.ui == 'true'",
+            "needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'",
             text,
+        )
+        self.assertEqual(
+            text.count("canonical_candidate: ${{ needs.build.result == 'success' }}"),
+            3,
+        )
+        self.assertEqual(
+            text.count("needs.build.result == 'success' || needs.build.result == 'skipped'"),
+            3,
         )
 
         for name in (
             "modern-shared-native-acceptance.yml",
+            "modern-onboarding-practice-acceptance.yml",
             "native-ui-evidence.yml",
         ):
             suite = (WORKFLOWS / name).read_text()

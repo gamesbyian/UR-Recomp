@@ -39,7 +39,7 @@
       "id": "QA-02",
       "priority": "P0",
       "claim": "Cross-artifact persistent state recovery",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
         "docs/COMPLETED-RUN-RECORDS.md"
@@ -53,13 +53,18 @@
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/968"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/968",
+      "implementation_prs": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/982",
+        "https://github.com/gamesbyian/UR-Recomp/pull/984"
+      ],
+      "remaining_release_risk": "Remaining stale-launch-retirement TOCTOU (#983) and cross-artifact/Windows crash recovery; fixes are low-level only."
     },
     {
       "id": "QA-03",
       "priority": "P0",
       "claim": "Tournament complete multi-leg and multi-session play",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
         "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md"
@@ -74,7 +79,12 @@
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/969"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/969",
+      "implementation_prs": [
+        "https://github.com/gamesbyian/UR-Recomp/pull/979",
+        "https://github.com/gamesbyian/UR-Recomp/pull/981"
+      ],
+      "remaining_release_risk": "Real two-pad guest-word and complete multi-leg/3+ player journeys remain unverified."
     },
     {
       "id": "QA-04",

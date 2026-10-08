@@ -67,6 +67,16 @@ audio, controller and OS compatibility still require the independent
 desktop/VM procedure. A gate being implemented or started does not imply
 its latest `main` execution has passed.
 
+## Dated consumer-artifact witness: 2026-10-08
+
+The successful [Windows native build and boot smoke run 37829786972](https://github.com/gamesbyian/UR-Recomp/actions/runs/37829786972) on source revision `6c7af19325e1804db4a1469245f84997ee72de97` uploaded the **actual consumer handoff triplet** and retained native evidence. The workflow conclusion was `success`, and its `windows` job completed successfully. Independently downloaded artifacts `ur-recomp-windows-x64-portable` (ID 11572992730) and `windows-native-smoke` (ID 11573915766) were inspected outside the GitHub runner. This witness is tied only to the named source revision; it does not certify any later `main` commit.
+
+- The delivered `UR-Recomp-Windows-x64.zip` hashes to SHA-256 `36872a2a4af58bd0e63410e75d1dca15fb00bd63efa1511d10f5d33948969722`, exactly matching its adjacent canonical `.sha256` sidecar. The ZIP CRC check succeeded; all seven archive entries use the deterministic 1980 timestamp. The manifest describes six payload files, all present with exact recorded sizes and SHA-256 digests, no extra files, and a matching README revision.
+- The contained 2,097,152-byte USA ROM has SHA-256 `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`, equal to `rom_identity.txt`; `rom.cfg` is exactly `Uniracers_USA.sfc\n`. The 5,195,776-byte executable is x86-64 PE32+; independent PE inspection found the same 13 imports listed in `windows-runtime-dependencies.log` (Windows inbox DLLs only, no SDL or VC runtime DLL). The immutable mod tree in this specific archive contains only `mods/preloaded/packages/.gitkeep`, an empty placeholder, **not** an external mod catalog; baseline guest boot/race acceptance therefore cannot establish optional mod-content completeness.
+- The retained `standalone-windows-verifier.log` reports `UR_PORTABLE_ARCHIVE_VERIFIED`, `UR_PORTABLE_MANIFEST_VERIFIED files=6`, and `UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK`. Windows host logs show a default `%APPDATA%\\gamesbyian\\UR-Recomp` launch, separate isolated-root startup, SDL `video=windows` with renderer initialized, and a real scripted race/results path with a completed `.urrun` capture. The Win32-video probe used dummy audio and zero connected gamepads; it proves Windows window/renderer startup on the hosted runner, **not** consumer audio/controller/physical display compatibility.
+
+The independent desktop/VM run in `WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md` remains the release sign-off gate. This dated, byte-checked baseline is stronger than an uninspected green badge, but **it is not a clean-end-user-machine certification**. Do not use this source revision's successful archive to certify later builds, and do not publish its proprietary ROM bytes publicly.
+
 ## Startup-diagnostics boundary
 
 The consumer package owns only bootstrap/release-facing failure presentation. After a writable user-data root is established, each launch overwrites one bounded `diagnostics/startup.log` and passes that same log path into the pinned desktop host. The log records deterministic build/architecture/subsystem/path/result fields and never ROM bytes, SRAM contents, profile names, run payloads or controller input.

@@ -300,7 +300,10 @@ jobs:
           fi
 
       - name: Modern settings persistence acceptance
-        if: matrix.shard == 'core'
+        # Independent host-state evidence runs from its own STATE/dump root.
+        # Moving this step to Results-A only after byte-proven Circuit
+        # acceleration balances the six native capture shards.
+        if: matrix.shard == 'results-a'
         shell: bash
         run: |
           set -euo pipefail

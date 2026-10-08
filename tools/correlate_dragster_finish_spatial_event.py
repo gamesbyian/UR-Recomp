@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Correlate the retained Dragster C000=8 finish event with decoded spatial cells.
+"""Correlate Dragster postframe contact words with decoded spatial cells.
 
-The default event is copied from the accepted 2026-10-02 guest-frame-2903
-object-activation trace. --activation-json can ingest its full original
-analyzer report instead. Correlation is x/packed-word/slot exact but does
-not infer the exact contacted Y cell or the collision footprint.
+Default is the guest-frame-2903 *postframe* 0x2020/slot8 sample, not
+proof that slot8 caused the finish transition. --contact-sequence includes
+the preceding stored 0x2024/slot10 dispatch-input candidate explicitly.
+Neither mode proves actual collision Y/footprint or CPU dispatch timing.
 """
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SPATIAL = ROOT / "analysis/generated/dragster-presentation-spatial-contract.json"
 EVENT_SOURCE = "analysis/generated/object-activation-runtime-boundary-2026-10-02.md"
+CONTACT_SEQUENCE = ROOT / "analysis/data/dragster-finish-contact-transition.json"
 DEFAULT_EVENT = {
     "frame": 2903,
     "player_x": 25256,
@@ -244,6 +245,23 @@ def markdown(report: dict) -> str:
             f"| {cell['world_rect']} | {cell['coarse_sector']} | "
             f"{cell['packed_word']} | {cell['finish_x_distance']} |"
         )
+    if "phase_corrected_finish_transition" in report:
+        phase = report["phase_corrected_finish_transition"]
+        previous = phase["immediately_prior_postframe_candidate"]
+        current = phase["transition_postframe_new_sample"]
+        lines += [
+            "",
+            "## Phase-corrected contact-source candidate",
+            "",
+            f'First progress transition: guest frame {phase["first_progress_change_frame"]}.',
+            f'Prior postframe {previous["frame"]}: stored '
+            f'{previous["stored_word"]}, C000 slot {previous["stored_c000_slot"]} '
+            '(candidate next object dispatch input).',
+            f'Transition postframe {current["frame"]}: newly sampled '
+            f'{current["stored_word"]}, C000 slot {current["stored_c000_slot"]}.',
+            "",
+            phase["runtime_limit"],
+        ]
     lines += ["", report["limits"], ""]
     return "\n".join(lines)
 
@@ -252,6 +270,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--spatial-json", type=Path, default=SPATIAL)
     ap.add_argument("--activation-json", type=Path)
+    ap.add_argument("--contact-sequence", type=Path, help="include phase-corrected stored-contact comparison")
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
     args = ap.parse_args()
@@ -262,6 +281,11 @@ def main() -> int:
         if args.activation_json else dict(DEFAULT_EVENT)
     )
     result = correlate(contract, event)
+    if args.contact_sequence:
+        trace = json.loads(args.contact_sequence.read_text(encoding="utf-8"))
+        result["phase_corrected_finish_transition"] = infer_pre_dispatch_course_word(
+            contract, trace["samples"]
+        )
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

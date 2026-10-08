@@ -219,15 +219,15 @@ int main() {
     // A selective P1-only high-resolution compositor may remove contiguous
     // slots 97/98, preserving stock P2 in 96/99. Fail closed whenever the
     // lower viewport's P2-front OAM raster might overlap P1 HD pixels.
-    RacerOamPlacement p1_top{};
-    RacerOamPlacement p1_bottom{};
-    RacerOamPlacement p2_top{};
-    RacerOamPlacement p2_bottom{};
-    p1_top.slot = 98;
-    p1_bottom.slot = 97;
-    p2_top.slot = 99;
-    p2_bottom.slot = 96;
-    for (auto* placement : {&p1_top, &p1_bottom, &p2_top, &p2_bottom}) {
+    RacerOamPlacement partial_p1_top{};
+    RacerOamPlacement partial_p1_bottom{};
+    RacerOamPlacement partial_p2_top{};
+    RacerOamPlacement partial_p2_bottom{};
+    partial_p1_top.slot = 98;
+    partial_p1_bottom.slot = 97;
+    partial_p2_top.slot = 99;
+    partial_p2_bottom.slot = 96;
+    for (auto* placement : {&partial_p1_top, &partial_p1_bottom, &partial_p2_top, &partial_p2_bottom}) {
         placement->large = true;
         placement->width_pixels = 64;
         placement->height_pixels = 64;
@@ -237,75 +237,75 @@ int main() {
     }
     // Authentic top P1 large object at Y=40 has no inactive small copy
     // in the bottom 112..223 scanlines.
-    p1_top.y_raw_8bit = 40;
-    p1_top.tile = 0x00;
-    p1_bottom.tile = 0x08;
-    p2_top.tile = 0x80;
-    p2_bottom.tile = 0x88;
+    partial_p1_top.y_raw_8bit = 40;
+    partial_p1_top.tile = 0x00;
+    partial_p1_bottom.tile = 0x08;
+    partial_p2_top.tile = 0x80;
+    partial_p2_bottom.tile = 0x88;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.x_signed = 164;
+    partial_p2_bottom.x_signed = 164;
     assert(racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.x_signed = 163;
+    partial_p2_bottom.x_signed = 163;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.x_signed = 100;
-    p2_bottom.y_raw_8bit = 230;
+    partial_p2_bottom.x_signed = 100;
+    partial_p2_bottom.y_raw_8bit = 230;
     assert(racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.y_raw_8bit = 120;
+    partial_p2_bottom.y_raw_8bit = 120;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p1_bottom.y_raw_8bit = 250;
+    partial_p1_bottom.y_raw_8bit = 250;
     // At $83 size mode the normally inactive 16px bottom slot wraps
     // visibly into the top viewport: extraction would erase it.
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p1_bottom.y_raw_8bit = 150;
-    p1_top.y_raw_8bit = 120;  // inactive top slot visible at bottom
+    partial_p1_bottom.y_raw_8bit = 150;
+    partial_p1_top.y_raw_8bit = 120;  // inactive top slot visible at bottom
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p1_top.y_raw_8bit = 150; // top slot small copy is still in lower viewport
+    partial_p1_top.y_raw_8bit = 150; // top slot small copy is still in lower viewport
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p1_top.y_raw_8bit = 40;
-    p2_top.attr = 0x50;
+    partial_p1_top.y_raw_8bit = 40;
+    partial_p2_top.attr = 0x50;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_top.attr = 0x60;
-    p1_bottom.slot = 98;
+    partial_p2_top.attr = 0x60;
+    partial_p1_bottom.slot = 98;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p1_bottom.slot = 97;
-    p2_bottom.height_pixels = 0;
+    partial_p1_bottom.slot = 97;
+    partial_p2_bottom.height_pixels = 0;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.height_pixels = 64;
-    p2_bottom.tile = 0x00;  // unknown P2 graphics family
+    partial_p2_bottom.height_pixels = 64;
+    partial_p2_bottom.tile = 0x00;  // unknown P2 graphics family
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_bottom.tile = 0x88;
-    p2_top.large = false;
+    partial_p2_bottom.tile = 0x88;
+    partial_p2_top.large = false;
     assert(!racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    p2_top.large = true;
-    p2_bottom.x_signed = -200;
+    partial_p2_top.large = true;
+    partial_p2_bottom.x_signed = -200;
     assert(racer_p1_only_no_stock_p2_occlusion(
-        p1_top, p1_bottom, p2_top, p2_bottom
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
     return 0;
 }

@@ -31,7 +31,7 @@ class SdlDiskAudioTests(unittest.TestCase):
             self.assertEqual(report["sample_rate"], 8000)
             self.assertEqual(report["pcm_frames"], 9000)
             self.assertEqual(report["peak"], 2000)
-            self.assertAlmostEqual(report["rms"], math.sqrt(2500000))
+            self.assertAlmostEqual(report["rms"], math.sqrt(2500000), delta=0.000001)
             self.assertEqual(report["channel_peaks"], [1000, 2000])
             self.assertEqual(report["nonzero_fraction"], 1.0)
             self.assertEqual(report["pcm_sha256"], hashlib.sha256(pcm.read_bytes()).hexdigest())

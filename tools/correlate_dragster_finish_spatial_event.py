@@ -78,7 +78,7 @@ def correlate(contract: dict, event: dict) -> dict:
     ))
     best = matching[0]["finish_x_distance"]
     near = [v for v in matching if v["finish_x_distance"] == best]
-    return {
+    report = {
         "schema_version": 1,
         "event": dict(event),
         "historical_finish_x": historical_finish_x,
@@ -100,6 +100,28 @@ def correlate(contract: dict, event: dict) -> dict:
             "16x16 cell or prove the historical finish-X is the collision plane."
         ),
     }
+    # Player-center proximity is a useful candidate ranking, but the selected
+    # collision probe/contact-point Y is not established by this snapshot.
+    if "player_y" in event:
+        player_y = event["player_y"]
+        ranked = sorted(
+            near,
+            key=lambda item: (
+                distance_x(player_y, item["world_rect"][1], item["world_rect"][3]),
+                item["world_rect"][1],
+            ),
+        )
+        min_gap = distance_x(
+            player_y, ranked[0]["world_rect"][1], ranked[0]["world_rect"][3]
+        )
+        report["player_center_y"] = player_y
+        report["nearest_player_center_y_gap_at_finish_x"] = min_gap
+        report["nearest_center_y_cells_at_finish_x"] = [
+            item for item in ranked
+            if distance_x(player_y, item["world_rect"][1], item["world_rect"][3])
+            == min_gap
+        ]
+    return report
 
 
 def event_from_activation_json(path: Path) -> dict:

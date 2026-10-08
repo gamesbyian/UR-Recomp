@@ -40,6 +40,13 @@ bool parse_u64(
     const std::string& token,
     std::uint64_t& out,
     int base = 10) {
+    // stoull accepts leading signs (including "-1" -> UINT64_MAX).
+    // Canonical v1 artifact fields are unsigned digit strings only.
+    if (token.empty() || (base != 10 && base != 16)) return false;
+    for (unsigned char c : token) {
+        if (base == 10 ? !std::isdigit(c) : !std::isxdigit(c))
+            return false;
+    }
     try {
         std::size_t used = 0;
         const auto parsed = std::stoull(token, &used, base);

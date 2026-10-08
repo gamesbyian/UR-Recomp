@@ -42,7 +42,7 @@ The UI integration remains intentionally read-only and deferred until the active
 
 ## Format evolution and failure policy
 
-Schema v1 is strict and self-identifying. Unknown fields, malformed values, duplicate required fields, overlapping inputs and checksum damage fail closed. A valid but unsupported future schema reports UnsupportedVersion. A valid record whose game/ROM/build/course/mode provenance does not match the playback target reports Incompatible.
+Schema v1 is strict and self-identifying. Unknown fields, malformed values, duplicate required fields, overlapping inputs and checksum damage fail closed. Numeric fields must now contain unsigned decimal digits (or bare hexadecimal digits for input masks), excluding leading `+`/`-` signs and `0x` prefixes even with otherwise correct checksums. This closes an integer-parser ambiguity where a signed `-1` could be promoted to the largest unsigned frame/timer value by the standard conversion routine; the same canonical unsigned-number policy applies to `.urghost` sample parsing. Stored schema and guest frame/timer authority are unchanged. A valid but unsupported future schema reports UnsupportedVersion. A valid record whose game/ROM/build/course/mode provenance does not match the playback target reports Incompatible.
 
 The explicit schema version and separate build compatibility id allow future codecs to migrate old records deliberately without pretending an incompatible replay is valid.
 

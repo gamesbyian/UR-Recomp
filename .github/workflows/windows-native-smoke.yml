@@ -25,6 +25,7 @@ on:
       - "tools/patches/snesrecomp-mod-state-root.patch"
       - "tools/patches/snesrecomp-user-rom-cache.patch"
       - "tools/patches/snesrecomp-user-netplay-identity.patch"
+      - "tools/patches/snesrecomp-paused-overlay-present.patch"
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"

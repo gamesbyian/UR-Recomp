@@ -15,6 +15,7 @@ on:
       - "tools/patches/snesrecomp-live-vsync.patch"
       - "tools/patches/snesrecomp-live-display-mode.patch"
       - "tools/patches/snesrecomp-presentation-scale.patch"
+      - "tools/patches/snesrecomp-paused-overlay-present.patch"
       - "tools/toolchain-entries/_global.json"
       - "tools/patch_modern_product_host.py"
       - "tools/check_ppm.py"

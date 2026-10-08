@@ -1679,9 +1679,12 @@ void draw_browser_hint(
     size_t pitch,
     int width,
     int height) {
+    // The shortcut hint belongs to the pause root; an open subview (Options,
+    // Controls, Run Data, Quit) owns the footer area it would overlap.
     if (!modern_mode() || g_browser_visible || g_records_browser_visible ||
         g_replay_flow.active() ||
         !g_one_player_context || !snesrecomp_desktop_is_paused() ||
+        ur_uniracers_modern_subview_active() ||
         !dst || pitch < 4 || width <= 0 || height <= 0) {
         return;
     }

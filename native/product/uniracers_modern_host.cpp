@@ -2550,6 +2550,11 @@ bool ensure_session() {
         &set_timing_lock,
         &reconcile_presentation,
         &exit_to_frontend);
+    // The Modern pause family (pause root, Options, Controls, Run Data,
+    // Records, Quit) is drawn by the system overlay while the guest is
+    // frozen, so the paused host must keep presenting it. Authentic keeps the
+    // framework default of presenting nothing new while paused.
+    snesrecomp_desktop_set_paused_overlay_presentation(modern_mode() ? 1 : 0);
     ur_modern_pause_menu_reset(&g_pause_menu);
     ur_modern_options_menu_reset(&g_options_menu);
     ur_uniracers_restart_policy_reset(&g_title_policy);
@@ -6731,6 +6736,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
 
 extern "C" int ur_uniracers_modern_controls_active(void) {
     return modern_mode() && g_controls_visible ? 1 : 0;
+}
+
+extern "C" int ur_uniracers_modern_subview_active(void) {
+    return modern_mode() && host_subview_visible() ? 1 : 0;
 }
 
 extern "C" void ur_uniracers_modern_system_gamepad_source_connection(

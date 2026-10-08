@@ -23,6 +23,12 @@ Status values are `sufficient`, `partial`, `unknown`, or `not applicable`. `Suff
 
 Frontend-specific shipped-route and outstanding five-destination root status is indexed in [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md). The pure `modern_root_menu.hpp` model and translated labels do **not** constitute a live root router; Records is also accessible from the settled Modern main menu (PR #931). PR #763's main-menu modal lifetime fix has merged. Records became reachable from the settled Modern main menu in merged PR #931; keep the frontend route inventory synchronized with `MODERN-FRONTEND-SHIPPING-STATUS.md`.
 
+## Release-readiness scope warning (2026-10-08)
+
+Every `sufficient` row above means **sufficient for its stated implementation decision**, not proven whole-game/whole-session or hardware completeness. A representative Dragster checkpoint, 617 scroll observations, 45 valid RNC decodes, exact one-frame replay comparator or hosted Windows package may all pass while an untested course, input transition, 3+ tournament event, hardware audio device or long player journey fails. A safe Original/blank fallback does not establish usable Remastered/ghost availability.
+
+The independent [adversarial QA risk register](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) and [release-quality ledger](RELEASE-QUALITY-LEDGER.json) govern beta/RC evidence. QA-01/02/03/04 are currently **unverified at release level**, even though focused implementation slices have green acceptance. Preserve separate evidence denominators and retain the course frame-2903 *postframe* slot-8 versus unverified preceding slot-10 dispatcher hypothesis as a general lesson against causal overclaim. Full player journeys are in [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md).
+
 ## Evidence basis
 
 **Racer simulation:** deterministic 1P fixtures cover acceleration, jump, rotation, landing and collision/contact; ordinary 2P covers isolated P1, isolated P2 and simultaneous movement. MesenCE independently matches the promoted Snes9x semantic checkpoints. Race update, input normalization, player-state marshal, collision/contact, geometry, surface sampling, stunt finalization and checkpoint/timer paths are all bounded well enough to preserve and diagnose the simulation.

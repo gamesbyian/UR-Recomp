@@ -61,6 +61,27 @@ execute automatic Native UI acceptance. This avoids approximately 54 seconds
 of total runner time across the core/records shards; **overall wall-clock
 savings are not additive** because the shards execute concurrently.
 
+### Native UI shard balance after zero-output probe removal
+
+With the four unsuccessful probes retired in #871, six-shard run
+37766187007 measured approximately 155 s in Profiles, 97 s in Records,
+144 s in Navigation and 106 s in Results-B (whole capture job spans).
+This creates useful headroom to rebalance **independent fresh-process
+routes**, rather than creating a seventh Actions job:
+
+- Move `ui-main-branches` (about 31 s) from Profiles to Records,
+  targeting roughly 124 s and 128 s respectively.
+- Move the read-only `ui-league-table` route (about 12 s)
+  from Navigation to Results-B, targeting roughly 132 s and 118 s.
+
+Every route retains its original script, dump directory, timeout and
+aggregate validation; the existing six-job matrix and artifact contract
+are unchanged. These durations are estimates based on one green run.
+Results-A remains the measured ~151-second long pole while the
+separate byte-exact Circuit unpaced experiment is unresolved. Lower
+shard times do not necessarily translate linearly into whole-workflow
+wall savings while runner scheduling varies.
+
 ## Automatic-CI budget
 
 Automatic CI is reserved for the active Windows x64 shipping path and cheap repository integrity contracts.

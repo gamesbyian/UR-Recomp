@@ -268,10 +268,10 @@ jobs:
             results-b)
               run_route ui-stunt-result-route ui-stunt-result-route.script ui-stunt-result-dumps 180
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
+              run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
               ;;
             records)
               run_route ui-records-explore ui-records-explore.script ui-records-explore-dumps 180
-              run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
               for name in high player group; do
                 run_route "ui-record-$name" "ui-record-$name.script" ui-records-isolated-dumps 90
               done

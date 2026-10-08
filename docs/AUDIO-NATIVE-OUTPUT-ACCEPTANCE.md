@@ -595,3 +595,41 @@ the stock guest pause and separately test host resume/Restart/Exit
 acoustics. Do not force the guest to simulate frames while frozen, alter
 SNES APU state, or change the Modern pause menu merely to satisfy the
 capture.
+
+
+## First real Modern frozen-pause output and bounded silence gate
+
+Native Windows audio acceptance
+[37734723303](https://github.com/gamesbyian/UR-Recomp/actions/runs/37734723303)
+passed the host-owned pause hook against a verified packaged executable.
+After the **real guest race checkpoint at f1044**, the product reported
+`UR_PAUSE_STATE paused=1 surface=1` and
+`UR_PAUSE_ACCEPTANCE OPENED`. The external supervisor then
+held the guest-frozen host active for **four seconds wall time** and
+intentionally terminated the Windows process tree. It recorded
+**22.384 seconds** of real SDL3 S16LE 44.1 kHz stereo device output, with
+whole-capture RMS **3009.72** and nonzero-sample fraction **0.6362**,
+demonstrating the game's soundtrack had actually played.
+
+**The final one-second tail contained literal zero samples in both
+channels (RMS 0.0)**. More strongly, every one of the final **30 consecutive
+100-ms stereo buckets** covering three full seconds had combined and
+per-channel RMS **0**, sample peaks **0** and both channel zero fractions
+**1.0**. This shows output fell to complete digital silence while the
+Modern host was still alive and the guest was frozen. It is a separate
+mechanism from original guest Start pause, which was measured fading
+down under continuing guest simulation.
+
+A focused `tools/check_modern_host_pause_audio.py` reducer now
+enforces the **audible before → fully silent frozen host** contract in
+the specialist Windows audio gate. It requires original native race,
+host-paused and pause-open diagnostics; genuine device-output provenance,
+audible stereo signal earlier in the same process, a full one-second zero
+PCM tail, and 30 complete zero-energy stereo buckets in the final
+three seconds. This is deliberately strict about *literal digital silence*
+and deliberately does **not** infer a precise guest/SDL onset time,
+hardware latency, smooth fade shape or successful subsequent resume.
+
+The gate must pass on a second independent fresh-process Windows run
+before treating it as repeatably proven. Original stock audio, guest
+cadence, framework mixer and Modern pause implementation are unchanged.

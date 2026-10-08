@@ -1,10 +1,14 @@
 #include "completed_run_ghost_trace.hpp"
 
+#include <atomic>
+#include <chrono>
 #include <cctype>
+#include <filesystem>
 #include <fstream>
 #include <iomanip>
 #include <limits>
 #include <sstream>
+#include <system_error>
 
 namespace ur::product {
 namespace {
@@ -376,21 +380,70 @@ bool save_completed_run_ghost_trace_file(
         return false;
     }
 
-    std::ofstream out(path, std::ios::binary | std::ios::trunc);
+    namespace fs = std::filesystem;
+    const fs::path final_path(path);
+    const fs::path parent = final_path.parent_path().empty()
+        ? fs::path(".") : final_path.parent_path();
+
+    // Never expose a half-written .urghost to a second game process. Keep
+    // staging on the destination filesystem and publish only after close.
+    // Unlike immutable .urrun names, the sidecar writer historically permits
+    // replacement; same-volume rename preserves that repair capability.
+    static std::atomic<std::uint64_t> serial{0};
+    fs::path staging;
+    std::error_code ec;
+    bool reserved = false;
+    for (unsigned attempt = 0; attempt < 64; ++attempt) {
+        const auto tick = std::chrono::steady_clock::now()
+                              .time_since_epoch().count();
+        staging = parent /
+            (".pending-urghost-" + std::to_string(tick) + "-" +
+             std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
+        ec.clear();
+        if (fs::create_directory(staging, ec)) {
+            reserved = true;
+            break;
+        }
+        if (ec) break;
+    }
+    if (!reserved) {
+        set_detail(detail, "cannot reserve ghost trace staging directory");
+        return false;
+    }
+
+    const auto cleanup = [&] {
+        std::error_code ignored;
+        fs::remove_all(staging, ignored);
+    };
+    const fs::path staged_file = staging / "trace.tmp";
+    std::ofstream out(staged_file, std::ios::binary | std::ios::trunc);
     if (!out) {
+        cleanup();
         set_detail(detail, "cannot open ghost trace");
         return false;
     }
     out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
     if (!out) {
+        out.close();
+        cleanup();
         set_detail(detail, "cannot write ghost trace");
         return false;
     }
     out.close();
     if (!out) {
+        cleanup();
         set_detail(detail, "cannot finish ghost trace");
         return false;
     }
+
+    ec.clear();
+    fs::rename(staged_file, final_path, ec);
+    if (ec) {
+        cleanup();
+        set_detail(detail, "cannot publish ghost trace");
+        return false;
+    }
+    cleanup();
     return true;
 }
 

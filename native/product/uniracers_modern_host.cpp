@@ -42,6 +42,8 @@ extern "C" {
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
+#include "quick_practice_available_selection.hpp"
+#include "quick_practice_selection_view.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
 #include "recent_course_origin.hpp"
@@ -186,6 +188,10 @@ unsigned g_pause_open_acceptance_frames;
 bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
+ur::product::QuickPracticeSelection g_practice_picker;
+std::optional<std::string> g_practice_picker_profile_id;
+const ur::product::QuickPracticeAvailability g_practice_picker_availability =
+    ur::product::quick_practice_normal_tours_only();
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
 ur::product::RecentCourseOriginState g_recent_course_origin;
@@ -977,7 +983,7 @@ bool queue_practice_input(
 
 bool begin_practice(std::uint8_t track_id = 0) {
     const auto target = ur::product::quick_practice_target_for_track(track_id);
-    if (!modern_mode() || g_practice_active || paused() ||
+    if (!target.valid || !modern_mode() || g_practice_active || paused() ||
         g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
@@ -2933,6 +2939,105 @@ bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {
             static_cast<unsigned>(g_ram[0x009F]),
             static_cast<unsigned>(g_ram[0x0313]));
         std::fflush(stderr);
+    }
+    return true;
+}
+
+
+void close_practice_picker(const char* diagnostic) {
+    g_practice_picker = {};
+    g_practice_picker_profile_id.reset();
+    if (diagnostic) product_diagnostic(diagnostic);
+}
+
+bool practice_picker_context_valid() {
+    return g_practice_picker.visible && modern_mode() &&
+        !g_practice_active && !paused() && g_ram &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        g_practice_picker_profile_id == g_product_state.active_profile_id;
+}
+
+bool open_practice_picker() {
+    if (!modern_mode() || !g_ram || paused() || g_practice_active ||
+        g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01 ||
+        g_profile_menu_visible || g_tour_action_visible ||
+        g_local_multiplayer_join_visible || onboarding_surface_active() ||
+        practice_routing() || tour_continue_routing() ||
+        results_navigation_active() || g_exit_frontend_waiting_for_main ||
+        g_exit_frontend_waiting_for_usable) {
+        return false;
+    }
+    const std::uint8_t initial_track =
+        recent_course_available_for_active_profile()
+            ? *g_recent_course_track_id : 0;
+    g_practice_picker = ur::product::open_available_quick_practice_selection(
+        initial_track, g_practice_picker_availability);
+    if (!g_practice_picker.visible) return false;
+    g_practice_picker_profile_id = g_product_state.active_profile_id;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_PRACTICE_PICKER OPENED track=%u available=%d\n",
+            static_cast<unsigned>(g_practice_picker.picker.track_id),
+            ur::product::quick_practice_available_count(
+                g_practice_picker_availability));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
+bool handle_practice_picker_navigation(UrModernHostNavigationAction action) {
+    if (!g_practice_picker.visible) return false;
+    if (!practice_picker_context_valid()) {
+        close_practice_picker("UR_PRACTICE_PICKER STALE_CONTEXT");
+        return true;
+    }
+    using ur::product::QuickPracticeSelectionCommand;
+    QuickPracticeSelectionCommand command;
+    switch (action) {
+    case UR_MODERN_HOST_NAV_UP:
+        command = QuickPracticeSelectionCommand::PreviousCourse;
+        break;
+    case UR_MODERN_HOST_NAV_DOWN:
+        command = QuickPracticeSelectionCommand::NextCourse;
+        break;
+    case UR_MODERN_HOST_NAV_LEFT:
+        command = QuickPracticeSelectionCommand::PreviousTour;
+        break;
+    case UR_MODERN_HOST_NAV_RIGHT:
+        command = QuickPracticeSelectionCommand::NextTour;
+        break;
+    case UR_MODERN_HOST_NAV_CONFIRM:
+        command = QuickPracticeSelectionCommand::Confirm;
+        break;
+    case UR_MODERN_HOST_NAV_BACK:
+        command = QuickPracticeSelectionCommand::Cancel;
+        break;
+    default:
+        return true;
+    }
+    const auto result = ur::product::quick_practice_available_selection_apply(
+        g_practice_picker, command, g_practice_picker_availability);
+    g_practice_picker = result.state;
+    if (result.result == ur::product::QuickPracticeSelectionResult::Updated) {
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr, "UR_PRACTICE_PICKER SELECTED track=%u\n",
+                static_cast<unsigned>(g_practice_picker.picker.track_id));
+            std::fflush(stderr);
+        }
+    } else if (result.result ==
+               ur::product::QuickPracticeSelectionResult::Cancelled) {
+        close_practice_picker("UR_PRACTICE_PICKER CANCELLED");
+    } else if (result.result ==
+               ur::product::QuickPracticeSelectionResult::Confirmed) {
+        const auto track_id = result.target.track_id;
+        close_practice_picker(nullptr);
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr, "UR_PRACTICE_PICKER CONFIRMED track=%u\n",
+                static_cast<unsigned>(track_id));
+            std::fflush(stderr);
+        }
+        if (!begin_practice(track_id)) {
+            product_diagnostic("UR_PRACTICE_PICKER ROUTE_START_FAILED");
+        }
     }
     return true;
 }

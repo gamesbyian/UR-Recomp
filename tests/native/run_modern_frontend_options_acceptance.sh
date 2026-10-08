@@ -73,6 +73,7 @@ if [ "${1:-}" = "--inside" ]; then
   ! grep -q "UR_PAUSE_OPTIONS OPENED" "$LOG"
   kill "$PID" 2>/dev/null || true
   wait "$PID" 2>/dev/null || true
+  exit 0
 fi
 
 if [ "$#" -ne 3 ]; then

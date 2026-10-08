@@ -1,7 +1,7 @@
 import unittest
 from datetime import datetime, timezone
 
-from tools.report_ci_runtime import summarize
+from tools.report_ci_runtime import summarize, markdown, job_parallelism_profile
 
 
 class CiRuntimeReportTest(unittest.TestCase):
@@ -54,6 +54,55 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(row["execution_seconds"], 240)
         self.assertEqual(row["cancelled_wall_seconds"], 600)
         self.assertEqual(row["top_steps"][0]["step"], "Prove deterministic route acceptance")
+
+
+    def test_observed_parallelism_is_measured_from_intervals(self):
+        jobs = [
+            {"started_at": "2026-10-03T00:00:00Z", "completed_at": "2026-10-03T00:02:00Z"},
+            {"started_at": "2026-10-03T00:01:00Z", "completed_at": "2026-10-03T00:03:00Z"},
+            {"started_at": "2026-10-03T00:03:00Z", "completed_at": "2026-10-03T00:04:00Z"},
+            {"started_at": "2026-10-03T00:01:00Z", "completed_at": "2026-10-03T00:01:00Z"},
+            {"started_at": None, "completed_at": None},
+        ]
+        profile = job_parallelism_profile(jobs)
+        self.assertEqual(profile["runner_seconds"], 300)
+        self.assertEqual(profile["observed_span_seconds"], 240)
+        self.assertEqual(profile["peak_active_jobs"], 2)
+        self.assertIsNone(job_parallelism_profile(jobs[-2:]))
+
+        payload = {"workflow_runs": [{
+            "id": 4, "name": "Modern", "status": "completed",
+            "conclusion": "success", "created_at": "2026-10-03T00:00:00Z",
+            "run_started_at": "2026-10-03T00:00:00Z",
+            "updated_at": "2026-10-03T00:05:00Z",
+        }]}
+        report = summarize(payload, 72, datetime(2026, 10, 4, tzinfo=timezone.utc),
+                           jobs_payload={"runs": [{"run_id": 4, "jobs": jobs}]})
+        row = report["workflows"][0]
+        self.assertEqual(row["runs_with_job_timing"], 1)
+        self.assertEqual(row["peak_active_jobs"], 2)
+        self.assertEqual(row["runner_seconds"], 300)
+        self.assertEqual(row["observed_job_span_seconds"], 240)
+        self.assertEqual(row["mean_active_jobs"], 1.25)
+        self.assertIn("| Modern | 1 | 5.0 | 4.0 | 1.25 | 2 |", markdown(report))
+
+    def test_parallel_metrics_fail_closed_on_missing_job_timestamps(self):
+        payload = {"workflow_runs": [{
+            "id": 5, "name": "Empty", "status": "completed",
+            "conclusion": "success", "created_at": "2026-10-03T00:00:00Z",
+            "run_started_at": "2026-10-03T00:00:00Z",
+            "updated_at": "2026-10-03T00:01:00Z",
+        }]}
+        report = summarize(payload, 72, datetime(2026, 10, 4, tzinfo=timezone.utc),
+                           jobs_payload={"runs": [{"run_id": 5, "jobs": [{
+                               "started_at": "2026-10-03T00:02:00Z",
+                               "completed_at": None,
+                           }]}]})
+        row = report["workflows"][0]
+        self.assertEqual(row["runs_with_job_timing"], 0)
+        self.assertEqual(row["runner_seconds"], 0)
+        self.assertEqual(row["mean_active_jobs"], 0)
+        self.assertEqual(row["peak_active_jobs"], 0)
 
 
 if __name__ == "__main__":

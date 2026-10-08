@@ -192,3 +192,31 @@ writes between frames and the actual contact-point Y are not
 established. The decisive next observation is an instruction-time
 trace of shared word 0F09 at the P1 bank-82 dispatch/81:82ED and
 handler 81:8050 while frame 2903 executes.
+
+
+## Narrow finish-handler gate and lap mechanics (ROM-verified)
+
+The USA handler itself supports a more specific, *conditional* account
+of the frame-2903 result than generic slot proximity alone:
+
+- At 81:8055, the handler reads `$0EF5,Y` and skips if nonzero.
+- At 81:805D..80A2, it masks the current-player contact word with
+  `0x1C00` to select a control branch; `0x2024`, `0x2020`,
+  and `0x0022` all select the **zero-class** branch.
+- At 81:80AA it reads `$119D,Y`, skipping an already-set finish gate.
+  Otherwise 81:80B2..80B3 increments/stores the gate.
+- On the continuing zero-class finish path, 81:8195..81A2 marks a
+  state flag at `$0D11` and decrements `$0EF1,Y` (laps remaining).
+
+Exact instruction bytes for the zero-class branch, finish-gate guard,
+and lap decrement are regression-pinned in
+`test_course_contact_marshal_rom_contract.py`.
+
+In the native Dragster frame-end pair, the gate/laps values change
+from `0/1` at frame 2902 to `1/0` at frame 2903.
+That pattern is **mechanistically consistent** with the previously
+stored `0x2024` word selecting the zero-class handler on frame 2903,
+provided the live per-player `0EF5` early-exit gate allowed it.
+It does not prove the actual dispatcher contact word, the live
+`0EF5` condition at handler entry, or the contacted Y cell.
+The previously asserted slot-8 same-frame trigger remains unproven.

@@ -56,6 +56,12 @@ grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 4 expected=1 visible=1 page=2 cursor=0 fixture=1" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT ARMED fixture=1 course=course:04" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=legs step=4 armed=1 fixture=1 visible=0" "$LOG"
+# End Event: the unfinished two-leg event (leg 2 armed) is ended with two
+# explicit confirms and replaced by a new one-leg event from Setup.
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 7 expected=1 visible=1 page=1" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT END_CONFIRMED" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE ENDED_AND_REPLACED pending=0 fixtures=1 legs=1" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
-echo "UR_LOCAL_TOURNAMENT_LEGS_ACCEPTANCE=two_leg_event leg1_credited leg2_armed_from_results"
+echo "UR_LOCAL_TOURNAMENT_LEGS_ACCEPTANCE=two_leg_event leg1_credited leg2_armed_from_results end_event_replaced"

@@ -83,7 +83,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             # Re-sign a deliberately invalid ZIP with a self-consistent
             # manifest and checksum. The verifier must independently enforce
             # that legacy mutable mod selections are never shipped.
-            mutable_path = "mods/preloaded/state.toml"
+            mutable_path = "mods/preloaded/STATE.TOML"
             mutable_bytes = b"enabled = true\n"
             (output / mutable_path).write_bytes(mutable_bytes)
             manifest_path = output / "PACKAGE-MANIFEST.json"
@@ -153,18 +153,23 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.script.count("Assert-PackageFiles -PackageRoot $packageRoot"),
             2,
         )
+        # -Force also audits hidden immutable payloads from extracted archives.
+        self.assertIn(
+            "Get-ChildItem -LiteralPath $PackageRoot -Recurse -File -Force",
+            self.script,
+        )
 
     def test_mutable_legacy_mod_state_is_rejected_by_standalone_verifier(self):
         # The assembler excludes this old package-local selection file. The
         # offline verifier must independently reject a forged, self-consistent
         # archive/manifest instead of treating it as ordinary mods/** data.
-        self.assertIn("if ($relative -ceq 'mods/preloaded/state.toml')", self.script)
+        self.assertIn("if ($relative -ieq 'mods/preloaded/state.toml')", self.script)
         self.assertIn(
             'Mutable mod-selection state must not be shipped in the package',
             self.script,
         )
         self.assertLess(
-            self.script.index("if ($relative -ceq 'mods/preloaded/state.toml')"),
+            self.script.index("if ($relative -ieq 'mods/preloaded/state.toml')"),
             self.script.index('Get-FileHash -LiteralPath $member'),
         )
 

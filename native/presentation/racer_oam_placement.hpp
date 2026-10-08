@@ -11,6 +11,23 @@ enum class RacerViewport : std::uint8_t {
     Bottom = 1,
 };
 
+// The $2104 HDMA split switches visible OBJ pairs on scanline 112.
+// Clip host-owned replacements to the same physical half-frame so a large
+// racer at the seam cannot leak into the other viewport. Scaling changes
+// raster density only; it must never move the original scanline boundary.
+constexpr bool racer_split_viewport_contains_row(
+    RacerViewport viewport,
+    int output_row,
+    int output_scale
+) noexcept {
+    if (output_row < 0 || output_scale <= 0) return false;
+    const int logical_row = output_row / output_scale;
+    if (logical_row >= 224) return false;
+    return viewport == RacerViewport::Top
+        ? logical_row < 112
+        : logical_row >= 112;
+}
+
 struct RacerOamPlacement {
     std::uint8_t slot;
     std::uint16_t x_raw_9bit;

@@ -37,11 +37,11 @@ if [ "${1:-}" = "--inside" ]; then
   fi
 
   for _ in $(seq 1 250); do
-    grep -q "UR_PRACTICE_PICKER OPENED track=0 available=40" "$LOG" && break
+    grep -q "UR_PRACTICE_PICKER OPENED track=0 available=20" "$LOG" && break
     kill -0 "$PID" 2>/dev/null || exit 1
     sleep 0.02
   done
-  grep -q "UR_PRACTICE_PICKER OPENED track=0 available=40" "$LOG"
+  grep -q "UR_PRACTICE_PICKER OPENED track=0 available=20" "$LOG"
   for _ in $(seq 1 250); do
     grep -q "UR_PRACTICE_PICKER PRESENT scale=" "$LOG" && break
     sleep 0.02
@@ -49,13 +49,13 @@ if [ "${1:-}" = "--inside" ]; then
   grep -q "UR_PRACTICE_PICKER PRESENT scale=" "$LOG"
 
   if [ "$ACTION" = "cancel" ]; then
-    # Previous-tour wrapping must skip Hunter and retain the same slot.
+    # On stock tier 0, wrapping skips six locked/hidden catalog blocks.
     xdotool key Left
     for _ in $(seq 1 250); do
-      grep -q "UR_PRACTICE_PICKER SELECTED track=35" "$LOG" && break
+      grep -q "UR_PRACTICE_PICKER SELECTED track=30" "$LOG" && break
       sleep 0.02
     done
-    grep -q "UR_PRACTICE_PICKER SELECTED track=35" "$LOG"
+    grep -q "UR_PRACTICE_PICKER SELECTED track=30" "$LOG"
     xdotool key Escape
     for _ in $(seq 1 250); do
       grep -q "UR_PRACTICE_PICKER CANCELLED" "$LOG" && break
@@ -68,14 +68,7 @@ if [ "${1:-}" = "--inside" ]; then
     exit 0
   fi
 
-  # Two stock catalog tours forward, preserving slot 1:
-  # Crawler/Dragster (0) -> Jumper/Wobble (5) -> Shuffler/Looper (10).
-  xdotool key Right
-  for _ in $(seq 1 250); do
-    grep -q "UR_PRACTICE_PICKER SELECTED track=5" "$LOG" && break
-    sleep 0.02
-  done
-  grep -q "UR_PRACTICE_PICKER SELECTED track=5" "$LOG"
+  # The first unlocked neighboring tour is Shuffler/Looper (stock tier 0).
   xdotool key Right
   for _ in $(seq 1 250); do
     grep -q "UR_PRACTICE_PICKER SELECTED track=10" "$LOG" && break

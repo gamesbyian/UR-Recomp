@@ -37,6 +37,7 @@ extern "C" {
 #include "modern_tour_action_menu.hpp"
 #include "modern_results_navigation.hpp"
 #include "modern_tour_continue.hpp"
+#include "modern_host_input_release_latch.hpp"
 #include "modern_main_menu_strip.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
@@ -171,6 +172,7 @@ unsigned g_practice_cancel_acceptance_frames;
 bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
 bool g_suppress_human_input_once;
+ur::product::ModernHostInputReleaseLatch g_human_input_release_latch;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -6927,10 +6929,17 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     // mapping but before guest dispatch. Host-owned input must not also reach
     // the stock game underneath. The latch covers the closing edge, where the
     // handler may have already hidden the modal before this filter runs.
-    if (g_suppress_human_input_once || host_owns_human_player_input()) {
-        g_suppress_human_input_once = false;
-        return 0u;
-    }
+    // Bits still held when a surface closes stay withheld until released, so
+    // the Enter/Start press that dismisses a panel cannot select the stock
+    // menu row underneath on a later frame.
+    const bool host_owned =
+        g_suppress_human_input_once || host_owns_human_player_input();
+    g_suppress_human_input_once = false;
+    const auto filtered = ur::product::modern_host_input_filter(
+        g_human_input_release_latch, host_owned, inputs);
+    g_human_input_release_latch = filtered.latch;
+    if (host_owned) return 0u;
+    inputs = filtered.inputs;
 
     // L/R have no ordinary settled-main action, so removing only those two
     // bits makes the stock Left+A+L+R erase-all gesture impossible in Modern

@@ -1,0 +1,90 @@
+from pathlib import Path
+import unittest
+
+from tools.build_audio_pause_route import (
+    CHECKPOINTS, POST_CHECKPOINT_FRAMES, pause_checkpoint_route,
+)
+from tools.check_native_audio_checkpoint_timing import validate_log
+from tools.analyze_audio_pause_phases import pause_phase_report
+
+ROOT = Path(__file__).resolve().parents[2]
+SOURCE = ROOT / "tests/input/ui-pause-route.script"
+
+
+class GuestPauseAudioAcceptanceTests(unittest.TestCase):
+    def test_derived_routes_preserve_canonical_start_press_count(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        for case, presses in zip(CHECKPOINTS, (0, 1, 2)):
+            with self.subTest(case=case):
+                script = pause_checkpoint_route(source, case)
+                self.assertEqual(script.count("press start 2"), presses)
+                self.assertTrue(script.endswith(
+                    f"dump {case}\nwait {POST_CHECKPOINT_FRAMES}\n"
+                    f"dump {case}-audio-post\nquit\n"
+                ))
+                self.assertNotIn("poke ", script)
+                self.assertIn("until 0313 == 01 1800", script)
+                self.assertEqual(script.count("\nquit\n"), 1)
+                observed = validate_log(
+                    f"script f=1050 dump {case} ok\n"
+                    f"script f=1080 dump {case}-audio-post ok\n", case)
+                self.assertEqual(observed["guest_frames_after_checkpoint"], 30)
+
+    def test_unexpected_route_changes_fail_closed(self):
+        source = SOURCE.read_text(encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "unsupported"):
+            pause_checkpoint_route(source, "not-a-checkpoint")
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            pause_checkpoint_route(source + "\ndump ui-pause-before\n", "ui-pause-before")
+        with self.assertRaisesRegex(ValueError, "Start presses"):
+            pause_checkpoint_route(source.replace("press start 2", "wait 2", 1),
+                                   "ui-pause-after-start")
+        with self.assertRaisesRegex(ValueError, "may not quit/poke"):
+            pause_checkpoint_route(source.replace("dump ui-pause-before", "poke 009F 01\ndump ui-pause-before"),
+                                   "ui-pause-before")
+
+    def fixtures(self):
+        pcm, stats = {}, {}
+        for case, rms in zip(CHECKPOINTS, (1500, 0, 1700)):
+            pcm[case] = {
+                "schema_version": 1, "audio_origin": "sdl3-disk-playback",
+                "channels": 2, "device_format": "S16LE", "tail_duration_seconds": 1,
+                "tail_rms": rms, "tail_channel_rms": [rms, rms],
+                "tail_nonzero_fraction": (0 if rms == 0 else 0.95),
+            }
+            stats[case] = {
+                "schema_version": 1, "audio_origin": "snesrecomp-production-audio-stats",
+                "deltas": {"dropped_audible": 0, "underflows": 8, "missing_frames": 4000},
+                "post_startup_deltas": {"dropped_audible": 0, "underflows": 0,
+                                        "missing_frames": 0},
+            }
+        return pcm, stats
+
+    def test_silent_pause_is_recorded_not_assumed_or_rejected(self):
+        pcm, stats = self.fixtures()
+        report = pause_phase_report(pcm, stats)
+        self.assertEqual(report["phases"]["ui-pause-after-start"]["tail_rms"], 0)
+        self.assertEqual(report["relative_to_before"]["ui-pause-after-start"], 0)
+        self.assertAlmostEqual(report["relative_to_before"]["ui-pause-after-resume"], 1700 / 1500, delta=1e-6)
+
+    def test_invalid_or_dropped_source_audio_rejected(self):
+        pcm, stats = self.fixtures()
+        stats["ui-pause-after-start"]["deltas"]["dropped_audible"] = 1
+        with self.assertRaisesRegex(ValueError, "samples were lost"):
+            pause_phase_report(pcm, stats)
+        pcm, stats = self.fixtures()
+        pcm["ui-pause-before"]["tail_channel_rms"] = [100, float("nan")]
+        with self.assertRaisesRegex(ValueError, "invalid stereo"):
+            pause_phase_report(pcm, stats)
+        pcm, stats = self.fixtures()
+        pcm["ui-pause-before"]["tail_duration_seconds"] = 0.5
+        with self.assertRaisesRegex(ValueError, "one-second"):
+            pause_phase_report(pcm, stats)
+        pcm, stats = self.fixtures()
+        del stats["ui-pause-after-resume"]
+        with self.assertRaisesRegex(ValueError, "missing or extra"):
+            pause_phase_report(pcm, stats)
+
+
+if __name__ == "__main__":
+    unittest.main()

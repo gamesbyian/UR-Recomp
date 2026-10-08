@@ -46,6 +46,12 @@ class FrontendModalHoldContractTests(unittest.TestCase):
                       "g_tour_action_visible", "g_frontend_options_active",
                       "onboarding_surface_active()"):
             self.assertIn(modal, wanted)
+        # Scripted/in-host acceptance drivers (Next Event, picker, overview,
+        # frontend Options) advance on emulated frames: the script guard must
+        # short-circuit before any modal can request the hold.
+        self.assertLess(
+            wanted.index("snesrecomp_desktop_script_active()"),
+            wanted.index("g_tour_action_visible"))
         overlay = _body(source, 'extern "C" void ur_uniracers_modern_system_overlay(',
                         "if (onboarding_surface_active())")
         self.assertIn("update_frontend_modal_hold();", overlay)

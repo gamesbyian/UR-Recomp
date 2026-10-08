@@ -19,6 +19,40 @@ int ur_uniracers_modern_system_gamepad_source_button(
     int player_index, uint64_t source_id, int button, int pressed);
 void ur_uniracers_modern_system_gamepad_source_connection(
     int player_index, uint64_t source_id, int connected);
+/* Read-only Modern Local Tournament projection. Return 0 if unavailable
+ * or Authentic. Does not create fixtures, infer Records matches or write SRAM.
+ * Profile IDs are bounded storage identities; display names remain catalog-
+ * owned. A fixture outcome is 0=unplayed, 1=first entrant, 2=second,
+ * 3=draw, already oriented by its authoritative saved seat mapping. */
+struct UrModernTournamentOverview {
+    uint32_t entrants;
+    uint32_t fixtures;
+    uint32_t completed_fixtures;
+    int complete;
+};
+struct UrModernTournamentFixtureInfo {
+    uint32_t round;
+    char first_profile_id[129];
+    char second_profile_id[129];
+    char course_id[16];
+    int outcome;
+};
+struct UrModernTournamentStandingInfo {
+    char profile_id[129];
+    uint32_t rank;
+    uint32_t played;
+    uint32_t wins;
+    uint32_t draws;
+    uint32_t losses;
+    uint32_t points;
+};
+int ur_uniracers_modern_local_tournament_overview(
+    struct UrModernTournamentOverview* out);
+int ur_uniracers_modern_local_tournament_fixture(
+    size_t index, struct UrModernTournamentFixtureInfo* out);
+int ur_uniracers_modern_local_tournament_standing(
+    size_t sorted_index, struct UrModernTournamentStandingInfo* out);
+
 int ur_uniracers_modern_controls_active(void);
 /* Nonzero while a paused Modern subview (Options, Controls, Run Data or Quit
  * confirmation) owns the pause surface. */

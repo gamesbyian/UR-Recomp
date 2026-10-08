@@ -61,6 +61,7 @@ extern "C" {
 #include "local_multiplayer_participants.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
+#include "local_tournament_session_coordinator.hpp"
 #include "run_record_capture_policy.hpp"
 #include "local_multiplayer_seat_text.hpp"
 #include "modern_pause_input.h"
@@ -257,6 +258,16 @@ bool g_pause_records_acceptance_fired;
 unsigned g_pause_records_acceptance_surface_frames;
 ur::product::CompletedRunCapture g_run_capture;
 ur::product::CompletedRunCapture g_multiplayer_run_capture;
+// Tournament membership belongs to an explicitly persisted, pre-race fixture,
+// never to coincidental course/profile matches in ordinary 2P Records.
+std::optional<ur::product::LocalTournamentCoordinator>
+    g_local_tournament_session;
+std::optional<std::string> g_multiplayer_capture_tournament_attempt;
+bool g_local_tournament_load_attempted;
+bool g_local_tournament_native_acceptance_attempted;
+// Independent of the stock join-overlay visit flag, which is cleared as soon
+// as the title leaves 0x3D for the actual race.
+bool g_local_tournament_route_seen_two_player_select;
 std::optional<ur::product::HostProfileCatalogEntry>
     g_multiplayer_capture_player1;
 std::optional<ur::product::HostProfileCatalogEntry>
@@ -4015,7 +4026,85 @@ std::string default_multiplayer_run_directory() {
     return product_user_data_path("multiplayer-runs");
 }
 
+void ensure_local_tournament_session_loaded() {
+    if (g_local_tournament_load_attempted || !modern_mode()) return;
+    g_local_tournament_load_attempted = true;
+    ensure_profile_catalog();
+    const ur::product::LocalTournamentCoordinatorPaths paths{
+        product_user_data_path("local-tournaments"),
+        default_multiplayer_run_directory(),
+    };
+    const auto loaded = ur::product::restore_local_tournament_coordinator(
+        paths, g_profile_catalog);
+    if (loaded.usable()) {
+        g_local_tournament_session = *loaded.session;
+        product_diagnostic("UR_LOCAL_TOURNAMENT SESSION_RESTORED");
+    } else if (loaded.status !=
+               ur::product::LocalTournamentCoordinatorStatus::Unavailable) {
+        product_diagnostic("UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED");
+    }
+}
+
+// Native-only acceptance proves real stock 2P capture against the tournament
+// coordinator. It must be explicitly enabled and tied to the two profiles
+// independently confirmed by the live Modern join overlay. These fixed IDs
+// are acceptance fixtures, NEVER production tournament identity generation.
+void maybe_arm_local_tournament_native_acceptance() {
+    const char* enabled = std::getenv("UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE");
+    if (!enabled || g_local_tournament_native_acceptance_attempted ||
+        !modern_mode() || !g_ram || g_ram[0x009F] != 0x3D ||
+        !multiplayer_participant_session_ready()) return;
+    g_local_tournament_native_acceptance_attempted = true;
+    const auto& p1 = *g_local_multiplayer_participants.player1;
+    const auto& p2 = *g_local_multiplayer_participants.player2;
+    if (std::strcmp(enabled, "join.alpha,join.bravo") != 0 ||
+        p1.profile_id != "join.alpha" ||
+        p2.profile_id != "join.bravo") {
+        product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_ROSTER_REJECTED");
+        return;
+    }
+    ensure_local_tournament_session_loaded();
+    if (g_local_tournament_session) {
+        product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_ALREADY_ACTIVE");
+        return;
+    }
+    const ur::product::LocalTournamentCoordinatorPaths paths{
+        product_user_data_path("local-tournaments"),
+        default_multiplayer_run_directory(),
+    };
+    const auto created = ur::product::create_local_tournament_coordinator(
+        paths,
+        "0123456789abcdef0123456789abcdef",
+        {"join.alpha", "join.bravo"}, g_profile_catalog,
+        {"course:01"});
+    if (!created.usable()) {
+        product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_CREATE_FAILED");
+        return;
+    }
+    g_local_tournament_session = *created.session;
+    const auto armed = ur::product::arm_local_tournament_fixture(
+        *g_local_tournament_session, 0,
+        "11111111111111111111111111111111",
+        p1.profile_id, p2.profile_id);
+    if (armed != ur::product::LocalTournamentCoordinatorStatus::Armed) {
+        product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_ARM_FAILED");
+        return;
+    }
+    g_local_tournament_route_seen_two_player_select = true;
+    product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED");
+}
+
 void reset_multiplayer_run_capture() {
+    if (g_multiplayer_capture_tournament_attempt &&
+        g_local_tournament_session) {
+        const auto cancelled = ur::product::cancel_local_tournament_capture(
+            *g_local_tournament_session,
+            *g_multiplayer_capture_tournament_attempt);
+        if (cancelled != ur::product::LocalTournamentCoordinatorStatus::Cancelled) {
+            product_diagnostic("UR_LOCAL_TOURNAMENT CAPTURE_CANCEL_REJECTED");
+        }
+    }
+    g_multiplayer_capture_tournament_attempt.reset();
     if (g_multiplayer_run_capture.capturing()) {
         g_multiplayer_run_capture.abort_attempt();
     }
@@ -4240,6 +4329,31 @@ bool begin_multiplayer_run_record_capture(std::uint64_t host_frame) {
         *g_local_multiplayer_participants.player2;
     g_multiplayer_capture_course = course;
     g_multiplayer_capture_origin_frame = host_frame;
+    ensure_local_tournament_session_loaded();
+    if (g_local_tournament_session &&
+        g_local_tournament_session->launch.pending) {
+        const auto attempt = ur::product::local_tournament_capture_attempt_for(
+            *g_local_tournament_session,
+            g_multiplayer_capture_player1->profile_id,
+            g_multiplayer_capture_player2->profile_id,
+            provenance.course_id);
+        if (attempt) {
+            g_multiplayer_capture_tournament_attempt = *attempt;
+            product_diagnostic("UR_LOCAL_TOURNAMENT CAPTURE_TAGGED");
+        } else {
+            // Retire the exact selected fixture attempt when the actual guest
+            // race/course disagrees. A later rematch cannot inherit this
+            // abandoned launch, while ordinary 2P Records still capture.
+            const std::string abandoned =
+                g_local_tournament_session->launch.pending->attempt_id;
+            const auto retired = ur::product::cancel_local_tournament_capture(
+                *g_local_tournament_session, abandoned);
+            product_diagnostic(
+                retired == ur::product::LocalTournamentCoordinatorStatus::Cancelled
+                    ? "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED"
+                    : "UR_LOCAL_TOURNAMENT CAPTURE_REFUSAL_RETIRE_FAILED");
+        }
+    }
     product_diagnostic("UR_MULTIPLAYER_MATCH CAPTURE_STARTED");
     return true;
 }
@@ -4486,6 +4600,21 @@ void complete_multiplayer_run_record_capture() {
         std::fflush(stderr);
     }
 
+    if (g_local_tournament_session &&
+        g_multiplayer_capture_tournament_attempt) {
+        const auto credited = ur::product::commit_local_tournament_capture(
+            *g_local_tournament_session,
+            *g_multiplayer_capture_tournament_attempt, stored_path);
+        if (credited == ur::product::LocalTournamentCoordinatorStatus::Committed) {
+            product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED");
+        } else {
+            product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");
+            (void)ur::product::cancel_local_tournament_capture(
+                *g_local_tournament_session,
+                *g_multiplayer_capture_tournament_attempt);
+        }
+        g_multiplayer_capture_tournament_attempt.reset();
+    }
     reset_multiplayer_run_capture();
     const char* join_acceptance =
         std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE");
@@ -6634,9 +6763,33 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
 
     observe_regional_title_surface();
+    // The stock join-overlay flag is reset at race entry, so own an
+    // independent record of a selected fixture's actual 0x3D visit.
+    // A route abandoned back to MAIN_MENU cannot leave that fixture armed.
+    if (g_local_tournament_session &&
+        g_local_tournament_session->launch.pending && g_ram) {
+        if (g_ram[0x009F] == 0x3D) {
+            g_local_tournament_route_seen_two_player_select = true;
+        }
+        if (g_local_tournament_route_seen_two_player_select &&
+            !g_multiplayer_run_capture.capturing() &&
+            g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
+            const std::string abandoned =
+                g_local_tournament_session->launch.pending->attempt_id;
+            const auto retired = ur::product::cancel_local_tournament_capture(
+                *g_local_tournament_session, abandoned);
+            product_diagnostic(
+                retired == ur::product::LocalTournamentCoordinatorStatus::Cancelled
+                    ? "UR_LOCAL_TOURNAMENT UNFINISHED_ROUTE_CANCELLED"
+                    : "UR_LOCAL_TOURNAMENT ROUTE_CANCEL_REJECTED");
+        }
+    } else {
+        g_local_tournament_route_seen_two_player_select = false;
+    }
     update_local_multiplayer_join_surface();
     observe_local_multiplayer_seat_lines();
     maybe_run_multiplayer_match_acceptance();
+    maybe_arm_local_tournament_native_acceptance();
     project_profile_identity_to_stock_rider();
     apply_focus_pause_policy();
     apply_controller_disconnect_pause();
@@ -9173,4 +9326,77 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "CTRL+R   RETRY", 0xFFFFFFFFu, modal_scale);
         }
     }
+}
+
+extern "C" int ur_uniracers_modern_local_tournament_overview(
+    UrModernTournamentOverview* out) {
+    if (!out) return 0;
+    *out = {};
+    if (!ensure_session() || !modern_mode()) return 0;
+    ensure_local_tournament_session_loaded();
+    if (!g_local_tournament_session) return 0;
+    const auto& state = g_local_tournament_session->results;
+    out->entrants = static_cast<std::uint32_t>(state.entrants.size());
+    out->fixtures = static_cast<std::uint32_t>(state.fixtures.size());
+    for (const auto& result : state.results) {
+        if (result) ++out->completed_fixtures;
+    }
+    out->complete = ur::product::local_tournament_coordinator_complete(
+        *g_local_tournament_session) ? 1 : 0;
+    return 1;
+}
+
+extern "C" int ur_uniracers_modern_local_tournament_fixture(
+    size_t index, UrModernTournamentFixtureInfo* out) {
+    if (!out) return 0;
+    *out = {};
+    if (!ensure_session() || !modern_mode()) return 0;
+    ensure_local_tournament_session_loaded();
+    if (!g_local_tournament_session) return 0;
+    const auto& state = g_local_tournament_session->results;
+    if (index >= state.fixtures.size() || index >= state.results.size()) return 0;
+    const auto& fixture = state.fixtures[index];
+    if (fixture.player1 >= state.entrants.size() ||
+        fixture.player2 >= state.entrants.size()) return 0;
+    out->round = static_cast<std::uint32_t>(fixture.round);
+    std::snprintf(out->first_profile_id, sizeof(out->first_profile_id),
+                  "%s", state.entrants[fixture.player1].c_str());
+    std::snprintf(out->second_profile_id, sizeof(out->second_profile_id),
+                  "%s", state.entrants[fixture.player2].c_str());
+    std::snprintf(out->course_id, sizeof(out->course_id),
+                  "%s", fixture.course_id.c_str());
+    if (state.results[index]) {
+        using Outcome = ur::title::OrdinaryTwoPlayerRaceOutcome;
+        const auto& result = *state.results[index];
+        if (result.outcome == Outcome::Draw) out->outcome = 3;
+        else if (result.outcome == Outcome::Player1Win) {
+            out->outcome = result.seats_swapped ? 2 : 1;
+        } else if (result.outcome == Outcome::Player2Win) {
+            out->outcome = result.seats_swapped ? 1 : 2;
+        } else return 0;
+    }
+    return 1;
+}
+
+extern "C" int ur_uniracers_modern_local_tournament_standing(
+    size_t sorted_index, UrModernTournamentStandingInfo* out) {
+    if (!out) return 0;
+    *out = {};
+    if (!ensure_session() || !modern_mode()) return 0;
+    ensure_local_tournament_session_loaded();
+    if (!g_local_tournament_session) return 0;
+    const auto rows =
+        ur::product::local_tournament_standings(
+            g_local_tournament_session->results);
+    if (sorted_index >= rows.size()) return 0;
+    const auto& row = rows[sorted_index];
+    std::snprintf(out->profile_id, sizeof(out->profile_id),
+                  "%s", row.profile_id.c_str());
+    out->rank = static_cast<std::uint32_t>(row.rank);
+    out->played = static_cast<std::uint32_t>(row.played);
+    out->wins = static_cast<std::uint32_t>(row.wins);
+    out->draws = static_cast<std::uint32_t>(row.draws);
+    out->losses = static_cast<std::uint32_t>(row.losses);
+    out->points = static_cast<std::uint32_t>(row.points);
+    return 1;
 }

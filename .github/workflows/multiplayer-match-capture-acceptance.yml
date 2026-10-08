@@ -11,7 +11,7 @@ jobs:
   acceptance:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 26
     steps:
       - uses: actions/checkout@v4
         with:
@@ -146,6 +146,17 @@ jobs:
             "$RUNNER_TEMP/real-joined-capture" \
             "$RUNNER_TEMP/check-2p-match-pair"
 
+      - name: Prove an armed tournament fixture owns real 2P capture and restores standings
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-2p-match/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_local_tournament_capture_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/tournament-native" \
+            "$RUNNER_TEMP/check-2p-match-pair"
+
       - name: Retain failed capture diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -156,4 +167,5 @@ jobs:
             ${{ runner.temp }}/capture.log
             ${{ runner.temp }}/acceptance-dumps/
             ${{ runner.temp }}/real-joined-capture/real-joined-capture.log
+            ${{ runner.temp }}/tournament-native/real-joined-capture.log
 

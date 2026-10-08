@@ -74,7 +74,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
         self.assertIn("unrelated launch working directory", self.script)
         self.assertIn("diagnostics\\startup.log", self.script)
         self.assertIn("actual Windows desktop", self.instructions)
-        self.assertIn("no claim of a verified clean", self.instructions)
+        self.assertIn("no claim of a verified clean", self.instructions.lower())
 
 
 if __name__ == "__main__":

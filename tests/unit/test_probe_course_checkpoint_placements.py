@@ -95,6 +95,10 @@ class CheckpointSpatialPlacementTests(unittest.TestCase):
         self.assertEqual(result["summary"]["candidate_coarse_sectors"], 31)
         self.assertGreater(result["summary"]["candidate_world_cells"], 0)
         self.assertEqual(result["world_extent"], [65536, 1024])
+        # The published Dragster contact trace selects C000 index 8 at frame 2903.
+        self.assertGreater(
+            result["summary"]["candidate_cells_by_c000_slot"].get("8", 0), 0
+        )
 
     def test_dragster_world_cells_match_accepted_presentation_contract(self):
         if not mod.ROM.is_file():

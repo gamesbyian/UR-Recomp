@@ -58,18 +58,142 @@ def decoded_streams(path: Path) -> list[bytes]:
 
 
 def regions(decoded: bytes, parsed: dict) -> dict[str, bytes]:
+    """Partition a validated course payload without silently clipping bad bounds.
+
+    The 0x8000-byte coarse table and 32-byte fine records are established
+    materialization boundaries. Comparing clipped/shifted regions can falsely
+    attribute a malformed course to a legitimate regional content change.
+    """
     cursor = parsed["resource_cursor_initial"]
     terminator = parsed["resource_terminator_offset"]
-    coarse_end = min(COARSE_END, len(decoded))
-    fine_start = min(FINE_START, len(decoded))
-    fine_end = min(cursor, len(decoded))
-    post_list_start = min(terminator + 1, len(decoded))
+    if len(decoded) < FINE_START:
+        raise ValueError("course payload truncated before end of coarse table")
+    if cursor < FINE_START or cursor > len(decoded):
+        raise ValueError("resource cursor outside course fine-record boundary")
+    if (cursor - FINE_START) % 32:
+        raise ValueError("fine-record region is not 32-byte aligned")
+    if not cursor <= terminator < len(decoded):
+        raise ValueError("resource terminator outside course resource list")
+    if decoded[terminator] != 0xFF:
+        raise ValueError("course resource terminator is not FF")
     return {
-        "header": decoded[:min(HEADER_END, len(decoded))],
-        "coarse_table": decoded[min(HEADER_END, len(decoded)):coarse_end],
-        "fine_record_region": decoded[fine_start:fine_end],
-        "resource_list": decoded[min(cursor, len(decoded)):post_list_start],
-        "post_resource_list": decoded[post_list_start:],
+        "header": decoded[:HEADER_END],
+        "coarse_table": decoded[HEADER_END:COARSE_END],
+        "fine_record_region": decoded[FINE_START:cursor],
+        "resource_list": decoded[cursor:terminator + 1],
+        "post_resource_list": decoded[terminator + 1:],
+    }
+
+
+
+def _surface_slot(word: int) -> int | None:
+    """Return only the already-proven low-ten-bit C000 selector."""
+    if not (word & 0x03FF):
+        return None
+    return ((word & 0x000F) >> 1) + ((word & 0x03F0) >> 2)
+
+
+def effective_surface_delta(
+    usa: bytes, europe: bytes, usa_parsed: dict, europe_parsed: dict
+) -> dict:
+    """Compare *placed* packed surface words, not fine-record byte offsets.
+
+    Coarse entries are 16,384 u16 references to 32-byte/16-cell fine
+    records. Record identities can change without changing a single world
+    cell, and conversely one reused record can change many placements.
+    This reports packed-word/selector equality only. It never claims a
+    changed word necessarily modifies collision or checkpoint behavior.
+    """
+    u = regions(usa, usa_parsed)
+    e = regions(europe, europe_parsed)
+    dims_u = usa_parsed["layout_dims"]
+    dims_e = europe_parsed["layout_dims"]
+    if dims_u != dims_e:
+        return {
+            "comparable": False,
+            "reason": "regional course dimensions differ",
+            "usa_dims": dims_u,
+            "europe_dims": dims_e,
+        }
+    cols, rows = dims_u[0] * 4, dims_u[1] * 4
+    if cols * rows != 16384:
+        raise ValueError("course dimensions do not define 16384 coarse sectors")
+
+    def words(data: bytes) -> list[int]:
+        if len(data) % 2:
+            raise ValueError("unaligned u16 course table")
+        return [data[i] | (data[i + 1] << 8) for i in range(0, len(data), 2)]
+
+    uc = words(u["coarse_table"])
+    ec = words(e["coarse_table"])
+    uf = words(u["fine_record_region"])
+    ef = words(e["fine_record_region"])
+    if len(uc) != 16384 or len(ec) != 16384:
+        raise ValueError("coarse sector table must contain 16384 entries")
+    un, en = len(uf) // 16, len(ef) // 16
+    if any(record >= un for record in uc) or any(record >= en for record in ec):
+        raise ValueError("coarse sector points outside its fine-record table")
+
+    # Memoize paired records. Repetition is meaningful in world-space
+    # counts, but need not repeatedly decode the same 16 cell words.
+    compared: dict[tuple[int, int], list[tuple[int, int, int]]] = {}
+    changed_sectors = changed_cells = selector_changes = control_changes = 0
+    raw_reference_changes = 0
+    witnesses: list[dict] = []
+    bounds: list[int] | None = None
+    for index, (urid, erid) in enumerate(zip(uc, ec)):
+        if urid != erid:
+            raw_reference_changes += 1
+        key = (urid, erid)
+        if key not in compared:
+            differences = []
+            for cell in range(16):
+                uw, ew = uf[urid * 16 + cell], ef[erid * 16 + cell]
+                if uw != ew:
+                    differences.append((cell, uw, ew))
+            compared[key] = differences
+        differences = compared[key]
+        if not differences:
+            continue
+        changed_sectors += 1
+        sx, sy = index % cols, index // cols
+        changed_cells += len(differences)
+        for cell, uw, ew in differences:
+            if _surface_slot(uw) != _surface_slot(ew):
+                selector_changes += 1
+            if (uw & 0xFC00) != (ew & 0xFC00):
+                control_changes += 1
+            x, y = sx * 64 + (cell % 4) * 16, sy * 64 + (cell // 4) * 16
+            if bounds is None:
+                bounds = [x, y, x + 15, y + 15]
+            else:
+                bounds = [
+                    min(bounds[0], x), min(bounds[1], y),
+                    max(bounds[2], x + 15), max(bounds[3], y + 15),
+                ]
+            if len(witnesses) < 12:
+                witnesses.append({
+                    "world_cell_origin": [x, y],
+                    "coarse_sector": [sx, sy],
+                    "fine_record_id": {"usa": urid, "europe": erid},
+                    "packed_word": {"usa": f"{uw:04X}", "europe": f"{ew:04X}"},
+                    "c000_slot": {
+                        "usa": _surface_slot(uw), "europe": _surface_slot(ew)
+                    },
+                })
+    return {
+        "comparable": True,
+        "coarse_grid": [cols, rows],
+        "world_extent": [cols * 64, rows * 64],
+        "fine_record_counts": {"usa": un, "europe": en},
+        "raw_coarse_reference_id_changes": raw_reference_changes,
+        "changed_world_sectors": changed_sectors,
+        "changed_world_cells": changed_cells,
+        "total_world_cells": 16384 * 16,
+        "changed_c000_selectors": selector_changes,
+        "changed_unclassified_upper_word_bits": control_changes,
+        "changed_world_cell_bounds": bounds,
+        "first_12_changed_cells": witnesses,
     }
 
 
@@ -132,19 +256,23 @@ def build_report(usa_path: Path = USA, europe_path: Path = EUROPE) -> dict:
                     "europe": e["resource_ids"],
                 },
                 "changed_regions": changed_regions,
+                "effective_surface": effective_surface_delta(usa, eur, u, e),
                 "regions": region_diffs,
             }
         )
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "purpose": (
             "Mechanical decoded-region comparison for the retail course payloads "
             "that differ between USA and Europe."
         ),
         "classification_guardrail": (
             "Region membership narrows the investigation but does not itself "
-            "classify a change as visual, collision/topology, spawn, or timing."
+            "classify a change as visual, collision/topology, spawn, or timing. "
+            "Effective surface comparison measures packed words and known C000 "
+            "selectors after coarse-to-fine placement; these differences are "
+            "not alone proof of changed physical track behavior."
         ),
         "changed_stream_count": len(rows),
         "changed_stream_indices": [row["stream_index"] for row in rows],
@@ -173,6 +301,36 @@ def markdown(report: dict) -> str:
             f"| {row['stream_index']} | {row['course_name']} | "
             f"{row['decoded']['length_delta']:+d} | "
             f"{', '.join(row['changed_regions'])} | {resources} |"
+        )
+
+    lines += [
+        "",
+        "## Placed packed-surface comparison",
+        "",
+        "World-cell counts compare the actual coarse-sector -> fine-record",
+        "lookup for each 16x16 cell. These are packed-word/known C000",
+        "selector differences, **not** automatically collision/finish changes.",
+        "Raw coarse record-ID edits can be nonzero while all placed",
+        "world-cell words remain identical.",
+        "",
+        "| # | Course | coarse ID differences | changed sectors | changed world cells | changed C000 selectors | upper-word differences |",
+        "|---:|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in report["courses"]:
+        spatial = row["effective_surface"]
+        if not spatial["comparable"]:
+            lines.append(
+                f'| {row["stream_index"]} | {row["course_name"]} | '
+                f'{spatial["reason"]} | | | | |'
+            )
+            continue
+        lines.append(
+            f'| {row["stream_index"]} | {row["course_name"]} | '
+            f'{spatial["raw_coarse_reference_id_changes"]} | '
+            f'{spatial["changed_world_sectors"]} | '
+            f'{spatial["changed_world_cells"]} | '
+            f'{spatial["changed_c000_selectors"]} | '
+            f'{spatial["changed_unclassified_upper_word_bits"]} |'
         )
 
     lines += ["", "## Region detail", ""]

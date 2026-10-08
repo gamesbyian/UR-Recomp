@@ -89,3 +89,16 @@ progression transition. A one-frame correlation must not be elevated
 to proof that C000 slot 8 inherently means "finish" while slot 10
 inherently means "checkpoint". Both are the same behavior code 0x14,
 and the handler sees the same masked class for these recorded words.
+
+## Regional portability boundary
+
+The exact USA address-transfer bytes are also pinned against the legacy-beta
+cartridge, where the corresponding bank-81 instructions remain identical.
+The initial PAL retail/prototype test deliberately failed: neither PAL build
+contains these USA six-byte register-transfer sequences in the tested local
+neighborhoods. PAL timer and gameplay fields have known operand/layout
+changes, so the USA `0E95/0E97/0F09` addresses must **not** be exported as
+PAL authorities without separate homolog and runtime-register evidence.
+The course model remains regional-data-aware, while this marshal claim is
+currently **USA/legacy-beta only**. This is an actionable research boundary,
+not a claim that PAL omits per-player collision bookkeeping.

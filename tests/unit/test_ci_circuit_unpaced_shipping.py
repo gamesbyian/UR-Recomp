@@ -17,10 +17,14 @@ class IsolatedUnpacedCircuitAcceptanceTest(unittest.TestCase):
             'export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"',
             section,
         )
-        self.assertIn('mkdir -p "$SNESRECOMP_USER_DATA_DIR"', section)
+        self.assertIn('mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?', section)
+        self.assertIn(
+            "grep -Fqx 'DisableFrameDelay = 1' "
+            '"$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?', section,
+        )
         self.assertIn(
             "printf '[General]\\nDisableFrameDelay = 1\\n' > "
-            '"$SNESRECOMP_USER_DATA_DIR/config.ini"', section,
+            '"$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?', section,
         )
         self.assertIn(
             "run_route ui-circuit-drive-capture ui-circuit-drive-capture.script "

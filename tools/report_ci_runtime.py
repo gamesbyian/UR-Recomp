@@ -57,6 +57,45 @@ def jobs_by_run(payload: dict[str, Any] | None) -> dict[int, list[dict[str, Any]
     return result
 
 
+
+def job_parallelism_profile(jobs: list[dict[str, Any]]) -> dict[str, float] | None:
+    """Observed runner occupancy from actual started/completed job intervals.
+
+    Ending a job at the same instant another starts does not constitute
+    concurrent work. Skipped, unstarted and malformed intervals contribute
+    no runner seconds. This is an *observed span*, not the dependency-DAG
+    critical path or GitHub queue time.
+    """
+    intervals: list[tuple[datetime, datetime]] = []
+    for job in jobs:
+        start = parse_time(job.get("started_at"))
+        end = parse_time(job.get("completed_at"))
+        if start and end and end > start:
+            intervals.append((start, end))
+    if not intervals:
+        return None
+
+    edges = []
+    runner_seconds = 0.0
+    for start, end in intervals:
+        runner_seconds += (end - start).total_seconds()
+        edges.extend(((start, 1), (end, -1)))
+    edges.sort(key=lambda item: (item[0], item[1]))
+    active = 0
+    peak = 0
+    for _time, delta in edges:
+        active += delta
+        peak = max(peak, active)
+    observed_span_seconds = (
+        max(end for _, end in intervals) - min(start for start, _ in intervals)
+    ).total_seconds()
+    return {
+        "runner_seconds": runner_seconds,
+        "observed_span_seconds": observed_span_seconds,
+        "peak_active_jobs": float(peak),
+    }
+
+
 def summarize(
     payload: dict[str, Any],
     since_hours: float | None = None,
@@ -71,6 +110,10 @@ def summarize(
         "cancelled_runs": 0,
         "failed_runs": 0,
         "jobs": 0,
+        "runs_with_job_timing": 0,
+        "runner_seconds": 0.0,
+        "observed_job_span_seconds": 0.0,
+        "peak_active_jobs": 0,
         "total_wall_seconds": 0.0,
         "max_wall_seconds": 0.0,
         "run_queue_seconds": 0.0,
@@ -123,6 +166,14 @@ def summarize(
         run_id = run.get("id")
         if run_id is None:
             continue
+        profile = job_parallelism_profile(job_map.get(int(run_id), []))
+        if profile:
+            row["runs_with_job_timing"] += 1
+            row["runner_seconds"] += profile["runner_seconds"]
+            row["observed_job_span_seconds"] += profile["observed_span_seconds"]
+            row["peak_active_jobs"] = max(
+                row["peak_active_jobs"], int(profile["peak_active_jobs"])
+            )
         for job in job_map.get(int(run_id), []):
             row["jobs"] += 1
             row["job_queue_seconds"] += elapsed_seconds(
@@ -153,6 +204,10 @@ def summarize(
         )
         row["avg_job_queue_seconds"] = (
             row["job_queue_seconds"] / row["jobs"] if row["jobs"] else 0.0
+        )
+        row["mean_active_jobs"] = (
+            row["runner_seconds"] / row["observed_job_span_seconds"]
+            if row["observed_job_span_seconds"] else 0.0
         )
         row["cancelled_fraction"] = (
             row["cancelled_runs"] / row["runs"] if row["runs"] else 0.0
@@ -199,6 +254,24 @@ def markdown(report: dict[str, Any]) -> str:
             f"{row['dependency_seconds']/60:.1f} | {row['build_seconds']/60:.1f} | "
             f"{row['execution_seconds']/60:.1f} | {row['cancelled_wall_seconds']/60:.1f} | "
             f"{row['failed_runs']} |"
+        )
+
+    lines.extend([
+        "",
+        "## Observed parallel runner occupancy",
+        "",
+        "These are measured started/completed job spans, not dependency-DAG critical paths. "
+        "Missing job intervals are excluded; queue time is reported separately.",
+        "",
+        "| Workflow | Timed runs | Runner min | Observed span min | Mean active jobs | Peak active jobs |",
+        "|---|---:|---:|---:|---:|---:|",
+    ])
+    for row in report["workflows"]:
+        lines.append(
+            f"| {row['workflow']} | {row['runs_with_job_timing']} | "
+            f"{row['runner_seconds']/60:.1f} | "
+            f"{row['observed_job_span_seconds']/60:.1f} | "
+            f"{row['mean_active_jobs']:.2f} | {row['peak_active_jobs']} |"
         )
 
     for row in report["workflows"]:

@@ -383,3 +383,27 @@ Now Playing and Race Entry phase acceptance passed in the same Windows run.
 These accepted claims belong strictly to the **stock guest Start** path.
 They do not establish exact waveform identity, hardware latency, or the
 Modern host-owned frozen pause/Restart/Exit-to-Frontend acoustic lifecycle.
+
+
+## Bounded device-output transition-envelope diagnostics
+
+The six-checkpoint Windows audio job now records **three seconds of SDL3
+device output preceding each stock guest Start pause checkpoint**, divided
+into 100 ms buckets. Each bucket contains left/right RMS, peak sample,
+fraction of literal zero samples, and the maximum absolute difference
+between consecutive sample values (including transitions between buckets).
+The capture also retains device-rate sample counts and times relative to
+the *end of the device file*. The evidence is written as three small
+`audio-envelope-ui-pause-*.json` summaries; the raw stereo
+PCM remains disposable and is deleted before artifact upload.
+
+These data can distinguish a fade into silence from a sudden level change,
+identify candidate clipping or discontinuities, and describe audio recovery
+after the stock guest Start press without imposing an arbitrary click or
+latency threshold. **They are not aligned to exact guest-frame timestamps.**
+SDL queueing, resampling and file-flush timing may shift the apparent onset
+of a pause or resume. The peak adjacent-sample step is a numerical transient
+candidate, not proof of an audible defect. The well-established one-second
+relative-RMS attenuation/recovery and zero-steady-starvation gates continue
+to enforce the shipping stock-pause contract unchanged. Modern host-owned
+frozen pause still requires its own acoustic evidence.

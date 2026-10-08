@@ -20,6 +20,7 @@ on:
       - "tests/input/ui-pause-route.script"
       - "tools/build_audio_pause_route.py"
       - "tools/analyze_audio_pause_phases.py"
+      - "tools/analyze_sdl_audio_envelope.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -240,6 +241,12 @@ jobs:
               --max-post-startup-underflows 0 \
               --max-post-startup-missing-frames 0 \
               --json-out "$RUNNER_TEMP/audio-ring-$CASE.json"
+            # Preserve bounded time-domain evidence *before* deleting PCM.
+            # Source/device timing offset is still unknown, so no click/fade
+            # claim or absolute latency threshold is inferred from buckets.
+            python -m tools.analyze_sdl_audio_envelope "$LOG" "$PCM_WIN" \
+              --last-seconds 3.0 --window-ms 100 \
+              --json-out "$RUNNER_TEMP/audio-envelope-$CASE.json"
             rm -f "$PCM"
             echo "WINDOWS_STOCK_PAUSE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
           done
@@ -263,5 +270,6 @@ jobs:
             ${{ runner.temp }}/audio-ring-*.json
             ${{ runner.temp }}/audio-phase-matrix.json
             ${{ runner.temp }}/audio-stock-pause-phases.json
+            ${{ runner.temp }}/audio-envelope-ui-pause-*.json
           if-no-files-found: warn
           retention-days: 7

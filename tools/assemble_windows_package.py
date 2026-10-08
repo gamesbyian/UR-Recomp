@@ -258,8 +258,14 @@ def write_launcher(path: Path, source_revision: str) -> None:
         f"  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo build_revision={source_revision}\r\n"
         "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo architecture=x64\r\n"
         "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo subsystem=bootstrap\r\n"
-        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo package_root=%UR_PACKAGE_ROOT%\r\n"
-        "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo user_data_root=%UR_RECOMP_USER_DATA_ROOT%\r\n"
+        # Only these two log-value expansions need delayed expansion: it
+        # preserves literal CMD metacharacters in legitimate Windows paths
+        # (e.g. a directory containing '&') without enabling it for earlier
+        # percent-expanded paths that may contain literal '!'.
+        "  setlocal EnableDelayedExpansion\r\n"
+        "  >> \"!UR_RECOMP_STARTUP_LOG!\" echo package_root=!UR_PACKAGE_ROOT!\r\n"
+        "  >> \"!UR_RECOMP_STARTUP_LOG!\" echo user_data_root=!UR_RECOMP_USER_DATA_ROOT!\r\n"
+        "  endlocal\r\n"
         "  >> \"%UR_RECOMP_USER_DATA_ROOT%\\diagnostics\\startup.log\" echo result=startup-begin\r\n"
         ")\r\n"
         f"if not exist \"{EXE_NAME}\" (call :startup_fail \"UR-STARTUP-RUNTIME-DATA\" \"runtime-data\" \"Required package file is missing: {EXE_NAME}. Re-extract the complete package.\" & exit /b 2)\r\n"

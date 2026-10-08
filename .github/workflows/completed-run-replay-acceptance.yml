@@ -202,6 +202,67 @@ jobs:
           grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
             "$RUNNER_TEMP/ghost-world-equivalence.log"
 
+      - name: Re-drive identical saved run under alternate Modern presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          ALTERNATE="$RUNNER_TEMP/alternate-presentation.urrun"
+          LOG="$RUNNER_TEMP/alternate-presentation.log"
+          STATE="$RUNNER_TEMP/alternate-presentation-host-state.txt"
+
+          # The versioned product state is host-only: no alternate replay,
+          # input format, frame clock, course selector or guest memory edits.
+          # Contrast stock 4x/4:3/VSync-on with 1x/16:9/VSync-off. Preserve
+          # the same previously rehydrated .urrun controller stream.
+          printf '%s\\n' \
+            'UR-HOST-STATE/6' \
+            'profile=' \
+            'regional_presentation=north_america' \
+            'pause_on_focus_loss=1' \
+            'vibration_enabled=1' \
+            'display_mode=windowed' \
+            'vsync=off' \
+            'presentation_fps=game' \
+            'output_resolution=native' \
+            'widescreen=16x9' \
+            'internal_render_scale=1x' \
+            > "$STATE"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_HOST_STATE_PATH="$STATE" \
+          SNESRECOMP_INPUT_FILE="$RUNNER_TEMP/rehydrated.input" \
+          SNESRECOMP_INPUT_RELATIVE=1 \
+          UR_RUN_RECORD_CAPTURE_PATH="$ALTERNATE" \
+          UR_RUN_GHOST_ACCEPTANCE_RECORD="$ORIGINAL" \
+          UR_RUN_GHOST_ACCEPTANCE_TARGET=previous \
+          UR_RUN_GHOST_DRAW_DIAGNOSTICS=1 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              > "$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*widescreen=16x9 internal_render_scale=1x" "$LOG"
+          grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOG"
+          grep -q "UR_RUN_GHOST DRAWN" "$LOG"
+          grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          test -s "$ALTERNATE"
+          test -s "$ALTERNATE.urghost"
+          "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$ALTERNATE" \
+            | tee "$RUNNER_TEMP/alternate-presentation-run-compare.log"
+          "$RUNNER_TEMP/compare-ghost-traces" \
+            "$ORIGINAL" "$ORIGINAL.urghost" \
+            "$ALTERNATE" "$ALTERNATE.urghost" \
+            | tee "$RUNNER_TEMP/alternate-presentation-ghost-compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/alternate-presentation-run-compare.log"
+          grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/alternate-presentation-ghost-compare.log"
+
       - name: Launch stored run through Local Runs browser
         shell: bash
         run: |
@@ -463,5 +524,10 @@ jobs:
             ${{ runner.temp }}/original-ghost-trace.log
             ${{ runner.temp }}/replayed-ghost-trace.log
             ${{ runner.temp }}/ghost-world-equivalence.log
+            ${{ runner.temp }}/alternate-presentation.urrun
+            ${{ runner.temp }}/alternate-presentation.urrun.urghost
+            ${{ runner.temp }}/alternate-presentation.log
+            ${{ runner.temp }}/alternate-presentation-run-compare.log
+            ${{ runner.temp }}/alternate-presentation-ghost-compare.log
           if-no-files-found: warn
           retention-days: 7

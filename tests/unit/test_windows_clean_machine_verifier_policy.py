@@ -50,7 +50,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             (build / package.ROM_CONFIG_NAME).write_bytes(b"generated rom config")
             catalog = build / "mods" / "preloaded" / "packages"
             catalog.mkdir(parents=True)
-            (catalog / "catalog.json").write_bytes(b"{}\\n")
+            (catalog / "catalog.json").write_bytes(b"{}\n")
             rom = root / package.ROM_NAME
             rom.write_bytes(b"synthetic rom data")
             output = root / "assembled"
@@ -79,8 +79,8 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertIn("Destination already exists", again.stderr)
             # Bad checksum must be rejected before extraction creates its root.
             checksum.write_text(
-                "0" * 64 + "  " + archive.name + "\\n",
-                encoding="ascii", newline="\\n",
+                "0" * 64 + "  " + archive.name + "\n",
+                encoding="ascii", newline="\n",
             )
             bad_destination = root / "must remain absent"
             bad_cmd = cmd[:-1] + [str(bad_destination)]

@@ -34,6 +34,14 @@ void set_slot(
 }  // namespace
 
 int main() {
+    // The top pair is 98/99: 98 is in front, so 99 paints first.
+    // The bottom pair is 97/96: 96 is in front, so 97 paints first.
+    assert(racer_obj_paints_behind(99, 98));
+    assert(!racer_obj_paints_behind(98, 99));
+    assert(racer_obj_paints_behind(97, 96));
+    assert(!racer_obj_paints_behind(96, 97));
+    assert(!racer_obj_paints_behind(98, 98));
+
     // The HD replacement must obey the original HDMA $A5/$5A handoff
     // after logical scanline 111 even with 1x-4x presentation density.
     for (int scale = 1; scale <= 4; ++scale) {

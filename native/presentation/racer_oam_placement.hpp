@@ -15,6 +15,16 @@ enum class RacerViewport : std::uint8_t {
 // Clip host-owned replacements to the same physical half-frame so a large
 // racer at the seam cannot leak into the other viewport. Scaling changes
 // raster density only; it must never move the original scanline boundary.
+// Within one SNES OBJ priority level, smaller OAM slots win sprite-to-
+// sprite overlap. Back-to-front host painting must therefore visit the
+// larger slot first (the slot's palette/priority bits do not change this).
+constexpr bool racer_obj_paints_behind(
+    std::uint8_t first_slot,
+    std::uint8_t second_slot
+) noexcept {
+    return first_slot > second_slot;
+}
+
 constexpr bool racer_split_viewport_contains_row(
     RacerViewport viewport,
     int output_row,

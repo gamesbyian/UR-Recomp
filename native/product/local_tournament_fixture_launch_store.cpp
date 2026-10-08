@@ -58,10 +58,13 @@ LocalTournamentLaunchFileStatus save_local_tournament_launch_file(
     return LocalTournamentLaunchFileStatus::Saved;
 }
 
-LocalTournamentLaunchFileResult load_local_tournament_launch_file(
-    const std::string& path,
-    const LocalTournamentState& active_tournament,
-    std::string_view active_tournament_id) {
+namespace {
+
+// Strict bounded disk decoding alone does not authorize restarting a guest
+// attempt. The public restore API adds the active unfinished-fixture check;
+// exact-match retirement may instead follow a successfully committed result.
+LocalTournamentLaunchFileResult read_local_tournament_launch_file(
+    const std::string& path) {
     if (path.empty()) {
         return error_result(LocalTournamentLaunchFileStatus::Rejected,
                             "empty launch checkpoint path");
@@ -102,27 +105,40 @@ LocalTournamentLaunchFileResult load_local_tournament_launch_file(
                             "short read or close failure");
     }
     const auto decoded = decode_local_tournament_pending_fixture(encoded);
-    if (!decoded ||
-        decoded->tournament_id != active_tournament_id ||
+    if (!decoded) {
+        return error_result(LocalTournamentLaunchFileStatus::Rejected,
+                            "invalid canonical checkpoint");
+    }
+    return {LocalTournamentLaunchFileStatus::Loaded, *decoded, {}};
+}
+
+} // namespace
+
+LocalTournamentLaunchFileResult load_local_tournament_launch_file(
+    const std::string& path,
+    const LocalTournamentState& active_tournament,
+    std::string_view active_tournament_id) {
+    auto loaded = read_local_tournament_launch_file(path);
+    if (!loaded.loaded()) return loaded;
+    if (loaded.pending->tournament_id != active_tournament_id ||
         !local_tournament_pending_matches_fixture(
-            *decoded, active_tournament)) {
+            *loaded.pending, active_tournament)) {
         return error_result(LocalTournamentLaunchFileStatus::Rejected,
                             "checkpoint invalid for active tournament");
     }
-    return {
-        LocalTournamentLaunchFileStatus::Loaded, *decoded, {},
-    };
+    return loaded;
 }
 
 LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
     const std::string& path,
-    const LocalTournamentState& active_tournament,
-    std::string_view active_tournament_id,
-    std::string_view expected_attempt_id) {
-    const auto loaded = load_local_tournament_launch_file(
-        path, active_tournament, active_tournament_id);
+    const LocalTournamentPendingFixture& expected_pending) {
+    const std::string expected_bytes =
+        encode_local_tournament_pending_fixture(expected_pending);
+    if (expected_bytes.empty()) return LocalTournamentLaunchFileStatus::Rejected;
+    const auto loaded = read_local_tournament_launch_file(path);
     if (!loaded.loaded()) return loaded.status;
-    if (loaded.pending->attempt_id != expected_attempt_id) {
+    if (encode_local_tournament_pending_fixture(*loaded.pending) !=
+        expected_bytes) {
         return LocalTournamentLaunchFileStatus::Rejected;
     }
     // This store contract assumes one serialized host writer per path. The

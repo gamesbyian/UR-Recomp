@@ -210,6 +210,47 @@ is compared against run 37755129420. If CPU competition or display
 contention eliminates the saving, revert the overlap rather than weaken
 the reference comparison.
 
+### Circuit capture acceleration: controlled evidence, not a blind turbo switch
+
+The native UI `ui-circuit-drive-capture.script` must exercise 60 seconds
+of scripted race frames and historically took about 71 seconds of hosted
+runner time. The first unpaced comparison in
+[run 37766987356](https://github.com/gamesbyian/UR-Recomp/actions/runs/37766987356)
+found 64 file differences because the preexisting paced baseline reused
+the executable-owned user-data root after a different race while the
+unpaced run started from a pristine root. Its early menu checkpoints were
+already 3–5 simulation frames apart. It did **not** establish a pacing
+regression.
+
+The follow-up controlled diagnostic in
+[run 37776055765](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776055765)
+ran two instances of the **same** Circuit script against the **same**
+executable/ROM, starting from independent freshly initialized user-data
+roots. One had `DisableFrameDelay=0`, the other
+`DisableFrameDelay=1`. Their eleven capture checkpoints were at the
+same script frames (track selected 736, Now Playing 802, race entered
+1075, terminal 4260). The paced run took about 71 seconds; the unpaced
+run 28 seconds. The final CI assertion itself errored due to a
+three-argument/two-target unpacking defect, but its uploaded
+`native-ui-capture-results-a` artifact
+([archive 11550625072](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776055765/artifacts/11550625072))
+contained the complete controls. Independent read-only SHA-256
+comparison of those retained captures found **121/121 byte-identical
+files**, including the full framebuffer, WRAM, SRAM, VRAM, OAM, PPU
+metadata, registers, DMA and palette dumps. The original mixed-state
+paced baseline differed from the pristine paced control in 64 files.
+Thus the earlier drift was explained by initial persistent state rather
+than the pacing setting.
+
+The required automatic Circuit route now uses an **isolated, initialized
+user-data root** with `DisableFrameDelay=1` and retains its original
+script, all eleven dump labels, the same artifact directory, and a
+required zero exit. This makes the compared initial state reproducible
+rather than dependent on which other capture happened earlier in the
+shard. The full Native UI aggregate/atlas/finish-time contracts must
+still pass on the optimized configuration; the one-off paired diagnostic
+is not retained in permanent automatic CI.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

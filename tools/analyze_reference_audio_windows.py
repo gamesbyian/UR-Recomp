@@ -33,16 +33,24 @@ def parse_log(path: Path) -> tuple[float, float, dict[str, int]]:
             checkpoints[m.group(2)] = int(m.group(1))
     if fps is None or sample_rate is None:
         raise ValueError(f"{path}: missing core timing")
+    if not math.isfinite(fps) or not math.isfinite(sample_rate) or fps <= 0 or sample_rate <= 0:
+        raise ValueError(f"{path}: invalid core timing")
     return fps, sample_rate, checkpoints
 
 
 def window_metrics(wav_path: Path, center_frame: int, fps: float, radius_frames: int = 30) -> dict:
+    if center_frame < 0 or radius_frames <= 0 or not math.isfinite(fps) or fps <= 0:
+        raise ValueError("invalid audio checkpoint window")
     with wave.open(str(wav_path), "rb") as w:
         if w.getnchannels() != 2 or w.getsampwidth() != 2:
             raise ValueError("expected stereo 16-bit PCM")
+        if w.getcomptype() != "NONE":
+            raise ValueError("expected uncompressed PCM")
         rate = w.getframerate()
         center = round(center_frame * rate / fps)
         radius = round(radius_frames * rate / fps)
+        if center >= w.getnframes():
+            raise ValueError(f"{wav_path}: checkpoint frame {center_frame} lies beyond captured PCM")
         start = max(0, center - radius)
         end = min(w.getnframes(), center + radius)
         w.setpos(start)
@@ -59,6 +67,9 @@ def window_metrics(wav_path: Path, center_frame: int, fps: float, radius_frames:
         "guest_frame": center_frame,
         "radius_guest_frames": radius_frames,
         "pcm_frames": end - start,
+        "pcm_start_frame": start,
+        "pcm_end_frame": end,
+        "window_truncated": start != center - radius or end != center + radius,
         "rms": round(rms, 6),
         "peak": peak,
         "nonzero_fraction": nonzero / len(samples) if samples else 0.0,

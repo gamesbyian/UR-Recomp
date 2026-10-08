@@ -17,6 +17,8 @@ The pause family is drawn by the title's `system_overlay` while the guest is fro
 - Authentic mode remains stock: modern pause/controller policy is inert.
 - Existing keyboard navigation remains a control path and must retain equivalent menu semantics.
 
+Non-pause host surfaces (Welcome/onboarding, Tour action, Quick Practice picker, results navigation, profile picker, local-multiplayer join and their routes) share the same final-human-word boundary. `native/product/modern_host_input_release_latch.hpp` owns its closing-edge rule: while a surface owns input the whole P1 word is withheld, and every bit still held when the surface closes stays withheld until that bit is released. A one-frame suppression was insufficient: on the stock MAIN_MENU, dismissing the first-run Welcome panel with a held Enter/Start reached the guest a few frames later and selected 1P (`0xD7 → 0x3C`). The latch never synthesizes input; scripted/reference input bypasses the filter and Authentic mode is unchanged.
+
 ## Minimal input vocabulary
 
 Use semantic host actions: Up, Down, Left, Right, Confirm, and Back. The SDL3 adapter translates physical keyboard/gamepad events into those actions; title/product state must not depend on SDL button constants.

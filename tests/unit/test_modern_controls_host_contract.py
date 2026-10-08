@@ -167,8 +167,15 @@ class ModernControlsHostContractTests(unittest.TestCase):
             "        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&\n"
             "        recent_course_available_for_active_profile()"
         )
-        practice = raw.index("(void)begin_practice();")
+        # Physical pad X now opens the Practice picker; confirmation then
+        # launches a selected course through the existing Practice authority.
+        practice = raw.index("(void)open_practice_picker();")
         self.assertLess(practice, tour)
+        self.assertIn("g_practice_picker.visible", semantic)
+        self.assertIn(
+            "handle_practice_picker_navigation(UR_MODERN_HOST_NAV_CONFIRM)",
+            semantic,
+        )
         self.assertLess(tour, recent)
         # The release edge of a consumed Tour press is consumed too.
         self.assertIn(

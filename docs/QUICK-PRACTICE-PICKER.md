@@ -1,6 +1,6 @@
 # Quick Practice Track Picker Integration
 
-Status: product substrate implemented; the Modern host now consumes the target-aware launch machine for default and validated Recent Course launches. The full generic picker presentation remains a separate UI completion step.
+Status: full player-facing Windows Modern picker integrated on PR #734, subject to the fresh-process native acceptance gate. The shipping host now consumes the existing availability-backed selection model and target-aware launch machine; the stock route remains the sole gameplay authority.
 
 ## Product goal
 
@@ -114,3 +114,11 @@ The player-facing integration is complete when focused native acceptance proves:
 - practice emits no profile autosave, completed-run or ghost artifact;
 - hidden/unavailable tracks are not rendered or launchable;
 - Authentic mode ignores the Modern picker completely.
+
+## Windows Modern player-facing integration (PR #734)
+
+At settled Modern MAIN_MENU, F5 or physical gamepad X opens the host-owned Quick Practice picker. A validated Recent Course supplies the initial selection, otherwise the picker starts on Crawler/Dragster. Up/Down move among available courses, Left/Right move between available tours preserving the slot, Enter or mapped P1 A confirms, and Escape or mapped P1 B/Start cancels. Physical gamepad X is a shortcut only to open the surface; its navigation uses the live GamepadMap's semantic controls.
+
+The picker uses `open_available_quick_practice_selection` and `quick_practice_available_selection_apply` without another catalog, input map, course identity or router. A narrow title-owned, read-only adapter decodes the existing per-rider stock unlock-tier byte (SRAM `0x10D3 + rider`, matched to selected rider `0x0748`). Tier 0 exposes the four beginning tours (Crawler/Shuffler/Walker/Hopper; 20 tracks), tier 1 adds Jumper/Bounder (30 tracks), tier 2 adds Runner/Sprinter (40 tracks), and stock tier 3 remains limited to those 40 ordinary tracks by the deliberate Modern Practice hidden-Hunter policy. Missing/malformed stock SRAM or rider identity fails closed. The established `quick_practice_availability_from_tour_options` model expands only stock TOUR_SELECT option identities; the host does not invent or alter unlock progression. Background provenance: [TASVideos Uniracers technical SRAM observation](https://tasvideos.org/Forum/Topics/979?CurrentPage=4&Highlight=39298&PageSize=25&Sort=CreateTimestamp), complemented by the canonical stock tier/menu behavior already recovered in the repo. The host modal consumes human guest inputs and rejects changed profile, menu, mode or race context; confirmation hands the validated target to `begin_practice(track_id)`, preserving Practice's isolated SRAM/save root, course-identity proof, result Repeat Practice, exit restoration and persistence suppression. Rendering uses the existing logical overlay layout/density contract at configured 1x–4x.
+
+`tests/native/run_modern_practice_picker_acceptance.sh` exercises actual fresh-process keyboard input in the product build: open/present, locked-tour/Hunter-skipping wrap, cancel without launch, cross-tour Shuffler/Looper selection, exact observed course identity 10 during stock race, profile-independent SRAM restoration, no Practice run files, and Authentic inertness. It is part of the existing Modern onboarding/practice acceptance shard. The full picker is shipping-ready only after green native evidence and merge; the stock unlock-tier decoder also has strict C++17 unit coverage.

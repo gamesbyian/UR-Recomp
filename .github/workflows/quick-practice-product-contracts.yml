@@ -5,12 +5,18 @@ on:
   pull_request:
     paths:
       - "native/product/quick_practice_*.hpp"
+      - "native/title/uniracers_practice_tour_unlock.hpp"
+      - "native/title/uniracers_tour_progress_overview.hpp"
       - "native/product/fast_repeat_navigation.hpp"
       - "native/product/next_event_derivation.hpp"
       - "tests/native/quick_practice_*_test.cpp"
+      - "tests/native/uniracers_practice_tour_unlock_test.cpp"
+      - "tests/native/uniracers_tour_progress_overview_test.cpp"
       - "tests/native/fast_repeat_navigation_test.cpp"
       - "tests/native/next_event_derivation_test.cpp"
       - "tests/unit/test_quick_practice_*_cpp.py"
+      - "tests/unit/test_uniracers_practice_tour_unlock_cpp.py"
+      - "tests/unit/test_uniracers_tour_progress_overview_cpp.py"
       - "tests/unit/test_fast_repeat_navigation_cpp.py"
       - "tests/unit/test_next_event_derivation_cpp.py"
       - "tests/unit/test_quick_practice_catalog_corpus.py"
@@ -41,6 +47,8 @@ jobs:
             tests.unit.test_quick_practice_selection_view_cpp \
             tests.unit.test_quick_practice_launch_cpp \
             tests.unit.test_quick_practice_availability_cpp \
+            tests.unit.test_uniracers_practice_tour_unlock_cpp \
+            tests.unit.test_uniracers_tour_progress_overview_cpp \
             tests.unit.test_quick_practice_input_mask_cpp \
             tests.unit.test_quick_practice_picker_input_cpp \
             tests.unit.test_quick_practice_overlay_model_cpp \

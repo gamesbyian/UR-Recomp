@@ -1,0 +1,119 @@
+name: Windows audio output capture (opt-in)
+
+# Reuse a completed Windows native smoke package. Never rebuild it in this
+# specialist lane. Follow successful main-branch Windows package builds,
+# rather than running for every PR or performing another native build.
+on:
+  workflow_run:
+    workflows: ["Windows native build and boot smoke"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      source_run_id:
+        description: "Successful Windows native build and boot smoke run ID with portable package artifact"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  output-capture:
+    # workflow_run executes with the default-branch workflow, so accept only
+    # a successful Windows main build. Never execute an untrusted PR artifact.
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    runs-on: windows-2022
+    timeout-minutes: 12
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch packaged Windows build without recompiling
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-recomp-windows-x64-portable
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/audio-source
+
+      - name: Capture actual SDL3 playback output and production APU counters
+        run: |
+          set -euo pipefail
+          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id }}"
+          [[ "$SOURCE" =~ ^[0-9]{1,20}$ ]]
+          ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
+          EXTRACT="$RUNNER_TEMP/audio-product"
+          DUMPS="$RUNNER_TEMP/audio-dumps"
+          ROOT="$RUNNER_TEMP/audio-user-data"
+          PCM="$RUNNER_TEMP/audio-device-output.raw"
+          STATS="$RUNNER_TEMP/audio-ring-stats.txt"
+          LOG="$RUNNER_TEMP/audio-native.log"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
+          # Require the archive produced by the named source run. No fallbacks
+          # to local working-tree builds or accidentally stale packages.
+          test -s "$ARCHIVE"
+          python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
+          python -m zipfile -e "$ARCHIVE" "$EXTRACT"
+          PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          mkdir -p "$DUMPS"
+          rm -rf "$ROOT"
+          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
+          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+          ROOT_WIN="$(cygpath -w "$ROOT")"
+          PCM_WIN="$(cygpath -w "$PCM")"
+          STATS_WIN="$(cygpath -w "$STATS")"
+          set +e
+          SDL_VIDEO_DRIVER=offscreen \
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIO_DRIVER=disk \
+          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+          SDL_AUDIO_FORMAT=S16LE \
+          SDL_AUDIO_CHANNELS=2 \
+          SDL_AUDIO_FREQUENCY=44100 \
+          SDL_AUDIO_DISK_TIMESCALE=1.0 \
+          SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
+          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+            timeout 300 powershell.exe -NoProfile -Command \
+              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+              >"$LOG" 2>&1
+          RC=$?
+          set -e
+          tail -n 50 "$LOG"
+          test "$RC" -eq 0
+          test -s "$DUMPS/race-entered.wram.bin"
+          test -s "$PCM"
+          test -s "$STATS"
+          # The first-race fixture ends 60 guest frames into active racing.
+          # Require the playback tail to remain audible, not just the title.
+          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM" \
+            --tail-seconds 0.5 --min-tail-rms 50 \
+            --json-out "$RUNNER_TEMP/audio-output-metrics.json"
+          python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+            --json-out "$RUNNER_TEMP/audio-ring-metrics.json"
+          cat "$RUNNER_TEMP/audio-output-metrics.json"
+          cat "$RUNNER_TEMP/audio-ring-metrics.json"
+          # Captured music is proprietary. Publish only metadata/evidence.
+          rm -f "$PCM"
+          echo "WINDOWS_NATIVE_AUDIO_OUTPUT PASS source_run=$SOURCE"
+
+      - name: Upload bounded audio evidence (never PCM)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-native-audio-evidence
+          path: |
+            ${{ runner.temp }}/audio-native.log
+            ${{ runner.temp }}/audio-output-metrics.json
+            ${{ runner.temp }}/audio-ring-metrics.json
+          if-no-files-found: warn
+          retention-days: 7

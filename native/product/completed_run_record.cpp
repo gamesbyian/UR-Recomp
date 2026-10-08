@@ -172,7 +172,10 @@ std::string encode_completed_run_record(const CompletedRunRecord& record) {
     payload << "END\n";
 
     const std::string body = payload.str();
-    return body + "checksum " + checksum_hex(body) + "\n";
+    const std::string trailer = "checksum " + checksum_hex(body) + "\n";
+    if (body.size() > kCompletedRunRecordMaxBytes - trailer.size())
+        return {};
+    return body + trailer;
 }
 
 std::string completed_run_record_artifact_checksum(
@@ -204,6 +207,11 @@ std::string encode_completed_run_input_file(
 
 RunRecordLoadResult decode_completed_run_record(const std::string& text) {
     RunRecordLoadResult result;
+    if (text.size() > kCompletedRunRecordMaxBytes) {
+        result.status = RunRecordLoadStatus::Malformed;
+        result.detail = "run record byte limit exceeded";
+        return result;
+    }
     const auto checksum_pos = text.rfind("checksum ");
     if (checksum_pos == std::string::npos) {
         result.status = RunRecordLoadStatus::Malformed;
@@ -377,12 +385,33 @@ RunRecordLoadResult load_completed_run_record_file(
     if (!in) {
         return {RunRecordLoadStatus::IoError, std::nullopt, "cannot open run record"};
     }
-    std::ostringstream buffer;
-    buffer << in.rdbuf();
-    if (!in.good() && !in.eof()) {
-        return {RunRecordLoadStatus::IoError, std::nullopt, "cannot read run record"};
+    // Bound the entire read, even if a regular file grows after open.
+    // A damaged local-run artifact must not exhaust memory merely by being
+    // enumerated in Local Runs or the profile Records browser.
+    std::string encoded;
+    char chunk[8192];
+    for (;;) {
+        in.read(chunk, sizeof(chunk));
+        const std::streamsize read_bytes = in.gcount();
+        if (read_bytes > 0) {
+            const auto count = static_cast<std::size_t>(read_bytes);
+            if (count > kCompletedRunRecordMaxBytes - encoded.size()) {
+                return {
+                    RunRecordLoadStatus::Malformed,
+                    std::nullopt,
+                    "run record byte limit exceeded"};
+            }
+            encoded.append(chunk, count);
+        }
+        if (in.eof()) break;
+        if (!in) {
+            return {
+                RunRecordLoadStatus::IoError,
+                std::nullopt,
+                "cannot read run record"};
+        }
     }
-    auto result = decode_completed_run_record(buffer.str());
+    auto result = decode_completed_run_record(encoded);
     if (result.loaded() && target) {
         std::string detail;
         if (!compatible_for_playback(*result.record, *target, &detail)) {

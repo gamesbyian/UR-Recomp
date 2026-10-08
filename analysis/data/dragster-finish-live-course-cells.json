@@ -1,0 +1,192 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "run_id": 36954104693,
+    "artifact_id": 11204794758,
+    "member": "_temp/object-activation-dumps/object-tail-174.wram.bin",
+    "guest_frame": 2903,
+    "observation": "postframe native WRAM at 7F:000F, 7F:800F and 7E:C000; independent of generated Dragster spatial JSON",
+    "note": "Derived values only; archive contains full original 128KiB WRAM"
+  },
+  "course": {
+    "name": "Dragster",
+    "raw_dims": [
+      0,
+      4
+    ],
+    "coarse_grid": [
+      1024,
+      16
+    ],
+    "sector_x": 395,
+    "resource_behavior_code": 20
+  },
+  "query_rect": [
+    25280,
+    784,
+    25311,
+    911
+  ],
+  "cells": [
+    {
+      "world_origin": [
+        25280,
+        784
+      ],
+      "fine_record_id": 19,
+      "packed_word": "200C",
+      "c000_slot": 6,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        784
+      ],
+      "fine_record_id": 19,
+      "packed_word": "000E",
+      "c000_slot": 7,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        800
+      ],
+      "fine_record_id": 19,
+      "packed_word": "2020",
+      "c000_slot": 8,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        800
+      ],
+      "fine_record_id": 19,
+      "packed_word": "0022",
+      "c000_slot": 9,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        816
+      ],
+      "fine_record_id": 19,
+      "packed_word": "2024",
+      "c000_slot": 10,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        816
+      ],
+      "fine_record_id": 19,
+      "packed_word": "0026",
+      "c000_slot": 11,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        832
+      ],
+      "fine_record_id": 22,
+      "packed_word": "2020",
+      "c000_slot": 8,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        832
+      ],
+      "fine_record_id": 22,
+      "packed_word": "0022",
+      "c000_slot": 9,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        848
+      ],
+      "fine_record_id": 22,
+      "packed_word": "2024",
+      "c000_slot": 10,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        848
+      ],
+      "fine_record_id": 22,
+      "packed_word": "0026",
+      "c000_slot": 11,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        864
+      ],
+      "fine_record_id": 22,
+      "packed_word": "2020",
+      "c000_slot": 8,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        864
+      ],
+      "fine_record_id": 22,
+      "packed_word": "0022",
+      "c000_slot": 9,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        880
+      ],
+      "fine_record_id": 22,
+      "packed_word": "2024",
+      "c000_slot": 10,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        880
+      ],
+      "fine_record_id": 22,
+      "packed_word": "0026",
+      "c000_slot": 11,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25280,
+        896
+      ],
+      "fine_record_id": 31,
+      "packed_word": "2028",
+      "c000_slot": 12,
+      "c000_behavior_code": 20
+    },
+    {
+      "world_origin": [
+        25296,
+        896
+      ],
+      "fine_record_id": 31,
+      "packed_word": "002A",
+      "c000_slot": 13,
+      "c000_behavior_code": 20
+    }
+  ]
+}

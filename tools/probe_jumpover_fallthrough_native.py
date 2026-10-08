@@ -211,12 +211,31 @@ def first_divergence(ref: dict[int, dict], nat: dict[int, dict]):
     return None
 
 
+WRAM_SIZE = 0x20000
+
+
+class EvidenceError(RuntimeError):
+    pass
+
+
 def load_series(directory: Path) -> dict[int, dict]:
+    """Every window frame must be a full WRAM image of an active Jumpover race.
+
+    A missing or short dump fails the run instead of being skipped, so two
+    engines can never agree by both omitting the same frame.
+    """
     out = {}
     for f in range(WINDOW[0], WINDOW[1] + 1):
         path = directory / f"m{f:03d}.wram.bin"
-        if path.exists():
-            out[f] = read_p1(path.read_bytes())
+        if not path.exists():
+            raise EvidenceError(f"missing dump {path}")
+        wram = path.read_bytes()
+        if len(wram) != WRAM_SIZE:
+            raise EvidenceError(f"{path}: {len(wram)} bytes, expected a {WRAM_SIZE}-byte WRAM image")
+        if wram[0x00CE] != JUMPOVER_TRACK_ID or wram[0x0313] != 0x01:
+            raise EvidenceError(f"{path}: not an active Jumpover race "
+                                f"(7E:00CE={wram[0x00CE]}, 7E:0313={wram[0x0313]})")
+        out[f] = read_p1(wram)
     return out
 
 
@@ -348,6 +367,9 @@ def main(argv=None) -> int:
     evidence = {
         "schema_version": 2,
         "kind": "jumpover-fallthrough-native-fixture",
+        "qualification": ("controlled-state parity, not an input-only stock run: each case "
+                          "writes P1's boost meter (7E:11CF) once at a frame boundary; "
+                          "everything else comes from a fresh boot with the recovered SRAM"),
         "course": {"id": "course:20", "name": "Jumpover", "track_id": JUMPOVER_TRACK_ID},
         "sram_sha256": hashlib.sha256(args.sram.read_bytes()).hexdigest(),
         "reference": "snesref + snes9x libretro core (fresh boot, SNESREF_WRAM_FILL=0)",

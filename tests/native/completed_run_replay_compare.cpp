@@ -36,6 +36,21 @@ bool report_provenance(
     return same;
 }
 
+bool report_terminal_digest(
+    const CompletedRunRecord& original,
+    const CompletedRunRecord& replayed) {
+    const auto& left = original.terminal_simulation_digest;
+    const auto& right = replayed.terminal_simulation_digest;
+    if (left == right) return true;
+    // An absent digest in both historical artifacts is acceptable. Once
+    // either side claims terminal-state evidence, the other side must agree.
+    std::cerr << "DIFF terminal_simulation_digest original="
+              << (left.empty() ? "(absent)" : left)
+              << " replayed=" << (right.empty() ? "(absent)" : right)
+              << "\n";
+    return false;
+}
+
 bool report_inputs(
     const CompletedRunRecord& a,
     const CompletedRunRecord& b) {
@@ -116,6 +131,7 @@ int main(int argc, char** argv) {
 
     bool same = true;
     same = report_provenance(*original.record, *replayed.record) && same;
+    same = report_terminal_digest(*original.record, *replayed.record) && same;
     if (original.record->elapsed_ticks60 != replayed.record->elapsed_ticks60) {
         same = false;
         std::cerr << "DIFF elapsed_ticks60 original="

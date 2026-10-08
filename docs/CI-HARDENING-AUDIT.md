@@ -419,6 +419,22 @@ closed on missing seed files or an incorrect native config root, and requires
 the capture command to succeed. The triple-run experiment is closed unmerged;
 production remains subject to fresh tooling plus full native acceptance.
 
+### Records-submenus matched-state pacing proof
+
+[Experimental PR #965](https://github.com/gamesbyian/UR-Recomp/pull/965)
+passed complete tooling and native router acceptance in
+[run 37854337624](https://github.com/gamesbyian/UR-Recomp/actions/runs/37854337624).
+After the preceding Results-B probes, the authoritative native
+executable-directory state comprised `config.ini`, `keybinds.ini`,
+and `saves/save.srm`. Cloned paced and unpaced roots matched **132/132
+captured files** at byte level across all **12 original WRAM checkpoints**,
+with **zero baseline drift** against the original capture. The unpaced
+control took approximately 9 seconds versus the original ~54 seconds.
+The production route retains the original script and dump names, requires
+those three state inputs, validates its actual host user-data root, and
+keeps the strict native atlas gate. The triple-run research harness was
+not merged.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

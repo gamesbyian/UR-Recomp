@@ -142,6 +142,31 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         )
         self.assertNotIn("python -m zipfile -e", self.text)
 
+    def test_real_released_game_boots_under_cmd_special_paths(self) -> None:
+        start = self.text.index("- name: Real packaged game under CMD-special paths")
+        end = self.text.index("- name: Normal Windows APPDATA clean-user launch", start)
+        acceptance = self.text[start:end]
+        # Not a synthetic executable or a new workflow: the same ZIP,
+        # shipped PowerShell verifier and actual guest input script.
+        for marker in (
+            'SPECIAL_EXTRACT="$RUNNER_TEMP/package & bang! (installed)"',
+            'Test-URRecompPortable.ps1',
+            '-Archive "$ARCHIVE_WIN"',
+            '-Checksum "$CHECKSUM_WIN"',
+            '-Destination "$EXTRACT_WIN"',
+            '-InputScript "$SCRIPT_WIN"',
+            'SDL_VIDEODRIVER=offscreen',
+            'SDL_AUDIODRIVER=dummy',
+            'UR_PORTABLE_REAL_WINDOWS_LAUNCH_EXITED_OK',
+            'grep -Fq "package_root=$PACKAGE_WIN" "$STARTUP_LOG"',
+            'grep -Fq "user_data_root=$USER_WIN" "$STARTUP_LOG"',
+            'test ! -e "$SPECIAL_CALLER/config.ini"',
+            'WINDOWS_PACKAGE_SPECIAL_PATH_MAIN_MENU ok',
+            'python tools/assemble_windows_package.py verify --package "$SPECIAL_PACKAGE"',
+            'WINDOWS_PACKAGE_SPECIAL_PATH_ISOLATION ok',
+        ):
+            self.assertIn(marker, acceptance)
+
     def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
         # The ordinary player path must be exercised separately from the
         # explicit-root tests, with a disposable profile and unrelated cwd.

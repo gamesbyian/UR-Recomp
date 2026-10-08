@@ -320,6 +320,21 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
         self.assertIn("includes", self.instructions)
         self.assertIn("Test-URRecompPortable.ps1", self.instructions)
 
+    def test_input_script_is_real_package_launch_not_a_noop(self):
+        # The final-main CMD-special-path lane relies on this exact
+        # standalone verifier consuming guest input with the real game.
+        self.assertIn(
+            "if ($Launch -or -not [string]::IsNullOrWhiteSpace($InputScript))",
+            self.script,
+        )
+        self.assertIn("$gameArgs = @('--script', $scriptFile)", self.script)
+        self.assertIn("& $launcher @gameArgs", self.script)
+        self.assertIn("$exitCode = $LASTEXITCODE", self.script)
+        self.assertIn(
+            "UR_PORTABLE_REAL_WINDOWS_LAUNCH_EXITED_OK",
+            self.script,
+        )
+
     def test_launch_is_optional_and_does_not_change_default_user_storage(self):
         self.assertIn("[switch]$Launch", self.script)
         self.assertIn("if ($Launch -or", self.script)

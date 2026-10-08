@@ -24,13 +24,20 @@ REGION = "lap_hud"
 QUEUE_JSR = {
     "usa-retail": 0xC5B3,
     "legacy-beta": 0xC5B3,
-    "pal-prototype-1994-11-29": 0xC594,
-    "europe-retail": 0xC5A0,
+    "pal-prototype-1994-11-29": 0xC590,
+    "europe-retail": 0xC59C,
+}
+# The persistent per-player lap slots move in regional builds.
+LAP_ADDR = {
+    "usa-retail": 0x0EF1,
+    "legacy-beta": 0x0EF1,
+    "pal-prototype-1994-11-29": 0x0EF5,
+    "europe-retail": 0x0EFB,
 }
 # 65c816: LDA $0EF1,Y; CMP #1; BNE; LDA.l $77074B;
 # AND #$00FF; BEQ; LDA #$000F; JSR [the regional helper].
 GATE = re.compile(
-    rb"\xb9\xf1\x0e\xc9\x01\x00\xd0(.)"
+    rb"\xb9(.)\x0e\xc9\x01\x00\xd0(.)"
     rb"\xaf\x4b\x07\x77\x29\xff\x00\xf0(.)"
     rb"\xa9\x0f\x00\x20(..)", re.DOTALL
 )
@@ -60,10 +67,13 @@ def extract(rom: bytes, island: dict, reward_report: dict, build: str) -> dict:
         raise LastLapEvidenceError(f"{build} lap-HUD SHA-256 mismatch")
     matches = list(GATE.finditer(block))
     if len(matches) != 1:
-        raise LastLapEvidenceError(f"{build}: expected one stock Last Lap enqueue gate, found {len(matches)}; regional lap bytes={block[22:56].hex()}")
+        raise LastLapEvidenceError(f"{build}: expected one stock Last Lap enqueue gate, found {len(matches)}")
     match = matches[0]
-    skip_lap, skip_mode = match.group(1)[0], match.group(2)[0]
-    jsr = int.from_bytes(match.group(3), "little")
+    lap_addr = 0x0E00 | match.group(1)[0]
+    skip_lap, skip_mode = match.group(2)[0], match.group(3)[0]
+    jsr = int.from_bytes(match.group(4), "little")
+    if lap_addr != LAP_ADDR[build]:
+        raise LastLapEvidenceError(f"{build}: lap counter slot differs (0x{lap_addr:04X})")
     # A changed branch shape must not be called the same semantic proof.
     if (skip_lap, skip_mode) != (0x17, 0x06):
         raise LastLapEvidenceError(f"{build}: branch offsets no longer implement the recovered gate")
@@ -83,7 +93,7 @@ def extract(rom: bytes, island: dict, reward_report: dict, build: str) -> dict:
         "build": build,
         "lap_gate": f"{record['start']} + 0x{match.start():02X}",
         "lap_region_sha256": sha,
-        "lap_condition": "7E:0EF1+2*current_player == 1 after decrement",
+        "lap_condition": f"7E:{lap_addr:04X},Y == 1 after decrement",
         "mode_condition": "(77:074B & 0x00FF) != 0",
         "queued_message": "0x0F (Last Lap)",
         "enqueue_jsr": f"81:{jsr:04X}",

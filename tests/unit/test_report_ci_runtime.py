@@ -17,6 +17,29 @@ class CiRuntimeReportTest(unittest.TestCase):
         self.assertEqual(report["workflows"][1]["cancelled_runs"], 1)
         self.assertEqual(report["workflows"][1]["cancelled_wall_seconds"], 300)
 
+    def test_pending_runs_do_not_pollute_completed_wall_average(self):
+        payload = {"workflow_runs": [
+            {"id": 11, "name": "Gate", "status": "completed", "conclusion": "success",
+             "created_at": "2026-10-03T00:00:00Z",
+             "run_started_at": "2026-10-03T00:00:00Z",
+             "updated_at": "2026-10-03T00:10:00Z"},
+            {"id": 12, "name": "Gate", "status": "in_progress", "conclusion": None,
+             "created_at": "2026-10-03T01:00:00Z",
+             "run_started_at": "2026-10-03T01:00:00Z",
+             "updated_at": "2026-10-03T01:01:00Z"},
+            {"id": 13, "name": "Gate", "status": "queued", "conclusion": None,
+             "created_at": "2026-10-03T02:00:00Z",
+             "run_started_at": None,
+             "updated_at": "2026-10-03T02:01:00Z"},
+        ]}
+        report = summarize(payload, 72, datetime(2026,10,4,tzinfo=timezone.utc))
+        row = report["workflows"][0]
+        self.assertEqual(row["runs"], 3)
+        self.assertEqual(row["completed_runs"], 1)
+        self.assertEqual(row["total_wall_seconds"], 600)
+        self.assertEqual(row["avg_wall_seconds"], 600)
+        self.assertEqual(row["max_wall_seconds"], 600)
+
     def test_reports_queue_and_step_buckets(self):
         payload = {"workflow_runs": [{
             "id": 42,

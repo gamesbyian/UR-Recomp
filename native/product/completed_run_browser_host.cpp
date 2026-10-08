@@ -600,6 +600,28 @@ void return_to_browser(
     }
 }
 
+// Replay UI cancellation has host ownership only. Never inject a cancel key
+// into the stock guest or let a bad/nonterminating replay trap the player.
+void cancel_active_replay_to_browser() {
+    if (!g_replay_flow.active()) return;
+    g_replay_flow.cancel();
+    (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+
+    // Synchronize the Modern surface without executing an additional guest
+    // frame, then use the established pause gate before reopening Local Runs.
+    ur_uniracers_modern_after_run_frame(nullptr);
+    if (!snesrecomp_desktop_is_paused()) {
+        (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+    }
+    const bool opened =
+        snesrecomp_desktop_is_paused() && refresh_browser();
+    g_records_browser_visible = false;
+    g_browser_visible = opened;
+    diagnostic(opened
+        ? "UR_RUN_BROWSER REPLAY_CANCELLED_TO_BROWSER"
+        : "UR_RUN_BROWSER REPLAY_CANCELLED");
+}
+
 void adjust_records_root_section(int delta) {
     if (delta == 0) return;
     if (delta > 0) {
@@ -1744,6 +1766,9 @@ extern "C" int ur_uniracers_product_system_key_down(
     }
 
     if (g_replay_flow.active()) {
+        if (key == SDLK_ESCAPE && !repeat) {
+            cancel_active_replay_to_browser();
+        }
         return 1;
     }
 
@@ -1828,6 +1853,9 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
     }
 
     if (g_replay_flow.active()) {
+        if (pressed && button == kGamepadBtn_B) {
+            cancel_active_replay_to_browser();
+        }
         return 1;
     }
 
@@ -1916,11 +1944,14 @@ extern "C" int ur_uniracers_product_system_gamepad_control(
     // Run/Records surfaces retain their existing raw-button ownership above
     // the framework mapping. When they are not active, forward mapped SNES
     // controls to the Modern host so Controls can honor GamepadMap rebinding.
-    if (g_replay_flow.active() ||
-        g_records_browser_visible ||
-        g_browser_visible) {
+    if (g_replay_flow.active()) {
+        // Mapped SNES B is semantic control 7, honoring GamepadMap.
+        if (pressed && control == 7) {
+            cancel_active_replay_to_browser();
+        }
         return 1;
     }
+    if (g_records_browser_visible || g_browser_visible) return 1;
     return ur_uniracers_modern_system_gamepad_control(control, pressed);
 }
 

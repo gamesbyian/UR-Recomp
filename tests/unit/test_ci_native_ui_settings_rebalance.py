@@ -8,13 +8,13 @@ WORKFLOW = ROOT / ".github/workflows/native-ui-evidence.yml"
 
 
 class ModernSettingsShardBalanceTest(unittest.TestCase):
-    def test_host_settings_test_is_only_on_results_a(self):
+    def test_host_settings_test_is_only_on_records_after_proven_capture(self):
         workflow = WORKFLOW.read_text()
         start = "      - name: Modern settings persistence acceptance"
         end = "      - name: Internal Render Scale compositor acceptance"
         self.assertEqual(workflow.count(start), 1)
         section = workflow.split(start, 1)[1].split(end, 1)[0]
-        self.assertIn("if: matrix.shard == 'results-a'", section)
+        self.assertIn("if: matrix.shard == 'records'", section)
         for expected in (
             'STATE="$RUNNER_TEMP/host-state-v6.txt"',
             'SAVE_LOG="$RUNNER_TEMP/host-state-save.log"',

@@ -546,10 +546,12 @@ C000 slot to the cumulative descriptor-owned resource span. Repeated resource
 IDs remain distinct spans. Example invocations:
 
     python3 tools/probe_course_checkpoint_placements.py --stream-index 1
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 1 --observed-c000-slot 8
     python3 tools/probe_course_checkpoint_placements.py --stream-index 5 --query-rect 0 0 1023 1023
 
 The output includes exact candidate 16x16 world rectangles, fine-record IDs,
-coarse sectors, and C000 slots. The automatic historical finish-X probe comes
+coarse sectors, per-slot counts, and a bounded set of candidate positions for a
+guest-observed C000 slot (such as Dragster index 8 at frame 2903). The automatic historical finish-X probe comes
 from Dessyreqt's magicnumber.lua corpus. It is an **X-only optimizer lead**,
 not confirmation of a finish-line position, active cell, checkpoint order,
 lap semantics, or collision trigger. Stunt courses without resource 0x24

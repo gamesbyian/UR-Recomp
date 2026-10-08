@@ -1,12 +1,23 @@
-name: Windows audio output capture (opt-in)
+name: Windows audio output acceptance
 
 # Reuse a completed Windows native smoke package. Never rebuild it in this
 # specialist lane. Follow successful main-branch Windows package builds,
-# rather than running for every PR or performing another native build.
+# and rerun validation on main audio-tool changes using the latest successful
+# package artifact. Never compile for this specialist workflow.
 on:
   workflow_run:
     workflows: ["Windows native build and boot smoke"]
     types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/windows-native-audio-output.yml"
+      - "tools/analyze_sdl_disk_audio.py"
+      - "tools/analyze_snesrecomp_audio_stats.py"
+      - "tools/analyze_audio_phase_matrix.py"
+      - "tools/build_audio_checkpoint_route.py"
+      - "tools/check_native_audio_checkpoint_timing.py"
+      - "tests/input/reach-first-race.script"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -20,9 +31,10 @@ permissions:
 
 jobs:
   output-capture:
-    # workflow_run executes with the default-branch workflow, so accept only
-    # a successful Windows main build. Never execute an untrusted PR artifact.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    # workflow_run executes on default branch. Trust only successful main
+    # builds from this repository, never a PR artifact. Push reuses a verified
+    # successful main package without rebuilding.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: windows-2022
     timeout-minutes: 12
     defaults:
@@ -34,19 +46,42 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Find latest successful main Windows package for audio-tool change
+        if: ${{ github.event_name == 'push' }}
+        id: source-package
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner, repo, workflow_id: "windows-native-smoke.yml",
+              branch: "main", status: "success", per_page: 10
+            });
+            const source = data.workflow_runs.find(run =>
+              run.conclusion === "success" &&
+              run.head_branch === "main" &&
+              run.head_repository?.full_name === `${owner}/${repo}`
+            );
+            if (!source) {
+              core.setFailed("No successful first-party main Windows build to reuse");
+            } else {
+              core.setOutput("run_id", String(source.id));
+              core.info(`Reusing Windows source run ${source.id}, SHA ${source.head_sha}`);
+            }
+
       - name: Fetch packaged Windows build without recompiling
         uses: actions/download-artifact@v4
         with:
           name: ur-recomp-windows-x64-portable
           repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id }}
+          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
 
       - name: Capture named SDL3 audio checkpoints and APU counters
         run: |
           set -euo pipefail
-          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id }}"
+          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}"
           [[ "$SOURCE" =~ ^[0-9]{1,20}$ ]]
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
           EXTRACT="$RUNNER_TEMP/audio-product"

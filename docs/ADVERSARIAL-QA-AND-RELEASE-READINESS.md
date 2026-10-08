@@ -91,6 +91,10 @@ Source audit identified a real concurrent-write vulnerability: fixture-link publ
 
 After fixture receipt no-replace publication, the active session-definition and launch-checkpoint writers were found to use shared fixed `.tmp` names, allowing process interference during staging. They now use isolated per-writer same-directory reservations for complete atomic **replacement**. This protects canonical file integrity, not correctness of the last writer. [#983](https://github.com/gamesbyian/UR-Recomp/issues/983) records a separate high-impact stale-retirement TOCTOU: a process can read/compare an old pending launch and then remove the pathname after another process replaces it. QA-02 still requires an interprocess authority/locking design and forced race reproduction. Exact hardware/package sessions, crash and power-loss semantics remain unverified.
 
+### QA-02 follow-up: close stale-launch retirement at the OS lock boundary
+
+Source-confirmed stale launch deletion [#983](https://github.com/gamesbyian/UR-Recomp/issues/983) is mitigated by sharing one durable lock filename between save and retire. `TournamentLaunchPathLock` holds a Windows exclusive byte-range lock or POSIX `flock` while it reads, compares and deletes the pending checkpoint, preventing another cooperating writer from replacing the path in between. The lock file need not be deleted; a crash automatically frees the **handle lock**, eliminating stale-sentinel ownership. The new test races old retirement against new publication and requires the new checkpoint to survive regardless of ordering. This is L2/store evidence, **not** a passed L4/physical Windows release gate; unrelated tournament-session lost updates, cross-artifact transactions and lock semantics on remote/unsupported filesystems remain unproven.
+
 ## Next concrete work
 
 1. Freeze a current candidate and record the Windows package from *that* SHA.

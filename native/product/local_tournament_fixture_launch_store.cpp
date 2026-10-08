@@ -1,5 +1,6 @@
 #include "local_tournament_fixture_launch_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -29,6 +30,11 @@ LocalTournamentLaunchFileStatus save_local_tournament_launch_file(
         return LocalTournamentLaunchFileStatus::Rejected;
     }
 
+    // Publish and exact-attempt retirement serialize on this same OS lock.
+    // Unique staging avoids partial writes; this additionally prevents a
+    // stale read/compare/remove from deleting a newer launched attempt.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return LocalTournamentLaunchFileStatus::IoError;
     if (!write_tournament_replace_staged(path, encoded, "urlaunch")) {
         return LocalTournamentLaunchFileStatus::IoError;
     }
@@ -112,14 +118,18 @@ LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
     const std::string expected_bytes =
         encode_local_tournament_pending_fixture(expected_pending);
     if (expected_bytes.empty()) return LocalTournamentLaunchFileStatus::Rejected;
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return LocalTournamentLaunchFileStatus::IoError;
+    // The lock remains held through the entire read-validate-unlink sequence.
+    // A competing publication cannot replace this path after validation.
     const auto loaded = read_local_tournament_launch_file(path);
     if (!loaded.loaded()) return loaded.status;
     if (encode_local_tournament_pending_fixture(*loaded.pending) !=
         expected_bytes) {
         return LocalTournamentLaunchFileStatus::Rejected;
     }
-    // This store contract assumes one serialized host writer per path. The
-    // subsequent remove cannot race a newer publication by another thread.
+    // No-op if the expected checkpoint was superseded, with the lock held
+    // until the actual removal has completed. Never delete a newer attempt.
     errno = 0;
     if (std::remove(path.c_str()) == 0) {
         return LocalTournamentLaunchFileStatus::Saved;

@@ -13,7 +13,7 @@ class LocalTournamentLaunchStoreCppTests(unittest.TestCase):
             subprocess.run(
                 [
                     "g++", "-std=c++17", "-Wall", "-Wextra",
-                    "-Werror", "-pedantic",
+                    "-Werror", "-pedantic", "-pthread",
                     "-I", str(ROOT / "native/product"),
                     "-I", str(ROOT / "native/title"),
                     str(ROOT / "tests/native/local_tournament_fixture_launch_store_test.cpp"),

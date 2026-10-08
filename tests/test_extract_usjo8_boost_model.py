@@ -13,6 +13,10 @@ SPEC.loader.exec_module(MODULE)
 
 
 class Usjo8BoostModelTests(unittest.TestCase):
+    def test_extractor_uses_canonical_imported_source(self):
+        self.assertEqual(MODULE.SOURCE, ROOT / "reference/imported/tas-bots/usjo8.lua")
+        self.assertTrue(MODULE.SOURCE.is_file())
+
     def test_generated_model_is_fresh(self):
         source = (ROOT / "reference/imported/tas-bots/usjo8.lua").read_text(encoding="utf-8")
         expected = json.loads((ROOT / "analysis/generated/usjo8-boost-model.json").read_text(encoding="utf-8"))

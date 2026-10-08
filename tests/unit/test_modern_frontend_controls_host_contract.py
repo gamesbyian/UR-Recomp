@@ -40,7 +40,7 @@ class ModernFrontendControlsHostContractTests(unittest.TestCase):
         source = HOST.read_text(encoding="utf-8")
         self.assertIn("UR_FRONTEND_CONTROLS PRESENT scale=%d", source)
         self.assertIn('" CONTROLS / B BACK"', source)
-        self.assertIn('"F9 CTRL F10/SELECT OPT"', source)
+        self.assertIn('"F9 CTRL F10/" + live_gamepad_binding_label(4) + " OPT"', source)
         self.assertIn("host_owns_human_player_input()", source)
         self.assertIn("modern_host_input_filter(", source)
 

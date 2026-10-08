@@ -46,7 +46,7 @@ class ModernFrontendOptionsHostContractTests(unittest.TestCase):
         self.assertIn('"UR_FRONTEND_OPTIONS PRESENT scale=%d', source)
         self.assertIn("if (frontend_options && !g_frontend_options_draw_reported", source)
         self.assertEqual(source.count('"OPTIONS", 0xFFFFFFFFu, modal_scale'), 1)
-        self.assertIn('"F9 CTRL F10/SELECT OPT"', source)
+        self.assertIn('"F9 CTRL F10/" + live_gamepad_binding_label(4) + " OPT"', source)
 
     def test_native_frontend_and_authentic_gate(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)

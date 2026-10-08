@@ -84,8 +84,7 @@ struct LocalTournamentCompletedHistory {
 };
 
 LocalTournamentCompletedHistory load_completed_local_tournament_history(
-    const LocalTournamentCoordinatorPaths& paths,
-    const std::vector<HostProfileCatalogEntry>& authoritative_catalog);
+    const LocalTournamentCoordinatorPaths& paths);
 
 // A fixture must be explicitly chosen and both Modern participant profile IDs
 // confirmed before the host enters the stock two-player route. The host mints

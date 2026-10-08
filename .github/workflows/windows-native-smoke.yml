@@ -285,7 +285,7 @@ jobs:
               SDL_AUDIODRIVER=dummy \
               SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
                 timeout 300 powershell.exe -NoProfile -Command \
-                  "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \\$LASTEXITCODE" \
+                  "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
                   >"$RUNNER_TEMP/package-default-appdata-boot.log" 2>&1
           )
           RC=$?

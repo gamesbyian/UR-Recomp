@@ -543,6 +543,55 @@ jobs:
           python3 tools/check_ppm.py "$SHOT" --width 512 --height 448 --min-colors 2
           echo "UR_RENDER_SCALE_FALLBACK PASS frame=1467 dimensions=512x448 scale=2"
 
+      - name: Probe unpaced Circuit capture byte parity
+        if: matrix.shard == 'results-a'
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-circuit-drive-capture.script"
+          PACED="$RUNNER_TEMP/ui-circuit-result-dumps"
+          UNPACED="$RUNNER_TEMP/ui-circuit-unpaced-dumps"
+          USER_ROOT="$RUNNER_TEMP/circuit-unpaced-user-data"
+          LOG="$RUNNER_TEMP/ui-circuit-unpaced.log"
+          mkdir -p "$UNPACED" "$USER_ROOT"
+          printf '[General]\nDisableFrameDelay = 1\n' > "$USER_ROOT/config.ini"
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_USER_DATA_DIR="$USER_ROOT" \
+          SNESRECOMP_DUMP_DIR="$UNPACED" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1 || {
+              status=$?
+              cat "$LOG"
+              echo "::error::Unpaced Circuit evidence probe failed status=$status"
+              exit "$status"
+            }
+          cat "$LOG"
+          grep -Fq "script" "$LOG"
+          python3 - "$PACED" "$UNPACED" <<'PY'
+          from pathlib import Path
+          import hashlib
+          import sys
+
+          paced, unpaced = (Path(arg) for arg in sys.argv[1:])
+          def hashes(root):
+              return {
+                  path.relative_to(root).as_posix(): hashlib.sha256(path.read_bytes()).hexdigest()
+                  for path in sorted(root.rglob('*'))
+                  if path.is_file()
+              }
+          a = hashes(paced)
+          b = hashes(unpaced)
+          if not a or not b or not any(name.endswith('.wram.bin') for name in a):
+              raise SystemExit("No authoritative Circuit WRAM dumps to compare")
+          if set(a) != set(b):
+              raise SystemExit(f"Circuit dump file-set mismatch: paced_only={sorted(a.keys() - b.keys())} unpaced_only={sorted(b.keys() - a.keys())}")
+          mismatched = sorted(name for name in a if a[name] != b[name])
+          if mismatched:
+              raise SystemExit(f"Circuit paced/unpaced byte drift: {mismatched}")
+          print(f"UR_CIRCUIT_UNPACED_PARITY PASS files={len(a)} full_sha256=1")
+          PY
+
       - name: Upload shard evidence
         if: always()
         uses: actions/upload-artifact@v4

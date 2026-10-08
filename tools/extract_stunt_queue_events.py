@@ -6,6 +6,8 @@ input-only stunt boundary fixture (e.g. w000..w090). The game-owned P1 queue
 is 32 byte slots at 7E:0CBB; reader 0CE1, writer 0CE3 (both mod 32).
 A newly advanced writer identifies the *enqueued* message at the old slot.
 An increase in persistent boost 11CF is a separate, later observable event.
+When paired 8 KiB SRAM frame dumps exist, the tool also captures the low-byte
+mode gate at 77:074B. Use --require-sram to make that a mandatory witness.
 
 An equal reward value is NOT enough to assign a message ID to a bonus: more
 than one message may be pending, and meter decay can coincide with credit.
@@ -41,7 +43,7 @@ def u16(wram: bytes, addr: int) -> int:
 
 
 def read_series(root: Path, first: int, last: int, prefix: str = "w",
-                width: int = 3, track: int = 19) -> list[dict]:
+                width: int = 3, track: int = 19, require_sram: bool = False) -> list[dict]:
     if (type(first) is not int or type(last) is not int or first < 0 or
             last < first or last - first > 4000 or
             type(width) is not int or width not in (3, 4) or
@@ -61,8 +63,19 @@ def read_series(root: Path, first: int, last: int, prefix: str = "w",
         reader, writer = u16(image, READ_INDEX), u16(image, WRITE_INDEX)
         if not 0 <= reader < QUEUE_LEN or not 0 <= writer < QUEUE_LEN:
             raise QueueEvidenceError(f"frame {n}: malformed queue indices {reader}/{writer}")
+        sram_path = root / f"{prefix}{n:0{width}d}.sram.bin"
+        if sram_path.is_file():
+            sram = sram_path.read_bytes()
+            if len(sram) != 0x2000:
+                raise QueueEvidenceError(f"frame {n}: invalid SRAM size {len(sram)}, expected 8192")
+            mode = sram[0x074B]
+        else:
+            if require_sram:
+                raise QueueEvidenceError(f"frame {n}: missing required SRAM mode image")
+            mode = None
         result.append({
             "frame": n,
+            "sram_mode_low": mode,
             "read": reader,
             "write": writer,
             "buffer": tuple(image[QUEUE_BASE:QUEUE_BASE + QUEUE_LEN]),
@@ -72,6 +85,8 @@ def read_series(root: Path, first: int, last: int, prefix: str = "w",
             "laps_remaining": u16(image, LAST_LAP_REMAINING),
             "last_lap_enable": image[LAST_LAP_ENABLE],
         })
+    if result and len({row["sram_mode_low"] is None for row in result}) != 1:
+        raise QueueEvidenceError("partial SRAM evidence: require all frames or none")
     return result
 
 
@@ -99,6 +114,7 @@ def analyze(rows: list[dict], lookback: int = 40) -> dict:
                 "frame": curr["frame"],
                 "previous": prev["laps_remaining"],
                 "last_lap_enable_at_transition": curr["last_lap_enable"],
+                "sram_mode_low_at_transition": curr["sram_mode_low"],
                 "note": "per-player post-decrement lap word; not a credit assertion",
             })
         diff = curr["boost"] - prev["boost"]
@@ -130,7 +146,7 @@ def compare(a: list[dict], b: list[dict]) -> dict:
         raise QueueEvidenceError("native/reference must have equal, nonempty guest-relative frame windows")
     first = next(({"frame": x["frame"], "fields": sorted(
         k for k in ("read", "write", "buffer", "boost", "air", "x_speed",
-                  "laps_remaining", "last_lap_enable") if x[k] != y[k]
+                  "laps_remaining", "last_lap_enable", "sram_mode_low") if x[k] != y[k]
     )} for x, y in zip(a, b) if x != y), None)
     return {"first_divergence": first, "native_reference_equal": first is None}
 
@@ -144,14 +160,18 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--prefix", default="w")
     p.add_argument("--width", type=int, default=3)
     p.add_argument("--track", type=int, default=19)
+    p.add_argument("--require-sram", action="store_true",
+                   help="require paired 8 KiB SRAM snapshot per frame for 77:074B mode")
     p.add_argument("--lookback", type=int, default=40)
     p.add_argument("--json-out", type=Path)
     args = p.parse_args(argv)
     try:
-        rows = read_series(args.dumps, args.first, args.last, args.prefix, args.width, args.track)
+        rows = read_series(args.dumps, args.first, args.last, args.prefix,
+                           args.width, args.track, args.require_sram)
         report = analyze(rows, args.lookback)
         if args.other is not None:
-            other = read_series(args.other, args.first, args.last, args.prefix, args.width, args.track)
+            other = read_series(args.other, args.first, args.last, args.prefix,
+                                args.width, args.track, args.require_sram)
             report["cross_engine"] = compare(rows, other)
             report["other"] = analyze(other, args.lookback)
     except (QueueEvidenceError, OSError, ValueError, TypeError, KeyError) as exc:

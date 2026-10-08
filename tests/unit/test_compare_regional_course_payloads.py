@@ -60,6 +60,77 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not FF"):
             tool.regions(damaged, parsed)
 
+    @staticmethod
+    def _spatial_payload(*, swapped=False, changed_word=None):
+        # Two 32-byte fine records; the second is used by two sectors.
+        coarse = [0] * 16384
+        coarse[1] = coarse[2] = 1
+        zero = [0] * 16
+        one = [0] * 16
+        one[3] = 0x0002 if changed_word is None else changed_word
+        if swapped:
+            zero, one = one, zero
+            coarse = [1 - value for value in coarse]
+        cursor = 0x800F + 64
+        header = bytearray(15)
+        header[11:13] = cursor.to_bytes(2, "little")
+        header[13:15] = b"\x20\x20"
+        table = b"".join(value.to_bytes(2, "little") for value in coarse)
+        fine = b"".join(value.to_bytes(2, "little") for value in zero + one)
+        return bytes(header) + table + fine + b"\x01\xff"
+
+    def test_effective_placement_ignores_fine_record_renumbering(self):
+        tool = load_tool()
+        usa = self._spatial_payload()
+        europe = self._spatial_payload(swapped=True)
+        result = tool.effective_surface_delta(
+            usa, europe, tool.parse_course_resource_list(usa),
+            tool.parse_course_resource_list(europe),
+        )
+        self.assertTrue(result["comparable"])
+        self.assertEqual(result["raw_coarse_reference_id_changes"], 16384)
+        self.assertEqual(result["changed_world_cells"], 0)
+        self.assertEqual(result["changed_world_cell_bounds"], None)
+
+    def test_effective_placement_expands_shared_record_to_world_cells(self):
+        tool = load_tool()
+        usa = self._spatial_payload()
+        europe = self._spatial_payload(changed_word=0x0004)
+        result = tool.effective_surface_delta(
+            usa, europe, tool.parse_course_resource_list(usa),
+            tool.parse_course_resource_list(europe),
+        )
+        self.assertEqual(result["raw_coarse_reference_id_changes"], 0)
+        self.assertEqual(result["changed_world_sectors"], 2)
+        self.assertEqual(result["changed_world_cells"], 2)
+        self.assertEqual(result["changed_c000_selectors"], 2)
+        self.assertEqual(result["changed_unclassified_upper_word_bits"], 0)
+        self.assertEqual(result["first_12_changed_cells"][0]["world_cell_origin"], [112, 0])
+        self.assertEqual(result["first_12_changed_cells"][1]["world_cell_origin"], [176, 0])
+
+    def test_effective_placement_distinguishes_upper_word_bits_from_slots(self):
+        tool = load_tool()
+        usa = self._spatial_payload()
+        europe = self._spatial_payload(changed_word=0x0402)
+        result = tool.effective_surface_delta(
+            usa, europe, tool.parse_course_resource_list(usa),
+            tool.parse_course_resource_list(europe),
+        )
+        self.assertEqual(result["changed_world_cells"], 2)
+        self.assertEqual(result["changed_c000_selectors"], 0)
+        self.assertEqual(result["changed_unclassified_upper_word_bits"], 2)
+
+    def test_effective_placement_rejects_invalid_coarse_record_reference(self):
+        tool = load_tool()
+        usa = bytearray(self._spatial_payload())
+        usa[15:17] = b"\x02\x00"
+        europe = self._spatial_payload()
+        with self.assertRaisesRegex(ValueError, "outside its fine-record table"):
+            tool.effective_surface_delta(
+                bytes(usa), europe, tool.parse_course_resource_list(bytes(usa)),
+                tool.parse_course_resource_list(europe),
+            )
+
     def test_actual_changed_course_set(self):
         tool = load_tool()
         report = tool.build_report(

@@ -434,7 +434,10 @@ def split_4bpp_tiles(payload: bytes) -> tuple[bytes, ...]:
         for i in range(0, len(payload), TILE_BYTES_4BPP)
     )
     if b"".join(tiles) != payload:
-        raise AssertionError("4bpp graphics round-trip failed")
+        raise AssertionError("4bpp graphics byte split/join round-trip failed")
+    reencoded = b"".join(encode_4bpp_tile(decode_4bpp_tile(tile)) for tile in tiles)
+    if reencoded != payload:
+        raise AssertionError("4bpp graphics decoded-pixel/planar round-trip failed")
     return tiles
 
 
@@ -476,6 +479,29 @@ def decode_4bpp_tile(data: bytes) -> list[list[int]]:
             )
         rows.append(row)
     return rows
+
+
+def encode_4bpp_tile(rows: Iterable[Iterable[int]]) -> bytes:
+    """Repack 8x8 palette indices into the SNES two-plane-pair layout.
+
+    This is deliberately independent of the byte concatenation check: a
+    visually decoded tile must preserve every source bit on re-encoding.
+    Index 0 is retained verbatim, not replaced by alpha/palette inference.
+    """
+    pixels = tuple(tuple(row) for row in rows)
+    if len(pixels) != 8 or any(len(row) != 8 for row in pixels):
+        raise ValueError("SNES 4bpp tile must contain exactly 8 rows of 8 indices")
+    output = bytearray(TILE_BYTES_4BPP)
+    for y, row in enumerate(pixels):
+        for x, index in enumerate(row):
+            if not isinstance(index, int) or not 0 <= index < 16:
+                raise ValueError("SNES 4bpp palette index must be an integer from 0 to 15")
+            mask = 1 << (7 - x)
+            for plane in range(4):
+                if index & (1 << plane):
+                    offset = (16 if plane >= 2 else 0) + y * 2 + (plane & 1)
+                    output[offset] |= mask
+    return bytes(output)
 
 
 def packed_word_source(word: int) -> tuple[int, int]:

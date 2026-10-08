@@ -17,9 +17,14 @@ import csv
 import hashlib
 import json
 from pathlib import Path
+import sys
 
-from check_ppm import inspect_ppm
-from summarize_racer_semantic_trace import parse_trace
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+
+from tools.check_ppm import inspect_ppm
+from tools.summarize_racer_semantic_trace import parse_trace
 
 STATE_FIELDS = (
     "p1_primary", "p2_primary", "p1_companion", "p2_companion",

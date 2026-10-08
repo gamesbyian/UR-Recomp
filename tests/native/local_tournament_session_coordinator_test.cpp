@@ -104,6 +104,11 @@ int main() {
         paths, other_instance, {"alpha", "beta"}, catalog, {"course:01"});
     check(!duplicate.usable() && duplicate.status == Status::AlreadyExists,
           "existing active tournament cannot be replaced without user intent");
+    const auto reused = create_local_tournament_coordinator(
+        paths, instance, {"alpha", "beta", "gamma"}, catalog,
+        {"course:01", "course:04"}, true);
+    check(!reused.usable() && reused.status == Status::AlreadyExists,
+          "even explicit replacement cannot reuse receipt-bearing instance ID");
 
     const std::string token0 = "11111111111111111111111111111111";
     const std::string token1 = "22222222222222222222222222222222";

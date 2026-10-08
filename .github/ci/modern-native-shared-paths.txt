@@ -1,4 +1,5 @@
 .github/workflows/modern-shared-native-acceptance.yml
+.github/workflows/modern-native-heavy-router.yml
 native/presentation/completed_run_ghost_racer_selector.*
 native/presentation/completed_run_ghost_raster.*
 native/product/completed_run_browser.*

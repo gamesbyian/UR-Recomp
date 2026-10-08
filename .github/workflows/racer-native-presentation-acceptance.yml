@@ -1321,6 +1321,37 @@ jobs:
             --json-out "$RUNNER_TEMP/racer-wide-parity.json" \
             | tee "$RUNNER_TEMP/racer-wide-parity.txt"
 
+      - name: Verify P1-only mixed authored and stock P2 native pixel integrity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-p1-win.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/racer-hd-p1-only-probe.script"
+          LOG="$RUNNER_TEMP/racer-hd-p1-only-native.log"
+          set +e
+          env UR_RACER_HD=1 UR_RACER_HD_P1_ONLY=1 \
+            UR_RACER_HD_P1_NATIVE_TEST=1 \
+            SNESRECOMP_INPUT_FILE="$INPUT" \
+            SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            tail -n 120 "$LOG"
+            echo "::error::P1-only native OAM parity route failed with status $status"
+            exit "$status"
+          fi
+          grep -E 'UR_RACER_HD_P1_NATIVE_SUMMARY frame=3820 partial_captures=[1-9][0-9]*' "$LOG"
+          grep -F 'UR_RACER_HD_P1_NATIVE PASS p2_stock_roi_exact=1' "$LOG"
+          if grep -F 'UR_RACER_HD_P1_NATIVE FAIL' "$LOG"; then
+            echo "::error::P1-only native exact-frame mixed-OBJ pixel check failed"
+            exit 1
+          fi
+          echo "UR_RACER_HD_P1_NATIVE_ACCEPTANCE PASS approved_p1=1 stock_p2_exact=1 guest_state_unchanged=1"
+
       - name: Shadow structured Racer HD trace relationships
         continue-on-error: true
         shell: bash
@@ -1426,6 +1457,7 @@ jobs:
             ${{ runner.temp }}/racer-wide-hd-1220.ppm
             ${{ runner.temp }}/racer-wide-parity.json
             ${{ runner.temp }}/racer-wide-parity.txt
+            ${{ runner.temp }}/racer-hd-p1-only-native.log
             ${{ runner.temp }}/racer-wide-original-frames/
             ${{ runner.temp }}/racer-wide-hd-frames/
             ${{ runner.temp }}/racer-original-a-semantic-trace.json

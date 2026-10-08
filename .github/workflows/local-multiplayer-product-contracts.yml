@@ -7,6 +7,9 @@ on:
       - "native/product/local_multiplayer_*.hpp"
       - "native/product/local_multiplayer_*.cpp"
       - "native/product/local_tournament_round_robin.hpp"
+      - "native/product/local_tournament_session_coordinator.*"
+      - "tests/native/local_tournament_session_coordinator_test.cpp"
+      - "tests/unit/test_local_tournament_session_coordinator_cpp.py"
       - "native/product/local_tournament_result_link_store.*"
       - "tests/native/local_tournament_result_link_store_test.cpp"
       - "tests/unit/test_local_tournament_result_link_store_cpp.py"
@@ -64,6 +67,7 @@ jobs:
         run: |
           python3 -m unittest \
             tests.unit.test_local_tournament_round_robin_cpp \
+            tests.unit.test_local_tournament_session_coordinator_cpp \
             tests.unit.test_local_tournament_result_link_store_cpp \
             tests.unit.test_local_tournament_session_store_cpp \
             tests.unit.test_local_tournament_fixture_receipt_cpp \

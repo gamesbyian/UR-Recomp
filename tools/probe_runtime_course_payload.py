@@ -38,6 +38,53 @@ def compare(decoded: bytes, live: bytes, limit: int) -> dict:
         ],
     }
 
+def rank_spawn_assignment_candidates(
+    pair_a: list[int], pair_b: list[int], racer_state: dict
+) -> dict:
+    """Compare decoded header pairs to a *single* observed racer-state snapshot.
+
+    A unique, zero-error match can identify the two slot assignments at this
+    capture phase. A smaller nonzero distance is never treated as proof: the
+    racers may have moved since spawn or the fields may be non-spawn landmarks.
+    """
+    a = [pair_a[0] * 16, pair_a[1] * 16]
+    b = [pair_b[0] * 16, pair_b[1] * 16]
+    p1 = [racer_state["slot1_x"], racer_state["slot1_y"]]
+    p2 = [racer_state["slot2_x"], racer_state["slot2_y"]]
+
+    def score(first: list[int], second: list[int]) -> dict:
+        d1 = [p1[0] - first[0], p1[1] - first[1]]
+        d2 = [p2[0] - second[0], p2[1] - second[1]]
+        return {
+            "p1_delta": d1,
+            "p2_delta": d2,
+            "manhattan_error": sum(map(abs, d1 + d2)),
+            "exact": d1 == [0, 0] and d2 == [0, 0],
+        }
+
+    ab = score(a, b)
+    ba = score(b, a)
+    if a == b:
+        result = "uninformative_identical_header_pairs"
+    elif ab["exact"] and not ba["exact"]:
+        result = "exact_A_to_P1_B_to_P2"
+    elif ba["exact"] and not ab["exact"]:
+        result = "exact_B_to_P1_A_to_P2"
+    else:
+        result = "unresolved_single_snapshot"
+    return {
+        "header_pair_world_units": {"A": a, "B": b},
+        "observed_racer_world_units": {"P1": p1, "P2": p2},
+        "A_to_P1_B_to_P2": ab,
+        "B_to_P1_A_to_P2": ba,
+        "discriminator": result,
+        "guardrail": (
+            "A single nonzero-distance snapshot cannot establish spawn"
+            " assignment: race motion and phase may already differ."
+        ),
+    }
+
+
 def main() -> int:
     ap=argparse.ArgumentParser()
     ap.add_argument("rom",type=Path)
@@ -101,6 +148,9 @@ def main() -> int:
         "focus_cursor":focus_cursor,
         "top_matches":results[:5],
         "runtime_racer_state":racer_state,
+        "spawn_assignment_probe": rank_spawn_assignment_candidates(
+            best["pair1"], best["pair2"], racer_state
+        ),
     }
 
     print(

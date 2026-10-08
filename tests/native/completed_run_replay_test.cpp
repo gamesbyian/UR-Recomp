@@ -77,5 +77,16 @@ int main(int argc, char** argv) {
            CompletedRunReplayTransition::Cancelled);
     assert(!flow.active());
 
+    assert(flow.begin());
+    assert(flow.observe(true, false, false) ==
+           CompletedRunReplayTransition::None);
+    flow.cancel();
+    assert(!flow.active());
+    assert(flow.observe(false, true, false) ==
+           CompletedRunReplayTransition::None);
+    assert(flow.begin());
+    flow.cancel();
+    assert(!flow.active());
+
     return 0;
 }

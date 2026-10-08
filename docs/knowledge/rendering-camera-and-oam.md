@@ -36,6 +36,8 @@ Therefore:
 
 The current optional Remastered racer compositor removes the stock racer OBJ range and draws four host replacements. Even though those replacements are host-owned, they must obey the same scanline-112 switch: slots 98/99 belong to output rows 0..111 and slots 97/96 to rows 112..223. `racer_split_viewport_contains_row()` enforces this independently of 1x–4x Internal Render Scale so an oversized sprite near the split cannot draw into a viewport where its original OAM slot is inactive. This affects only the enabled HD replacement path; it does not change guest OAM, the Original framebuffer or simulation.
 
+Within each split viewport, the original SNES OBJ engine also gives the smaller OAM slot precedence where sprites overlap. The Remastered host painter therefore draws its four registered instances in descending slot order: slot 99 behind 98 in the top half, slot 97 behind 96 in the bottom half. The OAM attribute priority bits resolve OBJ versus BG priority, not racer-versus-racer overlap; this order is limited to the established non-rotating four-slot racer presentation.
+
 ## Other historical rendering seams
 
 Older Snes9x history shows Uniracers also exposed unrelated emulator correctness problems:

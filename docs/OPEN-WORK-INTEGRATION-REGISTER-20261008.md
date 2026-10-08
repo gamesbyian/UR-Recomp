@@ -48,3 +48,11 @@ Additional divergent branch samples: audio status reconciliation (3 ahead/20 beh
 ## Final replay conflict disposition
 
 #901 merged as `6c7af19325e1804db4a1469245f84997ee72de97` after selective current-main reconciliation. Original #814 was closed as superseded. Tooling run 37828346181 failed on a stale two-argument call to `load_completed_local_tournament_history` in the tournament native test; #902 merged as `5968aaded3e4e2effa056395e8fcde9ded070b60` to match the production one-argument API. Previous native boot smoke and Modern router on #901 passed; tooling rerun and combined-main end-to-end evidence remain separate validation requirements.
+
+## Tournament and UI gates observed (2026-10-08, later)
+
+- **#815 real joined 2P tournament end-to-end: executed, green.** Manual `multiplayer-match-capture-acceptance.yml` runs 37835944240 (head `d51c289`, #907) and 37839983718 (head `a902762`, #931) passed the env-armed fixture step and the new player-facing panel step. The panel step covers: two framework pads join and confirm real profiles → F4 → OS-minted event → armed fixture → genuine stock 2P race → receipt → fresh-process standings.
+- **#826 completed-history restoration: executed in native acceptance.** The same panel step relaunches the game: the restored complete event opens on Standings and History reports `completed=1 unavailable=0` from receipt-bound archives.
+- **Six-shard UI evidence + aggregate, Shared/Onboarding Modern native acceptance, Windows build-and-smoke:** green on PR merge refs run 37835971423 (#907) and run 37839965405 (#931), both based on same-day `main`. These are PR-ref observations, not a final-`main` verdict.
+- **#798 fresh-process presentation parity: executed, green.** Manual `completed-run-replay-acceptance.yml` run 37839972991 (head `a902762`) passed *Re-drive identical saved run under alternate Modern presentation*, the real-profile Previous-ghost step, and all Records steps, including the new main-menu Records step.
+- Still open from this register: #891 final native six-shard on a final `main` SHA.

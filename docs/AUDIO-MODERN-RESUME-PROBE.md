@@ -35,13 +35,19 @@ the existing canonical first-race script:
 The probe requires exactly one real race, one host pause, one host Resume
 acknowledgement on the same product surface, one second of *literal
 digital silence* before Escape, and a full later second of non-silent
-left/right SDL S16LE output. It terminates the process tree intentionally,
-and writes only reduced JSON; delete temporary raw PCM after inspection.
+left/right SDL S16LE output. While the game runs, it bookmarks those two
+SDL file-size boundaries instead of attempting to open the raw file, which
+Windows SDL holds exclusively. It terminates the process tree intentionally,
+reads both one-second windows after the SDL handle is closed, and writes only
+reduced JSON. Delete temporary raw PCM after inspection.
 
-The native Windows test has **not yet passed**: this opt-in probe must
-first establish that a real game window and ordinary SDL Win32 keyboard
-path work on an interactive runner. It fails closed if not. The existing
-mandatory offscreen pause-silence acceptance remains unchanged.
+The first packaged-Windows audio proof (run 37755041540) reached the
+host-held pause and identified the actual game window. Its initial live PCM
+read failed with Windows PermissionError because SDL holds the device file
+exclusively; the bounded post-close bookmark procedure addresses that native
+capture limitation. Resume/output recovery is **not certified until the
+corrected native proof passes**. The existing mandatory offscreen pause-
+silence acceptance remains unchanged.
 
 A successful run would prove audible-to-silent-to-audible playback in
 one real Windows game process, but not exact note/SFX/DSP parity, latency,

@@ -255,6 +255,17 @@ int main() {
           after_replacement.completed[0].results.results[1] &&
           after_replacement.completed[0].results.results[2],
           "old completed event stays restorable after active instance changes");
+    const auto deleted_profiles_history =
+        load_completed_local_tournament_history(paths, {});
+    check(deleted_profiles_history.scanned &&
+          deleted_profiles_history.completed.size() == 1 &&
+          deleted_profiles_history.completed[0].definition.instance_id == instance &&
+          deleted_profiles_history.completed[0].results.results[0] &&
+          deleted_profiles_history.completed[0].results.results[1] &&
+          deleted_profiles_history.completed[0].results.results[2],
+          "archived completed results remain visible after profile deletion");
+    check(!restore_local_tournament_coordinator(paths, {}).usable(),
+          "active tournament still requires current authorized profiles");
     // A valid stored plan moved under another random instance name cannot
     // give that instance somebody else's completed tournament result.
     const fs::path wrong_instance =

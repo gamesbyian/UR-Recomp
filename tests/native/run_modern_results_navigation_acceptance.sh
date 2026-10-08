@@ -5,14 +5,22 @@ set -Eeuo pipefail
 # results surface first. The host then drives the real keyboard handler, which
 # hands Track/Tour/Next Event to the existing stock-menu transport.
 
-if [ "$#" -ne 3 ]; then
-  echo "usage: $0 <native-exe> <retail-rom> <work-dir>" >&2
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
+  echo "usage: $0 <native-exe> <retail-rom> <work-dir> [selection|progression|isolation|all]" >&2
   exit 2
 fi
 
 EXE="$1"
 ROM="$2"
 WORK="$3"
+SHARD="${4:-all}"
+case "$SHARD" in
+  selection|progression|isolation|all) ;;
+  *)
+    echo "unknown results-navigation shard: $SHARD" >&2
+    exit 2
+    ;;
+esac
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SCRIPT="$REPO/tests/input/modern-results-navigation.script"
 AUTH_SCRIPT="$REPO/tests/input/modern-results-navigation-authentic.script"
@@ -111,6 +119,7 @@ run_case() {
       >"$log" 2>&1
 }
 
+if [ "$SHARD" = "all" ] || [ "$SHARD" = "selection" ]; then
 # One prequalified event is already authoritative. The scripted race replays
 # an already-qualified stock event, so the row must remain ambiguous and unchanged.
 run_case ambiguous 01000 inspect
@@ -129,6 +138,9 @@ grep -q "UR_RESULTS_NAV TRACK_SELECT_READY" "$WORK/track.log"
 grep -q "UR_RESULTS_NAV ACCEPT_TRACK_READY" "$WORK/track.log"
 ! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/track.log"
 
+fi
+
+if [ "$SHARD" = "all" ] || [ "$SHARD" = "progression" ]; then
 # Tour Select stops on stock TOUR_SELECT. Because rider confirmation has already
 # crossed the stock qualification wipe, it must use the existing exact profile
 # snapshot rollback before input ownership is released.
@@ -182,6 +194,9 @@ grep -q "UR_NEXT_EVENT RACE_VERIFIED expected=0 actual=0 course_equal=1" "$WORK/
 grep -q "UR_RESULTS_NAV ACCEPT_NEXT_RACE" "$WORK/next.log"
 ! grep -q "UR_TOUR_CONTINUE ABORTED" "$WORK/next.log"
 
+fi
+
+if [ "$SHARD" = "all" ] || [ "$SHARD" = "isolation" ]; then
 # Quick Practice results retain only Repeat Practice + Records. No progression
 # navigation can be inferred from the disposable SRAM.
 PRACTICE_ROOT="$WORK/practice-save"
@@ -222,4 +237,6 @@ grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$AUTH_LOG"
 ! grep -q "UR_RESULTS_NAV MENU" "$AUTH_LOG"
 ! grep -q "UR_RESULTS_NAV .*_STARTED" "$AUTH_LOG"
 
-echo "UR_RESULTS_NAV_ACCEPTANCE_RESULT=ambiguous_hidden track_stock tour_stock next_unique practice_isolated authentic_inert"
+fi
+
+echo "UR_RESULTS_NAV_ACCEPTANCE_RESULT=$SHARD"

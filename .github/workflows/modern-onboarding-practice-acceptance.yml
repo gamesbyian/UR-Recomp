@@ -516,7 +516,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [tour, feedback, multiplayer]
+        shard: [tour-a, tour-b, feedback, multiplayer]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -560,12 +560,14 @@ jobs:
           }
 
           case "$SHARD" in
-            tour)
-              run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry
-              run_case next-event run_modern_next_event_acceptance.sh next-event
+            tour-a)
               run_case recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
               run_case practice-picker run_modern_practice_picker_acceptance.sh practice-picker
               run_case tour-overview run_modern_tour_overview_acceptance.sh tour-overview
+              ;;
+            tour-b)
+              run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry
+              run_case next-event run_modern_next_event_acceptance.sh next-event
               run_case frontend-options run_modern_frontend_options_acceptance.sh frontend-options
               run_case frontend-controls run_modern_frontend_controls_acceptance.sh frontend-controls
               ;;

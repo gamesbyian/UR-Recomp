@@ -105,6 +105,7 @@ class ModernProductHostPatchTests(unittest.TestCase):
             "run_artifact_date.cpp",
             "multiplayer_match_browser.cpp",
             "multiplayer_match_presentation.cpp",
+            "multiplayer_match_summary.cpp",
             "multiplayer_match_catalog.cpp",
             "multiplayer_match_record.cpp",
             "local_multiplayer_match_binding.cpp",

@@ -216,6 +216,7 @@ def patch_cmake_text(source: str, product_root: Path = ROOT) -> str:
         "local_multiplayer_participants.cpp",
         "multiplayer_match_browser.cpp",
         "multiplayer_match_presentation.cpp",
+        "multiplayer_match_summary.cpp",
         "multiplayer_match_catalog.cpp",
         "multiplayer_match_record.cpp",
         "local_multiplayer_match_binding.cpp",

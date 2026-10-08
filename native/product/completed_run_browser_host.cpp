@@ -14,6 +14,7 @@ extern "C" {
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
 #include "multiplayer_match_browser.hpp"
+#include "multiplayer_match_summary.hpp"
 #include "quick_practice_catalog.hpp"
 #include "uniracers_course_identity.h"
 #include "uniracers_modern_host.h"
@@ -38,6 +39,7 @@ ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
 ur::product::MultiplayerMatchBrowser g_multiplayer_match_browser;
 ur::product::MultiplayerMatchArtifactHealth g_multiplayer_match_health;
+ur::product::MultiplayerMatchSummary g_multiplayer_match_summary;
 UrUniracersRestartPolicyState g_replay_policy;
 bool g_browser_visible;
 bool g_records_browser_visible;
@@ -160,6 +162,7 @@ std::string multiplayer_run_directory() {
 
 bool refresh_multiplayer_match_browser() {
     g_multiplayer_match_health = {};
+    g_multiplayer_match_summary = {};
     const std::string directory = multiplayer_run_directory();
     if (directory.empty()) {
         g_multiplayer_match_browser.set_matches({});
@@ -176,6 +179,9 @@ bool refresh_multiplayer_match_browser() {
     for (const auto& artifact : artifacts) {
         if (artifact.loaded()) matches.push_back(*artifact.stored);
     }
+    // Aggregate only the admitted pairs the browser will list.
+    g_multiplayer_match_summary =
+        ur::product::summarize_multiplayer_matches(matches);
     g_multiplayer_match_browser.set_matches(std::move(matches));
 
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -187,6 +193,23 @@ bool refresh_multiplayer_match_browser() {
             g_multiplayer_match_health.unreadable_runs,
             g_multiplayer_match_health.wrong_mode_runs,
             g_multiplayer_match_health.unavailable_match_metadata);
+        std::fprintf(
+            stderr,
+            "UR_RECORDS_BROWSER MULTIPLAYER_SUMMARY matches=%zu profiles=%zu rivalries=%zu ignored=%zu\n",
+            g_multiplayer_match_summary.matches,
+            g_multiplayer_match_summary.profiles.size(),
+            g_multiplayer_match_summary.head_to_head.size(),
+            g_multiplayer_match_summary.ignored_matches);
+        for (const auto& profile : g_multiplayer_match_summary.profiles) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER MULTIPLAYER_PROFILE profile=%s played=%zu wins=%zu losses=%zu draws=%zu\n",
+                profile.profile_id.c_str(),
+                profile.played,
+                profile.wins,
+                profile.losses,
+                profile.draws);
+        }
         std::fflush(stderr);
     }
     return true;
@@ -1112,6 +1135,29 @@ void draw_records_browser(
                     snes_ovl_draw_text(
                         pixels, stride, height, x + 8, y + 127,
                         line, 0xFFFFFFFFu, 1);
+
+                    // Aggregate history of this exact pairing, oriented to
+                    // this match's seats; counts only, no standings.
+                    const auto* selected =
+                        g_multiplayer_match_browser.selected_match();
+                    const auto head_to_head = selected
+                        ? ur::product::multiplayer_head_to_head_for_match(
+                              g_multiplayer_match_summary, *selected)
+                        : std::nullopt;
+                    if (head_to_head) {
+                        std::snprintf(
+                            line, sizeof(line), "HEAD TO HEAD %zu MATCHES",
+                            head_to_head->played);
+                        snes_ovl_draw_text(
+                            pixels, stride, height, x + 8, y + 147,
+                            line, 0xFFFFFFFFu, 1);
+                        const std::string counts =
+                            ur::product::format_multiplayer_head_to_head(
+                                *head_to_head);
+                        snes_ovl_draw_text(
+                            pixels, stride, height, x + 8, y + 162,
+                            counts.c_str(), 0xFFFFFFFFu, 1);
+                    }
                 }
                 snes_ovl_draw_text(
                     pixels, stride, height, x + 8, y + panel_h - 26,

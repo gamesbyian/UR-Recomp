@@ -237,9 +237,6 @@ jobs:
               SNESRECOMP_INPUT_FILE="$INPUT" \
               SNESRECOMP_SCREENSHOT="$shot" \
               SNESRECOMP_SCREENSHOT_FRAME=1220 \
-              SNESRECOMP_SCREENSHOT_DIR="$frames" \
-              SNESRECOMP_SCREENSHOT_FROM=1210 \
-              SNESRECOMP_SCREENSHOT_TO=1235 \
               SDL_AUDIODRIVER=dummy \
               timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$log" 2>&1
             local status=$?
@@ -1293,6 +1290,9 @@ jobs:
               SNESRECOMP_INPUT_FILE="$INPUT" \
               SNESRECOMP_SCREENSHOT="$shot" \
               SNESRECOMP_SCREENSHOT_FRAME=1220 \
+              SNESRECOMP_SCREENSHOT_DIR="$frames" \
+              SNESRECOMP_SCREENSHOT_FROM=1210 \
+              SNESRECOMP_SCREENSHOT_TO=1235 \
               SDL_AUDIODRIVER=dummy \
               timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$log" 2>&1
             local status=$?

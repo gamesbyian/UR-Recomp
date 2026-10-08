@@ -8,6 +8,7 @@ extern "C" {
 #include "snes/ppu.h"
 }
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -286,13 +287,30 @@ int racer_hd_draw_frame(
     }
 
     copy_field_scaled(dst, pitch, field, scale);
-    for (std::size_t i = 0; i < g_instance_count; ++i) {
+    // SNES OBJ priority among overlapping sprites follows the ascending OAM
+    // index, regardless of the sprite's background-priority attribute bits.
+    // Draw in descending slot order: the lowest-numbered OAM slot paints last
+    // and remains visible where the two racers intersect. The original split
+    // viewport restriction is applied independently inside draw_asset().
+    std::array<std::size_t, 4> draw_order{{0, 1, 2, 3}};
+    std::sort(
+        draw_order.begin(),
+        draw_order.begin() + g_instance_count,
+        [](std::size_t a, std::size_t b) noexcept {
+            return racer_obj_paints_behind(
+                g_instances[a].placement.slot,
+                g_instances[b].placement.slot
+            );
+        }
+    );
+    for (std::size_t rank = 0; rank < g_instance_count; ++rank) {
+        const auto& instance = g_instances[draw_order[rank]];
         draw_asset(
             dst,
             pitch,
-            *g_instances[i].registration,
-            g_instances[i].placement,
-            g_instances[i].viewport,
+            *instance.registration,
+            instance.placement,
+            instance.viewport,
             scale
         );
     }

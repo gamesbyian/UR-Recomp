@@ -66,3 +66,30 @@ CI diagnosis and retains the machine-readable summary. Anomalous intervals
 are **not** precise dropout start times and are **not** aligned to guest race
 frames; this gives a finite target for later measured correlation rather than
 assuming startup is responsible.
+
+## Accepted first-interval startup exception
+
+A second, independent packaged Windows run
+([audio acceptance 37718130708](https://github.com/gamesbyian/UR-Recomp/actions/runs/37718130708),
+source package 37717709694) reproduced the first result: 17+ seconds of
+non-silent SDL3 stereo playback, no native audible sample drops, and eight
+underflow episodes totaling 4,043 device-rate missing frames. The new
+interval reducer localized **all eight** underflow episodes and **all 4,043**
+missing frames to the *first* one-second reporting interval (relative to
+its first captured counter snapshot). All subsequent 16 observed seconds had
+zero new underflows, missing output frames or native samples dropped.
+
+This permits a measured, narrow production regression invariant:
+
+    --max-new-audible-drops 0
+    --max-post-startup-underflows 0
+    --max-post-startup-missing-frames 0
+
+The first observed interval is exempt only from the latter two policies, not
+from native audible-drop detection; subsequent intervals are gated at zero.
+At least three snapshots are required for this gate so a two-snapshot run
+cannot vacuously pass. This is **not** a claim that all startup silence is
+inaudible or that actual speaker/device latency is acceptable. It separates
+known startup-priming behavior from measurable post-startup starvation and
+keeps future steady-state race sound regressions visible without re-clocking
+the guest.

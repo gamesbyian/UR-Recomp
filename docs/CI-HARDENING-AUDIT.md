@@ -374,6 +374,25 @@ research only. If it passes, measure where the critical path moves
 before shuffling unrelated capture routes, and keep the same
 required full atlas and state-dump checks.
 
+### Rename-editor pristine-root pacing parity (2026-10-08)
+
+[Experimental run 37837672585](https://github.com/gamesbyian/UR-Recomp/actions/runs/37837672585)
+passed the tooling suite and all six native capture shards plus aggregate.
+The existing Rename-editor script's five reset-separated input journeys
+produced **121 of 121 byte-identical dump files** when run from separate
+fresh user-data roots with `DisableFrameDelay=0` and `1`.
+The original shared-root baseline matched pristine paced (`baseline_drift=0`).
+Original capture, paced control, and unpaced control exited zero. Native host
+logs verified the correct config roots, and all eleven required WRAM
+checkpoints remained present.
+
+The production route keeps its original script, dump names and strict
+UI evidence aggregate, but runs with an isolated unpaced root and fails
+closed if the native host does not report that root. The original five
+sequence snapshots remain. The temporary triple-run parity experiment
+is not merged. Production merge requires a fresh full six-shard and
+aggregate native result, not the standalone experiment's success alone.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

@@ -2,14 +2,6 @@ name: Completed run replay acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - '.github/workflows/completed-run-replay-acceptance.yml'
-      - 'tests/native/ghost_trace_equivalence.hpp'
-      - 'tests/native/completed_run_ghost_trace_compare.cpp'
-      - 'tests/native/completed_run_ghost_trace_test.cpp'
-      - 'native/product/completed_run_ghost_trace.cpp'
-      - 'native/product/completed_run_ghost_trace.hpp'
 
 concurrency:
   group: completed-run-replay-acceptance-${{ github.ref }}

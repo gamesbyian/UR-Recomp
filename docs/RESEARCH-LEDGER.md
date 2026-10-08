@@ -2729,9 +2729,9 @@ Native smoke gates all of this.
 - WORK-QUEUE expert-edge (d) is closed.
 - No `docs/SYMBOLS.md` change.
 
-### R-2026-10-08-PHYS-04 — Landing reward boundary for an in-air rotation is the third roll-progress step, input-only and native-identical
+### R-2026-10-08-PHYS-04 — Landing-reward boundaries for an in-air rotation and a Z twist, input-only and native-identical
 
-**Status:** confirmed (one rotation family; WORK-QUEUE expert-edge (e) partially covered)  
+**Status:** confirmed (R-shoulder rotation and A twist; WORK-QUEUE expert-edge (e) partially covered)  
 **Date:** 2026-10-08  
 **Area:** physics / stunts
 
@@ -2744,16 +2744,21 @@ Native smoke gates all of this.
 - Holding 22 or 23 frames peaks at roll progress 2. P1 lands at pitch 47, nothing is queued, and the meter stays 0.
 - Holding 24 or 25 frames reaches roll progress 3. Landing queues a reward message, and the meter jumps to 128 on the landing frame. It then depletes normally (PHYS-03).
 - `7E:11F9` (rolls) stays 0 in all four cases, so a three-quarter rotation that lands is rewarded without counting as a roll.
-- Native and snesref are identical on every frame of all four cases.
+- **A twist:** a 4-frame A press in the air does nothing. A 5-frame press commits a full Z rotation (`7E:0DFD` → 16), which completes on its own, and landing again adds 128 to the meter.
+- An in-air survey (30-frame holds) also shows the following; none are boundaries yet:
+  - the L shoulder drives flip progress `7E:1205` to 3 without a reward;
+  - X touches roll progress, Z-flips (`042B` → 1) and Z rotation without a reward;
+  - Y, and L+R together, do nothing.
+- Native and snesref are identical on every frame of all six cases.
 
 **Evidence:** `analysis/generated/stunt-boundary-probe.json` from `tools/probe_stunt_boundary.py` (manual harness), `tests/unit/test_probe_stunt_boundary.py`.
 
-**Interpretation:** the reward hinges on the rotation's progress step at landing, not on a completed roll count. With the 2-frame input cadence, the decisive input is a single extra frame of shoulder (23 → 24).
+**Interpretation:** the reward hinges on the rotation's progress step at landing, not on a completed roll count. A twist commits after a 5-frame press. In both families the decisive input is a single extra frame (23 → 24 shoulder, 4 → 5 A).
 
-**Discriminating test:** rerun the probe after any change to stunt, physics or input-path code. All holds must keep `first_divergence_frame: null`, and the boundary must stay at 23 / 24.
+**Discriminating test:** rerun the probe after any change to stunt, physics or input-path code. All cases must keep `first_divergence_frame: null`, and the boundaries must stay at 23 / 24 (R shoulder) and 4 / 5 (A).
 
 **Dependencies:** same reference core and menu route as R-2026-10-08-PHYS-02.
 
 **Propagation:**
 - WORK-QUEUE expert-edge (e) now has its first native-identical boundary.
-- Flips (`11FD` / `1205`), twists (`0F61`), Z-flips (`042B`) and the praise/score path remain unmeasured.
+- Still unmeasured: the L-shoulder flip landing, Z-flips (`042B`), stunt combinations, and the praise/score path.

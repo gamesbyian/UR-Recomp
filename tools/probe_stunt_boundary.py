@@ -5,13 +5,11 @@ Each case boots a fresh process from the recovered real "All Silvers - No
 Hunter" SRAM, reaches the Jumpover race through the stock menus (the route
 in ``probe_jumpover_fallthrough_native.py``), holds Right, jumps from the
 first crest (B held for 40 frames) and holds the R shoulder for N frames in
-the air. No WRAM is written. P1 pitch, roll progress (``7E:1201``), air
-time, P1 boost meter and the P1 message-queue write index are dumped every
-frame on both cores and compared exactly.
-
-The R shoulder rotates P1 by 2 pitch units per frame and the roll-progress
-counter steps every eighth frame of rotation. The probe records the hold
-length at which landing first earns a reward.
+the air: the R shoulder (rotation) or A (Z twist) for N frames. No WRAM is
+written. P1 pitch, roll progress (``7E:1201``), Z rotation (``7E:0DFD``),
+air time, P1 boost meter and the P1 message-queue write index are dumped
+every frame on both cores and compared exactly. Each family's holds
+straddle the hold length at which landing first earns a reward.
 """
 
 from __future__ import annotations
@@ -29,13 +27,16 @@ sys.path.insert(0, str(ROOT / "tools"))
 import probe_jumpover_fallthrough_native as jf  # noqa: E402
 
 JUMP = (264, 40)            # frames after race entry, B-hold length
-SHOULDER_START = 272        # frames after race entry
-SHOULDER_MASK = 0x0800      # R
-HOLDS = (22, 23, 24, 25)
+SHOULDER_START = 272        # frames after race entry: the stunt input starts here
+# (name, mask, holds): each family's holds straddle its reward boundary.
+FAMILIES = (
+    ("r-shoulder-rotation", 0x0800, (22, 23, 24, 25)),
+    ("a-twist", 0x0100, (4, 5)),
+)
 WINDOW = (262, 352)         # dumped frames after race entry
 
 
-def stunt_events(race_frame: int, hold: int) -> list[tuple[int, int, int]]:
+def stunt_events(race_frame: int, hold: int, stunt_mask: int = 0x0800) -> list[tuple[int, int, int]]:
     jump_at, jump_len = JUMP
     events, run = [(race_frame, jump_at, 0x0080)], None
     for off in range(jump_at, WINDOW[1] + 10):
@@ -43,7 +44,7 @@ def stunt_events(race_frame: int, hold: int) -> list[tuple[int, int, int]]:
         if jump_at <= off < jump_at + jump_len:
             mask |= 0x0001
         if SHOULDER_START <= off < SHOULDER_START + hold:
-            mask |= SHOULDER_MASK
+            mask |= stunt_mask
         if run and run[2] == mask:
             run[1] += 1
         else:
@@ -65,6 +66,7 @@ def stunt_script(race_frame: int) -> str:
 def read_row(wram: bytes) -> dict:
     u = lambda a: struct.unpack_from("<H", wram, a)[0]
     return {"pitch": u(0x04C7) & 0x3F, "roll_progress": u(0x1201), "rolls": u(0x11F9),
+            "z_rotation": u(0x0DFD),
             "air_time": wram[0x0545], "boost": u(0x11CF), "queue_write": u(0x0CE3)}
 
 
@@ -90,12 +92,13 @@ def summarize(rows: list[dict]) -> dict:
     reward = next((i for i in range(1, len(rows)) if rows[i]["boost"] > rows[i - 1]["boost"]), None)
     return {
         "peak_roll_progress": peak,
+        "peak_z_rotation": max(r["z_rotation"] for r in rows),
         "rolls": max(r["rolls"] for r in rows),
         "reward_frame": reward,
         "boost_after_reward": rows[reward]["boost"] if reward is not None else None,
         "rewarded": reward is not None,
-        "series": " ".join(f'{r["pitch"]}/{r["roll_progress"]}/{r["air_time"]}/{r["boost"]}/{r["queue_write"]}'
-                           for r in rows),
+        "series": " ".join(f'{r["pitch"]}/{r["roll_progress"]}/{r["z_rotation"]}/{r["air_time"]}/'
+                           f'{r["boost"]}/{r["queue_write"]}' for r in rows),
         "series_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(),
     }
 
@@ -114,20 +117,21 @@ def main(argv=None) -> int:
         setattr(args, name, getattr(args, name).resolve())
 
     ref_race, shift, cases, ok = 1088, None, [], True
-    for hold in HOLDS:
-        work = args.work_dir / f"hold-{hold}"
+    cases_to_run = [(family, mask, hold) for family, mask, holds in FAMILIES for hold in holds]
+    for family, stunt_mask, hold in cases_to_run:
+        work = args.work_dir / f"{family}-{hold}"
         shutil.rmtree(work, ignore_errors=True)
         work.mkdir(parents=True)
         script = work / "stunt.script"
         script.write_text(stunt_script(ref_race))
-        events = stunt_events(ref_race, hold)
+        events = stunt_events(ref_race, hold, stunt_mask)
         log = jf.run_reference(work, args, script, events)
         rf = jf.race_entry_frame(log)
         if rf is None:
             raise SystemExit(f"reference did not reach the race:\n{log[-2000:]}")
         if rf != ref_race:
             ref_race = rf
-            events = stunt_events(rf, hold)
+            events = stunt_events(rf, hold, stunt_mask)
             jf.run_reference(work, args, script, events)
         nat_log = jf.run_native(work, args, script, events, shift or 0)
         nf = jf.race_entry_frame(nat_log)
@@ -141,9 +145,11 @@ def main(argv=None) -> int:
         ref_summary, nat_summary = summarize(ref_rows), summarize(nat_rows)
         nat_summary.pop("series")
         ok &= divergence is None
-        cases.append({"shoulder_hold_frames": hold, "reference": ref_summary, "native": nat_summary,
+        cases.append({"family": family, "mask": f"0x{stunt_mask:03x}", "hold_frames": hold,
+                      "reference": ref_summary, "native": nat_summary,
                       "first_divergence_frame": divergence})
-        print(json.dumps({"hold": hold, "peak_progress": ref_summary["peak_roll_progress"],
+        print(json.dumps({"family": family, "hold": hold, "peak_progress": ref_summary["peak_roll_progress"],
+                          "peak_z": ref_summary["peak_z_rotation"],
                           "rewarded": ref_summary["rewarded"], "boost": ref_summary["boost_after_reward"],
                           "divergence": divergence}), flush=True)
 
@@ -156,17 +162,18 @@ def main(argv=None) -> int:
         "reference_race_entry_frame": ref_race,
         "native_race_entry_offset_frames": shift,
         "jump": {"frame_after_race_entry": JUMP[0], "frames": JUMP[1], "mask": "0x081"},
-        "shoulder": {"frame_after_race_entry": SHOULDER_START, "mask": f"0x{SHOULDER_MASK:03x}"},
+        "stunt_input_frame_after_race_entry": SHOULDER_START,
         "window_frames_after_race_entry": list(WINDOW),
-        "series_format": "space-separated pitch/roll_progress/air_time/boost/queue_write per frame",
+        "series_format": "space-separated pitch/roll_progress/z_rotation/air_time/boost/queue_write per frame",
         "cases": cases,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
-    rewarded = [c["shoulder_hold_frames"] for c in cases if c["reference"]["rewarded"]]
-    if not rewarded or len(rewarded) == len(cases):
-        print("matrix needs both rewarded and unrewarded holds", file=sys.stderr)
-        ok = False
+    for family, _, _ in FAMILIES:
+        flags = [c["reference"]["rewarded"] for c in cases if c["family"] == family]
+        if all(flags) or not any(flags):
+            print(f"{family}: matrix needs both rewarded and unrewarded holds", file=sys.stderr)
+            ok = False
     return 0 if ok else 1
 
 

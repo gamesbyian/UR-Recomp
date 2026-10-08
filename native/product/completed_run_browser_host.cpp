@@ -38,6 +38,7 @@ namespace fs = std::filesystem;
 ur::product::CompletedRunBrowser g_browser;
 ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
+ur::product::CompletedRunReplayInputStage g_replay_input_stage;
 ur::product::MultiplayerMatchBrowser g_multiplayer_match_browser;
 ur::product::MultiplayerMatchArtifactHealth g_multiplayer_match_health;
 ur::product::MultiplayerMatchSummary g_multiplayer_match_summary;
@@ -501,14 +502,13 @@ bool open_browser() {
     return true;
 }
 
+void clear_replay_input_staging() {
+    g_replay_input_stage.clear();
+}
+
 std::string replay_input_path() {
-    const std::string root = product_user_data_root();
-    if (root.empty()) return {};
-    const fs::path directory = fs::path(root) / "replay";
-    std::error_code ec;
-    fs::create_directories(directory, ec);
-    if (ec) return {};
-    return (directory / "selected-run.input").string();
+    return g_replay_input_stage.reserve(product_user_data_root())
+        ? g_replay_input_stage.input_path() : std::string{};
 }
 
 bool launch_selected_replay() {
@@ -521,16 +521,37 @@ bool launch_selected_replay() {
         return false;
     }
 
+    // Browsing is a snapshot. Revalidate both provenance and the immutable
+    // source artifact before giving its inputs authority over a new race.
+    const auto target = current_target();
+    const std::string source_directory = active_run_directory();
+    if (!target || source_directory.empty() ||
+        fs::path(selected->path).parent_path() != fs::path(source_directory)) {
+        diagnostic("UR_RUN_BROWSER REPLAY_SOURCE_REJECTED");
+        return false;
+    }
+    const auto fresh_record =
+        ur::product::reload_matching_completed_run_replay_record(
+            selected->path, *selected->record, *target);
+    if (!fresh_record) {
+        diagnostic("UR_RUN_BROWSER REPLAY_SOURCE_CHANGED");
+        return false;
+    }
+
     const std::string input_path = replay_input_path();
     std::string detail;
     if (input_path.empty() ||
         !ur::product::stage_completed_run_replay_input_file(
-            input_path, *selected->record, &detail)) {
+            input_path, *fresh_record, &detail)) {
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_STAGE_FAILED");
         return false;
     }
 
     if (!snesrecomp_desktop_load_relative_input_file(input_path.c_str())) {
+        // A failed load must leave no staged controller stream armed.
+        (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_LOAD_FAILED");
         return false;
     }
@@ -539,6 +560,7 @@ bool launch_selected_replay() {
     // from the same lifecycle-owned race-entry anchor as Retry.
     if (!ur_uniracers_modern_system_key_down(SDLK_r, KMOD_CTRL, 0)) {
         (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_RESTART_FAILED");
         return false;
     }
@@ -546,6 +568,7 @@ bool launch_selected_replay() {
     ur_uniracers_restart_policy_reset(&g_replay_policy);
     if (!g_replay_flow.begin()) {
         (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+        clear_replay_input_staging();
         return false;
     }
 
@@ -575,6 +598,7 @@ void return_to_browser(
     const SnesDesktopHostFrameStats* stats,
     bool completed) {
     (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+    clear_replay_input_staging();
 
     // Re-enter the ordinary Modern host exactly once at the terminal surface
     // so its pause/results/frontend policy is synchronized before the browser
@@ -605,6 +629,7 @@ void cancel_active_replay_to_browser() {
     if (!g_replay_flow.active()) return;
     g_replay_flow.cancel();
     (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+    clear_replay_input_staging();
 
     // Synchronize the Modern surface without executing an additional guest
     // frame, then use the established pause gate before reopening Local Runs.

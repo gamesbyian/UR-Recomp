@@ -88,7 +88,7 @@ class QueueIdentityTests(unittest.TestCase):
                 q.read_series(d, 0, 0, prefix="../escape")
         row = {"frame": 1, "write": 0, "read": 0, "boost": 0, "buffer": tuple([0]*32),
                "air": 0, "x_speed": 0}
-        with self.assertRaisesRegex(q.QueueEvidenceError, "consecutive"):
+        with self.assertRaisesRegex(q.QueueEvidenceError, "missing or out-of-order"):
             q.analyze([row, dict(row, frame=3)])
         with self.assertRaisesRegex(q.QueueEvidenceError, "nonempty"):
             q.compare([], [])

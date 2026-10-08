@@ -1,0 +1,274 @@
+name: Windows visible Restart audio source-build acceptance
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-visible-restart-audio-candidate.yml"
+      - "tools/patches/snesrecomp-visible-restart-audio.patch"
+      - "tools/toolchain.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "native/product/uniracers_modern_host.cpp"
+  workflow_dispatch:
+
+# This is specifically the audio-patch validation lane, not broad CI sharding.
+concurrency:
+  group: visible-restart-audio-source-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  patched-windows-audio:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # Project patches are hash-pinned; Windows Git's autocrlf would rewrite them.
+      - name: Keep checkout bytes exact
+        run: git config --global core.autocrlf false
+
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Verify canonical ROM and package contracts
+        run: |
+          python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary
+
+      - name: Stage repository-owned SNESRecomp framework
+        run: |
+          set -euo pipefail
+          python tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -f .tools/src/snesrecomp/runner/runner.cmake
+
+      - name: Scaffold and generate
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/ur-recomp-build"
+          mkdir -p "$TMP"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --generate \
+              --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          python "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
+          grep -q "hardware_reset = &GameHardwareReset" "$ROOT/src/game_rtl.c"
+
+      - name: Configure and build (Visual Studio, ClangCL, SDL3)
+        run: |
+          set -euo pipefail
+          # CMake embeds these paths in generated scripts; backslashes in
+          # D:\a\... would be parsed as escapes, so pass mixed (C:/...) form.
+          WS="$(cygpath -m "$GITHUB_WORKSPACE")"
+          FRAMEWORK="$WS/.tools/src/snesrecomp"
+          ROOT="$(cygpath -m "$RUNNER_TEMP")/ur-recomp-build/UniracersSNESRecomp"
+          cmake -S "$ROOT" -B "$ROOT/build" -G "Visual Studio 17 2022" -A x64 -T ClangCL \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$WS/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" --config Release --parallel 4
+          EXE="$(find "$ROOT/build" -name 'UniracersSNESRecomp.exe' -path '*Release*' | head -n1)"
+          test -n "$EXE"
+          echo "EXE=$EXE" >> "$GITHUB_ENV"
+          ls -la "$(dirname "$EXE")"
+
+          # Portable-package runtime boundary: SDL is static, and the app must
+          # not require a separately installed Visual C++ Redistributable.
+          EXE_WIN="$(cygpath -w "$EXE")"
+          export EXE_WIN
+          powershell.exe -NoProfile -Command '
+            $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+            $vs = & $vswhere -latest -property installationPath
+            if (-not $vs) { throw "Visual Studio installation not found" }
+            $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
+            $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
+              Sort-Object Name -Descending | Select-Object -First 1
+            if (-not $tools) { throw "MSVC tools directory not found" }
+            $dumpbin = Join-Path $tools.FullName "bin\Hostx64\x64\dumpbin.exe"
+            if (-not (Test-Path -LiteralPath $dumpbin)) { throw "dumpbin.exe not found" }
+            & $dumpbin /dependents $env:EXE_WIN
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ' | tee "$RUNNER_TEMP/windows-runtime-dependencies.log"
+          if grep -Eiq '(MSVCP[0-9_]*|VCRUNTIME[0-9_]*)\.dll'               "$RUNNER_TEMP/windows-runtime-dependencies.log"; then
+            echo "Portable executable unexpectedly depends on the Visual C++ Redistributable." >&2
+            exit 1
+          fi
+          # A Visual Studio runner has DLLs a clean player machine does not.
+          # Audit the final PE against an explicit Windows-inbox import policy.
+          python tools/check_windows_portable_binary.py \
+            --exe "$EXE" \
+            --dependencies "$RUNNER_TEMP/windows-runtime-dependencies.log"
+
+      - name: Assemble and verify portable Windows package
+        run: |
+          set -euo pipefail
+          PACKAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py assemble \
+            --build-dir "$(dirname "$EXE")" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --output "$PACKAGE" \
+            --source-revision "$GITHUB_SHA"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          python tools/verify_rom.py "$PACKAGE/Uniracers_USA.sfc"
+          ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64.zip"
+          python tools/assemble_windows_package.py archive \
+            --package "$PACKAGE" \
+            --output "$ARCHIVE"
+          python tools/assemble_windows_package.py verify-archive \
+            --archive "$ARCHIVE"
+          REPRO_ARCHIVE="$RUNNER_TEMP/UR-Recomp-Windows-x64-repro.zip"
+          python tools/assemble_windows_package.py archive \
+            --package "$PACKAGE" \
+            --output "$REPRO_ARCHIVE"
+          cmp "$ARCHIVE" "$REPRO_ARCHIVE"
+          CHECKSUM="$ARCHIVE.sha256"
+          python tools/assemble_windows_package.py checksum-archive \
+            --archive "$ARCHIVE" \
+            --output "$CHECKSUM"
+          test -s "$CHECKSUM"
+          python tools/assemble_windows_package.py verify-archive-checksum \
+            --archive "$ARCHIVE" \
+            --checksum "$CHECKSUM"
+          echo "PACKAGE=$PACKAGE" >> "$GITHUB_ENV"
+          echo "PACKAGE_ARCHIVE=$ARCHIVE" >> "$GITHUB_ENV"
+          echo "PACKAGE_ARCHIVE_CHECKSUM=$CHECKSUM" >> "$GITHUB_ENV"
+          test -f "$PACKAGE/UniracersSNESRecomp.exe"
+          test -f "$PACKAGE/Uniracers_USA.sfc"
+          test -f "$PACKAGE/rom.cfg"
+          test -f "$PACKAGE/run-uniracers.cmd"
+          test -f "$PACKAGE/PACKAGE-MANIFEST.json"
+
+      - name: Repeat real Modern Restart audio on the newly compiled package
+        run: |
+          set -euo pipefail
+          test -s "$PACKAGE/UniracersSNESRecomp.exe"
+          grep -Fq 'void RtlAudioInvalidateVisibleTimeline(void)' \
+            "$GITHUB_WORKSPACE/.tools/src/snesrecomp/runner/src/common_rtl.c"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
+          FAILURES=0
+          for CASE in 1 2 3; do
+            LOG="$RUNNER_TEMP/visible-restart-$CASE.log"
+            PCM="$RUNNER_TEMP/visible-restart-$CASE.raw"
+            OUT="$RUNNER_TEMP/visible-restart-$CASE.json"
+            ROOT="$RUNNER_TEMP/visible-restart-user-$CASE"
+            STATS="$RUNNER_TEMP/visible-restart-$CASE-stats.txt"
+            mkdir -p "$ROOT"
+            rm -f "$PCM"
+            LOG_WIN="$(cygpath -w "$LOG")"
+            PCM_WIN="$(cygpath -w "$PCM")"
+            ROOT_WIN="$(cygpath -w "$ROOT")"
+            STATS_WIN="$(cygpath -w "$STATS")"
+            set +e
+            SDL_VIDEO_DRIVER=windows \
+            SDL_VIDEODRIVER=windows \
+            SDL_AUDIO_DRIVER=disk \
+            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+            SDL_AUDIO_FORMAT=S16LE \
+            SDL_AUDIO_CHANNELS=2 \
+            SDL_AUDIO_FREQUENCY=44100 \
+            SDL_AUDIO_DISK_TIMESCALE=1.0 \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_PAUSE_OPEN_ACCEPTANCE=1 \
+            SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+              python -m tools.capture_modern_restart_audio \
+                "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
+                --json-out "$OUT"
+            RC=$?
+            set -e
+            if test -s "$STATS"; then
+              python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+                --max-new-audible-drops 0 \
+                --max-post-startup-underflows 0 \
+                --max-post-startup-missing-frames 0 \
+                --json-out "$RUNNER_TEMP/visible-restart-$CASE-queue.json" || RC=1
+            fi
+            rm -f "$PCM"
+            if test "$RC" -ne 0; then
+              FAILURES=$((FAILURES + 1))
+              echo "VISIBLE_RESTART_AUDIO_CAPTURE FAIL case=$CASE"
+            else
+              echo "VISIBLE_RESTART_AUDIO_CAPTURE PASS case=$CASE"
+            fi
+          done
+          echo "VISIBLE_RESTART_AUDIO_SOURCE_BUILD results=3 failures=$FAILURES"
+          test "$FAILURES" -eq 0
+
+      - name: Prove continuous-race control still plays through same rebuilt executable
+        if: always()
+        run: |
+          set -euo pipefail
+          PACKAGE="$RUNNER_TEMP/UR-Recomp-Windows-x64"
+          test -f "$PACKAGE/run-uniracers.cmd"
+          LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
+          LOG="$RUNNER_TEMP/visible-restart-control.log"
+          PCM="$RUNNER_TEMP/visible-restart-control.raw"
+          ROOT="$RUNNER_TEMP/visible-restart-control-user"
+          OUT="$RUNNER_TEMP/visible-restart-control.json"
+          mkdir -p "$ROOT"
+          trap 'rm -f "$PCM"' EXIT
+          PCM_WIN="$(cygpath -w "$PCM")"
+          SDL_VIDEO_DRIVER=windows \
+          SDL_VIDEODRIVER=windows \
+          SDL_AUDIO_DRIVER=disk \
+          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+          SDL_AUDIO_FORMAT=S16LE \
+          SDL_AUDIO_CHANNELS=2 \
+          SDL_AUDIO_FREQUENCY=44100 \
+          SDL_AUDIO_DISK_TIMESCALE=1.0 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_RECOMP_USER_DATA_ROOT="$(cygpath -w "$ROOT")" \
+            python -m tools.capture_unpaused_race_audio_control \
+              "$LAUNCHER_WIN" "$SCRIPT_WIN" "$(cygpath -w "$LOG")" "$PCM_WIN" \
+              --json-out "$OUT"
+          python - "$OUT" <<'PY'
+          import json,sys
+          d=json.load(open(sys.argv[1]))
+          if min(d["tail_one_second_channel_rms"]) < 50:
+              raise SystemExit("control race stereo device output was silent")
+          print("VISIBLE_RESTART_AUDIO_CONTROL PASS audible_stereo=1")
+          PY
+          rm -f "$PCM"
+
+      - name: Upload bounded source-build audio proof (never proprietary PCM)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: visible-restart-audio-source-evidence
+          path: |
+            ${{ runner.temp }}/visible-restart-*.log
+            ${{ runner.temp }}/visible-restart-*.json
+            ${{ runner.temp }}/visible-restart-*-stats.txt
+          if-no-files-found: warn
+          retention-days: 5

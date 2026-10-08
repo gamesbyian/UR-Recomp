@@ -168,6 +168,85 @@ class WindowsPackageTests(unittest.TestCase):
             ):
                 package_tool.verify_archive(forged)
 
+    def test_ntfs_reserved_and_invalid_package_path_components(self):
+        for relative, diagnostic in (
+            ("mods/preloaded/packages/CON.txt", "Windows-reserved device name"),
+            ("mods/preloaded/packages/lpt9.cfg", "Windows-reserved device name"),
+            ("mods/preloaded/packages/COM².dll", "Windows-reserved device name"),
+            ("mods/preloaded/packages/trailing.", "Windows-incompatible path"),
+            ("mods/preloaded/packages/trailing ", "Windows-incompatible path"),
+            ("mods/preloaded/packages/stream:alt.bin", "Windows-incompatible path"),
+            ("mods/preloaded/packages/bad?.dat", "Windows-incompatible path"),
+            ("mods//preloaded/file", "Windows-incompatible path"),
+        ):
+            with self.subTest(relative=relative):
+                with self.assertRaisesRegex(ValueError, diagnostic):
+                    package_tool.validate_windows_portable_paths(
+                        {relative}, context="test manifest"
+                    )
+        package_tool.validate_windows_portable_paths(
+            {"mods/preloaded/packages/.gitkeep", "README.txt", "rom.cfg"},
+            context="test valid package",
+        )
+
+    def test_invalid_windows_mod_source_preserves_prior_output(self):
+        if os.name == "nt":
+            self.skipTest("reserved NTFS names cannot be created on Windows")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            output = root / "completed-package"
+            output.mkdir()
+            marker = output / "preserve-if-input-invalid"
+            marker.write_text("existing release")
+            bad_mod = build / "mods" / "preloaded" / "packages" / "CON.txt"
+            bad_mod.write_text("invalid for the consumer OS")
+            with self.assertRaisesRegex(
+                ValueError, "package source mods contains Windows-reserved device name"
+            ):
+                package_tool.assemble(build, rom, output, "bad-path-preflight")
+            self.assertEqual(marker.read_text(), "existing release")
+
+    def test_archive_rejects_signed_windows_reserved_device_filename(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            package_dir = root / "package"
+            package_tool.assemble(build, rom, package_dir, "reserved-zip-test")
+            original = root / "original.zip"
+            package_tool.create_archive(package_dir, original)
+            forged = root / "reserved.zip"
+            name = "mods/preloaded/packages/CON.txt"
+            payload = b"unsafe Windows device path"
+            with zipfile.ZipFile(original) as source, zipfile.ZipFile(
+                forged, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                manifest = json.loads(source.read(
+                    f"{package_tool.ARCHIVE_ROOT}/{package_tool.MANIFEST_NAME}"
+                ))
+                manifest["files"].append({
+                    "path": name,
+                    "size": len(payload),
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                })
+                for info in source.infolist():
+                    data = source.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        data = package_tool.canonical_manifest_bytes(manifest)
+                    target.writestr(info, data)
+                info = zipfile.ZipInfo(
+                    f"{package_tool.ARCHIVE_ROOT}/{name}",
+                    date_time=package_tool.ARCHIVE_TIMESTAMP,
+                )
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.create_system = 3
+                info.external_attr = 0o100644 << 16
+                target.writestr(info, payload)
+            with self.assertRaisesRegex(
+                ValueError, "package archive contains Windows-reserved device name"
+            ):
+                package_tool.verify_archive(forged)
+
     def test_controller_startup_failure_has_specific_release_code(self):
         patch = STARTUP_PATCH.read_text()
         controller_anchor = "if (!snesrecomp_sdl_init(SDL_INIT_GAMECONTROLLER))"

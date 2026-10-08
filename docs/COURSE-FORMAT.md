@@ -642,3 +642,76 @@ meets it. The --limit diagnostic-excerpt option cannot weaken the identity
 requirement. Partial decompression, wrong sparse streams and nonmatching
 focus streams produce a machine-readable not_evaluable result, not a
 promoted spawn-slot assignment.
+
+
+### Native Dragster checkpoint/finish transition: slot ordering witness (2026-10-08)
+
+The original native deterministic object-activation workflow artifact
+(run 36954104693, artifact 11204794758) has been re-opened and its
+seven-frame guest-WRAM contact sequence preserved in
+analysis/data/dragster-finish-contact-transition.json. This is **native
+SNESRecomp guest-state evidence**, not an independent Snes9x/bsnes result.
+The selected words and course placements can be independently checked
+against the ROM-derived spatial contract.
+
+Relevant consecutive observations at fixed P1 Y=857:
+
+- frame 2902, P1 X=25248: collision word 0x2024 -> C000 slot 10,
+  object code 0x14, checkpoint/finish/lap state 3/0/1;
+- frame 2903, P1 X=25256: word 0x2020 -> slot 8, **same object
+  code 0x14**, state changes to 1/1/0;
+- frame 2904, P1 X=25264: word 0x2020 -> slot 8, state stays 1/1/0;
+- frames 2905 through 2907: word 0x0022 -> slot 9, code remains 0x14
+  and state stays 1/1/0.
+
+The decoded Dragster resource placement at coarse X sector 395 contains
+alternating 16x16 cells: 0x2020 / slot 8 in the left column at
+X=25280, Y=800/832/864; 0x2024 / slot 10 in that column at
+Y=816/848/880; and 0x0022 / slot 9 in the adjacent column X=25296
+at Y=800/832/864. This contact word/slot sequence is therefore
+consistent with exact course-local packed cells at the finish stripe.
+
+**Semantic consequence:** merely observing a 0x14 checkpoint/finish
+object code cannot be equated to a finish event. The preceding frame
+already selected that handler family without changing checkpoint,
+finish-gate or lap state. The next decoder/runtime experiment must
+correlate the state of the handler, selected slot and active contact
+point rather than assuming all cells of resource 0x24 are equivalent.
+
+The observed P1 center Y=857 is seven world units above the nearest
+slot-8 candidate cell band Y=864..879, ten below the Y=832..847 band,
+and 42 below Y=800..815. The world-cell correlation tool now reports
+this center-to-cell proximity explicitly as a *ranking* only, never as
+a claimed contact-point location.
+
+The retained snapshot has P1 Y=857 but does not preserve the exact
+selected collision probe/contact Y or the footprint of the contacting
+racer. It therefore does not resolve which of the repeated Y cells
+was touched. Avoid promoting a unique cell or causal slot ordering
+without that additional runtime witness.
+
+
+One additional byte-level caveat comes from the original 128 KiB WRAM binaries.
+The object-activation analyzer reads P1's sampled word at 7E:0E95:
+it advances 0x1804 -> 0x2024 -> 0x2020 -> 0x0022 during this
+transition. The postframe snapshot at 7E:0F09, the current-player
+collision-state source named in the dispatcher disassembly, remains
+0x1804 in all seven frames. These observations have separate fields
+in the preserved witness and cannot be conflated. The apparent
+discrepancy is compatible with the per-player marshal/current-player
+scratch region being overwritten between dispatch and the end-of-frame
+dump, but **that phase explanation has not been proven**. Resolve it
+with an instruction-time read/write trace around 81:82E6 and the P1/P2
+marshal, not by assigning stable frame-end memory an in-flight value.
+
+
+The same archived snapshots add a narrower observation: per-player P2's
+stored collision word at 7E:0E97 is exactly 0x1804 on all seven frames,
+matching the settled 7E:0F09 scratch value byte-for-byte; the P1 word
+at 7E:0E95 changes independently. This is consistent with 0F09 holding
+the last marshalled/current-player collision word after the frame
+finishes, potentially P2's. That explanation remains **inferred**:
+an instruction-time trace or authoritative marshal path is required
+to confirm when 0F09 mirrors each player. It is nevertheless enough
+to reject using a postframe 0F09 snapshot as the observed P1 collision
+selector for this trace.

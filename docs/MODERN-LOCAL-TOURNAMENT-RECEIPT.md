@@ -10,11 +10,19 @@ A receipt is admitted for construction **only after the active fixture has alrea
 
 The decoder bounds the entire envelope to 2 KiB, requires an exact field set and order, canonical decimal index, lowercase hex IDs/digests, canonical source-profile byte encoding, valid typed outcomes, and a checksum validated through exact canonical re-encoding. No new `.urrun` or `.urmatch` fields are introduced.
 
+## Batch restoration contract (pure model)
+
+`native/product/local_tournament_receipt_restore.hpp` now reconstructs an explicitly identified tournament's standings from a caller-supplied collection of canonical fixture-receipt bytes paired with independently catalog-admitted `.urrun` + `.urmatch` evidence. The caller must supply the independently minted active tournament ID, a fresh and *exactly canonical* empty schedule, and the explicit receipt-to-admitted-pair associations. This is **not** a disk scanner, receipt minter, live tournament producer, or player-facing route.
+
+Every byte envelope is strictly decoded and checked against the exact tournament instance, fixture, participant seats, course, stock result and run checksum, then applied through the already-existing round-robin result reducer. Receipt order is irrelevant; duplicate fixture indices, reuse of the same run checksum across fixtures, any invalid receipt, noncanonical roster/schedule, and prefilled result slots reject the **entire batch**. Only a complete successful validation returns a reconstructed tournament state with standings; the source model remains unchanged. An empty batch may validly restore a zero-result tournament, but proves no completed fixtures.
+
+Strict C++17 model tests cover two independent restored wins including reversed seats, out-of-order receipts, complete/empty batches, incorrect instance, malformed trailing receipt, wrong course/outcome/artifact, duplicate index or checksum, excess receipts and plan drift. This contract does not make an arbitrary historical Records match into tournament evidence: fixture receipts still have to originate from the live attempt-identified tournament path and be durably published before such a restore can be trusted.
+
 ## Deliberately not yet claimed
 
 1. **No tournament receipt is minted by the live host.** The host must establish the unique tournament instance and active fixture before launching the stock 2P Race, retain that identity throughout the authoritative run, and call the receipt producer only after an exact paired capture succeeded. The test's fixture assignment is deliberate input, not provenance automatically discovered from history.
 2. **No on-disk receipt writer or atomic publication protocol is shipped here.** The codec is persistence-ready, but a fresh-process integration gate must eventually prove that the receipt and paired run are published consistently without promoting an orphan receipt or losing valid history to interrupted writes.
-3. **No tournament state codec or resume-on-restart is shipped.** Active tournament state needs its own strict format and transactional recovery, and must reject inconsistent fixture receipts before standings are restored.
+3. **No tournament state codec or resume-on-restart is shipped.** A pure all-or-nothing fixture receipt reducer now refuses inconsistent replay evidence; active tournament identity, roster/schedule state and actual receipt publication/transactional recovery still require a durable producer.
 4. **No player-facing tournament UI is shipped.** Ordinary 2P stock routing, source/participant confirmation and the original League-inspired visual grammar remain separate integration tasks.
 
 Focused native-model tests assert byte-for-byte roundtrip, source/fixture verification including restoration with initially empty results, alternate tournament/fixture refusal, bad mode/course/profiles/outcome/primary checksum, noncanonical field shapes, extra/truncated bytes and invalid identifiers. The focused Local multiplayer product contracts workflow runs them with strict C++17 warnings.

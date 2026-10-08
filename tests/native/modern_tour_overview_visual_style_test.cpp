@@ -46,5 +46,47 @@ int main() {
     constexpr int kRowPitch = 16;
     assert(kRowStart + (kRows - 1) * kRowPitch + 8 < 188);
     assert(188 + 8 < 207);
+
+    // The medal/state column is anchored at the right edge rather than
+    // shifting with each tour name. The primary name yields to status.
+    const auto row_cells =
+        modern_overlay_text_cells(classic.panel_width_logical);
+    const auto bronze = modern_tour_overview_row(
+        1, true, "Crawler", "BRONZE", row_cells);
+    const auto silver = modern_tour_overview_row(
+        2, true, "Jumper", "SILVER", row_cells);
+    const auto gold = modern_tour_overview_row(
+        8, true, "Sprinter", "GOLD", row_cells);
+    const auto not_started = modern_tour_overview_row(
+        3, true, "Shuffler", "NOT STARTED", row_cells);
+    assert(bronze.size() == row_cells);
+    assert(silver.size() == row_cells);
+    assert(gold.size() == row_cells);
+    assert(not_started.size() == row_cells);
+    assert(bronze.substr(row_cells - 6) == "BRONZE");
+    assert(silver.substr(row_cells - 6) == "SILVER");
+    assert(gold.substr(row_cells - 4) == "GOLD");
+    assert(not_started.substr(row_cells - 11) == "NOT STARTED");
+    assert(bronze.substr(0, 10) == "1. Crawler");
+
+    const auto compact = modern_tour_overview_row(
+        5, true, "LONG TOUR NAME", "NOT STARTED", 19);
+    assert(compact.size() == 19);
+    assert(compact.substr(8) == "NOT STARTED");
+    assert(compact.substr(0, 3) == "5. ");
+
+    // Even a deliberately supplied hidden name/medal must not be rendered.
+    const auto locked = modern_tour_overview_row(
+        4, false, "Hunter", "GOLD", row_cells);
+    assert(locked == "4. LOCKED TOUR");
+    assert(locked.find("Hunter") == std::string::npos);
+    assert(locked.find("GOLD") == std::string::npos);
+
+    assert(modern_tour_overview_row(
+        0, true, "Crawler", "GOLD", row_cells).empty());
+    assert(modern_tour_overview_row(
+        9, true, "Hunter", "GOLD", row_cells).empty());
+    assert(modern_tour_overview_row(
+        1, true, "Crawler", "GOLD", 0).empty());
     return 0;
 }

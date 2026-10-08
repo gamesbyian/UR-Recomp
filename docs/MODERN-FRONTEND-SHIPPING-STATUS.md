@@ -20,6 +20,10 @@ Status snapshot: **2026-10-08 UTC**, reviewed through `main` `7d2a75312`. This i
 
 The entries above are **shortcuts and existing stock frontend flow**, not proof that the eventual five-destination Modern top-level menu exists as a rendered and routed player-facing root. `native/product/modern_root_menu.hpp` is currently a pure typed model (Play / Practice / Multiplayer / Records / Options); its labels and localization boundary are implemented, but the full live root router is not. Play and Multiplayer still follow stock title administration; the Records browser is now also admitted read-only from the settled main menu, but no rendered root routes to it. Do not declare a fully integrated Modern root, and do not invent a second route, records model, progression model or paused-session policy to make the root appear complete.
 
+## Additional whole-player acceptance (release level)
+
+The rows above are implemented entry points and local acceptance, **not evidence that a first-time player can discover or complete the whole task**. New gate QA-09 requires the actual packaged game to support a full uncoached onboarding → racer/profile → play → result → continue → records → quit journey without undocumented function keys; include TV-distance/readability, pad-only navigation, accessibility and meaningful recovery messages. QA-05 covers input-held-at-modal-close, controller-seat changes, per-surface guest freeze and action sequences after navigation. See [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) J-01/J-11/J-12/J-19. The root router and provisional panel visual style remain shipping debt even if all existing shortcuts pass.
+
 ## Remaining bounded shipping work
 
 1. **Root navigation integration:** wire each of the five destinations to an **existing** title/host authority and prove the real Windows route end-to-end before exposing it. Distinguish directly callable destinations (Practice, Options) from guest-owned Play/Multiplayer transitions and paused/result-owned Records. A disabled or inoperable row is not a completed root.

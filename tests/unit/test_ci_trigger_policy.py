@@ -264,10 +264,17 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "uses: ./.github/workflows/native-ui-evidence.yml",
             text,
         )
-        self.assertIn("canonical_candidate: true", text)
         self.assertIn(
-            "needs.classify.outputs.shared == 'true' || needs.classify.outputs.onboarding == 'true' || needs.classify.outputs.ui == 'true'",
+            "needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'",
             text,
+        )
+        self.assertEqual(
+            text.count("canonical_candidate: ${{ needs.build.result == 'success' }}"),
+            3,
+        )
+        self.assertEqual(
+            text.count("needs.build.result == 'success' || needs.build.result == 'skipped'"),
+            3,
         )
 
         for name in (

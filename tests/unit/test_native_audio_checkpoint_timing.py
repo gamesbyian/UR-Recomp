@@ -1,4 +1,8 @@
 import unittest
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
 
 from tools.check_native_audio_checkpoint_timing import validate_log
 

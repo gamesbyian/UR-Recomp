@@ -28,7 +28,7 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
         # One full coarse table, one 32-byte fine record, and a terminated list.
         data = bytearray(0x800F + 32 + 3)
         cursor = 0x800F + 32
-        data[cursor:] = b"\\x01\\x24\\xff"
+        data[cursor:] = b"\x01\x24\xff"
         parsed = {
             "resource_cursor_initial": cursor,
             "resource_terminator_offset": cursor + 2,
@@ -36,14 +36,14 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
         regions = tool.regions(bytes(data), parsed)
         self.assertEqual(len(regions["coarse_table"]), 0x8000)
         self.assertEqual(len(regions["fine_record_region"]), 32)
-        self.assertEqual(regions["resource_list"], b"\\x01\\x24\\xff")
+        self.assertEqual(regions["resource_list"], b"\x01\x24\xff")
         self.assertEqual(sum(map(len, regions.values())), len(data))
 
     def test_region_partition_rejects_shifted_or_truncated_course(self):
         tool = load_tool()
         data = bytearray(0x800F + 33 + 3)
         cursor = 0x800F + 33
-        data[cursor:] = b"\\x01\\x24\\xff"
+        data[cursor:] = b"\x01\x24\xff"
         parsed = {
             "resource_cursor_initial": cursor,
             "resource_terminator_offset": cursor + 2,
@@ -56,7 +56,7 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
             tool.regions(bytes(data), {**parsed, "resource_cursor_initial": 0x800E})
         with self.assertRaisesRegex(ValueError, "outside course resource list"):
             tool.regions(bytes(data), {**parsed, "resource_terminator_offset": len(data)})
-        damaged = bytes(data[:-1] + b"\\x00")
+        damaged = bytes(data[:-1] + b"\x00")
         with self.assertRaisesRegex(ValueError, "not FF"):
             tool.regions(damaged, parsed)
 

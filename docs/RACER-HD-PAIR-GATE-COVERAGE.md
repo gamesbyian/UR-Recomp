@@ -67,6 +67,28 @@ raster safety checks is not yet measured. Issue
 [#887](https://github.com/gamesbyian/UR-Recomp/issues/887) owns that validation
 before any partial-capture runtime admission.
 
+## Opt-in first implementation (not shipping admission)
+
+The native presenter has a diagnostic-only `UR_RACER_HD_P1_ONLY=1`
+gate. With the ordinary `UR_RACER_HD=1` master switch enabled and
+**only** an approved P1 selection available, it attempts two-slot capture
+`[97,99)` rather than the normal full `[96,100)`, preserving stock P2.
+This new route is disabled by default. It requires both live P1 placements
+to satisfy the same 64×64 size contracts as the full-pair renderer, valid P2
+placement data, identical top-half OBJ priority levels and provably
+**nonintersecting** P1/P2 lower-view rectangles after signed X,
+modulo-256 Y, visible-field and scanline-112 clipping. Unknown or
+overlapping cases return to the complete stock frame without arming OBJ
+removal. The pure helper `racer_p1_only_no_stock_p2_occlusion()` is unit
+tested with horizontal adjacency, single-pixel overlap, vertical offset,
+Y wrapping, malformed OAM and priority mismatch.
+
+The live native path still needs expanded deterministic 2P OAM acceptance
+and a mixed stock-P2/HD-P1 image comparison before the opt-in flag is
+eligible to become a player-facing default. It is **not** counted in the
+shipping coverage figures above. The original 256×224 pair path remains
+unchanged when the flag is absent.
+
 ## Next pose priorities when the whole-pair policy remains
 
 The same exact census ranks missing player-local families *with the opposite

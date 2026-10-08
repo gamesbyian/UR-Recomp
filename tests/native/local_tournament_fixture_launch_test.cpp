@@ -99,8 +99,10 @@ int main() {
                     tournament.entrants[tournament.fixtures[ab].player1]) &&
             pending.second_profile_key ==
                 local_tournament_storage_key(
-                    tournament.entrants[tournament.fixtures[ab].player2]),
-            "launch snapshots immutable selected fixture authority");
+                    tournament.entrants[tournament.fixtures[ab].player2]) &&
+            pending.immutable_schedule_digest ==
+                local_tournament_immutable_schedule_digest(tournament),
+            "launch snapshots immutable tournament authority");
     require(local_tournament_arm_fixture(
             launch, tournament, instance_a, attempt_b, ac) ==
             Status::AlreadyArmed,
@@ -164,6 +166,21 @@ int main() {
             launch, drifted, instance_a, attempt_a, candidate) ==
             Status::StaleFixture,
             "modified roster cannot inherit old live attempt");
+    drifted = tournament;
+    const auto& launched_pair = tournament.fixtures[ab];
+    const std::size_t unrelated = 3u -
+        launched_pair.player1 - launched_pair.player2;
+    drifted.entrants[unrelated] = "different-unrelated-entrant";
+    require(local_tournament_commit_live_result(
+            launch, drifted, instance_a, attempt_a, candidate) ==
+            Status::StaleFixture,
+            "even unrelated entrant drift invalidates full launch schedule");
+    drifted = tournament;
+    drifted.fixtures[ac].course_id = "course:39";
+    require(local_tournament_commit_live_result(
+            launch, drifted, instance_a, attempt_a, candidate) ==
+            Status::StaleFixture,
+            "other fixtures cannot change while a launch is pending");
 
     const auto reversed = match_for(tournament, ab, "aabbccddeeff0011", true);
     require(local_tournament_commit_live_result(
@@ -242,6 +259,13 @@ int main() {
     require(!local_tournament_restore_pending_fixture(
             restored, wrong_schedule, instance_a, serialized),
             "new schedule does not inherit stale pending fixture");
+    wrong_schedule = *original;
+    wrong_schedule.entrants[3u -
+        wrong_schedule.fixtures[ab].player1 -
+        wrong_schedule.fixtures[ab].player2] = "unrelated";
+    require(!local_tournament_restore_pending_fixture(
+            restored, wrong_schedule, instance_a, serialized),
+            "unrelated roster drift also invalidates restored attempt");
     require(!local_tournament_restore_pending_fixture(
             restored, tournament, instance_a, serialized),
             "completed fixture cannot restore pending launch");
@@ -282,6 +306,19 @@ int main() {
                 no_restore, *original, instance_a, reseal(tampered)),
                 "resealed drifted course cannot be restored");
     }
+    tampered = serialized;
+    const auto schedule_field = tampered.find("schedule ");
+    require(schedule_field != std::string::npos,
+            "launch schedule fingerprint field found");
+    tampered[schedule_field + 9] =
+        tampered[schedule_field + 9] == 'a' ? 'b' : 'a';
+    const std::string forged_schedule = reseal(tampered);
+    require(bool(decode_local_tournament_pending_fixture(forged_schedule)),
+            "valid resealed schedule field is not an authenticity proof");
+    LocalTournamentLaunchState forged_restore;
+    require(!local_tournament_restore_pending_fixture(
+            forged_restore, *original, instance_a, forged_schedule),
+            "forged schedule digest rejected by current immutable roster");
     tampered = serialized;
     tampered.erase(tampered.size() - 1);
     require(!decode_local_tournament_pending_fixture(tampered),

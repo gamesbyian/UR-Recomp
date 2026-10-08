@@ -56,9 +56,10 @@
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/968",
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/982",
-        "https://github.com/gamesbyian/UR-Recomp/pull/984"
+        "https://github.com/gamesbyian/UR-Recomp/pull/984",
+        "https://github.com/gamesbyian/UR-Recomp/pull/985"
       ],
-      "remaining_release_risk": "Remaining stale-launch-retirement TOCTOU (#983) and cross-artifact/Windows crash recovery; fixes are low-level only."
+      "remaining_release_risk": "Store-local fixture receipt no-replace (#982), unique mutable staging (#984), and stale-retire OS-handle lock (#985) are implemented. Exact Windows interprocess crash/restore witness, cross-file run/match/receipt/profile transactional recovery, concurrent session last-writer-wins and power-loss durability remain open (#983)."
     },
     {
       "id": "QA-03",

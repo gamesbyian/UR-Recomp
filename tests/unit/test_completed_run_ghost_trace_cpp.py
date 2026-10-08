@@ -24,6 +24,7 @@ class CompletedRunGhostTraceCppTests(unittest.TestCase):
                     str(ROOT / "native" / "product" / "completed_run_record.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_ghost.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_ghost_trace.cpp"),
+                    str(ROOT / "native" / "product" / "completed_run_store.cpp"),
                     str(ROOT / "tests" / "native" / "completed_run_ghost_trace_test.cpp"),
                     "-o",
                     str(exe),

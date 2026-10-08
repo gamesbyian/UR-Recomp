@@ -1,9 +1,11 @@
 #include "completed_run_ghost_trace.hpp"
+#include "completed_run_store.hpp"
 #include "ghost_trace_equivalence.hpp"
 
 #include <cassert>
 #include <string>
 #include <filesystem>
+#include <fstream>
 
 using namespace ur::product;
 
@@ -162,6 +164,87 @@ int main(int argc, char** argv) {
     assert(personal_best_trace.loaded());
     assert(previous_trace.trace->samples[0].world_x == 1088);
     assert(personal_best_trace.trace->samples[0].world_x == 1200);
+
+    // Rebuild the Previous/PB selectors from *persisted* .urrun files, not
+    // caller-injected model records. Verify that each target opens its own
+    // checksum-bound sidecar after a filesystem round trip.
+    const auto stored_directory = run_path.parent_path() / "stored-ghost-targets";
+    std::filesystem::create_directories(stored_directory);
+    const auto saved_pb_path =
+        stored_directory / "run-0000000000000001-0001.urrun";
+    const auto saved_previous_path =
+        stored_directory / "run-0000000000000002-0001.urrun";
+    assert(save_completed_run_record_file(saved_pb_path.string(), pb_record));
+    assert(save_completed_run_record_file(saved_previous_path.string(), record));
+    const auto saved_pb_trace_path = saved_pb_path.string() + ".urghost";
+    const auto saved_previous_trace_path =
+        saved_previous_path.string() + ".urghost";
+    assert(save_completed_run_ghost_trace_file(
+        saved_pb_trace_path, pb_trace));
+    assert(save_completed_run_ghost_trace_file(
+        saved_previous_trace_path, trace));
+
+    const RunPlaybackTarget stored_target{
+        record.provenance.game_id,
+        record.provenance.rom_sha256,
+        record.provenance.build_compat_id,
+        record.provenance.course_id,
+        record.provenance.mode,
+    };
+    auto loaded_runs = load_compatible_run_records(
+        stored_directory.string(), stored_target);
+    assert(loaded_runs.size() == 2);
+    CompletedRunGhostState disk_targets;
+    disk_targets.bind(loaded_runs, stored_target);
+    assert(disk_targets.stored(CompletedRunGhostKind::PersonalBest)->path ==
+           saved_pb_path.string());
+    assert(disk_targets.stored(CompletedRunGhostKind::Previous)->path ==
+           saved_previous_path.string());
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::PersonalBest)
+               .trace->samples[0].world_x == 1200);
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous)
+               .trace->samples[0].world_x == 1088);
+
+    // A missing Previous sidecar must never silently show the PB instead.
+    assert(std::filesystem::remove(saved_previous_trace_path));
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous).status ==
+           CompletedRunGhostTraceLoadStatus::IoError);
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::PersonalBest).loaded());
+
+    // Likewise, a mismatched sibling trace must not borrow another run's
+    // world/pose samples just because both runs share course provenance.
+    std::filesystem::copy_file(
+        saved_pb_trace_path, saved_previous_trace_path,
+        std::filesystem::copy_options::overwrite_existing);
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous).status ==
+           CompletedRunGhostTraceLoadStatus::Incompatible);
+
+    // A newer checksum-damaged .urrun must not usurp Previous or PB.
+    auto damaged_run = encode_completed_run_record(pb_record);
+    const auto damaged_at = damaged_run.rfind("checksum ");
+    assert(damaged_at != std::string::npos);
+    damaged_run[damaged_at + 9] =
+        damaged_run[damaged_at + 9] == '0' ? '1' : '0';
+    {
+        std::ofstream corrupt_file(
+            stored_directory / "run-0000000000000003-0001.urrun",
+            std::ios::binary);
+        corrupt_file << damaged_run;
+        assert(static_cast<bool>(corrupt_file));
+    }
+    loaded_runs = load_compatible_run_records(
+        stored_directory.string(), stored_target);
+    assert(loaded_runs.size() == 2);
+    disk_targets.bind(loaded_runs, stored_target);
+    assert(disk_targets.stored(CompletedRunGhostKind::Previous)->path ==
+           saved_previous_path.string());
+    assert(disk_targets.stored(CompletedRunGhostKind::PersonalBest)->path ==
+           saved_pb_path.string());
 
     CompletedRunGhostState empty_state;
     const auto no_selection =

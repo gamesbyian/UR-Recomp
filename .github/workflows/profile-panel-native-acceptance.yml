@@ -2,19 +2,6 @@ name: Profile panel native acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "native/product/**"
-      - "tests/input/modern-profile-panel-acceptance.script"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/sdl3.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/patch_modern_product_host.py"
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - ".github/workflows/profile-panel-native-acceptance.yml"
 
 concurrency:
   group: profile-panel-native-acceptance-${{ github.ref }}

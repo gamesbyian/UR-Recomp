@@ -1,0 +1,985 @@
+name: Shared Modern native acceptance
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/modern-shared-native-acceptance.yml"
+      - "native/presentation/completed_run_ghost_racer_selector.*"
+      - "native/presentation/completed_run_ghost_raster.*"
+      - "native/product/completed_run_browser.*"
+      - "native/product/completed_run_browser_host.*"
+      - "native/product/completed_run_capture.*"
+      - "native/product/completed_run_catalog.*"
+      - "native/product/completed_run_comparison.*"
+      - "native/product/completed_run_ghost.*"
+      - "native/product/completed_run_ghost_frame.*"
+      - "native/product/completed_run_ghost_policy.*"
+      - "native/product/completed_run_ghost_projection.*"
+      - "native/product/completed_run_ghost_target.hpp"
+      - "native/product/completed_run_ghost_trace.*"
+      - "native/product/completed_run_ghost_world_sample.*"
+      - "native/product/completed_run_presentation.*"
+      - "native/product/completed_run_record.*"
+      - "native/product/completed_run_replay.*"
+      - "native/product/completed_run_store.*"
+      - "native/product/local_multiplayer_*.cpp"
+      - "native/product/local_multiplayer_*.hpp"
+      - "native/product/modern_results_navigation.hpp"
+      - "native/product/modern_tour_continue.hpp"
+      - "native/product/modern_tour_entry_policy.hpp"
+      - "native/product/multiplayer_match_record.*"
+      - "native/product/next_event_derivation.hpp"
+      - "native/product/run_record_capture_policy.hpp"
+      - "native/product/uniracers_modern_host.cpp"
+      - "native/title/uniracers_course_identity.*"
+      - "native/title/uniracers_run_data.*"
+      - "native/title/uniracers_tour_resume.*"
+      - "native/title/uniracers_two_player_result.*"
+      - "tests/input/completed-run-replay-dragster.script"
+      - "tests/input/modern-practice-repeat-results.script"
+      - "tests/input/modern-results-navigation*.script"
+      - "tests/input/race-finish-dragster.script"
+      - "tests/input/two-player-p1-win.input"
+      - "tests/input/two-player-records-acceptance.input"
+      - "tests/input/two-player-records-acceptance.script"
+      - "tests/native/completed_run_browser_test.cpp"
+      - "tests/native/completed_run_catalog_test.cpp"
+      - "tests/native/completed_run_ghost_frame_test.cpp"
+      - "tests/native/completed_run_ghost_policy_test.cpp"
+      - "tests/native/completed_run_ghost_projection_test.cpp"
+      - "tests/native/completed_run_ghost_racer_selector_test.cpp"
+      - "tests/native/completed_run_ghost_raster_test.cpp"
+      - "tests/native/completed_run_ghost_test.cpp"
+      - "tests/native/completed_run_ghost_trace_check.cpp"
+      - "tests/native/completed_run_ghost_trace_test.cpp"
+      - "tests/native/completed_run_ghost_world_sample_test.cpp"
+      - "tests/native/completed_run_presentation_test.cpp"
+      - "tests/native/completed_run_replay_compare.cpp"
+      - "tests/native/completed_run_replay_test.cpp"
+      - "tests/native/completed_run_store_test.cpp"
+      - "tests/native/modern_results_navigation_test.cpp"
+      - "tests/native/modern_tour_continue_test.cpp"
+      - "tests/native/multiplayer_match_pair_check.cpp"
+      - "tests/native/run_modern_results_navigation_acceptance.sh"
+      - "tests/unit/test_completed_run_browser_cpp.py"
+      - "tests/unit/test_completed_run_catalog_cpp.py"
+      - "tests/unit/test_completed_run_ghost_cpp.py"
+      - "tests/unit/test_completed_run_ghost_frame_cpp.py"
+      - "tests/unit/test_completed_run_ghost_policy_cpp.py"
+      - "tests/unit/test_completed_run_ghost_projection_cpp.py"
+      - "tests/unit/test_completed_run_ghost_racer_selector_cpp.py"
+      - "tests/unit/test_completed_run_ghost_raster_cpp.py"
+      - "tests/unit/test_completed_run_ghost_trace_cpp.py"
+      - "tests/unit/test_completed_run_ghost_world_sample_cpp.py"
+      - "tests/unit/test_completed_run_presentation_cpp.py"
+      - "tests/unit/test_completed_run_replay_cpp.py"
+      - "tests/unit/test_completed_run_store_cpp.py"
+      - "tests/unit/test_modern_results_navigation_cpp.py"
+      - "tests/unit/test_modern_results_navigation_host_contract.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/patch_modern_product_host.py"
+      - "tools/patches/snesrecomp-frame-input-observation.patch"
+      - "tools/patches/snesrecomp-live-input-reload.patch"
+      - "tools/prepare_native_widescreen_product.py"
+      - "tools/toolchain-entries/sdl3.json"
+      - "tools/toolchain-entries/snesrecomp.json"
+
+concurrency:
+  group: modern-shared-native-acceptance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          cmake --version
+          ninja --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage framework and SDL3
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+      - name: Build shared Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/shared-modern-native"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" --name "Uniracers" --players 2 --yes \
+              --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 "$GITHUB_WORKSPACE/tools/prepare_native_widescreen_product.py" \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/shared-modern-native-prepare.json"
+          python3 "$GITHUB_WORKSPACE/tools/patch_modern_product_host.py" \
+            "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+          tar -czf "$RUNNER_TEMP/shared-modern-native.tar.gz" -C "$RUNNER_TEMP" shared-modern-native
+
+      - name: Upload shared Modern native candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  ghost-target:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - name: Restore shared Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native-artifact
+      - name: Unpack shared Modern native candidate
+        run: |
+          tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+      - name: Ghost target profile persistence acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script"
+          ROOT="$RUNNER_TEMP/ghost-target-profile"
+          STATE="$ROOT/host-state-v6.txt"
+          PROFILE_ROOT="$ROOT/profile-save"
+          PROFILE_STATE="$PROFILE_ROOT/host-profile.txt"
+          FIRST_LOG="$ROOT/previous.log"
+          SECOND_LOG="$ROOT/personal-best.log"
+          AUTH_LOG="$ROOT/authentic.log"
+          rm -rf "$ROOT"
+          mkdir -p "$ROOT/first-dumps" "$ROOT/second-dumps" "$PROFILE_ROOT"
+
+          cat >"$STATE" <<'STATEEOF'
+          UR-HOST-STATE/6
+          profile=ghost-acceptance
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          STATEEOF
+
+          cat >"$PROFILE_STATE" <<'PROFILEEOF'
+          UR-HOST-PROFILE/4
+          profile=ghost-acceptance
+          generation=0
+          stock_sram=
+          tour_resume=
+          ghost_target=off
+          racer_name=
+          racer_index=
+          PROFILEEOF
+
+          drive_ghost_row() {
+            local log="$1"
+            local dumps="$2"
+            timeout 75s xvfb-run -a bash -c '
+              set -euo pipefail
+              export SDL_AUDIODRIVER=dummy
+              export UR_PRODUCT_DIAGNOSTICS=1
+              export UR_HOST_STATE_PATH="'"$STATE"'"
+              export UR_PROFILE_SAVE_ROOT="'"$PROFILE_ROOT"'"
+              export UR_GHOST_TARGET_ACCEPTANCE=1
+              export SNESRECOMP_DUMP_DIR="'"$dumps"'"
+              "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$log"'" 2>&1 &
+              PID=$!
+              for _ in $(seq 1 450); do
+                grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'" && break
+                kill -0 "$PID" 2>/dev/null || { cat "'"$log"'"; exit 1; }
+                sleep 0.1
+              done
+              if ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "'"$log"'"; then
+                cat "'"$log"'"
+                exit 1
+              fi
+              grep -q "UR_PAUSE_OPTIONS OPENED" "'"$log"'"
+              kill "$PID" 2>/dev/null || true
+              wait "$PID" 2>/dev/null || true
+            '
+          }
+
+          drive_ghost_row "$FIRST_LOG" "$ROOT/first-dumps"
+          test -s "$PROFILE_STATE"
+          grep -q "^profile=ghost-acceptance$" "$PROFILE_STATE"
+          grep -q "^ghost_target=previous$" "$PROFILE_STATE"
+          grep -q "UR_RUN_GHOST TARGET_SELECTED target=previous" "$FIRST_LOG"
+
+          drive_ghost_row "$SECOND_LOG" "$ROOT/second-dumps"
+          grep -q "^ghost_target=personal-best$" "$PROFILE_STATE"
+          grep -q "UR_RUN_GHOST TARGET_SELECTED target=personal-best" "$SECOND_LOG"
+          cp "$PROFILE_STATE" "$ROOT/profile-before-authentic.txt"
+
+          set +e
+          SDL_AUDIODRIVER=dummy \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_EXECUTION_MODE=authentic \
+          UR_HOST_STATE_PATH="$STATE" \
+          UR_PROFILE_SAVE_ROOT="$PROFILE_ROOT" \
+          timeout 6s xvfb-run -a "$EXE" "$ROM" >"$AUTH_LOG" 2>&1
+          AUTH_STATUS=$?
+          set -e
+          if [ "$AUTH_STATUS" -ne 0 ] && [ "$AUTH_STATUS" -ne 124 ]; then
+            cat "$AUTH_LOG"
+            exit "$AUTH_STATUS"
+          fi
+          cmp "$ROOT/profile-before-authentic.txt" "$PROFILE_STATE"
+          ! grep -q "UR_RUN_GHOST TARGET_SELECTED" "$AUTH_LOG"
+          echo "UR_GHOST_TARGET_PROFILE_RESULT=previous_then_personal_best_persisted_and_authentic_inert"
+
+      - name: Upload targeted diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ghost-target-native-acceptance
+          path: |
+            ${{ runner.temp }}/ghost-target-profile/*.log
+            ${{ runner.temp }}/ghost-target-profile/profile-save/host-profile.txt
+            ${{ runner.temp }}/ghost-target-profile/*-dumps/*.wram.bin
+          if-no-files-found: ignore
+
+
+  profile-panel:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb xdotool
+      - name: Restore shared Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native-artifact
+      - name: Unpack shared Modern native candidate
+        run: |
+          tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+      - name: Profile panel acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/modern-profile-panel-acceptance.script"
+          ROOT="$RUNNER_TEMP/modern-profile-panel"
+          STATE="$ROOT/host-state-v6.txt"
+          LOG="$ROOT/run.log"
+          DUMPS="$ROOT/dumps"
+          SAVE_ROOT="$(dirname "$EXE")/saves/profile-steve"
+          SECOND_ROOT="$(dirname "$EXE")/saves/profile-mike"
+          rm -rf "$ROOT" "$SAVE_ROOT" "$SECOND_ROOT"
+          mkdir -p "$DUMPS" "$ROOT/user-data" "$ROOT/auth-user-data"
+          cat >"$STATE" <<'EOF'
+          UR-HOST-STATE/6
+          profile=
+          pause_on_focus_loss=1
+          vibration_enabled=1
+          EOF
+
+          set +e
+          timeout 90s xvfb-run -a bash -c '
+            set -euo pipefail
+            export SDL_AUDIODRIVER=dummy
+            export UR_PRODUCT_DIAGNOSTICS=1
+            export UR_HOST_STATE_PATH="'"$STATE"'"
+            export UR_RECOMP_USER_DATA_ROOT="'"$ROOT"'/user-data"
+            export UR_PROFILE_PANEL_ACCEPTANCE=1
+            export UR_PROFILE_PANEL_ACCEPTANCE_INPUT_PATH="'"$ROOT"'/profile-panel-input.txt"
+            export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
+            "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$LOG"'" 2>&1 &
+            PID=$!
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/profile-panel-rider-select-ready.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/profile-panel-rider-select-ready.wram.bin" ]
+            WIN=""
+            for _ in $(seq 1 100); do
+              WIN=$(xdotool search --pid "$PID" 2>/dev/null | head -n1 || true)
+              [ -n "$WIN" ] && break
+              sleep 0.1
+            done
+            [ -n "$WIN" ]
+            xdotool windowfocus "$WIN"
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              xdotool key --window "$WIN" F2
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI OPENED" "'"$LOG"'"
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Left
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI CREATED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI CREATED" "'"$LOG"'"
+            xdotool key --window "$WIN" r
+            xdotool key --window "$WIN" BackSpace BackSpace BackSpace BackSpace BackSpace
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI SAVE_REJECTED" "'"$LOG"'"
+            xdotool type --window "$WIN" SONIC
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI RENAMED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI RENAMED" "'"$LOG"'"
+            grep -q "UR_PROFILE_UI COOL_NAME" "'"$LOG"'"
+            xdotool key --window "$WIN" n
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ "$(grep -c "UR_PROFILE_UI CREATED" "'"$LOG"'")" -ge 2 ]
+            xdotool key --window "$WIN" Up
+            xdotool key --window "$WIN" Return
+            for _ in $(seq 1 100); do
+              [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ "$(grep -c "UR_PROFILE_SELECT APPLIED" "'"$LOG"'")" -ge 3 ]
+            xdotool key --window "$WIN" Escape
+            for _ in $(seq 1 100); do
+              grep -q "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED" "'"$LOG"'" && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            grep -q "UR_PROFILE_UI ACCEPTANCE_CONFIRM_QUEUED" "'"$LOG"'"
+            for _ in $(seq 1 600); do
+              [ -s "'"$DUMPS"'/profile-panel-tour-ready.wram.bin" ] && break
+              kill -0 "$PID" 2>/dev/null || exit 1
+              sleep 0.1
+            done
+            [ -s "'"$DUMPS"'/profile-panel-tour-ready.wram.bin" ]
+            wait "$PID"
+          '
+          STATUS=$?
+          set -e
+          cat "$LOG" || true
+          if [ "$STATUS" -ne 0 ]; then
+            exit "$STATUS"
+          fi
+          grep -q "^profile=steve$" "$STATE"
+          test -s "$SAVE_ROOT/host-profile.txt"
+          grep -q "^racer_name=SONIC$" "$SAVE_ROOT/host-profile.txt"
+          grep -q "^racer_index=15$" "$SAVE_ROOT/host-profile.txt"
+          test -s "$SECOND_ROOT/host-profile.txt"
+          grep -q "^profile=mike$" "$SECOND_ROOT/host-profile.txt"
+          grep -q "^racer_name=MIKE$" "$SECOND_ROOT/host-profile.txt"
+          grep -q "^racer_index=0$" "$SECOND_ROOT/host-profile.txt"
+          python3 - "$DUMPS/profile-panel-tour-ready.wram.bin" <<'PY'
+          from pathlib import Path
+          import sys
+          wram = Path(sys.argv[1]).read_bytes()
+          if wram[0x017D] != 15:
+              raise SystemExit(f"wrong stock rider: {wram[0x017D]}")
+          PY
+
+      - name: Upload targeted diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: profile-panel-native-acceptance
+          path: |
+            ${{ runner.temp }}/modern-profile-panel/run.log
+            ${{ runner.temp }}/modern-profile-panel/host-state-v6.txt
+            ${{ runner.temp }}/modern-profile-panel/dumps/*.wram.bin
+          if-no-files-found: ignore
+
+  results-navigation:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - name: Restore shared Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native-artifact
+      - name: Unpack shared Modern native candidate
+        run: |
+          tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+      - name: Run deterministic results-navigation model tests
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m unittest \
+            tests.unit.test_modern_results_navigation_cpp \
+            tests.unit.test_modern_tour_continue_cpp \
+            tests.unit.test_modern_results_navigation_host_contract
+
+      - name: Prove real Modern results routes
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_results_navigation_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/results-navigation"
+
+      - name: Upload acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-results-navigation-acceptance
+          path: |
+            ${{ runner.temp }}/results-navigation/*.log
+            ${{ runner.temp }}/results-navigation/*-dumps/
+            ${{ runner.temp }}/results-navigation/*-profile/
+          if-no-files-found: warn
+          retention-days: 7
+
+
+  ordinary-2p:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - name: Restore shared Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native-artifact
+      - name: Unpack shared Modern native candidate
+        run: |
+          tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+      - name: Capture authoritative ordinary 2P pair
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          MATCHES="$RUNNER_TEMP/matches"
+          LOG="$RUNNER_TEMP/capture.log"
+          DUMPS="$RUNNER_TEMP/acceptance-dumps"
+          mkdir -p "$MATCHES" "$DUMPS"
+          rm -rf "$(dirname "$EXE")/saves"
+
+          set +e
+          # Runner throughput has varied from roughly 160-240 guest frames/s.
+          # The stock P2 NO TIME boundary is ~37,670, so use a six-minute
+          # bounded deadman with headroom while still requiring the natural
+          # stock result and success-owned product shutdown.
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_INPUT_FILE="$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.input" \
+          SNESRECOMP_DUMP_DIR="$DUMPS" \
+          UR_MULTIPLAYER_MATCH_ACCEPTANCE=1 \
+          UR_MULTIPLAYER_MATCH_CAPTURE_DIRECTORY="$MATCHES" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 360s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/two-player-records-acceptance.script" \
+              >"$LOG" 2>&1
+          RC=$?
+          set -e
+
+          cat "$LOG"
+          test "$RC" -eq 0
+          grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_READY p1=accept-p1 p2=accept-p2" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH CAPTURE_STARTED" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH CAPTURED" "$LOG"
+          grep -q "UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE" "$LOG"
+          test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f | wc -l)" -eq 1
+          test "$(find "$MATCHES" -maxdepth 1 -name '*.urrun.urmatch' -type f | wc -l)" -eq 1
+          find "$MATCHES" -maxdepth 1 -name '*.urrun' -type f > "$RUNNER_TEMP/run-path.txt"
+
+      - name: Verify pair in a fresh process
+        shell: bash
+        run: |
+          set -euo pipefail
+          CHECK="$RUNNER_TEMP/check-2p-match-pair"
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            -I "$GITHUB_WORKSPACE/native/title" \
+            "$GITHUB_WORKSPACE/native/product/modern_racer_identity.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_profile_runtime.cpp" \
+            "$GITHUB_WORKSPACE/native/product/host_product_state.cpp" \
+            "$GITHUB_WORKSPACE/native/product/output_resolution_policy.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_store.cpp" \
+            "$GITHUB_WORKSPACE/native/product/local_multiplayer_match_binding.cpp" \
+            "$GITHUB_WORKSPACE/native/product/multiplayer_match_record.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/multiplayer_match_pair_check.cpp" \
+            -o "$CHECK"
+
+          RUN="$(cat "$RUNNER_TEMP/run-path.txt")"
+          "$CHECK" "$RUN" "$RUNNER_TEMP/captured-relative.input" | tee "$RUNNER_TEMP/pair-check.log"
+          grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01" "$RUNNER_TEMP/pair-check.log"
+
+      - name: Retain failed capture diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ordinary-2p-capture-failure
+          if-no-files-found: ignore
+          path: |
+            ${{ runner.temp }}/capture.log
+            ${{ runner.temp }}/acceptance-dumps/
+
+
+
+  completed-run-replay:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - name: Verify replay unit contracts
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 -m unittest tests.unit.test_completed_run_record_cpp tests.unit.test_completed_run_record_process tests.unit.test_completed_run_capture_cpp tests.unit.test_completed_run_comparison_cpp tests.unit.test_completed_run_presentation_cpp tests.unit.test_completed_run_store_cpp tests.unit.test_completed_run_catalog_cpp tests.unit.test_completed_run_browser_cpp tests.unit.test_completed_run_replay_cpp tests.unit.test_completed_run_ghost_cpp tests.unit.test_completed_run_ghost_policy_cpp tests.unit.test_completed_run_ghost_world_sample_cpp tests.unit.test_completed_run_ghost_projection_cpp tests.unit.test_completed_run_ghost_frame_cpp tests.unit.test_completed_run_ghost_racer_selector_cpp tests.unit.test_completed_run_ghost_raster_cpp tests.unit.test_completed_run_ghost_trace_cpp tests.unit.test_uniracers_course_identity_cpp tests.unit.test_uniracers_course_identity_corpus tests.unit.test_uniracers_run_data_cpp
+      - name: Restore shared Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native-artifact
+      - name: Unpack shared Modern native candidate
+        run: |
+          tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+      - name: Enable unpaced deterministic CI host
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          printf '[General]\nDisableFrameDelay = 1\n' > "$ROOT/build/config.ini"
+          grep -Fq 'DisableFrameDelay = 1' "$ROOT/build/config.ini"
+
+      - name: Capture completed Dragster run
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          RECORD="$RUNNER_TEMP/original.urrun"
+          LOG="$RUNNER_TEMP/original.log"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          test -s "$RECORD"
+          test -s "$RECORD.input"
+          test -s "$RECORD.urghost"
+          grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          grep -q "course=course:01" "$LOG"
+          grep -q "ghost_trace=1" "$LOG"
+
+          # Keep one paced control in this gate until retained CI evidence
+          # demonstrates that unpaced execution is stable for this acceptance.
+          PACED_USER="$RUNNER_TEMP/completed-run-paced-user"
+          PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
+          PACED_LOG="$RUNNER_TEMP/paced-proof.log"
+          mkdir -p "$PACED_USER"
+          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
+          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+              >"$PACED_LOG" 2>&1
+          cat "$PACED_LOG"
+          test -s "$PACED_RECORD"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_replay_compare.cpp" \
+            -o "$RUNNER_TEMP/compare-runs"
+          "$RUNNER_TEMP/compare-runs" "$PACED_RECORD" "$RECORD" \
+            | tee "$RUNNER_TEMP/paced-unpaced-compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/paced-unpaced-compare.log"
+          echo "UR_COMPLETED_RUN_UNPACED_PROOF=semantic_record_equal"
+
+      - name: Re-drive captured run in a fresh process
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          REPLAYED="$RUNNER_TEMP/replayed.urrun"
+          LOG="$RUNNER_TEMP/replayed.log"
+
+          SDL_AUDIODRIVER=dummy           SNESRECOMP_INPUT_FILE="$ORIGINAL.input"           SNESRECOMP_INPUT_RELATIVE=1           UR_RUN_RECORD_CAPTURE_PATH="$REPLAYED"           UR_RUN_GHOST_ACCEPTANCE_RECORD="$ORIGINAL"           UR_RUN_GHOST_ACCEPTANCE_TARGET=previous           UR_RUN_GHOST_DRAW_DIAGNOSTICS=1           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script"               >"$LOG" 2>&1
+
+          cat "$LOG"
+          test -s "$REPLAYED"
+          test -s "$REPLAYED.urghost"
+          grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
+          grep -q "ghost_trace=1" "$LOG"
+          grep -q "UR_RUN_GHOST DRAWN" "$LOG"
+          grep -q "script .* dump replay-race-results ok" "$LOG"
+
+          test -x "$RUNNER_TEMP/compare-runs"
+          "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$REPLAYED" | tee "$RUNNER_TEMP/compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" "$RUNNER_TEMP/compare.log"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost_trace.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_ghost_trace_check.cpp" \
+            -o "$RUNNER_TEMP/check-ghost-trace"
+          "$RUNNER_TEMP/check-ghost-trace" "$ORIGINAL" "$ORIGINAL.urghost" | tee "$RUNNER_TEMP/original-ghost-trace.log"
+          "$RUNNER_TEMP/check-ghost-trace" "$REPLAYED" "$REPLAYED.urghost" | tee "$RUNNER_TEMP/replayed-ghost-trace.log"
+          grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/original-ghost-trace.log"
+          grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/replayed-ghost-trace.log"
+
+      - name: Launch stored run through Local Runs browser
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          RUNS="$RUNNER_TEMP/browser-runs"
+          LOG="$RUNNER_TEMP/browser-replay.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+          python3 - "$ORIGINAL" "$RUNS/run-0002.urrun" <<'PY'
+          import pathlib
+          import sys
+
+          source = pathlib.Path(sys.argv[1]).read_bytes()
+          marker = b"checksum "
+          pos = source.rfind(marker)
+          if pos < 0:
+              raise SystemExit("captured record has no checksum")
+          damaged = bytearray(source)
+          index = pos + len(marker)
+          damaged[index] = ord("1") if damaged[index] != ord("1") else ord("0")
+          pathlib.Path(sys.argv[2]).write_bytes(damaged)
+          PY
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RUN_BROWSER_ACCEPTANCE=quit-after-return \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RUN_BROWSER OPENED entries=2 playable=1" "$LOG"
+          grep -q "UR_RUN_BROWSER ENTRY index=0 order=2 status=CORRUPT playable=0" "$LOG"
+          grep -q "UR_RUN_BROWSER ENTRY index=1 order=1 status=PLAYABLE playable=1" "$LOG"
+          grep -q "UR_RUN_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 launched=1" "$LOG"
+          grep -q "UR_RUN_BROWSER REPLAY_LAUNCHED" "$LOG"
+          grep -q "UR_RUN_BROWSER REPLAY_RETURNED" "$LOG"
+
+          test "$(find "$RUNS" -maxdepth 1 -name '*.urrun' -type f | wc -l)" -eq 2
+
+      - name: Open profile-wide Records Runs/Replays surface
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          RUNS="$RUNNER_TEMP/records-runs"
+          LOG="$RUNNER_TEMP/records-browser.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+          cp "$ORIGINAL" "$RUNS/run-0002.urrun"
+          python3 - "$RUNS/run-0002.urrun" <<'PY'
+          import pathlib
+          import sys
+
+          path = pathlib.Path(sys.argv[1])
+          data = bytearray(path.read_bytes())
+          marker = data.rfind(b"checksum ")
+          if marker < 0:
+              raise SystemExit("missing checksum marker")
+          pos = marker + len(b"checksum ")
+          data[pos] = ord("1") if data[pos] != ord("1") else ord("0")
+          path.write_bytes(data)
+          PY
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECORDS_BROWSER_ACCEPTANCE=quit-after-open \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER COURSE course=course:01 runs=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 drilled=1 detail=1 current_course=1 courses=1 runs=1" "$LOG"
+          grep -Eq "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER .* finish=[0-9]+:[0-9]{2}\.[0-9]{2}/60 delta=\+0:00\.00/60 .*target_changed=1 split_target=PREVIOUS" "$LOG"
+          if grep -q "UR_RUN_BROWSER REPLAY_LAUNCHED" "$LOG"; then
+            echo "::error::Profile-wide Records surface launched replay directly"
+            exit 1
+          fi
+
+      - name: Resolve Records through custom user-data root
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/records-user-data-root"
+          RUNS="$USER_ROOT/runs/default"
+          LOG="$RUNNER_TEMP/records-user-data-root.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_RECORDS_BROWSER_ACCEPTANCE=quit-after-open \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default" "$LOG"
+          grep -q "UR_RECORDS_BROWSER ACCEPTANCE_TRIGGER pause=1 opened=1 drilled=1 detail=1 current_course=1 courses=1 runs=1" "$LOG"
+
+      - name: Browse profile-owned Records read-only
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/records-profiles-root"
+          LOG="$RUNNER_TEMP/records-profiles.log"
+
+          mkdir -p "$USER_ROOT/runs/alpha" "$USER_ROOT/runs/beta"
+          printf "UR-PROFILE-CATALOG/1\nalpha|3|ALPHA\nbeta|4|BETA\n" > "$USER_ROOT/profiles-v1.txt"
+          cp "$ORIGINAL" "$USER_ROOT/runs/alpha/run-0001.urrun"
+          printf "not a completed run\n" > "$USER_ROOT/runs/alpha/run-bad.urrun"
+          cp "$ORIGINAL" "$USER_ROOT/runs/beta/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_RECORDS_BROWSER_ACCEPTANCE=profiles \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=0 runs=0 unavailable=0 profile=default profiles=2 profiles_available=1 profile_unavailable=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER PROFILE_OPEN profile=alpha runs=1 tracks=1 active=0" "$LOG"
+          grep -q "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=1 opened=1 profiles_opened=1 profiles=2 drilled=1 profile=alpha tracks=1 runs=1 handoff_allowed=0 returned=1" "$LOG"
+
+      - name: Fail closed on malformed profile catalog
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/records-malformed-profiles-root"
+          LOG="$RUNNER_TEMP/records-malformed-profiles.log"
+
+          mkdir -p "$USER_ROOT/runs/default"
+          printf "not a profile catalog\n" > "$USER_ROOT/profiles-v1.txt"
+          cp "$ORIGINAL" "$USER_ROOT/runs/default/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_RECORDS_BROWSER_ACCEPTANCE=profiles-malformed \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0 profile=default profiles=0 profiles_available=0" "$LOG"
+          grep -q "UR_RECORDS_BROWSER PROFILES_MALFORMED pause=1 opened=1 tracks_preserved=1 runs=1 profiles_failed_closed=1 profiles_opened=1" "$LOG"
+
+      - name: Open Records through pause menu
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          RUNS="$RUNNER_TEMP/pause-records-runs"
+          LOG="$RUNNER_TEMP/pause-records.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_PAUSE_RECORDS_ACCEPTANCE=1 \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_PAUSE_RECORDS ACCEPTANCE_TRIGGER .* selected=1 opened=1" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED_FROM_PAUSE_MENU" "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED courses=1 runs=1 unavailable=0" "$LOG"
+
+      - name: Open Records directly from results
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          RUNS="$RUNNER_TEMP/results-records-runs"
+          LOG="$RUNNER_TEMP/results-records.log"
+
+          mkdir -p "$RUNS"
+          cp "$ORIGINAL" "$RUNS/run-0001.urrun"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECORDS_BROWSER_ACCEPTANCE=results-shortcut \
+          UR_RUN_BROWSER_DIRECTORY="$RUNS" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED_FROM_RESULTS" "$LOG"
+          grep -q "UR_RECORDS_BROWSER RESULTS_SHORTCUT opened=1 paused=1 courses=1 runs=1" "$LOG"
+          if grep -q "UR_RUN_BROWSER REPLAY_LAUNCHED" "$LOG"; then
+            echo "::error::Results Records shortcut launched replay directly"
+            exit 1
+          fi
+
+      - name: Upload replay evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: completed-run-replay-acceptance
+          path: |
+            ${{ runner.temp }}/original.urrun
+            ${{ runner.temp }}/original.urrun.input
+            ${{ runner.temp }}/original.urrun.urghost
+            ${{ runner.temp }}/replayed.urrun
+            ${{ runner.temp }}/replayed.urrun.urghost
+            ${{ runner.temp }}/original.log
+            ${{ runner.temp }}/paced-proof.log
+            ${{ runner.temp }}/paced-unpaced-compare.log
+            ${{ runner.temp }}/replayed.log
+            ${{ runner.temp }}/browser-replay.log
+            ${{ runner.temp }}/records-browser.log
+            ${{ runner.temp }}/records-user-data-root.log
+            ${{ runner.temp }}/pause-records.log
+            ${{ runner.temp }}/records-profiles.log
+            ${{ runner.temp }}/records-malformed-profiles.log
+            ${{ runner.temp }}/results-records.log
+            ${{ runner.temp }}/compare.log
+            ${{ runner.temp }}/original-ghost-trace.log
+            ${{ runner.temp }}/replayed-ghost-trace.log
+          if-no-files-found: warn
+          retention-days: 7
+
+

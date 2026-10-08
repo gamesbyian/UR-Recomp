@@ -14,19 +14,15 @@ ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
 
 DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
     "native-ui-evidence.yml",
-    "profile-panel-native-acceptance.yml",
+    "modern-shared-native-acceptance.yml",
 }
 
 EXPENSIVE_PR_WORKFLOWS = {
-    "completed-run-replay-acceptance.yml",
-    "ghost-target-native-acceptance.yml",
+    "modern-shared-native-acceptance.yml",
     "modern-onboarding-practice-acceptance.yml",
     "modern-race-restart-acceptance.yml",
-    "modern-results-navigation-acceptance.yml",
-    "multiplayer-match-capture-acceptance.yml",
     "native-build-smoke.yml",
     "native-ui-evidence.yml",
-    "profile-panel-native-acceptance.yml",
     "racer-native-presentation-acceptance.yml",
     "widescreen-4x3-regression.yml",
 }
@@ -250,6 +246,34 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "Ubuntu-hosted native gates must use runner-provided CMake/Ninja and "
             f"the canonical SDL3 source rather than redownloading old tooling: {offenders}",
         )
+
+    def test_shared_modern_native_acceptance_builds_once_and_fans_out(self):
+        text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()
+        self.assertIn("  build:", text)
+        self.assertIn("  ghost-target:", text)
+        self.assertIn("  profile-panel:", text)
+        self.assertIn("  results-navigation:", text)
+        self.assertIn("  ordinary-2p:", text)
+        self.assertIn("  completed-run-replay:", text)
+        self.assertEqual(text.count("Build shared Modern native candidate"), 1)
+        self.assertIn("shared-modern-native-candidate", text)
+        consumers = text.split("  ghost-target:", 1)[1]
+        self.assertNotIn("cmake --build", consumers)
+        self.assertNotIn("libgl1-mesa-dev", consumers)
+        self.assertIn("xvfb", consumers)
+        self.assertIn("xdotool", consumers)
+
+    def test_superseded_shared_candidate_gates_are_manual_only(self):
+        for name in (
+            "ghost-target-native-acceptance.yml",
+            "profile-panel-native-acceptance.yml",
+            "modern-results-navigation-acceptance.yml",
+            "multiplayer-match-capture-acceptance.yml",
+            "completed-run-replay-acceptance.yml",
+        ):
+            text = (WORKFLOWS / name).read_text()
+            self.assertIn("  workflow_dispatch:", text)
+            self.assertFalse(_block(text, "pull_request"))
 
     def test_native_ui_capture_installs_runtime_only_dependencies(self):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()

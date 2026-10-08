@@ -2,28 +2,6 @@ name: Modern results navigation acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "native/product/uniracers_modern_host.cpp"
-      - "native/product/modern_results_navigation.hpp"
-      - "native/product/modern_tour_continue.hpp"
-      - "native/product/modern_tour_entry_policy.hpp"
-      - "native/product/next_event_derivation.hpp"
-      - "native/title/uniracers_tour_resume.*"
-      - "tests/native/run_modern_results_navigation_acceptance.sh"
-      - "tests/native/modern_results_navigation_test.cpp"
-      - "tests/native/modern_tour_continue_test.cpp"
-      - "tests/unit/test_modern_results_navigation_cpp.py"
-      - "tests/unit/test_modern_results_navigation_host_contract.py"
-      - "tests/input/modern-results-navigation*.script"
-      - "tests/input/modern-practice-repeat-results.script"
-      - "tools/patch_modern_product_host.py"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/sdl3.json"
-      - ".github/workflows/modern-results-navigation-acceptance.yml"
 
 concurrency:
   group: modern-results-navigation-${{ github.ref }}

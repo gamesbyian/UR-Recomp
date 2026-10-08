@@ -551,24 +551,43 @@ jobs:
           EXE="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/UniracersSNESRecomp"
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           SCRIPT="$GITHUB_WORKSPACE/tests/input/ui-circuit-drive-capture.script"
-          PACED="$RUNNER_TEMP/ui-circuit-result-dumps"
+          # The original paced route runs after a different capture has had
+          # access to the default executable-owned save root. Control for that
+          # persistent-state difference before attributing byte drift to pacing.
+          ORIGINAL="$RUNNER_TEMP/ui-circuit-result-dumps"
+          PACED="$RUNNER_TEMP/ui-circuit-paired-paced-dumps"
           UNPACED="$RUNNER_TEMP/ui-circuit-unpaced-dumps"
-          USER_ROOT="$RUNNER_TEMP/circuit-unpaced-user-data"
-          LOG="$RUNNER_TEMP/ui-circuit-unpaced.log"
-          mkdir -p "$UNPACED" "$USER_ROOT"
-          printf '[General]\nDisableFrameDelay = 1\n' > "$USER_ROOT/config.ini"
+          PACED_USER="$RUNNER_TEMP/circuit-paired-paced-user-data"
+          UNPACED_USER="$RUNNER_TEMP/circuit-paired-unpaced-user-data"
+          PACED_LOG="$RUNNER_TEMP/ui-circuit-paired-paced.log"
+          UNPACED_LOG="$RUNNER_TEMP/ui-circuit-unpaced.log"
+          mkdir -p "$PACED" "$UNPACED" "$PACED_USER" "$UNPACED_USER"
+          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
+          printf '[General]\nDisableFrameDelay = 1\n' > "$UNPACED_USER/config.ini"
+
           SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_USER_DATA_DIR="$USER_ROOT" \
-          SNESRECOMP_DUMP_DIR="$UNPACED" \
-            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1 || {
+          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
+          SNESRECOMP_DUMP_DIR="$PACED" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$PACED_LOG" 2>&1 || {
               status=$?
-              cat "$LOG"
-              echo "::error::Unpaced Circuit evidence probe failed status=$status"
+              cat "$PACED_LOG"
+              echo "::error::Paired paced Circuit control failed status=$status"
               exit "$status"
             }
-          cat "$LOG"
-          grep -Fq "script" "$LOG"
-          python3 - "$PACED" "$UNPACED" <<'PY'
+          cat "$PACED_LOG"
+
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_USER_DATA_DIR="$UNPACED_USER" \
+          SNESRECOMP_DUMP_DIR="$UNPACED" \
+            timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$UNPACED_LOG" 2>&1 || {
+              status=$?
+              cat "$UNPACED_LOG"
+              echo "::error::Paired unpaced Circuit control failed status=$status"
+              exit "$status"
+            }
+          cat "$UNPACED_LOG"
+
+          python3 - "$PACED" "$UNPACED" "$ORIGINAL" <<'PY'
           from pathlib import Path
           import hashlib
           import sys
@@ -582,6 +601,11 @@ jobs:
               }
           a = hashes(paced)
           b = hashes(unpaced)
+          original = hashes(Path(sys.argv[3]))
+          baseline_drift = sorted(name for name in original.keys() | a.keys()
+                                  if original.get(name) != a.get(name))
+          print(f"UR_CIRCUIT_BASELINE_ROOT_DIFFERENCE files={len(baseline_drift)}"
+                f" total={len(original)}")
           if not a or not b or not any(name.endswith('.wram.bin') for name in a):
               raise SystemExit("No authoritative Circuit WRAM dumps to compare")
           if set(a) != set(b):
@@ -589,7 +613,7 @@ jobs:
           mismatched = sorted(name for name in a if a[name] != b[name])
           if mismatched:
               raise SystemExit(f"Circuit paced/unpaced byte drift: {mismatched}")
-          print(f"UR_CIRCUIT_UNPACED_PARITY PASS files={len(a)} full_sha256=1")
+          print(f"UR_CIRCUIT_PAIRED_UNPACED_PARITY PASS files={len(a)} full_sha256=1")
           PY
 
       - name: Upload shard evidence

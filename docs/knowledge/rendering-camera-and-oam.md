@@ -95,3 +95,36 @@ The permanent rule is:
 **4:3 authentic behavior is the regression oracle. Widescreen extends presentation without silently changing simulation or progression.**
 
 See `docs/WIDESCREEN.md` for implementation-specific rules.
+
+
+### Remastered racer capture must follow final host geometry (2026-10-08)
+
+The pinned desktop runner's `CaptureSimulationFrame()` first executes
+`PreparePpuFrame()`, resolving `prepare_frame()` output into
+`snesrecomp_desktop_frame_width()/height()`, **then** invokes the game
+`begin_sim_frame()` callback, and only afterward scans the PPU. A widescreen
+WorldExpand scene may set logical width above 256 in that first step.
+
+The optional Racer HD presenter strips OAM slots 96–99 from the PPU image with
+`kPpuOverlayFlag_RemoveFromGame` only when both racer semantic registrations
+and placements are known. Its actual host draw callback still supports only a
+256×224 logical field. Therefore starting an OBJ extraction for a 342×224
+field and declining the host draw afterward is not a harmless Original
+fallback: the captured raster can already **lack the original racers**.
+
+`racer_hd_begin_sim_frame()` now calls
+`racer_hd_can_capture_frame_geometry()` with the finalized desktop dimensions
+**before** selecting art, binding overlays or requesting OBJ removal. Only the
+exact 256×224 field may promote the four slots. All other frame geometries
+preserve stock OBJ rendering; the Modern presentation layer may still apply
+its independently configured integer-density scale to that complete stock
+field. This is intentionally conservative until the independently governed
+widescreen compositor can present HD art in shifted world coordinates while
+preserving background/foreground priority. It does not alter WRAM/VRAM/OAM,
+the split-scanline policy, or stock/Original PPU raster geometry.
+
+Regression coverage checks both the pure geometry admission policy and the
+real native PPU presenter link path. A comparative real Windows capture
+at a fully registered pose, once each in Original width and WorldExpand, is
+still needed for pixel-level evidence. Never infer that the pure helper unit
+test alone proves the final widened picture.

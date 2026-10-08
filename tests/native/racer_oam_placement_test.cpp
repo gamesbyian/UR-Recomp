@@ -263,20 +263,44 @@ int main() {
         partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
     partial_p1_bottom.y_raw_8bit = 250;
-    // At $83 size mode the normally inactive 16px bottom slot wraps
-    // visibly into the top viewport: extraction would erase it.
+    // At top split high OAM $A5, inactive bottom slot97 has X-high=1.
+    // LOW_X=100 -> small alias X=-156: its wrapped Y is visible,
+    // but its full 16px width is offscreen, so no stock pixel is erased.
+    assert(racer_p1_only_no_stock_p2_occlusion(
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
+    ));
+    partial_p1_bottom.x_signed = 240;  // small alias X=-16, right edge 0
+    assert(racer_p1_only_no_stock_p2_occlusion(
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
+    ));
+    partial_p1_bottom.x_signed = 241;  // small alias X=-15, one visible pixel
     assert(!racer_p1_only_no_stock_p2_occlusion(
         partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
+    partial_p1_bottom.x_signed = -16;  // malformed active 64px X high bit
+    assert(!racer_p1_only_no_stock_p2_occlusion(
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
+    ));
+    partial_p1_bottom.x_signed = 100;
     partial_p1_bottom.y_raw_8bit = 150;
-    partial_p1_top.y_raw_8bit = 120;  // inactive top slot visible at bottom
+
+    // The inverse split high OAM $5A sets top slot98 X-high=1 below
+    // scanline112. A Y-visible inactive top copy is safe if its X is
+    // offscreen; only LOW_X >=241 can expose an actual source pixel.
+    partial_p2_bottom.x_signed = 164;  // keep lower P1/P2 separate
+    partial_p1_top.y_raw_8bit = 120;
+    assert(racer_p1_only_no_stock_p2_occlusion(
+        partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
+    ));
+    partial_p1_top.x_signed = 241;
     assert(!racer_p1_only_no_stock_p2_occlusion(
         partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
-    partial_p1_top.y_raw_8bit = 150; // top slot small copy is still in lower viewport
-    assert(!racer_p1_only_no_stock_p2_occlusion(
+    partial_p1_top.x_signed = 240;
+    assert(racer_p1_only_no_stock_p2_occlusion(
         partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
+    partial_p1_top.x_signed = 100;
     partial_p1_top.y_raw_8bit = 40;
     partial_p2_top.attr = 0x50;
     assert(!racer_p1_only_no_stock_p2_occlusion(

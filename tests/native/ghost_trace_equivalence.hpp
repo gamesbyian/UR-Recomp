@@ -24,6 +24,15 @@ struct GhostTraceReplayComparison {
     std::uint64_t first_p2_context_drift_frame = 0;
 };
 
+inline bool ghost_trace_covers_completed_run(
+    const product::CompletedRunGhostTrace& trace,
+    const product::CompletedRunRecord& record) {
+    return !trace.samples.empty() &&
+           record.frame_count == trace.samples.size() &&
+           trace.samples.front().race_frame == 0 &&
+           trace.samples.back().race_frame == record.frame_count - 1u;
+}
+
 inline bool equivalent_ghost_world_samples(
     const product::CompletedRunGhostTrace& original,
     const product::CompletedRunGhostTrace& replayed,
@@ -40,6 +49,20 @@ inline bool equivalent_ghost_world_samples(
     };
 
     if (a.empty() || b.empty()) return fail("missing authoritative world samples");
+    // Production capture samples every race-relative guest frame, starting at
+    // zero. Two equally sparse or truncated traces must not accidentally pass
+    // just because their surviving world positions agree. In particular, an
+    // extra sample is a one-frame retirement allowance, not arbitrary tail.
+    const auto contiguous_from_zero = [](const auto& samples) {
+        if (samples.front().race_frame != 0) return false;
+        for (std::size_t i = 1; i < samples.size(); ++i) {
+            if (samples[i].race_frame - samples[i - 1].race_frame != 1u)
+                return false;
+        }
+        return true;
+    };
+    if (!contiguous_from_zero(a) || !contiguous_from_zero(b))
+        return fail("noncontiguous authoritative world samples");
     const auto common = std::min(a.size(), b.size());
     const auto extra = std::max(a.size(), b.size()) - common;
     if (extra > 1) return fail("more than one terminal sample differs");

@@ -98,6 +98,19 @@ int main(int argc, char** argv) {
     const std::string encoded = encode_completed_run_ghost_trace(trace);
     assert(!encoded.empty());
 
+    // Replay proof requires the complete recorded frame window. An optional
+    // sidecar remains readable under its existing schema if truncated, but it
+    // cannot attest deterministic trajectory equivalence.
+    assert(ur::test::ghost_trace_covers_completed_run(trace, record));
+    auto truncated_trace = trace;
+    truncated_trace.samples.pop_back();
+    assert(!ur::test::ghost_trace_covers_completed_run(
+        truncated_trace, record));
+    auto longer_record = record;
+    ++longer_record.frame_count;
+    assert(!ur::test::ghost_trace_covers_completed_run(
+        trace, longer_record));
+
     const auto decoded = decode_completed_run_ghost_trace(encoded, &record);
     assert(decoded.loaded());
     assert(decoded.trace->samples.size() == 3);
@@ -329,6 +342,22 @@ int main(int argc, char** argv) {
         trace, terminal_short, &mismatch, &common, &comparison));
     assert(common == 2);
     assert(comparison.terminal_observation_drift_frames == 1);
+    // Replay cannot pass by comparing only surviving samples when a ghost
+    // trace skips frames. The terminal allowance is exactly one guest frame.
+    auto sparse_tail = trace;
+    sparse_tail.samples.back().race_frame = 100;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        sparse_tail, terminal_short, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+    assert(!ur::test::equivalent_ghost_world_samples(
+        sparse_tail, sparse_tail, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+    auto late_start = trace;
+    for (auto& sample : late_start.samples) ++sample.race_frame;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        late_start, late_start, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+
     auto two_short = terminal_short;
     two_short.samples.pop_back();
     assert(!ur::test::equivalent_ghost_world_samples(
@@ -342,7 +371,7 @@ int main(int argc, char** argv) {
     shifted.samples[1].race_frame = 3;
     assert(!ur::test::equivalent_ghost_world_samples(
         trace, shifted, &mismatch, &common));
-    assert(mismatch.find("race_frame") != std::string::npos);
+    assert(mismatch.find("noncontiguous") != std::string::npos);
     auto divergent = trace;
     divergent.samples[1].world_x++;
     assert(!ur::test::equivalent_ghost_world_samples(

@@ -585,3 +585,14 @@ case should be silently "corrected" in the historical artifact. The first
 actual discriminator is a deterministic Zoom Zoo/Jumps race-entry WRAM trace
 against both header coordinate pairs, with exact selected course ID and
 frame-relative spawn state, not a guess based on the script's labels.
+
+
+**Cheap next live header discriminator:** Switcher (stream 4) has an exact
+USA-to-Europe retail header change confined to coordinate pair A's Y:
+USA A=(99,26), Europe A=(99,22), while pair B=(99,34) in both.
+If those are world-position units multiplied by 16 as the Dragster reference
+shows, the candidate A spawn moves by 64 world Y units between retail builds.
+A paired frame-exact Switcher race-entry observation in both ROMs can establish
+whether A drives P1, P2, or another landmark; do not infer the player binding
+from the header labels alone. This is a cheaper falsifier than decoding
+unrelated checkpoint handlers or conducting a broad 45-course runtime sweep.

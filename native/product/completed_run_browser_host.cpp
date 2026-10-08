@@ -521,11 +521,28 @@ bool launch_selected_replay() {
         return false;
     }
 
+    // Browsing is a snapshot. Revalidate both provenance and the immutable
+    // source artifact before giving its inputs authority over a new race.
+    const auto target = current_target();
+    const std::string source_directory = active_run_directory();
+    if (!target || source_directory.empty() ||
+        fs::path(selected->path).parent_path() != fs::path(source_directory)) {
+        diagnostic("UR_RUN_BROWSER REPLAY_SOURCE_REJECTED");
+        return false;
+    }
+    const auto fresh_record =
+        ur::product::reload_matching_completed_run_replay_record(
+            selected->path, *selected->record, *target);
+    if (!fresh_record) {
+        diagnostic("UR_RUN_BROWSER REPLAY_SOURCE_CHANGED");
+        return false;
+    }
+
     const std::string input_path = replay_input_path();
     std::string detail;
     if (input_path.empty() ||
         !ur::product::stage_completed_run_replay_input_file(
-            input_path, *selected->record, &detail)) {
+            input_path, *fresh_record, &detail)) {
         clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_STAGE_FAILED");
         return false;

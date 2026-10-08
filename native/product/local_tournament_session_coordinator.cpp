@@ -74,6 +74,17 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     if (present && !replace_existing_tournament) {
         return error(Status::AlreadyExists, "explicit replacement required");
     }
+    // A reused instance ID would silently inherit old fixture receipts even
+    // when explicit replacement was requested. Refuse reuse whether or not
+    // the prior instance is currently active; IDs are unique across events.
+    ec.clear();
+    const bool instance_exists = fs::exists(instance_directory(next), ec);
+    if (ec) {
+        return error(Status::StorageFailed, "cannot inspect instance identity");
+    }
+    if (instance_exists) {
+        return error(Status::AlreadyExists, "tournament instance already used");
+    }
     if (!fs::create_directories(receipts_directory(next), ec) && ec) {
         return error(Status::StorageFailed, "cannot create fixture directory");
     }

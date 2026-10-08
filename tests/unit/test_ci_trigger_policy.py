@@ -352,11 +352,28 @@ class CiTriggerPolicyTest(unittest.TestCase):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
         self.assertNotIn('"native/product/**"', text)
         self.assertIn("fail-fast: false", text)
-        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        independent = text.split("  independent-acceptance:", 1)[1]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", independent)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
         self.assertLessEqual(len(shards), 5)
 
+
+    def test_onboarding_core_fanout_is_bounded_and_build_free(self):
+        text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        block = text.split("  core-acceptance:", 1)[1].split(
+            "  independent-acceptance:", 1
+        )[0]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", block)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertEqual(
+            shards,
+            ["onboarding-rematch", "practice", "system"],
+        )
+        self.assertIn("needs: build", block)
+        self.assertNotIn("cmake --build", block)
+        self.assertIn("Seed dismissed onboarding for independent core shards", block)
 
     def test_onboarding_acceptance_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()

@@ -155,8 +155,12 @@ def summarize(
 
         started_value = run.get("run_started_at") or run.get("created_at")
         wall_seconds = elapsed_seconds(started_value, run.get("updated_at"))
-        row["total_wall_seconds"] += wall_seconds
-        row["max_wall_seconds"] = max(row["max_wall_seconds"], wall_seconds)
+        # A queued or running workflow's updated_at is not an end time.
+        # Including it silently understates the baseline and contaminates
+        # averages used to decide which gate needs optimization.
+        if run.get("status") == "completed":
+            row["total_wall_seconds"] += wall_seconds
+            row["max_wall_seconds"] = max(row["max_wall_seconds"], wall_seconds)
         row["run_queue_seconds"] += elapsed_seconds(
             run.get("created_at"), run.get("run_started_at")
         )
@@ -197,7 +201,7 @@ def summarize(
     for name, row in groups.items():
         row["workflow"] = name
         row["avg_wall_seconds"] = (
-            row["total_wall_seconds"] / row["runs"] if row["runs"] else 0.0
+            row["total_wall_seconds"] / row["completed_runs"] if row["completed_runs"] else 0.0
         )
         row["avg_run_queue_seconds"] = (
             row["run_queue_seconds"] / row["runs"] if row["runs"] else 0.0

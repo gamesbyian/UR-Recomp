@@ -1,5 +1,7 @@
 #include "completed_run_record.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <string>
 
@@ -41,7 +43,15 @@ bool report_terminal_digest(
     const CompletedRunRecord& replayed) {
     const auto& left = original.terminal_simulation_digest;
     const auto& right = replayed.terminal_simulation_digest;
-    if (left == right) return true;
+    // Digests encode bytes as hex. The canonical v1 parser admits uppercase
+    // and lowercase A-F, so compare the semantic digest, not letter casing.
+    if (left.size() == right.size() &&
+        std::equal(left.begin(), left.end(), right.begin(),
+            [](unsigned char a, unsigned char b) {
+                return std::tolower(a) == std::tolower(b);
+            })) {
+        return true;
+    }
     // An absent digest in both historical artifacts is acceptable. Once
     // either side claims terminal-state evidence, the other side must agree.
     std::cerr << "DIFF terminal_simulation_digest original="

@@ -101,7 +101,12 @@ jobs:
             python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
               --tail-seconds 0.5 --min-tail-rms 50 \
               --json-out "$RUNNER_TEMP/audio-output-$CASE.json"
+            # Exactly the first reporting interval is exempt from starvation
+            # gates; both measured Windows runs have been clean afterward.
             python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+              --max-new-audible-drops 0 \
+              --max-post-startup-underflows 0 \
+              --max-post-startup-missing-frames 0 \
               --json-out "$RUNNER_TEMP/audio-ring-$CASE.json"
             rm -f "$PCM"
             echo "WINDOWS_NATIVE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"

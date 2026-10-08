@@ -18,9 +18,14 @@ class CircuitUnpacedParityProbeTest(unittest.TestCase):
         )[0]
         self.assertIn("if: matrix.shard == 'results-a'", probe)
         self.assertIn("DisableFrameDelay = 1", probe)
-        self.assertIn('SNESRECOMP_USER_DATA_DIR="$USER_ROOT"', probe)
+        self.assertIn('SNESRECOMP_USER_DATA_DIR="$PACED_USER"', probe)
+        self.assertIn('SNESRECOMP_USER_DATA_DIR="$UNPACED_USER"', probe)
+        self.assertIn("DisableFrameDelay = 0", probe)
+        self.assertIn('SNESRECOMP_DUMP_DIR="$PACED"', probe)
         self.assertIn('SNESRECOMP_DUMP_DIR="$UNPACED"', probe)
-        self.assertIn('timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT"', probe)
+        self.assertEqual(
+            probe.count('timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT"'), 2
+        )
 
     def test_fail_closed_full_capture_file_set_and_sha256(self):
         workflow = (ROOT / ".github/workflows/native-ui-evidence.yml").read_text()
@@ -34,10 +39,12 @@ class CircuitUnpacedParityProbeTest(unittest.TestCase):
             "name.endswith('.wram.bin')",
             "if set(a) != set(b)",
             "if mismatched:",
-            "UR_CIRCUIT_UNPACED_PARITY PASS",
+            "UR_CIRCUIT_PAIRED_UNPACED_PARITY PASS",
+            "UR_CIRCUIT_BASELINE_ROOT_DIFFERENCE",
+            'python3 - "$PACED" "$UNPACED" "$ORIGINAL"',
         ):
             self.assertIn(invariant, probe)
-        self.assertLess(probe.index("if set(a) != set(b)"), probe.index("UR_CIRCUIT_UNPACED_PARITY PASS"))
+        self.assertLess(probe.index("if set(a) != set(b)"), probe.index("UR_CIRCUIT_PAIRED_UNPACED_PARITY PASS"))
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@
 #include <filesystem>
 #include <fstream>
 #include <system_error>
+#include <utility>
 
 namespace ur::product {
 namespace {
@@ -51,6 +52,19 @@ void CompletedRunReplayInputStage::clear() noexcept {
     std::filesystem::remove_all(directory_, ec);
     directory_.clear();
     input_path_.clear();
+}
+
+std::optional<CompletedRunRecord> reload_matching_completed_run_replay_record(
+    const std::string& path,
+    const CompletedRunRecord& selected,
+    const RunPlaybackTarget& target) {
+    const std::string expected = encode_completed_run_record(selected);
+    if (expected.empty()) return std::nullopt;
+    auto loaded = load_completed_run_record_file(path, &target);
+    if (!loaded.loaded() ||
+        encode_completed_run_record(*loaded.record) != expected)
+        return std::nullopt;
+    return std::move(*loaded.record);
 }
 
 bool stage_completed_run_replay_input_file(

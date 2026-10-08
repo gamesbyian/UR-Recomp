@@ -29,12 +29,14 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - "tools/Test-URRecompPortable.ps1"
       - "tools/check_windows_portable_binary.py"
       - "tools/verify_rom.py"
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
       - "tests/unit/test_assemble_windows_package.py"
       - "tests/unit/test_windows_package_streaming_bounds.py"
+      - "tests/unit/test_windows_clean_machine_verifier_policy.py"
       - "tests/unit/test_windows_portable_binary.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
@@ -195,6 +197,23 @@ jobs:
           test -f "$PACKAGE/rom.cfg"
           test -f "$PACKAGE/run-uniracers.cmd"
           test -f "$PACKAGE/PACKAGE-MANIFEST.json"
+
+      - name: Independently verify portable ZIP with stock Windows PowerShell
+        run: |
+          set -euo pipefail
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1")"
+          ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          CHECKSUM_WIN="$(cygpath -w "$PACKAGE_ARCHIVE_CHECKSUM")"
+          PROBE_WIN="$(cygpath -w "$RUNNER_TEMP/standalone windows verifier")"
+          powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass \
+            -File "$SCRIPT_WIN" \
+            -Archive "$ARCHIVE_WIN" \
+            -Checksum "$CHECKSUM_WIN" \
+            -Destination "$PROBE_WIN" \
+            | tee "$RUNNER_TEMP/standalone-windows-verifier.log"
+          grep -Fq "UR_PORTABLE_ARCHIVE_VERIFIED" "$RUNNER_TEMP/standalone-windows-verifier.log"
+          grep -Fq "UR_PORTABLE_MANIFEST_VERIFIED" "$RUNNER_TEMP/standalone-windows-verifier.log"
+          grep -Fq "UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK" "$RUNNER_TEMP/standalone-windows-verifier.log"
 
       - name: Clean-package boot and per-user state anchoring
         run: |

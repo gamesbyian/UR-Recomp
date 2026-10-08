@@ -106,7 +106,7 @@ jobs:
           ninja --version
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
-            pkg-config \
+            ccache pkg-config \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
@@ -127,6 +127,10 @@ jobs:
           set -euo pipefail
           FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
           TMP="$RUNNER_TEMP/shared-modern-native"
+          export CCACHE_DIR="$RUNNER_TEMP/ccache"
+          export CCACHE_BASEDIR="$RUNNER_TEMP"
+          export CCACHE_NOHASHDIR=true
+          ccache --zero-stats
           SNESRECOMP_ROOT="$FRAMEWORK" \
             sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
               --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
@@ -146,8 +150,11 @@ jobs:
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \
             -DSNESRECOMP_SDL3_FETCH=ON \
-            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10" \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           cmake --build "$ROOT/build" -j2
+          ccache --show-stats
           test -x "$ROOT/build/UniracersSNESRecomp"
           tar -czf "$RUNNER_TEMP/shared-modern-native.tar.gz" -C "$RUNNER_TEMP" shared-modern-native
 

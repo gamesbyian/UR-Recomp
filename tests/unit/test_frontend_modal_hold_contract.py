@@ -39,14 +39,13 @@ class FrontendModalHoldContractTests(unittest.TestCase):
                        "void update_frontend_modal_hold() {")
         for guard in ("!modern_mode()", "paused()", "g_ram[0x0313] == 0x01",
                       "g_ram[0x009F] != 0xD7", "practice_routing()",
-                      "tour_continue_routing()", "g_practice_active"):
+                      "tour_continue_routing()", "g_practice_active",
+                      "snesrecomp_desktop_script_active()"):
             self.assertIn(guard, wanted)
         for modal in ("g_practice_picker.visible", "g_progress_overview_visible",
-                      "g_tour_action_visible", "g_frontend_options_active"):
+                      "g_tour_action_visible", "g_frontend_options_active",
+                      "onboarding_surface_active()"):
             self.assertIn(modal, wanted)
-        self.assertIn(
-            "onboarding_surface_active() && !snesrecomp_desktop_script_active()",
-            wanted)
         overlay = _body(source, 'extern "C" void ur_uniracers_modern_system_overlay(',
                         "if (onboarding_surface_active())")
         self.assertIn("update_frontend_modal_hold();", overlay)

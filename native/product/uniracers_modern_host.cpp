@@ -7355,8 +7355,12 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
 // A --script harness drives the stock menu directly while the first-run
 // Welcome panel is visible (its input bypasses the human-input filter), so
 // Welcome holds only for human-driven sessions.
+// Scripted harnesses and the in-host acceptance drivers advance on emulated
+// frames and drive these modals themselves, so a held frame would stall them;
+// the hold is for human-driven sessions only.
 bool frontend_modal_hold_wanted() {
     if (!modern_mode() || !g_ram || paused() ||
+        snesrecomp_desktop_script_active() ||
         g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
         practice_routing() || tour_continue_routing() ||
         g_practice_active) {
@@ -7364,11 +7368,9 @@ bool frontend_modal_hold_wanted() {
     }
     const bool frontend_settings =
         g_frontend_options_active && (g_options_visible || g_controls_visible);
-    if (g_practice_picker.visible || g_progress_overview_visible ||
-        g_tour_action_visible || frontend_settings) {
-        return true;
-    }
-    return onboarding_surface_active() && !snesrecomp_desktop_script_active();
+    return g_practice_picker.visible || g_progress_overview_visible ||
+        g_tour_action_visible || frontend_settings ||
+        onboarding_surface_active();
 }
 
 void update_frontend_modal_hold() {

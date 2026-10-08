@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import copy
 import hashlib
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -45,13 +46,6 @@ class RewardTableTests(unittest.TestCase):
                 ]
             }}],
         }
-        self.rom = bytearray(0x10000)
-        for build in BUILDS:
-            start = rom_offset(self.structure["regions"][0]["builds"][build]["start"])
-            self.rom[start:start + len(self.block)] = self.block
-        # Build offsets overlap. Only the chosen region can be tested at once.
-        self.rom = None
-
     def build_rom(self, build):
         rom = bytearray(0x10000)
         start = rom_offset(self.structure["regions"][0]["builds"][build]["start"])
@@ -68,6 +62,35 @@ class RewardTableTests(unittest.TestCase):
                 self.assertEqual(report["raw_signed_words"][1]["value"], -1)
                 self.assertEqual(report["raw_signed_words"][0x10]["value"], 152)
                 self.assertEqual(report["raw_signed_words"][0x14]["value"], 200)
+
+    def test_actual_preserved_roms_when_available(self):
+        paths = {
+            "usa-retail": ROOT / "reference/roms/retail/Uniracers_USA.sfc",
+            "europe-retail": ROOT / "reference/roms/retail/Unirally_Europe.sfc",
+            "pal-prototype-1994-11-29":
+                ROOT / "reference/roms/prototypes/Unirally_1994-11-29_PAL_prototype.sfc",
+            "legacy-beta": ROOT / "reference/roms/prototypes/Uniracers_Beta_legacy.sfc",
+        }
+        structure = json.loads(
+            (ROOT / "analysis/generated/stunt-message-pipeline-structure-island.json")
+            .read_text(encoding="utf-8")
+        )
+        aliases = json.loads(
+            (ROOT / "analysis/generated/dessyreqt-named-boost-messages.json")
+            .read_text(encoding="utf-8")
+        )
+        available = [name for name, path in paths.items() if path.is_file()]
+        if not available:
+            self.skipTest("canonical ROMs unavailable on this runner")
+        for build in available:
+            with self.subTest(build=build):
+                report = extract(paths[build].read_bytes(), structure, aliases, build)
+                self.assertEqual(len(report["raw_signed_words"]), 21)
+                self.assertEqual(len(report["historical_comparison"]), len(aliases["mapping"]))
+                print("STUNT_REWARD_ROM_EVIDENCE " + json.dumps({
+                    "build": build, "words": report["raw_signed_words"],
+                    "historical_disagreements": report["historical_disagreements"],
+                }, sort_keys=True), flush=True)
 
     def test_historical_mismatch_is_reported_not_normalized(self):
         aliases = copy.deepcopy(self.aliases)

@@ -9,6 +9,8 @@ import tempfile
 import zipfile
 import unittest
 
+from tools import assemble_windows_package as package_tool
+
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 TOOL = ROOT / "tools" / "assemble_windows_package.py"
@@ -90,6 +92,81 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("process_exit=0", startup)
             self.assertEqual(startup.count("result=startup-begin"), 1)
             self.assertFalse((payload / "diagnostics").exists())
+
+    def test_windows_manifest_names_reject_case_aliased_parent_components(self):
+        for paths in (
+            {"mods/preloaded/Case/file-a.bin", "mods/preloaded/case/file-b.bin"},
+            {"mods/preloaded/packages/X.dat", "mods/preloaded/packages/x.dat"},
+        ):
+            with self.subTest(paths=paths):
+                with self.assertRaisesRegex(
+                    ValueError, "case-colliding Windows paths"
+                ):
+                    package_tool.validate_windows_portable_paths(
+                        paths, context="test manifest"
+                    )
+
+    def test_source_mod_case_alias_fails_before_removing_completed_output(self):
+        if os.name == "nt":
+            self.skipTest("cannot create case-distinct directory entries on NTFS")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            mods = build / "mods" / "preloaded" / "packages"
+            (mods / "CaseData.txt").write_text("first")
+            (mods / "casedata.txt").write_text("second")
+            output = root / "existing-package"
+            output.mkdir()
+            keep = output / "preserve-on-source-failure"
+            keep.write_text("good completed package")
+            with self.assertRaisesRegex(
+                ValueError, "package source mods contains case-colliding"
+            ):
+                package_tool.assemble(build, rom, output, "source-case-test")
+            self.assertEqual(keep.read_text(), "good completed package")
+
+    def test_archive_rejects_manifest_consistent_ntfs_name_aliases(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = pathlib.Path(tmp)
+            build, rom = self.make_inputs(root)
+            output = root / "package"
+            package_tool.assemble(build, rom, output, "case-collision-test")
+            original = root / "original.zip"
+            package_tool.create_archive(output, original)
+            forged = root / "alias.zip"
+            alias = "mods/preloaded/packages/CATALOG.json"
+            payload = b'{"alias": true}\\n'
+            with zipfile.ZipFile(original) as source, zipfile.ZipFile(
+                forged, "w", compression=zipfile.ZIP_DEFLATED
+            ) as target:
+                manifest = json.loads(
+                    source.read(
+                        f"{package_tool.ARCHIVE_ROOT}/{package_tool.MANIFEST_NAME}"
+                    )
+                )
+                manifest["files"].append({
+                    "path": alias,
+                    "size": len(payload),
+                    "sha256": hashlib.sha256(payload).hexdigest(),
+                })
+                for info in source.infolist():
+                    data = source.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        data = package_tool.canonical_manifest_bytes(manifest)
+                    target.writestr(info, data)
+                # Alias is self-consistent with both ZIP and manifest.
+                info = zipfile.ZipInfo(
+                    f"{package_tool.ARCHIVE_ROOT}/{alias}",
+                    date_time=package_tool.ARCHIVE_TIMESTAMP,
+                )
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.create_system = 3
+                info.external_attr = 0o100644 << 16
+                target.writestr(info, payload)
+            with self.assertRaisesRegex(
+                ValueError, "package archive contains case-colliding Windows paths"
+            ):
+                package_tool.verify_archive(forged)
 
     def test_controller_startup_failure_has_specific_release_code(self):
         patch = STARTUP_PATCH.read_text()

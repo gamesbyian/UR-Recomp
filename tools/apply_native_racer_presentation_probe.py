@@ -65,6 +65,19 @@ extern "C" void UrRacerHdPrepareFrame(
 
 extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
     ur::presentation::racer_hd_begin_sim_frame(number);
+    if (std::getenv("UR_RACER_HD_P1_NATIVE_TEST") && g_ppu) {
+        static unsigned partial_captures = 0;
+        const auto& policy = g_ppu->overlayCaptures[kPpuOverlaySource_Obj];
+        if ((policy.flags & kPpuOverlayFlag_RemoveFromGame) != 0 &&
+            policy.oamFirst == 97 && policy.oamCount == 2) {
+            ++partial_captures;
+        }
+        if (number == 3820) {
+            std::fprintf(stderr,
+                "UR_RACER_HD_P1_NATIVE_SUMMARY frame=3820 partial_captures=%u\n",
+                partial_captures);
+        }
+    }
     if (!std::getenv("UR_RACER_HD_PROBE_WIDE")) return;
     const int width = snesrecomp_desktop_frame_width();
     const int height = snesrecomp_desktop_frame_height();

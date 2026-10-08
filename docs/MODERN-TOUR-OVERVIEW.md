@@ -21,3 +21,12 @@ The host surface is exclusive during display and consumes keyboard/semantic-cont
 - Controller entry uses the live GamepadMap's semantic P1 L control rather than a hard-coded physical controller map; its source contract and user documentation accompany this slice.
 
 This is a read-only frontend completion slice. It must not be conflated with speculative direct challenge-tier selection, Hunter discovery, Records aggregation, or pause presentation.
+
+
+## Initial stock-derived visual hierarchy
+
+The read-only Tour Progress screen now reuses a host-only source-measured palette from `analysis/generated/menu-visual-language.json` through `modern_stock_menu_palette.hpp`, shared with Quick Practice. Its header uses yellow stock title hierarchy and a dark offset; the read-only Bronze/Silver/Gold summary stays grey. Admitted tour rows are legible yellow, and unrevealed tours remain dimmed generic `LOCKED TOUR` labels. Because this panel does not select a tour, it deliberately does **not** draw a fake blue stock selection arrow. No medal tier, stock menu input or name/visibility policy changes.
+
+At a 256-pixel 4:3 logical view, the modal stays 240 pixels wide. At widened Modern views it may expand up to 324 logical pixels, allowing complete tour names and medal summaries without horizontally stretching glyphs. The 13-character title uses 16-pixel logical glyph pitch where it fits, falling back to 8 pixels on narrow layouts. All dynamic summary/row/footer copy is clipped to the panel's actual glyph-cell budget, before the independent 1x–4x internal presentation-density transform.
+
+This is a **first visual-hierarchy improvement**, not final art acceptance: the host still draws provisional ASCII glyph shapes instead of the recovered ROM BG2 title font, and no original arrow animation is grafted into this read-only surface. The native Tour Overview admission/exit acceptance and Authentic invariance remain authoritative for behavior; packaged-Windows screenshots and comparison with the stock menu remain the artistic release gate.

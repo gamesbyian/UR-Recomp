@@ -250,7 +250,6 @@ jobs:
                 ui-options-back-main.fb.bmp; do
                 test -s "$RUNNER_TEMP/ui-dumps/$required" || { echo "::error::Missing UI framebuffer dump: $required"; exit 1; }
               done
-              run_route ui-vs-handoff ui-vs-handoff.script ui-vs-handoff-dumps 90
               ;;
             navigation)
               # Historical ending shortcut is a retained manual-only experiment.
@@ -282,9 +281,6 @@ jobs:
               ;;
             records)
               run_route ui-records-explore ui-records-explore.script ui-records-explore-dumps 180
-              for name in high player group; do
-                run_route "ui-record-$name" "ui-record-$name.script" ui-records-isolated-dumps 90
-              done
               ;;
             profiles)
               run_route ui-rename-editor-explore ui-rename-editor-explore.script ui-rename-editor-dumps 180

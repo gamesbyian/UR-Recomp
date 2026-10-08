@@ -41,6 +41,26 @@ When a research question closes, clean up in the same integration pass:
 
 Do not rely on branch names to make old workflows harmless. Branch-scoped `push` triggers are still permanent repository policy and should be removed when that branch experiment is over.
 
+### Zero-output native UI probes
+
+When a retained exploratory script times out before its first dump in repeated
+green reference runs, retaining it as a permanent automatic job is wasted
+runner time, and a false impression of coverage. Preserve the script for
+manual research, remove the automatic invocation and its path trigger, and
+mechanically assert the production evidence route remains covered elsewhere.
+
+2026-10-08 example: Native UI run 37756973922 attempted the isolated
+`ui-vs-handoff` and `ui-record-{high,player,group}` routes. Each exited
+status 3 at script frame 807 (`009B` selection condition timed out after
+300 frames) **before any dump**, taking about 13.5 seconds per run. The real
+`ui-main-branches` route already produces VS-entry evidence, and the
+`ui-records-submenus` route produces the High/Player/Group entry dumps;
+those authoritative capture routes and the atlas aggregate remain active.
+Four exploratory scripts stay in the repository, but no longer trigger or
+execute automatic Native UI acceptance. This avoids approximately 54 seconds
+of total runner time across the core/records shards; **overall wall-clock
+savings are not additive** because the shards execute concurrently.
+
 ## Automatic-CI budget
 
 Automatic CI is reserved for the active Windows x64 shipping path and cheap repository integrity contracts.

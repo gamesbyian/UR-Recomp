@@ -60,6 +60,10 @@ def analyze(
     )) or min_nonzero_fraction > 1:
         raise ValueError("invalid audio acceptance thresholds")
     fmt = parse_disk_format(log_path)
+    # Reject stale/unrelated raw samples even when their amplitude and format
+    # are plausible. SDL logs the actual destination when opening the device.
+    if Path(fmt["destination"]).resolve() != pcm_path.resolve():
+        raise ValueError("SDL disk capture destination does not match PCM input")
     byte_count = pcm_path.stat().st_size
     if not byte_count or byte_count % FRAME_BYTES:
         raise ValueError("missing or incomplete stereo signed-16 PCM frames")

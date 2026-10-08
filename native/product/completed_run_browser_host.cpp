@@ -44,6 +44,9 @@ ur::product::MultiplayerMatchSummary g_multiplayer_match_summary;
 UrUniracersRestartPolicyState g_replay_policy;
 bool g_browser_visible;
 bool g_records_browser_visible;
+// Records opened from the settled main menu rather than a paused race. It is
+// the same read-only browser; it never enters Local Runs or replay from here.
+bool g_records_frontend;
 bool g_one_player_context;
 std::uint64_t g_last_host_frame;
 unsigned g_browser_acceptance_active_frames;
@@ -371,6 +374,10 @@ void close_browser() {
 
 void close_records_browser() {
     g_records_browser_visible = false;
+    if (g_records_frontend) {
+        g_records_frontend = false;
+        ur_uniracers_modern_set_frontend_records_open(0);
+    }
     diagnostic("UR_RECORDS_BROWSER CLOSED");
 }
 
@@ -414,8 +421,11 @@ bool open_records_from_results() {
     return opened;
 }
 
-bool open_records_browser_impl(bool normalize_pause_surface) {
-    if (!modern_mode() || !snesrecomp_desktop_is_paused()) {
+bool open_records_browser_impl(bool normalize_pause_surface,
+                               bool frontend = false) {
+    if (!modern_mode() ||
+        (frontend ? snesrecomp_desktop_is_paused() != 0
+                  : !snesrecomp_desktop_is_paused())) {
         return false;
     }
     g_records_active_profile_id = active_profile_id();
@@ -459,6 +469,19 @@ bool open_records_browser_impl(bool normalize_pause_surface) {
 
 bool open_records_browser() {
     return open_records_browser_impl(true);
+}
+
+bool open_frontend_records() {
+    if (!modern_mode() || g_records_browser_visible || g_browser_visible ||
+        g_replay_flow.active() ||
+        !ur_uniracers_modern_frontend_records_admissible()) {
+        return false;
+    }
+    if (!open_records_browser_impl(false, true)) return false;
+    g_records_frontend = true;
+    ur_uniracers_modern_set_frontend_records_open(1);
+    diagnostic("UR_RECORDS_BROWSER OPENED_FROM_MAIN_MENU");
+    return true;
 }
 
 bool open_browser() {
@@ -794,6 +817,37 @@ void maybe_run_records_browser_acceptance() {
     const UrUniracersRestartSurface surface =
         ur_uniracers_classify_restart_surface(
             g_ram[0x0313], g_ram[0x009F]);
+
+    if (std::strcmp(acceptance, "main-menu") == 0) {
+        // Settled Modern main menu: F8 through the production key handler
+        // opens read-only Records without pausing; Escape closes it and
+        // returns input ownership. Same-frame so scripted input cannot race.
+        if (!ur_uniracers_modern_settled_main_menu()) return;
+        g_records_browser_acceptance_fired = true;
+        (void)ur_uniracers_product_system_key_down(SDLK_F8, 0, 0);
+        const bool opened = g_records_browser_visible && g_records_frontend;
+        const bool paused_open = snesrecomp_desktop_is_paused() != 0;
+        const bool ctrl_b_refused =
+            ur_uniracers_product_system_key_down(SDLK_b, KMOD_CTRL, 0) &&
+            g_records_browser_visible && !g_browser_visible;
+        (void)ur_uniracers_product_system_key_down(SDLK_ESCAPE, 0, 0);
+        const bool closed = !g_records_browser_visible && !g_records_frontend;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RECORDS_BROWSER MAIN_MENU_ACCEPTANCE opened=%d paused=%d courses=%zu runs=%zu local_runs_refused=%d closed=%d admissible_after=%d\n",
+                opened ? 1 : 0, paused_open ? 1 : 0,
+                g_records_browser.index().courses.size(),
+                g_records_browser.index().total_completed_runs,
+                ctrl_b_refused ? 1 : 0, closed ? 1 : 0,
+                ur_uniracers_modern_frontend_records_admissible());
+            std::fflush(stderr);
+        }
+        SDL_Event event{};
+        event.type = SDL_QUIT;
+        (void)SDL_PushEvent(&event);
+        return;
+    }
 
     if (std::strcmp(acceptance, "results-shortcut") == 0) {
         if (surface != UR_UNIRACERS_RESTART_RESULTS ||
@@ -1658,6 +1712,11 @@ extern "C" void ur_uniracers_product_after_run_frame(
 
     if (!g_replay_flow.active()) {
         ur_uniracers_modern_after_run_frame(stats);
+        if (g_records_frontend && g_records_browser_visible &&
+            !ur_uniracers_modern_settled_main_menu()) {
+            close_records_browser();
+            diagnostic("UR_RECORDS_BROWSER FRONTEND_STALE_CONTEXT");
+        }
         update_context_from_guest();
         maybe_run_records_browser_acceptance();
         maybe_run_browser_acceptance();
@@ -1679,6 +1738,10 @@ extern "C" void ur_uniracers_product_after_run_frame(
     } else if (transition == ur::product::CompletedRunReplayTransition::Cancelled) {
         return_to_browser(stats, false);
     }
+}
+
+extern "C" int ur_uniracers_product_open_frontend_records(void) {
+    return open_frontend_records() ? 1 : 0;
 }
 
 extern "C" int ur_uniracers_product_open_records(void) {
@@ -1720,7 +1783,7 @@ extern "C" int ur_uniracers_product_system_key_down(
         if (key == SDLK_ESCAPE) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
-        if (key == SDLK_b && (mod & KMOD_CTRL) &&
+        if (key == SDLK_b && (mod & KMOD_CTRL) && !g_records_frontend &&
             g_records_browser.view() !=
                 ur::product::CompletedRunRecordsView::Courses &&
             records_selected_matches_current_course()) {
@@ -1761,6 +1824,7 @@ extern "C" int ur_uniracers_product_system_key_down(
             (void)open_records_from_results();
             return 1;
         }
+        if (open_frontend_records()) return 1;
     }
 
     if (key == SDLK_b && (mod & KMOD_CTRL) &&
@@ -1805,7 +1869,7 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
         if (button == kGamepadBtn_B) {
             return records_browser_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
         }
-        if (button == kGamepadBtn_X &&
+        if (button == kGamepadBtn_X && !g_records_frontend &&
             g_records_browser.view() !=
                 ur::product::CompletedRunRecordsView::Courses &&
             records_selected_matches_current_course()) {

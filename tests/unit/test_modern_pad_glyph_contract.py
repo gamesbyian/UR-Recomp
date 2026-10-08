@@ -41,7 +41,7 @@ class ModernPadGlyphContractTests(unittest.TestCase):
         self.assertIn('"ENTER / PAD A CONFIRM"', source)
         self.assertIn('"ESC / PAD B CANCEL"', source)
         self.assertIn('"ENTER/PAD A PLAY"', source)
-        self.assertIn('"ESC/F7 / PAD B BACK"', source)
+        self.assertIn('"B BACK  F8/PAD X RECORDS"', source)
         self.assertNotIn("live_gamepad_binding_label(6) + \" CONFIRM\"", source)
         self.assertNotIn("live_gamepad_binding_label(7) + \" CANCEL\"", source)
         # SNES-X-triggered actions keep the live glyph.

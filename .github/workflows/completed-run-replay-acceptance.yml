@@ -517,6 +517,37 @@ jobs:
           grep -q "UR_RECORDS_BROWSER PROFILE_OPEN profile=alpha runs=1 tracks=1 active=0" "$LOG"
           grep -q "UR_RECORDS_BROWSER PROFILES_ACCEPTANCE pause=1 opened=1 profiles_opened=1 profiles=2 drilled=1 profile=alpha tracks=1 runs=1 handoff_allowed=0 returned=1" "$LOG"
 
+      - name: Browse Records read-only from the settled main menu
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/records-main-menu-root"
+          LOG="$RUNNER_TEMP/records-main-menu.log"
+
+          mkdir -p "$USER_ROOT/runs/default"
+          cp "$ORIGINAL" "$USER_ROOT/runs/default/run-0001.urrun"
+          printf 'seen-v1\n' > "$USER_ROOT/onboarding-v1.seen"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_RECORDS_BROWSER_ACCEPTANCE=main-menu \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              >"$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_RECORDS_BROWSER OPENED_FROM_MAIN_MENU" "$LOG"
+          grep -q "UR_RECORDS_BROWSER MAIN_MENU_ACCEPTANCE opened=1 paused=0 courses=1 runs=1 local_runs_refused=1 closed=1 admissible_after=1" "$LOG"
+          if grep -q "UR_RUN_BROWSER REPLAY_LAUNCHED" "$LOG"; then
+            echo "::error::Main-menu Records launched replay"
+            exit 1
+          fi
+
       - name: Fail closed on malformed profile catalog
         shell: bash
         run: |

@@ -205,6 +205,8 @@ bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
 ur::product::QuickPracticeAvailability g_practice_picker_availability;
 bool g_progress_overview_visible = false;
+// Read-only Records opened over the settled main menu by the product layer.
+bool g_frontend_records_open = false;
 bool g_progress_overview_draw_reported = false;
 ur::title::StockTourProgressOverview g_progress_overview;
 std::optional<std::string> g_progress_overview_profile_id;
@@ -3971,6 +3973,7 @@ bool host_owns_human_player_input() {
     return modern_mode() &&
            (g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
+            g_frontend_records_open ||
             g_practice_picker.visible ||
             g_progress_overview_visible ||
             practice_routing() ||
@@ -7207,6 +7210,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (g_progress_overview_visible && key == SDLK_F8) {
+        close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+        (void)ur_uniracers_product_open_frontend_records();
+        return 1;
+    }
     if (g_progress_overview_visible) {
         if (key == SDLK_ESCAPE || key == SDLK_F7 ||
             key == SDLK_RETURN || key == SDLK_KP_ENTER) {
@@ -7447,6 +7455,26 @@ extern "C" int ur_uniracers_modern_controls_active(void) {
     return modern_mode() && g_controls_visible ? 1 : 0;
 }
 
+extern "C" int ur_uniracers_modern_settled_main_menu(void) {
+    return modern_mode() && g_ram && !paused() &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 ? 1 : 0;
+}
+
+extern "C" int ur_uniracers_modern_frontend_records_admissible(void) {
+    // Any other host modal or route keeps ownership; Records never stacks.
+    return ur_uniracers_modern_settled_main_menu() &&
+        !g_frontend_records_open && !host_owns_human_player_input() &&
+        !g_practice_active && !g_exit_frontend_waiting_for_main &&
+        !g_exit_frontend_waiting_for_usable ? 1 : 0;
+}
+
+extern "C" void ur_uniracers_modern_set_frontend_records_open(int open) {
+    // The closing edge keeps the latch so a held Escape/B cannot reach the
+    // stock menu underneath on a later frame.
+    if (g_frontend_records_open && !open) g_suppress_human_input_once = true;
+    g_frontend_records_open = open != 0;
+}
+
 extern "C" int ur_uniracers_modern_subview_active(void) {
     // Paused help (F1) is a full panel too; it owns the footer hint area.
     return modern_mode() &&
@@ -7617,6 +7645,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (g_progress_overview_visible) {
         if (host_confirm || host_back) {
             if (pressed) close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+            return 1;
+        }
+        // Physical X hands Progress off to the read-only Records browser.
+        if (button == kGamepadBtn_X) {
+            if (pressed) {
+                close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+                (void)ur_uniracers_product_open_frontend_records();
+            }
             return 1;
         }
         return -1;
@@ -8136,7 +8172,7 @@ bool frontend_modal_hold_wanted() {
         g_frontend_options_active && (g_options_visible || g_controls_visible);
     return g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings ||
-        onboarding_surface_active();
+        g_frontend_records_open || onboarding_surface_active();
 }
 
 void update_frontend_modal_hold() {
@@ -8591,7 +8627,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
-            "ESC/F7 / PAD B BACK",
+            "B BACK  F8/PAD X RECORDS",
             ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 188 * scale,

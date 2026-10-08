@@ -97,6 +97,19 @@ class GuestPauseAudioAcceptanceTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "non-negative finite"):
             pause_phase_report(pcm, stats, min_resumed_to_before=-0.1)
 
+    def test_windows_pause_acceptance_uses_measured_limits_only(self):
+        workflow = (ROOT / ".github/workflows/windows-native-audio-output.yml").read_text()
+        pause = workflow.split("      - name: Capture stock guest Start pause/resume audio envelopes", 1)[1]
+        pause = pause.split("      - name: Upload bounded audio evidence", 1)[0]
+        self.assertIn("--max-paused-to-before 0.05", pause)
+        self.assertIn("--min-resumed-to-before 0.50", pause)
+        self.assertIn("--max-new-audible-drops 0", pause)
+        self.assertIn("--max-post-startup-underflows 0", pause)
+        self.assertIn("--max-post-startup-missing-frames 0", pause)
+        self.assertIn("--min-rms 0 --min-nonzero-fraction 0", pause)
+        self.assertIn("tools/build_audio_pause_route.py", pause)
+        self.assertNotIn("poke ", pause)
+
     def test_invalid_or_dropped_source_audio_rejected(self):
         pcm, stats = self.fixtures()
         stats["ui-pause-after-start"]["deltas"]["dropped_audible"] = 1

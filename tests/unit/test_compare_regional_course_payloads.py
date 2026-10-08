@@ -142,6 +142,40 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
                 tool.parse_course_resource_list(europe),
             )
 
+    def test_header_coordinate_world_delta_retains_both_pairs(self):
+        tool = load_tool()
+        usa = {
+            "spawn_or_landmark_a": [99, 26],
+            "spawn_or_landmark_b": [99, 34],
+        }
+        europe = {
+            "spawn_or_landmark_a": [99, 22],
+            "spawn_or_landmark_b": [99, 34],
+        }
+        result = tool.compare_header_world_landmarks(usa, europe)
+        self.assertEqual(
+            result["spawn_or_landmark_a"]["europe_minus_usa_world"], [0, -64]
+        )
+        self.assertEqual(
+            result["spawn_or_landmark_b"]["europe_minus_usa_world"], [0, 0]
+        )
+        self.assertEqual(result["spawn_or_landmark_a"]["usa_world"], [1584, 416])
+        self.assertEqual(result["spawn_or_landmark_a"]["europe_world"], [1584, 352])
+
+    def test_invalid_header_pair_fails_closed(self):
+        tool = load_tool()
+        with self.assertRaisesRegex(ValueError, "must contain X and Y"):
+            tool.compare_header_world_landmarks(
+                {
+                    "spawn_or_landmark_a": [99],
+                    "spawn_or_landmark_b": [99, 34],
+                },
+                {
+                    "spawn_or_landmark_a": [99, 22],
+                    "spawn_or_landmark_b": [99, 34],
+                },
+            )
+
     def test_actual_changed_course_set(self):
         tool = load_tool()
         report = tool.build_report(
@@ -177,6 +211,15 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
             self.assertLessEqual(
                 placed["changed_c000_selectors"], placed["changed_world_cells"]
             )
+        for row in report["courses"]:
+            coord = row["candidate_world_landmarks"]
+            delta_a = coord["spawn_or_landmark_a"]["europe_minus_usa_world"]
+            delta_b = coord["spawn_or_landmark_b"]["europe_minus_usa_world"]
+            self.assertEqual(delta_b, [0, 0])
+            if row["stream_index"] == 4:
+                self.assertEqual(delta_a, [0, -64])
+            else:
+                self.assertEqual(delta_a, [0, 0])
         by_id = {row["stream_index"]: row for row in report["courses"]}
         self.assertEqual(
             by_id[26]["resource_ids"]["europe"],

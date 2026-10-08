@@ -52,6 +52,29 @@ def diff_stats(a: bytes, b: bytes) -> dict:
     }
 
 
+def compare_header_world_landmarks(usa: dict, europe: dict) -> dict:
+    """Compare decoded 16-unit world-coordinate *candidates*, without naming slots.
+
+    The canonical Dragster loader corroborates a 16-world-unit scale for the
+    two coordinate pairs. Other courses still need runtime tests to assign
+    racer P1/P2 or a start/finish meaning to these fields.
+    """
+    out = {}
+    for key in ("spawn_or_landmark_a", "spawn_or_landmark_b"):
+        left = usa[key]
+        right = europe[key]
+        if len(left) != 2 or len(right) != 2:
+            raise ValueError("decoded coordinate pair must contain X and Y")
+        out[key] = {
+            "usa_world": [int(value) * 16 for value in left],
+            "europe_world": [int(value) * 16 for value in right],
+            "europe_minus_usa_world": [
+                (int(b) - int(a)) * 16 for a, b in zip(left, right)
+            ],
+        }
+    return out
+
+
 def decoded_streams(path: Path) -> list[bytes]:
     rom = path.read_bytes()
     return [unpack_method1(packed) for _off, packed, _header in find_streams(rom)]
@@ -255,6 +278,7 @@ def build_report(usa_path: Path = USA, europe_path: Path = EUROPE) -> dict:
                     "usa": u["resource_ids"],
                     "europe": e["resource_ids"],
                 },
+                "candidate_world_landmarks": compare_header_world_landmarks(u, e),
                 "changed_regions": changed_regions,
                 "effective_surface": effective_surface_delta(usa, eur, u, e),
                 "regions": region_diffs,
@@ -262,7 +286,7 @@ def build_report(usa_path: Path = USA, europe_path: Path = EUROPE) -> dict:
         )
 
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "purpose": (
             "Mechanical decoded-region comparison for the retail course payloads "
             "that differ between USA and Europe."
@@ -331,6 +355,26 @@ def markdown(report: dict) -> str:
             f'{spatial["changed_world_cells"]} | '
             f'{spatial["changed_c000_selectors"]} | '
             f'{spatial["changed_unclassified_upper_word_bits"]} |'
+        )
+
+    lines += [
+        "",
+        "## Decoded header coordinate candidates (16 world units per header unit)",
+        "",
+        "The scale is accepted for the initial Dragster coordinates. A/B",
+        "player-slot or start/finish semantics on modified retail courses",
+        "require independent runtime confirmation.",
+        "",
+        "| # | Course | A: Europe − USA (X,Y world units) | B: Europe − USA (X,Y world units) |",
+        "|---:|---|---|---|",
+    ]
+    for row in report["courses"]:
+        pairs = row["candidate_world_landmarks"]
+        da = pairs["spawn_or_landmark_a"]["europe_minus_usa_world"]
+        db = pairs["spawn_or_landmark_b"]["europe_minus_usa_world"]
+        lines.append(
+            f'| {row["stream_index"]} | {row["course_name"]} | '
+            f'{da} | {db} |'
         )
 
     lines += ["", "## Region detail", ""]

@@ -532,6 +532,8 @@ bool launch_selected_replay() {
     }
 
     if (!snesrecomp_desktop_load_relative_input_file(input_path.c_str())) {
+        // A failed load must leave no staged controller stream armed.
+        (void)snesrecomp_desktop_load_relative_input_file(nullptr);
         clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_LOAD_FAILED");
         return false;

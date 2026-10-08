@@ -97,3 +97,24 @@ prove exactly which guest samples correspond to those output frames, that
 the effect/music arrangement matches the reference, or that hardware speaker
 latency is acceptable. More precise claims still require actual aligned
 reference PCM evidence.
+
+## Three named native audio checkpoints
+
+The cross-core Snes9x/Beetle startup reference is kept in
+`reference/notes/audio-startup-seam.md` and
+`analysis/generated/audio-startup-reference-summary.json`. Its essential
+semantic observations are audible main-menu, Now Playing and first-race
+windows, each keyed to that emulator's own guest-frame checkpoint. Native
+Windows acceptance now uses `tools/build_audio_checkpoint_route.py` to stop
+the **same canonical first-race input script** at each of those three named
+`dump` commands. Each phase runs in an independent fresh process with its own
+SDL3 disk output, production audio counters and disposable user-data root.
+A missing checkpoint, silent final half-second, malformed disk format or
+invalid audio stats fails closed for that phase.
+
+The workflow reports three tail RMS/peak/nonzero measurements and per-phase
+queue counters. Their relative behavior can be inspected against the two
+independent emulators, but hashes of different-length, different-timing PCM
+files cannot demonstrate a sound-track transition. Soundfont provenance,
+exact notes, SFX triggers, DSP envelope/echo, and frame-accurate playback
+still require a stronger state-aligned native/reference oracle.

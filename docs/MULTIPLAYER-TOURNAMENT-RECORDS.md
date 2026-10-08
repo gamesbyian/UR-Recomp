@@ -1,6 +1,6 @@
 # Multiplayer / Tournament Records Authority
 
-Status: Records destination exists. Ordinary-2P Race result, two-profile participant identity and canonical course identity are fail-closed authority seams; paired `.urrun` + `UR-MULTIPLAYER-MATCH/1` persistence is checksum/course bound and same-directory staged before catalog-visible publication. The Modern local-multiplayer join surface supplies two explicit profile identities independently of device assignment. Production ordinary-2P capture wiring is now present; dedicated native fresh-process acceptance is the remaining production closure gate.
+Status: Records destination exists. Ordinary-2P Race result, two-profile participant identity and canonical course identity are fail-closed authority seams; paired `.urrun` + `UR-MULTIPLAYER-MATCH/1` persistence is checksum/course bound and same-directory staged before catalog-visible publication. The Modern local-multiplayer join surface supplies two explicit profile identities independently of device assignment. Production ordinary-2P capture wiring is present and its dedicated native fresh-process acceptance is green on `main` (Shared Modern native acceptance run `37709847500`, `e17d167`, ordinary-2P shard). Aggregate tournament history over the persisted pairs is the next step; it must derive only from validated pairs, never from session-local assignment or 1P artifacts.
 
 ## Existing reusable substrate
 

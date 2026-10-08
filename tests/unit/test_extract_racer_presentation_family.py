@@ -243,7 +243,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     encode_bgr555([bad])
         with self.assertRaises(ValueError):
-            decode_bgr555(b"\\x01")
+            decode_bgr555(bytes([1]))
 
     def test_palette_entry_and_bgr555_roundtrip(self):
         rom = bytearray(0x20000)

@@ -45,6 +45,15 @@ int main(int argc, char** argv) {
     text << in.rdbuf();
     assert(text.str() == encode_completed_run_input_file(run));
 
+#if defined(__linux__)
+    // A buffered stream may accept write() but fail on flush/close. Never
+    // report a staged replay as ready if the disk could not receive it.
+    detail.clear();
+    assert(!stage_completed_run_replay_input_file("/dev/full", run, &detail));
+    assert(detail == "cannot write replay input" ||
+           detail == "cannot finish replay input");
+#endif
+
     auto invalid = run;
     invalid.inputs[1].start_frame = 10;
     assert(!stage_completed_run_replay_input_file(

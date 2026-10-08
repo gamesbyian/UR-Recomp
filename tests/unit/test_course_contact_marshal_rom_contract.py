@@ -26,6 +26,13 @@ PLAYER_CALLS = {
     "P1_contact_surface_collision": ("81:8DD6", "202a9e20958b20b88f"),
     "P2_contact_surface_collision": ("81:8F2A", "202a9e20958b20b88f"),
 }
+FRAME_DISPATCH_MARSHAL = {
+    "P1_frame_dispatch_load": ("82:89BB", "ac950e8c090f"),
+    "P2_frame_dispatch_load": ("82:8EC3", "ac970e8c090f"),
+    "P1_object_dispatch_call": ("82:8C32", "22e28281"),
+    "P2_object_dispatch_call": ("82:911C", "22e28281"),
+}
+
 DISPATCH = {
     "course_checkpoint_handler_reads_shared_word": ("81:805D", "ad090f29001c"),
     "course_dispatcher_reads_shared_word": ("81:82ED", "ad090f"),
@@ -45,7 +52,8 @@ class CourseContactMarshalContractTests(unittest.TestCase):
 
     def test_exact_instruction_bytes_match_canonical_rom(self):
         for name, (address, expected) in {
-            **MARSHAL, **PLAYER_CALLS, **DISPATCH
+            **MARSHAL, **PLAYER_CALLS, **DISPATCH,
+            **FRAME_DISPATCH_MARSHAL,
         }.items():
             with self.subTest(name=name, address=address):
                 self.assertEqual(
@@ -65,6 +73,21 @@ class CourseContactMarshalContractTests(unittest.TestCase):
                     rom_span(beta, address, expected_hex),
                     bytes.fromhex(expected_hex),
                 )
+
+    def test_stored_player_word_enters_shared_course_dispatch(self):
+        # Each bank-82 per-player dispatch loads the stored collision word
+        # from its own backing address into the shared scratch before the
+        # same long checkpoint/object dispatch entry, on the USA ROM.
+        self.assertEqual(
+            bytes.fromhex(FRAME_DISPATCH_MARSHAL["P1_frame_dispatch_load"][1]),
+            bytes.fromhex("ac950e8c090f"),
+        )
+        self.assertEqual(
+            bytes.fromhex(FRAME_DISPATCH_MARSHAL["P2_frame_dispatch_load"][1]),
+            bytes.fromhex("ac970e8c090f"),
+        )
+        self.assertLess(0x89BB, 0x8C32)
+        self.assertLess(0x8EC3, 0x911C)
 
     def test_marshalling_brackets_preserve_player_isolation(self):
         p1in = bytes.fromhex(MARSHAL["P1_load_0E95_to_0F09"][1])

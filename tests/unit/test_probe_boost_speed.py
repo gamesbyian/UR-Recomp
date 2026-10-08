@@ -1,6 +1,7 @@
 import json
 import pathlib
 import sys
+import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -41,9 +42,31 @@ class BoostSpeedProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.summarize(_rows(pairs[:3]))
 
+    def test_load_rows_requires_every_full_in_race_dump(self):
+        def image(track=19, race=1, size=0x20000):
+            wram = bytearray(size)
+            if size > 0x313:
+                wram[0x00CE], wram[0x0313] = track, race
+            return bytes(wram)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            d = pathlib.Path(tmp)
+            for i in range(probe.FRAMES + 1):
+                (d / f"s{i:03d}.wram.bin").write_bytes(image())
+            self.assertEqual(len(probe.load_rows(d)), probe.FRAMES + 1)
+            last = d / f"s{probe.FRAMES:03d}.wram.bin"
+            for bad in (image(size=100), image(track=0), image(race=0)):
+                last.write_bytes(bad)
+                with self.assertRaises(probe.jf.EvidenceError):
+                    probe.load_rows(d)
+            last.unlink()
+            with self.assertRaises(probe.jf.EvidenceError):
+                probe.load_rows(d)
+
     def test_committed_evidence_native_matches_and_the_law_holds(self):
         evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
         self.assertEqual(evidence["kind"], "boost-speed-probe")
+        self.assertIn("controlled-state", evidence["qualification"])
         self.assertEqual([c["seed"] for c in evidence["cases"]], list(probe.SEEDS))
         for case in evidence["cases"]:
             ref, nat = case["reference"], case["native"]

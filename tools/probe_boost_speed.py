@@ -52,12 +52,18 @@ def read_row(wram: bytes) -> dict:
 
 
 def load_rows(directory: Path) -> list[dict]:
+    """Every frame must be a full WRAM image of an active Jumpover race."""
     rows = []
     for i in range(FRAMES + 1):
         path = directory / f"s{i:03d}.wram.bin"
         if not path.exists():
-            break
-        rows.append(read_row(path.read_bytes()))
+            raise jf.EvidenceError(f"missing dump {path}")
+        wram = path.read_bytes()
+        if len(wram) != jf.WRAM_SIZE:
+            raise jf.EvidenceError(f"{path}: {len(wram)} bytes, expected a {jf.WRAM_SIZE}-byte WRAM image")
+        if wram[0x00CE] != jf.JUMPOVER_TRACK_ID or wram[0x0313] != 0x01:
+            raise jf.EvidenceError(f"{path}: not an active Jumpover race")
+        rows.append(read_row(wram))
     return rows
 
 
@@ -130,8 +136,6 @@ def main(argv=None) -> int:
             nat_log = jf.run_native(work, args, script, events, shift)
         ref_rows, nat_rows = load_rows(work / "ref"), load_rows(work / "native")
         divergence = next((i for i, (a, b) in enumerate(zip(ref_rows, nat_rows)) if a != b), None)
-        if len(ref_rows) != len(nat_rows):
-            divergence = divergence if divergence is not None else min(len(ref_rows), len(nat_rows))
         ref_summary, nat_summary = summarize(ref_rows), summarize(nat_rows)
         nat_summary.pop("series")  # identical when first_divergence_frame is null
         case = {"seed": value, "reference": ref_summary, "native": nat_summary,
@@ -146,6 +150,8 @@ def main(argv=None) -> int:
     evidence = {
         "schema_version": 1,
         "kind": "boost-speed-probe",
+        "qualification": ("controlled-state measurement: each case writes P1's boost meter "
+                          "(7E:11CF) once at a frame boundary and observes what the game does with it"),
         "course": {"id": "course:20", "name": "Jumpover", "track_id": jf.JUMPOVER_TRACK_ID},
         "sram_sha256": hashlib.sha256(args.sram.read_bytes()).hexdigest(),
         "reference_race_entry_frame": ref_race,

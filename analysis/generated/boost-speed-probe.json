@@ -241,6 +241,7 @@
   "frames": 40,
   "kind": "boost-speed-probe",
   "native_race_entry_offset_frames": 9,
+  "qualification": "controlled-state measurement: each case writes P1's boost meter (7E:11CF) once at a frame boundary and observes what the game does with it",
   "reference_race_entry_frame": 1088,
   "schema_version": 1,
   "seed_frame_after_race_entry": 222,

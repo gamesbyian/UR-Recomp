@@ -1,6 +1,7 @@
 #include "modern_text_layout.hpp"
 
 #include <cassert>
+#include <limits>
 
 using namespace ur::product;
 
@@ -77,6 +78,57 @@ int main() {
     assert(!resolve_modern_text_layout(invalid).visible);
     assert(modern_text_raster_scale(normal, 0) == 0);
     assert(modern_text_raster_scale(normal, 5) == 0);
+
+    // Malformed or extreme UI envelopes must fail closed without signed
+    // overflow, even when an impossible Large request falls back to Standard.
+    constexpr int kMax = std::numeric_limits<int>::max();
+    ModernTextLayoutRequest huge_width = standard;
+    huge_width.box_width = kMax;
+    huge_width.box_height = kMax;
+    huge_width.max_characters = kMax;
+    huge_width.standard_glyph_width = kMax;
+    huge_width.horizontal_padding = kMax;
+    const auto width_overflow = resolve_modern_text_layout(huge_width);
+    assert(!width_overflow.visible);
+    assert(width_overflow.required_width == 0);
+
+    ModernTextLayoutRequest huge_height = standard;
+    huge_height.box_height = kMax;
+    huge_height.row_count = kMax;
+    huge_height.standard_line_height = kMax;
+    huge_height.vertical_padding = kMax;
+    const auto height_overflow = resolve_modern_text_layout(huge_height);
+    assert(!height_overflow.visible);
+    assert(height_overflow.required_height == 0);
+
+    ModernTextLayoutRequest large_overflow = standard;
+    large_overflow.box_width = kMax;
+    large_overflow.box_height = kMax;
+    large_overflow.max_characters = 1;
+    large_overflow.row_count = 1;
+    large_overflow.horizontal_padding = 0;
+    large_overflow.vertical_padding = 0;
+    large_overflow.standard_glyph_width = kMax / 2 + 1;
+    large_overflow.standard_glyph_height = 1;
+    large_overflow.standard_line_height = 1;
+    large_overflow.requested = ModernTextSize::Large;
+    const auto safe_fallback = resolve_modern_text_layout(large_overflow);
+    assert(safe_fallback.visible);
+    assert(safe_fallback.fell_back);
+    assert(safe_fallback.resolved == ModernTextSize::Standard);
+    assert(safe_fallback.required_width == kMax / 2 + 1);
+
+    ModernTextLayoutRequest exact_boundary = standard;
+    exact_boundary.box_width = kMax;
+    exact_boundary.box_height = 20;
+    exact_boundary.max_characters = kMax;
+    exact_boundary.row_count = 1;
+    exact_boundary.horizontal_padding = 0;
+    exact_boundary.vertical_padding = 0;
+    exact_boundary.standard_glyph_width = 1;
+    const auto boundary = resolve_modern_text_layout(exact_boundary);
+    assert(boundary.visible);
+    assert(boundary.required_width == kMax);
 
     return 0;
 }

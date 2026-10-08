@@ -8,6 +8,7 @@ on:
       - "native/product/local_multiplayer_*.cpp"
       - "native/product/local_tournament_round_robin.hpp"
       - "native/product/local_tournament_fixture_receipt.hpp"
+      - "native/product/local_tournament_receipt_restore.hpp"
       - "native/product/local_tournament_fixture_launch*.hpp"
       - "native/product/local_tournament_fixture_launch_store.cpp"
       - "tests/native/local_tournament_fixture_launch_store_test.cpp"
@@ -24,6 +25,8 @@ on:
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/native/local_tournament_round_robin_test.cpp"
       - "tests/native/local_tournament_fixture_receipt_test.cpp"
+      - "tests/native/local_tournament_receipt_restore_test.cpp"
+      - "tests/unit/test_local_tournament_receipt_restore_cpp.py"
       - "tests/unit/test_local_tournament_fixture_receipt_cpp.py"
       - "tests/unit/test_local_tournament_round_robin_cpp.py"
       - "tests/native/multiplayer_match_record_test.cpp"
@@ -56,6 +59,7 @@ jobs:
           python3 -m unittest \
             tests.unit.test_local_tournament_round_robin_cpp \
             tests.unit.test_local_tournament_fixture_receipt_cpp \
+            tests.unit.test_local_tournament_receipt_restore_cpp \
             tests.unit.test_local_tournament_fixture_launch_cpp \
             tests.unit.test_local_tournament_fixture_launch_store_cpp \
             tests.unit.test_local_multiplayer_setup_cpp \

@@ -88,6 +88,7 @@ jobs:
           rm -rf "$ROOT" "$PCM"
           mkdir -p "$ROOT"
           trap 'rm -f "$PCM"' EXIT
+          set +e
           SDL_VIDEO_DRIVER=windows \
           SDL_VIDEODRIVER=windows \
           SDL_AUDIO_DRIVER=disk \
@@ -103,17 +104,23 @@ jobs:
             python -m tools.capture_modern_restart_audio \
               "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
               --json-out "$OUT"
+          AUDIO_RC=$?
+          set -e
+          # Retain real Release APU and SDL callback counters even if Restart
+          # playback is silent. The analysis is independent of the PCM gate.
+          if test -s "$STATS"; then
+            python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+              --json-out "$RUNNER_TEMP/audio-modern-restart-queue.json"
+          fi
+          if test "$AUDIO_RC" -ne 0; then
+            echo "WINDOWS_MODERN_RESTART_AUDIO FAIL rc=$AUDIO_RC (diagnostic evidence retained)"
+            exit "$AUDIO_RC"
+          fi
           python tools/analyze_sdl_disk_audio.py "$LOG_WIN" "$PCM_WIN" \
             --min-duration-seconds 15 \
             --min-channel-rms 50 \
             --tail-seconds 1.0 --min-tail-rms 50 --min-tail-channel-rms 50 \
             --json-out "$RUNNER_TEMP/audio-modern-restart-whole-output.json"
-          # Always run the bounded production counter reducer when available,
-          # even if Restart sound fails. This isolates source/ring starvation
-          # independently of the PCM envelope; no audio content is retained.
-          if test -s "$STATS"; then
-            python tools/analyze_snesrecomp_audio_stats.py "$STATS"               --json-out "$RUNNER_TEMP/audio-modern-restart-queue.json"
-          fi
           test -s "$OUT"
           echo "WINDOWS_REAL_MODERN_RESTART_AUDIO PASS"
           rm -f "$PCM"

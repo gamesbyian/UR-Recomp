@@ -96,7 +96,9 @@ inline std::string encode_local_tournament_pending_fixture(
         "round " + std::to_string(p.round) + "\n"
         "first " + local_tournament_launch_hex(p.first_profile_key) + "\n"
         "second " + local_tournament_launch_hex(p.second_profile_key) + "\n"
-        "course " + p.course_id + "\n";
+        "course " + p.course_id + "\n"
+        "schedule " + local_tournament_launch_hex64(
+            p.immutable_schedule_digest) + "\n";
     const std::string encoded = body + "checksum " +
         local_tournament_launch_hex64(local_tournament_launch_fnv64(body)) +
         "\n";
@@ -109,7 +111,7 @@ decode_local_tournament_pending_fixture(std::string_view bytes) {
     if (bytes.empty() || bytes.size() > kLocalTournamentLaunchMaxBytes) {
         return std::nullopt;
     }
-    std::array<std::string_view, 9> lines{};
+    std::array<std::string_view, 10> lines{};
     std::size_t offset = 0;
     for (auto& line : lines) {
         const std::size_t end = bytes.find('\n', offset);
@@ -133,26 +135,36 @@ decode_local_tournament_pending_fixture(std::string_view bytes) {
     const auto first = val(lines[5], "first ");
     const auto second = val(lines[6], "second ");
     const auto course = val(lines[7], "course ");
-    const auto seal = val(lines[8], "checksum ");
+    const auto schedule = val(lines[8], "schedule ");
+    const auto seal = val(lines[9], "checksum ");
     if (!tournament || !attempt || !fixture || !round || !first ||
-        !second || !course || !seal || seal->size() != 16u) {
+        !second || !course || !schedule || !seal ||
+        schedule->size() != 16u || seal->size() != 16u) {
         return std::nullopt;
     }
-    for (const char ch : *seal) {
-        if (!((ch >= '0' && ch <= '9') ||
-              (ch >= 'a' && ch <= 'f'))) return std::nullopt;
+    for (const auto field : {*seal, *schedule}) {
+        for (const char ch : field) {
+            if (!((ch >= '0' && ch <= '9') ||
+                  (ch >= 'a' && ch <= 'f'))) return std::nullopt;
+        }
     }
-    const std::size_t body_end = bytes.size() - lines[8].size() - 1u;
+    const std::size_t body_end = bytes.size() - lines[9].size() - 1u;
     if (local_tournament_launch_hex64(
             local_tournament_launch_fnv64(bytes.substr(0, body_end))) !=
         *seal) return std::nullopt;
 
     std::size_t fixture_index = 0, round_index = 0;
+    std::uint64_t immutable_digest = 0;
+    const auto hash = std::from_chars(
+        schedule->data(), schedule->data() + schedule->size(),
+        immutable_digest, 16);
     const auto f = std::from_chars(
         fixture->data(), fixture->data() + fixture->size(), fixture_index);
     const auto n = std::from_chars(
         round->data(), round->data() + round->size(), round_index);
-    if (f.ec != std::errc{} ||
+    if (hash.ec != std::errc{} ||
+        hash.ptr != schedule->data() + schedule->size() ||
+        f.ec != std::errc{} ||
         f.ptr != fixture->data() + fixture->size() ||
         n.ec != std::errc{} ||
         n.ptr != round->data() + round->size()) {
@@ -164,6 +176,7 @@ decode_local_tournament_pending_fixture(std::string_view bytes) {
     LocalTournamentPendingFixture pending{
         std::string(*tournament), std::string(*attempt),
         fixture_index, round_index, *p1, *p2, std::string(*course),
+        immutable_digest,
     };
     // Encoding is the sole canonical spelling, including fixed key order,
     // lowercase hex, decimal integers and exactly one final newline.

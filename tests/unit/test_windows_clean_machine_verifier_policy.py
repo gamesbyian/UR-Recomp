@@ -15,6 +15,13 @@ SCRIPT = ROOT / "tools" / "Test-URRecompPortable.ps1"
 DOC = ROOT / "docs" / "WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md"
 
 
+def _canonical_rom_digest() -> str:
+    for line in (ROOT / "rom_identity.txt").read_text(encoding="utf-8").splitlines():
+        if line.startswith("sha256="):
+            return line.split("=", 1)[1].strip()
+    raise AssertionError("Missing canonical ROM SHA-256 in rom_identity.txt")
+
+
 class CleanMachineVerifierPolicyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -56,6 +63,17 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             (catalog / "catalog.json").write_bytes(b"{}\n")
             rom = root / package.ROM_NAME
             rom.write_bytes(b"synthetic rom data")
+            # Build a testing-only verifier with the synthetic ROM digest:
+            # production must retain the real retail fingerprint. This
+            # preserves a lightweight ROM-free unit test for packaging.
+            canonical_sha = _canonical_rom_digest()
+            synthetic_sha = hashlib.sha256(rom.read_bytes()).hexdigest()
+            self.assertNotEqual(synthetic_sha, canonical_sha)
+            fixture_script = root / "Test-URRecompPortable-synthetic.ps1"
+            fixture_script.write_text(
+                self.script.replace(canonical_sha, synthetic_sha),
+                encoding="utf-8",
+            )
             output = root / "assembled"
             package.assemble(build, rom, output, "synthetic-clean-machine-test")
             archive = root / "UR-Recomp-Windows-x64.zip"
@@ -65,16 +83,31 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             destination = root / "fresh install with spaces"
             cmd = [
                 pwsh, "-NoProfile", "-NonInteractive",
-                "-File", str(SCRIPT), "-Archive", str(archive),
+                "-File", str(fixture_script), "-Archive", str(archive),
                 "-Checksum", str(checksum), "-Destination", str(destination),
             ]
             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("UR_PORTABLE_ARCHIVE_VERIFIED", result.stdout)
+            self.assertIn("UR_PORTABLE_ROM_IDENTITY_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_MANIFEST_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
             self.assertTrue(
                 (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
+            )
+            # The actual, unmodified shipping verifier must reject this
+            # self-consistent ZIP because its ROM is synthetic, even though
+            # both the manifest and adjacent release checksum match.
+            noncanonical = cmd.copy()
+            noncanonical[4] = str(SCRIPT)
+            noncanonical[-1] = str(root / "wrong rom must be rejected")
+            wrong_rom = subprocess.run(
+                noncanonical, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(wrong_rom.returncode, 0)
+            self.assertIn(
+                "Packaged ROM does not match canonical USA retail identity",
+                wrong_rom.stderr,
             )
             # A second extraction to the same location must refuse overlay.
             again = subprocess.run(cmd, capture_output=True, text=True, check=False)
@@ -122,6 +155,20 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
+
+    def test_retail_rom_fingerprint_is_independently_pinned(self):
+        digest = _canonical_rom_digest()
+        self.assertRegex(digest, r"\A[0-9a-f]{64}\Z")
+        self.assertIn(f"$canonicalRomSha256 = '{digest}'", self.script)
+        self.assertIn(
+            "Packaged ROM does not match canonical USA retail identity",
+            self.script,
+        )
+        self.assertIn("UR_PORTABLE_ROM_IDENTITY_VERIFIED", self.script)
+        self.assertLess(
+            self.script.index("$digest -cne $canonicalRomSha256"),
+            self.script.index("UR_PORTABLE_MANIFEST_VERIFIED"),
+        )
 
     def test_uses_stock_windows_powershell_only(self):
         self.assertIn("#requires -Version 5.1", self.script)

@@ -44,6 +44,7 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
+#include "../title/uniracers_practice_tour_unlock.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
 #include "recent_course_origin.hpp"
@@ -191,8 +192,7 @@ ur::product::QuickPracticeLaunchState g_practice_launch;
 ur::product::QuickPracticeSelection g_practice_picker;
 bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
-const ur::product::QuickPracticeAvailability g_practice_picker_availability =
-    ur::product::quick_practice_normal_tours_only();
+ur::product::QuickPracticeAvailability g_practice_picker_availability;
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
 ur::product::RecentCourseOriginState g_recent_course_origin;
@@ -2969,6 +2969,24 @@ bool open_practice_picker() {
         g_exit_frontend_waiting_for_usable) {
         return false;
     }
+    if (!g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+    const std::uint8_t stock_rider = g_sram[0x0748];
+    if (g_profile_state && g_profile_state->racer_identity &&
+        g_profile_state->racer_identity->rider_index != stock_rider) {
+        return false;
+    }
+    const auto stock_tour_options = ur::title::stock_practice_tour_option_mask(
+        g_sram, static_cast<std::size_t>(g_sram_size), stock_rider);
+    if (!stock_tour_options) {
+        product_diagnostic("UR_PRACTICE_PICKER UNLOCK_SOURCE_INVALID");
+        return false;
+    }
+    g_practice_picker_availability =
+        ur::product::quick_practice_availability_from_tour_options(
+            *stock_tour_options);
     const std::uint8_t initial_track =
         recent_course_available_for_active_profile()
             ? *g_recent_course_track_id : 0;

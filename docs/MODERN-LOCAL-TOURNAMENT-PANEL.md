@@ -40,7 +40,7 @@ Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off t
 
 ## Remaining gaps
 
-1. Windows package: the gate above exists; record its first green run ID here once executed.
+1. **[done] Windows package:** green in run 37852389769 (windows-2022, ZIP from main's smoke run 37851158377, head `1056fe8`): the extracted portable ZIP, run through `run-uniracers.cmd` with an isolated user-data root, completed join → panel → minted event → stock 2P race → receipt → champion notice, then a relaunched packaged process restored Standings and History. Re-run it per release candidate against that candidate's smoke run.
 2. Native multi-session continuation of a 3+ entrant event: rotate seated pairs across fixtures and finish the event over several processes. The two-entrant relaunch path (restore → Standings → History) is proven.
 3. Completed-event history is a summary list only (no per-event standings drill-down) and is not yet mirrored in Records → Multiplayer/Tournament.
 4. Multi-leg continuation is native-proven up to arming leg 2 from the results screen (`run_modern_local_tournament_legs_acceptance.sh`); racing leg 2 to a complete best-of-three is not yet automated.

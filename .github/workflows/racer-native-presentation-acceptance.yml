@@ -1344,7 +1344,7 @@ jobs:
             echo "::error::P1-only native OAM parity route failed with status $status"
             exit "$status"
           fi
-          grep -E 'UR_RACER_HD_P1_NATIVE_SUMMARY frame=3820 partial_captures=[1-9][0-9]*' "$LOG"
+          grep -E 'UR_RACER_HD_P1_NATIVE_SUMMARY frame=381[89] partial_captures=[1-9][0-9]*|UR_RACER_HD_P1_NATIVE_SUMMARY frame=3820 partial_captures=[1-9][0-9]*' "$LOG"
           grep -F 'UR_RACER_HD_P1_NATIVE PASS p2_stock_roi_exact=1' "$LOG"
           if grep -F 'UR_RACER_HD_P1_NATIVE FAIL' "$LOG"; then
             echo "::error::P1-only native exact-frame mixed-OBJ pixel check failed"

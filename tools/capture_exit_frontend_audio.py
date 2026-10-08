@@ -20,8 +20,8 @@ from tools.capture_modern_paused_audio import _stop_entire_tree
 from tools.analyze_sdl_disk_audio import analyze
 
 RACE = re.compile(r"(?m)^script f=(\d+) dump race-entered ok\s*$")
-RETURN_MAIN = re.compile(r"(?m)^script f=(\d+) dump audio-returned-main ok\s*$")
-RETURN_RIDER = re.compile(r"(?m)^script f=(\d+) dump audio-returned-rider ok\s*$")
+RETURN_MAIN = re.compile(r"(?m)^script f=(\d+) dump exit-frontend-ready ok\s*$")
+RETURN_RIDER = re.compile(r"(?m)^script f=(\d+) dump exit-frontend-usable ok\s*$")
 TRIGGER = re.compile(r"(?m)^UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=1 pause=\d+ exit=\d+\s*$")
 REQUEST = re.compile(r"(?m)^UR_EXIT_FRONTEND REQUESTED source=\d+ sram=[0-9A-Fa-f]+ practice=\d+\s*$")
 READY = re.compile(r"(?m)^UR_EXIT_FRONTEND FRONTEND_READY menu=D7 sram=[0-9A-Fa-f]+\s*$")

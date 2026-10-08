@@ -10,7 +10,7 @@ The v1 primary representation contains strong game/ROM/build/course/mode provena
 
 P1/P2 input capacity does not by itself make v1 a multiplayer standings record. Durable participant identity and authoritative terminal match-result semantics are still absent from production Records; that boundary is specified in `MULTIPLAYER-TOURNAMENT-RECORDS.md`.
 
-native/product/completed_run_record.{hpp,cpp} owns the typed record, strict validation, persistence checksum, compatibility checks and replay lookup.
+native/product/completed_run_record.{hpp,cpp} owns the typed record, strict validation, persistence checksum, compatibility checks and replay lookup. A local `.urrun` is bounded to 64 MiB at both the direct decoder and incremental file reader, before checksum parsing or compatibility decisions. Oversized/malformed run files remain unavailable in Local Runs/Records without allocating an unbounded buffer; a valid neighboring run is unaffected. This changes no v1 encoding, controller timestamps, or authorized replay/finish semantics.
 
 ## Replay interoperability
 

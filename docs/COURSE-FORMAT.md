@@ -678,6 +678,12 @@ finish-gate or lap state. The next decoder/runtime experiment must
 correlate the state of the handler, selected slot and active contact
 point rather than assuming all cells of resource 0x24 are equivalent.
 
+The observed P1 center Y=857 is seven world units above the nearest
+slot-8 candidate cell band Y=864..879, ten below the Y=832..847 band,
+and 42 below Y=800..815. The world-cell correlation tool now reports
+this center-to-cell proximity explicitly as a *ranking* only, never as
+a claimed contact-point location.
+
 The retained snapshot has P1 Y=857 but does not preserve the exact
 selected collision probe/contact Y or the footprint of the contacting
 racer. It therefore does not resolve which of the repeated Y cells

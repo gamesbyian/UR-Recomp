@@ -49,6 +49,10 @@ An additional final-`main` Windows acceptance step runs the **actual released ga
 
 The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies. The import audit proves link-time and declared delay-load dependencies only; DLLs loaded dynamically via runtime APIs remain subject to extracted-package boot acceptance and cannot be certified by static PE inspection alone. This is a Windows 10/11 portable policy, not a claim of compatibility with older Windows versions.
 
+## Release readiness is broader than package correctness
+
+A valid portable ZIP is **eligible for internal playtesting**; it is not automatically a beta or release candidate. The canonical cross-feature QA programme and physical consumer requirements are in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md), J-01/J-10 and the [release ledger](RELEASE-QUALITY-LEDGER.json). Record the exact tested ZIP SHA and source revision for each physical GPU/controller/audio/refresh-rate witness and do not substitute historical Windows-runner green jobs for final-candidate evidence. Include crashes during profile/run/tournament writes, power interruption limitations, user-facing diagnostics and restore/upgrade paths. Legal/ROM distribution policy remains separate for any future public artifact.
+
 ## Independent Windows handoff
 
 The successful `ur-recomp-windows-x64-portable` artifact contains three

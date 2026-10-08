@@ -4,6 +4,10 @@ Status: SDL3 disk-backend PCM capture and fail-closed metrics tooling available;
 **native music/SFX fidelity is not yet closed**. This is a playback-device
 evidence lane, not a replacement for ROM-derived SPC/DSP reference rendering.
 
+## Release-level audio QA gate (2026-10-08)
+
+QA-06 in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) remains **unverified**. Genuine packaged SDL PCM output, correct channel rate and RMS/underflow envelopes prove output-path operation; they do not prove faithful melody, instrument envelope, sound priority, accurate SFX, latency or speaker/headphone experience. Previous same-volume A/A runs had substantially different captured windows. Require guest/sound-command-aligned original/native windows, transition/click tests after pause/resume/restart/exit, extended time drift and different real playback devices; report evidence denominators and physical hardware provenance. J-17 owns the combined session.
+
 ## Source and ownership
 
 The pinned SNESRecomp desktop host renders the original SNES audio via

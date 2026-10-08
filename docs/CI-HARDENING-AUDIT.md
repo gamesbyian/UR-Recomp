@@ -7,6 +7,10 @@ failure cascade. It distinguishes mechanical CI defects that can be prevented
 centrally from semantic acceptance contracts that require deliberate product
 decisions.
 
+## Evidence authority beyond CI green
+
+Cross-subsystem quality has an independent adversarial programme: [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md), with scenario matrix [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) and candidate-bound [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json). CI speed and workflow health remain separate from gameplay/UX evidence quality. A skipped validation is unknown; source-derived tests sharing the same fixture aren't independent witnesses. Do not let exact build packaging, doc-only commits, or an automatically successful workflow set a release gate to passed without a complete named L4/L5 witness. Coordinate changes to automatic workflows with the CI-speed owner.
+
 ## Scope
 
 The audit covered all workflows under `.github/workflows/`. The repository

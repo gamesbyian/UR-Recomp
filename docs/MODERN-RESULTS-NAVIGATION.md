@@ -1,6 +1,6 @@
 # Modern Results Navigation Contract
 
-Status: bounded Windows x64 implementation contract; production wiring is carried by PR #698 and remains gated on its dedicated native acceptance before `main` can claim the slice.
+Status: bounded Windows x64 implementation contract, **implemented by subsequent merged work**. The earlier PR #698 was closed unmerged and is historical, not an outstanding release gate. The current production results-route state is tracked in `WORK-QUEUE.md` and verified per candidate in QA J-11.
 
 ## Purpose
 

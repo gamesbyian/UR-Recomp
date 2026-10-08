@@ -125,3 +125,30 @@ dispatch, explaining why the observed 0x2024 and the finish-state transition
 land in adjacent frame-end snapshots. This is an **inference about call
 scheduling**, not yet a confirmed one-frame causal delay. An
 instruction-time trace at 82:89BB / 82:8C32 and 81:8DF3 is needed.
+
+
+## Race frame ordering: course dispatch precedes new surface sampling
+
+At USA 83:CD4E the main race path executes JSL $8289B5, entering the
+bank-82 per-player object/update sequence. The P1 object dispatch
+within that path reads the stored P1 collision word at 82:89BB and
+calls 81:82E2 at 82:8C32. Its P2 counterpart reads its backing word
+at 82:8EC3 and calls the same handler at 82:911C.
+
+Only **later in the same caller sequence**, at 83:CD73, does the code
+execute JSL $818D14, the bank-81 per-racer contact-shape/surface/collision
+update. The USA ROM bytes for both long calls and the bank-82 wrapper
+are now pinned in tests.
+
+This gives a concrete frame-phase model for the retained Dragster tail:
+a postframe P1 word 0x2024 seen at guest frame 2902 can be the *stored
+input* to the next frame's object dispatch, which first mutates
+finish/checkpoint state at guest frame 2903, while that frame's later
+surface sampler produces postframe P1 word 0x2020. This is consistent
+with the observed transition and both handler gate snapshots.
+
+The call order is ROM-proven for this main-race path. The strict
+one-frame dispatch-input equality still depends on the path being
+followed and no intervening call modifying the saved contact word;
+an instruction-time trace is the final discriminator. No collision,
+lap, checkpoint or frame timing logic has been changed.

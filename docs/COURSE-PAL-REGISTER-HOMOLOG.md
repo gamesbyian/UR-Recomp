@@ -47,3 +47,32 @@ collision physics, input handling, player state, menus, or course
 selection. Once actual PAL register identities are confirmed, the next
 dynamic discriminator is a native/reference PAL race-contact snapshot
 aligned to the correctly selected course.
+
+
+## ROM-verified mapping, October 8 follow-up
+
+Full canonical-ROM unit run reported unique, coherent bank-82 P1/P2
+load pairs and all four corresponding bank-81 enter/exit transfers for
+each build. Its preserved register report yielded:
+
+| Build | P1 backing | P2 backing | Shared dispatcher word | Shift from USA |
+|---|---|---|---|---:|
+| USA retail | 0E95 | 0E97 | 0F09 | +0 |
+| Legacy beta | 0E95 | 0E97 | 0F09 | +0 |
+| PAL prototype 1994-11-29 | 0E99 | 0E9B | 0F0D | +4 |
+| Europe retail | 0E9F | 0EA1 | 0F13 | +10 |
+
+The per-build operand tuples and uniqueness are now regression-pinned,
+not inferred from an unbounded similarity search. This closes the
+**structural register mapping** across all four preserved builds.
+Runtime state observation, dispatcher call timing and finish-line event
+behavior in PAL remain separate empirical questions.
+
+An important orthogonal course-data fact: the existing
+analysis/generated/rnc-stream-manifest.json contains equal
+unpacked SHA-256s for **all 45** course streams in USA retail, legacy
+beta and the November PAL prototype. Europe retail differs at exactly
+indices 4, 16, 20, 26, 27, 35 and 36. Thus PAL's +4 register relocation
+is not evidence that the prototype uses different course bytes; the
+same decoded course content can run against differently placed WRAM
+fields.

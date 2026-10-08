@@ -14,7 +14,7 @@ class RaceResultPacingResearchTest(unittest.TestCase):
                   "if differ:", "hashlib.sha256(p.read_bytes()).hexdigest()",
                   "if len(required) != 18"):
             self.assertIn(x,nav)
-        self.assertIn("ui-race-result-route:ui-race-result-dumps",w.split("  aggregate:",1)[1])
+        self.assertIn('--dump-dir "$RUNNER_TEMP/ui-race-result-dumps"',w.split("  aggregate:",1)[1])
         script=(ROOT/"tests/input/ui-race-result-route.script").read_text()
         self.assertEqual(sum(x.startswith("dump ") for x in script.splitlines()),18)
         self.assertIn("UR_RECORDS_ISOLATED_CONFIG_ROOT PASS",w)

@@ -442,3 +442,43 @@ attenuation/recovery and zero-post-startup-starvation gates remain required.
 The Modern host-owned pause path may stop simulation and continue host
 presentation; this original guest Start envelope cannot substitute for
 that separate acceptance.
+
+
+## Packaged Windows Modern Volume output effectiveness
+
+The existing Modern Options Volume row delegates to SNESRecomp's original
+`[Sound] Volume` mechanism; Linux native acceptance proves a
+real UI selection changes the framework configuration and survives process
+exit, with no second Modern host-owned volume store. That does not, by
+itself, prove the chosen volume actually affects the signed-16 stereo
+stream arriving at the Windows SDL3 device.
+
+The Windows specialist audio workflow now stages three additional
+independent processes over one disposable **shared framework user-data
+root**, using the existing production `UR_VOLUME_OPTIONS_ACCEPTANCE`
+hook and canonical `modern-focus-pause.script` route:
+
+1. **before / verify:** reach a real 1P race and record both device PCM and
+   the framework's loaded Volume percentage, then quit;
+2. **adjust:** traverse the actual host pause menu, Options and Volume row,
+   using the existing two Left presses plus Enter; require the three
+   framework Volume observations, then quit;
+3. **after / verify:** start a fresh process with the same user data and
+   observe the selected Volume percentage loaded from the framework's
+   persistence layer, again recording real SDL3 device output.
+
+The `tools/analyze_windows_volume_output.py` reducer fails
+closed unless the framework's initial value, UI-selected value and
+fresh-process loaded value agree with the established **minus-five-point**
+UI acceptance contract. It also verifies that both non-synthetic Windows
+capture summaries represent audible stereo SDL3 S16 output at 44.1 kHz,
+then reports relative whole-capture and final-one-second stereo RMS
+amplitudes **within that one Windows route**. Raw PCM remains disposable;
+only logs and bounded metrics are uploaded.
+
+**No acoustic gain threshold is yet imposed:** a change in a nominal
+framework Volume percentage does not establish an exact linear amplitude
+law across all music/SFX, startup/exit timing or SDL queue phases. First
+measure paired fresh-process output and its run-to-run repeatability.
+This volume test does not modify the framework mixer, route, sound assets,
+pause/Restart lifecycle or user-facing Options behaviour.

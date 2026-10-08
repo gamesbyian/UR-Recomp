@@ -34,6 +34,34 @@ void set_slot(
 }  // namespace
 
 int main() {
+    // A sprite's 8-bit Y is modulo 256, not modulo the 224 visible rows.
+    // Row 250 itself is below the visible image, but source row 6 wraps to 0.
+    // Row 224 remains offscreen even though the hardware sprite exists there.
+    for (int scale = 1; scale <= 4; ++scale) {
+        const auto project = [scale](std::uint8_t y, int source_row) {
+            return racer_obj_wrapped_output_row(y, source_row, scale);
+        };
+        assert(project(0, 0) == 0);
+        assert(project(200, 23 * scale) == 223 * scale);
+        assert(project(200, 24 * scale) == -1);
+        assert(project(250, 0) == -1);
+        assert(project(250, 6 * scale - 1) == -1);
+        assert(project(250, 6 * scale) == 0);
+        assert(project(250, 63 * scale) == 57 * scale);
+        assert(project(255, 0) == -1);
+        assert(project(255, scale) == 0);
+        assert(racer_split_viewport_contains_row(
+            RacerViewport::Top, project(250, 6 * scale), scale
+        ));
+        assert(!racer_split_viewport_contains_row(
+            RacerViewport::Bottom, project(250, 6 * scale), scale
+        ));
+        assert(project(0, -1) == -1);
+        assert(project(0, 64 * scale) == -1);
+    }
+    assert(racer_obj_wrapped_output_row(250, 6, 0) == -1);
+    assert(racer_obj_wrapped_output_row(250, 6, 5) == -1);
+
     // The top pair is 98/99: 98 is in front, so 99 paints first.
     // The bottom pair is 97/96: 96 is in front, so 97 paints first.
     assert(racer_obj_paints_behind(99, 98));

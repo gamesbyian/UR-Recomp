@@ -1,7 +1,7 @@
 import pathlib
 import unittest
 
-from tools.build_audio_checkpoint_route import CHECKPOINTS, checkpoint_route
+from tools.build_audio_checkpoint_route import CHECKPOINTS, POST_CHECKPOINT_FRAMES, checkpoint_route
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "tests" / "input" / "reach-first-race.script"
@@ -14,14 +14,22 @@ class NativeAudioCheckpointRouteTests(unittest.TestCase):
         for checkpoint in CHECKPOINTS:
             with self.subTest(checkpoint=checkpoint):
                 script = checkpoint_route(source, checkpoint)
-                self.assertTrue(script.endswith(f"dump {checkpoint}\nquit\n"))
+                self.assertTrue(script.endswith(
+                    f"dump {checkpoint}\n"
+                    f"wait {POST_CHECKPOINT_FRAMES}\n"
+                    f"dump {checkpoint}-audio-post\nquit\n"
+                ))
                 self.assertEqual(script.count("\nquit\n"), 1)
                 self.assertGreater(len(script), previous_length)
-                # No stock guest button/route command may appear after the
-                # selected dump: only an early process quit is appended.
+                # After the selected checkpoint only bounded passive input,
+                # an observed tail-frame marker, then a clean quit may follow.
                 previous_length = len(script)
                 before, final = script.rsplit(f"dump {checkpoint}\n", 1)
-                self.assertEqual(final, "quit\n")
+                self.assertEqual(
+                    final,
+                    f"wait {POST_CHECKPOINT_FRAMES}\n"
+                    f"dump {checkpoint}-audio-post\nquit\n",
+                )
                 self.assertFalse(any(x.startswith("poke ") for x in script.splitlines()))
                 self.assertTrue(any(x.startswith("until ") for x in before.splitlines()))
 

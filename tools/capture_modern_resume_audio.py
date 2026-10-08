@@ -127,9 +127,23 @@ def _find_game_window(root_pid: int) -> int:
                            if int(p["ParentProcessId"]) in descendants)
         changed = len(descendants) != before
 
-    user32 = ctypes.windll.user32
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
     candidates = []
     callback_type = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HWND, wintypes.LPARAM)
+    # HWND is pointer-sized on Win64. Bare ctypes calls default to 32-bit
+    # integers and can silently truncate handles, defeating real input.
+    user32.GetWindowThreadProcessId.argtypes = [
+        wintypes.HWND, ctypes.POINTER(wintypes.DWORD)]
+    user32.GetWindowThreadProcessId.restype = wintypes.DWORD
+    user32.IsWindowVisible.argtypes = [wintypes.HWND]
+    user32.IsWindowVisible.restype = wintypes.BOOL
+    user32.GetWindowTextLengthW.argtypes = [wintypes.HWND]
+    user32.GetWindowTextLengthW.restype = ctypes.c_int
+    user32.GetWindowTextW.argtypes = [
+        wintypes.HWND, ctypes.POINTER(wintypes.WCHAR), ctypes.c_int]
+    user32.GetWindowTextW.restype = ctypes.c_int
+    user32.EnumWindows.argtypes = [callback_type, wintypes.LPARAM]
+    user32.EnumWindows.restype = wintypes.BOOL
 
     @callback_type
     def visit(hwnd, _):
@@ -153,7 +167,10 @@ def _find_game_window(root_pid: int) -> int:
 
 
 def _press_resume(hwnd: int) -> None:
-    user32 = ctypes.windll.user32
+    user32 = ctypes.WinDLL("user32", use_last_error=True)
+    user32.PostMessageW.argtypes = [
+        wintypes.HWND, wintypes.UINT, wintypes.WPARAM, wintypes.LPARAM]
+    user32.PostMessageW.restype = wintypes.BOOL
     # The ordinary SDL Windows event pump interprets Escape, not this tool.
     VK_ESCAPE, WM_KEYDOWN, WM_KEYUP = 0x1B, 0x0100, 0x0101
     down = 1 | (0x01 << 16)

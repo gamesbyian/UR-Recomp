@@ -246,7 +246,8 @@ jobs:
               > "$LOG" 2>&1
 
           cat "$LOG"
-          grep -q "UR_HOST_STATE LOADED .*widescreen=16x9 internal_render_scale=1x" "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*widescreen=16x9" "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*internal_render_scale=1x" "$LOG"
           grep -q "UR_RENDER_SCALE APPLIED scale=1x" "$LOG"
           grep -q "UR_RUN_GHOST DRAWN" "$LOG"
           grep -q "UR_RUN_RECORD CAPTURED" "$LOG"

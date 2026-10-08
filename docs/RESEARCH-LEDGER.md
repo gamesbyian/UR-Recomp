@@ -2694,9 +2694,9 @@ Native smoke gates all of this.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
 - No `docs/SYMBOLS.md` change.
 
-### R-2026-10-08-PHYS-03 — Boost→speed law, ramp, cap and depletion on the ground and in the air, identical in native
+### R-2026-10-08-PHYS-03 — Boost→speed law, ramp, cap, depletion and offscreen decay, identical in native
 
-**Status:** confirmed (ground and airborne; offscreen depletion still open)  
+**Status:** confirmed (ground, airborne, offscreen; the fast-drain trigger is still open)  
 **Date:** 2026-10-08  
 **Area:** physics
 
@@ -2710,7 +2710,9 @@ Native smoke gates all of this.
 - Depletion grows with the meter and saturates. Over 22 flat frames the meter loses 0 (≤ 32), 4 (64), 16 (96), 28 (128) and 88 (4 per frame) for every seed from 256 up. It keeps depleting through 1–2-frame airborne bumps.
 - The stored meter is not clamped: a 0x400 seed is still above 0x180 a frame later. The statically localized `0x0180` clamp is therefore on the reward-add path, not on storage or the speed read.
 - **Airborne:** seeding just before the halfpipe jump (B held 20 frames from race +372) gives 26–30 airborne frames. The meter drains at the ground rate in the air (64: 4 over 29 frames; 128: 24 over 30; 256: 96 over 26), and air X speed follows the same `min(448 + boost/2, 640)` law within ±1. Nothing is stored for landing, so the "airborne storage" claim does not describe stock behavior.
-- Native and snesref series are identical for all ten ground seeds and all three airborne seeds (hash and frame-by-frame).
+- **Offscreen:** with a full meter seeded on the straight (race +242) and a 40-frame jump from the first crest (race +264), P1 leaves its viewport (`7E:121B` = 1, screen X/Y fallback 0x70) for 18 frames while moving right. On every offscreen airborne frame that is neither fresh off a bounce nor already law-limited, X speed falls by exactly 3 (584 → 581 → 578 → 575 → 572; 510 → … → 495), matching Nitrodon's `82:A6FE` offscreen branch (`SBC #3` toward zero on `$0F9F`). "Offscreen depletion" is this X-speed decay, not a meter rule.
+- **Fast drain:** the same run drains the meter by 16–20 per frame on some frames (both airborne and on a climb at the 640 cap), versus ≤ 4 per frame in the flat and short-air windows. The trigger is not identified yet; the values are recorded.
+- Native and snesref series are identical for all ten ground seeds, all three airborne seeds and the offscreen run (hash and frame-by-frame).
 
 **Evidence:**
 - `analysis/generated/boost-speed-probe.json` from `tools/probe_boost_speed.py` (manual harness, same requirements as the Jumpover probe).
@@ -2724,5 +2726,5 @@ Native smoke gates all of this.
 
 **Propagation:**
 - `docs/knowledge/movement-physics-and-stunts.md` (game-facing boost law).
-- Still open under (d): offscreen depletion (the P2/offscreen decrement path).
+- Still open under (d): what triggers the 16–20/frame fast meter drain.
 - No `docs/SYMBOLS.md` change.

@@ -51,6 +51,16 @@ class BoostSpeedProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.summarize_air([{"x_speed": 448, "boost": 0, "y": 539, "air_time": 0}])
 
+    def test_offscreen_summary_ignores_bounces_and_law_limited_frames(self):
+        def row(xs, boost, air, off):
+            return {"x_speed": xs, "boost": boost, "y": 400, "air_time": air, "offscreen": off}
+        rows = [row(584, 400, 9, 1), row(581, 380, 9, 1), row(578, 360, 9, 1),
+                row(470, 340, 0, 1), row(491, 320, 1, 1),           # bounce
+                row(488, 80, 9, 1), row(480, 64, 9, 1)]            # law-limited
+        summary = probe.summarize_offscreen(rows)
+        self.assertEqual(summary["offscreen_airborne_x_speed_deltas"], [-3])
+        self.assertEqual(summary["meter_drain_values_per_frame"], [16, 20, 240])
+
     def test_load_rows_requires_every_full_in_race_dump(self):
         def image(track=19, race=1, size=0x20000):
             wram = bytearray(size)
@@ -103,6 +113,14 @@ class BoostSpeedProbeTests(unittest.TestCase):
             self.assertLessEqual(ref["max_law_deviation_airborne"], 1, case["seed"])
         air = {c["seed"]: c["reference"] for c in evidence["air_cases"]}
         self.assertGreater(air[256]["boost_spent_airborne"], 3 * (air[256]["airborne_run"][1] - air[256]["airborne_run"][0]))
+        # Offscreen: the stock -3/frame X-speed decay (82:A6FE) while above the
+        # viewport, native-identical; the run also shows the fast 16-20/frame drain.
+        off = evidence["offscreen_case"]
+        self.assertIsNone(off["first_divergence_frame"])
+        self.assertEqual(off["reference"]["series_sha256"], off["native"]["series_sha256"])
+        self.assertGreaterEqual(off["reference"]["offscreen_frames"], 10)
+        self.assertEqual(off["reference"]["offscreen_airborne_x_speed_deltas"], [-3])
+        self.assertIn(20, off["reference"]["meter_drain_values_per_frame"])
         # Depletion saturates at 4 per frame from 256 up.
         self.assertEqual(by_seed[256]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)
         self.assertEqual(by_seed[0x400]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)

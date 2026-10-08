@@ -34,15 +34,22 @@ SEEDS = (0, 16, 32, 64, 96, 128, 256, 0x180, 0x200, 0x400)
 AIR_SEED_OFFSET = 364
 AIR_JUMP = (372, 20)
 AIR_SEEDS = (64, 128, 256)
+# Offscreen scenario: a full meter seeded on the straight and a 40-frame
+# jump from the first crest carries P1 above its viewport (7E:121B set)
+# while still moving right.
+OFFSCREEN_SEED = (242, 0x400)          # (frames after race entry, value)
+OFFSCREEN_JUMP = (264, 40)
+OFFSCREEN_FRAMES = 90
 BASE_SPEED = 448        # hold-Right ground speed with an empty meter
 SPEED_CAP = 640
 
 
-def boost_script(race_frame: int, value: int, seed_offset: int = SEED_OFFSET) -> str:
+def boost_script(race_frame: int, value: int, seed_offset: int = SEED_OFFSET,
+                 frames: int = FRAMES) -> str:
     seed = race_frame + seed_offset
     lines = [jf.MENU_SCRIPT.rstrip("\n"), f"wait {seed - race_frame}",
              f"poke 11CF {value & 0xFF:02x}{value >> 8:02x}", "dump s000"]
-    for i in range(1, FRAMES + 1):
+    for i in range(1, frames + 1):
         lines += ["wait 1", f"dump s{i:03d}"]
     lines.append("quit")
     return "\n".join(lines) + "\n"
@@ -54,13 +61,14 @@ def read_row(wram: bytes) -> dict:
         "boost": struct.unpack_from("<H", wram, 0x11CF)[0],
         "y": struct.unpack_from("<H", wram, 0x0415)[0],
         "air_time": wram[0x0545],
+        "offscreen": wram[0x121B],
     }
 
 
-def load_rows(directory: Path) -> list[dict]:
+def load_rows(directory: Path, frames: int = FRAMES) -> list[dict]:
     """Every frame must be a full WRAM image of an active Jumpover race."""
     rows = []
-    for i in range(FRAMES + 1):
+    for i in range(frames + 1):
         path = directory / f"s{i:03d}.wram.bin"
         if not path.exists():
             raise jf.EvidenceError(f"missing dump {path}")
@@ -99,6 +107,24 @@ def summarize(rows: list[dict]) -> dict:
         "max_ramp_step": max(ramp, default=0),
         "boost_spent_on_flat": flat[0]["boost"] - flat[-1]["boost"],
         "airborne_frames": sum(1 for r in rows if r["air_time"]),
+        "series_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(),
+    }
+
+
+def summarize_offscreen(rows: list[dict]) -> dict:
+    """Per-frame X-speed change on offscreen airborne frames that are neither
+    fresh off a bounce nor already limited by the boost law; plus the per-frame
+    meter drain values seen in the run."""
+    off_deltas = sorted({rows[i]["x_speed"] - rows[i - 1]["x_speed"] for i in range(1, len(rows))
+                         if rows[i]["offscreen"] and rows[i - 1]["offscreen"]
+                         and rows[i]["air_time"] >= 3 and rows[i - 1]["air_time"] >= 3
+                         and rows[i - 1]["x_speed"] < law_speed(rows[i - 1]["boost"]) - 4})
+    drains = sorted({rows[i - 1]["boost"] - rows[i]["boost"] for i in range(1, len(rows))})
+    return {
+        "series": " ".join(f'{r["x_speed"]}/{r["boost"]}/{r["air_time"]}/{r["offscreen"]}' for r in rows),
+        "offscreen_frames": sum(1 for r in rows if r["offscreen"]),
+        "offscreen_airborne_x_speed_deltas": off_deltas,
+        "meter_drain_values_per_frame": drains,
         "series_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(),
     }
 
@@ -199,8 +225,34 @@ def main(argv=None) -> int:
                           "law_dev": ref_summary["max_law_deviation_airborne"],
                           "divergence": divergence}), flush=True)
 
+    work = args.work_dir / "offscreen"
+    shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True)
+    script = work / "boost.script"
+    seed_at, seed_value = OFFSCREEN_SEED
+    script.write_text(boost_script(ref_race, seed_value, seed_at, OFFSCREEN_FRAMES))
+    jump_at, jump_len = OFFSCREEN_JUMP
+    events = [(ref_race, jump_at, 0x0080), (ref_race + jump_at, jump_len, 0x0081),
+              (ref_race + jump_at + jump_len, OFFSCREEN_FRAMES + 40, 0x0080)]
+    jf.run_reference(work, args, script, events)
+    jf.run_native(work, args, script, events, shift or 0)
+    ref_rows = load_rows(work / "ref", OFFSCREEN_FRAMES)
+    nat_rows = load_rows(work / "native", OFFSCREEN_FRAMES)
+    off_div = next((i for i, (a, b) in enumerate(zip(ref_rows, nat_rows)) if a != b), None)
+    off_ref, off_nat = summarize_offscreen(ref_rows), summarize_offscreen(nat_rows)
+    off_nat.pop("series")
+    ok &= off_div is None
+    offscreen_case = {"seed_frame_after_race_entry": seed_at, "seed": seed_value,
+                      "jump": {"frame_after_race_entry": jump_at, "frames": jump_len, "mask": "0x081"},
+                      "frames": OFFSCREEN_FRAMES, "reference": off_ref, "native": off_nat,
+                      "first_divergence_frame": off_div}
+    print(json.dumps({"offscreen_frames": off_ref["offscreen_frames"],
+                      "offscreen_deltas": off_ref["offscreen_airborne_x_speed_deltas"],
+                      "drains": off_ref["meter_drain_values_per_frame"],
+                      "divergence": off_div}), flush=True)
+
     evidence = {
-        "schema_version": 2,
+        "schema_version": 3,
         "kind": "boost-speed-probe",
         "qualification": ("controlled-state measurement: each case writes P1's boost meter "
                           "(7E:11CF) once at a frame boundary and observes what the game does with it"),
@@ -218,6 +270,7 @@ def main(argv=None) -> int:
         "air_seed_frame_after_race_entry": AIR_SEED_OFFSET,
         "air_jump": {"frame_after_race_entry": AIR_JUMP[0], "frames": AIR_JUMP[1], "mask": "0x081"},
         "air_cases": air_cases,
+        "offscreen_case": offscreen_case,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")

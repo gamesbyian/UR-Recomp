@@ -2,89 +2,13 @@ name: Shared Modern native acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - ".github/workflows/modern-shared-native-acceptance.yml"
-      - "native/presentation/completed_run_ghost_racer_selector.*"
-      - "native/presentation/completed_run_ghost_raster.*"
-      - "native/product/completed_run_browser.*"
-      - "native/product/completed_run_browser_host.*"
-      - "native/product/completed_run_capture.*"
-      - "native/product/completed_run_catalog.*"
-      - "native/product/completed_run_comparison.*"
-      - "native/product/completed_run_ghost.*"
-      - "native/product/completed_run_ghost_frame.*"
-      - "native/product/completed_run_ghost_policy.*"
-      - "native/product/completed_run_ghost_projection.*"
-      - "native/product/completed_run_ghost_target.hpp"
-      - "native/product/completed_run_ghost_trace.*"
-      - "native/product/completed_run_ghost_world_sample.*"
-      - "native/product/completed_run_presentation.*"
-      - "native/product/completed_run_record.*"
-      - "native/product/completed_run_replay.*"
-      - "native/product/completed_run_store.*"
-      - "native/product/local_multiplayer_*.cpp"
-      - "native/product/local_multiplayer_*.hpp"
-      - "native/product/modern_results_navigation.hpp"
-      - "native/product/modern_tour_continue.hpp"
-      - "native/product/modern_tour_entry_policy.hpp"
-      - "native/product/multiplayer_match_record.*"
-      - "native/product/next_event_derivation.hpp"
-      - "native/product/run_record_capture_policy.hpp"
-      - "native/product/uniracers_modern_host.cpp"
-      - "native/title/uniracers_course_identity.*"
-      - "native/title/uniracers_run_data.*"
-      - "native/title/uniracers_tour_resume.*"
-      - "native/title/uniracers_two_player_result.*"
-      - "tests/input/completed-run-replay-dragster.script"
-      - "tests/input/modern-practice-repeat-results.script"
-      - "tests/input/modern-results-navigation*.script"
-      - "tests/input/race-finish-dragster.script"
-      - "tests/input/two-player-p1-win.input"
-      - "tests/input/two-player-records-acceptance.input"
-      - "tests/input/two-player-records-acceptance.script"
-      - "tests/native/completed_run_browser_test.cpp"
-      - "tests/native/completed_run_catalog_test.cpp"
-      - "tests/native/completed_run_ghost_frame_test.cpp"
-      - "tests/native/completed_run_ghost_policy_test.cpp"
-      - "tests/native/completed_run_ghost_projection_test.cpp"
-      - "tests/native/completed_run_ghost_racer_selector_test.cpp"
-      - "tests/native/completed_run_ghost_raster_test.cpp"
-      - "tests/native/completed_run_ghost_test.cpp"
-      - "tests/native/completed_run_ghost_trace_check.cpp"
-      - "tests/native/completed_run_ghost_trace_test.cpp"
-      - "tests/native/completed_run_ghost_world_sample_test.cpp"
-      - "tests/native/completed_run_presentation_test.cpp"
-      - "tests/native/completed_run_replay_compare.cpp"
-      - "tests/native/completed_run_replay_test.cpp"
-      - "tests/native/completed_run_store_test.cpp"
-      - "tests/native/modern_results_navigation_test.cpp"
-      - "tests/native/modern_tour_continue_test.cpp"
-      - "tests/native/multiplayer_match_pair_check.cpp"
-      - "tests/native/run_modern_results_navigation_acceptance.sh"
-      - "tests/unit/test_completed_run_browser_cpp.py"
-      - "tests/unit/test_completed_run_catalog_cpp.py"
-      - "tests/unit/test_completed_run_ghost_cpp.py"
-      - "tests/unit/test_completed_run_ghost_frame_cpp.py"
-      - "tests/unit/test_completed_run_ghost_policy_cpp.py"
-      - "tests/unit/test_completed_run_ghost_projection_cpp.py"
-      - "tests/unit/test_completed_run_ghost_racer_selector_cpp.py"
-      - "tests/unit/test_completed_run_ghost_raster_cpp.py"
-      - "tests/unit/test_completed_run_ghost_trace_cpp.py"
-      - "tests/unit/test_completed_run_ghost_world_sample_cpp.py"
-      - "tests/unit/test_completed_run_presentation_cpp.py"
-      - "tests/unit/test_completed_run_replay_cpp.py"
-      - "tests/unit/test_completed_run_store_cpp.py"
-      - "tests/unit/test_modern_results_navigation_cpp.py"
-      - "tests/unit/test_modern_results_navigation_host_contract.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/patch_modern_product_host.py"
-      - "tools/patches/snesrecomp-frame-input-observation.patch"
-      - "tools/patches/snesrecomp-live-input-reload.patch"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/toolchain-entries/sdl3.json"
-      - "tools/toolchain-entries/snesrecomp.json"
+  workflow_call:
+    inputs:
+      canonical_candidate:
+        description: Reuse the caller run's canonical Modern native candidate
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: modern-shared-native-acceptance-${{ github.ref }}
@@ -99,7 +23,35 @@ jobs:
       - name: Check out project
         uses: actions/checkout@v4
 
+      - name: Download canonical Modern native candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: ${{ runner.temp }}/modern-native-canonical-artifact
+
+      - name: Bridge canonical candidate into Shared Modern artifact contract
+        if: ${{ inputs.canonical_candidate == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/modern-native-canonical-artifact/modern-native-canonical.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/modern-native-canonical/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          rm -rf "$RUNNER_TEMP/shared-modern-native"
+          mv "$RUNNER_TEMP/modern-native-canonical" "$RUNNER_TEMP/shared-modern-native"
+          tar -czf "$RUNNER_TEMP/shared-modern-native.tar.gz" -C "$RUNNER_TEMP" shared-modern-native
+
+      - name: Upload bridged Shared Modern native candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/shared-modern-native.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Install desktop build dependencies
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           cmake --version
@@ -112,9 +64,11 @@ jobs:
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
+        if: ${{ inputs.canonical_candidate != true }}
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Stage framework and SDL3
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -122,6 +76,7 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
 
       - name: Build shared Modern native candidate
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -152,6 +107,7 @@ jobs:
           tar -czf "$RUNNER_TEMP/shared-modern-native.tar.gz" -C "$RUNNER_TEMP" shared-modern-native
 
       - name: Upload shared Modern native candidate
+        if: ${{ inputs.canonical_candidate != true }}
         uses: actions/upload-artifact@v4
         with:
           name: shared-modern-native-candidate

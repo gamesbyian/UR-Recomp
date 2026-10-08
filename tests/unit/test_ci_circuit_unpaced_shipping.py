@@ -31,7 +31,8 @@ class IsolatedUnpacedCircuitAcceptanceTest(unittest.TestCase):
             "ui-circuit-result-dumps 120 required || exit $?", section,
         )
         self.assertIn("              ) || exit $?", section)
-        self.assertEqual(workflow.count("DisableFrameDelay = 1"), 1)
+        self.assertEqual(section.count("printf '[General]"), 1)
+        self.assertEqual(section.count("grep -Fqx 'DisableFrameDelay = 1'"), 1)
         self.assertNotIn("run_route ui-stunt-result-route ", workflow)
 
     def test_existing_eleven_frame_state_dumps_and_aggregate_retained(self):

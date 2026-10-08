@@ -75,7 +75,8 @@ gate. With the ordinary `UR_RACER_HD=1` master switch enabled and
 `[97,99)` rather than the normal full `[96,100)`, preserving stock P2.
 This new route is disabled by default. It requires both live P1 placements
 to satisfy the same 64×64 size contracts as the full-pair renderer, valid P2
-placement data, identical top-half OBJ priority levels and provably
+placement data, identical top-half OBJ priority levels, disabled hardware OAM
+priority rotation and provably
 **nonintersecting** P1/P2 lower-view rectangles after signed X,
 modulo-256 Y, visible-field and scanline-112 clipping. Unknown or
 overlapping cases return to the complete stock frame without arming OBJ

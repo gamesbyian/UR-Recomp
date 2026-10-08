@@ -51,11 +51,11 @@ class WindowsPortableBinaryTests(unittest.TestCase):
             "VCRUNTIME140.dll", "MSVCP140.dll", "vcomp140.dll",
         ):
             with self.subTest(name=name):
-                with self.assertRaisesRegex(ValueError, name.replace(".", r"\.")):
+                with self.assertRaisesRegex(ValueError, name.lower().replace(".", r"\.")):
                     binary.check_dependencies(dumpbin("KERNEL32.dll", name))
 
     def test_rejects_delayed_non_system_dependency(self):
-        with self.assertRaisesRegex(ValueError, "SDL3.dll"):
+        with self.assertRaisesRegex(ValueError, "sdl3.dll"):
             binary.check_dependencies(dumpbin(
                 "KERNEL32.dll", delay=("SDL3.dll",)
             ))

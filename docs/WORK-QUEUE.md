@@ -337,16 +337,24 @@ host-to-guest input handoff in the active frontend lane, retaining the
 normal player Start binding. The audio lane must not paper over this
 with SPC/DSP changes or compromise guest timing.
 
-**Actual next audio-owned fidelity work:** promote only on real native
-evidence the source-aligned original SFX command-identity check from
-[#895](https://github.com/gamesbyian/UR-Recomp/pull/895), followed by
-CPU→SPC command-delivery cadence and representative gameplay
-music/SFX sample/echo comparisons against independent reference cores.
-Hardware device loss/reopen, latency and short click/transition
-windows remain unproven. Original audio assets, canonical guest
-timing and unaltered SPC/BRR source provenance remain the authority.
-Authentic sound is the shipping fallback; optional Phase H remastering
-must never silently replace it.
+**Closed, source-aligned three-event menu SFX command identity:**
+[#895](https://github.com/gamesbyian/UR-Recomp/pull/895) is merged and
+the actual packaged Windows specialist
+[37778361762](https://github.com/gamesbyian/UR-Recomp/actions/runs/37778361762)
+passed its native original-menu WRAM source command gate. Guest cursor
+Down, cursor Up and 1P Confirm emitted the pinned independent SNES
+reference sequences `087F,0203`, `087F,0203`, `084F,0202`.
+This establishes those guest driver command IDs and priority/volume
+prefixes, **not** the later SPC700 port handoff or exact sound samples.
+
+**Actual next audio-owned fidelity work:** instrument source-aligned
+CPU→SPC command-delivery cadence for the validated menu effects, then
+extend the independent reference comparison to representative gameplay
+music/SFX, BRR decoding, DSP envelopes and echo. Hardware device
+loss/reopen, latency and short click/transition windows remain
+unproven. Original assets, canonical guest timing and SPC/BRR source
+provenance remain the authority; Authentic sound is the shipping
+fallback, and optional Phase H remastering must never silently replace it.
 
 ## Phase 6 — Reverse-engineering map
 

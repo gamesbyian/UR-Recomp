@@ -99,6 +99,25 @@ dump assertions and six-shard atlas aggregate are unchanged. The saved
 timing estimates are not evidence of actual future savings. Compare full
 native workflow and aggregate results before merging.
 
+### Balance independent Modern settings acceptance after Circuit acceleration
+
+The paired pristine-root Circuit proof (PR #891) permits the required
+Circuit drive to run unpaced, reducing its execution from about 71 s to
+28 s without a changed captured byte across the 121 full dump files.
+Once this optimization ships, Results-A will have approximately 43 s
+of new headroom; Core remains around 133–137 s and includes a 24 s
+Modern host-state persistence acceptance.
+
+Unlike the two Render Scale acceptances, which share the generated
+`render-scale-2x.state`, the host-state acceptance declares its own
+`host-state-v6.txt`, dump root, logs and native processes. Its matrix
+predicate can therefore move to Results-A, leaving the Render Scale
+producer/consumer both in Core. Upload patterns and aggregate evidence
+directories remain unchanged. This is a follow-up to the unpaced
+Circuit optimization, **not** a prerequisite for its success. Validate
+all six capture shards and aggregate against their latest native
+candidate before merging.
+
 ## Automatic-CI budget
 
 Automatic CI is reserved for the active Windows x64 shipping path and cheap repository integrity contracts.

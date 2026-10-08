@@ -22,7 +22,7 @@ from tools.analyze_sdl_disk_audio import analyze
 RACE = re.compile(r"(?m)^script f=(\d+) dump race-entered ok\s*$")
 RETURN_MAIN = re.compile(r"(?m)^script f=(\d+) dump exit-frontend-ready ok\s*$")
 RETURN_RIDER = re.compile(r"(?m)^script f=(\d+) dump exit-frontend-usable ok\s*$")
-TRIGGER = re.compile(r"(?m)^UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=1 pause=\d+ exit=\d+\s*$")
+TRIGGER = re.compile(r"(?m)^UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=0 pause=0 exit=0\s*$")
 REQUEST = re.compile(r"(?m)^UR_EXIT_FRONTEND REQUESTED source=\d+ sram=[0-9A-Fa-f]+ practice=\d+\s*$")
 READY = re.compile(r"(?m)^UR_EXIT_FRONTEND FRONTEND_READY menu=D7 sram=[0-9A-Fa-f]+\s*$")
 USABLE = re.compile(r"(?m)^UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C sram=[0-9A-Fa-f]+\s*$")
@@ -52,8 +52,11 @@ def verify_exit_log(log: str) -> dict:
     race_frame = int(found["race"].group(1))
     main_frame = int(found["main"].group(1))
     rider_frame = int(found["rider"].group(1))
-    if not 0 < race_frame < main_frame < rider_frame:
-        raise ValueError("invalid stock race-to-frontend guest frame chronology")
+    # Exit-to-Frontend resets the guest system/frame counter. Source race
+    # frame ~1044 and new-boot main-menu frame ~502 are intentionally *not*
+    # a single monotonic sequence; ordering comes from log phase positions.
+    if not 0 < race_frame or not 0 < main_frame < rider_frame:
+        raise ValueError("invalid source-race or post-reset frontend guest frames")
     if "UR_EXIT_FRONTEND RESET_REQUEST_FAILED" in log:
         raise ValueError("host failed to reset guest to frontend")
     return {

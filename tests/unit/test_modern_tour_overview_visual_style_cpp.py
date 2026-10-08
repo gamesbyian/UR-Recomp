@@ -8,7 +8,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 
 
 class ModernTourOverviewVisualStyleCppTests(unittest.TestCase):
-    def test_stock_menu_palette_and_responsive_tour_overview(self):
+    def test_stock_menu_palette_and_aligned_visible_medal_column(self):
         with tempfile.TemporaryDirectory() as tmp:
             exe = pathlib.Path(tmp) / "modern-tour-overview-visual-style-test"
             subprocess.run(

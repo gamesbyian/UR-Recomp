@@ -34,6 +34,21 @@ void set_slot(
 }  // namespace
 
 int main() {
+    // Exhaust all possible hardware Y values and the full 64-row large OBJ:
+    // each source row must land on exactly the corresponding modulo-256
+    // scanline or be culled by the 224-row visible field.
+    for (int scale = 1; scale <= 4; ++scale) {
+        for (int raw_y = 0; raw_y < 256; ++raw_y) {
+            for (int source_row = 0; source_row < 64; ++source_row) {
+                const int logical = (raw_y + source_row) & 0xFF;
+                const int actual = racer_obj_wrapped_output_row(
+                    static_cast<std::uint8_t>(raw_y), source_row * scale, scale
+                );
+                assert(actual == (logical < 224 ? logical * scale : -1));
+            }
+        }
+    }
+
     // A sprite's 8-bit Y is modulo 256, not modulo the 224 visible rows.
     // Row 250 itself is below the visible image, but source row 6 wraps to 0.
     // Row 224 remains offscreen even though the hardware sprite exists there.

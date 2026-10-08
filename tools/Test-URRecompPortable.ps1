@@ -89,6 +89,10 @@ function Assert-PackageFiles {
     }
 
     $seen = @{}
+    # Hashtable keys are case-insensitive on Windows PowerShell. Use that
+    # fact to retain and compare the first exact spelling of each path
+    # prefix, not just the final filename, before touching file bytes.
+    $seenPrefixes = @{}
     $mustHave = @(
         'UniracersSNESRecomp.exe', 'Uniracers_USA.sfc', 'rom.cfg',
         'run-uniracers.cmd', 'README.txt'
@@ -112,6 +116,24 @@ function Assert-PackageFiles {
         if ($seen.ContainsKey($relative)) {
             throw "Duplicate package member: $relative"
         }
+        # The ZIP/manifest model is case-sensitive, but Windows extraction
+        # usually is not. 'mods/Theme/a' and 'mods/theme/b' must not be
+        # accepted as two distinct directory trees even with valid hashes.
+        $prefix = ''
+        foreach ($part in $relative.Split('/')) {
+            if ($prefix.Length -eq 0) {
+                $prefix = $part
+            }
+            else {
+                $prefix += '/' + $part
+            }
+            if ($seenPrefixes.ContainsKey($prefix) -and
+                $seenPrefixes[$prefix] -cne $prefix) {
+                throw "Case-colliding Windows package paths: $relative"
+            }
+            $seenPrefixes[$prefix] = $prefix
+        }
+
         $seen[$relative] = $true
         $member = Join-Path $PackageRoot ($relative.Replace('/', [IO.Path]::DirectorySeparatorChar))
         if (-not (Test-Path -LiteralPath $member -PathType Leaf)) {

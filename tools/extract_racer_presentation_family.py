@@ -441,6 +441,26 @@ def split_4bpp_tiles(payload: bytes) -> tuple[bytes, ...]:
     return tiles
 
 
+def encode_bgr555(colors: Iterable[dict[str, int]]) -> bytes:
+    """Rebuild exact CGRAM words from independently decoded 5-bit channels.
+
+    The unused high bit is retained from the source record. It must not be
+    silently normalized just because the SNES RGB representation ignores it.
+    """
+    output = bytearray()
+    for color in colors:
+        channels = (color["r5"], color["g5"], color["b5"])
+        high = color["unused_bit15"]
+        if any(type(v) is not int or not 0 <= v < 32 for v in channels):
+            raise ValueError("BGR555 components must be 5-bit integers")
+        if type(high) is not int or high not in (0, 1):
+            raise ValueError("BGR555 unused high bit must be 0 or 1")
+        r5, g5, b5 = channels
+        word = r5 | (g5 << 5) | (b5 << 10) | (high << 15)
+        output.extend(word.to_bytes(2, "little"))
+    return bytes(output)
+
+
 def decode_bgr555(payload: bytes) -> list[dict[str, int]]:
     if len(payload) % 2:
         raise ValueError("BGR555 palette payload length must be even")
@@ -452,10 +472,10 @@ def decode_bgr555(payload: bytes) -> list[dict[str, int]]:
             "r5": word & 0x1F,
             "g5": (word >> 5) & 0x1F,
             "b5": (word >> 10) & 0x1F,
+            "unused_bit15": (word >> 15) & 1,
         })
-    rebuilt = b"".join(c["word"].to_bytes(2, "little") for c in colors)
-    if rebuilt != payload:
-        raise AssertionError("palette BGR555 round-trip failed")
+    if encode_bgr555(colors) != payload:
+        raise AssertionError("decoded BGR555 components did not round-trip to source")
     return colors
 
 
@@ -857,7 +877,7 @@ def extract_palette(rom: bytes, asset_id: int, cgram_addr: int) -> dict:
         "payload_sha256": sha256(payload),
         "bgr555_words": [f"0x{c['word']:04X}" for c in colors],
         "roundtrip_equal": ent.repack() == ent.entry
-        and b"".join(c["word"].to_bytes(2, "little") for c in colors) == payload,
+        and encode_bgr555(colors) == payload,
     }
 
 

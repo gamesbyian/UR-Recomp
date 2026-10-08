@@ -72,6 +72,42 @@ int main() {
     assert(run_record_input_at(original, 228).first == 0x101);
     assert(run_record_input_at(original, 252).first == 0);
 
+    // PB/Previous ghost reads must honor both half-open boundaries and gaps.
+    // Exercise a large, valid, strongly fragmented controller stream without
+    // scanning all its preceding spans for each sampled frame.
+    {
+        auto fragmented = original;
+        fragmented.inputs.clear();
+        constexpr std::uint64_t kInputRuns = 32768;
+        fragmented.frame_count = kInputRuns * 3;
+        fragmented.inputs.reserve(static_cast<std::size_t>(kInputRuns));
+        for (std::uint64_t i = 0; i < kInputRuns; ++i) {
+            const auto p1 = static_cast<std::uint16_t>(
+                (i & 1u) ? 0x0101u : 0u);
+            const auto p2 = static_cast<std::uint16_t>(
+                (i & 1u) ? 0u : 0x0200u);
+            fragmented.inputs.push_back({i * 3 + 1, 1, p1, p2});
+        }
+        assert(validate_completed_run_record(fragmented, &detail));
+        assert(run_record_input_at(fragmented, 0) ==
+               std::make_pair(std::uint16_t{0}, std::uint16_t{0}));
+        for (std::uint64_t i = 0; i < kInputRuns; ++i) {
+            const auto start = i * 3 + 1;
+            const auto expected = (i & 1u)
+                ? std::make_pair(std::uint16_t{0x0101}, std::uint16_t{0})
+                : std::make_pair(std::uint16_t{0}, std::uint16_t{0x0200});
+            assert(run_record_input_at(fragmented, start - 1) ==
+                   std::make_pair(std::uint16_t{0}, std::uint16_t{0}));
+            assert(run_record_input_at(fragmented, start) == expected);
+            assert(run_record_input_at(fragmented, start + 1) ==
+                   std::make_pair(std::uint16_t{0}, std::uint16_t{0}));
+        }
+        assert(run_record_input_at(fragmented, fragmented.frame_count) ==
+               std::make_pair(std::uint16_t{0}, std::uint16_t{0}));
+        assert(run_record_input_at(fragmented, UINT64_MAX) ==
+               std::make_pair(std::uint16_t{0}, std::uint16_t{0}));
+    }
+
     const std::string encoded = encode_completed_run_record(original);
     assert(!encoded.empty());
     const std::string input_file = encode_completed_run_input_file(original);

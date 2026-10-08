@@ -115,8 +115,18 @@ LocalTournamentLaunchFileResult load_local_tournament_launch_file(
 }
 
 LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
-    const std::string& path) {
-    if (path.empty()) return LocalTournamentLaunchFileStatus::Rejected;
+    const std::string& path,
+    const LocalTournamentState& active_tournament,
+    std::string_view active_tournament_id,
+    std::string_view expected_attempt_id) {
+    const auto loaded = load_local_tournament_launch_file(
+        path, active_tournament, active_tournament_id);
+    if (!loaded.loaded()) return loaded.status;
+    if (loaded.pending->attempt_id != expected_attempt_id) {
+        return LocalTournamentLaunchFileStatus::Rejected;
+    }
+    // This store contract assumes one serialized host writer per path. The
+    // subsequent remove cannot race a newer publication by another thread.
     errno = 0;
     if (std::remove(path.c_str()) == 0) {
         return LocalTournamentLaunchFileStatus::Saved;

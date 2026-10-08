@@ -73,7 +73,7 @@ The completed-run persistence/replay foundation is semantically sufficient for t
 
 ### Ordinary 2P Records status (2026-10-07)
 
-The canonical multiplayer Records surface can load and present validated checksum/course-bound `.urrun` + `.urmatch` history from the shared run catalog. Pair-persistence, participant/profile binding, stock-result observation and browser integration prerequisites are on `main`; the older all-in-one production-capture PR #642 was closed as superseded. The latest replayed production ordinary-2P Race capture wiring and its dedicated fresh-process acceptance were recovered from the orphaned v5 branch and merged as PR #688. Do not derive aggregate tournament history until that acceptance is observed green on current `main`.
+The canonical multiplayer Records surface can load and present validated checksum/course-bound `.urrun` + `.urmatch` history from the shared run catalog. Pair-persistence, participant/profile binding, stock-result observation and browser integration prerequisites are on `main`; the older all-in-one production-capture PR #642 was closed as superseded. The latest replayed production ordinary-2P Race capture wiring and its dedicated fresh-process acceptance were recovered from the orphaned v5 branch and merged as PR #688. That acceptance is now observed green on `main` (run `37709847500`), so aggregate tournament history may be derived from validated persisted pairs.
 
 ### Modern tour continuation UX status
 

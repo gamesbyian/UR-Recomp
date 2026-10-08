@@ -45,6 +45,7 @@ extern "C" {
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "modern_practice_visual_style.hpp"
+#include "modern_tour_overview_visual_style.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
 #include "../title/uniracers_tour_progress_overview.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -7547,7 +7548,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w = logical_width < 268 ? logical_width - 16 : 260;
+        const auto style =
+            ur::product::modern_tour_overview_visual_style(logical_width);
+        const int panel_w = style.panel_width_logical;
         constexpr int kPanelHeight = 207;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
@@ -7556,20 +7559,36 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const auto& rect = layout.presentation_rect;
         const int x = rect.x;
         const int y = rect.y;
+        // Read-only progress keeps stock hierarchy without implying a
+        // selectable tour: yellow title and visible medal rows, grey
+        // supporting counts/locked rows, no fictional blue cursor.
         snes_ovl_fill_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xE0202020u);
+            rect.width, rect.height, style.palette.background);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, style.header_height_logical * scale,
+            style.palette.header_band);
         snes_ovl_stroke_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xFFF0F0F0u);
+            rect.width, rect.height, style.palette.frame_grey);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 8 * scale,
-            "TOUR PROGRESS", 0xFFFFFFFFu, scale);
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "TOUR PROGRESS", style.palette.shadow_black,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "TOUR PROGRESS", style.palette.title_yellow,
+            style.title_glyph_scale * scale);
         char row[80];
         std::snprintf(row, sizeof(row), "BRONZE %u  SILVER %u  GOLD %u",
             g_progress_overview.bronze_or_better,
             g_progress_overview.silver_or_better,
             g_progress_overview.gold);
+        const auto summary_text = ur::product::fit_modern_overlay_text(
+            row, ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 30 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 30 * scale,
+            summary_text.c_str(), style.palette.secondary_grey, scale);
         for (std::uint8_t tour = 0; tour < 8; ++tour) {
             // Catalog index is presentation identity; stock tour option
             // remains the only medal/unlock index. Never name hidden Hunter.
@@ -7590,10 +7609,14 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 std::snprintf(row, sizeof(row), "%u. LOCKED TOUR",
                     static_cast<unsigned>(tour + 1));
             }
+            const auto tour_text = ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w));
             snes_ovl_draw_text(pixels, stride, height,
                 x + 8 * scale,
                 y + (51 + static_cast<int>(tour) * 16) * scale,
-                row, visible ? 0xFFFFFFFFu : 0xFFA0A0A0u, scale);
+                tour_text.c_str(),
+                visible ? style.palette.title_yellow
+                        : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
             "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",

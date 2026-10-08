@@ -41,7 +41,7 @@ class ModernFrontendOptionsHostContractTests(unittest.TestCase):
     def test_same_renderer_serves_frontend_and_pause(self):
         source = HOST.read_text(encoding="utf-8")
         self.assertIn("if (is_paused || frontend_options)", source)
-        self.assertIn("if (!frontend_options) {", source)
+        self.assertIn("if (!frontend_options && !pause_subview_panel) {", source)
         self.assertIn('"UR_FRONTEND_OPTIONS PRESENT scale=%d', source)
         self.assertIn("if (frontend_options && !g_frontend_options_draw_reported", source)
         self.assertEqual(source.count('"OPTIONS", 0xFFFFFFFFu, modal_scale'), 1)

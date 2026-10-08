@@ -8479,7 +8479,12 @@ extern "C" void ur_uniracers_modern_system_overlay(
         ? panel_layout.presentation_rect.y
         : height - panel_h - 8 * modal_scale - kResultsRecordsHintBand;
 
-    if (!frontend_options) {
+    // Pause subviews draw their own centred panel; the root panel behind a
+    // shorter one (Quit confirmation) would show as an empty frame.
+    const bool pause_subview_panel = is_paused &&
+        (g_options_visible || g_controls_visible ||
+         g_quit_confirm_visible || g_run_data_visible);
+    if (!frontend_options && !pause_subview_panel) {
         snes_ovl_fill_rect(
             pixels, stride, height, x, y, panel_w, panel_h, 0xE0202020u);
         snes_ovl_stroke_rect(

@@ -201,7 +201,10 @@ std::string encode_completed_run_input_file(
     if (!validate_completed_run_record(record, &detail)) return {};
     std::ostringstream out;
     for (const auto& input : record.inputs) {
-        if (input.start_frame >
+        // The parser consumes a start:duration span. Reject any offset that
+        // fits the start but wraps the *end* of the half-open input interval.
+        // Validation above already proves start_frame + duration fits u64.
+        if (input.end_frame() >
             std::numeric_limits<std::uint64_t>::max() - frame_offset) {
             return {};
         }

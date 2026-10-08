@@ -117,6 +117,27 @@ int main() {
            "204:24:100:0\n"
            "228:24:101:0\n");
 
+    // A frame offset must fit every complete input span, not merely its
+    // starting frame. A wrapped end can corrupt downstream INPUT_FILE timing.
+    // Keep the fixture small: enormous guest frame counts need no expansion.
+    {
+        auto boundary = original;
+        boundary.frame_count = UINT64_MAX;
+        boundary.inputs = {{UINT64_MAX - 16u, 16u, 0x100u, 0u}};
+        assert(validate_completed_run_record(boundary, &detail));
+        assert(!encode_completed_run_input_file(boundary).empty());
+        assert(encode_completed_run_input_file(boundary, 1u).empty());
+
+        auto ordinary_shifted = original;
+        ordinary_shifted.inputs = {{120u, 24u, 0x100u, 0u}};
+        assert(validate_completed_run_record(ordinary_shifted, &detail));
+        assert(encode_completed_run_input_file(
+            ordinary_shifted, UINT64_MAX - 144u) ==
+            "18446744073709551591:24:100:0\n");
+        assert(encode_completed_run_input_file(
+            ordinary_shifted, UINT64_MAX - 143u).empty());
+    }
+
     const auto decoded = decode_completed_run_record(encoded);
     assert(decoded.loaded());
     assert(decoded.record->elapsed_ticks60 == original.elapsed_ticks60);

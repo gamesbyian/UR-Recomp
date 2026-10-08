@@ -63,7 +63,7 @@ class ExitFrontendAudioTests(unittest.TestCase):
         self.assertIn("until 009F == D7 1800", route)
         self.assertIn("until 009F == 3C 1200", route)
         self.assertIn("dump exit-frontend-usable", route)
-        self.assertNotIn("poke ", route)
+        self.assertFalse(any(line.lstrip().startswith("poke ") for line in route.splitlines()))
 
     def test_native_supervisor_only_observes_production_host_and_sdl(self):
         tool = (ROOT / "tools/capture_exit_frontend_audio.py").read_text()

@@ -11,6 +11,9 @@ on:
       - "native/**"
       - "tests/**"
       - "tools/**"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
       - "analysis/**"
       - "reference/**"
       - "rom_identity.txt"
@@ -24,6 +27,7 @@ jobs:
   classify:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     outputs:
       shared: ${{ steps.classify.outputs.shared }}
       onboarding: ${{ steps.classify.outputs.onboarding }}

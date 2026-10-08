@@ -1,0 +1,61 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -293,6 +293,14 @@
+ void snesrecomp_desktop_set_paused_overlay_presentation(int enabled) {
+   g_paused_overlay_present = enabled ? 1 : 0;
+ }
++/* Title-owned frame hold: freezes guest frames (and audio) exactly like a
++ * pause, without being a pause -- snesrecomp_desktop_is_paused() stays false,
++ * so title code that treats pause as a session state is unaffected. */
++static uint8 g_host_frame_hold;
++void snesrecomp_desktop_set_frame_hold(int held) {
++  g_host_frame_hold = held ? 1 : 0;
++}
++int snesrecomp_desktop_frame_hold(void) { return g_host_frame_hold != 0; }
+ int snesrecomp_desktop_is_paused(void) { return g_paused != 0; }
+ 
+ static double MonotonicSeconds(void) {
+@@ -840,6 +848,10 @@
+ static int g_script_index;    // current entry
+ static int g_script_phase;    // 0=holding, 1=waiting
+ static int g_script_counter;  // frames left in current phase
++/* Whether a --script is still driving this session (entries remain). */
++int snesrecomp_desktop_script_active(void) {
++  return g_script_count > 0 && g_script_index < g_script_count;
++}
+ static ScriptForcePoke *g_script_force_pokes;
+ static int g_script_force_poke_count;
+ static int g_script_force_poke_cap;
+@@ -4117,12 +4129,13 @@
+     }
+ 
+     ProfileEnd(kProfileEvents, event_profile_start);
+-    if (g_paused != audiopaused) {
+-      audiopaused = g_paused;
++    const uint8 guest_frozen = g_paused || g_host_frame_hold;
++    if (guest_frozen != audiopaused) {
++      audiopaused = guest_frozen;
+       SetAudioPaused(audiopaused);
+     }
+ 
+-    if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&
++    if (guest_frozen && !g_savestate_menu_hotkey && !g_rewind_hotkey &&
+         !g_open_launcher_hotkey) {
+       snes_host_clock_reset(&video_clock, MonotonicSeconds(), g_simulation_hz, presentation_hz);
+       PresentPausedSystemOverlay();
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -266,6 +266,13 @@
+ /* Opt in to presenting the frozen field plus the title's system_overlay while
+  * paused (default off: a paused host presents nothing new). */
+ void snesrecomp_desktop_set_paused_overlay_presentation(int enabled);
++/* Freeze guest frames and audio while a title-owned modal is open, presenting
++ * the frozen field plus system_overlay when paused overlay presentation is
++ * enabled. Not a pause: snesrecomp_desktop_is_paused() is unaffected. */
++void snesrecomp_desktop_set_frame_hold(int held);
++int snesrecomp_desktop_frame_hold(void);
++/* Nonzero while a --script harness is still supplying this session's input. */
++int snesrecomp_desktop_script_active(void);
+ 
+ /* Live host presentation sync policy. These values deliberately match the
+  * desktop config's existing Off/On/Adaptive spellings while keeping title

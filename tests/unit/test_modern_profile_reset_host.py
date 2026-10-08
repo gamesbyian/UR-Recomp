@@ -63,6 +63,22 @@ class ModernProfileResetHostContractTests(unittest.TestCase):
         self.assertIn("ExecutionMode::Modern", body)
         self.assertIn("ExecutionMode::Authentic", body)
 
+    def test_host_surface_closing_edge_is_withheld_until_release(self):
+        fn_start = HOST.index(
+            'extern "C" uint32_t ur_uniracers_modern_filter_player_input'
+        )
+        fn_end = HOST.index(
+            '\nextern "C" void ur_uniracers_modern_system_overlay', fn_start
+        )
+        body = HOST[fn_start:fn_end]
+        # A one-frame suppression let a held Enter/Start leak into the stock
+        # main menu after the Welcome panel closed; the release latch must sit
+        # between host ownership and the stock profile-admin filter.
+        latch = body.index("modern_host_input_filter(")
+        self.assertIn("g_human_input_release_latch = filtered.latch;", body)
+        self.assertIn("inputs = filtered.inputs;", body)
+        self.assertLess(latch, body.index("modern_profile_admin_filter_human_input("))
+
 
 
 if __name__ == "__main__":

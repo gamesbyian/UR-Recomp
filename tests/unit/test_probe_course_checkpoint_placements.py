@@ -88,6 +88,32 @@ class CheckpointSpatialPlacementTests(unittest.TestCase):
         self.assertGreater(result["summary"]["candidate_world_cells"], 0)
         self.assertEqual(result["world_extent"], [65536, 1024])
 
+    def test_dragster_world_cells_match_accepted_presentation_contract(self):
+        if not mod.ROM.is_file():
+            self.skipTest("private canonical USA ROM not present")
+        import build_course_presentation_contract as accepted
+        from analyze_rnc_streams import find_streams
+        from rnc_method1 import unpack_method1
+        rom = mod.ROM.read_bytes()
+        decoded = unpack_method1(list(find_streams(rom))[0][1])
+        parsed = mod.parse_course_resource_list(decoded)
+        ranges = mod.c000_resource_ranges(rom, parsed["resource_ids"])
+        actual = {
+            (p["world_cell"][0], p["world_cell"][1], p["c000_slot"])
+            for p in mod.place_resource_cells(decoded, ranges)
+        }
+        expected = set()
+        reference = accepted.build()["resources"]["checkpoint_finish"]
+        for sector in reference["coarse_sector_placements"]:
+            for cell in sector["checkpoint_local_cells"]:
+                expected.add((
+                    sector["world_rect"][0] + cell["local_x"] * 16,
+                    sector["world_rect"][1] + cell["local_y"] * 16,
+                    cell["c000_slot"],
+                ))
+        self.assertTrue(expected)
+        self.assertEqual(actual, expected)
+
     def test_usa_stunt_course_has_no_checkpoint_resource(self):
         if not mod.ROM.is_file():
             self.skipTest("private canonical USA ROM not present")

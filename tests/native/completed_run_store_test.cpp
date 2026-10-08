@@ -1,10 +1,14 @@
 #include "completed_run_store.hpp"
 #include "completed_run_capture.hpp"
 
+#include <array>
+#include <atomic>
 #include <cassert>
 #include <filesystem>
 #include <fstream>
+#include <set>
 #include <string>
+#include <thread>
 #include <vector>
 
 using namespace ur::product;
@@ -117,6 +121,53 @@ int main(int argc, char** argv) {
     const auto course2 = load_compatible_run_records(dir.string(), wrong);
     assert(course2.size() == 1);
     assert(course2[0].record.elapsed_ticks60 == 1600);
+
+    // A process killed while writing a pending file must not put a damaged
+    // .urrun into Local Runs, health counts, or PB/Previous selection.
+    const auto interrupted = dir / ".pending-urrun-interrupted";
+    std::filesystem::create_directory(interrupted);
+    {
+        std::ofstream pending(interrupted / "record.tmp", std::ios::binary);
+        assert(pending);
+        pending << "URRUN 1\\npartial";
+    }
+    assert(inspect_completed_run_record_artifacts(dir.string()).size() == 6);
+    assert(load_valid_run_records(dir.string()).size() == 3);
+
+    // Concurrent processes can choose the same millisecond prefix. Writers
+    // must reserve their staging paths and publish distinct immutable names.
+    const auto parallel_dir = dir / "parallel";
+    constexpr std::size_t kWriters = 12;
+    std::array<std::string, kWriters> paths{};
+    std::array<bool, kWriters> succeeded{};
+    std::array<std::thread, kWriters> writers;
+    std::atomic<bool> go{false};
+    for (std::size_t i = 0; i < kWriters; ++i) {
+        writers[i] = std::thread([&, i] {
+            while (!go.load(std::memory_order_acquire)) {
+                std::this_thread::yield();
+            }
+            succeeded[i] = append_completed_run_record(
+                parallel_dir.string(), run(2000 + i), &paths[i]);
+        });
+    }
+    go.store(true, std::memory_order_release);
+    for (auto& writer : writers) writer.join();
+
+    const std::set<std::string> unique_paths(paths.begin(), paths.end());
+    assert(unique_paths.size() == kWriters);
+    for (std::size_t i = 0; i < kWriters; ++i) {
+        assert(succeeded[i]);
+        assert(std::filesystem::exists(paths[i]));
+        const auto loaded = load_completed_run_record_file(paths[i]);
+        assert(loaded.loaded());
+        assert(loaded.record->elapsed_ticks60 == 2000 + i);
+    }
+    assert(load_valid_run_records(parallel_dir.string()).size() == kWriters);
+    for (const auto& entry : std::filesystem::directory_iterator(parallel_dir)) {
+        assert(entry.path().extension() == ".urrun");
+        assert(entry.is_regular_file());
+    }
 
     return 0;
 }

@@ -372,7 +372,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
         match = re.search(r"shard:\s*\[([^\]]+)\]", text)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
-        self.assertLessEqual(len(shards), 3)
+        self.assertEqual(
+            shards,
+            ["tour-a", "tour-b", "feedback", "multiplayer"],
+        )
+        self.assertLessEqual(len(shards), 4)
         consumer = text.split("  core-acceptance:", 1)[1]
         self.assertIn("Install native runtime dependencies", consumer)
         runtime_install = consumer.split(

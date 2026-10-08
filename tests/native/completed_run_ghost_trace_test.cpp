@@ -30,8 +30,46 @@ CompletedRunRecord run_record() {
 }  // namespace
 
 int main(int argc, char** argv) {
-    assert(argc == 2);
+    assert(argc == 2 ||
+           (argc == 3 && std::string(argv[2]) == "--verify-persisted-targets"));
     const std::filesystem::path run_path = argv[1];
+
+    if (argc == 3) {
+        // A separately launched process can access only serialized artifacts.
+        // The writer's in-memory records and selected target state are gone.
+        const auto record = run_record();
+        const auto directory = run_path.parent_path() / "stored-ghost-targets";
+        const RunPlaybackTarget target{
+            record.provenance.game_id,
+            record.provenance.rom_sha256,
+            record.provenance.build_compat_id,
+            record.provenance.course_id,
+            record.provenance.mode,
+        };
+        const auto stored = load_compatible_run_records(directory.string(), target);
+        assert(stored.size() == 2); // Newer damaged .urrun is not admitted.
+        CompletedRunGhostState ghosts;
+        ghosts.bind(stored, target);
+        const auto* previous = ghosts.stored(CompletedRunGhostKind::Previous);
+        const auto* pb = ghosts.stored(CompletedRunGhostKind::PersonalBest);
+        assert(previous && pb);
+        assert(std::filesystem::path(previous->path).filename() ==
+               "run-0000000000000002-0001.urrun");
+        assert(std::filesystem::path(pb->path).filename() ==
+               "run-0000000000000001-0001.urrun");
+        const auto pb_trace = load_selected_completed_run_ghost_trace(
+            ghosts, CompletedRunGhostKind::PersonalBest);
+        assert(pb_trace.loaded());
+        assert(pb_trace.trace->samples[0].world_x == 1200);
+        // The Previous sibling was replaced by PB's otherwise-valid data.
+        // Cross-process lookup must still refuse the wrong run checksum.
+        const auto previous_trace = load_selected_completed_run_ghost_trace(
+            ghosts, CompletedRunGhostKind::Previous);
+        assert(previous_trace.status ==
+               CompletedRunGhostTraceLoadStatus::Incompatible);
+        return 0;
+    }
+
     const std::filesystem::path trace_path =
         std::filesystem::path(run_path.string() + ".urghost");
     const auto record = run_record();

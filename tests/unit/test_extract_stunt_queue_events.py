@@ -13,7 +13,7 @@ import extract_stunt_queue_events as q  # noqa: E402
 
 
 def wram(track=19, race=1, reader=0, writer=0, boost=0,
-         slots=None, size=q.WRAM_LEN, x_speed=448):
+         slots=None, size=q.WRAM_LEN, x_speed=448, laps=2, enable=0):
     b = bytearray(size)
     if size < q.WRAM_LEN:
         return bytes(b)
@@ -22,6 +22,8 @@ def wram(track=19, race=1, reader=0, writer=0, boost=0,
                      (q.PERSISTENT_BOOST, boost)):
         b[a:a + 2] = value.to_bytes(2, "little")
     b[q.X_SPEED:q.X_SPEED + 2] = x_speed.to_bytes(2, "little", signed=True)
+    b[q.LAST_LAP_REMAINING:q.LAST_LAP_REMAINING + 2] = laps.to_bytes(2, "little")
+    b[q.LAST_LAP_ENABLE] = enable
     for k, v in (slots or {}).items():
         b[q.QUEUE_BASE + k] = v
     return bytes(b)
@@ -34,12 +36,19 @@ class QueueIdentityTests(unittest.TestCase):
             # Ring wrap: the write from 31 to 0 is message 0x09 at slot 31.
             for frame, data in enumerate([
                 wram(reader=31, writer=31, boost=0),
-                wram(reader=31, writer=0, boost=0, slots={31: 0x09}),
-                wram(reader=0, writer=0, boost=128, slots={31: 0x09}),
+                wram(reader=31, writer=0, boost=0, slots={31: 0x09},
+                     laps=1, enable=1),
+                wram(reader=0, writer=0, boost=128, slots={31: 0x09},
+                     laps=1, enable=1),
             ]):
                 (d / f"w{frame:03d}.wram.bin").write_bytes(data)
             rows = q.read_series(d, 0, 2)
             found = q.analyze(rows)
+            self.assertEqual(found["last_lap_transitions"], [{
+                "frame": 1, "previous": 2, "last_lap_enable_at_transition": 1,
+                "note": "per-player post-decrement lap word; not a credit assertion",
+            }])
+            self.assertEqual(rows[1]["last_lap_enable"], 1)
             self.assertEqual(found["enqueued_messages"], [
                 {"frame": 1, "slot": 31, "message_id": "0x09", "read_index": 31}
             ])
@@ -57,7 +66,8 @@ class QueueIdentityTests(unittest.TestCase):
 
     def test_multiple_enqueues_preserve_order_without_inventing_attribution(self):
         before = {"frame": 7, "write": 30, "read": 29, "buffer": tuple([0] * 32),
-                  "boost": 20, "air": 5, "x_speed": 400}
+                  "boost": 20, "air": 5, "x_speed": 400,
+                  "laps_remaining": 2, "last_lap_enable": 0}
         after = copy.deepcopy(before)
         payload = list(after["buffer"])
         payload[30], payload[31] = 0x01, 0x09
@@ -87,7 +97,7 @@ class QueueIdentityTests(unittest.TestCase):
             with self.assertRaisesRegex(q.QueueEvidenceError, "selector"):
                 q.read_series(d, 0, 0, prefix="../escape")
         row = {"frame": 1, "write": 0, "read": 0, "boost": 0, "buffer": tuple([0]*32),
-               "air": 0, "x_speed": 0}
+               "air": 0, "x_speed": 0, "laps_remaining": 2, "last_lap_enable": 0}
         with self.assertRaisesRegex(q.QueueEvidenceError, "missing or out-of-order"):
             q.analyze([row, dict(row, frame=3)])
         with self.assertRaisesRegex(q.QueueEvidenceError, "nonempty"):

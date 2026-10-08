@@ -126,9 +126,24 @@ int main() {
             "valid checkpoint can replace corrupted prior payload");
     require(bytes_of(path) == original_bytes,
             "repair atomically republishes canonical bytes");
-    require(retire_local_tournament_launch_file(filename) == Status::Saved,
-            "only caller lifecycle retires committed launch checkpoint");
-    require(retire_local_tournament_launch_file(filename) == Status::Missing,
+    require(retire_local_tournament_launch_file(
+                filename, *model, instance,
+                "22222222222222222222222222222222") ==
+            Status::Rejected,
+            "late cancellation with other attempt ID cannot delete checkpoint");
+    require(retire_local_tournament_launch_file(
+                filename, *model, "abcdef0123456789abcdef0123456789",
+                pending.attempt_id) == Status::Rejected,
+            "wrong tournament instance cannot delete active checkpoint");
+    require(bytes_of(path) == original_bytes,
+            "stale retirement leaves latest persisted attempt byte-identical");
+    require(retire_local_tournament_launch_file(
+                filename, *model, instance, pending.attempt_id) ==
+            Status::Saved,
+            "only matching active lifecycle retires exact checkpoint");
+    require(retire_local_tournament_launch_file(
+                filename, *model, instance, pending.attempt_id) ==
+            Status::Missing,
             "retirement is idempotent for missing checkpoint");
     require(load_local_tournament_launch_file(
                 filename, *model, instance).status == Status::Missing,

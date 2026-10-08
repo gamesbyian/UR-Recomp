@@ -181,7 +181,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [core, navigation, results, records, profiles]
+        shard: [core, navigation, results-a, results-b, records, profiles]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -277,10 +277,12 @@ jobs:
               run_route ui-erase-confirm ui-erase-confirm.script ui-erase-confirm-dumps 90
               run_route ui-league-table ui-league-table.script ui-league-dumps 90
               ;;
-            results)
+            results-a)
               run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
-              run_route ui-stunt-result-route ui-stunt-result-route.script ui-stunt-result-dumps 180
               run_route ui-circuit-result-route ui-circuit-result-route.script ui-circuit-result-dumps 240
+              ;;
+            results-b)
+              run_route ui-stunt-result-route ui-stunt-result-route.script ui-stunt-result-dumps 180
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
               ;;
             records)

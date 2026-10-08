@@ -59,3 +59,4 @@ tests/input/ui-pre-race-timing.script
 tests/input/ui-name-league-route.script
 tools/toolchain-entries/sdl3.json
 .github/workflows/native-ui-evidence.yml
+.github/workflows/modern-native-heavy-router.yml

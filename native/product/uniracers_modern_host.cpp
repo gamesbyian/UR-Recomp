@@ -44,6 +44,7 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
+#include "modern_practice_visual_style.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
 #include "../title/uniracers_tour_progress_overview.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -7618,7 +7619,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w = logical_width < 284 ? logical_width - 16 : 276;
+        const auto style = ur::product::modern_practice_visual_style(logical_width);
+        const int panel_w = style.panel_width_logical;
         constexpr int kPanelHeight = 170;
         const auto layout = centered_modern_modal_layout(
             width, height, scale, panel_w, kPanelHeight, panel_w, kPanelHeight);
@@ -7635,38 +7637,74 @@ extern "C" void ur_uniracers_modern_system_overlay(
             g_practice_picker.picker, g_practice_picker_availability, +1);
         const auto* prev_course = ur::product::quick_practice_picker_course(previous);
         const auto* next_course = ur::product::quick_practice_picker_course(next);
+        // Derive the visual hierarchy from the stock BG2 menu grammar:
+        // dimensional yellow titles, grey data, blue cursor and a restrained
+        // selected-row band. Guest/Authentic rendering remains unchanged.
         snes_ovl_fill_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xE0202020u);
+            rect.width, rect.height, style.panel_fill);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, 26 * scale, 0xC0484848u);
         snes_ovl_stroke_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xFFF0F0F0u);
+            rect.width, rect.height, style.panel_outline);
+        snes_ovl_fill_rect(pixels, stride, height,
+            x + 8 * scale, y + style.selected_row_y_logical * scale,
+            rect.width - 16 * scale,
+            style.selected_row_height_logical * scale,
+            style.selection_band);
         char row[96];
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 8 * scale,
-            "QUICK PRACTICE", 0xFFFFFFFFu, scale);
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "QUICK PRACTICE", style.dark_outline,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "QUICK PRACTICE", style.title_yellow,
+            style.title_glyph_scale * scale);
         std::snprintf(row, sizeof(row), "TOUR %u/8  %.*s",
             static_cast<unsigned>(view.tour_number),
             static_cast<int>(view.tour_name.size()), view.tour_name.data());
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 28 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 28 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         std::snprintf(row, sizeof(row), "  %.*s",
             prev_course ? static_cast<int>(prev_course->name.size()) : 0,
             prev_course ? prev_course->name.data() : "");
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 50 * scale, row, 0xFFA0A0A0u, scale);
-        std::snprintf(row, sizeof(row), "> %.*s",
+            x + 8 * scale, y + 50 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
+        std::snprintf(row, sizeof(row), "%.*s",
             static_cast<int>(view.course_name.size()), view.course_name.data());
+        const auto selected_name = ur::product::fit_modern_overlay_text(
+            row, ur::product::modern_overlay_text_cells(panel_w) - 2u);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 65 * scale, row, 0xFFFFFFFFu, scale);
+            x + 9 * scale, y + 66 * scale, ">", style.dark_outline, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 65 * scale, ">", style.cursor_blue, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 24 * scale, y + 65 * scale,
+            selected_name.c_str(), style.title_yellow, scale);
         std::snprintf(row, sizeof(row), "  %.*s",
             next_course ? static_cast<int>(next_course->name.size()) : 0,
             next_course ? next_course->name.data() : "");
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 80 * scale, row, 0xFFA0A0A0u, scale);
+            x + 8 * scale, y + 80 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         std::snprintf(row, sizeof(row), "TRACK %u/40  %.*s",
             static_cast<unsigned>(view.course_number),
             static_cast<int>(view.kind_label.size()), view.kind_label.data());
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 101 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 101 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 123 * scale,
             "UP/DOWN TRACK  L/R TOUR", 0xFFFFFFFFu, scale);
@@ -7675,9 +7713,15 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const std::string back = "ESC/PAD " +
             live_gamepad_binding_label(7) + " BACK";
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 139 * scale, hint.c_str(), 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 139 * scale,
+            ur::product::fit_modern_overlay_text(
+                hint, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 154 * scale, back.c_str(), 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 154 * scale,
+            ur::product::fit_modern_overlay_text(
+                back, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
         if (!g_practice_picker_draw_reported &&
             std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             g_practice_picker_draw_reported = true;

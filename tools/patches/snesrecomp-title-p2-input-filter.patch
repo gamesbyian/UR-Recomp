@@ -9,10 +9,12 @@
 +    uint32 inputs = (human & ~0x00fff000u) | ((p2_human & 0x0fffu) << 12);
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -220 +220,6 @@
+@@ -220,3 +220,8 @@
    uint32_t (*filter_player_input)(uint32_t inputs);
 +  /* Optional title-owned mapped P2 physical-button/axis filter before the
 +   * shared 24-bit guest controller word is assembled. Unlike the scripted
 +   * INPUT_FILE/debug mask, this input is ordinary human P2 input only.
 +   * The guest / framework's actual P2 mapped state is never modified. */
 +  uint32_t (*filter_second_player_input)(uint32_t inputs);
+ 
+   /* Optional title-owned source-aware physical gamepad seam. The framework

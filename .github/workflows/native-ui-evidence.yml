@@ -313,7 +313,57 @@ jobs:
                 test -s "$RUNNER_TEMP/ui-stunt-result-dumps/$tag.wram.bin" || { echo "::error::Missing Stunt entry dump: $tag"; exit 1; }
               done
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
+              # Temporary parity experiment: preserve the original capture.
+              python3 - "$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build" "$RUNNER_TEMP/records-submenu-seed" <<'PY'
+          from pathlib import Path
+          import shutil,sys
+          src,dst=map(Path,sys.argv[1:])
+          dst.mkdir(parents=True,exist_ok=True)
+          extensions={".ini",".srm",".sav",".dat",".urrun",".urghost"}
+          copied=[]
+          for p in sorted(src.rglob("*")):
+              if not p.is_file() or p.is_symlink(): continue
+              rel=p.relative_to(src)
+              if len(rel.parts)>4 or p.suffix.lower() not in extensions: continue
+              if p.stat().st_size>8*1024*1024: raise SystemExit(f"Unexpected large state: {rel}")
+              out=dst/rel
+              out.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(p,out)
+              copied.append(str(rel))
+          print(f"UR_RECORDS_SUBMENU_SEED files={len(copied)} paths={copied}")
+          PY
               run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
+              for pacing in paced unpaced; do
+                (
+                  export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-$pacing-user"
+                  mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                  cp -a "$RUNNER_TEMP/records-submenu-seed/." "$SNESRECOMP_USER_DATA_DIR/" || exit $?
+                  delay=0
+                  if [ "$pacing" = unpaced ]; then delay=1; fi
+                  printf '[General]\nDisableFrameDelay = %s\n' "$delay" > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  run_route "records-submenu-$pacing" ui-records-submenus.script "records-submenu-$pacing-dumps" 180 required || exit $?
+                  grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                    "$RUNNER_TEMP/records-submenu-$pacing.log" || exit $?
+                ) || exit $?
+              done
+              python3 - "$RUNNER_TEMP/records-submenu-paced-dumps" "$RUNNER_TEMP/records-submenu-unpaced-dumps" "$RUNNER_TEMP/ui-records-submenu-dumps" <<'PY'
+          import hashlib,sys
+          from pathlib import Path
+          def files(root):
+              return {f.relative_to(root).as_posix():hashlib.sha256(f.read_bytes()).hexdigest()
+                      for f in sorted(root.rglob("*")) if f.is_file()}
+          paced,unpaced,original=[files(Path(p)) for p in sys.argv[1:]]
+          names=[x.split(None,1)[1].strip()+".wram.bin" for x in
+                 Path("tests/input/ui-records-submenus.script").read_text().splitlines()
+                 if x.startswith("dump ")]
+          if len(names)!=12 or any(n not in paced or n not in unpaced for n in names):
+              raise SystemExit("Missing Records-submenus WRAM checkpoints")
+          if set(paced)!=set(unpaced): raise SystemExit("Records-submenus file set mismatch")
+          mismatched=[n for n in paced if paced[n]!=unpaced[n]]
+          if mismatched: raise SystemExit(f"Records-submenus pacing mismatch: {mismatched}")
+          baseline=[n for n in original.keys()|paced.keys() if original.get(n)!=paced.get(n)]
+          print(f"UR_RECORDS_SUBMENU_PACING_PARITY PASS files={len(paced)} checkpoints=12 baseline_drift={len(baseline)} sample={sorted(baseline)[:12]}")
+          PY
               run_route ui-league-table ui-league-table.script ui-league-dumps 90
               ;;
             records)

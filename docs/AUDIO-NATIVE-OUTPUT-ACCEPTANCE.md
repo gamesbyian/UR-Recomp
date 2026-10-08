@@ -555,3 +555,43 @@ The exact amplitude response to a five-point Volume adjustment is
 window or instrument mixer gain at its ownership seam; do not tune the
 stock audio DSP, timing or Volume control based on these aggregate
 captured-race-tail ratios.
+
+
+## First native Modern host-owned frozen pause audio probe
+
+Unlike the stock guest Start route, the Modern pause is owned by the host
+session. A successful pause **stops guest frame advancement** but preserves
+host event pumping and presentation. The canonical guest `wait`
+script therefore cannot advance to another stop/dump instruction after
+Modern pause opens. Applying the stock-Start 30-guest-frame post-marker
+contract here would be incorrect.
+
+The Windows specialist audio acceptance now launches the **actual packaged
+Modern product** and uses its already existing
+`UR_PAUSE_OPEN_ACCEPTANCE` native hook. The hook waits for a
+real guest-observed active race, then opens the real Modern host pause on
+an emulated-frame boundary. A bounded external native-Windows supervisor
+waits for **both** `UR_PAUSE_STATE paused=1` and
+`UR_PAUSE_ACCEPTANCE OPENED` diagnostic evidence after the
+authoritative `race-entered` script dump. It holds the paused
+host running for **four seconds of wall time**, then intentionally terminates
+the whole launched Windows process tree. Unexpected early exit, absent or
+duplicated pause markers, an observed resume, or a timeout fails closed.
+
+During that held frozen-guest interval the same process continues writing
+real signed-16/44.1 kHz stereo output through SDL3's disk playback driver.
+The existing production PCM analyzer records a one-second tail and the
+3-second, 100 ms per-channel envelope analyzer describes silence/levels,
+peaks and adjacent-sample steps. This **first diagnostic probe does not
+assume** Modern host pause should have the same attenuation ratio as the
+stock guest Start path, nor does it reject ordinary buffer draining as a
+failure without measured native evidence. Killed-process output is
+explicitly **not** a graceful close/flush or playback latency test.
+Guest-frame and wall-time clocks remain distinct, and only small JSON
+metrics/native diagnostics are published; no raw audio is retained.
+
+Once the actual Windows output is measured, compare that envelope against
+the stock guest pause and separately test host resume/Restart/Exit
+acoustics. Do not force the guest to simulate frames while frozen, alter
+SNES APU state, or change the Modern pause menu merely to satisfy the
+capture.

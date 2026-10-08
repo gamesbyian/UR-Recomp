@@ -286,3 +286,35 @@ frames while it is open. That product-specific acoustic test needs an
 independent host-input/host-presentation harness and must avoid interfering
 with active Modern pause/Restart PRs. Neither capture proves precise
 guest-to-SDL-sample latency or exact DSP content.
+
+## First Windows stock Start pause/resume envelope, 2026-10-08
+
+The first six-phase packaged Windows output acceptance
+[37721804984](https://github.com/gamesbyian/UR-Recomp/actions/runs/37721804984)
+**passed**, reusing verified source build
+[37721010318](https://github.com/gamesbyian/UR-Recomp/actions/runs/37721010318).
+The original three first-race checkpoints stayed green, then the new stock
+guest Start route passed at the three native guest-frame checkpoints:
+
+| Stock guest phase | Observed guest frame / post frame | SDL device tail RMS | New post-startup underflows / missing frames | Audible source drops |
+| --- | --- | ---: | ---: | ---: |
+| Before Start | 985 / 1015 | 6350.51 | 0 / 0 | 0 |
+| After first Start | 1048 / 1078 | 53.42 | 0 / 0 | 0 |
+| After second Start | 1111 / 1141 | 5811.22 | 0 / 0 | 0 |
+
+The observed **pause-to-before RMS ratio is about 0.0084** and the
+**resume-to-before ratio about 0.915**; this suggests the stock pause sharply
+attenuates device output and resume restores it. The early callback underflow
+counter remained concentrated in the first stats interval for each separate
+process, with no new underflows or missing frames thereafter. This is real
+packaged-Windows output evidence, not an assumption about the game.
+
+`tools/analyze_audio_pause_phases.py` now accepts opt-in
+`--max-paused-to-before` and
+`--min-resumed-to-before` ratios and guards against nonfinite
+limits or a silent pre-pause baseline. **These ratio limits are not
+automatically enforced yet**. Repeat the packaged-Windows capture to ensure
+the attenuation and recovery remain stable across fresh process and runner
+scheduling before selecting conservative acceptance thresholds. Keep the
+stock Start probe separate from Modern host-owned pause, Restart Race and
+Exit-to-Frontend acoustics.

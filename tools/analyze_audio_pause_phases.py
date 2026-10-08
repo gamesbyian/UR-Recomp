@@ -15,7 +15,20 @@ from pathlib import Path
 CHECKPOINTS = ("ui-pause-before", "ui-pause-after-start", "ui-pause-after-resume")
 
 
-def pause_phase_report(metrics: dict, queues: dict) -> dict:
+def pause_phase_report(
+    metrics: dict, queues: dict, *,
+    max_paused_to_before: float | None = None,
+    min_resumed_to_before: float | None = None,
+) -> dict:
+    limits = {
+        "max_paused_to_before": max_paused_to_before,
+        "min_resumed_to_before": min_resumed_to_before,
+    }
+    if any(limit is not None and (
+        not isinstance(limit, (int, float)) or isinstance(limit, bool)
+        or not math.isfinite(limit) or limit < 0
+    ) for limit in limits.values()):
+        raise ValueError("pause attenuation limits must be non-negative finite numbers")
     if set(metrics) != set(CHECKPOINTS) or set(queues) != set(CHECKPOINTS):
         raise ValueError("missing or extra stock pause checkpoint")
     phases = {}
@@ -63,6 +76,20 @@ def pause_phase_report(metrics: dict, queues: dict) -> dict:
             "audible_samples_dropped": deltas["dropped_audible"],
         }
     baseline = phases["ui-pause-before"]["tail_rms"]
+    paused = phases["ui-pause-after-start"]["tail_rms"]
+    resumed = phases["ui-pause-after-resume"]["tail_rms"]
+    if any(value is not None for value in limits.values()) and baseline == 0:
+        raise ValueError("cannot enforce pause attenuation without audible pre-pause baseline")
+    if max_paused_to_before is not None and paused / baseline > max_paused_to_before:
+        raise ValueError(
+            f"stock pause RMS ratio {paused / baseline:.6f} exceeds "
+            f"measured limit {max_paused_to_before}"
+        )
+    if min_resumed_to_before is not None and resumed / baseline < min_resumed_to_before:
+        raise ValueError(
+            f"stock resume RMS ratio {resumed / baseline:.6f} below "
+            f"measured limit {min_resumed_to_before}"
+        )
     return {
         "schema_version": 1,
         "meaning": "Stock guest Start pause and resume, not Modern host pause",
@@ -73,7 +100,11 @@ def pause_phase_report(metrics: dict, queues: dict) -> dict:
             name: (round(phases[name]["tail_rms"] / baseline, 6) if baseline > 0 else None)
             for name in CHECKPOINTS
         },
-        "limits": "No imposed paused-silence or device-latency claim; source audible drops required zero",
+        "limits": {
+            "source_audible_drops": 0,
+            **{key: value for key, value in limits.items() if value is not None},
+        },
+        "limit_policy": "Ratio limits are opt-in until repeat Windows measurements establish tolerance; no exact device latency claim",
     }
 
 
@@ -81,12 +112,17 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("directory", type=Path)
     ap.add_argument("--json-out", type=Path, required=True)
+    ap.add_argument("--max-paused-to-before", type=float)
+    ap.add_argument("--min-resumed-to-before", type=float)
     args = ap.parse_args()
     metrics = {name: json.loads((args.directory / f"audio-output-{name}.json").read_text())
                for name in CHECKPOINTS}
     queues = {name: json.loads((args.directory / f"audio-ring-{name}.json").read_text())
               for name in CHECKPOINTS}
-    report = pause_phase_report(metrics, queues)
+    report = pause_phase_report(
+        metrics, queues, max_paused_to_before=args.max_paused_to_before,
+        min_resumed_to_before=args.min_resumed_to_before,
+    )
     args.json_out.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     for name in CHECKPOINTS:
         item = report["phases"][name]

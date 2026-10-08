@@ -67,6 +67,36 @@ class GuestPauseAudioAcceptanceTests(unittest.TestCase):
         self.assertEqual(report["relative_to_before"]["ui-pause-after-start"], 0)
         self.assertAlmostEqual(report["relative_to_before"]["ui-pause-after-resume"], 1700 / 1500, delta=1e-6)
 
+    def test_opt_in_pause_attenuation_and_resume_recovery(self):
+        pcm, stats = self.fixtures()
+        report = pause_phase_report(
+            pcm, stats, max_paused_to_before=0.05, min_resumed_to_before=0.5,
+        )
+        self.assertEqual(report["limits"]["max_paused_to_before"], 0.05)
+        self.assertEqual(report["limits"]["min_resumed_to_before"], 0.5)
+        pcm["ui-pause-after-start"]["tail_rms"] = 300
+        with self.assertRaisesRegex(ValueError, "stock pause RMS ratio"):
+            pause_phase_report(pcm, stats, max_paused_to_before=0.1)
+        pcm, stats = self.fixtures()
+        pcm["ui-pause-after-resume"]["tail_rms"] = 400
+        with self.assertRaisesRegex(ValueError, "stock resume RMS ratio"):
+            pause_phase_report(pcm, stats, min_resumed_to_before=0.5)
+
+    def test_zero_pre_pause_baseline_never_vacuously_passes_opt_in_limit(self):
+        pcm, stats = self.fixtures()
+        pcm["ui-pause-before"]["tail_rms"] = 0
+        report = pause_phase_report(pcm, stats)
+        self.assertIsNone(report["relative_to_before"]["ui-pause-after-resume"])
+        with self.assertRaisesRegex(ValueError, "without audible pre-pause"):
+            pause_phase_report(pcm, stats, max_paused_to_before=0.05)
+
+    def test_invalid_attenuation_limits_fail_closed(self):
+        pcm, stats = self.fixtures()
+        with self.assertRaisesRegex(ValueError, "non-negative finite"):
+            pause_phase_report(pcm, stats, max_paused_to_before=float("nan"))
+        with self.assertRaisesRegex(ValueError, "non-negative finite"):
+            pause_phase_report(pcm, stats, min_resumed_to_before=-0.1)
+
     def test_invalid_or_dropped_source_audio_rejected(self):
         pcm, stats = self.fixtures()
         stats["ui-pause-after-start"]["deltas"]["dropped_audible"] = 1

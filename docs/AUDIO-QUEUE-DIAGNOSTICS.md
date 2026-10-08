@@ -42,3 +42,27 @@ cadence; investigate nonzero audible loss rather than masking it by stretching
 the game clock.
 
 Do not commit extracted PCM, proprietary source assets, or device-unique paths.
+
+## First packaged Windows evidence: interval localization
+
+The first automatic packaged Windows audio run was successful:
+[Windows audio run 37717487422](https://github.com/gamesbyian/UR-Recomp/actions/runs/37717487422),
+using source build 37716818762. SDL3 disk playback produced 762,880 complete
+S16LE stereo frames at 44,100 Hz (17.299 seconds), full-file RMS 2,998.49,
+last-0.5-second RMS 7,774.13, no clipped samples, and a valid first-race
+checkpoint. In the simultaneously captured production APU counter window,
+there were **zero** overflow-dropped native samples (including audible ones),
+but **eight** output underflows and **4,044** missing device-rate frames. The
+observed capture duration and production-counter observation window are not
+identical, so it would be wrong to calculate a precise total drop-duration or
+claim the missing PCM occurs specifically during the race.
+
+The reducer now emits `anomalous_intervals` to localize those events to
+consecutive real wall-time snapshots (roughly one second apart). Each record
+retains relative start/end offsets, output occupancy at the endpoints,
+underflow increments, missing device-rate frames and native-sample overflow
+increments. It prints corresponding `AUDIO_QUEUE_INTERVAL` lines for direct
+CI diagnosis and retains the machine-readable summary. Anomalous intervals
+are **not** precise dropout start times and are **not** aligned to guest race
+frames; this gives a finite target for later measured correlation rather than
+assuming startup is responsible.

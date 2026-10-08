@@ -102,3 +102,26 @@ PAL authorities without separate homolog and runtime-register evidence.
 The course model remains regional-data-aware, while this marshal claim is
 currently **USA/legacy-beta only**. This is an actionable research boundary,
 not a claim that PAL omits per-player collision bookkeeping.
+
+
+## Direct dispatcher-side player-source transfer (bank 82)
+
+The per-player course-object dispatcher has its own directly recoverable
+input boundary, separate from the bank-81 collision processor:
+
+| Player | USA frame dispatch input | Observed instructions | Object dispatch |
+|---|---|---|---|
+| P1 | 82:89BB | LDY $0E95; STY $0F09 | 82:8C32 JSL $8182E2 |
+| P2 | 82:8EC3 | LDY $0E97; STY $0F09 | 82:911C JSL $8182E2 |
+
+These exact bank-82 instruction bytes are asserted in the USA cartridge
+regression. Each player stored contact word is restored to shared scratch
+before its course-object dispatch call. Bank-81 contact/surface processing
+updates the same per-player backing field through a separate call path.
+
+This supports a specific next frame-phase discriminator: the word visible
+at the end of guest frame 2902 might be read by the next player-one object
+dispatch, explaining why the observed 0x2024 and the finish-state transition
+land in adjacent frame-end snapshots. This is an **inference about call
+scheduling**, not yet a confirmed one-frame causal delay. An
+instruction-time trace at 82:89BB / 82:8C32 and 81:8DF3 is needed.

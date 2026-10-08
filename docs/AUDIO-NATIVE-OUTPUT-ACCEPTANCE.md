@@ -81,3 +81,19 @@ This gives Windows audio a continuous **packaged-output integrity** check.
 Even an accepted run is not yet exact music/SFX reference parity, device
 latency certification or pause/restart transient fidelity. Those remain
 separate evidence requirements and cannot be inferred from aggregate PCM RMS.
+
+## First-race audible-tail discriminator
+
+The stock `tests/input/reach-first-race.script` ends after 60 guest frames
+have elapsed in active racing. A whole-file non-silence measurement alone
+could be satisfied by menu music even if native music vanished before race
+entry. Accordingly, the Windows package capture also requires its final
+0.5 seconds of **SDL device-output PCM** to exceed an intentionally low RMS
+and nonzero-sample floor (`--tail-seconds 0.5 --min-tail-rms 50`). The
+corresponding result records the tail window size, RMS, peak, and nonzero
+fraction separately from full-file statistics. This proves sound reaches the
+SDL device towards the end of the scripted first-race route. It does not
+prove exactly which guest samples correspond to those output frames, that
+the effect/music arrangement matches the reference, or that hardware speaker
+latency is acceptable. More precise claims still require actual aligned
+reference PCM evidence.

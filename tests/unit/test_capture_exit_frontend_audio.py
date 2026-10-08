@@ -8,19 +8,21 @@ ROOT = Path(__file__).resolve().parents[2]
 
 class ExitFrontendAudioTests(unittest.TestCase):
     LOG = (
-        "script f=1041 dump race-entered ok\n"
+        "script f=1044 dump race-entered ok\n"
         "UR_EXIT_FRONTEND REQUESTED source=1 sram=CAFE1248 practice=0\n"
-        "UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=1 pause=1 exit=1\n"
+        "UR_EXIT_FRONTEND ACCEPTANCE_TRIGGER surface=0 pause=0 exit=0\n"
         "UR_EXIT_FRONTEND FRONTEND_READY menu=D7 sram=CAFE1248\n"
-        "script f=1180 dump exit-frontend-ready ok\n"
+        "script f=502 dump exit-frontend-ready ok\n"
         "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C sram=CAFE1248\n"
-        "script f=1305 dump exit-frontend-usable ok\n"
+        "script f=565 dump exit-frontend-usable ok\n"
     )
 
     def test_authoritative_return_has_distinct_guest_race_and_frontend(self):
         result = verify_exit_log(self.LOG)
-        self.assertEqual(result["race_entered_guest_frame"], 1041)
-        self.assertEqual(result["frontend_rider_guest_frame"], 1305)
+        self.assertEqual(result["race_entered_guest_frame"], 1044)
+        self.assertEqual(result["frontend_rider_guest_frame"], 565)
+        self.assertEqual(result["frontend_main_guest_frame"], 502)
+        self.assertLess(result["frontend_main_guest_frame"], result["race_entered_guest_frame"])
         self.assertEqual(result["authoritative_exit_requested"], 1)
         self.assertEqual(result["frontend_usable"], 1)
 
@@ -29,9 +31,9 @@ class ExitFrontendAudioTests(unittest.TestCase):
             self.LOG.replace("UR_EXIT_FRONTEND REQUESTED ", "NOT_EXITED "),
             self.LOG + "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C sram=12345678\n",
             self.LOG.replace("FRONTEND_READY menu=D7", "FRONTEND_READY menu=3C"),
-            self.LOG.replace("ACCEPTANCE_TRIGGER surface=1", "ACCEPTANCE_TRIGGER surface=2"),
-            self.LOG.replace("script f=1305 dump exit-frontend-usable ok\n", ""),
-            self.LOG.replace("script f=1041", "script f=1500"),
+            self.LOG.replace("ACCEPTANCE_TRIGGER surface=0", "ACCEPTANCE_TRIGGER surface=2"),
+            self.LOG.replace("script f=565 dump exit-frontend-usable ok\n", ""),
+            self.LOG.replace("script f=1044", "script f=0"),
             self.LOG.replace(
                 "UR_EXIT_FRONTEND FRONTEND_READY menu=D7 sram=CAFE1248\n",
                 "UR_EXIT_FRONTEND FRONTEND_READY menu=D7 sram=CAFE1248\n"
@@ -47,7 +49,7 @@ class ExitFrontendAudioTests(unittest.TestCase):
         for remove in (
             "UR_EXIT_FRONTEND REQUESTED source=1 sram=CAFE1248 practice=0\n",
             "UR_EXIT_FRONTEND FRONTEND_USABLE menu=3C sram=CAFE1248\n",
-            "script f=1180 dump exit-frontend-ready ok\n",
+            "script f=502 dump exit-frontend-ready ok\n",
         ):
             with self.subTest(remove=remove), self.assertRaises(ValueError):
                 verify_exit_log(self.LOG.replace(remove, ""))

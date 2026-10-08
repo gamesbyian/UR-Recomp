@@ -317,7 +317,28 @@ static void prove_next_event_selects_derived_slot_then_confirms() {
     }
 }
 
+// A resumable tour may be entered while the stock MAIN_MENU cursor rests on
+// another row; the route must return it to 1P before confirming.
+static void prove_main_menu_cursor_returns_to_one_player() {
+    auto state = begin_modern_tour_continue(0);
+    ModernTourContinueObservation observation{};
+    observation.menu_id = 0xD7;
+    observation.selected_option = 2;
+    auto step = advance_until_action(state, observation);
+    assert(step.input == QuickPracticeMenuInput::Up);
+    state = step.state;
+    observation.selected_option = 1;
+    step = advance_until_action(state, observation);
+    assert(step.input == QuickPracticeMenuInput::Up);
+    state = step.state;
+    observation.selected_option = 0;
+    step = advance_until_action(state, observation);
+    assert(step.input == QuickPracticeMenuInput::Accept);
+    assert(step.state.stage == ModernTourContinueStage::AwaitRider);
+}
+
 int main() {
+    prove_main_menu_cursor_returns_to_one_player();
     prove_all_tours_reach_track_select();
     prove_restart_uses_same_stock_route_without_restore();
     prove_results_route_can_stop_at_stock_tour_select();

@@ -43,7 +43,7 @@ class ModernTourAcceptanceHarnessTests(unittest.TestCase):
         # focused acceptance workflow rather than silently dropping out of CI.
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("Run independent Modern acceptance shard", workflow)
-        self.assertIn("shard: [tour, feedback, multiplayer]", workflow)
+        self.assertIn("shard: [tour-a, tour-b, feedback, multiplayer]", workflow)
         self.assertIn(
             "run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry",
             workflow,

@@ -1,6 +1,6 @@
 # Multiplayer / Tournament Records Authority
 
-Status: Records destination exists. Ordinary-2P Race result, two-profile participant identity and canonical course identity are fail-closed authority seams; paired `.urrun` + `UR-MULTIPLAYER-MATCH/1` persistence is checksum/course bound and same-directory staged before catalog-visible publication. The Modern local-multiplayer join surface supplies two explicit profile identities independently of device assignment. Production ordinary-2P capture wiring is present and its dedicated native fresh-process acceptance is green on `main` (Shared Modern native acceptance run `37709847500`, `e17d167`, ordinary-2P shard). Aggregate tournament history over the persisted pairs is the next step; it must derive only from validated pairs, never from session-local assignment or 1P artifacts.
+Status: Records destination exists. Ordinary-2P Race result, two-profile participant identity and canonical course identity are fail-closed authority seams; paired `.urrun` + `UR-MULTIPLAYER-MATCH/1` persistence is checksum/course bound and same-directory staged before catalog-visible publication. The Modern local-multiplayer join surface supplies two explicit profile identities independently of device assignment. Production ordinary-2P capture wiring is present and its dedicated native fresh-process acceptance is green on `main` (Shared Modern native acceptance run `37709847500`, `e17d167`, ordinary-2P shard). Validated ordinary-2P Records aggregation (per-profile W/L/D and head-to-head) is implemented, and the real two-device, explicitly confirmed Modern join-through-stock-result/fresh-load native acceptance passed (PR #808, run `37739564294`). Separately, the Local Tournament session, launch checkpoint, exact pair receipt links and all-or-nothing standings coordinator are merged (#768–#780, #800, #803, #810). That backend does not make a playable tournament: the actual live capture/receipt owner and a read-only Windows fixture/standings query API are in PR #815, and normal player-accessible fixture selection and native end-to-end tournament acceptance remain open. Ordinary Records history alone must never be inferred as tournament fixture membership.
 
 ## Existing reusable substrate
 
@@ -36,6 +36,14 @@ This fail-closed state is intentional:
 - no second replay or course-identity model.
 
 Tracks, Racers/Profiles and Runs/Replays continue to use the established completed-run catalog unchanged.
+
+## Native real-join to ordinary-2P record acceptance
+
+The earlier green ordinary-2P capture acceptance seeds two deterministic profile identities through an opt-in test hook. A separate green Modern 2P join acceptance proves two distinct framework virtual gamepads can join and explicitly confirm profiles, but stops before entering a race. Those tests establish different portions of the production path.
+
+The bounded manually dispatched native capture workflow now includes a real join-to-record case. It creates an ordinary Modern catalog under an isolated XDG root, enters the existing 2P join overlay through two distinct SDL virtual gamepads, checks duplicate-profile refusal, explicitly confirms two different profiles, then continues through the original two-player rider and track menus on a delayed version of the established stock 2P Race input fixture. It waits for the stock 2P result, saves the normal checksum/course-bound .urrun and .urmatch pair, and checks in a fresh process that the selected join.alpha and join.bravo profiles, course:01, stock outcome and P1/P2 input lanes survived. It must not set UR_MULTIPLAYER_MATCH_ACCEPTANCE or invoke the seeded-profile acceptance path. The optional UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture mode is inert in normal product use and leaves existing join/disconnect modes unchanged.
+
+This is a **manual** workflow_dispatch test, not proof until a native run actually passes. It does not establish playable Local Tournament fixture routing, attribution or standings, and an ordinary Records pair never automatically becomes tournament evidence.
 
 ## Smallest future implementation slice
 

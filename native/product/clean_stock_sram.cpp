@@ -1,6 +1,7 @@
 #include "clean_stock_sram.hpp"
 
 #include <cstdlib>
+#include <cstring>
 #include <string_view>
 
 namespace ur::product {
@@ -172,6 +173,15 @@ std::array<std::uint8_t, kStockSramBytes> decode_clean_stock_sram() noexcept {
 const std::array<std::uint8_t, kStockSramBytes>& clean_stock_sram() noexcept {
     static const auto image = decode_clean_stock_sram();
     return image;
+}
+
+bool stock_sram_format_signature_present(
+    const std::uint8_t* data, std::size_t size) noexcept {
+    if (!data || size != kStockSramBytes) return false;
+    return std::memcmp(
+               data,
+               clean_stock_sram().data(),
+               kStockSramFormatSignatureBytes) == 0;
 }
 
 }  // namespace ur::product

@@ -1,0 +1,950 @@
+{
+  "schema": "ur-recomp-malformed-sram-containment-v1",
+  "question": "WORK-QUEUE expert-edge (f): stock guest boot outcome per malformed SRAM class",
+  "method": "native cold boot to MAIN_MENU 7E:009F=D7 and live SRAM dump; Authentic via the exe-anchored saves/ root, Modern via an isolated profile root with no host-profile.txt; fixtures synthesized from Clean.srm by synthesize()",
+  "clean_sram_sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+  "fresh_format": {
+    "authentic": {
+      "sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+      "equals_clean_stock_sram": true,
+      "persisted_on_exit_equals_live": true
+    },
+    "modern": {
+      "sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+      "equals_clean_stock_sram": true,
+      "persisted_on_exit_equals_live": true
+    }
+  },
+  "stock_boot_writes": [
+    "0x0400",
+    "0x0401",
+    "0x0402",
+    "0x0403",
+    "0x0404",
+    "0x0405",
+    "0x0406",
+    "0x0407",
+    "0x0408",
+    "0x0409",
+    "0x040A",
+    "0x040B",
+    "0x040C",
+    "0x040D",
+    "0x040E",
+    "0x040F",
+    "0x0410",
+    "0x0411",
+    "0x0412",
+    "0x0413",
+    "0x0414",
+    "0x0415",
+    "0x0416",
+    "0x0417",
+    "0x0418",
+    "0x0419",
+    "0x041A",
+    "0x041B",
+    "0x041C",
+    "0x041D",
+    "0x041E",
+    "0x041F",
+    "0x10AD",
+    "0x10FD",
+    "0x10FE",
+    "0x10FF",
+    "0x1100",
+    "0x1101",
+    "0x1102",
+    "0x1103",
+    "0x1104",
+    "0x1105",
+    "0x1106",
+    "0x1107",
+    "0x1108",
+    "0x1109",
+    "0x110A",
+    "0x110B",
+    "0x110C",
+    "0x1FFF"
+  ],
+  "base": {
+    "description": "Clean.srm + MIKE Crawler silver (0x069C=2) + Crawler/Dragster rank-0 record 30.00 s held by MIKE, both checksums valid",
+    "sha256": "df6d6b92715cf091cdf5a2f807ddd763bec2e53c32fa9a603d541e0666276f13"
+  },
+  "cases": {
+    "valid_progressed_control": {
+      "input_bytes": 8192,
+      "input_sha256": "df6d6b92715cf091cdf5a2f807ddd763bec2e53c32fa9a603d541e0666276f13",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "truncated_half": {
+      "input_bytes": 4096,
+      "input_sha256": "2304d2ff482c57c948f8243b0344e186edc591975ab68627cbde60ff604f7a6e",
+      "input_checksums_valid": {
+        "medal": false,
+        "records": false
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "f516aac4a222dbca81d36efd91d8cdf2159be37044336bc3577bae29461044a9",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": true
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "f516aac4a222dbca81d36efd91d8cdf2159be37044336bc3577bae29461044a9",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": true,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "empty_file": {
+      "input_bytes": 0,
+      "input_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "input_checksums_valid": {
+        "medal": false,
+        "records": false
+      },
+      "authentic": {
+        "guest_outcome": "reformatted_to_fresh_image",
+        "after_sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x0000",
+          "0x0001",
+          "0x0002",
+          "0x0003",
+          "0x0004",
+          "0x0005",
+          "0x0006",
+          "0x0007",
+          "0x0008",
+          "0x0009",
+          "0x000A",
+          "0x000B",
+          "0x000C",
+          "0x000D",
+          "0x000E",
+          "0x000F",
+          "0x0010",
+          "0x0011",
+          "0x0012",
+          "0x0013",
+          "0x0014",
+          "0x0015",
+          "0x0016",
+          "0x0017",
+          "0x0018",
+          "0x0019",
+          "0x001A",
+          "0x001B",
+          "0x001C",
+          "0x001D",
+          "0x001E",
+          "0x001F"
+        ],
+        "offsets_changed_by_boot_count": 2324,
+        "regions_differing_from_fresh": [],
+        "input_progress_kept": false,
+        "after_values": {
+          "medal_mike_crawler": 0,
+          "record0": 60000,
+          "record0_holder": 16,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": true
+      },
+      "modern": {
+        "guest_outcome": "reformatted_to_fresh_image",
+        "after_sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x0000",
+          "0x0001",
+          "0x0002",
+          "0x0003",
+          "0x0004",
+          "0x0005",
+          "0x0006",
+          "0x0007",
+          "0x0008",
+          "0x0009",
+          "0x000A",
+          "0x000B",
+          "0x000C",
+          "0x000D",
+          "0x000E",
+          "0x000F",
+          "0x0010",
+          "0x0011",
+          "0x0012",
+          "0x0013",
+          "0x0014",
+          "0x0015",
+          "0x0016",
+          "0x0017",
+          "0x0018",
+          "0x0019",
+          "0x001A",
+          "0x001B",
+          "0x001C",
+          "0x001D",
+          "0x001E",
+          "0x001F"
+        ],
+        "offsets_changed_by_boot_count": 2324,
+        "regions_differing_from_fresh": [],
+        "input_progress_kept": false,
+        "after_values": {
+          "medal_mike_crawler": 0,
+          "record0": 60000,
+          "record0_holder": 16,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": true,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "oversized": {
+      "input_bytes": 8208,
+      "input_sha256": "3d489a4f098fcf12f2f74864701648b58721911ac441405623533c7e481f60cc",
+      "input_checksums_valid": {
+        "medal": false,
+        "records": false
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "medal_checksum_mismatch": {
+      "input_bytes": 8192,
+      "input_sha256": "1032b228e9792e595a236e530c91ae1e5f80dea67054277920f2bec266f56bf0",
+      "input_checksums_valid": {
+        "medal": false,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "f9331c1c54f8db8a231c0253b352495599abe23b966ccd470ff1e20b4df0083a",
+        "after_checksums_valid": {
+          "medal": false,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "f9331c1c54f8db8a231c0253b352495599abe23b966ccd470ff1e20b4df0083a",
+        "after_checksums_valid": {
+          "medal": false,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "records_checksum_mismatch": {
+      "input_bytes": 8192,
+      "input_sha256": "59c2fbe3dc00edeaa38772f5b066ea730c7bc4ac520ecf351db8bc88f032d002",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": false
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "d77685e66c1360f9ecc67d7e60eec426c422661d07dbaa427e56e3d7479885b3",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": false
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "d77685e66c1360f9ecc67d7e60eec426c422661d07dbaa427e56e3d7479885b3",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": false
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "medal_value_out_of_range": {
+      "input_bytes": 8192,
+      "input_sha256": "55c85fbf7b376f3b882c39df91cb1059b2b0e40e42d53b54e2703c5b099570b6",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "8719e8782b499663f3cd706007a12f6002284b7a69650f87b0f90f5ec64ebff1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 7,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "8719e8782b499663f3cd706007a12f6002284b7a69650f87b0f90f5ec64ebff1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 7,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "record_value_out_of_range": {
+      "input_bytes": 8192,
+      "input_sha256": "6403b2092d368e0d56656d7a501aa77e0b7ad40857a0464fc65babc6d6852506",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "cbdd7a718080d395efddca688dcf93301d456b859521a34e730aac2a8059cd01",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 65535,
+          "record0_holder": 255,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "cbdd7a718080d395efddca688dcf93301d456b859521a34e730aac2a8059cd01",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 65535,
+          "record0_holder": 255,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "tour_flag_out_of_range": {
+      "input_bytes": 8192,
+      "input_sha256": "179a552684a8fab2e028c18dbddfbdda05cee8a3aa938c6d5467f51fa35692a9",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "0c9ce77a37b025db5b8a0ded39881fe81c1726c9132481fb439aac71f7905b78",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "tour_flags",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            255,
+            1
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "0c9ce77a37b025db5b8a0ded39881fe81c1726c9132481fb439aac71f7905b78",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 1,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "tour_flags",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            255,
+            1
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "play_mode_out_of_range": {
+      "input_bytes": 8192,
+      "input_sha256": "8390a8b9e8b67fa7351404bf8513fba4b283903ad036f310a1bdf7cc220b6011",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x10AD",
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 2,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "accepted_with_stock_boot_writes",
+        "after_sha256": "9a1f08c9d226038938f794bcde9d890f84b10afaf24d7882b0309324ba68e8e1",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x10AD",
+          "0x1FFF"
+        ],
+        "offsets_changed_by_boot_count": 2,
+        "regions_differing_from_fresh": [
+          "records",
+          "record_holders",
+          "medal_block",
+          "other"
+        ],
+        "input_progress_kept": true,
+        "after_values": {
+          "medal_mike_crawler": 2,
+          "record0": 3000,
+          "record0_holder": 0,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    },
+    "header_signature_damaged": {
+      "input_bytes": 8192,
+      "input_sha256": "9b3fb46bf46a54f0efb3c58274d318b3650a7801607e9516127469c285d50a52",
+      "input_checksums_valid": {
+        "medal": true,
+        "records": true
+      },
+      "authentic": {
+        "guest_outcome": "reformatted_to_fresh_image",
+        "after_sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x0000",
+          "0x0422",
+          "0x0423",
+          "0x054E",
+          "0x054F",
+          "0x0550",
+          "0x069C",
+          "0x073C"
+        ],
+        "offsets_changed_by_boot_count": 8,
+        "regions_differing_from_fresh": [],
+        "input_progress_kept": false,
+        "after_values": {
+          "medal_mike_crawler": 0,
+          "record0": 60000,
+          "record0_holder": 16,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false
+      },
+      "modern": {
+        "guest_outcome": "reformatted_to_fresh_image",
+        "after_sha256": "cfa44d1758b4077c397b8f520562fe0f6b0bbd86fe4eb5730850bf20237fab6b",
+        "after_checksums_valid": {
+          "medal": true,
+          "records": true
+        },
+        "offsets_changed_by_boot": [
+          "0x0000",
+          "0x0422",
+          "0x0423",
+          "0x054E",
+          "0x054F",
+          "0x0550",
+          "0x069C",
+          "0x073C"
+        ],
+        "offsets_changed_by_boot_count": 8,
+        "regions_differing_from_fresh": [],
+        "input_progress_kept": false,
+        "after_values": {
+          "medal_mike_crawler": 0,
+          "record0": 60000,
+          "record0_holder": 16,
+          "tour_flags_0_1": [
+            0,
+            0
+          ],
+          "play_mode": 0
+        },
+        "persisted_on_exit_equals_live": true,
+        "previous_file_kept_as_bak": true,
+        "framework_short_read_reported": false,
+        "host_profile_read_only": true,
+        "host_profile_created": false
+      }
+    }
+  }
+}

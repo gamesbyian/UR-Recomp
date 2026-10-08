@@ -32,6 +32,7 @@ on:
       - "tests/native/run_modern_frontend_controls_acceptance.sh"
       - "native/title/uniracers_tour_progress_overview.hpp"
       - "native/product/host_profile_state.*"
+      - "native/product/clean_stock_sram.*"
       - "tests/input/modern-tour-next-event-acceptance.script"
       - "tests/input/modern-tour-continue-*.script"
       - "tests/input/modern-recent-course-persist.script"

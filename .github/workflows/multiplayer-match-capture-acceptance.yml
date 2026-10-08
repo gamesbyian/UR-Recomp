@@ -11,7 +11,7 @@ jobs:
   acceptance:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    timeout-minutes: 22
     steps:
       - uses: actions/checkout@v4
         with:
@@ -135,6 +135,17 @@ jobs:
           "$CHECK" "$RUN" "$RUNNER_TEMP/captured-relative.input" | tee "$RUNNER_TEMP/pair-check.log"
           grep -q "UR_MULTIPLAYER_MATCH_PAIR_CHECK PASS course=course:01" "$RUNNER_TEMP/pair-check.log"
 
+      - name: Prove real Modern P1/P2 joins survive through an ordinary stock race
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-2p-match/UniracersSNESRecomp"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_two_player_join_record_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/real-joined-capture" \
+            "$RUNNER_TEMP/check-2p-match-pair"
+
       - name: Retain failed capture diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -144,4 +155,5 @@ jobs:
           path: |
             ${{ runner.temp }}/capture.log
             ${{ runner.temp }}/acceptance-dumps/
+            ${{ runner.temp }}/real-joined-capture/real-joined-capture.log
 

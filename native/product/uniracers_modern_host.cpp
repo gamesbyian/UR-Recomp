@@ -1749,6 +1749,16 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT REJECTED_METADATA");
         return false;
     }
+    // Activation writes the mirror into live SRAM without a guest boot, so it
+    // must apply the stock boot's own format check (80:8C4E) itself. Reject
+    // before any persistence so the malformed profile file stays untouched.
+    if (target.state->stock_sram &&
+        !ur::product::stock_sram_format_signature_present(
+            target.state->stock_sram->data(),
+            target.state->stock_sram->size())) {
+        product_diagnostic("UR_PROFILE_SELECT REJECTED_UNFORMATTED_SNAPSHOT");
+        return false;
+    }
     if (!persist_live_profile_snapshot()) return false;
 
     auto product = g_product_state;
@@ -2878,6 +2888,12 @@ bool rollback_tour_entry_to_profile_snapshot() {
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
     }
+    if (!ur::product::stock_sram_format_signature_present(
+            g_profile_state->stock_sram->data(),
+            g_profile_state->stock_sram->size())) {
+        product_diagnostic("UR_TOUR_CONTINUE ROLLBACK_REJECTED_UNFORMATTED_SNAPSHOT");
+        return false;
+    }
 
     const auto restored = ur::product::restore_stock_sram_from_profile(
         ur::product::ExecutionMode::Modern,
@@ -3020,7 +3036,7 @@ bool open_progress_overview() {
     g_progress_overview_profile_id = g_product_state.active_profile_id;
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
-            "UR_TOUR_OVERVIEW OPENED rider=%u bronze=%u silver=%u gold=%u visible=%04X\\n",
+            "UR_TOUR_OVERVIEW OPENED rider=%u bronze=%u silver=%u gold=%u visible=%04X\n",
             static_cast<unsigned>(rider),
             overview.bronze_or_better, overview.silver_or_better,
             overview.gold, static_cast<unsigned>(overview.visible_tour_options));
@@ -4464,7 +4480,20 @@ void complete_multiplayer_run_record_capture() {
     }
 
     reset_multiplayer_run_capture();
+    const char* join_acceptance =
+        std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE");
+    const bool joined_capture = join_acceptance &&
+        std::strcmp(join_acceptance, "capture") == 0;
+    bool acceptance_should_quit = false;
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
+        acceptance_should_quit = true;
+    }
+    if (joined_capture) {
+        acceptance_should_quit = true;
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH REAL_JOIN_CAPTURE_COMPLETE");
+    }
+    if (acceptance_should_quit) {
         if (request_desktop_quit()) {
             product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
         } else {
@@ -5152,7 +5181,12 @@ void run_local_multiplayer_join_acceptance() {
         std::fflush(stderr);
     }
     g_local_multiplayer_acceptance_stage = 1000;
-    (void)request_desktop_quit();
+    if (!mode || std::strcmp(mode, "capture") != 0) {
+        (void)request_desktop_quit();
+    } else {
+        product_diagnostic(
+            "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE RACE_CONTINUES");
+    }
 }
 #endif
 
@@ -7420,6 +7454,40 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
         inputs);
 }
 
+// The stock MAIN_MENU starts its attract demo after ~503 idle frames. Host
+// modals own human input there, so without a hold the attract timer expires
+// underneath them and the title leaves MAIN_MENU, closing the panel the
+// player is reading. Freeze guest frames (not a pause) while a host modal is
+// open on the settled main menu. Routes never hold: they need guest frames.
+// A --script harness drives the stock menu directly while the first-run
+// Welcome panel is visible (its input bypasses the human-input filter), so
+// Welcome holds only for human-driven sessions.
+// Scripted harnesses and the in-host acceptance drivers advance on emulated
+// frames and drive these modals themselves, so a held frame would stall them;
+// the hold is for human-driven sessions only.
+bool frontend_modal_hold_wanted() {
+    if (!modern_mode() || !g_ram || paused() ||
+        snesrecomp_desktop_script_active() ||
+        g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7 ||
+        practice_routing() || tour_continue_routing() ||
+        g_practice_active) {
+        return false;
+    }
+    const bool frontend_settings =
+        g_frontend_options_active && (g_options_visible || g_controls_visible);
+    return g_practice_picker.visible || g_progress_overview_visible ||
+        g_tour_action_visible || frontend_settings ||
+        onboarding_surface_active();
+}
+
+void update_frontend_modal_hold() {
+    const bool wanted = frontend_modal_hold_wanted();
+    if (wanted == (snesrecomp_desktop_frame_hold() != 0)) return;
+    snesrecomp_desktop_set_frame_hold(wanted ? 1 : 0);
+    product_diagnostic(wanted ? "UR_FRONTEND_HOLD ENGAGED"
+                              : "UR_FRONTEND_HOLD RELEASED");
+}
+
 extern "C" void ur_uniracers_modern_system_overlay(
     uint8_t* dst,
     size_t pitch,
@@ -7428,6 +7496,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     if (!ensure_session() || !dst || pitch < 4 || width <= 0 || height <= 0) {
         return;
     }
+    update_frontend_modal_hold();
 
     if (onboarding_surface_active()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
@@ -7672,7 +7741,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             g_progress_overview_draw_reported = true;
             std::fprintf(stderr,
-                "UR_TOUR_OVERVIEW PRESENT scale=%d visible=%04X\\n",
+                "UR_TOUR_OVERVIEW PRESENT scale=%d visible=%04X\n",
                 scale,
                 static_cast<unsigned>(
                     g_progress_overview.visible_tour_options));
@@ -8605,7 +8674,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             if (frontend_options && !g_frontend_options_draw_reported &&
                 std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
                 g_frontend_options_draw_reported = true;
-                std::fprintf(stderr, "UR_FRONTEND_OPTIONS PRESENT scale=%d\\n",
+                std::fprintf(stderr, "UR_FRONTEND_OPTIONS PRESENT scale=%d\n",
                     modal_scale);
                 std::fflush(stderr);
             }
@@ -8622,7 +8691,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             if (frontend_options && !g_frontend_controls_draw_reported &&
                 std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
                 g_frontend_controls_draw_reported = true;
-                std::fprintf(stderr, "UR_FRONTEND_CONTROLS PRESENT scale=%d\\n",
+                std::fprintf(stderr, "UR_FRONTEND_CONTROLS PRESENT scale=%d\n",
                     modal_scale);
                 std::fflush(stderr);
             }

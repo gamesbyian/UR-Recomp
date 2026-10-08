@@ -70,7 +70,7 @@ int create_tournament(void) {
             encoding="utf-8"
         )
         self.assertIn("The API never", header)
-        self.assertIn("The stock 2P join surface must", header)
+        self.assertIn("stock 2P join surface must", header)
         host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
             encoding="utf-8"
         )

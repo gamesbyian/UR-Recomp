@@ -529,3 +529,7 @@ Owning plan: `docs/REGIONAL-PRESENTATION.md`.
 - [~] Compare regional audio/SPC content. A structure-aware workflow now compares the known 50-block ROM-side APU package pool and separately reports same-address selector-table identity/relocation uncertainty. Use matched audio capture only where static package identity remains insufficient; do not create a regional audio branch without proven content differences.
 - [ ] Cross-check printable-string candidates from the static analyzer against framebuffer captures; rendered differences become requirements, internal/header strings do not.
 - [ ] Run representative title/frontend traces through the live secret-input path and prove no accidental activation or swallowed ordinary navigation.
+
+## Integration and final acceptance checkpoint (2026-10-08)
+
+Merged in the current reconciliation batch: #899, #820, #821, #826, #815, #798, #898, #891, #894. Do not interpret GitHub merge success as shipping acceptance. The remaining open replay cancellation #814 conflicts with modern host changes and needs a selective, current-main port. Before closing this batch, run native acceptance for saved-run cancellation/retry and presentation parity, actual two-device stock-to-tournament attribution plus archived standings, native mixed P1-HD/P2-stock pixel preservation, and the six-shard plus aggregate Modern UI suite. Combined-main checks were not confirmed at this checkpoint. The exact provenance and branch-hygiene rules are in `OPEN-WORK-INTEGRATION-REGISTER-20261008.md`.

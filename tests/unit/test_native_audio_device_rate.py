@@ -76,6 +76,11 @@ class NativeWindowsDeviceRateTests(unittest.TestCase):
         ).read_text(encoding="utf-8")
         self.assertIn("check_native_audio_device_rate.py", workflow)
         self.assertIn("SDL_AUDIO_FREQUENCY=48000", workflow)
+        # SDL disk's environment variable does not override SNESRecomp's
+        # own audio open specification. A real Windows run exposed this:
+        # the device remained at 44100 until the framework config changed.
+        self.assertIn("AudioFreq = 48000", workflow)
+        self.assertIn('>"$ROOT/config.ini"', workflow)
         self.assertIn("audio-rate-48000-proof.json", workflow)
         self.assertIn('rm -f "$PCM"', workflow)
         self.assertIn("tests/input/reach-first-race.script", workflow)

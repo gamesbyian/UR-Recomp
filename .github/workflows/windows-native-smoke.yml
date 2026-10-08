@@ -29,11 +29,13 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - "tools/check_windows_portable_binary.py"
       - "tools/verify_rom.py"
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
       - "tests/unit/test_assemble_windows_package.py"
       - "tests/unit/test_windows_package_streaming_bounds.py"
+      - "tests/unit/test_windows_portable_binary.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
       - "native/presentation/**"
@@ -68,7 +70,7 @@ jobs:
       - name: Verify canonical ROM and package contracts
         run: |
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds
+          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary
 
       - name: Stage repository-owned SNESRecomp framework
         run: |
@@ -149,6 +151,11 @@ jobs:
             echo "Portable executable unexpectedly depends on the Visual C++ Redistributable." >&2
             exit 1
           fi
+          # A Visual Studio runner has DLLs a clean player machine does not.
+          # Audit the final PE against an explicit Windows-inbox import policy.
+          python tools/check_windows_portable_binary.py \
+            --exe "$EXE" \
+            --dependencies "$RUNNER_TEMP/windows-runtime-dependencies.log"
 
       - name: Assemble and verify portable Windows package
         run: |

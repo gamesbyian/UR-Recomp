@@ -66,3 +66,44 @@ a valid silent-audio failure is retained rather than stopping the experiment.
 
 The source guest script, production emulation timing, game keyboard defaults,
 and Modern frontend implementation are unchanged.
+
+## First actual packaged Windows result: decisive direction
+
+[Windows run 37776386839](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776386839)
+finished six **interleaved, independent** Restart processes using exactly
+the same verified portable game build. All six reached selected Restart,
+`paused=0` on the same host surface, and the same restarted guest
+checkpoint (`audio-restart-guest` at guest frame 1125). Inspection of all
+six archived native logs confirmed a separate user-data-root anchor and
+`[Keybinds] Loaded keybinds.ini` for every process.
+
+| Disposable SNES Start mapping | Real Restart stereo recovery | Final left/right RMS | Trailing literal zero-output |
+| --- | --- | --- | --- |
+| Return (normal default) | **0 / 3** | **0 / 0** all three | 57 × 100 ms = 5.7 s all three |
+| None (unbound, menu Return unchanged) | **3 / 3** | about **5602 / 6630** | zero buckets all three |
+
+The unchanged guest/script, real Win32 Down/Return activation and same
+verified Windows executable make **leaked SNES Start** by far the best
+currently supported working hypothesis. All three default-Start failures
+showed the same long digital silence. The uninterrupted original-race
+control still had audible playback (RMS ~6048), and the separate original
+Restart audio gate failed. This is substantially stronger than the prior
+intermittent APU/DSP-or-output-timeline speculation, although a small six-run
+diagnostic is not a population-level failure-rate estimate.
+
+**Product disposition:** The audio evidence is complete enough to hand off
+the precise implementation seam to the frontend/input owner in
+[issue #890](https://github.com/gamesbyian/UR-Recomp/issues/890).
+The source of the suspected leak is the transition where a host-owned
+Return confirms Restart, restores the game and closes the host pause,
+while the framework also maps that same key to guest SNES Start.
+The frontend should prove whether its once-suppress and
+key-release-latch still suppress the held key on **subsequent** restored
+guest frames. Fix the ownership handoff; **do not** change the player's
+keyboard default to None, paper over the silence with DSP changes, or
+remove the failing acoustic acceptance.
+
+This result does **not** establish that any production input fix is
+implemented or that normal Modern Restart audio is reliable. That remains
+a shipping blocker until fresh default-keymap Windows source builds
+repeatedly recover audible stereo without losing ordinary Start input.

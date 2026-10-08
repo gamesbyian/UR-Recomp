@@ -425,6 +425,19 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
 
 
+    def test_widescreen_4x3_uses_one_build_with_bounded_route_fanout(self):
+        text = (WORKFLOWS / "widescreen-4x3-regression.yml").read_text()
+        self.assertIn("  build:", text)
+        self.assertIn("  routes:", text)
+        routes = text.split("  routes:", 1)[1].split("  aggregate:", 1)[0]
+        match = re.search(r"route:\s*\[([^\]]+)\]", routes)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertEqual(shards, ["one-player", "vs", "two-player"])
+        self.assertIn("needs: build", routes)
+        self.assertNotIn("cmake --build", routes)
+        self.assertIn("widescreen-4x3-candidates", routes)
+
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()
         self.assertIn("    timeout-minutes: 15", text)

@@ -67,6 +67,29 @@ class PalCourseContactRegistersTests(unittest.TestCase):
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(len(report["builds"]), 4)
         by_build = {x["build"]: x for x in report["builds"]}
+        expected_registers = {
+            "usa-retail": (0x0E95, 0x0E97, 0x0F09),
+            "legacy-beta": (0x0E95, 0x0E97, 0x0F09),
+            "pal-prototype-1994-11-29": (0x0E99, 0x0E9B, 0x0F0D),
+            "europe-retail": (0x0E9F, 0x0EA1, 0x0F13),
+        }
+        for build, expected in expected_registers.items():
+            with self.subTest(registers=build):
+                row = by_build[build]
+                self.assertEqual(
+                    (row["candidate"]["p1_backing"],
+                     row["candidate"]["p2_backing_candidate"],
+                     row["candidate"]["shared_current_player"]),
+                    expected,
+                )
+                self.assertEqual(
+                    row["status"], "unique_structural_transfer_correspondence"
+                )
+                self.assertTrue(row["p2_entry"]["unambiguous"])
+                self.assertTrue(all(
+                    item["unambiguous"]
+                    for item in row["bank81_round_trips"].values()
+                ))
         for build in ("usa-retail", "legacy-beta"):
             row = by_build[build]
             self.assertEqual(row["candidate"]["p1_backing"], 0x0E95)

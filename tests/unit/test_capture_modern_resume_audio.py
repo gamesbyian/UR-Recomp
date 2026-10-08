@@ -70,6 +70,23 @@ class ModernResumeAudioTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 read_stereo_window(pcm, 44100 * 8 + 1)
 
+    def test_closed_pcm_honors_two_live_bookmarked_boundaries(self):
+        # Windows denies reading its live SDL file; bookmark device-byte
+        # positions during pause/resume and read them after producer exit.
+        with tempfile.TemporaryDirectory() as temp:
+            pcm = Path(temp) / "final-device.raw"
+            pcm.write_bytes(struct.pack("<hh", 900, -900) * 44100 +
+                            struct.pack("<hh", 0, 0) * 44100 +
+                            struct.pack("<hh", 2500, -1700) * 44100)
+            paused_byte_boundary = 2 * 44100 * 4
+            resumed_byte_boundary = 3 * 44100 * 4
+            paused = read_stereo_window(pcm, paused_byte_boundary)
+            resumed = read_stereo_window(pcm, resumed_byte_boundary)
+            self.assertEqual(paused["channel_rms"], [0.0, 0.0])
+            self.assertEqual(resumed["channel_rms"], [2500.0, 1700.0])
+            self.assertEqual(verify_resume_audio(
+                self.LOG, paused, resumed)["resume_count"], 1)
+
     def test_probe_leaves_guest_and_audio_runtime_untouched(self):
         tool = (Path(__file__).resolve().parents[2] / "tools" /
                 "capture_modern_resume_audio.py").read_text(encoding="utf-8")

@@ -45,9 +45,19 @@ The first packaged-Windows audio proof (run 37755041540) reached the
 host-held pause and identified the actual game window. Its initial live PCM
 read failed with Windows PermissionError because SDL holds the device file
 exclusively; the bounded post-close bookmark procedure addresses that native
-capture limitation. Resume/output recovery is **not certified until the
-corrected native proof passes**. The existing mandatory offscreen pause-
-silence acceptance remains unchanged.
+capture limitation. The corrected **real packaged-Windows proof passed** as
+[run 37755326684](https://github.com/gamesbyian/UR-Recomp/actions/runs/37755326684),
+reusing the already successful Windows portable package from source run
+37747740214. The actual Windows process reached the canonical active race,
+entered host-owned pause, produced one second of literal zero PCM at the
+bookmarked pause boundary, received Win32 Escape and the matching host
+Resume acknowledgement, and later produced audible SDL stereo in **both**
+channels. The separate whole-device pass measured 1,259,520 S16LE stereo
+frames at 44,100 Hz (28.56 seconds), aggregate RMS 3,824.11 and nonzero
+fraction 0.6404. The native output job also verified its archive/package
+provenance and retained only bounded evidence, never raw audio. This closes
+the minimal shipping pause-to-resume **device-output restoration** gate.
+The existing mandatory offscreen pause-silence acceptance remains unchanged.
 
 A successful run would prove audible-to-silent-to-audible playback in
 one real Windows game process, but not exact note/SFX/DSP parity, latency,

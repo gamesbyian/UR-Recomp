@@ -2,6 +2,7 @@
 import hashlib
 import json
 import pathlib
+import shutil
 import subprocess
 import tempfile
 import unittest
@@ -30,23 +31,54 @@ class P2GuestWordHostContract(unittest.TestCase):
         patch = PATCH_PATH.read_text()
         self.assertIn("g_gamepad[1].axis_buttons", patch)
         self.assertIn("g_game->filter_second_player_input(p2_human)", patch)
-        self.assertIn("uint32 inputs = human | (p2_human << 12);", patch)
+        self.assertIn("((human >> 12) & 0x0fffu)", patch)
+        self.assertIn("(g_gamepad[1].axis_buttons & 0x0fffu)", patch)
+        self.assertIn("((p2_human & 0x0fffu) << 12)", patch)
         self.assertIn("uint32_t (*filter_second_player_input)(uint32_t inputs);", patch)
+        if not shutil.which("patch") or not shutil.which("cc"):
+            self.skipTest("requires POSIX patch and C compiler")
         with tempfile.TemporaryDirectory() as temp:
             directory = pathlib.Path(temp) / "runner/src/desktop"
             directory.mkdir(parents=True)
-            (directory / "host_main.c").write_text(
-                "    uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\n")
             (directory / "host_main.h").write_text(
-                "  uint32_t (*filter_player_input)(uint32_t inputs);\n")
+                "#pragma once\n#include <stdint.h>\n"
+                "typedef struct {\n"
+                "  uint32_t (*filter_player_input)(uint32_t inputs);\n"
+                "} Game;\nextern Game* g_game;\n"
+            )
+            (directory / "host_main.c").write_text(
+                '#include "host_main.h"\n'
+                "#include <stdint.h>\n"
+                "typedef uint32_t uint32;\n"
+                "typedef struct { uint32 axis_buttons; } Pad;\n"
+                "static Pad g_gamepad[2];\n"
+                "static Game game_object;\n"
+                "Game *g_game = &game_object;\n"
+                "static uint32 filter_p2(uint32 p2) { return p2 & ~0x010u; }\n"
+                "static uint32 compose(uint32 human) {\n"
+                "    uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\n"
+                "    return inputs;\n}\n"
+                "int main(void) {\n"
+                "    g_game->filter_second_player_input = filter_p2;\n"
+                "    g_gamepad[1].axis_buttons = 0x020u;\n"
+                "    const uint32 actual = compose(0xa5000000u | (0x010u << 12) | 0x456u);\n"
+                "    const uint32 expected = 0xa5000000u | (0x020u << 12) | 0x456u;\n"
+                "    return actual == expected ? 0 : 1;\n}\n"
+            )
             # The patch uses the original framework line as its only hunk
             # context, deliberately independent of other host hunk offsets.
             result = subprocess.run(
                 ["patch", "-p1", "--batch", "--forward"], cwd=temp,
                 input=patch, text=True, capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
-            self.assertIn("p2_human = g_gamepad[1].axis_buttons",
+            self.assertIn("p2_human = ((human >> 12)",
                           (directory / "host_main.c").read_text())
+            executable = pathlib.Path(temp) / "p2-composition"
+            subprocess.run(
+                ["cc", "-std=c11", "-Wall", "-Wextra", "-Werror", "-pedantic",
+                 str(directory / "host_main.c"), "-o", str(executable)],
+                cwd=temp, check=True)
+            subprocess.run([str(executable)], cwd=temp, check=True)
 
     def test_tournament_open_arms_latch_without_requiring_guest_frame(self):
         host = HOST.read_text()

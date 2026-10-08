@@ -465,4 +465,36 @@ inline std::string local_tournament_history_row(
         " WON" + tail;
 }
 
+// One-row event status shown after a fixture is credited, within 29
+// cells: "CHAMPION: MIKE", "EVENT TIED ON 3 PTS", "LEADS: MIKE 3 PTS 1/3"
+// or "LEAD SHARED 3 PTS 2/6". Derived from receipt-backed standings only.
+inline std::string local_tournament_result_notice(
+    const LocalTournamentState& state,
+    const std::vector<HostProfileCatalogEntry>& catalog) {
+    const auto standings = local_tournament_standings(state);
+    if (standings.empty()) return {};
+    std::size_t leaders = 0;
+    for (const auto& standing : standings) leaders += standing.rank == 1;
+    const auto& top = standings.front();
+    std::size_t played = 0;
+    for (const auto& result : state.results) played += result ? 1 : 0;
+    char tail[32];
+    if (local_tournament_complete(state)) {
+        if (leaders == 1) {
+            return "CHAMPION: " +
+                local_tournament_entrant_label(catalog, top.profile_id, 12);
+        }
+        std::snprintf(tail, sizeof(tail), "EVENT TIED ON %zu PTS",
+            top.points % 1000);
+        return tail;
+    }
+    std::snprintf(tail, sizeof(tail), " %zu PTS %zu/%zu", top.points % 1000,
+        played % 1000, state.fixtures.size() % 1000);
+    if (leaders == 1) {
+        return "LEADS: " +
+            local_tournament_entrant_label(catalog, top.profile_id, 9) + tail;
+    }
+    return std::string("LEAD SHARED") + tail;
+}
+
 } // namespace ur::product

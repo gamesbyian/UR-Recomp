@@ -280,6 +280,10 @@ bool g_local_tournament_restore_rejected;
 std::vector<std::string> g_local_tournament_history_rows;
 std::size_t g_local_tournament_history_unavailable;
 std::string g_local_tournament_strip_reported;
+// One-row event status after a credited fixture; shown only on the stock
+// screen where the credit happened and retired as soon as that screen ends.
+std::string g_local_tournament_result_notice;
+std::uint8_t g_local_tournament_result_notice_screen;
 // Independent of the stock join-overlay visit flag, which is cleared as soon
 // as the title leaves 0x3D for the actual race.
 bool g_local_tournament_route_seen_two_player_select;
@@ -4928,6 +4932,18 @@ void complete_multiplayer_run_record_capture() {
             *g_multiplayer_capture_tournament_attempt, stored_path);
         if (credited == ur::product::LocalTournamentCoordinatorStatus::Committed) {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED");
+            ensure_profile_catalog();
+            g_local_tournament_result_notice =
+                ur::product::local_tournament_result_notice(
+                    g_local_tournament_session->results, g_profile_catalog);
+            g_local_tournament_result_notice_screen = g_ram ? g_ram[0x009F] : 0;
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(stderr,
+                    "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=%02X text=%s\n",
+                    static_cast<unsigned>(g_local_tournament_result_notice_screen),
+                    g_local_tournament_result_notice.c_str());
+                std::fflush(stderr);
+            }
         } else {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");
             (void)ur::product::cancel_local_tournament_capture(
@@ -7088,6 +7104,12 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         !local_tournament_panel_context_valid()) {
         close_local_tournament_panel("UR_LOCAL_TOURNAMENT PANEL_STALE_CONTEXT");
     }
+    if (!g_local_tournament_result_notice.empty() &&
+        (!modern_mode() || !g_ram ||
+         g_ram[0x009F] != g_local_tournament_result_notice_screen)) {
+        g_local_tournament_result_notice.clear();
+        product_diagnostic("UR_LOCAL_TOURNAMENT RESULT_NOTICE_RETIRED");
+    }
     // The stock join-overlay flag is reset at race entry, so own an
     // independent record of a selected fixture's actual 0x3D visit.
     // A route abandoned back to MAIN_MENU cannot leave that fixture armed.
@@ -8813,6 +8835,47 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     std::fflush(stderr);
                 }
             }
+        }
+    }
+
+    if (!g_local_tournament_result_notice.empty() && modern_mode() &&
+        !paused() && g_ram &&
+        g_ram[0x009F] == g_local_tournament_result_notice_screen) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int strip_w = static_cast<int>(
+            ur::product::kModernMainMenuStripMaxChars) * 8 + 12;
+        constexpr int kStripH = 18;
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.reserved.left = 2;
+        request.reserved.right = 2;
+        // Stock 2P results rows end near y=200; the title and course name
+        // own the top, so the notice takes the free bottom band.
+        request.reserved.bottom = 2;
+        request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
+        request.preferred_width = strip_w;
+        request.preferred_height = kStripH;
+        request.minimum_width = strip_w;
+        request.minimum_height = kStripH;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            const auto fitted = ur::product::fit_modern_overlay_text(
+                g_local_tournament_result_notice,
+                ur::product::kModernMainMenuStripMaxChars);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 6 * scale, rect.y + 5 * scale,
+                fitted.c_str(), 0xFFFFE060u, scale);
         }
     }
 

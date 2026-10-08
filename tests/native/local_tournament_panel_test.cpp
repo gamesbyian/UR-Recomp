@@ -229,6 +229,19 @@ void test_overview_and_fixtures() {
         "no results is a shared lead");
     check(local_tournament_history_row(played, catalog()).size() <= 24,
         "history row fits 24 cells");
+    check(local_tournament_result_notice(played, catalog()) ==
+        "LEADS: " + winner + " 3 PTS 1/3", "in-progress leader notice");
+    check(local_tournament_result_notice(state, catalog()) ==
+        "LEAD SHARED 0 PTS 0/3", "nothing played is a shared lead");
+    auto finished = played;
+    finished.results[1] = LocalTournamentRecordedResult{
+        "b", ur::title::OrdinaryTwoPlayerRaceOutcome::Draw, false};
+    finished.results[2] = LocalTournamentRecordedResult{
+        "c", ur::title::OrdinaryTwoPlayerRaceOutcome::Draw, false};
+    const auto final_notice = local_tournament_result_notice(finished, catalog());
+    check(final_notice.rfind("CHAMPION: ", 0) == 0 ||
+        final_notice.rfind("EVENT TIED ON ", 0) == 0, "complete event notice");
+    check(final_notice.size() <= 29, "notice fits the strip");
 }
 
 } // namespace

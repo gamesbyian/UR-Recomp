@@ -16,6 +16,8 @@ Input: `F4` or the mapped `L` semantic opens; arrows / D-pad move; Enter or phys
 
 - **History**: one summary row per completed event (`<CHAMPION> WON  N RACERS`, or `TIE` for a shared lead) from `load_completed_local_tournament_history`, i.e. only immutable per-instance definitions plus exact receipt-linked saved pairs; archives that fail validation are counted as `UNAVAILABLE`, never shown. Random instance-ID order is deterministic, not chronological.
 
+**Result notice:** when a fixture is credited, the stock 2P results screen shows one bottom-band row (rows there end near y=200; title and course own the top): `CHAMPION: <NAME>` / `EVENT TIED ON N PTS` for a completed event, else `LEADS: <NAME> N PTS played/total` or `LEAD SHARED …`. It is derived from receipt-backed standings only and retires as soon as that stock screen ends. Native acceptance asserts `RESULT_NOTICE … text=CHAMPION: MIKE`; framebuffer dumps confirm placement.
+
 Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off the course row opens History, and Back returns to the page it came from. On a complete event, confirm opens Setup for a new event.
 
 ## Authority rules kept

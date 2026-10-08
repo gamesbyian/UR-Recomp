@@ -2654,37 +2654,42 @@ Native smoke gates all of this.
 
 **Dependencies:** slot 0 is P1 in 1P races (slot 1 independently held another racer's 0:27.98). Other courses use the same handler; only Dragster was measured.
 
-### R-2026-10-08-PHYS-02 — Native reproduces the right-route Jumpover fall-through from a fresh process, frame-for-frame
+### R-2026-10-08-PHYS-02 — Native reproduces both Jumpover fall-through routes and their controls from a fresh process, frame-for-frame
 
-**Status:** confirmed (right route; left route open)  
+**Status:** confirmed (both routes; WORK-QUEUE expert-edge (a) closed)  
 **Date:** 2026-10-08  
 **Area:** physics
 
 **Decision / discriminator / stop:** WORK-QUEUE expert-edge item (a).
 - **Decision:** native anchor route. The SMVs' mid-update Snes9x 1.51 freezes are not admitted as native anchors: a WRAM transplant cannot carry CPU/PPU/APU state, and X writes were already shown to be overwritten mid-update (PHYS-01). The TAS-community standard is a run that replays from power-on. The admitted route is a **fresh process** from the recovered real `All Silvers - No Hunter` SRAM, with **one** frame-boundary seed of a game-written persistent variable.
 - **Discriminator:** the same scene-keyed script and frame-indexed input on snesref (snes9x libretro) and native, compared per frame.
-- **Stop:** a fall-through case plus direction-matched ordinary controls agree exactly, or a first divergence is isolated.
+- **Stop:** the contract's four cases (both fall-throughs, both direction-matched controls) agree exactly, or a first divergence is isolated.
 
 **Observation:**
 - Stock menus reach Jumpover (`course:20`, `7E:00CE` = 19) from boot; the race starts at frame 1088 on snesref and 1097 natively (the menus are `until`-driven, so only the absolute input file is shifted by the measured 9 frames).
-- Holding Right reaches the anchor's approach with matching X, pitch and contact word (3074) but X speed +449, not the anchor's +480. The difference is the boost meter: the anchor carries `7E:11CF` = 64, the natural run 0. Writing `04B7` has no effect (it is recomputed from the boost-derived working velocity every frame). Stunt inputs over the approach hills and during the countdown drop earned no boost.
-- Seeding `7E:11CF` = 72 once, 36 frames before splicing the right SMV's controller stream at race frame +362, reproduces the historical outcome: lip contact on movie frames 43–46, departure, a landing far below the halfpipe floor at frame 97 (Y 1301 peak). Seeding 35 or 37 frames before gives ordinary traversals (lip contact at 43, then the halfpipe floor). At frame 40 the three cases differ by one X unit; the window is about 1 X unit wide.
-- Native and snesref are identical for every dumped frame (movie frames 36–110: X, Y, both speeds, pitch, air time, persisted contact word, boost) in all three cases, and a repeated run gives the same series hashes.
+- **Right approach:** hold Right. It reaches the anchor's X, pitch and contact word (3074) but X speed +449, not +480. The difference is the boost meter: the anchor carries `7E:11CF` = 64, the natural run 0. Writing `04B7` has no effect (it is recomputed from the boost-derived working velocity every frame). Stunt inputs over the approach hills and during the countdown drop earned no boost.
+- **Left approach:** hold Right, jump (B) at race +372 to clear the halfpipe, turn with Left at +436 on the far lip, and release Left for three frames at +457. P1 returns heading left past X ≈ 3930 with the anchor's contact word (16386) at −448 before the seed.
+- **Right cases** (seed 72, splice at race +362): seed 36 frames before the splice falls through (lip contact on movie frames 43–46, landing far below the floor at 97, peak Y 1301); 35 and 37 ride normally. The three differ by one X unit at frame 40.
+- **Left cases** (seed 120, splice at race +478): seed 21 frames before falls through (lip contact 45–48, below-floor contact 95–96, peak Y 1342); 22 rides normally.
+- **Controls:** input acts on every second frame. From a fresh boot the acting samples are odd, where the 1.51 anchors' were even (PHYS-01: even samples 30–42). Releasing the shoulder on sample 41 alone, the last acting sample before the lip, turns both fall-throughs ordinary. The right control peaks at Y 759, PHYS-01's right control floor.
+- Native and snesref are identical on every dumped frame (movie frames 36–110: X, Y, both speeds, pitch, air time, persisted contact word, boost) in all seven cases, and a repeated run gives the same series hashes.
 
 **Evidence:**
 - `analysis/generated/jumpover-fallthrough-native.json` from `tools/probe_jumpover_fallthrough_native.py` (manual harness; needs snesref, a snes9x libretro core, the native build and the ROM).
-- `tests/unit/test_probe_jumpover_fallthrough_native.py` (input conversion, script, classification, committed evidence).
+- `tests/unit/test_probe_jumpover_fallthrough_native.py` (input conversion, approach and control construction, script, classification, the committed evidence matrix).
 
 **Interpretation:**
-- Native collision/contact for the right-route fall-through matches the reference exactly, including both adjacent ordinary controls, so the transition is a property of the original simulation that the recomp preserves.
+- Native collision/contact for both fall-through routes and both direction-matched controls matches the reference exactly, so the transitions are properties of the original simulation that the recomp preserves.
 - The single seed replaces an earlier landed-stunt reward; everything else (course materialization, physics, collision) is produced by canonical play from power-on.
+- Event frames shift by up to one frame from the 1.51 anchor replay (contact 43–46 right / 45–48 left versus 44–47). That is the fresh-boot input phase and approach, not a native difference; acceptance compares native to the reference on the same fresh-boot run.
 
-**Discriminating test:** rerun the probe after any change to collision, contact, physics or the framework input path. All three cases must keep `first_divergence: null` and outcomes ordinary / fall_through / ordinary.
+**Discriminating test:** rerun the probe after any change to collision, contact, physics or the framework input path. All seven cases must keep `first_divergence: null` and their committed outcomes.
 
 **Dependencies:**
 - The snes9x libretro core is the accepted stock reference for this path.
 - The 9-frame menu-timing offset between cores is measured per run, not assumed.
 
 **Propagation:**
-- Left route (anchor X 3930 heading left, boost 104) still needs an approach: the hold-Right run stalls in the halfpipe bowl. Next step is an approach that clears the halfpipe and returns, then the same seed/splice sweep.
+- WORK-QUEUE expert-edge (a) is closed; the odd/even acting-sample phase is a constraint on item (e), roll/flip boundaries.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
+- No `docs/SYMBOLS.md` change.

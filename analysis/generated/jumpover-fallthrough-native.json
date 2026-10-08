@@ -1,181 +1,8 @@
 {
   "boost_seed": {
     "note": "one frame-boundary write `seed_lead` frames before the splice; stands in for an earlier landed-stunt reward",
-    "value": 72,
     "wram": "7E:11CF"
   },
-  "cases": [
-    {
-      "first_divergence": null,
-      "native": {
-        "contact_ranges": [
-          [
-            43,
-            43
-          ],
-          [
-            57,
-            110
-          ]
-        ],
-        "final": {
-          "air_time": 0,
-          "boost": 0,
-          "contact_word": 960,
-          "pitch": 56,
-          "x": 3700,
-          "x_speed": 39,
-          "y": 706,
-          "y_speed": -121
-        },
-        "max_y": 734,
-        "outcome": "ordinary",
-        "series_sha256": "c8abda2a6fb648a04ab3f5488847505e07f68bbfbaf7702d8878618ea562c9d9"
-      },
-      "reference": {
-        "contact_ranges": [
-          [
-            43,
-            43
-          ],
-          [
-            57,
-            110
-          ]
-        ],
-        "final": {
-          "air_time": 0,
-          "boost": 0,
-          "contact_word": 960,
-          "pitch": 56,
-          "x": 3700,
-          "x_speed": 39,
-          "y": 706,
-          "y_speed": -121
-        },
-        "max_y": 734,
-        "outcome": "ordinary",
-        "series_sha256": "c8abda2a6fb648a04ab3f5488847505e07f68bbfbaf7702d8878618ea562c9d9"
-      },
-      "seed_lead": 35
-    },
-    {
-      "first_divergence": null,
-      "native": {
-        "contact_ranges": [
-          [
-            43,
-            46
-          ],
-          [
-            97,
-            97
-          ]
-        ],
-        "final": {
-          "air_time": 9,
-          "boost": 0,
-          "contact_word": 0,
-          "pitch": 50,
-          "x": 4453,
-          "x_speed": -60,
-          "y": 1224,
-          "y_speed": -81
-        },
-        "max_y": 1301,
-        "outcome": "fall_through",
-        "series_sha256": "ae3e4a547815f42ef79546e42c7d81411ceba9ae08b02e1b1dc804bd8c8ce158"
-      },
-      "reference": {
-        "contact_ranges": [
-          [
-            43,
-            46
-          ],
-          [
-            97,
-            97
-          ]
-        ],
-        "final": {
-          "air_time": 9,
-          "boost": 0,
-          "contact_word": 0,
-          "pitch": 50,
-          "x": 4453,
-          "x_speed": -60,
-          "y": 1224,
-          "y_speed": -81
-        },
-        "max_y": 1301,
-        "outcome": "fall_through",
-        "series_sha256": "ae3e4a547815f42ef79546e42c7d81411ceba9ae08b02e1b1dc804bd8c8ce158"
-      },
-      "seed_lead": 36
-    },
-    {
-      "first_divergence": null,
-      "native": {
-        "contact_ranges": [
-          [
-            43,
-            43
-          ],
-          [
-            54,
-            96
-          ],
-          [
-            110,
-            110
-          ]
-        ],
-        "final": {
-          "air_time": 0,
-          "boost": 0,
-          "contact_word": 960,
-          "pitch": 52,
-          "x": 3708,
-          "x_speed": 0,
-          "y": 665,
-          "y_speed": 94
-        },
-        "max_y": 744,
-        "outcome": "ordinary",
-        "series_sha256": "db413f4e047370f9e5b6e5d01ad807599eb6f2ea90af1646cd0d14a24a8b1367"
-      },
-      "reference": {
-        "contact_ranges": [
-          [
-            43,
-            43
-          ],
-          [
-            54,
-            96
-          ],
-          [
-            110,
-            110
-          ]
-        ],
-        "final": {
-          "air_time": 0,
-          "boost": 0,
-          "contact_word": 960,
-          "pitch": 52,
-          "x": 3708,
-          "x_speed": 0,
-          "y": 665,
-          "y_speed": 94
-        },
-        "max_y": 744,
-        "outcome": "ordinary",
-        "series_sha256": "db413f4e047370f9e5b6e5d01ad807599eb6f2ea90af1646cd0d14a24a8b1367"
-      },
-      "seed_lead": 37
-    }
-  ],
   "course": {
     "id": "course:20",
     "name": "Jumpover",
@@ -183,14 +10,539 @@
   },
   "fall_y": 1000,
   "kind": "jumpover-fallthrough-native-fixture",
-  "movie_sha256": "ea92765c5eab2a07680c2439efabd5bf4e4a0bbd656803fb305f49fa24b17425",
   "native": "UR_EXECUTION_MODE=authentic, same scene-keyed script",
   "native_race_entry_offset_frames": 9,
   "reference": "snesref + snes9x libretro core (fresh boot, SNESREF_WRAM_FILL=0)",
   "reference_race_entry_frame": 1088,
-  "route": "right",
-  "schema_version": 1,
-  "splice_offset_frames": 362,
+  "routes": {
+    "left": {
+      "approach_from_race_entry": [
+        {
+          "frame_offset": 0,
+          "mask": "0x080"
+        },
+        {
+          "frame_offset": 372,
+          "mask": "0x081"
+        },
+        {
+          "frame_offset": 392,
+          "mask": "0x080"
+        },
+        {
+          "frame_offset": 436,
+          "mask": "0x040"
+        },
+        {
+          "frame_offset": 457,
+          "mask": "0x000"
+        },
+        {
+          "frame_offset": 460,
+          "mask": "0x040"
+        }
+      ],
+      "boost_seed_value": 120,
+      "cases": [
+        {
+          "case": "seed-21",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                45,
+                48
+              ],
+              [
+                95,
+                96
+              ]
+            ],
+            "final": {
+              "air_time": 9,
+              "boost": 104,
+              "contact_word": 0,
+              "pitch": 25,
+              "x": 2420,
+              "x_speed": -296,
+              "y": 1342,
+              "y_speed": 224
+            },
+            "max_y": 1342,
+            "outcome": "fall_through",
+            "series_sha256": "4b091722190c090608b262cf327770c709e9817d56fc6068f341a49c2e3f9e51"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                45,
+                48
+              ],
+              [
+                95,
+                96
+              ]
+            ],
+            "final": {
+              "air_time": 9,
+              "boost": 104,
+              "contact_word": 0,
+              "pitch": 25,
+              "x": 2420,
+              "x_speed": -296,
+              "y": 1342,
+              "y_speed": 224
+            },
+            "max_y": 1342,
+            "outcome": "fall_through",
+            "series_sha256": "4b091722190c090608b262cf327770c709e9817d56fc6068f341a49c2e3f9e51"
+          },
+          "seed_lead": 21,
+          "shoulder_released_on_sample": null
+        },
+        {
+          "case": "seed-22",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                46,
+                48
+              ],
+              [
+                50,
+                73
+              ],
+              [
+                75,
+                91
+              ],
+              [
+                93,
+                96
+              ],
+              [
+                98,
+                99
+              ],
+              [
+                101,
+                102
+              ],
+              [
+                104,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 12,
+              "pitch": 51,
+              "x": 2320,
+              "x_speed": -479,
+              "y": 539,
+              "y_speed": 91
+            },
+            "max_y": 568,
+            "outcome": "ordinary",
+            "series_sha256": "a2bd7d274989f0b2f7f6e288a6c0da53729848a54116f98adeeb84cb4638ef07"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                46,
+                48
+              ],
+              [
+                50,
+                73
+              ],
+              [
+                75,
+                91
+              ],
+              [
+                93,
+                96
+              ],
+              [
+                98,
+                99
+              ],
+              [
+                101,
+                102
+              ],
+              [
+                104,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 12,
+              "pitch": 51,
+              "x": 2320,
+              "x_speed": -479,
+              "y": 539,
+              "y_speed": 91
+            },
+            "max_y": 568,
+            "outcome": "ordinary",
+            "series_sha256": "a2bd7d274989f0b2f7f6e288a6c0da53729848a54116f98adeeb84cb4638ef07"
+          },
+          "seed_lead": 22,
+          "shoulder_released_on_sample": null
+        },
+        {
+          "case": "seed-21-shoulder-41",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                46,
+                46
+              ],
+              [
+                48,
+                48
+              ],
+              [
+                53,
+                62
+              ],
+              [
+                64,
+                82
+              ],
+              [
+                84,
+                97
+              ],
+              [
+                100,
+                102
+              ],
+              [
+                104,
+                105
+              ],
+              [
+                107,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 3138,
+              "pitch": 52,
+              "x": 2414,
+              "x_speed": -478,
+              "y": 516,
+              "y_speed": 61
+            },
+            "max_y": 568,
+            "outcome": "ordinary",
+            "series_sha256": "e73536e81e696fd334ef302949ce83367763c9fc82d48efbb3b3558de9afe964"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                46,
+                46
+              ],
+              [
+                48,
+                48
+              ],
+              [
+                53,
+                62
+              ],
+              [
+                64,
+                82
+              ],
+              [
+                84,
+                97
+              ],
+              [
+                100,
+                102
+              ],
+              [
+                104,
+                105
+              ],
+              [
+                107,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 3138,
+              "pitch": 52,
+              "x": 2414,
+              "x_speed": -478,
+              "y": 516,
+              "y_speed": 61
+            },
+            "max_y": 568,
+            "outcome": "ordinary",
+            "series_sha256": "e73536e81e696fd334ef302949ce83367763c9fc82d48efbb3b3558de9afe964"
+          },
+          "seed_lead": 21,
+          "shoulder_released_on_sample": 41
+        }
+      ],
+      "movie_sha256": "2d127edac13f801d92f5a9b94a0b0979ce9ddbc59d7088dc83acc0ab560417f1",
+      "splice_offset_frames": 478
+    },
+    "right": {
+      "approach_from_race_entry": [
+        {
+          "frame_offset": 0,
+          "mask": "0x080"
+        }
+      ],
+      "boost_seed_value": 72,
+      "cases": [
+        {
+          "case": "seed-35",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                43,
+                43
+              ],
+              [
+                57,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 56,
+              "x": 3700,
+              "x_speed": 39,
+              "y": 706,
+              "y_speed": -121
+            },
+            "max_y": 734,
+            "outcome": "ordinary",
+            "series_sha256": "c8abda2a6fb648a04ab3f5488847505e07f68bbfbaf7702d8878618ea562c9d9"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                43,
+                43
+              ],
+              [
+                57,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 56,
+              "x": 3700,
+              "x_speed": 39,
+              "y": 706,
+              "y_speed": -121
+            },
+            "max_y": 734,
+            "outcome": "ordinary",
+            "series_sha256": "c8abda2a6fb648a04ab3f5488847505e07f68bbfbaf7702d8878618ea562c9d9"
+          },
+          "seed_lead": 35,
+          "shoulder_released_on_sample": null
+        },
+        {
+          "case": "seed-36",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                43,
+                46
+              ],
+              [
+                97,
+                97
+              ]
+            ],
+            "final": {
+              "air_time": 9,
+              "boost": 0,
+              "contact_word": 0,
+              "pitch": 50,
+              "x": 4453,
+              "x_speed": -60,
+              "y": 1224,
+              "y_speed": -81
+            },
+            "max_y": 1301,
+            "outcome": "fall_through",
+            "series_sha256": "ae3e4a547815f42ef79546e42c7d81411ceba9ae08b02e1b1dc804bd8c8ce158"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                43,
+                46
+              ],
+              [
+                97,
+                97
+              ]
+            ],
+            "final": {
+              "air_time": 9,
+              "boost": 0,
+              "contact_word": 0,
+              "pitch": 50,
+              "x": 4453,
+              "x_speed": -60,
+              "y": 1224,
+              "y_speed": -81
+            },
+            "max_y": 1301,
+            "outcome": "fall_through",
+            "series_sha256": "ae3e4a547815f42ef79546e42c7d81411ceba9ae08b02e1b1dc804bd8c8ce158"
+          },
+          "seed_lead": 36,
+          "shoulder_released_on_sample": null
+        },
+        {
+          "case": "seed-37",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                43,
+                43
+              ],
+              [
+                54,
+                96
+              ],
+              [
+                110,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 52,
+              "x": 3708,
+              "x_speed": 0,
+              "y": 665,
+              "y_speed": 94
+            },
+            "max_y": 744,
+            "outcome": "ordinary",
+            "series_sha256": "db413f4e047370f9e5b6e5d01ad807599eb6f2ea90af1646cd0d14a24a8b1367"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                43,
+                43
+              ],
+              [
+                54,
+                96
+              ],
+              [
+                110,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 52,
+              "x": 3708,
+              "x_speed": 0,
+              "y": 665,
+              "y_speed": 94
+            },
+            "max_y": 744,
+            "outcome": "ordinary",
+            "series_sha256": "db413f4e047370f9e5b6e5d01ad807599eb6f2ea90af1646cd0d14a24a8b1367"
+          },
+          "seed_lead": 37,
+          "shoulder_released_on_sample": null
+        },
+        {
+          "case": "seed-36-shoulder-41",
+          "first_divergence": null,
+          "native": {
+            "contact_ranges": [
+              [
+                53,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 52,
+              "x": 3697,
+              "x_speed": 74,
+              "y": 713,
+              "y_speed": -73
+            },
+            "max_y": 759,
+            "outcome": "ordinary",
+            "series_sha256": "d65ecc3ac5a99cd9882001a74585ef80359e4ed970fe2e505891a497ab151576"
+          },
+          "reference": {
+            "contact_ranges": [
+              [
+                53,
+                110
+              ]
+            ],
+            "final": {
+              "air_time": 0,
+              "boost": 0,
+              "contact_word": 960,
+              "pitch": 52,
+              "x": 3697,
+              "x_speed": 74,
+              "y": 713,
+              "y_speed": -73
+            },
+            "max_y": 759,
+            "outcome": "ordinary",
+            "series_sha256": "d65ecc3ac5a99cd9882001a74585ef80359e4ed970fe2e505891a497ab151576"
+          },
+          "seed_lead": 36,
+          "shoulder_released_on_sample": 41
+        }
+      ],
+      "movie_sha256": "ea92765c5eab2a07680c2439efabd5bf4e4a0bbd656803fb305f49fa24b17425",
+      "splice_offset_frames": 362
+    }
+  },
+  "schema_version": 2,
   "sram_sha256": "a4566b0608cb41ce4e82453b68ba7638632a06dadf22de8c4bfa71ec19ed4d57",
   "window_movie_frames": [
     36,

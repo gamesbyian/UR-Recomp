@@ -10,9 +10,11 @@ meter, ``7E:11CF``, normally written by landed-stunt rewards) once at a frame
 boundary, and splices the recovered right-route SMV's own controller stream.
 
 The same scene-keyed script drives both cores; per-frame P1 state is dumped
-over the event window and compared exactly. ``--seed-leads`` choose when the
-boost seed lands; the admitted matrix is the fall-through lead plus the
-adjacent ordinary controls on either side (a ~1 X-unit window).
+over the event window and compared exactly. Each route's matrix (``ROUTES``)
+holds a fall-through case, an adjacent seed lead that rides normally, and the
+PHYS-01 direction-matched control (shoulder released on the last acting
+movie sample before the lip, ``CONTROL_SAMPLE``).
+The right route also keeps the ordinary lead on its other side.
 """
 
 from __future__ import annotations
@@ -35,9 +37,36 @@ from probe_jumpover_fallthrough import controller_samples  # noqa: E402
 GLITCHES = ROOT / "reference/imported/reverse-engineering/dessyreqt/Glitches"
 MOVIES = {
     "right": GLITCHES / "Jumpover - Jump through halfpipe.smv",
+    "left": GLITCHES / "Jumpover - Jump through halfpipe - left.smv",
 }
 DEFAULT_SRAM = ROOT / "reference/imported/reverse-engineering/dessyreqt/SRAM/All Silvers - No Hunter.srm"
-APPROACH_MASK = {"right": 0x0080}
+# Per-route approach from race entry: (frames after race entry, held mask).
+# Right: hold Right into the halfpipe. Left: hold Right, jump the halfpipe,
+# turn back with Left on the far lip, and release Left for three frames to
+# place the return approach on the movie's two-frame input phase.
+ROUTES = {
+    "right": {
+        "approach": [(0, 0x0080)],
+        "splice_offset": 362,
+        "boost": 72,
+        "shoulder": 0x0800,
+        "cases": [("seed-35", 35, False), ("seed-36", 36, False), ("seed-37", 37, False),
+                  ("seed-36-shoulder-41", 36, True)],
+    },
+    "left": {
+        "approach": [(0, 0x0080), (372, 0x0081), (392, 0x0080), (436, 0x0040),
+                     (457, 0x0000), (460, 0x0040)],
+        "splice_offset": 478,
+        "boost": 120,
+        "shoulder": 0x0400,
+        "cases": [("seed-21", 21, False), ("seed-22", 22, False),
+                  ("seed-21-shoulder-41", 21, True)],
+    },
+}
+# PHYS-01's control releases the shoulder on sample 42, the last acting input
+# before the lip. Input acts every second frame; from a fresh boot the acting
+# samples are odd (the 1.51 anchor's were even), so the equivalent sample is 41.
+CONTROL_SAMPLE = 41
 BOOST_ADDR = 0x11CF
 EXTENSION_FRAMES = 60
 WINDOW = (36, 110)          # dumped movie frames (state after frame f)
@@ -96,16 +125,24 @@ def snes9x_to_mask(word: int) -> int:
     return sum(1 << i for i in range(12) if word & (0x8000 >> i))
 
 
-def movie_masks(route: str) -> list[int]:
+def movie_masks(route: str, control_sample: int | None = None) -> list[int]:
     masks = [snes9x_to_mask(w) for w in controller_samples(MOVIES[route].read_bytes())]
-    return masks + [masks[-1]] * EXTENSION_FRAMES
+    masks += [masks[-1]] * EXTENSION_FRAMES
+    if control_sample is not None:
+        masks[control_sample] &= ~ROUTES[route]["shoulder"]
+    return masks
 
 
-def input_events(masks: list[int], race_frame: int, splice: int, approach: int) -> list[tuple[int, int, int]]:
-    """Run-length events: hold `approach` from race entry, then the movie from `splice`."""
+def input_events(masks: list[int], race_frame: int, splice: int, approach) -> list[tuple[int, int, int]]:
+    """Run-length events: the approach (offsets from race entry), then the movie from `splice`."""
     if splice <= race_frame:
         raise ValueError("splice must follow race entry")
-    events = [(race_frame, splice - race_frame, approach)]
+    if isinstance(approach, int):
+        approach = [(0, approach)]
+    points = [(race_frame + off, mask) for off, mask in approach if race_frame + off < splice]
+    if not points or points[0][0] != race_frame:
+        raise ValueError("approach must start at race entry")
+    events = [(a, b - a, m) for (a, m), (b, _) in zip(points, points[1:] + [(splice, None)])]
     run = None
     for i, mask in enumerate(masks):
         frame = splice + i
@@ -190,7 +227,8 @@ def race_entry_frame(log: str) -> int | None:
 
 def run_reference(work: Path, args, script: Path, events) -> str:
     inp = work / "ref.input"
-    inp.write_text("".join(f"{a}:{b}:{c:x}\n" for a, b, c in events))
+    # A zero mask is a gap: no event, no buttons (native rejects mask-0 events).
+    inp.write_text("".join(f"{a}:{b}:{c:x}\n" for a, b, c in events if c))
     out = work / "ref"
     out.mkdir(exist_ok=True)
     env = dict(os.environ, SNESREF_HEADLESS="1", SNESREF_WRAM_FILL="0", SNESREF_SRAM_IN=str(args.sram),
@@ -203,7 +241,7 @@ def run_reference(work: Path, args, script: Path, events) -> str:
 
 def run_native(work: Path, args, script: Path, events, shift: int) -> str:
     inp = work / "native.input"
-    inp.write_text("".join(f"{a + shift}:{b}:{c:x}:0\n" for a, b, c in events))
+    inp.write_text("".join(f"{a + shift}:{b}:{c:x}:0\n" for a, b, c in events if c))
     saves = args.native.parent / "saves"
     backup = saves.with_name("saves.jumpover-probe-backup")
     if backup.exists():
@@ -235,88 +273,95 @@ def main(argv=None) -> int:
     ap.add_argument("--rom", type=Path, required=True)
     ap.add_argument("--sram", type=Path, default=DEFAULT_SRAM)
     ap.add_argument("--work-dir", type=Path, required=True)
-    ap.add_argument("--route", default="right", choices=sorted(MOVIES))
-    ap.add_argument("--splice-offset", type=int, default=362, help="movie start, frames after reference race entry")
-    ap.add_argument("--boost", type=int, default=72)
-    ap.add_argument("--seed-leads", default="35,36,37")
+    ap.add_argument("--routes", default="right,left")
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args(argv)
     for name in ("snesref", "core", "native", "rom", "sram", "work_dir"):
         setattr(args, name, getattr(args, name).resolve())
 
-    masks = movie_masks(args.route)
-    results = []
     ref_race = None
     shift = None
-    for lead in (int(x) for x in args.seed_leads.split(",")):
-        work = args.work_dir / f"{args.route}-lead{lead}"
-        shutil.rmtree(work, ignore_errors=True)
-        work.mkdir(parents=True)
-        # The reference race-entry frame fixes the absolute input timeline.
-        probe_race = ref_race or 1088
-        splice = probe_race + args.splice_offset
-        script = work / "fixture.script"
-        script.write_text(fixture_script(probe_race, splice, lead, args.boost))
-        events = input_events(masks, probe_race, splice, APPROACH_MASK[args.route])
-        ref_log = run_reference(work, args, script, events)
-        rf = race_entry_frame(ref_log)
-        if rf is None:
-            raise SystemExit(f"reference did not reach the race:\n{ref_log[-2000:]}")
-        if rf != probe_race:
-            ref_race = rf
-            splice = rf + args.splice_offset
-            script.write_text(fixture_script(rf, splice, lead, args.boost))
-            events = input_events(masks, rf, splice, APPROACH_MASK[args.route])
+    routes = {}
+    ok = True
+    for route in args.routes.split(","):
+        cfg = ROUTES[route]
+        results = []
+        for name, lead, control in cfg["cases"]:
+            masks = movie_masks(route, CONTROL_SAMPLE if control else None)
+            work = args.work_dir / f"{route}-{name}"
+            shutil.rmtree(work, ignore_errors=True)
+            work.mkdir(parents=True)
+            script = work / "fixture.script"
+
+            def prepare(race):
+                splice = race + cfg["splice_offset"]
+                script.write_text(fixture_script(race, splice, lead, cfg["boost"]))
+                return input_events(masks, race, splice, cfg["approach"])
+
+            # The reference race-entry frame fixes the absolute input timeline.
+            events = prepare(ref_race or 1088)
             ref_log = run_reference(work, args, script, events)
-        ref_race = rf
-        nat_log = run_native(work, args, script, events, shift or 0)
-        nf = race_entry_frame(nat_log)
-        if nf is None:
-            raise SystemExit(f"native did not reach the race:\n{nat_log[-2000:]}")
-        if nf - rf != (shift or 0):
-            # Native boots through the menus on a different frame; the script
-            # adapts through `until`, the absolute input file is shifted.
-            shift = nf - rf
-            nat_log = run_native(work, args, script, events, shift)
-            if race_entry_frame(nat_log) - rf != shift:
-                raise SystemExit("native race entry is not deterministic")
-        shift = nf - rf
-        ref_series, nat_series = load_series(work / "ref"), load_series(work / "native")
-        case = {
-            "seed_lead": lead,
-            "reference": classify(ref_series),
-            "native": classify(nat_series),
-            "first_divergence": first_divergence(ref_series, nat_series),
+            rf = race_entry_frame(ref_log)
+            if rf is None:
+                raise SystemExit(f"reference did not reach the race:\n{ref_log[-2000:]}")
+            if rf != (ref_race or 1088):
+                events = prepare(rf)
+                ref_log = run_reference(work, args, script, events)
+            ref_race = rf
+            nat_log = run_native(work, args, script, events, shift or 0)
+            nf = race_entry_frame(nat_log)
+            if nf is None:
+                raise SystemExit(f"native did not reach the race:\n{nat_log[-2000:]}")
+            if nf - rf != (shift or 0):
+                # Native boots through the menus on a different frame; the
+                # script adapts through `until`, the absolute input is shifted.
+                shift = nf - rf
+                nat_log = run_native(work, args, script, events, shift)
+                if race_entry_frame(nat_log) - rf != shift:
+                    raise SystemExit("native race entry is not deterministic")
+            ref_series, nat_series = load_series(work / "ref"), load_series(work / "native")
+            case = {
+                "case": name,
+                "seed_lead": lead,
+                "shoulder_released_on_sample": CONTROL_SAMPLE if control else None,
+                "reference": classify(ref_series),
+                "native": classify(nat_series),
+                "first_divergence": first_divergence(ref_series, nat_series),
+            }
+            results.append(case)
+            ok &= case["first_divergence"] is None and case["reference"] == case["native"]
+            print(json.dumps({"route": route, "case": name, "reference": case["reference"]["outcome"],
+                              "native": case["native"]["outcome"],
+                              "first_divergence": case["first_divergence"]}), flush=True)
+        outcomes = [c["reference"]["outcome"] for c in results]
+        if "fall_through" not in outcomes or "ordinary" not in outcomes:
+            print(f"{route}: matrix needs a fall-through case and an ordinary control", file=sys.stderr)
+            ok = False
+        routes[route] = {
+            "movie_sha256": hashlib.sha256(MOVIES[route].read_bytes()).hexdigest(),
+            "approach_from_race_entry": [{"frame_offset": off, "mask": f"0x{mask:03x}"} for off, mask in cfg["approach"]],
+            "splice_offset_frames": cfg["splice_offset"],
+            "boost_seed_value": cfg["boost"],
+            "cases": results,
         }
-        results.append(case)
-        print(json.dumps({"lead": lead, "reference": case["reference"]["outcome"],
-                          "native": case["native"]["outcome"], "first_divergence": case["first_divergence"]}), flush=True)
 
     evidence = {
-        "schema_version": 1,
+        "schema_version": 2,
         "kind": "jumpover-fallthrough-native-fixture",
-        "route": args.route,
         "course": {"id": "course:20", "name": "Jumpover", "track_id": JUMPOVER_TRACK_ID},
-        "movie_sha256": hashlib.sha256(MOVIES[args.route].read_bytes()).hexdigest(),
         "sram_sha256": hashlib.sha256(args.sram.read_bytes()).hexdigest(),
         "reference": "snesref + snes9x libretro core (fresh boot, SNESREF_WRAM_FILL=0)",
         "native": "UR_EXECUTION_MODE=authentic, same scene-keyed script",
         "reference_race_entry_frame": ref_race,
         "native_race_entry_offset_frames": shift,
-        "splice_offset_frames": args.splice_offset,
-        "boost_seed": {"wram": "7E:11CF", "value": args.boost,
+        "boost_seed": {"wram": "7E:11CF",
                        "note": "one frame-boundary write `seed_lead` frames before the splice; stands in for an earlier landed-stunt reward"},
         "window_movie_frames": list(WINDOW),
         "fall_y": FALL_Y,
-        "cases": results,
+        "routes": routes,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")
-    ok = all(c["first_divergence"] is None and c["reference"]["outcome"] == c["native"]["outcome"] for c in results)
-    outcomes = [c["reference"]["outcome"] for c in results]
-    if "fall_through" not in outcomes or "ordinary" not in outcomes:
-        print("matrix needs both a fall-through case and an ordinary control", file=sys.stderr)
-        ok = False
     return 0 if ok else 1
 
 

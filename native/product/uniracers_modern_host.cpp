@@ -221,6 +221,10 @@ bool g_tour_continue_acceptance_fired;
 bool g_tour_action_visible;
 ur::product::ModernTourActionMenu g_tour_action_menu;
 ur::product::ModernResultsNavigationMenu g_results_navigation_menu;
+// Row availability settles over the first RESULTS frames (Records can appear
+// before Retry), so keep a selection across refreshes only once the player
+// has actually moved it during this results visit.
+bool g_results_navigation_player_moved = false;
 std::optional<ur::title::TourProgress> g_results_route_progress;
 std::string g_results_route_profile_id;
 ur::product::ModernResultsAction g_results_route_pending =
@@ -268,6 +272,11 @@ std::optional<ur::product::RunDataDeltaPresentation> g_run_timing_last_split;
 bool g_run_timing_supported;
 bool g_run_timing_race_diag_reported;
 bool g_run_timing_results_diag_reported;
+// P1's official finish: the title's line-crossing snapshot written on the
+// frame its laps reach zero. The shared race timer keeps running while other
+// racers are on course, so reading it at RESULTS overstated every finish.
+UrUniracersLineSnapshot g_run_finish_line_previous{};
+std::optional<std::uint64_t> g_run_finish_ticks60;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -2695,7 +2704,9 @@ void refresh_results_navigation_menu() {
         ur::product::selected_modern_results_action(g_results_navigation_menu);
     auto next = ur::product::make_modern_results_navigation_menu(
         current_results_navigation_context());
-    for (std::size_t i = 0; i < next.row_count; ++i) {
+    for (std::size_t i = 0;
+         g_results_navigation_player_moved && i < next.row_count;
+         ++i) {
         if (next.rows[i] == previous) {
             next.selected = i;
             break;
@@ -3881,6 +3892,7 @@ bool handle_results_navigation(
         g_results_navigation_menu =
             ur::product::navigate_modern_results_navigation_menu(
                 g_results_navigation_menu, action);
+        g_results_navigation_player_moved = true;
         return true;
     }
     if (!ur_modern_host_navigation_is_confirm(action)) return false;
@@ -4109,6 +4121,9 @@ void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
 bool begin_run_record_capture(uint64_t host_frame) {
     g_run_timing_supported = false;
     g_run_timing_last_split.reset();
+    g_run_finish_ticks60.reset();
+    g_run_finish_line_previous =
+        ur_uniracers_read_line_snapshot(g_ram, 0x20000u, 0);
     g_run_timing_race_diag_reported = false;
     g_run_timing_results_diag_reported = false;
     if (!run_record_capture_enabled()) return false;
@@ -4278,6 +4293,44 @@ void emit_haptic_event(ur::product::HapticEvent event) {
     }
 }
 
+// Records P1's finish on the guest frame Race_HandleCheckpointFinish writes
+// P1's line snapshot and leaves its laps at zero. The snapshot keeps whole
+// tenths; the shared timer sampled at the end of that same frame supplies the
+// exact 60 Hz sub-tick. Earlier lap-line writes leave laps above zero.
+void observe_run_finish_line() {
+    if (!g_ram || g_run_finish_ticks60) return;
+    const UrUniracersLineSnapshot snapshot =
+        ur_uniracers_read_line_snapshot(g_ram, 0x20000u, 0);
+    const bool written =
+        !ur_uniracers_line_snapshot_equal(snapshot, g_run_finish_line_previous);
+    g_run_finish_line_previous = snapshot;
+    if (!written || !snapshot.valid ||
+        ur_uniracers_read_laps_remaining(g_ram, 0x20000u, 0) != 0) {
+        return;
+    }
+    const int64_t ticks60 =
+        ur_uniracers_line_snapshot_ticks60(current_run_data(), snapshot);
+    if (ticks60 <= 0) {
+        product_diagnostic("UR_RUN_RECORD FINISH_LINE_INCONSISTENT");
+        return;
+    }
+    g_run_finish_ticks60 = static_cast<std::uint64_t>(ticks60);
+    // The pulse needs the capture still active to prove 1P split ownership.
+    emit_haptic_event(ur::product::HapticEvent::Finish);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_RECORD FINISH_LINE ticks60=%lld stock=%d:%d%d.%d%d\n",
+            static_cast<long long>(ticks60),
+            snapshot.minutes,
+            snapshot.tens_seconds,
+            snapshot.seconds,
+            snapshot.tenths,
+            snapshot.hundredths);
+        std::fflush(stderr);
+    }
+}
+
 void observe_run_record_split() {
     if (!g_run_capture.capturing()) return;
     const uint16_t checkpoint = read_run_word(0x1199u);
@@ -4413,16 +4466,16 @@ void complete_multiplayer_run_record_capture() {
 void complete_run_record_capture() {
     if (!g_run_capture.capturing()) return;
 
-    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
-    if (ticks60 < 0) {
-        product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
+    // RESULTS is reached seconds after P1 crosses the line; only the finish
+    // observed on the line-crossing frame is authoritative.
+    if (!g_run_finish_ticks60) {
+        product_diagnostic("UR_RUN_RECORD FINISH_LINE_MISSING");
         g_run_capture.abort_attempt();
         g_run_ghost_trace_capture.abort_attempt();
         return;
     }
+    const int64_t ticks60 = static_cast<int64_t>(*g_run_finish_ticks60);
 
-    // The pulse needs the capture still active to prove 1P split ownership.
-    emit_haptic_event(ur::product::HapticEvent::Finish);
     (void)g_run_capture.observe_split(
         "finish", static_cast<uint64_t>(ticks60));
     const auto record =
@@ -4510,6 +4563,7 @@ void rearm_run_capture_after_retry() {
     g_run_capture.abort_attempt();
     g_run_timing_supported = false;
     g_run_timing_last_split.reset();
+    g_run_finish_ticks60.reset();
     g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
     g_run_ghost_playback_trace.reset();
@@ -5525,8 +5579,10 @@ void draw_run_timing_hud(
         return;
     }
 
-    const int64_t ticks60 =
-        ur_uniracers_run_data_ticks60(current_run_data());
+    const bool finished = g_run_finish_ticks60.has_value();
+    const int64_t ticks60 = finished
+        ? static_cast<int64_t>(*g_run_finish_ticks60)
+        : ur_uniracers_run_data_ticks60(current_run_data());
     if (ticks60 < 0) return;
 
     const auto* personal_best = g_run_ghosts.record(
@@ -5536,10 +5592,11 @@ void draw_run_timing_hud(
     auto panel = ur::product::present_run_timing_panel(
         static_cast<std::uint64_t>(ticks60),
         personal_best,
-        results ? ur::product::RunTimingPresentationPoint::Finish
-                : ur::product::RunTimingPresentationPoint::Live);
+        results || finished
+            ? ur::product::RunTimingPresentationPoint::Finish
+            : ur::product::RunTimingPresentationPoint::Live);
 
-    if (!results && g_run_timing_last_split) {
+    if (!results && !finished && g_run_timing_last_split) {
         panel.comparison_label = "SPLIT";
         panel.comparison_text = g_run_timing_last_split->delta_text;
         panel.comparison_available = true;
@@ -6061,6 +6118,10 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             &g_title_policy,
             g_ram[0x0313],
             g_ram[0x009F]);
+    if (decision.surface == UR_UNIRACERS_RESTART_RESULTS &&
+        g_surface != UR_UNIRACERS_RESTART_RESULTS) {
+        g_results_navigation_player_moved = false;
+    }
     g_surface = decision.surface;
     observe_recent_course_identity();
     if (g_next_event_verify_track) {
@@ -6361,6 +6422,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (run_active && g_run_capture.capturing()) {
         observe_run_record_split();
+        observe_run_finish_line();
     }
     if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
         g_run_capture.capturing()) {

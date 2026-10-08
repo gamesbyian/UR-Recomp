@@ -45,6 +45,8 @@ Keep the existing **Repeat Practice** action. Track Select, Tour Select and Next
 
 Only actions whose existing authority is valid for that surface may appear. Do not infer a tour from course identity alone.
 
+Row availability settles over the first RESULTS frames (Records can be available before Retry), so the host keeps a selection across refreshes only after the player has moved it during the current results visit. Until then the default is always the first available row; entering a new RESULTS visit clears the flag. Previously the selection was preserved by action identity from the very first frame, so whether the player saw RETRY or RECORDS selected depended on timing.
+
 ## Routing invariants
 
 Track Select and Tour Select must reuse the same title-owned frontend transition / stock-menu transport already used by continuation and practice routing. They may not jump by writing menu-state bytes.

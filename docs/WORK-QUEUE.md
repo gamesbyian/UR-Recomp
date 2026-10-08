@@ -230,6 +230,12 @@ Use `snesref` or another trustworthy reference route.
 
 **Exit:** fidelity is objectively testable.
 
+## Audio Windows x64 acceptance boundary (2026-10-07)
+
+The stock native SDL3 host reaches a 32 kHz stereo audio callback under dummy audio, but this only establishes callback/device viability, not audible waveform equivalence. The independent Snes9x/Beetle reference route already supplies named PCM windows and non-silent frontend/race assertions (see `references/notes/audio-startup-seam.md` and `analysis/generated/audio-startup-reference-summary.json`). The reducer `tools/analyze_reference_audio_windows.py` now fails closed when a named checkpoint falls beyond the actual WAV capture, and reports exact interval endpoints and truncated-window status to prevent treating missing PCM as a valid quiet passage.
+
+**Shipping acceptance still open:** record PCM from the packaged Windows x64 **native** executable (not only SDL dummy callbacks), compare named frontend/race transitions with the independent reference windows, exercise pause/resume, restart, device loss/reopen and frontend/race transitions at real output, and bound underruns, queued latency and audible discontinuities. Use guest-state-aligned observations and retain Authentic output; do not demand bit-identical PCM across different emulator cores or re-clock the game to the audio device. The branch `claude/audio-volume-option` exists: check it for ownership conflicts before adding host audio options. Audio asset reconstruction remains optional Phase H and must use the existing SPC/BRR provenance chain, not speculative replacement or soundfont assumptions.
+
 ## Phase 6 — Reverse-engineering map
 
 Prioritize: main loop, input, race state, player physics, camera, course loader, RNC decompression, course representation, sprite/OAM construction, culling, HUD and audio hooks.

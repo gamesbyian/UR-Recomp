@@ -2537,3 +2537,45 @@ Native smoke gates all of this.
 - the margin grows past 43 px;
 - a route shows a margin-only racer or event object in the composite;
 - BG2 stops being opaque behind the parked slot-0 position.
+
+### R-2026-10-08-PHYS-01 — Recovered Jumpover fall-through SMVs reproduce from their embedded anchors in Snes9x 1.51-rr
+
+**Status:** confirmed (historical reference only; native not yet compared)  
+**Date:** 2026-10-08  
+**Area:** physics
+
+**Observation:**
+- Both Dessyreqt Jumpover SMVs embed their full starting state. A gzip stream at savestate offset 158 decompresses to a 1,165,102-byte Snes9x 1.51 freeze (`#!snes9x:1510`, 18 blocks, full 128 KiB WRAM).
+- Both anchors are mid-race on Jumpover (`7E:00CE` = 19, `7E:0313` = 1). P1 is grounded and approaching the halfpipe. The saved PC is inside the bank-82 racer update (left `82:A896`, right `82:A9B6`).
+- Replaying each movie unchanged reproduces the fall-through, and two runs of each are byte-identical. Frame k is the state after k movie frames; frame 0 equals the anchor.
+  - **Left:** takeoff at frame 5. Lip contact on frames 44–47 (`0545` = 0; persisted contact word 0x4F04 → 0x4F0A → 0x0C02; X speed kept at −448). P1 leaves the surface at frame 48 and passes below the control's deepest point (Y 764) at frame 64. It is still falling at Y 1559 at the end of the window. The 53-frame movie ends at Y 630, before that crossing, so the crossing is only seen with the 60-frame held-input extension.
+  - **Right:** the same pattern mirrored. Lip contact on frames 44–47, departure at frame 48, below the control floor (Y 759) at frame 63, inside the unchanged 73-frame movie. P1 lands on a lower surface at frame 98 (Y 1293).
+- The direction-matched ordinary control uses the same anchor and inputs, except that the held shoulder button (L left, R right) is released on input sample 42 only. P1 then hits the halfpipe wall at frame 44 (X speed −486 → −122 left, +476 → +119 right). It drops in, lands on the halfpipe floor at frame 54, and keeps contact.
+- First divergence from the control:
+  - left: pitch at frame 43 (63 vs 1), then contact state at frame 44;
+  - right: pitch and contact word at frame 43 (the control already touches the wall, 0x22C0), then air time at frame 44.
+- Releasing the shoulder on any even sample from 30 to 42 gives the ordinary outcome. Odd samples, and every sample from 43 on, give trajectories byte-identical to the fall-through case. Delaying the whole sequence by one frame is also a no-op; delaying it by two or more moves takeoff to frame 7 or later and gives the ordinary outcome.
+
+**Evidence:**
+- `analysis/generated/jumpover-fallthrough-anchors.json` (freeze/WRAM hashes, block inventory, registers, symbolized fields).
+- `analysis/generated/jumpover-fallthrough-reference-replay.json` (trajectory hashes, event windows, scans).
+- Tools: `tools/extract_smv_freeze.py`, `tools/probe_jumpover_fallthrough.py`, `tools/observe_jumpover_fallthrough.lua`.
+- Emulator: Snes9x 1.51-rr built locally from the `historical-snes9x151-medal.yml` recipe.
+- Writing P1 X (`0411`) into the anchor WRAM has no effect: frame 1 is identical for every offset. Writing the DP working copy as well gives a dx-independent, unrelated trajectory. Both were rejected as harnesses.
+- The pinned modern reference core (snes9x `1bcc369e`) only accepts `#!s9xsnp` snapshots (`snapshot.cpp` line 1329), so it cannot load the 1.51 freeze directly.
+
+**Interpretation:**
+- The fall-through is decided by P1's pitch when it reaches the lip. Landing on the lip with the movie's pitch (61 left / 3 right) keeps horizontal speed and carries P1 through the halfpipe interior without further contact. Two pitch units less rotation (one skipped rotation input) makes P1 hit the wall instead.
+- In this window, input appears to be acted on only every second frame.
+- The historical X-sweep lead (3962 left / 3034 right) depends on the scripts' pause sequence. It is not reproduced here.
+
+**Discriminating test:** run native from an admitted anchor through the same two routes and controls. Require lip contact on frames 44–47 and the control-floor crossing at frame 64 (left) / 63 (right), with byte-equal P1 fields through the window.
+
+**Dependencies:**
+- The historical Snes9x 1.51-rr core is accurate for this collision path. The movies were recorded on that emulator line, and the core applies a Uniracers OAM-address HDMA hack that is presentation-only.
+- The event-relative frame numbering assumes the movie anchor phase.
+
+**Propagation:**
+- Contact-word values at the lip feed `81:82E6` object dispatch; the movie values are recorded in the replay JSON.
+- The 2-frame input cadence is a constraint on expert-edge item (e), roll/flip boundaries.
+- No `docs/SYMBOLS.md` change.

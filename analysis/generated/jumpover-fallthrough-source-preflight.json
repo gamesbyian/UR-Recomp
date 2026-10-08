@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "kind": "static-source-preflight",
-  "status": "source-recovered-not-runtime-admitted",
+  "status": "anchor-recovered-reference-reproduced-not-native-admitted",
   "generated_from": "GitHub-pinned recovered Dessyreqt workspace; SMV headers and controller streams parsed without executing game",
   "course": "Jumpover",
   "source_root": "reference/imported/reverse-engineering/dessyreqt",
@@ -47,7 +47,14 @@
           "duration": 36,
           "mask": "8220"
         }
-      ]
+      ],
+      "embedded_anchor": {
+        "format": "gzip Snes9x 1510 freeze (1165102 bytes, 18 blocks)",
+        "freeze_sha256": "6db7395d2d9d54d2de7f727d0085fd713574fb21d571ccb94729e5efe471a02e",
+        "wram_sha256": "aa52a622fa9a458f549af9e47297bae172e2dba74e5075d25219638874695c88",
+        "cpu_pb_pc": "82:A896",
+        "summary": "analysis/generated/jumpover-fallthrough-anchors.json"
+      }
     },
     {
       "route": "right",
@@ -90,7 +97,14 @@
           "duration": 56,
           "mask": "8110"
         }
-      ]
+      ],
+      "embedded_anchor": {
+        "format": "gzip Snes9x 1510 freeze (1165102 bytes, 18 blocks)",
+        "freeze_sha256": "20384f4ec14dd0e89fd58d3118f290fcf09d060356ba45698bd99e08177306a1",
+        "wram_sha256": "85c51fc4dd856ce4c4863e9bca87a67b62e52a087987f5a51d9e181756897240",
+        "cpu_pb_pc": "82:A9B6",
+        "summary": "analysis/generated/jumpover-fallthrough-anchors.json"
+      }
     }
   ],
   "historical_scripts": [
@@ -118,15 +132,15 @@
     }
   ],
   "state_preconditions": {
-    "smv": "Both movies are savestate-anchored (movie_options bit 0 clear); controller streams alone do not reproduce the starting state.",
-    "scripts": "Both scripts load savestate slot 11 and directly write 16-bit player X at 7E:0411 before replay. The saved slot and surrounding state are not encoded by the scripts.",
-    "fresh_process": "Requires reconstruction/validation of a canonical state anchor before native-versus-reference acceptance; do not treat these as reset-anchored fixtures."
+    "smv": "Both movies are savestate-anchored (movie_options bit 0 clear) and embed their complete starting state: a gzip stream at savestate_offset 158 decompresses to a 1,165,102-byte Snes9x 1.51 freeze (#!snes9x:1510) including full WRAM. tools/extract_smv_freeze.py validates and summarizes it; no reconstruction is needed.",
+    "anchor_semantics": "Both anchors are mid-race on Jumpover (7E:00CE=19, 7E:0313=1), P1 grounded (0545=0) approaching the halfpipe: left x=3930 xs=-500 pitch=53; right x=3064 xs=+480 pitch=12. The saved CPU PC is inside the bank-82 racer update (left 82:A896, right 82:A9B6), so the anchor is not a race-loop frame boundary.",
+    "scripts": "Both scripts load savestate slot 11 and write 16-bit P1 X at 7E:0411 while the game is paused. Writing 0411 at the movie anchor has no effect (the in-progress racer update rewrites it), so the historical X sweep is not reproduced from these anchors.",
+    "fresh_process": "Native acceptance from a fresh process still needs either a fresh-process route to an equivalent approach state or an admitted anchor-transplant harness; see docs/JUMPOVER-FALLTHROUGH-REGRESSION.md status."
   },
   "missing_acceptance": [
-    "direction-matched ordinary control for left",
-    "direction-matched ordinary control for right",
-    "repeatable first contact-state divergence per route",
+    "native reproduction of both routes and their direction-matched controls from an admitted anchor",
     "native/reference event-relative parity and protected-state equality"
   ],
-  "next_discriminator": "Reconstruct or obtain the exact initial savestate for each movie; then replay unchanged movie inputs, measure event-relative contact transitions and derive direction-matched ordinary controls. Do not patch simulation based on this static preflight."
+  "next_discriminator": "Choose the native anchor route: (a) a fresh-process input route that reaches the halfpipe approach with an equivalent P1 state and takes off on the same 2-frame input phase, or (b) a WRAM transplant captured at a true race-loop frame boundary (not the mid-update movie anchor), if the contract admits it. Then compare native against the retained reference: lip contact frames 44-47 and first frame below the control floor (left 64, right 63). Do not patch simulation based on this evidence.",
+  "reference_replay": "analysis/generated/jumpover-fallthrough-reference-replay.json"
 }

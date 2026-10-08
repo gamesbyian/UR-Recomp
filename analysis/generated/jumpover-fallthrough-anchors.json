@@ -1,0 +1,459 @@
+{
+  "schema_version": 1,
+  "kind": "smv-embedded-freeze-anchor",
+  "tool": "tools/extract_smv_freeze.py",
+  "field_symbols": {
+    "frontend_menu": {
+      "wram": "7E:009F",
+      "width": 1,
+      "signed": false,
+      "symbol": "Frontend_CurrentMenu"
+    },
+    "track_id": {
+      "wram": "7E:00CE",
+      "width": 1,
+      "signed": false,
+      "symbol": "historical current-track id (Dessyreqt; stream index - 1)"
+    },
+    "race_active": {
+      "wram": "7E:0313",
+      "width": 1,
+      "signed": false,
+      "symbol": "Race_ActiveState"
+    },
+    "p1_x": {
+      "wram": "7E:0411",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_XPosition"
+    },
+    "p1_y": {
+      "wram": "7E:0415",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_YPosition"
+    },
+    "p1_x_speed": {
+      "wram": "7E:04B7",
+      "width": 2,
+      "signed": true,
+      "symbol": "Player1_XSpeed"
+    },
+    "p1_y_speed": {
+      "wram": "7E:04BB",
+      "width": 2,
+      "signed": true,
+      "symbol": "Player1_YSpeed"
+    },
+    "p1_pitch": {
+      "wram": "7E:04C7",
+      "width": 2,
+      "signed": false,
+      "mask": "0x3F",
+      "symbol": "Player1_PitchAngle"
+    },
+    "p1_air_time": {
+      "wram": "7E:0545",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_AirTime"
+    },
+    "p1_stunt_air_latch": {
+      "wram": "7E:1361",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_StuntAirLatch"
+    },
+    "p1_angular_velocity": {
+      "wram": "7E:0BAD",
+      "width": 2,
+      "signed": true,
+      "symbol": "Player1_AngularVelocity"
+    },
+    "p1_z_rotation": {
+      "wram": "7E:0DFD",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_ZRotationState"
+    },
+    "p1_facing_at_takeoff": {
+      "wram": "7E:033B",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_FacingAtTakeoff"
+    },
+    "p1_roll_count": {
+      "wram": "7E:11F9",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_RollCount"
+    },
+    "p1_flip_count": {
+      "wram": "7E:11FD",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_FlipCount"
+    },
+    "p1_contact_word_persisted": {
+      "wram": "7E:0E95",
+      "width": 2,
+      "signed": false,
+      "symbol": "P1 persistence slot of CurrentPlayer_CollisionContactWord ($0E95/$0E97)"
+    },
+    "current_contact_word": {
+      "wram": "7E:0F09",
+      "width": 2,
+      "signed": false,
+      "symbol": "CurrentPlayer_CollisionContactWord"
+    },
+    "p1_next_checkpoint": {
+      "wram": "7E:1199",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_NextCheckpoint"
+    },
+    "p1_laps_remaining": {
+      "wram": "7E:0EF1",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player1_LapsRemaining"
+    },
+    "p2_x": {
+      "wram": "7E:0413",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player2_XPosition"
+    },
+    "p2_y": {
+      "wram": "7E:0417",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player2_YPosition"
+    },
+    "p2_x_speed": {
+      "wram": "7E:04B9",
+      "width": 2,
+      "signed": true,
+      "symbol": "Player2_XSpeed"
+    },
+    "p2_y_speed": {
+      "wram": "7E:04BD",
+      "width": 2,
+      "signed": true,
+      "symbol": "Player2_YSpeed"
+    },
+    "p2_pitch": {
+      "wram": "7E:04C9",
+      "width": 2,
+      "signed": false,
+      "mask": "0x3F",
+      "symbol": "Player2_PitchAngle"
+    },
+    "p2_air_time": {
+      "wram": "7E:0547",
+      "width": 2,
+      "signed": false,
+      "symbol": "Player2_AirTime"
+    }
+  },
+  "anchors": [
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe - left.smv",
+      "smv_sha256": "2d127edac13f801d92f5a9b94a0b0979ce9ddbc59d7088dc83acc0ab560417f1",
+      "smv_size_bytes": 91868,
+      "smv_version": 4,
+      "uid": 1281631441,
+      "frame_count_header": 53,
+      "controller_mask": 1,
+      "movie_options": 0,
+      "reset_anchored": false,
+      "savestate_offset": 158,
+      "controller_data_offset": 91760,
+      "embedded_gzip_bytes": 91587,
+      "post_gzip_padding_bytes": 15,
+      "freeze_version": 1510,
+      "freeze_size_bytes": 1165102,
+      "freeze_sha256": "6db7395d2d9d54d2de7f727d0085fd713574fb21d571ccb94729e5efe471a02e",
+      "freeze_rom_name": "D:\\Emulators\\SNES\\Roms\\Uniracers (U) [!].smc",
+      "wram_sha256": "aa52a622fa9a458f549af9e47297bae172e2dba74e5075d25219638874695c88",
+      "blocks": [
+        {
+          "tag": "NAM",
+          "length": 45,
+          "sha256": "d90ca3389039a0d0b58d3a02585ee3f6417d3d2c6331992fd74cf171d898c0ae"
+        },
+        {
+          "tag": "CPU",
+          "length": 58,
+          "sha256": "88dd3a2d8e1c6bfa3a9ac53b6d482888ae594cf993d384bde633246664b7c565"
+        },
+        {
+          "tag": "REG",
+          "length": 16,
+          "sha256": "59b3e7c4f339d3026a64c33f1df47448ef975476d59d5b27315cbd6974f51e9b"
+        },
+        {
+          "tag": "PPU",
+          "length": 2649,
+          "sha256": "ed3ce7f9432f4a8c828e3ddfbbbaa26ab8932e802c0c834f2c8c29c56848da00"
+        },
+        {
+          "tag": "DMA",
+          "length": 152,
+          "sha256": "7083dbfd874fb8415e4dd51ed40e9ab6dc6893dde3bccc482e185d97e42d43f8"
+        },
+        {
+          "tag": "VRA",
+          "length": 65536,
+          "sha256": "fbbc059690a8a03595fea24988ccc5436dd0c9583edcae1cd6c581aae66cf62c"
+        },
+        {
+          "tag": "RAM",
+          "length": 131072,
+          "sha256": "aa52a622fa9a458f549af9e47297bae172e2dba74e5075d25219638874695c88"
+        },
+        {
+          "tag": "SRA",
+          "length": 131072,
+          "sha256": "f04cbce605afe52b8af6b0d64f78f387018f1de95991b4081f8a8eb10dbc3795"
+        },
+        {
+          "tag": "FIL",
+          "length": 32768,
+          "sha256": "ddf103a6e34e6d1cc84cbd23e7963be02bbc475b1893083e5f839cb3f6747886"
+        },
+        {
+          "tag": "APU",
+          "length": 236,
+          "sha256": "9ce26f65d7f4c60cbb909a4e2f03885c0f037839ca4d6f13c42c0c43aab2e0e5"
+        },
+        {
+          "tag": "ARE",
+          "length": 7,
+          "sha256": "b40b96087f1bb59eb51392cd9003bb7da54e84bb5abf8cb5e0f897b550bd3ae2"
+        },
+        {
+          "tag": "ARA",
+          "length": 65536,
+          "sha256": "abb42d3f44b8945f389f82337c5dd42b16bb932b812a39fb937280006f2c57e0"
+        },
+        {
+          "tag": "SOU",
+          "length": 1281,
+          "sha256": "8b61bfae314c0966ede43c2d472e5eb1c6779e84d77920b50733389d8c800d41"
+        },
+        {
+          "tag": "IAP",
+          "length": 45,
+          "sha256": "571eaa62c9b83b895d9cb65058a642be43ec39dfd53a2bfe38c19c5f850450f7"
+        },
+        {
+          "tag": "CTL",
+          "length": 86,
+          "sha256": "44a7b2911f300d4e9147ae99f17b2545e896cb7f3fae1c05c8ad9ead90509669"
+        },
+        {
+          "tag": "TIM",
+          "length": 57,
+          "sha256": "68765decc95d849c7fe2003c153761f7304e9c71cb7e0498b6cd164994828889"
+        },
+        {
+          "tag": "GBJ",
+          "length": 61,
+          "sha256": "0dbf50aafd2e2d47c5170eb776bc10cff75b4eb3b3c47f1fb23ba586f3bc4e94"
+        },
+        {
+          "tag": "SHO",
+          "length": 734213,
+          "sha256": "4fd1f11279b52b8d0f2613545fc0ed644d04e8f27b3b297a56426048ee208a69"
+        }
+      ],
+      "cpu_registers": {
+        "pb_pc": "82:A896",
+        "db": "00",
+        "p": "0005",
+        "a": "0068",
+        "d": "0000",
+        "s": "01ED",
+        "x": "000C",
+        "y": "0006"
+      },
+      "anchor_fields": {
+        "frontend_menu": 0,
+        "track_id": 19,
+        "race_active": 1,
+        "p1_x": 3930,
+        "p1_y": 544,
+        "p1_x_speed": -500,
+        "p1_y_speed": 0,
+        "p1_pitch": 53,
+        "p1_air_time": 0,
+        "p1_stunt_air_latch": 0,
+        "p1_angular_velocity": 0,
+        "p1_z_rotation": 0,
+        "p1_facing_at_takeoff": 1,
+        "p1_roll_count": 0,
+        "p1_flip_count": 0,
+        "p1_contact_word_persisted": 16386,
+        "current_contact_word": 16386,
+        "p1_next_checkpoint": 1,
+        "p1_laps_remaining": 5,
+        "p2_x": 2677,
+        "p2_y": 543,
+        "p2_x_speed": 527,
+        "p2_y_speed": -31,
+        "p2_pitch": 12,
+        "p2_air_time": 0
+      }
+    },
+    {
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe.smv",
+      "smv_sha256": "ea92765c5eab2a07680c2439efabd5bf4e4a0bbd656803fb305f49fa24b17425",
+      "smv_size_bytes": 91844,
+      "smv_version": 4,
+      "uid": 1281629148,
+      "frame_count_header": 73,
+      "controller_mask": 1,
+      "movie_options": 0,
+      "reset_anchored": false,
+      "savestate_offset": 158,
+      "controller_data_offset": 91696,
+      "embedded_gzip_bytes": 91525,
+      "post_gzip_padding_bytes": 13,
+      "freeze_version": 1510,
+      "freeze_size_bytes": 1165102,
+      "freeze_sha256": "20384f4ec14dd0e89fd58d3118f290fcf09d060356ba45698bd99e08177306a1",
+      "freeze_rom_name": "D:\\Emulators\\SNES\\Roms\\Uniracers (U) [!].smc",
+      "wram_sha256": "85c51fc4dd856ce4c4863e9bca87a67b62e52a087987f5a51d9e181756897240",
+      "blocks": [
+        {
+          "tag": "NAM",
+          "length": 45,
+          "sha256": "d90ca3389039a0d0b58d3a02585ee3f6417d3d2c6331992fd74cf171d898c0ae"
+        },
+        {
+          "tag": "CPU",
+          "length": 58,
+          "sha256": "0813f752606a999562ab0c2c283c71cff9cc25586fcb8ebd1883a08ad3de46a0"
+        },
+        {
+          "tag": "REG",
+          "length": 16,
+          "sha256": "5e1fd2d3b7f573e6e07855872f3fd4464d5c21388367ab73ca28959103ff1baa"
+        },
+        {
+          "tag": "PPU",
+          "length": 2649,
+          "sha256": "eae04c135019166a3418829b75632243a8566c78e95ecbe3da30f2365e522dba"
+        },
+        {
+          "tag": "DMA",
+          "length": 152,
+          "sha256": "e5e9bf9404e55110dea2804ff401ee2d3c213413433f41d5e18884b88c8248d9"
+        },
+        {
+          "tag": "VRA",
+          "length": 65536,
+          "sha256": "624d3fe6d9cf2000537736c11d61c2a389ac5c7847f548af7c3872545f041823"
+        },
+        {
+          "tag": "RAM",
+          "length": 131072,
+          "sha256": "85c51fc4dd856ce4c4863e9bca87a67b62e52a087987f5a51d9e181756897240"
+        },
+        {
+          "tag": "SRA",
+          "length": 131072,
+          "sha256": "b95aa2218dd54e6886c0ca43885d1d4a24930185c1558d26e8b4f6ce378f8c4e"
+        },
+        {
+          "tag": "FIL",
+          "length": 32768,
+          "sha256": "46c53c52b8141d24b69b056331fc1e67a3680ecc6236789dcd9d57a39ea84f95"
+        },
+        {
+          "tag": "APU",
+          "length": 236,
+          "sha256": "c037df8b1aa8807e0e013145ea4daee856dace81b18c13b7c95ece54d89969ac"
+        },
+        {
+          "tag": "ARE",
+          "length": 7,
+          "sha256": "2d65e1e3a08fcc096575aa80683bc6786f2ba039894f76c091a01be55f1b900a"
+        },
+        {
+          "tag": "ARA",
+          "length": 65536,
+          "sha256": "42f9c0cdebffa4e6fe843de6f89b2930dcce791ce392df0f5fc1a0687d236d82"
+        },
+        {
+          "tag": "SOU",
+          "length": 1281,
+          "sha256": "592d4b989c9d84f6a48eacb93f24856dd5ae6db4fb20e1f3d2e7a8c811e961ac"
+        },
+        {
+          "tag": "IAP",
+          "length": 45,
+          "sha256": "0d47afa0e9fc2e3918b432b6d5ae32145bd703857942000389a21ffef2085839"
+        },
+        {
+          "tag": "CTL",
+          "length": 86,
+          "sha256": "00e474a9bbcd271e0e9653dc33f0166b9a9740605fde8f7f2cf45be294dfe2fb"
+        },
+        {
+          "tag": "TIM",
+          "length": 57,
+          "sha256": "b1a3f5edc565631b7ab9da72a19baec2baa381272d8518b88c7500249ff0c635"
+        },
+        {
+          "tag": "GBJ",
+          "length": 61,
+          "sha256": "264e6946ccb6c5876f6fbdfcf38e91ecccf8271911d01dc953380736026c52a0"
+        },
+        {
+          "tag": "SHO",
+          "length": 734213,
+          "sha256": "905208a4284d1e8f1c1df3b26a5aba4119b044c367a6dc390b294d63926d0591"
+        }
+      ],
+      "cpu_registers": {
+        "pb_pc": "82:A9B6",
+        "db": "00",
+        "p": "0007",
+        "a": "0000",
+        "d": "0000",
+        "s": "01ED",
+        "x": "0002",
+        "y": "0018"
+      },
+      "anchor_fields": {
+        "frontend_menu": 0,
+        "track_id": 19,
+        "race_active": 1,
+        "p1_x": 3064,
+        "p1_y": 545,
+        "p1_x_speed": 480,
+        "p1_y_speed": 0,
+        "p1_pitch": 12,
+        "p1_air_time": 0,
+        "p1_stunt_air_latch": 0,
+        "p1_angular_velocity": 0,
+        "p1_z_rotation": 0,
+        "p1_facing_at_takeoff": 1,
+        "p1_roll_count": 0,
+        "p1_flip_count": 0,
+        "p1_contact_word_persisted": 3074,
+        "current_contact_word": 3074,
+        "p1_next_checkpoint": 1,
+        "p1_laps_remaining": 5,
+        "p2_x": 861,
+        "p2_y": 539,
+        "p2_x_speed": 504,
+        "p2_y_speed": 0,
+        "p2_pitch": 7,
+        "p2_air_time": 0
+      }
+    }
+  ]
+}

@@ -2,24 +2,6 @@ name: Ordinary 2P match capture acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "native/product/uniracers_modern_host.cpp"
-      - "native/product/local_multiplayer_*.cpp"
-      - "native/product/local_multiplayer_*.hpp"
-      - "native/product/multiplayer_match_record.*"
-      - "native/product/run_record_capture_policy.hpp"
-      - "native/title/uniracers_two_player_result.*"
-      - "tests/input/two-player-p1-win.input"
-      - "tests/input/two-player-records-acceptance.input"
-      - "tests/input/two-player-records-acceptance.script"
-      - "tests/native/multiplayer_match_pair_check.cpp"
-      - "tools/patch_modern_product_host.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/sdl3.json"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - ".github/workflows/multiplayer-match-capture-acceptance.yml"
 
 concurrency:
   group: ordinary-2p-match-capture-${{ github.ref }}

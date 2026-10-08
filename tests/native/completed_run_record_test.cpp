@@ -133,7 +133,7 @@ int main() {
         assert(validate_completed_run_record(ordinary_shifted, &detail));
         assert(encode_completed_run_input_file(
             ordinary_shifted, UINT64_MAX - 144u) ==
-            "18446744073709551591:24:100:0\\n");
+            "18446744073709551591:24:100:0\n");
         assert(encode_completed_run_input_file(
             ordinary_shifted, UINT64_MAX - 143u).empty());
     }

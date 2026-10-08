@@ -46,6 +46,13 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
             {0x1804},
         )
         self.assertEqual(
+            {r["p2_collision_word_0e97"] for r in rows}, {0x1804}
+        )
+        self.assertTrue(all(
+            r["settled_current_player_collision_word_0f09"]
+            == r["p2_collision_word_0e97"] for r in rows
+        ))
+        self.assertEqual(
             [r["collision_word"] for r in rows],
             [0x1804, 0x2024, 0x2020, 0x2020, 0x0022, 0x0022, 0x0022],
         )

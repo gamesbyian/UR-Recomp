@@ -253,6 +253,8 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     // Reject even a *possible* overlap; retain the original entire frame.
     // A rotated OAM first-sprite index can reverse the usual ordering.
     // Preserve stock in that unsupported priority mode.
+    // Only the proven 16/64px split-OBJ mode has a validated alias rule.
+    if (p1_only && g_ppu->obsel != 0x83) return;
     if (p1_only && (g_ppu->oamaddh & 0x80) != 0) return;
     if (p1_only && !racer_p1_only_no_stock_p2_occlusion(
             *p1_top, *p1_bottom, *p2_top, *p2_bottom)) {

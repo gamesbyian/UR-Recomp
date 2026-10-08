@@ -182,18 +182,24 @@ int main(int argc, char** argv) {
     out_of_range.samples.back().race_frame = record.frame_count;
     assert(!validate_completed_run_ghost_trace(out_of_range, &record));
 
-    // Cross-process world/pose equivalence compares independently validated
-    // samples, not just separately valid checksums or identical input masks.
+    // World trajectory is replay-authoritative; stored presentation pose is
+    // historically exact but can include cosmetic state not in the input file.
     std::string mismatch;
     std::size_t common = 0;
+    ur::test::GhostTraceReplayComparison comparison;
     assert(ur::test::equivalent_ghost_world_samples(
-        trace, *decoded.trace, &mismatch, &common));
+        trace, *decoded.trace, &mismatch, &common, &comparison));
     assert(common == 3);
+    assert(comparison.p1_pose_drift_frames == 0);
+    assert(comparison.p2_context_drift_frames == 0);
+
     auto terminal_short = trace;
     terminal_short.samples.pop_back();
+    terminal_short.samples[1].world_x = 65000;
     assert(ur::test::equivalent_ghost_world_samples(
-        trace, terminal_short, &mismatch, &common));
+        trace, terminal_short, &mismatch, &common, &comparison));
     assert(common == 2);
+    assert(comparison.terminal_observation_drift_frames == 1);
     auto two_short = terminal_short;
     two_short.samples.pop_back();
     assert(!ur::test::equivalent_ghost_world_samples(
@@ -204,7 +210,7 @@ int main(int argc, char** argv) {
     assert(mismatch.find("missing") != std::string::npos);
 
     auto shifted = trace;
-    shifted.samples[1].race_frame = 3;  // missing an interior frame
+    shifted.samples[1].race_frame = 3;
     assert(!ur::test::equivalent_ghost_world_samples(
         trace, shifted, &mismatch, &common));
     assert(mismatch.find("race_frame") != std::string::npos);
@@ -214,25 +220,34 @@ int main(int argc, char** argv) {
         trace, divergent, &mismatch, &common));
     assert(mismatch.find("world_x") != std::string::npos);
     divergent = trace;
+    divergent.samples[1].world_y++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("world_y") != std::string::npos);
+    divergent = trace;
     divergent.samples[1].pitch_angle++;
     assert(!ur::test::equivalent_ghost_world_samples(
         trace, divergent, &mismatch, &common));
     assert(mismatch.find("pitch_angle") != std::string::npos);
     divergent = trace;
     divergent.samples[1].semantic_frame_id++;
-    assert(!ur::test::equivalent_ghost_world_samples(
-        trace, divergent, &mismatch, &common));
-    assert(mismatch.find("semantic_frame_id") != std::string::npos);
-    divergent = trace;
     divergent.samples[1].sprite_attr++;
-    assert(!ur::test::equivalent_ghost_world_samples(
-        trace, divergent, &mismatch, &common));
-    assert(mismatch.find("sprite_attr") != std::string::npos);
-    divergent = trace;
     divergent.samples[1].composition.p1_companion++;
+    divergent.samples[2].composition.p2_primary++;
+    assert(ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common, &comparison));
+    assert(comparison.p1_pose_drift_frames == 1);
+    assert(comparison.first_p1_pose_drift_frame == 1);
+    assert(comparison.p2_context_drift_frames == 1);
+    assert(comparison.first_p2_context_drift_frame == 2);
+
+    // A terminal lifecycle difference must not excuse another frame's
+    // physical divergence.
+    divergent = terminal_short;
+    divergent.samples[0].world_y++;
     assert(!ur::test::equivalent_ghost_world_samples(
         trace, divergent, &mismatch, &common));
-    assert(mismatch.find("p1_companion") != std::string::npos);
+    assert(mismatch.find("world_y") != std::string::npos);
 
     return 0;
 }

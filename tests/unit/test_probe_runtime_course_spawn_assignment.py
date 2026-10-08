@@ -6,7 +6,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
-from probe_runtime_course_payload import rank_spawn_assignment_candidates
+from probe_runtime_course_payload import (
+    is_fully_loaded_course, rank_spawn_assignment_candidates,
+)
 
 
 class CourseSpawnAssignmentTests(unittest.TestCase):
@@ -16,6 +18,31 @@ class CourseSpawnAssignmentTests(unittest.TestCase):
             "slot1_x": p1[0], "slot1_y": p1[1],
             "slot2_x": p2[0], "slot2_y": p2[1],
         }
+
+    def test_fully_loaded_identity_accepts_only_mutated_resource_cursor(self):
+        decoded = bytearray(range(64))
+        live = bytearray(decoded)
+        self.assertTrue(is_fully_loaded_course(bytes(decoded), bytes(live)))
+        live[0x0B] ^= 0xFF
+        live[0x0C] ^= 0xFF
+        self.assertTrue(is_fully_loaded_course(bytes(decoded), bytes(live)))
+        live[0x0D] ^= 1
+        self.assertFalse(is_fully_loaded_course(bytes(decoded), bytes(live)))
+
+    def test_identity_rejects_partial_rnc_install_and_short_live_buffer(self):
+        decoded = bytes(range(64))
+        partial = decoded[:32] + bytes(32)
+        self.assertFalse(is_fully_loaded_course(decoded, partial))
+        self.assertFalse(is_fully_loaded_course(decoded, decoded[:63]))
+        self.assertFalse(is_fully_loaded_course(b"", decoded))
+
+    def test_identity_independent_of_diagnostic_diff_output_limit(self):
+        from probe_runtime_course_payload import compare
+        decoded = bytes(range(32))
+        live = bytearray(decoded)
+        live[11] = 0xFF
+        self.assertEqual(compare(decoded, bytes(live), 0)["first_differences"], [])
+        self.assertTrue(is_fully_loaded_course(decoded, bytes(live)))
 
     def test_exact_A_to_P1_and_B_to_P2_from_unequal_pairs(self):
         result = rank_spawn_assignment_candidates(

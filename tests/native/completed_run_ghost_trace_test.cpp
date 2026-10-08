@@ -186,7 +186,7 @@ int main(int argc, char** argv) {
     }
 
 #if defined(__linux__)
-    // The stream may buffer a successful write and fail only on close.
+    // Never rename a staged trace over a special device such as /dev/full.
     detail.clear();
     assert(!save_completed_run_ghost_trace_file("/dev/full", trace, &detail));
     assert(detail == "ghost trace destination is not a regular file" ||

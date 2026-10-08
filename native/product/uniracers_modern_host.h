@@ -53,6 +53,22 @@ int ur_uniracers_modern_local_tournament_fixture(
 int ur_uniracers_modern_local_tournament_standing(
     size_t sorted_index, struct UrModernTournamentStandingInfo* out);
 
+/* UI-owned Local Tournament requests. The caller selects an explicit,
+ * catalog-authorized roster and ordinary-Race pool before Create. Only the
+ * settled Modern frontend admits creation/arming/cancellation. The API never
+ * routes a guest menu, writes guest SRAM, or awards tournament points.
+ * ARM only persists pre-race fixture intent; the stock 2P join surface must
+ * subsequently confirm both participants, and the live race capture must
+ * observe their exact identities and the scheduled course before attribution.
+ * 1 means applied, 0 means refused without guest mutation.
+ */
+int ur_uniracers_modern_local_tournament_create(
+    const char* const* profile_ids, size_t profile_count,
+    const char* const* course_ids, size_t course_count,
+    int explicitly_replace_active);
+int ur_uniracers_modern_local_tournament_arm_fixture(size_t fixture_index);
+int ur_uniracers_modern_local_tournament_cancel_fixture(void);
+
 int ur_uniracers_modern_controls_active(void);
 /* Nonzero while a paused Modern subview (Options, Controls, Run Data or Quit
  * confirmation) owns the pause surface. */

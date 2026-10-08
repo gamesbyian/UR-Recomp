@@ -24,6 +24,7 @@ on:
       - "tools/summarize_sdl_pause_envelopes.py"
       - "tools/analyze_windows_volume_output.py"
       - "tools/capture_modern_paused_audio.py"
+      - "tools/check_modern_host_pause_audio.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -374,6 +375,13 @@ jobs:
           python -m tools.analyze_sdl_audio_envelope "$LOG" "$PCM_WIN" \
             --last-seconds 3 --window-ms 100 \
             --json-out "$RUNNER_TEMP/audio-modern-host-pause-envelope.json"
+          # The previously measured packaged Windows host pause produced
+          # 3.0 seconds of literal silence. Enforce that only after proving
+          # real active-race audio existed earlier in the *same* capture.
+          python -m tools.check_modern_host_pause_audio \
+            "$LOG" "$RUNNER_TEMP/audio-modern-host-pause-output.json" \
+            "$RUNNER_TEMP/audio-modern-host-pause-envelope.json" \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-silence.json"
           rm -f "$PCM"
           echo "WINDOWS_MODERN_HOST_PAUSE_AUDIO PASS guest_frozen=1 raw_pcm_uploaded=0"
 
@@ -395,5 +403,6 @@ jobs:
             ${{ runner.temp }}/audio-modern-host-pause.log
             ${{ runner.temp }}/audio-modern-host-pause-output.json
             ${{ runner.temp }}/audio-modern-host-pause-envelope.json
+            ${{ runner.temp }}/audio-modern-host-pause-silence.json
           if-no-files-found: warn
           retention-days: 7

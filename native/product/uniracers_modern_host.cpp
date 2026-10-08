@@ -5567,7 +5567,15 @@ bool activate_pause_selection() {
     }
     if (selected == UR_MODERN_PAUSE_RESTART) {
         const bool handled = dispatch(UR_MODERN_PAUSE_ACTIVATE);
-        if (handled) rearm_run_capture_after_retry();
+        if (handled) {
+            rearm_run_capture_after_retry();
+            // Restart restores the race-start anchor but leaves the session
+            // paused; resume like Retry and Ctrl+R so the restarted attempt
+            // plays instead of the menu staying over the stale frame.
+            if (paused() && dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                diagnose_pause_state();
+            }
+        }
         return handled;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);

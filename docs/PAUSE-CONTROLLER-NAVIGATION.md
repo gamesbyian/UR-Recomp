@@ -10,6 +10,8 @@ The remaining gap is therefore deliberately small: normalize these physical bind
 
 The pause family is drawn by the title's `system_overlay` while the guest is frozen, but the pinned desktop host's paused loop presents nothing new. Until `tools/patches/snesrecomp-paused-overlay-present.patch`, every Modern paused surface (pause root, Options, Controls, Run Data, Records, Quit confirmation) was therefore invisible on screen: the window kept the last race frame while diagnostics reported the menus open. The patch keeps a copy of each presented field taken *before* the title overlay and, when a title opts in with `snesrecomp_desktop_set_paused_overlay_presentation(1)`, re-presents that backdrop (nearest-scaled to the current presentation density) plus the current overlay on every paused loop iteration without running guest code. Modern opts in at session creation; Authentic keeps the framework default. A density or Widescreen change made from paused Options rescales the frozen backdrop until the guest resumes. `SNESRECOMP_PAUSED_OVERLAY_DUMP` captures the latest paused present, and Native UI evidence requires `tools/check_paused_overlay_dump.py` to find the shared modal panel over the frame centre after its paused Options journey. The paused Records/Local Runs shortcut hint belongs to the pause root and yields to open subviews.
 
+Pause-menu **Restart** restores the race-start anchor and then resumes the session, matching results Retry and Ctrl+R. It previously left the session paused with the menu over the stale pre-restart frame until the player also chose Resume.
+
 ## Authority boundary
 
 - Guest controller state remains authoritative for Uniracers simulation.

@@ -2,6 +2,14 @@ name: Completed run replay acceptance
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - '.github/workflows/completed-run-replay-acceptance.yml'
+      - 'tests/native/ghost_trace_equivalence.hpp'
+      - 'tests/native/completed_run_ghost_trace_compare.cpp'
+      - 'tests/native/completed_run_ghost_trace_test.cpp'
+      - 'native/product/completed_run_ghost_trace.cpp'
+      - 'native/product/completed_run_ghost_trace.hpp'
 
 concurrency:
   group: completed-run-replay-acceptance-${{ github.ref }}
@@ -160,6 +168,25 @@ jobs:
           "$RUNNER_TEMP/check-ghost-trace" "$REPLAYED" "$REPLAYED.urghost" | tee "$RUNNER_TEMP/replayed-ghost-trace.log"
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/original-ghost-trace.log"
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/replayed-ghost-trace.log"
+
+          # A bound checksum proves trace integrity, not deterministic ghost
+          # movement. Compare every independently captured world/pose sample
+          # across the real fresh-process replay. Only the documented one
+          # terminal lifecycle-observation sample may differ in length.
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            -I "$GITHUB_WORKSPACE/tests/native" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost_trace.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_ghost_trace_compare.cpp" \
+            -o "$RUNNER_TEMP/compare-ghost-traces"
+          "$RUNNER_TEMP/compare-ghost-traces" \
+            "$ORIGINAL" "$ORIGINAL.urghost" \
+            "$REPLAYED" "$REPLAYED.urghost" \
+            | tee "$RUNNER_TEMP/ghost-world-equivalence.log"
+          grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/ghost-world-equivalence.log"
 
       - name: Launch stored run through Local Runs browser
         shell: bash
@@ -419,5 +446,6 @@ jobs:
             ${{ runner.temp }}/compare.log
             ${{ runner.temp }}/original-ghost-trace.log
             ${{ runner.temp }}/replayed-ghost-trace.log
+            ${{ runner.temp }}/ghost-world-equivalence.log
           if-no-files-found: warn
           retention-days: 7

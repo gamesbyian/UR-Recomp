@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -58,7 +59,7 @@ std::size_t pair_fixture(
 
 const LocalTournamentStanding& find_row(
     const std::vector<LocalTournamentStanding>& rows,
-    const std::string& id) {
+    std::string_view id) {
     for (const auto& row : rows) {
         if (local_tournament_storage_key(row.profile_id) ==
             local_tournament_storage_key(id)) return row;

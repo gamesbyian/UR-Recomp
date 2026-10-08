@@ -54,6 +54,18 @@ command at the correct cycle, matched BRR sample decoding, DSP envelope/
 echo synthesis or analog auditory similarity. Those require separate
 APU handshake and audio waveform evidence.
 
-The run is unproven until the *actual packaged-Windows specialist test*
-passes this new gate. Its failure would name a concrete source-command
-regression rather than weakening the source reference.
+## First real native proof: passed
+
+The automatic, main-branch Windows audio specialist
+[37778361762](https://github.com/gamesbyian/UR-Recomp/actions/runs/37778361762)
+completed its `Prove stock frontend SFX command identity against
+independent reference` step **successfully** on the verified packaged
+Windows executable. The original command sequences `087F,0203`,
+`087F,0203`, and `084F,0202` were recovered from real live native
+WRAM snapshots after the guest's own Down, Up, Confirm events and
+exactly matched the pinned independent SNES reference.
+
+This closes the named original-menu **command identity** gate for these
+three actions only. Source command dispatch was checked, not SPC700
+port receipt cadence or sound-wave equivalence; do not generalize to
+other menu, stunt or in-race effects without corresponding captures.

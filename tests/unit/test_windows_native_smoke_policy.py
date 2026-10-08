@@ -137,13 +137,10 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         # Refresh/reinstall must target the same extracted root, rather than
         # silently switching back to an unspaced location.
         self.assertIn(
-            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$(dirname "$TEST_PACKAGE")"',
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
             self.text,
         )
-        self.assertNotIn(
-            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"',
-            self.text,
-        )
+        self.assertIn("Expand-Archive -LiteralPath", self.text)
 
     def test_consumer_zip_uses_native_windows_extraction(self) -> None:
         # Python can accept archives that Explorer/Expand-Archive refuse.

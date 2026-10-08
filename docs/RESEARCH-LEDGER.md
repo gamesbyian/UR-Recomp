@@ -2693,3 +2693,35 @@ Native smoke gates all of this.
 - WORK-QUEUE expert-edge (a) is closed; the odd/even acting-sample phase is a constraint on item (e), roll/flip boundaries.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
 - No `docs/SYMBOLS.md` change.
+
+### R-2026-10-08-PHYS-03 — Ground boost→speed law, ramp, cap and depletion, identical in native
+
+**Status:** confirmed (ground; airborne storage and offscreen depletion still open)  
+**Date:** 2026-10-08  
+**Area:** physics
+
+**Decision / discriminator / stop:** WORK-QUEUE expert-edge item (d), the game-facing half the static analysis left open.
+- **Discriminator:** a fresh boot (recovered real SRAM) to the Jumpover start straight, hold Right, one frame-boundary seed of P1's persistent boost meter `7E:11CF` at full ground speed, then per-frame P1 X speed, boost and air time on snesref and native for 40 frames.
+- **Stop:** the law is measured for seeds 0–0x400 and native agrees exactly.
+
+**Observation:**
+- After the ramp, X speed equals `min(448 + boost/2, 640)` using the previous frame's meter, within ±1 unit, for every seed (0, 16, 32, 64, 96, 128, 256, 0x180, 0x200, 0x400).
+- Speed climbs at most +24 per frame toward that target (about 6 frames from 448 to the 640 cap).
+- Depletion grows with the meter and saturates. Over 22 flat frames the meter loses 0 (≤ 32), 4 (64), 16 (96), 28 (128) and 88 (4 per frame) for every seed from 256 up. It keeps depleting through 1–2-frame airborne bumps.
+- The stored meter is not clamped: a 0x400 seed is still above 0x180 a frame later. The statically localized `0x0180` clamp is therefore on the reward-add path, not on storage or the speed read.
+- Native and snesref series are identical for all ten seeds (hash and frame-by-frame).
+
+**Evidence:**
+- `analysis/generated/boost-speed-probe.json` from `tools/probe_boost_speed.py` (manual harness, same requirements as the Jumpover probe).
+- `tests/unit/test_probe_boost_speed.py` (law, script, ramp/law separation, committed evidence).
+
+**Interpretation:** a full meter is worth at most +192 X speed (448 → 640), and holding speed above about +480 costs roughly 4 meter units per frame, so boost is spent quickly once it exceeds the low band. This is the semantic the Jumpover anchors exercised (meter 64 → +480; 104 → about +500).
+
+**Discriminating test:** rerun the probe after any change to physics, the framework input path or the boost reward path. All seeds must keep `first_divergence_frame: null` and the committed law/depletion values.
+
+**Dependencies:** same reference core and menu route as R-2026-10-08-PHYS-02.
+
+**Propagation:**
+- `docs/knowledge/movement-physics-and-stunts.md` (game-facing boost law).
+- Still open under (d): airborne storage over a long jump, and offscreen depletion (the P2/offscreen decrement path).
+- No `docs/SYMBOLS.md` change.

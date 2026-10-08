@@ -1,0 +1,250 @@
+{
+  "base_speed": 448,
+  "cases": [
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 449,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series_sha256": "9b73cb15475451f275c8b263b91ce4c453531aab70ad4e12c930509f95065bb6"
+      },
+      "reference": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 449,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series": "448/0/0 448/0/0 448/0/0 448/0/0 448/0/0 448/0/0 448/0/0 448/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 449/0/0 488/0/0 488/0/0 488/0/0 488/0/1 449/0/0 488/0/0 488/0/0 488/0/0 488/0/0 488/0/0",
+        "series_sha256": "9b73cb15475451f275c8b263b91ce4c453531aab70ad4e12c930509f95065bb6"
+      },
+      "seed": 0
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 457,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series_sha256": "5ee58640a1f133dcb77d6466235a82dd09638bbd817d585401f4678efad47d63"
+      },
+      "reference": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 457,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series": "456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 457/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/16/0 456/12/0 488/12/0 488/12/0 488/12/0 488/12/1 454/12/0 488/12/0 488/12/0 488/8/0 488/8/0 452/8/0",
+        "series_sha256": "5ee58640a1f133dcb77d6466235a82dd09638bbd817d585401f4678efad47d63"
+      },
+      "seed": 16
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 465,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series_sha256": "45c4551e907fb7813585577b5673a5e06526015512c2153e3fb324636d546338"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 0,
+        "max_flat_x_speed": 465,
+        "max_law_deviation_after_ramp": 1,
+        "max_ramp_step": 1,
+        "ramp_frames": 0,
+        "series": "464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 465/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 464/32/0 488/28/0 488/28/0 488/28/0 488/28/0 488/28/1 462/28/0 488/28/0 488/28/1 462/28/0 488/28/0 462/28/0",
+        "series_sha256": "45c4551e907fb7813585577b5673a5e06526015512c2153e3fb324636d546338"
+      },
+      "seed": 32
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 4,
+        "max_flat_x_speed": 480,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 0,
+        "ramp_frames": 0,
+        "series_sha256": "b3f44f7c64f7321b99ae0abe986ea3950b29d021e49d0e0d4537959f0b85aeea"
+      },
+      "reference": {
+        "airborne_frames": 1,
+        "boost_spent_on_flat": 4,
+        "max_flat_x_speed": 480,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 0,
+        "ramp_frames": 0,
+        "series": "480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/64/0 480/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 478/60/0 488/60/0 488/56/0 488/56/0 488/56/0 488/56/0 488/56/1 476/56/0 488/56/0 488/56/0 488/52/0 474/52/0 474/52/0",
+        "series_sha256": "b3f44f7c64f7321b99ae0abe986ea3950b29d021e49d0e0d4537959f0b85aeea"
+      },
+      "seed": 64
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 16,
+        "max_flat_x_speed": 496,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 0,
+        "ramp_frames": 0,
+        "series_sha256": "5405de47c203c6221fa626a9270bf802de30df76bd22f3aef44d0c374bd7043b"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 16,
+        "max_flat_x_speed": 496,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 0,
+        "ramp_frames": 0,
+        "series": "496/96/0 496/96/0 496/92/1 494/92/2 494/92/0 494/92/0 494/88/0 492/88/0 492/88/0 492/88/0 492/88/0 492/88/0 492/88/0 492/88/0 492/84/0 490/84/0 490/84/0 490/84/0 490/84/0 490/84/0 490/84/0 490/84/0 490/80/0 488/80/0 488/80/0 488/80/0 488/80/0 488/80/0 488/80/0 488/80/0 488/76/0 488/76/0 488/76/0 488/76/0 488/76/0 488/76/0 488/76/0 488/76/0 486/76/0 486/76/0 486/76/0",
+        "series_sha256": "5405de47c203c6221fa626a9270bf802de30df76bd22f3aef44d0c374bd7043b"
+      },
+      "seed": 96
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 28,
+        "max_flat_x_speed": 508,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 12,
+        "ramp_frames": 0,
+        "series_sha256": "f353d49ba1ddb21e564010a9bd254a2d7ad0aa8203335429619404ec39f827fc"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 28,
+        "max_flat_x_speed": 508,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 12,
+        "ramp_frames": 0,
+        "series": "496/120/0 508/120/0 508/116/1 506/116/2 506/112/0 504/112/0 504/108/0 502/108/0 502/108/0 502/108/0 502/104/0 500/104/0 500/104/0 500/104/0 500/100/0 498/100/0 498/100/0 498/100/0 498/96/0 496/96/0 496/96/0 496/96/0 496/92/0 494/92/0 494/92/0 494/92/0 494/92/0 494/92/0 488/92/0 488/92/0 488/88/0 488/88/0 488/88/0 488/88/0 488/88/0 488/88/0 488/88/0 492/88/0 492/84/0 490/84/0 490/84/0",
+        "series_sha256": "f353d49ba1ddb21e564010a9bd254a2d7ad0aa8203335429619404ec39f827fc"
+      },
+      "seed": 128
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 568,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 2,
+        "series_sha256": "7abc20b15092bdf97665f9bd23edffff30433ccccc168741906f1887d388b93d"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 568,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 2,
+        "series": "496/248/0 520/244/0 544/240/1 568/236/2 566/232/0 564/228/0 562/224/0 560/220/0 558/216/0 556/212/0 554/208/0 552/204/0 550/200/0 548/196/0 546/192/0 544/188/0 542/184/0 540/180/0 538/176/0 536/172/0 534/168/0 532/164/0 530/160/0 528/156/0 526/152/0 524/148/0 488/148/0 488/148/0 488/148/0 488/148/0 488/144/0 488/144/0 488/144/0 488/144/0 488/144/0 512/140/0 518/136/0 516/132/0 514/128/0 512/124/0 510/120/0",
+        "series_sha256": "7abc20b15092bdf97665f9bd23edffff30433ccccc168741906f1887d388b93d"
+      },
+      "seed": 256
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 624,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series_sha256": "2a3c621b991f0c02c816e1b2153fa58102d42d16a14aa7584b5aae4bd327ad1e"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 624,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series": "496/376/0 520/372/0 544/368/1 568/364/2 568/360/0 592/356/0 616/352/0 624/348/0 622/344/0 620/340/0 618/336/0 616/332/0 614/328/0 612/324/0 610/320/0 608/316/0 606/312/0 604/308/0 602/304/0 600/300/0 598/296/0 596/292/0 594/288/0 592/284/0 488/284/0 488/284/0 488/284/0 488/284/0 488/284/0 488/284/0 488/280/0 488/280/0 488/280/0 512/276/0 536/272/0 560/268/0 582/264/0 580/260/0 578/256/0 576/252/0 574/248/0",
+        "series_sha256": "2a3c621b991f0c02c816e1b2153fa58102d42d16a14aa7584b5aae4bd327ad1e"
+      },
+      "seed": 384
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 640,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series_sha256": "727289a34aea98510459e8aac03bd7cc11cd8af4503fd9e2df903de0895df233"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 640,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series": "496/504/0 520/500/0 544/496/1 568/492/2 568/488/0 592/484/0 616/480/0 640/476/0 640/472/0 640/468/0 640/464/0 640/460/0 640/456/0 640/452/0 640/448/0 640/444/0 640/440/0 640/436/0 640/432/0 640/428/0 640/424/0 640/420/0 640/416/0 488/416/0 488/416/0 488/416/0 488/416/0 488/416/0 488/416/0 488/416/0 488/412/0 488/412/0 512/408/0 536/404/0 560/400/0 584/396/0 608/392/0 632/388/0 640/384/0 640/380/0 638/376/0",
+        "series_sha256": "727289a34aea98510459e8aac03bd7cc11cd8af4503fd9e2df903de0895df233"
+      },
+      "seed": 512
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 640,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series_sha256": "a43433b395164cd1fb590febf5ba5c4495833a6ee690f4dfe75b534002081bb0"
+      },
+      "reference": {
+        "airborne_frames": 2,
+        "boost_spent_on_flat": 88,
+        "max_flat_x_speed": 640,
+        "max_law_deviation_after_ramp": 0,
+        "max_ramp_step": 24,
+        "ramp_frames": 6,
+        "series": "496/1016/0 520/1012/0 544/1008/1 568/1004/2 568/1000/0 592/996/0 616/992/0 640/988/0 640/984/0 640/980/0 640/976/0 640/972/0 640/968/0 640/964/0 640/960/0 640/956/0 640/952/0 640/948/0 640/944/0 640/940/0 640/936/0 640/932/0 640/928/0 488/928/0 488/928/0 488/928/0 488/928/0 488/928/0 488/928/0 488/928/0 488/924/0 488/924/0 512/920/0 536/916/0 560/912/0 584/908/0 608/904/0 632/900/0 640/896/0 640/892/0 640/888/0",
+        "series_sha256": "a43433b395164cd1fb590febf5ba5c4495833a6ee690f4dfe75b534002081bb0"
+      },
+      "seed": 1024
+    }
+  ],
+  "course": {
+    "id": "course:20",
+    "name": "Jumpover",
+    "track_id": 19
+  },
+  "flat_frames": 22,
+  "frames": 40,
+  "kind": "boost-speed-probe",
+  "native_race_entry_offset_frames": 9,
+  "reference_race_entry_frame": 1088,
+  "schema_version": 1,
+  "seed_frame_after_race_entry": 222,
+  "series_format": "space-separated x_speed/boost/air_time per frame, frame 0 = seed frame",
+  "speed_cap": 640,
+  "sram_sha256": "a4566b0608cb41ce4e82453b68ba7638632a06dadf22de8c4bfa71ec19ed4d57"
+}

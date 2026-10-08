@@ -1,0 +1,68 @@
+import json
+import pathlib
+import sys
+import unittest
+
+ROOT = pathlib.Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+
+import probe_boost_speed as probe  # noqa: E402
+
+EVIDENCE = ROOT / "analysis" / "generated" / "boost-speed-probe.json"
+
+
+def _rows(pairs):
+    return [{"x_speed": s, "boost": b, "y": 539, "air_time": 0} for s, b in pairs]
+
+
+class BoostSpeedProbeTests(unittest.TestCase):
+    def test_law_is_base_plus_half_boost_capped(self):
+        self.assertEqual(probe.law_speed(0), 448)
+        self.assertEqual(probe.law_speed(64), 480)
+        self.assertEqual(probe.law_speed(255), 575)
+        self.assertEqual(probe.law_speed(0x400), 640)
+
+    def test_script_seeds_once_then_dumps_each_frame(self):
+        script = probe.boost_script(1088, 0x180)
+        self.assertEqual(script.count("poke 11CF 8001"), 1)
+        self.assertIn(f"wait {probe.SEED_OFFSET}\npoke 11CF 8001\ndump s000\n", script)
+        self.assertEqual(script.count("dump s"), probe.FRAMES + 1)
+        self.assertTrue(script.endswith("quit\n"))
+
+    def test_summary_separates_ramp_from_the_law(self):
+        pairs = [(448, 256), (472, 252), (496, 248), (520, 244), (544, 240), (566, 236)]
+        pairs += [(566, 236)] * (probe.FLAT_FRAMES + 2 - len(pairs))
+        summary = probe.summarize(_rows(pairs))
+        self.assertEqual(summary["max_ramp_step"], 24)
+        self.assertEqual(summary["ramp_frames"], 4)
+        self.assertEqual(summary["max_law_deviation_after_ramp"], 2)
+        self.assertEqual(summary["boost_spent_on_flat"], 20)
+        self.assertTrue(summary["series"].startswith("448/256/0 472/252/0"))
+        with self.assertRaises(ValueError):
+            probe.summarize(_rows(pairs[:3]))
+
+    def test_committed_evidence_native_matches_and_the_law_holds(self):
+        evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))
+        self.assertEqual(evidence["kind"], "boost-speed-probe")
+        self.assertEqual([c["seed"] for c in evidence["cases"]], list(probe.SEEDS))
+        for case in evidence["cases"]:
+            ref, nat = case["reference"], case["native"]
+            self.assertIsNone(case["first_divergence_frame"], case["seed"])
+            self.assertEqual(ref["series_sha256"], nat["series_sha256"], case["seed"])
+            self.assertLessEqual(ref["max_law_deviation_after_ramp"], 1, case["seed"])
+            self.assertLessEqual(ref["max_ramp_step"], 24, case["seed"])
+            # Frame 0 follows the seed frame and its idle frame: at most two
+            # depletion steps (4 each) have run, and nothing clamps the meter.
+            first_boost = int(ref["series"].split()[0].split("/")[1])
+            self.assertLessEqual(case["seed"] - first_boost, 8, case["seed"])
+        by_seed = {c["seed"]: c["reference"] for c in evidence["cases"]}
+        self.assertEqual(by_seed[0x400]["max_flat_x_speed"], probe.SPEED_CAP)
+        self.assertGreater(int(by_seed[0x400]["series"].split()[0].split("/")[1]), 0x180)
+        self.assertEqual(by_seed[0]["boost_spent_on_flat"], 0)
+        # Depletion saturates at 4 per frame from 256 up.
+        self.assertEqual(by_seed[256]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)
+        self.assertEqual(by_seed[0x400]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)
+
+
+if __name__ == "__main__":
+    unittest.main()

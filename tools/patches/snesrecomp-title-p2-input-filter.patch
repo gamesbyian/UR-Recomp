@@ -8,7 +8,7 @@
 +    uint32 inputs = human | (p2_human << 12);
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -220 +220,7 @@
+@@ -220 +220,6 @@
    uint32_t (*filter_player_input)(uint32_t inputs);
 +  /* Optional title-owned P2 mapped physical-controller filter before the
 +   * shared 24-bit guest controller word is assembled. Unlike the scripted

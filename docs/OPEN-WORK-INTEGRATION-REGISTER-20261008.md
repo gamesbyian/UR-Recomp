@@ -38,3 +38,9 @@ Merged since initial register: #899 (graphics X-high alias), #820 (Local Runs se
 ## Subsequent integration checkpoint
 
 Additional squash merges confirmed: #826 (341912e), #815 (1aaa105), #798 (a7c132a), #898 (aa6d6e6), #891 (ac3697a), #894 (61d3d90). #894 was promoted from draft after its prerequisite #891 merged. #814 remains open because GitHub reported an actual merge conflict. These are merge receipts only; mandatory native gates on the resulting main are not yet marked passed.
+
+## Replay cancellation current-main recovery
+
+Original #814 is conflicted against the merged Records/replay host. Replacement #901 selectively ports its Escape/mapped-B replay cancel sequence onto current main, with a native flow cancellation test and a host-source contract test; the original branch's stale Records presentation was deliberately not carried forward. **#901 is still open pending native keyboard/controller replay acceptance and combined-main validation.** Retain #814 for provenance until #901 is validated and merged; then close #814 as superseded rather than blindly merging it.
+
+Additional divergent branch samples: audio status reconciliation (3 ahead/20 behind, docs-only), physics stunt/boost evidence reconciliation (2 ahead/26 behind, docs-only), Windows release queue reconciliation (1 ahead/74 behind), CI runtime parallelism metrics (2 ahead/36 behind), and atomic completed-run publication (6 ahead/130 behind). Each requires exact successor comparison, because later main may have already superseded its intended behavior.

@@ -345,6 +345,35 @@ aggregate run before merge. Estimated wall-clock gains are limited
 by Profiles/Navigation (roughly 120 s), and are not equivalent to the
 53-second per-route saving.
 
+### Verified post-Records native UI critical-shard baseline
+
+[PR #911](https://github.com/gamesbyian/UR-Recomp/pull/911) merged the
+byte-proven, pristine-root unpaced Records route and reassigned the
+independent Modern settings persistence acceptance from Results-A
+to Records. Its full native validation
+[run 37836619959](https://github.com/gamesbyian/UR-Recomp/actions/runs/37836619959)
+passed all six capture jobs, the root witness and the strict aggregate.
+The shipping `ui-records-explore` route took about 25 seconds, down
+from approximately 75 seconds before acceleration; the new combined
+Records shard took about 98 seconds, including Modern settings.
+
+| Capture shard | Job duration (s) | Representative routes |
+|---|---:|---|
+| Core | 127 | Race smoke 35, Options entry 12, Render Scale acceptances |
+| Navigation | 126 | Race result 57, Pause route 19 |
+| Profiles | 124 | Rename editor 71, name/define/startup routes |
+| Results-B | 118 | Records submenu 54, Stunt entry 23 |
+| Records | 98 | Records explorer 25, Main branches 31, Modern settings |
+| Results-A | 95 | Options submenus 52, Circuit 23 |
+
+These are **one successful native run's** capture-job spans. The
+critical shard is now Core/Navigation/Profiles within runner variance;
+optimizing Records again would not meaningfully shorten the full job.
+The byte-identical, paired pristine-root Rename exploration in #915 is
+research only. If it passes, measure where the critical path moves
+before shuffling unrelated capture routes, and keep the same
+required full atlas and state-dump checks.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

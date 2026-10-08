@@ -38,6 +38,7 @@ extern "C" {
 #include "modern_results_navigation.hpp"
 #include "modern_tour_continue.hpp"
 #include "modern_host_input_release_latch.hpp"
+#include "modern_tournament_p2_guest_input.hpp"
 #include "modern_main_menu_strip.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
@@ -273,6 +274,7 @@ bool g_local_tournament_native_acceptance_attempted;
 // Player-facing Local Tournament panel on the stock 2P select surface. It
 // only issues explicit create/arm requests to the coordinator above.
 bool g_local_tournament_panel_visible;
+ur::product::ModernTournamentP2GuestInputState g_tournament_p2_guest_input{};
 ur::product::LocalTournamentPanelState g_local_tournament_panel;
 std::string g_local_tournament_panel_notice;
 bool g_local_tournament_restore_rejected;
@@ -4235,6 +4237,9 @@ bool open_local_tournament_panel() {
     } else {
         local_tournament_panel_show_setup();
     }
+    // This guest-word latch is armed even if the modal freezes every guest
+    // frame. P2 input held before opening must not leak on first resume.
+    g_tournament_p2_guest_input = ur::product::tournament_p2_guest_arm();
     g_local_tournament_panel_visible = true;
     product_diagnostic(g_local_tournament_session
         ? "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview"
@@ -8255,6 +8260,19 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         return 1;
     }
     return 0;
+}
+
+extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
+    uint32_t inputs) {
+    if (!modern_mode()) {
+        g_tournament_p2_guest_input = {};
+        return inputs;
+    }
+    const auto filtered = ur::product::tournament_p2_guest_filter(
+        g_tournament_p2_guest_input, g_local_tournament_panel_visible,
+        inputs);
+    g_tournament_p2_guest_input = filtered.state;
+    return filtered.inputs;
 }
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {

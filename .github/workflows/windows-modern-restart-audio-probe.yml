@@ -68,7 +68,7 @@ jobs:
         run: |
           set -euo pipefail
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
-          EXTRACT="$RUNNER_TEMP/audio-resume-package"
+          EXTRACT="$RUNNER_TEMP/audio-restart-package"
           python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
           python -m zipfile -e "$ARCHIVE" "$EXTRACT"
           PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"

@@ -345,6 +345,50 @@ jobs:
           python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
           echo "WINDOWS_PACKAGE_RACE_RESULT ok"
 
+      - name: Extracted-package Win32 window and default renderer smoke
+        run: |
+          set -euo pipefail
+          # Offscreen SDL boot validates deterministic game progress but never
+          # enters Windows' actual window/render-device initialization path.
+          # Use the same released ZIP payload, not the generated build tree.
+          WIN32_DUMPS="$RUNNER_TEMP/package-win32-window-dumps"
+          WIN32_USER="$RUNNER_TEMP/package win32 user data"
+          WIN32_CALLER="$RUNNER_TEMP/package win32 launch caller"
+          mkdir -p "$WIN32_DUMPS" "$WIN32_CALLER"
+          rm -rf "$WIN32_USER"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          USER_WIN="$(cygpath -w "$WIN32_USER")"
+          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          DUMPS_WIN="$(cygpath -w "$WIN32_DUMPS")"
+
+          set +e
+          (
+            cd "$WIN32_CALLER"
+            SDL_VIDEODRIVER=windows \
+            SDL_AUDIODRIVER=dummy \
+            SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$USER_WIN" \
+              timeout 300 powershell.exe -NoProfile -Command \
+                "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+                >"$RUNNER_TEMP/package-win32-window.log" 2>&1
+          )
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-win32-window.log"
+          test "$RC" -eq 0
+          python - "$WIN32_DUMPS/package-main-menu.wram.bin" <<'PY'
+          import pathlib, sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          assert wram[0x9F] == 0xD7, "packaged Win32 renderer main menu not reached"
+          print("WINDOWS_PACKAGE_WIN32_RENDERER_MAIN_MENU ok")
+          PY
+          test -f "$WIN32_USER/config.ini"
+          test -d "$WIN32_USER/saves"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$WIN32_CALLER/config.ini"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
+          echo "WINDOWS_PACKAGE_WIN32_RENDERER ok"
+
       - name: Package refresh preserves user data
         run: |
           set -euo pipefail

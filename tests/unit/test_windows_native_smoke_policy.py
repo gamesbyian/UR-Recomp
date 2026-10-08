@@ -179,6 +179,25 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         self.assertLess(first_extract, race_step)
         self.assertIn("python tools/assemble_windows_package.py verify --package", self.text)
 
+    def test_extracted_package_proves_native_win32_renderer_boot(self) -> None:
+        start = self.text.index(
+            "- name: Extracted-package Win32 window and default renderer smoke"
+        )
+        end = self.text.index(
+            "- name: Package refresh preserves user data", start
+        )
+        native_boot = self.text[start:end]
+        self.assertIn("SDL_VIDEODRIVER=windows", native_boot)
+        self.assertIn("SDL_AUDIODRIVER=dummy", native_boot)
+        self.assertNotIn("SDL_VIDEODRIVER=offscreen", native_boot)
+        self.assertNotIn("SDL_RENDER_DRIVER=", native_boot)
+        self.assertIn("run-uniracers.cmd", native_boot)
+        self.assertIn("WINDOWS_PACKAGE_WIN32_RENDERER_MAIN_MENU ok", native_boot)
+        self.assertIn(
+            'python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"',
+            native_boot,
+        )
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

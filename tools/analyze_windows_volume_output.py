@@ -50,6 +50,7 @@ def _require_audio(metrics: dict, label: str) -> dict:
 def volume_output_report(
     before_log: str, adjust_log: str, after_log: str,
     before: dict, after: dict,
+    repeat_log: str | None = None, repeat: dict | None = None,
 ) -> dict:
     initial = _read_event(before_log, START, "before", count=1)[0]
     adjusting = _read_event(adjust_log, START, "adjust", count=1)[0]
@@ -68,6 +69,25 @@ def volume_output_report(
         raise ValueError("real Modern pause Options navigation was not exercised")
     b = _require_audio(before, "before")
     a = _require_audio(after, "after")
+    if (repeat_log is None) != (repeat is None):
+        raise ValueError("the same-volume control needs both log and PCM evidence")
+    repeat_report = None
+    if repeat_log is not None and repeat is not None:
+        repeat_loaded = _read_event(repeat_log, START, "after-repeat", count=1)[0]
+        _read_event(repeat_log, SELECTED, "after-repeat", count=0)
+        if repeat_loaded != loaded:
+            raise ValueError("same-volume control loaded a different framework Volume")
+        control = _require_audio(repeat, "after-repeat")
+        repeat_report = {
+            "framework_volume_percent": repeat_loaded,
+            "tail_rms_ratio": round(control["tail_rms"] / a["tail_rms"], 6),
+            "full_rms_ratio": round(control["rms"] / a["rms"], 6),
+            "original_tail_nonzero_fraction": a.get("tail_nonzero_fraction"),
+            "repeat_tail_nonzero_fraction": control.get("tail_nonzero_fraction"),
+            "original_duration_seconds": a["duration_seconds"],
+            "repeat_duration_seconds": control["duration_seconds"],
+            "meaning": "A/A same-setting device output variability, not gain causality",
+        }
     return {
         "schema_version": 1,
         "authority": "SNESRecomp [Sound] Volume, via Modern Options",
@@ -94,7 +114,8 @@ def volume_output_report(
             "before_duration_seconds": b["duration_seconds"],
             "after_duration_seconds": a["duration_seconds"],
         },
-        "limits": "descriptive until repeated output measurements; no assumed exact gain law",
+        "same_volume_control": repeat_report,
+        "limits": "A/B and same-setting A/A descriptive; no assumed exact gain or guest/sample alignment",
     }
 
 
@@ -112,7 +133,13 @@ def main() -> int:
         json.loads((root / f"audio-volume-output-{phase}.json").read_text(encoding="utf-8"))
         for phase in ("before", "after")
     ]
-    result = volume_output_report(*logs, *metrics)
+    repeat_log = (root / "audio-volume-after-repeat.log").read_text(
+        encoding="utf-8", errors="replace"
+    )
+    repeat_metric = json.loads(
+        (root / "audio-volume-output-after-repeat.json").read_text(encoding="utf-8")
+    )
+    result = volume_output_report(*logs, *metrics, repeat_log, repeat_metric)
     args.json_out.write_text(json.dumps(result, sort_keys=True, indent=2) + "\n", encoding="utf-8")
     p = result["framework_volume_percent"]
     d = result["device_output"]
@@ -122,6 +149,12 @@ def main() -> int:
         f"fresh_loaded={p['fresh_process_loaded']} "
         f"tail_rms_ratio={d['tail_rms_ratio']:.5f} "
         f"full_rms_ratio={d['full_rms_ratio']:.5f}"
+    )
+    print(
+        "WINDOWS_VOLUME_SAME_SETTING_CONTROL "
+        f"volume_percent={result['same_volume_control']['framework_volume_percent']} "
+        f"tail_rms_ratio={result['same_volume_control']['tail_rms_ratio']:.5f} "
+        f"full_rms_ratio={result['same_volume_control']['full_rms_ratio']:.5f}"
     )
     return 0
 

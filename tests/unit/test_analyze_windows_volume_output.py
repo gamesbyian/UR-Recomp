@@ -52,6 +52,37 @@ class WindowsVolumeOutputTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "was not reached"):
             volume_output_report(*cases)
 
+    def test_same_volume_repeat_is_controlled_by_fresh_framework_value(self):
+        cases = self.fixtures()
+        same_log = "UR_VOLUME_ACCEPTANCE START percent=95\n"
+        repeat_pcm = dict(cases[4], rms=2520, tail_rms=3100,
+                          tail_nonzero_fraction=0.74)
+        report = volume_output_report(*cases, same_log, repeat_pcm)
+        control = report["same_volume_control"]
+        self.assertEqual(control["framework_volume_percent"], 95)
+        self.assertAlmostEqual(control["tail_rms_ratio"], 3100 / 5700, delta=1e-6)
+        self.assertEqual(control["repeat_tail_nonzero_fraction"], 0.74)
+        self.assertIn("A/A", control["meaning"])
+
+    def test_mismatched_control_volume_or_missing_evidence_fails_closed(self):
+        cases = self.fixtures()
+        with self.assertRaisesRegex(ValueError, "needs both log"):
+            volume_output_report(*cases, "UR_VOLUME_ACCEPTANCE START percent=95\n")
+        with self.assertRaisesRegex(ValueError, "different framework"):
+            volume_output_report(
+                *cases, "UR_VOLUME_ACCEPTANCE START percent=100\n", cases[4]
+            )
+        with self.assertRaisesRegex(ValueError, "expected exactly 0"):
+            volume_output_report(
+                *cases, "UR_VOLUME_ACCEPTANCE START percent=95\nUR_VOLUME SELECTED percent=90\n",
+                cases[4],
+            )
+        invalid = dict(cases[4], audio_origin="simulated")
+        with self.assertRaisesRegex(ValueError, "invalid native Windows"):
+            volume_output_report(
+                *cases, "UR_VOLUME_ACCEPTANCE START percent=95\n", invalid
+            )
+
     def test_rejects_invalid_pcm_metadata_and_nonfinite_levels(self):
         cases = list(self.fixtures())
         cases[3] = dict(cases[3], audio_origin="synthetic")

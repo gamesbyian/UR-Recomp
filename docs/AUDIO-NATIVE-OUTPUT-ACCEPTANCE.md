@@ -482,3 +482,37 @@ law across all music/SFX, startup/exit timing or SDL queue phases. First
 measure paired fresh-process output and its run-to-run repeatability.
 This volume test does not modify the framework mixer, route, sound assets,
 pause/Restart lifecycle or user-facing Options behaviour.
+
+
+## First Windows Modern Volume PCM outcome and same-setting control
+
+[Windows audio acceptance 37732652603](https://github.com/gamesbyian/UR-Recomp/actions/runs/37732652603)
+passed the real Modern host pause → Options → Volume UI and fresh-process
+persistence check. The framework Volume value started at **100**, was
+selected through **95 → 90 → 95**, and a new process loaded **95**.
+Both the pre-adjustment and post-adjustment runs produced audible SDL3
+S16LE/44.1 kHz stereo PCM with zero clipped samples.
+
+However, the first paired *device-output* captures were not sufficiently
+well aligned to imply a linear gain law. Whole-file RMS was
+**3325.62** before and **2575.81** after (ratio **0.775**), while
+last-one-second RMS was **6876.54** before and **3046.94** after (ratio
+**0.443**). Output duration differed by approximately **46 ms** and
+the tail's nonzero-sample fractions were approximately **1.00** and
+**0.74**. The differing nonzero fractions are especially important:
+pure scalar attenuation of the same nonzero samples should not generally
+turn that many samples into exact zeros. Differences could reflect
+different device capture phase, original soundtrack timing/content,
+quantized gain or a combination. Do not claim the observed 0.443 ratio
+is the framework's exact response to one nominal 5-point adjustment.
+
+The Windows acceptance now runs a fourth **after-repeat** process,
+loading **the same selected 95% value** but capturing a fresh SDL3 device
+stream again. This A/A control compares whole-recording and last-second
+RMS and nonzero fractions between independent processes without a
+second adjustment. It distinguishes ordinary same-setting output
+variability from the A/B comparison. The required checks remain
+correct real UI navigation, single framework Volume authority, persistent
+fresh-process selection, and authentic device-output provenance; a
+hard acoustic ratio is **not** justified until the A/A variance and
+time-aligned signal differences are measured.

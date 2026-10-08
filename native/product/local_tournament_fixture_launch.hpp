@@ -3,6 +3,7 @@
 #include "local_tournament_round_robin.hpp"
 
 #include <cstddef>
+#include <cstdint>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -21,6 +22,7 @@ struct LocalTournamentPendingFixture {
     std::string first_profile_key;
     std::string second_profile_key;
     std::string course_id;
+    std::uint64_t immutable_schedule_digest = 0;
 };
 
 struct LocalTournamentLaunchState {
@@ -52,6 +54,42 @@ inline bool local_tournament_valid_instance_token(
     return true;
 }
 
+// Stable digest over the immutable schedule only. Completed result cells are
+// intentionally excluded: other matches may finish without changing the
+// roster, permitted course pool, or authored fixture ordering. Explicit
+// lengths and little-endian 64-bit integers avoid delimiter/host ABI drift.
+inline std::uint64_t local_tournament_immutable_schedule_digest(
+    const LocalTournamentState& tournament) noexcept {
+    std::uint64_t hash = 14695981039346656037ull;
+    auto append_byte = [&](std::uint8_t value) {
+        hash ^= value;
+        hash *= 1099511628211ull;
+    };
+    auto append_integer = [&](std::uint64_t value) {
+        for (int i = 0; i < 8; ++i) {
+            append_byte(static_cast<std::uint8_t>((value >> (8 * i)) & 0xffu));
+        }
+    };
+    auto append_text = [&](std::string_view value) {
+        append_integer(value.size());
+        for (const unsigned char ch : value) append_byte(ch);
+    };
+    append_integer(tournament.entrants.size());
+    for (const auto& id : tournament.entrants) {
+        append_text(local_tournament_storage_key(id));
+    }
+    append_integer(tournament.course_pool.size());
+    for (const auto& course : tournament.course_pool) append_text(course);
+    append_integer(tournament.fixtures.size());
+    for (const auto& fixture : tournament.fixtures) {
+        append_integer(fixture.round);
+        append_integer(fixture.player1);
+        append_integer(fixture.player2);
+        append_text(fixture.course_id);
+    }
+    return hash;
+}
+
 inline bool local_tournament_pending_matches_fixture(
     const LocalTournamentPendingFixture& pending,
     const LocalTournamentState& tournament) {
@@ -72,6 +110,8 @@ inline bool local_tournament_pending_matches_fixture(
     return !p1.empty() && !p2.empty() && p1 != p2 &&
         fixture.round == pending.round &&
         fixture.course_id == pending.course_id &&
+        local_tournament_immutable_schedule_digest(tournament) ==
+            pending.immutable_schedule_digest &&
         p1 == pending.first_profile_key &&
         p2 == pending.second_profile_key;
 }
@@ -111,6 +151,7 @@ inline LocalTournamentLaunchStatus local_tournament_arm_fixture(
         local_tournament_storage_key(tournament.entrants[fixture.player1]),
         local_tournament_storage_key(tournament.entrants[fixture.player2]),
         fixture.course_id,
+        local_tournament_immutable_schedule_digest(tournament),
     };
     if (snapshot.first_profile_key.empty() ||
         snapshot.second_profile_key.empty() ||

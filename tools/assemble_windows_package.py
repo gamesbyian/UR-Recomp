@@ -348,6 +348,8 @@ def readme_text(source_revision: str) -> str:
         "\n"
         f"Start the game with {LAUNCHER_NAME}. Keep {EXE_NAME}, {ROM_NAME}, "
         "rom.cfg and the mods directory together.\n"
+        "For a normal Windows launch you do not need to set "
+        "UR_RECOMP_USER_DATA_ROOT; the launcher uses APPDATA automatically.\n"
         "\n"
         "Mutable user data is stored outside the extracted package under "
         "%APPDATA%\\gamesbyian\\UR-Recomp by default. Set "

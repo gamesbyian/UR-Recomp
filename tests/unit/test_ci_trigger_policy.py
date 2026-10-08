@@ -19,11 +19,8 @@ DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
 
 EXPENSIVE_PR_WORKFLOWS = {
     "modern-shared-native-acceptance.yml",
-    "completed-run-replay-acceptance.yml",
     "modern-onboarding-practice-acceptance.yml",
     "modern-race-restart-acceptance.yml",
-    "modern-results-navigation-acceptance.yml",
-    "multiplayer-match-capture-acceptance.yml",
     "native-build-smoke.yml",
     "native-ui-evidence.yml",
     "racer-native-presentation-acceptance.yml",
@@ -255,6 +252,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("  build:", text)
         self.assertIn("  ghost-target:", text)
         self.assertIn("  profile-panel:", text)
+        self.assertIn("  results-navigation:", text)
+        self.assertIn("  ordinary-2p:", text)
+        self.assertIn("  completed-run-replay:", text)
         self.assertEqual(text.count("Build shared Modern native candidate"), 1)
         self.assertIn("shared-modern-native-candidate", text)
         consumers = text.split("  ghost-target:", 1)[1]
@@ -263,10 +263,13 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("xvfb", consumers)
         self.assertIn("xdotool", consumers)
 
-    def test_superseded_profile_gates_are_manual_only(self):
+    def test_superseded_shared_candidate_gates_are_manual_only(self):
         for name in (
             "ghost-target-native-acceptance.yml",
             "profile-panel-native-acceptance.yml",
+            "modern-results-navigation-acceptance.yml",
+            "multiplayer-match-capture-acceptance.yml",
+            "completed-run-replay-acceptance.yml",
         ):
             text = (WORKFLOWS / name).read_text()
             self.assertIn("  workflow_dispatch:", text)

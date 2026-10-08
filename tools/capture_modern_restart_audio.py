@@ -24,6 +24,7 @@ from tools.capture_modern_paused_audio import (
 from tools.capture_modern_resume_audio import (
     _find_game_window, read_stereo_window, verify_resume_audio,
 )
+from tools.analyze_sdl_audio_envelope import extract_envelope
 
 SELECTED_RESTART = re.compile(
     r"(?m)^UR_PAUSE_SELECTION selected=1 restart=1\s*$")
@@ -167,16 +168,33 @@ def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
     resumed = read_stereo_window(pcm, resumed_boundary)
     log_content = log.read_text(encoding="utf-8", errors="replace")
     evidence = verify_restart_log(log_content)
-    acoustic = verify_resume_audio(log_content, paused, resumed)
-    return {
+    # Preserve bounded real PCM evidence even on failure. A sudden audio
+    # regression should report which stereo channel, window and device
+    # interval was silent, without uploading copyrighted samples.
+    envelope = extract_envelope(log, pcm, last_seconds=8, window_ms=100)
+    report = {
         "schema_version": 1,
         "authority": "packaged Windows real pause-menu Restart Win32 Down/Enter",
         "device_origin": "sdl3-disk-playback",
         "sample_rate": 44100,
         **evidence,
+        "paused_one_second": paused,
+        "restarted_final_one_second": resumed,
+        "last_eight_seconds_envelope": envelope,
+        "limits": "device-output recovery and resumed guest; no exact sample parity or click/latency proof",
+    }
+    return report
+
+
+def validate_restart_audio(report: dict, log_content: str) -> dict:
+    acoustic = verify_resume_audio(
+        log_content, report["paused_one_second"], report["restarted_final_one_second"]
+    )
+    return {
+        **report,
         "paused_one_second": acoustic["paused_one_second"],
         "restarted_final_one_second": acoustic["resumed_final_one_second"],
-        "limits": "device-output recovery and resumed guest; no exact sample parity or click/latency proof",
+        "recovery_confirmed": True,
     }
 
 
@@ -191,7 +209,13 @@ def main() -> int:
     evidence = capture(a.windows_launcher, a.windows_script,
                        a.capture_log, a.device_pcm)
     a.json_out.parent.mkdir(parents=True, exist_ok=True)
+    # Snapshot measurements first; if recovery fails the on-runner report
+    # survives as useful evidence and Windows CI stays red.
     a.json_out.write_text(json.dumps(evidence, sort_keys=True, indent=2) + "\n")
+    verified = validate_restart_audio(
+        evidence, a.capture_log.read_text(encoding="utf-8", errors="replace")
+    )
+    a.json_out.write_text(json.dumps(verified, sort_keys=True, indent=2) + "\n")
     print("WINDOWS_MODERN_RESTART_AUDIO PASS paused_stereo_silence=1 "
           "restarted_guest=1 resumed_stereo_audible=1")
     return 0

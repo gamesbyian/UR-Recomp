@@ -1,5 +1,7 @@
 """Contract for a clean-PC verifier that needs no development toolchain."""
 from pathlib import Path
+import shutil
+import subprocess
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -12,6 +14,26 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
     def setUpClass(cls):
         cls.script = SCRIPT.read_text(encoding="utf-8")
         cls.instructions = DOC.read_text(encoding="utf-8")
+
+    def test_powershell_script_parses_when_pwsh_is_available(self):
+        # Linux tooling CI ordinarily has pwsh; parse the *real* PowerShell
+        # file instead of using a Python imitation of PowerShell syntax.
+        pwsh = shutil.which("pwsh")
+        if pwsh is None:
+            self.skipTest("PowerShell executable unavailable on this host")
+        quoted = str(SCRIPT).replace("'", "''")
+        command = (
+            "$tokens=$null; $parseErrors=$null; "
+            "[System.Management.Automation.Language.Parser]::ParseFile("
+            f"'{quoted}', [ref]$tokens, [ref]$parseErrors) | Out-Null; "
+            "if ($parseErrors.Count -gt 0) { "
+            "$parseErrors | Out-String | Write-Output; exit 1 }"
+        )
+        proc = subprocess.run(
+            [pwsh, "-NoProfile", "-NonInteractive", "-Command", command],
+            capture_output=True, text=True, check=False,
+        )
+        self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
 
     def test_uses_stock_windows_powershell_only(self):
         self.assertIn("#requires -Version 5.1", self.script)

@@ -196,6 +196,13 @@ jobs:
           DUMPS="$RUNNER_TEMP/audio-rate-48000-dumps"
           mkdir -p "$DUMPS"
           rm -rf "$ROOT" "$PCM" "$STATS"
+          mkdir -p "$ROOT"
+          # SNESRecomp requests SDL's output format from *its own* [Sound]
+          # AudioFreq setting. SDL_AUDIO_FREQUENCY alone is not authority:
+          # the first real 48k probe reproduced a negotiated 44.1k stream.
+          # Seed only the disposable framework config, never a second mixer
+          # or an override in the shipping game/portable package.
+          printf '[Sound]\nEnableAudio = 1\nAudioFreq = 48000\nAudioChannels = 2\n' >"$ROOT/config.ini"
           trap 'rm -f "$PCM"' EXIT
           ROOT_WIN="$(cygpath -w "$ROOT")"
           PCM_WIN="$(cygpath -w "$PCM")"
@@ -216,6 +223,7 @@ jobs:
               "& '$PACKAGE_WIN\\run-uniracers.cmd' --script '$SCRIPT_WIN'; exit \$LASTEXITCODE" \
               >"$LOG" 2>&1
           test -s "$DUMPS/race-entered.wram.bin"
+          grep -Eq '^[[:space:]]*AudioFreq[[:space:]]*=[[:space:]]*48000' "$ROOT/config.ini"
           test -s "$PCM"
           test -s "$STATS"
           python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \

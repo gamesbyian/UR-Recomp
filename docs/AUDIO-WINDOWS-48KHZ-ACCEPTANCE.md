@@ -34,3 +34,28 @@ The 48 kHz gate runs in the *existing* packaged-Windows specialist audio
 workflow after its original 44.1 kHz three-phase checkpoint gate; no
 separate game recompilation or new automatic Actions workflow is needed.
 Run-time sample-rate decisions remain the existing SDL3/framework authority.
+
+## First real Windows result and config-authority correction
+
+Automatic main-branch specialist Windows acceptance
+[37768857787](https://github.com/gamesbyian/UR-Recomp/actions/runs/37768857787)
+**failed at the expected negotiated-rate gate**. The original three 44.1 kHz
+menu/Now Playing/race captures passed, then the first 48 kHz probe reached
+the original game's race checkpoint and produced non-silent, queue-stable
+stereo PCM. But SDL's own negotiated device announcement still said **44,100
+Hz**, despite setting the `SDL_AUDIO_FREQUENCY=48000` environment variable.
+The new gate correctly rejected this: passing PCM continuity at the wrong
+rate would be a false claim about 48 kHz support.
+
+The pinned SNESRecomp desktop host sets `want.freq = g_config.audio_freq`
+and calls `SDL_OpenAudioDeviceStream` with that specification. The framework's
+own `[Sound] AudioFreq` configuration is therefore the supported source of
+its audio request. The corrected workflow creates a **fresh disposable
+framework user root**, seeds its `config.ini` with `[Sound] AudioFreq = 48000`,
+and still requests an SDL disk device at 48 kHz. The existing actual-device
+format parser and 48,000-frame stereo tail gate independently reject any
+unexpected fallback; the original 44.1 kHz player-default remains unchanged.
+No changes to production sound, host timing, package or Modern Options.
+
+This correction requires a new *real* packaged Windows acceptance result
+before 48 kHz output can be marked proven.

@@ -96,6 +96,34 @@ int main(int argc, char** argv) {
     assert(!stage_completed_run_replay_input_file(
         (path.string() + ".invalid"), invalid, &detail));
 
+    // A browser selection remains a snapshot, never persistent authority.
+    // Revalidate the on-disk record before staging it into the next race.
+    const auto saved_path = path.string() + ".urrun";
+    const RunPlaybackTarget target{
+        run.provenance.game_id, run.provenance.rom_sha256,
+        run.provenance.build_compat_id, run.provenance.course_id,
+        run.provenance.mode,
+    };
+    assert(save_completed_run_record_file(saved_path, run, &detail));
+    const auto reloaded = reload_matching_completed_run_replay_record(
+        saved_path, run, target);
+    assert(reloaded);
+    assert(encode_completed_run_input_file(*reloaded) ==
+           encode_completed_run_input_file(run));
+
+    auto modified = run;
+    ++modified.elapsed_ticks60;
+    assert(save_completed_run_record_file(saved_path, modified, &detail));
+    assert(!reload_matching_completed_run_replay_record(
+        saved_path, run, target));
+    auto wrong_course = target;
+    wrong_course.course_id = "course:02";
+    assert(!reload_matching_completed_run_replay_record(
+        saved_path, modified, wrong_course));
+    assert(std::filesystem::remove(saved_path));
+    assert(!reload_matching_completed_run_replay_record(
+        saved_path, run, target));
+
     CompletedRunReplayFlow flow;
     assert(flow.begin());
     assert(!flow.begin());

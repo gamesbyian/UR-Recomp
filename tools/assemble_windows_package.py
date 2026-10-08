@@ -360,7 +360,7 @@ def readme_text(source_revision: str) -> str:
         "share this policy.\n"
         "\n"
         "On a normal Windows desktop the game opens its own window. "
-        "If video initialization fails, consult the displayed UR-STARTUP-VIDEO "
+        "If video initialization fails, consult the displayed video startup "
         "diagnosis and the startup log described below.\n"
         "\n"
         "If startup fails, the launcher prints one stable UR-STARTUP-* code "

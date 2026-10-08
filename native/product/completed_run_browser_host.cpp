@@ -601,6 +601,26 @@ void return_to_browser(
     }
 }
 
+void cancel_active_replay_to_browser() {
+    if (!g_replay_flow.active()) return;
+    g_replay_flow.cancel();
+    (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+
+    // Synchronize the Modern surface without executing an additional guest
+    // frame, then use the established pause gate before reopening Local Runs.
+    ur_uniracers_modern_after_run_frame(nullptr);
+    if (!snesrecomp_desktop_is_paused()) {
+        (void)ur_uniracers_modern_system_key_down(SDLK_ESCAPE, 0, 0);
+    }
+    const bool opened =
+        snesrecomp_desktop_is_paused() && refresh_browser();
+    g_records_browser_visible = false;
+    g_browser_visible = opened;
+    diagnostic(opened
+        ? "UR_RUN_BROWSER REPLAY_CANCELLED_TO_BROWSER"
+        : "UR_RUN_BROWSER REPLAY_CANCELLED");
+}
+
 void adjust_records_root_section(int delta) {
     if (delta == 0) return;
     if (delta > 0) {
@@ -1676,6 +1696,7 @@ extern "C" int ur_uniracers_product_system_key_down(
     }
 
     if (g_replay_flow.active()) {
+        if (key == SDLK_ESCAPE && !repeat) cancel_active_replay_to_browser();
         return 1;
     }
 
@@ -1760,7 +1781,8 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
     }
 
     if (g_replay_flow.active()) {
-        return 1;
+        // Allow GamepadMap to resolve semantic B without guest input.
+        return -1;
     }
 
     if (g_records_browser_visible) {
@@ -1848,11 +1870,11 @@ extern "C" int ur_uniracers_product_system_gamepad_control(
     // Run/Records surfaces retain their existing raw-button ownership above
     // the framework mapping. When they are not active, forward mapped SNES
     // controls to the Modern host so Controls can honor GamepadMap rebinding.
-    if (g_replay_flow.active() ||
-        g_records_browser_visible ||
-        g_browser_visible) {
+    if (g_replay_flow.active()) {
+        if (pressed && control == 7) cancel_active_replay_to_browser();
         return 1;
     }
+    if (g_records_browser_visible || g_browser_visible) return 1;
     return ur_uniracers_modern_system_gamepad_control(control, pressed);
 }
 
@@ -1863,6 +1885,10 @@ extern "C" void ur_uniracers_product_system_overlay(
     int height) {
     if (!g_replay_flow.active()) {
         ur_uniracers_modern_system_overlay(dst, pitch, width, height);
+    } else if (dst && pitch >= 4 && width > 0 && height > 0) {
+        auto* pixels = reinterpret_cast<uint32_t*>(dst);
+        snes_ovl_draw_text(pixels, static_cast<int>(pitch / 4u), height,
+            8, height - 13, "ESC / B  CANCEL REPLAY", 0xFFFFFFFFu, 1);
     }
     draw_records_browser(dst, pitch, width, height);
     draw_browser(dst, pitch, width, height);

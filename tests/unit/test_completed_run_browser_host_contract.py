@@ -87,6 +87,21 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
             retry.index("g_run_capture.abort_attempt();"),
         )
 
+    def test_replay_cancel_uses_semantic_input(self):
+        source = (ROOT / "native" / "product" /
+                  "completed_run_browser_host.cpp").read_text(encoding="utf-8")
+        for token in ("void cancel_active_replay_to_browser()",
+                      "g_replay_flow.cancel();",
+                      "snesrecomp_desktop_load_relative_input_file(nullptr)",
+                      "ur_uniracers_modern_after_run_frame(nullptr)",
+                      "key == SDLK_ESCAPE && !repeat",
+                      "pressed && control == 7",
+                      "ESC / B  CANCEL REPLAY"):
+            self.assertIn(token, source)
+        self.assertIn("return -1;", source.split(
+            "int ur_uniracers_product_system_gamepad_button(", 1)[1].split(
+            "int ur_uniracers_product_system_gamepad_control(", 1)[0])
+
     def test_multiplayer_summary_aggregates_only_listed_pairs(self):
         source = (
             ROOT / "native" / "product" / "completed_run_browser_host.cpp"

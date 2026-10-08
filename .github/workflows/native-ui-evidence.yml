@@ -298,7 +298,22 @@ jobs:
               run_route ui-league-table ui-league-table.script ui-league-dumps 90
               ;;
             records)
-              run_route ui-records-explore ui-records-explore.script ui-records-explore-dumps 180
+              # Paired pristine-root paced/unpaced six-reset proof matched all
+              # 132 full dump files at byte level (about 73 s vs 20 s).
+              # Bind the required shipping capture to its verified root.
+              (
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-records-unpaced-user-data"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                run_route ui-records-explore ui-records-explore.script ui-records-explore-dumps 180 required || exit $?
+                grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                  "$RUNNER_TEMP/ui-records-explore.log" || {
+                  echo "::error::Records route did not use its proven pristine root"
+                  exit 1
+                }
+                echo "UR_RECORDS_ISOLATED_CONFIG_ROOT PASS"
+              ) || exit $?
               run_route ui-main-branches ui-main-branches.script ui-branch-dumps 150
               ;;
             profiles)
@@ -318,10 +333,10 @@ jobs:
           fi
 
       - name: Modern settings persistence acceptance
-        # Independent host-state evidence runs from its own STATE/dump root.
-        # Moving this step to Results-A only after byte-proven Circuit
-        # acceleration balances the six native capture shards.
-        if: matrix.shard == 'results-a'
+        # Independent host-state evidence owns its STATE/dump root, separate
+        # from the pristine unpaced Records script's isolated user data.
+        # Records has headroom after the byte-proven six-reset acceleration.
+        if: matrix.shard == 'records'
         shell: bash
         run: |
           set -euo pipefail

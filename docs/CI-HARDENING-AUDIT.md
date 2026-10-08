@@ -310,6 +310,41 @@ standalone Native UI build without changing its `-j2` limit. Both are
 research first; their PR-head workflow outcomes must be reconciled onto
 latest main before claiming product-ready speedups.
 
+### Byte-exact six-reset Records acceleration and new shard headroom
+
+The earlier six-shard CI baseline (run 37834711287) had the longest
+capture job in Records (~133 s), of which the `ui-records-explore`
+reset-separated route consumed ~75 seconds. The temporary diagnostic
+[run 37835600915](https://github.com/gamesbyian/UR-Recomp/actions/runs/37835600915)
+replayed the **identical** six-reset script from two separately pristine
+user-data/config roots, using `DisableFrameDelay=0` and
+`DisableFrameDelay=1`. Both reached the same 12 WRAM checkpoints,
+exited zero and yielded **132 of 132 byte-identical evidence files**
+(including the full PPU/WRAM/SRAM/framebuffer snapshots). The complete
+relative-name plus file-SHA manifest fingerprint for both controls was:
+
+`32f607f6a42176fcc767e04c52462dde1acd9c76b3f29a34c041bd5bf2cd1e84`
+
+The existing shared-root paced baseline also matched the pristine
+paced capture exactly (`baseline_drift=0` files). The measured
+controlled route durations were **73 s paced** and **20 s unpaced**.
+All six native capture shards and aggregate passed on the research
+branch, but that temporary triple-run experiment must not be merged.
+
+The required shipping `ui-records-explore` now starts with an isolated
+initialized user-data root, configures unpaced frame scheduling, and
+**fails closed** unless it finishes the unchanged route successfully and
+its native log confirms the intended config root. All original dump
+names and the aggregate reset-separated WRAM gate remain in force.
+The independent Modern settings persistence acceptance moves from
+Results-A into the newly shortened Records shard, leaving its own
+state file, host output logs, pause/Options journey, and all original
+assertions unchanged. The Render Scale producer/consumer remain paired
+in Core. The production PR still requires a full native six-shard+
+aggregate run before merge. Estimated wall-clock gains are limited
+by Profiles/Navigation (roughly 120 s), and are not equivalent to the
+53-second per-route saving.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

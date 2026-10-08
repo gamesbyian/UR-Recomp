@@ -90,10 +90,12 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         mapped = source.split("int ur_uniracers_product_system_gamepad_control(", 1)[1].split(
             "void ur_uniracers_product_system_overlay(", 1)[0]
         self.assertIn("key == SDLK_ESCAPE && !repeat", keyboard)
-        self.assertIn("pressed && button == kGamepadBtn_B", raw)
+        self.assertIn("return -1;", raw)
+        self.assertIn("GamepadMap semantic callback", raw)
+        self.assertNotIn("cancel_active_replay_to_browser();", raw)
         self.assertIn("pressed && control == 7", mapped)
         self.assertIn('"ESC / B  CANCEL REPLAY"', source)
-        for event_path in (keyboard, raw, mapped):
+        for event_path in (keyboard, mapped):
             self.assertIn("cancel_active_replay_to_browser();", event_path)
 
     def test_multiplayer_summary_aggregates_only_listed_pairs(self):

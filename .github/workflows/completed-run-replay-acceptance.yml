@@ -182,6 +182,26 @@ jobs:
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/original-ghost-trace.log"
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/replayed-ghost-trace.log"
 
+          # Bound checksums prove trace integrity, not deterministic replay.
+          # Assert original vs fresh-process P1 world/pitch trajectory parity.
+          # Report separately any cosmetic P1 pose / P2-context differences:
+          # replay input alone does not guarantee stock presentation RNG.
+          # A single transitional terminal lifecycle sample may differ.
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            -I "$GITHUB_WORKSPACE/tests/native" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost.cpp" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_ghost_trace.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_ghost_trace_compare.cpp" \
+            -o "$RUNNER_TEMP/compare-ghost-traces"
+          "$RUNNER_TEMP/compare-ghost-traces" \
+            "$ORIGINAL" "$ORIGINAL.urghost" \
+            "$REPLAYED" "$REPLAYED.urghost" \
+            | tee "$RUNNER_TEMP/ghost-world-equivalence.log"
+          grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/ghost-world-equivalence.log"
+
       - name: Launch stored run through Local Runs browser
         shell: bash
         run: |
@@ -442,5 +462,6 @@ jobs:
             ${{ runner.temp }}/compare.log
             ${{ runner.temp }}/original-ghost-trace.log
             ${{ runner.temp }}/replayed-ghost-trace.log
+            ${{ runner.temp }}/ghost-world-equivalence.log
           if-no-files-found: warn
           retention-days: 7

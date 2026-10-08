@@ -21,3 +21,11 @@ The host surface is exclusive during display and consumes keyboard/semantic-cont
 - Controller entry uses the live GamepadMap's semantic P1 L control rather than a hard-coded physical controller map; its source contract and user documentation accompany this slice.
 
 This is a read-only frontend completion slice. It must not be conflated with speculative direct challenge-tier selection, Hunter discovery, Records aggregation, or pause presentation.
+
+## First stock-derived visual treatment
+
+The player-facing Tour Progress panel now inherits the measured source menu's visual hierarchy. It uses the stock BG2 title-yellow role (#F8F800) at 16-pixel logical pitch where space allows, the documented grey data role (#989898), a dark offset under the heading, and a subdued section divider. Earned-medal rows use the title-yellow highlight, while unavailable and not-yet-started rows remain grey. The underlying raster glyphs and static frame remain provisional host artwork; the final original-derived font, movement and background treatment still require native screenshot/art-direction review.
+
+At the ordinary 256px 4:3 logical width the modal stays 240px wide, retaining its original eight-row footprint and 1x–4x presentation density. Modern widened views can allocate up to 324 logical pixels for name and medal columns. The row formatter aligns medal labels to the right edge and shortens tour names before medal status rather than clipping or overwriting adjacent UI. Locked slots are formatted without consuming their hidden catalog names or medal tiers, preserving the existing Hunter and unlock policy. The strict C++ style test covers narrow/4:3/wide layouts, palette tokens, the eight-row vertical fit, earned/not-started status alignment, and suppression of locked names.
+
+This is a presentation-only change. Tour eligibility, medal counts, stock SRAM, source profile identity, keyboard/controller entry, and Authentic mode remain under their existing authorities.

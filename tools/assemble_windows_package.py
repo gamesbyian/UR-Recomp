@@ -184,6 +184,35 @@ def validate_required_package_paths(
         )
 
 
+def preflight_package_source_budget(
+    build_dir: Path, rom: Path, mods: Path
+) -> None:
+    """Reject oversized source trees before copying them into package output.
+
+    This gate includes legacy mutable mod-selection files because copytree
+    would otherwise copy them before removing them from the release folder.
+    It also rejects mod symlinks that could pull files from outside the
+    staged immutable mod catalog.
+    """
+    sources = [build_dir / EXE_NAME, rom]
+    for path in mods.rglob("*"):
+        if path.is_symlink():
+            raise ValueError(f"package source mods contain a symlink: {path}")
+        if path.is_file():
+            sources.append(path)
+    if len(sources) > MAX_PACKAGE_ENTRIES:
+        raise ValueError("package source has too many payload files")
+    total = 0
+    for path in sources:
+        size = path.stat().st_size
+        total += size
+        if (
+            size > MAX_PACKAGE_FILE_BYTES
+            or total > MAX_PACKAGE_TOTAL_BYTES
+        ):
+            raise ValueError("package source exceeds shipping size limits")
+
+
 def write_launcher(path: Path, source_revision: str) -> None:
     path.write_text(
         "@echo off\r\n"
@@ -392,6 +421,9 @@ def assemble(
         raise ValueError(f"required package input missing: {mods}")
     if not any(path.is_file() for path in mods.rglob("*")):
         raise ValueError(f"required package input empty: {mods}")
+    # Reject resource exhaustion and symlink escapes before deleting an
+    # existing output folder or allocating disk space for copied input.
+    preflight_package_source_budget(build_dir, rom, mods)
 
     if output.exists():
         if not output.is_dir():

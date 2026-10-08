@@ -61,7 +61,7 @@ jobs:
 
   build:
     needs: classify
-    if: needs.classify.outputs.shared == 'true' || needs.classify.outputs.ui == 'true'
+    if: needs.classify.outputs.shared == 'true' || needs.classify.outputs.onboarding == 'true' || needs.classify.outputs.ui == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -165,6 +165,13 @@ jobs:
     needs: [classify, build]
     if: needs.classify.outputs.shared == 'true'
     uses: ./.github/workflows/modern-shared-native-acceptance.yml
+    with:
+      canonical_candidate: true
+
+  onboarding:
+    needs: [classify, build]
+    if: needs.classify.outputs.onboarding == 'true'
+    uses: ./.github/workflows/modern-onboarding-practice-acceptance.yml
     with:
       canonical_candidate: true
 

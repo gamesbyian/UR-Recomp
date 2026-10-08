@@ -158,6 +158,35 @@ claim the Stunt result screen has been recovered; it makes the existing
 automatic evidence precise and prevents recurring time spent on a currently
 unfulfilled exploration. The prefix-equivalence unit test prevents drift.
 
+### Automatic UI capture is bounded by evidenced states
+
+Recent green Native UI runs still ran two exploratory scripts past their
+actual achieved evidence. The historical ending shortcut captures splash
+`009F=84` but stalls trying to reach `009F=5B` (roughly 39–67 s).
+The Circuit result probe captures track entry and all sixty driving
+checkpoints but stalls trying to reach `009F=BC` (roughly 91 s total).
+The failed state transitions were never demonstrated product acceptance.
+
+Automatic Native UI now uses exact command prefixes of those fixtures:
+`ui-splash-capture.script` exits immediately after the successful splash
+dump, while `ui-circuit-drive-capture.script` exits after the existing
+Circuit terminal driving dump. The automatic gates **require** successful
+exit and the same evidence dumps, making loss of those proven captures
+a real regression. Historical `ui-ending-shortcut.script` and
+`ui-circuit-result-route.script` stay untouched as manual research
+experiments; the classifier no longer runs automatic heavyweight builds
+when only those manual probes change. The prefix contracts are unit-tested.
+
+To rebalance these now-shorter shards without increasing six-job matrix
+concurrency, `ui-main-branches` moves from core to profiles using its
+unchanged script and independent `ui-branch-dumps` root. The atlas,
+transition comparisons and aggregate reset-separated-capture checks
+continue to see the same immutable artifact roots.
+
+The original ending shortcut and Circuit-result hypotheses remain open.
+Observed wall-clock benefit must be reported only after green native runs;
+historical timings are *not* a prediction of stable future performance.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

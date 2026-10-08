@@ -2693,3 +2693,32 @@ Native smoke gates all of this.
 - WORK-QUEUE expert-edge (a) is closed; the odd/even acting-sample phase is a constraint on item (e), roll/flip boundaries.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
 - No `docs/SYMBOLS.md` change.
+
+### R-2026-10-08-PHYS-04 — Landing reward boundary for an in-air rotation is the third roll-progress step, input-only and native-identical
+
+**Status:** confirmed (one rotation family; WORK-QUEUE expert-edge (e) partially covered)  
+**Date:** 2026-10-08  
+**Area:** physics / stunts
+
+**Decision / discriminator / stop:** WORK-QUEUE expert-edge item (e), "roll/flip/twist recognition boundaries where exact inputs matter".
+- **Discriminator:** fresh boot (recovered real SRAM) to Jumpover, hold Right, B for 40 frames from the first crest (race +264), and R shoulder for N frames from race +272. No WRAM writes. Per-frame P1 pitch, roll progress `7E:1201`, air time, boost meter and message-queue write index on snesref and native.
+- **Stop:** an unrewarded and a rewarded hold are adjacent and native agrees exactly.
+
+**Observation:**
+- The R shoulder rotates P1 by 2 pitch units per frame in the air. `7E:1201` steps every eighth frame of rotation (pitch 11 → 21 → 37 → 51).
+- Holding 22 or 23 frames peaks at roll progress 2. P1 lands at pitch 47, nothing is queued, and the meter stays 0.
+- Holding 24 or 25 frames reaches roll progress 3. Landing queues a reward message, and the meter jumps to 128 on the landing frame. It then depletes normally (PHYS-03).
+- `7E:11F9` (rolls) stays 0 in all four cases, so a three-quarter rotation that lands is rewarded without counting as a roll.
+- Native and snesref are identical on every frame of all four cases.
+
+**Evidence:** `analysis/generated/stunt-boundary-probe.json` from `tools/probe_stunt_boundary.py` (manual harness), `tests/unit/test_probe_stunt_boundary.py`.
+
+**Interpretation:** the reward hinges on the rotation's progress step at landing, not on a completed roll count. With the 2-frame input cadence, the decisive input is a single extra frame of shoulder (23 → 24).
+
+**Discriminating test:** rerun the probe after any change to stunt, physics or input-path code. All holds must keep `first_divergence_frame: null`, and the boundary must stay at 23 / 24.
+
+**Dependencies:** same reference core and menu route as R-2026-10-08-PHYS-02.
+
+**Propagation:**
+- WORK-QUEUE expert-edge (e) now has its first native-identical boundary.
+- Flips (`11FD` / `1205`), twists (`0F61`), Z-flips (`042B`) and the praise/score path remain unmeasured.

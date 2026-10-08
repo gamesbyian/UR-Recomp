@@ -78,10 +78,13 @@ env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE 
     UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=reopen \
     UR_PRODUCT_DIAGNOSTICS=1 \
     SNESRECOMP_INPUT_FILE="$REPO/tests/input/two-player-joined-records-acceptance.input" \
-  timeout 90s xvfb-run -a "$EXE" "$ROM" \
+  timeout 240s xvfb-run -a "$EXE" "$ROM" \
     --script "$REPO/tests/input/two-player-records-acceptance.script" \
     >"$REOPEN_LOG" 2>&1
+REOPEN_RC=$?
 set -e
+# The reopen route quits itself once History is proven.
+test "$REOPEN_RC" -eq 0
 grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORED" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"

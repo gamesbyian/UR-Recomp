@@ -59,6 +59,12 @@ class LocalTournamentPanelHostContract(unittest.TestCase):
         self.assertIn("minted", SCRIPT)
         self.assertIn("run_modern_local_tournament_panel_acceptance.sh", WORKFLOW)
         self.assertIn("run_modern_local_tournament_legs_acceptance.sh", WORKFLOW)
+        windows = (ROOT / ".github/workflows/windows-local-tournament-package-acceptance.yml").read_text()
+        self.assertIn("workflow_dispatch", windows)
+        self.assertNotIn("push:", windows)
+        self.assertIn("name: ur-recomp-windows-x64-portable", windows)
+        self.assertIn("verify-archive-checksum", windows)
+        self.assertIn("run_windows_local_tournament_package_acceptance.sh", windows)
 
     def test_results_screen_admits_the_seated_pair_after_capture(self):
         context = function_body("local_tournament_panel_context_valid")

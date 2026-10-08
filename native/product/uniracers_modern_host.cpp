@@ -4449,7 +4449,11 @@ void run_local_tournament_panel_acceptance() {
             g_local_tournament_panel_visible ? 1 : 0);
         std::fflush(stderr);
     }
-    if (legs && step == 4) (void)request_desktop_quit();
+    // Both proof routes end here; quit instead of relying on an external
+    // timeout (on Windows that can orphan the packaged game process).
+    if ((legs && step == 4) || (reopen && step == 2)) {
+        (void)request_desktop_quit();
+    }
 }
 
 void reset_multiplayer_run_capture() {

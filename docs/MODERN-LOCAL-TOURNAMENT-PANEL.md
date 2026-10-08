@@ -36,9 +36,11 @@ Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off t
 - `tests/unit/test_local_tournament_panel_host_contract.py`: input ownership, 0x3D + confirmed-pair context, minted IDs only, no replacement of an unfinished event, acceptance uses the production key handler.
 - `tests/native/run_modern_local_tournament_panel_acceptance.sh` (manual `multiplayer-match-capture-acceptance.yml` step): two framework pads join and confirm real profiles → `F4` → `START` creates a minted event → Enter arms fixture 0 (`course:01`) → genuine stock 2P race → `CAPTURE_TAGGED` → `FIXTURE_COMMITTED` → a fresh-process checker restores the minted instance and 3/0 standings → a **relaunched** game process rejoins the same pair, opens the panel on the restored complete event's Standings and reaches History with one completed event (`completed=1 unavailable=0`). Passed locally on 2026-10-08 against a Linux desktop build of the current host (minted instance `af699f78…`).
 
+- **Windows package:** manual `windows-local-tournament-package-acceptance.yml` (input: a successful `windows-native-smoke` run ID) downloads that run's exact portable ZIP, verifies its SHA-256, extracts it with Windows' own archive reader and runs `tests/native/run_windows_local_tournament_package_acceptance.sh` through `run-uniracers.cmd` with an isolated per-user data root: join → panel → minted event → genuine stock 2P race → receipt → `CHAMPION` notice → a relaunched packaged process restores Standings and History. No rebuild, so it tests the artifact players download.
+
 ## Remaining gaps
 
-1. Run the panel acceptance on the Windows x64 package, not only the Linux desktop build.
+1. Windows package: the gate above exists; record its first green run ID here once executed.
 2. Native multi-session continuation of a 3+ entrant event: rotate seated pairs across fixtures and finish the event over several processes. The two-entrant relaunch path (restore → Standings → History) is proven.
 3. Completed-event history is a summary list only (no per-event standings drill-down) and is not yet mirrored in Records → Multiplayer/Tournament.
 4. Multi-leg continuation is native-proven up to arming leg 2 from the results screen (`run_modern_local_tournament_legs_acceptance.sh`); racing leg 2 to a complete best-of-three is not yet automated.

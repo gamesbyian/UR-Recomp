@@ -89,6 +89,19 @@ def patch_main_text(source: str) -> str:
                 1,
             )
 
+    # All generated builds must bind the P2 final human-word filter too.
+    # Upgrade old generated project hosts without duplicating this field.
+    second_player_anchor = (
+        "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
+    )
+    if (second_player_anchor in source and "filter_second_player_input" not in source:
+        source = source.replace(
+            second_player_anchor,
+            second_player_anchor
+            + "    .filter_second_player_input = &ur_uniracers_modern_filter_second_player_input,\n",
+            1,
+        )
+
     if "ur_uniracers_modern_presentation_scale" in source:
         return source
 
@@ -158,6 +171,7 @@ def patch_main_text(source: str) -> str:
         + "    .system_gamepad_button = &ur_uniracers_product_system_gamepad_button,\n"
         + "    .system_gamepad_control = &ur_uniracers_product_system_gamepad_control,\n"
         + "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
+        + "    .filter_second_player_input = &ur_uniracers_modern_filter_second_player_input,\n"
         + "    .system_gamepad_source_button = &ur_uniracers_modern_system_gamepad_source_button,\n"
         + "    .system_gamepad_source_connection = &ur_uniracers_modern_system_gamepad_source_connection,\n"
         + "    .system_overlay         = &ur_uniracers_product_system_overlay,\n"

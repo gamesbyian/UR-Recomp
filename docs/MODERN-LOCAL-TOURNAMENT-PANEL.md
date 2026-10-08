@@ -34,6 +34,12 @@ Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off t
 - Arming requires no pending attempt and a fixture that is unplayed **and** belongs to the seated pair (either seat order). The checkpoint is durable before the panel closes. The existing capture owner still checks the guest-observed course at race start, and a wrong course retires only that attempt while ordinary Records still save. Returning to the settled main menu cancels an armed attempt that was never raced.
 - Result authority is unchanged: stock 2P result → `.urrun` + `.urmatch` → fixture receipt → standings.
 
+## P2 human-input held-through-modal follow-up
+
+**Source-derived correction (2026-10-08):** the first P2 source-edge mitigation alone cannot suppress a button already held when the host tournament modal opens. The original framework's guest word combines mapped P2 buttons from the high 12 bits of `human` (`g_pad_buttons`) with the second controller's analog-axis bits (`g_gamepad[1].axis_buttons`). The new seam filters the union and reconstructs P1/P2 without changing meta bits. New pin `snesrecomp-title-p2-input-filter.patch` exposes an opt-in P2-only filter at that exact assembly point, without editing the framework's controller state or masking scripted `INPUT_FILE`/debug words. The Modern host arms a full 12-bit **release guard on panel opening**, even if no guest frames run during the modal; the first resumed frame blocks any still-held P2 bits until they have each been observed released. Other P2 buttons pass as soon as sampled released, while pre-panel release edges still reach framework physical bookkeeping.
+
+The pure guest-word unit tests cover previously held/held-through-close, newly pressed bits, per-bit release/repress, and a modal that freezes every guest frame. Scaffold/patch tests check the actual code seam, manifest pin and binding for fresh and upgraded generated hosts. **J-06/QA-03 remains open:** full real native two-pad guest input and Windows packaged acceptance are still needed for mapped physical pad variance, held buttons and axis-to-button paths. This is not a claim that that acceptance passed.
+
 ## Evidence
 
 - `tests/unit/test_local_tournament_panel_cpp.py` (GCC + Clang, `-Werror -pedantic`): presets, setup navigation/cap/roster order, seated-fixture lookup, seat-swap result orientation, 24-cell row bounds.

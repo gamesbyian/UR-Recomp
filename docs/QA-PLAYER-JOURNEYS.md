@@ -21,6 +21,10 @@ Run the exact release candidate portable ZIP with recorded SHA-256 and source re
 | J-09 | All playable courses and supported event types: launch, contact, checkpoint/lap/finish, results; repeat edge approach with ROM-authoritative reference. | Course by course results table and semantic-event parity, not extrapolated from Dragster or CRC success. |
 | J-10 | Same candidate ZIP on dissimilar real Windows systems, varied GPU/audio/pads/60-144 Hz and multi-monitor. | Launch, rendering, controls, device replug, readable UI and audible correct gameplay with no development dependencies. |
 
+### Additional J-06 oracle (P2 held-word boundary)
+
+Record guest `controller_word` for the last active frame before opening tournament panel and first N frames after closing. Hold P2 A/Start/D-pad **before** F4, continue holding for 5+ resumed frames, then release each independently and repress. During panel, guest frame count must not advance for human sessions. On the first resumed guest frame P2 gameplay bits must be clear even if the physical button remains held, and stay clear until its release; subsequent independent button presses must work. Also press P2 *only while* modal is visible and release after close; no phantom input may reach the guest. Compare against Authentic unchanged and scripted/input-file 2P deterministic route unchanged. The C++ pure latch and framework hook tests are prerequisites, **not** substitutes for this route.
+
 ## P1 integrated journeys
 
 | ID | Combined path | Oracle |

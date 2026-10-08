@@ -64,6 +64,8 @@ void ur_uniracers_modern_set_frontend_records_open(int open);
 int ur_uniracers_modern_settled_main_menu(void);
 int ur_uniracers_modern_system_gamepad_control(int control, int pressed);
 uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs);
+/* Final mapped P2 HUMAN word (unshifted). Distinct from input-file/debug masks. */
+uint32_t ur_uniracers_modern_filter_second_player_input(uint32_t inputs);
 void ur_uniracers_modern_system_overlay(
     uint8_t* dst,
     size_t pitch,

@@ -4,6 +4,10 @@ Respect real dependencies, but maximize parallel work across independent leaves.
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The former reverse-engineering critical path through stock fidelity, course/rendering semantics and first shipping Widescreen is substantially closed. The active shipping path is now the **Windows x64 consumer product**: finish the Modern profile/progression experience, fast practice/navigation, run/records/timing presentation, controller/accessibility polish, broad Remastered coverage, and packaging/release acceptance while preserving the closed Authentic regression path. Prefer tasks that remove a player-visible blocker or unlock several of those product slices at once. Historical/acquisition/tooling work is supporting unless it directly blocks that path.
 
+## Post-baseline candidate: modern racer cosmetics (not an active shipping blocker)
+
+Optional host-only per-racer hats, scarves, wheel effects, auras and trails are specified in `MODERN-RACER-COSMETICS.md`, including the automatic jauntily tilted golden crown for accepted racer names containing `halamantariel`, `dessyreqt` or `nitrodon` (case-insensitive). Foundation work is pure name-policy fixtures and measured semantic pose anchors; actual rendering follows trustworthy Original/Remastered, multiplayer priority and widened-view gates. Preserve Authentic, guest determinism and existing frontend/racer ownership. **Do not promote this into the current Windows x64 critical shipping path** or modify current profile serialization speculatively.
+
 ## Agent-ready Windows x64 lanes
 
 The active roadmap should expose several runnable leaves at once. Unless an active branch already owns the same write surface, these are valid **parallel** lanes rather than a serial checklist:

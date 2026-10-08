@@ -88,6 +88,8 @@ Plan for a modern racer/profile model in which:
 
 The exact customization surface should wait for Phase E asset/animation understanding so cosmetic freedom does not accidentally invalidate sprite-state fidelity.
 
+**Post-baseline racer cosmetics:** Plan an optional host-only appearance system for hats, scarves, wheel accents, auras and wakes/trails. It must use recovered semantic racer poses and render anchors rather than modifying guest physics, preserve Authentic mode and fail closed when sprite/layering/viewport evidence is insufficient. An honorary tilted golden crown appears automatically when the player's accepted modern racer name contains `halamantariel`, `dessyreqt`, or `nitrodon` (ASCII case-insensitively), derived from the current name rather than saved as an unlock; the ordinary cosmetic headwear choice remains independent. Keep this distinct from the stock forbidden-name / **COOL NAME!** acknowledgement. Full architecture, ordering, persistence, prerequisites and acceptance are specified in `MODERN-RACER-COSMETICS.md`. This is not part of the Windows baseline release gate.
+
 ### Progression and frontend candidates for deliberate simplification
 
 The modern product layer should evaluate, rather than automatically inherit:

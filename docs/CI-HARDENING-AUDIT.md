@@ -204,10 +204,12 @@ candidate and each reusable suite bridges that artifact into its existing
 consumer contract. When only one or two suites are selected, the canonical
 producer is skipped and the selected suites keep their standalone builds in
 parallel. The two-suite #835 pilot proved the reusable-workflow artifact handoff
-but was roughly 40 seconds slower in wall-clock than two parallel producers;
-the three-suite cohort is where sharing also improves the measured critical
-path because standalone Onboarding's producer was the long pole. This keeps the
-runner-minute and dependency-pressure win without serializing narrower PRs.
+but was roughly 40 seconds slower in wall-clock than two parallel producers.
+The full three-suite proof, run 37751358382, passed all 27 jobs in 433 seconds
+versus 518 seconds for the comparable standalone cohort. Producer runner time
+fell from 569 to 214 seconds, a 62.4% reduction, while the slowest producer path
+to consumer fan-out fell from 256 to 194 seconds. This keeps the runner-minute
+and dependency-pressure win without serializing narrower PRs.
 
 Fan-out is deliberately bounded. A two-core runner should normally execute no
 more than two CPU-bound emulator processes at once. Pacing-heavy cases may

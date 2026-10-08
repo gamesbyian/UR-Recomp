@@ -438,11 +438,23 @@ RunRecordLoadResult load_completed_run_record_file(
 std::pair<std::uint16_t, std::uint16_t> run_record_input_at(
     const CompletedRunRecord& record,
     std::uint64_t frame) {
-    for (const auto& input : record.inputs) {
-        if (input.start_frame > frame) break;
-        if (frame < input.end_frame()) return {input.p1_mask, input.p2_mask};
+    // Validated v1 inputs are sorted, non-overlapping half-open spans.
+    // Previous/PB ghost queries need logarithmic lookup even when an
+    // extended race recorded tens of thousands of distinct input changes.
+    const auto& inputs = record.inputs;
+    std::size_t lo = 0;
+    std::size_t hi = inputs.size();
+    while (lo < hi) {
+        const std::size_t mid = lo + (hi - lo) / 2;
+        if (inputs[mid].start_frame <= frame)
+            lo = mid + 1;
+        else
+            hi = mid;
     }
-    return {0, 0};
+    if (lo == 0) return {0, 0};
+    const auto& input = inputs[lo - 1];
+    if (frame >= input.end_frame()) return {0, 0};
+    return {input.p1_mask, input.p2_mask};
 }
 
 }  // namespace ur::product

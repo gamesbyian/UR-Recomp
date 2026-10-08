@@ -44,6 +44,9 @@ extern "C" {
 #include "quick_practice_catalog.hpp"
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
+#include "modern_practice_visual_style.hpp"
+#include "modern_onboarding_visual_style.hpp"
+#include "modern_tour_overview_visual_style.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
 #include "../title/uniracers_tour_progress_overview.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -222,6 +225,10 @@ bool g_tour_continue_acceptance_fired;
 bool g_tour_action_visible;
 ur::product::ModernTourActionMenu g_tour_action_menu;
 ur::product::ModernResultsNavigationMenu g_results_navigation_menu;
+// Row availability settles over the first RESULTS frames (Records can appear
+// before Retry), so keep a selection across refreshes only once the player
+// has actually moved it during this results visit.
+bool g_results_navigation_player_moved = false;
 std::optional<ur::title::TourProgress> g_results_route_progress;
 std::string g_results_route_profile_id;
 ur::product::ModernResultsAction g_results_route_pending =
@@ -269,6 +276,11 @@ std::optional<ur::product::RunDataDeltaPresentation> g_run_timing_last_split;
 bool g_run_timing_supported;
 bool g_run_timing_race_diag_reported;
 bool g_run_timing_results_diag_reported;
+// P1's official finish: the title's line-crossing snapshot written on the
+// frame its laps reach zero. The shared race timer keeps running while other
+// racers are on course, so reading it at RESULTS overstated every finish.
+UrUniracersLineSnapshot g_run_finish_line_previous{};
+std::optional<std::uint64_t> g_run_finish_ticks60;
 UrUniracersRestartPolicyState g_title_policy;
 UrUniracersRestartSurface g_surface = UR_UNIRACERS_RESTART_UNSUPPORTED;
 ur::product::HostWidescreenSceneState g_widescreen_scene_state;
@@ -2711,7 +2723,9 @@ void refresh_results_navigation_menu() {
         ur::product::selected_modern_results_action(g_results_navigation_menu);
     auto next = ur::product::make_modern_results_navigation_menu(
         current_results_navigation_context());
-    for (std::size_t i = 0; i < next.row_count; ++i) {
+    for (std::size_t i = 0;
+         g_results_navigation_player_moved && i < next.row_count;
+         ++i) {
         if (next.rows[i] == previous) {
             next.selected = i;
             break;
@@ -3904,6 +3918,7 @@ bool handle_results_navigation(
         g_results_navigation_menu =
             ur::product::navigate_modern_results_navigation_menu(
                 g_results_navigation_menu, action);
+        g_results_navigation_player_moved = true;
         return true;
     }
     if (!ur_modern_host_navigation_is_confirm(action)) return false;
@@ -4132,6 +4147,9 @@ void resolve_run_ghost_presentation_frame(std::uint64_t race_frame) {
 bool begin_run_record_capture(uint64_t host_frame) {
     g_run_timing_supported = false;
     g_run_timing_last_split.reset();
+    g_run_finish_ticks60.reset();
+    g_run_finish_line_previous =
+        ur_uniracers_read_line_snapshot(g_ram, 0x20000u, 0);
     g_run_timing_race_diag_reported = false;
     g_run_timing_results_diag_reported = false;
     if (!run_record_capture_enabled()) return false;
@@ -4301,6 +4319,44 @@ void emit_haptic_event(ur::product::HapticEvent event) {
     }
 }
 
+// Records P1's finish on the guest frame Race_HandleCheckpointFinish writes
+// P1's line snapshot and leaves its laps at zero. The snapshot keeps whole
+// tenths; the shared timer sampled at the end of that same frame supplies the
+// exact 60 Hz sub-tick. Earlier lap-line writes leave laps above zero.
+void observe_run_finish_line() {
+    if (!g_ram || g_run_finish_ticks60) return;
+    const UrUniracersLineSnapshot snapshot =
+        ur_uniracers_read_line_snapshot(g_ram, 0x20000u, 0);
+    const bool written =
+        !ur_uniracers_line_snapshot_equal(snapshot, g_run_finish_line_previous);
+    g_run_finish_line_previous = snapshot;
+    if (!written || !snapshot.valid ||
+        ur_uniracers_read_laps_remaining(g_ram, 0x20000u, 0) != 0) {
+        return;
+    }
+    const int64_t ticks60 =
+        ur_uniracers_line_snapshot_ticks60(current_run_data(), snapshot);
+    if (ticks60 <= 0) {
+        product_diagnostic("UR_RUN_RECORD FINISH_LINE_INCONSISTENT");
+        return;
+    }
+    g_run_finish_ticks60 = static_cast<std::uint64_t>(ticks60);
+    // The pulse needs the capture still active to prove 1P split ownership.
+    emit_haptic_event(ur::product::HapticEvent::Finish);
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(
+            stderr,
+            "UR_RUN_RECORD FINISH_LINE ticks60=%lld stock=%d:%d%d.%d%d\n",
+            static_cast<long long>(ticks60),
+            snapshot.minutes,
+            snapshot.tens_seconds,
+            snapshot.seconds,
+            snapshot.tenths,
+            snapshot.hundredths);
+        std::fflush(stderr);
+    }
+}
+
 void observe_run_record_split() {
     if (!g_run_capture.capturing()) return;
     const uint16_t checkpoint = read_run_word(0x1199u);
@@ -4436,16 +4492,16 @@ void complete_multiplayer_run_record_capture() {
 void complete_run_record_capture() {
     if (!g_run_capture.capturing()) return;
 
-    const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
-    if (ticks60 < 0) {
-        product_diagnostic("UR_RUN_RECORD FINISH_TIMER_REJECTED");
+    // RESULTS is reached seconds after P1 crosses the line; only the finish
+    // observed on the line-crossing frame is authoritative.
+    if (!g_run_finish_ticks60) {
+        product_diagnostic("UR_RUN_RECORD FINISH_LINE_MISSING");
         g_run_capture.abort_attempt();
         g_run_ghost_trace_capture.abort_attempt();
         return;
     }
+    const int64_t ticks60 = static_cast<int64_t>(*g_run_finish_ticks60);
 
-    // The pulse needs the capture still active to prove 1P split ownership.
-    emit_haptic_event(ur::product::HapticEvent::Finish);
     (void)g_run_capture.observe_split(
         "finish", static_cast<uint64_t>(ticks60));
     const auto record =
@@ -4533,6 +4589,7 @@ void rearm_run_capture_after_retry() {
     g_run_capture.abort_attempt();
     g_run_timing_supported = false;
     g_run_timing_last_split.reset();
+    g_run_finish_ticks60.reset();
     g_run_ghost_trace_capture.abort_attempt();
     g_run_ghosts.clear();
     g_run_ghost_playback_trace.reset();
@@ -5529,7 +5586,15 @@ bool activate_pause_selection() {
     }
     if (selected == UR_MODERN_PAUSE_RESTART) {
         const bool handled = dispatch(UR_MODERN_PAUSE_ACTIVATE);
-        if (handled) rearm_run_capture_after_retry();
+        if (handled) {
+            rearm_run_capture_after_retry();
+            // Restart restores the race-start anchor but leaves the session
+            // paused; resume like Retry and Ctrl+R so the restarted attempt
+            // plays instead of the menu staying over the stale frame.
+            if (paused() && dispatch(UR_MODERN_PAUSE_TOGGLE)) {
+                diagnose_pause_state();
+            }
+        }
         return handled;
     }
     return dispatch(UR_MODERN_PAUSE_ACTIVATE);
@@ -5578,8 +5643,10 @@ void draw_run_timing_hud(
         return;
     }
 
-    const int64_t ticks60 =
-        ur_uniracers_run_data_ticks60(current_run_data());
+    const bool finished = g_run_finish_ticks60.has_value();
+    const int64_t ticks60 = finished
+        ? static_cast<int64_t>(*g_run_finish_ticks60)
+        : ur_uniracers_run_data_ticks60(current_run_data());
     if (ticks60 < 0) return;
 
     const auto* personal_best = g_run_ghosts.record(
@@ -5589,10 +5656,11 @@ void draw_run_timing_hud(
     auto panel = ur::product::present_run_timing_panel(
         static_cast<std::uint64_t>(ticks60),
         personal_best,
-        results ? ur::product::RunTimingPresentationPoint::Finish
-                : ur::product::RunTimingPresentationPoint::Live);
+        results || finished
+            ? ur::product::RunTimingPresentationPoint::Finish
+            : ur::product::RunTimingPresentationPoint::Live);
 
-    if (!results && g_run_timing_last_split) {
+    if (!results && !finished && g_run_timing_last_split) {
         panel.comparison_label = "SPLIT";
         panel.comparison_text = g_run_timing_last_split->delta_text;
         panel.comparison_available = true;
@@ -6114,6 +6182,10 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             &g_title_policy,
             g_ram[0x0313],
             g_ram[0x009F]);
+    if (decision.surface == UR_UNIRACERS_RESTART_RESULTS &&
+        g_surface != UR_UNIRACERS_RESTART_RESULTS) {
+        g_results_navigation_player_moved = false;
+    }
     g_surface = decision.surface;
     observe_recent_course_identity();
     if (g_next_event_verify_track) {
@@ -6414,6 +6486,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     }
     if (run_active && g_run_capture.capturing()) {
         observe_run_record_split();
+        observe_run_finish_line();
     }
     if (g_surface == UR_UNIRACERS_RESTART_RESULTS &&
         g_run_capture.capturing()) {
@@ -7377,10 +7450,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w_logical = logical_width < 340
-            ? logical_width - 16
-            : 324;
-        constexpr int kOnboardingPanelHeight = 206;
+        const auto style =
+            ur::product::modern_onboarding_visual_style(logical_width);
+        const int panel_w_logical = style.panel_width_logical;
+        const int kOnboardingPanelHeight = style.panel_height_logical;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
             panel_w_logical, kOnboardingPanelHeight,
@@ -7448,18 +7521,35 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::fflush(stderr);
         }
 
+        // Retain the settled live action/binding rows but present them through
+        // the game's measured yellow-title/grey-detail/blue-accent grammar.
+        // This is an interim host glyph treatment, not original font art.
         snes_ovl_fill_rect(
             pixels, stride, height,
-            x, y, rect.width, rect.height, 0xE0202020u);
+            x, y, rect.width, rect.height, style.palette.background);
+        snes_ovl_fill_rect(
+            pixels, stride, height,
+            x, y, rect.width, style.header_height_logical * scale,
+            style.palette.header_band);
         snes_ovl_stroke_rect(
             pixels, stride, height,
-            x, y, rect.width, rect.height, 0xFFF0F0F0u);
+            x, y, rect.width, rect.height, style.palette.frame_grey);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 7 * scale,
-            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, scale);
+            pixels, stride, height,
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "HOW TO RIDE", style.palette.shadow_black,
+            style.title_glyph_scale * scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 27 * scale,
-            "       PAD     KEY", 0xFFA0A0A0u, scale);
+            pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "HOW TO RIDE", style.palette.title_yellow,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * scale, y + style.subtitle_y_logical * scale,
+            "ACTION PAD     KEY", style.palette.secondary_grey, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 42 * scale,
             move_row.c_str(), 0xFFFFFFFFu, scale);
@@ -7472,24 +7562,45 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 87 * scale,
             stunt_row.c_str(), 0xFFFFFFFFu, scale);
+        // Color the semantic action column, not the actual bound pad/key
+        // names; no physical controller brand legend is inferred here.
+        constexpr const char* kActions[] = {
+            "MOVE", "JUMP", "BRAKE", "STUNT"
+        };
+        constexpr int kActionRows[] = {42, 57, 72, 87};
+        for (int row = 0; row < 4; ++row) {
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * scale, y + kActionRows[row] * scale,
+                kActions[row], style.palette.cursor_blue, scale);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 107 * scale,
-            "STUNTS END WHEEL-DOWN.", 0xFFFFFFFFu, scale);
+            ur::product::fit_modern_overlay_text(
+                "STUNTS END WHEEL-DOWN.", text_cells).c_str(),
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 122 * scale,
-            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 142 * scale,
-            "F5/PAD X  QUICK PRACTICE", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 157 * scale,
-            "F2/PAD X  RACERS (PICKER)", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 172 * scale,
-            "F7/PAD L PROGRESS F1 HELP", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 187 * scale,
-            "F9 CTRL F10/SELECT OPT", 0xFFFFFFFFu, scale);
+            ur::product::fit_modern_overlay_text(
+                "CLEAN STUNTS ADD SPEED.", text_cells).c_str(),
+            style.palette.title_yellow, scale);
+        // Footer shortcuts remain readable and panel-bounded even under
+        // narrower logical output or rebound device-label configurations.
+        constexpr const char* kShortcuts[] = {
+            "F5/PAD X  QUICK PRACTICE",
+            "F2/PAD X  RACERS (PICKER)",
+            "F7/PAD L PROGRESS F1 HELP",
+            "F9 CTRL F10/SELECT OPT",
+        };
+        constexpr int kShortcutRows[] = {142, 157, 172, 187};
+        for (int row = 0; row < 4; ++row) {
+            const auto bounded = ur::product::fit_modern_overlay_text(
+                kShortcuts[row], text_cells);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * scale, y + kShortcutRows[row] * scale,
+                bounded.c_str(), 0xFFFFFFFFu, scale);
+        }
         return;
     }
 
@@ -7500,7 +7611,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w = logical_width < 268 ? logical_width - 16 : 260;
+        const auto style =
+            ur::product::modern_tour_overview_visual_style(logical_width);
+        const int panel_w = style.panel_width_logical;
         constexpr int kPanelHeight = 207;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
@@ -7509,20 +7622,36 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const auto& rect = layout.presentation_rect;
         const int x = rect.x;
         const int y = rect.y;
+        // Read-only progress keeps stock hierarchy without implying a
+        // selectable tour: yellow title and visible medal rows, grey
+        // supporting counts/locked rows, no fictional blue cursor.
         snes_ovl_fill_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xE0202020u);
+            rect.width, rect.height, style.palette.background);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, style.header_height_logical * scale,
+            style.palette.header_band);
         snes_ovl_stroke_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xFFF0F0F0u);
+            rect.width, rect.height, style.palette.frame_grey);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 8 * scale,
-            "TOUR PROGRESS", 0xFFFFFFFFu, scale);
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "TOUR PROGRESS", style.palette.shadow_black,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "TOUR PROGRESS", style.palette.title_yellow,
+            style.title_glyph_scale * scale);
         char row[80];
         std::snprintf(row, sizeof(row), "BRONZE %u  SILVER %u  GOLD %u",
             g_progress_overview.bronze_or_better,
             g_progress_overview.silver_or_better,
             g_progress_overview.gold);
+        const auto summary_text = ur::product::fit_modern_overlay_text(
+            row, ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 30 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 30 * scale,
+            summary_text.c_str(), style.palette.secondary_grey, scale);
         for (std::uint8_t tour = 0; tour < 8; ++tour) {
             // Catalog index is presentation identity; stock tour option
             // remains the only medal/unlock index. Never name hidden Hunter.
@@ -7532,21 +7661,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
             const auto stock_option = ur::product::kQuickPracticeTourOptions[tour];
             const bool visible = ur::title::stock_tour_progress_visible(
                 g_progress_overview, stock_option);
-            if (visible) {
-                std::snprintf(row, sizeof(row), "%u. %.*s  %s",
-                    static_cast<unsigned>(tour + 1),
-                    static_cast<int>(course->tour_name.size()),
-                    course->tour_name.data(),
-                    ur::title::stock_tour_progress_medal_name(
-                        g_progress_overview, stock_option));
-            } else {
-                std::snprintf(row, sizeof(row), "%u. LOCKED TOUR",
-                    static_cast<unsigned>(tour + 1));
-            }
+            const auto tour_text = ur::product::modern_tour_overview_row(
+                static_cast<unsigned>(tour + 1),
+                visible,
+                visible ? course->tour_name : std::string_view{},
+                visible
+                    ? ur::title::stock_tour_progress_medal_name(
+                          g_progress_overview, stock_option)
+                    : "",
+                ur::product::modern_overlay_text_cells(panel_w));
             snes_ovl_draw_text(pixels, stride, height,
                 x + 8 * scale,
                 y + (51 + static_cast<int>(tour) * 16) * scale,
-                row, visible ? 0xFFFFFFFFu : 0xFFA0A0A0u, scale);
+                tour_text.c_str(),
+                visible && g_progress_overview.medal_tiers[stock_option] > 0
+                    ? style.palette.title_yellow
+                    : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
             "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",
@@ -7572,7 +7702,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w = logical_width < 284 ? logical_width - 16 : 276;
+        const auto style = ur::product::modern_practice_visual_style(logical_width);
+        const int panel_w = style.panel_width_logical;
         constexpr int kPanelHeight = 170;
         const auto layout = centered_modern_modal_layout(
             width, height, scale, panel_w, kPanelHeight, panel_w, kPanelHeight);
@@ -7589,38 +7720,74 @@ extern "C" void ur_uniracers_modern_system_overlay(
             g_practice_picker.picker, g_practice_picker_availability, +1);
         const auto* prev_course = ur::product::quick_practice_picker_course(previous);
         const auto* next_course = ur::product::quick_practice_picker_course(next);
+        // Derive the visual hierarchy from the stock BG2 menu grammar:
+        // dimensional yellow titles, grey data, blue cursor and a restrained
+        // selected-row band. Guest/Authentic rendering remains unchanged.
         snes_ovl_fill_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xE0202020u);
+            rect.width, rect.height, style.panel_fill);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, 26 * scale, 0xC0484848u);
         snes_ovl_stroke_rect(pixels, stride, height, x, y,
-            rect.width, rect.height, 0xFFF0F0F0u);
+            rect.width, rect.height, style.panel_outline);
+        snes_ovl_fill_rect(pixels, stride, height,
+            x + 8 * scale, y + style.selected_row_y_logical * scale,
+            rect.width - 16 * scale,
+            style.selected_row_height_logical * scale,
+            style.selection_band);
         char row[96];
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 8 * scale,
-            "QUICK PRACTICE", 0xFFFFFFFFu, scale);
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "QUICK PRACTICE", style.dark_outline,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "QUICK PRACTICE", style.title_yellow,
+            style.title_glyph_scale * scale);
         std::snprintf(row, sizeof(row), "TOUR %u/8  %.*s",
             static_cast<unsigned>(view.tour_number),
             static_cast<int>(view.tour_name.size()), view.tour_name.data());
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 28 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 28 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         std::snprintf(row, sizeof(row), "  %.*s",
             prev_course ? static_cast<int>(prev_course->name.size()) : 0,
             prev_course ? prev_course->name.data() : "");
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 50 * scale, row, 0xFFA0A0A0u, scale);
-        std::snprintf(row, sizeof(row), "> %.*s",
+            x + 8 * scale, y + 50 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
+        std::snprintf(row, sizeof(row), "%.*s",
             static_cast<int>(view.course_name.size()), view.course_name.data());
+        const auto selected_name = ur::product::fit_modern_overlay_text(
+            row, ur::product::modern_overlay_text_cells(panel_w) - 2u);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 65 * scale, row, 0xFFFFFFFFu, scale);
+            x + 9 * scale, y + 66 * scale, ">", style.dark_outline, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 65 * scale, ">", style.cursor_blue, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 24 * scale, y + 65 * scale,
+            selected_name.c_str(), style.title_yellow, scale);
         std::snprintf(row, sizeof(row), "  %.*s",
             next_course ? static_cast<int>(next_course->name.size()) : 0,
             next_course ? next_course->name.data() : "");
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 80 * scale, row, 0xFFA0A0A0u, scale);
+            x + 8 * scale, y + 80 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         std::snprintf(row, sizeof(row), "TRACK %u/40  %.*s",
             static_cast<unsigned>(view.course_number),
             static_cast<int>(view.kind_label.size()), view.kind_label.data());
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 101 * scale, row, 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 101 * scale,
+            ur::product::fit_modern_overlay_text(
+                row, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            style.secondary_grey, scale);
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 123 * scale,
             "UP/DOWN TRACK  L/R TOUR", 0xFFFFFFFFu, scale);
@@ -7629,9 +7796,15 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const std::string back = "ESC/PAD " +
             live_gamepad_binding_label(7) + " BACK";
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 139 * scale, hint.c_str(), 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 139 * scale,
+            ur::product::fit_modern_overlay_text(
+                hint, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(pixels, stride, height,
-            x + 8 * scale, y + 154 * scale, back.c_str(), 0xFFFFFFFFu, scale);
+            x + 8 * scale, y + 154 * scale,
+            ur::product::fit_modern_overlay_text(
+                back, ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
         if (!g_practice_picker_draw_reported &&
             std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             g_practice_picker_draw_reported = true;

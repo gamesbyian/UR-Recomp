@@ -355,8 +355,28 @@ class CiTriggerPolicyTest(unittest.TestCase):
         match = re.search(r"shard:\s*\[([^\]]+)\]", text)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
-        self.assertLessEqual(len(shards), 5)
+        self.assertEqual(
+            shards,
+            ["core", "navigation", "results-a", "results-b", "records", "profiles"],
+        )
+        self.assertLessEqual(len(shards), 6)
 
+
+    def test_onboarding_core_fanout_is_bounded_and_build_free(self):
+        text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        block = text.split("  core-acceptance:", 1)[1].split(
+            "  independent-acceptance:", 1
+        )[0]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", block)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertEqual(
+            shards,
+            ["onboarding-rematch", "practice", "system"],
+        )
+        self.assertIn("needs: build", block)
+        self.assertNotIn("cmake --build", block)
+        self.assertIn("Seed dismissed onboarding for independent core shards", block)
 
     def test_onboarding_acceptance_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
@@ -369,10 +389,15 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("modern-onboarding-native-candidate", text)
         self.assertIn("  core-acceptance:", text)
         self.assertIn("  independent-acceptance:", text)
-        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        independent = text.split("  independent-acceptance:", 1)[1]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", independent)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
-        self.assertLessEqual(len(shards), 3)
+        self.assertEqual(
+            shards,
+            ["tour-a", "tour-b", "feedback-parity", "feedback-aux", "multiplayer"],
+        )
+        self.assertLessEqual(len(shards), 5)
         consumer = text.split("  core-acceptance:", 1)[1]
         self.assertIn("Install native runtime dependencies", consumer)
         runtime_install = consumer.split(
@@ -384,10 +409,34 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("ninja", runtime_install)
 
 
+    def test_onboarding_feedback_split_preserves_vibration_parity(self):
+        workflow = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        harness = Path("tests/native/run_modern_vibration_acceptance.sh").read_text()
+        independent = workflow.split("  independent-acceptance:", 1)[1]
+        self.assertIn("feedback-parity", independent)
+        self.assertIn("feedback-aux", independent)
+        self.assertIn("run_modern_vibration_acceptance.sh vibration-parity parity", independent)
+        self.assertIn("run_modern_vibration_acceptance.sh vibration-aux aux", independent)
+        self.assertIn("[parity|aux|all]", harness)
+        self.assertIn('MODE="${4:-all}"', harness)
+
     def test_local_multiplayer_contract_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "local-multiplayer-product-contracts.yml").read_text()
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
 
+
+    def test_widescreen_4x3_uses_one_build_with_bounded_route_fanout(self):
+        text = (WORKFLOWS / "widescreen-4x3-regression.yml").read_text()
+        self.assertIn("  build:", text)
+        self.assertIn("  routes:", text)
+        routes = text.split("  routes:", 1)[1].split("  aggregate:", 1)[0]
+        match = re.search(r"route:\s*\[([^\]]+)\]", routes)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertEqual(shards, ["one-player", "vs", "two-player"])
+        self.assertIn("needs: build", routes)
+        self.assertNotIn("cmake --build", routes)
+        self.assertIn("widescreen-4x3-candidates", routes)
 
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()

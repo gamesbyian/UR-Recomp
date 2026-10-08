@@ -1,6 +1,6 @@
 # Uniracers Modern Port Plan
 
-Last updated: 2026-10-07
+Last updated: 2026-10-08 (Windows frontend status)
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.
 
@@ -1181,7 +1181,7 @@ Because implementation is performed by autonomous agents, this is a dependency g
 
 The current product-critical lanes are:
 
-1. **Modern progression continuity.** Complete controlled profile lifecycle integration and host-owned tour/event continuation without changing guest progression semantics or allowing profiles to share cartridge backing state. The settled-main frontend Options entry is staged as a bounded product-completeness slice; it reuses the existing pause Options authority and blocks unsafe routes rather than adding another settings model. The read-only completed-tour overview is the next independent player-facing slice after the Quick Practice picker; it reads stock rider medal/unlock SRAM without changing or bypassing progression, hides secret content, and requires fresh-process frontend acceptance before merge.
+1. **Modern progression continuity.** Complete controlled profile lifecycle integration and host-owned tour/event continuation without changing guest progression semantics or allowing profiles to share cartridge backing state. The Quick Practice picker (#734), read-only stock Tour Progress (#740), settled-main frontend Options (#746) and frontend Controls (#752) are merged and native-acceptance-backed Windows x64 product slices. They use existing stock progression, pause Options and live SNESRecomp binding authority rather than another persistence or route model. The rendered five-destination Modern root is **not** yet integrated: the pure typed root order is settled, but Play/Multiplayer retain stock frontend routing and Records retains pause/results admission. See `docs/MODERN-FRONTEND-SHIPPING-STATUS.md` for exact entry points, acceptance, current modal-lifetime work and remaining host integration.
 2. **Controls and accessibility.** Player-facing persistent P1 keyboard rebinding is now integrated through the existing Modern Controls surface and SNESRecomp authority, and Controls navigation follows SNESRecomp's configured GamepadMap semantic controls rather than hard-coded physical button positions. Controller removal now pauses Modern play with a disconnect/reconnect notice and Controls shows the seated pad identity; continue with host-only accessibility features that do not alter authoritative simulation.
 3. **Run/timing/statistics UX.** Build on the already accepted completed-run, PB/Previous, split/delta and Local Runs substrates. The next work is presentation and navigation, not a replacement data model.
 4. **Fast play loop.** Extend Quick Practice and Restart with repeat/rematch, recent-course and next-event affordances while continuing to route authoritative race setup through the recovered stock menu/initializer contracts.

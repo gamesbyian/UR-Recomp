@@ -124,6 +124,18 @@
       ]
     },
     {
+      "id": "state:7E:0E35",
+      "kind": "ram",
+      "address": "7E:0E35",
+      "name": "Player_LineCrossingTime",
+      "width": "2 slots \u00d7 5 \u00d7 16-bit",
+      "confidence": 5,
+      "notes": "Per-player lap/finish line snapshot written by `Race_HandleCheckpointFinish` (`81:80B6..`): hundredths `0E35,Y` (synthesized: sub-tick mapped 0,2,4,6,6,8 plus `$0300`, capped at 9), minutes `0E39,Y`, tens `0E3D,Y`, seconds `0E41,Y`, tenths `0E45,Y`; `Y` = 2 \u00d7 player. The write that leaves `0EF1,Y` laps at 0 is the official finish the stock results table prints; the shared `0E0F..` timer keeps running afterwards (R-2026-10-08-UI-01). Zeroed at race entry.",
+      "sources": [
+        "analysis/generated/symbols.json"
+      ]
+    },
+    {
       "id": "state:7E:009F",
       "kind": "ram",
       "address": "7E:009F",

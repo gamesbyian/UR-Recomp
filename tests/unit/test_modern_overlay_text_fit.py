@@ -59,7 +59,7 @@ class ModernOverlayTextFitTests(unittest.TestCase):
             ("PRACTICE START>EXIT FRONTEND", 28),
             ("MEDALS/RECORDS/TOUR STATE", 28),
             ("RETURN TO CLEAN STOCK DATA", 28),
-            ("       PAD     KEY", 28),
+            ("ACTION PAD     KEY", 28),
             ("STUNTS END WHEEL-DOWN.", 28),
             ("F5/PAD X  QUICK PRACTICE", 28),
             ("F2/PAD X  RACERS (PICKER)", 28),

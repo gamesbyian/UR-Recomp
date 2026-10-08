@@ -24,6 +24,7 @@ class CompletedRunGhostTraceCppTests(unittest.TestCase):
                     str(ROOT / "native" / "product" / "completed_run_record.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_ghost.cpp"),
                     str(ROOT / "native" / "product" / "completed_run_ghost_trace.cpp"),
+                    str(ROOT / "native" / "product" / "completed_run_store.cpp"),
                     str(ROOT / "tests" / "native" / "completed_run_ghost_trace_test.cpp"),
                     "-o",
                     str(exe),
@@ -35,6 +36,12 @@ class CompletedRunGhostTraceCppTests(unittest.TestCase):
             trace = pathlib.Path(str(run) + ".urghost")
             subprocess.run([str(exe), str(run)], cwd=ROOT, check=True)
             self.assertTrue(trace.is_file())
+            # Fresh executable invocation, no shared process state from writer.
+            subprocess.run(
+                [str(exe), str(run), "--verify-persisted-targets"],
+                cwd=ROOT,
+                check=True,
+            )
 
 
 if __name__ == "__main__":

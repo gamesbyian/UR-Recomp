@@ -1,11 +1,20 @@
 #include "completed_run_store.hpp"
 
 #include <algorithm>
+#include <atomic>
 #include <chrono>
 #include <filesystem>
 #include <iomanip>
 #include <sstream>
+#include <system_error>
 #include <utility>
+
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace ur::product {
 namespace {
@@ -23,6 +32,53 @@ std::string timestamp_prefix() {
 
 void set_detail(std::string* detail, const std::string& value) {
     if (detail) *detail = value;
+}
+
+// A staging directory is reserved with an atomic mkdir, so even different
+// processes cannot write into the same pending file. Its extension is never
+// .urrun and catalog readers cannot mistake it for an admitted run.
+bool reserve_staging_directory(
+    const fs::path& directory, fs::path& staging) {
+    static std::atomic<std::uint64_t> serial{0};
+    for (unsigned attempt = 0; attempt < 64; ++attempt) {
+        const auto tick = std::chrono::steady_clock::now()
+                              .time_since_epoch().count();
+        staging = directory /
+            (".pending-urrun-" + std::to_string(tick) + "-" +
+             std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
+        std::error_code ec;
+        if (fs::create_directory(staging, ec)) return true;
+        if (ec) return false;
+    }
+    return false;
+}
+
+enum class PublishResult { Published, AlreadyExists, Error };
+
+// Publishing must be both atomic and no-replace. std::filesystem::rename
+// replaces an existing destination on POSIX, so it is unsuitable for the
+// immutable numbered .urrun namespace.
+PublishResult publish_without_replacing(
+    const fs::path& staged, const fs::path& final_path) {
+#if defined(_WIN32)
+    // MoveFileW does not replace existing destinations (unlike MoveFileExW
+    // with MOVEFILE_REPLACE_EXISTING). Both paths are on the same volume.
+    if (MoveFileW(staged.c_str(), final_path.c_str()))
+        return PublishResult::Published;
+    const DWORD error = GetLastError();
+    if (error == ERROR_FILE_EXISTS || error == ERROR_ALREADY_EXISTS)
+        return PublishResult::AlreadyExists;
+    return PublishResult::Error;
+#else
+    // Atomic create-if-absent hard link, then unlink the invisible staged
+    // name. A competing writer never overwrites an existing completed run.
+    std::error_code ec;
+    fs::create_hard_link(staged, final_path, ec);
+    if (!ec) return PublishResult::Published;
+    if (ec == std::errc::file_exists)
+        return PublishResult::AlreadyExists;
+    return PublishResult::Error;
+#endif
 }
 
 }  // namespace
@@ -45,28 +101,42 @@ bool append_completed_run_record(
         return false;
     }
 
+    const fs::path directory_path(directory);
+    fs::path staging;
+    if (!reserve_staging_directory(directory_path, staging)) {
+        set_detail(detail, "cannot reserve run-record staging directory");
+        return false;
+    }
+
+    // Close/flush the entire record before making any .urrun name visible.
+    // Abandoned staging directories after a crash are ignored by catalog
+    // discovery. Cleanup is best effort and never removes a published run.
+    const fs::path staged_file = staging / "record.tmp";
+    if (!save_completed_run_record_file(staged_file.string(), record, detail)) {
+        fs::remove_all(staging, ec);
+        return false;
+    }
+
     const std::string prefix = "run-" + timestamp_prefix();
     for (unsigned suffix = 0; suffix < 10000; ++suffix) {
         std::ostringstream name;
         name << prefix << "-" << std::setw(4) << std::setfill('0') << suffix
              << ".urrun";
-        const fs::path path = fs::path(directory) / name.str();
-        if (fs::exists(path, ec)) {
-            if (ec) {
-                set_detail(detail, "cannot inspect run-record path");
-                return false;
-            }
-            continue;
-        }
-
-        if (!save_completed_run_record_file(path.string(), record, detail)) {
+        const fs::path path = directory_path / name.str();
+        const auto result = publish_without_replacing(staged_file, path);
+        if (result == PublishResult::AlreadyExists) continue;
+        if (result == PublishResult::Error) {
+            set_detail(detail, "cannot publish run record");
+            fs::remove_all(staging, ec);
             return false;
         }
+        fs::remove_all(staging, ec);
         if (stored_path) *stored_path = path.string();
         return true;
     }
 
     set_detail(detail, "run-record filename space exhausted");
+    fs::remove_all(staging, ec);
     return false;
 }
 

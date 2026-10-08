@@ -42,10 +42,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  regression:
+  build:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -130,12 +130,66 @@ jobs:
           # Same generated program; only the presentation hook may differ.
           diff -rq "$BASE/recomp" "$PROD/recomp"
 
-      - name: Compare Original-view routes frame by frame
+      - name: Package baseline and product
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "$RUNNER_TEMP/widescreen-4x3-candidates.tar.gz" \
+            -C "$RUNNER_TEMP" baseline product
+          test -s "$RUNNER_TEMP/widescreen-4x3-candidates.tar.gz"
+
+      - name: Upload baseline and product
+        uses: actions/upload-artifact@v4
+        with:
+          name: widescreen-4x3-candidates
+          path: ${{ runner.temp }}/widescreen-4x3-candidates.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  routes:
+    needs: build
+    name: route-${{ matrix.route }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    strategy:
+      fail-fast: false
+      matrix:
+        route: [one-player, vs, two-player]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Download baseline and product
+        uses: actions/download-artifact@v4
+        with:
+          name: widescreen-4x3-candidates
+          path: ${{ runner.temp }}/widescreen-4x3-artifact
+
+      - name: Restore baseline and product
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/widescreen-4x3-artifact/widescreen-4x3-candidates.tar.gz" \
+            -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/baseline/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$RUNNER_TEMP/product/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Compare Original-view route frame by frame
         shell: bash
         run: |
           set -euo pipefail
           ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
           IN="$GITHUB_WORKSPACE/tests/input"
+          ROUTE="${{ matrix.route }}"
           STATE="$RUNNER_TEMP/host-state-v6.txt"
           cat >"$STATE" <<'STATEEOF'
           UR-HOST-STATE/6
@@ -150,80 +204,104 @@ jobs:
           STATEEOF
           mkdir -p "$RUNNER_TEMP/evidence"
 
+          case "$ROUTE" in
+            one-player)
+              SCRIPT="$IN/widescreen-product-acceptance.script"
+              INPUT=""
+              MIN_FRAMES=1900
+              MIN_SPLIT=""
+              ;;
+            vs)
+              SCRIPT="$IN/vs-first-race-observe.script"
+              INPUT="$IN/vs-first-race.input"
+              MIN_FRAMES=1600
+              MIN_SPLIT=500
+              ;;
+            two-player)
+              SCRIPT="$IN/two-player-first-race-observe.script"
+              INPUT="$IN/two-player-first-race.input"
+              MIN_FRAMES=1600
+              MIN_SPLIT=500
+              ;;
+            *)
+              echo "::error::Unknown Widescreen route: $ROUTE"
+              exit 2
+              ;;
+          esac
+
           run_route() {
-            local variant="$1" route="$2" script="$3" input="$4"
+            local variant="$1"
             local exe="$RUNNER_TEMP/$variant/UniracersSNESRecomp/build/UniracersSNESRecomp"
-            local out="$RUNNER_TEMP/runs/$route-$variant"
+            local out="$RUNNER_TEMP/runs/$ROUTE-$variant"
             mkdir -p "$out/frames" "$out/dumps"
             rm -rf "$(dirname "$exe")/saves"
             (
               cd "$(dirname "$exe")"
-              if [ -n "$input" ]; then export SNESRECOMP_INPUT_FILE="$input"; fi
+              if [ -n "$INPUT" ]; then export SNESRECOMP_INPUT_FILE="$INPUT"; fi
               SNESRECOMP_FRAMEDUMP_PIXELS=1 \
               SNESRECOMP_FRAMEDUMP_START=0 \
               SNESRECOMP_FRAMEDUMP_END=2000 \
               UR_HOST_STATE_PATH="$STATE" \
               SNESRECOMP_DUMP_DIR="$out/dumps" \
               SDL_AUDIODRIVER=dummy \
-              timeout 600s xvfb-run -a "$exe" "$ROM" --script "$script" \
+              timeout 600s xvfb-run -a "$exe" "$ROM" --script "$SCRIPT" \
                 --framedump "$out/frames" >"$out/run.log" 2>&1
             )
           }
 
-          compare_route() {
-            local route="$1" script="$2" input="$3" min_frames="$4"
-            run_route baseline "$route" "$script" "$input" &
-            local baseline_pid=$!
-            run_route product "$route" "$script" "$input" &
-            local product_pid=$!
+          run_route baseline &
+          baseline_pid=$!
+          run_route product &
+          product_pid=$!
 
-            set +e
-            wait "$baseline_pid"
-            local baseline_rc=$?
-            wait "$product_pid"
-            local product_rc=$?
-            set -e
-            if [ "$baseline_rc" -ne 0 ] || [ "$product_rc" -ne 0 ]; then
-              echo "::error::$route route failed: baseline=$baseline_rc product=$product_rc"
-              cat "$RUNNER_TEMP/runs/$route-baseline/run.log" 2>/dev/null || true
-              cat "$RUNNER_TEMP/runs/$route-product/run.log" 2>/dev/null || true
-              return 1
-            fi
+          set +e
+          wait "$baseline_pid"
+          baseline_rc=$?
+          wait "$product_pid"
+          product_rc=$?
+          set -e
+          if [ "$baseline_rc" -ne 0 ] || [ "$product_rc" -ne 0 ]; then
+            echo "::error::$ROUTE route failed: baseline=$baseline_rc product=$product_rc"
+            cat "$RUNNER_TEMP/runs/$ROUTE-baseline/run.log" 2>/dev/null || true
+            cat "$RUNNER_TEMP/runs/$ROUTE-product/run.log" 2>/dev/null || true
+            exit 1
+          fi
 
-            local r="$RUNNER_TEMP/runs/$route"
-            local overlay_args=()
-            if [ "$route" = "one-player" ]; then
-              # Modern timing is intentionally composited over the stock 4:3
-              # picture. Keep every guest dump and every pixel outside its
-              # exact logical rectangle bit-identical.
-              overlay_args+=(--allow-bmp-overlay-rect 70,8,178,52)
-            fi
-            python3 tools/check_framedump_identity.py --route "$route" \
-              --baseline-frames "$r-baseline/frames" --candidate-frames "$r-product/frames" \
-              --baseline-dumps "$r-baseline/dumps" --candidate-dumps "$r-product/dumps" \
-              --min-frames "$min_frames" "${overlay_args[@]}" \
-              --out "$RUNNER_TEMP/evidence/$route-4x3-identity.json" | tail -n 40
-            if [ -n "${5:-}" ]; then
-              # Split-screen sprite ripping hides sprite copies at X - 256; they
-              # must stay out of the 43 px margin the widened view exposes.
-              python3 tools/check_split_sprite_rip_margin.py --route "$route" \
-                --frames "$r-product/frames" --min-split-frames "$5" \
-                --out "$RUNNER_TEMP/evidence/$route-sprite-rip-margin.json" | tail -n 30
-            fi
-            rm -rf "$r-baseline/frames" "$r-product/frames"
-          }
+          R="$RUNNER_TEMP/runs/$ROUTE"
+          overlay_args=()
+          if [ "$ROUTE" = "one-player" ]; then
+            overlay_args+=(--allow-bmp-overlay-rect 70,8,178,52)
+          fi
+          python3 tools/check_framedump_identity.py --route "$ROUTE" \
+            --baseline-frames "$R-baseline/frames" --candidate-frames "$R-product/frames" \
+            --baseline-dumps "$R-baseline/dumps" --candidate-dumps "$R-product/dumps" \
+            --min-frames "$MIN_FRAMES" "${overlay_args[@]}" \
+            --out "$RUNNER_TEMP/evidence/$ROUTE-4x3-identity.json" | tail -n 40
 
-          compare_route one-player "$IN/widescreen-product-acceptance.script" "" 1900
-          compare_route vs "$IN/vs-first-race-observe.script" "$IN/vs-first-race.input" 1600 500
-          compare_route two-player "$IN/two-player-first-race-observe.script" "$IN/two-player-first-race.input" 1600 500
-          echo "WIDESCREEN_4X3_REGRESSION stock_pixels_and_guest_state_preserved routes=3 host_overlay=timing_hud_exact_rect"
+          if [ -n "$MIN_SPLIT" ]; then
+            python3 tools/check_split_sprite_rip_margin.py --route "$ROUTE" \
+              --frames "$R-product/frames" --min-split-frames "$MIN_SPLIT" \
+              --out "$RUNNER_TEMP/evidence/$ROUTE-sprite-rip-margin.json" | tail -n 30
+          fi
 
-      - name: Upload evidence
+          echo "WIDESCREEN_4X3_ROUTE PASS route=$ROUTE"
+
+      - name: Upload route evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: widescreen-4x3-regression
+          name: widescreen-4x3-regression-${{ matrix.route }}
           path: |
             ${{ runner.temp }}/evidence/
             ${{ runner.temp }}/runs/**/run.log
           if-no-files-found: ignore
+          retention-days: 7
+
+  aggregate:
+    needs: [build, routes]
+    if: ${{ needs.build.result == 'success' && needs.routes.result == 'success' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Confirm all Original-view routes passed
+        run: echo "WIDESCREEN_4X3_REGRESSION stock_pixels_and_guest_state_preserved routes=3 host_overlay=timing_hud_exact_rect"

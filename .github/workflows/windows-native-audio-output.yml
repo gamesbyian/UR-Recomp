@@ -1,12 +1,30 @@
-name: Windows audio output capture (opt-in)
+name: Windows audio output acceptance
 
 # Reuse a completed Windows native smoke package. Never rebuild it in this
 # specialist lane. Follow successful main-branch Windows package builds,
-# rather than running for every PR or performing another native build.
+# and rerun validation on main audio-tool changes using the latest successful
+# package artifact. Never compile for this specialist workflow.
 on:
   workflow_run:
     workflows: ["Windows native build and boot smoke"]
     types: [completed]
+  push:
+    branches: [main]
+    paths:
+      - "tools/analyze_sdl_disk_audio.py"
+      - "tools/analyze_snesrecomp_audio_stats.py"
+      - "tools/analyze_audio_phase_matrix.py"
+      - "tools/build_audio_checkpoint_route.py"
+      - "tools/check_native_audio_checkpoint_timing.py"
+      - "tests/input/reach-first-race.script"
+      - "tests/input/ui-pause-route.script"
+      - "tools/build_audio_pause_route.py"
+      - "tools/analyze_audio_pause_phases.py"
+      - "tools/analyze_sdl_audio_envelope.py"
+      - "tools/summarize_sdl_pause_envelopes.py"
+      - "tools/analyze_windows_volume_output.py"
+      - "tools/capture_modern_paused_audio.py"
+      - "tools/check_modern_host_pause_audio.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -14,15 +32,24 @@ on:
         required: true
         type: string
 
+# A skipped workflow_run from a cancelled/failed source build must never
+# cancel a legitimate push-triggered audio acceptance or successful source
+# build capture. Keep those event/outcome classes isolated, while coalescing
+# redundant runs within the same class and branch.
+concurrency:
+  group: windows-native-audio-${{ github.event_name }}-${{ github.event.workflow_run.conclusion || 'direct' }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   actions: read
 
 jobs:
   output-capture:
-    # workflow_run executes with the default-branch workflow, so accept only
-    # a successful Windows main build. Never execute an untrusted PR artifact.
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    # workflow_run executes on default branch. Trust only successful main
+    # builds from this repository, never a PR artifact. Push reuses a verified
+    # successful main package without rebuilding.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: windows-2022
     timeout-minutes: 12
     defaults:
@@ -34,19 +61,42 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Find latest successful main Windows package for audio-tool change
+        if: ${{ github.event_name == 'push' }}
+        id: source-package
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const { data } = await github.rest.actions.listWorkflowRuns({
+              owner, repo, workflow_id: "windows-native-smoke.yml",
+              branch: "main", status: "success", per_page: 10
+            });
+            const source = data.workflow_runs.find(run =>
+              run.conclusion === "success" &&
+              run.head_branch === "main" &&
+              run.head_repository?.full_name === `${owner}/${repo}`
+            );
+            if (!source) {
+              core.setFailed("No successful first-party main Windows build to reuse");
+            } else {
+              core.setOutput("run_id", String(source.id));
+              core.info(`Reusing Windows source run ${source.id}, SHA ${source.head_sha}`);
+            }
+
       - name: Fetch packaged Windows build without recompiling
         uses: actions/download-artifact@v4
         with:
           name: ur-recomp-windows-x64-portable
           repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id }}
+          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
 
       - name: Capture named SDL3 audio checkpoints and APU counters
         run: |
           set -euo pipefail
-          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id }}"
+          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}"
           [[ "$SOURCE" =~ ^[0-9]{1,20}$ ]]
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
           EXTRACT="$RUNNER_TEMP/audio-product"
@@ -97,7 +147,9 @@ jobs:
             test "$RC" -eq 0
             test -s "$DUMPS/$CASE.wram.bin"
             test -s "$DUMPS/$CASE-audio-post.wram.bin"
-            python tools/check_native_audio_checkpoint_timing.py "$LOG" "$CASE"
+            # Execute as a module so tools.* imports resolve on native Windows
+            # Python, instead of treating tools/ as the Python root.
+            python -m tools.check_native_audio_checkpoint_timing "$LOG" "$CASE"
             test -s "$PCM"
             test -s "$STATS"
             # 60 guest frames centered on the named dump (30 before/after).
@@ -117,26 +169,221 @@ jobs:
             echo "WINDOWS_NATIVE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
           done
 
-          # Report, but do not impose unsupported cross-core PCM equality.
-          python - "$RUNNER_TEMP" <<'PY'
-          import json
-          from pathlib import Path
-          import sys
-          root = Path(sys.argv[1])
-          keys = ("main-menu-ready", "now-playing-ready", "race-entered")
-          metrics = {
-              key: json.loads((root / f"audio-output-{key}.json").read_text())
-              for key in keys
-          }
-          print("WINDOWS_AUDIO_PHASE_MATRIX", json.dumps({
-              key: {
-                  "tail_rms": metrics[key]["tail_rms"],
-                  "tail_peak": metrics[key]["tail_peak"],
-                  "tail_nonzero_fraction": metrics[key]["tail_nonzero_fraction"],
-              } for key in keys
-          }, sort_keys=True))
-          PY
+          # Compare native *relative* levels with independent references,
+          # not hashes or absolute PCM amplitude across emulator backends.
+          python tools/analyze_audio_phase_matrix.py \
+            --native-directory "$RUNNER_TEMP" \
+            --reference analysis/generated/audio-startup-reference-summary.json \
+            --json-out "$RUNNER_TEMP/audio-phase-matrix.json"
           echo "WINDOWS_NATIVE_AUDIO_OUTPUT PASS source_run=$SOURCE"
+
+      - name: Capture stock guest Start pause/resume audio envelopes
+        run: |
+          set -euo pipefail
+          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}"
+          ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
+          EXTRACT="$RUNNER_TEMP/audio-pause-product"
+          test -s "$ARCHIVE"
+          python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
+          python -m zipfile -e "$ARCHIVE" "$EXTRACT"
+          PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+
+          # Original guest Start inputs from the repo's stock UI pause route.
+          # This does not exercise the host-owned Modern freeze menu.
+          for CASE in ui-pause-before ui-pause-after-start ui-pause-after-resume; do
+            SCRIPT="$RUNNER_TEMP/audio-$CASE.script"
+            DUMPS="$RUNNER_TEMP/audio-dumps-$CASE"
+            ROOT="$RUNNER_TEMP/audio-user-data-$CASE"
+            PCM="$RUNNER_TEMP/audio-device-output-$CASE.raw"
+            STATS="$RUNNER_TEMP/audio-ring-stats-$CASE.txt"
+            LOG="$RUNNER_TEMP/audio-native-$CASE.log"
+            python tools/build_audio_pause_route.py \
+              "$GITHUB_WORKSPACE/tests/input/ui-pause-route.script" \
+              "$CASE" "$SCRIPT"
+            mkdir -p "$DUMPS"
+            rm -rf "$ROOT" "$PCM" "$STATS"
+            SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
+            DUMPS_WIN="$(cygpath -w "$DUMPS")"
+            ROOT_WIN="$(cygpath -w "$ROOT")"
+            PCM_WIN="$(cygpath -w "$PCM")"
+            STATS_WIN="$(cygpath -w "$STATS")"
+            set +e
+            SDL_VIDEO_DRIVER=offscreen \
+            SDL_VIDEODRIVER=offscreen \
+            SDL_AUDIO_DRIVER=disk \
+            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+            SDL_AUDIO_FORMAT=S16LE \
+            SDL_AUDIO_CHANNELS=2 \
+            SDL_AUDIO_FREQUENCY=44100 \
+            SDL_AUDIO_DISK_TIMESCALE=1.0 \
+            SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
+            SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+              timeout 180 powershell.exe -NoProfile -Command \
+                "& '$PACKAGE_WIN\\run-uniracers.cmd' --script '$SCRIPT_WIN'; exit \$LASTEXITCODE" \
+                >"$LOG" 2>&1
+            RC=$?
+            set -e
+            tail -n 18 "$LOG"
+            test "$RC" -eq 0
+            test -s "$DUMPS/$CASE.wram.bin"
+            test -s "$DUMPS/$CASE-audio-post.wram.bin"
+            python -m tools.check_native_audio_checkpoint_timing "$LOG" "$CASE"
+            test -s "$PCM"
+            test -s "$STATS"
+            # Silence while stock-paused is evidence, not automatic failure.
+            python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+              --min-rms 0 --min-nonzero-fraction 0 \
+              --tail-seconds 1.0 --min-tail-rms 0 \
+              --json-out "$RUNNER_TEMP/audio-output-$CASE.json"
+            # Two Windows captures show startup-only priming. Guard steady
+            # playback across pause and resume without changing guest cadence.
+            python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+              --max-new-audible-drops 0 \
+              --max-post-startup-underflows 0 \
+              --max-post-startup-missing-frames 0 \
+              --json-out "$RUNNER_TEMP/audio-ring-$CASE.json"
+            # Preserve bounded time-domain evidence *before* deleting PCM.
+            # Source/device timing offset is still unknown, so no click/fade
+            # claim or absolute latency threshold is inferred from buckets.
+            python -m tools.analyze_sdl_audio_envelope "$LOG" "$PCM_WIN" \
+              --last-seconds 3.0 --window-ms 100 \
+              --json-out "$RUNNER_TEMP/audio-envelope-$CASE.json"
+            rm -f "$PCM"
+            echo "WINDOWS_STOCK_PAUSE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
+          done
+          # Observed twice on distinct fresh-process Windows runs:
+          # paused-to-before ratios ~0.008 and ~0.011; recovered ~0.915.
+          # Broad limits detect major failures, not sample-exact identity.
+          python tools/analyze_audio_pause_phases.py "$RUNNER_TEMP" \
+            --max-paused-to-before 0.05 \
+            --min-resumed-to-before 0.50 \
+            --json-out "$RUNNER_TEMP/audio-stock-pause-phases.json"
+          # Extract verified fade/silence shape from the bounded metadata.
+          # No guest-clock alignment or speculative click threshold.
+          python -m tools.summarize_sdl_pause_envelopes "$RUNNER_TEMP" \
+            --json-out "$RUNNER_TEMP/audio-stock-pause-envelope-shape.json"
+          echo "WINDOWS_STOCK_PAUSE_AUDIO_MATRIX PASS source_run=$SOURCE"
+
+      - name: Measure real SDL device gain across Modern Volume persistence
+        run: |
+          set -euo pipefail
+          # The Windows build was already verified and extracted by the
+          # preceding accepted stock pause audio step.
+          PACKAGE="$RUNNER_TEMP/audio-pause-product/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script")"
+          ROOT="$RUNNER_TEMP/audio-volume-user-data"
+          mkdir -p "$ROOT"
+          ROOT_WIN="$(cygpath -w "$ROOT")"
+
+          # Verify the framework default in a fresh process, exercise the
+          # real Modern pause -> Options -> Volume UI in a second, and verify
+          # the framework config loaded into a third. Never duplicate volume
+          # authority or assume an exact resampler/device gain law.
+          # Run the selected framework value a second time, unchanged. This
+          # A/A control quantifies SDL timing/content variation independently
+          # of the before/after Volume adjustment.
+          for CASE in before adjust after after-repeat; do
+            MODE=verify
+            if [ "$CASE" = adjust ]; then MODE=adjust; fi
+            LOG="$RUNNER_TEMP/audio-volume-$CASE.log"
+            PCM="$RUNNER_TEMP/audio-volume-$CASE.raw"
+            PCM_WIN="$(cygpath -w "$PCM")"
+            rm -f "$PCM" "$LOG"
+            set +e
+            SDL_VIDEO_DRIVER=offscreen \
+            SDL_VIDEODRIVER=offscreen \
+            SDL_AUDIO_DRIVER=disk \
+            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+            SDL_AUDIO_FORMAT=S16LE \
+            SDL_AUDIO_CHANNELS=2 \
+            SDL_AUDIO_FREQUENCY=44100 \
+            SDL_AUDIO_DISK_TIMESCALE=1.0 \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_VOLUME_OPTIONS_ACCEPTANCE="$MODE" \
+            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+              timeout 180 powershell.exe -NoProfile -Command \
+                "& '$PACKAGE_WIN\\run-uniracers.cmd' --script '$SCRIPT_WIN'; exit \$LASTEXITCODE" \
+                >"$LOG" 2>&1
+            RC=$?
+            set -e
+            tail -n 18 "$LOG"
+            test "$RC" -eq 0
+            grep -q '^UR_VOLUME_ACCEPTANCE START percent=' "$LOG"
+            test -s "$PCM"
+            if [ "$CASE" != adjust ]; then
+              python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+                --min-duration-seconds 10 \
+                --tail-seconds 1.0 --min-tail-rms 50 \
+                --json-out "$RUNNER_TEMP/audio-volume-output-$CASE.json"
+            fi
+            rm -f "$PCM"
+            echo "WINDOWS_VOLUME_AUDIO_PHASE PASS case=$CASE"
+          done
+          python -m tools.analyze_windows_volume_output "$RUNNER_TEMP" \
+            --json-out "$RUNNER_TEMP/audio-volume-output-comparison.json"
+          echo "WINDOWS_VOLUME_AUDIO_MATRIX PASS origin=packaged-sdl3"
+
+      - name: Observe real Modern host-frozen pause through SDL audio output
+        run: |
+          set -euo pipefail
+          # This is a separate ownership path from stock guest Start pause.
+          # The real product hook opens Modern pause after 120 active-race
+          # host-observed frames; the guest script then freezes indefinitely.
+          # A bounded native Windows supervisor terminates the *whole* process
+          # tree after 4 seconds of host-paused wall time, not guest time.
+          PACKAGE="$RUNNER_TEMP/audio-pause-product/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script")"
+          ROOT="$RUNNER_TEMP/audio-modern-host-pause-data"
+          PCM="$RUNNER_TEMP/audio-modern-host-pause-device.raw"
+          LOG="$RUNNER_TEMP/audio-modern-host-pause.log"
+          mkdir -p "$ROOT"
+          rm -f "$PCM" "$LOG"
+          ROOT_WIN="$(cygpath -w "$ROOT")"
+          PCM_WIN="$(cygpath -w "$PCM")"
+          LOG_WIN="$(cygpath -w "$LOG")"
+          SDL_VIDEO_DRIVER=offscreen \
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIO_DRIVER=disk \
+          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+          SDL_AUDIO_FORMAT=S16LE \
+          SDL_AUDIO_CHANNELS=2 \
+          SDL_AUDIO_FREQUENCY=44100 \
+          SDL_AUDIO_DISK_TIMESCALE=1.0 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_PAUSE_OPEN_ACCEPTANCE=1 \
+          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+            python -m tools.capture_modern_paused_audio \
+              "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" \
+              --deadline-seconds 80 --hold-seconds 4
+          grep -Fq 'UR_PAUSE_ACCEPTANCE OPENED' "$LOG"
+          grep -Eq '^UR_PAUSE_STATE paused=1 surface=' "$LOG"
+          test -s "$PCM"
+          # This first host-owned pause run is descriptive: do NOT impose
+          # the stock guest Start attenuation or queue-starvation contracts.
+          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+            --min-duration-seconds 15 \
+            --min-rms 0 --min-nonzero-fraction 0 \
+            --tail-seconds 1.0 --min-tail-rms 0 \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-output.json"
+          python -m tools.analyze_sdl_audio_envelope "$LOG" "$PCM_WIN" \
+            --last-seconds 3 --window-ms 100 \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-envelope.json"
+          # The previously measured packaged Windows host pause produced
+          # 3.0 seconds of literal silence. Enforce that only after proving
+          # real active-race audio existed earlier in the *same* capture.
+          python -m tools.check_modern_host_pause_audio \
+            "$LOG" "$RUNNER_TEMP/audio-modern-host-pause-output.json" \
+            "$RUNNER_TEMP/audio-modern-host-pause-envelope.json" \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-silence.json"
+          rm -f "$PCM"
+          echo "WINDOWS_MODERN_HOST_PAUSE_AUDIO PASS guest_frozen=1 raw_pcm_uploaded=0"
 
       - name: Upload bounded audio evidence (never PCM)
         if: always()
@@ -147,5 +394,15 @@ jobs:
             ${{ runner.temp }}/audio-native-*.log
             ${{ runner.temp }}/audio-output-*.json
             ${{ runner.temp }}/audio-ring-*.json
+            ${{ runner.temp }}/audio-phase-matrix.json
+            ${{ runner.temp }}/audio-stock-pause-phases.json
+            ${{ runner.temp }}/audio-envelope-ui-pause-*.json
+            ${{ runner.temp }}/audio-stock-pause-envelope-shape.json
+            ${{ runner.temp }}/audio-volume-*.log
+            ${{ runner.temp }}/audio-volume-output-*.json
+            ${{ runner.temp }}/audio-modern-host-pause.log
+            ${{ runner.temp }}/audio-modern-host-pause-output.json
+            ${{ runner.temp }}/audio-modern-host-pause-envelope.json
+            ${{ runner.temp }}/audio-modern-host-pause-silence.json
           if-no-files-found: warn
           retention-days: 7

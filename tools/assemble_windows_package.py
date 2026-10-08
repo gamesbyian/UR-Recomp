@@ -23,6 +23,17 @@ ARCHIVE_ROOT = "UR-Recomp-Windows-x64"
 ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 ARCHIVE_CHECKSUM_SUFFIX = ".sha256"
 MUTABLE_PACKAGE_PATHS = {"mods/preloaded/state.toml"}
+# Consumer ZIP verification must never trust decompressed payload size or the
+# manifest's claimed file sizes. These bounds also apply to the producer so a
+# locally assembled archive is never larger than the independent verifier
+# admits. Keep I/O memory bounded independently of the archive size.
+MAX_PACKAGE_ENTRIES = 10000
+MAX_PACKAGE_FILE_BYTES = 512 * 1024 * 1024
+MAX_PACKAGE_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
+MAX_PACKAGE_MANIFEST_BYTES = 8 * 1024 * 1024
+MAX_PACKAGE_README_BYTES = 256 * 1024
+MAX_PACKAGE_ROM_CONFIG_BYTES = 1 * 1024 * 1024
+ARCHIVE_IO_CHUNK_BYTES = 1 << 20
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
     ROM_NAME,
@@ -114,14 +125,25 @@ def sha256(path: Path) -> str:
 
 def package_files(root: Path) -> list[dict[str, object]]:
     files: list[dict[str, object]] = []
+    total_bytes = 0
     for path in sorted(p for p in root.rglob("*") if p.is_file()):
         relative = path.relative_to(root).as_posix()
         if relative == MANIFEST_NAME:
             continue
+        size = path.stat().st_size
+        total_bytes += size
+        if (
+            size > MAX_PACKAGE_FILE_BYTES
+            or total_bytes > MAX_PACKAGE_TOTAL_BYTES
+            or len(files) >= MAX_PACKAGE_ENTRIES
+        ):
+            raise ValueError("package payload exceeds shipping size limits")
+        if relative == README_NAME and size > MAX_PACKAGE_README_BYTES:
+            raise ValueError("package README exceeds shipping size limit")
         files.append(
             {
                 "path": relative,
-                "size": path.stat().st_size,
+                "size": size,
                 "sha256": sha256(path),
             }
         )
@@ -160,6 +182,35 @@ def validate_required_package_paths(
         raise ValueError(
             f"{context} contains mutable user state: " + ", ".join(mutable)
         )
+
+
+def preflight_package_source_budget(
+    build_dir: Path, rom: Path, mods: Path
+) -> None:
+    """Reject oversized source trees before copying them into package output.
+
+    This gate includes legacy mutable mod-selection files because copytree
+    would otherwise copy them before removing them from the release folder.
+    It also rejects mod symlinks that could pull files from outside the
+    staged immutable mod catalog.
+    """
+    sources = [build_dir / EXE_NAME, rom]
+    for path in mods.rglob("*"):
+        if path.is_symlink():
+            raise ValueError(f"package source mods contain a symlink: {path}")
+        if path.is_file():
+            sources.append(path)
+    if len(sources) > MAX_PACKAGE_ENTRIES:
+        raise ValueError("package source has too many payload files")
+    total = 0
+    for path in sources:
+        size = path.stat().st_size
+        total += size
+        if (
+            size > MAX_PACKAGE_FILE_BYTES
+            or total > MAX_PACKAGE_TOTAL_BYTES
+        ):
+            raise ValueError("package source exceeds shipping size limits")
 
 
 def write_launcher(path: Path, source_revision: str) -> None:
@@ -288,14 +339,20 @@ def readme_text(source_revision: str) -> str:
         f"Source revision: {source_revision}\n"
         "\n"
         "This is the portable Windows build. Extract the whole folder before "
-        "running it; do not run directly from inside the ZIP. The package "
+        "running it; do not run directly from inside the ZIP. Windows "
+        "PowerShell Expand-Archive is supported for extraction. The package "
         "files themselves are treated as read-only. The executable is built "
         "with the static MSVC runtime, so the package does not require a "
         "separately installed Visual C++ Redistributable. This ZIP does not "
         "register an installer or uninstaller.\n"
+        "You can extract this package into directories whose paths contain spaces.\n"
         "\n"
         f"Start the game with {LAUNCHER_NAME}. Keep {EXE_NAME}, {ROM_NAME}, "
-        "rom.cfg and the mods directory together.\n"
+        "rom.cfg and the mods directory together. Do not start the .exe "
+        "directly: the launcher establishes the correct user-data location "
+        "and startup diagnostics before starting the game.\n"
+        "For a normal Windows launch you do not need to set "
+        "UR_RECOMP_USER_DATA_ROOT; the launcher uses APPDATA automatically.\n"
         "\n"
         "Mutable user data is stored outside the extracted package under "
         "%APPDATA%\\gamesbyian\\UR-Recomp by default. Set "
@@ -306,6 +363,10 @@ def readme_text(source_revision: str) -> str:
         "Config, keyboard bindings, cartridge/profile saves, mod "
         "selection state, Modern settings/profile metadata and run history "
         "share this policy.\n"
+        "\n"
+        "On a normal Windows desktop the game opens its own window. "
+        "If video initialization fails, consult the displayed video startup "
+        "diagnosis and the startup log described below.\n"
         "\n"
         "If startup fails, the launcher prints one stable UR-STARTUP-* code "
         "with a concise recovery message. When the user-data root is writable, "
@@ -370,6 +431,9 @@ def assemble(
         raise ValueError(f"required package input missing: {mods}")
     if not any(path.is_file() for path in mods.rglob("*")):
         raise ValueError(f"required package input empty: {mods}")
+    # Reject resource exhaustion and symlink escapes before deleting an
+    # existing output folder or allocating disk space for copied input.
+    preflight_package_source_budget(build_dir, rom, mods)
 
     if output.exists():
         if not output.is_dir():
@@ -396,7 +460,10 @@ def assemble(
         "source_revision": source_revision,
         "files": package_files(output),
     }
-    (output / MANIFEST_NAME).write_bytes(canonical_manifest_bytes(manifest))
+    manifest_bytes = canonical_manifest_bytes(manifest)
+    if len(manifest_bytes) > MAX_PACKAGE_MANIFEST_BYTES:
+        raise ValueError("package manifest exceeds shipping size limit")
+    (output / MANIFEST_NAME).write_bytes(manifest_bytes)
     return manifest
 
 
@@ -406,6 +473,8 @@ def verify(package: Path) -> dict[str, object]:
     if not manifest_path.is_file():
         raise ValueError(f"package manifest missing: {manifest_path}")
 
+    if manifest_path.stat().st_size > MAX_PACKAGE_MANIFEST_BYTES:
+        raise ValueError("package manifest exceeds shipping size limit")
     try:
         manifest_bytes = manifest_path.read_bytes()
         manifest = json.loads(manifest_bytes.decode("utf-8"))
@@ -415,7 +484,8 @@ def verify(package: Path) -> dict[str, object]:
         raise ValueError("package manifest is not canonical UTF-8/LF JSON")
 
     if (
-        manifest.get("schema_version") != SCHEMA_VERSION
+        not isinstance(manifest, dict)
+        or manifest.get("schema_version") != SCHEMA_VERSION
         or manifest.get("package_format") != PACKAGE_FORMAT
         or not isinstance(manifest.get("files"), list)
     ):
@@ -432,12 +502,16 @@ def verify(package: Path) -> dict[str, object]:
 
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
+    if (package / ROM_CONFIG_NAME).stat().st_size > MAX_PACKAGE_ROM_CONFIG_BYTES:
+        raise ValueError("packaged rom.cfg exceeds shipping size limit")
     try:
         validate_rom_config(
             (package / ROM_CONFIG_NAME).read_bytes(), context="packaged"
         )
     except OSError as exc:
         raise ValueError(f"cannot read packaged rom.cfg: {exc}") from exc
+    if (package / README_NAME).stat().st_size > MAX_PACKAGE_README_BYTES:
+        raise ValueError("package README exceeds shipping size limit")
     try:
         readme_bytes = (package / README_NAME).read_bytes()
         readme = readme_bytes.decode("utf-8")
@@ -535,7 +609,10 @@ def create_archive(package: Path, archive: Path) -> dict[str, object]:
             info.compress_type = zipfile.ZIP_DEFLATED
             info.create_system = 3
             info.external_attr = 0o100644 << 16
-            output.writestr(info, path.read_bytes(), compresslevel=9)
+            if path.stat().st_size > MAX_PACKAGE_FILE_BYTES:
+                raise ValueError(f"archive entry exceeds shipping size limit: {relative}")
+            with path.open("rb") as src, output.open(info, "w", force_zip64=True) as dst:
+                shutil.copyfileobj(src, dst, ARCHIVE_IO_CHUNK_BYTES)
     return manifest
 
 
@@ -548,8 +625,19 @@ def verify_archive(archive: Path) -> dict[str, object]:
     try:
         with zipfile.ZipFile(archive, "r") as source:
             infos = source.infolist()
+            if len(infos) > MAX_PACKAGE_ENTRIES + 1:
+                raise ValueError("package archive has too many files")
             names = [info.filename for info in infos]
+            info_by_name = {info.filename: info for info in infos}
+            total_bytes = 0
             for info in infos:
+                total_bytes += info.file_size
+                if (
+                    info.file_size > MAX_PACKAGE_FILE_BYTES
+                    or total_bytes > MAX_PACKAGE_TOTAL_BYTES +
+                        MAX_PACKAGE_MANIFEST_BYTES
+                ):
+                    raise ValueError("package archive exceeds shipping size limits")
                 if (
                     info.date_time != ARCHIVE_TIMESTAMP
                     or info.compress_type != zipfile.ZIP_DEFLATED
@@ -568,6 +656,18 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError("package archive contains unsafe paths")
             if manifest_name not in names:
                 raise ValueError("package archive manifest missing")
+            if info_by_name[manifest_name].file_size > MAX_PACKAGE_MANIFEST_BYTES:
+                raise ValueError("package archive manifest exceeds shipping size limit")
+            if info_by_name.get(f"{ARCHIVE_ROOT}/{README_NAME}") and (
+                info_by_name[f"{ARCHIVE_ROOT}/{README_NAME}"].file_size >
+                    MAX_PACKAGE_README_BYTES
+            ):
+                raise ValueError("package archive README exceeds shipping size limit")
+            if info_by_name.get(f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}") and (
+                info_by_name[f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}"].file_size >
+                    MAX_PACKAGE_ROM_CONFIG_BYTES
+            ):
+                raise ValueError("package archive rom.cfg exceeds shipping size limit")
             try:
                 manifest_bytes = source.read(manifest_name)
                 manifest = json.loads(manifest_bytes.decode("utf-8"))
@@ -577,7 +677,8 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 ) from exc
 
             if (
-                manifest.get("schema_version") != SCHEMA_VERSION
+                not isinstance(manifest, dict)
+                or manifest.get("schema_version") != SCHEMA_VERSION
                 or manifest.get("package_format") != PACKAGE_FORMAT
                 or not isinstance(manifest.get("files"), list)
             ):
@@ -605,8 +706,12 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 expected_hash = entry.get("sha256")
                 if (
                     not isinstance(relative, str)
-                    or not isinstance(expected_size, int)
+                    or type(expected_size) is not int
+                    or expected_size < 0
+                    or expected_size > MAX_PACKAGE_FILE_BYTES
                     or not isinstance(expected_hash, str)
+                    or len(expected_hash) != 64
+                    or any(ch not in "0123456789abcdef" for ch in expected_hash)
                 ):
                     raise ValueError("malformed package archive file entry")
                 relative_path = Path(relative)
@@ -627,20 +732,30 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 relative_paths.add(relative)
                 name = f"{ARCHIVE_ROOT}/{relative}"
                 expected_names.add(name)
-                try:
-                    payload = source.read(name)
-                except KeyError as exc:
-                    raise ValueError(
-                        f"package archive payload missing: {relative}"
-                    ) from exc
-                if len(payload) != expected_size:
-                    raise ValueError(
-                        f"package archive size mismatch: {relative}"
-                    )
-                if hashlib.sha256(payload).hexdigest() != expected_hash:
-                    raise ValueError(
-                        f"package archive checksum mismatch: {relative}"
-                    )
+                info = info_by_name.get(name)
+                if info is None:
+                    raise ValueError(f"package archive payload missing: {relative}")
+                if info.file_size != expected_size:
+                    raise ValueError(f"package archive size mismatch: {relative}")
+                # ZipExtFile yields bounded chunks; never source.read(name)
+                # into one allocation, even when the ZIP and manifest agree.
+                digest = hashlib.sha256()
+                observed_size = 0
+                with source.open(info) as payload:
+                    while True:
+                        chunk = payload.read(ARCHIVE_IO_CHUNK_BYTES)
+                        if not chunk:
+                            break
+                        observed_size += len(chunk)
+                        if observed_size > expected_size:
+                            raise ValueError(
+                                f"package archive size mismatch: {relative}"
+                            )
+                        digest.update(chunk)
+                if observed_size != expected_size:
+                    raise ValueError(f"package archive size mismatch: {relative}")
+                if digest.hexdigest() != expected_hash:
+                    raise ValueError(f"package archive checksum mismatch: {relative}")
 
             validate_required_package_paths(
                 relative_paths, context="archive package"

@@ -47,7 +47,7 @@ frames, at least one second of output by default, and a conservative non-silent
 RMS/nonzero floor. It reports output length, full-file SHA-256, aggregate and
 per-channel amplitude, peak/clipping rates and negotiated device format. It
 does not emit or commit proprietary PCM. A missing, empty, malformed, silently
-open or unsupported-format capture fails closed.
+open, wrong-destination or unsupported-format capture fails closed.
 
 ## Acceptance claims and next gate
 
@@ -65,3 +65,19 @@ compare cross-emulator PCM hashes as equality requirements.
 Stock SPC/APU audio remains the shipping fallback. Any later restored audio
 must follow docs/ASSET-RESTORATION-PIPELINE.md, with BRR/sample provenance,
 original sequence/timing, and Authentic mode preserved.
+
+## Automatic main-branch acceptance
+
+The `.github/workflows/windows-native-audio-output.yml` workflow listens for a
+**successful** `Windows native build and boot smoke` workflow run on the same
+repository's `main` branch. It downloads that run's verified portable package
+and measures SDL disk playback plus Release audio queue counters, without
+recompiling. It rejects non-main and unsuccessful `workflow_run` events and
+retains the explicit manual `workflow_dispatch` input for reproducing a
+specific source build. The automatic trigger does not run on every PR or every
+ordinary push: it follows only a completed Windows-package gate.
+
+This gives Windows audio a continuous **packaged-output integrity** check.
+Even an accepted run is not yet exact music/SFX reference parity, device
+latency certification or pause/restart transient fidelity. Those remain
+separate evidence requirements and cannot be inferred from aggregate PCM RMS.

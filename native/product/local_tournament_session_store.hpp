@@ -58,6 +58,18 @@ decode_local_tournament_session_definition(
     std::string_view canonical_bytes,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog);
 
+// Historical COMPLETED Records need not depend on the participant profiles
+// still existing today. This read-only decoder keeps the exact same bounded
+// canonical structure/digest rules; only *current catalog membership* is
+// relaxed. Completed fixture receipts and separately validated saved 2P pairs
+// must still fully establish all event results before display.
+std::optional<LocalTournamentSessionDefinition>
+decode_local_tournament_historical_session_definition(
+    std::string_view canonical_bytes);
+LocalTournamentSessionFileResult
+load_historical_local_tournament_session_definition(
+    const std::string& path);
+
 LocalTournamentSessionFileStatus save_local_tournament_session_definition(
     const std::string& path,
     const LocalTournamentSessionDefinition& session);

@@ -70,6 +70,22 @@ LocalTournamentCoordinatorResult restore_local_tournament_coordinator(
     const LocalTournamentCoordinatorPaths& paths,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog);
 
+// Read-only history of COMPLETED, independently identified tournaments.
+// Each row is restored from its immutable per-instance session file plus the
+// exact receipt-linked saved ordinary-2P pairs. No global Records scan can
+// manufacture tournament membership or results. Random instance ID order is
+// deterministic, not claimed chronological.
+struct LocalTournamentCompletedHistory {
+    bool scanned = false;
+    bool truncated = false;
+    std::size_t unavailable_instances = 0;
+    std::size_t incomplete_instances = 0;
+    std::vector<LocalTournamentCoordinator> completed;
+};
+
+LocalTournamentCompletedHistory load_completed_local_tournament_history(
+    const LocalTournamentCoordinatorPaths& paths);
+
 // A fixture must be explicitly chosen and both Modern participant profile IDs
 // confirmed before the host enters the stock two-player route. The host mints
 // a distinct new 32-hex capture-attempt token. Failures never enter guest

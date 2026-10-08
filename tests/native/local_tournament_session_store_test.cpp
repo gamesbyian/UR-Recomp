@@ -54,6 +54,15 @@ int main() {
             "session reload reconstitutes identical fixture schedule");
     require(!decoded->empty_schedule.results[0],
             "session never stores invented result cells");
+    const auto historical =
+        decode_local_tournament_historical_session_definition(canonical);
+    require(bool(historical) &&
+            encode_local_tournament_session_definition(*historical) == canonical,
+            "read-only historic decoder preserves strict canonical identity");
+    require(!decode_local_tournament_session_definition(canonical, {}),
+            "active tournament cannot inherit deleted profile roster");
+    require(bool(decode_local_tournament_historical_session_definition(canonical)),
+            "completed history retains schedule after all profiles are deleted");
 
     require(!make_local_tournament_session_definition(
         id, {"alice", "intruder"}, catalog, {"course:01"}),
@@ -75,8 +84,9 @@ int main() {
         "deleted roster profile prevents session restore");
     std::string changed = canonical;
     changed[changed.find("course:04")] = 'x';
-    require(!decode_local_tournament_session_definition(changed, catalog),
-            "mutated course invalidates canonical payload");
+    require(!decode_local_tournament_session_definition(changed, catalog) &&
+            !decode_local_tournament_historical_session_definition(changed),
+            "mutated course invalidates active AND historical canonical payload");
     changed = canonical + "\n";
     require(!decode_local_tournament_session_definition(changed, catalog),
             "extra trailing bytes rejected");
@@ -118,15 +128,22 @@ int main() {
             "fresh filesystem load reconstructs active fixture plan");
     require(load_local_tournament_session_definition(
         path.string(), {catalog[0],catalog[1]}).status == S::Rejected,
-        "fresh load refuses missing roster member");
+        "fresh active load refuses missing roster member");
+    const auto archived_without_profiles =
+        load_historical_local_tournament_session_definition(path.string());
+    require(archived_without_profiles.loaded() &&
+            archived_without_profiles.session->instance_id == id,
+            "fresh completed-event load preserves canonical plan without catalog");
     require(save_local_tournament_session_definition(
         path.string(), finished) == S::Rejected &&
         read_bytes(path) == canonical,
         "invalid replacement leaves previous session intact");
     put_bytes(path, canonical.substr(0, canonical.size() - 1));
     require(load_local_tournament_session_definition(
-        path.string(), catalog).status == S::Rejected,
-        "truncation rejected");
+        path.string(), catalog).status == S::Rejected &&
+        load_historical_local_tournament_session_definition(
+            path.string()).status == S::Rejected,
+        "truncation rejected in both active and historical file readers");
     put_bytes(path, std::string(4097, 'x'));
     require(load_local_tournament_session_definition(
         path.string(), catalog).status == S::Rejected,

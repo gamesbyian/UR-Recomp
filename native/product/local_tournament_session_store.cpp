@@ -127,10 +127,11 @@ std::string encode_local_tournament_session_definition(
     return sealed.size() <= kMaxSessionBytes ? sealed : std::string{};
 }
 
+namespace {
 std::optional<LocalTournamentSessionDefinition>
-decode_local_tournament_session_definition(
+decode_session_impl(
     std::string_view encoded,
-    const std::vector<HostProfileCatalogEntry>& authoritative_catalog) {
+    const std::vector<HostProfileCatalogEntry>* authoritative_catalog) {
     if (encoded.empty() || encoded.size() > kMaxSessionBytes ||
         encoded.back() != '\n') return std::nullopt;
     std::vector<std::string_view> lines;
@@ -183,8 +184,17 @@ decode_local_tournament_session_definition(
     }
     // Rebuild the entire fixture schedule from the canonical immutable inputs
     // rather than accepting persisted fixture/standings rows as authority.
-    const auto built = make_local_tournament_session_definition(
-        instance, entrants, authoritative_catalog, courses);
+    std::optional<LocalTournamentSessionDefinition> built;
+    if (authoritative_catalog) {
+        built = make_local_tournament_session_definition(
+            instance, entrants, *authoritative_catalog, courses);
+    } else if (local_tournament_valid_instance_token(instance)) {
+        auto schedule = make_local_round_robin(entrants, courses);
+        if (schedule) {
+            built = LocalTournamentSessionDefinition{
+                std::string(instance), std::move(*schedule)};
+        }
+    }
     if (!built) return std::nullopt;
     if (lines[lines.size() - 2] !=
         "schedule " + local_tournament_hex64(
@@ -198,6 +208,20 @@ decode_local_tournament_session_definition(
         return std::nullopt;
     }
     return built;
+}
+} // namespace
+
+std::optional<LocalTournamentSessionDefinition>
+decode_local_tournament_session_definition(
+    std::string_view encoded,
+    const std::vector<HostProfileCatalogEntry>& authoritative_catalog) {
+    return decode_session_impl(encoded, &authoritative_catalog);
+}
+
+std::optional<LocalTournamentSessionDefinition>
+decode_local_tournament_historical_session_definition(
+    std::string_view encoded) {
+    return decode_session_impl(encoded, nullptr);
 }
 
 LocalTournamentSessionFileStatus save_local_tournament_session_definition(
@@ -225,9 +249,10 @@ LocalTournamentSessionFileStatus save_local_tournament_session_definition(
     return LocalTournamentSessionFileStatus::Saved;
 }
 
-LocalTournamentSessionFileResult load_local_tournament_session_definition(
+namespace {
+LocalTournamentSessionFileResult load_session_impl(
     const std::string& path,
-    const std::vector<HostProfileCatalogEntry>& authoritative_catalog) {
+    const std::vector<HostProfileCatalogEntry>* authoritative_catalog) {
     if (path.empty()) {
         return fail(LocalTournamentSessionFileStatus::Rejected,
                     "empty tournament session path");
@@ -263,13 +288,27 @@ LocalTournamentSessionFileResult load_local_tournament_session_definition(
         return fail(LocalTournamentSessionFileStatus::IoError,
                     "incomplete session read");
     }
-    auto session = decode_local_tournament_session_definition(
-        encoded, authoritative_catalog);
+    auto session = authoritative_catalog
+        ? decode_local_tournament_session_definition(
+            encoded, *authoritative_catalog)
+        : decode_local_tournament_historical_session_definition(encoded);
     if (!session) {
         return fail(LocalTournamentSessionFileStatus::Rejected,
-                    "session not canonical or roster no longer authorized");
+                    "session not canonical or roster not admitted");
     }
     return {LocalTournamentSessionFileStatus::Loaded, std::move(*session), {}};
+}
+} // namespace
+
+LocalTournamentSessionFileResult load_local_tournament_session_definition(
+    const std::string& path,
+    const std::vector<HostProfileCatalogEntry>& authoritative_catalog) {
+    return load_session_impl(path, &authoritative_catalog);
+}
+
+LocalTournamentSessionFileResult
+load_historical_local_tournament_session_definition(const std::string& path) {
+    return load_session_impl(path, nullptr);
 }
 
 } // namespace ur::product

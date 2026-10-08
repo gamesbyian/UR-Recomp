@@ -385,7 +385,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("modern-onboarding-native-candidate", text)
         self.assertIn("  core-acceptance:", text)
         self.assertIn("  independent-acceptance:", text)
-        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        independent = text.split("  independent-acceptance:", 1)[1]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", independent)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
         self.assertEqual(

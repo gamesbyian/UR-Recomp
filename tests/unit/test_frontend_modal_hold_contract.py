@@ -47,6 +47,13 @@ class FrontendModalHoldContractTests(unittest.TestCase):
         self.assertIn(
             "onboarding_surface_active() && !snesrecomp_desktop_script_active()",
             wanted)
+        self.assertIn(
+            "g_tour_action_visible && snesrecomp_desktop_script_active()",
+            wanted)
+        self.assertLess(
+            wanted.index("g_tour_action_visible && snesrecomp_desktop_script_active()"),
+            wanted.index("if (g_practice_picker.visible"),
+            "Scripted tour must bypass hold before any modal is frozen")
         overlay = _body(source, 'extern "C" void ur_uniracers_modern_system_overlay(',
                         "if (onboarding_surface_active())")
         self.assertIn("update_frontend_modal_hold();", overlay)

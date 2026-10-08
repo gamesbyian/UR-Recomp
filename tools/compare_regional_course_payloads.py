@@ -303,6 +303,36 @@ def markdown(report: dict) -> str:
             f"{', '.join(row['changed_regions'])} | {resources} |"
         )
 
+    lines += [
+        "",
+        "## Placed packed-surface comparison",
+        "",
+        "World-cell counts compare the actual coarse-sector -> fine-record",
+        "lookup for each 16x16 cell. These are packed-word/known C000",
+        "selector differences, **not** automatically collision/finish changes.",
+        "Raw coarse record-ID edits can be nonzero while all placed",
+        "world-cell words remain identical.",
+        "",
+        "| # | Course | coarse ID differences | changed sectors | changed world cells | changed C000 selectors | upper-word differences |",
+        "|---:|---|---:|---:|---:|---:|---:|",
+    ]
+    for row in report["courses"]:
+        spatial = row["effective_surface"]
+        if not spatial["comparable"]:
+            lines.append(
+                f'| {row["stream_index"]} | {row["course_name"]} | '
+                f'{spatial["reason"]} | | | | |'
+            )
+            continue
+        lines.append(
+            f'| {row["stream_index"]} | {row["course_name"]} | '
+            f'{spatial["raw_coarse_reference_id_changes"]} | '
+            f'{spatial["changed_world_sectors"]} | '
+            f'{spatial["changed_world_cells"]} | '
+            f'{spatial["changed_c000_selectors"]} | '
+            f'{spatial["changed_unclassified_upper_word_bits"]} |'
+        )
+
     lines += ["", "## Region detail", ""]
     for row in report["courses"]:
         lines += [f"### #{row['stream_index']} {row['course_name']}", ""]

@@ -251,6 +251,9 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     // framebuffer has no reusable P2 depth plane, so an isolated host P1
     // cannot be painted where its lower sprite rectangle intersects P2.
     // Reject even a *possible* overlap; retain the original entire frame.
+    // A rotated OAM first-sprite index can reverse the usual ordering.
+    // Preserve stock in that unsupported priority mode.
+    if (p1_only && (g_ppu->oamaddh & 0x80) != 0) return;
     if (p1_only && !racer_p1_only_no_stock_p2_occlusion(
             *p1_top, *p1_bottom, *p2_top, *p2_bottom)) {
         return;

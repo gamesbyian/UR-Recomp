@@ -40,8 +40,28 @@ verified main portable ZIP without compiling or repackaging the game.
 
 ## Evidence status
 
-Pending the first native Windows run. A passed probe would establish
-that normal stereo audio is restored after leaving the race and reaching
-an actually usable frontend. It would **not** prove sample-exact menu
-music, individual SFX or DSP fidelity, calibrated host/audio latency,
-or speaker-level output. Those require independent targeted evidence.
+The first native capture
+[run 37756144443](https://github.com/gamesbyian/UR-Recomp/actions/runs/37756144443)
+reached the genuine race (guest frame 1044), product Exit-to-Frontend
+success (surface=0, applied pause=0/exit=0), reinitialized main menu
+(guest frame 502) and usable rider menu (guest frame 565). Its original
+reducer incorrectly treated enum 0 as a failure and assumed the guest
+frame counter continued monotonically through the guest reboot. Neither
+assumption was valid. It was corrected without changing the game, reset
+mechanics or stock guest input route.
+
+The corrected **real packaged-Windows** proof
+[run 37756388629](https://github.com/gamesbyian/UR-Recomp/actions/runs/37756388629)
+**passed**, using verified main portable package from source run
+37754866279. The returned usable frontend produced one full second
+of genuine SDL S16LE stereo output with left RMS **4478.86** and
+right RMS **4726.82**. Complete device capture: 1,372,160 stereo
+frames at 44,100 Hz, whole-stream RMS 2930.77, nonzero fraction 0.8057.
+Original canonical guest checkpoints and authoritative host exit/ready/
+usable markers all matched, and no raw copyrighted PCM was retained
+in the uploaded bounded evidence.
+
+This closes minimal audible **race Exit-to-Frontend restoration**
+on the shipping Windows execution path. The results do **not** prove
+sample-exact menu music, individual SFX/DSP fidelity, calibrated
+transition latency, transient-free speaker playback, or hardware recovery.

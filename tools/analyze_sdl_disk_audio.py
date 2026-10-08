@@ -57,10 +57,14 @@ def analyze(
     tail_seconds: float = 0.5,
     min_tail_rms: float | None = None,
 ) -> dict:
-    if not all(math.isfinite(x) and x >= 0 for x in (
-        min_duration_seconds, min_rms, min_nonzero_fraction
-        , tail_seconds, *( [min_tail_rms] if min_tail_rms is not None else [] )
-    )) or min_nonzero_fraction > 1 or not 0 < tail_seconds <= 5:
+    thresholds = (min_duration_seconds, min_rms, min_nonzero_fraction, tail_seconds)
+    if min_tail_rms is not None:
+        thresholds += (min_tail_rms,)
+    if (
+        not all(math.isfinite(x) and x >= 0 for x in thresholds)
+        or min_nonzero_fraction > 1
+        or not 0 < tail_seconds <= 5
+    ):
         raise ValueError("invalid audio acceptance thresholds")
     fmt = parse_disk_format(log_path)
     # Reject stale/unrelated raw samples even when their amplitude and format

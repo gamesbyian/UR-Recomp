@@ -262,7 +262,7 @@ def build_report(usa_path: Path = USA, europe_path: Path = EUROPE) -> dict:
         )
 
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "purpose": (
             "Mechanical decoded-region comparison for the retail course payloads "
             "that differ between USA and Europe."

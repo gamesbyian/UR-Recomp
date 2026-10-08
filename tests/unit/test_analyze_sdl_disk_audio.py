@@ -14,7 +14,7 @@ class SdlDiskAudioTests(unittest.TestCase):
         pcm = root / "audio.raw"
         log.write_text(
             "INFO: You are using the SDL disk i/o audio driver!\n"
-            f"INFO: Writing to file [C:\\tmp\\audio.raw], "
+            f"INFO: Writing to file [{pcm}], "
             f"format={fmt} channels={channels} freq={rate}.\n",
             encoding="utf-8",
         )
@@ -35,6 +35,17 @@ class SdlDiskAudioTests(unittest.TestCase):
             self.assertEqual(report["channel_peaks"], [1000, 2000])
             self.assertEqual(report["nonzero_fraction"], 1.0)
             self.assertEqual(report["pcm_sha256"], hashlib.sha256(pcm.read_bytes()).hexdigest())
+
+    def test_stale_capture_from_another_destination_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log, pcm = self.write_capture(root, [(1000, -500)] * 9000, rate=8000)
+            log.write_text(
+                f"Writing to file [{root / 'different.raw'}], "
+                "format=S16LE channels=2 freq=8000.\n"
+            )
+            with self.assertRaisesRegex(ValueError, "destination does not match"):
+                analyze(log, pcm)
 
     def test_silent_backend_rejected_even_when_file_nonempty(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -56,10 +56,13 @@ def analyze(
     min_nonzero_fraction: float = 0.001,
     tail_seconds: float = 0.5,
     min_tail_rms: float | None = None,
+    min_channel_rms: float | None = None,
+    min_tail_channel_rms: float | None = None,
 ) -> dict:
     thresholds = (min_duration_seconds, min_rms, min_nonzero_fraction, tail_seconds)
-    if min_tail_rms is not None:
-        thresholds += (min_tail_rms,)
+    for optional_threshold in (min_tail_rms, min_channel_rms, min_tail_channel_rms):
+        if optional_threshold is not None:
+            thresholds += (optional_threshold,)
     if (
         not all(math.isfinite(x) and x >= 0 for x in thresholds)
         or min_nonzero_fraction > 1
@@ -106,6 +109,12 @@ def analyze(
             f"nonzero={fraction:.6f}"
         )
 
+    if min_channel_rms is not None and min(channel_rms) < min_channel_rms:
+        raise ValueError(
+            f"SDL disk playback channel silent/insufficient: "
+            f"left={channel_rms[0]:.2f} right={channel_rms[1]:.2f}"
+        )
+
     # A loud opening can hide a completely silent race-ending capture.
     # Examine the *device-output* tail independently, without claiming that
     # its absolute PCM offsets map precisely to any guest frame.
@@ -114,15 +123,16 @@ def analyze(
         inp.seek(-tail_frames * FRAME_BYTES, 2)
         tail = inp.read(tail_frames * FRAME_BYTES)
     tail_samples = struct.iter_unpack("<hh", tail)
-    tail_squares = 0
+    tail_squares = [0, 0]
     tail_nonzero = 0
     tail_peak = 0
     for left, right in tail_samples:
-        for sample in (left, right):
-            tail_squares += sample * sample
+        for channel, sample in enumerate((left, right)):
+            tail_squares[channel] += sample * sample
             tail_nonzero += sample != 0
             tail_peak = max(tail_peak, abs(sample))
-    tail_rms = math.sqrt(tail_squares / (2 * tail_frames))
+    tail_channel_rms = [math.sqrt(total / tail_frames) for total in tail_squares]
+    tail_rms = math.sqrt(sum(tail_squares) / (2 * tail_frames))
     tail_fraction = tail_nonzero / (2 * tail_frames)
     if min_tail_rms is not None and (
         tail_rms < min_tail_rms or tail_fraction < min_nonzero_fraction
@@ -132,11 +142,18 @@ def analyze(
             f"rms={tail_rms:.2f} nonzero={tail_fraction:.6f}"
         )
 
+    if min_tail_channel_rms is not None and min(tail_channel_rms) < min_tail_channel_rms:
+        raise ValueError(
+            f"SDL disk playback tail channel silent/insufficient: "
+            f"left={tail_channel_rms[0]:.2f} right={tail_channel_rms[1]:.2f}"
+        )
+
     return {
         "schema_version": 1,
         "tail_pcm_frames": tail_frames,
         "tail_duration_seconds": round(tail_frames / fmt["sample_rate"], 6),
         "tail_rms": round(tail_rms, 6),
+        "tail_channel_rms": [round(x, 6) for x in tail_channel_rms],
         "tail_peak": tail_peak,
         "tail_nonzero_fraction": round(tail_fraction, 8),
         "audio_origin": "sdl3-disk-playback",
@@ -165,6 +182,8 @@ def main() -> int:
     ap.add_argument("--min-nonzero-fraction", type=float, default=0.001)
     ap.add_argument("--tail-seconds", type=float, default=0.5)
     ap.add_argument("--min-tail-rms", type=float)
+    ap.add_argument("--min-channel-rms", type=float)
+    ap.add_argument("--min-tail-channel-rms", type=float)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
     report = analyze(
@@ -174,6 +193,8 @@ def main() -> int:
         min_nonzero_fraction=args.min_nonzero_fraction,
         tail_seconds=args.tail_seconds,
         min_tail_rms=args.min_tail_rms,
+        min_channel_rms=args.min_channel_rms,
+        min_tail_channel_rms=args.min_tail_channel_rms,
     )
     print(
         f"SDL_DISK_AUDIO_CAPTURE PASS frames={report['pcm_frames']} "

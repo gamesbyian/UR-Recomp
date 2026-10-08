@@ -38,6 +38,7 @@ class SdlDiskAudioTests(unittest.TestCase):
             self.assertEqual(report["tail_peak"], 2000)
             self.assertAlmostEqual(report["tail_rms"], math.sqrt(2500000), delta=0.000001)
             self.assertEqual(report["tail_nonzero_fraction"], 1.0)
+            self.assertEqual(report["tail_channel_rms"], [1000.0, 2000.0])
             self.assertEqual(report["pcm_sha256"], hashlib.sha256(pcm.read_bytes()).hexdigest())
 
     def test_stale_capture_from_another_destination_is_rejected(self):
@@ -50,6 +51,40 @@ class SdlDiskAudioTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "destination does not match"):
                 analyze(log, pcm)
+
+    def test_missing_right_channel_rejected_separately_from_total_loudness(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log, pcm = self.write_capture(root, [(2500, 0)] * 9000, rate=8000)
+            report = analyze(log, pcm)
+            self.assertGreater(report["rms"], 50)
+            self.assertEqual(report["channel_rms"][1], 0)
+            self.assertEqual(report["tail_channel_rms"][1], 0)
+            with self.assertRaisesRegex(ValueError, "channel silent/insufficient"):
+                analyze(log, pcm, min_channel_rms=50)
+            with self.assertRaisesRegex(ValueError, "tail channel silent/insufficient"):
+                analyze(log, pcm, min_tail_channel_rms=50)
+
+    def test_channel_disappearing_only_at_race_tail_is_detected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            frames = [(2000, -2500)] * 5000 + [(2000, 0)] * 4000
+            log, pcm = self.write_capture(root, frames, rate=8000)
+            report = analyze(log, pcm, min_channel_rms=50, min_tail_rms=50)
+            self.assertGreater(report["channel_rms"][1], 50)
+            self.assertEqual(report["tail_channel_rms"][1], 0)
+            with self.assertRaisesRegex(ValueError, "tail channel silent/insufficient"):
+                analyze(log, pcm, min_channel_rms=50,
+                        min_tail_channel_rms=50)
+
+    def test_negative_channel_thresholds_are_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log, pcm = self.write_capture(root, [(1000, -1000)] * 9000, rate=8000)
+            with self.assertRaisesRegex(ValueError, "invalid audio acceptance thresholds"):
+                analyze(log, pcm, min_channel_rms=-1)
+            with self.assertRaisesRegex(ValueError, "invalid audio acceptance thresholds"):
+                analyze(log, pcm, min_tail_channel_rms=float("inf"))
 
     def test_silent_race_tail_rejected_despite_loud_earlier_output(self):
         with tempfile.TemporaryDirectory() as tmp:

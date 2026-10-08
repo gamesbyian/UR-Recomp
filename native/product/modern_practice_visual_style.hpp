@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "modern_stock_menu_palette.hpp"
+
 namespace ur::product {
 
 // Host-only design tokens for the first Uniracers-derived Quick Practice
@@ -16,13 +18,13 @@ struct ModernPracticeVisualStyle {
     int selected_row_y_logical = 62;
     int selected_row_height_logical = 17;
 
-    std::uint32_t title_yellow = 0xFFF8F800u;
-    std::uint32_t secondary_grey = 0xFF989898u;
-    std::uint32_t cursor_blue = 0xFFA0D0F8u;
-    std::uint32_t dark_outline = 0xFF000000u;
+    std::uint32_t title_yellow = kModernStockMenuPalette.title_yellow;
+    std::uint32_t secondary_grey = kModernStockMenuPalette.secondary_grey;
+    std::uint32_t cursor_blue = kModernStockMenuPalette.cursor_blue;
+    std::uint32_t dark_outline = kModernStockMenuPalette.shadow_black;
     std::uint32_t selection_band = 0xA0303858u;
-    std::uint32_t panel_fill = 0xE02F2F2Fu;
-    std::uint32_t panel_outline = 0xFF989898u;
+    std::uint32_t panel_fill = kModernStockMenuPalette.background;
+    std::uint32_t panel_outline = kModernStockMenuPalette.frame_grey;
 };
 
 // Preserve the current 240-pixel 4:3 footprint, but spend the extra width

@@ -1,6 +1,6 @@
 # Modern Local Tournament: player-facing panel
 
-Status: **Windows product-host integration with native (Linux desktop) acceptance**. A player can now create a Local Tournament, see its standings and fixtures, and arm their own fixture from the ordinary stock 2P route without any environment hook. Windows-package and multi-session (3+ entrant, relaunch-and-continue) acceptance are still pending; see *Remaining gaps*.
+Status: **player-facing panel and one-fixture Windows packaged acceptance proven** (#946/#964). A player can create a Local Tournament, see standings/fixtures and arm a seated fixture through ordinary stock 2P. Three-plus-entrant multi-session completion and fully raced multi-leg continuation remain release-level QA gaps; see *Remaining gaps* and the QA-03 gate.
 
 ## Cross-session release-quality boundary (2026-10-08)
 
@@ -48,4 +48,4 @@ Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off t
 2. Native multi-session continuation of a 3+ entrant event: rotate seated pairs across fixtures and finish the event over several processes. The two-entrant relaunch path (restore → Standings → History) is proven.
 3. Completed-event history is a summary list only (no per-event standings drill-down) and is not yet mirrored in Records → Multiplayer/Tournament.
 4. Multi-leg continuation is native-proven up to arming leg 2 from the results screen (`run_modern_local_tournament_legs_acceptance.sh`); racing leg 2 to a complete best-of-three is not yet automated.
-5. The P2 pad is not filtered while the panel is open (only the P1 human word is host-owned, as on the join overlay).
+5. **Partial P2 boundary mitigation under adversarial QA:** new P2 source button events while the tournament panel is visible are consumed by the dedicated P2 modal policy, with post-close release suppression; native pure-policy and host-link tests cover these edges. The P2 pad *already held before opening* and real post-close guest-word behavior remain **unverified** until J-06 exercises the actual product guest and both controller seats. Do not mark the P2 isolation gate passed from edge-only proof.

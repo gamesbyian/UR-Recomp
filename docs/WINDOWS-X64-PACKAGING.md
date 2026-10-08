@@ -14,7 +14,7 @@ The shipping artifact is a deterministic `UR-Recomp-Windows-x64.zip` with a sing
 
 The portable package contains:
 
-- `UniracersSNESRecomp.exe`, built with the static MSVC runtime so the portable package does not require a separately installed Visual C++ Redistributable;
+- `UniracersSNESRecomp.exe`, built for AMD64/PE32+ with the static MSVC runtime. The final executable is import-audited against a Windows 10/11 system-DLL allowlist, including delay-load imports, so the portable package cannot silently depend on a Visual C++ Redistributable, an SDL DLL, an OpenMP runtime or other compiler/developer-machine DLL;
 - the canonical `Uniracers_USA.sfc` used by this private project;
 - canonical package-relative `rom.cfg`, containing only `Uniracers_USA.sfc` rather than the generated build/check-out path; the mutable framework ROM cache is redirected to the user-data root after launch;
 - the staged immutable `mods/` tree, with legacy mutable `mods/preloaded/state.toml` explicitly excluded and rejected by verification;
@@ -34,7 +34,7 @@ Because that regression is path-filtered, every source surface compiled into the
 
 The implemented acceptance sequence covers:
 
-1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane, using the static MSVC runtime and rejecting any `MSVCP*.dll` / `VCRUNTIME*.dll` import before packaging;
+1. build the shipping Windows x64 product with the canonical SDL3/ClangCL lane, using the static MSVC runtime; inspect the final executable's PE headers for AMD64/PE32+ and independently parse the `dumpbin /dependents` output against the Windows 10/11 inbox-only DLL policy before packaging. `MSVCP*.dll` / `VCRUNTIME*.dll` remain explicitly forbidden. The policy catches non-inbox normal and delay-load imports even when those DLLs happen to be installed on the Visual Studio CI runner;
 2. assemble and independently verify the clean package manifest, re-verify the packaged ROM against the canonical USA retail fingerprint, including a non-empty source revision, and produce the deterministic ZIP;
 3. extract the ZIP to a fresh directory, re-verify the extracted ROM against the same canonical fingerprint, and launch it from an unrelated working directory through `run-uniracers.cmd`;
 4. reach the stock main menu and the authoritative race-result checkpoint from the extracted consumer package;
@@ -45,7 +45,7 @@ The implemented acceptance sequence covers:
 9. exercise representative startup failures for missing ROM, missing runtime payload, invalid/non-absolute/package-local user-data roots, invalid ROM, synthetic video initialization failure and synthetic audio initialization failure, requiring exactly one stable diagnosis and one retained startup log where the root is writable as documented in `WINDOWS-STARTUP-DIAGNOSTICS.md`;
 10. re-verify the clean source package/archive and retain the deterministic ZIP as the consumer CI artifact.
 
-The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies.
+The package remains self-contained with respect to immutable game/runtime payload. Build tools, repository source trees and checkout-relative paths are not runtime dependencies. The import audit proves link-time and declared delay-load dependencies only; DLLs loaded dynamically via runtime APIs remain subject to extracted-package boot acceptance and cannot be certified by static PE inspection alone. This is a Windows 10/11 portable policy, not a claim of compatibility with older Windows versions.
 
 ## Startup-diagnostics boundary
 

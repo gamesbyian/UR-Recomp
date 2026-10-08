@@ -214,6 +214,9 @@ jobs:
           grep -Fq "UR_PORTABLE_ARCHIVE_VERIFIED" "$RUNNER_TEMP/standalone-windows-verifier.log"
           grep -Fq "UR_PORTABLE_MANIFEST_VERIFIED" "$RUNNER_TEMP/standalone-windows-verifier.log"
           grep -Fq "UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK" "$RUNNER_TEMP/standalone-windows-verifier.log"
+          # Deliver the exact tested standalone verifier with the ZIP pair.
+          cp "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1" \
+            "$RUNNER_TEMP/Test-URRecompPortable.ps1"
 
       - name: Clean-package boot and per-user state anchoring
         run: |
@@ -848,5 +851,6 @@ jobs:
           path: |
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip
             ${{ runner.temp }}/UR-Recomp-Windows-x64.zip.sha256
+            ${{ runner.temp }}/Test-URRecompPortable.ps1
           if-no-files-found: error
           retention-days: 7

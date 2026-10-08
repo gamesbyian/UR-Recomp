@@ -82,6 +82,23 @@ separate byte-exact Circuit unpaced experiment is unresolved. Lower
 shard times do not necessarily translate linearly into whole-workflow
 wall savings while runner scheduling varies.
 
+### Race/Options capture swap on six-shard long pole
+
+A green post-cleanup and post-rebalance run (#879, 37767974404) measured
+approximately 150 s Results-A and 122 s Navigation. The former combines
+a 59 s Race-result route and a 71 s Circuit driving route; the latter
+contains a 51 s Options-submenus route. Because all three run in fresh
+processes with independent dump roots, the Race-result route can move to
+Navigation while the Options-submenus route moves to Results-A. Expected
+capture-job spans are ~142 s Results-A and ~130 s Navigation, leaving
+Core's ~137 s among the longer shards.
+
+This is a routing-only experiment: the source scripts, timeouts, output
+directories, original Race finish-time acceptance, Options reset-separated
+dump assertions and six-shard atlas aggregate are unchanged. The saved
+timing estimates are not evidence of actual future savings. Compare full
+native workflow and aggregate results before merging.
+
 ## Automatic-CI budget
 
 Automatic CI is reserved for the active Windows x64 shipping path and cheap repository integrity contracts.

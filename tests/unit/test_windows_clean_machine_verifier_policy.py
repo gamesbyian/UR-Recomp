@@ -122,6 +122,20 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             2,
         )
 
+    def test_mutable_legacy_mod_state_is_rejected_by_standalone_verifier(self):
+        # The assembler excludes this old package-local selection file. The
+        # offline verifier must independently reject a forged, self-consistent
+        # archive/manifest instead of treating it as ordinary mods/** data.
+        self.assertIn("if ($relative -ceq 'mods/preloaded/state.toml')", self.script)
+        self.assertIn(
+            'Mutable mod-selection state must not be shipped in the package',
+            self.script,
+        )
+        self.assertLess(
+            self.script.index("if ($relative -ceq 'mods/preloaded/state.toml')"),
+            self.script.index('Get-FileHash -LiteralPath $member'),
+        )
+
     def test_success_artifact_contains_standalone_verifier(self):
         workflow = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text()
         copy = workflow.index('cp "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1"')

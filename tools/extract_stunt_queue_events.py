@@ -27,6 +27,9 @@ WRITE_INDEX = 0x0CE3
 PERSISTENT_BOOST = 0x11CF
 AIR = 0x0545
 X_SPEED = 0x04B7
+# USA-retail P1 lap word and per-message consumer enable for ID 0x0F.
+LAST_LAP_REMAINING = 0x0EF1
+LAST_LAP_ENABLE = 0x20E8 + 0x0F - 1  # 7E:20F6, byte
 
 
 class QueueEvidenceError(ValueError):
@@ -66,6 +69,8 @@ def read_series(root: Path, first: int, last: int, prefix: str = "w",
             "boost": u16(image, PERSISTENT_BOOST),
             "air": image[AIR],
             "x_speed": struct.unpack_from("<h", image, X_SPEED)[0],
+            "laps_remaining": u16(image, LAST_LAP_REMAINING),
+            "last_lap_enable": image[LAST_LAP_ENABLE],
         })
     return result
 
@@ -73,7 +78,7 @@ def read_series(root: Path, first: int, last: int, prefix: str = "w",
 def analyze(rows: list[dict], lookback: int = 40) -> dict:
     if not rows or type(lookback) is not int or not 0 <= lookback <= 600:
         raise QueueEvidenceError("need nonempty consecutive frames and a bounded lookback")
-    queued, boosts = [], []
+    queued, boosts, lap_transitions = [], [], []
     for prev, curr in zip(rows, rows[1:]):
         if curr["frame"] != prev["frame"] + 1:
             raise QueueEvidenceError("capture has missing or out-of-order guest frames")
@@ -88,6 +93,13 @@ def analyze(rows: list[dict], lookback: int = 40) -> dict:
                 "frame": curr["frame"], "slot": slot,
                 "message_id": f"0x{curr['buffer'][slot]:02X}",
                 "read_index": curr["read"],
+            })
+        if curr["laps_remaining"] == 1 and prev["laps_remaining"] != 1:
+            lap_transitions.append({
+                "frame": curr["frame"],
+                "previous": prev["laps_remaining"],
+                "last_lap_enable_at_transition": curr["last_lap_enable"],
+                "note": "per-player post-decrement lap word; not a credit assertion",
             })
         diff = curr["boost"] - prev["boost"]
         if diff > 0:
@@ -107,6 +119,8 @@ def analyze(rows: list[dict], lookback: int = 40) -> dict:
         "p1_persistent_boost": "7E:11CF",
         "enqueued_messages": queued,
         "positive_net_boost_events": boosts,
+        "last_lap_transitions": lap_transitions,
+        "last_lap_consumer_enable": "7E:20F6 byte (USA, ID 0x0F)",
         "constraint": "input-only source captures; enqueued ID does not prove which message was consumed",
     }
 
@@ -115,7 +129,8 @@ def compare(a: list[dict], b: list[dict]) -> dict:
     if not a or len(a) != len(b) or [r["frame"] for r in a] != [r["frame"] for r in b]:
         raise QueueEvidenceError("native/reference must have equal, nonempty guest-relative frame windows")
     first = next(({"frame": x["frame"], "fields": sorted(
-        k for k in ("read", "write", "buffer", "boost", "air", "x_speed") if x[k] != y[k]
+        k for k in ("read", "write", "buffer", "boost", "air", "x_speed",
+                  "laps_remaining", "last_lap_enable") if x[k] != y[k]
     )} for x, y in zip(a, b) if x != y), None)
     return {"first_divergence": first, "native_reference_equal": first is None}
 

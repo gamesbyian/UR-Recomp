@@ -84,22 +84,22 @@ jobs:
 
           # Pin the control presentation independently of the runner's
           # defaults so this comparison always exercises two loaded states.
-          printf '%s\\n' \\
-            'UR-HOST-STATE/6' \\
-            'profile=' \\
-            'regional_presentation=north_america' \\
-            'pause_on_focus_loss=1' \\
-            'vibration_enabled=1' \\
-            'display_mode=windowed' \\
-            'vsync=on' \\
-            'presentation_fps=game' \\
-            'output_resolution=native' \\
-            'widescreen=original' \\
-            'internal_render_scale=4x' \\
+          printf '%s\n' \
+            'UR-HOST-STATE/6' \
+            'profile=' \
+            'regional_presentation=north_america' \
+            'pause_on_focus_loss=1' \
+            'vibration_enabled=1' \
+            'display_mode=windowed' \
+            'vsync=on' \
+            'presentation_fps=game' \
+            'output_resolution=native' \
+            'widescreen=original' \
+            'internal_render_scale=4x' \
             > "$STATE"
 
-          SDL_AUDIODRIVER=dummy \\
-          UR_HOST_STATE_PATH="$STATE" \\
+          SDL_AUDIODRIVER=dummy \
+          UR_HOST_STATE_PATH="$STATE" \
           UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
           UR_PRODUCT_DIAGNOSTICS=1 \
             timeout 180s xvfb-run -a "$EXE" "$ROM" \

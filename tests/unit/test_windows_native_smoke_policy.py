@@ -125,6 +125,26 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
                 self.text,
             )
 
+    def test_clean_package_acceptance_uses_space_containing_windows_paths(self) -> None:
+        # This must exercise the *shipping launcher* (not the build-tree exe)
+        # with normal user installation, saved-data and caller paths.
+        for path in (
+            'CALLER="$RUNNER_TEMP/package launch caller"',
+            'EXTRACT="$RUNNER_TEMP/package extracted"',
+            'USER_DATA="$RUNNER_TEMP/package user data"',
+        ):
+            self.assertIn(path, self.text)
+        # Refresh/reinstall must target the same extracted root, rather than
+        # silently switching back to an unspaced location.
+        self.assertIn(
+            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$(dirname "$TEST_PACKAGE")"',
+            self.text,
+        )
+        self.assertNotIn(
+            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"',
+            self.text,
+        )
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

@@ -92,6 +92,7 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("key == SDLK_ESCAPE && !repeat", keyboard)
         self.assertIn("pressed && button == kGamepadBtn_B", raw)
         self.assertIn("pressed && control == 7", mapped)
+        self.assertIn('"ESC / B  CANCEL REPLAY"', source)
         for event_path in (keyboard, raw, mapped):
             self.assertIn("cancel_active_replay_to_browser();", event_path)
 

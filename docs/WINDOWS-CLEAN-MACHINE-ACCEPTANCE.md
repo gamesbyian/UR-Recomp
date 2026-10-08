@@ -20,8 +20,10 @@ It checks:
    never overwriting an existing package or save tree;
 4. the fixed Windows package format and manifest, payload file count/path,
    SHA-256 and byte length for every extracted executable/ROM/mod/resource,
-   canonical package-relative `rom.cfg`, README provenance and no mutable
-   saves/config in the package;
+   **independent canonical USA ROM SHA-256 identity** (pinned against
+   `rom_identity.txt`, not accepted merely because a manifest and ZIP
+   checksum agree), canonical package-relative `rom.cfg`, README provenance
+   and no mutable saves/config in the package;
 5. optionally, an actual launch through `run-uniracers.cmd` from an unrelated
    working directory, with mutable state directed to an isolated folder
    alongside (outside) the extracted package; after the game exits normally,

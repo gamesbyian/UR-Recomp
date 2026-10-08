@@ -47,7 +47,7 @@ frames, at least one second of output by default, and a conservative non-silent
 RMS/nonzero floor. It reports output length, full-file SHA-256, aggregate and
 per-channel amplitude, peak/clipping rates and negotiated device format. It
 does not emit or commit proprietary PCM. A missing, empty, malformed, silently
-open or unsupported-format capture fails closed.
+open, wrong-destination or unsupported-format capture fails closed.
 
 ## Acceptance claims and next gate
 

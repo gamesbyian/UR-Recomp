@@ -263,7 +263,16 @@ jobs:
             results-a)
               run_route ui-options-submenus ui-options-submenus.script ui-options-submenu-dumps 180
               # Retain all Circuit driving captures; the unproven result state is manual research.
-              run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
+              # A matched fresh-root paced/unpaced proof showed exact identity of all
+              # 121 Circuit dumps (WRAM/SRAM/PPU/OAM/framebuffers) with a 71s to 28s
+              # execution improvement. Isolate save/config state so previous
+              # routes cannot perturb the new required reference evidence.
+              (
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR"
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini"
+                run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
+              ) || exit $?
               for tag in ui-circuit-track-selected ui-circuit-now-playing ui-circuit-entered ui-circuit-drive-start ui-circuit-drive-10 ui-circuit-drive-20 ui-circuit-drive-30 ui-circuit-drive-40 ui-circuit-drive-50 ui-circuit-drive-60 ui-circuit-terminal; do
                 test -s "$RUNNER_TEMP/ui-circuit-result-dumps/$tag.wram.bin" || { echo "::error::Missing Circuit capture: $tag"; exit 1; }
               done

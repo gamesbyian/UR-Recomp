@@ -3556,6 +3556,23 @@ jobs:
               "disposition": probe["disposition"],
               "canonical": probe["canonical"],
           }, sort_keys=True))
+          target = probe["target"]
+          canonical = probe["canonical"]
+          assert target["player"] == "p2", target
+          assert target["semantic_frame_id"] == "0x0548", target
+          assert target["companion"] == "0x0EB4", target
+          assert target["selector"] == 0, target
+          assert target["gate"] == "0x0001", target
+          assert target["player_frames"] == 54, target
+          assert target["episode_count"] == 8, target
+          assert probe["witness_exact_state_count"] == 34, probe
+          assert probe["unique_stock_raster_count"] == 1, probe
+          assert canonical["stock_rgba_sha256"] == "e7911e357762ce397af56f1d00d629587710d04406efb3d77ff728e3758375a9", canonical
+          assert canonical["normalized_geometry_sha256"] == "7381ae8e865f566580164e3212edb7c70e2717932df98cd6d3a3aa181583b851", canonical
+          assert canonical["alpha_bounds"] == [16, 6, 43, 36], canonical
+          assert canonical["contact_x2_y2"] == [49, 72], canonical
+          assert canonical["exact_same_player_matches"] == [], canonical
+          assert canonical["palette_normalized_matches"] == [], canonical
           PY
 
       - uses: actions/upload-artifact@v4

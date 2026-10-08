@@ -137,13 +137,10 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         # Refresh/reinstall must target the same extracted root, rather than
         # silently switching back to an unspaced location.
         self.assertIn(
-            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$(dirname "$TEST_PACKAGE")"',
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
             self.text,
         )
-        self.assertNotIn(
-            'python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"',
-            self.text,
-        )
+        self.assertNotIn("python -m zipfile -e", self.text)
 
     def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
         # The ordinary player path must be exercised separately from the
@@ -164,6 +161,23 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
         ):
             self.assertIn(marker, default_boot)
         self.assertIn('python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"', default_boot)
+
+    def test_consumer_zip_uses_native_windows_extraction(self) -> None:
+        # Python may accept ZIP files that Windows' own reader refuses.
+        self.assertEqual(self.text.count("Expand-Archive -LiteralPath"), 2)
+        self.assertNotIn("python -m zipfile -e", self.text)
+        self.assertIn('EXTRACT_WIN="$(cygpath -w "$EXTRACT")"', self.text)
+        self.assertIn(
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
+            self.text,
+        )
+        self.assertIn('$ErrorActionPreference = "Stop"', self.text)
+        clean_step = self.text.index("- name: Clean-package boot and per-user state anchoring")
+        first_extract = self.text.index("Expand-Archive -LiteralPath")
+        race_step = self.text.index("- name: Extracted-package race-result acceptance")
+        self.assertLess(clean_step, first_extract)
+        self.assertLess(first_extract, race_step)
+        self.assertIn("python tools/assemble_windows_package.py verify --package", self.text)
 
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)

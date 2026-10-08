@@ -206,7 +206,12 @@ jobs:
           SCRIPT="$RUNNER_TEMP/package-boot.script"
           mkdir -p "$DUMPS" "$CALLER" "$EXTRACT"
           rm -rf "$USER_DATA"
-          python -m zipfile -e "$PACKAGE_ARCHIVE" "$EXTRACT"
+          # Use Windows' native archive reader for actual ZIP distribution.
+          PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          EXTRACT_WIN="$(cygpath -w "$EXTRACT")"
+          PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
+            powershell.exe -NoProfile -NonInteractive -Command \
+              '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
           TEST_PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_USER_DATA=$USER_DATA" >> "$GITHUB_ENV"
@@ -367,7 +372,12 @@ jobs:
           MULTIPLAYER_MATCH_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urmatch" | cut -d' ' -f1)"
 
           rm -rf "$TEST_PACKAGE"
-          python -m zipfile -e "$PACKAGE_ARCHIVE" "$(dirname "$TEST_PACKAGE")"
+          # Package replacement must use the same Windows extraction path.
+          PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"
+          PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
+            powershell.exe -NoProfile -NonInteractive -Command \
+              '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
 
           CONFIG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"

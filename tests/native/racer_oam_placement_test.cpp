@@ -238,6 +238,10 @@ int main() {
     // Authentic top P1 large object at Y=40 has no inactive small copy
     // in the bottom 112..223 scanlines.
     p1_top.y_raw_8bit = 40;
+    p1_top.tile = 0x00;
+    p1_bottom.tile = 0x08;
+    p2_top.tile = 0x80;
+    p2_bottom.tile = 0x88;
     assert(!racer_p1_only_no_stock_p2_occlusion(
         p1_top, p1_bottom, p2_top, p2_bottom
     ));

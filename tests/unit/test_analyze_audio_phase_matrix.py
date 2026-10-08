@@ -15,6 +15,7 @@ class NativeAudioPhaseMatrixTests(unittest.TestCase):
                 "tail_duration_seconds": 1.0,
                 "tail_rms": rms,
                 "tail_peak": peak,
+                "tail_channel_rms": [rms * 0.92, rms * 1.07],
             }
             for key, rms, peak in zip(
                 CHECKPOINTS,
@@ -44,6 +45,8 @@ class NativeAudioPhaseMatrixTests(unittest.TestCase):
         self.assertAlmostEqual(report["profiles"]["native-sdl-disk"]["race_to_menu_rms_ratio"], 6800 / 2100, delta=1e-6)
         self.assertEqual(report["profiles"]["snes9x"]["rms_phase_order"], list(CHECKPOINTS))
         self.assertEqual(report["native_tail_peak"]["race-entered"], 30000)
+        self.assertEqual(report["native_tail_channel_rms"]["race-entered"],
+                         [6256.0, 7276.0])
 
     def test_native_order_difference_is_evidence_not_an_unjustified_failure(self):
         native, reference = self.fixtures()
@@ -68,6 +71,16 @@ class NativeAudioPhaseMatrixTests(unittest.TestCase):
         native, reference = self.fixtures()
         native["main-menu-ready"]["audio_origin"] = "synthetic"
         with self.assertRaisesRegex(ValueError, "invalid native"):
+            phase_levels(native, reference)
+
+    def test_missing_and_dead_stereo_channel_evidence_rejected(self):
+        native, reference = self.fixtures()
+        native["race-entered"]["tail_channel_rms"] = [1000, 0]
+        with self.assertRaisesRegex(ValueError, "positive and finite"):
+            phase_levels(native, reference)
+        native, reference = self.fixtures()
+        native["now-playing-ready"]["tail_channel_rms"] = [1000]
+        with self.assertRaisesRegex(ValueError, "missing stereo tail"):
             phase_levels(native, reference)
 
     def test_reference_provenance_and_schema_must_be_consistent(self):

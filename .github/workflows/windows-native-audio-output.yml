@@ -24,8 +24,12 @@ on:
         required: true
         type: string
 
+# A skipped workflow_run from a cancelled/failed source build must never
+# cancel a legitimate push-triggered audio acceptance or successful source
+# build capture. Keep those event/outcome classes isolated, while coalescing
+# redundant runs within the same class and branch.
 concurrency:
-  group: windows-native-audio-${{ github.ref }}
+  group: windows-native-audio-${{ github.event_name }}-${{ github.event.workflow_run.conclusion || 'direct' }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

@@ -563,3 +563,25 @@ The next semantic discriminator is an emulator event trace overlaying actual
 C000 collision indices and checkpoint/finish state transitions on candidate
 cells in a circuit and a non-Dragster race. Static X proximity cannot replace
 that dynamic evidence.
+
+
+### Historical start-X evidence calibration (2026-10-08)
+
+A direct cross-check of all 45 normalized course headers against Dessyreqt's
+preserved magicnumber.lua gives 43 exact matches between the script's startX
+constant and decoded header coordinate A.X multiplied by 16. The two exceptions
+are Zoom Zoo (historical 8961 versus header 575*16 = 9200) and Jumps
+(historical zero versus header 262*16 = 4192). All 45 historical finish-X
+values fit inside the corresponding decoded course's derived world X extent.
+
+Crucial source-level limitation: magicnumber.lua **assigns startX but does not
+read it in its calculations**. Its calculations use the script's finishX and
+the live racer X from 7E:0411 instead. Therefore the 43 matches are strong
+evidence of transcription/association between the course header and the
+historical workspace, but are **not an independent emulator measurement of
+race spawn X**. Jumps' zero may be a placeholder, and Zoom Zoo's nonaligned
+8961 may be a historical error or a different author-selected marker. Neither
+case should be silently "corrected" in the historical artifact. The first
+actual discriminator is a deterministic Zoom Zoo/Jumps race-entry WRAM trace
+against both header coordinate pairs, with exact selected course ID and
+frame-relative spawn state, not a guess based on the script's labels.

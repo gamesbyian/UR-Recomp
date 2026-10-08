@@ -703,3 +703,15 @@ scratch region being overwritten between dispatch and the end-of-frame
 dump, but **that phase explanation has not been proven**. Resolve it
 with an instruction-time read/write trace around 81:82E6 and the P1/P2
 marshal, not by assigning stable frame-end memory an in-flight value.
+
+
+The same archived snapshots add a narrower observation: per-player P2's
+stored collision word at 7E:0E97 is exactly 0x1804 on all seven frames,
+matching the settled 7E:0F09 scratch value byte-for-byte; the P1 word
+at 7E:0E95 changes independently. This is consistent with 0F09 holding
+the last marshalled/current-player collision word after the frame
+finishes, potentially P2's. That explanation remains **inferred**:
+an instruction-time trace or authoritative marshal path is required
+to confirm when 0F09 mirrors each player. It is nevertheless enough
+to reject using a postframe 0F09 snapshot as the observed P1 collision
+selector for this trace.

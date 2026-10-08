@@ -26,6 +26,12 @@ PLAYER_CALLS = {
     "P1_contact_surface_collision": ("81:8DD6", "202a9e20958b20b88f"),
     "P2_contact_surface_collision": ("81:8F2A", "202a9e20958b20b88f"),
 }
+FRAME_PHASE_CALLS = {
+    "main_frame_dispatch_before_sampling": ("83:CD4E", "22b58982"),
+    "main_frame_contact_resampling": ("83:CD73", "22148d81"),
+    "bank82_dispatch_wrapper": ("82:89B5", "20b9896b"),
+}
+
 FRAME_DISPATCH_MARSHAL = {
     "P1_frame_dispatch_load": ("82:89BB", "ac950e8c090f"),
     "P2_frame_dispatch_load": ("82:8EC3", "ac970e8c090f"),
@@ -53,7 +59,7 @@ class CourseContactMarshalContractTests(unittest.TestCase):
     def test_exact_instruction_bytes_match_canonical_rom(self):
         for name, (address, expected) in {
             **MARSHAL, **PLAYER_CALLS, **DISPATCH,
-            **FRAME_DISPATCH_MARSHAL,
+            **FRAME_DISPATCH_MARSHAL, **FRAME_PHASE_CALLS,
         }.items():
             with self.subTest(name=name, address=address):
                 self.assertEqual(
@@ -73,6 +79,21 @@ class CourseContactMarshalContractTests(unittest.TestCase):
                     rom_span(beta, address, expected_hex),
                     bytes.fromhex(expected_hex),
                 )
+
+    def test_main_race_frame_calls_object_dispatch_before_new_contact_sample(self):
+        # USA main race path: bank-82 per-player object dispatch first,
+        # bank-81 contact/surface sample after. This establishes ordering,
+        # not a universal unconditional one-frame latency.
+        dispatch_addr = int(FRAME_PHASE_CALLS[
+            "main_frame_dispatch_before_sampling"][0].split(":")[1], 16)
+        sample_addr = int(FRAME_PHASE_CALLS[
+            "main_frame_contact_resampling"][0].split(":")[1], 16)
+        self.assertLess(dispatch_addr, sample_addr)
+        self.assertEqual(
+            FRAME_PHASE_CALLS["bank82_dispatch_wrapper"][1], "20b9896b"
+        )
+        self.assertIn("P1_frame_dispatch_load", FRAME_DISPATCH_MARSHAL)
+        self.assertIn("P2_frame_dispatch_load", FRAME_DISPATCH_MARSHAL)
 
     def test_stored_player_word_enters_shared_course_dispatch(self):
         # Each bank-82 per-player dispatch loads the stored collision word

@@ -7398,8 +7398,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 y + (51 + static_cast<int>(tour) * 16) * scale,
                 row, visible ? 0xFFFFFFFFu : 0xFFA0A0A0u, scale);
         }
-        const std::string hint = "ESC/F7 / PAD " +
-            live_gamepad_binding_label(7) + " BACK";
+        const std::string hint = ur::product::fit_modern_overlay_text(
+            "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",
+            ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 188 * scale,
             hint.c_str(), 0xFFFFFFFFu, scale);

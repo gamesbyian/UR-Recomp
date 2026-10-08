@@ -273,6 +273,14 @@ jobs:
                 printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
+                # Verify the guest actually used our isolated root; merely
+                # writing the config does not establish which root it loaded.
+                grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                  "$RUNNER_TEMP/ui-circuit-drive-capture.log" || {
+                  echo "::error::Circuit run did not load its isolated unpaced config root"
+                  exit 1
+                }
+                echo "UR_CIRCUIT_ISOLATED_CONFIG_ROOT PASS"
               ) || exit $?
               for tag in ui-circuit-track-selected ui-circuit-now-playing ui-circuit-entered ui-circuit-drive-start ui-circuit-drive-10 ui-circuit-drive-20 ui-circuit-drive-30 ui-circuit-drive-40 ui-circuit-drive-50 ui-circuit-drive-60 ui-circuit-terminal; do
                 test -s "$RUNNER_TEMP/ui-circuit-result-dumps/$tag.wram.bin" || { echo "::error::Missing Circuit capture: $tag"; exit 1; }

@@ -251,6 +251,27 @@ shard. The full Native UI aggregate/atlas/finish-time contracts must
 still pass on the optimized configuration; the one-off paired diagnostic
 is not retained in permanent automatic CI.
 
+### Combined-shard validation after Circuit acceleration
+
+PR #891's native candidate (run 37778037908) proved the pristine-root
+Circuit route finished in approximately 28 seconds and preserved the
+full Native UI aggregate. PR #894's green branch run 37828086895
+validated moving Modern settings persistence into Results-A, but its
+branch originated **before** #891 and thus ran a paced Circuit route
+(~71 seconds). These two successful PR-head validations are not by
+themselves evidence of the merged, simultaneous execution policy.
+
+For the combined main-derived check, the required Circuit capture now
+verifies its own native host log announces
+`config dir anchored: $SNESRECOMP_USER_DATA_DIR` after executing
+the unchanged route, as well as the exact isolated config file's
+`DisableFrameDelay = 1` setting. It emits
+`UR_CIRCUIT_ISOLATED_CONFIG_ROOT PASS` only after the guest and
+config root match. The full six-shard aggregate continues as the
+merge gate. This avoids silently falling back to the executable-owned
+config or treating a merged workflow as measured merely because its
+two constituent PRs separately passed.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

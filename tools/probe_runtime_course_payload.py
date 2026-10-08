@@ -38,6 +38,21 @@ def compare(decoded: bytes, live: bytes, limit: int) -> dict:
         ],
     }
 
+def is_fully_loaded_course(decoded: bytes, live: bytes) -> bool:
+    """Prove full course identity, excluding only loader-mutated cursor 0B/0C.
+
+    During Now Playing and early decompression, a mostly zero WRAM image may
+    score >97% against a sparse wrong stream. Never promote a header/player
+    relation from the generic best-match ranking alone.
+    """
+    return (
+        len(decoded) >= 16
+        and len(decoded) <= len(live)
+        and decoded[:0x0B] == live[:0x0B]
+        and decoded[0x0D:] == live[0x0D:len(decoded)]
+    )
+
+
 def rank_spawn_assignment_candidates(
     pair_a: list[int], pair_b: list[int], racer_state: dict
 ) -> dict:
@@ -104,6 +119,9 @@ def main() -> int:
     for index,(off,packed,h) in enumerate(find_streams(rom),1):
         decoded=unpack_method1(packed)
         result=compare(decoded,live,args.limit)
+        result["fully_resident_except_mutable_cursor"] = is_fully_loaded_course(
+            decoded, live
+        )
         result.update({
             "stream":index,
             "rom_offset":f"0x{off:06X}",
@@ -125,6 +143,7 @@ def main() -> int:
         "slot2_y":u16le(wram,0x0417),
     }
     by_stream={x["stream"]:x for x in results}
+    verified = [x for x in results if x["fully_resident_except_mutable_cursor"]]
     focus=by_stream.get(args.focus_stream)
     live_le16_11=u16le(live,11)
     focus_cursor=None
@@ -139,6 +158,28 @@ def main() -> int:
             "advance_needed_for_last_byte":focus["decoded_size"]-1-decoded_cursor,
             "live_equals_last_byte_offset":live_le16_11==focus["decoded_size"]-1,
         }
+    if args.focus_stream is not None:
+        assigned_course = focus if focus in verified else None
+    else:
+        assigned_course = verified[0] if len(verified) == 1 else None
+    if assigned_course is None:
+        assignment = {
+            "discriminator": "not_evaluable_unverified_course_payload",
+            "reason": (
+                "no uniquely verified full decoded course payload at 7F:0000, "
+                "or the requested focus stream is not fully resident"
+            ),
+            "verified_stream_indices": sorted(x["stream"] for x in verified),
+        }
+    else:
+        assignment = rank_spawn_assignment_candidates(
+            assigned_course["pair1"], assigned_course["pair2"], racer_state
+        )
+        assignment["verified_stream_index"] = assigned_course["stream"]
+        assignment["identity_basis"] = (
+            "entire decoded course payload matches 7F:0000 except mutable "
+            "resource-list cursor at offsets 0x0B..0x0C"
+        )
     report={
         "wram_course_base":"7F:0000",
         "live_header_first_16":live[:16].hex(" "),
@@ -148,9 +189,8 @@ def main() -> int:
         "focus_cursor":focus_cursor,
         "top_matches":results[:5],
         "runtime_racer_state":racer_state,
-        "spawn_assignment_probe": rank_spawn_assignment_candidates(
-            best["pair1"], best["pair2"], racer_state
-        ),
+        "verified_course_stream_indices": sorted(x["stream"] for x in verified),
+        "spawn_assignment_probe": assignment,
     }
 
     print(

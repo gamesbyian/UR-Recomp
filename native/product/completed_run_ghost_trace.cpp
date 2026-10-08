@@ -384,6 +384,19 @@ bool save_completed_run_ghost_trace_file(
     const fs::path final_path(path);
     const fs::path parent = final_path.parent_path().empty()
         ? fs::path(".") : final_path.parent_path();
+    std::error_code ec;
+    // Never replace a device, directory, or other special destination.
+    // Tests historically exercised /dev/full; the atomic writer must refuse
+    // that path instead of renaming over a device on privileged machines.
+    if (fs::exists(final_path, ec) &&
+        !fs::is_regular_file(final_path, ec)) {
+        set_detail(detail, "ghost trace destination is not a regular file");
+        return false;
+    }
+    if (ec) {
+        set_detail(detail, "cannot inspect ghost trace destination");
+        return false;
+    }
 
     // Never expose a half-written .urghost to a second game process. Keep
     // staging on the destination filesystem and publish only after close.
@@ -391,7 +404,6 @@ bool save_completed_run_ghost_trace_file(
     // replacement; same-volume rename preserves that repair capability.
     static std::atomic<std::uint64_t> serial{0};
     fs::path staging;
-    std::error_code ec;
     bool reserved = false;
     for (unsigned attempt = 0; attempt < 64; ++attempt) {
         const auto tick = std::chrono::steady_clock::now()

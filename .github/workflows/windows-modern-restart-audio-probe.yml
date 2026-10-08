@@ -78,6 +78,8 @@ jobs:
           PCM="$RUNNER_TEMP/audio-modern-restart-device.raw"
           ROOT="$RUNNER_TEMP/audio-modern-restart-user"
           OUT="$RUNNER_TEMP/audio-modern-restart-proof.json"
+          STATS="$RUNNER_TEMP/audio-modern-restart-queue-stats.txt"
+          STATS_WIN="$(cygpath -w "$STATS")"
           LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
           LOG_WIN="$(cygpath -w "$LOG")"
@@ -95,6 +97,7 @@ jobs:
           SDL_AUDIO_FREQUENCY=44100 \
           SDL_AUDIO_DISK_TIMESCALE=1.0 \
           UR_PRODUCT_DIAGNOSTICS=1 \
+          SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
           UR_PAUSE_OPEN_ACCEPTANCE=1 \
           UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
             python -m tools.capture_modern_restart_audio \
@@ -105,6 +108,12 @@ jobs:
             --min-channel-rms 50 \
             --tail-seconds 1.0 --min-tail-rms 50 --min-tail-channel-rms 50 \
             --json-out "$RUNNER_TEMP/audio-modern-restart-whole-output.json"
+          # Always run the bounded production counter reducer when available,
+          # even if Restart sound fails. This isolates source/ring starvation
+          # independently of the PCM envelope; no audio content is retained.
+          if test -s "$STATS"; then
+            python tools/analyze_snesrecomp_audio_stats.py "$STATS"               --json-out "$RUNNER_TEMP/audio-modern-restart-queue.json"
+          fi
           test -s "$OUT"
           echo "WINDOWS_REAL_MODERN_RESTART_AUDIO PASS"
           rm -f "$PCM"
@@ -118,5 +127,7 @@ jobs:
             ${{ runner.temp }}/audio-modern-restart-native.log
             ${{ runner.temp }}/audio-modern-restart-proof.json
             ${{ runner.temp }}/audio-modern-restart-whole-output.json
+            ${{ runner.temp }}/audio-modern-restart-queue-stats.txt
+            ${{ runner.temp }}/audio-modern-restart-queue.json
           if-no-files-found: warn
           retention-days: 5

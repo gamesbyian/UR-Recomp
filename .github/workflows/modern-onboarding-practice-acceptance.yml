@@ -120,8 +120,13 @@ jobs:
 
   core-acceptance:
     needs: build
+    name: core-${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [onboarding-rematch, practice, system]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -145,7 +150,12 @@ jobs:
           tar -xzf "$RUNNER_TEMP/modern-native-candidate-artifact/modern-native-candidate.tar.gz" -C "$RUNNER_TEMP"
           test -x "$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp/build/UniracersSNESRecomp"
 
+      - name: Seed dismissed onboarding for independent core shards
+        if: matrix.shard != 'onboarding-rematch'
+        run: printf 'seen-v1\n' > "$RUNNER_TEMP/onboarding.seen"
+
       - name: Prove first-run onboarding and dismissal persistence
+        if: matrix.shard == 'onboarding-rematch'
         shell: bash
         run: |
           set -euo pipefail
@@ -173,6 +183,7 @@ jobs:
           ! grep -q "UR_ONBOARDING SHOWN" "$SECOND"
 
       - name: Prove Quick Practice routing can cancel safely
+        if: matrix.shard == 'practice'
         shell: bash
         run: |
           set -euo pipefail
@@ -226,6 +237,7 @@ jobs:
           print("UR_PRACTICE_CANCEL_RESULT=restored frontend=main race_entered=0")
           PY
       - name: Prove one-action completed-race rematch
+        if: matrix.shard == 'onboarding-rematch'
         shell: bash
         run: |
           set -euo pipefail
@@ -267,6 +279,7 @@ jobs:
               f"course={repeated[0x00CE]:02X} state_leakage=0")
           PY
       - name: Prove one-action Quick Practice repeat preserves isolation
+        if: matrix.shard == 'practice'
         shell: bash
         run: |
           set -euo pipefail
@@ -320,6 +333,7 @@ jobs:
               "same_course=1 state_leakage=0")
           PY
       - name: Prove Recent Course relaunch uses isolated Quick Practice
+        if: matrix.shard == 'system'
         shell: bash
         run: |
           set -euo pipefail
@@ -383,6 +397,7 @@ jobs:
               "isolated_practice=1 direct_state_write=0")
           PY
       - name: Prove controller removal releases input and pauses only Modern
+        if: matrix.shard == 'system'
         shell: bash
         run: |
           set -euo pipefail
@@ -423,6 +438,7 @@ jobs:
           ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
 
       - name: Prove authoritative quick practice and SRAM restoration
+        if: matrix.shard == 'practice'
         shell: bash
         run: |
           set -euo pipefail
@@ -458,6 +474,7 @@ jobs:
           test ! -e "$PRACTICE_RUN.urghost"
 
       - name: Prove Authentic mode remains inert
+        if: matrix.shard == 'onboarding-rematch'
         shell: bash
         run: |
           set -euo pipefail
@@ -477,7 +494,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: modern-onboarding-practice-acceptance
+          name: modern-onboarding-core-${{ matrix.shard }}
           path: |
             ${{ runner.temp }}/onboarding-first.log
             ${{ runner.temp }}/onboarding-second.log

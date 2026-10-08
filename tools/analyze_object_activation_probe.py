@@ -147,13 +147,9 @@ def prior_postframe_dispatch_candidate(rows: list[dict], progress: dict | None) 
     """
     if progress is None:
         return None
-    matches = [
-        pos for pos, row in enumerate(rows)
-        if row is progress or (
-            row.get("frame") == progress.get("frame")
-            and row.get("sample") == progress.get("sample")
-        )
-    ]
+    # Only a row from this exact captured sequence can carry the phase
+    # inference. A reconstructed lookalike could belong to another run.
+    matches = [pos for pos, row in enumerate(rows) if row is progress]
     if len(matches) != 1 or matches[0] == 0:
         return None
     current = rows[matches[0]]

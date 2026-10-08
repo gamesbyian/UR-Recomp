@@ -4,6 +4,7 @@ from tools.extract_racer_presentation_family import (
     FRAME_TABLE_ADDR,
     PALETTE_TABLE_ADDR,
     decode_4bpp_tile,
+    encode_4bpp_tile,
     decode_bgr555,
     encode_png_rgba,
     packed_word_source,
@@ -169,6 +170,29 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         tile[17] = 0x10
         px = decode_4bpp_tile(bytes(tile))
         self.assertEqual(px[0][:4], [1, 2, 4, 8])
+
+    def test_4bpp_indexed_pixels_reencode_exact_planar_bytes(self):
+        # Exercise every palette index in every pixel position, including
+        # palette index zero (transparent only at the palette/compositor layer).
+        indexed = [[(x + 8 * y) % 16 for x in range(8)] for y in range(8)]
+        packed = encode_4bpp_tile(indexed)
+        self.assertEqual(len(packed), 32)
+        self.assertEqual(decode_4bpp_tile(packed), indexed)
+        # Arbitrary source plane bytes must also survive pixel interpretation.
+        for raw in (bytes(range(32)), bytes([0x55, 0xAA] * 16), bytes([0xFF] * 32)):
+            self.assertEqual(encode_4bpp_tile(decode_4bpp_tile(raw)), raw)
+            self.assertEqual(b"".join(split_4bpp_tiles(raw)), raw)
+
+    def test_4bpp_encoder_rejects_corrupt_indexed_tiles(self):
+        valid = [[0] * 8 for _ in range(8)]
+        for bad in (valid[:7], valid + [[0] * 8], [[0] * 7] + valid[1:], [[0] * 9] + valid[1:]):
+            with self.assertRaises(ValueError):
+                encode_4bpp_tile(bad)
+        for bad_index in (-1, 16, 256, 2.5, "3"):
+            corrupt = [row[:] for row in valid]
+            corrupt[3][5] = bad_index
+            with self.assertRaises(ValueError):
+                encode_4bpp_tile(corrupt)
 
     def test_packed_word_source_matches_staging_consumer(self):
         self.assertEqual(packed_word_source(0x1B00), (0x27, 0x8360))

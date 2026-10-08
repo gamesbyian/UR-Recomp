@@ -28,10 +28,12 @@ PROBE_CPP = r'''#include "host_main.h"
 #include "snes/ppu.h"
 #include "racer_guest_snapshot.hpp"
 #include "racer_hd_presenter.hpp"
+#include "racer_oam_placement.hpp"
 
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
@@ -48,6 +50,11 @@ extern "C" void UrRacerHdPrepareFrame(
     ur::presentation::racer_hd_prepare_frame(
         drawable_w, drawable_h, frame_w, frame_h
     );
+    if (std::getenv("UR_RACER_HD_P1_NATIVE_TEST")) {
+        // Only the diagnostic mixed-OBJ path uses 1x to permit a strict
+        // same-frame PPU input vs final-output pixel comparison.
+        (void)ur::presentation::racer_hd_set_internal_render_scale(1);
+    }
     if (std::getenv("UR_RACER_HD_PROBE_WIDE") && frame_w && frame_h) {
         // Diagnostic-only WorldExpand-sized logical field. The generated
         // native acceptance game has native_widescreen enabled explicitly.
@@ -92,9 +99,66 @@ extern "C" int UrRacerHdDrawFrame(
     int frame_h,
     double alpha
 ) {
-    return ur::presentation::racer_hd_draw_frame(
+    const int drawn = ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_w, frame_h, alpha
     );
+    if (!std::getenv("UR_RACER_HD_P1_NATIVE_TEST") || !g_ppu) return drawn;
+
+    const auto& capture = g_ppu->overlayCaptures[kPpuOverlaySource_Obj];
+    const bool partial = (capture.flags & kPpuOverlayFlag_RemoveFromGame) &&
+        capture.oamFirst == 97 && capture.oamCount == 2;
+    if (!partial) return drawn;
+    if (!drawn || frame_w != 256 || frame_h != 224 || pitch < 256u * 4u) {
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid partial draw geometry\\n");
+        std::abort();
+    }
+
+    const auto p2 = ur::presentation::decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 2,
+        ur::presentation::RacerViewport::Bottom
+    );
+    if (!p2 || !p2->large || p2->width_pixels != 64 ||
+        p2->height_pixels != 64) {
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid stock P2 OAM\\n");
+        std::abort();
+    }
+
+    // The HD compositor copied *this exact PPU frame* before placing only
+    // P1's two authored instances. P2 remains in the flattened stock field,
+    // and the approved non-overlap gate must leave every pixel inside P2's
+    // lower-viewport OAM rectangle untouched. This avoids any cross-process
+    // guest-frame skew or speculative crop/hash tolerance.
+    int p2_roi_pixels = 0;
+    int hd_changed_pixels = 0;
+    for (int y = 0; y < 224; ++y) {
+        for (int x = 0; x < 256; ++x) {
+            const auto* src = field + static_cast<std::size_t>(y) * 256u * 4u
+                                   + static_cast<std::size_t>(x) * 4u;
+            const auto* out = dst + static_cast<std::size_t>(y) * pitch
+                                 + static_cast<std::size_t>(x) * 4u;
+            const bool differs = std::memcmp(src, out, 4) != 0;
+            if (differs) ++hd_changed_pixels;
+            if (y < 112 || ((y - p2->y_raw_8bit) & 0xFF) >= 64 ||
+                x < p2->x_signed || x >= p2->x_signed + 64) continue;
+            ++p2_roi_pixels;
+            if (differs) {
+                std::fprintf(stderr,
+                    "UR_RACER_HD_P1_NATIVE FAIL stock P2 overwritten x=%d y=%d\\n",
+                    x, y);
+                std::abort();
+            }
+        }
+    }
+    if (p2_roi_pixels > 0 && hd_changed_pixels > 0) {
+        static unsigned logged = 0;
+        if (logged < 24) {
+            std::fprintf(stderr,
+                "UR_RACER_HD_P1_NATIVE PASS p2_stock_roi_exact=1 pixels=%d "
+                "p1_hd_changed_pixels=%d\\n", p2_roi_pixels, hd_changed_pixels);
+            ++logged;
+        }
+    }
+    return drawn;
 }
 
 extern "C" void UrRacerPresentationProbeAfterRunFrame(

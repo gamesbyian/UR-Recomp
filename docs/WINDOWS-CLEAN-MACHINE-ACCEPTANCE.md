@@ -38,8 +38,10 @@ three files to a throwaway Windows machine or clean VM. From Windows PowerShell:
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-URRecompPortable.ps1 `
   -Archive .\UR-Recomp-Windows-x64.zip `
   -Checksum .\UR-Recomp-Windows-x64.zip.sha256 `
-  -Destination "$env:TEMP\UR-Recomp clean package probe"
+  -Destination "$env:TEMP\UR-Recomp & clean machine! (probe)"
 ```
+
+The example deliberately puts `&`, `!` and parentheses in the extracted-package path. The verifier also places its isolated user-data root and unrelated launch working directory below that path. This exercises ordinary, valid Windows path punctuation across extraction, CMD startup logging and persistence without relying on the developer machine’s default directory names. Keep the punctuation when performing the `-Launch` check, not just the no-launch checksum check.
 
 The destination **must not already exist**. To also verify actual player
 startup, repeat with a different destination and `-Launch`. The game will

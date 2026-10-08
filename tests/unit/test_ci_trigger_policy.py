@@ -14,6 +14,7 @@ ABSOLUTE_FRAME_AUTOMATIC_ALLOWLIST = {
 
 DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
     "native-ui-evidence.yml",
+    "modern-shared-native-acceptance.yml",
 }
 
 EXPENSIVE_PR_WORKFLOWS = {
@@ -25,7 +26,6 @@ EXPENSIVE_PR_WORKFLOWS = {
     "multiplayer-match-capture-acceptance.yml",
     "native-build-smoke.yml",
     "native-ui-evidence.yml",
-    "profile-panel-native-acceptance.yml",
     "racer-native-presentation-acceptance.yml",
     "widescreen-4x3-regression.yml",
 }

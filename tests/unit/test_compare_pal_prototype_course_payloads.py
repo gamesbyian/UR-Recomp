@@ -78,6 +78,38 @@ class PalPrototypeCourseComparisonTests(unittest.TestCase):
         self.assertEqual(row["placed_surface"]["first_12_changed_cells"], [])
         self.assertEqual(row["placed_surface"]["changed_world_cells"], 0)
 
+    def test_full_pal_prototype_retail_45_course_world_report(self):
+        if not tool.PROTOTYPE.is_file() or not tool.PAL_RETAIL.is_file():
+            self.skipTest("preserved canonical PAL ROM files not present")
+        report = tool.build_report()
+        self.assertEqual(report["course_count"], 45)
+        self.assertEqual(len(report["courses"]), 45)
+        self.assertEqual(
+            report["changed_stream_indices"],
+            [x["stream_index"] for x in report["courses"]
+             if not x["decoded_identical"]],
+        )
+        for row in report["courses"]:
+            with self.subTest(stream=row["stream_index"]):
+                self.assertEqual(
+                    set(row["sha256"]), {"prototype", "retail"}
+                )
+                surface = row["placed_surface"]
+                self.assertTrue(surface["comparable"])
+                self.assertGreaterEqual(surface["changed_world_cells"], 0)
+                self.assertLessEqual(surface["changed_world_cells"], 262144)
+        # Retain an evidence-friendly result in the unit job. The contents
+        # arise from actual preserved ROM bytes, not guessed delta counts.
+        print("PAL_PROTOTYPE_COURSE_REPORT=" + __import__("json").dumps({
+            "changed": report["changed_stream_indices"],
+            "resource_lists": report["resource_list_changed_stream_indices"],
+            "placed_words": report["placed_packed_word_changed_stream_indices"],
+            "counts": {
+                str(x["stream_index"]): x["placed_surface"]["changed_world_cells"]
+                for x in report["courses"] if not x["decoded_identical"]
+            },
+        }, sort_keys=True))
+
     def test_real_pal_streams_retain_decodable_course_tables(self):
         if not tool.PROTOTYPE.is_file() or not tool.PAL_RETAIL.is_file():
             self.skipTest("preserved canonical PAL ROM files not present")

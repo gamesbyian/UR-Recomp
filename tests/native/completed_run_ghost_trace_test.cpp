@@ -329,6 +329,22 @@ int main(int argc, char** argv) {
         trace, terminal_short, &mismatch, &common, &comparison));
     assert(common == 2);
     assert(comparison.terminal_observation_drift_frames == 1);
+    // Replay cannot pass by comparing only surviving samples when a ghost
+    // trace skips frames. The terminal allowance is exactly one guest frame.
+    auto sparse_tail = trace;
+    sparse_tail.samples.back().race_frame = 100;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        sparse_tail, terminal_short, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+    assert(!ur::test::equivalent_ghost_world_samples(
+        sparse_tail, sparse_tail, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+    auto late_start = trace;
+    for (auto& sample : late_start.samples) ++sample.race_frame;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        late_start, late_start, &mismatch, &common));
+    assert(mismatch.find("noncontiguous") != std::string::npos);
+
     auto two_short = terminal_short;
     two_short.samples.pop_back();
     assert(!ur::test::equivalent_ghost_world_samples(

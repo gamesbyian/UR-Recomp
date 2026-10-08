@@ -13,6 +13,14 @@ enum class CompletedRunReplayTransition : std::uint8_t {
     Cancelled = 2,
 };
 
+// The Local Runs selection is a cached catalog snapshot. Confirm that the
+// immutable artifact still exists with the exact selected canonical content
+// and matches the current authoritative playback target before launch.
+std::optional<CompletedRunRecord> reload_matching_completed_run_replay_record(
+    const std::string& path,
+    const CompletedRunRecord& selected,
+    const RunPlaybackTarget& target);
+
 bool stage_completed_run_replay_input_file(
     const std::string& path,
     const CompletedRunRecord& record,

@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
             *replayed_trace.trace, *replayed.record)) {
         std::fprintf(stderr,
             "UR_RUN_GHOST_TRACE_COMPARE FAIL incomplete run-frame coverage "
-            "original=%zu/%llu replayed=%zu/%llu\\n",
+            "original=%zu/%llu replayed=%zu/%llu\n",
             original_trace.trace->samples.size(),
             static_cast<unsigned long long>(original.record->frame_count),
             replayed_trace.trace->samples.size(),

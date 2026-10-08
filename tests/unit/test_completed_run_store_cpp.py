@@ -20,6 +20,7 @@ class CompletedRunStoreCppTests(unittest.TestCase):
                     "-Wextra",
                     "-Werror",
                     "-pedantic",
+                    "-pthread",
                     "-I",
                     str(ROOT / "native" / "product"),
                     str(ROOT / "native" / "product" / "completed_run_record.cpp"),

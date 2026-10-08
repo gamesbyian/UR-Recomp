@@ -516,7 +516,8 @@ jobs:
             ${{ runner.temp }}/tour-overview/*.log
             ${{ runner.temp }}/frontend-options/*.log
             ${{ runner.temp }}/frontend-controls/*.log
-            ${{ runner.temp }}/vibration/*.log
+            ${{ runner.temp }}/vibration-parity/*.log
+            ${{ runner.temp }}/vibration-aux/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log
             ${{ runner.temp }}/two-player-join/*.log
@@ -533,7 +534,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [tour-a, tour-b, feedback, multiplayer]
+        shard: [tour-a, tour-b, feedback-parity, feedback-aux, multiplayer]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -572,8 +573,9 @@ jobs:
             local name="$1"
             local script="$2"
             local work="$3"
+            shift 3
             echo "===== $name ====="
-            bash "$GITHUB_WORKSPACE/tests/native/$script" "$EXE" "$ROM" "$RUNNER_TEMP/$work"               2>&1 | tee "$DRIVER/$name.log"
+            bash "$GITHUB_WORKSPACE/tests/native/$script" "$EXE" "$ROM" "$RUNNER_TEMP/$work" "$@"               2>&1 | tee "$DRIVER/$name.log"
           }
 
           case "$SHARD" in
@@ -588,8 +590,11 @@ jobs:
               run_case frontend-options run_modern_frontend_options_acceptance.sh frontend-options
               run_case frontend-controls run_modern_frontend_controls_acceptance.sh frontend-controls
               ;;
-            feedback)
-              run_case vibration run_modern_vibration_acceptance.sh vibration
+            feedback-parity)
+              run_case vibration-parity run_modern_vibration_acceptance.sh vibration-parity parity
+              ;;
+            feedback-aux)
+              run_case vibration-aux run_modern_vibration_acceptance.sh vibration-aux aux
               run_case volume run_modern_volume_acceptance.sh volume
               run_case pad-glyphs run_modern_pad_glyph_acceptance.sh pad-glyphs
               ;;

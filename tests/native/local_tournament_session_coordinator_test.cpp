@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <filesystem>
+#include <fstream>
 #include <optional>
 #include <string>
 #include <vector>
@@ -209,6 +210,13 @@ int main() {
           local_tournament_coordinator_complete(*completed.session) &&
           local_tournament_standings(completed.session->results).size() == 3,
           "fresh process has complete ranked tournament after real disk loading");
+    const auto initial_history =
+        load_completed_local_tournament_history(paths, catalog);
+    check(initial_history.scanned && !initial_history.truncated &&
+          initial_history.completed.size() == 1 &&
+          initial_history.completed[0].definition.instance_id == instance &&
+          local_tournament_coordinator_complete(initial_history.completed[0]),
+          "completed tournament is explicitly archived before any successor");
     const fs::path fixture_directory = tour / instance / "fixtures";
     check(fs::exists(fixture_directory), "instance receipt directory exists");
     const fs::path hidden_directory = tour / instance / "hidden-fixtures";
@@ -236,6 +244,51 @@ int main() {
           replaced_reload.session->definition.instance_id == other_instance &&
           !replaced_reload.session->results.results[0],
           "old completed tournament never grants new-instance standings");
+
+    const auto after_replacement =
+        load_completed_local_tournament_history(paths, catalog);
+    check(after_replacement.scanned && !after_replacement.truncated &&
+          after_replacement.completed.size() == 1 &&
+          after_replacement.incomplete_instances == 1 &&
+          after_replacement.completed[0].definition.instance_id == instance &&
+          after_replacement.completed[0].results.results[0] &&
+          after_replacement.completed[0].results.results[1] &&
+          after_replacement.completed[0].results.results[2],
+          "old completed event stays restorable after active instance changes");
+    // A valid stored plan moved under another random instance name cannot
+    // give that instance somebody else's completed tournament result.
+    const fs::path wrong_instance =
+        tour / "ffffffffffffffffffffffffffffffff";
+    fs::create_directories(wrong_instance / "fixtures");
+    fs::copy_file(
+        tour / instance / "session.urtournament",
+        wrong_instance / "session.urtournament");
+    const auto mislabeled = load_completed_local_tournament_history(
+        paths, catalog);
+    check(mislabeled.scanned && mislabeled.completed.size() == 1 &&
+          mislabeled.unavailable_instances == 1,
+          "archive directory must match its canonical embedded instance ID");
+    fs::remove_all(wrong_instance);
+
+    // A damaged immutable plan must remove that whole completed event from
+    // visible history even though underlying general Multiplayer Records
+    // still contain the old (otherwise valid) run/match pairs.
+    {
+        std::ofstream damaged(
+            tour / instance / "session.urtournament",
+            std::ios::binary | std::ios::trunc);
+        damaged << "damaged tournament identity\n";
+        check(bool(damaged), "damage test archived session");
+    }
+    const auto rejected_history =
+        load_completed_local_tournament_history(paths, catalog);
+    check(rejected_history.scanned &&
+          rejected_history.completed.empty() &&
+          rejected_history.unavailable_instances == 1 &&
+          rejected_history.incomplete_instances == 1,
+          "corrupt archive cannot receive retrospective standings credit");
+    check(restore_local_tournament_coordinator(paths, catalog).usable(),
+          "unrelated active tournament remains readable after archive damage");
 
     fs::remove_all(root);
     std::puts("local_tournament_session_coordinator_test: ok");

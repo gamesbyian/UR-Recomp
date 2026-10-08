@@ -1,0 +1,90 @@
+name: Modern native router handoff proof
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/modern-native-router-proof.yml"
+      - ".github/workflows/modern-native-artifact-probe.yml"
+
+concurrency:
+  group: modern-native-router-proof-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          cmake --version
+          ninja --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Build canonical Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/modern-native"
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              --dir "$TMP" --name "Uniracers" --players 2 --yes \
+              --no-ci --no-fetch-boxart --no-recomp-ui --no-netplay \
+              --no-github --no-submodules --no-generate --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/prepare_native_widescreen_product.py \
+            --framework "$FRAMEWORK" --project "$ROOT" --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/modern-native-prepare.json"
+          grep -q '"product_ready": true' "$RUNNER_TEMP/modern-native-prepare.json"
+          python3 tools/patch_modern_product_host.py \
+            "$ROOT/src/main.c" --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+          sha256sum "$ROOT/build/UniracersSNESRecomp" | awk '{print $1}' \
+            > "$RUNNER_TEMP/executable.sha256"
+          tar -czf "$RUNNER_TEMP/modern-native-canonical.tar.gz" \
+            -C "$RUNNER_TEMP" modern-native
+
+      - name: Upload canonical Modern candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: |
+            ${{ runner.temp }}/modern-native-canonical.tar.gz
+            ${{ runner.temp }}/executable.sha256
+          if-no-files-found: error
+          retention-days: 1
+
+  reusable-artifact-probe:
+    needs: build
+    uses: ./.github/workflows/modern-native-artifact-probe.yml
+    with:
+      artifact-name: modern-native-canonical-candidate

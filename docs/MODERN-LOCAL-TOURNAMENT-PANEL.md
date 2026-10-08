@@ -4,13 +4,13 @@ Status: **Windows product-host integration with native (Linux desktop) acceptanc
 
 ## Where it lives
 
-The panel belongs to the stock `TWO_PLAYER_SELECT` visit (`7E:009F = 3D`) **after** the Modern join overlay has confirmed two distinct profiles. Only then is there a seated pair whose own fixture can be armed before the stock route continues. A bottom-centred hint strip names the working inputs (`F4/PAD <L> TOURNAMENT`, where `<L>` is the live GamepadMap button bound to SNES L — `LB` by default), plus `TOURNAMENT MATCH READY` when the seated pair has an unplayed meeting or `EVENT MATCH: RACE <COURSE>` once a fixture is armed. Authentic mode never shows it.
+The panel belongs to the stock `TWO_PLAYER_SELECT` visit (`7E:009F = 3D`) **after** the Modern join overlay has confirmed two distinct profiles. Only then is there a seated pair whose own fixture can be armed before the stock route continues. Because `0x3D` is the stock *PICK A PLAYER* rider grid, the hint is a single top-centred row over the decorative title, never over a rider name: `F4/PAD <L> TOURNAMENT` (`<L>` is the live GamepadMap button bound to SNES L, `LB` by default), `MATCH READY  F4/PAD <L>` when the seated pair has an unplayed meeting, or `EVENT: RACE <COURSE> F4/<L>` once a fixture is armed. Authentic mode never shows it.
 
 Input: `F4` or the mapped `L` semantic opens; arrows / D-pad move; Enter or physical pad A confirms; Escape, `F4`, physical pad B, Start or `L` back out. The panel owns the human P1 input word like every other host modal, and freezes guest frames for human sessions (never under `--script`).
 
 ## Pages
 
-- **Setup** (no active event, or the active event is complete): the authoritative profile catalog with the seated pair preselected, a course preset (`CRAWLER` … the eighth ordinary tour, or `ALL TOURS`; Hunter is never offered), and `START`. The cursor opens on `START`, so the common case is one key. 2–8 entrants; the ninth toggle is refused.
+- **Setup** (no active event, or the active event is complete): the authoritative profile catalog (`(X)` selected) with the seated pair preselected, a course preset (`CRAWLER` … the eighth ordinary tour, or `ALL TOURS`; Hunter is never offered), and `START`. The cursor opens on `START`, so the common case is one key. 2–8 entrants; the ninth toggle is refused.
 - **Standings**: the existing 3/1/0 table (`local_tournament_standings`), ranked with shared ties.
 - **Fixtures**: every round-robin meeting with `*` played / `>` armed, the selected fixture's course and authoritative result (oriented back to the scheduled entrants when race seats were swapped), and whether the seated pair can play it.
 

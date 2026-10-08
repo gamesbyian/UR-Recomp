@@ -57,6 +57,11 @@ int ur_uniracers_modern_controls_active(void);
 /* Nonzero while a paused Modern subview (Options, Controls, Run Data or Quit
  * confirmation) owns the pause surface. */
 int ur_uniracers_modern_subview_active(void);
+/* Settled Modern main menu with no host modal/route: frontend Records may
+ * open. While open, the Modern host owns human input and holds guest frames. */
+int ur_uniracers_modern_frontend_records_admissible(void);
+void ur_uniracers_modern_set_frontend_records_open(int open);
+int ur_uniracers_modern_settled_main_menu(void);
 int ur_uniracers_modern_system_gamepad_control(int control, int pressed);
 uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs);
 void ur_uniracers_modern_system_overlay(

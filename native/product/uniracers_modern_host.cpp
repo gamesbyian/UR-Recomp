@@ -205,6 +205,8 @@ bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
 ur::product::QuickPracticeAvailability g_practice_picker_availability;
 bool g_progress_overview_visible = false;
+// Read-only Records opened over the settled main menu by the product layer.
+bool g_frontend_records_open = false;
 bool g_progress_overview_draw_reported = false;
 ur::title::StockTourProgressOverview g_progress_overview;
 std::optional<std::string> g_progress_overview_profile_id;
@@ -3971,6 +3973,7 @@ bool host_owns_human_player_input() {
     return modern_mode() &&
            (g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
+            g_frontend_records_open ||
             g_practice_picker.visible ||
             g_progress_overview_visible ||
             practice_routing() ||
@@ -7207,6 +7210,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (g_progress_overview_visible && key == SDLK_F8) {
+        close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+        (void)ur_uniracers_product_open_frontend_records();
+        return 1;
+    }
     if (g_progress_overview_visible) {
         if (key == SDLK_ESCAPE || key == SDLK_F7 ||
             key == SDLK_RETURN || key == SDLK_KP_ENTER) {
@@ -7447,6 +7455,26 @@ extern "C" int ur_uniracers_modern_controls_active(void) {
     return modern_mode() && g_controls_visible ? 1 : 0;
 }
 
+extern "C" int ur_uniracers_modern_settled_main_menu(void) {
+    return modern_mode() && g_ram && !paused() &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 ? 1 : 0;
+}
+
+extern "C" int ur_uniracers_modern_frontend_records_admissible(void) {
+    // Any other host modal or route keeps ownership; Records never stacks.
+    return ur_uniracers_modern_settled_main_menu() &&
+        !g_frontend_records_open && !host_owns_human_player_input() &&
+        !g_practice_active && !g_exit_frontend_waiting_for_main &&
+        !g_exit_frontend_waiting_for_usable ? 1 : 0;
+}
+
+extern "C" void ur_uniracers_modern_set_frontend_records_open(int open) {
+    // The closing edge keeps the latch so a held Escape/B cannot reach the
+    // stock menu underneath on a later frame.
+    if (g_frontend_records_open && !open) g_suppress_human_input_once = true;
+    g_frontend_records_open = open != 0;
+}
+
 extern "C" int ur_uniracers_modern_subview_active(void) {
     // Paused help (F1) is a full panel too; it owns the footer hint area.
     return modern_mode() &&
@@ -7617,6 +7645,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     if (g_progress_overview_visible) {
         if (host_confirm || host_back) {
             if (pressed) close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+            return 1;
+        }
+        // Physical X hands Progress off to the read-only Records browser.
+        if (button == kGamepadBtn_X) {
+            if (pressed) {
+                close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+                (void)ur_uniracers_product_open_frontend_records();
+            }
             return 1;
         }
         return -1;
@@ -8136,7 +8172,7 @@ bool frontend_modal_hold_wanted() {
         g_frontend_options_active && (g_options_visible || g_controls_visible);
     return g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings ||
-        onboarding_surface_active();
+        g_frontend_records_open || onboarding_surface_active();
 }
 
 void update_frontend_modal_hold() {
@@ -8381,7 +8417,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 const std::size_t i = start + row;
                 const bool chosen = i < panel.selected.size() && panel.selected[i];
                 std::string text = std::string(panel.cursor == i ? ">" : " ") +
-                    (chosen ? "[X] " : "[ ] ") +
+                    (chosen ? "(X) " : "( ) ") +
                     ur::product::local_tournament_entrant_label(
                         panel.candidates, panel.candidates[i].profile_id, 16);
                 line(46 + static_cast<int>(row) * 16, text,
@@ -8591,7 +8627,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
-            "ESC/F7 / PAD B BACK",
+            "B BACK  F8/PAD X RECORDS",
             ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 188 * scale,
@@ -8769,14 +8805,16 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
     }
 
-    // Local Tournament hint on the confirmed stock 2P select surface: names
-    // the armed course to pick, or the working inputs that open the panel.
+    // Local Tournament hint on the confirmed stock 2P select surface. That
+    // screen is the stock PICK A PLAYER rider grid, so the hint is ONE row
+    // over the decorative title and never covers a rider name.
     if (!g_local_tournament_panel_visible &&
         local_tournament_panel_context_valid()) {
-        std::array<std::string, 2> rows{};
-        std::size_t row_count = 0;
+        std::array<std::string, 1> rows{};
+        const std::size_t row_count = 1;
         const auto& p1 = g_local_multiplayer_participants.player1;
         const auto& p2 = g_local_multiplayer_participants.player2;
+        const std::string pad = live_gamepad_binding_label(10);
         if (g_local_tournament_session &&
             g_local_tournament_session->launch.pending) {
             std::string course(ur::product::local_tournament_course_name(
@@ -8784,22 +8822,21 @@ extern "C" void ur_uniracers_modern_system_overlay(
             for (char& ch : course) {
                 if (ch >= 'a' && ch <= 'z') ch = static_cast<char>(ch - 'a' + 'A');
             }
-            rows[row_count++] = "EVENT MATCH: RACE " + course;
+            rows[0] = "EVENT: RACE " + course + " F4/" + pad;
         } else if (g_local_tournament_session && p1 && p2 &&
                    ur::product::local_tournament_seated_fixture(
                        g_local_tournament_session->results,
                        p1->profile_id, p2->profile_id)) {
-            rows[row_count++] = "TOURNAMENT MATCH READY";
+            rows[0] = "MATCH READY  F4/PAD " + pad;
+        } else {
+            // The pad input is the SNES L semantic: name its live binding.
+            rows[0] = "F4/PAD " + pad + " TOURNAMENT";
         }
-        // The pad input is the SNES L semantic: name its live binding.
-        rows[row_count++] =
-            "F4/PAD " + live_gamepad_binding_label(10) + " TOURNAMENT";
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
-            std::string summary = rows[0] + (row_count > 1 ? " | " + rows[1] : "");
-            if (summary != g_local_tournament_strip_reported) {
-                g_local_tournament_strip_reported = summary;
+            if (rows[0] != g_local_tournament_strip_reported) {
+                g_local_tournament_strip_reported = rows[0];
                 std::fprintf(stderr, "UR_LOCAL_TOURNAMENT STRIP rows=%s\n",
-                    summary.c_str());
+                    rows[0].c_str());
                 std::fflush(stderr);
             }
         }
@@ -8816,8 +8853,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
         request.output_viewport = {0, 0, width, height};
         request.reserved.left = 2;
         request.reserved.right = 2;
-        request.reserved.bottom = 2;
-        request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
+        request.reserved.top = 2;
+        request.anchor = ur::product::HostOverlayAnchor::TopCenter;
         request.preferred_width = strip_w;
         request.preferred_height = strip_h;
         request.minimum_width = strip_w;

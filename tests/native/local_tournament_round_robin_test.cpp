@@ -70,7 +70,61 @@ const LocalTournamentStanding& find_row(
 
 } // namespace
 
+void test_legs() {
+    require(!make_local_round_robin({"a", "b"}, {"course:01"}, 0),
+            "zero legs rejected");
+    require(!make_local_round_robin(
+                {"a", "b"}, {"course:01"}, kLocalTournamentMaxLegs + 1),
+            "too many legs rejected");
+    const auto single = make_local_round_robin(
+        {"a", "b", "c", "d"}, {"course:01", "course:04"});
+    const auto explicit_single = make_local_round_robin(
+        {"a", "b", "c", "d"}, {"course:01", "course:04"}, 1);
+    require(single && explicit_single && single->legs == 1 &&
+            explicit_single->fixtures.size() == single->fixtures.size(),
+            "one leg is the original schedule");
+    for (std::size_t i = 0; i < single->fixtures.size(); ++i) {
+        const auto& a = single->fixtures[i];
+        const auto& b = explicit_single->fixtures[i];
+        require(a.round == b.round && a.player1 == b.player1 &&
+                a.player2 == b.player2 && a.course_id == b.course_id,
+                "explicit one leg is byte-for-byte the default");
+    }
+
+    // Two racers, best of three: three meetings on alternating seats, with
+    // rounds 1..3 and the course pool cycling across legs.
+    const auto duel = make_local_round_robin(
+        {"a", "b"}, {"course:01", "course:04"}, 3);
+    require(duel && duel->legs == 3 && duel->fixtures.size() == 3 &&
+            duel->results.size() == 3, "two-racer three-leg schedule");
+    require(duel->fixtures[0].round == 1 && duel->fixtures[1].round == 2 &&
+            duel->fixtures[2].round == 3, "legs continue round numbering");
+    require(duel->fixtures[0].player1 == 0 && duel->fixtures[1].player1 == 1 &&
+            duel->fixtures[2].player1 == 0, "even legs swap seats");
+    require(duel->fixtures[0].course_id == "course:01" &&
+            duel->fixtures[1].course_id == "course:04" &&
+            duel->fixtures[2].course_id == "course:01",
+            "courses keep cycling across legs");
+
+    // Four racers, two legs: every pair meets exactly twice.
+    const auto league = make_local_round_robin(
+        {"a", "b", "c", "d"}, {"course:01"}, 2);
+    require(league && league->fixtures.size() == 12, "4x2 legs fixtures");
+    std::set<std::pair<std::size_t, std::size_t>> seen_first, seen_second;
+    for (std::size_t i = 0; i < league->fixtures.size(); ++i) {
+        const auto& f = league->fixtures[i];
+        const auto key = std::minmax(f.player1, f.player2);
+        auto& seen = i < 6 ? seen_first : seen_second;
+        require(seen.insert({key.first, key.second}).second,
+                "each pair meets once per leg");
+        require(i < 6 ? f.round <= 3 : (f.round >= 4 && f.round <= 6),
+                "second leg rounds follow the first");
+    }
+    require(seen_first == seen_second, "both legs cover the same pairs");
+}
+
 int main() {
+    test_legs();
     require(local_tournament_ordinary_race_course("course:01"),
             "first ordinary race");
     require(local_tournament_ordinary_race_course("course:04"),

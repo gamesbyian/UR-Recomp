@@ -62,7 +62,8 @@ inline LocalTournamentRestoreResult restore_local_tournament_receipts(
         return reject(LocalTournamentRestoreStatus::InvalidInstance);
     }
     const auto canonical = make_local_round_robin(
-        expected_empty_plan.entrants, expected_empty_plan.course_pool);
+        expected_empty_plan.entrants, expected_empty_plan.course_pool,
+        expected_empty_plan.legs);
     if (!canonical ||
         expected_empty_plan.fixtures.size() != canonical->fixtures.size() ||
         expected_empty_plan.results.size() != canonical->results.size()) {

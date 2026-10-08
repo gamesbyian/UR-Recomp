@@ -612,8 +612,15 @@ jobs:
           PACED_LOG="$RUNNER_TEMP/paced-proof.log"
           mkdir -p "$PACED_USER"
           printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
+          # Both processes otherwise publish the same mods/preloaded/state.toml
+          # through one fixed state.toml.tmp, so one can rename the other's
+          # temp away ("cannot publish mod state: No such file or directory").
+          # Give each concurrent capture its own mod-state file.
+          UNPACED_MOD_STATE="$RUNNER_TEMP/completed-run-unpaced-mod-state.toml"
+          PACED_MOD_STATE="$PACED_USER/mod-state.toml"
 
           SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_MOD_STATE_PATH="$UNPACED_MOD_STATE" \
           UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
           UR_PRODUCT_DIAGNOSTICS=1 \
             timeout 180s xvfb-run -n 90 "$EXE" "$ROM" \
@@ -623,6 +630,7 @@ jobs:
 
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
+          SNESRECOMP_MOD_STATE_PATH="$PACED_MOD_STATE" \
           UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \
           UR_PRODUCT_DIAGNOSTICS=1 \
             timeout 180s xvfb-run -n 91 "$EXE" "$ROM" \

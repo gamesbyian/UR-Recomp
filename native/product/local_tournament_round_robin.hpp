@@ -19,6 +19,8 @@ namespace ur::product {
 // tournament. The eventual session/sidecar boundary must explicitly bind a
 // fixture before giving an admitted StoredMultiplayerMatch to this reducer.
 inline constexpr std::size_t kLocalTournamentMaxEntrants = 8;
+// Each pair meets once per leg. Leg 2 swaps seats; leg 3 restores them.
+inline constexpr std::size_t kLocalTournamentMaxLegs = 3;
 
 struct LocalTournamentFixture {
     std::size_t round = 0;  // 1-based
@@ -37,6 +39,7 @@ struct LocalTournamentRecordedResult {
 struct LocalTournamentState {
     std::vector<std::string> entrants;
     std::vector<std::string> course_pool;
+    std::size_t legs = 1;
     std::vector<LocalTournamentFixture> fixtures;
     std::vector<std::optional<LocalTournamentRecordedResult>> results;
 };
@@ -86,8 +89,10 @@ inline bool local_tournament_ordinary_race_course(std::string_view course) {
 
 inline std::optional<LocalTournamentState> make_local_round_robin(
     std::vector<std::string> entrant_ids,
-    std::vector<std::string> ordinary_race_courses) {
-    if (entrant_ids.size() < 2 ||
+    std::vector<std::string> ordinary_race_courses,
+    std::size_t legs = 1) {
+    if (legs < 1 || legs > kLocalTournamentMaxLegs ||
+        entrant_ids.size() < 2 ||
         entrant_ids.size() > kLocalTournamentMaxEntrants ||
         ordinary_race_courses.empty() ||
         ordinary_race_courses.size() > 16) return std::nullopt;
@@ -119,25 +124,33 @@ inline std::optional<LocalTournamentState> make_local_round_robin(
     LocalTournamentState state;
     state.entrants = std::move(entrant_ids);
     state.course_pool = std::move(ordinary_race_courses);
+    state.legs = legs;
 
     const std::size_t n = state.entrants.size();
     const std::size_t slot_count = n + (n % 2);
     std::vector<std::size_t> slots(slot_count);
     std::iota(slots.begin(), slots.end(), std::size_t{0});
     std::size_t next_course = 0;
-    for (std::size_t round = 1; round < slot_count; ++round) {
-        for (std::size_t pair = 0; pair < slot_count / 2; ++pair) {
-            const auto first = slots[pair];
-            const auto second = slots[slot_count - 1 - pair];
-            if (first == n || second == n) continue; // explicit bye
-            state.fixtures.push_back({
-                round, first, second,
-                state.course_pool[next_course % state.course_pool.size()],
-            });
-            ++next_course;
+    const std::size_t rounds_per_leg = slot_count - 1;
+    for (std::size_t leg = 0; leg < legs; ++leg) {
+        // Every leg replays the same circle-method order. Courses keep
+        // cycling across legs, so a repeated meeting tends to change track.
+        std::iota(slots.begin(), slots.end(), std::size_t{0});
+        for (std::size_t round = 1; round <= rounds_per_leg; ++round) {
+            for (std::size_t pair = 0; pair < slot_count / 2; ++pair) {
+                auto first = slots[pair];
+                auto second = slots[slot_count - 1 - pair];
+                if (first == n || second == n) continue; // explicit bye
+                if (leg % 2 == 1) std::swap(first, second);
+                state.fixtures.push_back({
+                    leg * rounds_per_leg + round, first, second,
+                    state.course_pool[next_course % state.course_pool.size()],
+                });
+                ++next_course;
+            }
+            // Circle method: hold slot zero fixed; rotate all other positions.
+            std::rotate(slots.begin() + 1, slots.end() - 1, slots.end());
         }
-        // Circle method: hold slot zero fixed; rotate all other positions.
-        std::rotate(slots.begin() + 1, slots.end() - 1, slots.end());
     }
     state.results.resize(state.fixtures.size());
     return state;

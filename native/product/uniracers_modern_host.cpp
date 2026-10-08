@@ -275,11 +275,20 @@ bool g_local_tournament_panel_visible;
 ur::product::LocalTournamentPanelState g_local_tournament_panel;
 std::string g_local_tournament_panel_notice;
 bool g_local_tournament_restore_rejected;
+// Ending an unfinished event takes two explicit confirms on Standings; only
+// then may the next Setup replace it. Its archive stays as an incomplete
+// instance and never enters History.
+bool g_local_tournament_end_confirming;
+bool g_local_tournament_replace_unfinished;
 // Completed-event summaries read once per panel open from receipt-bound
 // archives; never derived from general Records history.
 std::vector<std::string> g_local_tournament_history_rows;
 std::size_t g_local_tournament_history_unavailable;
 std::string g_local_tournament_strip_reported;
+// One-row event status after a credited fixture; shown only on the stock
+// screen where the credit happened and retired as soon as that screen ends.
+std::string g_local_tournament_result_notice;
+std::uint8_t g_local_tournament_result_notice_screen;
 // Independent of the stock join-overlay visit flag, which is cleared as soon
 // as the title leaves 0x3D for the actual race.
 bool g_local_tournament_route_seen_two_player_select;
@@ -4112,17 +4121,30 @@ void maybe_arm_local_tournament_native_acceptance() {
     product_diagnostic("UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED");
 }
 
-// The panel belongs to the stock TWO_PLAYER_SELECT visit after BOTH Modern
-// participants are confirmed: only then is there a seated pair whose own
-// fixture can be armed before the stock route continues.
+// The panel belongs to a confirmed 2P session: the stock TWO_PLAYER_SELECT
+// visit after BOTH Modern participants are confirmed, or that same pair's
+// ordinary 2P results screen once its capture has settled. Only then is there
+// a seated pair whose own next fixture (for example a later leg) can be armed
+// before the stock route continues to the next race.
 bool local_tournament_panel_context_valid() {
-    return modern_mode() && !paused() && g_ram &&
-        g_ram[0x009F] == 0x3D && g_ram[0x0313] != 0x01 &&
-        !g_local_multiplayer_join_visible &&
-        multiplayer_participant_session_ready();
+    if (!modern_mode() || paused() || !g_ram || g_ram[0x0313] == 0x01 ||
+        g_local_multiplayer_join_visible ||
+        !multiplayer_participant_session_ready()) {
+        return false;
+    }
+    if (g_ram[0x009F] == 0x3D) return true;
+    return g_ram[0x009F] == ur::title::kOrdinaryTwoPlayerRaceResultMenu &&
+        !g_multiplayer_run_capture.capturing();
+}
+
+bool local_tournament_results_surface() {
+    return g_ram &&
+        g_ram[0x009F] == ur::title::kOrdinaryTwoPlayerRaceResultMenu;
 }
 
 void close_local_tournament_panel(const char* diagnostic) {
+    g_local_tournament_end_confirming = false;
+    g_local_tournament_replace_unfinished = false;
     g_local_tournament_panel_visible = false;
     g_local_tournament_panel = {};
     g_local_tournament_panel_notice.clear();
@@ -4169,7 +4191,7 @@ void local_tournament_panel_show_setup() {
         g_local_multiplayer_participants.player2->profile_id);
     // Cursor starts on START: the seated pair is already a valid roster.
     g_local_tournament_panel.cursor =
-        g_local_tournament_panel.candidates.size() + 1;
+        ur::product::local_tournament_setup_start_row(g_local_tournament_panel);
 }
 
 void refresh_local_tournament_history_rows() {
@@ -4221,10 +4243,25 @@ bool open_local_tournament_panel() {
 
 void create_local_tournament_from_panel(
     const ur::product::LocalTournamentPanelRequest& request) {
-    // An unfinished event is never silently discarded from this surface.
-    if (g_local_tournament_session && !local_tournament_session_complete()) {
+    // An unfinished event is never silently discarded from this surface:
+    // only an explicit, confirmed End Event allows replacing it.
+    if (g_local_tournament_session && !local_tournament_session_complete() &&
+        !g_local_tournament_replace_unfinished) {
         g_local_tournament_panel_notice = "EVENT IN PROGRESS";
         return;
+    }
+    if (g_local_tournament_session &&
+        g_local_tournament_session->launch.pending) {
+        // A never-raced armed attempt dies with the event it belonged to.
+        const std::string abandoned =
+            g_local_tournament_session->launch.pending->attempt_id;
+        if (ur::product::cancel_local_tournament_capture(
+                *g_local_tournament_session, abandoned) !=
+            ur::product::LocalTournamentCoordinatorStatus::Cancelled) {
+            g_local_tournament_panel_notice = "CREATE FAILED";
+            product_diagnostic("UR_LOCAL_TOURNAMENT END_CANCEL_FAILED");
+            return;
+        }
     }
     const auto token = ur::product::mint_local_tournament_token();
     if (!token) {
@@ -4240,7 +4277,7 @@ void create_local_tournament_from_panel(
         g_local_tournament_restore_rejected;
     const auto created = ur::product::create_local_tournament_coordinator(
         paths, *token, request.roster, g_profile_catalog, request.courses,
-        replace);
+        replace, request.legs);
     if (!created.usable()) {
         g_local_tournament_panel_notice = "CREATE FAILED";
         product_diagnostic("UR_LOCAL_TOURNAMENT CREATE_FAILED");
@@ -4248,14 +4285,16 @@ void create_local_tournament_from_panel(
     }
     g_local_tournament_session = *created.session;
     g_local_tournament_restore_rejected = false;
+    g_local_tournament_replace_unfinished = false;
     local_tournament_panel_show_overview();
     g_local_tournament_panel_notice = "EVENT CREATED";
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
-            "UR_LOCAL_TOURNAMENT CREATED entrants=%zu fixtures=%zu courses=%zu\n",
+            "UR_LOCAL_TOURNAMENT CREATED entrants=%zu fixtures=%zu courses=%zu legs=%zu\n",
             g_local_tournament_session->results.entrants.size(),
             g_local_tournament_session->results.fixtures.size(),
-            g_local_tournament_session->results.course_pool.size());
+            g_local_tournament_session->results.course_pool.size(),
+            g_local_tournament_session->results.legs);
         std::fflush(stderr);
     }
 }
@@ -4318,9 +4357,27 @@ bool handle_local_tournament_panel_nav(ur::product::LocalTournamentPanelNav nav)
     }
     if (nav == Nav::Back && g_local_tournament_panel.page == Page::Setup &&
         g_local_tournament_session) {
+        g_local_tournament_replace_unfinished = false;
         local_tournament_panel_show_overview();
         return true;
     }
+    // End Event: A on Standings of an unfinished event asks, A again ends.
+    if (nav == Nav::Confirm &&
+        g_local_tournament_panel.page == Page::Standings &&
+        g_local_tournament_session && !local_tournament_session_complete()) {
+        if (!g_local_tournament_end_confirming) {
+            g_local_tournament_end_confirming = true;
+            g_local_tournament_panel_notice = "A AGAIN: END THIS EVENT";
+            return true;
+        }
+        g_local_tournament_end_confirming = false;
+        g_local_tournament_replace_unfinished = true;
+        local_tournament_panel_show_setup();
+        g_local_tournament_panel_notice = "START REPLACES THE EVENT";
+        product_diagnostic("UR_LOCAL_TOURNAMENT END_CONFIRMED");
+        return true;
+    }
+    g_local_tournament_end_confirming = false;
     g_local_tournament_panel_notice.clear();
     const auto request = ur::product::local_tournament_panel_navigate(
         g_local_tournament_panel, nav, local_tournament_panel_fixture_count());
@@ -4352,64 +4409,121 @@ int g_local_tournament_panel_acceptance_step;
 
 void run_local_tournament_panel_acceptance() {
     const char* mode = std::getenv("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE");
-    if (g_local_tournament_panel_acceptance_step >= 3 || !mode) return;
-    if (!local_tournament_panel_context_valid()) {
+    if (!mode) return;
+    // "reopen": a fresh process must restore the completed event on its
+    // Standings page and list it under History, then leave the panel.
+    // "legs": create a two-leg event, race leg 1, then arm leg 2 from the
+    // ordinary 2P results screen and quit.
+    const bool reopen = std::strcmp(mode, "reopen") == 0;
+    const bool legs = std::strcmp(mode, "legs") == 0;
+    const int last_step = legs ? 9 : 3;
+    if (g_local_tournament_panel_acceptance_step >= last_step) return;
+    const int step = g_local_tournament_panel_acceptance_step;
+    // Leg 2 is armed from the results screen, so that step waits for it.
+    if (!local_tournament_panel_context_valid() ||
+        (legs && step >= 3 && !local_tournament_results_surface())) {
         g_local_tournament_panel_acceptance_frames = 0;
         return;
     }
     if (++g_local_tournament_panel_acceptance_frames < 60u) return;
     g_local_tournament_panel_acceptance_frames = 0;
     using Page = ur::product::LocalTournamentPanelPage;
-    // "reopen": a fresh process must restore the completed event on its
-    // Standings page and list it under History, then leave the panel.
-    const bool reopen = std::strcmp(mode, "reopen") == 0;
-    const int step = g_local_tournament_panel_acceptance_step;
+    const auto& panel = g_local_tournament_panel;
+    const bool on_start = g_local_tournament_panel_visible &&
+        panel.page == Page::Setup &&
+        panel.cursor == ur::product::local_tournament_setup_start_row(panel);
     bool expected = false;
     if (step == 0) {
         expected = !g_local_tournament_panel_visible;
     } else if (reopen) {
         expected = g_local_tournament_panel_visible &&
-            g_local_tournament_panel.page ==
-                (step == 1 ? Page::Standings : Page::History) &&
+            panel.page == (step == 1 ? Page::Standings : Page::History) &&
             local_tournament_session_complete();
-    } else {
+    } else if (step == 1) {
+        expected = on_start;
+    } else if (step == 2) {
         expected = g_local_tournament_panel_visible &&
-            (step == 1
-                ? g_local_tournament_panel.page == Page::Setup &&
-                  g_local_tournament_panel.cursor ==
-                      g_local_tournament_panel.candidates.size() + 1
-                : g_local_tournament_panel.page == Page::Fixtures);
+            panel.page == Page::Fixtures;
+    } else if (step == 3) {
+        expected = !g_local_tournament_panel_visible &&
+            local_tournament_results_surface() &&
+            !g_local_tournament_result_notice.empty();
+    } else if (step == 4) {
+        expected = g_local_tournament_panel_visible &&
+            panel.page == Page::Fixtures && panel.fixture_cursor == 1;
+    } else if (step == 5) {
+        // Leg 2 is armed; End Event must be able to discard it.
+        expected = !g_local_tournament_panel_visible &&
+            g_local_tournament_session &&
+            g_local_tournament_session->launch.pending.has_value();
+    } else if (step == 6) {
+        expected = g_local_tournament_panel_visible &&
+            panel.page == Page::Fixtures;
+    } else if (step == 7) {
+        expected = g_local_tournament_panel_visible &&
+            panel.page == Page::Standings &&
+            !local_tournament_session_complete();
+    } else {
+        expected = on_start && g_local_tournament_replace_unfinished;
     }
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
             "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP %d expected=%d visible=%d page=%d cursor=%zu fixture=%zu selected=%zu history=%zu\n",
             step, expected ? 1 : 0, g_local_tournament_panel_visible ? 1 : 0,
-            static_cast<int>(g_local_tournament_panel.page),
-            g_local_tournament_panel.cursor,
-            g_local_tournament_panel.fixture_cursor,
-            ur::product::local_tournament_setup_selected_count(
-                g_local_tournament_panel),
+            static_cast<int>(panel.page), panel.cursor, panel.fixture_cursor,
+            ur::product::local_tournament_setup_selected_count(panel),
             g_local_tournament_history_rows.size());
         std::fflush(stderr);
     }
     if (!expected) {
-        g_local_tournament_panel_acceptance_step = 3;
+        g_local_tournament_panel_acceptance_step = last_step;
         product_diagnostic("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE");
         return;
     }
     ++g_local_tournament_panel_acceptance_step;
-    const int key = step == 0 ? SDLK_F4
+    if (step == 1 && legs) {
+        // START -> LEGS, step to two meetings, back to START.
+        (void)ur_uniracers_modern_system_key_down(SDLK_UP, 0, 0);
+        (void)ur_uniracers_modern_system_key_down(SDLK_RIGHT, 0, 0);
+        (void)ur_uniracers_modern_system_key_down(SDLK_DOWN, 0, 0);
+    }
+    if (legs && step == 7) {
+        // First confirm asks, second ends the unfinished event.
+        (void)ur_uniracers_modern_system_key_down(SDLK_RETURN, 0, 0);
+    }
+    const int key = step == 0 || step == 3 || step == 5 ? SDLK_F4
         : reopen ? (step == 1 ? SDLK_LEFT : SDLK_ESCAPE)
+        : legs && step == 6 ? SDLK_LEFT
         : SDLK_RETURN;
     (void)ur_uniracers_modern_system_key_down(key, 0, 0);
-    if (step == 2 && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+    if ((step == 2 || step == 4) && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
-            "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=%s armed=%d visible=%d\n",
-            mode,
+            "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=%s step=%d armed=%d fixture=%zu visible=%d\n",
+            mode, step,
             g_local_tournament_session &&
                 g_local_tournament_session->launch.pending ? 1 : 0,
+            g_local_tournament_session &&
+                g_local_tournament_session->launch.pending
+                ? g_local_tournament_session->launch.pending->fixture_index
+                : static_cast<std::size_t>(0),
             g_local_tournament_panel_visible ? 1 : 0);
         std::fflush(stderr);
+    }
+    // Both proof routes end here; quit instead of relying on an external
+    // timeout (on Windows that can orphan the packaged game process).
+    if (legs && step == 8 && std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr,
+            "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE ENDED_AND_REPLACED pending=%d fixtures=%zu legs=%zu\n",
+            g_local_tournament_session &&
+                g_local_tournament_session->launch.pending ? 1 : 0,
+            g_local_tournament_session
+                ? g_local_tournament_session->results.fixtures.size() : 0,
+            g_local_tournament_session
+                ? g_local_tournament_session->results.legs : 0);
+        std::fflush(stderr);
+    }
+    if ((legs && step == 8) || (reopen && step == 2)) {
+        (void)request_desktop_quit();
     }
 }
 
@@ -4926,6 +5040,18 @@ void complete_multiplayer_run_record_capture() {
             *g_multiplayer_capture_tournament_attempt, stored_path);
         if (credited == ur::product::LocalTournamentCoordinatorStatus::Committed) {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED");
+            ensure_profile_catalog();
+            g_local_tournament_result_notice =
+                ur::product::local_tournament_result_notice(
+                    g_local_tournament_session->results, g_profile_catalog);
+            g_local_tournament_result_notice_screen = g_ram ? g_ram[0x009F] : 0;
+            if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                std::fprintf(stderr,
+                    "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=%02X text=%s\n",
+                    static_cast<unsigned>(g_local_tournament_result_notice_screen),
+                    g_local_tournament_result_notice.c_str());
+                std::fflush(stderr);
+            }
         } else {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");
             (void)ur::product::cancel_local_tournament_capture(
@@ -4943,8 +5069,11 @@ void complete_multiplayer_run_record_capture() {
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
         acceptance_should_quit = true;
     }
+    const char* panel_mode = std::getenv("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE");
     if (joined_capture) {
-        acceptance_should_quit = true;
+        // The legs route keeps running to arm leg 2 from the results screen.
+        acceptance_should_quit =
+            !panel_mode || std::strcmp(panel_mode, "legs") != 0;
         product_diagnostic(
             "UR_MULTIPLAYER_MATCH REAL_JOIN_CAPTURE_COMPLETE");
     }
@@ -7086,6 +7215,12 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         !local_tournament_panel_context_valid()) {
         close_local_tournament_panel("UR_LOCAL_TOURNAMENT PANEL_STALE_CONTEXT");
     }
+    if (!g_local_tournament_result_notice.empty() &&
+        (!modern_mode() || !g_ram ||
+         g_ram[0x009F] != g_local_tournament_result_notice_screen)) {
+        g_local_tournament_result_notice.clear();
+        product_diagnostic("UR_LOCAL_TOURNAMENT RESULT_NOTICE_RETIRED");
+    }
     // The stock join-overlay flag is reset at race entry, so own an
     // independent record of a selected fixture's actual 0x3D visit.
     // A route abandoned back to MAIN_MENU cannot leave that fixture armed.
@@ -8402,7 +8537,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         std::string footer;
         if (panel.page == Page::Setup) {
             line(30, "ROSTER 2-8  L/R HISTORY", style.palette.secondary_grey);
-            constexpr std::size_t kWindow = 7;
+            constexpr std::size_t kWindow = 6;
             const std::size_t n = panel.candidates.size();
             const std::size_t last_start = n > kWindow ? n - kWindow : 0;
             std::size_t start = 0;
@@ -8424,16 +8559,25 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     panel.cursor == i ? style.palette.cursor_blue
                     : chosen ? style.palette.title_yellow : 0xFFFFFFFFu);
             }
-            const bool on_courses = panel.cursor == n;
-            const bool on_start = panel.cursor == n + 1;
-            line(158, std::string(on_courses ? ">" : " ") + "COURSES < " +
+            const bool on_courses =
+                panel.cursor == ur::product::local_tournament_setup_courses_row(panel);
+            const bool on_legs =
+                panel.cursor == ur::product::local_tournament_setup_legs_row(panel);
+            const bool on_start =
+                panel.cursor == ur::product::local_tournament_setup_start_row(panel);
+            char legs_row[40];
+            std::snprintf(legs_row, sizeof(legs_row), "%sMEET EACH < %zuX >",
+                on_legs ? ">" : " ", panel.legs);
+            line(158, legs_row,
+                on_legs ? style.palette.cursor_blue : 0xFFFFFFFFu);
+            line(142, std::string(on_courses ? ">" : " ") + "COURSES < " +
                 ur::product::local_tournament_course_preset_label(
                     panel.course_preset) + " >",
                 on_courses ? style.palette.cursor_blue : 0xFFFFFFFFu);
             char start_row[40];
-            std::snprintf(start_row, sizeof(start_row), "%sSTART  %zu RACERS",
+            std::snprintf(start_row, sizeof(start_row), "%sSTART  %zu RACES",
                 on_start ? ">" : " ",
-                ur::product::local_tournament_setup_selected_count(panel));
+                ur::product::local_tournament_setup_race_count(panel));
             line(174, start_row,
                 on_start ? style.palette.cursor_blue
                 : ur::product::local_tournament_setup_can_start(panel)
@@ -8482,7 +8626,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
                         standings[i].rank == 1 && standings[i].played
                             ? style.palette.title_yellow : 0xFFFFFFFFu);
                 }
-                footer = "B BACK";
+                footer = local_tournament_session_complete()
+                    ? "B BACK" : "A END EVENT  B BACK";
             } else {
                 std::size_t played = 0;
                 for (const auto& result : state.results) played += result ? 1 : 0;
@@ -8805,11 +8950,69 @@ extern "C" void ur_uniracers_modern_system_overlay(
         }
     }
 
+    if (!g_local_tournament_result_notice.empty() && modern_mode() &&
+        !paused() && g_ram && !g_local_tournament_panel_visible &&
+        g_ram[0x009F] == g_local_tournament_result_notice_screen) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int strip_w = static_cast<int>(
+            ur::product::kModernMainMenuStripMaxChars) * 8 + 12;
+        constexpr int kStripH = 18;
+        ur::product::HostOverlayCompositionRequest request{};
+        request.logical_surface_width = width / scale;
+        request.logical_surface_height = height / scale;
+        request.presentation_scale = scale;
+        request.output_viewport = {0, 0, width, height};
+        request.reserved.left = 2;
+        request.reserved.right = 2;
+        // Stock 2P results rows end near y=200; the title and course name
+        // own the top, so the notice takes the free bottom band.
+        request.reserved.bottom = 2;
+        request.anchor = ur::product::HostOverlayAnchor::BottomCenter;
+        request.preferred_width = strip_w;
+        request.preferred_height = kStripH;
+        request.minimum_width = strip_w;
+        request.minimum_height = kStripH;
+        const auto layout =
+            ur::product::resolve_modern_overlay_composition(request);
+        if (layout.visible) {
+            const auto& rect = layout.presentation_rect;
+            snes_ovl_fill_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xC0202020u);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, 0xFFF0F0F0u);
+            // While the seated pair still has an unplayed meeting (a later
+            // leg), alternate the status with the input that arms it.
+            const auto& p1 = g_local_multiplayer_participants.player1;
+            const auto& p2 = g_local_multiplayer_participants.player2;
+            const bool next_match =
+                g_local_tournament_session && p1 && p2 &&
+                !g_local_tournament_session->launch.pending &&
+                local_tournament_panel_context_valid() &&
+                ur::product::local_tournament_seated_fixture(
+                    g_local_tournament_session->results,
+                    p1->profile_id, p2->profile_id).has_value();
+            const bool show_hint =
+                next_match && (SDL_GetTicks() / 2000u) % 2u == 1u;
+            const std::string text = show_hint
+                ? "F4/PAD " + live_gamepad_binding_label(10) + " NEXT MATCH"
+                : g_local_tournament_result_notice;
+            const auto fitted = ur::product::fit_modern_overlay_text(
+                text, ur::product::kModernMainMenuStripMaxChars);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 6 * scale, rect.y + 5 * scale,
+                fitted.c_str(), show_hint ? 0xFFFFFFFFu : 0xFFFFE060u,
+                scale);
+        }
+    }
+
     // Local Tournament hint on the confirmed stock 2P select surface. That
     // screen is the stock PICK A PLAYER rider grid, so the hint is ONE row
     // over the decorative title and never covers a rider name.
     if (!g_local_tournament_panel_visible &&
-        local_tournament_panel_context_valid()) {
+        local_tournament_panel_context_valid() &&
+        !local_tournament_results_surface()) {
         std::array<std::string, 1> rows{};
         const std::size_t row_count = 1;
         const auto& p1 = g_local_multiplayer_participants.player1;

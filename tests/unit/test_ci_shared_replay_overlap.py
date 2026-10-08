@@ -27,6 +27,20 @@ class SharedReplayOverlapCiTest(unittest.TestCase):
         self.assertLess(body.index('PACED_PID=$!'), body.index('wait "$ORIGINAL_PID"'))
         self.assertLess(body.index('wait "$PACED_PID"'), body.index('g++ -std=c++17'))
 
+    def test_concurrent_captures_never_share_mod_state(self):
+        # Concurrent processes sharing mods/preloaded/state.toml race on its
+        # fixed .tmp name ("cannot publish mod state").
+        source = WORKFLOW.read_text()
+        body = source.split("      - name: Capture completed Dragster run", 1)[1].split(
+            "      - name: Re-drive captured run in a fresh process", 1
+        )[0]
+        self.assertIn('SNESRECOMP_MOD_STATE_PATH="$UNPACED_MOD_STATE"', body)
+        self.assertIn('SNESRECOMP_MOD_STATE_PATH="$PACED_MOD_STATE"', body)
+        unpaced = body.split("ORIGINAL_PID=$!", 1)[0].rsplit("SDL_AUDIODRIVER=dummy", 1)[1]
+        paced = body.split("PACED_PID=$!", 1)[0].rsplit("SDL_AUDIODRIVER=dummy", 1)[1]
+        self.assertIn("UNPACED_MOD_STATE", unpaced)
+        self.assertIn("PACED_MOD_STATE", paced)
+
     def test_fail_closed_with_both_logs_and_exact_semantic_oracle(self):
         source = WORKFLOW.read_text()
         body = source.split("      - name: Capture completed Dragster run", 1)[1].split(

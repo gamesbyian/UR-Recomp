@@ -1,0 +1,79 @@
+name: Windows Local Tournament package acceptance
+
+# Manual Windows x64 product gate for the player-facing Local Tournament
+# route. It does NOT rebuild: it downloads the exact portable ZIP that a
+# successful "Windows native build and boot smoke" run published, verifies
+# its SHA-256, extracts it with Windows' own archive reader and drives the
+# real join -> panel -> stock 2P race -> receipt -> relaunch route through
+# the packaged launcher with an isolated per-user data root.
+
+on:
+  workflow_dispatch:
+    inputs:
+      smoke_run_id:
+        description: "Run ID of a successful windows-native-smoke run whose portable package to test"
+        required: true
+
+concurrency:
+  group: windows-local-tournament-package-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  package-tournament:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Keep checkout bytes exact
+        run: git config --global core.autocrlf false
+
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Download the smoke-built portable package
+        uses: actions/download-artifact@v4
+        with:
+          name: ur-recomp-windows-x64-portable
+          run-id: ${{ inputs.smoke_run_id }}
+          github-token: ${{ github.token }}
+          path: ${{ runner.temp }}/portable
+
+      - name: Verify and extract the portable ZIP
+        run: |
+          set -euo pipefail
+          ARCHIVE="$RUNNER_TEMP/portable/UR-Recomp-Windows-x64.zip"
+          python tools/assemble_windows_package.py verify-archive-checksum \
+            --archive "$ARCHIVE" \
+            --checksum "$ARCHIVE.sha256"
+          python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
+          EXTRACT="$RUNNER_TEMP/tournament package"
+          mkdir -p "$EXTRACT"
+          ARCHIVE_WIN="$(cygpath -w "$ARCHIVE")" EXTRACT_WIN="$(cygpath -w "$EXTRACT")" \
+            powershell.exe -NoProfile -NonInteractive -Command \
+              '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
+          echo "TEST_PACKAGE=$EXTRACT/UR-Recomp-Windows-x64" >> "$GITHUB_ENV"
+          python tools/verify_rom.py "$EXTRACT/UR-Recomp-Windows-x64/Uniracers_USA.sfc"
+
+      - name: Packaged Local Tournament route and relaunch
+        run: |
+          set -euo pipefail
+          bash tests/native/run_windows_local_tournament_package_acceptance.sh \
+            "$TEST_PACKAGE" \
+            "$RUNNER_TEMP/tournament-work"
+
+      - name: Upload tournament evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-local-tournament-package
+          path: |
+            ${{ runner.temp }}/tournament-work/*.log
+            ${{ runner.temp }}/tournament-work/user data/local-tournaments/
+          if-no-files-found: warn
+          retention-days: 7

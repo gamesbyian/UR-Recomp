@@ -46,9 +46,11 @@ make_local_tournament_session_definition(
     std::string_view instance_id,
     const std::vector<std::string>& selected_profile_ids,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog,
-    const std::vector<std::string>& ordinary_race_course_pool);
+    const std::vector<std::string>& ordinary_race_course_pool,
+    std::size_t legs = 1);
 
-// Strict bounded canonical v1 payload. On fresh-process decode, membership is
+// Strict bounded canonical payload: v1 for a single-leg event (unchanged
+// bytes), v2 with one explicit "legs" record otherwise. On fresh-process decode, membership is
 // rechecked against the then-current catalog, so deleted/renamed profiles do
 // not silently inherit someone else's tournament fixture.
 std::string encode_local_tournament_session_definition(

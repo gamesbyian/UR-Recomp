@@ -25,17 +25,18 @@ env -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE \
 LOG="$WORK/real-joined-capture.log"
 grep -q "UR_LOCAL_TOURNAMENT STRIP rows=F4/PAD LB TOURNAMENT" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=setup" "$LOG"
-grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=0 cursor=3 fixture=0 selected=2" "$LOG"
-grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=0 cursor=4 fixture=0 selected=2" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 2 expected=1 visible=1 page=2 cursor=0 fixture=0" "$LOG"
 # Turbo presents only some frames; require that the panel itself rendered.
 grep -q "UR_LOCAL_TOURNAMENT PRESENT page=" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT ARMED fixture=0 course=course:01" "$LOG"
-grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=create armed=1 visible=0" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=create step=2 armed=1 fixture=0 visible=0" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT STRIP rows=EVENT: RACE DRAGSTER F4/LB" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=.* text=CHAMPION: MIKE" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT ACCEPTANCE_ARMED" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT CAPTURE_NOT_ADMITTED" "$LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED" "$LOG"
@@ -77,16 +78,19 @@ env -u UR_MULTIPLAYER_MATCH_ACCEPTANCE -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE 
     UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=reopen \
     UR_PRODUCT_DIAGNOSTICS=1 \
     SNESRECOMP_INPUT_FILE="$REPO/tests/input/two-player-joined-records-acceptance.input" \
-  timeout 90s xvfb-run -a "$EXE" "$ROM" \
+  timeout 240s xvfb-run -a "$EXE" "$ROM" \
     --script "$REPO/tests/input/two-player-records-acceptance.script" \
     >"$REOPEN_LOG" 2>&1
+REOPEN_RC=$?
 set -e
+# The reopen route quits itself once History is proven.
+test "$REOPEN_RC" -eq 0
 grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORED" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=1 .* history=1" "$REOPEN_LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 2 expected=1 visible=1 page=3 .* history=1" "$REOPEN_LOG"
-grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen armed=0" "$REOPEN_LOG"
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0" "$REOPEN_LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE" "$REOPEN_LOG"
 ! grep -q "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED" "$REOPEN_LOG"
 echo "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=panel_created_minted_event stock_2p_fixture_persisted fresh_standings relaunch_panel_history"

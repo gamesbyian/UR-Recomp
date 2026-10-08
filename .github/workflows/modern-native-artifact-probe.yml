@@ -1,0 +1,33 @@
+name: Modern native reusable artifact probe
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        required: true
+        type: string
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Download canonical Modern candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ runner.temp }}/modern-native-artifact
+
+      - name: Verify reusable-workflow artifact handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/router-probe"
+          tar -xzf "$RUNNER_TEMP/modern-native-artifact/modern-native-canonical.tar.gz" \
+            -C "$RUNNER_TEMP/router-probe" --strip-components=1
+          EXE="$RUNNER_TEMP/router-probe/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          ACTUAL="$(sha256sum "$EXE" | awk '{print $1}')"
+          EXPECTED="$(cat "$RUNNER_TEMP/modern-native-artifact/executable.sha256")"
+          test "$ACTUAL" = "$EXPECTED"
+          echo "MODERN_NATIVE_ROUTER_HANDOFF PASS sha256=$ACTUAL"

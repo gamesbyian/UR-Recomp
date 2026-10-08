@@ -310,7 +310,7 @@ jobs:
                 ) || exit $?
               done
 
-              python3 - "$RUNNER_TEMP/ui-records-paced-dumps" "$RUNNER_TEMP/ui-records-unpaced-dumps" <<'PY'
+              python3 - "$RUNNER_TEMP/ui-records-paced-dumps" "$RUNNER_TEMP/ui-records-unpaced-dumps" "$RUNNER_TEMP/ui-records-explore-dumps" <<'PY'
           import hashlib
           from pathlib import Path
           import sys
@@ -322,6 +322,13 @@ jobs:
                   for p in sorted(root.rglob("*")) if p.is_file()
               }
           a, b = hashes(paced), hashes(unpaced)
+          original = hashes(Path(sys.argv[3]))
+          def fingerprint(mapping):
+              lines = "".join(f"{key}\t{value}\n" for key, value in sorted(mapping.items()))
+              return hashlib.sha256(lines.encode("utf-8")).hexdigest()
+          baseline_drift = sum(original.get(key) != a.get(key) for key in original.keys() | a.keys())
+          print(f"UR_RECORDS_PACING_CONTROL baseline_drift={baseline_drift} files={len(original)}")
+          print(f"UR_RECORDS_PACING_SHA256 paced={fingerprint(a)} unpaced={fingerprint(b)}")
           expected = [
               "ui-records-probe-" + direction + "-" + side + ".wram.bin"
               for direction in ("down", "up", "left", "right", "a", "b")

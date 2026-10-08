@@ -596,3 +596,30 @@ A paired frame-exact Switcher race-entry observation in both ROMs can establish
 whether A drives P1, P2, or another landmark; do not infer the player binding
 from the header labels alone. This is a cheaper falsifier than decoding
 unrelated checkpoint handlers or conducting a broad 45-course runtime sweep.
+
+
+### Dragster finish-column triangulation from independent runtime evidence (2026-10-08)
+
+The established Dragster object-activation reference fixture records the first
+semantic finish transition at guest frame 2903: P1 X=25256, collision word
+0x2020, C000 index 8, behavior code 0x14. The published ROM-derived
+Dragster spatial contract independently places packed word 0x2020 (C000
+slot 8) at world X 25280 in three 16x16 cells at world Y 800, 832 and 864.
+The historical optimizer finish-X lead is 25278, two world units before
+those candidate cells; the observed P1 X is 24 units before their left edge.
+
+tools/correlate_dragster_finish_spatial_event.py makes this triangulation a
+regression against the retained generated spatial contract. It accepts the
+documented event or an explicitly supplied JSON report from the existing
+object-activation analyzer, verifies the word-to-C000 selector relation,
+and enumerates *exact-word* candidate cells and their X distances. This
+is narrower than choosing all resource 0x24 placements and safer than naming
+the nearby cells as an authoritative collision plane.
+
+The three matching Y bands remain distinct. Neither P1 center X nor the
+historical finish-X optimizer constant establishes the actual contact point,
+the size of the collision footprint, which band the racer contacted, or
+how the checkpoint order state maps to each course feature. Do not infer
+those from a static 16x16 cell rectangle. The next high-value runtime
+discriminator is a frame-exact contact-point Y / selected fine-cell trace
+of this already accepted finish transition.

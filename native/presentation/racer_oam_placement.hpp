@@ -108,6 +108,17 @@ constexpr bool racer_p1_only_no_stock_p2_occlusion(
         (p1_top.attr & 0x30) != (p2_top.attr & 0x30)) {
         return false;
     }
+    // In this title's proven OBSEL=$83 mode, the other split pair is
+    // reduced to a 16x16 OBJ, not hidden by the PPU. Capturing both P1
+    // slots removes even an out-of-viewport *small* copy. Refuse the
+    // exceptional raw Y values where that small copy would be visible
+    // in the opposite half without an HD replacement there.
+    for (int y = 0; y < 112; ++y) {
+        if (((y - p1_bottom.y_raw_8bit) & 0xFF) < 16) return false;
+    }
+    for (int y = 112; y < 224; ++y) {
+        if (((y - p1_top.y_raw_8bit) & 0xFF) < 16) return false;
+    }
     // Reject only a *provably impossible* horizontal intersection. X is
     // already decoded from the nine-bit signed OAM coordinate.
     const int p1_left = static_cast<int>(p1_bottom.x_signed);

@@ -34,6 +34,17 @@ class DragsterFinishSpatialTriangulationTests(unittest.TestCase):
             ],
         )
         self.assertIn("Without verified contact Y", report["limits"])
+        self.assertEqual(
+            report["observation_phase"], "postframe_stored_p1_contact"
+        )
+        self.assertIn(
+            "not necessarily the word consumed by same-frame object dispatch",
+            report["observation_limit"],
+        )
+        rendered = mod.markdown(report)
+        self.assertIn("postframe surface sample", rendered)
+        self.assertIn("postframe_stored_p1_contact", rendered)
+        self.assertIn("dispatch precedes new contact sampling", rendered)
 
     def test_word_to_slot_is_independent_of_upper_control_bits(self):
         self.assertEqual(mod.surface_slot(0x2020), 8)
@@ -47,7 +58,7 @@ class DragsterFinishSpatialTriangulationTests(unittest.TestCase):
             mod.correlate(self.contract, event)
         event = dict(mod.DEFAULT_EVENT)
         event["object_code"] = 0x12
-        with self.assertRaisesRegex(ValueError, "not a confirmed"):
+        with self.assertRaisesRegex(ValueError, "not a checkpoint/finish-family"):
             mod.correlate(self.contract, event)
         event = dict(mod.DEFAULT_EVENT)
         event["player_x"] = 65536
@@ -72,6 +83,7 @@ class DragsterFinishSpatialTriangulationTests(unittest.TestCase):
             event = mod.event_from_activation_json(path)
         self.assertEqual(event["player_y"], 835)
         self.assertEqual(event["object_index"], 8)
+        self.assertEqual(event["observation_phase"], "postframe_stored_p1_contact")
         self.assertEqual(mod.correlate(self.contract, event)["nearest_finish_x_cell_count"], 3)
 
     def test_missing_original_event_is_rejected(self):

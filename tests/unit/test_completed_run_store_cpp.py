@@ -33,10 +33,10 @@ class CompletedRunStoreCppTests(unittest.TestCase):
                 check=True,
             )
             subprocess.run([str(exe), str(store)], cwd=ROOT, check=True)
-            # Three valid artifacts plus deliberately malformed and corrupt
+            # Three valid artifacts plus oversized, malformed, and corrupt
             # artifacts are retained on disk; load_valid_run_records() filters
             # authority, not evidence.
-            self.assertEqual(len(list(store.glob("*.urrun"))), 5)
+            self.assertEqual(len(list(store.glob("*.urrun"))), 6)
 
 
 if __name__ == "__main__":

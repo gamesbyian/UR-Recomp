@@ -986,6 +986,42 @@ int main() {
         0x0579, broader_p1_0579_b, 2
     ) == nullptr);
 
+    const RacerCompositionState broader_p2_0578_a{
+        0x0279, 0x0578, 0x0000, 0x0EC3, 0, 0, 0x0000, 0x0001
+    };
+    const RacerCompositionState broader_p2_0578_b{
+        0x00B9, 0x0578, 0x0000, 0x0EC3, 0, 0, 0x0000, 0x0001
+    };
+    const auto* broader_p2_0578 =
+        find_racer_registration_for_state(0x0578, broader_p2_0578_a, 2);
+    assert(broader_p2_0578 != nullptr);
+    assert(broader_p2_0578->player_local_guard);
+    assert(find_racer_registration_for_state(
+        0x0578, broader_p2_0578_b, 2
+    ) == broader_p2_0578);
+
+    auto broader_p2_0578_local_miss = broader_p2_0578_b;
+    broader_p2_0578_local_miss.p2_selector = 1;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, broader_p2_0578_local_miss, 2
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    broader_p2_0578_local_miss = broader_p2_0578_b;
+    broader_p2_0578_local_miss.p2_companion = 0x0EC4;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, broader_p2_0578_local_miss, 2
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    broader_p2_0578_local_miss = broader_p2_0578_b;
+    broader_p2_0578_local_miss.p2_companion_gate_word = 0x0000;
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, broader_p2_0578_local_miss, 2
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
+    assert(select_racer_presentation(
+        GraphicsPack::Remastered, 0x0578, broader_p2_0578_b, 1
+    ).fallback_reason == FallbackReason::CompositionMismatch);
+
     // Exact-scope registrations must still care about opponent fields.
     auto exact_scope_opponent_miss = frequency_0544_0578_context;
     exact_scope_opponent_miss.p2_companion = 0x0D64;

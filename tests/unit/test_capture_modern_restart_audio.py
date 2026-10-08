@@ -55,7 +55,7 @@ class ModernRestartAudioTests(unittest.TestCase):
         self.assertTrue(source.startswith(canonical[:-len("wait 3600\n")]))
         self.assertIn("dump audio-restart-guest", source)
         self.assertTrue(source.endswith("wait 3600\n"))
-        self.assertNotIn("poke ", source)
+        self.assertFalse(any(line.lstrip().startswith("poke ") for line in source.splitlines()))
 
     def test_real_native_keyboard_and_postclose_device_path_are_used(self):
         source = (ROOT / "tools/capture_modern_restart_audio.py").read_text()

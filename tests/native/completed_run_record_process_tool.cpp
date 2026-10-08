@@ -37,13 +37,18 @@ RunPlaybackTarget target() {
 }  // namespace
 
 int main(int argc, char** argv) {
-    if (argc != 3) return 64;
+    if (argc != 3 && argc != 4) return 64;
     const std::string mode = argv[1];
     const std::string path = argv[2];
+    if (argc == 4 && mode != "write") return 64;
 
     if (mode == "write") {
+        // Optional acceptance-fixture frame count: preserve the same exact
+        // controller stream and finish while changing only the capture window.
+        auto record = make_record();
+        if (argc == 4) record.frame_count = std::stoull(argv[3]);
         std::string detail;
-        if (!save_completed_run_record_file(path, make_record(), &detail)) {
+        if (!save_completed_run_record_file(path, record, &detail)) {
             std::cerr << detail << "\n";
             return 2;
         }

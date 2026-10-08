@@ -28,6 +28,20 @@ class CompletedRunReplayPresentationWorkflowTests(unittest.TestCase):
         self.assertIn('grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS', step)
         self.assertIn('grep -q "UR_RUN_REPLAY_COMPARE PASS', step)
 
+    def test_original_control_loads_pinned_four_x_original_view(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        begin = workflow.index("- name: Capture completed Dragster run")
+        end = workflow.index("- name: Rehydrate replay input from saved artifact", begin)
+        capture = workflow[begin:end]
+        for token in (
+            "'vsync=on'",
+            "'widescreen=original'",
+            "'internal_render_scale=4x'",
+            'UR_HOST_STATE_PATH="$STATE"',
+            "UR_HOST_STATE LOADED",
+        ):
+            self.assertIn(token, capture)
+
     def test_remains_manual_only(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         triggers = workflow.split("on:", 1)[1].split("concurrency:", 1)[0]

@@ -585,6 +585,20 @@ int main() {
     const auto pb = sample_racer_hd_presented_pixel(*registration, b, 60, 73);
     assert(pa == pb);
 
+    // The diagnostic point sampler must match the live PPU Y-wrap behavior
+    // proven independently by native OAM row projection acceptance.
+    assert(pa != 0);
+    RacerOamPlacement wrapped = a;
+    wrapped.y_raw_8bit = 250;
+    assert(sample_racer_hd_presented_pixel(*registration, wrapped, 40, 32) == pa);
+    assert(sample_racer_hd_presented_pixel(*registration, wrapped, 40, 33) ==
+           sample_racer_hd_presented_pixel(*registration, a, 40, 59));
+    assert(sample_racer_hd_presented_pixel(*registration, wrapped, 40, 249) == 0);
+    RacerOamPlacement late = a;
+    late.y_raw_8bit = 220;
+    assert(sample_racer_hd_presented_pixel(*registration, late, 40, 230) == 0);
+    assert(sample_racer_hd_presented_pixel(*registration, late, 40, -1) == 0);
+
     assert(racer_hd_asset_available(0x0541));
     assert(racer_hd_asset_available(0x0540));
     assert(racer_hd_asset_available(0x057D));

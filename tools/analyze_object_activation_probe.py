@@ -138,6 +138,47 @@ def dma_to_vram(path: Path) -> tuple[int, int]:
     return transfers, total
 
 
+def prior_postframe_dispatch_candidate(rows: list[dict], progress: dict | None) -> dict | None:
+    """Candidate dispatch input; NOT a captured instruction-time read.
+
+    The USA race loop dispatches objects before sampling new surface contact.
+    A consecutive prior end-of-frame stored P1 word can therefore be the
+    subsequent frame's dispatcher input, absent intervening writes.
+    """
+    if progress is None:
+        return None
+    matches = [
+        pos for pos, row in enumerate(rows)
+        if row is progress or (
+            row.get("frame") == progress.get("frame")
+            and row.get("sample") == progress.get("sample")
+        )
+    ]
+    if len(matches) != 1 or matches[0] == 0:
+        return None
+    current = rows[matches[0]]
+    prior = rows[matches[0] - 1]
+    if (
+        prior["frame"] + 1 != current["frame"]
+        or prior["relative_frame"] + 1 != current["relative_frame"]
+    ):
+        return None
+    return {
+        "observation_phase": "prior_postframe_stored_p1_word_dispatch_candidate",
+        "source_frame": prior["frame"],
+        "transition_frame": current["frame"],
+        "collision_word": prior["collision_word"],
+        "object_index": prior["object_index"],
+        "object_code": prior["object_code"],
+        "status": "candidate_only_not_instruction_time_verified",
+        "caveat": (
+            "Original object dispatch precedes new surface sampling, but "
+            "this prior saved word has not been directly captured at handler "
+            "entry and may have been changed by an intervening write."
+        ),
+    }
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("dump_dir", type=Path)
@@ -179,6 +220,7 @@ def main() -> int:
             "camera_edge_x": u16(wram, 0x0505),
             "camera_edge_y": u16(wram, 0x050D),
             "collision_word": collision,
+            "collision_observation_phase": "postframe_stored_p1_contact",
             "object_index": idx,
             "object_code": wram[0xC000 + idx] if 0 <= idx < 0x2000 else None,
             "checkpoint": u16(wram, 0x1199),
@@ -223,6 +265,13 @@ def main() -> int:
         "checkpoint_cells_expected": [0x14] * 9,
         "checkpoint_cells_stable": all(r["checkpoint_cells"] == [0x14] * 9 for r in rows),
         "first_progress_change": first_progress,
+        "first_progress_dispatch_input_candidate": prior_postframe_dispatch_candidate(rows, first_progress),
+        "course_dispatch_phase_caveat": (
+            "Object dispatch runs before later contact/surface resampling "
+            "on the USA main race path. The P1 collision word in each row "
+            "is an end-of-frame observation, not proof of same-frame "
+            "checkpoint handler input or a causally active C000 slot."
+        ),
         "first_sample_with_direct_2118_write": first_direct_vram,
         "first_checker_visible": visible[0] if visible else None,
         "last_checker_visible": visible[-1] if visible else None,
@@ -235,15 +284,17 @@ def main() -> int:
         "# Dragster object activation / presentation probe",
         "",
         "This artifact is a bounded observation over the established deterministic finish route.",
+        "P1 C000 slot/code fields are **postframe** samples, not proven causes of the same-frame progress state.",
         "",
         f"- samples: **{len(rows)}** across targeted windows",
         f"- checkpoint behavior cells C000[6..14] stable as nine `0x14` bytes: **{report['checkpoint_cells_stable']}**",
         f"- first sampled semantic progress change: **{first_progress['sample'] if first_progress else 'none'}**",
+        f"- preceding frame stored-contact candidate (not handler-entry proof): **{report['first_progress_dispatch_input_candidate']['object_index'] if report['first_progress_dispatch_input_candidate'] else 'unavailable'}**",
         f"- first sampled direct `$2118` write: **{first_direct_vram['sample'] if first_direct_vram else 'none'}**",
         f"- checkerboard-visible samples (conservative discriminator): **{len(visible)}**",
         f"- right-edge finish-stripe-visible samples: **{len(edge_visible)}**",
         "",
-        "| sample | frame | P1 x | cam x | C000 idx/code | next/gate/laps | CPU 2118 | DMA 2118 | checker | edge px |",
+        "| sample | frame | P1 x | cam x | postframe C000 idx/code | next/gate/laps | CPU 2118 | DMA 2118 | checker | edge px |",
         "|---|---:|---:|---:|---|---|---:|---:|---:|---:|",
     ]
     for r in rows:

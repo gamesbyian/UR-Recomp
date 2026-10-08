@@ -313,7 +313,26 @@ jobs:
                 test -s "$RUNNER_TEMP/ui-stunt-result-dumps/$tag.wram.bin" || { echo "::error::Missing Stunt entry dump: $tag"; exit 1; }
               done
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
-              run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
+              # Controlled seeded-root proof: 132/132 dumps identical to
+              # original shared-root capture across 12 checkpoints.
+              (
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/records-submenu-unpaced-shipping"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
+                for state in config.ini keybinds.ini saves/save.srm; do
+                  src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
+                  test -f "$src" || { echo "::error::Records-submenu seed missing: $state"; exit 1; }
+                  cp "$src" "$SNESRECOMP_USER_DATA_DIR/$state" || exit $?
+                done
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180 required || exit $?
+                grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                  "$RUNNER_TEMP/ui-records-submenus.log" || {
+                  echo "::error::Records-submenus route did not load cloned unpaced root"
+                  exit 1
+                }
+                echo "UR_RECORDS_SUBMENU_CLONED_UNPACED_ROOT PASS"
+              ) || exit $?
               run_route ui-league-table ui-league-table.script ui-league-dumps 90
               ;;
             records)

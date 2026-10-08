@@ -40,6 +40,7 @@ AIR_SEEDS = (64, 128, 256)
 OFFSCREEN_SEED = (242, 0x400)          # (frames after race entry, value)
 OFFSCREEN_JUMP = (264, 40)
 OFFSCREEN_FRAMES = 90
+EDGE_SCREEN_X = 0xB0       # 82:A72A: P1 screen X >= 176 while moving right
 BASE_SPEED = 448        # hold-Right ground speed with an empty meter
 SPEED_CAP = 640
 
@@ -62,6 +63,7 @@ def read_row(wram: bytes) -> dict:
         "y": struct.unpack_from("<H", wram, 0x0415)[0],
         "air_time": wram[0x0545],
         "offscreen": wram[0x121B],
+        "screen_x": wram[0x1509],
     }
 
 
@@ -113,18 +115,27 @@ def summarize(rows: list[dict]) -> dict:
 
 def summarize_offscreen(rows: list[dict]) -> dict:
     """Per-frame X-speed change on offscreen airborne frames that are neither
-    fresh off a bounce nor already limited by the boost law; plus the per-frame
-    meter drain values seen in the run."""
+    fresh off a bounce nor already limited by the boost law, and the per-frame
+    meter drain split by whether the previous frame was offscreen or at the
+    viewport edge in the direction of travel (the stock -16 penalty path)."""
     off_deltas = sorted({rows[i]["x_speed"] - rows[i - 1]["x_speed"] for i in range(1, len(rows))
                          if rows[i]["offscreen"] and rows[i - 1]["offscreen"]
                          and rows[i]["air_time"] >= 3 and rows[i - 1]["air_time"] >= 3
                          and rows[i - 1]["x_speed"] < law_speed(rows[i - 1]["boost"]) - 4})
-    drains = sorted({rows[i - 1]["boost"] - rows[i]["boost"] for i in range(1, len(rows))})
+    def edge(r):  # 82:A6FE..A75F: offscreen, or at the viewport edge moving right
+        return r["offscreen"] or (r["x_speed"] > 0 and r["screen_x"] >= EDGE_SCREEN_X)
+    edge_drains = sorted({rows[i - 1]["boost"] - rows[i]["boost"] for i in range(1, len(rows))
+                          if edge(rows[i - 1]) and rows[i]["boost"]})
+    other_drains = sorted({rows[i - 1]["boost"] - rows[i]["boost"] for i in range(1, len(rows))
+                           if not edge(rows[i - 1])})
     return {
-        "series": " ".join(f'{r["x_speed"]}/{r["boost"]}/{r["air_time"]}/{r["offscreen"]}' for r in rows),
+        "series": " ".join(f'{r["x_speed"]}/{r["boost"]}/{r["air_time"]}/{r["offscreen"]}/{r["screen_x"]}'
+                           for r in rows),
         "offscreen_frames": sum(1 for r in rows if r["offscreen"]),
         "offscreen_airborne_x_speed_deltas": off_deltas,
-        "meter_drain_values_per_frame": drains,
+        "edge_or_offscreen_frames": sum(1 for r in rows if edge(r)),
+        "meter_drain_at_edge_or_offscreen": edge_drains,
+        "meter_drain_otherwise": other_drains,
         "series_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(),
     }
 
@@ -248,7 +259,8 @@ def main(argv=None) -> int:
                       "first_divergence_frame": off_div}
     print(json.dumps({"offscreen_frames": off_ref["offscreen_frames"],
                       "offscreen_deltas": off_ref["offscreen_airborne_x_speed_deltas"],
-                      "drains": off_ref["meter_drain_values_per_frame"],
+                      "edge_drains": off_ref["meter_drain_at_edge_or_offscreen"],
+                      "other_drains": off_ref["meter_drain_otherwise"],
                       "divergence": off_div}), flush=True)
 
     evidence = {

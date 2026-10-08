@@ -81,7 +81,8 @@ priority rotation and provably
 modulo-256 Y, visible-field and scanline-112 clipping. Unknown or
 overlapping cases return to the complete stock frame without arming OBJ
 removal. The experimental path is restricted to the measured `OBSEL=$83`
-16px/64px size pair. Its exact OAM Y test also rejects any normally
+16px/64px size pair, with both 64px P2 OBJ sizes and canonical racer
+OBJ tile families (`00/08` P1, `80/88` P2). Its exact OAM Y test also rejects any normally
 inactive 16px P1 copy that would appear in the *opposite* viewport:
 capturing slots 97/98 must not silently erase a real small OBJ that the
 host replacement is not going to draw there.

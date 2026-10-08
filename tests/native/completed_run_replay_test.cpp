@@ -45,6 +45,43 @@ int main(int argc, char** argv) {
     text << in.rdbuf();
     assert(text.str() == encode_completed_run_input_file(run));
 
+    // Independent game processes can share a data root. Reservations must
+    // never alias, stage different streams without clobbering one another,
+    // and clean up only their own lifetime-owned directory.
+    const auto user_root = path.parent_path() / "replay-isolation";
+    CompletedRunReplayInputStage first_stage;
+    CompletedRunReplayInputStage second_stage;
+    assert(!first_stage.reserve(""));
+    assert(first_stage.input_path().empty());
+    assert(first_stage.reserve(user_root.string()));
+    assert(second_stage.reserve(user_root.string()));
+    const std::string first_path = first_stage.input_path();
+    const std::string second_path = second_stage.input_path();
+    assert(!first_path.empty() && first_path != second_path);
+    assert(std::filesystem::is_directory(
+        std::filesystem::path(first_path).parent_path()));
+    auto other_run = run;
+    other_run.inputs[0].p1_mask = 0x40;
+    assert(stage_completed_run_replay_input_file(first_path, run, &detail));
+    assert(stage_completed_run_replay_input_file(second_path, other_run, &detail));
+    {
+        std::ifstream first_input(first_path, std::ios::binary);
+        std::ifstream second_input(second_path, std::ios::binary);
+        std::ostringstream first_bytes, second_bytes;
+        first_bytes << first_input.rdbuf();
+        second_bytes << second_input.rdbuf();
+        assert(first_bytes.str() == encode_completed_run_input_file(run));
+        assert(second_bytes.str() == encode_completed_run_input_file(other_run));
+        assert(first_bytes.str() != second_bytes.str());
+    }
+    first_stage.clear();
+    assert(!std::filesystem::exists(first_path));
+    assert(std::filesystem::exists(second_path));
+    second_stage.clear();
+    assert(!std::filesystem::exists(second_path));
+    assert(first_stage.input_path().empty());
+    assert(second_stage.input_path().empty());
+
 #if defined(__linux__)
     // A buffered stream may accept write() but fail on flush/close. Never
     // report a staged replay as ready if the disk could not receive it.

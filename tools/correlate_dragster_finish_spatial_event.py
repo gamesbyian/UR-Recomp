@@ -23,6 +23,7 @@ DEFAULT_EVENT = {
     "object_index": 8,
     "object_code": 0x14,
     "source": EVENT_SOURCE,
+    "observation_phase": "postframe_stored_p1_contact",
 }
 
 
@@ -43,7 +44,7 @@ def correlate(contract: dict, event: dict) -> dict:
     if surface_slot(word) != slot:
         raise ValueError("collision word does not decode to the observed C000 index")
     if event["object_code"] != 0x14:
-        raise ValueError("not a confirmed checkpoint/finish object-code event")
+        raise ValueError("not a checkpoint/finish-family object-code sample")
     cp = contract["resources"]["checkpoint_finish"]
     lo, hi = cp["c000_range"]
     if not lo <= slot <= hi:
@@ -82,6 +83,12 @@ def correlate(contract: dict, event: dict) -> dict:
     report = {
         "schema_version": 1,
         "event": dict(event),
+        "observation_phase": event.get("observation_phase", "unspecified"),
+        "observation_limit": (
+            "Matched word and slot describe this observation, not necessarily "
+            "the word consumed by same-frame object dispatch. Original "
+            "race-frame dispatch precedes new contact sampling."
+        ),
         "historical_finish_x": historical_finish_x,
         "resource_family": "0x24",
         "behavior_code": "0x14",
@@ -219,17 +226,20 @@ def event_from_activation_json(path: Path) -> dict:
         "object_index": row["object_index"],
         "object_code": row["object_code"],
         "source": str(path),
+        "observation_phase": "postframe_stored_p1_contact",
     }
 
 
 def markdown(report: dict) -> str:
     e = report["event"]
     lines = [
-        "# Dragster finish-event / ROM spatial triangulation",
+        "# Dragster finish-adjacent postframe surface sample / ROM spatial triangulation",
         "",
         "Derived from tools/correlate_dragster_finish_spatial_event.py.",
         "",
         f"- Guest frame: {e['frame']}; player X: {e['player_x']}.",
+        f"- Observation phase: {report['observation_phase']}.",
+        f"- Caveat: {report['observation_limit']}",
         f"- Contact word / C000 index / behavior: {report['matched_packed_word']} "
         f"/ {report['matched_c000_slot']} / {report['behavior_code']}.",
         f"- Historical finish-X lead: {report['historical_finish_x']}.",

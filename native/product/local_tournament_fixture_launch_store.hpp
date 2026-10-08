@@ -44,9 +44,13 @@ LocalTournamentLaunchFileResult load_local_tournament_launch_file(
     const LocalTournamentState& active_tournament,
     std::string_view active_tournament_id);
 
-// Only the real host lifecycle may call this after cancellation or after its
-// completed-pair + receipt transaction. Missing is an idempotent no-op.
+// Retire only the exact decoded and still-active attempt. A stale caller from
+// an older route cannot remove a newer checkpoint at the same path. Missing
+// remains an idempotent no-op; corrupted/mismatched files fail closed.
 LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
-    const std::string& path);
+    const std::string& path,
+    const LocalTournamentState& active_tournament,
+    std::string_view active_tournament_id,
+    std::string_view expected_attempt_id);
 
 } // namespace ur::product

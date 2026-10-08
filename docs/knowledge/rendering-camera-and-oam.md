@@ -128,3 +128,23 @@ real native PPU presenter link path. A comparative real Windows capture
 at a fully registered pose, once each in Original width and WorldExpand, is
 still needed for pixel-level evidence. Never infer that the pure helper unit
 test alone proves the final widened picture.
+
+
+#### Pixel-level Native 342px stock-fallback acceptance
+
+The graphics-owned native presentation probe now enables the pinned desktop
+host's native-wide mode and supports a diagnostic-only
+`UR_RACER_HD_PROBE_WIDE=1` switch. It fixes the probe's logical width to 342
+(43 side columns) and height to 224 *before* `begin_sim_frame`. The probe
+asserts that no OBJ `RemoveFromGame` capture is armed on any such frame,
+including frame 1220 of the deterministic two-player race.
+
+The native presentation acceptance reuses its existing generated binary, ROM,
+controller input and script to take **two independent** 342×224 PPM captures
+at that same frame: `UR_RACER_HD=0` and `UR_RACER_HD=1`. It requires
+identical full screenshot bytes (and validates dimensions and nontrivial
+colors), emits `UR_RACER_HD_WIDE_PARITY PASS`, and archives both PPMs and
+logs. This validates a true desktop-runner widened PPU scan and final host
+presentation without touching the Modern frontend. It is a geometry/fallback
+guard acceptance, **not** a claim that independently authored HD sprites now
+render in widened scenes.

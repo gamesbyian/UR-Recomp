@@ -71,6 +71,38 @@ class WindowsPackageStreamingBoundsTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "exceeds shipping size limits"):
                     package.package_files(root)
 
+    def test_oversized_source_rejected_before_copy_or_output_removal(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = pathlib.Path(temp)
+            build = root / "build"
+            build.mkdir()
+            (build / package.EXE_NAME).write_bytes(b"exe")
+            (build / package.ROM_CONFIG_NAME).write_bytes(b"config")
+            mods = build / "mods" / "preloaded"
+            mods.mkdir(parents=True)
+            # Legacy mutable state is ultimately removed from the ZIP, but
+            # copytree used to copy it *before* deletion. Preflight must still
+            # reject a sparse oversized source without copying its contents.
+            with (mods / "state.toml").open("wb") as handle:
+                handle.truncate(package.MAX_PACKAGE_FILE_BYTES + 1)
+            (mods / "catalog.json").write_bytes(b"{}")
+            rom = root / package.ROM_NAME
+            rom.write_bytes(b"rom")
+            output = root / "existing-package"
+            output.mkdir()
+            marker = output / "previous-success.txt"
+            marker.write_text("keep prior package")
+
+            with mock.patch.object(
+                package.shutil, "copy2",
+                side_effect=AssertionError("source copied before preflight"),
+            ):
+                with self.assertRaisesRegex(
+                    ValueError, "package source exceeds shipping size limits"
+                ):
+                    package.assemble(build, rom, output, "test-revision")
+            self.assertEqual(marker.read_text(), "keep prior package")
+
     def test_oversized_manifest_is_rejected_before_json_read(self):
         with tempfile.TemporaryDirectory() as temp:
             root = pathlib.Path(temp)

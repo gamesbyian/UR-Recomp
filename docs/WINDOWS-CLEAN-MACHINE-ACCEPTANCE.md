@@ -6,6 +6,10 @@ which checks PowerShell 5.1 execution and Windows-native extraction on the
 hosted Windows runner. No claim of a verified clean end-user machine is made
 until the full interactive procedure runs outside that development runner.
 
+## Adversarial release gate
+
+The exact ZIP/sidecar verification described here is necessary but not sufficient for external beta. QA-04 in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) additionally requires the same candidate on dissimilar physical Windows hardware with actual graphics, controller input, audio and ordinary player journeys (J-01/J-10). Attach build SHA, ZIP hash, OS/GPU/display/audio/driver/controller data and reproducible outcomes. Hosted offscreen Win32 and native ZIP extraction remain L2/L4 build evidence, not independent physical L5 hardware proof.
+
 ## Purpose
 
 `tools/Test-URRecompPortable.ps1` accepts the exact private portable Windows

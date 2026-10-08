@@ -4,6 +4,7 @@
 #include "completed_run_ghost_world_sample.hpp"
 #include "completed_run_record.hpp"
 
+#include <cstddef>
 #include <optional>
 #include <string>
 #include <vector>
@@ -11,6 +12,11 @@
 namespace ur::product {
 
 constexpr std::uint32_t kCompletedRunGhostTraceSchemaVersion = 1;
+// The sidecar is optional presentation evidence, never replay authority.
+// Reject pathological files/sessions without limiting a valid .urrun replay.
+// 500,000 guest frames is over two hours at the fixed 60 Hz game cadence.
+constexpr std::size_t kCompletedRunGhostTraceMaxSamples = 500000;
+constexpr std::size_t kCompletedRunGhostTraceMaxBytes = 64u * 1024u * 1024u;
 
 struct CompletedRunGhostTrace {
     std::uint32_t schema_version = kCompletedRunGhostTraceSchemaVersion;

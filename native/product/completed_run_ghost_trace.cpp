@@ -61,7 +61,8 @@ bool CompletedRunGhostTraceCapture::begin_attempt() {
 
 bool CompletedRunGhostTraceCapture::observe(
     const CompletedRunGhostWorldSample& sample) {
-    if (!capturing_) return false;
+    if (!capturing_ ||
+        samples_.size() >= kCompletedRunGhostTraceMaxSamples) return false;
     if (!samples_.empty() &&
         sample.race_frame <= samples_.back().race_frame) {
         return false;
@@ -106,6 +107,10 @@ bool validate_completed_run_ghost_trace(
     }
     if (!hex16_ok(trace.run_artifact_checksum)) {
         set_detail(detail, "invalid run artifact checksum");
+        return false;
+    }
+    if (trace.samples.size() > kCompletedRunGhostTraceMaxSamples) {
+        set_detail(detail, "ghost trace sample limit exceeded");
         return false;
     }
 
@@ -161,13 +166,20 @@ std::string encode_completed_run_ghost_trace(
     }
     payload << "END\n";
     const std::string body = payload.str();
-    return body + "checksum " + checksum_hex(body) + "\n";
+    const std::string trailer = "checksum " + checksum_hex(body) + "\n";
+    if (body.size() > kCompletedRunGhostTraceMaxBytes - trailer.size())
+        return {};
+    return body + trailer;
 }
 
 CompletedRunGhostTraceLoadResult decode_completed_run_ghost_trace(
     const std::string& text,
     const CompletedRunRecord* bound_record) {
     CompletedRunGhostTraceLoadResult result;
+    if (text.size() > kCompletedRunGhostTraceMaxBytes) {
+        result.detail = "ghost trace byte limit exceeded";
+        return result;
+    }
 
     const auto checksum_pos = text.rfind("checksum ");
     if (checksum_pos == std::string::npos) {
@@ -253,6 +265,10 @@ CompletedRunGhostTraceLoadResult decode_completed_run_ghost_trace(
         }
 
         if (row_key == "sample") {
+            if (trace.samples.size() >= kCompletedRunGhostTraceMaxSamples) {
+                result.detail = "ghost trace sample limit exceeded";
+                return result;
+            }
             std::string frame_token, x_token, y_token, pitch_token;
             std::string semantic_token, facing_token, attr_token;
             std::string p1_primary_token, p2_primary_token;
@@ -377,15 +393,33 @@ CompletedRunGhostTraceLoadResult load_completed_run_ghost_trace_file(
             "cannot open ghost trace"};
     }
 
-    std::ostringstream buffer;
-    buffer << in.rdbuf();
-    if (!in.good() && !in.eof()) {
-        return {
-            CompletedRunGhostTraceLoadStatus::IoError,
-            std::nullopt,
-            "cannot read ghost trace"};
+    // Stream in bounded chunks instead of constructing an unbounded
+    // ostringstream before validation. Keep the ceiling even if the file
+    // changes after opening: ghost failure never invalidates the .urrun.
+    std::string encoded;
+    char chunk[8192];
+    for (;;) {
+        in.read(chunk, sizeof(chunk));
+        const std::streamsize read_bytes = in.gcount();
+        if (read_bytes > 0) {
+            const auto count = static_cast<std::size_t>(read_bytes);
+            if (count > kCompletedRunGhostTraceMaxBytes - encoded.size()) {
+                return {
+                    CompletedRunGhostTraceLoadStatus::Malformed,
+                    std::nullopt,
+                    "ghost trace byte limit exceeded"};
+            }
+            encoded.append(chunk, count);
+        }
+        if (in.eof()) break;
+        if (!in) {
+            return {
+                CompletedRunGhostTraceLoadStatus::IoError,
+                std::nullopt,
+                "cannot read ghost trace"};
+        }
     }
-    return decode_completed_run_ghost_trace(buffer.str(), bound_record);
+    return decode_completed_run_ghost_trace(encoded, bound_record);
 }
 
 

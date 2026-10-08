@@ -69,3 +69,23 @@ contact-state / checkpoint handler** boundary. A frame-end read of
 `0F09` is the wrong observation surface for assigning the P1 cell.
 Do not widen collision activation or change guest physics while
 investigating this state.
+
+
+## Handler control-class discrimination
+
+USA checkpoint handler 81:805D..8063 loads the shared 0F09
+and masks it with 0x1C00, choosing a branch class from those upper
+control bits. All six retained frames selecting runtime object code
+0x14 have contact words 0x2024, 0x2020 or 0x0022; **all three
+yield masked value zero**. Thus the observed progression difference
+cannot be credited to a different *masked handler class* merely because
+the packed words select C000 slots 10, 8 and 9.
+
+It is still possible for different frames to encounter different
+preexisting lap/checkpoint/finish-gate states, object activation timing,
+or contact positions. The retained snapshots and this masked-code
+comparison do not identify which of those mechanisms caused the single
+progression transition. A one-frame correlation must not be elevated
+to proof that C000 slot 8 inherently means "finish" while slot 10
+inherently means "checkpoint". Both are the same behavior code 0x14,
+and the handler sees the same masked class for these recorded words.

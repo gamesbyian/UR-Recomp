@@ -30,6 +30,10 @@ on:
       - "tests/native/run_modern_tour_overview_acceptance.sh"
       - "native/title/uniracers_tour_progress_overview.hpp"
       - "native/product/host_profile_state.*"
+      - "native/product/clean_stock_sram.*"
+      - "tools/probe_malformed_sram_containment.py"
+      - "tests/native/run_malformed_sram_boot_acceptance.sh"
+      - "tests/unit/test_probe_malformed_sram_containment.py"
       - "tests/input/modern-tour-next-event-acceptance.script"
       - "tests/input/modern-tour-continue-*.script"
       - "tests/input/modern-recent-course-persist.script"
@@ -567,6 +571,7 @@ jobs:
               run_case vibration run_modern_vibration_acceptance.sh vibration
               run_case volume run_modern_volume_acceptance.sh volume
               run_case pad-glyphs run_modern_pad_glyph_acceptance.sh pad-glyphs
+              run_case malformed-sram run_malformed_sram_boot_acceptance.sh malformed-sram
               ;;
             multiplayer)
               run_case two-player-join run_modern_two_player_join_acceptance.sh two-player-join
@@ -592,6 +597,8 @@ jobs:
             ${{ runner.temp }}/vibration/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log
+            ${{ runner.temp }}/malformed-sram/*.log
+            ${{ runner.temp }}/malformed-sram/*.json
             ${{ runner.temp }}/two-player-join/*.log
           if-no-files-found: warn
           retention-days: 7

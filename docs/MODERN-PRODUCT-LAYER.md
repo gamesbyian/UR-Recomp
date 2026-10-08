@@ -76,6 +76,22 @@ The profile payload is versioned and bounded. It can retain an exact 8 KiB stock
 
 Catalog/profile activation is fail-closed. A profile is authoritative only when the persisted catalog entry, profile metadata and required snapshot state agree; malformed, partial, mismatched or unknown identities do not acquire write or rider-projection authority. Profile IDs are constrained so Windows path aliases/device names cannot collapse distinct profiles onto one save directory. Writes use replace-on-success semantics, and malformed existing files are preserved rather than silently overwritten.
 
+**Malformed-SRAM containment** (measured, `analysis/generated/malformed-sram-containment.json`, R-2026-10-08-SRAM-01). Checks:
+
+- host layer: `tests/unit/test_malformed_sram_containment_cpp.py`;
+- guest boot: `tests/native/run_malformed_sram_boot_acceptance.sh`, in the onboarding workflow's `feedback` shard.
+
+| Malformed class | Host profile layer | Stock guest on boot |
+|---|---|---|
+| Mirror not exactly 8 KiB of hex (truncated, oversized, odd length, non-hex) or file over the size bound | Codec rejects it. The profile resolves to a read-only default with no mirror. Nothing is installed and the file is preserved. | n/a |
+| Mirror or `save.srm` with a medal or records checksum mismatch | Opaque: decoded exactly and installable | Kept unchanged; no checksum is checked |
+| Plausible checksum, out-of-range medal, record or holder bytes | Opaque: installable. Tour resume refuses medal > 3. | Kept unchanged |
+| In-tour flag > 1 or play mode outside {0, 1} | Opaque: installable. Tour resume (`observe_tour_progress`, `tour_resume_*_matches_sram`, `apply_tour_resume`) refuses it and leaves SRAM untouched. | Flags kept; play mode zeroed by `83:8B23` |
+| Damaged `ASJIver3.30` signature (bytes `0x0000-0x000B`) | Profile activation and tour-entry rollback refuse it. They write live SRAM without a guest boot, so `stock_sram_format_signature_present()` must stand in for the boot check. | Whole cartridge reformatted to `Clean.srm` |
+| `save.srm` truncated, empty or oversized (framework load) | Not host-owned. The framework zero-fills the tail and logs `Error reading`. | Kept if the signature survives, otherwise reformatted |
+
+The generic profile codec stays opaque by design. Checksum and value semantics belong to the guest, and the guest accepts them. The one stock acceptance predicate, the format signature, is enforced only where the host bypasses the guest boot. A profile root whose `save.srm` is damaged still boots under stock rules (a reformat or a zero tail). A later autosave then captures that guest-owned state into the mirror. That is stock cartridge behavior, not a host repair. The test override `UR_PROFILE_SAVE_ROOT` must stay shorter than the framework's 96-byte save-root buffer. Longer paths are silently truncated. Product roots (`saves/profile-<id>`, ids ≤ 64) fit.
+
 The acceptance standard is process-oriented: create/select/rename and classic-preset identity survive a fresh process; independent profiles do not share SRAM, runs or ghost preferences; migration/legacy-readable states do not silently become writable when required Modern metadata is absent; malformed catalog/profile inputs fail closed; and Authentic mode remains inert. True host-owned tour/event continuation above the stock rider-select wipe remains a separate product feature, not a reason to reinterpret the profile codec.
 
 ## Authentic versus Modern policy

@@ -77,6 +77,25 @@ record the exact mapping rather than assuming they all share one enumeration.
 
 **Confirmed.** A gameplay-authored Crawler bronze (`0→1`) with valid checksum and byte-exact fresh-process reload is accepted evidence (`analysis/generated/progression-sram-acceptance.json`, produced by the Snes9x 1.51-rr historical replay). Seeding a medal cell and recomputing the `0x073C` checksum before boot is a reliable black-box way to put the game into a chosen tier.
 
+## Boot validation and malformed SRAM
+
+**Confirmed (R-2026-10-08-SRAM-01).** On a cold boot the stock game validates only the 12-byte format signature. `80:8C4E` compares SRAM `0x0000-0x000B` with ROM `83:8000` (`ASJIver3.30` + `0xFF`). On any mismatch it reformats the whole cartridge to the fresh image, which is byte-identical to `Clean.srm`. Otherwise it keeps every byte. No checksum is checked at boot. The `0x073C` medal checksum, the `0x054E` records checksum and the other seven sums that `83:90F4` writes all survive a mismatch unchanged. Two compare routines (`83:89D9`, `83:8A59`) are never called (static). Out-of-range values are also kept: medal 7, record `0xFFFF`, holder `0xFF` and in-tour flag `0xFF`.
+
+A boot that keeps the SRAM still rewrites a fixed set of bytes:
+
+- `83:8AF7` (the mirroring probe) leaves `0x1FFF` = `0x56`;
+- `83:8B23` zeroes `0x0400-0x041F`, the play mode `0x10AD` (so `0x7F` becomes 0) and the tier mirror `0x10FD-0x110C`.
+
+The framework (`RtlReadSram`) reads up to 8 KiB over zeroed cart RAM and only logs `Error reading` on a short read. As a result:
+
+- an empty file, or one too short to hold the signature, is reformatted;
+- a longer truncated file keeps its prefix and silently gets a zero tail;
+- an oversized file is cut to 8 KiB.
+
+On exit the framework writes the live image back and keeps exactly one previous revision as `save.srm.bak`. A Modern profile root boots identically. Evidence: `analysis/generated/malformed-sram-containment.json`.
+
+Consequence for host code: the guest is not a semantic validator. It will run on checksum-invalid or out-of-range bytes. Any host path that writes a profile mirror into live SRAM without a guest boot must apply the same signature check itself (see `docs/MODERN-PRODUCT-LAYER.md`).
+
 ## Port requirement
 
 Stock save/progression behavior is part of authoritative gameplay state.

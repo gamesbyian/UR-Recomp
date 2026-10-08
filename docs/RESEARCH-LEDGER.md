@@ -2579,3 +2579,59 @@ Native smoke gates all of this.
 - Contact-word values at the lip feed `81:82E6` object dispatch; the movie values are recorded in the replay JSON.
 - The 2-frame input cadence is a constraint on expert-edge item (e), roll/flip boundaries.
 - No `docs/SYMBOLS.md` change.
+
+### R-2026-10-08-SRAM-01 — Stock boot validates only the SRAM format signature; Modern installs must enforce it
+
+**Status:** confirmed  
+**Date:** 2026-10-08  
+**Area:** RAM | other (SRAM, Modern profiles)
+
+**Decision / discriminator / stop:** WORK-QUEUE expert-edge item (f).
+- **Decision:** must the Modern profile layer validate stock-SRAM semantics, or can it keep the mirror opaque?
+- **Discriminator:** one native cold boot per synthesized malformed class, plus the host codec/install unit contract.
+- **Stop:** every class classified for both layers.
+
+**Observation:** The base image is `Clean.srm` plus MIKE Crawler silver and a 30.00 s Crawler/Dragster record, with both checksums valid. Each class was cold-booted to MAIN_MENU (`7E:009F = D7`) in Authentic and in an isolated Modern profile root, and the outcomes agree. Every case reached the menu without a crash.
+- **No `save.srm`:** the fresh format is byte-identical to `Clean.srm`.
+- **Reformatted:** a damaged byte 0 of `ASJIver3.30`, and an empty file (the framework leaves zeroed cart RAM).
+- **Kept, apart from the fixed boot writes listed below:**
+  - medal-checksum mismatch and records-checksum mismatch (both stay invalid);
+  - medal 7;
+  - record `0xFFFF` with holder `0xFF`;
+  - in-tour flag `0xFF`;
+  - an oversized file (cut to 8 KiB);
+  - a 4 KiB truncation: the prefix is kept and the framework zero-fills the tail, so the `HereToo` marker at `0x1118` is lost. The only trace is an `Error reading` log line.
+- **Play mode `0x7F`:** becomes 0.
+- **Fixed boot writes:** every boot that keeps the SRAM writes `0x1FFF` = `0x56`. The framework writes the live image back on exit and rotates the previous file to `save.srm.bak`.
+- **Host layer:**
+  - the codec rejects any mirror that is not exactly 8 KiB of hex. Load gives `Malformed` and resolve gives a read-only default with no mirror. The file is preserved, and a read-only ghost-target update leaves it untouched;
+  - checksum, range, flag and play-mode damage round-trips and installs byte-exactly;
+  - tour resume refuses flags > 1, medal > 3 and play mode outside {0, 1};
+  - before this change, `activate_profile_id()` and the tour-entry rollback would install a signature-damaged mirror straight into live SRAM.
+
+**Evidence:**
+- `analysis/generated/malformed-sram-containment.json` from `tools/probe_malformed_sram_containment.py`. The fixtures are synthesized from `Clean.srm` at run time.
+- `tests/native/malformed_sram_containment_test.cpp`.
+- Static decode from the Nitrodon bank 80/83 listings:
+  - `80:8C4E` loops six words `CMP $838000,X` against SRAM `0x0000`. On a mismatch it runs the format chain, which ends in `83:90F4`;
+  - `83:90F4` only *writes* nine sums (`016C 02B0 022E 0420 02BE 054E 05E6 073C 0E69`);
+  - the compare routines `83:89D9` (`016C/02B0/022E/0420`) and `83:8A59` (`02BE/054E/05E6/073C/0E69`) return Z, and nothing reaches either: no `JSR`/`JMP`/`JSL`/`JML` anywhere in the ROM, and no 16-bit pointer to them in banks 80–83;
+  - boot `80:886D` calls `83:8AF7` (the `0x1FFF`/`0x2000` mirroring probe, with `80:94EB` on failure), then `8C4E`, then `83:8B23` (zeroes `0400-041F`, `10AD`, `10FD-110C`).
+
+**Interpretation:**
+- Stock treats checksums as write-side bookkeeping and the signature as the only acceptance test. A checksum-damaged image is not repaired at boot. Because `83:90F4` recomputes every sum, the next stock progression write would make it consistent again (static inference, not measured).
+- A corrupted mirror therefore does not crash the guest, but it is not rejected either. The fail-closed boundary has to sit in the host:
+  - a wrong size fails closed in the codec;
+  - a damaged signature is now refused at the two boot-bypassing live-install paths (`stock_sram_format_signature_present()`, diagnostics `UR_PROFILE_SELECT REJECTED_UNFORMATTED_SNAPSHOT` / `UR_TOUR_CONTINUE ROLLBACK_REJECTED_UNFORMATTED_SNAPSHOT`), before any persistence;
+  - checksum and range semantics remain guest-owned and opaque, matching stock cartridge behavior.
+
+**Discriminating test:** `tests/native/run_malformed_sram_boot_acceptance.sh` re-runs the probe against a native candidate and checks the same expectations as the committed evidence.
+
+**Dependencies:**
+- Framework `RtlReadSram`/`RtlTryWriteSram` semantics at the pinned snesrecomp revision.
+- The framework's 96-byte save-root buffer. Longer `UR_PROFILE_SAVE_ROOT` overrides are silently truncated; the probe guards against this.
+
+**Propagation:**
+- The `docs/knowledge/progression-sram-and-results.md` boot-validation section.
+- The `docs/MODERN-PRODUCT-LAYER.md` containment table.
+- Downstream guest behavior of out-of-range medals (for example opponent `17 + 7`) was not measured. The stock writer cannot produce them, so this is left as a lead only if external corruption becomes a product case.

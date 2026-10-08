@@ -257,7 +257,26 @@ jobs:
               test -s "$RUNNER_TEMP/ui-ending-dumps/ui-splash-observed.wram.bin" || { echo "::error::Missing authentic splash capture"; exit 1; }
               run_route ui-attract-route ui-attract-route.script ui-attract-dumps 90
               run_route ui-pause-route ui-pause-route.script ui-pause-dumps 90
-              run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
+              # Pre-route mutable-state clone proved 198/198 bytes identical to
+              # the existing shared-root capture (paced and unpaced).
+              (
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-race-result-unpaced-shipping"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR/saves" || exit $?
+                for state in config.ini keybinds.ini saves/save.srm; do
+                  src="$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build/$state"
+                  test -f "$src" || { echo "::error::Race-result baseline state missing: $state"; exit 1; }
+                  cp "$src" "$SNESRECOMP_USER_DATA_DIR/$state" || exit $?
+                done
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180 required || exit $?
+                grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                  "$RUNNER_TEMP/ui-race-result-route.log" || {
+                  echo "::error::Race-result route did not load cloned unpaced state root"
+                  exit 1
+                }
+                echo "UR_RACE_RESULT_CLONED_UNPACED_ROOT PASS"
+              ) || exit $?
               run_route ui-erase-confirm ui-erase-confirm.script ui-erase-confirm-dumps 90
               ;;
             results-a)

@@ -393,6 +393,28 @@ sequence snapshots remain. The temporary triple-run parity experiment
 is not merged. Production merge requires a fresh full six-shard and
 aggregate native result, not the standalone experiment's success alone.
 
+### Race-result pre-route state-equivalent unpaced proof
+
+[Experiment #962](https://github.com/gamesbyian/UR-Recomp/pull/962), native
+[run 37851124838](https://github.com/gamesbyian/UR-Recomp/actions/runs/37851124838),
+and tooling all passed. Navigation's effective executable-directory persistent
+state immediately before its existing Race-result capture consisted of
+`config.ini`, `keybinds.ini`, and `saves/save.srm`. Seeding independent
+paced/unpaced roots with these three files and overriding their frame-delay
+config produced **198/198 byte-identical files across all 18 checkpoints**,
+including **zero differences from the original shared-root shipping capture**.
+The resulting comparison manifest was
+`c00d35b2cfbeac0f0fcdc1295e0d9438fa6f5e79ca9897c5826cdb959e496e66`.
+A prior unseeded comparison also matched paced/unpaced but had 125 mismatches
+against production, demonstrating why the state clone is essential.
+
+Shipping retains the original Race-result script, output names, strict atlas
+and printed finish-time checks. It copies the three known pre-route persistent
+files into an isolated fresh root, applies the proven unpaced config, fails
+closed on missing seed files or an incorrect native config root, and requires
+the capture command to succeed. The triple-run experiment is closed unmerged;
+production remains subject to fresh tooling plus full native acceptance.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

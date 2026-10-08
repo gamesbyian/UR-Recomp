@@ -23,6 +23,43 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
         self.assertEqual(stats["length_delta"], 2)
         self.assertEqual(stats["identical_prefix"], 3)
 
+    def test_region_partition_preserves_exact_materialization_boundaries(self):
+        tool = load_tool()
+        # One full coarse table, one 32-byte fine record, and a terminated list.
+        data = bytearray(0x800F + 32 + 3)
+        cursor = 0x800F + 32
+        data[cursor:] = b"\\x01\\x24\\xff"
+        parsed = {
+            "resource_cursor_initial": cursor,
+            "resource_terminator_offset": cursor + 2,
+        }
+        regions = tool.regions(bytes(data), parsed)
+        self.assertEqual(len(regions["coarse_table"]), 0x8000)
+        self.assertEqual(len(regions["fine_record_region"]), 32)
+        self.assertEqual(regions["resource_list"], b"\\x01\\x24\\xff")
+        self.assertEqual(sum(map(len, regions.values())), len(data))
+
+    def test_region_partition_rejects_shifted_or_truncated_course(self):
+        tool = load_tool()
+        data = bytearray(0x800F + 33 + 3)
+        cursor = 0x800F + 33
+        data[cursor:] = b"\\x01\\x24\\xff"
+        parsed = {
+            "resource_cursor_initial": cursor,
+            "resource_terminator_offset": cursor + 2,
+        }
+        with self.assertRaisesRegex(ValueError, "32-byte aligned"):
+            tool.regions(bytes(data), parsed)
+        with self.assertRaisesRegex(ValueError, "truncated"):
+            tool.regions(bytes(data[:0x800E]), parsed)
+        with self.assertRaisesRegex(ValueError, "outside course fine-record"):
+            tool.regions(bytes(data), {**parsed, "resource_cursor_initial": 0x800E})
+        with self.assertRaisesRegex(ValueError, "outside course resource list"):
+            tool.regions(bytes(data), {**parsed, "resource_terminator_offset": len(data)})
+        damaged = bytes(data[:-1] + b"\\x00")
+        with self.assertRaisesRegex(ValueError, "not FF"):
+            tool.regions(damaged, parsed)
+
     def test_actual_changed_course_set(self):
         tool = load_tool()
         report = tool.build_report(

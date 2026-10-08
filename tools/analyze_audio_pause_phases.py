@@ -90,16 +90,24 @@ def pause_phase_report(
             f"stock resume RMS ratio {resumed / baseline:.6f} below "
             f"measured limit {min_resumed_to_before}"
         )
+    relative = {
+        name: (round(phases[name]["tail_rms"] / baseline, 6) if baseline > 0 else None)
+        for name in CHECKPOINTS
+    }
+    # -infinity dB for literal silence is represented as null, not invalid
+    # JSON or an arbitrary numeric floor. Ratios are process-local evidence.
+    relative_db = {
+        name: (round(20 * math.log10(value), 4) if value is not None and value > 0 else None)
+        for name, value in relative.items()
+    }
     return {
         "schema_version": 1,
         "meaning": "Stock guest Start pause and resume, not Modern host pause",
         "window": "Approximate 1-second SDL playback tail after guest-observed 30-frame hold",
         "phase_order": list(CHECKPOINTS),
         "phases": phases,
-        "relative_to_before": {
-            name: (round(phases[name]["tail_rms"] / baseline, 6) if baseline > 0 else None)
-            for name in CHECKPOINTS
-        },
+        "relative_to_before": relative,
+        "relative_to_before_db": relative_db,
         "limits": {
             "source_audible_drops": 0,
             **{key: value for key, value in limits.items() if value is not None},
@@ -132,6 +140,11 @@ def main() -> int:
             f"post_underflows={item['post_startup_underflows']} "
             f"post_missing={item['post_startup_missing_frames']}"
         )
+    print(
+        "STOCK_PAUSE_AUDIO_ATTENUATION "
+        f"paused_db={report['relative_to_before_db']['ui-pause-after-start']} "
+        f"resumed_db={report['relative_to_before_db']['ui-pause-after-resume']}"
+    )
     print("STOCK_PAUSE_AUDIO_MATRIX PASS phases=3 source_drops=0")
     return 0
 

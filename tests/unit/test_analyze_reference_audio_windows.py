@@ -35,7 +35,7 @@ class ReferenceAudioWindowTests(unittest.TestCase):
                 w.setnchannels(2)
                 w.setsampwidth(2)
                 w.setframerate(600)
-                w.writeframes(b"\\x01\\x00\\x01\\x00" * 110)
+                w.writeframes((1).to_bytes(2, "little") * 2 * 110)
             row = window_metrics(wav, center_frame=10, fps=60, radius_frames=30)
             self.assertTrue(row["window_truncated"])
             self.assertEqual(row["pcm_start_frame"], 0)
@@ -49,7 +49,7 @@ class ReferenceAudioWindowTests(unittest.TestCase):
                 w.setnchannels(2)
                 w.setsampwidth(2)
                 w.setframerate(600)
-                w.writeframes(b"\\x00\\x00\\x00\\x00" * 100)
+                w.writeframes(bytes(4 * 100))
             with self.assertRaisesRegex(ValueError, "beyond captured PCM"):
                 window_metrics(wav, center_frame=100, fps=60)
             with self.assertRaisesRegex(ValueError, "invalid audio checkpoint"):
@@ -59,7 +59,7 @@ class ReferenceAudioWindowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             log = Path(td) / "run.log"
             for text in ("core timing: fps=0 sample_rate=600", "core timing: fps=60 sample_rate=0"):
-                log.write_text(text + "\\n")
+                log.write_text(text + chr(10))
                 with self.assertRaisesRegex(ValueError, "invalid core timing"):
                     parse_log(log)
 

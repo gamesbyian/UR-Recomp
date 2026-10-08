@@ -12,11 +12,18 @@ namespace fs = std::filesystem;
 // membership from all ordinary Records. The production host must already have
 // persisted the exact fixture receipt during its genuine stock 2P capture.
 int main(int argc, char** argv) {
-    if (argc != 3) {
+    if (argc != 3 && argc != 4) {
         std::fprintf(stderr,
-            "usage: tournament-live-check <user-root> <multiplayer-run-dir>\n");
+            "usage: tournament-live-check <user-root> <multiplayer-run-dir> [minted]\n");
         return 2;
     }
+    // "minted": the event was created from the player-facing panel, so its
+    // identity must be an OS-minted 32-hex token, never the fixed ID the
+    // env-armed acceptance route uses.
+    const bool minted = argc == 4 && std::string(argv[3]) == "minted";
+    if (argc == 4 && !minted) return 2;
+    constexpr const char* kFixedAcceptanceId =
+        "0123456789abcdef0123456789abcdef";
     const fs::path tournament_root = fs::path(argv[1]) / "local-tournaments";
     const std::vector<HostProfileCatalogEntry> catalog{
         {"join.alpha", {"MIKE", 0}},
@@ -26,9 +33,20 @@ int main(int argc, char** argv) {
         tournament_root.string(), argv[2],
     };
     const auto restored = restore_local_tournament_coordinator(paths, catalog);
+    const auto valid_minted_id = [](const std::string& id) {
+        if (id.size() != 32) return false;
+        for (const char ch : id) {
+            if (!((ch >= '0' && ch <= '9') || (ch >= 'a' && ch <= 'f'))) {
+                return false;
+            }
+        }
+        return true;
+    };
     if (!restored.usable() ||
-        restored.session->definition.instance_id !=
-            "0123456789abcdef0123456789abcdef" ||
+        (minted
+            ? (!valid_minted_id(restored.session->definition.instance_id) ||
+               restored.session->definition.instance_id == kFixedAcceptanceId)
+            : restored.session->definition.instance_id != kFixedAcceptanceId) ||
         restored.session->results.fixtures.size() != 1 ||
         !local_tournament_coordinator_complete(*restored.session) ||
         local_tournament_next_unplayed_fixture(*restored.session)) {

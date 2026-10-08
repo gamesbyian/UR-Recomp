@@ -63,9 +63,13 @@ class ModernOverlayTextFitTests(unittest.TestCase):
             ("STUNTS END WHEEL-DOWN.", 28),
             ("F5/PAD X  QUICK PRACTICE", 28),
             ("F2/PAD X  RACERS (PICKER)", 28),
-            ("F7/PAD L PROGRESS F1 HELP", 28),
-            ("F9 CTRL F10/SELECT OPT", 28),
         ]
+        # Progress (SNES L) and Options (SNES Select) name their live
+        # GamepadMap binding; the default positional map gives LB / BACK.
+        self.assertIn('"F7/PAD " + live_gamepad_binding_label(10) + " PROGRESS F1 HELP"', source)
+        self.assertIn('"F9 CTRL F10/" + live_gamepad_binding_label(4) + " OPT"', source)
+        self.assertLessEqual(len("F7/PAD LB PROGRESS F1 HELP"), 28)
+        self.assertLessEqual(len("F9 CTRL F10/BACK OPT"), 28)
         for text, cells in expected:
             self.assertIn(f'"{text}"', source)
             self.assertLessEqual(len(text), cells, text)

@@ -530,3 +530,34 @@ Across the full course corpus:
 - historical start X matches header pair A.x ×16 on 43/45 courses.
 
 The strongest current interpretation is therefore that decoded offsets 3/5 and 7/9 are the two racer spawn coordinate pairs, with pair-to-player assignment still requiring one unequal-pair runtime discriminator. Keep Zoom Zoo and Jumps as explicit historical-coordinate exceptions rather than weakening the broader relation.
+
+
+### Targeted checkpoint/finish resource placement probe (2026-10-08)
+
+The new tools/probe_course_checkpoint_placements.py exposes a ROM-derived
+world-cell lookup for resource family 0x24 on a selected course, rather than
+extending the Dragster-only presentation artifact or guessing which cells
+activated the finish handler. It requires the exact canonical USA retail ROM
+hash because its descriptor table address is anchored at USA 82:B7DA.
+
+The probe decodes the selected RNC stream, applies the 16,384-entry coarse table
+and 32-byte/4x4 fine-record lookup, and resolves each normal packed word's
+C000 slot to the cumulative descriptor-owned resource span. Repeated resource
+IDs remain distinct spans. Example invocations:
+
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 1
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 5 --query-rect 0 0 1023 1023
+
+The output includes exact candidate 16x16 world rectangles, fine-record IDs,
+coarse sectors, and C000 slots. The automatic historical finish-X probe comes
+from Dessyreqt's magicnumber.lua corpus. It is an **X-only optimizer lead**,
+not confirmation of a finish-line position, active cell, checkpoint order,
+lap semantics, or collision trigger. Stunt courses without resource 0x24
+produce an empty candidate set, not inferred checkpoints.
+
+The integration regression pins Dragster resource slots 6..14, its 31 coarse
+sector placements, and its 65536x1024 extent to the accepted spatial contract.
+The next semantic discriminator is an emulator event trace overlaying actual
+C000 collision indices and checkpoint/finish state transitions on candidate
+cells in a circuit and a non-Dragster race. Static X proximity cannot replace
+that dynamic evidence.

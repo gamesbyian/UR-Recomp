@@ -69,6 +69,32 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn('"F8 / Y      RECORDS"', source)
 
 
+    def test_replay_can_cancel_without_injecting_guest_input(self):
+        source = (ROOT / "native" / "product" /
+                  "completed_run_browser_host.cpp").read_text(encoding="utf-8")
+        helper = source.split("void cancel_active_replay_to_browser()", 1)[1].split(
+            "void adjust_records_root_section(", 1)[0]
+        for token in (
+            "g_replay_flow.cancel();",
+            "snesrecomp_desktop_load_relative_input_file(nullptr)",
+            "ur_uniracers_modern_after_run_frame(nullptr)",
+            "snesrecomp_desktop_is_paused()",
+            "refresh_browser()",
+            "g_browser_visible = opened;",
+        ):
+            self.assertIn(token, helper)
+        keyboard = source.split("int ur_uniracers_product_system_key_down(", 1)[1].split(
+            "int ur_uniracers_product_system_gamepad_button(", 1)[0]
+        raw = source.split("int ur_uniracers_product_system_gamepad_button(", 1)[1].split(
+            "int ur_uniracers_product_system_gamepad_control(", 1)[0]
+        mapped = source.split("int ur_uniracers_product_system_gamepad_control(", 1)[1].split(
+            "void ur_uniracers_product_system_overlay(", 1)[0]
+        self.assertIn("key == SDLK_ESCAPE && !repeat", keyboard)
+        self.assertIn("pressed && button == kGamepadBtn_B", raw)
+        self.assertIn("pressed && control == 7", mapped)
+        for event_path in (keyboard, raw, mapped):
+            self.assertIn("cancel_active_replay_to_browser();", event_path)
+
     def test_multiplayer_summary_aggregates_only_listed_pairs(self):
         source = (
             ROOT / "native" / "product" / "completed_run_browser_host.cpp"

@@ -269,8 +269,9 @@ jobs:
               # routes cannot perturb the new required reference evidence.
               (
                 export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"
-                mkdir -p "$SNESRECOMP_USER_DATA_DIR"
-                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
               ) || exit $?
               for tag in ui-circuit-track-selected ui-circuit-now-playing ui-circuit-entered ui-circuit-drive-start ui-circuit-drive-10 ui-circuit-drive-20 ui-circuit-drive-30 ui-circuit-drive-40 ui-circuit-drive-50 ui-circuit-drive-60 ui-circuit-terminal; do

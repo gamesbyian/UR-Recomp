@@ -58,7 +58,7 @@ inline LocalTournamentRestoreResult restore_local_tournament_receipts(
     auto reject = [](LocalTournamentRestoreStatus status) {
         return LocalTournamentRestoreResult{status, std::nullopt};
     };
-    if (!local_tournament_valid_instance_token(active_tournament_id)) {
+    if (!local_tournament_lower_hex(active_tournament_id, 32)) {
         return reject(LocalTournamentRestoreStatus::InvalidInstance);
     }
     const auto canonical = make_local_round_robin(
@@ -85,7 +85,7 @@ inline LocalTournamentRestoreResult restore_local_tournament_receipts(
 
     // Reconstruct from the canonical empty schedule. The original input is
     // never modified, including when a later item invalidates earlier ones.
-    LocalTournamentState rebuilt = std::move(*canonical);
+    LocalTournamentState rebuilt = *canonical;
     std::vector<bool> seen(rebuilt.fixtures.size(), false);
     for (const auto& entry : evidence) {
         const auto receipt =

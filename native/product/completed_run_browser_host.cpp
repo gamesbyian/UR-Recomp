@@ -1962,6 +1962,13 @@ extern "C" void ur_uniracers_product_system_overlay(
     int height) {
     if (!g_replay_flow.active()) {
         ur_uniracers_modern_system_overlay(dst, pitch, width, height);
+    } else if (dst && pitch >= 4 && width > 0 && height > 0) {
+        // Match the existing lightweight Modern pause/results hints rather
+        // than covering the game with a foreign replay modal.
+        auto* pixels = reinterpret_cast<uint32_t*>(dst);
+        snes_ovl_draw_text(
+            pixels, static_cast<int>(pitch / 4u), height,
+            8, height - 13, "ESC / B  CANCEL REPLAY", 0xFFFFFFFFu, 1);
     }
     draw_records_browser(dst, pitch, width, height);
     draw_browser(dst, pitch, width, height);

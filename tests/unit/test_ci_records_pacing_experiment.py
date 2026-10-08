@@ -33,7 +33,10 @@ class RecordsPacingParityExperimentTest(unittest.TestCase):
         workflow = WORKFLOW.read_text()
         records = workflow.split("            records)", 1)[1].split("            profiles)", 1)[0]
         for invariant in (
-            'python3 - "$RUNNER_TEMP/ui-records-paced-dumps" "$RUNNER_TEMP/ui-records-unpaced-dumps"',
+            'python3 - "$RUNNER_TEMP/ui-records-paced-dumps" "$RUNNER_TEMP/ui-records-unpaced-dumps" "$RUNNER_TEMP/ui-records-explore-dumps"',
+            'original = hashes(Path(sys.argv[3]))',
+            'UR_RECORDS_PACING_CONTROL baseline_drift=',
+            'UR_RECORDS_PACING_SHA256 paced=',
             "hashlib.sha256(p.read_bytes()).hexdigest()",
             'for direction in ("down", "up", "left", "right", "a", "b")',
             'for side in ("before", "after")',

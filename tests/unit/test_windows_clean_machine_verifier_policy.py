@@ -107,6 +107,46 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertTrue(
                 (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
             )
+            # A separately signed ZIP can have valid hashes but spell one
+            # parent directory two ways. Both may extract into one directory
+            # on NTFS; the standalone verifier must reject that manifest.
+            alias_archive = root / "aliased-mod-tree.zip"
+            alias_checksum = root / "aliased-mod-tree.zip.sha256"
+            alias_name = "mods/preloaded/PACKAGES/extra.json"
+            alias_data = b'{"extra":true}'
+            with zipfile.ZipFile(archive) as original, zipfile.ZipFile(
+                alias_archive, "w", compression=zipfile.ZIP_DEFLATED
+            ) as forged_zip:
+                original_manifest = json.loads(
+                    original.read(
+                        f"{package.ARCHIVE_ROOT}/{package.MANIFEST_NAME}"
+                    )
+                )
+                original_manifest["files"].append({
+                    "path": alias_name,
+                    "size": len(alias_data),
+                    "sha256": hashlib.sha256(alias_data).hexdigest(),
+                })
+                for info in original.infolist():
+                    payload = original.read(info.filename)
+                    if info.filename.endswith("/PACKAGE-MANIFEST.json"):
+                        payload = package.canonical_manifest_bytes(original_manifest)
+                    forged_zip.writestr(info, payload)
+                forged_zip.writestr(
+                    f"{package.ARCHIVE_ROOT}/{alias_name}", alias_data
+                )
+            package.write_archive_checksum(alias_archive, alias_checksum)
+            alias_cmd = cmd.copy()
+            alias_cmd[6] = str(alias_archive)
+            alias_cmd[8] = str(alias_checksum)
+            alias_cmd[-1] = str(root / "aliased extraction must fail")
+            alias_result = subprocess.run(
+                alias_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(alias_result.returncode, 0)
+            self.assertIn(
+                "Case-colliding Windows package paths", alias_result.stderr,
+            )
             # The actual, unmodified shipping verifier must reject this
             # self-consistent ZIP because its ROM is synthetic, even though
             # both the manifest and adjacent release checksum match.
@@ -200,6 +240,16 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
+
+    def test_case_aliased_windows_parent_names_fail_before_hashing(self):
+        self.assertIn("$seenPrefixes = @{}", self.script)
+        self.assertIn("$relative.Split('/')", self.script)
+        self.assertIn("$seenPrefixes[$prefix] -cne $prefix", self.script)
+        self.assertIn("Case-colliding Windows package paths", self.script)
+        self.assertLess(
+            self.script.index("$seenPrefixes[$prefix] -cne $prefix"),
+            self.script.index("Get-FileHash -LiteralPath $member"),
+        )
 
     def test_standalone_verifier_requires_amd64_pe32_plus(self):
         self.assertIn("function Assert-Amd64PortableExecutable", self.script)

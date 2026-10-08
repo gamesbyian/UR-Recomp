@@ -49,7 +49,9 @@ int main(int argc, char** argv) {
 
     std::printf(
         "UR_RUN_GHOST_TRACE_COMPARE PASS course=%s frames=%zu original=%zu "
-        "replayed=%zu terminal_delta=%zu\n",
+        "replayed=%zu terminal_delta=%zu pose_drift=%zu "
+        "p2_context_drift=%zu terminal_observation_drift=%zu "
+        "first_pose_drift=%llu first_context_drift=%llu\n",
         original.record->provenance.course_id.c_str(),
         compared, original_trace.trace->samples.size(),
         replayed_trace.trace->samples.size(),

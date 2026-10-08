@@ -28,10 +28,12 @@ PROBE_CPP = r'''#include "host_main.h"
 #include "snes/ppu.h"
 #include "racer_guest_snapshot.hpp"
 #include "racer_hd_presenter.hpp"
+#include "racer_oam_placement.hpp"
 
 #include <cstdio>
 #include <cstdint>
 #include <cstdlib>
+#include <cstring>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
@@ -48,6 +50,11 @@ extern "C" void UrRacerHdPrepareFrame(
     ur::presentation::racer_hd_prepare_frame(
         drawable_w, drawable_h, frame_w, frame_h
     );
+    if (std::getenv("UR_RACER_HD_P1_NATIVE_TEST")) {
+        // Only the diagnostic mixed-OBJ path uses 1x to permit a strict
+        // same-frame PPU input vs final-output pixel comparison.
+        (void)ur::presentation::racer_hd_set_internal_render_scale(1);
+    }
     if (std::getenv("UR_RACER_HD_PROBE_WIDE") && frame_w && frame_h) {
         // Diagnostic-only WorldExpand-sized logical field. The generated
         // native acceptance game has native_widescreen enabled explicitly.
@@ -58,6 +65,130 @@ extern "C" void UrRacerHdPrepareFrame(
 
 extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
     ur::presentation::racer_hd_begin_sim_frame(number);
+    if (std::getenv("UR_RACER_HD_P1_NATIVE_TEST") && g_ppu) {
+        static unsigned partial_captures = 0;
+        static unsigned singleton_candidates = 0;
+        static unsigned wrong_obsel = 0;
+        static unsigned rotated_oam = 0;
+        static unsigned missing_placements = 0;
+        static unsigned wrong_sprite_size_or_tile = 0;
+        static unsigned top_priority_mismatch = 0;
+        static unsigned alias_top_or_bottom = 0;
+        static unsigned bottom_overlap = 0;
+        static unsigned geometry_accepted = 0;
+        static unsigned verbose = 0;
+        const auto& policy = g_ppu->overlayCaptures[kPpuOverlaySource_Obj];
+        const bool partial =
+            (policy.flags & kPpuOverlayFlag_RemoveFromGame) != 0 &&
+            policy.oamFirst == 97 && policy.oamCount == 2;
+        if (partial) ++partial_captures;
+
+        const auto p1 = ur::presentation::select_racer_presentation_from_wram(
+            ur::presentation::GraphicsPack::Remastered, g_ram, 0x20000, 1);
+        const auto p2 = ur::presentation::select_racer_presentation_from_wram(
+            ur::presentation::GraphicsPack::Remastered, g_ram, 0x20000, 2);
+        const bool p1_ready = p1.uses_replacement() &&
+            p1.registration &&
+            ur::presentation::racer_hd_asset_available(
+                p1.registration->semantic_frame_id);
+        const bool p2_ready = p2.uses_replacement() &&
+            p2.registration &&
+            ur::presentation::racer_hd_asset_available(
+                p2.registration->semantic_frame_id);
+        if (p1_ready && !p2_ready) {
+            ++singleton_candidates;
+            if (g_ppu->obsel != 0x83) {
+                ++wrong_obsel;
+            } else if ((g_ppu->oamaddh & 0x80) != 0) {
+                ++rotated_oam;
+            } else {
+                using ur::presentation::RacerViewport;
+                const auto a = ur::presentation::decode_racer_split_ppu_placement(
+                    g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Top);
+                const auto b = ur::presentation::decode_racer_split_ppu_placement(
+                    g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Bottom);
+                const auto c = ur::presentation::decode_racer_split_ppu_placement(
+                    g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Top);
+                const auto d = ur::presentation::decode_racer_split_ppu_placement(
+                    g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Bottom);
+                if (!a || !b || !c || !d) {
+                    ++missing_placements;
+                } else {
+                    const bool bad_size_or_tile =
+                        !a->large || !b->large || !c->large || !d->large ||
+                        a->width_pixels != 64 || a->height_pixels != 64 ||
+                        b->width_pixels != 64 || b->height_pixels != 64 ||
+                        c->width_pixels != 64 || c->height_pixels != 64 ||
+                        d->width_pixels != 64 || d->height_pixels != 64 ||
+                        (a->tile != 0 && a->tile != 8) ||
+                        (b->tile != 0 && b->tile != 8) ||
+                        (c->tile != 0x80 && c->tile != 0x88) ||
+                        (d->tile != 0x80 && d->tile != 0x88);
+                    if (bad_size_or_tile) {
+                        ++wrong_sprite_size_or_tile;
+                    } else {
+                        const bool priority_mismatch =
+                            (a->attr & 0x30) != (c->attr & 0x30);
+                        if (priority_mismatch) ++top_priority_mismatch;
+                        bool alias = false;
+                        for (int y = 0; y < 112; ++y) {
+                            if (((y - b->y_raw_8bit) & 0xff) < 16)
+                                alias = true;
+                        }
+                        for (int y = 112; y < 224; ++y) {
+                            if (((y - a->y_raw_8bit) & 0xff) < 16)
+                                alias = true;
+                        }
+                        if (alias) ++alias_top_or_bottom;
+                        bool overlap = false;
+                        const int left = b->x_signed > d->x_signed ?
+                            b->x_signed : d->x_signed;
+                        const int right = b->x_signed + 64 < d->x_signed + 64 ?
+                            b->x_signed + 64 : d->x_signed + 64;
+                        if (left < right && right > 0 && left < 256) {
+                            for (int y = 112; y < 224; ++y) {
+                                if (((y - b->y_raw_8bit) & 0xff) < 64 &&
+                                    ((y - d->y_raw_8bit) & 0xff) < 64)
+                                    overlap = true;
+                            }
+                        }
+                        if (overlap) ++bottom_overlap;
+                        const bool safe =
+                            ur::presentation::racer_p1_only_no_stock_p2_occlusion(
+                                *a, *b, *c, *d);
+                        if (safe) ++geometry_accepted;
+                        if (verbose < 14) {
+                            std::fprintf(stderr,
+                                "UR_RACER_HD_P1_DIAGNOSTIC frame=%u "
+                                "safe=%d armed=%d priority=%d alias=%d overlap=%d "
+                                "p1top=%d,%u p1bottom=%d,%u "
+                                "p2top=%d,%u p2bottom=%d,%u\n",
+                                number, safe ? 1 : 0, partial ? 1 : 0,
+                                priority_mismatch ? 1 : 0, alias ? 1 : 0,
+                                overlap ? 1 : 0,
+                                a->x_signed, a->y_raw_8bit,
+                                b->x_signed, b->y_raw_8bit,
+                                c->x_signed, c->y_raw_8bit,
+                                d->x_signed, d->y_raw_8bit);
+                            ++verbose;
+                        }
+                    }
+                }
+            }
+        }
+        if (number >= 3818 && number <= 3820) {
+            std::fprintf(stderr,
+                "UR_RACER_HD_P1_NATIVE_SUMMARY frame=%u "
+                "partial_captures=%u singleton_candidates=%u wrong_obsel=%u "
+                "rotated_oam=%u missing_placements=%u wrong_size_tile=%u "
+                "top_priority_mismatch=%u split_small_alias=%u "
+                "bottom_overlap=%u geometry_accepted=%u\n",
+                number, partial_captures, singleton_candidates,
+                wrong_obsel, rotated_oam, missing_placements,
+                wrong_sprite_size_or_tile, top_priority_mismatch,
+                alias_top_or_bottom, bottom_overlap, geometry_accepted);
+        }
+    }
     if (!std::getenv("UR_RACER_HD_PROBE_WIDE")) return;
     const int width = snesrecomp_desktop_frame_width();
     const int height = snesrecomp_desktop_frame_height();
@@ -92,9 +223,66 @@ extern "C" int UrRacerHdDrawFrame(
     int frame_h,
     double alpha
 ) {
-    return ur::presentation::racer_hd_draw_frame(
+    const int drawn = ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_w, frame_h, alpha
     );
+    if (!std::getenv("UR_RACER_HD_P1_NATIVE_TEST") || !g_ppu) return drawn;
+
+    const auto& capture = g_ppu->overlayCaptures[kPpuOverlaySource_Obj];
+    const bool partial = (capture.flags & kPpuOverlayFlag_RemoveFromGame) &&
+        capture.oamFirst == 97 && capture.oamCount == 2;
+    if (!partial) return drawn;
+    if (!drawn || frame_w != 256 || frame_h != 224 || pitch < 256u * 4u) {
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid partial draw geometry\n");
+        std::abort();
+    }
+
+    const auto p2 = ur::presentation::decode_racer_split_ppu_placement(
+        g_ppu->oam, 256, g_ppu->obsel, 2,
+        ur::presentation::RacerViewport::Bottom
+    );
+    if (!p2 || !p2->large || p2->width_pixels != 64 ||
+        p2->height_pixels != 64) {
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid stock P2 OAM\n");
+        std::abort();
+    }
+
+    // The HD compositor copied *this exact PPU frame* before placing only
+    // P1's two authored instances. P2 remains in the flattened stock field,
+    // and the approved non-overlap gate must leave every pixel inside P2's
+    // lower-viewport OAM rectangle untouched. This avoids any cross-process
+    // guest-frame skew or speculative crop/hash tolerance.
+    int p2_roi_pixels = 0;
+    int hd_changed_pixels = 0;
+    for (int y = 0; y < 224; ++y) {
+        for (int x = 0; x < 256; ++x) {
+            const auto* src = field + static_cast<std::size_t>(y) * 256u * 4u
+                                   + static_cast<std::size_t>(x) * 4u;
+            const auto* out = dst + static_cast<std::size_t>(y) * pitch
+                                 + static_cast<std::size_t>(x) * 4u;
+            const bool differs = std::memcmp(src, out, 4) != 0;
+            if (differs) ++hd_changed_pixels;
+            if (y < 112 || ((y - p2->y_raw_8bit) & 0xFF) >= 64 ||
+                x < p2->x_signed || x >= p2->x_signed + 64) continue;
+            ++p2_roi_pixels;
+            if (differs) {
+                std::fprintf(stderr,
+                    "UR_RACER_HD_P1_NATIVE FAIL stock P2 overwritten x=%d y=%d\n",
+                    x, y);
+                std::abort();
+            }
+        }
+    }
+    if (p2_roi_pixels > 0 && hd_changed_pixels > 0) {
+        static unsigned logged = 0;
+        if (logged < 24) {
+            std::fprintf(stderr,
+                "UR_RACER_HD_P1_NATIVE PASS p2_stock_roi_exact=1 pixels=%d "
+                "p1_hd_changed_pixels=%d\n", p2_roi_pixels, hd_changed_pixels);
+            ++logged;
+        }
+    }
+    return drawn;
 }
 
 extern "C" void UrRacerPresentationProbeAfterRunFrame(

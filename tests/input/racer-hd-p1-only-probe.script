@@ -1,0 +1,5 @@
+# Bounded ordinary two-player Racer HD mixed-stock native acceptance.
+# The inputs hold P2 idle and move P1 through known dense reference poses.
+# No state pokes, skips or forced asset selectors.
+wait 3820
+quit

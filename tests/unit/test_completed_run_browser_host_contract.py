@@ -69,6 +69,23 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn('"F8 / Y      RECORDS"', source)
 
 
+    def test_restart_rearms_capture_after_unrecorded_replay(self):
+        source = (
+            ROOT / "native" / "product" / "uniracers_modern_host.cpp"
+        ).read_text(encoding="utf-8")
+        begin = source.index("void rearm_run_capture_after_retry() {")
+        end = source.index("ur::product::ModernControlsBindingAuthority", begin)
+        retry = source[begin:end]
+        self.assertIn("if (!g_run_capture.capturing()) {", retry)
+        self.assertIn(
+            "if (!g_multiplayer_run_capture.capturing()) {", retry
+        )
+        self.assertIn("g_run_capture_previous_active = false;", retry)
+        self.assertLess(
+            retry.index("g_run_capture_previous_active = false;"),
+            retry.index("g_run_capture.abort_attempt();"),
+        )
+
     def test_multiplayer_summary_aggregates_only_listed_pairs(self):
         source = (
             ROOT / "native" / "product" / "completed_run_browser_host.cpp"

@@ -1,6 +1,6 @@
 # Quick Practice Track Picker Integration
 
-Status: product substrate implemented; the Modern host now consumes the target-aware launch machine for default and validated Recent Course launches. The full generic picker presentation remains a separate UI completion step.
+Status: full player-facing Windows Modern picker integrated on PR #734, pending the fresh-process native acceptance gate. The shipping host now consumes the existing availability-backed selection model and target-aware launch machine; the stock route remains the sole gameplay authority.
 
 ## Product goal
 
@@ -114,3 +114,11 @@ The player-facing integration is complete when focused native acceptance proves:
 - practice emits no profile autosave, completed-run or ghost artifact;
 - hidden/unavailable tracks are not rendered or launchable;
 - Authentic mode ignores the Modern picker completely.
+
+## Windows Modern player-facing integration (PR #734)
+
+At settled Modern MAIN_MENU, F5 or physical gamepad X opens the host-owned Quick Practice picker. A validated Recent Course supplies the initial selection, otherwise the picker starts on Crawler/Dragster. Up/Down move among available courses, Left/Right move between available tours preserving the slot, Enter or mapped P1 A confirms, and Escape or mapped P1 B/Start cancels. Physical gamepad X is a shortcut only to open the surface; its navigation uses the live GamepadMap's semantic controls.
+
+The picker uses `open_available_quick_practice_selection` and `quick_practice_available_selection_apply` without another catalog, input map, course identity or router. The initial explicit normal-tour availability mask exposes tracks 0..39, withholding Hunter 40..44 until a proven unlock policy permits it. The host modal consumes human guest inputs and rejects changed profile, menu, mode or race context; confirmation hands the validated target to `begin_practice(track_id)`, preserving Practice's isolated SRAM/save root, course-identity proof, result Repeat Practice, exit restoration and persistence suppression. Rendering uses the existing logical overlay layout/density contract at configured 1x–4x.
+
+`tests/native/run_modern_practice_picker_acceptance.sh` exercises actual fresh-process keyboard input in the product build: open/present, Hunter-skipping tour wrap, cancel without launch, cross-tour Shuffler/Looper selection, exact observed course identity 10 during stock race, profile-independent SRAM restoration, no Practice run files, and Authentic inertness. It is part of the existing Modern onboarding/practice acceptance shard. Green native evidence and merge are required before declaring the full picker shipped.

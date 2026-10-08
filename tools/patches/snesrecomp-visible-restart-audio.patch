@@ -1,0 +1,42 @@
+--- a/runner/src/common_rtl.c
++++ b/runner/src/common_rtl.c
+@@ -1314,6 +1314,29 @@ bool RtlRollbackLoadFromMemory(const void *data, size_t size) {
+   return ok;
+ }
+ 
++/* A player-requested Restart is a *visible* timeline jump. Keep the regular
++ * rollback loader unchanged for invisible runahead/netplay: those callers
++ * must retain their current output ring and host generation. Modern Restart
++ * instead discards samples generated on the abandoned attempt, re-primes the
++ * delivery resampler, and tells the desktop host to clear its SDL stream on
++ * the next event-loop iteration. Do not touch synthesizer state or SPC time. */
++void RtlAudioInvalidateVisibleTimeline(void) {
++  if (!g_snes || !g_snes->apu || !g_snes->apu->dsp)
++    return;
++  RtlApuLock();
++  (void)dsp_trimSamples(g_snes->apu->dsp, 0u);
++  rtl_reset_audio_delivery();
++  g_audio_fast_forward = false;
++  g_audio_recovery_frames = 0;
++  g_audio_recovery_remaining = 0;
++  g_audio_recovery_anchor_l = 0;
++  g_audio_recovery_anchor_r = 0;
++  g_audio_last_output_l = 0;
++  g_audio_last_output_r = 0;
++  RtlApuUnlock();
++  ++s_state_generation;
++}
++
+ uint32_t RtlAudioProducerCursor(void) {
+   uint32_t w;
+   if (!g_snes)
+--- a/runner/src/common_rtl.h
++++ b/runner/src/common_rtl.h
+@@ -366,3 +366,7 @@ size_t RtlRollbackSaveToMemory(void *data, size_t capacity);
+ bool RtlRollbackLoadFromMemory(const void *data, size_t size);
++/* Clear the host output timeline after a player-visible Modern Restart.
++ * APU/DSP synthesizer state and guest-frame timing remain restored.
++ * Invisible speculative rollback must never call this. */
++void RtlAudioInvalidateVisibleTimeline(void);
+ /* Upper bound for one rollback snapshot; sizes the ring's allocations. */
+ size_t RtlRollbackSnapshotBound(void);

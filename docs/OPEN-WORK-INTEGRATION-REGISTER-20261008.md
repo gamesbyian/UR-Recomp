@@ -6,16 +6,16 @@ This register records a read-only reconciliation of currently open pull requests
 
 | PR | Area | Integration disposition |
 | --- | --- | --- |
-| #891 | CI Circuit unpaced native capture | Await full six-shard native UI + aggregate acceptance; the matched-root byte proof is documented in PR but final native gate was still required. |
-| #894 | CI settings persistence shard move | Explicitly stacked behind #891; rebase after #891 and measure all native UI shards. Do not infer actual times from projections. |
-| #898 | Graphics partial P1-HD / stock-P2 native pixel proof | Candidate capture is disabled by default; same-frame visual witness remains required. Reconcile with #899 before accepting predicate-based admission. |
+| #891 | CI Circuit unpaced native capture | **Merged** as ac3697a; final native six-shard and aggregate validation still required. |
+| #894 | CI settings persistence shard move | **Merged** as 61d3d90 after #891; projected timing improvements are not yet verified. |
+| #898 | Graphics partial P1-HD / stock-P2 native pixel proof | **Merged** as aa6d6e6; actual mixed-raster witness still requires final native acceptance. |
 | #899 | Graphics inactive small-OBJ ninth-X handling | **Merged** in ebf29e3; #898 retains native raster acceptance before feature enablement. |
-| #798 | Replay presentation parity | Heavyweight manually dispatched fresh-process native gate still required according to PR description. |
+| #798 | Replay presentation parity | **Merged** as a7c132a; fresh-process presentation parity gate remains to be executed. |
 | #814 | Replay ESC/B cancel | **Merge conflict on current main** after #820/#821. Selectively reconcile code and validate cancellation with selection retention and Retry rearm; do not force stale merge. |
 | #820 | Local Runs selection retention | **Merged** in a6516e0; retain targeted acceptance at final integration gate. |
 | #821 | Cancelled-replay Retry rearm | **Merged** in 389c0f2; final 1P and ordinary 2P acceptance still required. |
-| #815 | Tournament pre-armed fixture capture | Originally stacked on #808; reconcile against already integrated 2P and tournament authority, then exercise a real joined stock race. |
-| #826 | Tournament completed-history restoration | Requires strict fresh-process archived-instance and checksum-bound receipt acceptance; presentation of history remains separately incomplete. |
+| #815 | Tournament pre-armed fixture capture | **Merged** as 1aaa105; real joined 2P tournament end-to-end acceptance remains required. |
+| #826 | Tournament completed-history restoration | **Merged** as 341912e; historical standings acceptance remains required. |
 
 ## Branch hygiene and recovery
 
@@ -34,3 +34,7 @@ Sampled comparisons on this date: `agent/records-2p-production-capture-v5` is 0 
 ## Reconciliation checkpoint
 
 Merged since initial register: #899 (graphics X-high alias), #820 (Local Runs selected artifact retention), #821 (cancelled-replay Retry rearm). Attempting #814 after those merges returned GitHub HTTP 405 merge conflicts, so it remains open and must be resolved against current Modern host code. None of these merge acknowledgments substitutes for the final native acceptance pass.
+
+## Subsequent integration checkpoint
+
+Additional squash merges confirmed: #826 (341912e), #815 (1aaa105), #798 (a7c132a), #898 (aa6d6e6), #891 (ac3697a), #894 (61d3d90). #894 was promoted from draft after its prerequisite #891 merged. #814 remains open because GitHub reported an actual merge conflict. These are merge receipts only; mandatory native gates on the resulting main are not yet marked passed.

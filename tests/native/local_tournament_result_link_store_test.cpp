@@ -1,5 +1,6 @@
 #include "local_tournament_result_link_store.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -7,7 +8,9 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <thread>
 #include <vector>
+#include <array>
 
 using namespace ur::product;
 using namespace ur::title;
@@ -149,6 +152,69 @@ int main() {
         std::istreambuf_iterator<char>()};
     check(preserved_bytes == incumbent_bytes,
           "immutable published receipt remains byte exact after conflict");
+
+    // Competing processes can pass the old exists() preflight concurrently.
+    // Exercise actual parallel commits from independently armed in-memory
+    // sessions: the file system, not preflight, must select the single winner.
+    const auto race_links = root / "race-fixtures";
+    fs::create_directory(race_links);
+    constexpr std::size_t kWriters = 8;
+    std::array<LocalTournamentLaunchState, kWriters> race_launches{};
+    std::array<LocalTournamentState, kWriters> race_states{};
+    std::array<std::string, kWriters> race_attempts{};
+    std::array<Status, kWriters> race_statuses{};
+    for (std::size_t i = 0; i < kWriters; ++i) {
+        race_states[i] = *initial;
+        race_attempts[i] = std::string(32, static_cast<char>('4' + i));
+        check(local_tournament_arm_fixture(
+            race_launches[i], race_states[i], instance,
+            race_attempts[i], 0) == LocalTournamentLaunchStatus::Armed,
+            "independent competitor is eligible");
+    }
+    std::atomic<std::size_t> at_start{0};
+    std::atomic<bool> go{false};
+    std::vector<std::thread> workers;
+    for (std::size_t i = 0; i < kWriters; ++i) {
+        workers.emplace_back([&, i] {
+            at_start.fetch_add(1, std::memory_order_release);
+            while (!go.load(std::memory_order_acquire)) {
+                std::this_thread::yield();
+            }
+            race_statuses[i] = commit_saved_local_tournament_fixture(
+                race_links.string(), run_root.string(), path0,
+                instance, race_attempts[i], race_launches[i], race_states[i]);
+        });
+    }
+    while (at_start.load(std::memory_order_acquire) != kWriters) {
+        std::this_thread::yield();
+    }
+    go.store(true, std::memory_order_release);
+    for (auto& worker : workers) worker.join();
+    std::size_t winners = 0, conflicts = 0;
+    for (std::size_t i = 0; i < kWriters; ++i) {
+        if (race_statuses[i] == Status::Committed) {
+            ++winners;
+            check(race_states[i].results[0] && !race_launches[i].pending,
+                  "only winning process changes its in-memory fixture");
+        } else if (race_statuses[i] == Status::Conflict) {
+            ++conflicts;
+            check(!race_states[i].results[0] && race_launches[i].pending,
+                  "losers retain their outstanding launch and fixture");
+        } else {
+            check(false, "concurrent fixture writer returned unexpected I/O status");
+        }
+    }
+    check(winners == 1 && conflicts == kWriters - 1,
+          "one atomic fixture receipt winner among eight concurrent writers");
+    const auto race_restore = restore_saved_local_tournament_fixtures(
+        race_links.string(), run_root.string(), instance, *initial);
+    check(race_restore.restored() && race_restore.state->results[0],
+          "single published contender restores as one valid fixture");
+    for (const auto& entry : fs::directory_iterator(race_links)) {
+        check(entry.path().filename().string().rfind(
+            ".pending-urfixture-", 0) != 0,
+            "all completed concurrent staging directories removed");
+    }
 
     // A process killed before the atomic final-name claim can leave staging
     // debris. It must never become evidence or poison a valid fixture restore.

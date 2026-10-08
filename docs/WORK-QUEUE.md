@@ -266,21 +266,49 @@ paused/pre at most 0.05 and resumed/pre at least 0.50, zero audible
 ring-source drops and zero post-startup underflows/missing device frames.
 The test keeps guest cadence and original SPC content untouched.
 
-**Actual next audio shipping work:** test the **Modern host-owned frozen
-pause menu** as a separate input/audio authority after active Modern
-pause/Restart ownership settles; then measure Restart Race and
-Exit-to-Frontend transition acoustic envelopes at real SDL3 device
-output, including potential clicks, continuity and guest-state
-correlation. The stock guest Start test is **not** proof that host frozen
-pause, restart or frontend exit acoustics are correct. Then evaluate
-device loss/reopen, queued latency and independently rendered SPC/DSP
-music and SFX equivalence where measurable. Do not claim native phase
-ratios prove exact soundtrack fidelity; do not re-clock the guest,
-change authoritative sound triggers or replace stock samples to resolve a
-mere instrumentation discrepancy. Authentic sound remains the shipping
-fallback. Check `claude/audio-volume-option` ownership before host
-audio option work. Optional Phase H restoration requires documented SPC/BRR
-asset provenance.
+**Closed, Modern host-owned frozen pause audio:** This is distinct from
+the stock guest Start path. After an observed race checkpoint the real
+Modern session freezes the guest, keeps the host event/presentation
+loop alive, and writes SDL3 device-output PCM. Two independent
+Windows captures
+[37734723303](https://github.com/gamesbyian/UR-Recomp/actions/runs/37734723303)
+and [37735146095](https://github.com/gamesbyian/UR-Recomp/actions/runs/37735146095)
+confirmed audible gameplay earlier in the file but **literal digital
+silence on both channels throughout the final three seconds of host
+pause**, with all 30 consecutive 100-ms buckets showing zero RMS/peak.
+The new mandatory Windows gate
+[37735422681](https://github.com/gamesbyian/UR-Recomp/actions/runs/37735422681)
+**passed on the actual portable Windows product**, checking the original
+guest race event, `UR_PAUSE_STATE paused=1` product authority,
+non-silent gameplay beforehand, and a completely silent one-/three-second
+SDL tail. The host deliberately stays paused for four wall seconds; this
+test must **not** synthesize more guest frames or pretend graceful
+shutdown/precise SDL latency. The Modern pause and audio implementations
+remain unchanged.
+
+**Closed, Modern Volume authority and output presence:** the Windows
+Options Volume selection 100→95 is genuinely routed through the
+SNESRecomp [Sound] Volume control and survives a fresh process. Real
+SDL3 stereo output is present at both settings
+([37732652603](https://github.com/gamesbyian/UR-Recomp/actions/runs/37732652603)).
+Do **not** treat the observed total/tail RMS ratio as an exact five-point
+gain law. A later **95%-to-95%** process repeat showed 1.65× whole-file
+and 3.60× final-second amplitude differences
+([37733295930](https://github.com/gamesbyian/UR-Recomp/actions/runs/37733295930)).
+The reducer now retains actual guest route frame deltas and flags that
+SDL device-sample alignment is unproven; do not change the framework
+mixer or original SPC samples based on these unaligned windows.
+
+**Actual next audio shipping work:** test the Modern host-owned
+**resume from pause** on real SDL output, including audible restoration
+and whether restarting a paused race or exiting to the frontend creates
+dropouts, clicks or stale sound. Use the product's actual host/input
+authority and do not advance guest frames while paused. Next measure
+device loss/reopen and hardware latency where safe, plus source-aligned
+SPC/DSP/music and sound-effect equivalence. Preserve original sound
+assets and guest cadence. Authentic sound remains the shipping
+fallback; optional Phase H restoration must retain SPC/BRR source
+provenance.
 
 ## Phase 6 — Reverse-engineering map
 

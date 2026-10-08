@@ -22,9 +22,24 @@ constexpr std::optional<std::uint16_t> stock_practice_tour_option_mask(
     constexpr std::size_t kStockSramBytes = 8192;
     constexpr std::size_t kRiderIndexOffset = 0x0748;
     constexpr std::size_t kTourUnlockTierBase = 0x10D3;
-    if (!sram || sram_size != kStockSramBytes || rider_index >= 16 ||
-        sram[kRiderIndexOffset] != rider_index) {
+    if (!sram || sram_size != kStockSramBytes || rider_index >= 16) {
         return std::nullopt;
+    }
+    // A clean, never-entered stock save has no selected rider: 0x0748 is
+    // uninitialized until the ordinary rider-confirm flow. Permit the
+    // conservative first-rider Bronze surface only if *all* sixteen
+    // authoritative per-rider unlock bytes are still zero. Do not apply
+    // this exception to another valid rider or an experienced save.
+    const auto selected_rider = sram[kRiderIndexOffset];
+    if (selected_rider != rider_index) {
+        if (selected_rider < 16 || rider_index != 0) {
+            return std::nullopt;
+        }
+        for (std::size_t index = 0; index < 16; ++index) {
+            if (sram[kTourUnlockTierBase + index] != 0) {
+                return std::nullopt;
+            }
+        }
     }
     const auto tier = sram[kTourUnlockTierBase + rider_index];
     if (tier > 3) return std::nullopt;

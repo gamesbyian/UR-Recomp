@@ -1,0 +1,10 @@
+# Required bounded UI capture: observe the real splash state before trying
+# any historical ending cheat. The unchanged ui-ending-shortcut.script is
+# manual-only: its proposed 0x5B ending transition remains unproven.
+# Optional startup probe: recovered splash state and public ending shortcut.
+# Both menu IDs are historical/secondary leads until this succeeds locally.
+
+until 009F == 84 3600
+dump ui-splash-observed
+
+quit

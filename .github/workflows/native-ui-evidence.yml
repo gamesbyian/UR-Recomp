@@ -38,6 +38,8 @@ on:
       - "tests/input/two-player-first-race.input"
       - "tests/input/two-player-first-race-observe.script"
       - "tools/check_ppm.py"
+      - "tools/check_paused_overlay_dump.py"
+      - "tools/patches/snesrecomp-paused-overlay-present.patch"
       - "tools/ci_log_assert.py"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"
@@ -317,7 +319,8 @@ jobs:
           LOAD_LOG="$RUNNER_TEMP/host-state-load.log"
           AUTH_LOG="$RUNNER_TEMP/host-state-authentic.log"
           DUMPS="$RUNNER_TEMP/host-state-dumps"
-          rm -f "$STATE"
+          PAUSED_OVERLAY="$RUNNER_TEMP/host-state-paused-overlay.ppm"
+          rm -f "$STATE" "$PAUSED_OVERLAY"
           mkdir -p "$DUMPS"
 
           timeout 90s xvfb-run -a bash -c '
@@ -325,6 +328,7 @@ jobs:
             export SDL_AUDIODRIVER=dummy
             export UR_PRODUCT_DIAGNOSTICS=1
             export UR_PAUSE_OPEN_ACCEPTANCE=1
+            export SNESRECOMP_PAUSED_OVERLAY_DUMP="'"$PAUSED_OVERLAY"'"
             export UR_HOST_STATE_PATH="'"$STATE"'"
             export SNESRECOMP_DUMP_DIR="'"$DUMPS"'"
             "'"$EXE"'" "'"$ROM"'" --script "'"$SCRIPT"'" >"'"$SAVE_LOG"'" 2>&1 &
@@ -410,6 +414,9 @@ jobs:
             kill "$PID" 2>/dev/null || true
             wait "$PID" 2>/dev/null || true
           '
+          # The pause/Options journey above runs entirely while the guest is
+          # frozen; require that the paused host really presented the panel.
+          python3 tools/check_paused_overlay_dump.py "$PAUSED_OVERLAY"
 
           SDL_AUDIODRIVER=dummy \
           UR_PRODUCT_DIAGNOSTICS=1 \

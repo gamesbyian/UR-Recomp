@@ -25,13 +25,13 @@ class ModernVolumeContractTests(unittest.TestCase):
         for forbidden in ("Rtl", "g_ram", "g_sram"):
             self.assertNotIn(forbidden, text)
 
-    def test_patch_is_registered_last_in_both_manifests(self):
+    def test_patch_is_registered_in_both_manifests(self):
         for manifest_path in (
             ROOT / "tools" / "toolchain-entries" / "snesrecomp.json",
         ):
             manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
             paths = [entry["path"] for entry in manifest["patches"]]
-            self.assertEqual(paths[-1], "tools/patches/snesrecomp-live-volume.patch")
+            self.assertIn("tools/patches/snesrecomp-live-volume.patch", paths)
         self.assertIn(
             "tools/patches/snesrecomp-live-volume.patch",
             (ROOT / "tools" / "toolchain.json").read_text(encoding="utf-8"),

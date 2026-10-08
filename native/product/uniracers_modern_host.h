@@ -20,6 +20,9 @@ int ur_uniracers_modern_system_gamepad_source_button(
 void ur_uniracers_modern_system_gamepad_source_connection(
     int player_index, uint64_t source_id, int connected);
 int ur_uniracers_modern_controls_active(void);
+/* Nonzero while a paused Modern subview (Options, Controls, Run Data or Quit
+ * confirmation) owns the pause surface. */
+int ur_uniracers_modern_subview_active(void);
 int ur_uniracers_modern_system_gamepad_control(int control, int pressed);
 uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs);
 void ur_uniracers_modern_system_overlay(

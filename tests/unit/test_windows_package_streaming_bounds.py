@@ -48,7 +48,7 @@ class WindowsPackageStreamingBoundsTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             archive = self.build_zip(pathlib.Path(temp))
             raw = bytearray(archive.read_bytes())
-            central = raw.find(b"PK\\x01\\x02")
+            central = raw.find(bytes.fromhex("504b0102"))
             self.assertGreaterEqual(central, 0)
             # Central directory uncompressed-size field, while the real stored
             # data is only a few bytes. This test must never allocate 512 MiB.

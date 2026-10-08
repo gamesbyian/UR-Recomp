@@ -11,7 +11,8 @@
     "extracted_on": "2026-10-08",
     "observation_fields": {
       "collision_word": "postframe 7E:0E95, value used by existing object-activation analyzer",
-      "settled_current_player_collision_word_0f09": "postframe 7E:0F09; may differ from transient per-player value at the dispatcher"
+      "settled_current_player_collision_word_0f09": "postframe 7E:0F09; may differ from transient per-player value at the dispatcher",
+      "p2_collision_word_0e97": "postframe 7E:0E97; paired P2 collision word"
     }
   },
   "interpretation_guardrail": "These are guest WRAM observations, not independent knowledge of the contacted 16x16 world cell or a causal proof of which course field gates race completion.",
@@ -27,7 +28,8 @@
       "checkpoint": 3,
       "finish_gate": 0,
       "laps_remaining": 1,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 173,
@@ -40,7 +42,8 @@
       "checkpoint": 3,
       "finish_gate": 0,
       "laps_remaining": 1,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 174,
@@ -53,7 +56,8 @@
       "checkpoint": 1,
       "finish_gate": 1,
       "laps_remaining": 0,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 175,
@@ -66,7 +70,8 @@
       "checkpoint": 1,
       "finish_gate": 1,
       "laps_remaining": 0,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 176,
@@ -79,7 +84,8 @@
       "checkpoint": 1,
       "finish_gate": 1,
       "laps_remaining": 0,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 177,
@@ -92,7 +98,8 @@
       "checkpoint": 1,
       "finish_gate": 1,
       "laps_remaining": 0,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     },
     {
       "relative_frame": 178,
@@ -105,7 +112,8 @@
       "checkpoint": 1,
       "finish_gate": 1,
       "laps_remaining": 0,
-      "settled_current_player_collision_word_0f09": 6148
+      "settled_current_player_collision_word_0f09": 6148,
+      "p2_collision_word_0e97": 6148
     }
   ]
 }

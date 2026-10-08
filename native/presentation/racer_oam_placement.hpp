@@ -113,16 +113,29 @@ constexpr bool racer_p1_only_no_stock_p2_occlusion(
         (p1_top.attr & 0x30) != (p2_top.attr & 0x30)) {
         return false;
     }
-    // In this title's proven OBSEL=$83 mode, the other split pair is
-    // reduced to a 16x16 OBJ, not hidden by the PPU. Capturing both P1
-    // slots removes even an out-of-viewport *small* copy. Refuse the
-    // exceptional raw Y values where that small copy would be visible
-    // in the opposite half without an HD replacement there.
-    for (int y = 0; y < 112; ++y) {
-        if (((y - p1_bottom.y_raw_8bit) & 0xFF) < 16) return false;
+    // In OBSEL=$83, top high OAM $A5 makes P1 slot97 a *small*
+    // sprite with X-high=1, while bottom high OAM $5A makes P1 slot98
+    // small with X-high=1. Both 64px active P1 copies have X-high=0.
+    // Therefore the inactive small copy's signed X is LOW_X - 256, not
+    // the active large sprite's signed X. A 16px alias is horizontally
+    // visible only if LOW_X >= 241: at 240 it occupies [-16,0) and
+    // contributes no screen pixel. Check both axes before denying capture.
+    // The P1 active-large X-high=0 invariant is part of the title's
+    // observed split geometry. Reject malformed placements rather than
+    // computing an alias from an unknown high-bit state.
+    if (p1_top.x_signed < 0 || p1_top.x_signed > 255 ||
+        p1_bottom.x_signed < 0 || p1_bottom.x_signed > 255) {
+        return false;
     }
-    for (int y = 112; y < 224; ++y) {
-        if (((y - p1_top.y_raw_8bit) & 0xFF) < 16) return false;
+    if (p1_bottom.x_signed >= 241) {
+        for (int y = 0; y < 112; ++y) {
+            if (((y - p1_bottom.y_raw_8bit) & 0xFF) < 16) return false;
+        }
+    }
+    if (p1_top.x_signed >= 241) {
+        for (int y = 112; y < 224; ++y) {
+            if (((y - p1_top.y_raw_8bit) & 0xFF) < 16) return false;
+        }
     }
     // Reject only a *provably impossible* horizontal intersection. X is
     // already decoded from the nine-bit signed OAM coordinate.

@@ -165,7 +165,7 @@ int main() {
     std::array<Status, kWriters> race_statuses{};
     for (std::size_t i = 0; i < kWriters; ++i) {
         race_states[i] = *initial;
-        race_attempts[i] = std::string(32, static_cast<char>('4' + i));
+        race_attempts[i] = std::string(32, "12345678"[i]);
         check(local_tournament_arm_fixture(
             race_launches[i], race_states[i], instance,
             race_attempts[i], 0) == LocalTournamentLaunchStatus::Armed,

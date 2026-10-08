@@ -80,9 +80,15 @@ priority rotation and provably
 **nonintersecting** P1/P2 lower-view rectangles after signed X,
 modulo-256 Y, visible-field and scanline-112 clipping. Unknown or
 overlapping cases return to the complete stock frame without arming OBJ
-removal. The pure helper `racer_p1_only_no_stock_p2_occlusion()` is unit
+removal. The experimental path is restricted to the measured `OBSEL=$83`
+16px/64px size pair. Its exact OAM Y test also rejects any normally
+inactive 16px P1 copy that would appear in the *opposite* viewport:
+capturing slots 97/98 must not silently erase a real small OBJ that the
+host replacement is not going to draw there.
+
+The pure helper `racer_p1_only_no_stock_p2_occlusion()` is unit
 tested with horizontal adjacency, single-pixel overlap, vertical offset,
-Y wrapping, malformed OAM and priority mismatch.
+Y wrapping, small-object split aliases, malformed OAM and priority mismatch.
 
 The live native path still needs expanded deterministic 2P OAM acceptance
 and a mixed stock-P2/HD-P1 image comparison before the opt-in flag is

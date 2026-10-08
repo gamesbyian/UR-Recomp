@@ -33,6 +33,7 @@ on:
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
       - "tests/unit/test_assemble_windows_package.py"
+      - "tests/unit/test_windows_package_streaming_bounds.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
       - "native/presentation/**"
@@ -67,7 +68,7 @@ jobs:
       - name: Verify canonical ROM and package contracts
         run: |
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package
+          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

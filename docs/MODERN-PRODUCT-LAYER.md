@@ -79,7 +79,7 @@ Catalog/profile activation is fail-closed. A profile is authoritative only when 
 **Malformed-SRAM containment** (measured, `analysis/generated/malformed-sram-containment.json`, R-2026-10-08-SRAM-01). Checks:
 
 - host layer: `tests/unit/test_malformed_sram_containment_cpp.py`;
-- guest boot: `tests/native/run_malformed_sram_boot_acceptance.sh`, in the onboarding workflow's `feedback` shard.
+- guest boot: `tests/native/run_malformed_sram_boot_acceptance.sh` (manual harness, ~24 cold boots). It measures stock boot behavior, which changes only with the ROM or framework, so it is not an automatic PR gate; rerun it when either changes. The host install guard is covered automatically by `malformed_sram_containment_test.cpp`.
 
 | Malformed class | Host profile layer | Stock guest on boot |
 |---|---|---|

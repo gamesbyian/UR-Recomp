@@ -338,6 +338,16 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertTrue(_pushes_main(text))
         self.assertFalse(_block(text, "pull_request"))
 
+    def test_results_navigation_shared_fanout_is_bounded(self):
+        text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()
+        block = text.split("  results-navigation:", 1)[1].split("  ordinary-2p:", 1)[0]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", block)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertEqual(shards, ["selection", "progression", "isolation"])
+        self.assertIn("needs: build", block)
+        self.assertNotIn("cmake --build", block)
+
     def test_native_ui_evidence_scope_is_bounded(self):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
         self.assertNotIn('"native/product/**"', text)

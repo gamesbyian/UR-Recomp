@@ -16,7 +16,7 @@ native/product/completed_run_record.{hpp,cpp} owns the typed record, strict vali
 
 The controller payload intentionally uses the same start:duration:p1-mask[:p2-mask] semantics as tools/controller_input.py and the pinned native INPUT_FILE replay path. encode_completed_run_input_file() emits that grammar directly. Playback should initialize the requested course through the normal guest/runtime path and feed these controller words back through the existing deterministic input route. The record must never write arbitrary WRAM to force course or racer state.
 
-The optional terminal digest is a validation oracle only. It does not grant host data authority over gameplay. When a fresh-process replay comparison sees a terminal digest in either run, it requires the other run to carry an identical digest. Different or one-sided digests invalidate that parity claim; two absent digests remain valid for historical/current captures. The comparator does not use a stored digest to alter or restore guest memory.
+The optional terminal digest is a validation oracle only. It does not grant host data authority over gameplay. When a fresh-process replay comparison sees a terminal digest in either run, it requires the other run to carry the same hexadecimal digest (case-insensitively, because the format admits both uppercase and lowercase). Different or one-sided digests invalidate that parity claim; two absent digests remain valid for historical/current captures. The comparator does not use a stored digest to alter or restore guest memory.
 
 ## Timing
 

@@ -510,8 +510,31 @@ CompletedRunGhostTraceLoadResult load_selected_completed_run_ghost_trace(
             std::nullopt,
             "selected completed-run artifact unavailable"};
     }
+    // A Previous/PB selection holds a catalog snapshot. If its .urrun was
+    // removed or replaced after binding (for example by another process),
+    // an old sibling trace must not acquire presentation authority simply
+    // because it still matches the stale in-memory checksum.
+    const auto fresh = load_completed_run_record_file(selected->path);
+    if (!fresh.loaded()) {
+        return {
+            fresh.status == RunRecordLoadStatus::IoError
+                ? CompletedRunGhostTraceLoadStatus::IoError
+                : CompletedRunGhostTraceLoadStatus::Incompatible,
+            std::nullopt,
+            "selected completed-run artifact no longer available"};
+    }
+    const std::string selected_checksum =
+        completed_run_record_artifact_checksum(selected->record);
+    if (selected_checksum.empty() ||
+        selected_checksum !=
+            completed_run_record_artifact_checksum(*fresh.record)) {
+        return {
+            CompletedRunGhostTraceLoadStatus::Incompatible,
+            std::nullopt,
+            "selected completed-run artifact changed after selection"};
+    }
     return load_completed_run_ghost_trace_file(
-        selected->path + ".urghost", &selected->record);
+        selected->path + ".urghost", &*fresh.record);
 }
 
 const CompletedRunGhostWorldSample* completed_run_ghost_trace_sample_at(

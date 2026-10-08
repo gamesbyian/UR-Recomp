@@ -58,18 +58,30 @@ def decoded_streams(path: Path) -> list[bytes]:
 
 
 def regions(decoded: bytes, parsed: dict) -> dict[str, bytes]:
+    """Partition a validated course payload without silently clipping bad bounds.
+
+    The 0x8000-byte coarse table and 32-byte fine records are established
+    materialization boundaries. Comparing clipped/shifted regions can falsely
+    attribute a malformed course to a legitimate regional content change.
+    """
     cursor = parsed["resource_cursor_initial"]
     terminator = parsed["resource_terminator_offset"]
-    coarse_end = min(COARSE_END, len(decoded))
-    fine_start = min(FINE_START, len(decoded))
-    fine_end = min(cursor, len(decoded))
-    post_list_start = min(terminator + 1, len(decoded))
+    if len(decoded) < FINE_START:
+        raise ValueError("course payload truncated before end of coarse table")
+    if cursor < FINE_START or cursor > len(decoded):
+        raise ValueError("resource cursor outside course fine-record boundary")
+    if (cursor - FINE_START) % 32:
+        raise ValueError("fine-record region is not 32-byte aligned")
+    if not cursor <= terminator < len(decoded):
+        raise ValueError("resource terminator outside course resource list")
+    if decoded[terminator] != 0xFF:
+        raise ValueError("course resource terminator is not FF")
     return {
-        "header": decoded[:min(HEADER_END, len(decoded))],
-        "coarse_table": decoded[min(HEADER_END, len(decoded)):coarse_end],
-        "fine_record_region": decoded[fine_start:fine_end],
-        "resource_list": decoded[min(cursor, len(decoded)):post_list_start],
-        "post_resource_list": decoded[post_list_start:],
+        "header": decoded[:HEADER_END],
+        "coarse_table": decoded[HEADER_END:COARSE_END],
+        "fine_record_region": decoded[FINE_START:cursor],
+        "resource_list": decoded[cursor:terminator + 1],
+        "post_resource_list": decoded[terminator + 1:],
     }
 
 

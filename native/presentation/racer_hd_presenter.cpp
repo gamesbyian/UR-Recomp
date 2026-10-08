@@ -298,7 +298,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
          p2_ready ? RacerViewport::Top : RacerViewport::Bottom,
          p2_ready ? *p2_top : *p1_bottom},
         {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Bottom, *p1_bottom},
-        {p2_ready ? p2.registration->semantic_frame_id : 0,
+        {p2_ready ? p2.registration->semantic_frame_id : std::uint16_t{0},
          p2_ready ? p2.registration : nullptr,
          RacerViewport::Bottom, *p2_bottom},
     }};

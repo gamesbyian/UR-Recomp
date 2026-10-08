@@ -8,6 +8,31 @@ Preserve the known Jumpover fall-through edge case as deterministic evidence bef
 
 The project already treats stock simulation as authoritative. This slice therefore asks one narrow question: can the current native build reproduce the established Jumpover fall-through from both known approach directions while an ordinary halfpipe traversal remains unchanged?
 
+## Current status — 2026-10-08
+
+**Historical reference: reproduced. Native: not yet attempted.** The dated evidence is in R-2026-10-08-PHYS-01 in `docs/RESEARCH-LEDGER.md`.
+
+- **Anchor.** Each recovered SMV embeds its complete Snes9x 1.51 starting freeze. `tools/extract_smv_freeze.py` validates it and records hashes and symbolized fields in `analysis/generated/jumpover-fallthrough-anchors.json`. Both anchors are mid-race on Jumpover with P1 grounded before the halfpipe. The saved PC is inside the bank-82 racer update, so the anchor is not a race-loop frame boundary.
+- **Reference replay.** `tools/probe_jumpover_fallthrough.py` replays each movie, unchanged and with a 60-frame held-input extension, in Snes9x 1.51-rr. Each run is repeated and the repeats are byte-identical. Results are in `analysis/generated/jumpover-fallthrough-reference-replay.json`. Frame k is the state after k movie frames.
+
+  | Route | Lip contact | Leaves surface | First frame below control floor | Ordinary control (shoulder released on sample 42 only) |
+  |---|---|---|---|---|
+  | left | 44–47 | 48 | 64 (Y > 764; after the 53-frame movie ends) | wall hit at 44, floor contact from 54 |
+  | right | 44–47 | 48 | 63 (Y > 759; inside the 73-frame movie) | wall hit at 44, floor contact from 54 |
+
+  First divergence from the control is frame 43, P1 pitch (right also contact word). The contact-state divergence is frame 44 (left) / 43 (right).
+- **Sensitivity.** The outcome depends on P1's pitch at the lip. Input acts on every second frame in this window: odd-sample shoulder releases and a one-frame sequence delay are byte-identical no-ops. A two-frame delay moves takeoff from frame 5 to 7 and gives the ordinary outcome.
+- **Rejected harnesses.**
+  - Writing P1 X (`7E:0411`) into the anchor WRAM is overwritten by the in-progress update, so the historical X sweep is not reproduced.
+  - The pinned modern snesref core rejects the 1.51 freeze format (`#!snes9x`, not `#!s9xsnp`).
+
+**Next discriminator (native).** The admission rule requires a fresh process and canonical stock state, so pick and justify one anchor route before any native run:
+
+1. **Fresh-process input route.** Reach the Jumpover halfpipe approach from boot with an equivalent P1 state, then replay the movie's input sequence on the same 2-frame input phase. Feasibility is unknown. Takeoff must land within one 2-frame input step of the movie's takeoff, about 31 X units at anchor speed. The cheapest probe is to measure how wide the reference fall-through window is in approach X, using a pause-sequence X write like the historical scripts.
+2. **Anchor transplant as a test harness.** Advance the 1.51 reference to a true race-loop frame boundary. Capture WRAM there, which includes the `7E:A000/C000` course planes. Inject it into a fresh native process that is idle at the same loop point in a Jumpover race. This is not canonical stock state. Whether the contract admits it is a decision for this document's owner. A modern snesref comparison would need the same transplant.
+
+Either way, the native check compares the retained reference events: lip contact 44–47, the control-floor crossing at 64/63, and both controls staying ordinary.
+
 ## Scope
 
 The regression owns only event-relative observation and fixture admission for the existing behavior. It must not:

@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
     const std::filesystem::path trace_path =
         std::filesystem::path(run_path.string() + ".urghost");
     const auto record = run_record();
+    assert(save_completed_run_record_file(run_path.string(), record));
     const std::string binding =
         completed_run_record_artifact_checksum(record);
     assert(binding.size() == 16);
@@ -246,6 +247,7 @@ int main(int argc, char** argv) {
         std::filesystem::path(run_path.string() + ".pb.urrun");
     const std::filesystem::path pb_trace_path =
         std::filesystem::path(pb_run_path.string() + ".urghost");
+    assert(save_completed_run_record_file(pb_run_path.string(), pb_record));
     assert(save_completed_run_ghost_trace_file(
         pb_trace_path.string(), pb_trace, &detail));
 
@@ -312,6 +314,29 @@ int main(int argc, char** argv) {
     assert(load_selected_completed_run_ghost_trace(
         disk_targets, CompletedRunGhostKind::Previous)
                .trace->samples[0].world_x == 1088);
+
+    // Binding a target is not permanent source authority. If its immutable
+    // .urrun disappears or is replaced after the browser selected it, refuse
+    // the previously valid ghost sidecar rather than drawing stale evidence.
+    assert(std::filesystem::remove(saved_previous_path));
+    const auto deleted_source = load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous);
+    assert(deleted_source.status == CompletedRunGhostTraceLoadStatus::IoError);
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::PersonalBest).loaded());
+
+    auto replaced_record = record;
+    replaced_record.elapsed_ticks60 = 121;
+    assert(save_completed_run_record_file(
+        saved_previous_path.string(), replaced_record));
+    const auto replaced_source = load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous);
+    assert(replaced_source.status ==
+           CompletedRunGhostTraceLoadStatus::Incompatible);
+    assert(save_completed_run_record_file(
+        saved_previous_path.string(), record));
+    assert(load_selected_completed_run_ghost_trace(
+        disk_targets, CompletedRunGhostKind::Previous).loaded());
 
     // A missing Previous sidecar must never silently show the PB instead.
     assert(std::filesystem::remove(saved_previous_trace_path));

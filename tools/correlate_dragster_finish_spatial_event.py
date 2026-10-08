@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Correlate the retained Dragster C000=8 finish event with decoded spatial cells.
+"""Correlate Dragster postframe contact words with decoded spatial cells.
 
-The default event is copied from the accepted 2026-10-02 guest-frame-2903
-object-activation trace. --activation-json can ingest its full original
-analyzer report instead. Correlation is x/packed-word/slot exact but does
-not infer the exact contacted Y cell or the collision footprint.
+Default is the guest-frame-2903 *postframe* 0x2020/slot8 sample, not
+proof that slot8 caused the finish transition. --contact-sequence includes
+the preceding stored 0x2024/slot10 dispatch-input candidate explicitly.
+Neither mode proves actual collision Y/footprint or CPU dispatch timing.
 """
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SPATIAL = ROOT / "analysis/generated/dragster-presentation-spatial-contract.json"
 EVENT_SOURCE = "analysis/generated/object-activation-runtime-boundary-2026-10-02.md"
+CONTACT_SEQUENCE = ROOT / "analysis/data/dragster-finish-contact-transition.json"
 DEFAULT_EVENT = {
     "frame": 2903,
     "player_x": 25256,
@@ -124,6 +125,87 @@ def correlate(contract: dict, event: dict) -> dict:
     return report
 
 
+def infer_pre_dispatch_course_word(contract: dict, rows: list[dict]) -> dict:
+    """Bound frame-phase inference from consecutive *postframe* P1 samples.
+
+    ROM-proven USA call order runs the stored-word bank-82 object dispatch
+    before the bank-81 contact/surface sampler in the main race path.
+    This juxtaposes adjacent postframe samples with the first progression
+    transition. It must NOT claim instruction-time reads were captured.
+    """
+    if len(rows) < 3:
+        raise ValueError("need at least three consecutive guest-frame samples")
+    for previous, current in zip(rows, rows[1:]):
+        if current["frame"] != previous["frame"] + 1:
+            raise ValueError("finish witness contains a nonconsecutive frame gap")
+    state = lambda row: (
+        row["checkpoint"], row["finish_gate"], row["laps_remaining"]
+    )
+    changes = [
+        i for i in range(1, len(rows))
+        if state(rows[i]) != state(rows[i - 1])
+    ]
+    if len(changes) != 1:
+        raise ValueError("expected exactly one checkpoint/finish state change")
+    i = changes[0]
+    if i < 2:
+        raise ValueError("need a pre-prior frame to test dispatcher phase")
+    before = rows[i - 2]
+    prior = rows[i - 1]
+    transition = rows[i]
+    if prior["object_code"] != 0x14:
+        raise ValueError("prior stored word is not a checkpoint-family object")
+    if transition["object_code"] != 0x14:
+        raise ValueError("post-transition stored word is not checkpoint family")
+    if state(prior) == state(transition):
+        raise ValueError("selected rows contain no progression")
+    prior_correlated = correlate(contract, prior)
+    current_correlated = correlate(contract, transition)
+    return {
+        "schema_version": 1,
+        "first_progress_change_frame": transition["frame"],
+        "pre_prior_postframe": {
+            "frame": before["frame"],
+            "stored_word": f'{before["collision_word"]:04X}',
+            "stored_c000_slot": before["object_index"],
+            "stored_object_code": f'{before["object_code"]:02X}',
+        },
+        "immediately_prior_postframe_candidate": {
+            "frame": prior["frame"],
+            "stored_word": f'{prior["collision_word"]:04X}',
+            "stored_c000_slot": prior["object_index"],
+            "stored_object_code": f'{prior["object_code"]:02X}',
+            "nearest_finish_x_cells": prior_correlated["nearest_finish_x_cells"],
+        },
+        "transition_postframe_new_sample": {
+            "frame": transition["frame"],
+            "stored_word": f'{transition["collision_word"]:04X}',
+            "stored_c000_slot": transition["object_index"],
+            "stored_object_code": f'{transition["object_code"]:02X}',
+            "nearest_finish_x_cells": current_correlated["nearest_finish_x_cells"],
+        },
+        "progress_before": list(state(prior)),
+        "progress_after": list(state(transition)),
+        "phase_authority": (
+            "ROM USA main-loop call ordering: bank-82 course/object dispatch "
+            "occurs before subsequent bank-81 contact sampling; frame-end "
+            "0E95 can be consumed at the next object dispatch"
+        ),
+        "discriminator": (
+            "At frame 2903 progression, prior postframe stored word is 2024 "
+            "(slot 10), whereas new postframe sample is 2020 (slot 8). "
+            "A slot-8 cause cannot be inferred from the simultaneous "
+            "frame-end snapshot. The next instruction-time trace must "
+            "sample 0F09 at 82:8C32/81:82ED and handler entry."
+        ),
+        "runtime_limit": (
+            "Frame-end snapshots cannot prove the specific instruction-time "
+            "dispatch value or guarantee absence of intervening writes. "
+            "These are paired source candidates, not a causal event trace."
+        ),
+    }
+
+
 def event_from_activation_json(path: Path) -> dict:
     report = json.loads(path.read_text(encoding="utf-8"))
     row = report.get("first_progress_change")
@@ -163,6 +245,23 @@ def markdown(report: dict) -> str:
             f"| {cell['world_rect']} | {cell['coarse_sector']} | "
             f"{cell['packed_word']} | {cell['finish_x_distance']} |"
         )
+    if "phase_corrected_finish_transition" in report:
+        phase = report["phase_corrected_finish_transition"]
+        previous = phase["immediately_prior_postframe_candidate"]
+        current = phase["transition_postframe_new_sample"]
+        lines += [
+            "",
+            "## Phase-corrected contact-source candidate",
+            "",
+            f'First progress transition: guest frame {phase["first_progress_change_frame"]}.',
+            f'Prior postframe {previous["frame"]}: stored '
+            f'{previous["stored_word"]}, C000 slot {previous["stored_c000_slot"]} '
+            '(candidate next object dispatch input).',
+            f'Transition postframe {current["frame"]}: newly sampled '
+            f'{current["stored_word"]}, C000 slot {current["stored_c000_slot"]}.',
+            "",
+            phase["runtime_limit"],
+        ]
     lines += ["", report["limits"], ""]
     return "\n".join(lines)
 
@@ -171,6 +270,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--spatial-json", type=Path, default=SPATIAL)
     ap.add_argument("--activation-json", type=Path)
+    ap.add_argument("--contact-sequence", type=Path, help="include phase-corrected stored-contact comparison")
     ap.add_argument("--json-out", type=Path)
     ap.add_argument("--md-out", type=Path)
     args = ap.parse_args()
@@ -181,6 +281,11 @@ def main() -> int:
         if args.activation_json else dict(DEFAULT_EVENT)
     )
     result = correlate(contract, event)
+    if args.contact_sequence:
+        trace = json.loads(args.contact_sequence.read_text(encoding="utf-8"))
+        result["phase_corrected_finish_transition"] = infer_pre_dispatch_course_word(
+            contract, trace["samples"]
+        )
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")

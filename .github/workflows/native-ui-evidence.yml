@@ -290,7 +290,15 @@ jobs:
           differ = sorted(k for k in paced if paced[k] != unpaced[k])
           if differ:
               raise SystemExit(f"Race result byte parity mismatch: {differ}")
-          drift = sum(existing.get(k) != paced.get(k) for k in existing.keys() | paced.keys())
+          drift_keys = sorted(k for k in existing.keys() | paced.keys()
+                              if existing.get(k) != paced.get(k))
+          drift = len(drift_keys)
+          from collections import Counter
+          drift_ext = Counter(k.rsplit(".", 2)[-1] for k in drift_keys)
+          drift_checkpoint = Counter(k.split(".")[0] for k in drift_keys)
+          print(f"UR_RACE_RESULT_SHARED_BASELINE_DRIFT kinds={dict(sorted(drift_ext.items()))} "
+                f"checkpoints={dict(sorted(drift_checkpoint.items()))} "
+                f"sample={drift_keys[:12]}")
           manifest = hashlib.sha256("".join(f"{k}\t{v}\n" for k,v in sorted(paced.items())).encode()).hexdigest()
           print(f"UR_RACE_RESULT_PACING_PARITY PASS files={len(paced)} checkpoints=18 baseline_drift={drift} sha256={manifest}")
           PY

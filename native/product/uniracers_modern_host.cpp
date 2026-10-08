@@ -62,6 +62,7 @@ extern "C" {
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
 #include "local_tournament_session_coordinator.hpp"
+#include "local_tournament_tokens.hpp"
 #include "run_record_capture_policy.hpp"
 #include "local_multiplayer_seat_text.hpp"
 #include "modern_pause_input.h"
@@ -9217,5 +9218,143 @@ extern "C" int ur_uniracers_modern_local_tournament_standing(
     out->draws = static_cast<std::uint32_t>(row.draws);
     out->losses = static_cast<std::uint32_t>(row.losses);
     out->points = static_cast<std::uint32_t>(row.points);
+    return 1;
+}
+
+namespace {
+bool local_tournament_command_context() {
+    return ensure_session() && modern_mode() && g_ram &&
+           g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+           !g_multiplayer_run_capture.capturing() &&
+           !g_multiplayer_capture_tournament_attempt &&
+           !g_local_multiplayer_join_visible &&
+           !g_practice_active;
+}
+
+// The ABI accepts C strings from native UI code, but bounds each length
+// before constructing storage identities or passing to the profile catalog.
+bool local_tournament_bounded_c_string(
+    const char* value, std::size_t max_length, std::string* result) {
+    if (!value || !result) return false;
+    std::size_t n = 0;
+    while (n <= max_length && value[n] != '\0') ++n;
+    if (n == 0 || n > max_length) return false;
+    *result = std::string(value, n);
+    return true;
+}
+
+ur::product::LocalTournamentCoordinatorPaths
+local_tournament_product_paths() {
+    return {product_user_data_path("local-tournaments"),
+            default_multiplayer_run_directory()};
+}
+} // namespace
+
+extern "C" int ur_uniracers_modern_local_tournament_create(
+    const char* const* profile_ids, size_t profile_count,
+    const char* const* course_ids, size_t course_count,
+    int explicitly_replace_active) {
+    if (!local_tournament_command_context() ||
+        !profile_ids || !course_ids ||
+        profile_count < 2 ||
+        profile_count > ur::product::kLocalTournamentMaxEntrants ||
+        course_count == 0 || course_count > 16) return 0;
+    ensure_profile_catalog();
+    ensure_local_tournament_session_loaded();
+    if (g_local_tournament_session &&
+        g_local_tournament_session->launch.pending) return 0;
+    std::vector<std::string> roster;
+    std::vector<std::string> courses;
+    roster.reserve(profile_count);
+    courses.reserve(course_count);
+    for (std::size_t i = 0; i < profile_count; ++i) {
+        std::string id;
+        if (!local_tournament_bounded_c_string(profile_ids[i], 128, &id)) {
+            return 0;
+        }
+        roster.push_back(std::move(id));
+    }
+    for (std::size_t i = 0; i < course_count; ++i) {
+        std::string course;
+        if (!local_tournament_bounded_c_string(course_ids[i], 15, &course)) {
+            return 0;
+        }
+        courses.push_back(std::move(course));
+    }
+    const auto paths = local_tournament_product_paths();
+    if (paths.tournaments_root.empty() ||
+        paths.multiplayer_runs_directory.empty()) return 0;
+    // Independently generated 128-bit identifiers for each new event; a
+    // collision never causes old results/receipts to be inherited.
+    for (int i = 0; i < 4; ++i) {
+        const auto id = ur::product::mint_local_tournament_token();
+        if (!id) return 0;
+        const auto created = ur::product::create_local_tournament_coordinator(
+            paths, *id, roster, g_profile_catalog, courses,
+            explicitly_replace_active != 0);
+        if (created.usable()) {
+            g_local_tournament_session = *created.session;
+            g_local_tournament_load_attempted = true;
+            g_local_tournament_route_seen_two_player_select = false;
+            product_diagnostic("UR_LOCAL_TOURNAMENT CREATED");
+            return 1;
+        }
+        if (created.status !=
+                ur::product::LocalTournamentCoordinatorStatus::AlreadyExists ||
+            (g_local_tournament_session && !explicitly_replace_active)) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+extern "C" int ur_uniracers_modern_local_tournament_arm_fixture(
+    size_t fixture_index) {
+    if (!local_tournament_command_context()) return 0;
+    ensure_local_tournament_session_loaded();
+    if (!g_local_tournament_session ||
+        g_local_tournament_session->launch.pending) return 0;
+    const auto& tournament = g_local_tournament_session->results;
+    if (fixture_index >= tournament.fixtures.size() ||
+        fixture_index >= tournament.results.size() ||
+        tournament.results[fixture_index]) return 0;
+    const auto& fixture = tournament.fixtures[fixture_index];
+    if (fixture.player1 >= tournament.entrants.size() ||
+        fixture.player2 >= tournament.entrants.size()) return 0;
+    for (int i = 0; i < 4; ++i) {
+        const auto attempt = ur::product::mint_local_tournament_token();
+        if (!attempt) return 0;
+        const auto armed = ur::product::arm_local_tournament_fixture(
+            *g_local_tournament_session, fixture_index, *attempt,
+            tournament.entrants[fixture.player1],
+            tournament.entrants[fixture.player2]);
+        if (armed == ur::product::LocalTournamentCoordinatorStatus::Armed) {
+            g_local_tournament_route_seen_two_player_select = false;
+            product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_ARMED");
+            return 1;
+        }
+        // Retry is warranted only for the astronomically unlikely collision
+        // with this event's instance ID, not other bad fixture/store states.
+        if (*attempt != g_local_tournament_session->definition.instance_id) {
+            return 0;
+        }
+    }
+    return 0;
+}
+
+extern "C" int ur_uniracers_modern_local_tournament_cancel_fixture(void) {
+    if (!local_tournament_command_context()) return 0;
+    ensure_local_tournament_session_loaded();
+    if (!g_local_tournament_session ||
+        !g_local_tournament_session->launch.pending) return 0;
+    const auto attempt =
+        g_local_tournament_session->launch.pending->attempt_id;
+    const auto cancelled = ur::product::cancel_local_tournament_capture(
+        *g_local_tournament_session, attempt);
+    if (cancelled != ur::product::LocalTournamentCoordinatorStatus::Cancelled) {
+        return 0;
+    }
+    g_local_tournament_route_seen_two_player_select = false;
+    product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_CANCELLED");
     return 1;
 }

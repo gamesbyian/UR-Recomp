@@ -1,4 +1,5 @@
 #include "completed_run_record.hpp"
+#include "replay_frame_window_equivalence.hpp"
 
 #include <iostream>
 #include <string>
@@ -122,9 +123,15 @@ int main(int argc, char** argv) {
                   << original.record->elapsed_ticks60
                   << " replayed=" << replayed.record->elapsed_ticks60 << "\n";
     }
-    if (original.record->frame_count != replayed.record->frame_count) {
-        std::cerr << "INFO frame_count differs across lifecycle observation "
-                  << "boundaries original=" << original.record->frame_count
+    if (!ur::test::replay_frame_windows_compatible(
+            original.record->frame_count, replayed.record->frame_count)) {
+        same = false;
+        std::cerr << "DIFF frame_count exceeds one terminal lifecycle frame "
+                  << "original=" << original.record->frame_count
+                  << " replayed=" << replayed.record->frame_count << "\n";
+    } else if (original.record->frame_count != replayed.record->frame_count) {
+        std::cerr << "INFO frame_count differs by one terminal lifecycle frame "
+                  << "original=" << original.record->frame_count
                   << " replayed=" << replayed.record->frame_count << "\n";
     }
     same = report_splits(*original.record, *replayed.record) && same;

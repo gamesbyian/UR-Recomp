@@ -158,9 +158,51 @@ def validate_rom_config(payload: bytes, *, context: str) -> None:
         )
 
 
+def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
+    """Reject package names that cannot survive ordinary Windows extraction.
+
+    Linux can create both case-aliased directories and Windows-reserved
+    filenames. Reject both before producing a consumer ZIP, comparing every
+    ancestor spelling as well as validating each individual component.
+    """
+    spellings: dict[str, str] = {}
+    for relative in sorted(paths):
+        parts = relative.split("/")
+        for part in parts:
+            if (
+                not part
+                or part in (".", "..")
+                or part.endswith((" ", "."))
+                or any(ord(char) < 32 or char in '<>:"\\|?*' for char in part)
+            ):
+                raise ValueError(
+                    f"{context} contains Windows-incompatible path: {relative}"
+                )
+            stem = part.split(".", 1)[0].upper()
+            if stem in {"CON", "PRN", "AUX", "NUL"} or (
+                len(stem) == 4
+                and stem[:3] in {"COM", "LPT"}
+                and stem[3] in "123456789¹²³"
+            ):
+                raise ValueError(
+                    f"{context} contains Windows-reserved device name: {relative}"
+                )
+        for depth in range(1, len(parts) + 1):
+            prefix = "/".join(parts[:depth])
+            key = prefix.casefold()
+            old = spellings.get(key)
+            if old is not None and old != prefix:
+                raise ValueError(
+                    f"{context} contains case-colliding Windows paths: "
+                    f"{old} and {prefix}"
+                )
+            spellings[key] = prefix
+
+
 def validate_required_package_paths(
     paths: set[str], *, context: str = "package"
 ) -> None:
+    validate_windows_portable_paths(paths, context=context)
     missing = sorted(REQUIRED_PACKAGE_FILES - paths)
     if missing:
         raise ValueError(
@@ -440,6 +482,15 @@ def assemble(
     # Reject resource exhaustion and symlink escapes before deleting an
     # existing output folder or allocating disk space for copied input.
     preflight_package_source_budget(build_dir, rom, mods)
+    # Check NTFS name aliases while the existing output is still intact.
+    source_mods = {
+        "mods/" + path.relative_to(mods).as_posix()
+        for path in mods.rglob("*")
+        if path.is_file()
+    }
+    validate_windows_portable_paths(
+        source_mods, context="package source mods"
+    )
 
     if output.exists():
         if not output.is_dir():
@@ -655,6 +706,11 @@ def verify_archive(archive: Path) -> dict[str, object]:
                     )
             if len(names) != len(set(names)):
                 raise ValueError("package archive contains duplicate paths")
+            # ZIP names and package-manifest names are case-sensitive,
+            # but extraction on a typical Windows volume is not.
+            validate_windows_portable_paths(
+                set(names), context="package archive"
+            )
             if any(
                 name.startswith("/") or "\\" in name or ".." in Path(name).parts
                 for name in names

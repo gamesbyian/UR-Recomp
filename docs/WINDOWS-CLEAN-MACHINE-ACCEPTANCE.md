@@ -19,6 +19,8 @@ It checks:
 3. extraction through Windows `Expand-Archive` into a **new** directory,
    never overwriting an existing package or save tree;
 4. the fixed Windows package format and manifest, payload file count/path,
+   rejecting different spellings of a file or parent directory that Windows
+   case-insensitive extraction would merge,
    SHA-256 and byte length for every extracted executable/ROM/mod/resource,
    **independent canonical USA ROM SHA-256 identity** (pinned against
    `rom_identity.txt`, not accepted merely because a manifest and ZIP

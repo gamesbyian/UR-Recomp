@@ -16,6 +16,8 @@ native/product/completed_run_record.{hpp,cpp} owns the typed record, strict vali
 
 The controller payload intentionally uses the same start:duration:p1-mask[:p2-mask] semantics as tools/controller_input.py and the pinned native INPUT_FILE replay path. encode_completed_run_input_file() emits that grammar directly. Playback should initialize the requested course through the normal guest/runtime path and feed these controller words back through the existing deterministic input route. The record must never write arbitrary WRAM to force course or racer state.
 
+The native original-vs-fresh-process replay comparison must match provenance, the resolved RLE controller stream, finish ticks and ordered checkpoint splits. It tolerates at most a **one guest-frame** difference between recorded `frame_count` values, reflecting the confirmed results-retirement sampling boundary; a larger discrepancy is a failed replay even if all nonzero input spans and finish timing happen to agree. This is an acceptance rule only and does not change the `.urrun` codec or reject separately loadable historical records.
+
 The optional terminal digest is a validation oracle only. It does not grant host data authority over gameplay.
 
 ## Timing

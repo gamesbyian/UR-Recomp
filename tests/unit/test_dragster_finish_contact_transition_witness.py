@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 
 from correlate_dragster_finish_spatial_event import (
-    SPATIAL, correlate, surface_slot,
+    SPATIAL, correlate, surface_slot, infer_pre_dispatch_course_word,
 )
 
 WITNESS = ROOT / "analysis/data/dragster-finish-contact-transition.json"
@@ -84,6 +84,77 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
             (after["checkpoint"], after["finish_gate"], after["laps_remaining"]),
             (1, 1, 0),
         )
+
+    def test_phase_corrected_transition_uses_prior_stored_contact_candidate(self):
+        result = infer_pre_dispatch_course_word(
+            self.contract, self.trace["samples"]
+        )
+        self.assertEqual(result["first_progress_change_frame"], 2903)
+        self.assertEqual(result["pre_prior_postframe"]["frame"], 2901)
+        self.assertEqual(result["pre_prior_postframe"]["stored_word"], "1804")
+        self.assertEqual(result["pre_prior_postframe"]["stored_object_code"], "12")
+        prior = result["immediately_prior_postframe_candidate"]
+        new = result["transition_postframe_new_sample"]
+        self.assertEqual((prior["frame"], prior["stored_word"], prior["stored_c000_slot"]),
+                         (2902, "2024", 10))
+        self.assertEqual((new["frame"], new["stored_word"], new["stored_c000_slot"]),
+                         (2903, "2020", 8))
+        self.assertEqual(result["progress_before"], [3, 0, 1])
+        self.assertEqual(result["progress_after"], [1, 1, 0])
+        self.assertEqual(
+            sorted(item["world_rect"][1] for item in prior["nearest_finish_x_cells"]),
+            [816, 848, 880],
+        )
+        self.assertEqual(
+            sorted(item["world_rect"][1] for item in new["nearest_finish_x_cells"]),
+            [800, 832, 864],
+        )
+        self.assertIn("cannot prove", result["runtime_limit"])
+
+    def test_cli_exports_explicit_phase_corrected_finish_candidates(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / "phase.json"
+            run = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "tools/correlate_dragster_finish_spatial_event.py"),
+                    "--contact-sequence", str(WITNESS),
+                    "--json-out", str(destination),
+                ],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(run.returncode, 0, run.stderr)
+            data = json.loads(destination.read_text(encoding="utf-8"))
+        self.assertEqual(data["matched_c000_slot"], 8)
+        phase = data["phase_corrected_finish_transition"]
+        self.assertEqual(
+            phase["immediately_prior_postframe_candidate"]["stored_c000_slot"],
+            10,
+        )
+        self.assertEqual(
+            phase["transition_postframe_new_sample"]["stored_c000_slot"],
+            8,
+        )
+
+    def test_phase_evidence_rejects_gaps_and_spurious_progress(self):
+        rows = self.trace["samples"]
+        with self.assertRaisesRegex(ValueError, "at least three"):
+            infer_pre_dispatch_course_word(self.contract, rows[:2])
+        broken = [dict(item) for item in rows]
+        broken[2]["frame"] = broken[1]["frame"] + 2
+        with self.assertRaisesRegex(ValueError, "nonconsecutive"):
+            infer_pre_dispatch_course_word(self.contract, broken)
+        no_change = [dict(item) for item in rows]
+        for item in no_change:
+            item["checkpoint"], item["finish_gate"], item["laps_remaining"] = 3, 0, 1
+        with self.assertRaisesRegex(ValueError, "exactly one"):
+            infer_pre_dispatch_course_word(self.contract, no_change)
+        altered = [dict(item) for item in rows]
+        altered[1]["object_code"] = 0x12
+        with self.assertRaisesRegex(ValueError, "prior stored"):
+            infer_pre_dispatch_course_word(self.contract, altered)
 
     def test_all_confirmed_checkpoint_family_contacts_have_exact_rom_cells(self):
         by_slot = {}

@@ -10,6 +10,12 @@ This is the canonical product-development plan for turning the original SNES Uni
 
 For current reverse-engineering priorities, evidence collection and archival work, see `RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`. For day-to-day milestone status, see `WORK-QUEUE.md`. Remaining global tooling-audit work is bounded by `TOOLING-AUDIT-CLOSEOUT.md`; experiments transferred from that audit are owned by the relevant phases below. This document owns the longer path from stock native execution to the intended modern port.
 
+## Release-quality gate and adversarial evidence programme (2026-10-08)
+
+The engineering milestone (guest parity, independently decoded data, hosted packaging) must not be used as the release decision. The critical path now includes **content-complete behaviour, integrated cross-feature journeys, durable user progress, and actual physical Windows/player evidence**, as detailed in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md). Execute concrete scenarios in [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md); the machine-readable [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) holds the strict unverified/in-progress/passed/failed/blocked/waived status for each gate.
+
+Do not infer release acceptance from an approved sprite family, successful package build, closed PR, course-data CRC, or passing subsystem regression. Demand exact-candidate, independent whole-player and hardware evidence; classify observed bugs separately from suspected failure modes and missing coverage. P0 requires course/event completion, persistence recovery, actual multi-session tournament results and consumer hardware acceptance. P1 includes controls/modal interactions, source-aligned audio, expert play, temporal HD/Widescreen coherence, frontend comprehension/accessibility, soak and broad ghost/replay. Maintain independent QA review rather than expecting the implementing agent to certify its own work.
+
 ## Terminology
 
 The project as a whole is the **UR-Recomp project**, **Uniracers modern port**, or simply **the project**. Do not use `widescreen` or `HD` as shorthand names for the project, its overall architecture, or its end state.

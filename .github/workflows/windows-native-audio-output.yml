@@ -23,6 +23,7 @@ on:
       - "tools/analyze_sdl_audio_envelope.py"
       - "tools/summarize_sdl_pause_envelopes.py"
       - "tools/analyze_windows_volume_output.py"
+      - "tools/capture_modern_paused_audio.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -326,6 +327,56 @@ jobs:
             --json-out "$RUNNER_TEMP/audio-volume-output-comparison.json"
           echo "WINDOWS_VOLUME_AUDIO_MATRIX PASS origin=packaged-sdl3"
 
+      - name: Observe real Modern host-frozen pause through SDL audio output
+        run: |
+          set -euo pipefail
+          # This is a separate ownership path from stock guest Start pause.
+          # The real product hook opens Modern pause after 120 active-race
+          # host-observed frames; the guest script then freezes indefinitely.
+          # A bounded native Windows supervisor terminates the *whole* process
+          # tree after 4 seconds of host-paused wall time, not guest time.
+          PACKAGE="$RUNNER_TEMP/audio-pause-product/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/modern-focus-pause.script")"
+          ROOT="$RUNNER_TEMP/audio-modern-host-pause-data"
+          PCM="$RUNNER_TEMP/audio-modern-host-pause-device.raw"
+          LOG="$RUNNER_TEMP/audio-modern-host-pause.log"
+          mkdir -p "$ROOT"
+          rm -f "$PCM" "$LOG"
+          ROOT_WIN="$(cygpath -w "$ROOT")"
+          PCM_WIN="$(cygpath -w "$PCM")"
+          LOG_WIN="$(cygpath -w "$LOG")"
+          SDL_VIDEO_DRIVER=offscreen \
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIO_DRIVER=disk \
+          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+          SDL_AUDIO_FORMAT=S16LE \
+          SDL_AUDIO_CHANNELS=2 \
+          SDL_AUDIO_FREQUENCY=44100 \
+          SDL_AUDIO_DISK_TIMESCALE=1.0 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+          UR_PAUSE_OPEN_ACCEPTANCE=1 \
+          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+            python -m tools.capture_modern_paused_audio \
+              "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" \
+              --deadline-seconds 80 --hold-seconds 4
+          grep -Fq 'UR_PAUSE_ACCEPTANCE OPENED' "$LOG"
+          grep -Eq '^UR_PAUSE_STATE paused=1 surface=' "$LOG"
+          test -s "$PCM"
+          # This first host-owned pause run is descriptive: do NOT impose
+          # the stock guest Start attenuation or queue-starvation contracts.
+          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+            --min-duration-seconds 15 \
+            --min-rms 0 --min-nonzero-fraction 0 \
+            --tail-seconds 1.0 --min-tail-rms 0 \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-output.json"
+          python -m tools.analyze_sdl_audio_envelope "$LOG" "$PCM_WIN" \
+            --last-seconds 3 --window-ms 100 \
+            --json-out "$RUNNER_TEMP/audio-modern-host-pause-envelope.json"
+          rm -f "$PCM"
+          echo "WINDOWS_MODERN_HOST_PAUSE_AUDIO PASS guest_frozen=1 raw_pcm_uploaded=0"
+
       - name: Upload bounded audio evidence (never PCM)
         if: always()
         uses: actions/upload-artifact@v4
@@ -341,5 +392,8 @@ jobs:
             ${{ runner.temp }}/audio-stock-pause-envelope-shape.json
             ${{ runner.temp }}/audio-volume-*.log
             ${{ runner.temp }}/audio-volume-output-*.json
+            ${{ runner.temp }}/audio-modern-host-pause.log
+            ${{ runner.temp }}/audio-modern-host-pause-output.json
+            ${{ runner.temp }}/audio-modern-host-pause-envelope.json
           if-no-files-found: warn
           retention-days: 7

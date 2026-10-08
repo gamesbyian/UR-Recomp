@@ -715,3 +715,43 @@ an instruction-time trace or authoritative marshal path is required
 to confirm when 0F09 mirrors each player. It is nevertheless enough
 to reject using a postframe 0F09 snapshot as the observed P1 collision
 selector for this trace.
+
+
+### Validate placed course cells directly in native WRAM (2026-10-08)
+
+tools/probe_live_course_world_cells.py resolves the same 64x64 coarse sector
+-> 32-byte fine record -> packed 16x16 cell -> C000 behavior code contract
+**from a 128 KiB native WRAM snapshot**, without relying on a pre-generated
+course JSON file. It is a read-only diagnostic for course reconstruction.
+For example, given a saved native frame from the established Dragster
+object-activation probe:
+
+    python3 tools/probe_live_course_world_cells.py frame.wram.bin \
+      --rect 25280 784 25311 911 \
+      --rom reference/roms/retail/Uniracers_USA.sfc \
+      --stream-index 1
+
+Supplying both ROM and stream index verifies that the entire selected
+decoded course is actually resident at 7F:0000, except for the two
+known mutable resource-list cursor bytes. This validation bounds the
+fine-record indices to the selected decoded course, not merely to
+physical WRAM. Without a ROM the tool explicitly labels course identity
+unverified and constrains record reads only to the WRAM buffer.
+
+The first independent live evidence is retained in
+analysis/data/dragster-finish-live-course-cells.json. Those 16 placed
+cells come from the original native guest-frame-2903 WRAM dump in Actions
+run 36954104693 (artifact 11204794758), rather than being copied
+from the generated static Dragster spatial contract. On the finish
+stripe at X=25280/25296 and Y=784..911 the live coarse grid selects
+fine records 19, 22 and 31. The exact word/slot pairings agree with the
+separately decoded ROM spatial contract: e.g. 0x2020 selects C000 slot 8,
+0x2024 slot 10, and 0x0022 slot 9, all with runtime behavior code 0x14.
+Regression tests assert both cross-authority parity and correct live
+coordinate indexing.
+
+**Limits:** a live C000 value describes the materialized object behavior
+at a placed world cell. It does not by itself prove that the cell was
+actually contacted in a given frame, nor that its checkpoint/finish
+handler changed race progress. The fine-cell lookup is also separate
+from collision-footprint selection and guest execution timing.

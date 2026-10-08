@@ -10,7 +10,7 @@ The project already treats stock simulation as authoritative. This slice therefo
 
 ## Current status — 2026-10-08
 
-**Historical reference: reproduced. Native: not yet attempted.** The dated evidence is in R-2026-10-08-PHYS-01 in `docs/RESEARCH-LEDGER.md`.
+**Historical reference: reproduced. Native: both routes and both controls admitted, identical to the reference.** The dated evidence is in R-2026-10-08-PHYS-01 and R-2026-10-08-PHYS-02 in `docs/RESEARCH-LEDGER.md`.
 
 - **Anchor.** Each recovered SMV embeds its complete Snes9x 1.51 starting freeze. `tools/extract_smv_freeze.py` validates it and records hashes and symbolized fields in `analysis/generated/jumpover-fallthrough-anchors.json`. Both anchors are mid-race on Jumpover with P1 grounded before the halfpipe. The saved PC is inside the bank-82 racer update, so the anchor is not a race-loop frame boundary.
 - **Reference replay.** `tools/probe_jumpover_fallthrough.py` replays each movie, unchanged and with a 60-frame held-input extension, in Snes9x 1.51-rr. Each run is repeated and the repeats are byte-identical. Results are in `analysis/generated/jumpover-fallthrough-reference-replay.json`. Frame k is the state after k movie frames.
@@ -26,7 +26,18 @@ The project already treats stock simulation as authoritative. This slice therefo
   - Writing P1 X (`7E:0411`) into the anchor WRAM is overwritten by the in-progress update, so the historical X sweep is not reproduced.
   - The pinned modern snesref core rejects the 1.51 freeze format (`#!snes9x`, not `#!s9xsnp`).
 
-**Next discriminator (native).** The admission rule requires a fresh process and canonical stock state, so pick and justify one anchor route before any native run:
+**Anchor route decision (2026-10-08).** Route 1, the fresh-process input route, is the regression authority; the anchor transplant (route 2) is rejected because a WRAM copy cannot carry CPU/PPU/APU state and a mid-update freeze is not a race-loop boundary. One bounded deviation is admitted: a single frame-boundary write of P1's boost meter (`7E:11CF`), a persistent value the game itself writes from landed-stunt rewards, recorded in the evidence. Everything else comes from canonical play from power-on with the recovered real `All Silvers - No Hunter` SRAM.
+
+**Native result.** `tools/probe_jumpover_fallthrough_native.py` boots snesref and native, reaches Jumpover through the stock menus, drives each route's approach, seeds the boost meter, and splices the matching SMV's controller stream. The four contract cases, plus adjacent seed leads that ride normally:
+
+| Route | Fall-through | Ordinary controls |
+|---|---|---|
+| right (hold Right, seed 72) | seed 36 frames before the splice: lip contact on movie frames 43–46, landing below the floor at 97 | seed 35 and 37; shoulder released on sample 41 (peaks at Y 759, PHYS-01's control floor) |
+| left (clear the halfpipe, turn back, seed 120) | seed 21: lip contact 45–48, below-floor contact 95–96 | seed 22; shoulder released on sample 41 |
+
+Native and snesref are identical on every dumped frame of all seven cases (`analysis/generated/jumpover-fallthrough-native.json`), and repeated runs hash identically. The control sample is 41 rather than PHYS-01's 42 because input acts every second frame and the fresh boot's acting samples are odd. The probe is a manual harness: it needs the reference core and the ROM, and the outcome only moves with collision, physics or input-path changes.
+
+**Superseded discriminator notes.** The admission rule requires a fresh process and canonical stock state, so pick and justify one anchor route before any native run:
 
 1. **Fresh-process input route.** Reach the Jumpover halfpipe approach from boot with an equivalent P1 state, then replay the movie's input sequence on the same 2-frame input phase. Feasibility is unknown. Takeoff must land within one 2-frame input step of the movie's takeoff, about 31 X units at anchor speed. The cheapest probe is to measure how wide the reference fall-through window is in approach X, using a pause-sequence X write like the historical scripts.
 2. **Anchor transplant as a test harness.** Advance the 1.51 reference to a true race-loop frame boundary. Capture WRAM there, which includes the `7E:A000/C000` course planes. Inject it into a fresh native process that is idle at the same loop point in a Jumpover race. This is not canonical stock state. Whether the contract admits it is a decision for this document's owner. A modern snesref comparison would need the same transplant.

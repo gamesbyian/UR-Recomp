@@ -65,6 +65,8 @@ class GuestPauseAudioAcceptanceTests(unittest.TestCase):
         report = pause_phase_report(pcm, stats)
         self.assertEqual(report["phases"]["ui-pause-after-start"]["tail_rms"], 0)
         self.assertEqual(report["relative_to_before"]["ui-pause-after-start"], 0)
+        self.assertIsNone(report["relative_to_before_db"]["ui-pause-after-start"])
+        self.assertGreater(report["relative_to_before_db"]["ui-pause-after-resume"], 0)
         self.assertAlmostEqual(report["relative_to_before"]["ui-pause-after-resume"], 1700 / 1500, delta=1e-6)
 
     def test_opt_in_pause_attenuation_and_resume_recovery(self):
@@ -87,6 +89,7 @@ class GuestPauseAudioAcceptanceTests(unittest.TestCase):
         pcm["ui-pause-before"]["tail_rms"] = 0
         report = pause_phase_report(pcm, stats)
         self.assertIsNone(report["relative_to_before"]["ui-pause-after-resume"])
+        self.assertIsNone(report["relative_to_before_db"]["ui-pause-after-resume"])
         with self.assertRaisesRegex(ValueError, "without audible pre-pause"):
             pause_phase_report(pcm, stats, max_paused_to_before=0.05)
 

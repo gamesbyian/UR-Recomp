@@ -43,7 +43,7 @@ class CompletedRunReplayPresentationWorkflowTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tempdir:
             state = pathlib.Path(tempdir) / "host-state.txt"
             subprocess.run(
-                ["bash", "-euo", "pipefail", "-c", 'STATE="$1"\\n' + script, "bash", str(state)],
+                ["bash", "-euo", "pipefail", "-c", 'STATE="$1"; ' + script, "bash", str(state)],
                 check=True,
                 capture_output=True,
                 text=True,

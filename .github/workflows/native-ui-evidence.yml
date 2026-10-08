@@ -2,70 +2,14 @@ name: Native UI evidence
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "reference/roms/retail/Uniracers_USA.sfc"
-      - "rom_identity.txt"
-      - "third_party/archives/snesrecomp-cd5875cbdaf19f5e.tar.gz"
-      - "third_party/cargo/snesrecomp-analyzer/**"
-      - "third_party/manifest.json"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/_global.json"
-      - "tools/patch_modern_product_host.py"
-      - "tools/prepare_native_widescreen_product.py"
-      - "tools/seed_native_widescreen_aot.py"
-      - "tools/apply_native_widescreen_hook.py"
-      - "tools/patches/snesrecomp-dynamic-native-widescreen.patch"
-      - "tools/build_display_geometry_review.py"
-      - "tools/check_result_screen_time.py"
-      - "analysis/display-geometry-candidates.json"
-      - "native/product/uniracers_modern_host.*"
-      - "native/product/modern_*"
-      - "native/product/quick_practice_*"
-      - "native/product/completed_run_browser*"
-      - "native/product/completed_run_presentation.*"
-      - "native/product/host_product_*"
-      - "native/product/host_profile_*"
-      - "native/product/output_resolution_*"
-      - "native/product/internal_render_scale_policy.hpp"
-      - "native/product/focus_pause_policy.hpp"
-      - "native/product/regional_presentation*"
-      - "native/title/uniracers_restart_policy.*"
-      - "tests/input/reach-first-race.script"
-      - "tests/input/modern-focus-pause.script"
-      - "tests/input/two-player-first-race.input"
-      - "tests/input/two-player-first-race-observe.script"
-      - "tools/check_ppm.py"
-      - "tools/check_paused_overlay_dump.py"
-      - "tools/patches/snesrecomp-paused-overlay-present.patch"
-      - "tools/patches/snesrecomp-host-frame-hold.patch"
-      - "tools/ci_log_assert.py"
-      - "tests/input/ui-options-route.script"
-      - "tests/input/ui-main-branches.script"
-      - "tests/input/ui-vs-handoff.script"
-      - "tests/input/ui-ending-shortcut.script"
-      - "tests/input/ui-attract-route.script"
-      - "tests/input/ui-pause-route.script"
-      - "tests/input/ui-options-submenus.script"
-      - "tests/input/ui-erase-confirm.script"
-      - "tests/input/ui-league-table.script"
-      - "tests/input/ui-race-result-route.script"
-      - "tests/input/ui-stunt-result-route.script"
-      - "tests/input/ui-records-explore.script"
-      - "tests/input/ui-rename-editor-explore.script"
-      - "tests/input/ui-circuit-result-route.script"
-      - "tests/input/ui-records-submenus.script"
-      - "tests/input/ui-record-high.script"
-      - "tests/input/ui-record-player.script"
-      - "tests/input/ui-record-group.script"
-      - "tests/input/ui-startup-timeline.script"
-      - "tests/input/ui-define-player-explore.script"
-      - "tests/input/ui-pre-race-timing.script"
-      - "tests/input/ui-name-league-route.script"
-      - "tools/toolchain-entries/sdl3.json"
-      - ".github/workflows/native-ui-evidence.yml"
+  workflow_call:
+    inputs:
+      canonical_candidate:
+        description: Reuse the caller run's canonical Modern native candidate
+        required: false
+        type: boolean
+        default: false
+
 concurrency:
   group: native-ui-evidence-${{ github.ref }}
   cancel-in-progress: true
@@ -81,7 +25,41 @@ jobs:
       - name: Check out project
         uses: actions/checkout@v4
 
+      - name: Download canonical Modern native candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: ${{ runner.temp }}/modern-native-canonical-artifact
+
+      - name: Bridge canonical candidate into Native UI artifact contract
+        if: ${{ inputs.canonical_candidate == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/modern-native-canonical-artifact/modern-native-canonical.tar.gz" -C "$RUNNER_TEMP"
+          ROOT="$RUNNER_TEMP/modern-native-canonical/UniracersSNESRecomp"
+          test -x "$ROOT/build/UniracersSNESRecomp"
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_key_down" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_gamepad_button" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_overlay" "$ROOT/src/main.c"
+          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+          rm -rf "$RUNNER_TEMP/ur-recomp-build"
+          mv "$RUNNER_TEMP/modern-native-canonical" "$RUNNER_TEMP/ur-recomp-build"
+          tar -czf "$RUNNER_TEMP/native-ui-build.tar.gz" -C "$RUNNER_TEMP" ur-recomp-build
+
+      - name: Upload bridged native UI candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ui-build-candidate
+          path: ${{ runner.temp }}/native-ui-build.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Install desktop build dependencies
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           cmake --version
@@ -93,9 +71,11 @@ jobs:
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM
+        if: ${{ inputs.canonical_candidate != true }}
         run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
 
       - name: Stage repository-owned SNESRecomp framework
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -106,6 +86,7 @@ jobs:
           test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
 
       - name: Scaffold, generate and build
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -159,6 +140,7 @@ jobs:
 
 
       - name: Package native UI candidate
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -167,6 +149,7 @@ jobs:
           test -s "$RUNNER_TEMP/native-ui-build.tar.gz"
 
       - name: Upload native UI candidate
+        if: ${{ inputs.canonical_candidate != true }}
         uses: actions/upload-artifact@v4
         with:
           name: native-ui-build-candidate

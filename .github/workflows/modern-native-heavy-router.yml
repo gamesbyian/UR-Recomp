@@ -1,0 +1,176 @@
+name: Modern native heavy router
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/modern-native-heavy-router.yml"
+      - ".github/workflows/modern-shared-native-acceptance.yml"
+      - ".github/workflows/native-ui-evidence.yml"
+      - ".github/ci/modern-native-*.txt"
+      - "native/**"
+      - "tests/**"
+      - "tools/**"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snesrecomp.json"
+      - "tools/toolchain-entries/sdl3.json"
+      - "analysis/**"
+      - "reference/**"
+      - "rom_identity.txt"
+      - "third_party/**"
+
+concurrency:
+  group: modern-native-heavy-router-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  classify:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      shared: ${{ steps.classify.outputs.shared }}
+      onboarding: ${{ steps.classify.outputs.onboarding }}
+      ui: ${{ steps.classify.outputs.ui }}
+      any_heavy: ${{ steps.classify.outputs.any_heavy }}
+    steps:
+      - name: Check out PR head and history
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Collect changed paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}" \
+            > "$RUNNER_TEMP/modern-native-changed-paths.txt"
+          cat "$RUNNER_TEMP/modern-native-changed-paths.txt"
+
+      - name: Classify heavyweight Modern suites
+        id: classify
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/classify_modern_native_ci.py \
+            --paths-file "$RUNNER_TEMP/modern-native-changed-paths.txt" \
+            --github-output "$GITHUB_OUTPUT"
+
+  build:
+    needs: classify
+    if: needs.classify.outputs.shared == 'true' || needs.classify.outputs.ui == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install desktop build dependencies
+        shell: bash
+        run: |
+          cmake --version
+          ninja --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+
+      - name: Verify canonical ROM
+        run: python3 tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
+
+      - name: Stage repository-owned native toolchain
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snesrecomp --clone-only
+          python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
+          test -f .tools/src/sdl3/SDL3-3.4.10/CMakeLists.txt
+          test -f .tools/src/snesrecomp/tools/new_project/setup_project.sh
+          test -f .tools/src/snesrecomp/runner/runner.cmake
+          test ! -e .tools/src/snesrecomp/lib/recomp-net/CMakeLists.txt
+          test ! -e .tools/src/snesrecomp/lib/retcomm-rbengine/CMakeLists.txt
+
+      - name: Build canonical Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          FRAMEWORK="$GITHUB_WORKSPACE/.tools/src/snesrecomp"
+          TMP="$RUNNER_TEMP/modern-native-canonical"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          mkdir -p "$TMP"
+
+          SNESRECOMP_ROOT="$FRAMEWORK" \
+            sh "$FRAMEWORK/tools/new_project/setup_project.sh" \
+              --rom "$ROM" \
+              --dir "$TMP" \
+              --name "Uniracers" \
+              --players 2 \
+              --yes \
+              --no-ci \
+              --no-fetch-boxart \
+              --no-recomp-ui \
+              --no-netplay \
+              --no-github \
+              --no-submodules \
+              --no-generate \
+              --no-build
+
+          ROOT="$TMP/UniracersSNESRecomp"
+          python3 tools/prepare_native_widescreen_product.py \
+            --framework "$FRAMEWORK" \
+            --project "$ROOT" \
+            --rom "$ROM" \
+            --json-out "$RUNNER_TEMP/modern-native-canonical-prepare.json"
+          grep -q '"product_ready": true' "$RUNNER_TEMP/modern-native-canonical-prepare.json"
+
+          python3 tools/patch_modern_product_host.py \
+            "$ROOT/src/main.c" \
+            --game-rtl "$ROOT/src/game_rtl.c" \
+            --cmake "$ROOT/CMakeLists.txt"
+
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_key_down" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_gamepad_button" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_product_system_overlay" "$ROOT/src/main.c"
+          grep -q "ur_uniracers_modern_native_widescreen_enabled" "$ROOT/src/main.c"
+          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+          grep -q "\.session_reset = &GameSessionReset" "$ROOT/src/game_rtl.c"
+
+          cmake -S "$ROOT" -B "$ROOT/build" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ROOT="$FRAMEWORK" \
+            -DSNESRECOMP_SDL_BACKEND=SDL3 \
+            -DSNESRECOMP_SDL3_FETCH=ON \
+            -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
+          cmake --build "$ROOT/build" -j2
+          test -x "$ROOT/build/UniracersSNESRecomp"
+
+          tar -czf "$RUNNER_TEMP/modern-native-canonical.tar.gz" \
+            -C "$RUNNER_TEMP" modern-native-canonical
+
+      - name: Upload canonical Modern native candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: ${{ runner.temp }}/modern-native-canonical.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  shared:
+    needs: [classify, build]
+    if: needs.classify.outputs.shared == 'true'
+    uses: ./.github/workflows/modern-shared-native-acceptance.yml
+    with:
+      canonical_candidate: true
+
+  ui:
+    needs: [classify, build]
+    if: needs.classify.outputs.ui == 'true'
+    uses: ./.github/workflows/native-ui-evidence.yml
+    with:
+      canonical_candidate: true

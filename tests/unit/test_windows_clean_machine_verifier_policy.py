@@ -122,6 +122,22 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             2,
         )
 
+    def test_success_artifact_contains_standalone_verifier(self):
+        workflow = (ROOT / ".github/workflows/windows-native-smoke.yml").read_text()
+        copy = workflow.index('cp "$GITHUB_WORKSPACE/tools/Test-URRecompPortable.ps1"')
+        upload = workflow.index("- name: Upload portable Windows package")
+        self.assertLess(copy, upload)
+        consumer_upload = workflow[upload:]
+        for item in (
+            "UR-Recomp-Windows-x64.zip",
+            "UR-Recomp-Windows-x64.zip.sha256",
+            "Test-URRecompPortable.ps1",
+            "if: success()",
+        ):
+            self.assertIn(item, consumer_upload)
+        self.assertIn("includes", self.instructions)
+        self.assertIn("Test-URRecompPortable.ps1", self.instructions)
+
     def test_launch_is_optional_and_does_not_change_default_user_storage(self):
         self.assertIn("[switch]$Launch", self.script)
         self.assertIn("if ($Launch -or", self.script)

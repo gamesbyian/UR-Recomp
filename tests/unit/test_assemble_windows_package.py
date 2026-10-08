@@ -109,6 +109,8 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("static MSVC runtime", readme)
             self.assertIn("Visual C++ Redistributable", readme)
             self.assertIn("paths contain spaces", readme)
+            self.assertIn("you do not need to set", readme)
+            self.assertIn("the launcher uses APPDATA automatically", readme)
             self.assertIn(
                 r"%APPDATA%\gamesbyian\UR-Recomp by default.",
                 readme,

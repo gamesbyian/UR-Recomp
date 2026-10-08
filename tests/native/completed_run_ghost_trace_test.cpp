@@ -1,4 +1,5 @@
 #include "completed_run_ghost_trace.hpp"
+#include "ghost_trace_equivalence.hpp"
 
 #include <cassert>
 #include <string>
@@ -180,6 +181,58 @@ int main(int argc, char** argv) {
     auto out_of_range = trace;
     out_of_range.samples.back().race_frame = record.frame_count;
     assert(!validate_completed_run_ghost_trace(out_of_range, &record));
+
+    // Cross-process world/pose equivalence compares independently validated
+    // samples, not just separately valid checksums or identical input masks.
+    std::string mismatch;
+    std::size_t common = 0;
+    assert(ur::test::equivalent_ghost_world_samples(
+        trace, *decoded.trace, &mismatch, &common));
+    assert(common == 3);
+    auto terminal_short = trace;
+    terminal_short.samples.pop_back();
+    assert(ur::test::equivalent_ghost_world_samples(
+        trace, terminal_short, &mismatch, &common));
+    assert(common == 2);
+    auto two_short = terminal_short;
+    two_short.samples.pop_back();
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, two_short, &mismatch, &common));
+    assert(mismatch.find("terminal") != std::string::npos);
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, CompletedRunGhostTrace{}, &mismatch, &common));
+    assert(mismatch.find("missing") != std::string::npos);
+
+    auto shifted = trace;
+    shifted.samples[1].race_frame = 3;  // missing an interior frame
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, shifted, &mismatch, &common));
+    assert(mismatch.find("race_frame") != std::string::npos);
+    auto divergent = trace;
+    divergent.samples[1].world_x++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("world_x") != std::string::npos);
+    divergent = trace;
+    divergent.samples[1].pitch_angle++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("pitch_angle") != std::string::npos);
+    divergent = trace;
+    divergent.samples[1].semantic_frame_id++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("semantic_frame_id") != std::string::npos);
+    divergent = trace;
+    divergent.samples[1].sprite_attr++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("sprite_attr") != std::string::npos);
+    divergent = trace;
+    divergent.samples[1].composition.p1_companion++;
+    assert(!ur::test::equivalent_ghost_world_samples(
+        trace, divergent, &mismatch, &common));
+    assert(mismatch.find("p1_companion") != std::string::npos);
 
     return 0;
 }

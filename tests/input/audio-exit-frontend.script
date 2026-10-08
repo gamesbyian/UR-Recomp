@@ -44,17 +44,18 @@ until 0313 == 01 1800
 wait 60
 dump race-entered
 
-# Stay in the active race so the external native-product acceptance can remove
-# keyboard focus and observe the host-owned pause gate.
-# Host product acceptance exits the race after 90 observed guest frames.
-# The stock menu must settle again before this script confirms a rider menu.
-until 009F == D7 2400
+# The env-gated native acceptance trigger requests Exit to Frontend only after
+# this retained checkpoint has settled, so it cannot pre-empt the proof below.
+# observed active-race surface. Follow the real guest lifecycle back to the
+# stock frontend, then prove it accepts ordinary guest input.
+until 009F == D7 1800
 wait 60
-dump audio-returned-main
+dump exit-frontend-ready
 press a 2
 until 009F == 3C 1200
 wait 60
-dump audio-returned-rider
-# External native supervisor measures the live frontend music after the
-# authoritative host FRONTEND_USABLE marker, before this guest wait ends.
+dump exit-frontend-usable
+# Audio-only observation after an already proven usable stock frontend.
+# Native Windows supervisor holds the real SDL output for four wall seconds,
+# then terminates the whole game process tree. No guest RAM pokes.
 wait 3600

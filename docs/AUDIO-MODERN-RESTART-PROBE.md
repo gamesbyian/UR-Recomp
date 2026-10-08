@@ -44,3 +44,43 @@ The first real Windows proof ([run 37757424776](https://github.com/gamesbyian/UR
 Even a pass is a device-output and guest-progress claim, not proof that
 individual music voices/SFX, DSP waveforms, sample-level transient shaping,
 acoustic click or speaker hardware latency match original SNES behavior.
+
+## Independently reproduced silent output despite healthy transport
+
+The second packaged Windows probe
+[37765901676](https://github.com/gamesbyian/UR-Recomp/actions/runs/37765901676)
+again reached real menu Restart and observed guest progress. It retained
+**80 consecutive 100-ms SDL3 playback buckets** over the final eight seconds.
+There was a short audible burst (nonzero energy only in buckets 15–22,
+peak combined RMS about 5,473) followed by **57 consecutive zero-energy
+buckets**; the paused and restarted final one-second stereo windows both
+contained literal zeros. The required audible recovery gate remained red.
+
+The independent always-on Release APU/ring counters make a different diagnosis
+than output underrun: about 775,256 source frames were produced and 771,460
+consumed during 32.047 seconds observed; **zero audible source drops and
+zero new post-startup output underflows/missing frames** were reported.
+The only underflows (10 episodes, 5,069 output-rate frames) occurred in the
+first sampled startup interval, before the actual Restart. The ring still
+held about 2,923 native frames in the final observed snapshot. Thus
+production and consumption continued without transport starvation while
+SDL output was digitally silent: the current likely fault is guest/DSP
+sample content or the semantics of restoring its visible audio timeline,
+not a missed host callback. These counters do not by themselves prove the
+SPC sequence or individual sample voices are healthy.
+
+The pinned SNESRecomp `RtlRollbackLoadFromMemory` explicitly preserves the
+**live DSP output ring** and suppresses `RtlStateGeneration` updates. This
+is appropriate for invisible netplay/runahead rollback but deserves separate
+review when Modern Restart intentionally jumps a **visible** several-second
+timeline. The ordinary framework's visible save-state loads instead reset
+render/audio delivery and increment generation, making the desktop host
+clear its SDL stream. Do not repurpose the invisible-rollback primitive
+without maintaining its determinism contract.
+
+Next discriminator: the same packaged game and unchanged first-race script
+run continuously with **no pause, rewind or Restart**, using
+`tools/capture_unpaused_race_audio_control.py`. The specialist Windows job
+retains bounded native stereo data for that control even when the Restart
+gate fails. Only a control with audible later-race playback supports
+blaming Restart itself, rather than a naturally quiet part of gameplay.

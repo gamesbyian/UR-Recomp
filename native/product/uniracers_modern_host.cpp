@@ -3818,6 +3818,7 @@ bool host_subview_visible() {
 bool host_owns_human_player_input() {
     return modern_mode() &&
            (g_local_multiplayer_join_visible ||
+            g_practice_picker.visible ||
             practice_routing() ||
             g_tour_action_visible ||
             results_navigation_active() ||
@@ -6375,6 +6376,20 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (g_practice_picker.visible) {
+        switch (key) {
+        case SDLK_UP: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_UP) ? 1 : 0;
+        case SDLK_DOWN: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_DOWN) ? 1 : 0;
+        case SDLK_LEFT: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_LEFT) ? 1 : 0;
+        case SDLK_RIGHT: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_RIGHT) ? 1 : 0;
+        case SDLK_RETURN:
+        case SDLK_KP_ENTER: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_CONFIRM) ? 1 : 0;
+        case SDLK_ESCAPE:
+        case SDLK_F5: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_BACK) ? 1 : 0;
+        default: return 1;
+        }
+    }
+
     if (practice_routing()) {
         // Host-owned stock-menu routing is exclusive until the requested
         // Practice race has been authoritatively validated. Escape is the one
@@ -6467,7 +6482,7 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
     if (modern_mode() && key == SDLK_F5 && !paused() &&
         g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
-        (void)begin_practice();
+        (void)open_practice_picker();
         return 1;
     }
     if (modern_mode() && key == SDLK_F6 && !paused() &&
@@ -6701,6 +6716,11 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         g_suppress_human_input_once = true;
     }
 
+    if (g_practice_picker.visible) {
+        // Consume host modal input through the live GamepadMap semantics.
+        return -1;
+    }
+
     if (g_tour_action_visible) {
         // Defer physical buttons to SNESRecomp's configured GamepadMap, then
         // consume only the resulting P1 semantic controls below.
@@ -6820,7 +6840,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         // This is a product-owned navigation button on the settled Modern
         // frontend. Consume it even when Practice safely refuses to launch so
         // the same physical edge cannot leak into the stock guest controller.
-        (void)begin_practice();
+        (void)open_practice_picker();
         return 1;
     }
     // Pad Y opens the Tour surface while a tour is resumable, matching the
@@ -6930,6 +6950,20 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    if (g_practice_picker.visible) {
+        if (!pressed) return 1;
+        switch (control) {
+        case 0: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_UP); break;
+        case 1: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_DOWN); break;
+        case 2: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_LEFT); break;
+        case 3: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_RIGHT); break;
+        case 6: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_CONFIRM); break;
+        case 5:
+        case 7: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_BACK); break;
+        default: break;
+        }
+        return 1;
+    }
     if (g_tour_action_visible) {
         if (!pressed) return 1;
         switch (control) {
@@ -7574,8 +7608,8 @@ extern "C" void ur_uniracers_modern_system_overlay(
     // fails closed rather than overlapping them.
     if (modern_mode() && !g_practice_active && !paused() &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
-        !g_tour_action_visible && !tour_continue_routing() &&
-        !onboarding_surface_active()) {
+        !g_tour_action_visible && !g_practice_picker.visible &&
+        !tour_continue_routing() && !onboarding_surface_active()) {
         ur::product::ModernMainMenuStripInput strip_input;
         if (tour_continue_available()) {
             const auto& continuation = *g_profile_state->tour_continuation;

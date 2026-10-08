@@ -18,6 +18,25 @@ bool stage_completed_run_replay_input_file(
     const CompletedRunRecord& record,
     std::string* detail = nullptr);
 
+// Reserve a private staging namespace beneath the user-data replay directory.
+// Never overwrite another running game's selected replay input. The path stays
+// alive through the complete playback session, then is cleaned on exit/cancel.
+class CompletedRunReplayInputStage {
+public:
+    CompletedRunReplayInputStage() = default;
+    ~CompletedRunReplayInputStage() { clear(); }
+    CompletedRunReplayInputStage(const CompletedRunReplayInputStage&) = delete;
+    CompletedRunReplayInputStage& operator=(const CompletedRunReplayInputStage&) = delete;
+
+    bool reserve(const std::string& user_data_root);
+    void clear() noexcept;
+    const std::string& input_path() const noexcept { return input_path_; }
+
+private:
+    std::string directory_;
+    std::string input_path_;
+};
+
 class CompletedRunReplayFlow {
 public:
     bool begin() noexcept;

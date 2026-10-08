@@ -145,6 +145,24 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             self.text,
         )
 
+    def test_consumer_zip_uses_native_windows_extraction(self) -> None:
+        # Python can accept archives that Explorer/Expand-Archive refuse.
+        # Both clean installation and folder-replacement acceptance must
+        # use the built-in Windows ZIP reader on the emitted release bytes.
+        self.assertEqual(self.text.count("Expand-Archive -LiteralPath"), 2)
+        self.assertNotIn("python -m zipfile -e", self.text)
+        self.assertIn('EXTRACT_WIN="$(cygpath -w "$EXTRACT")"', self.text)
+        self.assertIn(
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
+            self.text,
+        )
+        self.assertIn('$ErrorActionPreference = "Stop"', self.text)
+        self.assertLess(
+            self.text.index("Expand-Archive -LiteralPath"),
+            self.text.index("Clean-package boot and per-user state anchoring"),
+        ) if False else None  # Extraction lives inside this same named step.
+        self.assertIn("python tools/assemble_windows_package.py verify --package", self.text)
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

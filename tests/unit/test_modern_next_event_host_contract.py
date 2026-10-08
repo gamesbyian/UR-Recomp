@@ -39,11 +39,14 @@ class ModernNextEventHostContractTests(unittest.TestCase):
 
     def test_route_target_comes_from_unique_derivation_only(self):
         source = HOST.read_text(encoding="utf-8")
-        body = _body(
-            source,
-            "bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {",
-            "bool handle_tour_action_navigation(",
+        start = source.index(
+            "bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {"
         )
+        # Bound the production route by its own closing brace, not an
+        # unrelated later handler. Adjacent Practice modal functions have
+        # a separate read-only stock SRAM availability contract.
+        end = source.index("\n}\n", start) + 2
+        body = source[start:end]
         self.assertIn("ur::product::unique_next_track_id(", body)
         self.assertIn("ur::product::begin_modern_tour_next_event(", body)
         for forbidden in ("g_ram[0x009B] =", "g_sram[", "RtlTryWriteSram"):

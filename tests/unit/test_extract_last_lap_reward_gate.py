@@ -21,10 +21,11 @@ def fake_report():
     ]}
 
 
-def fixture(build: str, *, jsr: int | None = None, lap=0x17, mode=0x06):
+def fixture(build: str, *, jsr: int | None = None, lap=0x17, mode=0x06, lap_addr: int | None = None):
     jsr = probe.QUEUE_JSR[build] if jsr is None else jsr
+    lap_addr = probe.LAP_ADDR[build] if lap_addr is None else lap_addr
     pattern = (
-        b"\xb9\xf1\x0e\xc9\x01\x00\xd0" + bytes((lap,)) +
+        b"\xb9" + bytes((lap_addr & 0xFF,)) + b"\x0e\xc9\x01\x00\xd0" + bytes((lap,)) +
         b"\xaf\x4b\x07\x77\x29\xff\x00\xf0" + bytes((mode,)) +
         b"\xa9\x0f\x00\x20" + jsr.to_bytes(2, "little")
     )
@@ -50,6 +51,7 @@ class LastLapGateTests(unittest.TestCase):
                 report = probe.extract(rom, island, fake_report(), build)
                 self.assertEqual(report["signed_reward_lookup"], 152)
                 self.assertEqual(report["enqueue_jsr"], f"81:{probe.QUEUE_JSR[build]:04X}")
+                self.assertIn(f"7E:{probe.LAP_ADDR[build]:04X}", report["lap_condition"])
                 self.assertIn("unmeasured", report["runtime_status"])
 
     def test_wrong_rom_or_branch_or_helper_rejected(self):
@@ -60,7 +62,8 @@ class LastLapGateTests(unittest.TestCase):
             probe.extract(bytes(altered), i, fake_report(), "usa-retail")
         for kwargs, message in (({"lap": 0x18}, "branch offsets"),
                                 ({"mode": 0x07}, "branch offsets"),
-                                ({"jsr": 0xC5B4}, "destination")):
+                                ({"jsr": 0xC5B4}, "destination"),
+                                ({"lap_addr": 0x0EF3}, "lap counter slot")):
             with self.subTest(kwargs=kwargs):
                 r, i = fixture("usa-retail", **kwargs)
                 with self.assertRaisesRegex(probe.LastLapEvidenceError, message):

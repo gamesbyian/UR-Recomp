@@ -180,10 +180,12 @@ jobs:
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
           LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
           SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
-          for ARM in start-return start-unbound; do
-            START_KEY=Return
-            if test "$ARM" = start-unbound; then START_KEY=None; fi
-            for I in 1 2 3; do
+          # Interleave matched pairs to reduce confounding from runner load
+          # or execution order: Return-1/None-1, Return-2/None-2, etc.
+          for I in 1 2 3; do
+            for ARM in start-return start-unbound; do
+              START_KEY=Return
+              if test "$ARM" = start-unbound; then START_KEY=None; fi
               ROOT="$RUNNER_TEMP/restart-keymap-user-$ARM-$I"
               PCM="$RUNNER_TEMP/restart-keymap-$ARM-$I.raw"
               LOG="$RUNNER_TEMP/restart-keymap-$ARM-$I.log"

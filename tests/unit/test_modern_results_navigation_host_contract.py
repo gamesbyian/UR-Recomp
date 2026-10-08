@@ -5,7 +5,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 HARNESS = ROOT / "tests" / "native" / "run_modern_results_navigation_acceptance.sh"
-WORKFLOW = ROOT / ".github" / "workflows" / "modern-results-navigation-acceptance.yml"
+WORKFLOW = ROOT / ".github" / "workflows" / "modern-shared-native-acceptance.yml"
 
 
 def _body(source: str, start_marker: str, end_marker: str) -> str:
@@ -115,9 +115,10 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertIn("next=0 track=0 tour=0 repeat=1", harness)
         self.assertIn("! grep -q \"UR_RESULTS_NAV MENU\"", harness)
 
-    def test_dedicated_workflow_owns_native_route_acceptance(self):
+    def test_shared_workflow_owns_sharded_native_route_acceptance(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")
         self.assertIn("run_modern_results_navigation_acceptance.sh", workflow)
+        self.assertIn("shard: [selection, progression, isolation]", workflow)
         self.assertIn("test_modern_results_navigation_cpp", workflow)
         self.assertIn("test_modern_results_navigation_host_contract", workflow)
         self.assertNotIn("modern_pad_glyph", workflow)

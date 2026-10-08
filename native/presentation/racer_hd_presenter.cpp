@@ -102,6 +102,7 @@ void draw_asset(
     std::size_t pitch,
     const RacerRegistration& registration,
     const RacerOamPlacement& placement,
+    RacerViewport viewport,
     int scale
 ) noexcept {
     const int origin_x = static_cast<int>(placement.x_signed) * scale;
@@ -114,7 +115,8 @@ void draw_asset(
     const int scaled_asset_size = kRacerHdLogicalSize * scale;
     for (int oy = 0; oy < scaled_asset_size; ++oy) {
         const int dy = origin_y + oy;
-        if (dy < 0 || dy >= out_h) continue;
+        if (dy < 0 || dy >= out_h ||
+            !racer_split_viewport_contains_row(viewport, dy, scale)) continue;
         auto* row = reinterpret_cast<std::uint32_t*>(
             dst + static_cast<std::size_t>(dy) * pitch
         );
@@ -290,6 +292,7 @@ int racer_hd_draw_frame(
             pitch,
             *g_instances[i].registration,
             g_instances[i].placement,
+            g_instances[i].viewport,
             scale
         );
     }

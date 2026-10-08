@@ -12,7 +12,7 @@ class IsolatedUnpacedCircuitAcceptanceTest(unittest.TestCase):
     def test_isolated_unpaced_capture_is_required_only_for_circuit(self):
         workflow = WORKFLOW.read_text()
         section = workflow.split("            results-a)", 1)[1].split("            results-b)", 1)[0]
-        assert section.count("run_route ui-circuit-drive-capture ") == 1
+        self.assertEqual(section.count("run_route ui-circuit-drive-capture "), 1)
         self.assertIn(
             'export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-circuit-unpaced-user-data"',
             section,
@@ -44,13 +44,10 @@ class IsolatedUnpacedCircuitAcceptanceTest(unittest.TestCase):
         aggregate = workflow.split("  aggregate:", 1)[1]
         self.assertIn('ui-circuit-result-dumps', aggregate)
         self.assertIn('check_result_screen_time.py', aggregate)
+        script = (ROOT / "tests/input/ui-circuit-drive-capture.script").read_text()
         self.assertEqual(
-            [
-                line.strip()
-                for line in (ROOT / "tests/input/ui-circuit-drive-capture.script")
-                .read_text().splitlines()
-                if line.strip() and line.lstrip().startswith("dump ")
-            ].__len__(), 11,
+            sum(line.lstrip().startswith("dump ") for line in script.splitlines()),
+            11,
         )
 
 

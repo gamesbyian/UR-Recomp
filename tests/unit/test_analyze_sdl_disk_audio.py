@@ -34,6 +34,10 @@ class SdlDiskAudioTests(unittest.TestCase):
             self.assertAlmostEqual(report["rms"], math.sqrt(2500000), delta=0.000001)
             self.assertEqual(report["channel_peaks"], [1000, 2000])
             self.assertEqual(report["nonzero_fraction"], 1.0)
+            self.assertEqual(report["tail_pcm_frames"], 4000)
+            self.assertEqual(report["tail_peak"], 2000)
+            self.assertAlmostEqual(report["tail_rms"], math.sqrt(2500000), delta=0.000001)
+            self.assertEqual(report["tail_nonzero_fraction"], 1.0)
             self.assertEqual(report["pcm_sha256"], hashlib.sha256(pcm.read_bytes()).hexdigest())
 
     def test_stale_capture_from_another_destination_is_rejected(self):
@@ -46,6 +50,24 @@ class SdlDiskAudioTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(ValueError, "destination does not match"):
                 analyze(log, pcm)
+
+    def test_silent_race_tail_rejected_despite_loud_earlier_output(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            frames = [(2500, -2500)] * 5000 + [(0, 0)] * 4000
+            log, pcm = self.write_capture(root, frames, rate=8000)
+            whole = analyze(log, pcm)
+            self.assertGreater(whole["rms"], 50)
+            self.assertEqual(whole["tail_rms"], 0)
+            with self.assertRaisesRegex(ValueError, "tail silent/insufficient"):
+                analyze(log, pcm, min_tail_rms=50)
+
+    def test_short_capture_tail_is_bounded_by_available_samples(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            log, pcm = self.write_capture(root, [(100, -100)] * 3, rate=8000)
+            report = analyze(log, pcm, min_duration_seconds=0, min_tail_rms=50)
+            self.assertEqual(report["tail_pcm_frames"], 3)
 
     def test_silent_backend_rejected_even_when_file_nonempty(self):
         with tempfile.TemporaryDirectory() as tmp:

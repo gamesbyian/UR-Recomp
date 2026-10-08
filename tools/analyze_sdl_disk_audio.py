@@ -54,10 +54,17 @@ def analyze(
     min_duration_seconds: float = 1.0,
     min_rms: float = 50.0,
     min_nonzero_fraction: float = 0.001,
+    tail_seconds: float = 0.5,
+    min_tail_rms: float | None = None,
 ) -> dict:
-    if not all(math.isfinite(x) and x >= 0 for x in (
-        min_duration_seconds, min_rms, min_nonzero_fraction
-    )) or min_nonzero_fraction > 1:
+    thresholds = (min_duration_seconds, min_rms, min_nonzero_fraction, tail_seconds)
+    if min_tail_rms is not None:
+        thresholds += (min_tail_rms,)
+    if (
+        not all(math.isfinite(x) and x >= 0 for x in thresholds)
+        or min_nonzero_fraction > 1
+        or not 0 < tail_seconds <= 5
+    ):
         raise ValueError("invalid audio acceptance thresholds")
     fmt = parse_disk_format(log_path)
     # Reject stale/unrelated raw samples even when their amplitude and format
@@ -99,8 +106,39 @@ def analyze(
             f"nonzero={fraction:.6f}"
         )
 
+    # A loud opening can hide a completely silent race-ending capture.
+    # Examine the *device-output* tail independently, without claiming that
+    # its absolute PCM offsets map precisely to any guest frame.
+    tail_frames = min(frames, max(1, round(fmt["sample_rate"] * tail_seconds)))
+    with pcm_path.open("rb") as inp:
+        inp.seek(-tail_frames * FRAME_BYTES, 2)
+        tail = inp.read(tail_frames * FRAME_BYTES)
+    tail_samples = struct.iter_unpack("<hh", tail)
+    tail_squares = 0
+    tail_nonzero = 0
+    tail_peak = 0
+    for left, right in tail_samples:
+        for sample in (left, right):
+            tail_squares += sample * sample
+            tail_nonzero += sample != 0
+            tail_peak = max(tail_peak, abs(sample))
+    tail_rms = math.sqrt(tail_squares / (2 * tail_frames))
+    tail_fraction = tail_nonzero / (2 * tail_frames)
+    if min_tail_rms is not None and (
+        tail_rms < min_tail_rms or tail_fraction < min_nonzero_fraction
+    ):
+        raise ValueError(
+            f"SDL disk playback tail silent/insufficient: "
+            f"rms={tail_rms:.2f} nonzero={tail_fraction:.6f}"
+        )
+
     return {
         "schema_version": 1,
+        "tail_pcm_frames": tail_frames,
+        "tail_duration_seconds": round(tail_frames / fmt["sample_rate"], 6),
+        "tail_rms": round(tail_rms, 6),
+        "tail_peak": tail_peak,
+        "tail_nonzero_fraction": round(tail_fraction, 8),
         "audio_origin": "sdl3-disk-playback",
         "device_format": fmt["format"],
         "channels": fmt["channels"],
@@ -125,6 +163,8 @@ def main() -> int:
     ap.add_argument("--min-duration-seconds", type=float, default=1.0)
     ap.add_argument("--min-rms", type=float, default=50.0)
     ap.add_argument("--min-nonzero-fraction", type=float, default=0.001)
+    ap.add_argument("--tail-seconds", type=float, default=0.5)
+    ap.add_argument("--min-tail-rms", type=float)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
     report = analyze(
@@ -132,6 +172,8 @@ def main() -> int:
         min_duration_seconds=args.min_duration_seconds,
         min_rms=args.min_rms,
         min_nonzero_fraction=args.min_nonzero_fraction,
+        tail_seconds=args.tail_seconds,
+        min_tail_rms=args.min_tail_rms,
     )
     print(
         f"SDL_DISK_AUDIO_CAPTURE PASS frames={report['pcm_frames']} "

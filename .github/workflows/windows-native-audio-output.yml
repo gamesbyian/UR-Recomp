@@ -93,7 +93,10 @@ jobs:
           test -s "$DUMPS/race-entered.wram.bin"
           test -s "$PCM"
           test -s "$STATS"
+          # The first-race fixture ends 60 guest frames into active racing.
+          # Require the playback tail to remain audible, not just the title.
           python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM" \
+            --tail-seconds 0.5 --min-tail-rms 50 \
             --json-out "$RUNNER_TEMP/audio-output-metrics.json"
           python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
             --json-out "$RUNNER_TEMP/audio-ring-metrics.json"

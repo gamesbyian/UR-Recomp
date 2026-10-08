@@ -45,6 +45,20 @@ class WindowsPortableBinaryTests(unittest.TestCase):
         self.assertIn("xinput1_4.dll", actual)
         self.assertEqual(len(actual), 7)
 
+    def test_accepts_observed_final_main_windows_imports(self):
+        # Windows package run 37687593108, built via ClangCL/SDL3.
+        # These are the actual 13 dumpbin dependencies, not a hypothetical set.
+        imports = (
+            "KERNEL32.dll", "COMDLG32.dll", "USER32.dll", "dbghelp.dll",
+            "WINMM.dll", "ADVAPI32.dll", "ole32.dll", "SETUPAPI.dll",
+            "SHELL32.dll", "GDI32.dll", "OLEAUT32.dll", "IMM32.dll",
+            "VERSION.dll",
+        )
+        self.assertEqual(
+            set(binary.check_dependencies(dumpbin(*imports))),
+            {item.lower() for item in imports},
+        )
+
     def test_rejects_unbundled_sdl_and_compiler_dlls(self):
         for name in (
             "SDL3.dll", "libwinpthread-1.dll", "libomp.dll",

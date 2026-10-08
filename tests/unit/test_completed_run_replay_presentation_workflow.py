@@ -1,5 +1,7 @@
 """Keep the real-artifact alternate-presentation replay acceptance connected."""
 import pathlib
+import subprocess
+import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -27,6 +29,36 @@ class CompletedRunReplayPresentationWorkflowTests(unittest.TestCase):
                 self.assertIn(value, step)
         self.assertIn('grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS', step)
         self.assertIn('grep -q "UR_RUN_REPLAY_COMPARE PASS', step)
+
+    def test_original_host_state_is_written_by_bash(self):
+        workflow = WORKFLOW.read_text(encoding="utf-8")
+        begin = workflow.index("- name: Capture completed Dragster run")
+        end = workflow.index("- name: Rehydrate replay input from saved artifact", begin)
+        capture = workflow[begin:end]
+        start = capture.index("          printf ")
+        finish = capture.index('          SDL_AUDIODRIVER=dummy', start)
+        script = capture[start:finish]
+        # Execute the shell formatting, catching broken continuation and
+        # accidental literal backslash-n sequences that static greps miss.
+        with tempfile.TemporaryDirectory() as tempdir:
+            state = pathlib.Path(tempdir) / "host-state.txt"
+            subprocess.run(
+                ["bash", "-euo", "pipefail", "-c", 'STATE="$1"\\n' + script, "bash", str(state)],
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(
+                state.read_text(encoding="utf-8").splitlines(),
+                [
+                    "UR-HOST-STATE/6", "profile=",
+                    "regional_presentation=north_america",
+                    "pause_on_focus_loss=1", "vibration_enabled=1",
+                    "display_mode=windowed", "vsync=on",
+                    "presentation_fps=game", "output_resolution=native",
+                    "widescreen=original", "internal_render_scale=4x",
+                ],
+            )
 
     def test_original_control_loads_pinned_four_x_original_view(self):
         workflow = WORKFLOW.read_text(encoding="utf-8")

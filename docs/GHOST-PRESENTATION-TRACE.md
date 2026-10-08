@@ -54,7 +54,7 @@ Filesystem round-trip persistence is covered by focused native acceptance. `Comp
 
 ## Selected-artifact provenance
 
-`CompletedRunGhostState` retains the selected `StoredRunRecord`, including its immutable artifact path, while preserving the existing record-only accessor. `load_selected_completed_run_ghost_trace()` therefore resolves the sibling `.urghost` from the exact selected Previous/PB artifact and revalidates its checksum binding against that record before exposing trace samples. No filename guessing from course IDs or timing metadata is required.
+`CompletedRunGhostState` retains the selected `StoredRunRecord`, including its immutable artifact path, while preserving the existing record-only accessor. `load_selected_completed_run_ghost_trace()` resolves the sibling `.urghost` from that exact Previous/PB artifact, **reloads the selected `.urrun` from disk and compares its canonical checksum to the bound catalog snapshot**, then validates the ghost against the freshly loaded run. A deleted, damaged or replaced selected run fails closed without drawing the obsolete ghost, even when its old sidecar is still present. No filename guessing from course IDs or timing metadata is required. This is a presentation-only freshness check, not a new simulation or replay input authority.
 
 ## Visible Modern 1P renderer attachment
 

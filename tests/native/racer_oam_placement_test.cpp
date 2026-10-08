@@ -201,5 +201,20 @@ int main() {
     assert(!decode_racer_split_ppu_placement(nullptr, 256, 0x83, 1, RacerViewport::Top).has_value());
     assert(!decode_racer_split_ppu_placement(split_oam.data(), 100, 0x83, 1, RacerViewport::Top).has_value());
     assert(!decode_racer_split_ppu_placement(split_oam.data(), split_oam.size(), 0x83, 3, RacerViewport::Top).has_value());
+    // Native host dimensions are resolved *before* begin_sim_frame. Any
+    // output geometry unsupported by the HD presenter must retain stock
+    // OBJ pixels rather than capturing/removing sprites that cannot be
+    // recomposited after the raster scan.
+    static_assert(racer_hd_can_capture_frame_geometry(256, 224));
+    static_assert(!racer_hd_can_capture_frame_geometry(342, 224));
+    static_assert(!racer_hd_can_capture_frame_geometry(256, 240));
+    assert(racer_hd_can_capture_frame_geometry(256, 224));
+    for (int width : {0, 1, 255, 257, 320, 342, 512}) {
+        assert(!racer_hd_can_capture_frame_geometry(width, 224));
+    }
+    for (int height : {0, 1, 112, 223, 225, 239, 240}) {
+        assert(!racer_hd_can_capture_frame_geometry(256, height));
+    }
+
     return 0;
 }

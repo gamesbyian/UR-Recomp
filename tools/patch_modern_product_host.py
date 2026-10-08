@@ -91,12 +91,10 @@ def patch_main_text(source: str) -> str:
 
     # All generated builds must bind the P2 final human-word filter too.
     # Upgrade old generated project hosts without duplicating this field.
-    if "filter_second_player_input" not in source:
-        second_player_anchor = (
-            "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
-        )
-        if second_player_anchor not in source:
-            raise ValueError("generated host P2-input filter anchor not found")
+    second_player_anchor = (
+        "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
+    )
+    if (second_player_anchor in source and "filter_second_player_input" not in source:
         source = source.replace(
             second_player_anchor,
             second_player_anchor

@@ -149,12 +149,48 @@ int main(int argc, char** argv) {
     assert(reloaded.loaded());
     assert(reloaded.trace->samples.size() == trace.samples.size());
 
+    // An existing checksum-bound sidecar may be repaired/replaced atomically.
+    // Readers must see the old complete trace or the new complete trace,
+    // never a truncated intermediate file at the public .urghost path.
+    auto replacement_trace = trace;
+    replacement_trace.samples[0].world_x = 1203;
+    assert(save_completed_run_ghost_trace_file(
+        trace_path.string(), replacement_trace, &detail));
+    const auto replaced = load_completed_run_ghost_trace_file(
+        trace_path.string(), &record);
+    assert(replaced.loaded());
+    assert(replaced.trace->samples[0].world_x == 1203);
+    assert(save_completed_run_ghost_trace_file(
+        trace_path.string(), trace, &detail));
+    assert(load_completed_run_ghost_trace_file(
+        trace_path.string(), &record).trace->samples[0].world_x == 1088);
+
+    // A non-file destination must never be displaced by publication.
+    const auto blocked_trace_path =
+        run_path.parent_path() / "blocked.urghost";
+    assert(std::filesystem::create_directory(blocked_trace_path));
+    detail.clear();
+    assert(!save_completed_run_ghost_trace_file(
+        blocked_trace_path.string(), trace, &detail));
+    assert(detail == "ghost trace destination is not a regular file");
+    assert(std::filesystem::is_directory(blocked_trace_path));
+    assert(std::filesystem::remove(blocked_trace_path));
+
+    // No successful or failed save may leak staging directories. An
+    // interrupted writer leaves only an ignored hidden path, never a
+    // public partially-written .urghost file.
+    for (const auto& entry :
+         std::filesystem::directory_iterator(run_path.parent_path())) {
+        assert(entry.path().filename().string().find(
+            ".pending-urghost-") != 0);
+    }
+
 #if defined(__linux__)
     // The stream may buffer a successful write and fail only on close.
     detail.clear();
     assert(!save_completed_run_ghost_trace_file("/dev/full", trace, &detail));
-    assert(detail == "cannot write ghost trace" ||
-           detail == "cannot finish ghost trace");
+    assert(detail == "ghost trace destination is not a regular file" ||
+           detail == "cannot reserve ghost trace staging directory");
 #endif
 
     const auto missing =

@@ -63,7 +63,7 @@ class ModernOverlayTextFitTests(unittest.TestCase):
             ("STUNTS END WHEEL-DOWN.", 28),
             ("F5/PAD X  QUICK PRACTICE", 28),
             ("F2/PAD X  RACERS (PICKER)", 28),
-            ("ENTER/PAD A  OK   F1 HELP", 28),
+            ("F7/PAD L PROGRESS F1 HELP", 28),
         ]
         for text, cells in expected:
             self.assertIn(f'"{text}"', source)

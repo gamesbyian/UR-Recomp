@@ -4,6 +4,29 @@ Date: 2026-10-02
 Fixture: deterministic Dragster finish tail  
 Evidence run: GitHub Actions run 36954104693, artifact `uniracers-object-activation`
 
+## October 8 phase-order correction (supersedes the old slot-8 causal wording)
+
+The **first observed progression change at frame 2903 remains correct**.
+However, the collision word `0x2020` / C000 index 8 in this
+October 2 report was taken from a **postframe** P1 WRAM snapshot. The
+ROM-proven USA frame path calls bank-82 object dispatch (83:CD4E)
+**before** bank-81 contact/surface resampling (83:CD73).
+P1's preceding frame-2902 stored word is `0x2024` / slot 10 / object
+code `0x14`. It is the stronger *candidate input* to the frame-2903
+dispatcher; which word the handler actually used has **not** been
+captured instruction-by-instruction. Both slots select the same handler
+family and masked upper control class.
+
+Read the original timeline below as a description of *observed frame-end
+state*, not proof that slot 8 fired the finish transition. The 114-frame
+presentation-before-progression separation remains directly supported.
+The accepted interpretation and phase-aware analyzer are in
+`docs/COURSE-CONTACT-MARSHAL.md` and
+`tools/correlate_dragster_finish_spatial_event.py --contact-sequence
+analysis/data/dragster-finish-contact-transition.json`. This addendum
+preserves the historical raw observations and replaces only the
+unsupported same-frame causal inference.
+
 ## Product result
 
 For the representative Dragster checkpoint/finish family, gameplay activation is

@@ -98,6 +98,8 @@ RunRecordLoadResult decode_completed_run_record(const std::string& text);
 bool save_completed_run_record_file(const std::string& path, const CompletedRunRecord& record, std::string* detail = nullptr);
 RunRecordLoadResult load_completed_run_record_file(const std::string& path, const RunPlaybackTarget* target = nullptr);
 
+/* Random-access the resolved 12-bit P1/P2 words from a validated,
+ * sorted RLE run in O(log input runs), returning zero in gaps or past finish. */
 std::pair<std::uint16_t, std::uint16_t> run_record_input_at(
     const CompletedRunRecord& record,
     std::uint64_t frame);

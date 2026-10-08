@@ -59,6 +59,12 @@ function Assert-PackageFiles {
              -not $relative.StartsWith('mods/', [StringComparison]::Ordinal))) {
             throw "Unsafe or unexpected package member: $relative"
         }
+        # Mod selection state is mutable user data, not an immutable catalog
+        # asset. Reject it even if a separately supplied manifest/checksum
+        # claims it is an ordinary mods/** payload.
+        if ($relative -ceq 'mods/preloaded/state.toml') {
+            throw 'Mutable mod-selection state must not be shipped in the package'
+        }
         if ($seen.ContainsKey($relative)) {
             throw "Duplicate package member: $relative"
         }

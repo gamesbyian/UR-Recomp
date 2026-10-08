@@ -60,7 +60,7 @@ def extract(rom: bytes, island: dict, reward_report: dict, build: str) -> dict:
         raise LastLapEvidenceError(f"{build} lap-HUD SHA-256 mismatch")
     matches = list(GATE.finditer(block))
     if len(matches) != 1:
-        raise LastLapEvidenceError(f"{build}: expected one stock Last Lap enqueue gate, found {len(matches)}")
+        raise LastLapEvidenceError(f"{build}: expected one stock Last Lap enqueue gate, found {len(matches)}; regional lap bytes={block[22:56].hex()}")
     match = matches[0]
     skip_lap, skip_mode = match.group(1)[0], match.group(2)[0]
     jsr = int.from_bytes(match.group(3), "little")

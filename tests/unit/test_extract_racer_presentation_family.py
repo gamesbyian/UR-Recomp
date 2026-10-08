@@ -6,6 +6,7 @@ from tools.extract_racer_presentation_family import (
     decode_4bpp_tile,
     encode_4bpp_tile,
     decode_bgr555,
+    encode_bgr555,
     encode_png_rgba,
     packed_word_source,
     occupancy_rows_from_header,
@@ -217,6 +218,33 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             parse_palette_assets("0x16")
 
+    def test_bgr555_components_roundtrip_every_5bit_value(self):
+        for channel in ("r5", "g5", "b5"):
+            for v in range(32):
+                raw = {"r5": 0, "g5": 0, "b5": 0, "unused_bit15": 0}
+                raw[channel] = v
+                packed = encode_bgr555([raw])
+                self.assertEqual(decode_bgr555(packed)[0][channel], v)
+        # Arbitrary ROM payloads may have unused bit 15 set: preserve it
+        # byte-for-byte rather than assuming canonicalized RGB15 storage.
+        for raw in (bytes.fromhex("0080"), bytes.fromhex("ffff"),
+                    bytes.fromhex("1f00e003007cffff"), bytes(range(64))):
+            self.assertEqual(encode_bgr555(decode_bgr555(raw)), raw)
+
+    def test_bgr555_encoder_refuses_invalid_channels(self):
+        base = {"r5": 1, "g5": 2, "b5": 3, "unused_bit15": 0}
+        for key, values in (("r5", (-1, 32, 2.5, True)),
+                            ("g5", (-1, 32, "3")),
+                            ("b5", (-1, 32)),
+                            ("unused_bit15", (-1, 2, False, "1"))):
+            for value in values:
+                bad = dict(base)
+                bad[key] = value
+                with self.assertRaises(ValueError):
+                    encode_bgr555([bad])
+        with self.assertRaises(ValueError):
+            decode_bgr555(b"\\x01")
+
     def test_palette_entry_and_bgr555_roundtrip(self):
         rom = bytearray(0x20000)
         asset_id = 6
@@ -228,8 +256,7 @@ class RacerPresentationRoundTripTests(unittest.TestCase):
         self.assertEqual(ent.repack(), bytes.fromhex("03a0800400"))
         payload = bytes.fromhex("1f00e003")
         colors = decode_bgr555(payload)
-        rebuilt = b"".join(c["word"].to_bytes(2, "little") for c in colors)
-        self.assertEqual(rebuilt, payload)
+        self.assertEqual(encode_bgr555(colors), payload)
 
 
 if __name__ == "__main__":

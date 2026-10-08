@@ -6707,6 +6707,17 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
 
     if (modern_mode() && key == SDLK_F1 && !host_subview_visible()) {
+        // Help owns the P1 input word, so it never opens over a running
+        // race: pause first (dismissing help returns to the pause menu), and
+        // refuse help where the race cannot pause.
+        if (!paused() && g_ram && g_ram[0x0313] == 0x01) {
+            if (g_surface != UR_UNIRACERS_RESTART_ACTIVE_RACE ||
+                !dispatch(UR_MODERN_PAUSE_TOGGLE) || !paused()) {
+                product_diagnostic("UR_ONBOARDING HELP_REFUSED_RUNNING_RACE");
+                return 1;
+            }
+            diagnose_pause_state();
+        }
         g_onboarding_visible = true;
         g_onboarding_manual_open = true;
         product_diagnostic("UR_ONBOARDING HELP_OPENED");
@@ -6849,7 +6860,9 @@ extern "C" int ur_uniracers_modern_controls_active(void) {
 }
 
 extern "C" int ur_uniracers_modern_subview_active(void) {
-    return modern_mode() && host_subview_visible() ? 1 : 0;
+    // Paused help (F1) is a full panel too; it owns the footer hint area.
+    return modern_mode() &&
+        (host_subview_visible() || onboarding_surface_active()) ? 1 : 0;
 }
 
 extern "C" void ur_uniracers_modern_system_gamepad_source_connection(

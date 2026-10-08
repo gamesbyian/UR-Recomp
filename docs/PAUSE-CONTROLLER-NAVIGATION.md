@@ -41,3 +41,7 @@ Native tests must prove:
 ## Non-goals
 
 Do not add rebinding, controller glyph selection, hot-plug UX, per-controller persistence, or a frontend redesign in this slice.
+
+### Help (F1) during a race
+
+The F1 help panel owns the P1 input word, so opening it over a running race used to withhold all rider input while the guest kept simulating: the racer coasted and the clock ran. F1 in an active race now pauses first and opens help over the frozen field; dismissing help (Enter/Esc) returns to the pause menu. Where a race is running but cannot pause, F1 is refused (`UR_ONBOARDING HELP_REFUSED_RUNNING_RACE`). The paused Records/Local Runs footer hint yields to the help panel like any other pause subview.

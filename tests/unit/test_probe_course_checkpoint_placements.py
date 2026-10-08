@@ -73,6 +73,12 @@ class CheckpointSpatialPlacementTests(unittest.TestCase):
             ["observed_c000_slot_probe"]["candidate_world_cells"], 0,
         )
 
+    def test_fail_closed_on_noncanonical_rom_and_reversed_query(self):
+        with self.assertRaisesRegex(ValueError, "exact USA retail ROM"):
+            mod.inspect_course(b"not a canonical cartridge", stream_index=1)
+        with self.assertRaisesRegex(ValueError, "bounds are reversed"):
+            mod.summarize_placements([], query_rect=(10, 20, 9, 30))
+
     def test_bad_sector_and_alignment_rejected(self):
         data = bytearray(synthetic_course())
         data[15:17] = b"\x02\x00"

@@ -218,7 +218,7 @@ jobs:
           # input format, frame clock, course selector or guest memory edits.
           # Contrast stock 4x/4:3/VSync-on with 1x/16:9/VSync-off. Preserve
           # the same previously rehydrated .urrun controller stream.
-          printf '%s\\n' \
+          printf '%s\n' \
             'UR-HOST-STATE/6' \
             'profile=' \
             'regional_presentation=north_america' \

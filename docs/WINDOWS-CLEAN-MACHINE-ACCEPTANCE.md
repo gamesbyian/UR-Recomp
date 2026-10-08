@@ -1,8 +1,10 @@
 # Clean-machine Windows portable-release verification
 
-Status: manual/VM acceptance helper. This is separate from the final-`main`
-Windows CI regression; no claim of a verified clean end-user machine is made
-until this procedure is actually run outside the GitHub development runner.
+Status: manual/VM acceptance helper. Final-`main` Windows CI now also invokes
+this same verifier **without** `-Launch` against its emitted ZIP and sidecar,
+which checks PowerShell 5.1 execution and Windows-native extraction on the
+hosted Windows runner. No claim of a verified clean end-user machine is made
+until the full interactive procedure runs outside that development runner.
 
 ## Purpose
 

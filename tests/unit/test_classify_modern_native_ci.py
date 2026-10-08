@@ -19,6 +19,7 @@ MANIFESTS = {
 }
 MIGRATED = {
     "shared": WORKFLOWS / "modern-shared-native-acceptance.yml",
+    "onboarding": WORKFLOWS / "modern-onboarding-practice-acceptance.yml",
     "ui": WORKFLOWS / "native-ui-evidence.yml",
 }
 ROUTER = ".github/workflows/modern-native-heavy-router.yml"
@@ -33,14 +34,6 @@ def workflow_pr_paths(path: Path) -> tuple[str, ...]:
 
 
 class ModernNativeCiClassifierTests(unittest.TestCase):
-    def test_onboarding_manifest_still_matches_standalone_pull_request_filter(self):
-        self.assertEqual(
-            classifier.load_patterns(MANIFESTS["onboarding"]),
-            workflow_pr_paths(
-                WORKFLOWS / "modern-onboarding-practice-acceptance.yml"
-            ),
-        )
-
     def test_migrated_suites_are_reusable_and_router_owned(self):
         for suite, workflow in MIGRATED.items():
             with self.subTest(suite=suite):
@@ -52,10 +45,10 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
                     classifier.load_patterns(MANIFESTS[suite]),
                 )
 
-    def test_router_change_selects_migrated_suites_only(self):
+    def test_router_change_selects_all_migrated_suites(self):
         self.assertEqual(
             classifier.classify_paths([ROUTER]),
-            {"shared": True, "onboarding": False, "ui": True},
+            {"shared": True, "onboarding": True, "ui": True},
         )
 
     def test_common_toolchain_change_selects_all_heavy_suites(self):

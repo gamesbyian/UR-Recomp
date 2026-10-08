@@ -73,6 +73,13 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
             by_slot[row["object_index"]] = result
 
         self.assertEqual(set(by_slot), {8, 9, 10})
+        self.assertEqual(by_slot[8]["player_center_y"], 857)
+        self.assertEqual(by_slot[8]["nearest_player_center_y_gap_at_finish_x"], 7)
+        self.assertEqual(
+            [p["world_rect"] for p in by_slot[8]["nearest_center_y_cells_at_finish_x"]],
+            [[25280, 864, 25295, 879]],
+        )
+
         self.assertEqual(
             {p["world_rect"][0] for p in by_slot[8]["nearest_finish_x_cells"]},
             {25280},

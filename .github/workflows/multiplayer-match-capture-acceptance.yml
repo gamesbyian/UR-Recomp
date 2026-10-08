@@ -11,7 +11,7 @@ jobs:
   acceptance:
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 34
+    timeout-minutes: 42
     steps:
       - uses: actions/checkout@v4
         with:
@@ -168,6 +168,18 @@ jobs:
             "$RUNNER_TEMP/tournament-panel-native" \
             "$RUNNER_TEMP/check-2p-match-pair"
 
+      - name: Prove a two-leg Local Tournament arms leg 2 from the 2P results screen
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-2p-match/UniracersSNESRecomp"
+          # The previous steps share this build's stock SRAM; start clean.
+          rm -rf "$ROOT/build/saves"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_local_tournament_legs_acceptance.sh" \
+            "$ROOT/build/UniracersSNESRecomp" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/tournament-legs-native"
+
       - name: Retain failed capture diagnostics
         if: failure()
         uses: actions/upload-artifact@v4
@@ -180,4 +192,5 @@ jobs:
             ${{ runner.temp }}/real-joined-capture/real-joined-capture.log
             ${{ runner.temp }}/tournament-native/real-joined-capture.log
             ${{ runner.temp }}/tournament-panel-native/real-joined-capture.log
+            ${{ runner.temp }}/tournament-legs-native/legs.log
 

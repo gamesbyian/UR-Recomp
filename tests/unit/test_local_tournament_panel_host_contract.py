@@ -28,9 +28,9 @@ class LocalTournamentPanelHostContract(unittest.TestCase):
         self.assertIn("g_local_tournament_panel_visible ||",
                       function_body("host_owns_human_player_input"))
         context = function_body("local_tournament_panel_context_valid")
-        self.assertIn("g_ram[0x009F] == 0x3D", context)
+        self.assertIn("g_ram[0x009F] == 0x3D) return true", context)
         self.assertIn("multiplayer_participant_session_ready()", context)
-        self.assertIn("!g_local_multiplayer_join_visible", context)
+        self.assertIn("g_local_multiplayer_join_visible ||", context)
 
     def test_production_ids_are_os_minted_never_fixed(self):
         for name in ("create_local_tournament_from_panel",
@@ -58,6 +58,12 @@ class LocalTournamentPanelHostContract(unittest.TestCase):
         self.assertIn("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE=create", SCRIPT)
         self.assertIn("minted", SCRIPT)
         self.assertIn("run_modern_local_tournament_panel_acceptance.sh", WORKFLOW)
+        self.assertIn("run_modern_local_tournament_legs_acceptance.sh", WORKFLOW)
+
+    def test_results_screen_admits_the_seated_pair_after_capture(self):
+        context = function_body("local_tournament_panel_context_valid")
+        self.assertIn("kOrdinaryTwoPlayerRaceResultMenu", context)
+        self.assertIn("!g_multiplayer_run_capture.capturing()", context)
 
 
 if __name__ == "__main__":

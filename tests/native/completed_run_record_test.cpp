@@ -1,4 +1,5 @@
 #include "completed_run_record.hpp"
+#include "replay_frame_window_equivalence.hpp"
 
 #include <cassert>
 #include <cstdio>
@@ -58,6 +59,17 @@ std::string with_version(const std::string& encoded, unsigned version) {
 }  // namespace
 
 int main() {
+    // Only the known one-frame retirement boundary is benign. Full replay
+    // input equivalence must not hide truncated or lengthened captures.
+    assert(ur::test::replay_frame_windows_compatible(2289, 2289));
+    assert(ur::test::replay_frame_windows_compatible(2289, 2290));
+    assert(ur::test::replay_frame_windows_compatible(2290, 2289));
+    assert(!ur::test::replay_frame_windows_compatible(2289, 2291));
+    assert(!ur::test::replay_frame_windows_compatible(2291, 2289));
+    assert(!ur::test::replay_frame_windows_compatible(0, 300));
+    assert(ur::test::replay_frame_windows_compatible(UINT64_MAX, UINT64_MAX - 1));
+    assert(!ur::test::replay_frame_windows_compatible(UINT64_MAX, 0));
+
     const auto original = representative_dragster_run();
     std::string detail;
     assert(validate_completed_run_record(original, &detail));

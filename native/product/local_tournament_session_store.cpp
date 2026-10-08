@@ -1,6 +1,7 @@
 #include "local_tournament_session_store.hpp"
 
 #include "local_tournament_fixture_receipt.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <cerrno>
 #include <charconv>
@@ -68,15 +69,6 @@ bool parse_size(std::string_view value, std::size_t* number) {
         value.data(), value.data() + value.size(), *number);
     return converted.ec == std::errc{} &&
         converted.ptr == value.data() + value.size();
-}
-
-bool atomic_replace(const std::string& temporary, const std::string& target) {
-#if defined(_WIN32)
-    return MoveFileExA(temporary.c_str(), target.c_str(),
-               MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
-#else
-    return std::rename(temporary.c_str(), target.c_str()) == 0;
-#endif
 }
 
 LocalTournamentSessionFileResult fail(
@@ -251,18 +243,7 @@ LocalTournamentSessionFileStatus save_local_tournament_session_definition(
     if (path.empty() || encoded.empty()) {
         return LocalTournamentSessionFileStatus::Rejected;
     }
-    const std::string temporary = path + ".tmp";
-    std::FILE* file = std::fopen(temporary.c_str(), "wb");
-    if (!file) return LocalTournamentSessionFileStatus::IoError;
-    const auto wrote = std::fwrite(encoded.data(), 1, encoded.size(), file);
-    const bool flushed = std::fflush(file) == 0;
-    const bool closed = std::fclose(file) == 0;
-    if (wrote != encoded.size() || !flushed || !closed) {
-        std::remove(temporary.c_str());
-        return LocalTournamentSessionFileStatus::IoError;
-    }
-    if (!atomic_replace(temporary, path)) {
-        std::remove(temporary.c_str());
+    if (!write_tournament_replace_staged(path, encoded, "urtournament")) {
         return LocalTournamentSessionFileStatus::IoError;
     }
     return LocalTournamentSessionFileStatus::Saved;

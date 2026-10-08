@@ -2541,8 +2541,10 @@ void set_timing_lock(int active) {
 }
 
 void reconcile_presentation() {
-    RtlAudioSetFastForward(true);
-    RtlAudioSetFastForward(false);
+    // Restart is a player-visible rollback, so the old attempt's queued PCM
+    // and SDL stream must not survive the restored guest APU/DSP snapshot.
+    // Keep the netplay/runahead invisible-rollback loader unchanged.
+    RtlAudioInvalidateVisibleTimeline();
 }
 
 bool exit_to_frontend();

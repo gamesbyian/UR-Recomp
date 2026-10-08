@@ -204,9 +204,11 @@ LocalTournamentCompletedHistory load_completed_local_tournament_history(
     std::sort(archive_paths.begin(), archive_paths.end());
     for (const auto& instance_root : archive_paths) {
         const std::string instance = instance_root.filename().string();
-        const auto loaded = load_local_tournament_session_definition(
-            (instance_root / "session.urtournament").string(),
-            authoritative_catalog);
+        // Historical completed events remain readable after profiles are
+        // deleted/renamed. All credited fixtures still require exact stored
+        // receipts and catalog-independent, authoritative saved 2P pairs.
+        const auto loaded = load_historical_local_tournament_session_definition(
+            (instance_root / "session.urtournament").string());
         if (!loaded.loaded() || loaded.session->instance_id != instance) {
             ++history.unavailable_instances;
             continue;

@@ -63,6 +63,7 @@ jobs:
         shell: bash
         run: |
           cmake --version
+          ninja --version
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
             pkg-config \
@@ -130,7 +131,7 @@ jobs:
           grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
 
           python3 "$GITHUB_WORKSPACE/tools/bootstrap_toolchain.py" --offline --tool sdl3 --clone-only
-          cmake -S "$ROOT" -B "$ROOT/build" \
+          cmake -S "$ROOT" -B "$ROOT/build" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \

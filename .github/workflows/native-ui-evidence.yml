@@ -40,6 +40,7 @@ on:
       - "tools/check_ppm.py"
       - "tools/check_paused_overlay_dump.py"
       - "tools/patches/snesrecomp-paused-overlay-present.patch"
+      - "tools/patches/snesrecomp-host-frame-hold.patch"
       - "tools/ci_log_assert.py"
       - "tests/input/ui-options-route.script"
       - "tests/input/ui-main-branches.script"

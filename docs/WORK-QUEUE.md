@@ -251,18 +251,36 @@ instrumentation and limitations. Original Snes9x/Beetle windows:
 `reference/notes/audio-startup-seam.md` and
 `analysis/generated/audio-startup-reference-summary.json`.
 
-**Actual next audio shipping work:** measure pause/resume, Restart Race and
-Exit-to-Frontend transition acoustics through real SDL3 output, including
-silence/discontinuity envelopes and guest-state checkpoint correlation.
-Then evaluate device loss/reopen, queued latency and independently rendered
-SPC/DSP content equivalence where measurable. Do not claim native phase
-ratios prove exact soundtrack/effect fidelity; do not re-clock the guest,
+**Closed, stock guest Start pause/resume:** three additional real SDL3
+fresh-process capture routes now prove native audio behaviour before
+`Start`, while stock-paused, and after the second `Start`.
+The tested routes retain 0/1/2 original guest Start presses and observed
+30-frame post-checkpoint markers. Two independent captures
+[37721804984](https://github.com/gamesbyian/UR-Recomp/actions/runs/37721804984)
+and [37722175343](https://github.com/gamesbyian/UR-Recomp/actions/runs/37722175343)
+establish paused RMS at about 0.8–1.2% of the audible pre-pause baseline
+and restored RMS around 91.5% afterward. The stricter
+[37722644607](https://github.com/gamesbyian/UR-Recomp/actions/runs/37722644607)
+**passed in actual Windows playback** with conservative enforced limits
+paused/pre at most 0.05 and resumed/pre at least 0.50, zero audible
+ring-source drops and zero post-startup underflows/missing device frames.
+The test keeps guest cadence and original SPC content untouched.
+
+**Actual next audio shipping work:** test the **Modern host-owned frozen
+pause menu** as a separate input/audio authority after active Modern
+pause/Restart ownership settles; then measure Restart Race and
+Exit-to-Frontend transition acoustic envelopes at real SDL3 device
+output, including potential clicks, continuity and guest-state
+correlation. The stock guest Start test is **not** proof that host frozen
+pause, restart or frontend exit acoustics are correct. Then evaluate
+device loss/reopen, queued latency and independently rendered SPC/DSP
+music and SFX equivalence where measurable. Do not claim native phase
+ratios prove exact soundtrack fidelity; do not re-clock the guest,
 change authoritative sound triggers or replace stock samples to resolve a
-mere instrumentation discrepancy. Keep the original Authentic sound pipeline
-as the shipping fallback. The historical `claude/audio-volume-option`
-branch should be checked for overlap before any host audio options work;
-audio asset reconstruction remains optional Phase H and must preserve
-SPC/BRR source provenance.
+mere instrumentation discrepancy. Authentic sound remains the shipping
+fallback. Check `claude/audio-volume-option` ownership before host
+audio option work. Optional Phase H restoration requires documented SPC/BRR
+asset provenance.
 
 ## Phase 6 — Reverse-engineering map
 

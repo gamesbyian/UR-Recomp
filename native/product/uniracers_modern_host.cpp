@@ -7364,6 +7364,13 @@ bool frontend_modal_hold_wanted() {
     }
     const bool frontend_settings =
         g_frontend_options_active && (g_options_visible || g_controls_visible);
+    // Script-driven Next Event/Tour acceptance invokes its menu handler on
+    // emulated-frame boundaries. Holding a guest frame here prevents that
+    // script (and its confirm/cancel event) from ever advancing. Human-driven
+    // Tour menus still freeze the idle-attract countdown normally.
+    if (g_tour_action_visible && snesrecomp_desktop_script_active()) {
+        return false;
+    }
     if (g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings) {
         return true;

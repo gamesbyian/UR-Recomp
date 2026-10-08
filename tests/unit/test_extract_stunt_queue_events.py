@@ -46,6 +46,7 @@ class QueueIdentityTests(unittest.TestCase):
             found = q.analyze(rows)
             self.assertEqual(found["last_lap_transitions"], [{
                 "frame": 1, "previous": 2, "last_lap_enable_at_transition": 1,
+                "sram_mode_low_at_transition": None,
                 "note": "per-player post-decrement lap word; not a credit assertion",
             }])
             self.assertEqual(rows[1]["last_lap_enable"], 1)
@@ -64,10 +65,31 @@ class QueueIdentityTests(unittest.TestCase):
             self.assertEqual(q.compare(rows, other)["first_divergence"],
                              {"frame": 2, "fields": ["boost"]})
 
+    def test_optional_sram_mode_gate_is_never_guessed(self):
+        with tempfile.TemporaryDirectory() as t:
+            d = Path(t)
+            (d / "w000.wram.bin").write_bytes(wram())
+            (d / "w001.wram.bin").write_bytes(wram(laps=1, enable=1))
+            with self.assertRaisesRegex(q.QueueEvidenceError, "missing required SRAM"):
+                q.read_series(d, 0, 1, require_sram=True)
+            sram = bytearray(0x2000)
+            sram[0x074B] = 2
+            (d / "w000.sram.bin").write_bytes(sram)
+            with self.assertRaisesRegex(q.QueueEvidenceError, "partial SRAM"):
+                q.read_series(d, 0, 1)
+            (d / "w001.sram.bin").write_bytes(sram)
+            rows = q.read_series(d, 0, 1, require_sram=True)
+            self.assertEqual(rows[1]["sram_mode_low"], 2)
+            self.assertEqual(q.analyze(rows)["last_lap_transitions"][0][
+                "sram_mode_low_at_transition"], 2)
+            (d / "w001.sram.bin").write_bytes(bytes(11))
+            with self.assertRaisesRegex(q.QueueEvidenceError, "invalid SRAM size"):
+                q.read_series(d, 0, 1, require_sram=True)
+
     def test_multiple_enqueues_preserve_order_without_inventing_attribution(self):
         before = {"frame": 7, "write": 30, "read": 29, "buffer": tuple([0] * 32),
                   "boost": 20, "air": 5, "x_speed": 400,
-                  "laps_remaining": 2, "last_lap_enable": 0}
+                  "laps_remaining": 2, "last_lap_enable": 0, "sram_mode_low": None}
         after = copy.deepcopy(before)
         payload = list(after["buffer"])
         payload[30], payload[31] = 0x01, 0x09
@@ -97,7 +119,8 @@ class QueueIdentityTests(unittest.TestCase):
             with self.assertRaisesRegex(q.QueueEvidenceError, "selector"):
                 q.read_series(d, 0, 0, prefix="../escape")
         row = {"frame": 1, "write": 0, "read": 0, "boost": 0, "buffer": tuple([0]*32),
-               "air": 0, "x_speed": 0, "laps_remaining": 2, "last_lap_enable": 0}
+               "air": 0, "x_speed": 0, "laps_remaining": 2, "last_lap_enable": 0,
+               "sram_mode_low": None}
         with self.assertRaisesRegex(q.QueueEvidenceError, "missing or out-of-order"):
             q.analyze([row, dict(row, frame=3)])
         with self.assertRaisesRegex(q.QueueEvidenceError, "nonempty"):

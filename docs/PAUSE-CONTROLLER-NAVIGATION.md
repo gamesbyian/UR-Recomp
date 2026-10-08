@@ -49,3 +49,7 @@ Do not add rebinding, controller glyph selection, hot-plug UX, per-controller pe
 ### Help (F1) during a race
 
 The F1 help panel owns the P1 input word, so opening it over a running race used to withhold all rider input while the guest kept simulating: the racer coasted and the clock ran. F1 in an active race now pauses first and opens help over the frozen field; dismissing help (Enter/Esc) returns to the pause menu. Where a race is running but cannot pause, F1 is refused (`UR_ONBOARDING HELP_REFUSED_RUNNING_RACE`). The paused Records/Local Runs footer hint yields to the help panel like any other pause subview.
+
+### One confirm/back convention across host surfaces
+
+Pause confirms with physical A and backs out with B, and every other host surface now does the same: the Quick Practice picker, Tour Progress, the Tour action surface, results navigation, frontend Options and Controls previously confirmed with SNES A (the east `B` button under the default positional map). See `docs/CONTROLLER-PROMPT-POLICY.md` ("Host confirm/back convention").

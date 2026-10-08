@@ -39,7 +39,7 @@ class ModernFrontendControlsHostContractTests(unittest.TestCase):
     def test_panel_renders_without_guest_menu_navigation(self):
         source = HOST.read_text(encoding="utf-8")
         self.assertIn("UR_FRONTEND_CONTROLS PRESENT scale=%d", source)
-        self.assertIn('frontend_options ? "PAD X CONTROLS / B BACK"', source)
+        self.assertIn('" CONTROLS / B BACK"', source)
         self.assertIn('"F9 CTRL F10/SELECT OPT"', source)
         self.assertIn("host_owns_human_player_input()", source)
         self.assertIn("modern_host_input_filter(", source)

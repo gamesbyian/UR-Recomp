@@ -86,7 +86,15 @@ class ModernResultsNavigationHostContractTests(unittest.TestCase):
         self.assertGreaterEqual(
             keyboard.count("handle_results_navigation("), 3)
         self.assertGreaterEqual(
-            mapped.count("handle_results_navigation("), 3)
+            mapped.count("handle_results_navigation("), 2)
+        # Confirm is the fixed host A button on the raw pad path.
+        raw = _body(
+            source,
+            'extern "C" int ur_uniracers_modern_system_gamepad_button(',
+            'extern "C" int ur_uniracers_modern_system_gamepad_control(',
+        )
+        self.assertIn(
+            "handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM)", raw)
         self.assertIn("repeat_current_attempt()", source)
 
     def test_acceptance_enters_through_real_keyboard_handler(self):

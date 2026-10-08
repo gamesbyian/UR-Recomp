@@ -14,7 +14,7 @@ struct ModernPracticeVisualStyle {
     int title_x_logical = 8;
     int title_y_logical = 6;
     int selected_row_y_logical = 62;
-    int selected_row_height_logical = 19;
+    int selected_row_height_logical = 17;
 
     std::uint32_t title_yellow = 0xFFF8F800u;
     std::uint32_t secondary_grey = 0xFF989898u;

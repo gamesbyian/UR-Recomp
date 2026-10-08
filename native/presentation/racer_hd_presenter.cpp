@@ -8,6 +8,7 @@ extern "C" {
 #include "snes/ppu.h"
 }
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>
@@ -102,10 +103,10 @@ void draw_asset(
     std::size_t pitch,
     const RacerRegistration& registration,
     const RacerOamPlacement& placement,
+    RacerViewport viewport,
     int scale
 ) noexcept {
     const int origin_x = static_cast<int>(placement.x_signed) * scale;
-    const int origin_y = static_cast<int>(placement.y_raw_8bit) * scale;
     const int out_w = kBaseWidth * scale;
     const int out_h = kBaseHeight * scale;
 
@@ -113,8 +114,11 @@ void draw_asset(
 
     const int scaled_asset_size = kRacerHdLogicalSize * scale;
     for (int oy = 0; oy < scaled_asset_size; ++oy) {
-        const int dy = origin_y + oy;
-        if (dy < 0 || dy >= out_h) continue;
+        const int dy = racer_obj_wrapped_output_row(
+            placement.y_raw_8bit, oy, scale
+        );
+        if (dy < 0 || dy >= out_h ||
+            !racer_split_viewport_contains_row(viewport, dy, scale)) continue;
         auto* row = reinterpret_cast<std::uint32_t*>(
             dst + static_cast<std::size_t>(dy) * pitch
         );
@@ -284,12 +288,30 @@ int racer_hd_draw_frame(
     }
 
     copy_field_scaled(dst, pitch, field, scale);
-    for (std::size_t i = 0; i < g_instance_count; ++i) {
+    // SNES OBJ priority among overlapping sprites follows the ascending OAM
+    // index, regardless of the sprite's background-priority attribute bits.
+    // Draw in descending slot order: the lowest-numbered OAM slot paints last
+    // and remains visible where the two racers intersect. The original split
+    // viewport restriction is applied independently inside draw_asset().
+    std::array<std::size_t, 4> draw_order{{0, 1, 2, 3}};
+    std::sort(
+        draw_order.begin(),
+        draw_order.begin() + g_instance_count,
+        [](std::size_t a, std::size_t b) noexcept {
+            return racer_obj_paints_behind(
+                g_instances[a].placement.slot,
+                g_instances[b].placement.slot
+            );
+        }
+    );
+    for (std::size_t rank = 0; rank < g_instance_count; ++rank) {
+        const auto& instance = g_instances[draw_order[rank]];
         draw_asset(
             dst,
             pitch,
-            *g_instances[i].registration,
-            g_instances[i].placement,
+            *instance.registration,
+            instance.placement,
+            instance.viewport,
             scale
         );
     }

@@ -141,6 +141,23 @@ per-frame delay because their semantic output was proven unchanged under
 unpaced execution. Presentation-sensitive routes should not inherit Turbo or
 presentation skipping merely for speed.
 
+### Bounded Stunt UI entry versus exploratory result
+
+The Stunt `ui-stunt-result-route.script` documents a known non-terminating
+idle-input case: the event timer expires without advancing to the proposed
+0x18 result menu. The automatic Native UI suite previously spent roughly
+98–162 seconds running that probe to status 3, retaining only its three
+successful entry captures. This was not a demonstrated result-screen
+acceptance, and treated research uncertainty as an automatic CI long pole.
+
+The automatic suite now runs `ui-stunt-entry-route.script`, preserving the
+original track-selection, Now Playing and entered-race commands and requiring
+all three dumps plus a successful scripted exit. The long-running idle-result
+experiment remains intact as a **manual research fixture**. This does not
+claim the Stunt result screen has been recovered; it makes the existing
+automatic evidence precise and prevents recurring time spent on a currently
+unfulfilled exploration. The prefix-equivalence unit test prevents drift.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts
@@ -190,21 +207,26 @@ generic smoke gate.
 
 ### Shared native candidate and bounded acceptance fan-out
 
-Several focused automatic workflows still independently build materially the
-same Linux native candidate. The October 7 ready-for-review validation made the
-cost concrete: eleven heavyweight workflows started together, repeatedly
-installing the same development packages and building overlapping candidates.
-Seven gates completed successfully, while Native Smoke, Profile Panel and
-Native UI were cancelled during prolonged Ubuntu mirror stalls and Racer
-Presentation was cancelled after producing evidence. Those cancellations are
-runner/dependency pressure, not evidence that shorter test timeouts are safe.
+The heavyweight Modern Linux gates now use a classifier-driven router rather
+than paying blindly for duplicate producers. Shared Modern, Modern Onboarding
+and Native UI keep independent consumer graphs and suite-specific path
+manifests, but the router owns automatic PR selection. Artifact forensics on a
+completed three-gate PR proved that all three producers emitted the same native
+executable and the same patched main.c, game_rtl.c and CMakeLists.txt, so they
+are one semantic build seam rather than merely similar YAML.
 
-Native UI is the reference architecture for the next CI phase: one producer
-builds and uploads an immutable candidate, independent consumer jobs download
-that exact candidate with runtime-only dependencies, and an aggregate job owns
-the final gate. Equivalent Modern Linux acceptance gates should converge on
-that shape where their generated host, patches and instrumentation are truly
-identical.
+Build sharing is adaptive rather than unconditional. When all three heavyweight
+suites are selected, one canonical producer builds and uploads the immutable
+candidate and each reusable suite bridges that artifact into its existing
+consumer contract. When only one or two suites are selected, the canonical
+producer is skipped and the selected suites keep their standalone builds in
+parallel. The two-suite #835 pilot proved the reusable-workflow artifact handoff
+but was roughly 40 seconds slower in wall-clock than two parallel producers.
+The full three-suite proof, run 37751358382, passed all 27 jobs in 433 seconds
+versus 518 seconds for the comparable standalone cohort. Producer runner time
+fell from 569 to 214 seconds, a 62.4% reduction, while the slowest producer path
+to consumer fan-out fell from 256 to 194 seconds. This keeps the runner-minute
+and dependency-pressure win without serializing narrower PRs.
 
 Fan-out is deliberately bounded. A two-core runner should normally execute no
 more than two CPU-bound emulator processes at once. Pacing-heavy cases may

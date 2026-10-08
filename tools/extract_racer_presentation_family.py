@@ -434,8 +434,31 @@ def split_4bpp_tiles(payload: bytes) -> tuple[bytes, ...]:
         for i in range(0, len(payload), TILE_BYTES_4BPP)
     )
     if b"".join(tiles) != payload:
-        raise AssertionError("4bpp graphics round-trip failed")
+        raise AssertionError("4bpp graphics byte split/join round-trip failed")
+    reencoded = b"".join(encode_4bpp_tile(decode_4bpp_tile(tile)) for tile in tiles)
+    if reencoded != payload:
+        raise AssertionError("4bpp graphics decoded-pixel/planar round-trip failed")
     return tiles
+
+
+def encode_bgr555(colors: Iterable[dict[str, int]]) -> bytes:
+    """Rebuild exact CGRAM words from independently decoded 5-bit channels.
+
+    The unused high bit is retained from the source record. It must not be
+    silently normalized just because the SNES RGB representation ignores it.
+    """
+    output = bytearray()
+    for color in colors:
+        channels = (color["r5"], color["g5"], color["b5"])
+        high = color["unused_bit15"]
+        if any(type(v) is not int or not 0 <= v < 32 for v in channels):
+            raise ValueError("BGR555 components must be 5-bit integers")
+        if type(high) is not int or high not in (0, 1):
+            raise ValueError("BGR555 unused high bit must be 0 or 1")
+        r5, g5, b5 = channels
+        word = r5 | (g5 << 5) | (b5 << 10) | (high << 15)
+        output.extend(word.to_bytes(2, "little"))
+    return bytes(output)
 
 
 def decode_bgr555(payload: bytes) -> list[dict[str, int]]:
@@ -449,10 +472,10 @@ def decode_bgr555(payload: bytes) -> list[dict[str, int]]:
             "r5": word & 0x1F,
             "g5": (word >> 5) & 0x1F,
             "b5": (word >> 10) & 0x1F,
+            "unused_bit15": (word >> 15) & 1,
         })
-    rebuilt = b"".join(c["word"].to_bytes(2, "little") for c in colors)
-    if rebuilt != payload:
-        raise AssertionError("palette BGR555 round-trip failed")
+    if encode_bgr555(colors) != payload:
+        raise AssertionError("decoded BGR555 components did not round-trip to source")
     return colors
 
 
@@ -476,6 +499,29 @@ def decode_4bpp_tile(data: bytes) -> list[list[int]]:
             )
         rows.append(row)
     return rows
+
+
+def encode_4bpp_tile(rows: Iterable[Iterable[int]]) -> bytes:
+    """Repack 8x8 palette indices into the SNES two-plane-pair layout.
+
+    This is deliberately independent of the byte concatenation check: a
+    visually decoded tile must preserve every source bit on re-encoding.
+    Index 0 is retained verbatim, not replaced by alpha/palette inference.
+    """
+    pixels = tuple(tuple(row) for row in rows)
+    if len(pixels) != 8 or any(len(row) != 8 for row in pixels):
+        raise ValueError("SNES 4bpp tile must contain exactly 8 rows of 8 indices")
+    output = bytearray(TILE_BYTES_4BPP)
+    for y, row in enumerate(pixels):
+        for x, index in enumerate(row):
+            if not isinstance(index, int) or not 0 <= index < 16:
+                raise ValueError("SNES 4bpp palette index must be an integer from 0 to 15")
+            mask = 1 << (7 - x)
+            for plane in range(4):
+                if index & (1 << plane):
+                    offset = (16 if plane >= 2 else 0) + y * 2 + (plane & 1)
+                    output[offset] |= mask
+    return bytes(output)
 
 
 def packed_word_source(word: int) -> tuple[int, int]:
@@ -831,7 +877,7 @@ def extract_palette(rom: bytes, asset_id: int, cgram_addr: int) -> dict:
         "payload_sha256": sha256(payload),
         "bgr555_words": [f"0x{c['word']:04X}" for c in colors],
         "roundtrip_equal": ent.repack() == ent.entry
-        and b"".join(c["word"].to_bytes(2, "little") for c in colors) == payload,
+        and encode_bgr555(colors) == payload,
     }
 
 

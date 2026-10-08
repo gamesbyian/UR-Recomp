@@ -212,6 +212,41 @@ class JumpoverProbeAnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "direction-matched control"):
             classify(never_lands, [])
 
+    def test_post_crossing_requires_full_airborne_witness(self):
+        control = rows([0, 1, 2, 3] + [3] * 12, [0, 1, 0, 0] + [0] * 12)
+        incomplete = rows([0, 1, 2, 4, 5, 6], [0, 1, 9, 9, 9, 9])
+        with self.assertRaisesRegex(ValueError, "insufficient post-crossing"):
+            classify(incomplete, control)
+
+    def test_gapped_or_shifted_frames_are_not_valid_physics_evidence(self):
+        control = rows([0, 1, 2, 3], [0, 1, 0, 0])
+        dropped = [dict(r) for r in control]
+        dropped.pop(1)
+        with self.assertRaisesRegex(ValueError, "consecutive integers"):
+            classify(control, dropped)
+        shifted = [dict(r, frame=r["frame"] + 1) for r in control]
+        with self.assertRaisesRegex(ValueError, "same frame"):
+            classify(control, shifted)
+
+    def test_first_divergence_rejects_empty_captures(self):
+        a = rows([1, 2], [0, 0])
+        for left, right in (([], []), (a, []), ([], a)):
+            with self.subTest(left=len(left), right=len(right)):
+                with self.assertRaisesRegex(ValueError, "nonempty captures"):
+                    first_divergence(left, right, ("p1_y",))
+
+    def test_first_divergence_rejects_missing_or_shifted_frames(self):
+        a = rows([1, 2, 3], [0, 0, 0])
+        with self.assertRaisesRegex(ValueError, "different frame counts"):
+            first_divergence(a, a[:2], ("p1_y",))
+        shifted = [dict(r, frame=r["frame"] + 1) for r in a]
+        with self.assertRaisesRegex(ValueError, "frame-aligned"):
+            first_divergence(a, shifted, ("p1_y",))
+        duplicate = [dict(r) for r in a]
+        duplicate[2]["frame"] = 1
+        with self.assertRaisesRegex(ValueError, "consecutive integers"):
+            first_divergence(a, duplicate, ("p1_y",))
+
     def test_first_divergence(self):
         a = rows([1, 2, 3], [0, 0, 0])
         b = rows([1, 2, 4], [0, 1, 0])

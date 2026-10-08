@@ -60,9 +60,13 @@ def build_report(
     visual_frames: dict[tuple[str, str, str, int, str], set[int]] = defaultdict(set)
     supported = 0
     observations = 0
+    pair_gate_counts = Counter()
+    pair_unlock_counts = Counter()
+    pair_unlock_frames: dict[tuple[str, str, str, int, str], set[int]] = defaultdict(set)
 
     for row in rows:
         key = state_key(row)
+        selected_by_player: dict[str, bool] = {}
         for player in ("p1", "p2"):
             observations += 1
             semantic = row[f"{player}_primary"]
@@ -76,6 +80,7 @@ def build_report(
                     f"ambiguous {player} registration at frame {row['frame']}: "
                     + ", ".join(e["representation_id"] for e in matches)
                 )
+            selected_by_player[player] = bool(matches)
             if matches:
                 supported += 1
                 continue
@@ -111,6 +116,23 @@ def build_report(
             item["player_frames"] += 1
             item["players"][player] += 1
 
+        selected_count = sum(selected_by_player.values())
+        pair_gate_counts[selected_count] += 1
+        if selected_count == 1:
+            # The shipping presenter currently activates only when *both*
+            # selectors resolve. A new player-local family can release this
+            # two-player gate only if the opposite racer is already supported.
+            missing = "p1" if not selected_by_player["p1"] else "p2"
+            visual_key = (
+                missing,
+                row[f"{missing}_primary"],
+                row[f"{missing}_companion"],
+                row[f"{missing}_selector"],
+                row[f"{missing}_gate"],
+            )
+            pair_unlock_counts[visual_key] += 1
+            pair_unlock_frames[visual_key].add(row["frame"])
+
     ranked = []
     for item in unsupported.values():
         frames = sorted(item["frames"])
@@ -144,6 +166,51 @@ def build_report(
             "hd_coverage_fraction": (supported / observations) if observations else 0.0,
             "fallback_fraction": (fallback / observations) if observations else 0.0,
         },
+        "host_presenter_pair_gate": {
+            "rule": (
+                "Live racer_hd_begin_sim_frame requires both player selectors "
+                "and both assets before it captures the four OAM slots. "
+                "These numbers are registration-only upper bounds; live "
+                "placement, capture success and asset availability can "
+                "further reduce actual HD draws."
+            ),
+            "frames_with_both_players_selected": pair_gate_counts[2],
+            "frames_with_exactly_one_player_selected": pair_gate_counts[1],
+            "frames_with_neither_player_selected": pair_gate_counts[0],
+            "pair_gate_eligible_player_frames_upper_bound": pair_gate_counts[2] * 2,
+            "selected_but_pair_blocked_player_frames": pair_gate_counts[1],
+            "pair_gate_eligible_fraction_upper_bound": (
+                2 * pair_gate_counts[2] / observations if observations else 0.0
+            ),
+        },
+        "potential_pair_gate_unlock_by_player_local_family": [
+            {
+                "player": player,
+                "semantic_frame_id": semantic,
+                "companion": companion,
+                "selector": selector,
+                "gate": gate,
+                "frames_with_supported_opponent": count,
+                "potential_pair_gate_player_frame_gain_upper_bound": count * 2,
+                "episode_count": episode_count(sorted(pair_unlock_frames[key])),
+                "frames": sorted(pair_unlock_frames[key]),
+            }
+            for key, count in sorted(
+                pair_unlock_counts.items(),
+                key=lambda item: (
+                    -item[1],
+                    -episode_count(sorted(pair_unlock_frames[item[0]])),
+                    item[0],
+                ),
+            )
+            for player, semantic, companion, selector, gate in [key]
+        ],
+        "pair_gate_unlock_caveat": (
+            "A local-family proposal can unlock two rendered player-frames "
+            "only when the opposite registration is already selected; "
+            "these counts are not an assertion of stock-pose equivalence, "
+            "authored-art approval, OAM placement or native draw success."
+        ),
         "unsupported_exact_states_ranked": ranked,
         "fallback_by_primary_semantic_id": [
             {"semantic_frame_id": semantic, "player_frames": count}

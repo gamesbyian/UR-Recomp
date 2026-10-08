@@ -172,6 +172,16 @@ def ranges(frames: list[int]) -> list[list[int]]:
     return out
 
 
+def check_frame_grid(rows: list[dict], label: str) -> None:
+    """Reject missing, duplicate, out-of-order or noninteger captured frames."""
+    previous = None
+    for row in rows:
+        frame = row.get("frame")
+        if type(frame) is not int or (previous is not None and frame != previous + 1):
+            raise ValueError(f"{label} frames must be consecutive integers")
+        previous = frame
+
+
 def classify(case: list[dict], control: list[dict]) -> dict:
     """Classify ``case`` against its direction-matched ordinary control.
 
@@ -183,6 +193,10 @@ def classify(case: list[dict], control: list[dict]) -> dict:
     """
     if not case or not control:
         raise ValueError("classification needs both a case and its direction-matched control")
+    check_frame_grid(case, "case")
+    check_frame_grid(control, "control")
+    if case[0]["frame"] != control[0]["frame"]:
+        raise ValueError("case and control must start at the same frame")
     c_take = takeoff_frame(control)
     if c_take is None or not contact_frames_after(control, c_take):
         raise ValueError("control never takes off and regains contact; it is not an ordinary traversal")
@@ -190,6 +204,8 @@ def classify(case: list[dict], control: list[dict]) -> dict:
     take = takeoff_frame(case)
     contacts = contact_frames_after(case, take) if take is not None else []
     below = next((r["frame"] for r in case if r["p1_y"] > floor_y), None)
+    if below is not None and below + FALL_CONFIRM_FRAMES > case[-1]["frame"]:
+        raise ValueError("insufficient post-crossing frames to classify fall-through")
     by_frame = {r["frame"]: r for r in case}
     falls = below is not None and all(
         f in by_frame and by_frame[f]["p1_air_time"] > 0
@@ -212,7 +228,15 @@ def classify(case: list[dict], control: list[dict]) -> dict:
 
 
 def first_divergence(a: list[dict], b: list[dict], fields=SEMANTIC_FIELDS) -> dict | None:
+    if not a or not b:
+        raise ValueError("trajectory comparison needs nonempty captures")
+    check_frame_grid(a, "first trajectory")
+    check_frame_grid(b, "second trajectory")
+    if len(a) != len(b):
+        raise ValueError("trajectories have different frame counts")
     for ra, rb in zip(a, b):
+        if ra["frame"] != rb["frame"]:
+            raise ValueError("trajectories are not frame-aligned")
         diff = sorted(f for f in fields if ra[f] != rb[f])
         if diff:
             return {"frame": ra["frame"], "fields": diff}

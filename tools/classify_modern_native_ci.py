@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Classify changed paths for the heavyweight Modern native CI suites.
 
-The manifests mirror the current pull-request path filters. A future router can
-use this classifier to preserve suite selectivity while sharing one native build.
+The manifests are the routing source of truth. The Modern native heavy router
+uses this classifier to preserve suite selectivity while sharing one native
+build across migrated suites.
 """
 
 from __future__ import annotations

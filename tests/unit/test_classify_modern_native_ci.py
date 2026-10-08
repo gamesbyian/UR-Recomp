@@ -13,19 +13,16 @@ SPEC.loader.exec_module(classifier)
 
 WORKFLOWS = ROOT / ".github/workflows"
 MANIFESTS = {
-    "shared": (
-        WORKFLOWS / "modern-shared-native-acceptance.yml",
-        ROOT / ".github/ci/modern-native-shared-paths.txt",
-    ),
-    "onboarding": (
-        WORKFLOWS / "modern-onboarding-practice-acceptance.yml",
-        ROOT / ".github/ci/modern-native-onboarding-paths.txt",
-    ),
-    "ui": (
-        WORKFLOWS / "native-ui-evidence.yml",
-        ROOT / ".github/ci/modern-native-ui-paths.txt",
-    ),
+    "shared": ROOT / ".github/ci/modern-native-shared-paths.txt",
+    "onboarding": ROOT / ".github/ci/modern-native-onboarding-paths.txt",
+    "ui": ROOT / ".github/ci/modern-native-ui-paths.txt",
 }
+MIGRATED = {
+    "shared": WORKFLOWS / "modern-shared-native-acceptance.yml",
+    "onboarding": WORKFLOWS / "modern-onboarding-practice-acceptance.yml",
+    "ui": WORKFLOWS / "native-ui-evidence.yml",
+}
+ROUTER = ".github/workflows/modern-native-heavy-router.yml"
 
 
 def workflow_pr_paths(path: Path) -> tuple[str, ...]:
@@ -37,13 +34,22 @@ def workflow_pr_paths(path: Path) -> tuple[str, ...]:
 
 
 class ModernNativeCiClassifierTests(unittest.TestCase):
-    def test_manifests_match_current_pull_request_filters(self):
-        for suite, (workflow, manifest) in MANIFESTS.items():
+    def test_migrated_suites_are_reusable_and_router_owned(self):
+        for suite, workflow in MIGRATED.items():
             with self.subTest(suite=suite):
-                self.assertEqual(
-                    classifier.load_patterns(manifest),
-                    workflow_pr_paths(workflow),
+                text = workflow.read_text()
+                self.assertIn("  workflow_call:", text)
+                self.assertNotIn("  pull_request:", text)
+                self.assertIn(
+                    ROUTER,
+                    classifier.load_patterns(MANIFESTS[suite]),
                 )
+
+    def test_router_change_selects_all_migrated_suites(self):
+        self.assertEqual(
+            classifier.classify_paths([ROUTER]),
+            {"shared": True, "onboarding": True, "ui": True},
+        )
 
     def test_common_toolchain_change_selects_all_heavy_suites(self):
         self.assertEqual(

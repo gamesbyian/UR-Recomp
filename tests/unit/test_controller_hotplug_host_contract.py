@@ -4,6 +4,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
+ONBOARDING_PATHS = ROOT / ".github" / "ci" / "modern-native-onboarding-paths.txt"
 
 
 def _body(source: str, start_marker: str, end_marker: str) -> str:
@@ -53,8 +54,9 @@ class ControllerHotplugHostContractTests(unittest.TestCase):
 
     def test_native_acceptance_covers_modern_and_authentic(self):
         text = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn('"native/product/controller_hotplug_policy.hpp"', text)
-        self.assertIn('"tests/input/modern-focus-pause.script"', text)
+        paths = ONBOARDING_PATHS.read_text(encoding="utf-8")
+        self.assertIn("native/product/controller_hotplug_policy.hpp", paths)
+        self.assertIn("tests/input/modern-focus-pause.script", paths)
         self.assertIn("UR_CONTROLLER_HOTPLUG_ACCEPTANCE=1", text)
         self.assertIn("after=000 seat_connected=0 paused=1 modern=1", text)
         self.assertIn("after=000 seat_connected=0 paused=0 modern=0", text)

@@ -24,11 +24,12 @@ struct ModernControlsPresentation {
     std::string instruction_detail;
 };
 
-// Physical pad glyphs for the controls the panel reacts to (SNES A confirm,
-// SNES B back, SNES X clear, SNES Y reset), read from the live GamepadMap.
+// Physical pad glyphs for the controls the panel reacts to: the fixed host
+// confirm/back buttons (A/B) and the live GamepadMap buttons for SNES X
+// (clear) and SNES Y (reset).
 struct ModernControlsPadGlyphs {
-    std::string confirm = "B";
-    std::string back = "A";
+    std::string confirm = "A";
+    std::string back = "B";
     std::string clear = "Y";
     std::string reset = "X";
 };

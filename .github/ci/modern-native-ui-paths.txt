@@ -56,6 +56,8 @@ tests/input/ui-record-group.script
 tests/input/ui-startup-timeline.script
 tests/input/ui-define-player-explore.script
 tests/input/ui-pre-race-timing.script
+tests/input/ui-stunt-entry-route.script
 tests/input/ui-name-league-route.script
 tools/toolchain-entries/sdl3.json
 .github/workflows/native-ui-evidence.yml
+.github/workflows/modern-native-heavy-router.yml

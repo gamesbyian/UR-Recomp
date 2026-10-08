@@ -6,6 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 HARNESS = ROOT / "tests" / "native" / "run_modern_next_event_acceptance.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
+ONBOARDING_PATHS = ROOT / ".github" / "ci" / "modern-native-onboarding-paths.txt"
 
 
 def _body(source: str, start_marker: str, end_marker: str) -> str:
@@ -71,8 +72,10 @@ class ModernNextEventHostContractTests(unittest.TestCase):
         self.assertIn("RACE_VERIFIED expected=4 actual=4 course_equal=1", harness)
         self.assertNotIn("xdotool", harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")
-        self.assertIn("tests/native/run_modern_next_event_acceptance.sh", workflow)
-        self.assertIn('"tests/input/modern-tour-next-event-acceptance.script"', workflow)
+        paths = ONBOARDING_PATHS.read_text(encoding="utf-8")
+        self.assertIn("run_modern_next_event_acceptance.sh", workflow)
+        self.assertIn("tests/native/run_modern_next_event_acceptance.sh", paths)
+        self.assertIn("tests/input/modern-tour-next-event-acceptance.script", paths)
 
 
 if __name__ == "__main__":

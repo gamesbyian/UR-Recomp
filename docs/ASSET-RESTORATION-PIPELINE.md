@@ -68,10 +68,10 @@ The first completed project-owned loop is `tools/extract_racer_presentation_fami
 - persistent racer state `$0FE9/$0FEB` supplies the 16-bit presentation/frame ID;
 - `83:F296` resolves that ID through the three-byte pointer table at `20:8000`;
 - the next pointer is the authoritative boundary for the selected packed presentation stream, which is reconstructed byte-for-byte before any interpretation is accepted;
-- race init at `82:E02E` loads exact OBJ graphics assets `0x7F` and `0x80` to VRAM `$0000` and `$1000`; they are raw 2,400-byte/75-tile and 960-byte/30-tile SNES 4bpp payloads, and splitting/rejoining them at the native 32-byte tile boundary is byte-identical;
+- race init at `82:E02E` loads exact OBJ graphics assets `0x7F` and `0x80` to VRAM `$0000` and `$1000`; they are raw 2,400-byte/75-tile and 960-byte/30-tile SNES 4bpp payloads; splitting/rejoining them at the native 32-byte tile boundary and independently decoding each tile to its 8×8 palette indices then re-encoding the four bitplanes are byte-identical;
 - racer OAM uses stable tile slots `00/08/80/88`, which fall inside those two loaded VRAM ranges, tying the semantic frame path to exact original graphics bytes rather than only to an abstract frame record;
 - player color selectors `$017D/$017F` flow through `$770748/$770749` into race palette assets `0x06 + selector`, loaded at CGRAM `$B0/$C0`;
-- palette table entries and their 32-byte BGR555 payloads are independently decoded and reconstructed exactly.
+- palette table entries and their 32-byte BGR555 payloads are decoded into independent 5-bit RGB channels, then re-encoded and checked against the exact source words, including the otherwise-unused bit 15 (the original payload is never silently normalized).
 
 For the representative ordinary-2P checkpoints, frame IDs `0x0540`, `0x0542`, `0x0544` and `0x057E` are sufficient to prove the reusable method. The same manifest also carries the two exact race-init OBJ graphics resources and their ROM/VRAM provenance. The packed streams are 30 or 34 bytes. Their first renderer-selected subsection is 10 bytes, but the extractor deliberately preserves the whole table-bounded stream rather than claiming that subsection is the complete asset.
 

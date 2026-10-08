@@ -18,11 +18,9 @@ DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
 }
 
 EXPENSIVE_PR_WORKFLOWS = {
-    "modern-shared-native-acceptance.yml",
-    "modern-onboarding-practice-acceptance.yml",
+    "modern-native-heavy-router.yml",
     "modern-race-restart-acceptance.yml",
     "native-build-smoke.yml",
-    "native-ui-evidence.yml",
     "racer-native-presentation-acceptance.yml",
     "widescreen-4x3-regression.yml",
 }
@@ -246,6 +244,48 @@ class CiTriggerPolicyTest(unittest.TestCase):
             "Ubuntu-hosted native gates must use runner-provided CMake/Ninja and "
             f"the canonical SDL3 source rather than redownloading old tooling: {offenders}",
         )
+
+    def test_modern_native_router_builds_once_and_calls_migrated_suites(self):
+        text = (WORKFLOWS / "modern-native-heavy-router.yml").read_text()
+        self.assertIn("  classify:", text)
+        self.assertIn("  build:", text)
+        self.assertEqual(text.count("Build canonical Modern native candidate"), 1)
+        self.assertEqual(text.count("cmake --build"), 1)
+        self.assertIn("modern-native-canonical-candidate", text)
+        self.assertIn(
+            "uses: ./.github/workflows/modern-shared-native-acceptance.yml",
+            text,
+        )
+        self.assertIn(
+            "uses: ./.github/workflows/modern-onboarding-practice-acceptance.yml",
+            text,
+        )
+        self.assertIn(
+            "uses: ./.github/workflows/native-ui-evidence.yml",
+            text,
+        )
+        self.assertIn(
+            "needs.classify.outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'",
+            text,
+        )
+        self.assertEqual(
+            text.count("canonical_candidate: ${{ needs.build.result == 'success' }}"),
+            3,
+        )
+        self.assertEqual(
+            text.count("needs.build.result == 'success' || needs.build.result == 'skipped'"),
+            3,
+        )
+
+        for name in (
+            "modern-shared-native-acceptance.yml",
+            "modern-onboarding-practice-acceptance.yml",
+            "native-ui-evidence.yml",
+        ):
+            suite = (WORKFLOWS / name).read_text()
+            self.assertIn("  workflow_call:", suite)
+            self.assertFalse(_block(suite, "pull_request"))
+            self.assertIn("canonical_candidate", suite)
 
     def test_shared_modern_native_acceptance_builds_once_and_fans_out(self):
         text = (WORKFLOWS / "modern-shared-native-acceptance.yml").read_text()

@@ -6,6 +6,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 HARNESS = ROOT / "tests" / "native" / "run_modern_recent_course_persistence_acceptance.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
+ONBOARDING_PATHS = ROOT / ".github" / "ci" / "modern-native-onboarding-paths.txt"
 
 
 def _body(source: str, start_marker: str, end_marker: str) -> str:
@@ -64,9 +65,10 @@ class ModernRecentCoursePersistenceContractTests(unittest.TestCase):
         ):
             self.assertIn(marker, harness)
         workflow = WORKFLOW.read_text(encoding="utf-8")
+        paths = ONBOARDING_PATHS.read_text(encoding="utf-8")
         self.assertIn("run_modern_recent_course_persistence_acceptance.sh", workflow)
-        self.assertIn('"tests/input/modern-recent-course-persist.script"', workflow)
-        self.assertIn('"tests/input/modern-recent-course-restore.script"', workflow)
+        self.assertIn("tests/input/modern-recent-course-persist.script", paths)
+        self.assertIn("tests/input/modern-recent-course-restore.script", paths)
 
 
 if __name__ == "__main__":

@@ -285,6 +285,89 @@ jobs:
           grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
             "$RUNNER_TEMP/alternate-presentation-ghost-compare.log"
 
+      - name: Render persisted Previous ghost through ordinary profile state
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          ORIGINAL="$RUNNER_TEMP/original.urrun"
+          USER_ROOT="$RUNNER_TEMP/replay-profile-user"
+          PROFILE_ROOT="$RUNNER_TEMP/replay-profile-save"
+          RUNS="$USER_ROOT/runs/default"
+          STATE="$RUNNER_TEMP/replay-profile-host-state.txt"
+          LOG="$RUNNER_TEMP/replay-profile-previous.log"
+          SEED="$RUNS/run-0000000000000001-0001.urrun"
+          mkdir -p "$RUNS" "$PROFILE_ROOT"
+          cp "$ORIGINAL" "$SEED"
+          cp "$ORIGINAL.urghost" "$SEED.urghost"
+
+          # Normal Modern product/profile settings, no diagnostic ghost-source
+          # override and no direct run-capture override. This is the same
+          # profile-scoped Previous selection used by the Windows host.
+          printf '%s\n' \
+            'UR-HOST-STATE/6' \
+            'profile=default' \
+            'regional_presentation=north_america' \
+            'pause_on_focus_loss=1' \
+            'vibration_enabled=1' \
+            'display_mode=windowed' \
+            'vsync=on' \
+            'presentation_fps=game' \
+            'output_resolution=native' \
+            'widescreen=original' \
+            'internal_render_scale=4x' \
+            > "$STATE"
+          printf '%s\n' \
+            'UR-HOST-PROFILE/5' \
+            'profile=default' \
+            'generation=0' \
+            'stock_sram=' \
+            'tour_resume=' \
+            'ghost_target=previous' \
+            'racer_name=' \
+            'racer_index=' \
+            'recent_track=' \
+            > "$PROFILE_ROOT/host-profile.txt"
+
+          SDL_AUDIODRIVER=dummy \
+          UR_RECOMP_USER_DATA_ROOT="$USER_ROOT" \
+          UR_PROFILE_SAVE_ROOT="$PROFILE_ROOT" \
+          UR_HOST_STATE_PATH="$STATE" \
+          SNESRECOMP_INPUT_FILE="$RUNNER_TEMP/rehydrated.input" \
+          SNESRECOMP_INPUT_RELATIVE=1 \
+          UR_RUN_GHOST_DRAW_DIAGNOSTICS=1 \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/completed-run-replay-dragster.script" \
+              > "$LOG" 2>&1
+
+          cat "$LOG"
+          grep -q "UR_HOST_STATE LOADED .*widescreen=original" "$LOG"
+          grep -q "UR_RUN_GHOSTS BOUND compatible=1" "$LOG"
+          grep -q "UR_RUN_GHOST_TRACE PLAYBACK_BOUND target=previous" "$LOG"
+          grep -q "UR_RUN_GHOST DRAWN" "$LOG"
+          grep -q "script .* dump replay-race-results ok" "$LOG"
+          # A normal observed finish publishes a new independent run; the
+          # original file and its sidecar remain immutable in this namespace.
+          test -s "$SEED"
+          test -s "$SEED.urghost"
+          test "$(find "$RUNS" -maxdepth 1 -type f -name '*.urrun' | wc -l)" -eq 2
+          REPLAYED="$(find "$RUNS" -maxdepth 1 -type f -name '*.urrun' ! -name "$(basename "$SEED")" -print -quit)"
+          test -s "$REPLAYED"
+          test -s "$REPLAYED.urghost"
+          "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$REPLAYED" \
+            | tee "$RUNNER_TEMP/replay-profile-run-compare.log"
+          "$RUNNER_TEMP/compare-ghost-traces" \
+            "$ORIGINAL" "$ORIGINAL.urghost" \
+            "$REPLAYED" "$REPLAYED.urghost" \
+            | tee "$RUNNER_TEMP/replay-profile-ghost-compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/replay-profile-run-compare.log"
+          grep -q "UR_RUN_GHOST_TRACE_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/replay-profile-ghost-compare.log"
+
       - name: Launch stored run through Local Runs browser
         shell: bash
         run: |
@@ -551,5 +634,8 @@ jobs:
             ${{ runner.temp }}/alternate-presentation.log
             ${{ runner.temp }}/alternate-presentation-run-compare.log
             ${{ runner.temp }}/alternate-presentation-ghost-compare.log
+            ${{ runner.temp }}/replay-profile-previous.log
+            ${{ runner.temp }}/replay-profile-run-compare.log
+            ${{ runner.temp }}/replay-profile-ghost-compare.log
           if-no-files-found: warn
           retention-days: 7

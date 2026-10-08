@@ -43,3 +43,4 @@ tools/bootstrap_toolchain.py
 tools/toolchain-entries/snesrecomp.json
 tools/toolchain-entries/sdl3.json
 .github/workflows/modern-onboarding-practice-acceptance.yml
+.github/workflows/modern-native-heavy-router.yml

@@ -83,8 +83,10 @@ class BoundedNativeUiResearchTest(unittest.TestCase):
         )
         matches = list(re.finditer(r"run_route ui-main-branches ", workflow))
         self.assertEqual(len(matches), 1)
-        profiles = workflow.split("            profiles)", 1)[1].split("            *)", 1)[0]
-        self.assertIn("run_route ui-main-branches ", profiles)
+        # Once zero-output Records probes were retired, this independent
+        # fresh-process capture moved to the now-shorter Records shard.
+        records = workflow.split("            records)", 1)[1].split("            profiles)", 1)[0]
+        self.assertIn("run_route ui-main-branches ", records)
 
     def test_router_ignores_retained_manual_probes(self):
         paths = MANIFEST.read_text().splitlines()

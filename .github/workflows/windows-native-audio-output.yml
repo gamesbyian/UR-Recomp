@@ -97,7 +97,9 @@ jobs:
             test "$RC" -eq 0
             test -s "$DUMPS/$CASE.wram.bin"
             test -s "$DUMPS/$CASE-audio-post.wram.bin"
-            python tools/check_native_audio_checkpoint_timing.py "$LOG" "$CASE"
+            # Execute as a module so tools.* imports resolve on native Windows
+            # Python, instead of treating tools/ as the Python root.
+            python -m tools.check_native_audio_checkpoint_timing "$LOG" "$CASE"
             test -s "$PCM"
             test -s "$STATS"
             # 60 guest frames centered on the named dump (30 before/after).

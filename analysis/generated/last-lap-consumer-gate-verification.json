@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "question": "Does the Last Lap message award its positive 152-unit lookup value via the stock message consumer?",
+  "answer": "No. The earlier message-to-stat mapping equals 0xFF, which routes to display only before boost credit.",
+  "queued_message": "0x0F (Last Lap)",
+  "signed_boost_lookup_word": 152,
+  "consumer_map_offset_from_verified_data_block": 215,
+  "expected_message_mapping_byte": "0xFF",
+  "skip_branch": "USA 81:C110..C118: CMP #$FF; BNE reward; JMP $C1A0 display-only",
+  "consumer_credit_site_not_reached": "USA 81:C167..C171",
+  "provenance": "Original ROM byte reads with per-build structural-island block SHA-256 and #870 checkpoint queue gate",
+  "original_builds": {
+    "usa-retail": {
+      "map_address": "81:C52F",
+      "data_block_start": "81:C458",
+      "data_sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b"
+    },
+    "pal-prototype-1994-11-29": {
+      "map_address": "81:C50C",
+      "data_block_start": "81:C435",
+      "data_sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b"
+    },
+    "europe-retail": {
+      "map_address": "81:C518",
+      "data_block_start": "81:C441",
+      "data_sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b"
+    },
+    "legacy-beta": {
+      "map_address": "81:C52F",
+      "data_block_start": "81:C458",
+      "data_sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b"
+    }
+  },
+  "limit": "Does not disprove every imaginable independent lap-dependent mechanic; does disprove boost credit via this queued message consumer."
+}

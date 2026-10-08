@@ -10,6 +10,8 @@ on:
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_presentation.*"
       - "native/product/multiplayer_match_browser.*"
+      - "native/product/multiplayer_match_summary.*"
+      - "tests/native/multiplayer_match_summary_test.cpp"
       - "native/product/run_record_capture_policy.hpp"
       - "tests/native/local_multiplayer_*_test.cpp"
       - "tests/native/multiplayer_match_record_test.cpp"
@@ -19,6 +21,7 @@ on:
       - "tests/unit/test_multiplayer_match_catalog_cpp.py"
       - "tests/unit/test_multiplayer_match_presentation_cpp.py"
       - "tests/unit/test_multiplayer_match_browser_cpp.py"
+      - "tests/unit/test_multiplayer_match_summary_cpp.py"
       - "tests/unit/test_run_record_capture_policy_cpp.py"
       - "tests/unit/test_multiplayer_match_capture_host_contract.py"
       - "native/product/uniracers_modern_host.cpp"
@@ -46,6 +49,7 @@ jobs:
             tests.unit.test_multiplayer_match_catalog_cpp \
             tests.unit.test_multiplayer_match_presentation_cpp \
             tests.unit.test_multiplayer_match_browser_cpp \
+            tests.unit.test_multiplayer_match_summary_cpp \
             tests.unit.test_run_record_capture_policy_cpp \
             tests.unit.test_multiplayer_match_capture_host_contract \
             tests.unit.test_local_multiplayer_host_contract

@@ -69,5 +69,25 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn('"F8 / Y      RECORDS"', source)
 
 
+    def test_multiplayer_summary_aggregates_only_listed_pairs(self):
+        source = (
+            ROOT / "native" / "product" / "completed_run_browser_host.cpp"
+        ).read_text(encoding="utf-8")
+        start = source.index("bool refresh_multiplayer_match_browser()")
+        body = source[start:source.index("\n}\n", start)]
+        summary = body.index(
+            "ur::product::summarize_multiplayer_matches(matches)")
+        handoff = body.index(
+            "g_multiplayer_match_browser.set_matches(std::move(matches));")
+        self.assertLess(summary, handoff)
+        self.assertIn("g_multiplayer_match_summary = {};", body)
+        self.assertIn("MULTIPLAYER_SUMMARY matches=%zu", body)
+        self.assertIn(
+            "multiplayer_head_to_head_for_match(\n"
+            "                              g_multiplayer_match_summary, *selected)",
+            source,
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

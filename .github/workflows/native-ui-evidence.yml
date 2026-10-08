@@ -250,11 +250,12 @@ jobs:
                 ui-options-back-main.fb.bmp; do
                 test -s "$RUNNER_TEMP/ui-dumps/$required" || { echo "::error::Missing UI framebuffer dump: $required"; exit 1; }
               done
-              run_route ui-main-branches ui-main-branches.script ui-branch-dumps 150
               run_route ui-vs-handoff ui-vs-handoff.script ui-vs-handoff-dumps 90
               ;;
             navigation)
-              run_route ui-ending-shortcut ui-ending-shortcut.script ui-ending-dumps 90
+              # Historical ending shortcut is a retained manual-only experiment.
+              run_route ui-splash-capture ui-splash-capture.script ui-ending-dumps 90 required || exit $?
+              test -s "$RUNNER_TEMP/ui-ending-dumps/ui-splash-observed.wram.bin" || { echo "::error::Missing authentic splash capture"; exit 1; }
               run_route ui-attract-route ui-attract-route.script ui-attract-dumps 90
               run_route ui-pause-route ui-pause-route.script ui-pause-dumps 90
               run_route ui-options-submenus ui-options-submenus.script ui-options-submenu-dumps 180
@@ -263,7 +264,11 @@ jobs:
               ;;
             results-a)
               run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
-              run_route ui-circuit-result-route ui-circuit-result-route.script ui-circuit-result-dumps 240
+              # Retain all Circuit driving captures; the unproven result state is manual research.
+              run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
+              for tag in ui-circuit-track-selected ui-circuit-now-playing ui-circuit-entered ui-circuit-drive-start ui-circuit-drive-10 ui-circuit-drive-20 ui-circuit-drive-30 ui-circuit-drive-40 ui-circuit-drive-50 ui-circuit-drive-60 ui-circuit-terminal; do
+                test -s "$RUNNER_TEMP/ui-circuit-result-dumps/$tag.wram.bin" || { echo "::error::Missing Circuit capture: $tag"; exit 1; }
+              done
               ;;
             results-b)
               # Required bounded entry proof; the unresolved idle-to-Stunt-results
@@ -286,6 +291,8 @@ jobs:
               run_route ui-name-league-route ui-name-league-route.script ui-name-league-dumps 120
               run_route ui-startup-timeline ui-startup-timeline.script ui-startup-timeline-dumps 120
               run_route ui-define-player-explore ui-define-player-explore.script ui-define-player-dumps 120
+              # This route owns a separate dump root, and is independent of core.
+              run_route ui-main-branches ui-main-branches.script ui-branch-dumps 150
               ;;
             *)
               echo "::error::Unknown capture shard: $SHARD"

@@ -38,7 +38,7 @@ tools/ci_log_assert.py
 tests/input/ui-options-route.script
 tests/input/ui-main-branches.script
 tests/input/ui-vs-handoff.script
-tests/input/ui-ending-shortcut.script
+tests/input/ui-splash-capture.script
 tests/input/ui-attract-route.script
 tests/input/ui-pause-route.script
 tests/input/ui-options-submenus.script
@@ -48,7 +48,7 @@ tests/input/ui-race-result-route.script
 tests/input/ui-stunt-result-route.script
 tests/input/ui-records-explore.script
 tests/input/ui-rename-editor-explore.script
-tests/input/ui-circuit-result-route.script
+tests/input/ui-circuit-drive-capture.script
 tests/input/ui-records-submenus.script
 tests/input/ui-record-high.script
 tests/input/ui-record-player.script

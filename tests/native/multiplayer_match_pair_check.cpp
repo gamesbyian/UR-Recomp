@@ -9,8 +9,8 @@ using namespace ur::product;
 using namespace ur::title;
 
 int main(int argc, char** argv) {
-    if (argc != 3) {
-        std::cerr << "usage: check <run.urrun> <out.input>\n";
+    if (argc != 3 && argc != 5) {
+        std::cerr << "usage: check <run.urrun> <out.input> [p1-profile p2-profile]\n";
         return 2;
     }
 
@@ -64,8 +64,10 @@ int main(int argc, char** argv) {
         std::cerr << "2P carrier timing does not match stock result\n";
         return 1;
     }
-    if (match.record->context.match.player1.profile_id != "accept-p1" ||
-        match.record->context.match.player2.profile_id != "accept-p2") {
+    const std::string expected_p1 = argc == 5 ? argv[3] : "accept-p1";
+    const std::string expected_p2 = argc == 5 ? argv[4] : "accept-p2";
+    if (match.record->context.match.player1.profile_id != expected_p1 ||
+        match.record->context.match.player2.profile_id != expected_p2) {
         std::cerr << "unexpected participants\n";
         return 1;
     }

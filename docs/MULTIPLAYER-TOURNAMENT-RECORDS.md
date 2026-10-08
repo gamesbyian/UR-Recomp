@@ -37,6 +37,14 @@ This fail-closed state is intentional:
 
 Tracks, Racers/Profiles and Runs/Replays continue to use the established completed-run catalog unchanged.
 
+## Native real-join to ordinary-2P record acceptance
+
+The earlier green ordinary-2P capture acceptance seeds two deterministic profile identities through an opt-in test hook. A separate green Modern 2P join acceptance proves two distinct framework virtual gamepads can join and explicitly confirm profiles, but stops before entering a race. Those tests establish different portions of the production path.
+
+The bounded manually dispatched native capture workflow now includes a real join-to-record case. It creates an ordinary Modern catalog under an isolated XDG root, enters the existing 2P join overlay through two distinct SDL virtual gamepads, checks duplicate-profile refusal, explicitly confirms two different profiles, then continues through the original two-player rider and track menus on a delayed version of the established stock 2P Race input fixture. It waits for the stock 2P result, saves the normal checksum/course-bound .urrun and .urmatch pair, and checks in a fresh process that the selected join.alpha and join.bravo profiles, course:01, stock outcome and P1/P2 input lanes survived. It must not set UR_MULTIPLAYER_MATCH_ACCEPTANCE or invoke the seeded-profile acceptance path. The optional UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE=capture mode is inert in normal product use and leaves existing join/disconnect modes unchanged.
+
+This is a **manual** workflow_dispatch test, not proof until a native run actually passes. It does not establish playable Local Tournament fixture routing, attribution or standings, and an ordinary Records pair never automatically becomes tournament evidence.
+
 ## Smallest future implementation slice
 
 The next implementation should begin at the authoritative stock 2P results boundary, not in Records UI.

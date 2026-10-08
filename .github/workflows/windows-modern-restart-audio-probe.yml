@@ -223,6 +223,11 @@ jobs:
               # a valid reason to skip the other A/B trial processes.
               # Unrelated errors or a missing verified report remain fatal.
               test -s "$OUT"
+              # Explicitly prove this *particular* Windows process loaded the
+              # disposable keymap from its selected root, not an exe-local
+              # default. Otherwise the two arms would not be a valid A/B.
+              grep -Fq "[Keybinds] Loaded keybinds.ini" "$LOG"
+              grep -Fq "Config/saves anchored to user data '$ROOT_WIN'" "$LOG"
               if test "$RC" -eq 0; then
                 echo "RESTART_KEYMAP_TRIAL arm=$ARM index=$I audible=1"
               else

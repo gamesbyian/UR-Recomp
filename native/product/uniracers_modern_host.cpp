@@ -1749,6 +1749,16 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT REJECTED_METADATA");
         return false;
     }
+    // Activation writes the mirror into live SRAM without a guest boot, so it
+    // must apply the stock boot's own format check (80:8C4E) itself. Reject
+    // before any persistence so the malformed profile file stays untouched.
+    if (target.state->stock_sram &&
+        !ur::product::stock_sram_format_signature_present(
+            target.state->stock_sram->data(),
+            target.state->stock_sram->size())) {
+        product_diagnostic("UR_PROFILE_SELECT REJECTED_UNFORMATTED_SNAPSHOT");
+        return false;
+    }
     if (!persist_live_profile_snapshot()) return false;
 
     auto product = g_product_state;
@@ -2876,6 +2886,12 @@ bool rollback_tour_entry_to_profile_snapshot() {
         g_tour_continue_profile_id != g_profile_state->profile_id ||
         !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        return false;
+    }
+    if (!ur::product::stock_sram_format_signature_present(
+            g_profile_state->stock_sram->data(),
+            g_profile_state->stock_sram->size())) {
+        product_diagnostic("UR_TOUR_CONTINUE ROLLBACK_REJECTED_UNFORMATTED_SNAPSHOT");
         return false;
     }
 

@@ -24,6 +24,15 @@ struct GhostTraceReplayComparison {
     std::uint64_t first_p2_context_drift_frame = 0;
 };
 
+inline bool ghost_trace_covers_completed_run(
+    const product::CompletedRunGhostTrace& trace,
+    const product::CompletedRunRecord& record) {
+    return !trace.samples.empty() &&
+           record.frame_count == trace.samples.size() &&
+           trace.samples.front().race_frame == 0 &&
+           trace.samples.back().race_frame == record.frame_count - 1u;
+}
+
 inline bool equivalent_ghost_world_samples(
     const product::CompletedRunGhostTrace& original,
     const product::CompletedRunGhostTrace& replayed,

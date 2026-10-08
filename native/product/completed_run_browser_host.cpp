@@ -1853,10 +1853,10 @@ extern "C" int ur_uniracers_product_system_gamepad_button(
     }
 
     if (g_replay_flow.active()) {
-        if (pressed && button == kGamepadBtn_B) {
-            cancel_active_replay_to_browser();
-        }
-        return 1;
+        // The framework's raw-button callback runs before its configured
+        // GamepadMap semantic callback. Return -1 to let mapped SNES B
+        // cancel below while suppressing every other command/guest input.
+        return -1;
     }
 
     if (g_records_browser_visible) {

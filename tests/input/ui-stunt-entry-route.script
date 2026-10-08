@@ -1,0 +1,34 @@
+# Bounded automatic SNES UI evidence for the Stunt-track entry.
+# Keep the commands through 'ui-stunt-entered' identical to the exploratory
+# ui-stunt-result-route.script. Its idle `until 009F == 18 20000` is currently
+# unable to complete and belongs to manual reconnaissance, not automatic CI.
+# This route proves track selection, Now Playing and race entry, then exits.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+
+# Move from default track 1 (Race) to track 3 (Stunt).
+press down 1
+wait 10
+press down 1
+wait 30
+dump ui-stunt-track-selected
+press a 2
+
+until 009F == 16 1200
+wait 60
+dump ui-stunt-now-playing
+press a 2
+until 0313 == 01 1800
+wait 60
+dump ui-stunt-entered
+
+quit

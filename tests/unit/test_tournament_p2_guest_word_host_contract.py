@@ -2,83 +2,142 @@
 import hashlib
 import json
 import pathlib
+import py_compile
+import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 PATCH_PATH = ROOT / "tools/patches/snesrecomp-title-p2-input-filter.patch"
 MANIFEST = ROOT / "tools/toolchain-entries/snesrecomp.json"
+AUTHORITATIVE_MANIFEST = ROOT / "tools/toolchain.json"
 HOST = ROOT / "native/product/uniracers_modern_host.cpp"
 HEADER = ROOT / "native/product/uniracers_modern_host.h"
 SCAFFOLD = ROOT / "tools/patch_modern_product_host.py"
 
 
+def _parse_unified(patch):
+    """Return {path: [(old_start, hunk_lines)]} for a unified diff."""
+    files = {}
+    current = None
+    for line in patch.splitlines():
+        if line.startswith("+++ b/"):
+            current = files.setdefault(line[6:].strip(), [])
+        elif line.startswith("--- "):
+            continue
+        elif line.startswith("@@"):
+            start = int(re.match(r"@@ -(\d+)", line).group(1))
+            current.append((start, []))
+        elif current:
+            current[-1][1].append(line if line else " ")
+    return files
+
+
 class P2GuestWordHostContract(unittest.TestCase):
     def test_pinned_framework_patch_order_and_checksum(self):
-        manifest = json.loads(MANIFEST.read_text())
-        patches = [p["path"] for p in manifest["patches"]]
-        name = "tools/patches/snesrecomp-title-p2-input-filter.patch"
-        self.assertEqual(patches.count(name), 1)
-        self.assertGreater(patches.index(name), patches.index(
-            "tools/patches/snesrecomp-title-input-filter.patch"))
-        self.assertEqual(
-            manifest["patches"][patches.index(name)]["sha256"],
-            hashlib.sha256(PATCH_PATH.read_bytes()).hexdigest())
+        # tools/toolchain.json is what bootstrap_toolchain.py actually applies;
+        # the per-tool entry is a derived snapshot. #981 registered the patch
+        # only in the snapshot, so no build ever applied it.
+        authoritative = next(
+            tool for tool in json.loads(AUTHORITATIVE_MANIFEST.read_text())["tools"]
+            if tool["id"] == "snesrecomp")
+        snapshot = json.loads(MANIFEST.read_text())
+        self.assertEqual(authoritative["patches"], snapshot["patches"])
+        for manifest in (authoritative, snapshot):
+            patches = [p["path"] for p in manifest["patches"]]
+            name = "tools/patches/snesrecomp-title-p2-input-filter.patch"
+            self.assertEqual(patches.count(name), 1)
+            self.assertGreater(patches.index(name), patches.index(
+                "tools/patches/snesrecomp-title-input-filter.patch"))
+            self.assertEqual(
+                manifest["patches"][patches.index(name)]["sha256"],
+                hashlib.sha256(PATCH_PATH.read_bytes()).hexdigest())
 
-    def test_framework_patch_can_be_applied_to_exact_source_seams(self):
+    def test_derived_toolchain_snapshots_match_authoritative_manifest(self):
+        result = subprocess.run(
+            [sys.executable, str(ROOT / "tools/export_toolchain_entries.py"), "--check"],
+            cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+    def test_host_scaffold_patcher_is_importable(self):
+        # A SyntaxError here broke every native build after #981.
+        py_compile.compile(str(SCAFFOLD), doraise=True)
+
+    def test_framework_patch_applies_with_git_apply_and_composes_p2_word(self):
         patch = PATCH_PATH.read_text()
-        self.assertIn("g_gamepad[1].axis_buttons", patch)
         self.assertIn("g_game->filter_second_player_input(p2_human)", patch)
         self.assertIn("((human >> 12) & 0x0fffu)", patch)
         self.assertIn("(g_gamepad[1].axis_buttons & 0x0fffu)", patch)
         self.assertIn("((p2_human & 0x0fffu) << 12)", patch)
         self.assertIn("uint32_t (*filter_second_player_input)(uint32_t inputs);", patch)
-        if not shutil.which("patch") or not shutil.which("cc"):
-            self.skipTest("requires POSIX patch and C compiler")
+        if not shutil.which("git") or not shutil.which("cc"):
+            self.skipTest("requires git and a C compiler")
+        # Reconstruct the pre-image purely from the patch's own context and
+        # removed lines at their recorded line numbers, then apply it with the
+        # same `git apply --check` + `git apply` bootstrap_toolchain.py uses.
+        # A hunk without usable context (the #981 form) cannot pass this.
         with tempfile.TemporaryDirectory() as temp:
-            directory = pathlib.Path(temp) / "runner/src/desktop"
+            temp_path = pathlib.Path(temp)
+            hunks = _parse_unified(patch)
+            self.assertEqual(sorted(hunks), [
+                "runner/src/desktop/host_main.c", "runner/src/desktop/host_main.h"])
+            for rel, file_hunks in hunks.items():
+                for start, lines in file_hunks:
+                    context = [l for l in lines if l.startswith(" ")]
+                    self.assertGreaterEqual(
+                        len(context), 2, f"{rel}: hunk needs real context lines")
+                    del start
+            directory = temp_path / "runner/src/desktop"
             directory.mkdir(parents=True)
-            (directory / "host_main.h").write_text(
-                "#pragma once\n#include <stdint.h>\n"
-                "typedef struct {\n"
-                "  uint32_t (*filter_player_input)(uint32_t inputs);\n"
-                "\n"
-                "  /* Optional title-owned source-aware physical gamepad seam. The framework\n"
-                "   * already exposes the source callback below. */\n"
-                "} Game;\nextern Game* g_game;\n"
-            )
-            (directory / "host_main.c").write_text(
-                '#include "host_main.h"\n'
-                "#include <stdint.h>\n"
-                "typedef uint32_t uint32;\n"
-                "typedef struct { uint32 axis_buttons; } Pad;\n"
-                "static Pad g_gamepad[2];\n"
-                "static Game game_object;\n"
-                "Game *g_game = &game_object;\n"
-                "static uint32 filter_p2(uint32 p2) { return p2 & ~0x010u; }\n"
-                "static uint32 compose(uint32 human) {\n"
-                "    uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\n"
-                "    return inputs;\n}\n"
-                "int main(void) {\n"
-                "    g_game->filter_second_player_input = filter_p2;\n"
-                "    g_gamepad[1].axis_buttons = 0x020u;\n"
-                "    const uint32 actual = compose(0xa5000000u | (0x010u << 12) | 0x456u);\n"
-                "    const uint32 expected = 0xa5000000u | (0x020u << 12) | 0x456u;\n"
-                "    return actual == expected ? 0 : 1;\n}\n"
-            )
-            # The patch uses the original framework line as its only hunk
-            # context, deliberately independent of other host hunk offsets.
-            result = subprocess.run(
-                ["patch", "-p1", "--fuzz=0", "--batch", "--forward"], cwd=temp,
-                input=patch, text=True, capture_output=True)
-            self.assertEqual(result.returncode, 0, result.stderr)
+            prelude_h = [
+                "#pragma once", "#include <stdint.h>", "typedef struct {",
+            ]
+            (start_h, lines_h), = hunks["runner/src/desktop/host_main.h"]
+            pre_h = [l[1:] for l in lines_h if l[:1] in " -"]
+            # The header hunk's leading context is the tail of a block comment.
+            body_h = (prelude_h + ["/* pad */"] * (start_h - 2 - len(prelude_h))
+                      + ["  /* reconstructed comment head"] + pre_h)
+            body_h += ["   * seam. */", "  int unused_tail;", "} Game;",
+                       "extern Game *g_game;"]
+            (directory / "host_main.h").write_text("\n".join(body_h) + "\n")
+            prelude_c = [
+                '#include "host_main.h"', "typedef uint32_t uint32;",
+                "typedef struct { uint8_t axis_buttons; } Pad;",
+                "static Pad g_gamepad[2];", "static Game game_object;",
+                "Game *g_game = &game_object;",
+                "static uint32 filter_p2(uint32 p2) { return p2 & ~0x010u; }",
+                "static uint32 compose(uint32 human) {",
+            ]
+            (start_c, lines_c), = hunks["runner/src/desktop/host_main.c"]
+            pre_c = [l[1:] for l in lines_c if l[:1] in " -"]
+            body_c = prelude_c + ["/* pad */"] * (start_c - 1 - len(prelude_c)) + pre_c
+            body_c += [
+                "     * end of reconstructed context */",
+                "    return inputs;", "}",
+                "int main(void) {",
+                "    g_gamepad[1].axis_buttons = 0x020u;",
+                "    /* No filter bound: must equal the stock composition. */",
+                "    if (compose(0xa5000000u | (0x010u << 12) | 0x456u) !=",
+                "        (0xa5000000u | (0x030u << 12) | 0x456u)) return 2;",
+                "    g_game->filter_second_player_input = filter_p2;",
+                "    /* Mapped P2 A (0x010) is filtered; axis bit and P1/top byte kept. */",
+                "    return compose(0xa5000000u | (0x010u << 12) | 0x456u) ==",
+                "        (0xa5000000u | (0x020u << 12) | 0x456u) ? 0 : 1;", "}",
+            ]
+            (directory / "host_main.c").write_text("\n".join(body_c) + "\n")
+            subprocess.run(["git", "init", "-q"], cwd=temp, check=True)
+            for args in (["git", "apply", "--check", str(PATCH_PATH)],
+                         ["git", "apply", str(PATCH_PATH)]):
+                result = subprocess.run(args, cwd=temp, capture_output=True, text=True)
+                self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("p2_human = ((human >> 12)",
                           (directory / "host_main.c").read_text())
-            executable = pathlib.Path(temp) / "p2-composition"
+            executable = temp_path / "p2-composition"
             subprocess.run(
-                ["cc", "-std=c11", "-Wall", "-Wextra", "-Werror", "-pedantic",
+                ["cc", "-std=c11", "-Wall", "-Wextra", "-Werror",
                  str(directory / "host_main.c"), "-o", str(executable)],
                 cwd=temp, check=True)
             subprocess.run([str(executable)], cwd=temp, check=True)

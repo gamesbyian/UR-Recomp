@@ -1,15 +1,20 @@
 --- a/runner/src/desktop/host_main.c
 +++ b/runner/src/desktop/host_main.c
-@@ -4120 +4120,5 @@
+@@ -4307,5 +4307,9 @@
+     if (g_game->filter_player_input)
+       human = g_game->filter_player_input(human);
 -    uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);
 +    uint32 p2_human = ((human >> 12) & 0x0fffu) |
 +                      (g_gamepad[1].axis_buttons & 0x0fffu);
 +    if (g_game->filter_second_player_input)
 +      p2_human = g_game->filter_second_player_input(p2_human);
 +    uint32 inputs = (human & ~0x00fff000u) | ((p2_human & 0x0fffu) << 12);
+ 
+     /* Overlay self-test (SNESRECOMP_OVERLAY_SELFTEST=<frame>, off by default).
 --- a/runner/src/desktop/host_main.h
 +++ b/runner/src/desktop/host_main.h
-@@ -220,3 +220,8 @@
+@@ -228,4 +228,9 @@
+    * reference fixtures can still exercise stock behavior. */
    uint32_t (*filter_player_input)(uint32_t inputs);
 +  /* Optional title-owned mapped P2 physical-button/axis filter before the
 +   * shared 24-bit guest controller word is assembled. Unlike the scripted

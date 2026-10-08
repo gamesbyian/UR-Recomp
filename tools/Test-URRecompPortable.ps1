@@ -30,6 +30,46 @@ $ErrorActionPreference = 'Stop'
 # Keep this in sync with the tracked rom_identity.txt canonical source.
 $canonicalRomSha256 = '859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478'
 
+function Assert-Amd64PortableExecutable {
+    param([Parameter(Mandatory = $true)][string]$Executable)
+
+    # Inspect PE headers with stock .NET FileStream only. This confirms the
+    # consumer receives an AMD64/PE32+ file without requiring Visual Studio,
+    # dumpbin or any additional executable on a clean Windows machine.
+    $message = 'Packaged executable must be an AMD64 PE32+ Windows binary'
+    $stream = [IO.File]::OpenRead($Executable)
+    try {
+        if ($stream.Length -lt 90) { throw $message }
+        $dos = New-Object byte[] 64
+        if ($stream.Read($dos, 0, 64) -ne 64 -or
+            $dos[0] -ne 0x4d -or $dos[1] -ne 0x5a) {
+            throw $message
+        }
+        $peOffset = [BitConverter]::ToUInt32($dos, 60)
+        if ($peOffset -lt 64 -or $peOffset -gt 16777216 -or
+            ([long]$peOffset + 26) -gt $stream.Length) {
+            throw $message
+        }
+        [void]$stream.Seek([long]$peOffset, [IO.SeekOrigin]::Begin)
+        $pe = New-Object byte[] 26
+        if ($stream.Read($pe, 0, 26) -ne 26 -or
+            $pe[0] -ne 0x50 -or $pe[1] -ne 0x45 -or
+            $pe[2] -ne 0 -or $pe[3] -ne 0) {
+            throw $message
+        }
+        $optionalSize = [BitConverter]::ToUInt16($pe, 20)
+        if ([BitConverter]::ToUInt16($pe, 4) -ne 0x8664 -or
+            [BitConverter]::ToUInt16($pe, 24) -ne 0x20b -or
+            $optionalSize -lt 2 -or
+            ([long]$peOffset + 24 + $optionalSize) -gt $stream.Length) {
+            throw $message
+        }
+    }
+    finally {
+        $stream.Dispose()
+    }
+}
+
 function Assert-PackageFiles {
     param([Parameter(Mandatory = $true)][string]$PackageRoot)
 
@@ -131,6 +171,8 @@ function Assert-PackageFiles {
     if (-not $readme.Contains("Source revision: $($manifest.source_revision)`n")) {
         throw 'README build revision does not match the manifest'
     }
+    Assert-Amd64PortableExecutable -Executable (Join-Path $PackageRoot 'UniracersSNESRecomp.exe')
+    Write-Output "UR_PORTABLE_BINARY_VERIFIED machine=AMD64 format=PE32+"
     Write-Output "UR_PORTABLE_ROM_IDENTITY_VERIFIED sha256=$canonicalRomSha256"
     Write-Output "UR_PORTABLE_MANIFEST_VERIFIED files=$($entries.Count) revision=$($manifest.source_revision)"
 }

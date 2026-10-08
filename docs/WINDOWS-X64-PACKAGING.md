@@ -55,7 +55,8 @@ adjacent files: `UR-Recomp-Windows-x64.zip`,
 The standalone script requires stock Windows PowerShell 5.1, verifies the
 archive checksum before native extraction, checks each immutable manifest
 payload's hash and length, independently requires the canonical USA retail
-ROM SHA-256 even for a self-consistent manifest/sidecar, and optionally
+ROM SHA-256 even for a self-consistent manifest/sidecar, checks the
+executable's AMD64 PE32+ headers using stock .NET file I/O, and optionally
 launches the package from an
 unrelated working directory using an isolated user root before verifying
 that the immutable files remain unchanged. The precise procedure and

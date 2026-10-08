@@ -184,7 +184,7 @@ function Assert-PackageFiles {
 # GetFullPath can silently normalize such input into an unexpected location.
 if (-not [IO.Path]::IsPathRooted($Destination) -or
     ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and
-     $Destination -cnotmatch '\\A(?:[A-Za-z]:[\\\\/]|[\\\\/]{2}[^\\\\/]+[\\\\/][^\\\\/]+(?:[\\\\/]|$))')) {
+     $Destination -cnotmatch '\A(?:[A-Za-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))')) {
     throw 'Destination must be a fully qualified absolute directory path'
 }
 $destinationPath = [IO.Path]::GetFullPath($Destination)

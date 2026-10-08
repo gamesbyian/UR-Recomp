@@ -64,6 +64,18 @@ class CourseContactMarshalContractTests(unittest.TestCase):
         for code in (p1in, p2in, p1out, p2out):
             self.assertIn(bytes.fromhex("090f"), code)
 
+    def test_finish_words_share_the_same_handler_control_class(self):
+        # 81:805D..8063 reads 0F09 & 0x1C00. Both the pre-transition
+        # 0x2024 and transition 0x2020 words produce class zero. Slot
+        # difference alone cannot explain a completed lap in this handler.
+        artifact = json.loads(TRACE.read_text(encoding="utf-8"))
+        words = [
+            r["collision_word"] for r in artifact["samples"]
+            if r["object_code"] == 0x14
+        ]
+        self.assertEqual(words, [0x2024, 0x2020, 0x2020, 0x0022, 0x0022, 0x0022])
+        self.assertEqual({w & 0x1C00 for w in words}, {0})
+
     def test_native_finish_trace_keeps_p1_p2_and_shared_scratch_distinct(self):
         artifact = json.loads(TRACE.read_text(encoding="utf-8"))
         self.assertEqual(artifact["provenance"]["workflow_run"], 36954104693)

@@ -73,7 +73,8 @@ inline bool local_tournament_valid_pending_fixture(
     return local_tournament_valid_instance_token(p.tournament_id) &&
         local_tournament_valid_instance_token(p.attempt_id) &&
         p.tournament_id != p.attempt_id &&
-        p.fixture_index < 28u && p.round >= 1u && p.round <= 7u &&
+        // 8 entrants x up to 3 legs: 84 fixtures across 21 rounds.
+        p.fixture_index < 84u && p.round >= 1u && p.round <= 21u &&
         local_tournament_ordinary_race_course(p.course_id) &&
         !p.first_profile_key.empty() && !p.second_profile_key.empty() &&
         p.first_profile_key.size() <= 128u &&

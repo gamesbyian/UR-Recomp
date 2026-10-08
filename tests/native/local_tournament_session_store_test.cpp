@@ -31,11 +31,53 @@ void put_bytes(const fs::path& path, const std::string& content) {
     require(bool(out), "test fixture writes");
 }
 
+void test_multi_leg_codec(const std::vector<HostProfileCatalogEntry>& catalog,
+                         const std::string& id) {
+    const auto three = make_local_tournament_session_definition(
+        id, {"alice", "bob"}, catalog, {"course:01", "course:04"}, 3);
+    require(bool(three) && three->empty_schedule.legs == 3 &&
+            three->empty_schedule.fixtures.size() == 3,
+            "two racers best of three");
+    const std::string encoded = encode_local_tournament_session_definition(*three);
+    require(encoded.rfind("UR-LOCAL-TOURNAMENT-SESSION/2\ninstance " + id +
+                "\nlegs 3\nentrants 2\n", 0) == 0,
+            "multi-leg sessions use v2 with an explicit legs record");
+    const auto decoded = decode_local_tournament_session_definition(encoded, catalog);
+    require(bool(decoded) && decoded->empty_schedule.legs == 3 &&
+            decoded->empty_schedule.fixtures.size() == 3 &&
+            encode_local_tournament_session_definition(*decoded) == encoded,
+            "v2 round trip rebuilds the multi-leg schedule");
+    const auto historical =
+        decode_local_tournament_historical_session_definition(encoded);
+    require(bool(historical) && historical->empty_schedule.legs == 3,
+            "historical decode keeps legs");
+
+    auto as_v1 = encoded;
+    as_v1.replace(0, 29, "UR-LOCAL-TOURNAMENT-SESSION/1");
+    require(!decode_local_tournament_session_definition(as_v1, catalog),
+            "v1 header cannot carry a legs record");
+    auto wrong_legs = encoded;
+    wrong_legs.replace(wrong_legs.find("legs 3"), 6, "legs 2");
+    require(!decode_local_tournament_session_definition(wrong_legs, catalog),
+            "legs are sealed by the schedule digest and checksum");
+
+    const auto one = make_local_tournament_session_definition(
+        id, {"alice", "bob"}, catalog, {"course:01"}, 1);
+    const std::string v1 = encode_local_tournament_session_definition(*one);
+    require(v1.rfind("UR-LOCAL-TOURNAMENT-SESSION/1\n", 0) == 0 &&
+            v1.find("legs") == std::string::npos,
+            "single-leg sessions keep the original v1 bytes");
+    require(!make_local_tournament_session_definition(
+                id, {"alice", "bob"}, catalog, {"course:01"}, 4),
+            "legs above the cap are refused");
+}
+
 int main() {
     const std::vector<HostProfileCatalogEntry> catalog{
         {"alice", {}}, {"bob", {}}, {"carol", {}}, {"other", {}},
     };
     const std::string id = "0123456789abcdef0123456789abcdef";
+    test_multi_leg_codec(catalog, id);
     const auto session = make_local_tournament_session_definition(
         id, {"alice", "bob", "carol"}, catalog,
         {"course:01", "course:04"});

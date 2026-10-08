@@ -4169,7 +4169,7 @@ void local_tournament_panel_show_setup() {
         g_local_multiplayer_participants.player2->profile_id);
     // Cursor starts on START: the seated pair is already a valid roster.
     g_local_tournament_panel.cursor =
-        g_local_tournament_panel.candidates.size() + 1;
+        ur::product::local_tournament_setup_start_row(g_local_tournament_panel);
 }
 
 void refresh_local_tournament_history_rows() {
@@ -4240,7 +4240,7 @@ void create_local_tournament_from_panel(
         g_local_tournament_restore_rejected;
     const auto created = ur::product::create_local_tournament_coordinator(
         paths, *token, request.roster, g_profile_catalog, request.courses,
-        replace);
+        replace, request.legs);
     if (!created.usable()) {
         g_local_tournament_panel_notice = "CREATE FAILED";
         product_diagnostic("UR_LOCAL_TOURNAMENT CREATE_FAILED");
@@ -4252,10 +4252,11 @@ void create_local_tournament_from_panel(
     g_local_tournament_panel_notice = "EVENT CREATED";
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
         std::fprintf(stderr,
-            "UR_LOCAL_TOURNAMENT CREATED entrants=%zu fixtures=%zu courses=%zu\n",
+            "UR_LOCAL_TOURNAMENT CREATED entrants=%zu fixtures=%zu courses=%zu legs=%zu\n",
             g_local_tournament_session->results.entrants.size(),
             g_local_tournament_session->results.fixtures.size(),
-            g_local_tournament_session->results.course_pool.size());
+            g_local_tournament_session->results.course_pool.size(),
+            g_local_tournament_session->results.legs);
         std::fflush(stderr);
     }
 }
@@ -4377,7 +4378,8 @@ void run_local_tournament_panel_acceptance() {
             (step == 1
                 ? g_local_tournament_panel.page == Page::Setup &&
                   g_local_tournament_panel.cursor ==
-                      g_local_tournament_panel.candidates.size() + 1
+                      ur::product::local_tournament_setup_start_row(
+                          g_local_tournament_panel)
                 : g_local_tournament_panel.page == Page::Fixtures);
     }
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -8402,7 +8404,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
         std::string footer;
         if (panel.page == Page::Setup) {
             line(30, "ROSTER 2-8  L/R HISTORY", style.palette.secondary_grey);
-            constexpr std::size_t kWindow = 7;
+            constexpr std::size_t kWindow = 6;
             const std::size_t n = panel.candidates.size();
             const std::size_t last_start = n > kWindow ? n - kWindow : 0;
             std::size_t start = 0;
@@ -8424,16 +8426,25 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     panel.cursor == i ? style.palette.cursor_blue
                     : chosen ? style.palette.title_yellow : 0xFFFFFFFFu);
             }
-            const bool on_courses = panel.cursor == n;
-            const bool on_start = panel.cursor == n + 1;
-            line(158, std::string(on_courses ? ">" : " ") + "COURSES < " +
+            const bool on_courses =
+                panel.cursor == ur::product::local_tournament_setup_courses_row(panel);
+            const bool on_legs =
+                panel.cursor == ur::product::local_tournament_setup_legs_row(panel);
+            const bool on_start =
+                panel.cursor == ur::product::local_tournament_setup_start_row(panel);
+            char legs_row[40];
+            std::snprintf(legs_row, sizeof(legs_row), "%sMEET EACH < %zuX >",
+                on_legs ? ">" : " ", panel.legs);
+            line(158, legs_row,
+                on_legs ? style.palette.cursor_blue : 0xFFFFFFFFu);
+            line(142, std::string(on_courses ? ">" : " ") + "COURSES < " +
                 ur::product::local_tournament_course_preset_label(
                     panel.course_preset) + " >",
                 on_courses ? style.palette.cursor_blue : 0xFFFFFFFFu);
             char start_row[40];
-            std::snprintf(start_row, sizeof(start_row), "%sSTART  %zu RACERS",
+            std::snprintf(start_row, sizeof(start_row), "%sSTART  %zu RACES",
                 on_start ? ">" : " ",
-                ur::product::local_tournament_setup_selected_count(panel));
+                ur::product::local_tournament_setup_race_count(panel));
             line(174, start_row,
                 on_start ? style.palette.cursor_blue
                 : ur::product::local_tournament_setup_can_start(panel)

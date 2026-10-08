@@ -83,8 +83,19 @@ void test_setup_flow() {
     local_tournament_panel_navigate(state, LocalTournamentPanelNav::Right, 0);
     check(state.course_preset == 0, "right wraps back");
 
+    // LEGS cycles 1..3 in both directions and with confirm.
+    state.cursor = local_tournament_setup_legs_row(state);
+    local_tournament_panel_navigate(state, LocalTournamentPanelNav::Left, 0);
+    check(state.legs == kLocalTournamentMaxLegs, "legs left wraps to max");
+    local_tournament_panel_navigate(state, LocalTournamentPanelNav::Right, 0);
+    check(state.legs == 1, "legs right wraps to one");
+    local_tournament_panel_navigate(state, LocalTournamentPanelNav::Confirm, 0);
+    check(state.legs == 2, "confirm on legs steps");
+    check(local_tournament_setup_race_count(state) == 6,
+        "three racers x two legs = six races");
+
     // START emits the explicit roster in catalog order.
-    state.cursor = state.candidates.size() + 1;
+    state.cursor = local_tournament_setup_start_row(state);
     request = local_tournament_panel_navigate(
         state, LocalTournamentPanelNav::Confirm, 0);
     check(request.kind == LocalTournamentPanelRequestKind::Create,
@@ -94,6 +105,7 @@ void test_setup_flow() {
         "roster in catalog order");
     check(request.courses == local_tournament_course_preset(0),
         "courses from preset");
+    check(request.legs == 2, "legs carried into the create request");
 
     // Fewer than two entrants cannot start.
     state.selected = {true, false, false, false};
@@ -105,7 +117,7 @@ void test_setup_flow() {
     // Up from the top wraps to START.
     state.cursor = 0;
     local_tournament_panel_navigate(state, LocalTournamentPanelNav::Up, 0);
-    check(state.cursor == state.candidates.size() + 1, "up wraps");
+    check(state.cursor == local_tournament_setup_start_row(state), "up wraps");
 
     // Sideways off the courses row opens read-only history; back returns.
     local_tournament_panel_navigate(state, LocalTournamentPanelNav::Right, 0);

@@ -61,7 +61,8 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     const std::vector<std::string>& explicitly_selected_profiles,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog,
     const std::vector<std::string>& ordinary_race_course_pool,
-    bool replace_existing_tournament = false);
+    bool replace_existing_tournament = false,
+    std::size_t legs = 1);
 
 // Restore only the current durable session and fixture-indexed validated
 // receipts. An interrupted previous process's pending race is never resumed;

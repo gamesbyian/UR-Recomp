@@ -25,8 +25,8 @@ env -u UR_LOCAL_TOURNAMENT_NATIVE_ACCEPTANCE \
 LOG="$WORK/real-joined-capture.log"
 grep -q "UR_LOCAL_TOURNAMENT STRIP rows=F4/PAD LB TOURNAMENT" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT PANEL_OPENED page=setup" "$LOG"
-grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=0 cursor=3 fixture=0 selected=2" "$LOG"
-grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 1 expected=1 visible=1 page=0 cursor=4 fixture=0 selected=2" "$LOG"
+grep -q "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1" "$LOG"
 grep -q "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE STEP 2 expected=1 visible=1 page=2 cursor=0 fixture=0" "$LOG"
 # Turbo presents only some frames; require that the panel itself rendered.
 grep -q "UR_LOCAL_TOURNAMENT PRESENT page=" "$LOG"

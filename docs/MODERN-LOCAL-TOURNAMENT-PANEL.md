@@ -10,7 +10,7 @@ Input: `F4` or the mapped `L` semantic opens; arrows / D-pad move; Enter or phys
 
 ## Pages
 
-- **Setup** (no active event, or the active event is complete): the authoritative profile catalog (`(X)` selected) with the seated pair preselected, a course preset (`CRAWLER` … the eighth ordinary tour, or `ALL TOURS`; Hunter is never offered), and `START`. The cursor opens on `START`, so the common case is one key. 2–8 entrants; the ninth toggle is refused.
+- **Setup** (no active event, or the active event is complete): the authoritative profile catalog (`(X)` selected) with the seated pair preselected, a course preset (`CRAWLER` … the eighth ordinary tour, or `ALL TOURS`; Hunter is never offered), `MEET EACH < 1X..3X >` legs (two racers on 3X is a best-of-three), and `START  N RACES`. The cursor opens on `START`, so the common case is one key. 2–8 entrants; the ninth toggle is refused.
 - **Standings**: the existing 3/1/0 table (`local_tournament_standings`), ranked with shared ties.
 - **Fixtures**: every round-robin meeting with `*` played / `>` armed, the selected fixture's course and authoritative result (oriented back to the scheduled entrants when race seats were swapped), and whether the seated pair can play it.
 
@@ -37,5 +37,5 @@ Left/Right cycles Standings → Fixtures → History; on Setup, Left/Right off t
 1. Run the panel acceptance on the Windows x64 package, not only the Linux desktop build.
 2. Native multi-session continuation of a 3+ entrant event: rotate seated pairs across fixtures and finish the event over several processes. The two-entrant relaunch path (restore → Standings → History) is proven.
 3. Completed-event history is a summary list only (no per-event standings drill-down) and is not yet mirrored in Records → Multiplayer/Tournament.
-4. A two-entrant event is a single race. Double round-robin or "best of N" would need a schedule-format change, which this slice deliberately does not make.
+4. Multi-leg events (session v2) are covered by model/codec tests; the native route exercises a single-leg event only.
 5. The P2 pad is not filtered while the panel is open (only the P1 human word is host-owned, as on the join overlay).

@@ -86,10 +86,11 @@ enum class LocalTournamentPanelPage {
 
 struct LocalTournamentPanelState {
     LocalTournamentPanelPage page = LocalTournamentPanelPage::Setup;
-    // Setup: one row per catalog entry, then COURSES, then START.
+    // Setup: one row per catalog entry, then COURSES, LEGS and START.
     std::vector<HostProfileCatalogEntry> candidates;
     std::vector<bool> selected;
     std::size_t course_preset = 0;
+    std::size_t legs = 1; // meetings per pair (1..kLocalTournamentMaxLegs)
     std::size_t cursor = 0;
     // Fixtures page cursor.
     std::size_t fixture_cursor = 0;
@@ -108,6 +109,7 @@ struct LocalTournamentPanelRequest {
     LocalTournamentPanelRequestKind kind = LocalTournamentPanelRequestKind::None;
     std::vector<std::string> roster;
     std::vector<std::string> courses;
+    std::size_t legs = 1;
     std::size_t fixture_index = 0;
 };
 
@@ -143,13 +145,34 @@ inline std::size_t local_tournament_setup_selected_count(
 
 inline std::size_t local_tournament_setup_row_count(
     const LocalTournamentPanelState& state) {
-    return state.candidates.size() + 2; // + COURSES + START
+    return state.candidates.size() + 3; // + COURSES + LEGS + START
+}
+
+inline std::size_t local_tournament_setup_courses_row(
+    const LocalTournamentPanelState& state) {
+    return state.candidates.size();
+}
+inline std::size_t local_tournament_setup_legs_row(
+    const LocalTournamentPanelState& state) {
+    return state.candidates.size() + 1;
+}
+inline std::size_t local_tournament_setup_start_row(
+    const LocalTournamentPanelState& state) {
+    return state.candidates.size() + 2;
+}
+
+// Scheduled races for the current setup: pairs x legs.
+inline std::size_t local_tournament_setup_race_count(
+    const LocalTournamentPanelState& state) {
+    const auto n = local_tournament_setup_selected_count(state);
+    return n < 2 ? 0 : n * (n - 1) / 2 * state.legs;
 }
 
 inline bool local_tournament_setup_can_start(
     const LocalTournamentPanelState& state) {
     const auto count = local_tournament_setup_selected_count(state);
     return count >= 2 && count <= kLocalTournamentMaxEntrants &&
+        state.legs >= 1 && state.legs <= kLocalTournamentMaxLegs &&
         !local_tournament_course_preset(state.course_preset).empty();
 }
 
@@ -176,8 +199,9 @@ inline LocalTournamentPanelRequest local_tournament_panel_navigate(
     }
     if (state.page == LocalTournamentPanelPage::Setup) {
         const std::size_t rows = local_tournament_setup_row_count(state);
-        const std::size_t courses_row = state.candidates.size();
-        const std::size_t start_row = courses_row + 1;
+        const std::size_t courses_row = local_tournament_setup_courses_row(state);
+        const std::size_t legs_row = local_tournament_setup_legs_row(state);
+        const std::size_t start_row = local_tournament_setup_start_row(state);
         if (state.cursor >= rows) state.cursor = rows - 1;
         switch (nav) {
         case LocalTournamentPanelNav::Up:
@@ -193,6 +217,11 @@ inline LocalTournamentPanelRequest local_tournament_panel_navigate(
                 state.course_preset = nav == LocalTournamentPanelNav::Right
                     ? (state.course_preset + 1) % n
                     : (state.course_preset + n - 1) % n;
+            } else if (state.cursor == legs_row) {
+                const std::size_t n = kLocalTournamentMaxLegs;
+                state.legs = nav == LocalTournamentPanelNav::Right
+                    ? state.legs % n + 1
+                    : (state.legs + n - 2) % n + 1;
             } else {
                 state.history_return = LocalTournamentPanelPage::Setup;
                 state.page = LocalTournamentPanelPage::History;
@@ -210,6 +239,8 @@ inline LocalTournamentPanelRequest local_tournament_panel_navigate(
                 state.course_preset =
                     (state.course_preset + 1) %
                     kLocalTournamentCoursePresetCount;
+            } else if (state.cursor == legs_row) {
+                state.legs = state.legs % kLocalTournamentMaxLegs + 1;
             } else if (state.cursor == start_row &&
                        local_tournament_setup_can_start(state)) {
                 request.kind = LocalTournamentPanelRequestKind::Create;
@@ -221,6 +252,7 @@ inline LocalTournamentPanelRequest local_tournament_panel_navigate(
                 }
                 request.courses =
                     local_tournament_course_preset(state.course_preset);
+                request.legs = state.legs;
             }
             break;
         default:

@@ -60,13 +60,14 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     const std::vector<std::string>& explicitly_selected_profiles,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog,
     const std::vector<std::string>& ordinary_race_course_pool,
-    bool replace_existing_tournament) {
+    bool replace_existing_tournament,
+    std::size_t legs) {
     if (!valid_paths(paths)) {
         return error(Status::InvalidRequest, "missing host-owned storage roots");
     }
     const auto definition = make_local_tournament_session_definition(
         new_instance_id, explicitly_selected_profiles,
-        authoritative_catalog, ordinary_race_course_pool);
+        authoritative_catalog, ordinary_race_course_pool, legs);
     if (!definition) {
         return error(Status::InvalidRequest, "invalid explicitly selected tournament");
     }

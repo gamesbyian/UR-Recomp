@@ -42,8 +42,8 @@ bool catalog_authorizes(
 }
 
 bool canonical_empty_schedule(const LocalTournamentState& schedule) {
-    const auto rebuilt =
-        make_local_round_robin(schedule.entrants, schedule.course_pool);
+    const auto rebuilt = make_local_round_robin(
+        schedule.entrants, schedule.course_pool, schedule.legs);
     if (!rebuilt ||
         schedule.fixtures.size() != rebuilt->fixtures.size() ||
         schedule.results.size() != rebuilt->results.size()) {
@@ -90,13 +90,14 @@ make_local_tournament_session_definition(
     std::string_view instance_id,
     const std::vector<std::string>& selected_profile_ids,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog,
-    const std::vector<std::string>& ordinary_race_course_pool) {
+    const std::vector<std::string>& ordinary_race_course_pool,
+    std::size_t legs) {
     if (!local_tournament_valid_instance_token(instance_id) ||
         !catalog_authorizes(selected_profile_ids, authoritative_catalog)) {
         return std::nullopt;
     }
     auto schedule = make_local_round_robin(
-        selected_profile_ids, ordinary_race_course_pool);
+        selected_profile_ids, ordinary_race_course_pool, legs);
     if (!schedule) return std::nullopt;
     return LocalTournamentSessionDefinition{
         std::string(instance_id), std::move(*schedule)};
@@ -106,8 +107,14 @@ std::string encode_local_tournament_session_definition(
     const LocalTournamentSessionDefinition& session) {
     if (!local_tournament_valid_instance_token(session.instance_id) ||
         !canonical_empty_schedule(session.empty_schedule)) return {};
-    std::string body = "UR-LOCAL-TOURNAMENT-SESSION/1\n";
+    // A single-leg event keeps the original v1 bytes exactly; only a
+    // multi-leg event uses v2, which adds one explicit "legs" record.
+    const std::size_t legs = session.empty_schedule.legs;
+    std::string body = legs == 1
+        ? "UR-LOCAL-TOURNAMENT-SESSION/1\n"
+        : "UR-LOCAL-TOURNAMENT-SESSION/2\n";
     body += "instance " + session.instance_id + "\n";
+    if (legs != 1) body += "legs " + std::to_string(legs) + "\n";
     body += "entrants " +
         std::to_string(session.empty_schedule.entrants.size()) + "\n";
     for (const auto& id : session.empty_schedule.entrants) {
@@ -143,17 +150,29 @@ decode_session_impl(
         pos = end + 1;
         if (lines.size() > 32) return std::nullopt;
     }
-    if (lines.size() < 8 ||
-        lines[0] != "UR-LOCAL-TOURNAMENT-SESSION/1" ||
+    if (lines.empty()) return std::nullopt;
+    const bool v2 = lines[0] == "UR-LOCAL-TOURNAMENT-SESSION/2";
+    if (!v2 && lines[0] != "UR-LOCAL-TOURNAMENT-SESSION/1") {
+        return std::nullopt;
+    }
+    // v2 inserts exactly one "legs" record after the instance.
+    const std::size_t shift = v2 ? 1 : 0;
+    if (lines.size() < 8 + shift ||
         lines[1].substr(0, 9) != "instance " ||
-        lines[2].substr(0, 9) != "entrants ") {
+        lines[2 + shift].substr(0, 9) != "entrants ") {
         return std::nullopt;
     }
     const auto instance = lines[1].substr(9);
+    std::size_t legs = 1;
+    if (v2 && (lines[2].substr(0, 5) != "legs " ||
+               !parse_size(lines[2].substr(5), &legs) ||
+               legs < 2 || legs > kLocalTournamentMaxLegs)) {
+        return std::nullopt;
+    }
     std::size_t n = 0;
-    if (!parse_size(lines[2].substr(9), &n) ||
+    if (!parse_size(lines[2 + shift].substr(9), &n) ||
         n < 2 || n > kLocalTournamentMaxEntrants) return std::nullopt;
-    const std::size_t courses_index = 3 + n;
+    const std::size_t courses_index = 3 + shift + n;
     if (lines.size() <= courses_index ||
         lines[courses_index].substr(0, 8) != "courses ") {
         return std::nullopt;
@@ -161,7 +180,7 @@ decode_session_impl(
     std::vector<std::string> entrants;
     entrants.reserve(n);
     for (std::size_t i = 0; i < n; ++i) {
-        const auto line = lines[3 + i];
+        const auto line = lines[3 + shift + i];
         if (line.substr(0, 8) != "entrant ") return std::nullopt;
         const auto decoded = local_tournament_unhex(line.substr(8));
         if (!decoded || decoded->empty() || decoded->size() > 128) {
@@ -187,9 +206,9 @@ decode_session_impl(
     std::optional<LocalTournamentSessionDefinition> built;
     if (authoritative_catalog) {
         built = make_local_tournament_session_definition(
-            instance, entrants, *authoritative_catalog, courses);
+            instance, entrants, *authoritative_catalog, courses, legs);
     } else if (local_tournament_valid_instance_token(instance)) {
-        auto schedule = make_local_round_robin(entrants, courses);
+        auto schedule = make_local_round_robin(entrants, courses, legs);
         if (schedule) {
             built = LocalTournamentSessionDefinition{
                 std::string(instance), std::move(*schedule)};

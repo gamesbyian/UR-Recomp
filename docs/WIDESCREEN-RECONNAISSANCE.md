@@ -63,8 +63,7 @@ The deterministic Dragster checkpoint/finish tail provides the first concrete
 cross-domain constraint. Its checkpoint/finish resource graphics and
 `7E:C000[6..14]` behavior cells are already present before active racing.
 Actual finish/checker pixels first enter the framebuffer at guest frame **2789**,
-while the checkpoint/finish behavior transition occurs at guest frame **2903**
-when collision/contact-derived C000 index 8 selects code `0x14`.
+while the checkpoint/finish **progress-state transition** is observed at guest frame **2903**. The *end-of-frame* P1 contact word at 2903 selects C000 slot 8/code `0x14`, but object dispatch precedes that frame's surface sampling: the saved slot-10/code-`0x14` word from frame 2902 is the stronger **candidate input** to the frame-2903 dispatch, not an instruction-time proven cause. The timing and independence of the presentation/activation boundary remain established.
 
 The `$0DCD/$0DCF` camera-filtered update lists are not the gameplay activation
 gate. A widened view may expose the finish presentation earlier, but it must not

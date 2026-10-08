@@ -39,6 +39,13 @@ FRAME_DISPATCH_MARSHAL = {
     "P2_object_dispatch_call": ("82:911C", "22e28281"),
 }
 
+FINISH_HANDLER_GATES = {
+    "player_skip_if_finish_ineligible": ("81:8050", "c230acef0fb9f50ef0034ce182"),
+    "checkpoint_family_and_zero_class": ("81:805D", "ad090f29001cc90000d005a900008035"),
+    "finish_gate_skip_or_increment": ("81:80AA", "b99d11f0034ce1821a999d11"),
+    "lap_count_set_and_decrement": ("81:8195", "acef0fa901008d110db9f10e3a99f10e"),
+}
+
 DISPATCH = {
     "course_checkpoint_handler_reads_shared_word": ("81:805D", "ad090f29001c"),
     "course_dispatcher_reads_shared_word": ("81:82ED", "ad090f"),
@@ -60,6 +67,7 @@ class CourseContactMarshalContractTests(unittest.TestCase):
         for name, (address, expected) in {
             **MARSHAL, **PLAYER_CALLS, **DISPATCH,
             **FRAME_DISPATCH_MARSHAL, **FRAME_PHASE_CALLS,
+            **FINISH_HANDLER_GATES,
         }.items():
             with self.subTest(name=name, address=address):
                 self.assertEqual(
@@ -121,6 +129,36 @@ class CourseContactMarshalContractTests(unittest.TestCase):
         self.assertEqual(p2out[-3:], bytes.fromhex("8c970e"))
         for code in (p1in, p2in, p1out, p2out):
             self.assertIn(bytes.fromhex("090f"), code)
+
+    def test_finish_handler_zero_class_reads_and_changes_gate_and_lap(self):
+        # The 0x1C00=0 branch reaches 81:80AA. Existing nonzero
+        # $119D,Y skips; otherwise 81:80B2 increments it. The subsequent
+        # 81:8195 path decrements $0EF1,Y. These are ROM byte assertions
+        # and *conditional* control-flow semantics, not an execution trace.
+        entry = bytes.fromhex(FINISH_HANDLER_GATES[
+            "player_skip_if_finish_ineligible"][1])
+        self.assertEqual(entry[5:8], bytes.fromhex("b9f50e"))
+        self.assertEqual(entry[-5:], bytes.fromhex("f0034ce182"))
+        control = bytes.fromhex(FINISH_HANDLER_GATES[
+            "checkpoint_family_and_zero_class"][1])
+        gate = bytes.fromhex(FINISH_HANDLER_GATES[
+            "finish_gate_skip_or_increment"][1])
+        lap = bytes.fromhex(FINISH_HANDLER_GATES[
+            "lap_count_set_and_decrement"][1])
+        self.assertTrue(control.startswith(bytes.fromhex("ad090f29001c")))
+        self.assertEqual(gate[:3], bytes.fromhex("b99d11"))
+        self.assertEqual(gate[-4:], bytes.fromhex("1a999d11"))
+        self.assertEqual(lap[-7:], bytes.fromhex("b9f10e3a99f10e"))
+        artifact = json.loads(TRACE.read_text(encoding="utf-8"))
+        prior, transitioned = artifact["samples"][1:3]
+        self.assertEqual(prior["collision_word"] & 0x1C00, 0)
+        self.assertEqual(
+            (prior["finish_gate"], prior["laps_remaining"]), (0, 1)
+        )
+        self.assertEqual(
+            (transitioned["finish_gate"], transitioned["laps_remaining"]),
+            (1, 0),
+        )
 
     def test_finish_words_share_the_same_handler_control_class(self):
         # 81:805D..8063 reads 0F09 & 0x1C00. Both the pre-transition

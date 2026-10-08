@@ -601,8 +601,13 @@ unrelated checkpoint handlers or conducting a broad 45-course runtime sweep.
 ### Dragster finish-column triangulation from independent runtime evidence (2026-10-08)
 
 The established Dragster object-activation reference fixture records the first
-semantic finish transition at guest frame 2903: P1 X=25256, collision word
-0x2020, C000 index 8, behavior code 0x14. The published ROM-derived
+semantic finish transition at guest frame 2903: **postframe** P1 X=25256,
+**newly sampled** contact word 0x2020, C000 index 8, behavior code 0x14.
+The ROM-proven USA main-race call order dispatches course objects before
+sampling new contact. The prior frame-2902 stored word 0x2024/slot 10 is
+therefore the stronger **pre-dispatch input candidate**, not a proven
+finish trigger. Never use the frame-2903 postframe slot-8 value as proof
+that slot 8 activated the *same-frame* finish transition. The published ROM-derived
 Dragster spatial contract independently places packed word 0x2020 (C000
 slot 8) at world X 25280 in three 16x16 cells at world Y 800, 832 and 864.
 The historical optimizer finish-X lead is 25278, two world units before
@@ -672,9 +677,10 @@ at Y=800/832/864. This contact word/slot sequence is therefore
 consistent with exact course-local packed cells at the finish stripe.
 
 **Semantic consequence:** merely observing a 0x14 checkpoint/finish
-object code cannot be equated to a finish event. The preceding frame
-already selected that handler family without changing checkpoint,
-finish-gate or lap state. The next decoder/runtime experiment must
+object code cannot be equated to a finish event. The preceding **postframe observation** already contained the same handler
+family while checkpoint, finish-gate and lap state had not changed. This
+is not evidence that the word was dispatched during that same frame;
+actual dispatch order places it earlier than the new contact sample. The next decoder/runtime experiment must
 correlate the state of the handler, selected slot and active contact
 point rather than assuming all cells of resource 0x24 are equivalent.
 
@@ -697,10 +703,11 @@ it advances 0x1804 -> 0x2024 -> 0x2020 -> 0x0022 during this
 transition. The postframe snapshot at 7E:0F09, the current-player
 collision-state source named in the dispatcher disassembly, remains
 0x1804 in all seven frames. These observations have separate fields
-in the preserved witness and cannot be conflated. The apparent
-discrepancy is compatible with the per-player marshal/current-player
-scratch region being overwritten between dispatch and the end-of-frame
-dump, but **that phase explanation has not been proven**. Resolve it
+in the preserved witness and cannot be conflated. The apparent discrepancy is now resolved structurally by the byte-verified
+P1/P2 handoff: shared 0F09 is overwritten by the subsequent P2 update
+path before the frame-end dump, so it cannot be interpreted as
+permanent P1 state. Whether every expected instruction executed on each
+retained frame still requires a CPU trace. Resolve it
 with an instruction-time read/write trace around 81:82E6 and the P1/P2
 marshal, not by assigning stable frame-end memory an in-flight value.
 
@@ -710,9 +717,10 @@ stored collision word at 7E:0E97 is exactly 0x1804 on all seven frames,
 matching the settled 7E:0F09 scratch value byte-for-byte; the P1 word
 at 7E:0E95 changes independently. This is consistent with 0F09 holding
 the last marshalled/current-player collision word after the frame
-finishes, potentially P2's. That explanation remains **inferred**:
-an instruction-time trace or authoritative marshal path is required
-to confirm when 0F09 mirrors each player. It is nevertheless enough
+finishes, potentially P2's. The per-player entry/exit marshal and bank-82 course-dispatch inputs are
+now ROM-byte-verified, as documented in docs/COURSE-CONTACT-MARSHAL.md;
+the precise instruction-time contents during a specific recorded event
+remain unobserved. It is nevertheless enough
 to reject using a postframe 0F09 snapshot as the observed P1 collision
 selector for this trace.
 

@@ -85,10 +85,12 @@ class NativeMenuSfxCommandsTests(unittest.TestCase):
 
     def test_sfx_command_mutation_or_reference_swap_fails(self):
         actual = snapshots(self.reference)
-        for name, value in (("e01", 0x07), ("e02", 0x09), ("e03", 0x06)):
+        for name, slot, value in (
+            ("e01", 1, 0x07), ("e02", 3, 0x09), ("e03", 5, 0x06)
+        ):
             broken = dict(actual)
             mem = bytearray(actual[name])
-            mem[RING_LO + 1] = value
+            mem[RING_LO + slot] = value
             broken[name] = bytes(mem)
             with self.subTest(name=name), self.assertRaises(ValueError):
                 verify(broken, LOG, self.reference)

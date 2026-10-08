@@ -11,6 +11,7 @@ import argparse
 from pathlib import Path
 
 CHECKPOINTS = ("main-menu-ready", "now-playing-ready", "race-entered")
+POST_CHECKPOINT_FRAMES = 30
 
 
 def checkpoint_route(source: str, checkpoint: str) -> str:
@@ -37,8 +38,10 @@ def checkpoint_route(source: str, checkpoint: str) -> str:
         raise ValueError("checkpoint extraction did not end at the required dump")
     return (
         "# Derived from canonical tests/input/reach-first-race.script.\n"
-        f"# Audio capture stops after observed {checkpoint}, no guest pokes.\n"
-        + "\n".join(commands) + "\nquit\n"
+        f"# Audio capture brackets {checkpoint} with {POST_CHECKPOINT_FRAMES} post frames.\n"
+        + "\n".join(commands)
+        + f"\nwait {POST_CHECKPOINT_FRAMES}\n"
+        + f"dump {checkpoint}-audio-post\nquit\n"
     )
 
 

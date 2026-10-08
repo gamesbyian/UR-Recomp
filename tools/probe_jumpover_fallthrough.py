@@ -228,6 +228,8 @@ def classify(case: list[dict], control: list[dict]) -> dict:
 
 
 def first_divergence(a: list[dict], b: list[dict], fields=SEMANTIC_FIELDS) -> dict | None:
+    if not a or not b:
+        raise ValueError("trajectory comparison needs nonempty captures")
     check_frame_grid(a, "first trajectory")
     check_frame_grid(b, "second trajectory")
     if len(a) != len(b):

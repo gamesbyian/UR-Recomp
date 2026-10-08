@@ -256,10 +256,21 @@ int main() {
         p1_top, p1_bottom, p2_top, p2_bottom
     ));
     p1_bottom.y_raw_8bit = 250;
-    assert(racer_p1_only_no_stock_p2_occlusion(
+    // At $83 size mode the normally inactive 16px bottom slot wraps
+    // visibly into the top viewport: extraction would erase it.
+    assert(!racer_p1_only_no_stock_p2_occlusion(
         p1_top, p1_bottom, p2_top, p2_bottom
     ));
     p1_bottom.y_raw_8bit = 150;
+    p1_top.y_raw_8bit = 120;  // inactive top slot visible at bottom
+    assert(!racer_p1_only_no_stock_p2_occlusion(
+        p1_top, p1_bottom, p2_top, p2_bottom
+    ));
+    p1_top.y_raw_8bit = 150; // top slot small copy is still in lower viewport
+    assert(!racer_p1_only_no_stock_p2_occlusion(
+        p1_top, p1_bottom, p2_top, p2_bottom
+    ));
+    p1_top.y_raw_8bit = 40;
     p2_top.attr = 0x50;
     assert(!racer_p1_only_no_stock_p2_occlusion(
         p1_top, p1_bottom, p2_top, p2_bottom

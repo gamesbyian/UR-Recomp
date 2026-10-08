@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "references" / "imported" / "tas-bots" / "usjo8.lua"
+SOURCE = ROOT / "reference" / "imported" / "tas-bots" / "usjo8.lua"
 JSON_OUT = ROOT / "analysis" / "generated" / "usjo8-boost-model.json"
 MD_OUT = ROOT / "analysis" / "generated" / "usjo8-boost-model.md"
 

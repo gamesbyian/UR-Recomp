@@ -1,0 +1,215 @@
+{
+  "schema": "UR-RELEASE-QUALITY-LEDGER/1",
+  "updated": "2026-10-08",
+  "candidate": {
+    "commit_sha": null,
+    "zip_sha256": null,
+    "physical_hardware_verified": false,
+    "release_decision": "not_assessed"
+  },
+  "status_definitions": {
+    "unverified": "release-level evidence not yet established",
+    "in_progress": "bounded investigation underway, no pass claimed",
+    "passed": "specific gate has complete accepted evidence on exact candidate",
+    "failed": "reproduced gate violation on exact candidate",
+    "blocked": "cannot execute specified discriminator with current means",
+    "waived": "explicit reviewed and dated limited-release exception"
+  },
+  "gates": [
+    {
+      "id": "QA-01",
+      "priority": "P0",
+      "claim": "Course and finish-event completeness",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/COURSE-CONTACT-MARSHAL.md"
+      ],
+      "journeys": [
+        "J-09",
+        "J-15"
+      ],
+      "next_action": "Full content/event census and disputed instruction-time contact trace",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-02",
+      "priority": "P0",
+      "claim": "Cross-artifact persistent state recovery",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/COMPLETED-RUN-RECORDS.md"
+      ],
+      "journeys": [
+        "J-02",
+        "J-07",
+        "J-08"
+      ],
+      "next_action": "Injected termination and storage-failure recovery across profile/run/ghost/tournament",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-03",
+      "priority": "P0",
+      "claim": "Tournament complete multi-leg and multi-session play",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md"
+      ],
+      "journeys": [
+        "J-03",
+        "J-04",
+        "J-05",
+        "J-06"
+      ],
+      "next_action": "Finish leg two/three and a three-entrant tournament from packaged candidate across processes",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-04",
+      "priority": "P0",
+      "claim": "Physical Windows consumer candidate validation",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/WINDOWS-CLEAN-MACHINE-ACCEPTANCE.md"
+      ],
+      "journeys": [
+        "J-01",
+        "J-10"
+      ],
+      "next_action": "Exact candidate ZIP on independently configured physical Windows hosts",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-05",
+      "priority": "P1",
+      "claim": "Cross-feature route and P1/P2 input ownership",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/MODERN-FRONTEND-SHIPPING-STATUS.md"
+      ],
+      "journeys": [
+        "J-06",
+        "J-11",
+        "J-12",
+        "J-20"
+      ],
+      "next_action": "Modal held-release/seat/hotplug checks with guest-state assertions",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-06",
+      "priority": "P1",
+      "claim": "Source aligned original/native music and SFX",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/AUDIO-NATIVE-OUTPUT-ACCEPTANCE.md"
+      ],
+      "journeys": [
+        "J-17"
+      ],
+      "next_action": "Sound-state aligned audio phase parity and physical output quality",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-07",
+      "priority": "P1",
+      "claim": "Expert and unusual race/physics semantics",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/EXPERT-PLAYTEST-PROTOCOL.md"
+      ],
+      "journeys": [
+        "J-09",
+        "J-15"
+      ],
+      "next_action": "Original reference against expert-play threshold transitions",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-08",
+      "priority": "P1",
+      "claim": "Widescreen and HD moving-scene correctness",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/SEMANTIC-SUFFICIENCY.md"
+      ],
+      "journeys": [
+        "J-13",
+        "J-16"
+      ],
+      "next_action": "Time-sequence review and quantified correct draw availability for whole motion families",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-09",
+      "priority": "P1",
+      "claim": "Comprehensible Modern UX and accessibility",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/MODERN-UI-VISUAL-FIDELITY.md"
+      ],
+      "journeys": [
+        "J-01",
+        "J-19"
+      ],
+      "next_action": "Blind first-player task completion, TV legibility, controller only and finished UI",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-10",
+      "priority": "P1",
+      "claim": "Long session and varied machine resilience",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/WINDOWS-X64-PACKAGING.md"
+      ],
+      "journeys": [
+        "J-10",
+        "J-18"
+      ],
+      "next_action": "2h+ mixed-session soak and hardware focus/device stress",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-11",
+      "priority": "P1",
+      "claim": "Nonrepresentative replay and ghost coverage",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/GHOST-PRESENTATION-TRACE.md"
+      ],
+      "journeys": [
+        "J-13",
+        "J-14"
+      ],
+      "next_action": "Diverse completed-run replay and ghost presence/continuity across cameras",
+      "waiver_reason": null
+    },
+    {
+      "id": "QA-12",
+      "priority": "P1",
+      "claim": "Independent evidence and nonstale release claims",
+      "status": "unverified",
+      "candidate_commit": null,
+      "evidence_refs": [
+        "docs/CI-HARDENING-AUDIT.md"
+      ],
+      "journeys": [
+        "J-20"
+      ],
+      "next_action": "Current artifact provenance and independent reference per quality gate",
+      "waiver_reason": null
+    }
+  ]
+}

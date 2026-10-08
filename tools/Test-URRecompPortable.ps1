@@ -62,7 +62,7 @@ function Assert-PackageFiles {
         # Mod selection state is mutable user data, not an immutable catalog
         # asset. Reject it even if a separately supplied manifest/checksum
         # claims it is an ordinary mods/** payload.
-        if ($relative -ceq 'mods/preloaded/state.toml') {
+        if ($relative -ieq 'mods/preloaded/state.toml') {
             throw 'Mutable mod-selection state must not be shipped in the package'
         }
         if ($seen.ContainsKey($relative)) {
@@ -100,7 +100,7 @@ function Assert-PackageFiles {
     if (-not @($seen.Keys | Where-Object { $_.StartsWith('mods/', [StringComparison]::Ordinal) }).Count) {
         throw 'The package has no immutable mod payload'
     }
-    $actualFiles = @(Get-ChildItem -LiteralPath $PackageRoot -Recurse -File)
+    $actualFiles = @(Get-ChildItem -LiteralPath $PackageRoot -Recurse -File -Force)
     if ($actualFiles.Count -ne ($entries.Count + 1)) {
         throw 'Extracted package has extra or missing payload files'
     }

@@ -75,6 +75,26 @@ def summarize_audio_stats(
     rows = parse_audio_stats(path, min_records=min_records)
     first, last = rows[0], rows[-1]
     diffs = {field: last[field] - first[field] for field in MONOTONIC if field != "ms"}
+    # The end-to-end counter delta cannot show whether eight underruns all
+    # happened during startup or were scattered across steady-state racing.
+    # Retain only anomalous intervals, relative to the first observed sample.
+    anomalies = []
+    for start, end in zip(rows, rows[1:]):
+        counters = {
+            "dropped_audible": end["dropped_audible"] - start["dropped_audible"],
+            "dropped": end["dropped"] - start["dropped"],
+            "underflows": end["underflows"] - start["underflows"],
+            "missing_frames": end["missing_frames"] - start["missing_frames"],
+        }
+        if any(counters.values()):
+            anomalies.append({
+                "start_offset_ms": start["ms"] - first["ms"],
+                "end_offset_ms": end["ms"] - first["ms"],
+                "interval_ms": end["ms"] - start["ms"],
+                "occupancy_start": start["occupancy"],
+                "occupancy_end": end["occupancy"],
+                **counters,
+            })
     for field, limit in limits.items():
         if limit is not None and diffs[field] > limit:
             raise ValueError(
@@ -88,6 +108,12 @@ def summarize_audio_stats(
         "first": first,
         "last": last,
         "deltas": diffs,
+        "anomalous_intervals": anomalies,
+        "intervals_observed": len(rows) - 1,
+        "snapshot_resolution_note": (
+            "Counters are sampled about once per wall-clock second; "
+            "intervals are not guest-frame-aligned or exact glitch timestamps."
+        ),
         "occupancy_min": min(x["occupancy"] for x in rows),
         "occupancy_max": max(x["occupancy"] for x in rows),
         "limits_applied": {key: value for key, value in limits.items() if value is not None},
@@ -118,6 +144,16 @@ def main() -> int:
         f"missing_frames={d['missing_frames']} produced={d['produced']} "
         f"consumed={d['consumed']}"
     )
+    for interval in report["anomalous_intervals"]:
+        print(
+            "AUDIO_QUEUE_INTERVAL "
+            f"from_ms={interval['start_offset_ms']} "
+            f"to_ms={interval['end_offset_ms']} "
+            f"audible_drops={interval['dropped_audible']} "
+            f"underflows={interval['underflows']} "
+            f"missing_frames={interval['missing_frames']} "
+            f"occupancy={interval['occupancy_start']}->{interval['occupancy_end']}"
+        )
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

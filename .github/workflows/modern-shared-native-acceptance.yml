@@ -450,8 +450,13 @@ jobs:
 
   results-navigation:
     needs: build
+    name: results-navigation-${{ matrix.shard }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [selection, progression, isolation]
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -469,6 +474,7 @@ jobs:
           tar -xzf "$RUNNER_TEMP/shared-modern-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
           test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
       - name: Run deterministic results-navigation model tests
+        if: matrix.shard == 'selection'
         shell: bash
         run: |
           set -euo pipefail
@@ -485,20 +491,20 @@ jobs:
           bash "$GITHUB_WORKSPACE/tests/native/run_modern_results_navigation_acceptance.sh" \
             "$ROOT/build/UniracersSNESRecomp" \
             "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/results-navigation"
+            "$RUNNER_TEMP/results-navigation-${{ matrix.shard }}" \
+            "${{ matrix.shard }}"
 
       - name: Upload acceptance evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: modern-results-navigation-acceptance
+          name: modern-results-navigation-${{ matrix.shard }}
           path: |
-            ${{ runner.temp }}/results-navigation/*.log
-            ${{ runner.temp }}/results-navigation/*-dumps/
-            ${{ runner.temp }}/results-navigation/*-profile/
+            ${{ runner.temp }}/results-navigation-${{ matrix.shard }}/*.log
+            ${{ runner.temp }}/results-navigation-${{ matrix.shard }}/*-dumps/
+            ${{ runner.temp }}/results-navigation-${{ matrix.shard }}/*-profile/
           if-no-files-found: warn
           retention-days: 7
-
 
   ordinary-2p:
     needs: build

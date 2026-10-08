@@ -1,6 +1,8 @@
 #include "local_tournament_result_link_store.hpp"
 
+#include <atomic>
 #include <cerrno>
+#include <chrono>
 #include <cstdio>
 #include <filesystem>
 #include <optional>
@@ -121,25 +123,76 @@ std::optional<StoredMultiplayerMatch> load_exact_saved_pair(
     return StoredMultiplayerMatch{path, *run.record, *match.record};
 }
 
-bool publish_link(const std::string& path, std::string_view bytes) {
-    const std::string temporary = path + ".tmp";
-    std::FILE* file = std::fopen(temporary.c_str(), "wb");
-    if (!file) return false;
+// A fixture result is an immutable, instance-scoped receipt. A preflight
+// fs::exists followed by REPLACE_EXISTING is not a transaction: concurrent
+// game processes can both see it absent and overwrite one another's result.
+// Give every writer its own atomically reserved staging directory, and
+// publish the *final* fixture pathname with no-replace semantics.
+enum class LinkPublishStatus { Published, Conflict, IoError };
+
+std::optional<fs::path> reserve_link_staging(const fs::path& parent) {
+    static std::atomic<std::uint64_t> serial{0};
+    for (unsigned attempt = 0; attempt < 32; ++attempt) {
+        const auto tick = std::chrono::steady_clock::now()
+                              .time_since_epoch().count();
+        const fs::path staging = parent /
+            (".pending-urfixture-" + std::to_string(tick) + "-" +
+             std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
+        std::error_code ec;
+        if (fs::create_directory(staging, ec)) return staging;
+        if (ec) return std::nullopt;
+    }
+    return std::nullopt;
+}
+
+LinkPublishStatus publish_link(const std::string& path,
+                               std::string_view bytes) {
+    const fs::path final_path(path);
+    const auto staging = reserve_link_staging(final_path.parent_path());
+    if (!staging) return LinkPublishStatus::IoError;
+    const fs::path staged_file = *staging / "fixture.tmp";
+    std::error_code ec;
+    auto cleanup = [&] {
+        std::error_code ignored;
+        fs::remove_all(*staging, ignored);
+    };
+    std::FILE* file = std::fopen(staged_file.string().c_str(), "wb");
+    if (!file) {
+        cleanup();
+        return LinkPublishStatus::IoError;
+    }
     const auto wrote = std::fwrite(bytes.data(), 1, bytes.size(), file);
     const bool flushed = std::fflush(file) == 0;
     const bool closed = std::fclose(file) == 0;
     if (wrote != bytes.size() || !flushed || !closed) {
-        std::remove(temporary.c_str());
-        return false;
+        cleanup();
+        return LinkPublishStatus::IoError;
     }
+
 #if defined(_WIN32)
-    const bool moved = MoveFileExA(temporary.c_str(), path.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
+    // MoveFileW refuses an existing destination, unlike MoveFileExA with
+    // MOVEFILE_REPLACE_EXISTING. Staging and final always share a directory.
+    const bool published = MoveFileW(staged_file.c_str(),
+                                     final_path.c_str()) != 0;
+    const DWORD win_error = published ? ERROR_SUCCESS : GetLastError();
+    const bool conflict = !published &&
+        (win_error == ERROR_ALREADY_EXISTS || win_error == ERROR_FILE_EXISTS);
 #else
-    const bool moved = std::rename(temporary.c_str(), path.c_str()) == 0;
+    // A same-filesystem hard link atomically claims an absent name. Ordinary
+    // rename() replaces existing names on POSIX and is forbidden for receipts.
+    fs::create_hard_link(staged_file, final_path, ec);
+    const bool published = !ec;
+    const bool conflict = ec == std::errc::file_exists;
 #endif
-    if (!moved) std::remove(temporary.c_str());
-    return moved;
+    cleanup();
+    if (published) return LinkPublishStatus::Published;
+    if (conflict) return LinkPublishStatus::Conflict;
+    // Windows can report ACCESS_DENIED for an already present destination.
+    // Recheck only for error classification; the no-replace publish has
+    // already failed and will never overwrite the incumbent fixture.
+    ec.clear();
+    if (fs::exists(final_path, ec) && !ec) return LinkPublishStatus::Conflict;
+    return LinkPublishStatus::IoError;
 }
 
 std::optional<std::string> read_link(const std::string& path) {
@@ -215,7 +268,9 @@ LocalTournamentResultLinkStatus commit_saved_local_tournament_fixture(
     const bool exists = fs::exists(path, ec);
     if (ec) return Status::IoError;
     if (exists) return Status::Conflict;
-    if (!publish_link(path, encoded)) return Status::IoError;
+    const auto publication = publish_link(path, encoded);
+    if (publication == LinkPublishStatus::Conflict) return Status::Conflict;
+    if (publication != LinkPublishStatus::Published) return Status::IoError;
 
     active_launch = std::move(next_launch);
     active_tournament = std::move(next_state);

@@ -142,3 +142,48 @@ placement*, but the SDL resampler, queue delay, startup priming and end-of-run
 draining have not been mapped exactly to guest-frame boundaries. Do not
 reinterpret this as proven sample-exact phase alignment, DSP equivalence or
 device latency validation. Those still require causal phase/queue calibration.
+
+## Relative native/reference phase matrix
+
+The first three-checkpoint Windows capture also produces
+`audio-phase-matrix.json` from `tools/analyze_audio_phase_matrix.py`.
+For each of the same named checkpoints, it reports:
+
+- Native SDL3 output one-second-tail RMS and peak amplitude.
+- Existing independent Snes9x and Beetle guest-centered-window RMS.
+- Ratios of Now Playing and Race Entry RMS to Main Menu RMS **within each
+  engine**, and each engine's observed RMS phase ordering.
+- Whether the independent references agree on that ordering and whether
+  native output shares it.
+
+This comparison is deliberately descriptive at first. It rejects missing or
+synthetic native metadata, nonfinite or nonpositive amplitudes, invalid native
+window durations, ambiguous reference identities and missing reference
+checkpoints. It does **not** demand equal raw PCM hashes, absolute amplitudes
+or ratios across different emulators. A native phase-order mismatch is recorded
+for investigation rather than automatically "corrected" by changing APU or
+playback timing. The matrix remains useful even before actual sample-to-guest
+phase and SDL latency are measured.
+
+The source of truth for this reference comparison remains
+`analysis/generated/audio-startup-reference-summary.json`,
+created from independent captures; no new music assets are inferred.
+
+## Audio-only change validation without native recompilation
+
+The specialist audio workflow also triggers for **main-branch changes to
+the audio reducers, checkpoint route and canonical input fixture**. This does *not* run the expensive native Windows build again.
+Instead, GitHub Actions selects the latest successful first-party
+`Windows native build and boot smoke` run on main and downloads its
+named, already verified portable package. A missing successful package or
+missing artifact fails closed. It then launches the normal packaged executable
+under SDL3 disk playback and captures the three audio checkpoints, production
+stats, window alignment evidence and the normalized reference phase matrix.
+
+The separate `workflow_run` trigger continues to test any newly successful
+Windows product build automatically. Thus changes to *audio analysis tools and input fixtures*
+can be validated immediately against an existing package, while *game code
+changes* are validated against their newly built package. Neither requires
+building a second native executable in the audio lane. Workflow-YAML-only
+changes do not self-trigger, per repository CI policy; the successful-build
+follow-on and manual source-run dispatch remain available.

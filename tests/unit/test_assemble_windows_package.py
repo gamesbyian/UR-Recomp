@@ -1,5 +1,7 @@
 import json
 import hashlib
+import os
+import shutil
 import pathlib
 import subprocess
 import sys
@@ -42,6 +44,52 @@ class WindowsPackageTests(unittest.TestCase):
             capture_output=True,
             check=check,
         )
+
+    def test_windows_launcher_retains_metacharacter_paths_in_startup_log(self):
+        # Real CMD parsing, not a string-only policy assertion. Only the
+        # hosted Windows package gate runs this; Linux tooling skips it.
+        if os.name != "nt":
+            self.skipTest("requires Windows cmd.exe")
+        from tools import assemble_windows_package as package_tool
+
+        with tempfile.TemporaryDirectory() as tmp:
+            base = pathlib.Path(tmp)
+            payload = base / "package & game! (portable)"
+            payload.mkdir()
+            user_data = base / "player & user! (data)"
+            # A stock system command serves as a harmless native EXE that
+            # reads the single ROM path argument and exits successfully.
+            attrib = pathlib.Path(os.environ["SystemRoot"]) / "System32" / "attrib.exe"
+            shutil.copyfile(attrib, payload / package_tool.EXE_NAME)
+            (payload / package_tool.ROM_NAME).write_bytes(b"synthetic-rom")
+            (payload / "rom.cfg").write_bytes(package_tool.ROM_CONFIG_BYTES)
+            catalog = payload / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / ".gitkeep").touch()
+            package_tool.write_launcher(payload / package_tool.LAUNCHER_NAME, "cmd-path-test")
+
+            env = os.environ.copy()
+            env["UR_RECOMP_USER_DATA_ROOT"] = str(user_data)
+            process = subprocess.run(
+                ["cmd.exe", "/d", "/c", package_tool.LAUNCHER_NAME],
+                cwd=payload, env=env, capture_output=True, text=True,
+                timeout=30, check=False,
+            )
+            self.assertEqual(process.returncode, 0, process.stdout + process.stderr)
+            startup = (user_data / "diagnostics" / "startup.log").read_text(
+                encoding="utf-8"
+            ).splitlines()
+            self.assertEqual(
+                [line for line in startup if line.startswith("package_root=")],
+                ["package_root=" + str(payload)],
+            )
+            self.assertEqual(
+                [line for line in startup if line.startswith("user_data_root=")],
+                ["user_data_root=" + str(user_data)],
+            )
+            self.assertIn("process_exit=0", startup)
+            self.assertEqual(startup.count("result=startup-begin"), 1)
+            self.assertFalse((payload / "diagnostics").exists())
 
     def test_controller_startup_failure_has_specific_release_code(self):
         patch = STARTUP_PATCH.read_text()
@@ -142,6 +190,9 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("profile names", readme)
             self.assertIn("controller input", readme)
             self.assertIn("setlocal DisableDelayedExpansion", launcher)
+            self.assertIn("setlocal EnableDelayedExpansion", launcher)
+            self.assertIn("echo package_root=!UR_PACKAGE_ROOT!", launcher)
+            self.assertIn("echo user_data_root=!UR_RECOMP_USER_DATA_ROOT!", launcher)
             self.assertIn(
                 '"%~dp0UniracersSNESRecomp.exe" "%~dp0Uniracers_USA.sfc" %*',
                 launcher,

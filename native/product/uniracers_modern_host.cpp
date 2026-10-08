@@ -2973,7 +2973,9 @@ bool open_practice_picker() {
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return false;
     }
-    const std::uint8_t stock_rider = g_sram[0x0748];
+    const std::uint8_t selected_rider = g_sram[0x0748];
+    const std::uint8_t stock_rider = selected_rider < 16
+        ? selected_rider : 0;
     if (g_profile_state && g_profile_state->racer_identity &&
         g_profile_state->racer_identity->rider_index != stock_rider) {
         return false;

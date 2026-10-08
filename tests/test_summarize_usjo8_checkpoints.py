@@ -31,6 +31,8 @@ def main() -> int:
         }
         for addr, value in values.items():
             blob[addr] = value
+        put16(blob, 0x11CF, 0x1234)
+        put16(blob, 0x11D1, 0x5678)
         (td / "probe.wram.bin").write_bytes(blob)
         out = td / "out.json"
         subprocess.run([
@@ -52,7 +54,20 @@ def main() -> int:
             "boost_meter_low": 9,
             "boost_meter_high": 10,
             "boost_meter_word": 2569,
+            "p1_boost_persistent": 0x1234,
+            "p2_boost_persistent": 0x5678,
         }, row
+
+    # Do not admit a partial or extended WRAM file as authoritative evidence.
+    with tempfile.TemporaryDirectory() as td:
+        td = Path(td)
+        for name, length in (("truncated", 0x1FFFF), ("extended", 0x20001)):
+            (td / f"{name}.wram.bin").write_bytes(bytes(length))
+            probe = subprocess.run([
+                sys.executable, str(TOOL), str(td), "--checkpoint", name
+            ], text=True, capture_output=True)
+            assert probe.returncode != 0, (name, probe.stdout)
+            assert "expected 131072 bytes" in probe.stderr, (name, probe.stderr)
 
     print("PASS: USJO v8 checkpoint summarizer field widths and signs")
     return 0

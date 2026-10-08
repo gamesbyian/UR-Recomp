@@ -755,3 +755,32 @@ at a placed world cell. It does not by itself prove that the cell was
 actually contacted in a given frame, nor that its checkpoint/finish
 handler changed race progress. The fine-cell lookup is also separate
 from collision-footprint selection and guest execution timing.
+
+
+### PAL prototype versus PAL retail placed-course comparison (2026-10-08)
+
+The 1994-11-29 PAL prototype is an independent course-content source, not
+automatically a byte-for-byte ancestor of the shipped Europe build.
+tools/compare_pal_prototype_course_payloads.py decodes all 45 RNC streams
+from both builds, validates the fixed 16,384-sector coarse grid,
+32-byte fine records, and resource-list boundaries, and compares the
+resulting placed packed world cells.
+
+Unlike raw decoded byte comparison, this distinguishes fine-record
+renumbering with unchanged effective world geometry from a reused fine
+record whose changed words affect multiple sectors. Reports include
+separate header coordinate candidates, ordered resource IDs, placed
+world-cell word changes, known C000 slot-selector changes, and still
+unclassified control bits. The labels are PAL prototype and PAL retail,
+not incorrectly inherited USA/Europe names.
+
+Example:
+
+    python3 tools/compare_pal_prototype_course_payloads.py       --json-out analysis/out/pal-prototype-course-deltas.json       --md-out analysis/out/pal-prototype-course-deltas.md
+
+World-cell or resource-list differences alone do not prove changed
+collision outcomes, checkpoint/finish activation, or course selection.
+Those require emulator observations for a named course/event. This
+comparison is a course-content archaeology and future editor-input
+discriminator. It does not modify the runtime course loader or tournament
+logic.

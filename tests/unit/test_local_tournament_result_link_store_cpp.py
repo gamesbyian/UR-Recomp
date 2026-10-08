@@ -24,7 +24,7 @@ class LocalTournamentResultLinkStoreCppTests(unittest.TestCase):
             subprocess.run(
                 [
                     "g++", "-std=c++17", "-Wall", "-Wextra",
-                    "-Werror", "-pedantic",
+                    "-Werror", "-pedantic", "-pthread",
                     "-I", str(ROOT / "native/product"),
                     "-I", str(ROOT / "native/title"),
                     *[str(ROOT / "native/product" / source) for source in sources],

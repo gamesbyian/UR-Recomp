@@ -25,6 +25,10 @@ Run the exact release candidate portable ZIP with recorded SHA-256 and source re
 
 Record guest `controller_word` for the last active frame before opening tournament panel and first N frames after closing. Hold P2 A/Start/D-pad **before** F4, continue holding for 5+ resumed frames, then release each independently and repress. During panel, guest frame count must not advance for human sessions. On the first resumed guest frame P2 gameplay bits must be clear even if the physical button remains held, and stay clear until its release; subsequent independent button presses must work. Also press P2 *only while* modal is visible and release after close; no phantom input may reach the guest. Compare against Authentic unchanged and scripted/input-file 2P deterministic route unchanged. The C++ pure latch and framework hook tests are prerequisites, **not** substitutes for this route.
 
+### Additional J-07 oracle (simultaneous completed fixture writers)
+
+Exercise a real Windows candidate with two processes sharing the same tournament instance and fixture before either has credited it. Each records a separately valid ordinary-2P run/match pair and attempts to publish the fixture receipt. The expected result is exactly one committed fixture result, conflict for the other, no overwritten incumbent receipt, no double points, valid independent Records retained, and fresh-process restoration crediting only the chosen winner. Repeat with termination after staged write but before publish, and after publish but before stale launch retirement; abandoned `.pending-urfixture-*` directories cannot count as receipts. Native eight-thread acceptance of the low-level adapter is a prerequisite, not substitute for this J-07 exact ZIP witness.
+
 ## P1 integrated journeys
 
 | ID | Combined path | Oracle |

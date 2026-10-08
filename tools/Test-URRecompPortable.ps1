@@ -177,8 +177,15 @@ function Assert-PackageFiles {
     Write-Output "UR_PORTABLE_MANIFEST_VERIFIED files=$($entries.Count) revision=$($manifest.source_revision)"
 }
 
-if (-not [IO.Path]::IsPathRooted($Destination)) {
-    throw 'Destination must be an absolute directory path'
+# On Windows, IsPathRooted alone also accepts drive-relative paths
+# (C:folder) and current-drive-rooted paths (\\folder). These depend on the
+# caller's working directory, so they violate the absolute destination
+# contract. Check the lexical drive-root / complete UNC shape *before*
+# GetFullPath can silently normalize such input into an unexpected location.
+if (-not [IO.Path]::IsPathRooted($Destination) -or
+    ([Environment]::OSVersion.Platform -eq [PlatformID]::Win32NT -and
+     $Destination -cnotmatch '\A(?:[A-Za-z]:[\\/]|[\\/]{2}[^\\/]+[\\/][^\\/]+(?:[\\/]|$))')) {
+    throw 'Destination must be a fully qualified absolute directory path'
 }
 $destinationPath = [IO.Path]::GetFullPath($Destination)
 if (Test-Path -LiteralPath $destinationPath) {

@@ -73,7 +73,7 @@ jobs:
       - name: Verify canonical ROM and package contracts
         run: |
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary
+          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary tests.unit.test_windows_clean_machine_verifier_policy
 
       - name: Stage repository-owned SNESRecomp framework
         run: |

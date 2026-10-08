@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import json
+import os
 import struct
 import zipfile
 import shutil
@@ -144,7 +145,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
                         zipped.write(member, f"{package.ARCHIVE_ROOT}/{member.relative_to(output).as_posix()}")
             checksum.write_text(
                 f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n",
-                encoding="ascii",
+                encoding="ascii", newline="\n",
             )
             forged_destination = root / "signed mutable state must fail"
             forged_cmd = cmd[:-1] + [str(forged_destination)]
@@ -220,6 +221,38 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.script.index("$digest -cne $canonicalRomSha256"),
             self.script.index("UR_PORTABLE_MANIFEST_VERIFIED"),
         )
+
+    def test_fully_qualified_windows_destination_required(self):
+        # IsPathRooted alone accepts C:relative and \\root-relative on .NET
+        # Framework; both depend on the caller's working drive/directory.
+        self.assertIn("Destination must be a fully qualified absolute directory path", self.script)
+        self.assertIn("$Destination -cnotmatch", self.script)
+        self.assertLess(
+            self.script.index("$Destination -cnotmatch"),
+            self.script.index("Expand-Archive -LiteralPath"),
+        )
+        if os.name != "nt":
+            self.skipTest("real Windows drive-path parsing needs Windows PowerShell")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for invalid in ("C:relative", r"\\drive-root-relative", "relative"):
+                with self.subTest(destination=invalid):
+                    result = subprocess.run(
+                        [
+                            "powershell.exe", "-NoProfile", "-NonInteractive",
+                            "-ExecutionPolicy", "Bypass", "-File", str(SCRIPT),
+                            "-Archive", str(root / "missing.zip"),
+                            "-Checksum", str(root / "missing.sha256"),
+                            "-Destination", invalid,
+                        ],
+                        capture_output=True, text=True, check=False,
+                    )
+                    self.assertNotEqual(result.returncode, 0)
+                    self.assertIn(
+                        "Destination must be a fully qualified absolute directory path",
+                        result.stderr,
+                    )
+                    self.assertFalse((root / "missing.zip").exists())
 
     def test_uses_stock_windows_powershell_only(self):
         self.assertIn("#requires -Version 5.1", self.script)

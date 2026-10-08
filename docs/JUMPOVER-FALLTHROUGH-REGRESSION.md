@@ -12,6 +12,9 @@ The project already treats stock simulation as authoritative. This slice therefo
 
 **Historical reference: reproduced. Native: not yet attempted.** The dated evidence is in R-2026-10-08-PHYS-01 in `docs/RESEARCH-LEDGER.md`.
 
+- **Source provenance gate (merged #841).** `tools/check_jumpover_source_preflight.py` verifies both recovered SMVs, input runs, 1.51 freeze and WRAM hashes, and direction-matched original Lua scripts against `analysis/generated/jumpover-fallthrough-source-preflight.json`. It explicitly reports `native_admitted: false`.
+- **Trace-integrity gate (merged #842 plus empty-capture follow-up).** `tools/probe_jumpover_fallthrough.py` refuses missing/duplicate/out-of-order frames, shifted case/control starts, misaligned first-divergence traces, and captures that stop before the full post-crossing airborne witness. Empty captures cannot be interpreted as parity. These checks validate the reference *measurement* only, not a native physics match.
+
 - **Anchor.** Each recovered SMV embeds its complete Snes9x 1.51 starting freeze. `tools/extract_smv_freeze.py` validates it and records hashes and symbolized fields in `analysis/generated/jumpover-fallthrough-anchors.json`. Both anchors are mid-race on Jumpover with P1 grounded before the halfpipe. The saved PC is inside the bank-82 racer update, so the anchor is not a race-loop frame boundary.
 - **Reference replay.** `tools/probe_jumpover_fallthrough.py` replays each movie, unchanged and with a 60-frame held-input extension, in Snes9x 1.51-rr. Each run is repeated and the repeats are byte-identical. Results are in `analysis/generated/jumpover-fallthrough-reference-replay.json`. Frame k is the state after k movie frames.
 

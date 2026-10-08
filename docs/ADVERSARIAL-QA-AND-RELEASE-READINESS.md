@@ -81,7 +81,7 @@ Use model-based stateful action generation with preconditions/invalid transition
 
 ### Active counterexample result: P2 source edges versus guest word
 
-Audit follow-up identified a credible structural leak: the original P2 human word is assembled from `g_gamepad[1].axis_buttons` in SNESRecomp, outside the P1 host filter. Pure P2 source-edge filtering alone therefore cannot certify a button held across entry/exit of a frame-held tournament modal. A newly pinned P2 human-word seam arms a 12-bit release latch on panel entry and filters held bits until release on actual guest input assembly. J-06 still requires a real guest/controller-word witness and hardware/packaged acceptance. Preserve the distinction between source-proven gap, mitigated code path and reproduced player-visible defect.
+Audit follow-up identified a credible structural leak: original SNESRecomp assembles the P2 human word from the mapped high bits of `human` (`g_pad_buttons`) **plus** second-pad analog `axis_buttons`. A filter only on analog axes would miss A/Start and is rejected by a strict compiled patch fixture. Pure P2 source-edge filtering alone therefore cannot certify a button held across entry/exit of a frame-held tournament modal. A newly pinned P2 human-word seam arms a 12-bit release latch on panel entry and filters held bits until release on actual guest input assembly. J-06 still requires a real guest/controller-word witness and hardware/packaged acceptance. Preserve the distinction between source-proven gap, mitigated code path and reproduced player-visible defect.
 
 ## Next concrete work
 

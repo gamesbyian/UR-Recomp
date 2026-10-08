@@ -167,8 +167,7 @@ LocalTournamentCoordinatorResult restore_local_tournament_coordinator(
 }
 
 LocalTournamentCompletedHistory load_completed_local_tournament_history(
-    const LocalTournamentCoordinatorPaths& paths,
-    const std::vector<HostProfileCatalogEntry>& authoritative_catalog) {
+    const LocalTournamentCoordinatorPaths& paths) {
     LocalTournamentCompletedHistory history;
     if (!valid_paths(paths)) return history;
     std::error_code ec;

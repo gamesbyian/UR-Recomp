@@ -6,7 +6,7 @@ Current `main` includes replay frame-window parity (#938), atomic ghost sidecar 
 
 ### QA-03 implementation update: P2 last-mile held-word guard
 
-The first P2 physical-source press-event interception was not sufficient: original SNESRecomp constructs the P2 human controller word separately, and a button held before tournament panel entry can remain active after the frame-held modal closes. The narrow framework `filter_second_player_input` integration and host release-on-repress latch now target **that** guest word, not merely SDL events; the pin is `snesrecomp-title-p2-input-filter.patch`, unit contracts `test_modern_tournament_p2_guest_input_cpp.py` and `test_tournament_p2_guest_word_host_contract.py`. Still **not a full QA-03 pass** until J-06 packaged/native guest-word evidence is captured, plus complete tournament legs and 3+ entrant journeys. Preserve CI-speed lane separation.
+The first P2 physical-source press-event interception was not sufficient: original SNESRecomp combines mapped P2 buttons from the high bits of `human` with P2 analog axes in the final controller word, and a button held before tournament panel entry can remain active after the frame-held modal closes. The narrow framework `filter_second_player_input` integration and host release-on-repress latch now target **that** guest word, not merely SDL events; the pin is `snesrecomp-title-p2-input-filter.patch`, unit contracts `test_modern_tournament_p2_guest_input_cpp.py` and `test_tournament_p2_guest_word_host_contract.py`. Still **not a full QA-03 pass** until J-06 packaged/native guest-word evidence is captured, plus complete tournament legs and 3+ entrant journeys. Preserve CI-speed lane separation.
 
 ## Immediate adversarial QA critical path (independently owned)
 

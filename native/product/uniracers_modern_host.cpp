@@ -63,6 +63,7 @@ extern "C" {
 #include "multiplayer_match_record.hpp"
 #include "local_tournament_session_coordinator.hpp"
 #include "local_tournament_panel.hpp"
+#include "local_tournament_p2_modal_input.hpp"
 #include "local_tournament_tokens.hpp"
 #include "run_record_capture_policy.hpp"
 #include "local_multiplayer_seat_text.hpp"
@@ -7700,6 +7701,18 @@ extern "C" int ur_uniracers_modern_system_gamepad_source_button(
     const auto seat = static_cast<std::size_t>(player_index);
     const std::uint32_t button_bit =
         button >= 0 && button < 32 ? (1u << static_cast<unsigned>(button)) : 0u;
+    // P1's host word is withheld by the normal modal release latch. P2 is
+    // delivered on a separate framework source path: never let a new P2
+    // button edge acquired during the tournament panel reach stock 2P input.
+    // The consumed-bit mask also swallows the trailing release after close.
+    // Pre-panel held P2 state still needs a separate guest-word witness.
+    if (player_index == 1) {
+        const auto policy = ur::product::tournament_p2_modal_input(
+            g_local_multiplayer_consumed_buttons[seat],
+            g_local_tournament_panel_visible, button_bit, pressed != 0);
+        g_local_multiplayer_consumed_buttons[seat] = policy.consumed_buttons;
+        if (policy.consume_event) return 1;
+    }
     if (!pressed) {
         if (button_bit && (g_local_multiplayer_consumed_buttons[seat] & button_bit)) {
             g_local_multiplayer_consumed_buttons[seat] &= ~button_bit;

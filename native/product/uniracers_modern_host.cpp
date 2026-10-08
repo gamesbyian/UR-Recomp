@@ -4349,6 +4349,11 @@ void observe_run_record_split() {
     const int64_t ticks60 = ur_uniracers_run_data_ticks60(current_run_data());
     if (ticks60 >= 0) {
         const std::string id = "checkpoint-" + std::to_string(checkpoint);
+        // Lap N's crossing of a checkpoint compares with the PB's lap N.
+        const auto& captured = g_run_capture.splits();
+        const auto occurrence = static_cast<std::size_t>(std::count_if(
+            captured.begin(), captured.end(),
+            [&](const auto& split) { return split.id == id; }));
         (void)g_run_capture.observe_split(
             id, static_cast<uint64_t>(ticks60));
         emit_haptic_event(ur::product::HapticEvent::Checkpoint);
@@ -4360,7 +4365,8 @@ void observe_run_record_split() {
                 ur::product::present_run_split_delta(
                     *personal_best,
                     id,
-                    static_cast<uint64_t>(ticks60));
+                    static_cast<uint64_t>(ticks60),
+                    occurrence);
         }
         if (std::getenv("UR_TIMING_HUD_DIAGNOSTICS")) {
             std::fprintf(

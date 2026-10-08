@@ -72,12 +72,17 @@ std::optional<RunDataTargetPresentation> present_run_target(
 std::optional<RunDataDeltaPresentation> present_run_split_delta(
     const CompletedRunRecord& target,
     const std::string& split_id,
-    std::uint64_t current_ticks60) {
+    std::uint64_t current_ticks60,
+    std::size_t occurrence) {
     std::string detail;
     if (!validate_completed_run_record(target, &detail)) return std::nullopt;
 
     for (const auto& split : target.splits) {
         if (split.id != split_id) continue;
+        if (occurrence) {
+            --occurrence;
+            continue;
+        }
         const auto delta = exact_run_timing_delta_ticks60(
             current_ticks60, split.ticks60);
         if (!delta) return std::nullopt;

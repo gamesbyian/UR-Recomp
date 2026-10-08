@@ -77,10 +77,14 @@ std::optional<RunDataTargetPresentation> present_run_target(
     const CompletedRunRecord& target,
     RunDataTargetKind kind);
 
+/* Split ids name the next stock checkpoint, so they repeat on every lap and
+ * at the finish crossing. `occurrence` selects the target's nth split with
+ * this id (0-based), pairing lap N with lap N rather than the first lap. */
 std::optional<RunDataDeltaPresentation> present_run_split_delta(
     const CompletedRunRecord& target,
     const std::string& split_id,
-    std::uint64_t current_ticks60);
+    std::uint64_t current_ticks60,
+    std::size_t occurrence = 0);
 
 std::optional<RunDataDeltaPresentation> present_run_finish_delta(
     const CompletedRunRecord& target,

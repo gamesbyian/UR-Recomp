@@ -1,0 +1,59 @@
+#include "ghost_trace_equivalence.hpp"
+
+#include <cstdio>
+#include <string>
+
+using ur::product::load_completed_run_ghost_trace_file;
+using ur::product::load_completed_run_record_file;
+
+int main(int argc, char** argv) {
+    if (argc != 5) {
+        std::fprintf(
+            stderr,
+            "usage: %s ORIGINAL.urrun ORIGINAL.urrun.urghost "
+            "REPLAYED.urrun REPLAYED.urrun.urghost\n",
+            argv[0]);
+        return 2;
+    }
+
+    const auto original = load_completed_run_record_file(argv[1]);
+    const auto replayed = load_completed_run_record_file(argv[3]);
+    if (!original.loaded() || !replayed.loaded()) {
+        std::fprintf(
+            stderr, "UR_RUN_GHOST_TRACE_COMPARE FAIL record original=%s replayed=%s\n",
+            original.detail.c_str(), replayed.detail.c_str());
+        return 1;
+    }
+
+    const auto original_trace =
+        load_completed_run_ghost_trace_file(argv[2], &*original.record);
+    const auto replayed_trace =
+        load_completed_run_ghost_trace_file(argv[4], &*replayed.record);
+    if (!original_trace.loaded() || !replayed_trace.loaded()) {
+        std::fprintf(
+            stderr, "UR_RUN_GHOST_TRACE_COMPARE FAIL trace original=%s replayed=%s\n",
+            original_trace.detail.c_str(), replayed_trace.detail.c_str());
+        return 1;
+    }
+
+    std::string detail;
+    std::size_t compared = 0;
+    if (!ur::test::equivalent_ghost_world_samples(
+            *original_trace.trace, *replayed_trace.trace,
+            &detail, &compared)) {
+        std::fprintf(stderr, "UR_RUN_GHOST_TRACE_COMPARE FAIL %s\n",
+                     detail.c_str());
+        return 1;
+    }
+
+    std::printf(
+        "UR_RUN_GHOST_TRACE_COMPARE PASS course=%s frames=%zu original=%zu "
+        "replayed=%zu terminal_delta=%zu\n",
+        original.record->provenance.course_id.c_str(),
+        compared, original_trace.trace->samples.size(),
+        replayed_trace.trace->samples.size(),
+        original_trace.trace->samples.size() > replayed_trace.trace->samples.size()
+            ? original_trace.trace->samples.size() - replayed_trace.trace->samples.size()
+            : replayed_trace.trace->samples.size() - original_trace.trace->samples.size());
+    return 0;
+}

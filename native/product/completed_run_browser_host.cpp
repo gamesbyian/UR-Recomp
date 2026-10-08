@@ -13,6 +13,7 @@ extern "C" {
 #include "completed_run_replay.hpp"
 #include "host_product_store.hpp"
 #include "modern_host_navigation.h"
+#include "modern_overlay_text_fit.hpp"
 #include "multiplayer_match_browser.hpp"
 #include "multiplayer_match_summary.hpp"
 #include "quick_practice_catalog.hpp"
@@ -991,6 +992,39 @@ void update_context_from_guest() {
     }
 }
 
+// Records and Local Runs panels are 236 logical pixels wide: 27 Standard
+// cells inside the margins. Rows are composed to that budget; draw_line keeps
+// every line inside it as a final guard.
+std::string records_title(
+    const std::string& head,
+    const std::string& tail,
+    std::size_t cells) {
+    // "RECORDS / HEAD / TAIL" when it fits, else "HEAD / TAIL"; a long HEAD
+    // is shortened before TAIL (the track or racer being viewed) is cut.
+    const std::string crumb = head + " / " + tail;
+    const std::string rooted = "RECORDS / " + crumb;
+    if (rooted.size() <= cells) return rooted;
+    if (crumb.size() <= cells) return crumb;
+    const std::size_t fixed = tail.size() + 3u;
+    if (fixed < cells) {
+        return head.substr(0, cells - fixed) + " / " + tail;
+    }
+    return ur::product::fit_modern_overlay_text(crumb, cells);
+}
+
+std::string records_split_label(const std::string& id) {
+    if (id.rfind("checkpoint-", 0) != 0) return id;
+    const std::string number = id.substr(11);
+    return number.size() < 2 ? "CP " + number : "CP" + number;
+}
+
+std::string records_run_tags(bool personal_best, bool previous) {
+    std::string tags;
+    if (personal_best) tags += " PB";
+    if (previous) tags += " PV";
+    return tags;
+}
+
 void draw_records_browser(
     uint8_t* dst,
     size_t pitch,
@@ -1008,6 +1042,14 @@ void draw_records_browser(
     const int panel_h = 39 + row_count * 15 + 60;
     const int x = (width - panel_w) / 2;
     const int y = (height - panel_h) / 2;
+    const std::size_t cells = ur::product::modern_overlay_text_cells(panel_w);
+    const auto draw_line = [&](int line_y, const std::string& text) {
+        const std::string fitted =
+            ur::product::fit_modern_overlay_text(text, cells);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, line_y,
+            fitted.c_str(), 0xFFFFFFFFu, 1);
+    };
 
     snes_ovl_fill_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xEE202020u);
@@ -1017,15 +1059,13 @@ void draw_records_browser(
     if (g_records_browser.view() ==
         ur::product::CompletedRunRecordsView::Courses) {
         if (g_records_root_section == RecordsRootSection::Profiles) {
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 7,
-                "RECORDS / RACERS-PROFILES", 0xFFFFFFFFu, 1);
+            draw_line(y + 7, "RECORDS / RACERS-PROFILES");
 
             char summary[96];
             if (g_records_profile_index.total_unavailable_artifacts) {
                 std::snprintf(
                     summary, sizeof(summary),
-                    "%zu RACERS / %zu RUNS / %zu UNAVAILABLE",
+                    "%zu RACERS %zu RUNS %zu UNAVAIL",
                     g_records_profile_index.profiles.size(),
                     g_records_profile_index.total_completed_runs,
                     g_records_profile_index.total_unavailable_artifacts);
@@ -1035,18 +1075,12 @@ void draw_records_browser(
                     g_records_profile_index.profiles.size(),
                     g_records_profile_index.total_completed_runs);
             }
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 22,
-                summary, 0xFFFFFFFFu, 1);
+            draw_line(y + 22, summary);
 
             if (!g_records_profiles_available) {
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42,
-                    "PROFILE CATALOG UNAVAILABLE", 0xFFFFFFFFu, 1);
+                draw_line(y + 42, "PROFILE CATALOG UNAVAILABLE");
             } else if (g_records_profile_index.profiles.empty()) {
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42,
-                    "NO RACERS / PROFILES", 0xFFFFFFFFu, 1);
+                draw_line(y + 42, "NO RACERS / PROFILES");
             }
 
             std::size_t first = 0;
@@ -1064,32 +1098,38 @@ void draw_records_browser(
                 const bool active =
                     g_records_profile_index.active_profile &&
                     *g_records_profile_index.active_profile == index;
+                // '*' marks the active racer; the selected racer's full
+                // name and ACTIVE state are spelled out below the list.
                 char line[96];
                 std::snprintf(
-                    line, sizeof(line), "%c %-12s %2zu RUNS %2zu TRACKS%s",
+                    line, sizeof(line), "%c%c%-10.10s%3zu RUNS%3zu TRK",
                     g_records_profile_selected == index ? '>' : ' ',
+                    active ? '*' : ' ',
                     profile.racer_identity.name.c_str(),
                     profile.completed_runs,
-                    profile.tracks_with_runs,
-                    active ? " ACTIVE" : "");
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42 + row * 15,
-                    line, 0xFFFFFFFFu, 1);
+                    profile.tracks_with_runs);
+                draw_line(y + 42 + row * 15, line);
             }
 
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 41,
-                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 26,
-                "ENTER / A  VIEW TRACKS", 0xFFFFFFFFu, 1);
+            if (const auto* selected = selected_records_profile()) {
+                const bool active =
+                    g_records_profile_index.active_profile &&
+                    *g_records_profile_index.active_profile ==
+                        g_records_profile_selected;
+                char line[96];
+                std::snprintf(
+                    line, sizeof(line), "%.16s%s",
+                    selected->racer_identity.name.c_str(),
+                    active ? "  * ACTIVE" : "");
+                draw_line(y + panel_h - 56, line);
+            }
+            draw_line(y + panel_h - 41, "< > TRACKS / RACERS / MULTI");
+            draw_line(y + panel_h - 26, "ENTER / A  VIEW TRACKS");
         } else if (g_records_root_section ==
                    RecordsRootSection::MultiplayerTournament) {
             if (g_multiplayer_match_browser.view() ==
                 ur::product::MultiplayerMatchBrowserView::Detail) {
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 7,
-                    "RECORDS / MULTIPLAYER DETAIL", 0xFFFFFFFFu, 1);
+                draw_line(y + 7, "RECORDS / MULTIPLAYER MATCH");
 
                 const auto detail =
                     g_multiplayer_match_browser.selected_detail_presentation();
@@ -1098,43 +1138,31 @@ void draw_records_browser(
                         records_course_label(detail->summary.course_text);
                     char line[96];
                     std::snprintf(
-                        line, sizeof(line), "COURSE %.20s", course.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 32,
-                        line, 0xFFFFFFFFu, 1);
+                        line, sizeof(line), "COURSE %s", course.c_str());
+                    draw_line(y + 32, line);
 
                     std::snprintf(
-                        line, sizeof(line), "P1 %.23s",
+                        line, sizeof(line), "P1 %s",
                         detail->summary.player1_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 52,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 52, line);
                     std::snprintf(
                         line, sizeof(line), "   TIME %s",
                         detail->player1_result_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 67,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 67, line);
 
                     std::snprintf(
-                        line, sizeof(line), "P2 %.23s",
+                        line, sizeof(line), "P2 %s",
                         detail->summary.player2_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 87,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 87, line);
                     std::snprintf(
                         line, sizeof(line), "   TIME %s",
                         detail->player2_result_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 102,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 102, line);
 
                     std::snprintf(
-                        line, sizeof(line), "RESULT %.20s",
+                        line, sizeof(line), "RESULT %s",
                         detail->outcome_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 127,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 127, line);
 
                     // Aggregate history of this exact pairing, oriented to
                     // this match's seats; counts only, no standings.
@@ -1148,24 +1176,16 @@ void draw_records_browser(
                         std::snprintf(
                             line, sizeof(line), "HEAD TO HEAD %zu MATCHES",
                             head_to_head->played);
-                        snes_ovl_draw_text(
-                            pixels, stride, height, x + 8, y + 147,
-                            line, 0xFFFFFFFFu, 1);
-                        const std::string counts =
+                        draw_line(y + 147, line);
+                        draw_line(
+                            y + 162,
                             ur::product::format_multiplayer_head_to_head(
-                                *head_to_head);
-                        snes_ovl_draw_text(
-                            pixels, stride, height, x + 8, y + 162,
-                            counts.c_str(), 0xFFFFFFFFu, 1);
+                                *head_to_head));
                     }
                 }
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + panel_h - 26,
-                    "ESC / B    BACK", 0xFFFFFFFFu, 1);
+                draw_line(y + panel_h - 26, "ESC / B    BACK");
             } else {
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 7,
-                    "RECORDS / MULTIPLAYER", 0xFFFFFFFFu, 1);
+                draw_line(y + 7, "RECORDS / MULTIPLAYER");
 
                 char summary[96];
                 if (g_multiplayer_match_health.unavailable_pairs()) {
@@ -1179,19 +1199,12 @@ void draw_records_browser(
                         summary, sizeof(summary), "%zu MATCHES",
                         g_multiplayer_match_browser.size());
                 }
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 22,
-                    summary, 0xFFFFFFFFu, 1);
+                draw_line(y + 22, summary);
 
                 if (g_multiplayer_match_browser.empty()) {
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8, y + 42,
-                        "NO STORED MATCH HISTORY", 0xFFFFFFFFu, 1);
+                    draw_line(y + 42, "NO STORED MATCH HISTORY");
                     if (g_multiplayer_match_health.unavailable_pairs()) {
-                        snes_ovl_draw_text(
-                            pixels, stride, height, x + 8, y + 57,
-                            "INVALID / UNBOUND PAIRS IGNORED",
-                            0xFFFFFFFFu, 1);
+                        draw_line(y + 57, "INVALID / UNBOUND IGNORED");
                     }
                 }
 
@@ -1210,32 +1223,20 @@ void draw_records_browser(
                         item.selected ? '>' : ' ',
                         course.c_str(),
                         item.presentation.result_text.c_str());
-                    snes_ovl_draw_text(
-                        pixels, stride, height, x + 8,
-                        y + 42 + static_cast<int>(row) * 15,
-                        line, 0xFFFFFFFFu, 1);
+                    draw_line(y + 42 + static_cast<int>(row) * 15, line);
                 }
 
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + panel_h - 41,
-                    "LEFT / RIGHT  TRACKS / RACERS / MULTI",
-                    0xFFFFFFFFu, 1);
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + panel_h - 26,
+                draw_line(y + panel_h - 41, "< > TRACKS / RACERS / MULTI");
+                draw_line(
+                    y + panel_h - 26,
                     g_multiplayer_match_browser.empty()
                         ? "ESC / B    BACK"
-                        : "ENTER/A DETAIL  ESC/B BACK",
-                    0xFFFFFFFFu, 1);
+                        : "ENTER/A DETAIL  ESC/B BACK");
             }
         } else {
-            const std::string profile_name = records_view_profile_name();
-            char title[96];
-            std::snprintf(
-                title, sizeof(title), "RECORDS / TRACKS / %s",
-                profile_name.c_str());
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 7,
-                title, 0xFFFFFFFFu, 1);
+            draw_line(
+                y + 7,
+                records_title("TRACKS", records_view_profile_name(), cells));
 
             char summary[80];
             const std::size_t unavailable =
@@ -1243,7 +1244,7 @@ void draw_records_browser(
             if (unavailable) {
                 std::snprintf(
                     summary, sizeof(summary),
-                    "%zu TRACKS / %zu RUNS  %zu UNAVAILABLE",
+                    "%zu TRACKS %zu RUNS %zu UNAVAIL",
                     g_records_browser.index().courses.size(),
                     g_records_browser.index().total_completed_runs,
                     unavailable);
@@ -1253,9 +1254,7 @@ void draw_records_browser(
                     g_records_browser.index().courses.size(),
                     g_records_browser.index().total_completed_runs);
             }
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 22,
-                summary, 0xFFFFFFFFu, 1);
+            draw_line(y + 22, summary);
 
             std::size_t first = 0;
             if (const auto selected =
@@ -1267,11 +1266,10 @@ void draw_records_browser(
             }
 
             if (g_records_browser.index().courses.empty()) {
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42,
-                    "NO RUNS RECORDED YET", 0xFFFFFFFFu, 1);
+                draw_line(y + 42, "NO RUNS RECORDED YET");
             }
 
+            // TRACK  RUNS  PB: the PB column is the only time on the row.
             for (int row = 0; row < row_count; ++row) {
                 const std::size_t index =
                     first + static_cast<std::size_t>(row);
@@ -1282,58 +1280,44 @@ void draw_records_browser(
                     records_course_label(course.course_id);
                 char line[96];
                 std::snprintf(
-                    line, sizeof(line), "%c %-13s %2zu PB %s",
+                    line, sizeof(line), "%c %-11.11s %2zu %s",
                     g_records_browser.selected_course_index() &&
                             *g_records_browser.selected_course_index() == index
                         ? '>' : ' ',
                     course_label.c_str(),
                     course.statistics.completed_runs,
                     course.statistics.personal_best_text.c_str());
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42 + row * 15,
-                    line, 0xFFFFFFFFu, 1);
+                draw_line(y + 42 + row * 15, line);
             }
 
+            // Previous finish and its delta from the PB shown on the row.
             const auto* selected = g_records_browser.selected_course();
             char previous[80];
             std::snprintf(
-                previous, sizeof(previous), "PREV %s  VS PB %s",
+                previous, sizeof(previous), "PREV %s %s",
                 selected ? selected->statistics.previous_text.c_str() : "--",
                 selected
                     ? selected->statistics.previous_vs_pb_text.c_str()
                     : "--");
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 56,
-                previous, 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 41,
-                "LEFT / RIGHT  TRACKS / RACERS / MULTI", 0xFFFFFFFFu, 1);
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 26,
-                "ENTER / A  RUNS", 0xFFFFFFFFu, 1);
+            draw_line(y + panel_h - 56, previous);
+            draw_line(y + panel_h - 41, "< > TRACKS / RACERS / MULTI");
+            draw_line(y + panel_h - 26, "ENTER / A  RUNS");
         }
     } else if (g_records_browser.view() ==
                ur::product::CompletedRunRecordsView::Runs) {
         const auto* course = g_records_browser.selected_course();
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
-        const std::string profile_name = records_view_profile_name();
-        char title[96];
-        std::snprintf(
-            title, sizeof(title), "RECORDS / %s / %s",
-            profile_name.c_str(), course_label.c_str());
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            title, 0xFFFFFFFFu, 1);
+        draw_line(
+            y + 7,
+            records_title(records_view_profile_name(), course_label, cells));
 
         char summary[64];
         std::snprintf(
             summary, sizeof(summary), "%zu RUNS  PB %s",
             course ? course->statistics.completed_runs : 0u,
             course ? course->statistics.personal_best_text.c_str() : "--");
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 22,
-            summary, 0xFFFFFFFFu, 1);
+        draw_line(y + 22, summary);
 
         if (course) {
             std::size_t first = 0;
@@ -1346,26 +1330,22 @@ void draw_records_browser(
                 const std::size_t index = first + static_cast<std::size_t>(row);
                 if (index >= course->catalog.entries.size()) break;
                 const auto& entry = course->catalog.entries[index];
-                std::string tags;
-                if (entry.is_personal_best) tags += " PB";
-                if (entry.is_previous) tags += " PREV";
                 const std::string date =
                     ur::product::completed_run_browser_date_text(entry.path);
                 const std::string short_date =
                     date.size() == 10 ? date.substr(5) : date;
                 char line[112];
                 std::snprintf(
-                    line, sizeof(line), "%c #%03zu %s %s%s",
+                    line, sizeof(line), "%c%3zu %s %s%s",
                     g_records_browser.selected_run_index() &&
                             *g_records_browser.selected_run_index() == index
                         ? '>' : ' ',
                     entry.source_index + 1,
                     short_date.c_str(),
                     entry.time_text.c_str(),
-                    tags.c_str());
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, y + 42 + row * 15,
-                    line, 0xFFFFFFFFu, 1);
+                    records_run_tags(
+                        entry.is_personal_best, entry.is_previous).c_str());
+                draw_line(y + 42 + row * 15, line);
             }
         }
 
@@ -1374,18 +1354,12 @@ void draw_records_browser(
         std::snprintf(
             comparison, sizeof(comparison), "VS PB %s",
             selected ? selected->personal_best_delta_text.c_str() : "--");
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 56,
-            comparison, 0xFFFFFFFFu, 1);
+        draw_line(y + panel_h - 56, comparison);
 
         if (records_selected_matches_current_course()) {
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 41,
-                "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
+            draw_line(y + panel_h - 41, "CTRL+B / X  LOCAL RUNS");
         }
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 26,
-            "ESC / B    COURSES", 0xFFFFFFFFu, 1);
+        draw_line(y + panel_h - 26, "ESC / B    COURSES");
     } else {
         const auto* course = g_records_browser.selected_course();
         const auto* selected = g_records_browser.selected_run();
@@ -1398,58 +1372,46 @@ void draw_records_browser(
         const std::string course_label =
             course ? records_course_label(course->course_id) : "--";
 
-        const std::string profile_name = records_view_profile_name();
-        char title[112];
-        std::snprintf(
-            title, sizeof(title), "RECORDS / %s / %s / RUN",
-            profile_name.c_str(), course_label.c_str());
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 7,
-            title, 0xFFFFFFFFu, 1);
+        draw_line(
+            y + 7,
+            records_title(records_view_profile_name(), course_label, cells));
 
         const std::string run_date = selected
             ? ur::product::completed_run_browser_date_text(selected->path)
             : "--";
         char run_label[96];
         std::snprintf(
-            run_label, sizeof(run_label), "RUN #%03zu  %s%s%s",
+            run_label, sizeof(run_label), "RUN #%03zu %s%s%s",
             selected ? selected->source_index + 1 : 0u,
             run_date.c_str(),
-            selected && selected->is_personal_best ? "  PB" : "",
-            selected && selected->is_previous ? "  PREV" : "");
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 22,
-            run_label, 0xFFFFFFFFu, 1);
+            selected && selected->is_personal_best ? " PB" : "",
+            selected && selected->is_previous ? " PREV" : "");
+        draw_line(y + 22, run_label);
 
+        // TIME, then each target's finish and this run's delta from it.
         char finish[80];
         char pb[96];
         char previous[96];
         std::snprintf(
-            finish, sizeof(finish), "FINISH  %s",
+            finish, sizeof(finish), "TIME %s",
             summary ? summary->finish.clock_text.c_str() : "--");
         std::snprintf(
-            pb, sizeof(pb), "PB      %s  %s",
+            pb, sizeof(pb), "PB   %s %s",
             summary ? summary->finish.target_text.c_str() : "--",
             summary ? summary->finish.comparison_text.c_str() : "--");
         std::snprintf(
-            previous, sizeof(previous), "PREV    %s  %s",
+            previous, sizeof(previous), "PREV %s %s",
             previous_delta ? previous_delta->target_text.c_str() : "--",
             previous_delta ? previous_delta->delta_text.c_str() : "--");
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 47,
-            finish, 0xFFFFFFFFu, 1);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 62,
-            pb, 0xFFFFFFFFu, 1);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 77,
-            previous, 0xFFFFFFFFu, 1);
+        draw_line(y + 47, finish);
+        draw_line(y + 62, pb);
+        draw_line(y + 77, previous);
 
         const char* split_target_label =
             g_records_browser.detail_target_kind() ==
                     ur::product::RunDataTargetKind::PersonalBest
                 ? "PB"
-                : "PREVIOUS";
+                : "PREV";
         std::size_t comparable_splits = 0;
         if (split_summary) {
             for (const auto& split : split_summary->splits) {
@@ -1464,22 +1426,18 @@ void draw_records_browser(
                 std::min(split_offset + 3, comparable_splits);
             std::snprintf(
                 split_header, sizeof(split_header),
-                "SPLITS < %s >  %zu-%zu/%zu  CUR / TGT / DELTA",
+                "SPLITS < %s > %zu-%zu/%zu",
                 split_target_label, first, last, comparable_splits);
         } else {
             std::snprintf(
                 split_header, sizeof(split_header),
-                "SPLITS < %s >  CURRENT / TARGET / DELTA",
+                "SPLITS < %s > CUR / DELTA",
                 split_target_label);
         }
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 97,
-            split_header, 0xFFFFFFFFu, 1);
+        draw_line(y + 97, split_header);
 
         if (split_summary && split_summary->splits.empty()) {
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + 112,
-                "NO MATCHING CHECKPOINT DATA", 0xFFFFFFFFu, 1);
+            draw_line(y + 112, "NO MATCHING CHECKPOINT DATA");
         } else if (split_summary) {
             int split_y = y + 112;
             std::size_t split_index = 0;
@@ -1488,38 +1446,26 @@ void draw_records_browser(
                 if (split.id == "finish") continue;
                 if (split_index++ < split_offset) continue;
                 if (shown >= 3) break;
-                std::string label = split.id;
-                if (label.rfind("checkpoint-", 0) == 0) {
-                    label = "CP " + label.substr(11);
-                }
+                // This run's split time and its delta from the target's.
                 char split_line[96];
                 std::snprintf(
-                    split_line, sizeof(split_line), "%s  %s  %s  %s",
-                    label.c_str(),
+                    split_line, sizeof(split_line), "%-4s %s %s",
+                    records_split_label(split.id).c_str(),
                     split.current_text.c_str(),
-                    split.target_text.c_str(),
                     split.delta_text.c_str());
-                snes_ovl_draw_text(
-                    pixels, stride, height, x + 8, split_y,
-                    split_line, 0xFFFFFFFFu, 1);
+                draw_line(split_y, split_line);
                 split_y += 15;
                 ++shown;
             }
         }
 
         if (records_selected_matches_current_course()) {
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, y + panel_h - 41,
-                "CTRL+B / X  LOCAL RUNS", 0xFFFFFFFFu, 1);
+            draw_line(y + panel_h - 41, "CTRL+B / X  LOCAL RUNS");
         }
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + panel_h - 26,
-            "ESC / B    RUNS", 0xFFFFFFFFu, 1);
+        draw_line(y + panel_h - 26, "ESC / B    RUNS");
     }
 
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + panel_h - 11,
-        "F8 / Y      CLOSE", 0xFFFFFFFFu, 1);
+    draw_line(y + panel_h - 11, "F8 / Y      CLOSE");
 }
 
 void draw_browser(
@@ -1538,23 +1484,35 @@ void draw_browser(
     const int panel_h = 39 + row_count * 15 + 76;
     const int x = (width - panel_w) / 2;
     const int y = (height - panel_h) / 2;
+    const std::size_t cells = ur::product::modern_overlay_text_cells(panel_w);
+    const auto draw_line = [&](int line_y, const std::string& text) {
+        const std::string fitted =
+            ur::product::fit_modern_overlay_text(text, cells);
+        snes_ovl_draw_text(
+            pixels, stride, height, x + 8, line_y,
+            fitted.c_str(), 0xFFFFFFFFu, 1);
+    };
 
     snes_ovl_fill_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xEE202020u);
     snes_ovl_stroke_rect(
         pixels, stride, height, x, y, panel_w, panel_h, 0xFFF0F0F0u);
 
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + 7,
-        "LOCAL RUNS", 0xFFFFFFFFu, 1);
+    // Playable runs all match the current track (playback compatibility),
+    // so it is named once in the title; disabled rows keep their own code.
+    std::string title = "LOCAL RUNS";
+    for (const auto& entry : g_browser.entries()) {
+        if (!entry.playable()) continue;
+        title += " / " + records_course_label(entry.course_id);
+        break;
+    }
+    draw_line(y + 7, title);
 
     char summary[48];
     std::snprintf(
         summary, sizeof(summary), "%zu PLAYABLE / %zu STORED",
         g_browser.playable_count(), g_browser.size());
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + 22,
-        summary, 0xFFFFFFFFu, 1);
+    draw_line(y + 22, summary);
 
     std::size_t first = 0;
     if (const auto selected = g_browser.selected_index()) {
@@ -1568,49 +1526,36 @@ void draw_browser(
         if (index >= g_browser.entries().size()) break;
 
         const auto& entry = g_browser.entries()[index];
+        const std::string date =
+            entry.date_text.size() == 10
+                ? entry.date_text.substr(5)
+                : entry.date_text;
         char line[96];
         if (entry.playable()) {
-            std::string tags;
-            if (entry.is_personal_best) tags += " PB";
-            if (entry.is_previous) tags += " PREV";
-            const std::string course =
-                entry.course_id.rfind("course:", 0) == 0
-                    ? "C" + entry.course_id.substr(7)
-                    : entry.course_id;
-            const std::string date =
-                entry.date_text.size() == 10
-                    ? entry.date_text.substr(5)
-                    : entry.date_text;
             std::snprintf(
-                line, sizeof(line), "%c #%03zu %s %s %s%s",
+                line, sizeof(line), "%c%3zu %s %s%s",
                 g_browser.selected_index() &&
                         *g_browser.selected_index() == index
                     ? '>' : ' ',
                 entry.chronological_order,
-                course.c_str(),
                 date.c_str(),
                 entry.time_text.c_str(),
-                tags.c_str());
+                records_run_tags(
+                    entry.is_personal_best, entry.is_previous).c_str());
         } else {
             const std::string course =
                 entry.course_id.rfind("course:", 0) == 0
                     ? "C" + entry.course_id.substr(7)
                     : entry.course_id;
-            const std::string date =
-                entry.date_text.size() == 10
-                    ? entry.date_text.substr(5)
-                    : entry.date_text;
             std::snprintf(
-                line, sizeof(line), "  #%03zu %s %s %s",
+                line, sizeof(line), " %3zu %s %s %s",
                 entry.chronological_order,
                 date.c_str(),
                 course.c_str(),
                 ur::product::completed_run_browser_status_name(
                     entry.status));
         }
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8, y + 42 + row * 15,
-            line, 0xFFFFFFFFu, 1);
+        draw_line(y + 42 + row * 15, line);
     }
 
     char comparison[64];
@@ -1618,9 +1563,7 @@ void draw_browser(
     std::snprintf(
         comparison, sizeof(comparison), "VS PB     %s",
         selected ? selected->personal_best_delta_text.c_str() : "--");
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + panel_h - 71,
-        comparison, 0xFFFFFFFFu, 1);
+    draw_line(y + panel_h - 71, comparison);
 
     if (selected && !selected->personal_best_splits.empty()) {
         int split_row_y = y + panel_h - 56;
@@ -1629,31 +1572,20 @@ void draw_browser(
              it != selected->personal_best_splits.rend() && shown < 2;
              ++it) {
             if (it->id == "finish") continue;
-            std::string label = it->id;
-            if (label.rfind("checkpoint-", 0) == 0) {
-                label = "CP " + label.substr(11);
-            }
             char split_line[72];
             std::snprintf(
-                split_line, sizeof(split_line),
-                "%s  %s  %s",
-                label.c_str(),
+                split_line, sizeof(split_line), "%-4s %s %s",
+                records_split_label(it->id).c_str(),
                 it->current_text.c_str(),
                 it->delta_text.c_str());
-            snes_ovl_draw_text(
-                pixels, stride, height, x + 8, split_row_y,
-                split_line, 0xFFFFFFFFu, 1);
+            draw_line(split_row_y, split_line);
             split_row_y += 15;
             ++shown;
         }
     }
 
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + panel_h - 26,
-        "ENTER / A  REPLAY", 0xFFFFFFFFu, 1);
-    snes_ovl_draw_text(
-        pixels, stride, height, x + 8, y + panel_h - 11,
-        "ESC / B    BACK", 0xFFFFFFFFu, 1);
+    draw_line(y + panel_h - 26, "ENTER / A  REPLAY");
+    draw_line(y + panel_h - 11, "ESC / B    BACK");
 }
 
 void draw_results_records_hint(

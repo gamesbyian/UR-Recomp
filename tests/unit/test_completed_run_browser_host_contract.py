@@ -28,10 +28,11 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("adjust_detail_target(adjustment)", source)
         self.assertIn("adjust_detail_split_offset(delta)", source)
         self.assertIn("detail_split_offset()", source)
-        self.assertIn("CUR / TGT / DELTA", source)
+        self.assertIn("CUR / DELTA", source)
 
         self.assertNotIn('"LEFT / RIGHT  CHANGE TARGET"', source)
-        self.assertIn('"SPLITS < %s >  CURRENT / TARGET / DELTA"', source)
+        self.assertIn('"SPLITS < %s > CUR / DELTA"', source)
+        self.assertIn('"SPLITS < %s > %zu-%zu/%zu"', source)
         self.assertIn("shown >= 3", source)
 
         self.assertIn('"RECORDS / RACERS-PROFILES"', source)
@@ -40,7 +41,7 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("adjust_records_root_section(adjustment)", source)
         self.assertIn('"RECORDS / MULTIPLAYER"', source)
         self.assertIn('"NO STORED MATCH HISTORY"', source)
-        self.assertIn('"INVALID / UNBOUND PAIRS IGNORED"', source)
+        self.assertIn('"INVALID / UNBOUND IGNORED"', source)
         self.assertIn("refresh_multiplayer_match_browser()", source)
         self.assertIn("inspect_multiplayer_match_artifacts(directory)", source)
         self.assertIn("g_multiplayer_match_health.unavailable_pairs()", source)
@@ -57,7 +58,7 @@ class CompletedRunBrowserHostContractTests(unittest.TestCase):
         self.assertIn("UR_RECORDS_BROWSER PROFILE_OPEN", source)
         self.assertIn("load_run_records_profile_sources(root)", source)
         self.assertIn("total_unavailable_artifacts", source)
-        self.assertIn('"%zu RACERS / %zu RUNS / %zu UNAVAILABLE"', source)
+        self.assertIn('"%zu RACERS %zu RUNS %zu UNAVAIL"', source)
         self.assertIn("profile_unavailable=%zu", source)
         self.assertIn(
             "return records_viewing_active_profile() && selected && target",

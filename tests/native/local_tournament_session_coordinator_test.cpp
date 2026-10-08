@@ -211,7 +211,7 @@ int main() {
           local_tournament_standings(completed.session->results).size() == 3,
           "fresh process has complete ranked tournament after real disk loading");
     const auto initial_history =
-        load_completed_local_tournament_history(paths, catalog);
+        load_completed_local_tournament_history(paths);
     check(initial_history.scanned && !initial_history.truncated &&
           initial_history.completed.size() == 1 &&
           initial_history.completed[0].definition.instance_id == instance &&
@@ -246,7 +246,7 @@ int main() {
           "old completed tournament never grants new-instance standings");
 
     const auto after_replacement =
-        load_completed_local_tournament_history(paths, catalog);
+        load_completed_local_tournament_history(paths);
     check(after_replacement.scanned && !after_replacement.truncated &&
           after_replacement.completed.size() == 1 &&
           after_replacement.incomplete_instances == 1 &&
@@ -256,7 +256,7 @@ int main() {
           after_replacement.completed[0].results.results[2],
           "old completed event stays restorable after active instance changes");
     const auto deleted_profiles_history =
-        load_completed_local_tournament_history(paths, {});
+        load_completed_local_tournament_history(paths);
     check(deleted_profiles_history.scanned &&
           deleted_profiles_history.completed.size() == 1 &&
           deleted_profiles_history.completed[0].definition.instance_id == instance &&
@@ -292,7 +292,7 @@ int main() {
         check(bool(damaged), "damage test archived session");
     }
     const auto rejected_history =
-        load_completed_local_tournament_history(paths, catalog);
+        load_completed_local_tournament_history(paths);
     check(rejected_history.scanned &&
           rejected_history.completed.empty() &&
           rejected_history.unavailable_instances == 1 &&

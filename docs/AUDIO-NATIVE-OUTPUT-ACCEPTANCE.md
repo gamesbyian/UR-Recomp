@@ -354,3 +354,10 @@ a failure to restore game sound, or sustained playback starvation. This
 does **not** assert exact sample timing, measure clicks/transition acoustics
 at frame precision or validate the Modern host-owned pause menu. Device
 disconnection and frontend/restart audio transitions remain separate.
+
+The machine-readable pause-phase reducer also emits **relative decibels**
+against the measured pre-pause RMS for each fresh-process case. A literally
+silent interval uses a JSON `null` dB value rather than a
+fabricated measurement or nonfinite infinity; raw RMS and channel data remain
+available. This provides a useful common scale for later pause fade and
+transition-acoustic tests without treating absolute SDL amplitude as fixed.

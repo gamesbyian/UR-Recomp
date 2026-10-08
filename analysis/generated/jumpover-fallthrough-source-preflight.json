@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "kind": "static-source-preflight",
+  "status": "source-recovered-not-runtime-admitted",
+  "generated_from": "GitHub-pinned recovered Dessyreqt workspace; SMV headers and controller streams parsed without executing game",
+  "course": "Jumpover",
+  "source_root": "reference/imported/reverse-engineering/dessyreqt",
+  "movies": [
+    {
+      "route": "left",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe - left.smv",
+      "git_blob_sha1": "9d33a826b49da786fa9c6f5cd535a8aa043b3c97",
+      "size_bytes": 91868,
+      "smv_version": 4,
+      "uid": 1281631441,
+      "frame_count_header": 53,
+      "controller_samples": 53,
+      "controller_mask": 1,
+      "movie_options": 0,
+      "reset_anchored": false,
+      "savestate_offset": 158,
+      "controller_data_offset": 91760,
+      "port_types": [
+        1,
+        1
+      ],
+      "reset_markers": [],
+      "trailing_bytes": 2,
+      "raw_input_runs": [
+        {
+          "start": 0,
+          "duration": 1,
+          "mask": "0200"
+        },
+        {
+          "start": 1,
+          "duration": 1,
+          "mask": "8200"
+        },
+        {
+          "start": 2,
+          "duration": 15,
+          "mask": "82a0"
+        },
+        {
+          "start": 17,
+          "duration": 36,
+          "mask": "8220"
+        }
+      ]
+    },
+    {
+      "route": "right",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Glitches/Jumpover - Jump through halfpipe.smv",
+      "git_blob_sha1": "0b65f09bb6cf473a6883714a42d3d37b57b08255",
+      "size_bytes": 91844,
+      "smv_version": 4,
+      "uid": 1281629148,
+      "frame_count_header": 73,
+      "controller_samples": 73,
+      "controller_mask": 1,
+      "movie_options": 0,
+      "reset_anchored": false,
+      "savestate_offset": 158,
+      "controller_data_offset": 91696,
+      "port_types": [
+        1,
+        1
+      ],
+      "reset_markers": [],
+      "trailing_bytes": 2,
+      "raw_input_runs": [
+        {
+          "start": 0,
+          "duration": 1,
+          "mask": "0100"
+        },
+        {
+          "start": 1,
+          "duration": 1,
+          "mask": "8100"
+        },
+        {
+          "start": 2,
+          "duration": 15,
+          "mask": "8190"
+        },
+        {
+          "start": 17,
+          "duration": 56,
+          "mask": "8110"
+        }
+      ]
+    }
+  ],
+  "historical_scripts": [
+    {
+      "route": "left",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/jumpthroughhalfpipeleft.lua",
+      "git_blob_sha1": "8598a4fc9744edbd77a17b4ff2ed58ed6fc195c0",
+      "x_sweep": {
+        "start": 3960,
+        "stop": 4100,
+        "step": 1
+      },
+      "reported_successful_x": 3962
+    },
+    {
+      "route": "right",
+      "path": "reference/imported/reverse-engineering/dessyreqt/Scripts/jumpthroughhalfpiperight.lua",
+      "git_blob_sha1": "129fbd0786ce10d5e1520c30e34da71e6a1eaeb4",
+      "x_sweep": {
+        "start": 3073,
+        "stop": 2800,
+        "step": -1
+      },
+      "reported_successful_x": 3034
+    }
+  ],
+  "state_preconditions": {
+    "smv": "Both movies are savestate-anchored (movie_options bit 0 clear); controller streams alone do not reproduce the starting state.",
+    "scripts": "Both scripts load savestate slot 11 and directly write 16-bit player X at 7E:0411 before replay. The saved slot and surrounding state are not encoded by the scripts.",
+    "fresh_process": "Requires reconstruction/validation of a canonical state anchor before native-versus-reference acceptance; do not treat these as reset-anchored fixtures."
+  },
+  "missing_acceptance": [
+    "direction-matched ordinary control for left",
+    "direction-matched ordinary control for right",
+    "repeatable first contact-state divergence per route",
+    "native/reference event-relative parity and protected-state equality"
+  ],
+  "next_discriminator": "Reconstruct or obtain the exact initial savestate for each movie; then replay unchanged movie inputs, measure event-relative contact transitions and derive direction-matched ordinary controls. Do not patch simulation based on this static preflight."
+}

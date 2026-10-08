@@ -2,6 +2,10 @@
 
 Status: **Windows product-host integration with native (Linux desktop) acceptance**. A player can now create a Local Tournament, see its standings and fixtures, and arm their own fixture from the ordinary stock 2P route without any environment hook. Windows-package and multi-session (3+ entrant, relaunch-and-continue) acceptance are still pending; see *Remaining gaps*.
 
+## Cross-session release-quality boundary (2026-10-08)
+
+One complete packaged 2P race and relaunch is **demonstrated**, as recorded below, but neither the 3+ entrant multi-session event nor actually completing a 2–3-leg meeting from the second results screen is accepted end to end. These are P0 QA-03 gates J-04 and J-05 in [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md). The currently unfiltered P2 word while the panel owns P1 and freezes guest frames creates a *suspected* post-close held-button leak, **not a confirmed bug**; J-06 must measure first resumed guest frame, P2 release/re-press, rejoin/disconnect and any visible unintended stock action. Do not claim resolved until host+native acceptance demonstrates actual P2 ownership on both sides of the panel lifecycle.
+
 ## Where it lives
 
 The panel belongs to the stock `TWO_PLAYER_SELECT` visit (`7E:009F = 3D`) **after** the Modern join overlay has confirmed two distinct profiles. Only then is there a seated pair whose own fixture can be armed before the stock route continues. Because `0x3D` is the stock *PICK A PLAYER* rider grid, the hint is a single top-centred row over the decorative title, never over a rider name: `F4/PAD <L> TOURNAMENT` (`<L>` is the live GamepadMap button bound to SNES L, `LB` by default), `MATCH READY  F4/PAD <L>` when the seated pair has an unplayed meeting, or `EVENT: RACE <COURSE> F4/<L>` once a fixture is armed. Authentic mode never shows it.

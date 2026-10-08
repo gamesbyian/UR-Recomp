@@ -117,25 +117,12 @@ jobs:
             echo "WINDOWS_NATIVE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
           done
 
-          # Report, but do not impose unsupported cross-core PCM equality.
-          python - "$RUNNER_TEMP" <<'PY'
-          import json
-          from pathlib import Path
-          import sys
-          root = Path(sys.argv[1])
-          keys = ("main-menu-ready", "now-playing-ready", "race-entered")
-          metrics = {
-              key: json.loads((root / f"audio-output-{key}.json").read_text())
-              for key in keys
-          }
-          print("WINDOWS_AUDIO_PHASE_MATRIX", json.dumps({
-              key: {
-                  "tail_rms": metrics[key]["tail_rms"],
-                  "tail_peak": metrics[key]["tail_peak"],
-                  "tail_nonzero_fraction": metrics[key]["tail_nonzero_fraction"],
-              } for key in keys
-          }, sort_keys=True))
-          PY
+          # Compare native *relative* levels with independent references,
+          # not hashes or absolute PCM amplitude across emulator backends.
+          python tools/analyze_audio_phase_matrix.py \
+            --native-directory "$RUNNER_TEMP" \
+            --reference analysis/generated/audio-startup-reference-summary.json \
+            --json-out "$RUNNER_TEMP/audio-phase-matrix.json"
           echo "WINDOWS_NATIVE_AUDIO_OUTPUT PASS source_run=$SOURCE"
 
       - name: Upload bounded audio evidence (never PCM)
@@ -147,5 +134,6 @@ jobs:
             ${{ runner.temp }}/audio-native-*.log
             ${{ runner.temp }}/audio-output-*.json
             ${{ runner.temp }}/audio-ring-*.json
+            ${{ runner.temp }}/audio-phase-matrix.json
           if-no-files-found: warn
           retention-days: 7

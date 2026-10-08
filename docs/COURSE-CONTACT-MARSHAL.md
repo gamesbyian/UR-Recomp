@@ -152,3 +152,43 @@ one-frame dispatch-input equality still depends on the path being
 followed and no intervening call modifying the saved contact word;
 an instruction-time trace is the final discriminator. No collision,
 lap, checkpoint or frame timing logic has been changed.
+
+
+## Phase-corrected interpretation of the Dragster finish transition
+
+The earlier statement that frame 2903's *postframe* contact word
+0x2020 (C000 slot 8) "selects the finish handler" should not be
+read as proof it caused the **same frame's** state transition.
+Two independently recorded domains need to be aligned:
+
+| Frame | Stored P1 word at frame end | C000 slot/code | Finish state at frame end |
+|---|---|---|---|
+| 2901 | 1804 | 2 / 12 | 3 / 0 / 1 |
+| 2902 | 2024 | 10 / 14 | 3 / 0 / 1 |
+| 2903 | 2020 | 8 / 14 | 1 / 1 / 0 |
+| 2904 | 2020 | 8 / 14 | 1 / 1 / 0 |
+
+The bank-83 main-race call order is **course-object dispatch first,
+new contact/surface sampling afterward**. On the normal path, the
+object dispatcher starts from the previously persisted player's
+collision word. Thus the highest-priority instruction-time hypothesis
+is that the frame-2903 checkpoint/finish transition was driven by the
+word 0x2024 / **slot 10 from frame 2902**, while frame 2903's new
+postframe 0x2020 / slot 8 sample was produced *after* that handler call.
+
+This distinction is material for an eventual course editor or
+checkpoint/finish test. Declaring slot 8 a "finish" cell and slot 10
+a "checkpoint" cell from simultaneous postframe data alone would
+assign semantics to the wrong input phase. Both belong to resource
+0x24, both select the same 0x14 runtime object handler, and both
+have masked control class zero.
+
+The phase-corrected source-candidate join is implemented in
+tools/correlate_dragster_finish_spatial_event.py and regression-tested
+against the seven native frames. It resolves 0x2024/slot10 to
+world X=25280, Y=816/848/880 and the newly sampled 0x2020/slot8 to
+X=25280, Y=800/832/864. The join is **not** a CPU trace: other
+writes between frames and the actual contact-point Y are not
+established. The decisive next observation is an instruction-time
+trace of shared word 0F09 at the P1 bank-82 dispatch/81:82ED and
+handler 81:8050 while frame 2903 executes.

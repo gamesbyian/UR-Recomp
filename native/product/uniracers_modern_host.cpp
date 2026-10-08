@@ -4605,7 +4605,17 @@ void complete_run_record_capture() {
 }
 
 void rearm_run_capture_after_retry() {
-    if (!g_run_capture.capturing()) return;
+    if (!g_run_capture.capturing()) {
+        // Local Runs replay does not create a new capture. If it was cancelled
+        // mid-race, the previous-active edge still belongs to playback. A
+        // deliberate Restart must rearm the *next* real race instead of
+        // treating it as a continuation of an unrecorded attempt.
+        // Do not disturb an ordinary 2P capture owned by its separate lane.
+        if (!g_multiplayer_run_capture.capturing()) {
+            g_run_capture_previous_active = false;
+        }
+        return;
+    }
     g_run_capture.abort_attempt();
     g_run_timing_supported = false;
     g_run_timing_last_split.reset();

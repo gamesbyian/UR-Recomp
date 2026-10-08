@@ -37,7 +37,6 @@ tools/patches/snesrecomp-host-frame-hold.patch
 tools/ci_log_assert.py
 tests/input/ui-options-route.script
 tests/input/ui-main-branches.script
-tests/input/ui-vs-handoff.script
 tests/input/ui-splash-capture.script
 tests/input/ui-attract-route.script
 tests/input/ui-pause-route.script
@@ -50,9 +49,6 @@ tests/input/ui-records-explore.script
 tests/input/ui-rename-editor-explore.script
 tests/input/ui-circuit-drive-capture.script
 tests/input/ui-records-submenus.script
-tests/input/ui-record-high.script
-tests/input/ui-record-player.script
-tests/input/ui-record-group.script
 tests/input/ui-startup-timeline.script
 tests/input/ui-define-player-explore.script
 tests/input/ui-pre-race-timing.script

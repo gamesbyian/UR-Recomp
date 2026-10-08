@@ -2,54 +2,13 @@ name: Modern onboarding and practice acceptance
 
 on:
   workflow_dispatch:
-  pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
-    paths:
-      - "native/product/uniracers_modern_host.*"
-      - "native/product/modern_controls_*"
-      - "native/product/controller_hotplug_policy.hpp"
-      - "native/product/haptic_feedback_policy.hpp"
-      - "native/product/modern_options_menu.*"
-      - "tests/native/run_modern_vibration_acceptance.sh"
-      - "tests/native/run_modern_volume_acceptance.sh"
-      - "tests/native/run_modern_pad_glyph_acceptance.sh"
-      - "tests/input/modern-onboarding-glyphs.script"
-      - "native/product/modern_pad_glyphs.hpp"
-      - "native/product/modern_controls_presenter.*"
-      - "tests/native/run_modern_two_player_join_acceptance.sh"
-      - "tests/input/modern-two-player-join.*"
-      - "native/product/local_multiplayer_*"
-      - "tools/patches/snesrecomp-live-volume.patch"
-      - "tests/input/race-finish-dragster.script"
-      - "native/product/modern_tour_*.hpp"
-      - "native/product/next_event_derivation.hpp"
-      - "tests/native/run_modern_next_event_acceptance.sh"
-      - "tests/native/run_modern_tour_entry_acceptance.sh"
-      - "tests/native/run_modern_recent_course_persistence_acceptance.sh"
-      - "tests/native/run_modern_practice_picker_acceptance.sh"
-      - "tests/native/run_modern_tour_overview_acceptance.sh"
-      - "tests/native/run_modern_frontend_options_acceptance.sh"
-      - "tests/native/run_modern_frontend_controls_acceptance.sh"
-      - "native/title/uniracers_tour_progress_overview.hpp"
-      - "native/product/host_profile_state.*"
-      - "native/product/clean_stock_sram.*"
-      - "tests/input/modern-tour-next-event-acceptance.script"
-      - "tests/input/modern-tour-continue-*.script"
-      - "tests/input/modern-recent-course-persist.script"
-      - "tests/input/modern-recent-course-restore.script"
-      - "tests/native/modern_controls_*"
-      - "tools/patch_modern_product_host.py"
-      - "tests/input/modern-main-menu.script"
-      - "tests/input/modern-practice-route.script"
-      - "tests/input/modern-fast-repeat-results.script"
-      - "tests/input/modern-practice-repeat-results.script"
-      - "tests/input/modern-practice-cancel.script"
-      - "tests/input/modern-recent-course-practice.script"
-      - "tests/input/modern-focus-pause.script"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snesrecomp.json"
-      - "tools/toolchain-entries/sdl3.json"
-      - ".github/workflows/modern-onboarding-practice-acceptance.yml"
+  workflow_call:
+    inputs:
+      canonical_candidate:
+        description: Reuse the caller run's canonical Modern native candidate
+        required: false
+        type: boolean
+        default: false
 
 concurrency:
   group: modern-onboarding-practice-${{ github.ref }}
@@ -64,7 +23,39 @@ jobs:
       - name: Check out project
         uses: actions/checkout@v4
 
+      - name: Download canonical Modern native candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-native-canonical-candidate
+          path: ${{ runner.temp }}/modern-native-canonical-artifact
+
+      - name: Bridge canonical candidate into Onboarding artifact contract
+        if: ${{ inputs.canonical_candidate == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/modern-native-canonical-artifact/modern-native-canonical.tar.gz" -C "$RUNNER_TEMP"
+          ROOT="$RUNNER_TEMP/modern-native-canonical/UniracersSNESRecomp"
+          test -x "$ROOT/build/UniracersSNESRecomp"
+          grep -q "ur_uniracers_product_after_run_frame" "$ROOT/src/main.c"
+          grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
+          rm -rf "$RUNNER_TEMP/ur-onboarding-practice"
+          mv "$RUNNER_TEMP/modern-native-canonical" "$RUNNER_TEMP/ur-onboarding-practice"
+          tar -czf "$RUNNER_TEMP/modern-native-candidate.tar.gz" \
+            -C "$RUNNER_TEMP" ur-onboarding-practice
+
+      - name: Upload bridged Modern native candidate
+        if: ${{ inputs.canonical_candidate == true }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-onboarding-native-candidate
+          path: ${{ runner.temp }}/modern-native-candidate.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
       - name: Install desktop build dependencies
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           cmake --version
@@ -77,6 +68,7 @@ jobs:
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Stage framework and SDL3
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -85,6 +77,7 @@ jobs:
           python3 tools/bootstrap_toolchain.py --offline --tool sdl3 --clone-only
 
       - name: Scaffold and build Modern native host
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -105,6 +98,7 @@ jobs:
 
 
       - name: Package Modern native candidate
+        if: ${{ inputs.canonical_candidate != true }}
         shell: bash
         run: |
           set -euo pipefail
@@ -112,6 +106,7 @@ jobs:
           test -s "$RUNNER_TEMP/modern-native-candidate.tar.gz"
 
       - name: Upload Modern native candidate
+        if: ${{ inputs.canonical_candidate != true }}
         uses: actions/upload-artifact@v4
         with:
           name: modern-onboarding-native-candidate

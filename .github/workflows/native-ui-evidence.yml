@@ -317,7 +317,21 @@ jobs:
               run_route ui-main-branches ui-main-branches.script ui-branch-dumps 150
               ;;
             profiles)
-              run_route ui-rename-editor-explore ui-rename-editor-explore.script ui-rename-editor-dumps 180
+              # Candidate optimization. Must remain draft until the five-route
+              # paired pristine-root full-dump parity experiment is green.
+              (
+                export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-unpaced-user-data"
+                mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                run_route ui-rename-editor-explore ui-rename-editor-explore.script ui-rename-editor-dumps 180 required || exit $?
+                grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                  "$RUNNER_TEMP/ui-rename-editor-explore.log" || {
+                  echo "::error::Rename route did not consume isolated unpaced config"
+                  exit 1
+                }
+                echo "UR_RENAME_ISOLATED_CONFIG_ROOT PASS"
+              ) || exit $?
               run_route ui-name-league-route ui-name-league-route.script ui-name-league-dumps 120
               run_route ui-startup-timeline ui-startup-timeline.script ui-startup-timeline-dumps 120
               run_route ui-define-player-explore ui-define-player-explore.script ui-define-player-dumps 120

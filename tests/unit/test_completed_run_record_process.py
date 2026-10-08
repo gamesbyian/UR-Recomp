@@ -88,6 +88,7 @@ class CompletedRunReplayTerminalDigestTests(unittest.TestCase):
             for name, digest in [
                 ("absent", "-"),
                 ("digest-a", "a" * 64),
+                ("digest-upper-a", "A" * 64),
                 ("digest-b", "b" * 64),
             ]:
                 path = folder / f"{name}.urrun"
@@ -100,6 +101,8 @@ class CompletedRunReplayTerminalDigestTests(unittest.TestCase):
             for left, right in [
                 ("absent", "absent"),
                 ("digest-a", "digest-a"),
+                ("digest-a", "digest-upper-a"),
+                ("digest-upper-a", "digest-a"),
                 ("digest-b", "digest-b"),
             ]:
                 result = subprocess.run(

@@ -43,70 +43,89 @@ jobs:
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
 
-      - name: Capture actual SDL3 playback output and production APU counters
+      - name: Capture named SDL3 audio checkpoints and APU counters
         run: |
           set -euo pipefail
           SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id }}"
           [[ "$SOURCE" =~ ^[0-9]{1,20}$ ]]
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
           EXTRACT="$RUNNER_TEMP/audio-product"
-          DUMPS="$RUNNER_TEMP/audio-dumps"
-          ROOT="$RUNNER_TEMP/audio-user-data"
-          PCM="$RUNNER_TEMP/audio-device-output.raw"
-          STATS="$RUNNER_TEMP/audio-ring-stats.txt"
-          LOG="$RUNNER_TEMP/audio-native.log"
-          SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
-          # Require the archive produced by the named source run. No fallbacks
-          # to local working-tree builds or accidentally stale packages.
           test -s "$ARCHIVE"
           python tools/assemble_windows_package.py verify-archive --archive "$ARCHIVE"
           python -m zipfile -e "$ARCHIVE" "$EXTRACT"
           PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           python tools/assemble_windows_package.py verify --package "$PACKAGE"
-          mkdir -p "$DUMPS"
-          rm -rf "$ROOT"
           PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
-          SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
-          DUMPS_WIN="$(cygpath -w "$DUMPS")"
-          ROOT_WIN="$(cygpath -w "$ROOT")"
-          PCM_WIN="$(cygpath -w "$PCM")"
-          STATS_WIN="$(cygpath -w "$STATS")"
-          set +e
-          SDL_VIDEO_DRIVER=offscreen \
-          SDL_VIDEODRIVER=offscreen \
-          SDL_AUDIO_DRIVER=disk \
-          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
-          SDL_AUDIO_FORMAT=S16LE \
-          SDL_AUDIO_CHANNELS=2 \
-          SDL_AUDIO_FREQUENCY=44100 \
-          SDL_AUDIO_DISK_TIMESCALE=1.0 \
-          SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
-          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
-          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
-            timeout 300 powershell.exe -NoProfile -Command \
-              "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
-              >"$LOG" 2>&1
-          RC=$?
-          set -e
-          tail -n 50 "$LOG"
-          test "$RC" -eq 0
-          test -s "$DUMPS/race-entered.wram.bin"
-          test -s "$PCM"
-          test -s "$STATS"
-          # The first-race fixture ends 60 guest frames into active racing.
-          # Require the playback tail to remain audible, not just the title.
-          # The SDL driver reports a Windows-native absolute path. Pass that
-          # same spelling to native Windows Python so the provenance check is
-          # not misled by Git Bash/MSYS path conversion.
-          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
-            --tail-seconds 0.5 --min-tail-rms 50 \
-            --json-out "$RUNNER_TEMP/audio-output-metrics.json"
-          python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
-            --json-out "$RUNNER_TEMP/audio-ring-metrics.json"
-          cat "$RUNNER_TEMP/audio-output-metrics.json"
-          cat "$RUNNER_TEMP/audio-ring-metrics.json"
-          # Captured music is proprietary. Publish only metadata/evidence.
-          rm -f "$PCM"
+
+          # Independent fresh processes derived from the canonical race route.
+          # No fabricated guest input, sample-clock alignment or renderer edits.
+          for CASE in main-menu-ready now-playing-ready race-entered; do
+            SCRIPT="$RUNNER_TEMP/audio-$CASE.script"
+            DUMPS="$RUNNER_TEMP/audio-dumps-$CASE"
+            ROOT="$RUNNER_TEMP/audio-user-data-$CASE"
+            PCM="$RUNNER_TEMP/audio-device-output-$CASE.raw"
+            STATS="$RUNNER_TEMP/audio-ring-stats-$CASE.txt"
+            LOG="$RUNNER_TEMP/audio-native-$CASE.log"
+            python tools/build_audio_checkpoint_route.py \
+              "$GITHUB_WORKSPACE/tests/input/reach-first-race.script" \
+              "$CASE" "$SCRIPT"
+            mkdir -p "$DUMPS"
+            rm -rf "$ROOT" "$PCM" "$STATS"
+            SCRIPT_WIN="$(cygpath -w "$SCRIPT")"
+            DUMPS_WIN="$(cygpath -w "$DUMPS")"
+            ROOT_WIN="$(cygpath -w "$ROOT")"
+            PCM_WIN="$(cygpath -w "$PCM")"
+            STATS_WIN="$(cygpath -w "$STATS")"
+            set +e
+            SDL_VIDEO_DRIVER=offscreen \
+            SDL_VIDEODRIVER=offscreen \
+            SDL_AUDIO_DRIVER=disk \
+            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+            SDL_AUDIO_FORMAT=S16LE \
+            SDL_AUDIO_CHANNELS=2 \
+            SDL_AUDIO_FREQUENCY=44100 \
+            SDL_AUDIO_DISK_TIMESCALE=1.0 \
+            SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
+            SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+              timeout 180 powershell.exe -NoProfile -Command \
+                "& '$PACKAGE_WIN\\run-uniracers.cmd' --script '$SCRIPT_WIN'; exit \$LASTEXITCODE" \
+                >"$LOG" 2>&1
+            RC=$?
+            set -e
+            tail -n 25 "$LOG"
+            test "$RC" -eq 0
+            test -s "$DUMPS/$CASE.wram.bin"
+            test -s "$PCM"
+            test -s "$STATS"
+            python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+              --tail-seconds 0.5 --min-tail-rms 50 \
+              --json-out "$RUNNER_TEMP/audio-output-$CASE.json"
+            python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+              --json-out "$RUNNER_TEMP/audio-ring-$CASE.json"
+            rm -f "$PCM"
+            echo "WINDOWS_NATIVE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
+          done
+
+          # Report, but do not impose unsupported cross-core PCM equality.
+          python - "$RUNNER_TEMP" <<'PY'
+          import json
+          from pathlib import Path
+          import sys
+          root = Path(sys.argv[1])
+          keys = ("main-menu-ready", "now-playing-ready", "race-entered")
+          metrics = {
+              key: json.loads((root / f"audio-output-{key}.json").read_text())
+              for key in keys
+          }
+          print("WINDOWS_AUDIO_PHASE_MATRIX", json.dumps({
+              key: {
+                  "tail_rms": metrics[key]["tail_rms"],
+                  "tail_peak": metrics[key]["tail_peak"],
+                  "tail_nonzero_fraction": metrics[key]["tail_nonzero_fraction"],
+              } for key in keys
+          }, sort_keys=True))
+          PY
           echo "WINDOWS_NATIVE_AUDIO_OUTPUT PASS source_run=$SOURCE"
 
       - name: Upload bounded audio evidence (never PCM)
@@ -115,8 +134,8 @@ jobs:
         with:
           name: windows-native-audio-evidence
           path: |
-            ${{ runner.temp }}/audio-native.log
-            ${{ runner.temp }}/audio-output-metrics.json
-            ${{ runner.temp }}/audio-ring-metrics.json
+            ${{ runner.temp }}/audio-native-*.log
+            ${{ runner.temp }}/audio-output-*.json
+            ${{ runner.temp }}/audio-ring-*.json
           if-no-files-found: warn
           retention-days: 7

@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections import Counter
 from pathlib import Path
 
 from analyze_course_resource_lists import parse_course_resource_list
@@ -100,6 +101,7 @@ def summarize_placements(
     cells: list[dict],
     probe_x: int | None = None,
     query_rect: tuple[int, int, int, int] | None = None,
+    observed_c000_slot: int | None = None,
 ) -> dict:
     """Separate historical X-only finish leads from confirmed cell positions."""
     sectors = sorted({tuple(p["coarse_sector"]) for p in cells})
@@ -108,6 +110,11 @@ def summarize_placements(
         "candidate_world_cells": len(cells),
         "candidate_coarse_sectors": len(sectors),
         "fine_record_ids": records,
+        "candidate_cells_by_c000_slot": {
+            str(slot): count for slot, count in sorted(
+                Counter(p["c000_slot"] for p in cells).items()
+            )
+        },
         "coordinate_authority": "decoded USA course / descriptor-derived resource spans",
         "event_authority": "unconfirmed for individual placements",
     }
@@ -123,6 +130,14 @@ def summarize_placements(
             "closest_candidate_x_distance": min(distances) if distances else None,
             "first_24_matching_candidates": matches[:24],
             "warning": "X-only optimizer coordinate, not a runtime finish-line proof",
+        }
+    if observed_c000_slot is not None:
+        matches = [p for p in cells if p["c000_slot"] == observed_c000_slot]
+        summary["observed_c000_slot_probe"] = {
+            "c000_slot": observed_c000_slot,
+            "candidate_world_cells": len(matches),
+            "first_48_candidate_cells": matches[:48],
+            "warning": "A slot match does not establish a guest event at any of these cells",
         }
     if query_rect is not None:
         x0, y0, x1, y1 = query_rect
@@ -143,6 +158,7 @@ def summarize_placements(
 def inspect_course(
     rom: bytes, stream_index: int, probe_x: int | None = None,
     query_rect: tuple[int, int, int, int] | None = None,
+    observed_c000_slot: int | None = None,
 ) -> dict:
     if hashlib.sha256(rom).hexdigest() != USA_SHA256:
         raise ValueError("this descriptor-address probe requires the exact USA retail ROM")
@@ -167,7 +183,7 @@ def inspect_course(
             if x["resource_id"] == CHECKPOINT_RESOURCE_ID
         ],
         "world_extent": [parsed["layout_dims"][0] * 256, parsed["layout_dims"][1] * 256],
-        "summary": summarize_placements(cells, probe_x, query_rect),
+        "summary": summarize_placements(cells, probe_x, query_rect, observed_c000_slot),
     }
 
 
@@ -177,11 +193,13 @@ def main() -> int:
     parser.add_argument("--stream-index", type=int, default=1)
     parser.add_argument("--probe-x", type=int, default=None)
     parser.add_argument("--query-rect", type=int, nargs=4, metavar=("X0", "Y0", "X1", "Y1"))
+    parser.add_argument("--observed-c000-slot", type=int, help="diagnose a guest-observed C000 index")
     parser.add_argument("--json-out", type=Path)
     args = parser.parse_args()
     result = inspect_course(
         args.rom.read_bytes(), args.stream_index, args.probe_x,
         tuple(args.query_rect) if args.query_rect else None,
+        args.observed_c000_slot,
     )
     rendered = json.dumps(result, indent=2) + "\n"
     if args.json_out:

@@ -57,13 +57,21 @@ class CheckpointSpatialPlacementTests(unittest.TestCase):
         cells = mod.place_resource_cells(
             synthetic_course(), [{"resource_id": 0x24, "start": 1, "end": 1}]
         )
-        result = mod.summarize_placements(cells, probe_x=70, query_rect=(60, 0, 70, 12))
+        result = mod.summarize_placements(
+            cells, probe_x=70, query_rect=(60, 0, 70, 12), observed_c000_slot=1
+        )
         probe = result["historical_finish_x_probe"]
         self.assertEqual(probe["matching_candidate_cells"], 1)
         self.assertEqual(probe["closest_candidate_x_distance"], 0)
         self.assertEqual(result["query"]["candidate_count"], 1)
         self.assertEqual(result["query"]["candidate_cells"][0]["world_cell"], [64, 0, 79, 15])
         self.assertEqual(result["event_authority"], "unconfirmed for individual placements")
+        self.assertEqual(result["candidate_cells_by_c000_slot"], {"1": 2})
+        self.assertEqual(result["observed_c000_slot_probe"]["candidate_world_cells"], 2)
+        self.assertEqual(
+            mod.summarize_placements(cells, observed_c000_slot=8)
+            ["observed_c000_slot_probe"]["candidate_world_cells"], 0,
+        )
 
     def test_bad_sector_and_alignment_rejected(self):
         data = bytearray(synthetic_course())

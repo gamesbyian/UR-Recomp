@@ -8,14 +8,22 @@ set -Eeuo pipefail
 # callback records what reaches the device. Vibration must never change the
 # simulation: the on/off run records must be byte-identical.
 
-if [ "$#" -ne 3 ]; then
-  echo "usage: $0 <native-exe> <retail-rom> <work-dir>" >&2
+if [ "$#" -lt 3 ] || [ "$#" -gt 4 ]; then
+  echo "usage: $0 <native-exe> <retail-rom> <work-dir> [parity|aux|all]" >&2
   exit 2
 fi
 
 EXE="$1"
 ROM="$2"
 WORK="$3"
+MODE="${4:-all}"
+case "$MODE" in
+  parity|aux|all) ;;
+  *)
+    echo "unknown vibration acceptance mode: $MODE" >&2
+    exit 2
+    ;;
+esac
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 RACE_SCRIPT="$REPO/tests/input/race-finish-dragster.script"
 PAUSE_SCRIPT="$REPO/tests/input/modern-focus-pause.script"
@@ -34,7 +42,12 @@ dump_failure_evidence() {
 trap dump_failure_evidence ERR
 
 STATE="$WORK/host-state.txt"
-printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' >"$STATE"
+if [ "$MODE" = "parity" ]; then
+  printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=0\n' >"$STATE"
+  printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' >"$WORK/host-state-on.txt"
+else
+  printf 'UR-HOST-STATE/6\nprofile=\npause_on_focus_loss=0\nvibration_enabled=1\n' >"$STATE"
+fi
 
 run_native() {
   local name="$1"
@@ -48,6 +61,7 @@ run_native() {
 }
 
 # 1. The player turns Vibration off through pause -> Options -> VIBRATION.
+if [ "$MODE" != "parity" ]; then
 run_native toggle "$PAUSE_SCRIPT" \
   UR_HOST_STATE_PATH="$STATE" \
   UR_VIBRATION_OPTIONS_ACCEPTANCE=1
@@ -60,9 +74,11 @@ grep -q '^vibration_enabled=0$' "$STATE"
 sed 's/^vibration_enabled=0$/vibration_enabled=1/' "$STATE" >"$WORK/host-state-on.txt"
 CHANGED=$(diff "$STATE" "$WORK/host-state-on.txt" | grep -c '^[<>]' || true)
 test "$CHANGED" -eq 2
+fi
 
 # 2. Vibration on: three checkpoint pulses and one finish pulse reach the
 #    seated controller during an ordinary Modern 1P Dragster race.
+if [ "$MODE" != "aux" ]; then
 run_native on "$RACE_SCRIPT" \
   UR_HOST_STATE_PATH="$WORK/host-state-on.txt" \
   UR_HAPTIC_ACCEPTANCE=1 \
@@ -110,8 +126,10 @@ if on != off:
 print(f"UR_VIBRATION_RACE_OUTCOME_EQUAL lines={len(on)}")
 PY
 echo "UR_VIBRATION_OFF_NATIVE=fresh_process silent=1 race_outcome_identical=1"
+fi
 
 # 4. Authentic never vibrates, even with the stored setting on.
+if [ "$MODE" != "parity" ]; then
 run_native authentic "$RACE_SCRIPT" \
   UR_EXECUTION_MODE=authentic \
   UR_HOST_STATE_PATH="$WORK/host-state-on.txt" \
@@ -120,5 +138,6 @@ grep -q "UR_HOST_STATE AUTHENTIC_INERT" "$WORK/authentic.log"
 grep -q "script .* dump race-results ok" "$WORK/authentic.log"
 ! grep -q "UR_HAPTIC PULSE" "$WORK/authentic.log"
 ! grep -q "UR_HAPTIC_ACCEPTANCE DEVICE_RUMBLE" "$WORK/authentic.log"
+fi
 
-echo "UR_VIBRATION_ACCEPTANCE_RESULT=options_toggle_persisted_on_pulses_off_silent_identical_authentic_inert"
+echo "UR_VIBRATION_ACCEPTANCE_RESULT=$MODE"

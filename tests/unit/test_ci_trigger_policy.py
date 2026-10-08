@@ -391,9 +391,9 @@ class CiTriggerPolicyTest(unittest.TestCase):
         shards = [item.strip() for item in match.group(1).split(",")]
         self.assertEqual(
             shards,
-            ["tour-a", "tour-b", "feedback", "multiplayer"],
+            ["tour-a", "tour-b", "feedback-parity", "feedback-aux", "multiplayer"],
         )
-        self.assertLessEqual(len(shards), 4)
+        self.assertLessEqual(len(shards), 5)
         consumer = text.split("  core-acceptance:", 1)[1]
         self.assertIn("Install native runtime dependencies", consumer)
         runtime_install = consumer.split(
@@ -404,6 +404,17 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn("cmake", runtime_install)
         self.assertNotIn("ninja", runtime_install)
 
+
+    def test_onboarding_feedback_split_preserves_vibration_parity(self):
+        workflow = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        harness = Path("tests/native/run_modern_vibration_acceptance.sh").read_text()
+        independent = workflow.split("  independent-acceptance:", 1)[1]
+        self.assertIn("feedback-parity", independent)
+        self.assertIn("feedback-aux", independent)
+        self.assertIn("run_modern_vibration_acceptance.sh vibration-parity parity", independent)
+        self.assertIn("run_modern_vibration_acceptance.sh vibration-aux aux", independent)
+        self.assertIn("[parity|aux|all]", harness)
+        self.assertIn('MODE="${4:-all}"', harness)
 
     def test_local_multiplayer_contract_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "local-multiplayer-product-contracts.yml").read_text()

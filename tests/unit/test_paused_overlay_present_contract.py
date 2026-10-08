@@ -7,6 +7,7 @@ PATCH = ROOT / "tools" / "patches" / "snesrecomp-paused-overlay-present.patch"
 HOST = ROOT / "native" / "product" / "uniracers_modern_host.cpp"
 BROWSER_HOST = ROOT / "native" / "product" / "completed_run_browser_host.cpp"
 UI_EVIDENCE = ROOT / ".github" / "workflows" / "native-ui-evidence.yml"
+UI_PATHS = ROOT / ".github" / "ci" / "modern-native-ui-paths.txt"
 
 
 class PausedOverlayPresentContractTests(unittest.TestCase):
@@ -62,7 +63,10 @@ class PausedOverlayPresentContractTests(unittest.TestCase):
         self.assertIn('export SNESRECOMP_PAUSED_OVERLAY_DUMP="', workflow)
         self.assertIn(
             'python3 tools/check_paused_overlay_dump.py "$PAUSED_OVERLAY"', workflow)
-        self.assertIn('- "tools/patches/snesrecomp-paused-overlay-present.patch"', workflow)
+        self.assertIn(
+            "tools/patches/snesrecomp-paused-overlay-present.patch",
+            UI_PATHS.read_text(encoding="utf-8"),
+        )
 
 
 if __name__ == "__main__":

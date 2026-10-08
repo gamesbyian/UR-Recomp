@@ -36,6 +36,7 @@ def phase_levels(native: dict[str, dict], references: dict) -> dict:
     levels: dict[str, dict[str, float]] = {}
     native_rms = {}
     native_peaks = {}
+    native_stereo_tail_rms = {}
     for checkpoint in CHECKPOINTS:
         metric = native[checkpoint]
         if metric.get("schema_version") != 1 or metric.get("audio_origin") != "sdl3-disk-playback":
@@ -47,6 +48,13 @@ def phase_levels(native: dict[str, dict], references: dict) -> dict:
             raise ValueError(f"{checkpoint}: expected ~1-second checkpoint-centered tail")
         native_rms[checkpoint] = require_level(metric.get("tail_rms"), f"{checkpoint} tail RMS")
         native_peaks[checkpoint] = require_level(metric.get("tail_peak"), f"{checkpoint} tail peak")
+        stereo = metric.get("tail_channel_rms")
+        if not isinstance(stereo, list) or len(stereo) != 2:
+            raise ValueError(f"{checkpoint}: missing stereo tail channel evidence")
+        native_stereo_tail_rms[checkpoint] = [
+            round(require_level(value, f"{checkpoint} {name} tail RMS"), 6)
+            for value, name in zip(stereo, ("left", "right"))
+        ]
     levels["native-sdl-disk"] = native_rms
 
     names = set()
@@ -94,6 +102,7 @@ def phase_levels(native: dict[str, dict], references: dict) -> dict:
             and profiles["native-sdl-disk"]["rms_phase_order"] == reference_order[0]
         ),
         "native_tail_peak": native_peaks,
+        "native_tail_channel_rms": native_stereo_tail_rms,
     }
 
 

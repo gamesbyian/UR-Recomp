@@ -371,7 +371,7 @@ int main(int argc, char** argv) {
     shifted.samples[1].race_frame = 3;
     assert(!ur::test::equivalent_ghost_world_samples(
         trace, shifted, &mismatch, &common));
-    assert(mismatch.find("race_frame") != std::string::npos);
+    assert(mismatch.find("noncontiguous") != std::string::npos);
     auto divergent = trace;
     divergent.samples[1].world_x++;
     assert(!ur::test::equivalent_ghost_world_samples(

@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 
-from tools.capture_modern_restart_audio import verify_restart_log
+from tools.capture_modern_restart_audio import verify_restart_log, validate_restart_audio
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -56,6 +56,27 @@ class ModernRestartAudioTests(unittest.TestCase):
         self.assertIn("dump audio-restart-guest", source)
         self.assertTrue(source.endswith("wait 3600\n"))
         self.assertFalse(any(line.lstrip().startswith("poke ") for line in source.splitlines()))
+
+
+    def test_failed_recovery_retains_raw_free_bounded_capture_evidence(self):
+        paused = {"frames": 44100, "channel_rms": [0, 0],
+                  "combined_rms": 0, "channel_nonzero_fraction": [0, 0]}
+        resumed = {"frames": 44100, "channel_rms": [0, 0],
+                   "combined_rms": 0, "channel_nonzero_fraction": [0, 0]}
+        report = {"paused_one_second": paused,
+                  "restarted_final_one_second": resumed,
+                  "last_eight_seconds_envelope": {"windows": []}}
+        # A real restarted guest is insufficient to accept absent audio.
+        with self.assertRaisesRegex(ValueError, "audible stereo"):
+            validate_restart_audio(report, self.LOG)
+        self.assertIn("last_eight_seconds_envelope", report)
+        self.assertNotIn("recovery_confirmed", report)
+        resumed = {"frames": 44100, "channel_rms": [1000, 1100],
+                   "combined_rms": 1050, "channel_nonzero_fraction": [0.9, 0.8]}
+        report["restarted_final_one_second"] = resumed
+        verified = validate_restart_audio(report, self.LOG)
+        self.assertTrue(verified["recovery_confirmed"])
+        self.assertEqual(verified["restarted_final_one_second"], resumed)
 
     def test_real_native_keyboard_and_postclose_device_path_are_used(self):
         source = (ROOT / "tools/capture_modern_restart_audio.py").read_text()

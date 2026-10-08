@@ -55,6 +55,14 @@ bool env_enabled() noexcept {
     return enabled;
 }
 
+// Experimental opt-in until native stock-P2 occlusion acceptance is complete.
+// The pinned PPU only supports one contiguous OBJ extraction range: P1's
+// bottom/top slots 97/98 are adjacent, unlike P2's 96/99.
+bool p1_only_capture_enabled() noexcept {
+    const char* value = std::getenv("UR_RACER_HD_P1_ONLY");
+    return value != nullptr && value[0] == '1' && value[1] == '\0';
+}
+
 std::uint64_t fnv1a(const void* data, std::size_t size, std::uint64_t seed) noexcept {
     const auto* p = static_cast<const std::uint8_t*>(data);
     std::uint64_t h = seed;
@@ -201,14 +209,14 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         0x20000,
         2
     );
-    if (!p1.uses_replacement() || !p2.uses_replacement() ||
-        p1.registration == nullptr || p2.registration == nullptr) {
-        return;
-    }
-    if (!racer_hd_asset_available(p1.registration->semantic_frame_id) ||
-        !racer_hd_asset_available(p2.registration->semantic_frame_id)) {
-        return;
-    }
+    if (!p1.uses_replacement() || p1.registration == nullptr ||
+        !racer_hd_asset_available(p1.registration->semantic_frame_id)) return;
+
+    const bool p2_ready = p2.uses_replacement() &&
+        p2.registration != nullptr &&
+        racer_hd_asset_available(p2.registration->semantic_frame_id);
+    const bool p1_only = !p2_ready && p1_only_capture_enabled();
+    if (!p2_ready && !p1_only) return;
 
     const auto p1_top = decode_racer_split_ppu_placement(
         g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Top
@@ -225,17 +233,27 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     if (!p1_top || !p2_top || !p1_bottom || !p2_bottom) return;
 
     const std::array<const RacerRegistration*, 4> registrations = {
-        p1.registration, p2.registration, p1.registration, p2.registration
+        p1.registration, p2_ready ? p2.registration : nullptr,
+        p1.registration, p2_ready ? p2.registration : nullptr
     };
     const std::array<RacerOamPlacement, 4> placements = {
         *p1_top, *p2_top, *p1_bottom, *p2_bottom
     };
     for (std::size_t i = 0; i < placements.size(); ++i) {
+        if (registrations[i] == nullptr) continue;
         if (!placements[i].large ||
             placements[i].width_pixels != registrations[i]->logical_width ||
             placements[i].height_pixels != registrations[i]->logical_height) {
             return;
         }
+    }
+    // Stock bottom P2 slot 96 paints in front of P1 97. The flattened
+    // framebuffer has no reusable P2 depth plane, so an isolated host P1
+    // cannot be painted where its lower sprite rectangle intersects P2.
+    // Reject even a *possible* overlap; retain the original entire frame.
+    if (p1_only && !racer_p1_only_no_stock_p2_occlusion(
+            *p1_top, *p1_bottom, *p2_top, *p2_bottom)) {
+        return;
     }
 
     const std::uint64_t before = guest_state_digest();
@@ -256,7 +274,9 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         kBaseHeight,
         kPpuOverlayFlag_RemoveFromGame
     );
-    const bool ranged = captured && PpuSetOverlayOamRange(g_ppu, 96, 4);
+    const bool ranged = captured && PpuSetOverlayOamRange(
+        g_ppu, p1_only ? 97 : 96, p1_only ? 2 : 4
+    );
     const std::uint64_t after = guest_state_digest();
 
     if (!ranged || before != after) {
@@ -273,11 +293,16 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
 
     g_instances = {{
         {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Top, *p1_top},
-        {p2.registration->semantic_frame_id, p2.registration, RacerViewport::Top, *p2_top},
+        {p2_ready ? p2.registration->semantic_frame_id : p1.registration->semantic_frame_id,
+         p2_ready ? p2.registration : p1.registration,
+         p2_ready ? RacerViewport::Top : RacerViewport::Bottom,
+         p2_ready ? *p2_top : *p1_bottom},
         {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Bottom, *p1_bottom},
-        {p2.registration->semantic_frame_id, p2.registration, RacerViewport::Bottom, *p2_bottom},
+        {p2_ready ? p2.registration->semantic_frame_id : 0,
+         p2_ready ? p2.registration : nullptr,
+         RacerViewport::Bottom, *p2_bottom},
     }};
-    g_instance_count = g_instances.size();
+    g_instance_count = p1_only ? 2 : g_instances.size();
     g_frame_active = true;
 }
 
@@ -332,11 +357,18 @@ int racer_hd_draw_frame(
     const RacerRegistration* p1_registration =
         g_instance_count >= 1 ? g_instances[0].registration : nullptr;
     const RacerRegistration* p2_registration =
-        g_instance_count >= 2 ? g_instances[1].registration : nullptr;
+        g_instance_count == 4 ? g_instances[1].registration : nullptr;
     const bool registration_pair_changed =
         p1_registration != g_last_logged_p1_registration ||
         p2_registration != g_last_logged_p2_registration;
     if (registration_pair_changed && g_logged_state_transitions < 32) {
+        if (g_instance_count == 2) {
+            std::fprintf(
+                stderr,
+                "UR_RACER_HD_P1_ONLY frame=%u slots=97-98 p2_stock=1 bottom_nonoverlap=1\\n",
+                g_sim_frame
+            );
+        }
         for (std::size_t i = 0; i < g_instance_count; ++i) {
             const auto& instance = g_instances[i];
             std::fprintf(

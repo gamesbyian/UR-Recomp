@@ -108,6 +108,7 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("static MSVC runtime", readme)
             self.assertIn("Visual C++ Redistributable", readme)
+            self.assertIn("paths contain spaces", readme)
             self.assertIn(
                 r"%APPDATA%\gamesbyian\UR-Recomp by default.",
                 readme,

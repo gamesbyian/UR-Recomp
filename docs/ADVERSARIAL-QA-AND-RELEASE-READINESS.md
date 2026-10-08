@@ -83,6 +83,10 @@ Use model-based stateful action generation with preconditions/invalid transition
 
 Audit follow-up identified a credible structural leak: original SNESRecomp assembles the P2 human word from the mapped high bits of `human` (`g_pad_buttons`) **plus** second-pad analog `axis_buttons`. A filter only on analog axes would miss A/Start and is rejected by a strict compiled patch fixture. Pure P2 source-edge filtering alone therefore cannot certify a button held across entry/exit of a frame-held tournament modal. A newly pinned P2 human-word seam arms a 12-bit release latch on panel entry and filters held bits until release on actual guest input assembly. J-06 still requires a real guest/controller-word witness and hardware/packaged acceptance. Preserve the distinction between source-proven gap, mitigated code path and reproduced player-visible defect.
 
+### QA-02 finding: fixture receipt replacement race
+
+Source audit identified a real concurrent-write vulnerability: fixture-link publication checked for an existing result, then renamed a shared `.tmp` over the final link with replace-existing semantics. Two processes could pass the preflight and both claim completion; one could overwrite the other. The repaired adapter atomically reserves per-writer staging and uses **no-replace** publication, with a concurrent native eight-writer regression. Release QA-02 remains in progress, **not passed**: the result link is only one piece of the run/ghost/match/session/profile publication chain, and no independent packaged Windows or power-loss witness has been recorded. Keep exact previous-good data and recovery messages as remaining requirements.
+
 ## Next concrete work
 
 1. Freeze a current candidate and record the Windows package from *that* SHA.

@@ -36,6 +36,13 @@ int main() {
     r = tournament_p2_modal_input(r.consumed_buttons, false, kA, true);
     check(!r.consume_event, "new P2 A press after release passes");
 
+    // Press predating the modal is already framework-held. If it is
+    // released while the guest is frozen, pass that release so P2 cannot
+    // become permanently stuck after returning to the original menu.
+    r = tournament_p2_modal_input(0u, true, kA, false);
+    check(!r.consume_event && r.consumed_buttons == 0u,
+          "pre-modal P2 held-state release must pass to framework");
+
     r = tournament_p2_modal_input(0u, true, kStart, true);
     r = tournament_p2_modal_input(r.consumed_buttons, true, kDpadLeft, true);
     check(r.consumed_buttons == (kStart | kDpadLeft),

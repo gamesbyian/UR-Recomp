@@ -29,7 +29,7 @@ class OnboardingDensityContractTests(unittest.TestCase):
         end = self.source.index("if (modern_mode() &&", start)
         body = self.source[start:end]
         self.assertIn("centered_modern_modal_layout(", body)
-        self.assertIn("kOnboardingPanelHeight = 189", body)
+        self.assertIn("kOnboardingPanelHeight = 206", body)
         self.assertIn(
             "const int scale = modern_overlay_surface_scale(width, height);",
             body,

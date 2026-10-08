@@ -71,24 +71,39 @@ int main(int argc, char** argv) {
         bad << corrupt;
     }
 
+    // A damaged oversized artifact remains visible in Records health, but
+    // cannot block valid neighbors or become PB/Previous replay authority.
+    const auto oversized_path = dir / "run-9999999999999997-9997.urrun";
+    {
+        std::ofstream oversized(oversized_path, std::ios::binary);
+        assert(oversized);
+        oversized.put('x');
+    }
+    std::filesystem::resize_file(
+        oversized_path, kCompletedRunRecordMaxBytes + 1u);
+
     const auto artifacts = inspect_completed_run_record_artifacts(dir.string());
-    assert(artifacts.size() == 5);
+    assert(artifacts.size() == 6);
     assert(artifacts[0].loaded());
     assert(artifacts[1].loaded());
     assert(artifacts[2].loaded());
+    assert(artifacts[3].path == oversized_path.string());
     assert(artifacts[3].status == RunRecordLoadStatus::Malformed);
+    assert(artifacts[3].detail == "run record byte limit exceeded");
     assert(!artifacts[3].record);
-    assert(artifacts[4].status == RunRecordLoadStatus::Corrupt);
+    assert(artifacts[4].status == RunRecordLoadStatus::Malformed);
     assert(!artifacts[4].record);
+    assert(artifacts[5].status == RunRecordLoadStatus::Corrupt);
+    assert(!artifacts[5].record);
 
     const auto health = summarize_run_record_artifact_health(artifacts);
-    assert(health.total_artifacts == 5);
+    assert(health.total_artifacts == 6);
     assert(health.loaded_artifacts == 3);
-    assert(health.malformed_artifacts == 1);
+    assert(health.malformed_artifacts == 2);
     assert(health.corrupt_artifacts == 1);
     assert(health.io_errors == 0);
     assert(health.unsupported_artifacts == 0);
-    assert(health.unavailable_artifacts() == 2);
+    assert(health.unavailable_artifacts() == 3);
 
     const auto all_valid = load_valid_run_records(dir.string());
     assert(all_valid.size() == 3);

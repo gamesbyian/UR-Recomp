@@ -97,7 +97,29 @@ static void prove_all_tracks_reach_race() {
     }
 }
 
+// The stock MAIN_MENU cursor may rest on 2P/VS/LEAGUE/OPTIONS. The launch
+// must walk it back to 1P before confirming instead of entering another mode.
+static void prove_main_menu_cursor_returns_to_one_player() {
+    auto state = begin_quick_practice_launch(quick_practice_target_for_track(0));
+    QuickPracticeLaunchObservation observation{0xD7, 3, false, -1};
+    auto step = settle_menu(state, observation);
+    for (std::uint8_t expected = 3; expected > 0; --expected) {
+        assert(step.input == QuickPracticeLaunchInput::Up);
+        assert(step.state.stage == QuickPracticeLaunchStage::AwaitMain);
+        state = step.state;
+        // No second edge until the stock cursor visibly moved.
+        step = advance_quick_practice_launch(state, observation);
+        assert(step.input == QuickPracticeLaunchInput::None);
+        state = step.state;
+        observation.selected_option = static_cast<std::uint8_t>(expected - 1);
+        step = advance_quick_practice_launch(state, observation);
+    }
+    assert(step.input == QuickPracticeLaunchInput::Accept);
+    assert(step.state.stage == QuickPracticeLaunchStage::AwaitRider);
+}
+
 int main() {
+    prove_main_menu_cursor_returns_to_one_player();
     QuickPracticeLaunchState ownership{};
     assert(!quick_practice_launch_owns_player_input(ownership));
     ownership.stage = QuickPracticeLaunchStage::AwaitMain;

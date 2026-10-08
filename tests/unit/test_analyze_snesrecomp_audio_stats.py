@@ -41,6 +41,35 @@ class ProductionAudioStatsTests(unittest.TestCase):
             self.assertEqual(report["deltas"]["missing_frames"], 800)
             self.assertEqual(report["occupancy_min"], 100)
             self.assertEqual(report["occupancy_max"], 300)
+            self.assertEqual(report["intervals_observed"], 2)
+            self.assertEqual(report["startup_interval_deltas"]["underflows"], 2)
+            self.assertEqual(report["startup_interval_deltas"]["missing_frames"], 800)
+            self.assertEqual(report["post_startup_deltas"]["underflows"], 0)
+            self.assertEqual(report["post_startup_deltas"]["missing_frames"], 0)
+            self.assertEqual(report["anomalous_intervals"], [
+                {
+                    "start_offset_ms": 0,
+                    "end_offset_ms": 1000,
+                    "interval_ms": 1000,
+                    "occupancy_start": 200,
+                    "occupancy_end": 100,
+                    "dropped_audible": 1,
+                    "dropped": 2,
+                    "underflows": 2,
+                    "missing_frames": 800,
+                },
+                {
+                    "start_offset_ms": 1000,
+                    "end_offset_ms": 2000,
+                    "interval_ms": 1000,
+                    "occupancy_start": 100,
+                    "occupancy_end": 300,
+                    "dropped_audible": 0,
+                    "dropped": 2,
+                    "underflows": 0,
+                    "missing_frames": 0,
+                },
+            ])
 
     def test_strict_limits_reject_new_audible_losses(self):
         with tempfile.TemporaryDirectory() as td:
@@ -97,6 +126,62 @@ class ProductionAudioStatsTests(unittest.TestCase):
             ])
             with self.assertRaisesRegex(ValueError, "audible drops exceed"):
                 parse_audio_stats(path)
+
+    def test_counters_remain_quiet_after_startup_interval(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = self.fixture(Path(td), [
+                dict(ms=1000, produced=1000, consumed=100, underflows=0,
+                     missing_frames=0, occupancy=50),
+                dict(ms=2000, produced=33000, consumed=31000, underflows=2,
+                     missing_frames=1000, occupancy=25),
+                dict(ms=3000, produced=65000, consumed=63000, underflows=2,
+                     missing_frames=1000, occupancy=500),
+                dict(ms=4000, produced=97000, consumed=95000, underflows=2,
+                     missing_frames=1000, occupancy=450),
+            ])
+            report = summarize_audio_stats(
+                path,
+                max_post_startup_underflows=0,
+                max_post_startup_missing_frames=0,
+            )
+            self.assertEqual(report["post_startup_observed_ms"], 2000)
+            self.assertEqual(report["post_startup_deltas"]["underflows"], 0)
+            self.assertEqual(report["post_startup_deltas"]["missing_frames"], 0)
+            self.assertEqual(report["intervals_observed"], 3)
+            self.assertEqual(len(report["anomalous_intervals"]), 1)
+            self.assertEqual(report["anomalous_intervals"][0]["start_offset_ms"], 0)
+            self.assertEqual(report["anomalous_intervals"][0]["end_offset_ms"], 1000)
+            self.assertEqual(report["anomalous_intervals"][0]["underflows"], 2)
+
+    def test_later_race_starvation_fails_after_grace_interval(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = self.fixture(Path(td), [
+                dict(ms=1000, produced=100, underflows=0, missing_frames=0),
+                dict(ms=2000, produced=32100, underflows=8, missing_frames=4044),
+                dict(ms=3000, produced=64100, underflows=8, missing_frames=4044),
+                dict(ms=4000, produced=96100, underflows=9, missing_frames=4534),
+            ])
+            with self.assertRaisesRegex(ValueError, "post-startup audio underflows delta 1"):
+                summarize_audio_stats(path, max_post_startup_underflows=0)
+            with self.assertRaisesRegex(ValueError, "post-startup audio missing_frames delta 490"):
+                summarize_audio_stats(path, max_post_startup_missing_frames=0)
+            report = summarize_audio_stats(
+                path, max_post_startup_underflows=1,
+                max_post_startup_missing_frames=490,
+            )
+            self.assertEqual(report["post_startup_deltas"]["underflows"], 1)
+            self.assertEqual(report["startup_interval_deltas"]["underflows"], 8)
+
+    def test_poststartup_policy_requires_at_least_three_snapshots(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = self.fixture(Path(td), [
+                dict(ms=1000, underflows=0),
+                dict(ms=2000, underflows=8),
+            ])
+            with self.assertRaisesRegex(ValueError, "need 3"):
+                summarize_audio_stats(path, max_post_startup_underflows=0)
+            with self.assertRaisesRegex(ValueError, "limits must be non-negative"):
+                summarize_audio_stats(path, max_post_startup_underflows=-1)
 
     def test_requires_sufficient_snapshots(self):
         with tempfile.TemporaryDirectory() as td:

@@ -42,6 +42,15 @@ int main(int argc, char** argv) {
     assert(original.record->inputs.size() == 2);
     assert(original.record->elapsed_ticks60 == 1713);
 
+#if defined(__linux__)
+    // /dev/full accepts an open but rejects output. With a buffered stream
+    // the failure may surface only at close, after write() appeared to work.
+    detail.clear();
+    assert(!save_completed_run_record_file("/dev/full", record, &detail));
+    assert(detail == "cannot write run record" ||
+           detail == "cannot finish run record");
+#endif
+
     const RunPlaybackTarget target{
         record.provenance.game_id,
         record.provenance.rom_sha256,

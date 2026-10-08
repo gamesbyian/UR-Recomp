@@ -97,3 +97,48 @@ prove exactly which guest samples correspond to those output frames, that
 the effect/music arrangement matches the reference, or that hardware speaker
 latency is acceptable. More precise claims still require actual aligned
 reference PCM evidence.
+
+## Three named native audio checkpoints
+
+The cross-core Snes9x/Beetle startup reference is kept in
+`reference/notes/audio-startup-seam.md` and
+`analysis/generated/audio-startup-reference-summary.json`. Its essential
+semantic observations are audible main-menu, Now Playing and first-race
+windows, each keyed to that emulator's own guest-frame checkpoint. Native
+Windows acceptance now uses `tools/build_audio_checkpoint_route.py` to stop
+the **same canonical first-race input script** at each of those three named
+`dump` commands. Each phase runs in an independent fresh process with its own
+SDL3 disk output, production audio counters and disposable user-data root.
+A missing checkpoint, silent final half-second, malformed disk format or
+invalid audio stats fails closed for that phase.
+
+The workflow reports three tail RMS/peak/nonzero measurements and per-phase
+queue counters. Their relative behavior can be inspected against the two
+independent emulators, but hashes of different-length, different-timing PCM
+files cannot demonstrate a sound-track transition. Soundfont provenance,
+exact notes, SFX triggers, DSP envelope/echo, and frame-accurate playback
+still require a stronger state-aligned native/reference oracle.
+
+## Checkpoint-centered audio windows
+
+The historical independent Snes9x/Beetle evidence uses a roughly one-second
+PCM window centered on each named semantic checkpoint (±30 guest frames).
+The initial native Windows three-route implementation instead stopped each
+process *at* the dump and used the preceding 0.5 seconds of device output;
+that would put the native and reference phase windows on different sides of
+the checkpoint.
+
+`tools/build_audio_checkpoint_route.py` now retains an ordinary
+`wait 30` after each named checkpoint and a second observed dump named
+`<checkpoint>-audio-post`. The Windows acceptance checks **both**
+WRAM dumps and `tools/check_native_audio_checkpoint_timing.py` independently
+reads the production process log to confirm exactly 30 simulated frames
+separate the two markers. The final **1 second of SDL3 device PCM** is then
+measured, approximately bracketing 30 guest frames before and after the
+checkpoint at 60 Hz. The core run is not re-clocked.
+
+This is substantially more comparable to the independent reference *window
+placement*, but the SDL resampler, queue delay, startup priming and end-of-run
+draining have not been mapped exactly to guest-frame boundaries. Do not
+reinterpret this as proven sample-exact phase alignment, DSP equivalence or
+device latency validation. Those still require causal phase/queue calibration.

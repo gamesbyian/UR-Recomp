@@ -64,6 +64,8 @@ def summarize_audio_stats(
     max_new_audible_drops: int | None = None,
     max_new_underflows: int | None = None,
     max_new_missing_frames: int | None = None,
+    max_post_startup_underflows: int | None = None,
+    max_post_startup_missing_frames: int | None = None,
 ) -> dict:
     limits = {
         "dropped_audible": max_new_audible_drops,
@@ -72,9 +74,55 @@ def summarize_audio_stats(
     }
     if any(x is not None and x < 0 for x in limits.values()):
         raise ValueError("audio continuity limits must be non-negative")
+    post_limits = {
+        "underflows": max_post_startup_underflows,
+        "missing_frames": max_post_startup_missing_frames,
+    }
+    if any(x is not None and x < 0 for x in post_limits.values()):
+        raise ValueError("post-startup continuity limits must be non-negative")
+    if any(x is not None for x in post_limits.values()) and min_records < 3:
+        min_records = 3
     rows = parse_audio_stats(path, min_records=min_records)
     first, last = rows[0], rows[-1]
     diffs = {field: last[field] - first[field] for field in MONOTONIC if field != "ms"}
+    # Startup prefill is observed in the first *reported* stats interval.
+    # Require at least three snapshots for any after-first-interval gate:
+    # two snapshots would make this zero by construction and falsely pass.
+    startup_end = rows[1] if len(rows) > 1 else first
+    startup_deltas = {
+        field: startup_end[field] - first[field]
+        for field in ("underflows", "missing_frames", "dropped_audible")
+    }
+    post_startup_deltas = {
+        field: last[field] - startup_end[field]
+        for field in ("underflows", "missing_frames", "dropped_audible")
+    }
+    for field, limit in post_limits.items():
+        if limit is not None and post_startup_deltas[field] > limit:
+            raise ValueError(
+                f"post-startup audio {field} delta "
+                f"{post_startup_deltas[field]} exceeds limit {limit}"
+            )
+    # The end-to-end counter delta cannot show whether eight underruns all
+    # happened during startup or were scattered across steady-state racing.
+    # Retain only anomalous intervals, relative to the first observed sample.
+    anomalies = []
+    for start, end in zip(rows, rows[1:]):
+        counters = {
+            "dropped_audible": end["dropped_audible"] - start["dropped_audible"],
+            "dropped": end["dropped"] - start["dropped"],
+            "underflows": end["underflows"] - start["underflows"],
+            "missing_frames": end["missing_frames"] - start["missing_frames"],
+        }
+        if any(counters.values()):
+            anomalies.append({
+                "start_offset_ms": start["ms"] - first["ms"],
+                "end_offset_ms": end["ms"] - first["ms"],
+                "interval_ms": end["ms"] - start["ms"],
+                "occupancy_start": start["occupancy"],
+                "occupancy_end": end["occupancy"],
+                **counters,
+            })
     for field, limit in limits.items():
         if limit is not None and diffs[field] > limit:
             raise ValueError(
@@ -88,6 +136,19 @@ def summarize_audio_stats(
         "first": first,
         "last": last,
         "deltas": diffs,
+        "anomalous_intervals": anomalies,
+        "startup_interval_ms": startup_end["ms"] - first["ms"],
+        "startup_interval_deltas": startup_deltas,
+        "post_startup_observed_ms": last["ms"] - startup_end["ms"],
+        "post_startup_deltas": post_startup_deltas,
+        "post_startup_limits_applied": {
+            k: v for k, v in post_limits.items() if v is not None
+        },
+        "intervals_observed": len(rows) - 1,
+        "snapshot_resolution_note": (
+            "Counters are sampled about once per wall-clock second; "
+            "intervals are not guest-frame-aligned or exact glitch timestamps."
+        ),
         "occupancy_min": min(x["occupancy"] for x in rows),
         "occupancy_max": max(x["occupancy"] for x in rows),
         "limits_applied": {key: value for key, value in limits.items() if value is not None},
@@ -101,6 +162,8 @@ def main() -> int:
     ap.add_argument("--max-new-audible-drops", type=int)
     ap.add_argument("--max-new-underflows", type=int)
     ap.add_argument("--max-new-missing-frames", type=int)
+    ap.add_argument("--max-post-startup-underflows", type=int)
+    ap.add_argument("--max-post-startup-missing-frames", type=int)
     ap.add_argument("--json-out", type=Path)
     args = ap.parse_args()
     report = summarize_audio_stats(
@@ -109,6 +172,8 @@ def main() -> int:
         max_new_audible_drops=args.max_new_audible_drops,
         max_new_underflows=args.max_new_underflows,
         max_new_missing_frames=args.max_new_missing_frames,
+        max_post_startup_underflows=args.max_post_startup_underflows,
+        max_post_startup_missing_frames=args.max_post_startup_missing_frames,
     )
     d = report["deltas"]
     print(
@@ -116,8 +181,20 @@ def main() -> int:
         f"snapshots={report['snapshots']} observed_ms={report['observed_ms']} "
         f"audible_drops={d['dropped_audible']} underflows={d['underflows']} "
         f"missing_frames={d['missing_frames']} produced={d['produced']} "
-        f"consumed={d['consumed']}"
+        f"consumed={d['consumed']} "
+        f"post_startup_underflows={report['post_startup_deltas']['underflows']} "
+        f"post_startup_missing={report['post_startup_deltas']['missing_frames']}"
     )
+    for interval in report["anomalous_intervals"]:
+        print(
+            "AUDIO_QUEUE_INTERVAL "
+            f"from_ms={interval['start_offset_ms']} "
+            f"to_ms={interval['end_offset_ms']} "
+            f"audible_drops={interval['dropped_audible']} "
+            f"underflows={interval['underflows']} "
+            f"missing_frames={interval['missing_frames']} "
+            f"occupancy={interval['occupancy_start']}->{interval['occupancy_end']}"
+        )
     if args.json_out:
         args.json_out.parent.mkdir(parents=True, exist_ok=True)
         args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True) + "\n")

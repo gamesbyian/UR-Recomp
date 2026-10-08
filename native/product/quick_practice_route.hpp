@@ -17,6 +17,18 @@ enum class QuickPracticeMenuInput {
 
 constexpr std::uint16_t kQuickPracticeMenuSettleObservations = 60;
 
+// The stock MAIN_MENU cursor (7E:009B: 0 = 1P, 1 = 2P, 2 = VS, 3 = LEAGUE,
+// 4 = OPTIONS) is wherever the player last left it. Routes that confirm 1P
+// must first walk the cursor back to row 0; a blind Accept on another row
+// enters 2P/VS/LEAGUE/OPTIONS and strands the route until its timeout.
+constexpr QuickPracticeMenuInput stock_main_menu_one_player_input(
+    std::uint8_t selected_option
+) noexcept {
+    return selected_option == 0
+        ? QuickPracticeMenuInput::Accept
+        : QuickPracticeMenuInput::Up;
+}
+
 struct QuickPracticeTarget {
     std::uint8_t track_id = 0;
     std::uint8_t tour_option = 0;

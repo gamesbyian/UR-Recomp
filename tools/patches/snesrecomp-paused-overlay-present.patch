@@ -1,0 +1,112 @@
+--- a/runner/src/desktop/host_main.c
++++ b/runner/src/desktop/host_main.c
+@@ -287,6 +287,12 @@
+ int snesrecomp_desktop_frame_height(void) { return g_snes_height > 0 ? g_snes_height : 224; }
+ void snesrecomp_desktop_request_clock_reset(void) { g_reset_clock = true; }
+ void snesrecomp_desktop_set_paused(int paused) { g_paused = paused ? 1 : 0; }
++/* Opt-in: while paused, keep presenting the frozen field with the title's
++ * system overlay on top, so a title-owned pause UI is actually visible. */
++static uint8 g_paused_overlay_present;
++void snesrecomp_desktop_set_paused_overlay_presentation(int enabled) {
++  g_paused_overlay_present = enabled ? 1 : 0;
++}
+ int snesrecomp_desktop_is_paused(void) { return g_paused != 0; }
+ 
+ static double MonotonicSeconds(void) {
+@@ -603,6 +609,11 @@
+  * and still have something to draw behind itself. Sized like g_my_pixels. */
+ static uint8_t g_frozen_frame[kPpuBufWidth * 4 * 240 * 4 * 4];
+ static int g_frozen_w, g_frozen_h;
++/* The last composed field BEFORE the title's system overlay, so a paused
++ * re-present can draw the current overlay over a clean backdrop instead of
++ * stacking it on top of the overlay that was already in the frame. */
++static uint8_t g_paused_backdrop[kPpuBufWidth * 4 * 240 * 4 * 4];
++static int g_paused_backdrop_w, g_paused_backdrop_h;
+ /* The simulated frame the next present shows. Read by SNESRECOMP_SCREENSHOT
+  * and by frame blending, which advances its kept frame once per simulated
+  * frame rather than once per present. */
+@@ -1614,6 +1625,18 @@
+     }
+   }
+ #endif
++  if (g_paused_overlay_present) {
++    const int rows = g_snes_height * render_scale;
++    const int row_bytes = g_snes_width * render_scale * 4;
++    if (rows > 0 && row_bytes > 0 &&
++        (size_t)rows * (size_t)row_bytes <= sizeof(g_paused_backdrop)) {
++      for (int y = 0; y < rows; y++)
++        memcpy(g_paused_backdrop + (size_t)y * (size_t)row_bytes,
++               pixel_buffer + (size_t)y * (size_t)pitch, (size_t)row_bytes);
++      g_paused_backdrop_w = g_snes_width * render_scale;
++      g_paused_backdrop_h = rows;
++    }
++  }
+   if (g_game->system_overlay)
+     g_game->system_overlay(pixel_buffer, (size_t)pitch,
+                            g_snes_width * render_scale,
+@@ -1749,6 +1772,45 @@
+   ProfileEnd(kProfilePresent, profile_start);
+ }
+ 
++/* Re-present the frozen field with the title's CURRENT system overlay while
++ * the host is paused. No guest code runs: the backdrop is the copy taken
++ * before the overlay on the last real present, scaled (nearest) to the
++ * current presentation density so a density change made from a paused
++ * Options menu is reflected immediately. */
++static void PresentPausedSystemOverlay(void) {
++  if (!g_paused_overlay_present || !g_game->system_overlay ||
++      g_paused_backdrop_w <= 0 || g_paused_backdrop_h <= 0)
++    return;
++  int render_scale = g_game->presentation_scale
++      ? g_game->presentation_scale()
++      : 1;
++  if (render_scale < 1 || render_scale > 4)
++    render_scale = 1;
++  const int w = g_snes_width * render_scale;
++  const int h = g_snes_height * render_scale;
++  uint8 *pixel_buffer = 0;
++  int pitch = 0;
++  g_renderer_funcs.BeginDraw(w, h, &pixel_buffer, &pitch);
++  if (!pixel_buffer) {
++    g_renderer_funcs.EndDraw();
++    return;
++  }
++  snes_ovl_upscale_frame(pixel_buffer, pitch, w, h,
++                         (const uint32_t *)g_paused_backdrop,
++                         g_paused_backdrop_w * 4,
++                         g_paused_backdrop_w, g_paused_backdrop_h);
++  g_game->system_overlay(pixel_buffer, (size_t)pitch, w, h);
++  ComposeOsd(pixel_buffer, pitch, w, h, 2);
++  {
++    /* SNESRECOMP_PAUSED_OVERLAY_DUMP=<path.ppm>: the paused UI can only be
++     * checked by what reaches the screen; rewrite the latest paused present. */
++    const char *dump = HostGetenv("PAUSED_OVERLAY_DUMP");
++    if (dump && dump[0])
++      WritePpm(dump, pixel_buffer, pitch, w, h, g_present_frame, false);
++  }
++  g_renderer_funcs.EndDraw();
++}
++
+ /* Seat-0 input word the overlays navigate with — the same sources the guest
+  * gets, minus the script (an overlay is a human facility). */
+ static uint32 OverlayNavInputs(void) {
+@@ -4063,6 +4125,7 @@
+     if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&
+         !g_open_launcher_hotkey) {
+       snes_host_clock_reset(&video_clock, MonotonicSeconds(), g_simulation_hz, presentation_hz);
++      PresentPausedSystemOverlay();
+       SDL_Delay(16);
+       continue;
+     }
+--- a/runner/src/desktop/host_main.h
++++ b/runner/src/desktop/host_main.h
+@@ -263,6 +263,9 @@
+  * remains unchanged until resumed. */
+ void snesrecomp_desktop_set_paused(int paused);
+ int snesrecomp_desktop_is_paused(void);
++/* Opt in to presenting the frozen field plus the title's system_overlay while
++ * paused (default off: a paused host presents nothing new). */
++void snesrecomp_desktop_set_paused_overlay_presentation(int enabled);
+ 
+ /* Live host presentation sync policy. These values deliberately match the
+  * desktop config's existing Off/On/Adaptive spellings while keeping title

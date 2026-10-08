@@ -198,6 +198,11 @@ constexpr QuickPracticeLaunchStep advance_quick_practice_launch(
     switch (out.state.stage) {
     case QuickPracticeLaunchStage::AwaitMain:
         if (observation.menu_id == 0xD7) {
+            const auto desired =
+                stock_main_menu_one_player_input(observation.selected_option);
+            if (desired != QuickPracticeMenuInput::Accept) {
+                return emit_selection_input(desired);
+            }
             out.input = QuickPracticeLaunchInput::Accept;
             out.state.stage = QuickPracticeLaunchStage::AwaitRider;
             out.state.menu_settled = false;

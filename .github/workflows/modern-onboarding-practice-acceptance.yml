@@ -28,6 +28,8 @@ on:
       - "tests/native/run_modern_recent_course_persistence_acceptance.sh"
       - "tests/native/run_modern_practice_picker_acceptance.sh"
       - "tests/native/run_modern_tour_overview_acceptance.sh"
+      - "tests/native/run_modern_frontend_options_acceptance.sh"
+      - "tests/native/run_modern_frontend_controls_acceptance.sh"
       - "native/title/uniracers_tour_progress_overview.hpp"
       - "native/product/host_profile_state.*"
       - "native/product/clean_stock_sram.*"
@@ -499,6 +501,8 @@ jobs:
             ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/practice-picker/*.log
             ${{ runner.temp }}/tour-overview/*.log
+            ${{ runner.temp }}/frontend-options/*.log
+            ${{ runner.temp }}/frontend-controls/*.log
             ${{ runner.temp }}/vibration/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log
@@ -566,6 +570,8 @@ jobs:
               run_case recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
               run_case practice-picker run_modern_practice_picker_acceptance.sh practice-picker
               run_case tour-overview run_modern_tour_overview_acceptance.sh tour-overview
+              run_case frontend-options run_modern_frontend_options_acceptance.sh frontend-options
+              run_case frontend-controls run_modern_frontend_controls_acceptance.sh frontend-controls
               ;;
             feedback)
               run_case vibration run_modern_vibration_acceptance.sh vibration
@@ -594,6 +600,8 @@ jobs:
             ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/practice-picker/*.log
             ${{ runner.temp }}/tour-overview/*.log
+            ${{ runner.temp }}/frontend-options/*.log
+            ${{ runner.temp }}/frontend-controls/*.log
             ${{ runner.temp }}/vibration/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log

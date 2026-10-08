@@ -6,6 +6,7 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 
 using namespace ur::product;
 
@@ -164,6 +165,24 @@ int main(int argc, char** argv) {
         trace_path.string(), trace, &detail));
     assert(load_completed_run_ghost_trace_file(
         trace_path.string(), &record).trace->samples[0].world_x == 1088);
+
+    // Invalid replacement input must leave the already-published sidecar
+    // byte-for-byte intact. A failed optional ghost write may never destroy
+    // a previous, valid presentation target.
+    auto invalid_replacement = trace;
+    invalid_replacement.run_artifact_checksum = "invalid";
+    const auto stable_encoded = encode_completed_run_ghost_trace(trace);
+    detail.clear();
+    assert(!save_completed_run_ghost_trace_file(
+        trace_path.string(), invalid_replacement, &detail));
+    assert(detail == "ghost trace validation failed");
+    {
+        std::ifstream published(trace_path, std::ios::binary);
+        std::string bytes(
+            std::istreambuf_iterator<char>(published),
+            std::istreambuf_iterator<char>{});
+        assert(bytes == stable_encoded);
+    }
 
     // A non-file destination must never be displaced by publication.
     const auto blocked_trace_path =

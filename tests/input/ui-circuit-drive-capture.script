@@ -1,0 +1,166 @@
+# Required bounded Circuit journey: record track choice, race entry and the
+# sixty drive-sequence checkpoints. Leave the long idle 0xBC result search to
+# the unchanged manual ui-circuit-result-route.script research fixture.
+# Optional UI reconnaissance: Crawler Circuit result.
+# Uses the same simple validated jump rhythm as the Dragster finish candidate,
+# but selects track slot 2 (Circuit). This is a discriminator, not an assertion
+# that the policy is sufficient for the circuit geometry.
+
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+# Default track is slot 1 Race; Down selects slot 2 Circuit.
+press down 1
+wait 30
+dump ui-circuit-track-selected
+press a 2
+until 009F == 16 1200
+wait 60
+dump ui-circuit-now-playing
+press a 2
+until 0313 == 01 1800
+wait 60
+dump ui-circuit-entered
+press right 30
+press right 30
+press right 30
+press right 30
+press right 60
+dump ui-circuit-drive-start
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-10
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-20
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-30
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-40
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-50
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+press right+b 24
+press right 24
+dump ui-circuit-drive-60
+dump ui-circuit-terminal
+
+quit

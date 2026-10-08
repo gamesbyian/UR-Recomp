@@ -611,22 +611,22 @@ jobs:
           PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
           PACED_LOG="$RUNNER_TEMP/paced-proof.log"
           mkdir -p "$PACED_USER"
-          printf '[General]\\nDisableFrameDelay = 0\\n' > "$PACED_USER/config.ini"
+          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
 
-          SDL_AUDIODRIVER=dummy \\
-          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \\
-          UR_PRODUCT_DIAGNOSTICS=1 \\
-            timeout 180s xvfb-run -a "$EXE" "$ROM" \\
-              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \\
+          SDL_AUDIODRIVER=dummy \
+          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
               >"$LOG" 2>&1 &
           ORIGINAL_PID=$!
 
-          SDL_AUDIODRIVER=dummy \\
-          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \\
-          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \\
-          UR_PRODUCT_DIAGNOSTICS=1 \\
-            timeout 180s xvfb-run -a "$EXE" "$ROM" \\
-              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \\
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
+          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
               >"$PACED_LOG" 2>&1 &
           PACED_PID=$!
 

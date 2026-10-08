@@ -235,6 +235,9 @@ int main() {
         placement->y_raw_8bit = 150;
         placement->attr = 0x60;  // same OBJ priority level
     }
+    // Authentic top P1 large object at Y=40 has no inactive small copy
+    // in the bottom 112..223 scanlines.
+    p1_top.y_raw_8bit = 40;
     assert(!racer_p1_only_no_stock_p2_occlusion(
         p1_top, p1_bottom, p2_top, p2_bottom
     ));

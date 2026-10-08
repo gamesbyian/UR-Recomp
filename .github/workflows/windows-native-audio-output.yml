@@ -233,13 +233,22 @@ jobs:
               --min-rms 0 --min-nonzero-fraction 0 \
               --tail-seconds 1.0 --min-tail-rms 0 \
               --json-out "$RUNNER_TEMP/audio-output-$CASE.json"
-            # Post-startup starvation is measured, not gated, on this new route.
+            # Two Windows captures show startup-only priming. Guard steady
+            # playback across pause and resume without changing guest cadence.
             python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+              --max-new-audible-drops 0 \
+              --max-post-startup-underflows 0 \
+              --max-post-startup-missing-frames 0 \
               --json-out "$RUNNER_TEMP/audio-ring-$CASE.json"
             rm -f "$PCM"
             echo "WINDOWS_STOCK_PAUSE_AUDIO_CHECKPOINT PASS case=$CASE source_run=$SOURCE"
           done
+          # Observed twice on distinct fresh-process Windows runs:
+          # paused-to-before ratios ~0.008 and ~0.011; recovered ~0.915.
+          # Broad limits detect major failures, not sample-exact identity.
           python tools/analyze_audio_pause_phases.py "$RUNNER_TEMP" \
+            --max-paused-to-before 0.05 \
+            --min-resumed-to-before 0.50 \
             --json-out "$RUNNER_TEMP/audio-stock-pause-phases.json"
           echo "WINDOWS_STOCK_PAUSE_AUDIO_MATRIX PASS source_run=$SOURCE"
 

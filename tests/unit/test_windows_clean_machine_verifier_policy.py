@@ -2,7 +2,10 @@
 from pathlib import Path
 import shutil
 import subprocess
+import tempfile
 import unittest
+
+from tools import assemble_windows_package as package
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT = ROOT / "tools" / "Test-URRecompPortable.ps1"
@@ -34,6 +37,59 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             capture_output=True, text=True, check=False,
         )
         self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+
+    def test_real_powershell_verifies_synthetic_release_bundle(self):
+        pwsh = shutil.which("pwsh")
+        if pwsh is None:
+            self.skipTest("PowerShell executable unavailable on this host")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            build = root / "build"
+            build.mkdir()
+            (build / package.EXE_NAME).write_bytes(b"synthetic executable")
+            (build / package.ROM_CONFIG_NAME).write_bytes(b"generated rom config")
+            catalog = build / "mods" / "preloaded" / "packages"
+            catalog.mkdir(parents=True)
+            (catalog / "catalog.json").write_bytes(b"{}\\n")
+            rom = root / package.ROM_NAME
+            rom.write_bytes(b"synthetic rom data")
+            output = root / "assembled"
+            package.assemble(build, rom, output, "synthetic-clean-machine-test")
+            archive = root / "UR-Recomp-Windows-x64.zip"
+            checksum = root / "UR-Recomp-Windows-x64.zip.sha256"
+            package.create_archive(output, archive)
+            package.write_archive_checksum(archive, checksum)
+            destination = root / "fresh install with spaces"
+            cmd = [
+                pwsh, "-NoProfile", "-NonInteractive",
+                "-File", str(SCRIPT), "-Archive", str(archive),
+                "-Checksum", str(checksum), "-Destination", str(destination),
+            ]
+            result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("UR_PORTABLE_ARCHIVE_VERIFIED", result.stdout)
+            self.assertIn("UR_PORTABLE_MANIFEST_VERIFIED", result.stdout)
+            self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
+            self.assertTrue(
+                (destination / package.ARCHIVE_ROOT / package.EXE_NAME).is_file()
+            )
+            # A second extraction to the same location must refuse overlay.
+            again = subprocess.run(cmd, capture_output=True, text=True, check=False)
+            self.assertNotEqual(again.returncode, 0)
+            self.assertIn("Destination already exists", again.stderr)
+            # Bad checksum must be rejected before extraction creates its root.
+            checksum.write_text(
+                "0" * 64 + "  " + archive.name + "\\n",
+                encoding="ascii", newline="\\n",
+            )
+            bad_destination = root / "must remain absent"
+            bad_cmd = cmd[:-1] + [str(bad_destination)]
+            tampered = subprocess.run(
+                bad_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(tampered.returncode, 0)
+            self.assertIn("Release ZIP does not match", tampered.stderr)
+            self.assertFalse(bad_destination.exists())
 
     def test_uses_stock_windows_powershell_only(self):
         self.assertIn("#requires -Version 5.1", self.script)

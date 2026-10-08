@@ -11,6 +11,18 @@ enum class RacerViewport : std::uint8_t {
     Bottom = 1,
 };
 
+// The host decides the logical frame dimensions before begin_sim_frame.
+// OBJ RemoveFromGame must never be activated for a geometry that the HD
+// draw_frame callback will decline: the underlying stock sprites would
+// already be absent from the captured framebuffer.
+constexpr bool racer_hd_can_capture_frame_geometry(
+    int logical_width,
+    int logical_height
+) noexcept {
+    return logical_width == 256 && logical_height == 224;
+}
+
+
 // The $2104 HDMA split switches visible OBJ pairs on scanline 112.
 // Clip host-owned replacements to the same physical half-frame so a large
 // racer at the seam cannot leak into the other viewport. Scaling changes

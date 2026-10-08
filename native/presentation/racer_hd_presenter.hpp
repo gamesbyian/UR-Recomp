@@ -2985,10 +2985,14 @@ constexpr std::uint32_t sample_racer_hd_presented_pixel(
     int screen_x,
     int screen_y
 ) noexcept {
+    // A large SNES OBJ crosses Y=255->0 modulo 256. This diagnostic
+    // presentation sampler must agree with the active scanline evaluator and
+    // with the host raster projector rather than treating raw Y as signed.
+    if (screen_y < 0 || screen_y >= 224) return 0;
     const int lx = screen_x - static_cast<int>(placement.x_signed);
-    const int ly = screen_y - static_cast<int>(placement.y_raw_8bit);
-    if (lx < 0 || ly < 0 ||
-        lx >= kRacerHdLogicalSize || ly >= kRacerHdLogicalSize) {
+    const int ly = (screen_y - static_cast<int>(placement.y_raw_8bit)) & 0xFF;
+    if (lx < 0 || lx >= kRacerHdLogicalSize ||
+        ly >= kRacerHdLogicalSize) {
         return 0;
     }
     const int sx = lx * kRacerHdDensityScale + kRacerHdDensityScale / 2;

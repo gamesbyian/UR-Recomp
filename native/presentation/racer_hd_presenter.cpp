@@ -6,6 +6,7 @@
 
 extern "C" {
 #include "snes/ppu.h"
+#include "desktop/host_main.h"
 }
 
 #include <algorithm>
@@ -175,6 +176,18 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     if (!env_enabled() || g_ppu == nullptr) return;
 
     PpuClearOverlayCaptures(g_ppu);
+
+    // PreparePpuFrame() has already resolved the host's real logical field
+    // geometry before calling begin_sim_frame(). A widened scene cannot be
+    // composed by racer_hd_draw_frame(), which currently accepts 256x224
+    // only. Do not remove OBJ slots 96..99 from the PPU's stock output when
+    // the later HD draw would necessarily refuse that field. Checking in
+    // draw_frame would be too late to recover those missing stock pixels.
+    if (!racer_hd_can_capture_frame_geometry(
+            snesrecomp_desktop_frame_width(),
+            snesrecomp_desktop_frame_height())) {
+        return;
+    }
 
     const SelectionResult p1 = select_racer_presentation_from_wram(
         GraphicsPack::Remastered,

@@ -2694,6 +2694,41 @@ Native smoke gates all of this.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
 - No `docs/SYMBOLS.md` change.
 
+### R-2026-10-08-PHYS-03 — Boost→speed law, ramp, cap, depletion and offscreen decay, identical in native
+
+**Status:** confirmed (ground, airborne, offscreen, viewport edge; WORK-QUEUE expert-edge (d) closed)  
+**Date:** 2026-10-08  
+**Area:** physics
+
+**Decision / discriminator / stop:** WORK-QUEUE expert-edge item (d), the game-facing half the static analysis left open.
+- **Discriminator:** a fresh boot (recovered real SRAM) to the Jumpover start straight, hold Right, one frame-boundary seed of P1's persistent boost meter `7E:11CF` at full ground speed, then per-frame P1 X speed, boost and air time on snesref and native for 40 frames.
+- **Stop:** the law is measured for seeds 0–0x400 and native agrees exactly.
+
+**Observation:**
+- After the ramp, X speed equals `min(448 + boost/2, 640)` using the previous frame's meter, within ±1 unit, for every seed (0, 16, 32, 64, 96, 128, 256, 0x180, 0x200, 0x400).
+- Speed climbs at most +24 per frame toward that target (about 6 frames from 448 to the 640 cap).
+- Depletion grows with the meter and saturates. Over 22 flat frames the meter loses 0 (≤ 32), 4 (64), 16 (96), 28 (128) and 88 (4 per frame) for every seed from 256 up. It keeps depleting through 1–2-frame airborne bumps.
+- The stored meter is not clamped: a 0x400 seed is still above 0x180 a frame later. The `0x0180` clamp sits on the speed read: `82:A7DC`–`A7F5` clamps the meter (plus a per-frame adjustment) to `[0, 0x180]`, halves it and adds the base, which is exactly the 640 cap (448 + 0x180/2).
+- **Airborne:** seeding just before the halfpipe jump (B held 20 frames from race +372) gives 26–30 airborne frames. The meter drains at the ground rate in the air (64: 4 over 29 frames; 128: 24 over 30; 256: 96 over 26), and air X speed follows the same `min(448 + boost/2, 640)` law within ±1. Nothing is stored for landing, so the "airborne storage" claim does not describe stock behavior.
+- **Offscreen:** with a full meter seeded on the straight (race +242) and a 40-frame jump from the first crest (race +264), P1 leaves its viewport (`7E:121B` = 1, screen X/Y fallback 0x70) for 18 frames while moving right. On every offscreen airborne frame that is neither fresh off a bounce nor already law-limited, X speed falls by exactly 3 (584 → 581 → 578 → 575 → 572; 510 → … → 495), matching Nitrodon's `82:A6FE` offscreen branch (`SBC #3` toward zero on `$0F9F`). "Offscreen depletion" covers both this X-speed decay and the 16-per-frame meter penalty below.
+- **Viewport-edge and offscreen drain:** `82:A6FE`–`A768` takes 16 meter units per frame while the racer is offscreen or at the viewport edge in its direction of travel (P1 screen X ≥ 176 moving right, < 16 moving left; P2 uses 176 / 64). This is on top of the periodic table decrement at `82:A893`. In the offscreen run the drain jumps from 4 to 20 on the first frame P1's screen X reaches 176 (frame 46, X 180), and stays at 16 + 0/4 while it is at the edge or offscreen. Elsewhere it is only 0 or 4.
+- Native and snesref series are identical for all ten ground seeds, all three airborne seeds and the offscreen run (hash and frame-by-frame).
+
+**Evidence:**
+- `analysis/generated/boost-speed-probe.json` from `tools/probe_boost_speed.py` (manual harness, same requirements as the Jumpover probe).
+- `tests/unit/test_probe_boost_speed.py` (law, script, ramp/law separation, committed evidence).
+
+**Interpretation:** a full meter is worth at most +192 X speed (448 → 640). Holding speed above about +480 costs roughly 4 meter units per frame, so boost is spent quickly once it exceeds the low band, and outrunning the camera (or leaving the viewport) burns 16 more per frame. This is the semantic the Jumpover anchors exercised (meter 64 → +480; 104 → about +500).
+
+**Discriminating test:** rerun the probe after any change to physics, the framework input path or the boost reward path. All seeds must keep `first_divergence_frame: null` and the committed law/depletion values.
+
+**Dependencies:** same reference core and menu route as R-2026-10-08-PHYS-02.
+
+**Propagation:**
+- `docs/knowledge/movement-physics-and-stunts.md` (game-facing boost law).
+- WORK-QUEUE expert-edge (d) is closed.
+- No `docs/SYMBOLS.md` change.
+
 ### R-2026-10-08-PHYS-04 — Landing reward boundary for an in-air rotation is the third roll-progress step, input-only and native-identical
 
 **Status:** confirmed (one rotation family; WORK-QUEUE expert-edge (e) partially covered)  

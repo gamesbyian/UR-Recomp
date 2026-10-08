@@ -33,15 +33,18 @@ class ModernPadGlyphContractTests(unittest.TestCase):
         self.assertIn("const ur::product::ModernControlsPadGlyphs pad_glyphs{", source)
         self.assertIn("g_controls_rebind, key_labels, pad_glyphs);", source)
 
-    def test_tour_confirm_hints_use_live_glyphs(self):
+    def test_host_confirm_back_hints_name_fixed_buttons(self):
+        # Host surfaces confirm with physical A and go back with physical B
+        # regardless of [GamepadMap], so their hints are fixed labels.
         source = HOST.read_text(encoding="utf-8")
-        self.assertIn(
-            '"ENTER / PAD " + live_gamepad_binding_label(6) + " CONFIRM"', source
-        )
-        self.assertIn(
-            '"ESC / PAD " + live_gamepad_binding_label(7) + " CANCEL"', source
-        )
-        self.assertNotIn('"ENTER / PAD A CONFIRM"', source)
+        self.assertIn('"ENTER / PAD A CONFIRM"', source)
+        self.assertIn('"ESC / PAD B CANCEL"', source)
+        self.assertIn('"ENTER/PAD A PLAY"', source)
+        self.assertIn('"ESC/F7 / PAD B BACK"', source)
+        self.assertNotIn("live_gamepad_binding_label(6) + \" CONFIRM\"", source)
+        self.assertNotIn("live_gamepad_binding_label(7) + \" CANCEL\"", source)
+        # SNES-X-triggered actions keep the live glyph.
+        self.assertIn('"PAD " + live_gamepad_binding_label(8) +', source)
 
     def test_native_acceptance_is_wired(self):
         subprocess.run(["bash", "-n", str(HARNESS)], cwd=ROOT, check=True)

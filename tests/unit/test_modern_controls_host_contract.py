@@ -38,8 +38,10 @@ class ModernControlsHostContractTests(unittest.TestCase):
             "if (!pressed) {\n"
             "        if (button == g_practice_cancel_gamepad_button)"
         )
-        controls_block = body[controls:controls + 520]
+        controls_block = body[controls:generic_release]
         self.assertLess(controls, generic_release)
+        # Physical A/B confirm/back; every other button defers to GamepadMap.
+        self.assertIn("if (host_confirm || host_back) {", controls_block)
         self.assertIn("mapped P1 semantics only", controls_block)
         self.assertIn("return -1;", controls_block)
 
@@ -172,9 +174,10 @@ class ModernControlsHostContractTests(unittest.TestCase):
         practice = raw.index("(void)open_practice_picker();")
         self.assertLess(practice, tour)
         self.assertIn("g_practice_picker.visible", semantic)
+        # Picker confirm is the fixed host A button, not SNES A.
         self.assertIn(
-            "handle_practice_picker_navigation(UR_MODERN_HOST_NAV_CONFIRM)",
-            semantic,
+            "host_confirm ? UR_MODERN_HOST_NAV_CONFIRM",
+            raw,
         )
         self.assertLess(tour, recent)
         # The release edge of a consumed Tour press is consumed too.

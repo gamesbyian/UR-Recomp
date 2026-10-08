@@ -162,6 +162,7 @@ int g_haptic_acceptance_stage;
 unsigned g_haptic_acceptance_device_rumbles;
 int g_main_menu_pad_acceptance_stage;
 unsigned g_main_menu_pad_acceptance_frames;
+std::size_t g_main_menu_pad_acceptance_step;
 std::string g_main_menu_strip_reported;
 int g_controller_hotplug_acceptance_stage;
 unsigned g_controller_hotplug_acceptance_frames;
@@ -5302,25 +5303,56 @@ void run_haptic_acceptance() {
 }
 
 // Native acceptance for main-menu controller shortcuts: from the settled
-// Modern main menu, attach a real SDL virtual gamepad and tap one physical
-// button through SDL -> SNESRecomp -> the title gamepad hook. Only the
-// production handler decides what the button does.
+// Modern main menu, attach a real SDL virtual gamepad and tap physical
+// buttons through SDL -> SNESRecomp -> the title gamepad hook. The variable
+// names one button or a comma-separated sequence (a, b, x, y, r, start),
+// tapped 30 frames apart. Only the production handlers decide what each
+// button does.
+#if SNESRECOMP_SDL3
+SDL_GamepadButton main_menu_pad_acceptance_button(const std::string& name) {
+    if (name == "a") return SDL_GAMEPAD_BUTTON_SOUTH;
+    if (name == "b") return SDL_GAMEPAD_BUTTON_EAST;
+    if (name == "x") return SDL_GAMEPAD_BUTTON_WEST;
+    if (name == "y") return SDL_GAMEPAD_BUTTON_NORTH;
+    if (name == "r") return SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
+    if (name == "start") return SDL_GAMEPAD_BUTTON_START;
+    return SDL_GAMEPAD_BUTTON_INVALID;
+}
+#endif
+
 void run_main_menu_pad_acceptance() {
 #if SNESRECOMP_SDL3
-    const char* button_name = std::getenv("UR_MAIN_MENU_PAD_ACCEPTANCE");
-    if (!button_name || !*button_name || g_main_menu_pad_acceptance_stage < 0) {
+    const char* sequence = std::getenv("UR_MAIN_MENU_PAD_ACCEPTANCE");
+    if (!sequence || !*sequence || g_main_menu_pad_acceptance_stage < 0) {
         return;
     }
-    SDL_GamepadButton button = SDL_GAMEPAD_BUTTON_INVALID;
-    if (std::strcmp(button_name, "r") == 0) {
-        button = SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
-    } else if (std::strcmp(button_name, "y") == 0) {
-        button = SDL_GAMEPAD_BUTTON_NORTH;
+    std::vector<std::string> names;
+    {
+        std::string current;
+        for (const char* c = sequence;; ++c) {
+            if (*c == ',' || *c == '\0') {
+                names.push_back(current);
+                current.clear();
+                if (*c == '\0') break;
+            } else {
+                current.push_back(*c);
+            }
+        }
     }
-    if (button == SDL_GAMEPAD_BUTTON_INVALID) {
+    for (const auto& name : names) {
+        if (main_menu_pad_acceptance_button(name) ==
+            SDL_GAMEPAD_BUTTON_INVALID) {
+            g_main_menu_pad_acceptance_stage = -1;
+            return;
+        }
+    }
+    const std::size_t index = g_main_menu_pad_acceptance_step;
+    if (index >= names.size()) {
         g_main_menu_pad_acceptance_stage = -1;
         return;
     }
+    const SDL_GamepadButton button =
+        main_menu_pad_acceptance_button(names[index]);
     switch (g_main_menu_pad_acceptance_stage) {
     case 0:
         if (g_ram[0x0313] == 0x01 || g_ram[0x009F] != 0xD7) {
@@ -5346,9 +5378,15 @@ void run_main_menu_pad_acceptance() {
             }
             return;
         }
+        if (index && ++g_main_menu_pad_acceptance_frames < 30u) return;
         (void)SDL_SetJoystickVirtualButton(
             g_controller_hotplug_acceptance_pad, button, true);
-        product_diagnostic("UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED");
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(stderr,
+                "UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=%s step=%zu\n",
+                names[index].c_str(), index);
+            std::fflush(stderr);
+        }
         g_main_menu_pad_acceptance_frames = 0;
         g_main_menu_pad_acceptance_stage = 2;
         return;
@@ -5356,11 +5394,13 @@ void run_main_menu_pad_acceptance() {
         if (++g_main_menu_pad_acceptance_frames < 3u) return;
         (void)SDL_SetJoystickVirtualButton(
             g_controller_hotplug_acceptance_pad, button, false);
-        g_main_menu_pad_acceptance_stage = 3;
-        return;
-    case 3:
-        // Leave the pad seated so the release edge is delivered normally.
-        g_main_menu_pad_acceptance_stage = -1;
+        g_main_menu_pad_acceptance_frames = 0;
+        // Leave the pad seated so release edges are delivered normally.
+        if (++g_main_menu_pad_acceptance_step < names.size()) {
+            g_main_menu_pad_acceptance_stage = 1;
+        } else {
+            g_main_menu_pad_acceptance_stage = -1;
+        }
         return;
     default:
         return;
@@ -7046,17 +7086,43 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         g_suppress_human_input_once = true;
     }
 
+    // Host-owned surfaces follow the platform convention: the physical south
+    // button (A) confirms and east (B) goes back on every host screen, as in
+    // the pause family, Records and profile menus. It deliberately ignores
+    // the game's [GamepadMap]; under the default positional map SNES A is the
+    // east button, so the semantic route made one button confirm here and go
+    // back in Pause. Other buttons still resolve through the GamepadMap.
+    const bool host_confirm = button == kGamepadBtn_A;
+    const bool host_back = button == kGamepadBtn_B;
+
     if (g_progress_overview_visible) {
+        if (host_confirm || host_back) {
+            if (pressed) close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+            return 1;
+        }
         return -1;
     }
     if (g_practice_picker.visible) {
-        // Consume host modal input through the live GamepadMap semantics.
+        if (host_confirm || host_back) {
+            if (pressed) {
+                (void)handle_practice_picker_navigation(
+                    host_confirm ? UR_MODERN_HOST_NAV_CONFIRM
+                                 : UR_MODERN_HOST_NAV_BACK);
+            }
+            return 1;
+        }
         return -1;
     }
 
     if (g_tour_action_visible) {
-        // Defer physical buttons to SNESRecomp's configured GamepadMap, then
-        // consume only the resulting P1 semantic controls below.
+        if (host_confirm || host_back) {
+            if (pressed) {
+                (void)handle_tour_action_navigation(
+                    host_confirm ? UR_MODERN_HOST_NAV_CONFIRM
+                                 : UR_MODERN_HOST_NAV_BACK);
+            }
+            return 1;
+        }
         return -1;
     }
 
@@ -7130,16 +7196,51 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
             (void)repeat_current_attempt();
             return 1;
         }
+        if (host_confirm) {
+            (void)handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM);
+            return 1;
+        }
+        if (host_back) {
+            (void)dispatch(UR_MODERN_PAUSE_TOGGLE);
+            diagnose_pause_state();
+            return 1;
+        }
         return -1;
     }
 
     if (g_frontend_options_active && g_options_visible) {
-        // Resolve user-remapped GamepadMap semantics rather than consuming
-        // the physical default buttons and losing the remapped identity.
+        if (host_confirm || host_back) {
+            if (pressed) {
+                if (host_confirm) {
+                    (void)activate_options_selection();
+                } else {
+                    close_host_subview();
+                }
+            }
+            return 1;
+        }
+        // Directions and X (Controls) resolve through the GamepadMap.
         return -1;
     }
 
     if (g_controls_visible) {
+        if (host_confirm || host_back) {
+            if (!pressed) return 1;
+            if (g_controls_rebind.capturing) {
+                // A capture waits for a keyboard key; B cancels it.
+                if (host_back) {
+                    (void)ur::product::modern_controls_handle_action(
+                        &g_controls_rebind,
+                        ur::product::ModernControlsAction::Back);
+                    product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
+                }
+                return 1;
+            }
+            (void)handle_controls_action(
+                host_confirm ? ur::product::ModernControlsAction::Confirm
+                             : ur::product::ModernControlsAction::Back);
+            return 1;
+        }
         // Framework physical/modifier bookkeeping already happened before this
         // callback. Negative means "resolve mapped P1 semantics only":
         // framework/system commands and guest dispatch stay suppressed.
@@ -7289,9 +7390,12 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    // On host surfaces confirm/back are the physical A/B buttons (see
+    // ur_uniracers_modern_system_gamepad_button); the semantic SNES A/B
+    // controls are not a second confirm/back, so a [GamepadMap] remap cannot
+    // move them. Start still backs out.
     if (g_progress_overview_visible) {
-        if (pressed && (control == 5 || control == 6 || control == 7 ||
-                        control == 10)) {
+        if (pressed && (control == 5 || control == 10)) {
             close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
         }
         return 1;
@@ -7303,9 +7407,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         case 1: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_DOWN); break;
         case 2: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_LEFT); break;
         case 3: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_RIGHT); break;
-        case 6: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_CONFIRM); break;
-        case 5:
-        case 7: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_BACK); break;
+        case 5: (void)handle_practice_picker_navigation(UR_MODERN_HOST_NAV_BACK); break;
         default: break;
         }
         return 1;
@@ -7319,11 +7421,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         case 1:
             (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_DOWN);
             break;
-        case 6:
-            (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_CONFIRM);
-            break;
         case 5:
-        case 7:
             (void)handle_tour_action_navigation(UR_MODERN_HOST_NAV_BACK);
             break;
         default:
@@ -7341,11 +7439,7 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         case 1:
             (void)handle_results_navigation(UR_MODERN_HOST_NAV_DOWN);
             break;
-        case 6:
-            (void)handle_results_navigation(UR_MODERN_HOST_NAV_CONFIRM);
-            break;
         case 5:
-        case 7:
             (void)dispatch(UR_MODERN_PAUSE_TOGGLE);
             diagnose_pause_state();
             break;
@@ -7371,10 +7465,8 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
                 (void)step_volume_setting(control == 3 ? 1 : -1);
             }
             break;
-        case 6: (void)activate_options_selection(); break;
         case 4:
-        case 5:
-        case 7: close_host_subview(); break;
+        case 5: close_host_subview(); break;
         default: break;
         }
         return 1;
@@ -7382,8 +7474,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
     if (g_controls_visible) {
         if (!pressed) return 1;
 
+        // Physical A/B already confirmed or backed out; ignore SNES A/B here.
+        if (control == 6 || control == 7) return 1;
         if (g_controls_rebind.capturing) {
-            if (control == 7 || control == 5) {
+            if (control == 5) {
                 (void)ur::product::modern_controls_handle_action(
                     &g_controls_rebind, ur::product::ModernControlsAction::Back);
                 product_diagnostic("UR_CONTROLS CAPTURE_CANCELLED");
@@ -7751,7 +7845,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
                     : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
-            "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",
+            "ESC/F7 / PAD B BACK",
             ur::product::modern_overlay_text_cells(panel_w));
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 188 * scale,
@@ -7863,10 +7957,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 123 * scale,
             "UP/DOWN TRACK  L/R TOUR", 0xFFFFFFFFu, scale);
-        const std::string hint = "ENTER/PAD " +
-            live_gamepad_binding_label(6) + " PLAY";
-        const std::string back = "ESC/PAD " +
-            live_gamepad_binding_label(7) + " BACK";
+        // Host surfaces confirm with physical A and go back with B.
+        const std::string hint = "ENTER/PAD A PLAY";
+        const std::string back = "ESC/PAD B BACK";
         snes_ovl_draw_text(pixels, stride, height,
             x + 8 * scale, y + 139 * scale,
             ur::product::fit_modern_overlay_text(
@@ -8104,13 +8197,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 67 * scale,
                 "RESTART TOUR?", 0xFFFFFFFFu, scale);
-            // While the Tour surface is open, pad buttons reach it through
-            // the live GamepadMap (SNES A confirms, SNES B cancels), so name
-            // the physical buttons that produce those controls.
-            const std::string confirm_hint =
-                "ENTER / PAD " + live_gamepad_binding_label(6) + " CONFIRM";
-            const std::string cancel_hint =
-                "ESC / PAD " + live_gamepad_binding_label(7) + " CANCEL";
+            // Host surfaces confirm with physical A and cancel with B.
+            const std::string confirm_hint = "ENTER / PAD A CONFIRM";
+            const std::string cancel_hint = "ESC / PAD B CANCEL";
             snes_ovl_draw_text(
                 pixels, stride, height, x + 8 * scale, y + 86 * scale,
                 confirm_hint.c_str(), 0xFFFFFFFFu, scale);
@@ -8692,8 +8781,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
                 pixels, stride, height, options_x + 8 * modal_scale, options_y + 202 * modal_scale,
-                frontend_options ? "PAD X CONTROLS / B BACK"
-                                 : "B / ESC    BACK",
+                frontend_options
+                    ? ur::product::fit_modern_overlay_text(
+                          "PAD " + live_gamepad_binding_label(8) +
+                              " CONTROLS / B BACK",
+                          ur::product::modern_overlay_text_cells(
+                              panel_w_logical)).c_str()
+                    : "B / ESC    BACK",
                 0xFFFFFFFFu, modal_scale);
             if (frontend_options && !g_frontend_options_draw_reported &&
                 std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -8730,9 +8824,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 key_labels[static_cast<std::size_t>(i)] =
                     key_label_storage[static_cast<std::size_t>(i)];
             }
+            // Confirm/back are the fixed host buttons; Clear/Reset follow
+            // the SNES X/Y bindings that trigger them.
             const ur::product::ModernControlsPadGlyphs pad_glyphs{
-                live_gamepad_binding_label(6),
-                live_gamepad_binding_label(7),
+                "A",
+                "B",
                 live_gamepad_binding_label(8),
                 live_gamepad_binding_label(9),
             };

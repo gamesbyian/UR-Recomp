@@ -1,4 +1,5 @@
 #include "local_tournament_fixture_launch_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -10,18 +11,6 @@
 
 namespace ur::product {
 namespace {
-
-bool replace_file_atomically(
-    const std::string& temporary,
-    const std::string& destination) noexcept {
-#if defined(_WIN32)
-    return MoveFileExA(
-        temporary.c_str(), destination.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
-#else
-    return std::rename(temporary.c_str(), destination.c_str()) == 0;
-#endif
-}
 
 LocalTournamentLaunchFileResult error_result(
     LocalTournamentLaunchFileStatus status,
@@ -40,19 +29,7 @@ LocalTournamentLaunchFileStatus save_local_tournament_launch_file(
         return LocalTournamentLaunchFileStatus::Rejected;
     }
 
-    const std::string temporary = path + ".tmp";
-    std::FILE* file = std::fopen(temporary.c_str(), "wb");
-    if (!file) return LocalTournamentLaunchFileStatus::IoError;
-    const std::size_t written =
-        std::fwrite(encoded.data(), 1u, encoded.size(), file);
-    const bool flushed = std::fflush(file) == 0;
-    const bool closed = std::fclose(file) == 0;
-    if (written != encoded.size() || !flushed || !closed) {
-        std::remove(temporary.c_str());
-        return LocalTournamentLaunchFileStatus::IoError;
-    }
-    if (!replace_file_atomically(temporary, path)) {
-        std::remove(temporary.c_str());
+    if (!write_tournament_replace_staged(path, encoded, "urlaunch")) {
         return LocalTournamentLaunchFileStatus::IoError;
     }
     return LocalTournamentLaunchFileStatus::Saved;

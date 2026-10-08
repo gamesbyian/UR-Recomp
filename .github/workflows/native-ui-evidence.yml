@@ -257,11 +257,11 @@ jobs:
               test -s "$RUNNER_TEMP/ui-ending-dumps/ui-splash-observed.wram.bin" || { echo "::error::Missing authentic splash capture"; exit 1; }
               run_route ui-attract-route ui-attract-route.script ui-attract-dumps 90
               run_route ui-pause-route ui-pause-route.script ui-pause-dumps 90
-              run_route ui-options-submenus ui-options-submenus.script ui-options-submenu-dumps 180
+              run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
               run_route ui-erase-confirm ui-erase-confirm.script ui-erase-confirm-dumps 90
               ;;
             results-a)
-              run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180
+              run_route ui-options-submenus ui-options-submenus.script ui-options-submenu-dumps 180
               # Retain all Circuit driving captures; the unproven result state is manual research.
               run_route ui-circuit-drive-capture ui-circuit-drive-capture.script ui-circuit-result-dumps 120 required || exit $?
               for tag in ui-circuit-track-selected ui-circuit-now-playing ui-circuit-entered ui-circuit-drive-start ui-circuit-drive-10 ui-circuit-drive-20 ui-circuit-drive-30 ui-circuit-drive-40 ui-circuit-drive-50 ui-circuit-drive-60 ui-circuit-terminal; do

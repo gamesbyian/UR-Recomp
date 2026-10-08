@@ -161,10 +161,11 @@ jobs:
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/original-ghost-trace.log"
           grep -q "UR_RUN_GHOST_TRACE_CHECK PASS course=course:01" "$RUNNER_TEMP/replayed-ghost-trace.log"
 
-          # A bound checksum proves trace integrity, not deterministic ghost
-          # movement. Compare every independently captured world/pose sample
-          # across the real fresh-process replay. Only the documented one
-          # terminal lifecycle-observation sample may differ in length.
+          # Bound checksums prove trace integrity, not deterministic replay.
+          # Assert original vs fresh-process P1 world/pitch trajectory parity.
+          # Report separately any cosmetic P1 pose / P2-context differences:
+          # replay input alone does not guarantee stock presentation RNG.
+          # A single transitional terminal lifecycle sample may differ.
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
             -I "$GITHUB_WORKSPACE/native/product" \
             -I "$GITHUB_WORKSPACE/tests/native" \

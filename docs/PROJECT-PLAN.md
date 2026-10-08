@@ -1,5 +1,9 @@
 # Uniracers Modern Port Plan
 
+## Integration checkpoint (2026-10-08)
+
+Current `main` includes replay frame-window parity (#938), atomic ghost sidecar publication (#942), terminal digest parity (#957), selected Previous/PB source revalidation (#958), and the course dispatch-before-sampling causality correction (#959). The latter distinguishes postframe slot 8 from the stronger, still unproven preceding slot-10 dispatch candidate. Local Tournament multi-leg continuation and packaged Windows acceptance (#946, #964) have also merged. Remaining course causality needs instruction-time evidence, not further assumptions based solely on frame-end snapshots. CI-speed work has a separate active owner. Historical divergent branches are not automatically missing functionality: compare them with merged successor PRs before recovery.
+
 Last updated: 2026-10-08 (Windows frontend status)
 
 This is the canonical product-development plan for turning the original SNES Uniracers / Unirally into a faithful modern native port.

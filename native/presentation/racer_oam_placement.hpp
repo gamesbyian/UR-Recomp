@@ -81,6 +81,54 @@ struct RacerOamPlacement {
     std::uint8_t height_pixels;
 };
 
+// P1 owns contiguous OAM slots 97 (bottom) and 98 (top). The current
+// extractor can capture exactly these two slots and leave P2 stock. The
+// bottom viewport is the hard case: stock P2 slot 96 is in front of P1 97,
+// so a host-drawn P1 cannot cover it. Without a separate stock-P2 overlay
+// plane, admit P1-only replacements only if their *visible* OBJ rectangles
+// cannot overlap there. Y is compared modulo the hardware's 256 lines.
+// An ambiguous or malformed placement is unsafe, never a green light.
+constexpr bool racer_p1_only_no_stock_p2_occlusion(
+    const RacerOamPlacement& p1_top,
+    const RacerOamPlacement& p1_bottom,
+    const RacerOamPlacement& p2_top,
+    const RacerOamPlacement& p2_bottom
+) noexcept {
+    if (p1_top.slot != 98 || p1_bottom.slot != 97 ||
+        p2_top.slot != 99 || p2_bottom.slot != 96 ||
+        !p1_top.large || !p1_bottom.large ||
+        p1_top.width_pixels != 64 || p1_top.height_pixels != 64 ||
+        p1_bottom.width_pixels != 64 || p1_bottom.height_pixels != 64 ||
+        p2_bottom.width_pixels == 0 || p2_bottom.height_pixels == 0 ||
+        p2_top.width_pixels == 0 || p2_top.height_pixels == 0 ||
+        p2_bottom.width_pixels > 64 || p2_bottom.height_pixels > 64 ||
+        p2_top.width_pixels > 64 || p2_top.height_pixels > 64 ||
+        // P1 top slot 98 wins over stock P2 slot 99 only within the same
+        // SNES OBJ priority level. Different OBJ levels are not modeled.
+        (p1_top.attr & 0x30) != (p2_top.attr & 0x30)) {
+        return false;
+    }
+    // Reject only a *provably impossible* horizontal intersection. X is
+    // already decoded from the nine-bit signed OAM coordinate.
+    const int p1_left = static_cast<int>(p1_bottom.x_signed);
+    const int p2_left = static_cast<int>(p2_bottom.x_signed);
+    const int left = p1_left > p2_left ? p1_left : p2_left;
+    const int p1_right = p1_left + p1_bottom.width_pixels;
+    const int p2_right = p2_left + p2_bottom.width_pixels;
+    const int right = p1_right < p2_right ? p1_right : p2_right;
+    if (left >= right || right <= 0 || left >= 256) return true;
+
+    // The rasterized bottom viewport is exactly scanlines 112..223.
+    // Sprite rows at raw Y 250..255 can wrap to Y 0..57.
+    for (int y = 112; y < 224; ++y) {
+        const int p1_row = (y - p1_bottom.y_raw_8bit) & 0xFF;
+        const int p2_row = (y - p2_bottom.y_raw_8bit) & 0xFF;
+        if (p1_row < p1_bottom.height_pixels &&
+            p2_row < p2_bottom.height_pixels) return false;
+    }
+    return true;
+}
+
 std::optional<RacerOamPlacement> decode_racer_oam_placement(
     const std::uint8_t* oam,
     std::size_t oam_size,

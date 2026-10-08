@@ -74,7 +74,7 @@
     "guard_scope": "player_local",
     "guard_scope_basis": "P1/P2 staging columns are structurally disjoint and all 58 synchronized witnesses reconstruct the same P1 stock RGBA raster."
   },
-  "status": "shipping expansion active; measured broader player-local families through P1 0579/0000 are reviewed, hash-approved, and runtime-registered",
+  "status": "shipping expansion active; measured broader player-local families through P2 0578/0EC3 are reviewed, hash-approved, and runtime-registered",
   "after_04b9": {
     "hd_selected_player_frames": 198,
     "original_fallback_player_frames": 5084,
@@ -802,28 +802,16 @@
         "artifact_id": 11479364246,
         "status": "green"
       }
-    }
-  ],
-  "current_after": {
-    "hd_selected_player_frames": 1326,
-    "original_fallback_player_frames": 3956,
-    "hd_coverage_fraction": 0.2510412722453616,
-    "cumulative_player_frames_removed": 1208,
-    "absolute_coverage_gain_percentage_points": 22.870124952669443,
-    "cumulative_baseline_fallback_burden_removed_fraction": 0.23392718822618125
-  },
-  "next_discriminator": {
-    "status": "measured-post-p1-0579-leader",
-    "target": {
+    },
+    {
       "player": "p2",
       "semantic_frame_id": "0x0578",
       "companion": "0x0EC3",
       "selector": 0,
       "gate": "0x0001",
-      "player_frames": 54,
+      "player_frames_removed": 54,
       "episode_count": 17,
       "synchronized_witness_state_count": 21,
-      "unique_stock_raster_count": 1,
       "stock_rgba_sha256": "1ef9f5ac2df1ad694d11f0ecc31c035c009aa7f31f6b7f3ccd0c49a48c1bcff6",
       "normalized_geometry_sha256": "08e5eae6fb849f7274e989c720647513d8652181beef4ee2a7a97499f8c5f28a",
       "alpha_bounds": [
@@ -836,10 +824,62 @@
         77,
         72
       ],
+      "guard_scope": "player_local",
+      "approval_manifest": "analysis/data/racer-hd-art-approval-broader-p2-0578-0ec3.json",
+      "authored_rgba_sha256": "0d45acae08ba847ceab8e513eefeafd6e5ee3cefa72090500aeb54ed141d0081",
+      "review_alpha_iou": 0.8263888888888888,
+      "review_evidence": {
+        "workflow_run": 37710706391,
+        "artifact_id": 11520903774
+      },
+      "after": {
+        "hd_selected_player_frames": 1380,
+        "original_fallback_player_frames": 3902,
+        "hd_coverage_fraction": 0.26126467247254825
+      },
+      "focused_reproduction": {
+        "workflow_run": 37711021066,
+        "artifact_id": 11521263401,
+        "status": "green"
+      }
+    }
+  ],
+  "current_after": {
+    "hd_selected_player_frames": 1380,
+    "original_fallback_player_frames": 3902,
+    "hd_coverage_fraction": 0.26126467247254825,
+    "cumulative_player_frames_removed": 1262,
+    "absolute_coverage_gain_percentage_points": 23.892464975388112,
+    "cumulative_baseline_fallback_burden_removed_fraction": 0.24438419829589467
+  },
+  "next_discriminator": {
+    "status": "measured-post-p2-0578-0ec3-leader",
+    "target": {
+      "player": "p2",
+      "semantic_frame_id": "0x0548",
+      "companion": "0x0EB4",
+      "selector": 0,
+      "gate": "0x0001",
+      "player_frames": 54,
+      "episode_count": 8,
+      "synchronized_witness_state_count": 34,
+      "unique_stock_raster_count": 1,
+      "stock_rgba_sha256": "e7911e357762ce397af56f1d00d629587710d04406efb3d77ff728e3758375a9",
+      "normalized_geometry_sha256": "7381ae8e865f566580164e3212edb7c70e2717932df98cd6d3a3aa181583b851",
+      "alpha_bounds": [
+        16,
+        6,
+        43,
+        36
+      ],
+      "contact_x2_y2": [
+        49,
+        72
+      ],
       "exact_same_player_reuse_matches": [],
       "palette_normalized_reuse_matches": [],
       "requires_new_pose": true
     },
-    "rule": "P2 0578/0EC3 is the next bounded shipping slice by measured post-P1-0579 burden. It requires fresh P2 authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
+    "rule": "P2 0548/0EB4 is the next bounded shipping slice by measured post-P2-0578 burden. It requires fresh P2 authored review, temporal validation, hash-bound approval, and measured after-state before runtime admission."
   }
 }

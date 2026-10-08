@@ -24,14 +24,17 @@ int UrRacerHdDrawFrame(
 '''
 
 PROBE_CPP = r'''#include "host_main.h"
+#include "snes/ppu.h"
 #include "racer_guest_snapshot.hpp"
 #include "racer_hd_presenter.hpp"
 
 #include <cstdio>
 #include <cstdint>
+#include <cstdlib>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
+extern Ppu* g_ppu;
 }
 
 extern "C" void UrRacerHdPrepareFrame(
@@ -40,10 +43,36 @@ extern "C" void UrRacerHdPrepareFrame(
     ur::presentation::racer_hd_prepare_frame(
         drawable_w, drawable_h, frame_w, frame_h
     );
+    if (std::getenv("UR_RACER_HD_PROBE_WIDE") && frame_w && frame_h) {
+        // Diagnostic-only WorldExpand-sized logical field. The generated
+        // native acceptance game has native_widescreen enabled explicitly.
+        *frame_w = 342;
+        *frame_h = 224;
+    }
 }
 
 extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
     ur::presentation::racer_hd_begin_sim_frame(number);
+    if (!std::getenv("UR_RACER_HD_PROBE_WIDE")) return;
+    const int width = snesrecomp_desktop_frame_width();
+    const int height = snesrecomp_desktop_frame_height();
+    const bool removal_armed = g_ppu &&
+        ((g_ppu->overlayCaptures[kPpuOverlaySource_Obj].flags &
+          kPpuOverlayFlag_RemoveFromGame) != 0);
+    if (width != 342 || height != 224 || removal_armed) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_WIDE_CAPTURE FAIL frame=%u width=%d height=%d removal=%d\n",
+            number, width, height, removal_armed ? 1 : 0
+        );
+        std::abort();
+    }
+    if (number == 1220u) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_WIDE_CAPTURE PASS frame=1220 width=342 height=224 removal=0\n"
+        );
+    }
 }
 
 extern "C" int UrRacerHdPresentationScale(void) {
@@ -175,6 +204,7 @@ def patch_main(source: str) -> str:
     return source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
+        + "    .native_widescreen   = 1,\n"
         + "    .after_run_frame     = &UrRacerPresentationProbeAfterRunFrame,\n"
         + "    .prepare_frame       = &UrRacerHdPrepareFrame,\n"
         + "    .begin_sim_frame     = &UrRacerHdBeginSimFrame,\n"

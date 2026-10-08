@@ -38,9 +38,10 @@ int main(int argc, char** argv) {
 
     std::string detail;
     std::size_t compared = 0;
+    ur::test::GhostTraceReplayComparison comparison;
     if (!ur::test::equivalent_ghost_world_samples(
             *original_trace.trace, *replayed_trace.trace,
-            &detail, &compared)) {
+            &detail, &compared, &comparison)) {
         std::fprintf(stderr, "UR_RUN_GHOST_TRACE_COMPARE FAIL %s\n",
                      detail.c_str());
         return 1;
@@ -54,6 +55,11 @@ int main(int argc, char** argv) {
         replayed_trace.trace->samples.size(),
         original_trace.trace->samples.size() > replayed_trace.trace->samples.size()
             ? original_trace.trace->samples.size() - replayed_trace.trace->samples.size()
-            : replayed_trace.trace->samples.size() - original_trace.trace->samples.size());
+            : replayed_trace.trace->samples.size() - original_trace.trace->samples.size(),
+        comparison.p1_pose_drift_frames,
+        comparison.p2_context_drift_frames,
+        comparison.terminal_observation_drift_frames,
+        static_cast<unsigned long long>(comparison.first_p1_pose_drift_frame),
+        static_cast<unsigned long long>(comparison.first_p2_context_drift_frame));
     return 0;
 }

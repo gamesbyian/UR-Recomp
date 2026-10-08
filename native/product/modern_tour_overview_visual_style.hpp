@@ -1,6 +1,11 @@
 #pragma once
 
 #include "modern_stock_menu_palette.hpp"
+#include "modern_overlay_text_fit.hpp"
+
+#include <cstddef>
+#include <string>
+#include <string_view>
 
 namespace ur::product {
 
@@ -33,6 +38,32 @@ constexpr ModernTourOverviewVisualStyle modern_tour_overview_visual_style(
     if (style.panel_width_logical >= 16 + kTitleCharacters * 16)
         style.title_glyph_scale = 2;
     return style;
+}
+
+// Noninteractive medal columns have one right-aligned status baseline.
+// Fit long tour names FIRST, keeping BRONZE/SILVER/GOLD/NOT STARTED intact.
+// Locked rows never inspect a source name or medal status.
+inline std::string modern_tour_overview_row(
+    unsigned slot_one_based,
+    bool visible,
+    std::string_view name,
+    std::string_view medal,
+    std::size_t cells) {
+    if (slot_one_based < 1 || slot_one_based > 8 || cells == 0)
+        return {};
+    const std::string prefix = std::to_string(slot_one_based) + ". ";
+    if (!visible)
+        return fit_modern_overlay_text(prefix + "LOCKED TOUR", cells);
+    if (cells <= prefix.size() + medal.size() + 1u)
+        return fit_modern_overlay_text(prefix + std::string(medal), cells);
+
+    const std::size_t name_space =
+        cells - prefix.size() - medal.size() - 1u;
+    std::string row = prefix;
+    row.append(name.substr(0, name_space));
+    row.append(cells - medal.size() - row.size(), ' ');
+    row.append(medal);
+    return row;
 }
 
 }  // namespace ur::product

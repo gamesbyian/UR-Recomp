@@ -32,6 +32,7 @@ MAX_PACKAGE_FILE_BYTES = 512 * 1024 * 1024
 MAX_PACKAGE_TOTAL_BYTES = 2 * 1024 * 1024 * 1024
 MAX_PACKAGE_MANIFEST_BYTES = 8 * 1024 * 1024
 MAX_PACKAGE_README_BYTES = 256 * 1024
+MAX_PACKAGE_ROM_CONFIG_BYTES = 1 * 1024 * 1024
 ARCHIVE_IO_CHUNK_BYTES = 1 << 20
 REQUIRED_PACKAGE_FILES = {
     EXE_NAME,
@@ -459,6 +460,8 @@ def verify(package: Path) -> dict[str, object]:
 
     actual_paths = {entry["path"] for entry in actual}
     validate_required_package_paths(actual_paths, context="packaged")
+    if (package / ROM_CONFIG_NAME).stat().st_size > MAX_PACKAGE_ROM_CONFIG_BYTES:
+        raise ValueError("packaged rom.cfg exceeds shipping size limit")
     try:
         validate_rom_config(
             (package / ROM_CONFIG_NAME).read_bytes(), context="packaged"
@@ -620,9 +623,9 @@ def verify_archive(archive: Path) -> dict[str, object]:
                 raise ValueError("package archive README exceeds shipping size limit")
             if info_by_name.get(f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}") and (
                 info_by_name[f"{ARCHIVE_ROOT}/{ROM_CONFIG_NAME}"].file_size >
-                    len(ROM_CONFIG_BYTES)
+                    MAX_PACKAGE_ROM_CONFIG_BYTES
             ):
-                raise ValueError("package archive rom.cfg exceeds canonical size")
+                raise ValueError("package archive rom.cfg exceeds shipping size limit")
             try:
                 manifest_bytes = source.read(manifest_name)
                 manifest = json.loads(manifest_bytes.decode("utf-8"))

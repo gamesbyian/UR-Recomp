@@ -126,24 +126,35 @@ int main() {
             "valid checkpoint can replace corrupted prior payload");
     require(bytes_of(path) == original_bytes,
             "repair atomically republishes canonical bytes");
+    auto stale_attempt = pending;
+    stale_attempt.attempt_id = "22222222222222222222222222222222";
     require(retire_local_tournament_launch_file(
-                filename, *model, instance,
-                "22222222222222222222222222222222") ==
-            Status::Rejected,
+                filename, stale_attempt) == Status::Rejected,
             "late cancellation with other attempt ID cannot delete checkpoint");
+    auto stale_tournament = pending;
+    stale_tournament.tournament_id =
+        "abcdef0123456789abcdef0123456789";
     require(retire_local_tournament_launch_file(
-                filename, *model, "abcdef0123456789abcdef0123456789",
-                pending.attempt_id) == Status::Rejected,
+                filename, stale_tournament) == Status::Rejected,
             "wrong tournament instance cannot delete active checkpoint");
     require(bytes_of(path) == original_bytes,
             "stale retirement leaves latest persisted attempt byte-identical");
+
+    // The fixture may have completed after the capture/receipt transaction.
+    // Such a checkpoint is no longer RESTORABLE, but its exact original
+    // attempt must still be RETIRABLE without rewriting stored results.
+    auto finished = *model;
+    finished.results[0] = LocalTournamentRecordedResult{
+        "0011223344556677",
+        ur::title::OrdinaryTwoPlayerRaceOutcome::Draw, false};
+    require(load_local_tournament_launch_file(
+                filename, finished, instance).status == Status::Rejected,
+            "completed fixture is not eligible to resume");
     require(retire_local_tournament_launch_file(
-                filename, *model, instance, pending.attempt_id) ==
-            Status::Saved,
-            "only matching active lifecycle retires exact checkpoint");
+                filename, pending) == Status::Saved,
+            "post-result commit can retire the exact saved launch");
     require(retire_local_tournament_launch_file(
-                filename, *model, instance, pending.attempt_id) ==
-            Status::Missing,
+                filename, pending) == Status::Missing,
             "retirement is idempotent for missing checkpoint");
     require(load_local_tournament_launch_file(
                 filename, *model, instance).status == Status::Missing,

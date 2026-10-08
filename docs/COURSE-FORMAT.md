@@ -596,3 +596,23 @@ A paired frame-exact Switcher race-entry observation in both ROMs can establish
 whether A drives P1, P2, or another landmark; do not infer the player binding
 from the header labels alone. This is a cheaper falsifier than decoding
 unrelated checkpoint handlers or conducting a broad 45-course runtime sweep.
+
+
+### Full-payload identity guard for spawn assignment (2026-10-08)
+
+The optional course-entry WRAM spawn-assignment probe must not evaluate header
+A/B against arbitrary best-scoring RNC content. Earlier frontend checkpoints
+showed a sparse unrelated stream scoring about 97.4% against mostly empty WRAM
+before the selected course was installed. The first-race entry witness instead
+establishes near-total equality across the **full** decoded stream, with only
+resource-list cursor bytes 0x0B..0x0C mutable.
+
+tools/probe_runtime_course_payload.py now reports the complete course identity
+criterion separately from a generic similarity ranking: decoded bytes must
+match the entire decoded payload extent in the 7F course buffer except offsets
+0x0B and 0x0C. The racer-slot A/B discriminator runs only when exactly one
+full stream meets that criterion, or an explicitly focused stream itself
+meets it. The --limit diagnostic-excerpt option cannot weaken the identity
+requirement. Partial decompression, wrong sparse streams and nonmatching
+focus streams produce a machine-readable not_evaluable result, not a
+promoted spawn-slot assignment.

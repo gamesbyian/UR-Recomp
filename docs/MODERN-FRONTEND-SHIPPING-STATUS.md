@@ -1,6 +1,6 @@
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
-Status snapshot: **2026-10-08 UTC**, reviewed against `main` `e19eb8fb3`. This is a routing/readiness index, not a new frontend specification. The source of truth for behavior remains the implementation and native acceptance; update this index when the corresponding merge changes a shipping claim.
+Status snapshot: **2026-10-08 UTC**, reviewed through `main` `7d2a75312`. This is a routing/readiness index, not a new frontend specification. The source of truth for behavior remains the implementation and native acceptance; update this index when the corresponding merge changes a shipping claim.
 
 ## Player-facing surfaces already on main
 
@@ -22,7 +22,7 @@ The entries above are **shortcuts and existing stock frontend flow**, not proof 
 
 1. **Root navigation integration:** wire each of the five destinations to an **existing** title/host authority and prove the real Windows route end-to-end before exposing it. Distinguish directly callable destinations (Practice, Options) from guest-owned Play/Multiplayer transitions and paused/result-owned Records. A disabled or inoperable row is not a completed root.
 2. **Modal lifetime:** settled main-menu attract/timeout can replace an open host modal unless the guest input-frame hold policy is installed. Work for that specific fix is carried in **PR #763** as of this snapshot; do not describe it as merged or recreate a second hold/timer mechanism. Verify current PR state before assigning new work.
-3. **Visual fidelity:** present Modern surfaces with the original game's visual grammar while allowing proportional repositioning/resize in true Widescreen. Temporary dark rectangles are not final art direction. The visual treatment contract is tracked separately by **PR #760** as of this snapshot; verify before overlapping it.
+3. **Visual fidelity:** present Modern surfaces with the original game's visual grammar while allowing proportional repositioning/resize in true Widescreen. Temporary dark rectangles are not final art direction. The original-game visual grammar and responsive re-layout acceptance are now documented in merged **PR #760** (`docs/MODERN-UI-VISUAL-FIDELITY.md`), but the current functional black host panels still require actual art/presentation implementation and Windows screenshot review.
 4. **Accessibility:** existing adaptive text-fit/large-text model is not yet a persisted user-facing text-size option, and reduced flashing has no admitted product compositor seam. Do not conflate logical glyph-density scaling (1x–4x presentational output) with an accessibility font-size choice.
 5. **Controller glyphs:** the Controls/onboarding surfaces resolve live remapped pad names; remaining controller-first help needs equivalent authoritative hint labels, not guessed physical-brand glyphs.
 

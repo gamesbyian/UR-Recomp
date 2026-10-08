@@ -107,7 +107,6 @@ void draw_asset(
     int scale
 ) noexcept {
     const int origin_x = static_cast<int>(placement.x_signed) * scale;
-    const int origin_y = static_cast<int>(placement.y_raw_8bit) * scale;
     const int out_w = kBaseWidth * scale;
     const int out_h = kBaseHeight * scale;
 
@@ -115,7 +114,9 @@ void draw_asset(
 
     const int scaled_asset_size = kRacerHdLogicalSize * scale;
     for (int oy = 0; oy < scaled_asset_size; ++oy) {
-        const int dy = origin_y + oy;
+        const int dy = racer_obj_wrapped_output_row(
+            placement.y_raw_8bit, oy, scale
+        );
         if (dy < 0 || dy >= out_h ||
             !racer_split_viewport_contains_row(viewport, dy, scale)) continue;
         auto* row = reinterpret_cast<std::uint32_t*>(

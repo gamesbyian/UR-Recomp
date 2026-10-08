@@ -157,10 +157,11 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             self.text,
         )
         self.assertIn('$ErrorActionPreference = "Stop"', self.text)
-        self.assertLess(
-            self.text.index("Expand-Archive -LiteralPath"),
-            self.text.index("Clean-package boot and per-user state anchoring"),
-        ) if False else None  # Extraction lives inside this same named step.
+        clean_step = self.text.index("- name: Clean-package boot and per-user state anchoring")
+        first_extract = self.text.index("Expand-Archive -LiteralPath")
+        race_step = self.text.index("- name: Extracted-package race-result acceptance")
+        self.assertLess(clean_step, first_extract)
+        self.assertLess(first_extract, race_step)
         self.assertIn("python tools/assemble_windows_package.py verify --package", self.text)
 
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:

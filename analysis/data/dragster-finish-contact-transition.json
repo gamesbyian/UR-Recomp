@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "provenance": {
+    "authority": "native SNESRecomp deterministic guest-state capture, not an independent emulator run",
+    "workflow_run": 36954104693,
+    "workflow_artifact_id": 11204794758,
+    "artifact_name": "uniracers-object-activation",
+    "artifact_member": "UR-Recomp/UR-Recomp/analysis/generated/object-activation-coarse-probe.json",
+    "record": "samples[] rows object-tail-172 through object-tail-178",
+    "captured_on": "2026-10-02",
+    "extracted_on": "2026-10-08"
+  },
+  "interpretation_guardrail": "These are guest WRAM observations, not independent knowledge of the contacted 16x16 world cell or a causal proof of which course field gates race completion.",
+  "samples": [
+    {
+      "relative_frame": 172,
+      "frame": 2901,
+      "player_x": 25239,
+      "player_y": 857,
+      "collision_word": 6148,
+      "object_index": 2,
+      "object_code": 18,
+      "checkpoint": 3,
+      "finish_gate": 0,
+      "laps_remaining": 1
+    },
+    {
+      "relative_frame": 173,
+      "frame": 2902,
+      "player_x": 25248,
+      "player_y": 857,
+      "collision_word": 8228,
+      "object_index": 10,
+      "object_code": 20,
+      "checkpoint": 3,
+      "finish_gate": 0,
+      "laps_remaining": 1
+    },
+    {
+      "relative_frame": 174,
+      "frame": 2903,
+      "player_x": 25256,
+      "player_y": 857,
+      "collision_word": 8224,
+      "object_index": 8,
+      "object_code": 20,
+      "checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 0
+    },
+    {
+      "relative_frame": 175,
+      "frame": 2904,
+      "player_x": 25264,
+      "player_y": 857,
+      "collision_word": 8224,
+      "object_index": 8,
+      "object_code": 20,
+      "checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 0
+    },
+    {
+      "relative_frame": 176,
+      "frame": 2905,
+      "player_x": 25271,
+      "player_y": 857,
+      "collision_word": 34,
+      "object_index": 9,
+      "object_code": 20,
+      "checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 0
+    },
+    {
+      "relative_frame": 177,
+      "frame": 2906,
+      "player_x": 25277,
+      "player_y": 857,
+      "collision_word": 34,
+      "object_index": 9,
+      "object_code": 20,
+      "checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 0
+    },
+    {
+      "relative_frame": 178,
+      "frame": 2907,
+      "player_x": 25282,
+      "player_y": 857,
+      "collision_word": 34,
+      "object_index": 9,
+      "object_code": 20,
+      "checkpoint": 1,
+      "finish_gate": 1,
+      "laps_remaining": 0
+    }
+  ]
+}

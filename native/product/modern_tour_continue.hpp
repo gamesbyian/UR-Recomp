@@ -226,6 +226,11 @@ constexpr ModernTourContinueStep advance_modern_tour_continue(
     switch (out.state.stage) {
     case ModernTourContinueStage::AwaitMain:
         if (observation.menu_id == 0xD7) {
+            const auto desired =
+                stock_main_menu_one_player_input(observation.selected_option);
+            if (desired != QuickPracticeMenuInput::Accept) {
+                return emit_selection_input(desired);
+            }
             out.input = QuickPracticeMenuInput::Accept;
             out.state.stage = ModernTourContinueStage::AwaitRider;
             out.state.menu_settled = false;

@@ -34,6 +34,8 @@ Therefore:
 - two-player and Vs. modes deserve dedicated validation;
 - a later host compositor may render equivalent logical sprites without needing to reproduce the trick in final presentation, but game state must remain authoritative.
 
+The current optional Remastered racer compositor removes the stock racer OBJ range and draws four host replacements. Even though those replacements are host-owned, they must obey the same scanline-112 switch: slots 98/99 belong to output rows 0..111 and slots 97/96 to rows 112..223. `racer_split_viewport_contains_row()` enforces this independently of 1x–4x Internal Render Scale so an oversized sprite near the split cannot draw into a viewport where its original OAM slot is inactive. This affects only the enabled HD replacement path; it does not change guest OAM, the Original framebuffer or simulation.
+
 ## Other historical rendering seams
 
 Older Snes9x history shows Uniracers also exposed unrelated emulator correctness problems:

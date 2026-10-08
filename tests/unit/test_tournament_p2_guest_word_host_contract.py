@@ -44,6 +44,9 @@ class P2GuestWordHostContract(unittest.TestCase):
                 "#pragma once\n#include <stdint.h>\n"
                 "typedef struct {\n"
                 "  uint32_t (*filter_player_input)(uint32_t inputs);\n"
+                "\n"
+                "  /* Optional title-owned source-aware physical gamepad seam. The framework\n"
+                "   * already exposes the source callback below. */\n"
                 "} Game;\nextern Game* g_game;\n"
             )
             (directory / "host_main.c").write_text(
@@ -68,7 +71,7 @@ class P2GuestWordHostContract(unittest.TestCase):
             # The patch uses the original framework line as its only hunk
             # context, deliberately independent of other host hunk offsets.
             result = subprocess.run(
-                ["patch", "-p1", "--batch", "--forward"], cwd=temp,
+                ["patch", "-p1", "--fuzz=0", "--batch", "--forward"], cwd=temp,
                 input=patch, text=True, capture_output=True)
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("p2_human = ((human >> 12)",

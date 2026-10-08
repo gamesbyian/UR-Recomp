@@ -1,5 +1,8 @@
 """Contract for a clean-PC verifier that needs no development toolchain."""
 from pathlib import Path
+import hashlib
+import json
+import zipfile
 import shutil
 import subprocess
 import tempfile
@@ -77,6 +80,35 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             again = subprocess.run(cmd, capture_output=True, text=True, check=False)
             self.assertNotEqual(again.returncode, 0)
             self.assertIn("Destination already exists", again.stderr)
+            # Re-sign a deliberately invalid ZIP with a self-consistent
+            # manifest and checksum. The verifier must independently enforce
+            # that legacy mutable mod selections are never shipped.
+            mutable_path = "mods/preloaded/state.toml"
+            mutable_bytes = b"enabled = true\\n"
+            (output / mutable_path).write_bytes(mutable_bytes)
+            manifest_path = output / "PACKAGE-MANIFEST.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["files"].append({
+                "path": mutable_path,
+                "size": len(mutable_bytes),
+                "sha256": hashlib.sha256(mutable_bytes).hexdigest(),
+            })
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zipped:
+                for member in sorted(output.rglob("*")):
+                    if member.is_file():
+                        zipped.write(member, f"{package.ARCHIVE_ROOT}/{member.relative_to(output).as_posix()}")
+            checksum.write_text(
+                f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\\n",
+                encoding="ascii",
+            )
+            forged_destination = root / "signed mutable state must fail"
+            forged_cmd = cmd[:-1] + [str(forged_destination)]
+            forged = subprocess.run(
+                forged_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(forged.returncode, 0)
+            self.assertIn("Mutable mod-selection state must not be shipped", forged.stderr)
             # Bad checksum must be rejected before extraction creates its root.
             checksum.write_text(
                 "0" * 64 + "  " + archive.name + "\n",

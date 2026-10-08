@@ -37,6 +37,23 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
                 row["relative_frame"],
             )
 
+    def test_postframe_current_player_scratch_must_not_replace_p1_contact_word(self):
+        # The disassembly's 0F09 dispatcher source is temporary current-player
+        # scratch; a settled WRAM dump is not an instruction-time capture.
+        rows = self.trace["samples"]
+        self.assertEqual(
+            {r["settled_current_player_collision_word_0f09"] for r in rows},
+            {0x1804},
+        )
+        self.assertEqual(
+            [r["collision_word"] for r in rows],
+            [0x1804, 0x2024, 0x2020, 0x2020, 0x0022, 0x0022, 0x0022],
+        )
+        self.assertEqual(
+            self.trace["provenance"]["observation_fields"]["collision_word"].split(",")[0],
+            "postframe 7E:0E95",
+        )
+
     def test_progression_occurs_between_two_0x14_behavior_selections(self):
         rows = self.trace["samples"]
         old, event, after = rows[1], rows[2], rows[3]

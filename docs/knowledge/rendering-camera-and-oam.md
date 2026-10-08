@@ -38,6 +38,8 @@ The current optional Remastered racer compositor removes the stock racer OBJ ran
 
 Within each split viewport, the original SNES OBJ engine also gives the smaller OAM slot precedence where sprites overlap. The Remastered host painter therefore draws its four registered instances in descending slot order: slot 99 behind 98 in the top half, slot 97 behind 96 in the bottom half. The OAM attribute priority bits resolve OBJ versus BG priority, not racer-versus-racer overlap; this order is limited to the established non-rotating four-slot racer presentation.
 
+The stock SNES line evaluator uses `(scanline - OBJ_Y) & 0xFF`, so a sprite whose raw Y lies below the visible 224 lines may wrap across the 256-line OBJ coordinate period and still paint valid rows near output row 0. The Remastered host now wraps source rows modulo 256 before applying the 224-line visible crop and the independent scanline-112 viewport check. The supplied native boundary assertions cover `Y=250` and `Y=255` at each display density. The Original PPU image remains the oracle; this corrects only host-owned replacement pixels.
+
 ## Other historical rendering seams
 
 Older Snes9x history shows Uniracers also exposed unrelated emulator correctness problems:

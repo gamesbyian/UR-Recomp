@@ -187,3 +187,23 @@ changes* are validated against their newly built package. Neither requires
 building a second native executable in the audio lane. Workflow-YAML-only
 changes do not self-trigger, per repository CI policy; the successful-build
 follow-on and manual source-run dispatch remain available.
+
+## Isolated audio acceptance concurrency
+
+The first self-contained audio-tool push run
+([37719929546](https://github.com/gamesbyian/UR-Recomp/actions/runs/37719929546))
+was canceled by a separate **skipped** `workflow_run` generated when
+an unrelated Windows source build ended without success. The top-level
+concurrency key had treated these unrelated events as equivalent.
+
+The workflow now distinguishes event type **and source build outcome** in its
+concurrency group. A skipped failed/cancelled source-run event can no longer
+cancel a live main-push audio acceptance. Successful source-build captures
+still coalesce with each other, as do repeated audio-tool push captures, so
+outdated redundant jobs do not accumulate.
+
+The native/reference phase matrix also retains both left/right device-output
+tail RMS values for every named checkpoint. This fails closed if either channel
+is wholly silent or the native analyzer failed to supply independent stereo
+evidence, while avoiding an unsupported channel-loudness equivalence to the
+independent emulators.

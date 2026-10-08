@@ -42,6 +42,8 @@ class CircuitUnpacedParityProbeTest(unittest.TestCase):
             "UR_CIRCUIT_PAIRED_UNPACED_PARITY PASS",
             "UR_CIRCUIT_BASELINE_ROOT_DIFFERENCE",
             'python3 - "$PACED" "$UNPACED" "$ORIGINAL"',
+            'paced, unpaced = (Path(arg) for arg in sys.argv[1:3])',
+            'original = hashes(Path(sys.argv[3]))',
         ):
             self.assertIn(invariant, probe)
         self.assertLess(probe.index("if set(a) != set(b)"), probe.index("UR_CIRCUIT_PAIRED_UNPACED_PARITY PASS"))

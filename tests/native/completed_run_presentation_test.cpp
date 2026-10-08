@@ -187,6 +187,24 @@ int main() {
 
     assert(!present_run_split_delta(record, "missing", 100));
 
+    // Repeated checkpoint ids (one per lap, plus the finish crossing) pair by
+    // occurrence: lap 2 compares with the target's lap 2, not its lap 1.
+    auto laps = record;
+    laps.splits = {
+        {"checkpoint-1", 25},
+        {"checkpoint-3", 847},
+        {"checkpoint-1", 1700},
+        {"finish", 1713},
+    };
+    const auto first_lap = present_run_split_delta(laps, "checkpoint-1", 30);
+    assert(first_lap && first_lap->delta_ticks60 == 5);
+    const auto second_lap =
+        present_run_split_delta(laps, "checkpoint-1", 1690, 1);
+    assert(second_lap && second_lap->target_ticks60 == 1700);
+    assert(second_lap->delta_ticks60 == -10);
+    assert(!present_run_split_delta(laps, "checkpoint-1", 1690, 2));
+    assert(!present_run_split_delta(laps, "checkpoint-3", 900, 1));
+
     auto malformed = record;
     malformed.inputs[0].duration = 0;
     assert(!present_run_target(malformed, RunDataTargetKind::PersonalBest));

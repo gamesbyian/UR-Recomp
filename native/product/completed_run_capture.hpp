@@ -28,6 +28,7 @@ public:
 
     void abort_attempt();
     bool capturing() const { return capturing_; }
+    const std::vector<RunRecordSplit>& splits() const { return splits_; }
     std::uint64_t captured_frames() const { return captured_frames_; }
 
 private:

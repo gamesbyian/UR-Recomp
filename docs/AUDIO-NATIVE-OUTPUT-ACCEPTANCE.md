@@ -168,3 +168,21 @@ phase and SDL latency are measured.
 The source of truth for this reference comparison remains
 `analysis/generated/audio-startup-reference-summary.json`,
 created from independent captures; no new music assets are inferred.
+
+## Audio-only change validation without native recompilation
+
+The specialist audio workflow also triggers for **main-branch changes to the
+audio capture workflow, reducers, checkpoint route and canonical input
+fixture**. This does *not* run the expensive native Windows build again.
+Instead, GitHub Actions selects the latest successful first-party
+`Windows native build and boot smoke` run on main and downloads its
+named, already verified portable package. A missing successful package or
+missing artifact fails closed. It then launches the normal packaged executable
+under SDL3 disk playback and captures the three audio checkpoints, production
+stats, window alignment evidence and the normalized reference phase matrix.
+
+The separate `workflow_run` trigger continues to test any newly successful
+Windows product build automatically. Thus changes to *audio acceptance logic*
+can be validated immediately against an existing package, while *game code
+changes* are validated against their newly built package. Neither requires
+building a second native executable in the audio lane.

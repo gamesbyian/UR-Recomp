@@ -96,10 +96,15 @@ jobs:
             tail -n 25 "$LOG"
             test "$RC" -eq 0
             test -s "$DUMPS/$CASE.wram.bin"
+            test -s "$DUMPS/$CASE-audio-post.wram.bin"
+            python tools/check_native_audio_checkpoint_timing.py "$LOG" "$CASE"
             test -s "$PCM"
             test -s "$STATS"
+            # 60 guest frames centered on the named dump (30 before/after).
+            # A 1s *device* tail approximates that window, subject to SDL
+            # scheduling and queue latency, which are not yet phase-calibrated.
             python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
-              --tail-seconds 0.5 --min-tail-rms 50 \
+              --tail-seconds 1.0 --min-tail-rms 50 \
               --json-out "$RUNNER_TEMP/audio-output-$CASE.json"
             # Exactly the first reporting interval is exempt from starvation
             # gates; both measured Windows runs have been clean afterward.

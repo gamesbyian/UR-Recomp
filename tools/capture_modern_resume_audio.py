@@ -228,10 +228,13 @@ def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
             if (Path(capture_format["destination"]).resolve() != pcm.resolve()
                 or capture_format["sample_rate"] != 44100):
                 raise ValueError("unexpected SDL3 stereo output path or sample rate")
+            # SDL3's Windows disk backend opens the output file exclusively.
+            # A live read fails with PermissionError even though file size is
+            # queryable. Bookmark its device-byte boundary now; inspect its
+            # exact one-second window *after* the whole process tree closes.
             paused_bytes = pcm.stat().st_size
-            paused = read_stereo_window(pcm, paused_bytes)
-            if paused["combined_rms"] != 0:
-                raise ValueError("Modern host did not reach literal PCM silence before Resume")
+            if paused_bytes < 44100 * FRAME_BYTES or paused_bytes % FRAME_BYTES:
+                raise ValueError("Modern paused SDL device output has no complete stereo window")
             _press_resume(window)
             started_resume = time.monotonic()
             while time.monotonic() - started_resume < 10:
@@ -247,10 +250,16 @@ def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
             time.sleep(resumed_hold_seconds)
             if proc.poll() is not None:
                 raise RuntimeError("packaged Windows game quit during resumed playback")
-            end_bytes = pcm.stat().st_size
-            resumed = read_stereo_window(pcm, end_bytes)
+            resumed_bytes = pcm.stat().st_size
+            if (resumed_bytes - paused_bytes < 44100 * FRAME_BYTES
+                or resumed_bytes % FRAME_BYTES):
+                raise ValueError("Modern Resume produced insufficient additional stereo PCM")
         finally:
             _stop_entire_tree(proc)
+    # Real native Windows SDL disk output is readable only now, after closure.
+    # Use the boundary *saved before* Escape rather than a guest-frame guess.
+    paused = read_stereo_window(pcm, paused_bytes)
+    resumed = read_stereo_window(pcm, resumed_bytes)
     return verify_resume_audio(
         log.read_text(encoding="utf-8", errors="replace"), paused, resumed
     )

@@ -129,12 +129,12 @@ int main(int argc, char** argv) {
     {
         std::ofstream pending(interrupted / "record.tmp", std::ios::binary);
         assert(pending);
-        pending << "URRUN 1\\npartial";
+        pending << "URRUN 1\npartial";
     }
     assert(inspect_completed_run_record_artifacts(dir.string()).size() == 6);
     assert(load_valid_run_records(dir.string()).size() == 3);
 
-    // Concurrent processes can choose the same millisecond prefix. Writers
+    // Concurrent writers can choose the same millisecond prefix. Writers
     // must reserve their staging paths and publish distinct immutable names.
     const auto parallel_dir = dir / "parallel";
     constexpr std::size_t kWriters = 12;

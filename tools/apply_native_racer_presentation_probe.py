@@ -72,10 +72,10 @@ extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
             policy.oamFirst == 97 && policy.oamCount == 2) {
             ++partial_captures;
         }
-        if (number == 3820) {
+        if (number >= 3818 && number <= 3820) {
             std::fprintf(stderr,
-                "UR_RACER_HD_P1_NATIVE_SUMMARY frame=3820 partial_captures=%u\n",
-                partial_captures);
+                "UR_RACER_HD_P1_NATIVE_SUMMARY frame=%u partial_captures=%u\n",
+                number, partial_captures);
         }
     }
     if (!std::getenv("UR_RACER_HD_PROBE_WIDE")) return;

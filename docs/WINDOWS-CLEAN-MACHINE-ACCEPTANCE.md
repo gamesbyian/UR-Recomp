@@ -30,8 +30,9 @@ It checks:
 
 ## Run it on an actual clean Windows installation
 
-Copy the ZIP, `.sha256` and the standalone `.ps1` to a throwaway Windows
-machine or clean VM. From Windows PowerShell:
+The successful `ur-recomp-windows-x64-portable` workflow artifact includes
+the ZIP, its `.sha256` and `Test-URRecompPortable.ps1` together. Copy all
+three files to a throwaway Windows machine or clean VM. From Windows PowerShell:
 
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-URRecompPortable.ps1 `

@@ -1,5 +1,9 @@
 # Work Queue
 
+## Integration checkpoint (2026-10-08)
+
+Current `main` includes replay frame-window parity (#938), atomic ghost sidecar publication (#942), terminal digest parity (#957), selected Previous/PB source revalidation (#958), and the course dispatch-before-sampling causality correction (#959). The latter distinguishes postframe slot 8 from the stronger, still unproven preceding slot-10 dispatch candidate. Local Tournament multi-leg continuation and packaged Windows acceptance (#946, #964) have also merged. Remaining course causality needs instruction-time evidence, not further assumptions based solely on frame-end snapshots. CI-speed work has a separate active owner. Historical divergent branches are not automatically missing functionality: compare them with merged successor PRs before recovery.
+
 Respect real dependencies, but maximize parallel work across independent leaves. The trustworthy stock baseline is already established for the current Windows x64 product path; do not serialize unrelated product work behind closed research gates.
 
 **How to choose work:** treat the sections below as evidence/status, not equal-priority buckets. The former reverse-engineering critical path through stock fidelity, course/rendering semantics and first shipping Widescreen is substantially closed. The active shipping path is now the **Windows x64 consumer product**: finish the Modern profile/progression experience, fast practice/navigation, run/records/timing presentation, controller/accessibility polish, broad Remastered coverage, and packaging/release acceptance while preserving the closed Authentic regression path. Prefer tasks that remove a player-visible blocker or unlock several of those product slices at once. Historical/acquisition/tooling work is supporting unless it directly blocks that path.

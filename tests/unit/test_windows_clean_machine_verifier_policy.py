@@ -51,7 +51,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
         self.assertIn("isolated-user-data", self.script)
         self.assertIn("unrelated launch working directory", self.script)
         self.assertIn("diagnostics\\startup.log", self.script)
-        self.assertIn("real Windows", self.instructions)
+        self.assertIn("actual Windows desktop", self.instructions)
         self.assertIn("no claim of a verified clean", self.instructions)
 
 

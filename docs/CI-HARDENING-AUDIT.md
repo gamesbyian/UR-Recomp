@@ -158,6 +158,29 @@ claim the Stunt result screen has been recovered; it makes the existing
 automatic evidence precise and prevents recurring time spent on a currently
 unfulfilled exploration. The prefix-equivalence unit test prevents drift.
 
+### Two-core replay reference capture overlap
+
+Measured full-router replay acceptance spent about 82 seconds in its
+initial `Capture completed Dragster run` step: the unpaced reference
+finished after roughly 25 seconds, then the paced control ran for
+roughly another 55 seconds. The two captures have independent record/log
+targets, separate config/user-data roots and fresh emulator processes.
+Only their final strict `.urrun` comparison depends on both outcomes.
+
+The shared Modern replay workflow now starts the two captures concurrently
+on distinct Xvfb displays, **at most two emulator processes on its two-core
+runner**. Both statuses and logs are collected before any further work.
+Any failed or absent capture fails the job, and the original
+`UR_RUN_REPLAY_COMPARE PASS` plus ghost/replay follow-ons remain intact.
+This reduces serialized waiting without introducing another Actions job
+or treating unpaced equivalence as a weaker oracle.
+
+The change is a measured hypothesis until a green CI replay job proves the
+two-process arrangement is deterministic and the actual wall-clock impact
+is compared against run 37755129420. If CPU competition or display
+contention eliminates the saving, revert the overlap rather than weaken
+the reference comparison.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

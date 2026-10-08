@@ -361,3 +361,25 @@ silent interval uses a JSON `null` dB value rather than a
 fabricated measurement or nonfinite infinity; raw RMS and channel data remain
 available. This provides a useful common scale for later pause fade and
 transition-acoustic tests without treating absolute SDL amplitude as fixed.
+
+## Mandatory Windows stock pause gate acceptance
+
+The first mandatory-gate execution
+[37722644607](https://github.com/gamesbyian/UR-Recomp/actions/runs/37722644607)
+**passed** after conservative pause attenuation and recovery limits were
+enabled. Real packaged Windows SDL3 device-output RMS was:
+
+- Before guest pause: **6350.51**
+- After stock guest Start pause: **26.37** (**−47.6349 dB** relative)
+- After stock guest Start resume: **5803.53** (**−0.7823 dB** relative)
+
+This independently satisfies the paused/pre ≤0.05 and resumed/pre ≥0.50
+rules. Each of the three pause-phase processes verified both guest-frame
+dumps with exactly 30 post-boundary frames. All measured phases had zero
+audible dropped source samples and zero new underflows or missing output
+frames after their initial startup interval. The existing Main Menu,
+Now Playing and Race Entry phase acceptance passed in the same Windows run.
+
+These accepted claims belong strictly to the **stock guest Start** path.
+They do not establish exact waveform identity, hardware latency, or the
+Modern host-owned frozen pause/Restart/Exit-to-Frontend acoustic lifecycle.

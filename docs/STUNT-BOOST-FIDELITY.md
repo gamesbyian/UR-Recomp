@@ -8,6 +8,12 @@ This contract retains a **game-ROM lookup**, not an inferred TAS bot scoring mod
 - The retained complete 21-entry signed table is `analysis/generated/stunt-message-reward-rom-verification.json`. Project tooling run `37755591934`, job `113239294543`, extracted every row from USA retail, Europe retail, PAL prototype 1994-11-29 and legacy beta. The results were **identical in all four ROMs**. All 17 historical named messages agree exactly; IDs `0x0D/0x0E` contain `-1`, so the nonnegative-reward gate excludes them.
 - Unit coverage compares this retained numeric table with fresh extraction from each available original ROM and tests synthetic wrong-hash, truncated, relocated, and contradictory historical aliases. The repository stores no ROM bytes in this evidence artifact.
 
+## New bounded discriminator: Last Lap message
+
+The retained Nitrodon message list calls ID `0x0F` **Last Lap** and ID `0x10` **Head Bounce**. All four ROMs have signed reward word **152** at both indices; ID `0x11` Tabletop also has 152, while `0x0D` Rollout and `0x0E` Wipeout both have `-1`. Independently, the verified `81:8050` checkpoint/finish path enqueues `0x0F` on a lap transition when enabled. This joins three separately retained facts, suggesting a possible **last-lap boost award independent of a performed stunt**.
+
+The path still needs a native/reference runtime witness: choose an ordinary multilateral circuit (Crawler Circuit is already scripted in `tests/input/ui-circuit-result-route.script`), observe a real checkpoint that changes laps, and capture the actual `0x0F` message in the P1/P2 queue plus its later consumer. Require an attributable change to the matching persistent boost word (`11CF/11D1`), with air state and speed recorded; compare against a direction-matched control or another natural lap with no `0x0F`. A lookup value alone does not establish whether an event's message is enqueued, consumed or masked in the current mode. Do not claim this bonus as a game mechanic before that event-relative runtime evidence exists.
+
 ## What remains unproven
 
 The cartridge bytes and the P1/P2 queue-consumer code close the **reward magnitude** question. They do not prove the **award timing** or the exact boost-to-speed response under expert play.

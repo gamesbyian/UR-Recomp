@@ -40,7 +40,7 @@ and script provenance.
 
 ## Evidence limits
 
-Await the first real Windows run before claiming Restart audio restoration.
+The first real Windows proof ([run 37757424776](https://github.com/gamesbyian/UR-Recomp/actions/runs/37757424776)) successfully reached the real host pause, selected Restart, observed paused=0 on the same surface, and saw the guest reach `audio-restart-guest` at frame 1125. **Its returned one-second SDL stereo window failed the audible recovery floor**; there is no evidence yet that Restart restores shipping audio. The first reducer dropped the numeric PCM evidence on failure. The next version preserves bounded 100-ms-per-channel RMS, peak, zero-fraction and step evidence over the final eight seconds, plus the exact bookmarked paused/resumed device windows, **even when acceptance fails**. The test retains a hard audible recovery requirement, avoids keeping source PCM, and does not speculate that this is a DSP bug until the output timeline is localized.
 Even a pass is a device-output and guest-progress claim, not proof that
 individual music voices/SFX, DSP waveforms, sample-level transient shaping,
 acoustic click or speaker hardware latency match original SNES behavior.

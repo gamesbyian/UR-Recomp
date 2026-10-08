@@ -30,6 +30,13 @@ class IsolatedUnpacedCircuitAcceptanceTest(unittest.TestCase):
             "run_route ui-circuit-drive-capture ui-circuit-drive-capture.script "
             "ui-circuit-result-dumps 120 required || exit $?", section,
         )
+        self.assertIn(
+            'grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR"', section,
+        )
+        self.assertIn(
+            '"$RUNNER_TEMP/ui-circuit-drive-capture.log" || {', section,
+        )
+        self.assertIn("UR_CIRCUIT_ISOLATED_CONFIG_ROOT PASS", section)
         self.assertIn("              ) || exit $?", section)
         self.assertEqual(section.count("printf '[General]"), 1)
         self.assertEqual(section.count("grep -Fqx 'DisableFrameDelay = 1'"), 1)

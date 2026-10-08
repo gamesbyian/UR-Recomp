@@ -268,7 +268,6 @@ jobs:
             results-b)
               run_route ui-stunt-result-route ui-stunt-result-route.script ui-stunt-result-dumps 180
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
-              run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
               ;;
             records)
               run_route ui-records-explore ui-records-explore.script ui-records-explore-dumps 180
@@ -281,6 +280,7 @@ jobs:
               run_route ui-name-league-route ui-name-league-route.script ui-name-league-dumps 120
               run_route ui-startup-timeline ui-startup-timeline.script ui-startup-timeline-dumps 120
               run_route ui-define-player-explore ui-define-player-explore.script ui-define-player-dumps 120
+              run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
               ;;
             *)
               echo "::error::Unknown capture shard: $SHARD"

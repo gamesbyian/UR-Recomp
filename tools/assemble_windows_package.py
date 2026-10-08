@@ -159,16 +159,34 @@ def validate_rom_config(payload: bytes, *, context: str) -> None:
 
 
 def validate_windows_portable_paths(paths: set[str], *, context: str) -> None:
-    """Fail before ZIP handoff when Windows would alias distinct names.
+    """Reject package names that cannot survive ordinary Windows extraction.
 
-    A Linux source tree can contain e.g. Mods/A/one and Mods/a/two. NTFS
-    ordinarily compares those parent names case-insensitively, so Windows
-    extraction cannot preserve both original manifest-relative paths.
-    Compare every parent prefix, not only full file names.
+    Linux can create both case-aliased directories and Windows-reserved
+    filenames. Reject both before producing a consumer ZIP, comparing every
+    ancestor spelling as well as validating each individual component.
     """
     spellings: dict[str, str] = {}
     for relative in sorted(paths):
         parts = relative.split("/")
+        for part in parts:
+            if (
+                not part
+                or part in (".", "..")
+                or part.endswith((" ", "."))
+                or any(ord(char) < 32 or char in '<>:"\\|?*' for char in part)
+            ):
+                raise ValueError(
+                    f"{context} contains Windows-incompatible path: {relative}"
+                )
+            stem = part.split(".", 1)[0].upper()
+            if stem in {"CON", "PRN", "AUX", "NUL"} or (
+                len(stem) == 4
+                and stem[:3] in {"COM", "LPT"}
+                and stem[3] in "123456789¹²³"
+            ):
+                raise ValueError(
+                    f"{context} contains Windows-reserved device name: {relative}"
+                )
         for depth in range(1, len(parts) + 1):
             prefix = "/".join(parts[:depth])
             key = prefix.casefold()

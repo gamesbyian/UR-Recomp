@@ -382,6 +382,11 @@ bool save_completed_run_record_file(
         fail_detail(detail, "cannot write run record");
         return false;
     }
+    out.close();
+    if (!out) {
+        fail_detail(detail, "cannot finish run record");
+        return false;
+    }
     return true;
 }
 

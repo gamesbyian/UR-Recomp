@@ -96,6 +96,14 @@ int main(int argc, char** argv) {
     assert(reloaded.loaded());
     assert(reloaded.trace->samples.size() == trace.samples.size());
 
+#if defined(__linux__)
+    // The stream may buffer a successful write and fail only on close.
+    detail.clear();
+    assert(!save_completed_run_ghost_trace_file("/dev/full", trace, &detail));
+    assert(detail == "cannot write ghost trace" ||
+           detail == "cannot finish ghost trace");
+#endif
+
     const auto missing =
         load_completed_run_ghost_trace_file(
             (trace_path.string() + ".missing"), &record);

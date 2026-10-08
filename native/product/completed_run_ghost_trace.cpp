@@ -386,6 +386,11 @@ bool save_completed_run_ghost_trace_file(
         set_detail(detail, "cannot write ghost trace");
         return false;
     }
+    out.close();
+    if (!out) {
+        set_detail(detail, "cannot finish ghost trace");
+        return false;
+    }
     return true;
 }
 

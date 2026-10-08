@@ -145,6 +145,26 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
             self.text,
         )
 
+    def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
+        # The ordinary player path must be exercised separately from the
+        # explicit-root tests, with a disposable profile and unrelated cwd.
+        start = self.text.index("- name: Normal Windows APPDATA clean-user launch")
+        end = self.text.index("- name: Extracted-package race-result acceptance", start)
+        default_boot = self.text[start:end]
+        for marker in (
+            'APPDATA_DIR="$RUNNER_TEMP/default player roaming data"',
+            'DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"',
+            'env -u UR_RECOMP_USER_DATA_ROOT',
+            'APPDATA="$APPDATA_WIN"',
+            'test -f "$DEFAULT_USER_DATA/config.ini"',
+            'test -f "$DEFAULT_USER_DATA/keybinds.ini"',
+            'test -f "$DEFAULT_USER_DATA/mod-state.toml"',
+            'test -d "$DEFAULT_USER_DATA/saves"',
+            'WINDOWS_PACKAGE_DEFAULT_APPDATA_ROOT ok',
+        ):
+            self.assertIn(marker, default_boot)
+        self.assertIn('python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"', default_boot)
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

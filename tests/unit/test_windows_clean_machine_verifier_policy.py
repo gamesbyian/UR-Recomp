@@ -2,6 +2,7 @@
 from pathlib import Path
 import hashlib
 import json
+import struct
 import zipfile
 import shutil
 import subprocess
@@ -56,7 +57,16 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             root = Path(tmp)
             build = root / "build"
             build.mkdir()
-            (build / package.EXE_NAME).write_bytes(b"synthetic executable")
+            # Minimal machine-correct PE header: no native execution is
+            # needed for this offline packaging contract fixture.
+            fake_pe = bytearray(160)
+            fake_pe[:2] = b"MZ"
+            struct.pack_into("<I", fake_pe, 0x3C, 0x80)
+            fake_pe[0x80:0x84] = b"PE\0\0"
+            struct.pack_into("<H", fake_pe, 0x84, 0x8664)
+            struct.pack_into("<H", fake_pe, 0x94, 2)
+            struct.pack_into("<H", fake_pe, 0x98, 0x20B)
+            (build / package.EXE_NAME).write_bytes(fake_pe)
             (build / package.ROM_CONFIG_NAME).write_bytes(b"generated rom config")
             catalog = build / "mods" / "preloaded" / "packages"
             catalog.mkdir(parents=True)
@@ -89,6 +99,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             result = subprocess.run(cmd, capture_output=True, text=True, check=False)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("UR_PORTABLE_ARCHIVE_VERIFIED", result.stdout)
+            self.assertIn("UR_PORTABLE_BINARY_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_ROM_IDENTITY_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_MANIFEST_VERIFIED", result.stdout)
             self.assertIn("UR_PORTABLE_CLEAN_MACHINE_PACKAGE_OK", result.stdout)
@@ -142,6 +153,39 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             )
             self.assertNotEqual(forged.returncode, 0)
             self.assertIn("Mutable mod-selection state must not be shipped", forged.stderr)
+            # Re-sign another fully self-consistent package whose
+            # executable is not a Windows AMD64 PE32+ image. The clean-PC
+            # verifier must reject it even without attempting game launch.
+            (output / mutable_path).unlink()
+            manifest["files"] = [
+                entry for entry in manifest["files"]
+                if entry["path"] != mutable_path
+            ]
+            broken_exe = b"not a Windows executable"
+            (output / package.EXE_NAME).write_bytes(broken_exe)
+            for entry in manifest["files"]:
+                if entry["path"] == package.EXE_NAME:
+                    entry["size"] = len(broken_exe)
+                    entry["sha256"] = hashlib.sha256(broken_exe).hexdigest()
+                    break
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            with zipfile.ZipFile(archive, "w", compression=zipfile.ZIP_DEFLATED) as zipped:
+                for member in sorted(output.rglob("*")):
+                    if member.is_file():
+                        zipped.write(
+                            member,
+                            f"{package.ARCHIVE_ROOT}/{member.relative_to(output).as_posix()}",
+                        )
+            checksum.write_text(
+                f"{hashlib.sha256(archive.read_bytes()).hexdigest()}  {archive.name}\n",
+                encoding="ascii", newline="\n",
+            )
+            wrong_exe_cmd = cmd[:-1] + [str(root / "wrong PE format must fail")]
+            wrong_exe = subprocess.run(
+                wrong_exe_cmd, capture_output=True, text=True, check=False,
+            )
+            self.assertNotEqual(wrong_exe.returncode, 0)
+            self.assertIn("Packaged executable must be an AMD64 PE32+", wrong_exe.stderr)
             # Bad checksum must be rejected before extraction creates its root.
             checksum.write_text(
                 "0" * 64 + "  " + archive.name + "\n",
@@ -155,6 +199,13 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.assertNotEqual(tampered.returncode, 0)
             self.assertIn("Release ZIP does not match", tampered.stderr)
             self.assertFalse(bad_destination.exists())
+
+    def test_standalone_verifier_requires_amd64_pe32_plus(self):
+        self.assertIn("function Assert-Amd64PortableExecutable", self.script)
+        self.assertIn("[BitConverter]::ToUInt16($pe, 4) -ne 0x8664", self.script)
+        self.assertIn("[BitConverter]::ToUInt16($pe, 24) -ne 0x20b", self.script)
+        self.assertIn("Packaged executable must be an AMD64 PE32+", self.script)
+        self.assertIn("UR_PORTABLE_BINARY_VERIFIED", self.script)
 
     def test_retail_rom_fingerprint_is_independently_pinned(self):
         digest = _canonical_rom_digest()

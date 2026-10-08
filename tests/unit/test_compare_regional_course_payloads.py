@@ -165,6 +165,18 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
                 "Vertical",
             ],
         )
+        # Exercise the full seven-course ROM-derived spatial path, not just
+        # artificial region permutations. No semantic change count is assumed:
+        # an extra resource need not alter an already-placed packed word.
+        for course in report["courses"]:
+            placed = course["effective_surface"]
+            self.assertTrue(placed["comparable"], course["stream_index"])
+            self.assertEqual(placed["total_world_cells"], 262144)
+            self.assertLessEqual(len(placed["first_12_changed_cells"]), 12)
+            self.assertLessEqual(placed["changed_world_cells"], 262144)
+            self.assertLessEqual(
+                placed["changed_c000_selectors"], placed["changed_world_cells"]
+            )
         by_id = {row["stream_index"]: row for row in report["courses"]}
         self.assertEqual(
             by_id[26]["resource_ids"]["europe"],

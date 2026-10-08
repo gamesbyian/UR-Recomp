@@ -99,10 +99,15 @@ constexpr bool racer_p1_only_no_stock_p2_occlusion(
         !p1_top.large || !p1_bottom.large ||
         p1_top.width_pixels != 64 || p1_top.height_pixels != 64 ||
         p1_bottom.width_pixels != 64 || p1_bottom.height_pixels != 64 ||
-        p2_bottom.width_pixels == 0 || p2_bottom.height_pixels == 0 ||
-        p2_top.width_pixels == 0 || p2_top.height_pixels == 0 ||
-        p2_bottom.width_pixels > 64 || p2_bottom.height_pixels > 64 ||
-        p2_top.width_pixels > 64 || p2_top.height_pixels > 64 ||
+        !p2_top.large || !p2_bottom.large ||
+        p2_top.width_pixels != 64 || p2_top.height_pixels != 64 ||
+        p2_bottom.width_pixels != 64 || p2_bottom.height_pixels != 64 ||
+        // Exact title-owned P1/P2 racer graphic bank tile families,
+        // recovered from the race-init VRAM $0000/$1000 OBJ payloads.
+        (p1_top.tile != 0x00 && p1_top.tile != 0x08) ||
+        (p1_bottom.tile != 0x00 && p1_bottom.tile != 0x08) ||
+        (p2_top.tile != 0x80 && p2_top.tile != 0x88) ||
+        (p2_bottom.tile != 0x80 && p2_bottom.tile != 0x88) ||
         // P1 top slot 98 wins over stock P2 slot 99 only within the same
         // SNES OBJ priority level. Different OBJ levels are not modeled.
         (p1_top.attr & 0x30) != (p2_top.attr & 0x30)) {

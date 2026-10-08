@@ -1,0 +1,93 @@
+"""ROM-authoritative P1/P2 collision-state handoff into course object dispatch."""
+from __future__ import annotations
+
+import json
+import sys
+import unittest
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / "tools"))
+from compare_europe_usa_snes2asm_homologs import cpu_to_offset
+
+ROM = ROOT / "reference/roms/retail/Uniracers_USA.sfc"
+TRACE = ROOT / "analysis/data/dragster-finish-contact-transition.json"
+
+# Exact USA retail instruction bytes, independently recovered in Nitrodon's
+# bank-81 disassembly. These brackets are deliberately not whole-routine hashes.
+# The physical left side is per-player; 0F09 is the shared current-player word.
+MARSHAL = {
+    "P1_load_0E95_to_0F09": ("81:8D48", "ac950e8c090f"),
+    "P1_store_0F09_to_0E95": ("81:8DF3", "ac090f8c950e"),
+    "P2_load_0E97_to_0F09": ("81:8EA2", "ac970e8c090f"),
+    "P2_store_0F09_to_0E97": ("81:8F47", "ac090f8c970e"),
+}
+PLAYER_CALLS = {
+    "P1_contact_surface_collision": ("81:8DD6", "202a9e20958b20b88f"),
+    "P2_contact_surface_collision": ("81:8F2A", "202a9e20958b20b88f"),
+}
+DISPATCH = {
+    "course_checkpoint_handler_reads_shared_word": ("81:805D", "ad090f29001c"),
+    "course_dispatcher_reads_shared_word": ("81:82ED", "ad090f"),
+}
+
+
+def rom_span(rom: bytes, cpu_address: str, hex_bytes: str) -> bytes:
+    offset = cpu_to_offset(cpu_address)
+    length = len(hex_bytes) // 2
+    return rom[offset:offset + length]
+
+
+class CourseContactMarshalContractTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.rom = ROM.read_bytes()
+
+    def test_exact_instruction_bytes_match_canonical_rom(self):
+        for name, (address, expected) in {
+            **MARSHAL, **PLAYER_CALLS, **DISPATCH
+        }.items():
+            with self.subTest(name=name, address=address):
+                self.assertEqual(
+                    rom_span(self.rom, address, expected), bytes.fromhex(expected)
+                )
+
+    def test_marshalling_brackets_preserve_player_isolation(self):
+        p1in = bytes.fromhex(MARSHAL["P1_load_0E95_to_0F09"][1])
+        p1out = bytes.fromhex(MARSHAL["P1_store_0F09_to_0E95"][1])
+        p2in = bytes.fromhex(MARSHAL["P2_load_0E97_to_0F09"][1])
+        p2out = bytes.fromhex(MARSHAL["P2_store_0F09_to_0E97"][1])
+        self.assertEqual(p1in[:3], bytes.fromhex("ac950e"))
+        self.assertEqual(p2in[:3], bytes.fromhex("ac970e"))
+        self.assertEqual(p1out[-3:], bytes.fromhex("8c950e"))
+        self.assertEqual(p2out[-3:], bytes.fromhex("8c970e"))
+        for code in (p1in, p2in, p1out, p2out):
+            self.assertIn(bytes.fromhex("090f"), code)
+
+    def test_native_finish_trace_keeps_p1_p2_and_shared_scratch_distinct(self):
+        artifact = json.loads(TRACE.read_text(encoding="utf-8"))
+        self.assertEqual(artifact["provenance"]["workflow_run"], 36954104693)
+        rows = artifact["samples"]
+        self.assertEqual([r["frame"] for r in rows], list(range(2901, 2908)))
+        self.assertTrue(all(
+            r["p2_collision_word_0e97"]
+            == r["settled_current_player_collision_word_0f09"]
+            for r in rows
+        ))
+        # P1 changes over the transition; the end-of-frame shared field does not.
+        self.assertEqual(
+            [r["collision_word"] for r in rows],
+            [0x1804, 0x2024, 0x2020, 0x2020, 0x0022, 0x0022, 0x0022],
+        )
+        self.assertEqual(
+            {r["settled_current_player_collision_word_0f09"] for r in rows},
+            {0x1804},
+        )
+        self.assertEqual(
+            [r["object_index"] for r in rows],
+            [2, 10, 8, 8, 9, 9, 9],
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()

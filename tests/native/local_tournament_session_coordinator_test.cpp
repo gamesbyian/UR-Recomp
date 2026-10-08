@@ -274,8 +274,7 @@ int main() {
     fs::copy_file(
         tour / instance / "session.urtournament",
         wrong_instance / "session.urtournament");
-    const auto mislabeled = load_completed_local_tournament_history(
-        paths, catalog);
+    const auto mislabeled = load_completed_local_tournament_history(paths);
     check(mislabeled.scanned && mislabeled.completed.size() == 1 &&
           mislabeled.unavailable_instances == 1,
           "archive directory must match its canonical embedded instance ID");

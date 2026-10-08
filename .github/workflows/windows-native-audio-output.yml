@@ -11,7 +11,6 @@ on:
   push:
     branches: [main]
     paths:
-      - ".github/workflows/windows-native-audio-output.yml"
       - "tools/analyze_sdl_disk_audio.py"
       - "tools/analyze_snesrecomp_audio_stats.py"
       - "tools/analyze_audio_phase_matrix.py"
@@ -24,6 +23,10 @@ on:
         description: "Successful Windows native build and boot smoke run ID with portable package artifact"
         required: true
         type: string
+
+concurrency:
+  group: windows-native-audio-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read

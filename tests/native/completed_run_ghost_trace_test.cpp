@@ -98,6 +98,19 @@ int main(int argc, char** argv) {
     const std::string encoded = encode_completed_run_ghost_trace(trace);
     assert(!encoded.empty());
 
+    // Replay proof requires the complete recorded frame window. An optional
+    // sidecar remains readable under its existing schema if truncated, but it
+    // cannot attest deterministic trajectory equivalence.
+    assert(ur::test::ghost_trace_covers_completed_run(trace, record));
+    auto truncated_trace = trace;
+    truncated_trace.samples.pop_back();
+    assert(!ur::test::ghost_trace_covers_completed_run(
+        truncated_trace, record));
+    auto longer_record = record;
+    ++longer_record.frame_count;
+    assert(!ur::test::ghost_trace_covers_completed_run(
+        trace, longer_record));
+
     const auto decoded = decode_completed_run_ghost_trace(encoded, &record);
     assert(decoded.loaded());
     assert(decoded.trace->samples.size() == 3);

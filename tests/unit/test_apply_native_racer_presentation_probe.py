@@ -10,6 +10,9 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
             'static const SnesDesktopHostGame kGameHost = {\n'
             '    .game_info           = &kGameInfo,\n'
             '};\n'
+            'int main(int argc, char **argv) {\n'
+            '    return snesrecomp_desktop_main(&kGameHost, argc, argv);\n'
+            '}\n'
         )
         patched = patch_main(source)
         self.assertIn("UrRacerPresentationProbeAfterRunFrame", patched)
@@ -18,7 +21,10 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         self.assertIn(".begin_sim_frame", patched)
         self.assertIn(".draw_frame", patched)
         self.assertIn(".presentation_scale", patched)
-        self.assertIn(".native_widescreen   = 1,", patched)
+        self.assertIn("static SnesDesktopHostGame kGameHost = {", patched)
+        self.assertIn("kGameHost.native_widescreen = UrRacerHdProbeWideRequested() != 0;", patched)
+        self.assertNotIn(".native_widescreen   = 1,", patched)
+
         self.assertEqual(patch_main(patched), patched)
 
     def test_cmake_patch_targets_generated_game(self):

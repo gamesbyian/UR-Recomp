@@ -66,8 +66,8 @@ class NativeWidePixelParityTests(unittest.TestCase):
 
     def test_tie_in_semantic_offset_refuses_guessing(self):
         state = ("same",) * 8
-        a = {frame: {"state": state, "sha256": {"sha"}} for frame in range(10, 20)}
-        b = {frame: {"state": state, "sha256": {"sha"}} for frame in range(10, 20)}
+        a = {frame: {"state": state, "sha256": {"sha"}} for frame in range(10, 18)}
+        b = {frame: {"state": state, "sha256": {"sha"}} for frame in range(8, 20)}
         with self.assertRaisesRegex(ValueError, "ambiguous"):
             compare_series(a, b)
 

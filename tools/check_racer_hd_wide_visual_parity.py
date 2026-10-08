@@ -88,7 +88,7 @@ def compare_series(
         raise ValueError(
             f"ambiguous equal-best guest-frame offsets: {[x[1] for x in best]}"
         )
-    _, offset, aligned = best
+    _, offset, aligned = best[0]
     matched = []
     mismatched = []
     for original_frame, enabled_frame in aligned:

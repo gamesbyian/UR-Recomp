@@ -141,7 +141,7 @@ jobs:
           grep -q "uniracers_modern_host.cpp" "$ROOT/CMakeLists.txt"
           grep -q "\.session_reset = &GameSessionReset" "$ROOT/src/game_rtl.c"
 
-          cmake -S "$ROOT" -B "$ROOT/build" \
+          cmake -S "$ROOT" -B "$ROOT/build" -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_ROOT="$FRAMEWORK" \
             -DSNESRECOMP_SDL_BACKEND=SDL3 \

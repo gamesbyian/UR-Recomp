@@ -131,6 +131,7 @@ UrModernOptionsMenu g_options_menu;
 bool g_options_visible;
 bool g_frontend_options_active = false;
 bool g_frontend_options_draw_reported = false;
+bool g_frontend_controls_draw_reported = false;
 bool g_controls_visible;
 ur::product::ModernControlsRebindState g_controls_rebind;
 bool g_run_data_visible;
@@ -3721,6 +3722,7 @@ bool request_frontend_reboot(bool require_restart_surface) {
     g_options_visible = false;
     g_frontend_options_active = false;
     g_frontend_options_draw_reported = false;
+    g_frontend_controls_draw_reported = false;
     g_controls_visible = false;
     g_run_data_visible = false;
     g_quit_confirm_visible = false;
@@ -4576,7 +4578,16 @@ bool handle_controls_action(ur::product::ModernControlsAction action) {
         &g_controls_rebind, action);
     if (command.kind == ur::product::ModernControlsCommandKind::Close) {
         g_controls_visible = false;
-        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        if (g_frontend_options_active) {
+            // Controls is a child of the same frontend Options surface.
+            // Return to its existing selected row, never to guest input.
+            g_options_visible = true;
+            g_frontend_options_draw_reported = false;
+            g_frontend_controls_draw_reported = false;
+            product_diagnostic("UR_FRONTEND_CONTROLS RETURNED_OPTIONS");
+        } else {
+            product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        }
         return true;
     }
     if (command.kind == ur::product::ModernControlsCommandKind::ClearBinding ||
@@ -4643,7 +4654,14 @@ void close_host_subview() {
     if (g_controls_visible) {
         g_controls_rebind.capturing = false;
         g_controls_visible = false;
-        product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        if (g_frontend_options_active) {
+            g_frontend_options_active = false;
+            g_frontend_options_draw_reported = false;
+            g_frontend_controls_draw_reported = false;
+            product_diagnostic("UR_FRONTEND_CONTROLS CLOSED");
+        } else {
+            product_diagnostic("UR_PAUSE_CONTROLS CLOSED");
+        }
     }
     if (g_run_data_visible) {
         g_run_data_visible = false;
@@ -4674,6 +4692,20 @@ bool open_frontend_options() {
     g_frontend_options_draw_reported = false;
     g_options_visible = true;
     product_diagnostic("UR_FRONTEND_OPTIONS OPENED");
+    return true;
+}
+
+bool open_frontend_controls() {
+    if (!g_frontend_options_active) {
+        if (!open_frontend_options()) return false;
+    }
+    if (!g_options_visible || g_controls_visible) return false;
+    g_options_visible = false;
+    g_controls_rebind = {};
+    g_controls_visible = true;
+    g_frontend_controls_draw_reported = false;
+    diagnose_controls_bindings();
+    product_diagnostic("UR_FRONTEND_CONTROLS OPENED");
     return true;
 }
 
@@ -6620,6 +6652,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         }
         return 1;
     }
+    if (modern_mode() && key == SDLK_F9 && !paused() &&
+        g_ram && g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        (void)open_frontend_controls();
+        return 1;
+    }
     if (g_frontend_options_active && key == SDLK_F10) {
         close_host_subview();
         return 1;
@@ -7194,6 +7231,10 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
     if (g_frontend_options_active && g_options_visible) {
         if (!pressed) return 1;
+        if (control == 8) {
+            (void)open_frontend_controls();
+            return 1;
+        }
         switch (control) {
         case 0: ur_modern_options_menu_move(&g_options_menu, -1); break;
         case 1: ur_modern_options_menu_move(&g_options_menu, 1); break;
@@ -7432,7 +7473,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
             "F7/PAD L PROGRESS F1 HELP", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 187 * scale,
-            "F10/PAD SELECT OPTIONS", 0xFFFFFFFFu, scale);
+            "F9 CTRL F10/SELECT OPT", 0xFFFFFFFFu, scale);
         return;
     }
 
@@ -8163,7 +8204,7 @@ extern "C" void ur_uniracers_modern_system_overlay(
     const bool results_menu_active =
         !is_paused && results && results_navigation_active();
     const bool frontend_options = g_frontend_options_active &&
-        g_options_visible && !is_paused;
+        (g_options_visible || g_controls_visible) && !is_paused;
     if (!is_paused && !(results && (restart || results_menu_active)) &&
         !frontend_options) return;
 
@@ -8385,7 +8426,9 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 "A / ENTER  CHANGE", 0xFFFFFFFFu, modal_scale);
             snes_ovl_draw_text(
                 pixels, stride, height, options_x + 8 * modal_scale, options_y + 202 * modal_scale,
-                "B / ESC    BACK", 0xFFFFFFFFu, modal_scale);
+                frontend_options ? "PAD X CONTROLS / B BACK"
+                                 : "B / ESC    BACK",
+                0xFFFFFFFFu, modal_scale);
             if (frontend_options && !g_frontend_options_draw_reported &&
                 std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
                 g_frontend_options_draw_reported = true;
@@ -8403,6 +8446,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
                 panel_w_logical, controls_h_logical,
                 panel_w_logical, controls_h_logical);
             if (!controls_layout.visible) return;
+            if (frontend_options && !g_frontend_controls_draw_reported &&
+                std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+                g_frontend_controls_draw_reported = true;
+                std::fprintf(stderr, "UR_FRONTEND_CONTROLS PRESENT scale=%d\\n",
+                    modal_scale);
+                std::fflush(stderr);
+            }
             const int controls_h = controls_layout.presentation_rect.height;
             const int controls_y = controls_layout.presentation_rect.y;
             const int controls_x = controls_layout.presentation_rect.x;

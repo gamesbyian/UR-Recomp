@@ -10,4 +10,6 @@ Admission is restricted to Modern, an unpaused settled `0xD7` main menu, and abs
 
 The pause-owned Options panel remains untouched. Its renderer is deliberately shared, with a source-context flag selecting a standalone modal on the frontend instead of drawing a second pause menu beneath it. Native acceptance opens F10 from a fresh process, proves panel rendering, navigates to the real framework volume setting and changes it, closes F10 without launching a race, and verifies the same key is inert in Authentic. Unit contracts check admission, mapped semantics, held-input ownership and the shared renderer.
 
+The follow-on Controls slice opens the existing P1 rebind panel via F9 or mapped P1 X from frontend Options, returning to the same Options row without a second binding model (see `docs/MODERN-FRONTEND-CONTROLS.md`).
+
 A full five-destination Modern root remains a separate integration slice. This makes **Options** a real main-menu product surface without forcing Play, Multiplayer or Records through unsupported guest routing or the Records browser's paused-session admission.

@@ -235,7 +235,7 @@ class CleanMachineVerifierPolicyTests(unittest.TestCase):
             self.skipTest("real Windows drive-path parsing needs Windows PowerShell")
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            for invalid in ("C:relative", "\\drive-root-relative", "relative"):
+            for invalid in ("C:relative", r"\\drive-root-relative", "relative"):
                 with self.subTest(destination=invalid):
                     result = subprocess.run(
                         [

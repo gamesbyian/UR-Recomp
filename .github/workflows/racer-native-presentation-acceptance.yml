@@ -1264,6 +1264,52 @@ jobs:
           )
           PY
 
+      - name: Prove widened Racer HD fallback preserves the original OBJ raster
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          mkdir -p "$RUNNER_TEMP/racer-wide-original-dumps" "$RUNNER_TEMP/racer-wide-hd-dumps"
+
+          run_wide() {
+            local mode="$1"
+            local log="$RUNNER_TEMP/racer-wide-$mode.log"
+            local shot="$RUNNER_TEMP/racer-wide-$mode-1220.ppm"
+            local dumps="$RUNNER_TEMP/racer-wide-$mode-dumps"
+            local hd="0"
+            if [ "$mode" = hd ]; then hd="1"; fi
+            set +e
+            env UR_RACER_HD_PROBE_WIDE=1 UR_RACER_HD="$hd" \
+              SNESRECOMP_DUMP_DIR="$dumps" \
+              SNESRECOMP_INPUT_FILE="$INPUT" \
+              SNESRECOMP_SCREENSHOT="$shot" \
+              SNESRECOMP_SCREENSHOT_FRAME=1220 \
+              SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$log" 2>&1
+            local status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              cat "$log"
+              echo "::error::Wide $mode route failed with status $status"
+              exit "$status"
+            fi
+            grep -F 'UR_RACER_HD_WIDE_CAPTURE PASS frame=1220 width=342 height=224 removal=0' "$log"
+            python3 tools/check_ppm.py "$shot" --width 342 --height 224 --min-colors 5
+          }
+
+          run_wide original
+          run_wide hd
+          if ! cmp -s "$RUNNER_TEMP/racer-wide-original-1220.ppm" "$RUNNER_TEMP/racer-wide-hd-1220.ppm"; then
+            echo "::error::Widened HD fallback differs from original 342x224 stock racer raster"
+            sha256sum "$RUNNER_TEMP/racer-wide-original-1220.ppm" "$RUNNER_TEMP/racer-wide-hd-1220.ppm"
+            exit 1
+          fi
+          echo "UR_RACER_HD_WIDE_PARITY PASS frame=1220 geometry=342x224 pixel_exact=1 host_capture_removed=0"
+
       - name: Shadow structured Racer HD trace relationships
         continue-on-error: true
         shell: bash
@@ -1363,6 +1409,10 @@ jobs:
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
+            ${{ runner.temp }}/racer-wide-original.log
+            ${{ runner.temp }}/racer-wide-hd.log
+            ${{ runner.temp }}/racer-wide-original-1220.ppm
+            ${{ runner.temp }}/racer-wide-hd-1220.ppm
             ${{ runner.temp }}/racer-original-a-semantic-trace.json
             ${{ runner.temp }}/racer-original-b-semantic-trace.json
             ${{ runner.temp }}/racer-hd-semantic-trace.json

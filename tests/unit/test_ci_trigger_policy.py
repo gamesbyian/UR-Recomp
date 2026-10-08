@@ -352,8 +352,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
         text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
         self.assertNotIn('"native/product/**"', text)
         self.assertIn("fail-fast: false", text)
-        independent = text.split("  independent-acceptance:", 1)[1]
-        match = re.search(r"shard:\s*\[([^\]]+)\]", independent)
+        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
         self.assertLessEqual(len(shards), 5)
@@ -386,7 +385,8 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertIn("modern-onboarding-native-candidate", text)
         self.assertIn("  core-acceptance:", text)
         self.assertIn("  independent-acceptance:", text)
-        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        independent = text.split("  independent-acceptance:", 1)[1]
+        match = re.search(r"shard:\s*\[([^\]]+)\]", independent)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
         self.assertEqual(

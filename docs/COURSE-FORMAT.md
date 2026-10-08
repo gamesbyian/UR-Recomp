@@ -530,3 +530,69 @@ Across the full course corpus:
 - historical start X matches header pair A.x ×16 on 43/45 courses.
 
 The strongest current interpretation is therefore that decoded offsets 3/5 and 7/9 are the two racer spawn coordinate pairs, with pair-to-player assignment still requiring one unequal-pair runtime discriminator. Keep Zoom Zoo and Jumps as explicit historical-coordinate exceptions rather than weakening the broader relation.
+
+
+### Targeted checkpoint/finish resource placement probe (2026-10-08)
+
+The new tools/probe_course_checkpoint_placements.py exposes a ROM-derived
+world-cell lookup for resource family 0x24 on a selected course, rather than
+extending the Dragster-only presentation artifact or guessing which cells
+activated the finish handler. It requires the exact canonical USA retail ROM
+hash because its descriptor table address is anchored at USA 82:B7DA.
+
+The probe decodes the selected RNC stream, applies the 16,384-entry coarse table
+and 32-byte/4x4 fine-record lookup, and resolves each normal packed word's
+C000 slot to the cumulative descriptor-owned resource span. Repeated resource
+IDs remain distinct spans. Example invocations:
+
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 1
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 1 --observed-c000-slot 8
+    python3 tools/probe_course_checkpoint_placements.py --stream-index 5 --query-rect 0 0 1023 1023
+
+The output includes exact candidate 16x16 world rectangles, fine-record IDs,
+coarse sectors, per-slot counts, and a bounded set of candidate positions for a
+guest-observed C000 slot (such as Dragster index 8 at frame 2903). The automatic historical finish-X probe comes
+from Dessyreqt's magicnumber.lua corpus. It is an **X-only optimizer lead**,
+not confirmation of a finish-line position, active cell, checkpoint order,
+lap semantics, or collision trigger. Stunt courses without resource 0x24
+produce an empty candidate set, not inferred checkpoints.
+
+The integration regression pins Dragster resource slots 6..14, its 31 coarse
+sector placements, and its 65536x1024 extent to the accepted spatial contract.
+The next semantic discriminator is an emulator event trace overlaying actual
+C000 collision indices and checkpoint/finish state transitions on candidate
+cells in a circuit and a non-Dragster race. Static X proximity cannot replace
+that dynamic evidence.
+
+
+### Historical start-X evidence calibration (2026-10-08)
+
+A direct cross-check of all 45 normalized course headers against Dessyreqt's
+preserved magicnumber.lua gives 43 exact matches between the script's startX
+constant and decoded header coordinate A.X multiplied by 16. The two exceptions
+are Zoom Zoo (historical 8961 versus header 575*16 = 9200) and Jumps
+(historical zero versus header 262*16 = 4192). All 45 historical finish-X
+values fit inside the corresponding decoded course's derived world X extent.
+
+Crucial source-level limitation: magicnumber.lua **assigns startX but does not
+read it in its calculations**. Its calculations use the script's finishX and
+the live racer X from 7E:0411 instead. Therefore the 43 matches are strong
+evidence of transcription/association between the course header and the
+historical workspace, but are **not an independent emulator measurement of
+race spawn X**. Jumps' zero may be a placeholder, and Zoom Zoo's nonaligned
+8961 may be a historical error or a different author-selected marker. Neither
+case should be silently "corrected" in the historical artifact. The first
+actual discriminator is a deterministic Zoom Zoo/Jumps race-entry WRAM trace
+against both header coordinate pairs, with exact selected course ID and
+frame-relative spawn state, not a guess based on the script's labels.
+
+
+**Cheap next live header discriminator:** Switcher (stream 4) has an exact
+USA-to-Europe retail header change confined to coordinate pair A's Y:
+USA A=(99,26), Europe A=(99,22), while pair B=(99,34) in both.
+If those are world-position units multiplied by 16 as the Dragster reference
+shows, the candidate A spawn moves by 64 world Y units between retail builds.
+A paired frame-exact Switcher race-entry observation in both ROMs can establish
+whether A drives P1, P2, or another landmark; do not infer the player binding
+from the header labels alone. This is a cheaper falsifier than decoding
+unrelated checkpoint handlers or conducting a broad 45-course runtime sweep.

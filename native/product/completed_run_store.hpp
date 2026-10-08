@@ -40,7 +40,8 @@ struct RunRecordArtifactHealth {
 
 /* Append one immutable run artifact to a directory. The filename is
  * host-owned ordering metadata; the record body remains the authoritative
- * portable artifact. */
+ * portable artifact. The fully closed file is published atomically with
+ * no-replace semantics; uncommitted staging paths are invisible to scans. */
 bool append_completed_run_record(
     const std::string& directory,
     const CompletedRunRecord& record,

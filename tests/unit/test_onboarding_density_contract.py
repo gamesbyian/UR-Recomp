@@ -29,7 +29,17 @@ class OnboardingDensityContractTests(unittest.TestCase):
         end = self.source.index("if (modern_mode() &&", start)
         body = self.source[start:end]
         self.assertIn("centered_modern_modal_layout(", body)
-        self.assertIn("kOnboardingPanelHeight = 206", body)
+        self.assertIn(
+            "const int kOnboardingPanelHeight = style.panel_height_logical;",
+            body,
+        )
+        self.assertIn(
+            "modern_onboarding_visual_style(logical_width)", body
+        )
+        style = (
+            ROOT / "native/product/modern_onboarding_visual_style.hpp"
+        ).read_text(encoding="utf-8")
+        self.assertIn("int panel_height_logical = 206;", style)
         self.assertIn(
             "const int scale = modern_overlay_surface_scale(width, height);",
             body,

@@ -125,6 +125,79 @@ class WindowsNativeSmokePolicyTests(unittest.TestCase):
                 self.text,
             )
 
+    def test_clean_package_acceptance_uses_space_containing_windows_paths(self) -> None:
+        # This must exercise the *shipping launcher* (not the build-tree exe)
+        # with normal user installation, saved-data and caller paths.
+        for path in (
+            'CALLER="$RUNNER_TEMP/package launch caller"',
+            'EXTRACT="$RUNNER_TEMP/package extracted"',
+            'USER_DATA="$RUNNER_TEMP/package user data"',
+        ):
+            self.assertIn(path, self.text)
+        # Refresh/reinstall must target the same extracted root, rather than
+        # silently switching back to an unspaced location.
+        self.assertIn(
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
+            self.text,
+        )
+        self.assertNotIn("python -m zipfile -e", self.text)
+
+    def test_default_appdata_launch_has_no_explicit_root_override(self) -> None:
+        # The ordinary player path must be exercised separately from the
+        # explicit-root tests, with a disposable profile and unrelated cwd.
+        start = self.text.index("- name: Normal Windows APPDATA clean-user launch")
+        end = self.text.index("- name: Extracted-package race-result acceptance", start)
+        default_boot = self.text[start:end]
+        for marker in (
+            'APPDATA_DIR="$RUNNER_TEMP/default player roaming data"',
+            'DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"',
+            'env -u UR_RECOMP_USER_DATA_ROOT',
+            'APPDATA="$APPDATA_WIN"',
+            'test -f "$DEFAULT_USER_DATA/config.ini"',
+            'test -f "$DEFAULT_USER_DATA/keybinds.ini"',
+            'test -f "$DEFAULT_USER_DATA/mod-state.toml"',
+            'test -d "$DEFAULT_USER_DATA/saves"',
+            'WINDOWS_PACKAGE_DEFAULT_APPDATA_ROOT ok',
+        ):
+            self.assertIn(marker, default_boot)
+        self.assertIn('python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"', default_boot)
+
+    def test_consumer_zip_uses_native_windows_extraction(self) -> None:
+        # Python may accept ZIP files that Windows' own reader refuses.
+        self.assertEqual(self.text.count("Expand-Archive -LiteralPath"), 2)
+        self.assertNotIn("python -m zipfile -e", self.text)
+        self.assertIn('EXTRACT_WIN="$(cygpath -w "$EXTRACT")"', self.text)
+        self.assertIn(
+            'EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"',
+            self.text,
+        )
+        self.assertIn('$ErrorActionPreference = "Stop"', self.text)
+        clean_step = self.text.index("- name: Clean-package boot and per-user state anchoring")
+        first_extract = self.text.index("Expand-Archive -LiteralPath")
+        race_step = self.text.index("- name: Extracted-package race-result acceptance")
+        self.assertLess(clean_step, first_extract)
+        self.assertLess(first_extract, race_step)
+        self.assertIn("python tools/assemble_windows_package.py verify --package", self.text)
+
+    def test_extracted_package_proves_native_win32_renderer_boot(self) -> None:
+        start = self.text.index(
+            "- name: Extracted-package Win32 window and default renderer smoke"
+        )
+        end = self.text.index(
+            "- name: Package refresh preserves user data", start
+        )
+        native_boot = self.text[start:end]
+        self.assertIn("SDL_VIDEODRIVER=windows", native_boot)
+        self.assertIn("SDL_AUDIODRIVER=dummy", native_boot)
+        self.assertNotIn("SDL_VIDEODRIVER=offscreen", native_boot)
+        self.assertNotIn("SDL_RENDER_DRIVER=", native_boot)
+        self.assertIn("run-uniracers.cmd", native_boot)
+        self.assertIn("WINDOWS_PACKAGE_WIN32_RENDERER_MAIN_MENU ok", native_boot)
+        self.assertIn(
+            'python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"',
+            native_boot,
+        )
+
     def test_assembled_package_lifecycle_stays_in_windows_final_main_gate(self) -> None:
         self.assertIn("Assemble and verify portable Windows package", self.text)
         self.assertIn("tools/assemble_windows_package.py verify-archive", self.text)

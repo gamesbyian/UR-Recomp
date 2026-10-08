@@ -31,6 +31,14 @@ bool stage_completed_run_replay_input_file(
         set_detail(detail, "cannot write replay input");
         return false;
     }
+    // The live input loader opens this file immediately after staging.
+    // Report a buffered close/flush failure rather than accepting a truncated
+    // replay as the saved run's authoritative controller stream.
+    out.close();
+    if (!out) {
+        set_detail(detail, "cannot finish replay input");
+        return false;
+    }
     return true;
 }
 

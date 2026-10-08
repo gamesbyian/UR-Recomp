@@ -30,10 +30,13 @@ on:
       - "tools/toolchain-entries/sdl3.json"
       - "tools/patch_modern_product_host.py"
       - "tools/assemble_windows_package.py"
+      - "tools/check_windows_portable_binary.py"
       - "tools/verify_rom.py"
       - "tools/check_result_screen_time.py"
       - "tests/input/ui-race-result-route.script"
       - "tests/unit/test_assemble_windows_package.py"
+      - "tests/unit/test_windows_package_streaming_bounds.py"
+      - "tests/unit/test_windows_portable_binary.py"
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "native/product/**"
       - "native/presentation/**"
@@ -68,7 +71,7 @@ jobs:
       - name: Verify canonical ROM and package contracts
         run: |
           python tools/verify_rom.py "reference/roms/retail/Uniracers_USA.sfc"
-          python -m unittest tests.unit.test_assemble_windows_package
+          python -m unittest tests.unit.test_assemble_windows_package tests.unit.test_windows_package_streaming_bounds tests.unit.test_windows_portable_binary
 
       - name: Stage repository-owned SNESRecomp framework
         run: |
@@ -149,6 +152,11 @@ jobs:
             echo "Portable executable unexpectedly depends on the Visual C++ Redistributable." >&2
             exit 1
           fi
+          # A Visual Studio runner has DLLs a clean player machine does not.
+          # Audit the final PE against an explicit Windows-inbox import policy.
+          python tools/check_windows_portable_binary.py \
+            --exe "$EXE" \
+            --dependencies "$RUNNER_TEMP/windows-runtime-dependencies.log"
 
       - name: Assemble and verify portable Windows package
         run: |
@@ -193,13 +201,18 @@ jobs:
         run: |
           set -euo pipefail
           DUMPS="$RUNNER_TEMP/package-boot-dumps"
-          CALLER="$RUNNER_TEMP/package-launch-cwd"
-          EXTRACT="$RUNNER_TEMP/package-extracted"
-          USER_DATA="$RUNNER_TEMP/package-user-data"
+          CALLER="$RUNNER_TEMP/package launch caller"
+          EXTRACT="$RUNNER_TEMP/package extracted"
+          USER_DATA="$RUNNER_TEMP/package user data"
           SCRIPT="$RUNNER_TEMP/package-boot.script"
           mkdir -p "$DUMPS" "$CALLER" "$EXTRACT"
           rm -rf "$USER_DATA"
-          python -m zipfile -e "$PACKAGE_ARCHIVE" "$EXTRACT"
+          # Use Windows' native archive reader for actual ZIP distribution.
+          PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          EXTRACT_WIN="$(cygpath -w "$EXTRACT")"
+          PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
+            powershell.exe -NoProfile -NonInteractive -Command \
+              '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
           TEST_PACKAGE="$EXTRACT/UR-Recomp-Windows-x64"
           echo "TEST_PACKAGE=$TEST_PACKAGE" >> "$GITHUB_ENV"
           echo "PACKAGE_USER_DATA=$USER_DATA" >> "$GITHUB_ENV"
@@ -252,6 +265,57 @@ jobs:
             --archive "$PACKAGE_ARCHIVE"
           echo "WINDOWS_PACKAGE_USER_DATA_ANCHOR ok"
 
+      - name: Normal Windows APPDATA clean-user launch
+        run: |
+          set -euo pipefail
+          # Exercise a player launch with NO explicit UR_RECOMP_USER_DATA_ROOT.
+          # The normal profile Roaming root is authoritative for first boot.
+          APPDATA_DIR="$RUNNER_TEMP/default player roaming data"
+          DEFAULT_USER_DATA="$APPDATA_DIR/gamesbyian/UR-Recomp"
+          DEFAULT_CALLER="$RUNNER_TEMP/default launch caller"
+          DEFAULT_DUMPS="$RUNNER_TEMP/default appdata boot dumps"
+          mkdir -p "$APPDATA_DIR" "$DEFAULT_CALLER" "$DEFAULT_DUMPS"
+          test ! -e "$DEFAULT_USER_DATA"
+          APPDATA_WIN="$(cygpath -w "$APPDATA_DIR")"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          DUMPS_WIN="$(cygpath -w "$DEFAULT_DUMPS")"
+          DEFAULT_USER_WIN="$(cygpath -w "$DEFAULT_USER_DATA")"
+
+          set +e
+          (
+            cd "$DEFAULT_CALLER"
+            env -u UR_RECOMP_USER_DATA_ROOT \
+              APPDATA="$APPDATA_WIN" \
+              SDL_VIDEODRIVER=offscreen \
+              SDL_AUDIODRIVER=dummy \
+              SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+                timeout 300 powershell.exe -NoProfile -Command \
+                  "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+                  >"$RUNNER_TEMP/package-default-appdata-boot.log" 2>&1
+          )
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-default-appdata-boot.log"
+          test "$RC" -eq 0
+          python - "$DEFAULT_DUMPS/package-main-menu.wram.bin" <<'PY'
+          import pathlib, sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          assert wram[0x9F] == 0xD7, "default APPDATA packaged main menu not reached"
+          print("WINDOWS_PACKAGE_DEFAULT_APPDATA_MAIN_MENU ok")
+          PY
+          test -f "$DEFAULT_USER_DATA/config.ini"
+          test -f "$DEFAULT_USER_DATA/keybinds.ini"
+          test -f "$DEFAULT_USER_DATA/mod-state.toml"
+          test -d "$DEFAULT_USER_DATA/saves"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$TEST_PACKAGE/saves"
+          test ! -e "$DEFAULT_CALLER/config.ini"
+          grep -Fq "Config/saves anchored to user data" "$RUNNER_TEMP/package-default-appdata-boot.log"
+          grep -Fq "$DEFAULT_USER_WIN" "$RUNNER_TEMP/package-default-appdata-boot.log"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
+          echo "WINDOWS_PACKAGE_DEFAULT_APPDATA_ROOT ok"
+
       - name: Extracted-package race-result acceptance
         run: |
           set -euo pipefail
@@ -282,6 +346,50 @@ jobs:
           python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
           echo "WINDOWS_PACKAGE_RACE_RESULT ok"
 
+      - name: Extracted-package Win32 window and default renderer smoke
+        run: |
+          set -euo pipefail
+          # Offscreen SDL boot validates deterministic game progress but never
+          # enters Windows' actual window/render-device initialization path.
+          # Use the same released ZIP payload, not the generated build tree.
+          WIN32_DUMPS="$RUNNER_TEMP/package-win32-window-dumps"
+          WIN32_USER="$RUNNER_TEMP/package win32 user data"
+          WIN32_CALLER="$RUNNER_TEMP/package win32 launch caller"
+          mkdir -p "$WIN32_DUMPS" "$WIN32_CALLER"
+          rm -rf "$WIN32_USER"
+          PACKAGE_WIN="$(cygpath -w "$TEST_PACKAGE")"
+          USER_WIN="$(cygpath -w "$WIN32_USER")"
+          SCRIPT_WIN="$(cygpath -w "$RUNNER_TEMP/package-boot.script")"
+          DUMPS_WIN="$(cygpath -w "$WIN32_DUMPS")"
+
+          set +e
+          (
+            cd "$WIN32_CALLER"
+            SDL_VIDEODRIVER=windows \
+            SDL_AUDIODRIVER=dummy \
+            SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+            UR_RECOMP_USER_DATA_ROOT="$USER_WIN" \
+              timeout 300 powershell.exe -NoProfile -Command \
+                "& '${PACKAGE_WIN}\\run-uniracers.cmd' --script '${SCRIPT_WIN}'; exit \$LASTEXITCODE" \
+                >"$RUNNER_TEMP/package-win32-window.log" 2>&1
+          )
+          RC=$?
+          set -e
+          cat "$RUNNER_TEMP/package-win32-window.log"
+          test "$RC" -eq 0
+          python - "$WIN32_DUMPS/package-main-menu.wram.bin" <<'PY'
+          import pathlib, sys
+          wram = pathlib.Path(sys.argv[1]).read_bytes()
+          assert wram[0x9F] == 0xD7, "packaged Win32 renderer main menu not reached"
+          print("WINDOWS_PACKAGE_WIN32_RENDERER_MAIN_MENU ok")
+          PY
+          test -f "$WIN32_USER/config.ini"
+          test -d "$WIN32_USER/saves"
+          test ! -e "$TEST_PACKAGE/config.ini"
+          test ! -e "$WIN32_CALLER/config.ini"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
+          echo "WINDOWS_PACKAGE_WIN32_RENDERER ok"
+
       - name: Package refresh preserves user data
         run: |
           set -euo pipefail
@@ -309,7 +417,12 @@ jobs:
           MULTIPLAYER_MATCH_BEFORE="$(sha256sum "$PACKAGE_USER_DATA/multiplayer-runs/package-refresh-marker.urmatch" | cut -d' ' -f1)"
 
           rm -rf "$TEST_PACKAGE"
-          python -m zipfile -e "$PACKAGE_ARCHIVE" "$RUNNER_TEMP/package-extracted"
+          # Package replacement must use the same Windows extraction path.
+          PACKAGE_ARCHIVE_WIN="$(cygpath -w "$PACKAGE_ARCHIVE")"
+          EXTRACT_WIN="$(cygpath -w "$(dirname "$TEST_PACKAGE")")"
+          PACKAGE_ARCHIVE_WIN="$PACKAGE_ARCHIVE_WIN" EXTRACT_WIN="$EXTRACT_WIN" \
+            powershell.exe -NoProfile -NonInteractive -Command \
+              '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:PACKAGE_ARCHIVE_WIN -DestinationPath $env:EXTRACT_WIN -Force'
 
           CONFIG_AFTER="$(sha256sum "$PACKAGE_USER_DATA/config.ini" | cut -d' ' -f1)"
           KEYBINDS_AFTER="$(sha256sum "$PACKAGE_USER_DATA/keybinds.ini" | cut -d' ' -f1)"

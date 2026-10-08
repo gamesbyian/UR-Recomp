@@ -11,10 +11,11 @@ import re
 from pathlib import Path
 
 from tools.build_audio_checkpoint_route import CHECKPOINTS, POST_CHECKPOINT_FRAMES
+from tools.build_audio_pause_route import CHECKPOINTS as PAUSE_CHECKPOINTS
 
 
 def validate_log(log_text: str, checkpoint: str) -> dict:
-    if checkpoint not in CHECKPOINTS:
+    if checkpoint not in (*CHECKPOINTS, *PAUSE_CHECKPOINTS):
         raise ValueError(f"unrecognized audio checkpoint {checkpoint!r}")
     positions = {}
     for name in (checkpoint, checkpoint + "-audio-post"):
@@ -46,7 +47,7 @@ def validate_log(log_text: str, checkpoint: str) -> dict:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("log", type=Path)
-    ap.add_argument("checkpoint", choices=CHECKPOINTS)
+    ap.add_argument("checkpoint", choices=(*CHECKPOINTS, *PAUSE_CHECKPOINTS))
     args = ap.parse_args()
     report = validate_log(
         args.log.read_text(encoding="utf-8", errors="replace"), args.checkpoint

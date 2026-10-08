@@ -2579,3 +2579,21 @@ Native smoke gates all of this.
 - Contact-word values at the lip feed `81:82E6` object dispatch; the movie values are recorded in the replay JSON.
 - The 2-frame input cadence is a constraint on expert-edge item (e), roll/flip boundaries.
 - No `docs/SYMBOLS.md` change.
+
+### R-2026-10-08-UI-01 — The shared race timer overstates the 1P finish; the line-crossing snapshot is the official time
+
+**Status:** confirmed (native, Dragster ordinary tour race)  
+**Date:** 2026-10-08  
+**Area:** timing / Records
+
+**Observation:**
+- `Race_HandleCheckpointFinish` (`81:8050`) copies the shared timer digits into a per-player slot at each lap-line crossing (`81:80B6..`: `STA $0E39,Y` minutes, `$0E3D,Y` tens, `$0E41,Y` seconds, `$0E45,Y` tenths; `$0E35,Y` gets a synthesized hundredths digit from the sub-tick plus `$0300`, capped at 9), accumulates hundredths through the ROM tables at `81:8000/8014/8028/803C`, and decrements `$0EF1,Y` laps on the same frame.
+- Per-frame native dumps of the Dragster route: P1 laps go 2→1 at the start-line crossing (slot written as 0:00.6), then 1→0 on one frame where slot 0 becomes 0:28.5 / hundredths 6 and the shared timer ends the frame at 0:28.5 + 4 sub-ticks (1714 ticks).
+- The shared timer at `0E0F..` keeps counting while other racers are on course and reads 0:32.5 + 4 (1954 ticks) when RESULTS (`009F = 0x99`) appears. The stock results table prints P1's slot, `0:28.56`; `7E:00B4`/`7E:0153` hold 2856 at results.
+- Before this fix the Modern host completed run capture on the RESULTS surface from the shared timer, so the stored run, PB, finish split/delta, finish HUD and finish vibration all used 1954 ticks (≈4 s late) while the stock table showed 0:28.56 on the same screen.
+
+**Interpretation:** a 1P Modern finish is the slot-0 snapshot written on the frame P1's laps reach zero; the shared timer sampled at the end of that frame supplies the exact 60 Hz sub-tick. The snapshot keeps only whole tenths, so the hundredths digit is never used as timing authority.
+
+**Discriminating test:** `ur_uniracers_line_snapshot_ticks60()` accepts a shared sample only within the snapshot's tenth or at the first tick of the next tenth (carry after the copy); the host logs `UR_RUN_RECORD FINISH_LINE ticks60=1714 stock=0:28.56` on this route and fails closed (`FINISH_LINE_MISSING`) if RESULTS arrives without a finish write.
+
+**Dependencies:** slot 0 is P1 in 1P races (slot 1 independently held another racer's 0:27.98). Other courses use the same handler; only Dragster was measured.

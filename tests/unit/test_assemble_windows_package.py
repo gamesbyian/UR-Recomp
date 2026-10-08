@@ -108,6 +108,12 @@ class WindowsPackageTests(unittest.TestCase):
             self.assertIn("Do not overlay a new ZIP onto an old package tree.", readme)
             self.assertIn("static MSVC runtime", readme)
             self.assertIn("Visual C++ Redistributable", readme)
+            self.assertIn("On a normal Windows desktop", readme)
+            self.assertIn("PowerShell Expand-Archive", readme)
+            self.assertIn("paths contain spaces", readme)
+            self.assertIn("you do not need to set", readme)
+            self.assertIn("the launcher uses APPDATA automatically", readme)
+            self.assertIn("Do not start the .exe directly", readme)
             self.assertIn(
                 r"%APPDATA%\gamesbyian\UR-Recomp by default.",
                 readme,

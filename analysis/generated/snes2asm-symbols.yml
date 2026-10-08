@@ -98,6 +98,7 @@ memory:
   RaceTimer_SecondsDigit: 0x7E0E17
   RaceTimer_TenthsDigit: 0x7E0E1B
   RaceTimer_SubTick: 0x7E0E1F
+  Player_LineCrossingTime: 0x7E0E35
   Player1_LapsRemaining: 0x7E0EF1
   CurrentPlayer_CollisionContactWord: 0x7E0F09
   CurrentPlayer_PitchAngleWorking: 0x7E0F49

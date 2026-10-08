@@ -1264,6 +1264,63 @@ jobs:
           )
           PY
 
+      - name: Prove widened Racer HD fallback preserves the original OBJ raster
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          mkdir -p "$RUNNER_TEMP/racer-wide-original-dumps" "$RUNNER_TEMP/racer-wide-hd-dumps" \
+            "$RUNNER_TEMP/racer-wide-original-frames" "$RUNNER_TEMP/racer-wide-hd-frames"
+
+          run_wide() {
+            local mode="$1"
+            local log="$RUNNER_TEMP/racer-wide-$mode.log"
+            local shot="$RUNNER_TEMP/racer-wide-$mode-1220.ppm"
+            local dumps="$RUNNER_TEMP/racer-wide-$mode-dumps"
+            local frames="$RUNNER_TEMP/racer-wide-$mode-frames"
+            local hd="0"
+            if [ "$mode" = hd ]; then hd="1"; fi
+            set +e
+            env UR_RACER_HD_PROBE_WIDE=1 UR_RACER_HD="$hd" \
+              SNESRECOMP_DUMP_DIR="$dumps" \
+              SNESRECOMP_INPUT_FILE="$INPUT" \
+              SNESRECOMP_SCREENSHOT="$shot" \
+              SNESRECOMP_SCREENSHOT_FRAME=1220 \
+              SNESRECOMP_SCREENSHOT_DIR="$frames" \
+              SNESRECOMP_SCREENSHOT_FROM=1210 \
+              SNESRECOMP_SCREENSHOT_TO=1235 \
+              SDL_AUDIODRIVER=dummy \
+              timeout 120s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$log" 2>&1
+            local status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              cat "$log"
+              echo "::error::Wide $mode route failed with status $status"
+              exit "$status"
+            fi
+            grep -F 'UR_RACER_HD_WIDE_CAPTURE PASS frame=1220 width=342 height=224 removal=0' "$log"
+            python3 tools/check_ppm.py "$shot" --width 342 --height 224 --min-colors 5
+          }
+
+          run_wide original
+          run_wide hd
+          # The pinned desktop host screenshots at *present* frames, whose
+          # relative phase can drift by a few guest frames across processes.
+          # Compare only captured frames aligned by the exact eight-word
+          # authoritative player composition state; keep whole-frame pixel
+          # equality strict for every aligned witness.
+          python3 tools/check_racer_hd_wide_visual_parity.py \
+            --original-dir "$RUNNER_TEMP/racer-wide-original-frames" \
+            --original-log "$RUNNER_TEMP/racer-wide-original.log" \
+            --hd-dir "$RUNNER_TEMP/racer-wide-hd-frames" \
+            --hd-log "$RUNNER_TEMP/racer-wide-hd.log" \
+            --json-out "$RUNNER_TEMP/racer-wide-parity.json" \
+            | tee "$RUNNER_TEMP/racer-wide-parity.txt"
+
       - name: Shadow structured Racer HD trace relationships
         continue-on-error: true
         shell: bash
@@ -1363,6 +1420,14 @@ jobs:
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
+            ${{ runner.temp }}/racer-wide-original.log
+            ${{ runner.temp }}/racer-wide-hd.log
+            ${{ runner.temp }}/racer-wide-original-1220.ppm
+            ${{ runner.temp }}/racer-wide-hd-1220.ppm
+            ${{ runner.temp }}/racer-wide-parity.json
+            ${{ runner.temp }}/racer-wide-parity.txt
+            ${{ runner.temp }}/racer-wide-original-frames/
+            ${{ runner.temp }}/racer-wide-hd-frames/
             ${{ runner.temp }}/racer-original-a-semantic-trace.json
             ${{ runner.temp }}/racer-original-b-semantic-trace.json
             ${{ runner.temp }}/racer-hd-semantic-trace.json

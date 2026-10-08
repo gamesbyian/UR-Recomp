@@ -128,3 +128,36 @@ real native PPU presenter link path. A comparative real Windows capture
 at a fully registered pose, once each in Original width and WorldExpand, is
 still needed for pixel-level evidence. Never infer that the pure helper unit
 test alone proves the final widened picture.
+
+
+#### Pixel-level Native 342px stock-fallback acceptance
+
+The graphics-owned native presentation probe now enables the pinned desktop
+host's native-wide mode and supports a diagnostic-only
+`UR_RACER_HD_PROBE_WIDE=1` switch. It fixes the probe's logical width to 342
+(43 side columns) and height to 224 *before* `begin_sim_frame`. The probe
+asserts that no OBJ `RemoveFromGame` capture is armed on any such frame,
+including frame 1220 of the deterministic two-player race.
+
+The native presentation acceptance reuses its existing generated binary, ROM,
+controller input and script to take **two independent** 342×224 PPM captures
+at that same frame: `UR_RACER_HD=0` and `UR_RACER_HD=1`. Fixed host present numbers can sample different guest poses between
+processes, even while both run the same deterministic input: native run
+`37767008747` showed the initial fixed-frame-1220 control displaying
+`0541/0540 + 0D2D/0000` while the HD-enabled capture had already reached
+`0542/0540 + 0D0E/0D0C`. The resulting full-screen difference is a
+**guest-frame phase mismatch**, not proof of incorrect OBJ capture.
+
+The revised acceptance now records a short native present-image sequence
+around frame 1220, along with the exact eight-word authoritative WRAM
+composition trace for each run. It determines a **single** guest-frame offset
+from semantic identity alone, then requires pixel-exact full 342×224 images
+at **every** aligned frame, with at least eight matched frames and one
+explicit fully-registered `0541/0540 + 0D2D/0000` witness. There is no
+palette, cropping, per-pixel tolerance, or independently guessed frame offset.
+`tools/check_racer_hd_wide_visual_parity.py` reports the alignment and
+any mismatching full-image hashes. The acceptance archives its aligned
+frame sequences, PPMs, logs and JSON evidence. This validates a true desktop-runner widened PPU scan and final host
+presentation without touching the Modern frontend. It is a geometry/fallback
+guard acceptance, **not** a claim that independently authored HD sprites now
+render in widened scenes.

@@ -14,6 +14,7 @@ PROBE_DECL = r'''
 extern "C"
 #endif
 void UrRacerPresentationProbeAfterRunFrame(const SnesDesktopHostFrameStats *stats);
+int UrRacerHdProbeWideRequested(void);
 void UrRacerHdPrepareFrame(int drawable_w, int drawable_h, int *frame_w, int *frame_h);
 void UrRacerHdBeginSimFrame(unsigned number);
 int UrRacerHdPresentationScale(void);
@@ -24,14 +25,21 @@ int UrRacerHdDrawFrame(
 '''
 
 PROBE_CPP = r'''#include "host_main.h"
+#include "snes/ppu.h"
 #include "racer_guest_snapshot.hpp"
 #include "racer_hd_presenter.hpp"
 
 #include <cstdio>
 #include <cstdint>
+#include <cstdlib>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
+extern Ppu* g_ppu;
+}
+
+extern "C" int UrRacerHdProbeWideRequested(void) {
+    return std::getenv("UR_RACER_HD_PROBE_WIDE") != nullptr ? 1 : 0;
 }
 
 extern "C" void UrRacerHdPrepareFrame(
@@ -40,10 +48,36 @@ extern "C" void UrRacerHdPrepareFrame(
     ur::presentation::racer_hd_prepare_frame(
         drawable_w, drawable_h, frame_w, frame_h
     );
+    if (std::getenv("UR_RACER_HD_PROBE_WIDE") && frame_w && frame_h) {
+        // Diagnostic-only WorldExpand-sized logical field. The generated
+        // native acceptance game has native_widescreen enabled explicitly.
+        *frame_w = 342;
+        *frame_h = 224;
+    }
 }
 
 extern "C" void UrRacerHdBeginSimFrame(unsigned number) {
     ur::presentation::racer_hd_begin_sim_frame(number);
+    if (!std::getenv("UR_RACER_HD_PROBE_WIDE")) return;
+    const int width = snesrecomp_desktop_frame_width();
+    const int height = snesrecomp_desktop_frame_height();
+    const bool removal_armed = g_ppu &&
+        ((g_ppu->overlayCaptures[kPpuOverlaySource_Obj].flags &
+          kPpuOverlayFlag_RemoveFromGame) != 0);
+    if (width != 342 || height != 224 || removal_armed) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_WIDE_CAPTURE FAIL frame=%u width=%d height=%d removal=%d\n",
+            number, width, height, removal_armed ? 1 : 0
+        );
+        std::abort();
+    }
+    if (number == 1220u) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_WIDE_CAPTURE PASS frame=1220 width=342 height=224 removal=0\n"
+        );
+    }
 }
 
 extern "C" int UrRacerHdPresentationScale(void) {
@@ -169,10 +203,15 @@ target_include_directories(UniracersSNESRecomp PRIVATE
 def patch_main(source: str) -> str:
     if "UrRacerPresentationProbeAfterRunFrame" in source:
         return source
-    if INCLUDE_ANCHOR not in source or FIELD_ANCHOR not in source:
+    generated_decl = "static const SnesDesktopHostGame kGameHost = {"
+    host_entry = "    return snesrecomp_desktop_main(&kGameHost, argc, argv);"
+    if (
+        INCLUDE_ANCHOR not in source or FIELD_ANCHOR not in source
+        or generated_decl not in source or host_entry not in source
+    ):
         raise ValueError("generated host anchors not found")
     source = source.replace(INCLUDE_ANCHOR, INCLUDE_ANCHOR + PROBE_DECL + "\n", 1)
-    return source.replace(
+    source = source.replace(
         FIELD_ANCHOR,
         FIELD_ANCHOR
         + "    .after_run_frame     = &UrRacerPresentationProbeAfterRunFrame,\n"
@@ -180,6 +219,18 @@ def patch_main(source: str) -> str:
         + "    .begin_sim_frame     = &UrRacerHdBeginSimFrame,\n"
         + "    .draw_frame          = &UrRacerHdDrawFrame,\n"
         + "    .presentation_scale  = &UrRacerHdPresentationScale,\n",
+        1,
+    )
+    # Only diagnostic native-wide runs switch the generated host's native
+    # renderer. Keep all existing 256x224 baseline routes on their original
+    # renderer path, so this extra acceptance cannot redefine the oracle.
+    source = source.replace(
+        generated_decl, "static SnesDesktopHostGame kGameHost = {", 1
+    )
+    return source.replace(
+        host_entry,
+        "    kGameHost.native_widescreen = UrRacerHdProbeWideRequested() != 0;\n"
+        + host_entry,
         1,
     )
 

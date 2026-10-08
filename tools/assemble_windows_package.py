@@ -344,6 +344,7 @@ def readme_text(source_revision: str) -> str:
         "with the static MSVC runtime, so the package does not require a "
         "separately installed Visual C++ Redistributable. This ZIP does not "
         "register an installer or uninstaller.\n"
+        "You can extract this package into directories whose paths contain spaces.\n"
         "\n"
         f"Start the game with {LAUNCHER_NAME}. Keep {EXE_NAME}, {ROM_NAME}, "
         "rom.cfg and the mods directory together.\n"

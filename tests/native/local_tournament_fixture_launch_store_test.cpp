@@ -1,5 +1,7 @@
 #include "local_tournament_fixture_launch_store.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
+#include <atomic>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -7,6 +9,7 @@
 #include <fstream>
 #include <iterator>
 #include <string>
+#include <thread>
 
 using namespace ur::product;
 namespace fs = std::filesystem;
@@ -159,6 +162,78 @@ int main() {
     require(load_local_tournament_launch_file(
                 filename, *model, instance).status == Status::Missing,
             "retired launch cannot reappear as a result");
+
+    // Independent processes/threads sharing this file must not allow an
+    // obsolete retire to remove another writer's newer checkpoint. Exercise
+    // both operation orders, with an actual interleaved start gate and
+    // independent OS file-handle locks.
+    for (int round = 0; round < 100; ++round) {
+        require(save_local_tournament_launch_file(filename, pending) ==
+                    Status::Saved, "concurrency seed publishes old launch");
+        std::atomic<int> ready{0};
+        std::atomic<bool> go{false};
+        Status newer_save = Status::IoError;
+        Status stale_retire = Status::IoError;
+        std::thread replacement([&] {
+            ready.fetch_add(1, std::memory_order_release);
+            while (!go.load(std::memory_order_acquire)) std::this_thread::yield();
+            newer_save = save_local_tournament_launch_file(
+                filename, stale_attempt);
+        });
+        std::thread retirement([&] {
+            ready.fetch_add(1, std::memory_order_release);
+            while (!go.load(std::memory_order_acquire)) std::this_thread::yield();
+            stale_retire = retire_local_tournament_launch_file(
+                filename, pending);
+        });
+        while (ready.load(std::memory_order_acquire) != 2)
+            std::this_thread::yield();
+        go.store(true, std::memory_order_release);
+        replacement.join();
+        retirement.join();
+        require(newer_save == Status::Saved,
+                "competing new checkpoint always reaches storage");
+        require(stale_retire == Status::Saved ||
+                    stale_retire == Status::Rejected,
+                "old retirement either precedes new save or rejects stale bytes");
+        const auto current = load_local_tournament_launch_file(
+            filename, *model, instance);
+        require(current.loaded() &&
+                    current.pending->attempt_id == stale_attempt.attempt_id &&
+                    bytes_of(path) ==
+                        encode_local_tournament_pending_fixture(stale_attempt),
+                "stale retirement never removes or corrupts newer attempt");
+    }
+
+    // A separate lock holder must block any writer until the scoped OS
+    // handle is destroyed, not until a .lock sentinel is manually removed.
+    require(save_local_tournament_launch_file(filename, pending) ==
+                Status::Saved, "lock blocking test seeded");
+    std::atomic<bool> attempting{false};
+    std::atomic<bool> finished_write{false};
+    std::thread blocked;
+    {
+        TournamentLaunchPathLock held(filename);
+        require(held.acquired(), "OS process-lock handle acquired");
+        blocked = std::thread([&] {
+            attempting.store(true, std::memory_order_release);
+            const auto result = save_local_tournament_launch_file(
+                filename, stale_attempt);
+            finished_write.store(result == Status::Saved,
+                                 std::memory_order_release);
+        });
+        while (!attempting.load(std::memory_order_acquire))
+            std::this_thread::yield();
+        // No time-based 'writer must still be blocked' assertion: thread
+        // scheduling can delay entering the OS lock. The concurrent-content
+        // assertions above are the actual safety discriminator.
+    }
+    blocked.join();
+    require(finished_write.load(std::memory_order_acquire),
+            "after releasing scoped lock another writer proceeds");
+    require(bytes_of(path) ==
+                encode_local_tournament_pending_fixture(stale_attempt),
+            "new checkpoint published after OS lock release");
 
     fs::remove_all(root);
     std::puts("local_tournament_fixture_launch_store_test: ok");

@@ -57,5 +57,19 @@ format parser and 48,000-frame stereo tail gate independently reject any
 unexpected fallback; the original 44.1 kHz player-default remains unchanged.
 No changes to production sound, host timing, package or Modern Options.
 
-This correction requires a new *real* packaged Windows acceptance result
-before 48 kHz output can be marked proven.
+## Corrected real Windows result: passed
+
+The corrected, automatic main-branch specialist Windows audio acceptance
+[run 37776219106](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776219106)
+finished **green** after checking the newly configured 48,000 Hz device.
+Its explicit `Verify real Windows SDL3 48kHz stereo playback and queue
+continuity` step **passed**, confirming a real source-aligned game route,
+two audible stereo channels at the requested device rate, and Release
+production-queue continuity. The same successful run also passed original
+44.1 kHz Menu/Now Playing/Race checkpoints, stock Start pause/resume and
+Modern Volume persistence.
+
+This closes the alternate **48 kHz packaged-Windows output-presence**
+case. It still does not establish exact song pitch, single-SFX waveform
+equality, sub-second latency or every physical driver in the field.
+No default player-facing output rate or live audio engine was modified.

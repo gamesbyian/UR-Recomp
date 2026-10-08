@@ -299,16 +299,54 @@ The reducer now retains actual guest route frame deltas and flags that
 SDL device-sample alignment is unproven; do not change the framework
 mixer or original SPC samples based on these unaligned windows.
 
-**Actual next audio shipping work:** test the Modern host-owned
-**resume from pause** on real SDL output, including audible restoration
-and whether restarting a paused race or exiting to the frontend creates
-dropouts, clicks or stale sound. Use the product's actual host/input
-authority and do not advance guest frames while paused. Next measure
-device loss/reopen and hardware latency where safe, plus source-aligned
-SPC/DSP/music and sound-effect equivalence. Preserve original sound
-assets and guest cadence. Authentic sound remains the shipping
-fallback; optional Phase H restoration must retain SPC/BRR source
-provenance.
+**Closed, real Modern Resume and Exit-to-Frontend stereo recovery:**
+the actual packaged Windows host-pause **Escape/Resume** route passed in
+[37755326684](https://github.com/gamesbyian/UR-Recomp/actions/runs/37755326684),
+observing guest freeze, true silent paused PCM, product Resume and
+audible stereo restoration. The independent, genuine race
+**Exit-to-Frontend** route passed in
+[37756388629](https://github.com/gamesbyian/UR-Recomp/actions/runs/37756388629);
+the returned original menu accepted guest navigation and produced one
+second of nonzero left/right SDL playback. Both preserve original audio
+state and do not imply sample-exact DSP parity.
+
+**Closed, real alternate device rate:** the initial 48 kHz specialist gate
+correctly detected that the environment variable alone still negotiated
+44.1 kHz. The config-authority correction in #882 passed a full packaged
+Windows audio run
+[37776219106](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776219106):
+true 48,000 Hz device output, audible stereo, source/queue continuity,
+original 44.1 kHz phases, stock Start pause/resume and Modern Volume
+tests all green. This closes 48 kHz output **presence/continuity**, not
+pitch/sample equality or every real sound device.
+
+**Open player-facing defect, owned by frontend/input:** Modern Pause
+**Restart Race** intermittently yields several seconds of digital
+silence even though the restored guest advances and SDL/APU output
+counters do not starve. Output-flush runtime candidate #880 was
+native-tested and rejected without merging. The **same packaged Windows
+build** in [37776386839](https://github.com/gamesbyian/UR-Recomp/actions/runs/37776386839)
+produced **0/3 audible Restart recoveries** with the normal
+`Return → guest Start` keymap versus **3/3 audible recoveries** when
+only a disposable test `Start=None` mapping changed; every trial loaded
+its own keymap and reached the same restored guest checkpoint.
+The root-cause ownership handoff is
+[issue #890](https://github.com/gamesbyian/UR-Recomp/issues/890).
+Preserve the strict original red Windows Restart-audio gate. Fix the
+host-to-guest input handoff in the active frontend lane, retaining the
+normal player Start binding. The audio lane must not paper over this
+with SPC/DSP changes or compromise guest timing.
+
+**Actual next audio-owned fidelity work:** promote only on real native
+evidence the source-aligned original SFX command-identity check from
+[#895](https://github.com/gamesbyian/UR-Recomp/pull/895), followed by
+CPU→SPC command-delivery cadence and representative gameplay
+music/SFX sample/echo comparisons against independent reference cores.
+Hardware device loss/reopen, latency and short click/transition
+windows remain unproven. Original audio assets, canonical guest
+timing and unaltered SPC/BRR source provenance remain the authority.
+Authentic sound is the shipping fallback; optional Phase H remastering
+must never silently replace it.
 
 ## Phase 6 — Reverse-engineering map
 

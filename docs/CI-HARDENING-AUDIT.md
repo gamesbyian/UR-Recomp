@@ -141,6 +141,23 @@ per-frame delay because their semantic output was proven unchanged under
 unpaced execution. Presentation-sensitive routes should not inherit Turbo or
 presentation skipping merely for speed.
 
+### Bounded Stunt UI entry versus exploratory result
+
+The Stunt `ui-stunt-result-route.script` documents a known non-terminating
+idle-input case: the event timer expires without advancing to the proposed
+0x18 result menu. The automatic Native UI suite previously spent roughly
+98–162 seconds running that probe to status 3, retaining only its three
+successful entry captures. This was not a demonstrated result-screen
+acceptance, and treated research uncertainty as an automatic CI long pole.
+
+The automatic suite now runs `ui-stunt-entry-route.script`, preserving the
+original track-selection, Now Playing and entered-race commands and requiring
+all three dumps plus a successful scripted exit. The long-running idle-result
+experiment remains intact as a **manual research fixture**. This does not
+claim the Stunt result screen has been recovered; it makes the existing
+automatic evidence precise and prevents recurring time spent on a currently
+unfulfilled exploration. The prefix-equivalence unit test prevents drift.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

@@ -266,7 +266,12 @@ jobs:
               run_route ui-circuit-result-route ui-circuit-result-route.script ui-circuit-result-dumps 240
               ;;
             results-b)
-              run_route ui-stunt-result-route ui-stunt-result-route.script ui-stunt-result-dumps 180
+              # Required bounded entry proof; the unresolved idle-to-Stunt-results
+              # attempt stays in ui-stunt-result-route.script for manual research.
+              run_route ui-stunt-entry-route ui-stunt-entry-route.script ui-stunt-result-dumps 90 required || exit $?
+              for tag in ui-stunt-track-selected ui-stunt-now-playing ui-stunt-entered; do
+                test -s "$RUNNER_TEMP/ui-stunt-result-dumps/$tag.wram.bin" || { echo "::error::Missing Stunt entry dump: $tag"; exit 1; }
+              done
               run_route ui-pre-race-timing ui-pre-race-timing.script ui-pre-race-timing-dumps 180
               run_route ui-records-submenus ui-records-submenus.script ui-records-submenu-dumps 180
               ;;

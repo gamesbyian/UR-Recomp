@@ -18,6 +18,7 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         self.assertIn(".begin_sim_frame", patched)
         self.assertIn(".draw_frame", patched)
         self.assertIn(".presentation_scale", patched)
+        self.assertIn(".native_widescreen   = 1,", patched)
         self.assertEqual(patch_main(patched), patched)
 
     def test_cmake_patch_targets_generated_game(self):
@@ -36,6 +37,11 @@ class NativeRacerPresentationProbePatchTests(unittest.TestCase):
         self.assertIn("select_racer_presentation_from_wram", PROBE_CPP)
         self.assertIn("racer_hd_draw_frame", PROBE_CPP)
         self.assertIn("racer_hd_presentation_scale", PROBE_CPP)
+        self.assertIn("UR_RACER_HD_PROBE_WIDE", PROBE_CPP)
+        self.assertIn("snesrecomp_desktop_frame_width", PROBE_CPP)
+        self.assertIn("overlayCaptures[kPpuOverlaySource_Obj]", PROBE_CPP)
+        self.assertIn("UR_RACER_HD_WIDE_CAPTURE PASS", PROBE_CPP)
+        self.assertIn("std::abort()", PROBE_CPP)
         self.assertIn("UR_RACER_PRESENTATION_TRACE", PROBE_CPP)
         self.assertIn("frame >= 1180u && frame <= 1620u", PROBE_CPP)
         self.assertNotIn("if (passed) return;", PROBE_CPP)

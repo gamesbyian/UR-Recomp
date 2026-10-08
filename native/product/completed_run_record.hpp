@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <optional>
 #include <string>
@@ -9,6 +10,12 @@
 namespace ur::product {
 
 constexpr std::uint32_t kCompletedRunRecordSchemaVersion = 1;
+
+// Maximum persisted canonical .urrun artifact size, independent of how long
+// the guest race ran. No cap is imposed on guest frame/timing authority.
+// Existing records are typically kilobytes; this protects Local Runs, Records
+// and replay startup from unbounded malformed on-disk artifacts.
+constexpr std::size_t kCompletedRunRecordMaxBytes = 64u * 1024u * 1024u;
 
 struct RunRecordProvenance {
     std::string game_id;

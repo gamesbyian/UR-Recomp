@@ -603,36 +603,53 @@ jobs:
           RECORD="$RUNNER_TEMP/original.urrun"
           LOG="$RUNNER_TEMP/original.log"
 
-          SDL_AUDIODRIVER=dummy \
-          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 180s xvfb-run -a "$EXE" "$ROM" \
-              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
-              >"$LOG" 2>&1
+          # The unpaced and paced captures are two fresh processes with
+          # independent output files, user/config roots and Xvfb displays.
+          # Overlap only this reference pair on the two-core runner; retain
+          # the identical record comparison as the authoritative invariant.
+          PACED_USER="$RUNNER_TEMP/completed-run-paced-user"
+          PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
+          PACED_LOG="$RUNNER_TEMP/paced-proof.log"
+          mkdir -p "$PACED_USER"
+          printf '[General]\\nDisableFrameDelay = 0\\n' > "$PACED_USER/config.ini"
 
+          SDL_AUDIODRIVER=dummy \\
+          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \\
+          UR_PRODUCT_DIAGNOSTICS=1 \\
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \\
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \\
+              >"$LOG" 2>&1 &
+          ORIGINAL_PID=$!
+
+          SDL_AUDIODRIVER=dummy \\
+          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \\
+          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \\
+          UR_PRODUCT_DIAGNOSTICS=1 \\
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \\
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \\
+              >"$PACED_LOG" 2>&1 &
+          PACED_PID=$!
+
+          # Wait for *both* even if one fails, preserving the real culprit's
+          # logs before rejecting the pair. No comparison on partial output.
+          original_status=0
+          paced_status=0
+          wait "$ORIGINAL_PID" || original_status=$?
+          wait "$PACED_PID" || paced_status=$?
+          echo "===== unpaced capture ====="
           cat "$LOG"
+          echo "===== paced capture ====="
+          cat "$PACED_LOG"
+          if [ "$original_status" -ne 0 ] || [ "$paced_status" -ne 0 ]; then
+            echo "::error::Reference capture process failed: unpaced=$original_status paced=$paced_status"
+            exit 1
+          fi
           test -s "$RECORD"
           test -s "$RECORD.input"
           test -s "$RECORD.urghost"
           grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
           grep -q "course=course:01" "$LOG"
           grep -q "ghost_trace=1" "$LOG"
-
-          # Keep one paced control in this gate until retained CI evidence
-          # demonstrates that unpaced execution is stable for this acceptance.
-          PACED_USER="$RUNNER_TEMP/completed-run-paced-user"
-          PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
-          PACED_LOG="$RUNNER_TEMP/paced-proof.log"
-          mkdir -p "$PACED_USER"
-          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
-          SDL_AUDIODRIVER=dummy \
-          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
-          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \
-          UR_PRODUCT_DIAGNOSTICS=1 \
-            timeout 180s xvfb-run -a "$EXE" "$ROM" \
-              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
-              >"$PACED_LOG" 2>&1
-          cat "$PACED_LOG"
           test -s "$PACED_RECORD"
 
           g++ -std=c++17 -Wall -Wextra -Werror -pedantic \

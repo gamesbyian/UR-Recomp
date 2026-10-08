@@ -30,7 +30,9 @@
         "J-15"
       ],
       "next_action": "Full content/event census and disputed instruction-time contact trace",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-02",
@@ -47,7 +49,9 @@
         "J-08"
       ],
       "next_action": "Injected termination and storage-failure recovery across profile/run/ghost/tournament",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-03",
@@ -65,7 +69,9 @@
         "J-06"
       ],
       "next_action": "Finish leg two/three and a three-entrant tournament from packaged candidate across processes",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-04",
@@ -81,7 +87,9 @@
         "J-10"
       ],
       "next_action": "Exact candidate ZIP on independently configured physical Windows hosts",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L5",
+      "witnesses": []
     },
     {
       "id": "QA-05",
@@ -99,7 +107,9 @@
         "J-20"
       ],
       "next_action": "Modal held-release/seat/hotplug checks with guest-state assertions",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-06",
@@ -114,7 +124,9 @@
         "J-17"
       ],
       "next_action": "Sound-state aligned audio phase parity and physical output quality",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L5",
+      "witnesses": []
     },
     {
       "id": "QA-07",
@@ -130,7 +142,9 @@
         "J-15"
       ],
       "next_action": "Original reference against expert-play threshold transitions",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-08",
@@ -146,7 +160,9 @@
         "J-16"
       ],
       "next_action": "Time-sequence review and quantified correct draw availability for whole motion families",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-09",
@@ -162,7 +178,9 @@
         "J-19"
       ],
       "next_action": "Blind first-player task completion, TV legibility, controller only and finished UI",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L5",
+      "witnesses": []
     },
     {
       "id": "QA-10",
@@ -178,7 +196,9 @@
         "J-18"
       ],
       "next_action": "2h+ mixed-session soak and hardware focus/device stress",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L5",
+      "witnesses": []
     },
     {
       "id": "QA-11",
@@ -194,7 +214,9 @@
         "J-14"
       ],
       "next_action": "Diverse completed-run replay and ghost presence/continuity across cameras",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     },
     {
       "id": "QA-12",
@@ -209,7 +231,9 @@
         "J-20"
       ],
       "next_action": "Current artifact provenance and independent reference per quality gate",
-      "waiver_reason": null
+      "waiver_reason": null,
+      "required_layer": "L4",
+      "witnesses": []
     }
   ]
 }

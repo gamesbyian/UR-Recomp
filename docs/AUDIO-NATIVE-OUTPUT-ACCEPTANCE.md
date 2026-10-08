@@ -318,3 +318,39 @@ the attenuation and recovery remain stable across fresh process and runner
 scheduling before selecting conservative acceptance thresholds. Keep the
 stock Start probe separate from Modern host-owned pause, Restart Race and
 Exit-to-Frontend acoustics.
+
+## Repeated stock Start pause gate, 2026-10-08
+
+The second independent fresh-process capture
+[37722175343](https://github.com/gamesbyian/UR-Recomp/actions/runs/37722175343)
+also passed the full six-phase packaged Windows test:
+
+| Stock guest phase | First tail RMS | Repeat tail RMS |
+| --- | ---: | ---: |
+| Before pause | 6350.51 | 6348.71 |
+| After Start | 53.42 | 72.94 |
+| After resume | 5811.22 | 5803.53 |
+
+Both captures used the existing verified Windows package from
+[37721010318](https://github.com/gamesbyian/UR-Recomp/actions/runs/37721010318),
+but **separate fresh processes** and independent SDL file output. Across
+both runs, the guest Start input counts and 30-frame post markers matched
+all three canonical named checkpoints. Production queue snapshots showed
+zero audible dropped native samples and zero post-startup underflows and
+missing frames in every phase.
+
+These repeats justify conservative **relative, not absolute** acceptance
+requirements for the original stock guest Start path:
+
+- paused-to-before one-second tail RMS ratio **at most 0.05**;
+- resumed-to-before one-second tail RMS ratio **at least 0.50**;
+- zero audible source-ring drops and zero post-startup underflows/missing
+  output frames across all three independent processes.
+
+The measured paused ratios were about 0.0084 and 0.0115, and resume
+about 0.915 in both runs. The chosen thresholds allow much wider runner
+variation than observed, while detecting an unexpectedly loud paused guest,
+a failure to restore game sound, or sustained playback starvation. This
+does **not** assert exact sample timing, measure clicks/transition acoustics
+at frame precision or validate the Modern host-owned pause menu. Device
+disconnection and frontend/restart audio transitions remain separate.

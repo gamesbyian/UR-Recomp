@@ -45,6 +45,7 @@ extern "C" {
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
+#include "../title/uniracers_tour_progress_overview.hpp"
 #include "quick_practice_input_mask.hpp"
 #include "quick_practice_launch.hpp"
 #include "recent_course_origin.hpp"
@@ -193,6 +194,10 @@ ur::product::QuickPracticeSelection g_practice_picker;
 bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
 ur::product::QuickPracticeAvailability g_practice_picker_availability;
+bool g_progress_overview_visible = false;
+bool g_progress_overview_draw_reported = false;
+ur::title::StockTourProgressOverview g_progress_overview;
+std::optional<std::string> g_progress_overview_profile_id;
 std::optional<std::uint8_t> g_recent_course_track_id;
 std::string g_recent_course_profile_key;
 ur::product::RecentCourseOriginState g_recent_course_origin;
@@ -2945,6 +2950,63 @@ bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {
 }
 
 
+
+void close_progress_overview(const char* diagnostic) {
+    g_progress_overview_visible = false;
+    g_progress_overview_draw_reported = false;
+    g_progress_overview = {};
+    g_progress_overview_profile_id.reset();
+    if (diagnostic) product_diagnostic(diagnostic);
+}
+
+bool progress_overview_context_valid() {
+    return g_progress_overview_visible && g_progress_overview.valid &&
+        modern_mode() && !paused() && g_ram &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        !g_practice_active &&
+        g_progress_overview_profile_id == g_product_state.active_profile_id;
+}
+
+bool open_progress_overview() {
+    if (!modern_mode() || !g_ram || !g_sram || paused() ||
+        g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01 ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes) ||
+        g_progress_overview_visible || g_practice_picker.visible ||
+        g_practice_active || g_profile_menu_visible ||
+        g_tour_action_visible || onboarding_surface_active() ||
+        g_local_multiplayer_join_visible || results_navigation_active() ||
+        tour_continue_routing() || practice_routing() ||
+        g_exit_frontend_waiting_for_main ||
+        g_exit_frontend_waiting_for_usable) {
+        return false;
+    }
+    const std::uint8_t selected = g_sram[0x0748];
+    const std::uint8_t rider = selected < 16 ? selected : 0;
+    if (g_profile_state && g_profile_state->racer_identity &&
+        g_profile_state->racer_identity->rider_index != rider) {
+        return false;
+    }
+    const auto overview = ur::title::observe_stock_tour_progress_overview(
+        g_sram, static_cast<std::size_t>(g_sram_size), rider);
+    if (!overview.valid) {
+        product_diagnostic("UR_TOUR_OVERVIEW SOURCE_INVALID");
+        return false;
+    }
+    g_progress_overview = overview;
+    g_progress_overview_visible = true;
+    g_progress_overview_draw_reported = false;
+    g_progress_overview_profile_id = g_product_state.active_profile_id;
+    if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+        std::fprintf(stderr,
+            "UR_TOUR_OVERVIEW OPENED rider=%u bronze=%u silver=%u gold=%u visible=%04X\\n",
+            static_cast<unsigned>(rider),
+            overview.bronze_or_better, overview.silver_or_better,
+            overview.gold, static_cast<unsigned>(overview.visible_tour_options));
+        std::fflush(stderr);
+    }
+    return true;
+}
+
 void close_practice_picker(const char* diagnostic) {
     g_practice_picker = {};
     g_practice_picker_draw_reported = false;
@@ -3842,6 +3904,7 @@ bool host_owns_human_player_input() {
     return modern_mode() &&
            (g_local_multiplayer_join_visible ||
             g_practice_picker.visible ||
+            g_progress_overview_visible ||
             practice_routing() ||
             g_tour_action_visible ||
             results_navigation_active() ||
@@ -6013,6 +6076,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (g_practice_picker.visible && !practice_picker_context_valid()) {
         close_practice_picker("UR_PRACTICE_PICKER STALE_CONTEXT");
     }
+    if (g_progress_overview_visible && !progress_overview_context_valid()) {
+        close_progress_overview("UR_TOUR_OVERVIEW STALE_CONTEXT");
+    }
 
     if (!g_practice_acceptance_fired &&
         std::getenv("UR_PRACTICE_ACCEPTANCE") &&
@@ -6402,6 +6468,14 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return 1;
     }
 
+    if (g_progress_overview_visible) {
+        if (key == SDLK_ESCAPE || key == SDLK_F7 ||
+            key == SDLK_RETURN || key == SDLK_KP_ENTER) {
+            close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+        }
+        return 1;
+    }
+
     if (g_practice_picker.visible) {
         switch (key) {
         case SDLK_UP: return handle_practice_picker_navigation(UR_MODERN_HOST_NAV_UP) ? 1 : 0;
@@ -6498,6 +6572,11 @@ extern "C" int ur_uniracers_modern_system_key_down(
         if (key == SDLK_ESCAPE) {
             abort_tour_continue("UR_TOUR_CONTINUE CANCELLED");
         }
+        return 1;
+    }
+    if (modern_mode() && key == SDLK_F7 && !paused() &&
+        g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01) {
+        (void)open_progress_overview();
         return 1;
     }
     if (modern_mode() && key == SDLK_F3 && !paused() &&
@@ -6742,6 +6821,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         g_suppress_human_input_once = true;
     }
 
+    if (g_progress_overview_visible) {
+        return -1;
+    }
     if (g_practice_picker.visible) {
         // Consume host modal input through the live GamepadMap semantics.
         return -1;
@@ -6976,6 +7058,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
 
     // SNESRecomp's mapped-control order is stable:
     // Up, Down, Left, Right, Select, Start, A, B, X, Y, L, R.
+    if (g_progress_overview_visible) {
+        if (pressed && (control == 5 || control == 6 || control == 7 ||
+                        control == 10)) {
+            close_progress_overview("UR_TOUR_OVERVIEW CLOSED");
+        }
+        return 1;
+    }
     if (g_practice_picker.visible) {
         if (!pressed) return 1;
         switch (control) {
@@ -7052,6 +7141,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
                 control, &action)) {
             (void)handle_controls_action(action);
         }
+        return 1;
+    }
+    // The L semantic is resolved through the live GamepadMap (including
+    // user remaps); its stock bit is filtered on settled Modern MAIN_MENU.
+    if (pressed && control == 10 && modern_mode() && !paused() &&
+        g_ram && g_ram[0x009F] == 0xD7 && g_ram[0x0313] != 0x01 &&
+        open_progress_overview()) {
         return 1;
     }
     ur::product::RegionalControllerAction regional_action =
@@ -7243,10 +7339,82 @@ extern "C" void ur_uniracers_modern_system_overlay(
             "F2/PAD X  RACERS (PICKER)", 0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 172 * scale,
-            "ENTER/PAD A  OK   F1 HELP", 0xFFFFFFFFu, scale);
+            "F7/PAD L PROGRESS F1 HELP", 0xFFFFFFFFu, scale);
         return;
     }
 
+
+
+    if (g_progress_overview_visible && modern_mode()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w = logical_width < 268 ? logical_width - 16 : 260;
+        constexpr int kPanelHeight = 207;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale,
+            panel_w, kPanelHeight, panel_w, kPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, rect.height, 0xE0202020u);
+        snes_ovl_stroke_rect(pixels, stride, height, x, y,
+            rect.width, rect.height, 0xFFF0F0F0u);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 8 * scale,
+            "TOUR PROGRESS", 0xFFFFFFFFu, scale);
+        char row[80];
+        std::snprintf(row, sizeof(row), "BRONZE %u  SILVER %u  GOLD %u",
+            g_progress_overview.bronze_or_better,
+            g_progress_overview.silver_or_better,
+            g_progress_overview.gold);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 30 * scale, row, 0xFFFFFFFFu, scale);
+        for (std::uint8_t tour = 0; tour < 8; ++tour) {
+            // Catalog index is presentation identity; stock tour option
+            // remains the only medal/unlock index. Never name hidden Hunter.
+            const auto* course = ur::product::quick_practice_course(
+                static_cast<std::uint8_t>(tour * 5));
+            if (!course) continue;
+            const auto stock_option = ur::product::kQuickPracticeTourOptions[tour];
+            const bool visible = ur::title::stock_tour_progress_visible(
+                g_progress_overview, stock_option);
+            if (visible) {
+                std::snprintf(row, sizeof(row), "%u. %.*s  %s",
+                    static_cast<unsigned>(tour + 1),
+                    static_cast<int>(course->tour_name.size()),
+                    course->tour_name.data(),
+                    ur::title::stock_tour_progress_medal_name(
+                        g_progress_overview, stock_option));
+            } else {
+                std::snprintf(row, sizeof(row), "%u. LOCKED TOUR",
+                    static_cast<unsigned>(tour + 1));
+            }
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 8 * scale,
+                y + (51 + static_cast<int>(tour) * 16) * scale,
+                row, visible ? 0xFFFFFFFFu : 0xFFA0A0A0u, scale);
+        }
+        const std::string hint = "ESC/F7 / PAD " +
+            live_gamepad_binding_label(7) + " BACK";
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 188 * scale,
+            hint.c_str(), 0xFFFFFFFFu, scale);
+        if (!g_progress_overview_draw_reported &&
+            std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            g_progress_overview_draw_reported = true;
+            std::fprintf(stderr,
+                "UR_TOUR_OVERVIEW PRESENT scale=%d visible=%04X\\n",
+                scale,
+                static_cast<unsigned>(
+                    g_progress_overview.visible_tour_options));
+            std::fflush(stderr);
+        }
+        return;
+    }
 
     if (g_practice_picker.visible && modern_mode()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);

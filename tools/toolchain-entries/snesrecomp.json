@@ -62,6 +62,10 @@
       "sha256": "41068ef87d567c7bb961488effe03d38a36bd168d1e62a82baaa028da0619927"
     },
     {
+      "path": "tools/patches/snesrecomp-visible-restart-audio.patch",
+      "sha256": "9b3472befc1b0c3ca93cd7bd74bdf4f98624651e6a9447cb91a4f0140e6df89f"
+    },
+    {
       "path": "tools/patches/snesrecomp-live-vsync.patch",
       "sha256": "81eb6199f8df412bc50ff4228cce6920a9449e934774daee91035a20128b07b1"
     },

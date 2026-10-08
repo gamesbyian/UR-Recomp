@@ -111,6 +111,33 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
         )
         self.assertIn("cannot prove", result["runtime_limit"])
 
+    def test_cli_exports_explicit_phase_corrected_finish_candidates(self):
+        import subprocess
+        import tempfile
+        with tempfile.TemporaryDirectory() as tmp:
+            destination = Path(tmp) / "phase.json"
+            run = subprocess.run(
+                [
+                    sys.executable,
+                    str(ROOT / "tools/correlate_dragster_finish_spatial_event.py"),
+                    "--contact-sequence", str(WITNESS),
+                    "--json-out", str(destination),
+                ],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(run.returncode, 0, run.stderr)
+            data = json.loads(destination.read_text(encoding="utf-8"))
+        self.assertEqual(data["matched_c000_slot"], 8)
+        phase = data["phase_corrected_finish_transition"]
+        self.assertEqual(
+            phase["immediately_prior_postframe_candidate"]["stored_c000_slot"],
+            10,
+        )
+        self.assertEqual(
+            phase["transition_postframe_new_sample"]["stored_c000_slot"],
+            8,
+        )
+
     def test_phase_evidence_rejects_gaps_and_spurious_progress(self):
         rows = self.trace["samples"]
         with self.assertRaisesRegex(ValueError, "at least three"):

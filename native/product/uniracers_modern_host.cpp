@@ -189,6 +189,7 @@ bool g_pause_open_acceptance_fired;
 int g_practice_cancel_gamepad_button = -1;
 ur::product::QuickPracticeLaunchState g_practice_launch;
 ur::product::QuickPracticeSelection g_practice_picker;
+bool g_practice_picker_draw_reported = false;
 std::optional<std::string> g_practice_picker_profile_id;
 const ur::product::QuickPracticeAvailability g_practice_picker_availability =
     ur::product::quick_practice_normal_tours_only();
@@ -2946,6 +2947,7 @@ bool begin_tour_entry(ur::product::ModernTourEntryIntent intent) {
 
 void close_practice_picker(const char* diagnostic) {
     g_practice_picker = {};
+    g_practice_picker_draw_reported = false;
     g_practice_picker_profile_id.reset();
     if (diagnostic) product_diagnostic(diagnostic);
 }
@@ -2972,6 +2974,7 @@ bool open_practice_picker() {
             ? *g_recent_course_track_id : 0;
     g_practice_picker = ur::product::open_available_quick_practice_selection(
         initial_track, g_practice_picker_availability);
+    g_practice_picker_draw_reported = false;
     if (!g_practice_picker.visible) return false;
     g_practice_picker_profile_id = g_product_state.active_profile_id;
     if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -5987,6 +5990,9 @@ extern "C" void ur_uniracers_modern_after_run_frame(
         &g_widescreen_scene_state,
         g_ram[0x0313],
         g_ram[0x009F]);
+    if (g_practice_picker.visible && !practice_picker_context_valid()) {
+        close_practice_picker("UR_PRACTICE_PICKER STALE_CONTEXT");
+    }
 
     if (!g_practice_acceptance_fired &&
         std::getenv("UR_PRACTICE_ACCEPTANCE") &&
@@ -7218,6 +7224,82 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 172 * scale,
             "ENTER/PAD A  OK   F1 HELP", 0xFFFFFFFFu, scale);
+        return;
+    }
+
+
+    if (g_practice_picker.visible && modern_mode()) {
+        uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w = logical_width < 284 ? logical_width - 16 : 276;
+        constexpr int kPanelHeight = 170;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale, panel_w, kPanelHeight, panel_w, kPanelHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        const auto view = ur::product::quick_practice_selection_view(
+            g_practice_picker);
+        if (!view.valid) return;
+        const auto previous = ur::product::quick_practice_available_course_step(
+            g_practice_picker.picker, g_practice_picker_availability, -1);
+        const auto next = ur::product::quick_practice_available_course_step(
+            g_practice_picker.picker, g_practice_picker_availability, +1);
+        const auto* prev_course = ur::product::quick_practice_picker_course(previous);
+        const auto* next_course = ur::product::quick_practice_picker_course(next);
+        snes_ovl_fill_rect(pixels, stride, height, x, y,
+            rect.width, rect.height, 0xE0202020u);
+        snes_ovl_stroke_rect(pixels, stride, height, x, y,
+            rect.width, rect.height, 0xFFF0F0F0u);
+        char row[96];
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 8 * scale,
+            "QUICK PRACTICE", 0xFFFFFFFFu, scale);
+        std::snprintf(row, sizeof(row), "TOUR %u/8  %.*s",
+            static_cast<unsigned>(view.tour_number),
+            static_cast<int>(view.tour_name.size()), view.tour_name.data());
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 28 * scale, row, 0xFFFFFFFFu, scale);
+        std::snprintf(row, sizeof(row), "  %.*s",
+            prev_course ? static_cast<int>(prev_course->name.size()) : 0,
+            prev_course ? prev_course->name.data() : "");
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 50 * scale, row, 0xFFA0A0A0u, scale);
+        std::snprintf(row, sizeof(row), "> %.*s",
+            static_cast<int>(view.course_name.size()), view.course_name.data());
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 65 * scale, row, 0xFFFFFFFFu, scale);
+        std::snprintf(row, sizeof(row), "  %.*s",
+            next_course ? static_cast<int>(next_course->name.size()) : 0,
+            next_course ? next_course->name.data() : "");
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 80 * scale, row, 0xFFA0A0A0u, scale);
+        std::snprintf(row, sizeof(row), "TRACK %u/40  %.*s",
+            static_cast<unsigned>(view.course_number),
+            static_cast<int>(view.kind_label.size()), view.kind_label.data());
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 101 * scale, row, 0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 123 * scale,
+            "UP/DOWN TRACK  L/R TOUR", 0xFFFFFFFFu, scale);
+        const std::string hint = "ENTER/PAD " +
+            live_gamepad_binding_label(6) + " PLAY";
+        const std::string back = "ESC/PAD " +
+            live_gamepad_binding_label(7) + " BACK";
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 139 * scale, hint.c_str(), 0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 154 * scale, back.c_str(), 0xFFFFFFFFu, scale);
+        if (!g_practice_picker_draw_reported &&
+            std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            g_practice_picker_draw_reported = true;
+            std::fprintf(stderr, "UR_PRACTICE_PICKER PRESENT scale=%d track=%u\n",
+                scale, static_cast<unsigned>(g_practice_picker.picker.track_id));
+            std::fflush(stderr);
+        }
         return;
     }
 

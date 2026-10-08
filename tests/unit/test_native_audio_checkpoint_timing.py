@@ -35,6 +35,25 @@ class NativeAudioCaptureWindowTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "found 2"):
             validate_log(log, "main-menu-ready")
 
+    def test_shipping_python_module_entrypoint_resolves_repo_imports(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            log = Path(tmp) / "audio-native.log"
+            log.write_text(
+                "script f=506 dump main-menu-ready ok\n"
+                "script f=536 dump main-menu-ready-audio-post ok\n",
+                encoding="utf-8",
+            )
+            result = subprocess.run(
+                [
+                    sys.executable, "-m", "tools.check_native_audio_checkpoint_timing",
+                    str(log), "main-menu-ready",
+                ],
+                cwd=Path(__file__).resolve().parents[2],
+                capture_output=True, text=True, check=False, timeout=10,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertIn("NATIVE_AUDIO_WINDOW PASS", result.stdout)
+
     def test_substring_or_incomplete_marker_rejected(self):
         log = (
             "script f=506 dump main-menu-ready ok but not finished\n"

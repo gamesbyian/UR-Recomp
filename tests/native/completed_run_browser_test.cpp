@@ -116,6 +116,41 @@ int main(int argc, char** argv) {
     assert(browser.move(-1));
     assert(browser.selected()->chronological_order == 4);
 
+    // Returning from an older run must not teleport the list selection to
+    // newest, including when a new completed run arrived during playback.
+    assert(browser.move(1));
+    const std::string older_selection = browser.selected()->path;
+    assert(browser.refresh(root.string(), target()));
+    assert(browser.selected() && browser.selected()->path == older_selection);
+    const auto arriving_path =
+        root / "run-0000000000000000-0008.urrun";
+    write_record(arriving_path, run(1699));
+    assert(browser.refresh(root.string(), target()));
+    assert(browser.selected() && browser.selected()->path == older_selection);
+
+    // The same filename becoming corrupt must lose its selection authority
+    // immediately; fall back to the next playable artifact instead.
+    std::string selected_corrupt = encode_completed_run_record(run(1713));
+    const auto selected_checksum = selected_corrupt.rfind("checksum ");
+    assert(selected_checksum != std::string::npos);
+    selected_corrupt[selected_checksum + 9] =
+        selected_corrupt[selected_checksum + 9] == '0' ? '1' : '0';
+    {
+        std::ofstream damaged(older_selection, std::ios::binary | std::ios::trunc);
+        damaged << selected_corrupt;
+        assert(static_cast<bool>(damaged));
+    }
+    assert(browser.refresh(root.string(), target()));
+    assert(browser.selected() && browser.selected()->path ==
+           arriving_path.string());
+
+    // Restore the fixture before unrelated Records assertions below.
+    write_record(older_selection, run(1713));
+    std::filesystem::remove(arriving_path);
+    assert(browser.refresh(root.string(), target()));
+    assert(browser.selected());
+    assert(browser.selected()->chronological_order == 4);
+
     assert(!browser.entries()[0].personal_best_delta_ticks60);
     assert(browser.entries()[0].personal_best_delta_text == "--");
     assert(!browser.entries()[1].personal_best_delta_ticks60);

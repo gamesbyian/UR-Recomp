@@ -22,8 +22,6 @@ extern "C" {
 #include "uniracers_restart_policy.h"
 
 #include <algorithm>
-#include <atomic>
-#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -40,7 +38,7 @@ namespace fs = std::filesystem;
 ur::product::CompletedRunBrowser g_browser;
 ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
-fs::path g_replay_staging_directory;
+ur::product::CompletedRunReplayInputStage g_replay_input_stage;
 ur::product::MultiplayerMatchBrowser g_multiplayer_match_browser;
 ur::product::MultiplayerMatchArtifactHealth g_multiplayer_match_health;
 ur::product::MultiplayerMatchSummary g_multiplayer_match_summary;
@@ -505,39 +503,12 @@ bool open_browser() {
 }
 
 void clear_replay_input_staging() {
-    if (g_replay_staging_directory.empty()) return;
-    std::error_code ec;
-    fs::remove_all(g_replay_staging_directory, ec);
-    g_replay_staging_directory.clear();
+    g_replay_input_stage.clear();
 }
 
 std::string replay_input_path() {
-    // Two independently launched games may use the same profile/data root.
-    // Never truncate a shared selected-run.input while another live process
-    // is staging or playing a different persisted run.
-    clear_replay_input_staging();
-    const std::string root = product_user_data_root();
-    if (root.empty()) return {};
-    const fs::path directory = fs::path(root) / "replay";
-    std::error_code ec;
-    fs::create_directories(directory, ec);
-    if (ec) return {};
-
-    static std::atomic<std::uint64_t> serial{0};
-    for (unsigned attempt = 0; attempt < 64; ++attempt) {
-        const auto tick = std::chrono::steady_clock::now()
-                              .time_since_epoch().count();
-        const fs::path staging = directory /
-            (".pending-replay-" + std::to_string(tick) + "-" +
-             std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
-        ec.clear();
-        if (fs::create_directory(staging, ec)) {
-            g_replay_staging_directory = staging;
-            return (staging / "selected-run.input").string();
-        }
-        if (ec) return {};
-    }
-    return {};
+    return g_replay_input_stage.reserve(product_user_data_root())
+        ? g_replay_input_stage.input_path() : std::string{};
 }
 
 bool launch_selected_replay() {

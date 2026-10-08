@@ -355,7 +355,11 @@ class CiTriggerPolicyTest(unittest.TestCase):
         match = re.search(r"shard:\s*\[([^\]]+)\]", text)
         self.assertIsNotNone(match)
         shards = [item.strip() for item in match.group(1).split(",")]
-        self.assertLessEqual(len(shards), 5)
+        self.assertEqual(
+            shards,
+            ["core", "navigation", "results-a", "results-b", "records", "profiles"],
+        )
+        self.assertLessEqual(len(shards), 6)
 
 
     def test_onboarding_core_fanout_is_bounded_and_build_free(self):

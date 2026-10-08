@@ -6,6 +6,7 @@ on:
     paths:
       - "native/product/local_multiplayer_*.hpp"
       - "native/product/local_multiplayer_*.cpp"
+      - "native/product/local_tournament_round_robin.hpp"
       - "native/product/multiplayer_match_record.*"
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_presentation.*"
@@ -14,6 +15,8 @@ on:
       - "tests/native/multiplayer_match_summary_test.cpp"
       - "native/product/run_record_capture_policy.hpp"
       - "tests/native/local_multiplayer_*_test.cpp"
+      - "tests/native/local_tournament_round_robin_test.cpp"
+      - "tests/unit/test_local_tournament_round_robin_cpp.py"
       - "tests/native/multiplayer_match_record_test.cpp"
       - "tests/unit/test_local_multiplayer_*_cpp.py"
       - "tests/unit/test_local_multiplayer_host_contract.py"
@@ -42,6 +45,7 @@ jobs:
       - name: Run local multiplayer product contracts
         run: |
           python3 -m unittest \
+            tests.unit.test_local_tournament_round_robin_cpp \
             tests.unit.test_local_multiplayer_setup_cpp \
             tests.unit.test_local_multiplayer_participants_cpp \
             tests.unit.test_local_multiplayer_match_binding_cpp \

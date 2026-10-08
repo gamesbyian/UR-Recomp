@@ -26,6 +26,7 @@ on:
       - "tests/native/run_modern_next_event_acceptance.sh"
       - "tests/native/run_modern_tour_entry_acceptance.sh"
       - "tests/native/run_modern_recent_course_persistence_acceptance.sh"
+      - "tests/native/run_modern_practice_picker_acceptance.sh"
       - "native/product/host_profile_state.*"
       - "tests/input/modern-tour-next-event-acceptance.script"
       - "tests/input/modern-tour-continue-*.script"
@@ -490,6 +491,7 @@ jobs:
             ${{ runner.temp }}/tour-entry/*.log
             ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/recent-persistence/*.log
+            ${{ runner.temp }}/practice-picker/*.log
             ${{ runner.temp }}/vibration/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log
@@ -555,6 +557,7 @@ jobs:
               run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry
               run_case next-event run_modern_next_event_acceptance.sh next-event
               run_case recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
+              run_case practice-picker run_modern_practice_picker_acceptance.sh practice-picker
               ;;
             feedback)
               run_case vibration run_modern_vibration_acceptance.sh vibration
@@ -580,6 +583,7 @@ jobs:
             ${{ runner.temp }}/tour-entry/*.log
             ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/recent-persistence/*.log
+            ${{ runner.temp }}/practice-picker/*.log
             ${{ runner.temp }}/vibration/*.log
             ${{ runner.temp }}/volume/*.log
             ${{ runner.temp }}/pad-glyphs/*.log

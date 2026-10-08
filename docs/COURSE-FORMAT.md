@@ -689,3 +689,17 @@ selected collision probe/contact Y or the footprint of the contacting
 racer. It therefore does not resolve which of the repeated Y cells
 was touched. Avoid promoting a unique cell or causal slot ordering
 without that additional runtime witness.
+
+
+One additional byte-level caveat comes from the original 128 KiB WRAM binaries.
+The object-activation analyzer reads P1's sampled word at 7E:0E95:
+it advances 0x1804 -> 0x2024 -> 0x2020 -> 0x0022 during this
+transition. The postframe snapshot at 7E:0F09, the current-player
+collision-state source named in the dispatcher disassembly, remains
+0x1804 in all seven frames. These observations have separate fields
+in the preserved witness and cannot be conflated. The apparent
+discrepancy is compatible with the per-player marshal/current-player
+scratch region being overwritten between dispatch and the end-of-frame
+dump, but **that phase explanation has not been proven**. Resolve it
+with an instruction-time read/write trace around 81:82E6 and the P1/P2
+marshal, not by assigning stable frame-end memory an in-flight value.

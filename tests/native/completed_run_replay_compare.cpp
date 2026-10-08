@@ -1,6 +1,8 @@
 #include "completed_run_record.hpp"
 #include "replay_frame_window_equivalence.hpp"
 
+#include <algorithm>
+#include <cctype>
 #include <iostream>
 #include <string>
 
@@ -35,6 +37,29 @@ bool report_provenance(
     report("course_id", a.provenance.course_id, b.provenance.course_id);
     report("mode", a.provenance.mode, b.provenance.mode);
     return same;
+}
+
+bool report_terminal_digest(
+    const CompletedRunRecord& original,
+    const CompletedRunRecord& replayed) {
+    const auto& left = original.terminal_simulation_digest;
+    const auto& right = replayed.terminal_simulation_digest;
+    // Digests encode bytes as hex. The canonical v1 parser admits uppercase
+    // and lowercase A-F, so compare the semantic digest, not letter casing.
+    if (left.size() == right.size() &&
+        std::equal(left.begin(), left.end(), right.begin(),
+            [](unsigned char a, unsigned char b) {
+                return std::tolower(a) == std::tolower(b);
+            })) {
+        return true;
+    }
+    // An absent digest in both historical artifacts is acceptable. Once
+    // either side claims terminal-state evidence, the other side must agree.
+    std::cerr << "DIFF terminal_simulation_digest original="
+              << (left.empty() ? "(absent)" : left)
+              << " replayed=" << (right.empty() ? "(absent)" : right)
+              << "\n";
+    return false;
 }
 
 bool report_inputs(
@@ -117,6 +142,7 @@ int main(int argc, char** argv) {
 
     bool same = true;
     same = report_provenance(*original.record, *replayed.record) && same;
+    same = report_terminal_digest(*original.record, *replayed.record) && same;
     if (original.record->elapsed_ticks60 != replayed.record->elapsed_ticks60) {
         same = false;
         std::cerr << "DIFF elapsed_ticks60 original="

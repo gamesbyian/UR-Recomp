@@ -6,6 +6,8 @@ on:
       - ".github/workflows/windows-modern-restart-audio-probe.yml"
       - "tools/capture_modern_restart_audio.py"
       - "tools/capture_unpaused_race_audio_control.py"
+      - "tools/summarize_audio_restart_keymap_ab.py"
+      - "tests/unit/test_audio_restart_keymap_ab.py"
       - "tests/unit/test_capture_unpaused_race_audio_control.py"
       - "tools/capture_modern_paused_audio.py"
       - "tests/unit/test_capture_modern_restart_audio.py"
@@ -165,6 +167,78 @@ jobs:
               --json-out "$OUT"
           rm -f "$PCM"
 
+      - name: Diagnose possible stock guest Start key leakage after Modern Restart
+        if: always()
+        run: |
+          set -euo pipefail
+          # Hypothesis: Return is the framework's default guest SNES Start
+          # key *and* the Modern Restart confirm key. Test the SAME packaged
+          # executable and unchanged guest script with only the DISPOSABLE
+          # framework user-root keybinds.ini Start mapping changed. No global
+          # keybind/product/frontend edits; actual menu Return stays Return.
+          PACKAGE="$RUNNER_TEMP/audio-restart-package/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          LAUNCHER_WIN="$(cygpath -w "$PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
+          # Interleave matched pairs to reduce confounding from runner load
+          # or execution order: Return-1/None-1, Return-2/None-2, etc.
+          for I in 1 2 3; do
+            for ARM in start-return start-unbound; do
+              START_KEY=Return
+              if test "$ARM" = start-unbound; then START_KEY=None; fi
+              ROOT="$RUNNER_TEMP/restart-keymap-user-$ARM-$I"
+              PCM="$RUNNER_TEMP/restart-keymap-$ARM-$I.raw"
+              LOG="$RUNNER_TEMP/restart-keymap-$ARM-$I.log"
+              OUT="$RUNNER_TEMP/restart-keymap-$ARM-$I.json"
+              rm -rf "$ROOT" "$PCM"
+              mkdir -p "$ROOT"
+              if test "$START_KEY" = None; then
+                printf '[player1]\nstart = None\n[player2]\nstart = None\n' >"$ROOT/keybinds.ini"
+              else
+                printf '[player1]\nstart = Return\n[player2]\nstart = Return\n' >"$ROOT/keybinds.ini"
+              fi
+              grep -Eq "^start = $START_KEY$" "$ROOT/keybinds.ini"
+              ROOT_WIN="$(cygpath -w "$ROOT")"
+              PCM_WIN="$(cygpath -w "$PCM")"
+              LOG_WIN="$(cygpath -w "$LOG")"
+              set +e
+              SDL_VIDEO_DRIVER=windows \
+              SDL_VIDEODRIVER=windows \
+              SDL_AUDIO_DRIVER=disk \
+              SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+              SDL_AUDIO_FORMAT=S16LE \
+              SDL_AUDIO_CHANNELS=2 \
+              SDL_AUDIO_FREQUENCY=44100 \
+              SDL_AUDIO_DISK_TIMESCALE=1.0 \
+              UR_PRODUCT_DIAGNOSTICS=1 \
+              UR_PAUSE_OPEN_ACCEPTANCE=1 \
+              UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+                python -m tools.capture_modern_restart_audio \
+                  "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
+                  --json-out "$OUT"
+              RC=$?
+              set -e
+              rm -f "$PCM"
+              # A silent Restart is expected diagnostic evidence, not
+              # a valid reason to skip the other A/B trial processes.
+              # Unrelated errors or a missing verified report remain fatal.
+              test -s "$OUT"
+              # Explicitly prove this *particular* Windows process loaded the
+              # disposable keymap from its selected root, not an exe-local
+              # default. Otherwise the two arms would not be a valid A/B.
+              grep -Fq "[Keybinds] Loaded keybinds.ini" "$LOG"
+              grep -Fq "Config/saves anchored to user data '$ROOT_WIN'" "$LOG"
+              if test "$RC" -eq 0; then
+                echo "RESTART_KEYMAP_TRIAL arm=$ARM index=$I audible=1"
+              else
+                echo "RESTART_KEYMAP_TRIAL arm=$ARM index=$I recovery_not_confirmed=1"
+              fi
+            done
+          done
+          python -m tools.summarize_audio_restart_keymap_ab "$RUNNER_TEMP" \
+            --json-out "$RUNNER_TEMP/restart-keymap-comparison.json"
+          echo "WINDOWS_RESTART_GUEST_START_KEY_AB PASS source=real_packaged_sdl3 descriptive=1"
+
       - name: Retain bounded audio provenance without copyrighted PCM
         if: always()
         uses: actions/upload-artifact@v4
@@ -178,5 +252,7 @@ jobs:
             ${{ runner.temp }}/audio-modern-restart-queue.json
             ${{ runner.temp }}/audio-unpaused-control-native.log
             ${{ runner.temp }}/audio-unpaused-control-report.json
+            ${{ runner.temp }}/restart-keymap-*.log
+            ${{ runner.temp }}/restart-keymap-*.json
           if-no-files-found: warn
           retention-days: 5

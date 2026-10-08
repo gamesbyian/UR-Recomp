@@ -69,9 +69,9 @@ class CourseContactMarshalContractTests(unittest.TestCase):
         }
         for build, path in roms.items():
             raw = path.read_bytes()
-            for name, (address, expected_hex) in {
-                **MARSHAL, **PLAYER_CALLS
-            }.items():
+            # JSR target operands relocate with region-specific routine
+            # layouts; assert exact transfers only, not USA call immediates.
+            for name, (address, expected_hex) in MARSHAL.items():
                 with self.subTest(build=build, site=name):
                     needle = bytes.fromhex(expected_hex)
                     usa_offset = cpu_to_offset(address)
@@ -84,7 +84,7 @@ class CourseContactMarshalContractTests(unittest.TestCase):
                     self.assertEqual(
                         len(hits), 1,
                         f"{build} {name}: expected one matching player-state "
-                        f"marshal or call bracket within ±128 ROM bytes "
+                        f"marshal bracket within ±128 ROM bytes "
                         f"of USA {address}, found {hits}",
                     )
 

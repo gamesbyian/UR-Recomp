@@ -407,3 +407,38 @@ candidate, not proof of an audible defect. The well-established one-second
 relative-RMS attenuation/recovery and zero-steady-starvation gates continue
 to enforce the shipping stock-pause contract unchanged. Modern host-owned
 frozen pause still requires its own acoustic evidence.
+
+
+## Real stereo envelope shape from the first native capture
+
+The first live Windows envelope run
+[37731532014](https://github.com/gamesbyian/UR-Recomp/actions/runs/37731532014)
+passed all six original checkpoints and emitted three additional 30-bucket
+100 ms SDL3 device-output envelopes. The stock guest Start **paused** phase
+contained 0.9 seconds of *literal digital silence* in its final nine buckets.
+In the preceding adjacent buckets, combined RMS declined from approximately
+2234 to 959 to 130 before the silent stretch. The **resumed** capture
+contained an interior five-bucket (0.5-second) literal silence stretch,
+then output rose through RMS approximately 88, 945, 2615, 3419, 4399
+and 7878 across consecutive 100 ms windows. This establishes a real
+transition *shape* visible in host output, rather than only comparing
+one-second pre/post RMS. These are observations relative to the end of
+independently captured device streams, **not** calibrated guest-frame onset
+times or a proven sound fade algorithm.
+
+The diagnostic reducer
+`tools/summarize_sdl_pause_envelopes.py` now emits a
+cross-phase machine-readable report of the 30 per-bucket RMS levels, exact
+digital-silence positions, leading/trailing silence duration, channel peaks
+and maximum adjacent-sample steps. It checks that the three input envelopes
+are SDL3 stereo 100 ms data from a full three-second tail, with consecutive
+end-relative offsets, physically valid samples and consistent RMS values.
+Literal silence is measured rather than approximated by a guessed
+noise floor. **No new click, fade-duration or absolute onset threshold is
+enforced.** Such a threshold would require stronger guest/device offset
+calibration and repeated real output evidence. The original stock Start
+attenuation/recovery and zero-post-startup-starvation gates remain required.
+
+The Modern host-owned pause path may stop simulation and continue host
+presentation; this original guest Start envelope cannot substitute for
+that separate acceptance.

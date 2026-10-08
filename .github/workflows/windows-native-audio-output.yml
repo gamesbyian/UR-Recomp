@@ -21,6 +21,7 @@ on:
       - "tools/build_audio_pause_route.py"
       - "tools/analyze_audio_pause_phases.py"
       - "tools/analyze_sdl_audio_envelope.py"
+      - "tools/summarize_sdl_pause_envelopes.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -257,6 +258,10 @@ jobs:
             --max-paused-to-before 0.05 \
             --min-resumed-to-before 0.50 \
             --json-out "$RUNNER_TEMP/audio-stock-pause-phases.json"
+          # Extract verified fade/silence shape from the bounded metadata.
+          # No guest-clock alignment or speculative click threshold.
+          python -m tools.summarize_sdl_pause_envelopes "$RUNNER_TEMP" \
+            --json-out "$RUNNER_TEMP/audio-stock-pause-envelope-shape.json"
           echo "WINDOWS_STOCK_PAUSE_AUDIO_MATRIX PASS source_run=$SOURCE"
 
       - name: Upload bounded audio evidence (never PCM)
@@ -271,5 +276,6 @@ jobs:
             ${{ runner.temp }}/audio-phase-matrix.json
             ${{ runner.temp }}/audio-stock-pause-phases.json
             ${{ runner.temp }}/audio-envelope-ui-pause-*.json
+            ${{ runner.temp }}/audio-stock-pause-envelope-shape.json
           if-no-files-found: warn
           retention-days: 7

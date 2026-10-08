@@ -314,6 +314,12 @@ const CompletedRunBrowserEntry* CompletedRunBrowser::selected() const noexcept {
 bool CompletedRunBrowser::refresh(
     const std::string& directory,
     const RunPlaybackTarget& target) {
+    // Returning from a replay refreshes the filesystem catalog. Keep the
+    // player on the artifact they were actually browsing, not whichever run
+    // happens to be newest now. A removed/corrupt/incompatible selection must
+    // never retain replay authority.
+    const std::string previous_path =
+        selected() ? selected()->path : std::string{};
     clear();
 
     std::error_code ec;
@@ -421,6 +427,14 @@ bool CompletedRunBrowser::refresh(
         }
     }
 
+    if (!previous_path.empty()) {
+        for (std::size_t i = 0; i < entries_.size(); ++i) {
+            if (entries_[i].path == previous_path && entries_[i].playable()) {
+                selected_ = i;
+                return true;
+            }
+        }
+    }
     for (std::size_t i = 0; i < entries_.size(); ++i) {
         if (entries_[i].playable()) {
             selected_ = i;

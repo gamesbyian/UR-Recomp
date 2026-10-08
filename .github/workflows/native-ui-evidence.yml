@@ -267,7 +267,7 @@ jobs:
                   test -f "$src" || { echo "::error::Race-result baseline state missing: $state"; exit 1; }
                   cp "$src" "$SNESRECOMP_USER_DATA_DIR/$state" || exit $?
                 done
-                printf '\n[General]\nDisableFrameDelay = 1\n' >> "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                printf '[General]\nDisableFrameDelay = 1\n' > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 grep -Fqx 'DisableFrameDelay = 1' "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
                 run_route ui-race-result-route ui-race-result-route.script ui-race-result-dumps 180 required || exit $?
                 grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \

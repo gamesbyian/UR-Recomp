@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -112,6 +113,51 @@ int main() {
     const auto link0 = link_root / "fixture-0.urfixture";
     check(fs::exists(link0) && !fs::exists(link0.string() + ".tmp"),
           "durable fixture link committed and no temporary residue");
+
+    // A second, separately valid process attempt for the same scheduled
+    // fixture must NEVER overwrite the already published receipt. A prior
+    // exists() check is not a concurrency transaction, so publication itself
+    // must atomically reject an occupied final name.
+    const auto alternate_run = make_run(initial->fixtures[0].course_id, 0x040);
+    const auto alternate_match = make_match(alternate_run, *initial, 0);
+    std::string alternate_path;
+    check(append_multiplayer_match_pair(
+        run_root.string(), alternate_run, alternate_match,
+        &alternate_path, &detail), "competing valid pair published");
+    std::ifstream before_link(link0, std::ios::binary);
+    const std::string incumbent_bytes{
+        std::istreambuf_iterator<char>(before_link),
+        std::istreambuf_iterator<char>()};
+    check(!incumbent_bytes.empty(), "incumbent receipt byte witness");
+    auto competing = *initial;
+    LocalTournamentLaunchState competitor_launch;
+    const std::string competitor_attempt =
+        "33333333333333333333333333333333";
+    check(local_tournament_arm_fixture(
+        competitor_launch, competing, instance, competitor_attempt, 0) ==
+            LocalTournamentLaunchStatus::Armed,
+        "independent second process could arm the same earlier fixture");
+    check(commit_saved_local_tournament_fixture(
+        link_root.string(), run_root.string(), alternate_path, instance,
+        competitor_attempt, competitor_launch, competing) ==
+            Status::Conflict && competitor_launch.pending &&
+            !competing.results[0],
+        "second valid fixture result cannot replace first, or commit memory");
+    std::ifstream after_link(link0, std::ios::binary);
+    const std::string preserved_bytes{
+        std::istreambuf_iterator<char>(after_link),
+        std::istreambuf_iterator<char>()};
+    check(preserved_bytes == incumbent_bytes,
+          "immutable published receipt remains byte exact after conflict");
+
+    // A process killed before the atomic final-name claim can leave staging
+    // debris. It must never become evidence or poison a valid fixture restore.
+    const auto abandoned = link_root / ".pending-urfixture-abandoned";
+    fs::create_directory(abandoned);
+    {
+        std::ofstream pending(abandoned / "fixture.tmp", std::ios::binary);
+        pending << "unfinished alternate receipt";
+    }
 
     const auto restored = restore_saved_local_tournament_fixtures(
         link_root.string(), run_root.string(), instance, *initial);

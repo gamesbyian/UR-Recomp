@@ -230,11 +230,39 @@ Use `snesref` or another trustworthy reference route.
 
 **Exit:** fidelity is objectively testable.
 
-## Audio Windows x64 acceptance boundary (2026-10-07)
+## Audio Windows x64 acceptance boundary (updated 2026-10-08)
 
-The stock native SDL3 host reaches a 32 kHz stereo audio callback under dummy audio, but this only establishes callback/device viability, not audible waveform equivalence. The independent Snes9x/Beetle reference route already supplies named PCM windows and non-silent frontend/race assertions (see `references/notes/audio-startup-seam.md` and `analysis/generated/audio-startup-reference-summary.json`). The reducer `tools/analyze_reference_audio_windows.py` now fails closed when a named checkpoint falls beyond the actual WAV capture, and reports exact interval endpoints and truncated-window status to prevent treating missing PCM as a valid quiet passage.
+**Closed, with actual packaged Windows execution:** source build
+[37718859318](https://github.com/gamesbyian/UR-Recomp/actions/runs/37718859318)
+and specialist audio acceptance
+[37720294029](https://github.com/gamesbyian/UR-Recomp/actions/runs/37720294029)
+prove the shipping SDL3 executable emits actual signed-16 stereo PCM at the
+named Main Menu, Now Playing and Race Entry checkpoints. Each run reached the
+two guest-authoritative WRAM dumps, with the exact 30-frame post-checkpoint
+interval checked from the native log. Both reference cores and the native
+host show the same increasing phase-RMS order, but this does not establish
+sample-level DSP/music/SFX equality. All three native phases had zero
+audible ring-sample drops and zero post-startup underflows/missing frames;
+about 4,041–4,042 missing device-rate frames are consistently confined to
+the first reporting interval. See
+`docs/AUDIO-NATIVE-OUTPUT-ACCEPTANCE.md` and
+`docs/AUDIO-QUEUE-DIAGNOSTICS.md` for captured evidence, exact
+instrumentation and limitations. Original Snes9x/Beetle windows:
+`reference/notes/audio-startup-seam.md` and
+`analysis/generated/audio-startup-reference-summary.json`.
 
-**Shipping acceptance still open:** record PCM from the packaged Windows x64 **native** executable (not only SDL dummy callbacks), compare named frontend/race transitions with the independent reference windows, exercise pause/resume, restart, device loss/reopen and frontend/race transitions at real output, and bound underruns, queued latency and audible discontinuities. Use guest-state-aligned observations and retain Authentic output; do not demand bit-identical PCM across different emulator cores or re-clock the game to the audio device. The branch `claude/audio-volume-option` exists: check it for ownership conflicts before adding host audio options. Audio asset reconstruction remains optional Phase H and must use the existing SPC/BRR provenance chain, not speculative replacement or soundfont assumptions.
+**Actual next audio shipping work:** measure pause/resume, Restart Race and
+Exit-to-Frontend transition acoustics through real SDL3 output, including
+silence/discontinuity envelopes and guest-state checkpoint correlation.
+Then evaluate device loss/reopen, queued latency and independently rendered
+SPC/DSP content equivalence where measurable. Do not claim native phase
+ratios prove exact soundtrack/effect fidelity; do not re-clock the guest,
+change authoritative sound triggers or replace stock samples to resolve a
+mere instrumentation discrepancy. Keep the original Authentic sound pipeline
+as the shipping fallback. The historical `claude/audio-volume-option`
+branch should be checked for overlap before any host audio options work;
+audio asset reconstruction remains optional Phase H and must preserve
+SPC/BRR source provenance.
 
 ## Phase 6 — Reverse-engineering map
 

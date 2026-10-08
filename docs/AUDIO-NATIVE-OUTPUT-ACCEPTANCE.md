@@ -13,7 +13,7 @@ host selects signed-16 stereo source audio; SDL's device stream may resample to
 the output device. A device-opening success or dummy callback proves no audible
 content. The previously accepted Snes9x/Beetle reference evidence instead
 establishes non-silent, distinct frontend/first-race PCM windows:
-references/notes/audio-startup-seam.md.
+reference/notes/audio-startup-seam.md.
 
 For a **real native device-output signal**, SDL3 3.4.10 contains a built-in
 disk audio backend. It writes the final playback stream as headerless PCM.
@@ -207,3 +207,50 @@ tail RMS values for every named checkpoint. This fails closed if either channel
 is wholly silent or the native analyzer failed to supply independent stereo
 evidence, while avoiding an unsupported channel-loudness equivalence to the
 independent emulators.
+
+## First fully passing three-phase Windows result, 2026-10-08
+
+Automated audio-only acceptance
+[run 37720294029](https://github.com/gamesbyian/UR-Recomp/actions/runs/37720294029)
+passed using the already verified Windows portable ZIP from
+[run 37718859318](https://github.com/gamesbyian/UR-Recomp/actions/runs/37718859318).
+It independently launched the *shipping* executable for each canonical
+checkpoint, verified both authoritative WRAM dump files, confirmed the exact
+30 post-checkpoint simulated frames in each native log, captured SDL3
+S16LE/44.1 kHz stereo output, applied the post-startup queue continuity
+limits and compared the normalized one-second audio tails with the two
+independent reference-core measurements.
+
+| Native checkpoint | Guest boundary/post frames | Native tail RMS / menu-tail ratio | New underflows after first interval | Audible source drops |
+| --- | --- | --- | --- | --- |
+| Main Menu | 506 / 536 | reference baseline, 1.000× | 0 | 0 |
+| Now Playing | 829 / 859 | 1.763× | 0 | 0 |
+| Race Entry | 1044 / 1074 | 2.762× | 0 | 0 |
+
+The Snes9x **Now Playing/Race Entry** to Main Menu RMS ratios in the
+independent reference windows were **1.663× / 2.871×**; Beetle/bsnes was
+**1.711× / 2.909×**. All three engines independently order their observed
+checkpoint RMS levels **Main Menu < Now Playing < Race Entry**. Differences
+in PCM window placement, backend processing, gain and resampler output mean
+this is a meaningful coarse comparison, **not** a requirement for equal
+amplitude, musical notes or waveform hashes.
+
+The 9-, 15- and 18-snapshot native runs each recorded eight underflow
+episodes and about 4,041–4,042 missing output-rate frames *only in the first
+observed one-second stats interval*, followed by **zero** new underflows or
+missing frames. Across all three runs there were zero audible native-ring
+sample drops. Stereo channel-tail metadata and source-provenance checks
+passed. The first `workflow_run` attempt of this expanded gate
+([37719278900](https://github.com/gamesbyian/UR-Recomp/actions/runs/37719278900))
+reached its guest-observed menu checkpoint but failed on a direct-file Python
+module import; the module invocation was corrected and pinned by a CLI unit
+test. A separate skipped-source-event concurrency cancellation was resolved
+before the first full pass.
+
+**New bounded status:** native Windows first-race frontend-to-race audio
+output *presence, coarse phase dynamics and post-startup queue continuity*
+are demonstrated end to end. **Still open:** exactly aligned reference/native
+PCM and DSP/notes/SFX equivalence, actual speaker/device latency,
+pause/resume/Restart/Exit-to-Frontend transition acoustics, and device
+loss/recovery. Do not amend authoritative guest cadence or replace original
+SPC sounds to address unmeasured fidelity differences.

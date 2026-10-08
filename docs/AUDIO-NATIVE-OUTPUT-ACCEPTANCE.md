@@ -254,3 +254,35 @@ PCM and DSP/notes/SFX equivalence, actual speaker/device latency,
 pause/resume/Restart/Exit-to-Frontend transition acoustics, and device
 loss/recovery. Do not amend authoritative guest cadence or replace original
 SPC sounds to address unmeasured fidelity differences.
+
+## Stock guest Start pause/resume audio envelope (diagnostic)
+
+The next real-output discriminator derives three fresh-process Windows routes
+from the existing accepted `tests/input/ui-pause-route.script`. They
+stop at the guest-observed `ui-pause-before`,
+`ui-pause-after-start` and
+`ui-pause-after-resume` WRAM dumps, then add exactly 30 passive guest
+frames and a second checked dump to bracket each checkpoint. The derived
+routes require respectively **zero, one, and two** literal stock
+`press start 2` commands and an observed in-race flag; no
+synthetic guest state or newly guessed pause input is permitted.
+
+The separate process for each checkpoint writes signed-16 stereo SDL3 disk
+output plus production queue counters. The 1-second device tail's left/right
+RMS and nonzero fraction are retained in
+`audio-stock-pause-phases.json` alongside relative phase ratios and
+startup-versus-later underflow counts. Silence in the observed pause phase
+is **permitted and reported**, not treated as an automatic failure; no
+pause-specific missing-output-frame threshold is imposed until the native
+captures establish normal stock behaviour. The report fails closed on
+incomplete/unsupported capture provenance, missing or mistimed guest
+checkpoints and impossible counters; raw music/audio bytes are deleted
+locally and are never uploaded as artifacts.
+
+**Ownership limitation:** these are original *guest Start* pause edges from
+the accepted stock scripting path. They do **not** yet exercise the
+Modern **host-owned frozen guest** pause menu, which can stop scripted guest
+frames while it is open. That product-specific acoustic test needs an
+independent host-input/host-presentation harness and must avoid interfering
+with active Modern pause/Restart PRs. Neither capture proves precise
+guest-to-SDL-sample latency or exact DSP content.

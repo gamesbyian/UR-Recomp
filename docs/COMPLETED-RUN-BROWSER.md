@@ -16,7 +16,7 @@ Up/Down or the D-pad moves among playable records while skipping disabled rows. 
 
 ## Replay launch
 
-Replay launch does not add a simulation model. The selected `.urrun` is validated, exported with `encode_completed_run_input_file()`, and staged as the same `INPUT_FILE` grammar already used by deterministic replay acceptance.
+Replay launch does not add a simulation model. The selected `.urrun` is validated, exported with `encode_completed_run_input_file()`, and staged as the same `INPUT_FILE` grammar already used by deterministic replay acceptance. Before staging, the selected record is reloaded from its existing on-disk path, checked against the live course/provenance and required to match the browser's canonical snapshot. A deleted, damaged, replaced, or foreign-profile artifact can no longer be launched solely from stale in-memory selection.
 
 Each replay launch reserves a distinct hidden staging directory beneath the same user-data root's `replay/` namespace before writing its canonical input file. Atomic directory creation prevents two concurrently running game processes from truncating one another's selected replay, even when they share the same profile. The staged file stays present while the framework owns the replay and is removed after input unload on normal return, cancellation or a rejected launch. An abrupt process death can leave an ignored hidden staging directory; it is never an admitted `.urrun` or `.urghost` artifact and does not grant record authority.
 

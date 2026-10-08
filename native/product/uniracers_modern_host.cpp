@@ -7606,25 +7606,22 @@ extern "C" void ur_uniracers_modern_system_overlay(
             const auto stock_option = ur::product::kQuickPracticeTourOptions[tour];
             const bool visible = ur::title::stock_tour_progress_visible(
                 g_progress_overview, stock_option);
-            if (visible) {
-                std::snprintf(row, sizeof(row), "%u. %.*s  %s",
-                    static_cast<unsigned>(tour + 1),
-                    static_cast<int>(course->tour_name.size()),
-                    course->tour_name.data(),
-                    ur::title::stock_tour_progress_medal_name(
-                        g_progress_overview, stock_option));
-            } else {
-                std::snprintf(row, sizeof(row), "%u. LOCKED TOUR",
-                    static_cast<unsigned>(tour + 1));
-            }
-            const auto tour_text = ur::product::fit_modern_overlay_text(
-                row, ur::product::modern_overlay_text_cells(panel_w));
+            const auto tour_text = ur::product::modern_tour_overview_row(
+                static_cast<unsigned>(tour + 1),
+                visible,
+                visible ? course->tour_name : std::string_view{},
+                visible
+                    ? ur::title::stock_tour_progress_medal_name(
+                          g_progress_overview, stock_option)
+                    : "",
+                ur::product::modern_overlay_text_cells(panel_w));
             snes_ovl_draw_text(pixels, stride, height,
                 x + 8 * scale,
                 y + (51 + static_cast<int>(tour) * 16) * scale,
                 tour_text.c_str(),
-                visible ? style.palette.title_yellow
-                        : style.palette.secondary_grey, scale);
+                visible && g_progress_overview.medal_tiers[stock_option] > 0
+                    ? style.palette.title_yellow
+                    : style.palette.secondary_grey, scale);
         }
         const std::string hint = ur::product::fit_modern_overlay_text(
             "ESC/F7 / PAD " + live_gamepad_binding_label(7) + " BACK",

@@ -8,6 +8,9 @@ on:
       - "native/product/local_multiplayer_*.cpp"
       - "native/product/local_tournament_round_robin.hpp"
       - "native/product/local_tournament_fixture_receipt.hpp"
+      - "native/product/local_tournament_fixture_launch*.hpp"
+      - "tests/native/local_tournament_fixture_launch_test.cpp"
+      - "tests/unit/test_local_tournament_fixture_launch_cpp.py"
       - "native/product/multiplayer_match_record.*"
       - "native/product/multiplayer_match_catalog.*"
       - "native/product/multiplayer_match_presentation.*"
@@ -50,6 +53,7 @@ jobs:
           python3 -m unittest \
             tests.unit.test_local_tournament_round_robin_cpp \
             tests.unit.test_local_tournament_fixture_receipt_cpp \
+            tests.unit.test_local_tournament_fixture_launch_cpp \
             tests.unit.test_local_multiplayer_setup_cpp \
             tests.unit.test_local_multiplayer_participants_cpp \
             tests.unit.test_local_multiplayer_match_binding_cpp \

@@ -79,13 +79,24 @@ class RewardTableTests(unittest.TestCase):
             (ROOT / "analysis/generated/dessyreqt-named-boost-messages.json")
             .read_text(encoding="utf-8")
         )
+        retained = json.loads(
+            (ROOT / "analysis/generated/stunt-message-reward-rom-verification.json")
+            .read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            retained["validated_region_sha256"],
+            structure["regions"][[r["name"] for r in structure["regions"]].index(
+                "message_reward_lookup_block"
+            )]["builds"]["usa-retail"]["sha256"]
+        )
         available = [name for name, path in paths.items() if path.is_file()]
         if not available:
             self.skipTest("canonical ROMs unavailable on this runner")
         for build in available:
             with self.subTest(build=build):
                 report = extract(paths[build].read_bytes(), structure, aliases, build)
-                self.assertEqual(len(report["raw_signed_words"]), 21)
+                self.assertEqual(report["raw_signed_words"], retained["signed_words"])
+                self.assertEqual(report["historical_disagreements"], retained["historical_named_mapping_disagreements"])
                 self.assertEqual(len(report["historical_comparison"]), len(aliases["mapping"]))
                 print("STUNT_REWARD_ROM_EVIDENCE " + json.dumps({
                     "build": build, "words": report["raw_signed_words"],

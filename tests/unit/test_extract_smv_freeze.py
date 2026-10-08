@@ -228,6 +228,13 @@ class JumpoverProbeAnalysisTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "same frame"):
             classify(control, shifted)
 
+    def test_first_divergence_rejects_empty_captures(self):
+        a = rows([1, 2], [0, 0])
+        for left, right in (([], []), (a, []), ([], a)):
+            with self.subTest(left=len(left), right=len(right)):
+                with self.assertRaisesRegex(ValueError, "nonempty captures"):
+                    first_divergence(left, right, ("p1_y",))
+
     def test_first_divergence_rejects_missing_or_shifted_frames(self):
         a = rows([1, 2, 3], [0, 0, 0])
         with self.assertRaisesRegex(ValueError, "different frame counts"):

@@ -5,6 +5,7 @@ import unittest
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 HARNESS = ROOT / "tests" / "native" / "run_modern_tour_entry_acceptance.sh"
 WORKFLOW = ROOT / ".github" / "workflows" / "modern-onboarding-practice-acceptance.yml"
+ONBOARDING_PATHS = ROOT / ".github" / "ci" / "modern-native-onboarding-paths.txt"
 
 
 class ModernTourAcceptanceHarnessTests(unittest.TestCase):
@@ -48,8 +49,8 @@ class ModernTourAcceptanceHarnessTests(unittest.TestCase):
             "run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry",
             workflow,
         )
-        self.assertIn("tests/native/run_modern_tour_entry_acceptance.sh", workflow)
-        self.assertIn('"tests/native/run_modern_tour_entry_acceptance.sh"', workflow)
+        paths = ONBOARDING_PATHS.read_text(encoding="utf-8")
+        self.assertIn("tests/native/run_modern_tour_entry_acceptance.sh", paths)
         self.assertIn("xdotool", workflow)
 
 

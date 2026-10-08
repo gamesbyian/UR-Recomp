@@ -13,7 +13,7 @@ host selects signed-16 stereo source audio; SDL's device stream may resample to
 the output device. A device-opening success or dummy callback proves no audible
 content. The previously accepted Snes9x/Beetle reference evidence instead
 establishes non-silent, distinct frontend/first-race PCM windows:
-references/notes/audio-startup-seam.md.
+reference/notes/audio-startup-seam.md.
 
 For a **real native device-output signal**, SDL3 3.4.10 contains a built-in
 disk audio backend. It writes the final playback stream as headerless PCM.

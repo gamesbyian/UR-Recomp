@@ -272,6 +272,44 @@ merge gate. This avoids silently falling back to the executable-owned
 config or treating a merged workflow as measured merely because its
 two constituent PRs separately passed.
 
+### Verified combined Circuit and Settings CI baseline (2026-10-08)
+
+After #891 and #894 merged, #903 added an explicit native-host witness
+that the required Circuit route *actually loads* the pristine
+`SNESRECOMP_USER_DATA_DIR` whose config sets `DisableFrameDelay = 1`.
+[Run 37834711287](https://github.com/gamesbyian/UR-Recomp/actions/runs/37834711287)
+passed all six capture jobs and aggregate, and its Results-A log emitted
+`UR_CIRCUIT_ISOLATED_CONFIG_ROOT PASS`. These are post-merge,
+same-head results, unlike #894's earlier pre-#891 71-second Circuit
+control.
+
+Observed capture-job spans from that green run were:
+
+| Capture shard | Seconds | Representative costly route |
+|---|---:|---|
+| Records | 133 | Records exploration: 75 s |
+| Results-A | 127 | Options submenus: 56 s; Circuit: 22 s |
+| Profiles | 121 | Rename editor: 69 s |
+| Navigation | 120 | Race result: 57 s |
+| Results-B | 114 | Records submenus: 54 s |
+| Core | 112 | UI routes plus Render Scale acceptances |
+
+The UI-only router's observed end-to-end wall-clock was **345 s**;
+green baseline [run 37767974404](https://github.com/gamesbyian/UR-Recomp/actions/runs/37767974404)
+before the bounded/unpaced acceleration and later rebalance took
+**439 s**. The 94-second difference is a run-pair observation, **not**
+an apples-to-apples statistical estimate: runner contention, commits and
+setup variance also differ. Improvements were achieved without adding
+matrix jobs or removing accepted visual/WRAM evidence.
+
+Next experiment: #905 replays all six Records discriminator resets from
+paired pristine roots to check every dump byte under paced/unpaced
+execution, retaining the shipping paced route unchanged until proven.
+#906 separately benchmarks the canonical Ninja generator in the
+standalone Native UI build without changing its `-j2` limit. Both are
+research first; their PR-head workflow outcomes must be reconciled onto
+latest main before claiming product-ready speedups.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

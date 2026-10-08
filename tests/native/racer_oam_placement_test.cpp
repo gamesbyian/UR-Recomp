@@ -34,6 +34,24 @@ void set_slot(
 }  // namespace
 
 int main() {
+    // The HD replacement must obey the original HDMA $A5/$5A handoff
+    // after logical scanline 111 even with 1x-4x presentation density.
+    for (int scale = 1; scale <= 4; ++scale) {
+        const auto visible = [scale](RacerViewport viewport, int y) {
+            return racer_split_viewport_contains_row(viewport, y, scale);
+        };
+        assert(!visible(RacerViewport::Top, -1));
+        assert(!visible(RacerViewport::Bottom, -1));
+        assert(visible(RacerViewport::Top, 0));
+        assert(visible(RacerViewport::Top, 112 * scale - 1));
+        assert(!visible(RacerViewport::Top, 112 * scale));
+        assert(!visible(RacerViewport::Bottom, 112 * scale - 1));
+        assert(visible(RacerViewport::Bottom, 112 * scale));
+        assert(visible(RacerViewport::Bottom, 224 * scale - 1));
+        assert(!visible(RacerViewport::Bottom, 224 * scale));
+        assert(!visible(RacerViewport::Top, 224 * scale));
+    }
+    assert(!racer_split_viewport_contains_row(RacerViewport::Top, 0, 0));
     std::array<std::uint8_t, 544> oam{};
     set_slot(oam, 98, 104, 40, 0x00, 0x66, true);
     set_slot(oam, 99, 104, 40, 0x88, 0x68, true);

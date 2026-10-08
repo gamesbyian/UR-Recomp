@@ -18,7 +18,7 @@ The controller payload intentionally uses the same start:duration:p1-mask[:p2-ma
 
 The native original-vs-fresh-process replay comparison must match provenance, the resolved RLE controller stream, finish ticks and ordered checkpoint splits. It tolerates at most a **one guest-frame** difference between recorded `frame_count` values, reflecting the confirmed results-retirement sampling boundary; a larger discrepancy is a failed replay even if all nonzero input spans and finish timing happen to agree. This is an acceptance rule only and does not change the `.urrun` codec or reject separately loadable historical records.
 
-The optional terminal digest is a validation oracle only. It does not grant host data authority over gameplay.
+The optional terminal digest is a validation oracle only. It does not grant host data authority over gameplay. A fresh-process replay comparison requires the same terminal hexadecimal digest (case-insensitively) whenever either artifact carries one. A different digest or an absent counterpart rejects replay parity; two absent digests remain supported. Stored terminal digests never alter, restore or overwrite guest memory.
 
 ## Timing
 

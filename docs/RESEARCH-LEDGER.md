@@ -2694,9 +2694,9 @@ Native smoke gates all of this.
 - An input-only route (boost earned by a landed stunt) would remove the seed; not attempted beyond the probes above.
 - No `docs/SYMBOLS.md` change.
 
-### R-2026-10-08-PHYS-03 — Ground boost→speed law, ramp, cap and depletion, identical in native
+### R-2026-10-08-PHYS-03 — Boost→speed law, ramp, cap and depletion on the ground and in the air, identical in native
 
-**Status:** confirmed (ground; airborne storage and offscreen depletion still open)  
+**Status:** confirmed (ground and airborne; offscreen depletion still open)  
 **Date:** 2026-10-08  
 **Area:** physics
 
@@ -2709,7 +2709,8 @@ Native smoke gates all of this.
 - Speed climbs at most +24 per frame toward that target (about 6 frames from 448 to the 640 cap).
 - Depletion grows with the meter and saturates. Over 22 flat frames the meter loses 0 (≤ 32), 4 (64), 16 (96), 28 (128) and 88 (4 per frame) for every seed from 256 up. It keeps depleting through 1–2-frame airborne bumps.
 - The stored meter is not clamped: a 0x400 seed is still above 0x180 a frame later. The statically localized `0x0180` clamp is therefore on the reward-add path, not on storage or the speed read.
-- Native and snesref series are identical for all ten seeds (hash and frame-by-frame).
+- **Airborne:** seeding just before the halfpipe jump (B held 20 frames from race +372) gives 26–30 airborne frames. The meter drains at the ground rate in the air (64: 4 over 29 frames; 128: 24 over 30; 256: 96 over 26), and air X speed follows the same `min(448 + boost/2, 640)` law within ±1. Nothing is stored for landing, so the "airborne storage" claim does not describe stock behavior.
+- Native and snesref series are identical for all ten ground seeds and all three airborne seeds (hash and frame-by-frame).
 
 **Evidence:**
 - `analysis/generated/boost-speed-probe.json` from `tools/probe_boost_speed.py` (manual harness, same requirements as the Jumpover probe).
@@ -2723,5 +2724,5 @@ Native smoke gates all of this.
 
 **Propagation:**
 - `docs/knowledge/movement-physics-and-stunts.md` (game-facing boost law).
-- Still open under (d): airborne storage over a long jump, and offscreen depletion (the P2/offscreen decrement path).
+- Still open under (d): offscreen depletion (the P2/offscreen decrement path).
 - No `docs/SYMBOLS.md` change.

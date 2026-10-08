@@ -42,6 +42,15 @@ class BoostSpeedProbeTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.summarize(_rows(pairs[:3]))
 
+    def test_air_summary_uses_the_longest_airborne_run(self):
+        rows = [{"x_speed": 512, "boost": 128 - 2 * i, "y": 500, "air_time": 1 if 3 <= i <= 9 else 0}
+                for i in range(12)]
+        summary = probe.summarize_air(rows)
+        self.assertEqual(summary["airborne_run"], [3, 9])
+        self.assertEqual(summary["boost_spent_airborne"], 12)
+        with self.assertRaises(ValueError):
+            probe.summarize_air([{"x_speed": 448, "boost": 0, "y": 539, "air_time": 0}])
+
     def test_load_rows_requires_every_full_in_race_dump(self):
         def image(track=19, race=1, size=0x20000):
             wram = bytearray(size)
@@ -82,6 +91,18 @@ class BoostSpeedProbeTests(unittest.TestCase):
         self.assertEqual(by_seed[0x400]["max_flat_x_speed"], probe.SPEED_CAP)
         self.assertGreater(int(by_seed[0x400]["series"].split()[0].split("/")[1]), 0x180)
         self.assertEqual(by_seed[0]["boost_spent_on_flat"], 0)
+        # Airborne: the meter keeps draining at the ground rate and air speed
+        # follows the same law; nothing is stored for landing.
+        self.assertEqual([c["seed"] for c in evidence["air_cases"]], list(probe.AIR_SEEDS))
+        for case in evidence["air_cases"]:
+            ref = case["reference"]
+            self.assertIsNone(case["first_divergence_frame"], case["seed"])
+            self.assertEqual(ref["series_sha256"], case["native"]["series_sha256"])
+            a, b = ref["airborne_run"]
+            self.assertGreaterEqual(b - a, 20, case["seed"])
+            self.assertLessEqual(ref["max_law_deviation_airborne"], 1, case["seed"])
+        air = {c["seed"]: c["reference"] for c in evidence["air_cases"]}
+        self.assertGreater(air[256]["boost_spent_airborne"], 3 * (air[256]["airborne_run"][1] - air[256]["airborne_run"][0]))
         # Depletion saturates at 4 per frame from 256 up.
         self.assertEqual(by_seed[256]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)
         self.assertEqual(by_seed[0x400]["boost_spent_on_flat"], 4 * probe.FLAT_FRAMES)

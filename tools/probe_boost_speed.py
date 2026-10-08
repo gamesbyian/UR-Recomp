@@ -28,12 +28,18 @@ import probe_jumpover_fallthrough_native as jf  # noqa: E402
 SEED_OFFSET = 222       # race entry + 222: grounded, full speed, flat straight
 FRAMES = 40             # dumped frames after the seed
 SEEDS = (0, 16, 32, 64, 96, 128, 256, 0x180, 0x200, 0x400)
+# Airborne scenario: seed just before the halfpipe jump (B held at race
+# entry + 372 for 20 frames clears the halfpipe), then compare in-air
+# depletion and speed with the ground law.
+AIR_SEED_OFFSET = 364
+AIR_JUMP = (372, 20)
+AIR_SEEDS = (64, 128, 256)
 BASE_SPEED = 448        # hold-Right ground speed with an empty meter
 SPEED_CAP = 640
 
 
-def boost_script(race_frame: int, value: int) -> str:
-    seed = race_frame + SEED_OFFSET
+def boost_script(race_frame: int, value: int, seed_offset: int = SEED_OFFSET) -> str:
+    seed = race_frame + seed_offset
     lines = [jf.MENU_SCRIPT.rstrip("\n"), f"wait {seed - race_frame}",
              f"poke 11CF {value & 0xFF:02x}{value >> 8:02x}", "dump s000"]
     for i in range(1, FRAMES + 1):
@@ -97,6 +103,28 @@ def summarize(rows: list[dict]) -> dict:
     }
 
 
+def summarize_air(rows: list[dict]) -> dict:
+    """Depletion and the speed law over the longest airborne run."""
+    runs, start = [], None
+    for i, r in enumerate(rows + [{"air_time": 0}]):
+        if r["air_time"] and start is None:
+            start = i
+        elif not r["air_time"] and start is not None:
+            runs.append((start, i - 1))
+            start = None
+    if not runs:
+        raise ValueError("no airborne frames")
+    a, b = max(runs, key=lambda r: r[1] - r[0])
+    deviations = [abs(rows[i]["x_speed"] - law_speed(rows[i - 1]["boost"])) for i in range(max(a, 1), b + 1)]
+    return {
+        "series": " ".join(f'{r["x_speed"]}/{r["boost"]}/{r["air_time"]}' for r in rows),
+        "airborne_run": [a, b],
+        "boost_spent_airborne": rows[a]["boost"] - rows[b]["boost"],
+        "max_law_deviation_airborne": max(deviations, default=None),
+        "series_sha256": hashlib.sha256(json.dumps(rows, sort_keys=True).encode()).hexdigest(),
+    }
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--snesref", type=Path, required=True)
@@ -147,8 +175,32 @@ def main(argv=None) -> int:
                           "law_dev": r["max_law_deviation_after_ramp"], "ramp": r["max_ramp_step"],
                           "spent": r["boost_spent_on_flat"], "divergence": divergence}), flush=True)
 
+    air_cases = []
+    for value in AIR_SEEDS:
+        work = args.work_dir / f"air-seed-{value}"
+        shutil.rmtree(work, ignore_errors=True)
+        work.mkdir(parents=True)
+        script = work / "boost.script"
+        script.write_text(boost_script(ref_race, value, AIR_SEED_OFFSET))
+        jump_at, jump_len = AIR_JUMP
+        events = [(ref_race, jump_at, 0x0080), (ref_race + jump_at, jump_len, 0x0081),
+                  (ref_race + jump_at + jump_len, FRAMES + 40, 0x0080)]
+        jf.run_reference(work, args, script, events)
+        jf.run_native(work, args, script, events, shift or 0)
+        ref_rows, nat_rows = load_rows(work / "ref"), load_rows(work / "native")
+        divergence = next((i for i, (a, b) in enumerate(zip(ref_rows, nat_rows)) if a != b), None)
+        ref_summary, nat_summary = summarize_air(ref_rows), summarize_air(nat_rows)
+        nat_summary.pop("series")
+        ok &= divergence is None
+        air_cases.append({"seed": value, "reference": ref_summary, "native": nat_summary,
+                          "first_divergence_frame": divergence})
+        print(json.dumps({"air_seed": value, "run": ref_summary["airborne_run"],
+                          "spent_airborne": ref_summary["boost_spent_airborne"],
+                          "law_dev": ref_summary["max_law_deviation_airborne"],
+                          "divergence": divergence}), flush=True)
+
     evidence = {
-        "schema_version": 1,
+        "schema_version": 2,
         "kind": "boost-speed-probe",
         "qualification": ("controlled-state measurement: each case writes P1's boost meter "
                           "(7E:11CF) once at a frame boundary and observes what the game does with it"),
@@ -163,6 +215,9 @@ def main(argv=None) -> int:
         "base_speed": BASE_SPEED,
         "speed_cap": SPEED_CAP,
         "cases": cases,
+        "air_seed_frame_after_race_entry": AIR_SEED_OFFSET,
+        "air_jump": {"frame_after_race_entry": AIR_JUMP[0], "frames": AIR_JUMP[1], "mask": "0x081"},
+        "air_cases": air_cases,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")

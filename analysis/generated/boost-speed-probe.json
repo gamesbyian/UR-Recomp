@@ -1,4 +1,81 @@
 {
+  "air_cases": [
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_run": [
+          11,
+          40
+        ],
+        "boost_spent_airborne": 4,
+        "max_law_deviation_airborne": 1,
+        "series_sha256": "e241630d0dc56e23b9543c6ca2e9e6a9290a4b3dbed2342169fe3a72629ee3aa"
+      },
+      "reference": {
+        "airborne_run": [
+          11,
+          40
+        ],
+        "boost_spent_airborne": 4,
+        "max_law_deviation_airborne": 1,
+        "series": "481/60/0 479/60/0 479/60/0 479/60/0 479/60/0 479/60/0 479/60/0 479/60/0 479/60/0 477/60/0 479/60/0 479/60/1 479/60/2 478/60/3 478/60/4 478/60/5 478/56/6 476/56/7 476/56/8 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9 476/56/9",
+        "series_sha256": "e241630d0dc56e23b9543c6ca2e9e6a9290a4b3dbed2342169fe3a72629ee3aa"
+      },
+      "seed": 64
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_run": [
+          10,
+          40
+        ],
+        "boost_spent_airborne": 24,
+        "max_law_deviation_airborne": 1,
+        "series_sha256": "7381de931ee2e8e1215bbb95f89adec8bf723bf4307a2dce5e884c42a8d2ccf6"
+      },
+      "reference": {
+        "airborne_run": [
+          10,
+          40
+        ],
+        "boost_spent_airborne": 24,
+        "max_law_deviation_airborne": 1,
+        "series": "497/120/0 509/120/0 509/116/0 507/116/0 507/112/0 505/112/0 505/108/0 503/108/0 503/104/0 501/104/0 501/104/1 501/104/2 501/100/3 498/100/4 498/100/5 498/100/6 498/96/7 496/96/8 496/96/9 496/96/9 496/92/9 494/92/9 494/92/9 494/92/9 494/88/9 492/88/9 492/88/9 492/88/9 492/88/9 492/88/9 492/88/9 492/88/9 492/84/9 490/84/9 490/84/9 490/84/9 490/84/9 490/84/9 490/84/9 490/84/9 490/80/9",
+        "series_sha256": "7381de931ee2e8e1215bbb95f89adec8bf723bf4307a2dce5e884c42a8d2ccf6"
+      },
+      "seed": 128
+    },
+    {
+      "first_divergence_frame": null,
+      "native": {
+        "airborne_run": [
+          9,
+          35
+        ],
+        "boost_spent_airborne": 96,
+        "max_law_deviation_airborne": 1,
+        "series_sha256": "b215783a44c8427b86d93fe3162eb7c486fbabc89eee039001eeb60fa563c260"
+      },
+      "reference": {
+        "airborne_run": [
+          9,
+          35
+        ],
+        "boost_spent_airborne": 96,
+        "max_law_deviation_airborne": 1,
+        "series": "497/248/0 521/244/0 545/240/0 569/236/0 567/232/0 565/228/0 563/224/0 561/220/0 559/216/0 557/212/1 555/208/2 552/204/3 550/200/4 548/196/5 546/192/6 544/188/7 542/184/8 540/180/9 538/176/9 536/172/9 534/168/9 532/164/9 530/160/9 528/156/9 526/152/9 524/148/9 522/144/9 520/140/9 518/136/9 516/132/9 514/128/9 512/124/9 510/120/9 508/120/9 508/116/9 506/116/9 -312/112/0 -308/112/1 -280/108/2 -276/108/3 -272/104/4",
+        "series_sha256": "b215783a44c8427b86d93fe3162eb7c486fbabc89eee039001eeb60fa563c260"
+      },
+      "seed": 256
+    }
+  ],
+  "air_jump": {
+    "frame_after_race_entry": 372,
+    "frames": 20,
+    "mask": "0x081"
+  },
+  "air_seed_frame_after_race_entry": 364,
   "base_speed": 448,
   "cases": [
     {
@@ -243,7 +320,7 @@
   "native_race_entry_offset_frames": 9,
   "qualification": "controlled-state measurement: each case writes P1's boost meter (7E:11CF) once at a frame boundary and observes what the game does with it",
   "reference_race_entry_frame": 1088,
-  "schema_version": 1,
+  "schema_version": 2,
   "seed_frame_after_race_entry": 222,
   "series_format": "space-separated x_speed/boost/air_time per frame, frame 0 = seed frame",
   "speed_cap": 640,

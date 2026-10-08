@@ -1,6 +1,7 @@
 import json
 import pathlib
 import sys
+import tempfile
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -77,6 +78,31 @@ class JumpoverNativeFixtureTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             probe.classify({})
 
+    def test_load_series_requires_every_full_in_race_dump(self):
+        def image(track=probe.JUMPOVER_TRACK_ID, race=1, size=probe.WRAM_SIZE):
+            wram = bytearray(size)
+            if size > 0x313:
+                wram[0x00CE] = track
+                wram[0x0313] = race
+            return bytes(wram)
+
+        with tempfile.TemporaryDirectory() as tmp:
+            d = pathlib.Path(tmp)
+            frames = range(probe.WINDOW[0], probe.WINDOW[1] + 1)
+            for f in frames:
+                (d / f"m{f:03d}.wram.bin").write_bytes(image())
+            self.assertEqual(len(probe.load_series(d)), len(frames))
+            last = d / f"m{probe.WINDOW[1]:03d}.wram.bin"
+            for bad, message in ((image(size=0x2000), "WRAM image"),
+                                 (image(track=0), "not an active Jumpover race"),
+                                 (image(race=0), "not an active Jumpover race")):
+                last.write_bytes(bad)
+                with self.assertRaisesRegex(probe.EvidenceError, message):
+                    probe.load_series(d)
+            last.unlink()
+            with self.assertRaisesRegex(probe.EvidenceError, "missing dump"):
+                probe.load_series(d)
+
     def test_race_entry_frame_parses_both_cores(self):
         self.assertEqual(probe.race_entry_frame("script f=1088 dump race-entered fb=256x224"), 1088)
         self.assertEqual(probe.race_entry_frame("script f=1097 dump race-entered ok"), 1097)
@@ -88,6 +114,7 @@ class JumpoverNativeFixtureTests(unittest.TestCase):
         self.assertEqual(evidence["schema_version"], 2)
         self.assertEqual(evidence["course"]["id"], "course:20")
         self.assertEqual(evidence["boost_seed"]["wram"], "7E:11CF")
+        self.assertIn("not an input-only stock run", evidence["qualification"])
         expected = {
             "right": {"seed-35": "ordinary", "seed-36": "fall_through", "seed-37": "ordinary",
                       "seed-36-shoulder-41": "ordinary"},

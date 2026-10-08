@@ -12,6 +12,7 @@
   "kind": "jumpover-fallthrough-native-fixture",
   "native": "UR_EXECUTION_MODE=authentic, same scene-keyed script",
   "native_race_entry_offset_frames": 9,
+  "qualification": "controlled-state parity, not an input-only stock run: each case writes P1's boost meter (7E:11CF) once at a frame boundary; everything else comes from a fresh boot with the recovered SRAM",
   "reference": "snesref + snes9x libretro core (fresh boot, SNESREF_WRAM_FILL=0)",
   "reference_race_entry_frame": 1088,
   "routes": {

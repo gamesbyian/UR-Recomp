@@ -282,7 +282,10 @@ jobs:
           # real Modern pause -> Options -> Volume UI in a second, and verify
           # the framework config loaded into a third. Never duplicate volume
           # authority or assume an exact resampler/device gain law.
-          for CASE in before adjust after; do
+          # Run the selected framework value a second time, unchanged. This
+          # A/A control quantifies SDL timing/content variation independently
+          # of the before/after Volume adjustment.
+          for CASE in before adjust after after-repeat; do
             MODE=verify
             if [ "$CASE" = adjust ]; then MODE=adjust; fi
             LOG="$RUNNER_TEMP/audio-volume-$CASE.log"

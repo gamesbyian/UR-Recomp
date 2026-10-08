@@ -152,6 +152,13 @@ def prior_postframe_dispatch_candidate(rows: list[dict], progress: dict | None) 
     matches = [pos for pos, row in enumerate(rows) if row is progress]
     if len(matches) != 1 or matches[0] == 0:
         return None
+    if any(
+        pos != matches[0]
+        and row["frame"] == progress["frame"]
+        and row["relative_frame"] == progress["relative_frame"]
+        for pos, row in enumerate(rows)
+    ):
+        return None
     current = rows[matches[0]]
     prior = rows[matches[0] - 1]
     if (

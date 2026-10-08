@@ -55,7 +55,7 @@ A read-only catalog substrate now exists independently of production capture: `m
 
 `multiplayer_match_browser.*` adds host-independent list/detail navigation over already-admitted match pairs. It owns only selection and view state, delegates all row/detail text to `multiplayer_match_presentation.*`, and has no standings, replay-routing or filesystem authority. Its bounded selected-centered visible-row projection preserves catalog order and returns authoritative row presentations plus selected state, so the host renderer does not invent clipping, paging, result text or selection semantics. The Windows Records host now wires that model to the Multiplayer/Tournament tab, refreshes the catalog when Records opens, renders validated rows/detail, and preserves unavailable-artifact health without reinterpreting result semantics.
 
-Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest.
+Tournament aggregation must consume persisted match evidence. It must never become the authority that decides what happened in the guest. A bounded *pure* Modern Round Robin / 3-1-0 standings reducer now exists in `local_tournament_round_robin.hpp` (see `MODERN-LOCAL-TOURNAMENT-CORE.md`); this does **not** associate any historical `.urrun`/`.urmatch` with a tournament or authorize tournament UI/persistence. Explicit durable fixture-to-pair provenance is still the shipping gate.
 
 ## Stop condition
 

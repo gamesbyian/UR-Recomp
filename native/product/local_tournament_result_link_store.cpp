@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cerrno>
 #include <chrono>
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <optional>
@@ -170,10 +171,11 @@ LinkPublishStatus publish_link(const std::string& path,
     }
 
 #if defined(_WIN32)
-    // MoveFileW refuses an existing destination, unlike MoveFileExA with
-    // MOVEFILE_REPLACE_EXISTING. Staging and final always share a directory.
-    const bool published = MoveFileW(staged_file.c_str(),
-                                     final_path.c_str()) != 0;
+    // MoveFileExW without REPLACE_EXISTING refuses an existing destination.
+    // Retain WRITE_THROUGH; staging and final share one directory.
+    const bool published = MoveFileExW(staged_file.c_str(),
+                                       final_path.c_str(),
+                                       MOVEFILE_WRITE_THROUGH) != 0;
     const DWORD win_error = published ? ERROR_SUCCESS : GetLastError();
     const bool conflict = !published &&
         (win_error == ERROR_ALREADY_EXISTS || win_error == ERROR_FILE_EXISTS);

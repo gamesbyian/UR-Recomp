@@ -4464,7 +4464,20 @@ void complete_multiplayer_run_record_capture() {
     }
 
     reset_multiplayer_run_capture();
+    const char* join_acceptance =
+        std::getenv("UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE");
+    const bool joined_capture = join_acceptance &&
+        std::strcmp(join_acceptance, "capture") == 0;
+    bool acceptance_should_quit = false;
     if (std::getenv("UR_MULTIPLAYER_MATCH_ACCEPTANCE")) {
+        acceptance_should_quit = true;
+    }
+    if (joined_capture) {
+        acceptance_should_quit = true;
+        product_diagnostic(
+            "UR_MULTIPLAYER_MATCH REAL_JOIN_CAPTURE_COMPLETE");
+    }
+    if (acceptance_should_quit) {
         if (request_desktop_quit()) {
             product_diagnostic("UR_MULTIPLAYER_MATCH ACCEPTANCE_COMPLETE");
         } else {
@@ -5152,7 +5165,12 @@ void run_local_multiplayer_join_acceptance() {
         std::fflush(stderr);
     }
     g_local_multiplayer_acceptance_stage = 1000;
-    (void)request_desktop_quit();
+    if (!mode || std::strcmp(mode, "capture") != 0) {
+        (void)request_desktop_quit();
+    } else {
+        product_diagnostic(
+            "UR_LOCAL_MULTIPLAYER_JOIN_ACCEPTANCE RACE_CONTINUES");
+    }
 }
 #endif
 

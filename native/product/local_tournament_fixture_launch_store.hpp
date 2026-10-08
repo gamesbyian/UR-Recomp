@@ -44,13 +44,12 @@ LocalTournamentLaunchFileResult load_local_tournament_launch_file(
     const LocalTournamentState& active_tournament,
     std::string_view active_tournament_id);
 
-// Retire only the exact decoded and still-active attempt. A stale caller from
-// an older route cannot remove a newer checkpoint at the same path. Missing
-// remains an idempotent no-op; corrupted/mismatched files fail closed.
+// Retire only the exact checkpoint previously published by this owner.
+// Unlike restore, this also works *after* the fixture has completed and is no
+// longer eligible to resume. A stale caller cannot delete a newer attempt.
+// Missing is idempotent; corrupted/mismatched files fail closed.
 LocalTournamentLaunchFileStatus retire_local_tournament_launch_file(
     const std::string& path,
-    const LocalTournamentState& active_tournament,
-    std::string_view active_tournament_id,
-    std::string_view expected_attempt_id);
+    const LocalTournamentPendingFixture& expected_pending);
 
 } // namespace ur::product

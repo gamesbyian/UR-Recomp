@@ -335,7 +335,7 @@ The root-cause ownership handoff is
 Preserve the strict original red Windows Restart-audio gate. Fix the
 host-to-guest input handoff in the active frontend lane, retaining the
 normal player Start binding. The audio lane must not paper over this
-with SPD/SPC/DSP changes or compromise guest timing.
+with SPC/DSP changes or compromise guest timing.
 
 **Actual next audio-owned fidelity work:** promote only on real native
 evidence the source-aligned original SFX command-identity check from

@@ -25,6 +25,50 @@ def _read_event(log: str, pattern: re.Pattern, label: str, *, count: int) -> lis
     return result
 
 
+ROUTE_CHECKPOINTS = ("main-menu-ready", "now-playing-ready", "race-entered")
+SIMULATIONS = re.compile(r"(?m)^\[host \+[0-9.]+s\] video totals: simulations=(\d+) presentations=(\d+)")
+
+
+def _guest_route(log: str, label: str) -> dict:
+    """Read authoritative guest-dump markers, never inferred PCM timestamps."""
+    frames = {}
+    for name in ROUTE_CHECKPOINTS:
+        matches = re.findall(
+            rf"(?m)^script f=(\d+) dump {re.escape(name)} ok\s*$", log
+        )
+        if len(matches) != 1:
+            raise ValueError(f"{label}: missing or ambiguous guest route marker {name}")
+        frames[name] = int(matches[0])
+    totals = SIMULATIONS.findall(log)
+    if len(totals) != 1:
+        raise ValueError(f"{label}: missing or ambiguous native simulation totals")
+    simulations, presentations = map(int, totals[0])
+    if not (
+        0 < frames[ROUTE_CHECKPOINTS[0]] < frames[ROUTE_CHECKPOINTS[1]]
+        < frames[ROUTE_CHECKPOINTS[2]] < simulations
+    ):
+        raise ValueError(f"{label}: invalid guest checkpoint/simulation order")
+    return {
+        "guest_dump_frames": frames,
+        "simulated_frames_at_exit": simulations,
+        "presented_frames_at_exit": presentations,
+    }
+
+
+def _compare_guest_route(left: dict, right: dict) -> dict:
+    offsets = {
+        name: right["guest_dump_frames"][name] - left["guest_dump_frames"][name]
+        for name in ROUTE_CHECKPOINTS
+    }
+    delta = right["simulated_frames_at_exit"] - left["simulated_frames_at_exit"]
+    return {
+        "right_minus_left_guest_frames": offsets,
+        "right_minus_left_exit_simulations": delta,
+        "exact_frame_count_match": all(n == 0 for n in offsets.values()) and delta == 0,
+        "audio_sample_alignment": "unknown; independent SDL device output clocks",
+    }
+
+
 def _require_audio(metrics: dict, label: str) -> dict:
     if (metrics.get("schema_version") != 1
         or metrics.get("audio_origin") != "sdl3-disk-playback"
@@ -67,12 +111,18 @@ def volume_output_report(
         raise ValueError("product Volume options row was not reached")
     if "UR_PAUSE_OPTIONS OPENED" not in adjust_log:
         raise ValueError("real Modern pause Options navigation was not exercised")
+    routes = {
+        "before": _guest_route(before_log, "before"),
+        "adjust": _guest_route(adjust_log, "adjust"),
+        "after": _guest_route(after_log, "after"),
+    }
     b = _require_audio(before, "before")
     a = _require_audio(after, "after")
     if (repeat_log is None) != (repeat is None):
         raise ValueError("the same-volume control needs both log and PCM evidence")
     repeat_report = None
     if repeat_log is not None and repeat is not None:
+        routes["after-repeat"] = _guest_route(repeat_log, "after-repeat")
         repeat_loaded = _read_event(repeat_log, START, "after-repeat", count=1)[0]
         _read_event(repeat_log, SELECTED, "after-repeat", count=0)
         if repeat_loaded != loaded:
@@ -87,6 +137,7 @@ def volume_output_report(
             "original_duration_seconds": a["duration_seconds"],
             "repeat_duration_seconds": control["duration_seconds"],
             "meaning": "A/A same-setting device output variability, not gain causality",
+            "guest_frame_comparison": _compare_guest_route(routes["after"], routes["after-repeat"]),
         }
     return {
         "schema_version": 1,
@@ -114,6 +165,8 @@ def volume_output_report(
             "before_duration_seconds": b["duration_seconds"],
             "after_duration_seconds": a["duration_seconds"],
         },
+        "guest_route": routes,
+        "ab_guest_frame_comparison": _compare_guest_route(routes["before"], routes["after"]),
         "same_volume_control": repeat_report,
         "limits": "A/B and same-setting A/A descriptive; no assumed exact gain or guest/sample alignment",
     }
@@ -150,6 +203,12 @@ def main() -> int:
         f"tail_rms_ratio={d['tail_rms_ratio']:.5f} "
         f"full_rms_ratio={d['full_rms_ratio']:.5f}"
     )
+    for key, route in result["guest_route"].items():
+        print(
+            "WINDOWS_VOLUME_GUEST_ROUTE "
+            f"phase={key} race_entered_f={route['guest_dump_frames']['race-entered']} "
+            f"simulations={route['simulated_frames_at_exit']}"
+        )
     print(
         "WINDOWS_VOLUME_SAME_SETTING_CONTROL "
         f"volume_percent={result['same_volume_control']['framework_volume_percent']} "

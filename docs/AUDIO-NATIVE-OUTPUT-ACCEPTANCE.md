@@ -516,3 +516,42 @@ correct real UI navigation, single framework Volume authority, persistent
 fresh-process selection, and authentic device-output provenance; a
 hard acoustic ratio is **not** justified until the A/A variance and
 time-aligned signal differences are measured.
+
+
+## Same-setting control reveals unaligned Volume audio windows
+
+The A/A Windows Volume control
+[37733295930](https://github.com/gamesbyian/UR-Recomp/actions/runs/37733295930)
+passed all existing checkpoints, verified **100 → 95** through the real
+Modern Options row, and independently loaded the persisted **95%** value
+in both later processes. Its 95%-to-95% output nonetheless had a
+**3.5995× last-second RMS ratio** and **1.6505× whole-file RMS ratio**.
+In the first 95% capture, tail nonzero fraction was about **0.7346**;
+in the repeat it was essentially **1.0**, confirming the compared device
+tails sampled substantially different audio content or timing despite an
+identical framework volume setting.
+
+The canonical input logs demonstrate that the processes were not at
+exactly the same guest frame: the two 95% runs observed `race-entered`
+at guest frames **1041 and 1043**, and requested desktop quit after
+**1100 and 1102** simulated frames. Even the same-menu startup boundaries
+can differ by several frames under native scheduling. These differences
+alone do **not** prove what caused the large amplitude variation; they
+prove that an unqualified same-tail-window amplitude comparison is an
+unsound exact-gain measurement.
+
+`tools/analyze_windows_volume_output.py` now requires the
+original three authoritative named guest checkpoint dump markers and
+desktop simulation totals for each fresh-process capture. It publishes
+guest-frame deltas separately for A/B and A/A, and states explicitly
+that audio sample-clock alignment is unknown. Missing, duplicated or
+out-of-order route markers fail closed rather than silently accepting
+unrelated PCM. Relative RMS remains **diagnostic only**.
+
+**Shipping interpretation:** the Volume menu, original framework config
+authority, persistence and real SDL3 device-output presence are proven.
+The exact amplitude response to a five-point Volume adjustment is
+**not** proven. Further work must compare a guest/sound-state-aligned
+window or instrument mixer gain at its ownership seam; do not tune the
+stock audio DSP, timing or Volume control based on these aggregate
+captured-race-tail ratios.

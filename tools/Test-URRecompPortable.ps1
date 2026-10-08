@@ -26,6 +26,10 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+# Canonical USA retail fingerprint, pinned independently of the ZIP manifest.
+# Keep this in sync with the tracked rom_identity.txt canonical source.
+$canonicalRomSha256 = '859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478'
+
 function Assert-PackageFiles {
     param([Parameter(Mandatory = $true)][string]$PackageRoot)
 
@@ -75,6 +79,12 @@ function Assert-PackageFiles {
         }
         $size = [int64]$entry.size
         $digest = [string]$entry.sha256
+        # A self-consistent package manifest and checksum do not establish
+        # that this is the canonical Uniracers ROM accepted by the build.
+        if ($relative -ieq 'Uniracers_USA.sfc' -and
+            $digest -cne $canonicalRomSha256) {
+            throw 'Packaged ROM does not match canonical USA retail identity'
+        }
         if ($size -lt 0 -or $size -gt 536870912 -or
             $digest -cnotmatch '\A[0-9a-f]{64}\z') {
             throw "Invalid manifest payload metadata: $relative"
@@ -121,6 +131,7 @@ function Assert-PackageFiles {
     if (-not $readme.Contains("Source revision: $($manifest.source_revision)`n")) {
         throw 'README build revision does not match the manifest'
     }
+    Write-Output "UR_PORTABLE_ROM_IDENTITY_VERIFIED sha256=$canonicalRomSha256"
     Write-Output "UR_PORTABLE_MANIFEST_VERIFIED files=$($entries.Count) revision=$($manifest.source_revision)"
 }
 

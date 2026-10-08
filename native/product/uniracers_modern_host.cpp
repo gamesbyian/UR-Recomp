@@ -45,6 +45,7 @@ extern "C" {
 #include "quick_practice_available_selection.hpp"
 #include "quick_practice_selection_view.hpp"
 #include "modern_practice_visual_style.hpp"
+#include "modern_onboarding_visual_style.hpp"
 #include "modern_tour_overview_visual_style.hpp"
 #include "../title/uniracers_practice_tour_unlock.hpp"
 #include "../title/uniracers_tour_progress_overview.hpp"
@@ -7433,10 +7434,10 @@ extern "C" void ur_uniracers_modern_system_overlay(
         const int stride = static_cast<int>(pitch / 4u);
         const int scale = modern_overlay_surface_scale(width, height);
         const int logical_width = width / scale;
-        const int panel_w_logical = logical_width < 340
-            ? logical_width - 16
-            : 324;
-        constexpr int kOnboardingPanelHeight = 206;
+        const auto style =
+            ur::product::modern_onboarding_visual_style(logical_width);
+        const int panel_w_logical = style.panel_width_logical;
+        const int kOnboardingPanelHeight = style.panel_height_logical;
         const auto layout = centered_modern_modal_layout(
             width, height, scale,
             panel_w_logical, kOnboardingPanelHeight,
@@ -7504,18 +7505,35 @@ extern "C" void ur_uniracers_modern_system_overlay(
             std::fflush(stderr);
         }
 
+        // Retain the settled live action/binding rows but present them through
+        // the game's measured yellow-title/grey-detail/blue-accent grammar.
+        // This is an interim host glyph treatment, not original font art.
         snes_ovl_fill_rect(
             pixels, stride, height,
-            x, y, rect.width, rect.height, 0xE0202020u);
+            x, y, rect.width, rect.height, style.palette.background);
+        snes_ovl_fill_rect(
+            pixels, stride, height,
+            x, y, rect.width, style.header_height_logical * scale,
+            style.palette.header_band);
         snes_ovl_stroke_rect(
             pixels, stride, height,
-            x, y, rect.width, rect.height, 0xFFF0F0F0u);
+            x, y, rect.width, rect.height, style.palette.frame_grey);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 7 * scale,
-            "WELCOME TO UNIRACERS", 0xFFFFFFFFu, scale);
+            pixels, stride, height,
+            x + (style.title_x_logical + 1) * scale,
+            y + (style.title_y_logical + 1) * scale,
+            "HOW TO RIDE", style.palette.shadow_black,
+            style.title_glyph_scale * scale);
         snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 27 * scale,
-            "       PAD     KEY", 0xFFA0A0A0u, scale);
+            pixels, stride, height,
+            x + style.title_x_logical * scale,
+            y + style.title_y_logical * scale,
+            "HOW TO RIDE", style.palette.title_yellow,
+            style.title_glyph_scale * scale);
+        snes_ovl_draw_text(
+            pixels, stride, height,
+            x + 8 * scale, y + style.subtitle_y_logical * scale,
+            "ACTION PAD     KEY", style.palette.secondary_grey, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 42 * scale,
             move_row.c_str(), 0xFFFFFFFFu, scale);
@@ -7528,24 +7546,45 @@ extern "C" void ur_uniracers_modern_system_overlay(
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 87 * scale,
             stunt_row.c_str(), 0xFFFFFFFFu, scale);
+        // Color the semantic action column, not the actual bound pad/key
+        // names; no physical controller brand legend is inferred here.
+        constexpr const char* kActions[] = {
+            "MOVE", "JUMP", "BRAKE", "STUNT"
+        };
+        constexpr int kActionRows[] = {42, 57, 72, 87};
+        for (int row = 0; row < 4; ++row) {
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * scale, y + kActionRows[row] * scale,
+                kActions[row], style.palette.cursor_blue, scale);
+        }
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 107 * scale,
-            "STUNTS END WHEEL-DOWN.", 0xFFFFFFFFu, scale);
+            ur::product::fit_modern_overlay_text(
+                "STUNTS END WHEEL-DOWN.", text_cells).c_str(),
+            0xFFFFFFFFu, scale);
         snes_ovl_draw_text(
             pixels, stride, height, x + 8 * scale, y + 122 * scale,
-            "CLEAN STUNTS ADD SPEED.", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 142 * scale,
-            "F5/PAD X  QUICK PRACTICE", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 157 * scale,
-            "F2/PAD X  RACERS (PICKER)", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 172 * scale,
-            "F7/PAD L PROGRESS F1 HELP", 0xFFFFFFFFu, scale);
-        snes_ovl_draw_text(
-            pixels, stride, height, x + 8 * scale, y + 187 * scale,
-            "F9 CTRL F10/SELECT OPT", 0xFFFFFFFFu, scale);
+            ur::product::fit_modern_overlay_text(
+                "CLEAN STUNTS ADD SPEED.", text_cells).c_str(),
+            style.palette.title_yellow, scale);
+        // Footer shortcuts remain readable and panel-bounded even under
+        // narrower logical output or rebound device-label configurations.
+        constexpr const char* kShortcuts[] = {
+            "F5/PAD X  QUICK PRACTICE",
+            "F2/PAD X  RACERS (PICKER)",
+            "F7/PAD L PROGRESS F1 HELP",
+            "F9 CTRL F10/SELECT OPT",
+        };
+        constexpr int kShortcutRows[] = {142, 157, 172, 187};
+        for (int row = 0; row < 4; ++row) {
+            const auto bounded = ur::product::fit_modern_overlay_text(
+                kShortcuts[row], text_cells);
+            snes_ovl_draw_text(
+                pixels, stride, height,
+                x + 8 * scale, y + kShortcutRows[row] * scale,
+                bounded.c_str(), 0xFFFFFFFFu, scale);
+        }
         return;
     }
 

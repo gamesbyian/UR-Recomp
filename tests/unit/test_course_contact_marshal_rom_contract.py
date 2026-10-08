@@ -40,6 +40,7 @@ FRAME_DISPATCH_MARSHAL = {
 }
 
 FINISH_HANDLER_GATES = {
+    "player_skip_if_finish_ineligible": ("81:8050", "c230acef0fb9f50ef0034ce182"),
     "checkpoint_family_and_zero_class": ("81:805D", "ad090f29001cc90000d005a900008035"),
     "finish_gate_skip_or_increment": ("81:80AA", "b99d11f0034ce1821a999d11"),
     "lap_count_set_and_decrement": ("81:8195", "acef0fa901008d110db9f10e3a99f10e"),
@@ -134,6 +135,10 @@ class CourseContactMarshalContractTests(unittest.TestCase):
         # $119D,Y skips; otherwise 81:80B2 increments it. The subsequent
         # 81:8195 path decrements $0EF1,Y. These are ROM byte assertions
         # and *conditional* control-flow semantics, not an execution trace.
+        entry = bytes.fromhex(FINISH_HANDLER_GATES[
+            "player_skip_if_finish_ineligible"][1])
+        self.assertEqual(entry[5:8], bytes.fromhex("b9f50e"))
+        self.assertEqual(entry[-5:], bytes.fromhex("f0034ce182"))
         control = bytes.fromhex(FINISH_HANDLER_GATES[
             "checkpoint_family_and_zero_class"][1])
         gate = bytes.fromhex(FINISH_HANDLER_GATES[

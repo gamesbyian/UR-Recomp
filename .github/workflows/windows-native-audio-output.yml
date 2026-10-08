@@ -95,7 +95,10 @@ jobs:
           test -s "$STATS"
           # The first-race fixture ends 60 guest frames into active racing.
           # Require the playback tail to remain audible, not just the title.
-          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM" \
+          # The SDL driver reports a Windows-native absolute path. Pass that
+          # same spelling to native Windows Python so the provenance check is
+          # not misled by Git Bash/MSYS path conversion.
+          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
             --tail-seconds 0.5 --min-tail-rms 50 \
             --json-out "$RUNNER_TEMP/audio-output-metrics.json"
           python tools/analyze_snesrecomp_audio_stats.py "$STATS" \

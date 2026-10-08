@@ -318,6 +318,43 @@ jobs:
               ;;
             profiles)
               run_route ui-rename-editor-explore ui-rename-editor-explore.script ui-rename-editor-dumps 180
+              # Temporary paired-root pacing research; preserve the original route.
+              for pacing in paced unpaced; do
+                (
+                  export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-rename-$pacing-user"
+                  mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                  delay=0
+                  if [ "$pacing" = unpaced ]; then delay=1; fi
+                  printf '[General]\nDisableFrameDelay = %s\n' "$delay" > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  grep -Fqx "DisableFrameDelay = $delay" "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  run_route "ui-rename-$pacing" ui-rename-editor-explore.script "ui-rename-$pacing-dumps" 180 required || exit $?
+                  grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                    "$RUNNER_TEMP/ui-rename-$pacing.log" || exit $?
+                ) || exit $?
+              done
+              python3 - "$RUNNER_TEMP/ui-rename-paced-dumps" "$RUNNER_TEMP/ui-rename-unpaced-dumps" "$RUNNER_TEMP/ui-rename-editor-dumps" <<'PY'
+          from pathlib import Path
+          import sys, hashlib
+          def hashes(root):
+              return {p.relative_to(root).as_posix(): hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in sorted(root.rglob("*")) if p.is_file()}
+          a, b, orig = [hashes(Path(arg)) for arg in sys.argv[1:4]]
+          expected = [
+              "ui-rename-which-one-left.wram.bin",
+              *["ui-rename-editor-" + d + "-" + side + ".wram.bin"
+                for d in ("left", "right", "up", "down", "b")
+                for side in ("before", "after")],
+          ]
+          if any(key not in a or key not in b for key in expected):
+              raise SystemExit("Missing Rename-editor WRAM checkpoint")
+          if set(a) != set(b):
+              raise SystemExit(f"Rename-editor file sets differ: paced_only={sorted(a.keys()-b.keys())} unpaced_only={sorted(b.keys()-a.keys())}")
+          drift = sorted(key for key in a if a[key] != b[key])
+          if drift:
+              raise SystemExit(f"Rename-editor byte parity failed: {drift}")
+          base = sum(orig.get(key) != a.get(key) for key in orig.keys() | a.keys())
+          print(f"UR_RENAME_PACING_PARITY PASS files={len(a)} complete_sha256=1 resets=5 baseline_drift={base}")
+          PY
               run_route ui-name-league-route ui-name-league-route.script ui-name-league-dumps 120
               run_route ui-startup-timeline ui-startup-timeline.script ui-startup-timeline-dumps 120
               run_route ui-define-player-explore ui-define-player-explore.script ui-define-player-dumps 120

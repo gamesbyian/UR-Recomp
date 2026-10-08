@@ -1,3 +1,6 @@
+import hashlib
+import json
+import pathlib
 import unittest
 
 from tools.build_racer_hd_asset_dossier import (
@@ -44,6 +47,7 @@ from tools.build_racer_hd_asset_dossier import (
     FIFTY_FOURTH_AUTHORED_REPRESENTATION_ID,
     FIFTY_FIFTH_AUTHORED_REPRESENTATION_ID,
     FIFTY_SIXTH_AUTHORED_REPRESENTATION_ID,
+    FIFTY_SEVENTH_AUTHORED_REPRESENTATION_ID,
     PENDING_ART_DECISIONS,
     RESOLVED_VISUAL_LANGUAGE,
     authored_candidate_rgba_for_entry,
@@ -84,6 +88,7 @@ from tools.build_racer_hd_asset_dossier import (
     build_thirty_seventh_authored_candidate_rgba,
     build_thirty_eighth_authored_candidate_rgba,
     build_thirty_ninth_authored_candidate_rgba,
+    build_fortieth_authored_candidate_rgba,
     exact_window_rows,
     gameplay_sampled_alpha_review,
     observation_map,
@@ -122,6 +127,7 @@ from tools.build_racer_hd_asset_dossier import (
     sample_authored_03f9_p1_broader_rgba,
     sample_authored_0579_p2_0ec4_broader_rgba,
     sample_authored_0579_p1_broader_rgba,
+    sample_authored_0578_p2_0ec3_broader_rgba,
     sample_authored_0543_p1_third_family_rgba,
     sample_authored_0540d2c_p2_third_family_rgba,
     sample_authored_0542_p1_third_family_rgba,
@@ -1376,6 +1382,61 @@ class RacerHdAssetDossierTests(unittest.TestCase):
             {(33, 28), (34, 28), (35, 28)},
         )
         self.assertEqual(previous - occupied, set())
+
+    def test_broader_p2_0578_0ec3_candidate_has_measured_envelope_and_contact(self):
+        self.assertEqual(
+            FIFTY_SEVENTH_AUTHORED_REPRESENTATION_ID,
+            "ordinary-racer-0x0578-p2-companion-0EC3-broader-frequency-reference",
+        )
+        rgba = build_fortieth_authored_candidate_rgba()
+        self.assertEqual(len(rgba), 256 * 256 * 4)
+        occupied = {
+            (lx, ly)
+            for ly in range(64)
+            for lx in range(64)
+            if sample_authored_0578_p2_0ec3_broader_rgba(
+                lx * 4 + 2, ly * 4 + 2
+            )[3] != 0
+        }
+        self.assertEqual(
+            [
+                min(x for x, _ in occupied),
+                min(y for _, y in occupied),
+                max(x for x, _ in occupied),
+                max(y for _, y in occupied),
+            ],
+            [19, 6, 47, 36],
+        )
+        bottom = [x for x, y in occupied if y == 36]
+        self.assertEqual(min(bottom) + max(bottom), 77)
+
+    def test_approved_ledger_hashes_match_current_authored_generators(self):
+        # A refinement aimed at one family must never silently change the
+        # authored bytes of an already hash-bound approved family.
+        root = pathlib.Path(__file__).resolve().parents[2]
+        registry = json.loads(
+            (root / "analysis" / "data" / "racer-hd-replacement-prototype.json")
+            .read_text(encoding="utf-8")
+        )
+        entries = {e["representation_id"]: e for e in registry["entries"]}
+        checked = 0
+        for path in sorted(
+            (root / "analysis" / "data").glob("racer-hd-art-approval*.json")
+        ):
+            ledger = json.loads(path.read_text(encoding="utf-8"))
+            for row in ledger["decisions"]:
+                if row["status"] != "approved":
+                    continue
+                rid = row["authored_source_representation_id"]
+                with self.subTest(ledger=path.name, representation_id=rid):
+                    self.assertIn(rid, entries)
+                    rgba, _, _ = authored_candidate_rgba_for_entry(entries[rid])
+                    self.assertEqual(
+                        hashlib.sha256(rgba).hexdigest(),
+                        row["reviewed_authored_rgba_sha256"],
+                    )
+                    checked += 1
+        self.assertGreater(checked, 0)
 
     def test_safe_name_is_path_stable(self):
         self.assertEqual(safe_name("racer / 0x0541:p1"), "racer-0x0541-p1")

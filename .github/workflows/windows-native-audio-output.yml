@@ -25,6 +25,8 @@ on:
       - "tools/analyze_windows_volume_output.py"
       - "tools/capture_modern_paused_audio.py"
       - "tools/check_modern_host_pause_audio.py"
+      - "tools/check_native_audio_device_rate.py"
+      - "tests/unit/test_native_audio_device_rate.py"
   workflow_dispatch:
     inputs:
       source_run_id:
@@ -176,6 +178,64 @@ jobs:
             --reference analysis/generated/audio-startup-reference-summary.json \
             --json-out "$RUNNER_TEMP/audio-phase-matrix.json"
           echo "WINDOWS_NATIVE_AUDIO_OUTPUT PASS source_run=$SOURCE"
+
+      - name: Verify real Windows SDL3 48kHz stereo playback and queue continuity
+        run: |
+          set -euo pipefail
+          # Standard 48kHz speaker/headphone rate, distinct from the existing
+          # 44.1kHz evidence. Reuse the exact already-verified shipping ZIP;
+          # never build another game binary in this specialist audio lane.
+          PACKAGE="$RUNNER_TEMP/audio-product/UR-Recomp-Windows-x64"
+          python tools/assemble_windows_package.py verify --package "$PACKAGE"
+          PACKAGE_WIN="$(cygpath -w "$PACKAGE")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/reach-first-race.script")"
+          ROOT="$RUNNER_TEMP/audio-rate-48000-user"
+          PCM="$RUNNER_TEMP/audio-rate-48000-device.raw"
+          LOG="$RUNNER_TEMP/audio-rate-48000-native.log"
+          STATS="$RUNNER_TEMP/audio-rate-48000-stats.txt"
+          DUMPS="$RUNNER_TEMP/audio-rate-48000-dumps"
+          mkdir -p "$DUMPS"
+          rm -rf "$ROOT" "$PCM" "$STATS"
+          trap 'rm -f "$PCM"' EXIT
+          ROOT_WIN="$(cygpath -w "$ROOT")"
+          PCM_WIN="$(cygpath -w "$PCM")"
+          DUMPS_WIN="$(cygpath -w "$DUMPS")"
+          STATS_WIN="$(cygpath -w "$STATS")"
+          SDL_VIDEO_DRIVER=offscreen \
+          SDL_VIDEODRIVER=offscreen \
+          SDL_AUDIO_DRIVER=disk \
+          SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+          SDL_AUDIO_FORMAT=S16LE \
+          SDL_AUDIO_CHANNELS=2 \
+          SDL_AUDIO_FREQUENCY=48000 \
+          SDL_AUDIO_DISK_TIMESCALE=1.0 \
+          SNESRECOMP_AUDIO_STATS="$STATS_WIN" \
+          SNESRECOMP_DUMP_DIR="$DUMPS_WIN" \
+          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+            timeout 180 powershell.exe -NoProfile -Command \
+              "& '$PACKAGE_WIN\\run-uniracers.cmd' --script '$SCRIPT_WIN'; exit \$LASTEXITCODE" \
+              >"$LOG" 2>&1
+          test -s "$DUMPS/race-entered.wram.bin"
+          test -s "$PCM"
+          test -s "$STATS"
+          python tools/analyze_sdl_disk_audio.py "$LOG" "$PCM_WIN" \
+            --min-duration-seconds 10 \
+            --min-channel-rms 50 \
+            --tail-seconds 1.0 --min-tail-rms 50 \
+            --min-tail-channel-rms 50 \
+            --json-out "$RUNNER_TEMP/audio-rate-48000-output.json"
+          python tools/analyze_snesrecomp_audio_stats.py "$STATS" \
+            --max-new-audible-drops 0 \
+            --max-post-startup-underflows 0 \
+            --max-post-startup-missing-frames 0 \
+            --json-out "$RUNNER_TEMP/audio-rate-48000-queue.json"
+          python -m tools.check_native_audio_device_rate \
+            "$RUNNER_TEMP/audio-rate-48000-output.json" \
+            "$RUNNER_TEMP/audio-rate-48000-queue.json" \
+            --expected-rate 48000 \
+            --json-out "$RUNNER_TEMP/audio-rate-48000-proof.json"
+          rm -f "$PCM"
+          echo "WINDOWS_NATIVE_AUDIO_48KHZ PASS actual_device_rate=48000 release_queue_stable=1"
 
       - name: Capture stock guest Start pause/resume audio envelopes
         run: |
@@ -395,6 +455,10 @@ jobs:
             ${{ runner.temp }}/audio-output-*.json
             ${{ runner.temp }}/audio-ring-*.json
             ${{ runner.temp }}/audio-phase-matrix.json
+            ${{ runner.temp }}/audio-rate-48000-native.log
+            ${{ runner.temp }}/audio-rate-48000-output.json
+            ${{ runner.temp }}/audio-rate-48000-queue.json
+            ${{ runner.temp }}/audio-rate-48000-proof.json
             ${{ runner.temp }}/audio-stock-pause-phases.json
             ${{ runner.temp }}/audio-envelope-ui-pause-*.json
             ${{ runner.temp }}/audio-stock-pause-envelope-shape.json

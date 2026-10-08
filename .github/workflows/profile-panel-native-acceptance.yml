@@ -3,6 +3,7 @@ name: Profile panel native acceptance
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/product/**"
       - "tests/input/modern-profile-panel-acceptance.script"
@@ -21,8 +22,9 @@ concurrency:
 
 jobs:
   profile-panel:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -30,9 +32,10 @@ jobs:
       - name: Install desktop build dependencies
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake ninja-build pkg-config xvfb xdotool \
+          cmake --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config xvfb xdotool \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev

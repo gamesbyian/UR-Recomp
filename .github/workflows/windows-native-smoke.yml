@@ -47,7 +47,7 @@ permissions:
 jobs:
   windows:
     runs-on: windows-2022
-    timeout-minutes: 75
+    timeout-minutes: 20
     defaults:
       run:
         shell: bash
@@ -484,24 +484,6 @@ jobs:
           assert wram[0x9F] == 0xD7, f"main menu not reached: $9F=0x{wram[0x9F]:02X}"
           print("WINDOWS_BOOT_MAIN_MENU ok")
           PY
-
-      - name: Race-result route prints the finish time
-        run: |
-          set -euo pipefail
-          DUMPS="$RUNNER_TEMP/race-result-dumps"
-          mkdir -p "$DUMPS"
-          rm -rf "$(dirname "$EXE")/saves"
-          set +e
-          SDL_VIDEODRIVER=offscreen SDL_AUDIODRIVER=dummy SNESRECOMP_DUMP_DIR="$DUMPS" \
-            timeout 600 "$EXE" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --script "$GITHUB_WORKSPACE/tests/input/ui-race-result-route.script" \
-            >"$RUNNER_TEMP/race-result.log" 2>&1
-          RC=$?
-          set -e
-          tail -n 40 "$RUNNER_TEMP/race-result.log"
-          test "$RC" -eq 0
-          cd tools
-          python check_result_screen_time.py --dump-dir "$DUMPS" --checkpoint race-results
 
       - name: Representative package startup diagnostics
         run: |

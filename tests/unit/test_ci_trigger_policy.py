@@ -17,6 +17,20 @@ DESKTOP_UI_DRIVER_AUTOMATIC_ALLOWLIST = {
     "profile-panel-native-acceptance.yml",
 }
 
+EXPENSIVE_PR_WORKFLOWS = {
+    "completed-run-replay-acceptance.yml",
+    "ghost-target-native-acceptance.yml",
+    "modern-onboarding-practice-acceptance.yml",
+    "modern-race-restart-acceptance.yml",
+    "modern-results-navigation-acceptance.yml",
+    "multiplayer-match-capture-acceptance.yml",
+    "native-build-smoke.yml",
+    "native-ui-evidence.yml",
+    "profile-panel-native-acceptance.yml",
+    "racer-native-presentation-acceptance.yml",
+    "widescreen-4x3-regression.yml",
+}
+
 DORMANT_MANUAL_ONLY = {
     "regional-retail-static-analysis.yml",
     "regional-retail-frontend-comparison.yml",
@@ -180,6 +194,74 @@ class CiTriggerPolicyTest(unittest.TestCase):
             f"automatic workflows must cancel or serialize by ref: {offenders}",
         )
 
+    def test_expensive_pr_gates_defer_drafts_and_run_when_ready(self):
+        offenders = []
+        required_if = (
+            "if: github.event_name != 'pull_request' || "
+            "github.event.pull_request.draft == false"
+        )
+        for name in sorted(EXPENSIVE_PR_WORKFLOWS):
+            text = (WORKFLOWS / name).read_text()
+            pull_request = _block(text, "pull_request")
+            jobs = text.split("\njobs:", 1)[1] if "\njobs:" in text else ""
+            first_job = re.search(
+                r"(?ms)^  [A-Za-z0-9_-]+:\s*\n(.*?)(?=^  [A-Za-z0-9_-]+:\s*$|\Z)",
+                jobs,
+            )
+            header = (
+                first_job.group(1).split("    steps:", 1)[0]
+                if first_job
+                else ""
+            )
+            problems = []
+            if "ready_for_review" not in pull_request:
+                problems.append("missing ready_for_review trigger")
+            if required_if not in header:
+                problems.append("first job does not skip draft PRs")
+            if problems:
+                offenders.append((name, problems))
+        self.assertEqual(
+            offenders,
+            [],
+            "expensive PR gates must stay cheap while a PR is draft and run once "
+            f"it becomes review-ready: {offenders}",
+        )
+
+    def test_native_build_gates_do_not_redownload_runner_tooling(self):
+        forbidden = {"cmake", "ninja-build", "libsdl2-dev"}
+        offenders = []
+        for name in sorted(EXPENSIVE_PR_WORKFLOWS):
+            lines = (WORKFLOWS / name).read_text().splitlines()
+            for index, line in enumerate(lines):
+                if "apt-get" not in line or "install" not in line:
+                    continue
+                block = [line]
+                cursor = index + 1
+                while block[-1].rstrip().endswith("\\") and cursor < len(lines):
+                    block.append(lines[cursor])
+                    cursor += 1
+                joined = " ".join(block)
+                matched = sorted(item for item in forbidden if item in joined)
+                if matched:
+                    offenders.append((name, index + 1, matched))
+        self.assertEqual(
+            offenders,
+            [],
+            "Ubuntu-hosted native gates must use runner-provided CMake/Ninja and "
+            f"the canonical SDL3 source rather than redownloading old tooling: {offenders}",
+        )
+
+    def test_native_ui_capture_installs_runtime_only_dependencies(self):
+        text = (WORKFLOWS / "native-ui-evidence.yml").read_text()
+        capture = text.split("  capture:", 1)[1].split("  aggregate:", 1)[0]
+        install = capture.split(
+            "- name: Install native UI runtime dependencies", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("xvfb xdotool", install)
+        self.assertNotIn("-dev", install)
+        self.assertNotIn("cmake", install)
+        self.assertNotIn("ninja", install)
+
     def test_coordination_docs_never_trigger_automatic_ci(self):
         forbidden = {
             "docs/WORK-QUEUE.md",
@@ -247,6 +329,27 @@ class CiTriggerPolicyTest(unittest.TestCase):
         self.assertNotIn('"docs/MODERN-PRODUCT-LAYER.md"', _block(text, "pull_request"))
 
 
+    def test_onboarding_uses_one_candidate_with_bounded_fanout(self):
+        text = (WORKFLOWS / "modern-onboarding-practice-acceptance.yml").read_text()
+        self.assertIn("  build:", text)
+        self.assertIn("modern-onboarding-native-candidate", text)
+        self.assertIn("  core-acceptance:", text)
+        self.assertIn("  independent-acceptance:", text)
+        match = re.search(r"shard:\s*\[([^\]]+)\]", text)
+        self.assertIsNotNone(match)
+        shards = [item.strip() for item in match.group(1).split(",")]
+        self.assertLessEqual(len(shards), 3)
+        consumer = text.split("  core-acceptance:", 1)[1]
+        self.assertIn("Install native runtime dependencies", consumer)
+        runtime_install = consumer.split(
+            "- name: Install native runtime dependencies", 1
+        )[1].split("- name:", 1)[0]
+        self.assertIn("xvfb xdotool", runtime_install)
+        self.assertNotIn("-dev", runtime_install)
+        self.assertNotIn("cmake", runtime_install)
+        self.assertNotIn("ninja", runtime_install)
+
+
     def test_local_multiplayer_contract_does_not_trigger_on_docs_only(self):
         text = (WORKFLOWS / "local-multiplayer-product-contracts.yml").read_text()
         self.assertNotIn('"docs/LOCAL-MULTIPLAYER-SETUP.md"', _block(text, "pull_request"))
@@ -254,7 +357,7 @@ class CiTriggerPolicyTest(unittest.TestCase):
 
     def test_native_build_smoke_stays_fast_and_bounded(self):
         text = (WORKFLOWS / "native-build-smoke.yml").read_text()
-        self.assertIn("    timeout-minutes: 8", text)
+        self.assertIn("    timeout-minutes: 15", text)
         for required in (
             "Native boot smoke",
             "Deterministic native input route",

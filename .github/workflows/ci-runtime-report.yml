@@ -15,7 +15,7 @@ permissions:
 jobs:
   report:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
       - name: Export recent workflow runs
@@ -30,13 +30,52 @@ jobs:
             exit 2
           fi
           gh api "repos/$GITHUB_REPOSITORY/actions/runs?per_page=$count" > "$RUNNER_TEMP/runs.json"
+
+      - name: Export job and step timings
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/runs.json" "$RUNNER_TEMP/jobs.json" <<'PY'
+          import json
+          import os
+          import subprocess
+          import sys
+
+          runs_path, output_path = sys.argv[1:]
+          runs = json.load(open(runs_path, encoding="utf-8"))
+          repo = os.environ["GITHUB_REPOSITORY"]
+          result = {"runs": []}
+          for run in runs.get("workflow_runs", []):
+              run_id = run.get("id")
+              if run_id is None:
+                  continue
+              completed = subprocess.run(
+                  [
+                      "gh", "api",
+                      f"repos/{repo}/actions/runs/{run_id}/jobs?per_page=100",
+                  ],
+                  check=True,
+                  capture_output=True,
+                  text=True,
+              )
+              jobs = json.loads(completed.stdout).get("jobs", [])
+              result["runs"].append({"run_id": run_id, "jobs": jobs})
+
+          with open(output_path, "w", encoding="utf-8") as handle:
+              json.dump(result, handle)
+          print(f"exported job timing for {len(result['runs'])} runs")
+          PY
+
       - name: Build measured runtime report
         run: |
           mkdir -p analysis/generated
           python3 tools/report_ci_runtime.py "$RUNNER_TEMP/runs.json" \
+            --jobs-json "$RUNNER_TEMP/jobs.json" \
             --since-hours 168 \
             --json-out analysis/generated/ci-runtime-report.json \
             --markdown-out analysis/generated/ci-runtime-report.md
+
       - uses: actions/upload-artifact@v4
         with:
           name: ci-runtime-report

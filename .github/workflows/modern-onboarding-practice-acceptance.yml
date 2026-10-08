@@ -3,6 +3,7 @@ name: Modern onboarding and practice acceptance
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/product/uniracers_modern_host.*"
       - "native/product/modern_controls_*"
@@ -49,9 +50,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  native-acceptance:
+  build:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -59,8 +61,14 @@ jobs:
       - name: Install desktop build dependencies
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y             cmake ninja-build pkg-config xvfb xdotool             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+          cmake --version
+          ninja --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config xvfb xdotool \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Stage framework and SDL3
         shell: bash
@@ -88,6 +96,49 @@ jobs:
           cmake -S "$ROOT" -B "$ROOT/build"             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_ROOT="$FRAMEWORK"             -DSNESRECOMP_SDL_BACKEND=SDL3             -DSNESRECOMP_SDL3_FETCH=ON             -DSNESRECOMP_SDL3_SOURCE_DIR="$GITHUB_WORKSPACE/.tools/src/sdl3/SDL3-3.4.10"
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
+
+
+      - name: Package Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -czf "$RUNNER_TEMP/modern-native-candidate.tar.gz"             -C "$RUNNER_TEMP" ur-onboarding-practice
+          test -s "$RUNNER_TEMP/modern-native-candidate.tar.gz"
+
+      - name: Upload Modern native candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-onboarding-native-candidate
+          path: ${{ runner.temp }}/modern-native-candidate.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+
+  core-acceptance:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install native runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb xdotool
+
+      - name: Download Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-onboarding-native-candidate
+          path: ${{ runner.temp }}/modern-native-candidate-artifact
+
+      - name: Restore Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/modern-native-candidate-artifact/modern-native-candidate.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp/build/UniracersSNESRecomp"
 
       - name: Prove first-run onboarding and dismissal persistence
         shell: bash
@@ -366,76 +417,6 @@ jobs:
           grep -Eq "UR_CONTROLLER_HOTPLUG_ACCEPTANCE RELEASED held=[0-9A-F]{3} after=000 seat_connected=0 paused=0 modern=0" "$AUTHENTIC_LOG"
           ! grep -q "UR_CONTROLLER DISCONNECT_PAUSED" "$AUTHENTIC_LOG"
 
-      - name: Modern Tour Resume Restart acceptance
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_tour_entry_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/tour-entry"
-
-      - name: Prove Next Event reaches the one remaining tour event
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_next_event_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/next-event"
-
-      - name: Prove Recent Course persists per profile as metadata only
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_recent_course_persistence_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/recent-persistence"
-
-      - name: Prove Vibration toggles, persists and never touches simulation
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_vibration_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/vibration"
-
-      - name: Prove the Volume row steps and persists the framework volume
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_volume_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/volume"
-
-      - name: Prove pad hints name the physical buttons of the live GamepadMap
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_pad_glyph_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/pad-glyphs"
-
-      - name: Prove two pads join 2P with named devices and distinct profiles
-        shell: bash
-        run: |
-          set -euo pipefail
-          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
-          bash "$GITHUB_WORKSPACE/tests/native/run_modern_two_player_join_acceptance.sh" \
-            "$ROOT/build/UniracersSNESRecomp" \
-            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            "$RUNNER_TEMP/two-player-join"
-
       - name: Prove authoritative quick practice and SRAM restoration
         shell: bash
         run: |
@@ -510,6 +491,98 @@ jobs:
             ${{ runner.temp }}/next-event/*.log
             ${{ runner.temp }}/recent-persistence/*.log
             ${{ runner.temp }}/vibration/*.log
+            ${{ runner.temp }}/volume/*.log
+            ${{ runner.temp }}/pad-glyphs/*.log
+            ${{ runner.temp }}/two-player-join/*.log
+            ${{ runner.temp }}/parallel-modern-acceptance/*.log
             ${{ runner.temp }}/authentic.log
+          if-no-files-found: warn
+          retention-days: 7
+
+  independent-acceptance:
+    needs: build
+    name: independent-${{ matrix.shard }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [tour, feedback, multiplayer]
+    steps:
+      - name: Check out project
+        uses: actions/checkout@v4
+
+      - name: Install native runtime dependencies
+        shell: bash
+        run: |
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb xdotool
+
+      - name: Download Modern native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: modern-onboarding-native-candidate
+          path: ${{ runner.temp }}/modern-native-candidate-artifact
+
+      - name: Restore Modern native candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/modern-native-candidate-artifact/modern-native-candidate.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp/build/UniracersSNESRecomp"
+
+      - name: Run independent Modern acceptance shard
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-onboarding-practice/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          SHARD="${{ matrix.shard }}"
+          DRIVER="$RUNNER_TEMP/independent-$SHARD"
+          mkdir -p "$DRIVER"
+
+          run_case() {
+            local name="$1"
+            local script="$2"
+            local work="$3"
+            echo "===== $name ====="
+            bash "$GITHUB_WORKSPACE/tests/native/$script" "$EXE" "$ROM" "$RUNNER_TEMP/$work"               2>&1 | tee "$DRIVER/$name.log"
+          }
+
+          case "$SHARD" in
+            tour)
+              run_case tour-entry run_modern_tour_entry_acceptance.sh tour-entry
+              run_case next-event run_modern_next_event_acceptance.sh next-event
+              run_case recent-persistence run_modern_recent_course_persistence_acceptance.sh recent-persistence
+              ;;
+            feedback)
+              run_case vibration run_modern_vibration_acceptance.sh vibration
+              run_case volume run_modern_volume_acceptance.sh volume
+              run_case pad-glyphs run_modern_pad_glyph_acceptance.sh pad-glyphs
+              ;;
+            multiplayer)
+              run_case two-player-join run_modern_two_player_join_acceptance.sh two-player-join
+              ;;
+            *)
+              echo "::error::Unknown independent acceptance shard: $SHARD"
+              exit 2
+              ;;
+          esac
+
+      - name: Upload independent acceptance logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: modern-onboarding-independent-${{ matrix.shard }}
+          path: |
+            ${{ runner.temp }}/independent-${{ matrix.shard }}/*.log
+            ${{ runner.temp }}/tour-entry/*.log
+            ${{ runner.temp }}/next-event/*.log
+            ${{ runner.temp }}/recent-persistence/*.log
+            ${{ runner.temp }}/vibration/*.log
+            ${{ runner.temp }}/volume/*.log
+            ${{ runner.temp }}/pad-glyphs/*.log
+            ${{ runner.temp }}/two-player-join/*.log
           if-no-files-found: warn
           retention-days: 7

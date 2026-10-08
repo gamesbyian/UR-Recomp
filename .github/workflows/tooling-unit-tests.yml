@@ -58,5 +58,42 @@ jobs:
         run: |
           python3 -m compileall -q tests/unit tools
           ruby -e 'require "yaml"; Dir[".github/workflows/*.{yml,yaml}"].sort.each { |path| YAML.parse_file(path) }'
-      - name: Run dependency-free Python unit tests
-        run: python3 -m unittest discover -s tests/unit -p 'test_*.py' -v
+      - name: Run dependency-free Python unit tests in two shards
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t tests < <(find tests/unit -maxdepth 1 -type f -name 'test_*.py' -printf '%f\n' | sort)
+          shard0=()
+          shard1=()
+          for test_file in "${tests[@]}"; do
+            module="tests.unit.${test_file%.py}"
+            # Stable hash partitioning keeps every discovered module in exactly
+            # one shard without moving half the suite when a filename is added.
+            first_byte=$(printf '%s' "$module" | sha256sum | cut -c1-2)
+            if (( 16#$first_byte % 2 == 0 )); then
+              shard0+=("$module")
+            else
+              shard1+=("$module")
+            fi
+          done
+
+          run_shard() {
+            local name="$1"; shift
+            python3 -m unittest -v "$@" >"$RUNNER_TEMP/unit-$name.log" 2>&1
+          }
+
+          set +e
+          run_shard shard0 "${shard0[@]}" &
+          p0=$!
+          run_shard shard1 "${shard1[@]}" &
+          p1=$!
+          wait "$p0"; r0=$?
+          wait "$p1"; r1=$?
+          set -e
+
+          echo "===== unit shard 0 ====="
+          cat "$RUNNER_TEMP/unit-shard0.log"
+          echo "===== unit shard 1 ====="
+          cat "$RUNNER_TEMP/unit-shard1.log"
+          test "$r0" -eq 0
+          test "$r1" -eq 0

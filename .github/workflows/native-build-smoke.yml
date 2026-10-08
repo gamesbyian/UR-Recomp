@@ -3,6 +3,7 @@ name: Native build and boot smoke
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "reference/roms/retail/Uniracers_USA.sfc"
       - "rom_identity.txt"
@@ -43,8 +44,9 @@ concurrency:
 
 jobs:
   build-and-smoke:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -52,9 +54,13 @@ jobs:
       - name: Install desktop build dependencies
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            cmake ninja-build pkg-config xvfb xdotool \
+          # cmake and Ninja are part of the GitHub-hosted Ubuntu image. Avoid
+          # downloading them again on every run; fail clearly if the image contract changes.
+          cmake --version
+          ninja --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config xvfb xdotool \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
@@ -311,23 +317,31 @@ jobs:
           echo "$EXE"
           SHOT="$RUNNER_TEMP/native-frame-300.ppm"
           PRESENTS="$RUNNER_TEMP/native-presents.csv"
+          USER_DIR="$RUNNER_TEMP/native-boot-unpaced-user"
+          mkdir -p "$USER_DIR"
+          cat >"$USER_DIR/config.ini" <<'EOF'
+          [General]
+          DisableFrameDelay = 1
+          EOF
           # evidence-frame-anchor: bounded boot/frame sanity at the established main-menu observation point.
+          SNESRECOMP_USER_DATA_DIR="$USER_DIR" \
           SDL_AUDIODRIVER=dummy \
           SNESRECOMP_SCREENSHOT="$SHOT" \
           SNESRECOMP_SCREENSHOT_FRAME=300 \
           SNESRECOMP_PRESENT_LOG="$PRESENTS" \
+          SNESRECOMP_RUN_FRAMES=301 \
           timeout 20s xvfb-run -a "$EXE" "$ROM" \
             >"$RUNNER_TEMP/boot.log" 2>&1
           STATUS=$?
           cat "$RUNNER_TEMP/boot.log"
           echo "boot_exit_status=$STATUS"
-          if [ "$STATUS" -eq 124 ]; then
-            echo "SMOKE_RESULT=alive_after_20s"
+          if [ "$STATUS" -eq 0 ]; then
+            echo "SMOKE_RESULT=frame_300_captured_clean_exit"
             exit 0
           fi
-          if [ "$STATUS" -eq 0 ]; then
-            echo "SMOKE_RESULT=clean_exit"
-            exit 0
+          if [ "$STATUS" -eq 124 ]; then
+            echo "::error::Native smoke failed to exit after the bounded frame-300 capture"
+            exit 1
           fi
           echo "SMOKE_RESULT=failed_status_$STATUS"
           exit "$STATUS"
@@ -381,9 +395,15 @@ jobs:
           SCRIPT="$GITHUB_WORKSPACE/tests/input/reach-first-race.script"
           LOG="$RUNNER_TEMP/race-smoke.log"
           DUMPS="$RUNNER_TEMP/race-dumps"
-          mkdir -p "$DUMPS"
+          USER_DIR="$RUNNER_TEMP/native-route-unpaced-user"
+          mkdir -p "$DUMPS" "$USER_DIR"
+          cat >"$USER_DIR/config.ini" <<'EOF'
+          [General]
+          DisableFrameDelay = 1
+          EOF
 
           echo "== scripted native input route =="
+          SNESRECOMP_USER_DATA_DIR="$USER_DIR" \
           SNESRECOMP_DUMP_DIR="$DUMPS" SDL_AUDIODRIVER=dummy \
           timeout 90s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" \
             >"$LOG" 2>&1

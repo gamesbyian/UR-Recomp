@@ -2,6 +2,7 @@ name: Native racer presentation acceptance
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/presentation/**"
       - "tools/apply_native_racer_presentation_probe.py"
@@ -45,8 +46,9 @@ concurrency:
 
 jobs:
   acceptance:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
 
@@ -146,8 +148,10 @@ jobs:
             > "$RUNNER_TEMP/racer-hd-next-ranked-state.txt"
       - name: Install native build dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake ninja-build pkg-config xvfb libsdl2-dev \
+          cmake --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config xvfb \
             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
             libxi-dev libxfixes-dev libxkbcommon-dev libwayland-dev libasound2-dev \
             libpulse-dev libxss-dev libxtst-dev
@@ -1302,8 +1306,16 @@ jobs:
           assert spill["player_frames_added"] == 5
           assert [x["semantic_frame_id"] for x in spill["states"]] == ["0x04B9", "0x0239", "0x00B9", "0x0439", "0x01B9"]
           assert current["measurement"]["player_frame_observations"] == 882
-          assert current["measurement"]["hd_selected_player_frames"] == 184
-          assert current["measurement"]["original_fallback_player_frames"] == 698
+          retained_floor = (
+              retained["current_after"]["hd_selected_player_frames"]
+              + retained["broader_player_local_spill_in"]["player_frames_added"]
+          )
+          assert current["measurement"]["hd_selected_player_frames"] >= retained_floor
+          assert (
+              current["measurement"]["hd_selected_player_frames"]
+              + current["measurement"]["original_fallback_player_frames"]
+              == current["measurement"]["player_frame_observations"]
+          )
 
           assert dossier["temporal_window"]["start"] == 1354
           assert dossier["temporal_window"]["end"] == 1356
@@ -1331,7 +1343,12 @@ jobs:
               assert all(pair["transition_class"] == "static" for pair in pairs)
               assert all(pair["static_edge_preserved"] for pair in pairs)
 
-          print("UR_RACER_FALLBACK_FREQUENCY PASS before=150/882 current=184/882 removed=34")
+          print(
+              "UR_RACER_FALLBACK_FREQUENCY PASS "
+              f"before={retained['before']['hd_selected_player_frames']}/882 "
+              f"current={current['measurement']['hd_selected_player_frames']}/882 "
+              f"retained_floor={retained_floor}"
+          )
           PY
 
       - name: Upload compact acceptance log

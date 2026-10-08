@@ -109,6 +109,38 @@ These tests are intended to make CI architecture failures cheap. A policy
 violation should fail in the tooling suite before an emulator or compiler run is
 needed to discover it.
 
+## Wall-clock performance policy
+
+The October 7 wall-clock audit adds a second CI objective alongside correctness:
+active development must not spend runner time proving superseded intermediate
+commits.
+
+The expensive automatic PR gates are draft-aware. They listen for
+`ready_for_review`, but their first job skips while the PR is draft. Agents
+working on a CI-heavy branch should therefore keep the PR draft while iterating,
+batch coherent edits into logical pushes, and mark it ready only when the head
+is worth running through the native fleet. Cheap tooling and hygiene remain
+active during draft work so workflow-policy and syntax mistakes still fail
+quickly.
+
+Recurring Linux native gates use the Ubuntu runner's supplied CMake/Ninja rather
+than downloading duplicate copies. SDL3 remains the canonical source/backend;
+SDL2 development packages must not creep back into SDL3 gates. Native UI capture
+shards install only the runtime tools they need after downloading the single
+producer-built candidate.
+
+The runtime report now records queue, job, dependency, build and execution
+timings rather than only whole-workflow duration. Use those measurements before
+adding caches or restructuring jobs. In particular, compiler caching is not an
+automatic win once draft gating suppresses most intermediate native builds.
+
+Modern Onboarding's independent fresh-process acceptance cases own distinct
+work/output roots and may run concurrently against the same read-only candidate.
+Native smoke's bounded boot and deterministic race-entry routes may disable
+per-frame delay because their semantic output was proven unchanged under
+unpaced execution. Presentation-sensitive routes should not inherit Turbo or
+presentation skipping merely for speed.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts
@@ -156,18 +188,82 @@ exercising the real presentation and persistence path. Until that seam exists,
 cursor-driven tests should remain focused, heavily diagnosed and outside the
 generic smoke gate.
 
-### Shared native candidate across focused workflows
+### Shared native candidate and bounded acceptance fan-out
 
 Several focused automatic workflows still independently build materially the
-same Linux native candidate. Native UI was the clearest duplication and has
-been corrected first.
+same Linux native candidate. The October 7 ready-for-review validation made the
+cost concrete: eleven heavyweight workflows started together, repeatedly
+installing the same development packages and building overlapping candidates.
+Seven gates completed successfully, while Native Smoke, Profile Panel and
+Native UI were cancelled during prolonged Ubuntu mirror stalls and Racer
+Presentation was cancelled after producing evidence. Those cancellations are
+runner/dependency pressure, not evidence that shorter test timeouts are safe.
 
-A later optimization should measure whether a reusable workflow or trusted
-build-candidate artifact can safely serve Profile Panel, Ghost Target, Modern
-Onboarding, Completed Run Replay and similar gates. Do not centralize merely to
-reduce YAML: the shared producer must preserve each consumer's required patch,
-instrumentation and source inputs, and artifact transfer must be cheaper than
-the build it replaces.
+Native UI is the reference architecture for the next CI phase: one producer
+builds and uploads an immutable candidate, independent consumer jobs download
+that exact candidate with runtime-only dependencies, and an aggregate job owns
+the final gate. Equivalent Modern Linux acceptance gates should converge on
+that shape where their generated host, patches and instrumentation are truly
+identical.
+
+Fan-out is deliberately bounded. A two-core runner should normally execute no
+more than two CPU-bound emulator processes at once. Pacing-heavy cases may
+temporarily tolerate more local concurrency, but once frame delay is removed
+they should move into a small matrix of chunky shards rather than oversubscribe
+one runner. Prefer roughly three to five useful consumer shards over one job per
+test case so repository-level Actions concurrency is spent on wall-clock
+reduction rather than scheduler overhead.
+
+Candidate sharing must be semantic, not merely YAML deduplication. Before a
+consumer joins the shared producer it must prove that its setup-project flags,
+SNESRecomp patches, Modern host patch, SDL backend, generated sources and
+instrumentation requirements match the producer. A gate requiring a genuinely
+different binary remains a separate producer.
+
+Until repeated package installation has been removed, install-heavy jobs need
+enough timeout headroom to survive transient mirror stalls. Timeout tightening
+follows measured execution time and must not turn dependency-service latency
+into routine false-red CI.
+
+## Wall-clock operating policy
+
+Measured CI runtime is now treated as an architecture constraint, not a cosmetic
+workflow concern.
+
+For expensive pull-request gates:
+
+- keep the PR in draft while a workstream is still producing commits;
+- push one coherent logical change rather than one file at a time;
+- expensive native gates must skip draft PRs and include
+  `ready_for_review` in their pull-request event types so the full evidence
+  fleet runs when the change is actually presented for review;
+- cheap policy/unit/hygiene checks may continue to run on drafts so structural
+  mistakes are caught before the expensive gates are released;
+- do not add a fixed debounce sleep. Draft deferral and narrow path triggers are
+  the debounce mechanism;
+- do not treat cancelled superseded runs as signal.
+
+Dependency setup is also part of the runtime budget. GitHub-hosted Ubuntu
+already supplies CMake and Ninja; automatic native gates must not repeatedly
+download them, and SDL2 development packages must not be pulled into canonical
+SDL3 builds. Runtime-only artifact consumers should install runtime tools only,
+not compiler/development stacks.
+
+Acceptance pacing may be removed only where it is explicitly proven not to
+change the evidence contract. `DisableFrameDelay = 1` is preferred for
+deterministic script-driven CI because it removes host waiting without the
+presentation-skipping behavior of Turbo. Keep wall-clock-driven `xdotool`
+journeys paced. Promote additional unpaced routes one bounded gate at a time,
+with byte/state evidence or an equivalently strong semantic comparison.
+
+Independent acceptances may share one compiled candidate and run concurrently
+when they own separate mutable state, dump, log and display roots. Do not
+parallelize cases merely because their YAML steps are adjacent.
+
+The runtime report must retain enough timing detail to distinguish queueing,
+dependency setup, compilation, acceptance execution and cancelled wall time.
+Optimization decisions should be based on those components rather than whole-run
+duration alone.
 
 ## Operating rules
 

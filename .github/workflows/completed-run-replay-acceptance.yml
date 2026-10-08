@@ -3,6 +3,7 @@ name: Completed run replay acceptance
 on:
   workflow_dispatch:
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - "native/product/completed_run_record.*"
       - "native/product/completed_run_capture.*"
@@ -68,8 +69,9 @@ concurrency:
 
 jobs:
   replay-acceptance:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
-    timeout-minutes: 22
+    timeout-minutes: 15
     steps:
       - name: Check out project
         uses: actions/checkout@v4
@@ -77,8 +79,13 @@ jobs:
       - name: Install focused desktop build dependencies
         shell: bash
         run: |
-          sudo apt-get update
-          sudo apt-get install -y             cmake ninja-build pkg-config xvfb             libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev             libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev             libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
+          cmake --version
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends \
+            pkg-config xvfb \
+            libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxfixes-dev libxkbcommon-dev \
+            libwayland-dev libasound2-dev libpulse-dev libxss-dev libxtst-dev
 
       - name: Verify canonical ROM and unit contracts
         shell: bash
@@ -116,6 +123,14 @@ jobs:
           cmake --build "$ROOT/build" -j2
           test -x "$ROOT/build/UniracersSNESRecomp"
 
+      - name: Enable unpaced deterministic CI host
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/ur-run-replay/UniracersSNESRecomp"
+          printf '[General]\nDisableFrameDelay = 1\n' > "$ROOT/build/config.ini"
+          grep -Fq 'DisableFrameDelay = 1' "$ROOT/build/config.ini"
+
       - name: Capture completed Dragster run
         shell: bash
         run: |
@@ -126,7 +141,12 @@ jobs:
           RECORD="$RUNNER_TEMP/original.urrun"
           LOG="$RUNNER_TEMP/original.log"
 
-          SDL_AUDIODRIVER=dummy           UR_RUN_RECORD_CAPTURE_PATH="$RECORD"           UR_PRODUCT_DIAGNOSTICS=1             timeout 180s xvfb-run -a "$EXE" "$ROM"               --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script"               >"$LOG" 2>&1
+          SDL_AUDIODRIVER=dummy \
+          UR_RUN_RECORD_CAPTURE_PATH="$RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+              >"$LOG" 2>&1
 
           cat "$LOG"
           test -s "$RECORD"
@@ -135,6 +155,34 @@ jobs:
           grep -q "UR_RUN_RECORD CAPTURED" "$LOG"
           grep -q "course=course:01" "$LOG"
           grep -q "ghost_trace=1" "$LOG"
+
+          # Keep one paced control in this gate until retained CI evidence
+          # demonstrates that unpaced execution is stable for this acceptance.
+          PACED_USER="$RUNNER_TEMP/completed-run-paced-user"
+          PACED_RECORD="$RUNNER_TEMP/paced-proof.urrun"
+          PACED_LOG="$RUNNER_TEMP/paced-proof.log"
+          mkdir -p "$PACED_USER"
+          printf '[General]\nDisableFrameDelay = 0\n' > "$PACED_USER/config.ini"
+          SDL_AUDIODRIVER=dummy \
+          SNESRECOMP_USER_DATA_DIR="$PACED_USER" \
+          UR_RUN_RECORD_CAPTURE_PATH="$PACED_RECORD" \
+          UR_PRODUCT_DIAGNOSTICS=1 \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" \
+              --script "$GITHUB_WORKSPACE/tests/input/race-finish-dragster.script" \
+              >"$PACED_LOG" 2>&1
+          cat "$PACED_LOG"
+          test -s "$PACED_RECORD"
+
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp" \
+            "$GITHUB_WORKSPACE/tests/native/completed_run_replay_compare.cpp" \
+            -o "$RUNNER_TEMP/compare-runs"
+          "$RUNNER_TEMP/compare-runs" "$PACED_RECORD" "$RECORD" \
+            | tee "$RUNNER_TEMP/paced-unpaced-compare.log"
+          grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" \
+            "$RUNNER_TEMP/paced-unpaced-compare.log"
+          echo "UR_COMPLETED_RUN_UNPACED_PROOF=semantic_record_equal"
 
       - name: Re-drive captured run in a fresh process
         shell: bash
@@ -157,7 +205,7 @@ jobs:
           grep -q "UR_RUN_GHOST DRAWN" "$LOG"
           grep -q "script .* dump replay-race-results ok" "$LOG"
 
-          g++ -std=c++17 -Wall -Wextra -Werror -pedantic             -I "$GITHUB_WORKSPACE/native/product"             "$GITHUB_WORKSPACE/native/product/completed_run_record.cpp"             "$GITHUB_WORKSPACE/tests/native/completed_run_replay_compare.cpp"             -o "$RUNNER_TEMP/compare-runs"
+          test -x "$RUNNER_TEMP/compare-runs"
           "$RUNNER_TEMP/compare-runs" "$ORIGINAL" "$REPLAYED" | tee "$RUNNER_TEMP/compare.log"
           grep -q "UR_RUN_REPLAY_COMPARE PASS course=course:01" "$RUNNER_TEMP/compare.log"
 
@@ -418,6 +466,8 @@ jobs:
             ${{ runner.temp }}/replayed.urrun
             ${{ runner.temp }}/replayed.urrun.urghost
             ${{ runner.temp }}/original.log
+            ${{ runner.temp }}/paced-proof.log
+            ${{ runner.temp }}/paced-unpaced-compare.log
             ${{ runner.temp }}/replayed.log
             ${{ runner.temp }}/browser-replay.log
             ${{ runner.temp }}/records-browser.log

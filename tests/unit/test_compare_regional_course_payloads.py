@@ -54,11 +54,22 @@ class RegionalCoursePayloadComparisonTests(unittest.TestCase):
             tool.regions(bytes(data[:0x800E]), parsed)
         with self.assertRaisesRegex(ValueError, "outside course fine-record"):
             tool.regions(bytes(data), {**parsed, "resource_cursor_initial": 0x800E})
+        # Test terminator guards on a *validly aligned* candidate.
+        aligned = bytearray(0x800F + 32 + 3)
+        aligned_cursor = 0x800F + 32
+        aligned[aligned_cursor:] = b"\x01\x24\xff"
+        aligned_parsed = {
+            "resource_cursor_initial": aligned_cursor,
+            "resource_terminator_offset": aligned_cursor + 2,
+        }
         with self.assertRaisesRegex(ValueError, "outside course resource list"):
-            tool.regions(bytes(data), {**parsed, "resource_terminator_offset": len(data)})
-        damaged = bytes(data[:-1] + b"\x00")
+            tool.regions(
+                bytes(aligned),
+                {**aligned_parsed, "resource_terminator_offset": len(aligned)},
+            )
+        aligned[-1] = 0
         with self.assertRaisesRegex(ValueError, "not FF"):
-            tool.regions(damaged, parsed)
+            tool.regions(bytes(aligned), aligned_parsed)
 
     @staticmethod
     def _spatial_payload(*, swapped=False, changed_word=None):

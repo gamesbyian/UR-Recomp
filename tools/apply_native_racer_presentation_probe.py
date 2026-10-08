@@ -109,7 +109,7 @@ extern "C" int UrRacerHdDrawFrame(
         capture.oamFirst == 97 && capture.oamCount == 2;
     if (!partial) return drawn;
     if (!drawn || frame_w != 256 || frame_h != 224 || pitch < 256u * 4u) {
-        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid partial draw geometry\\n");
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid partial draw geometry\n");
         std::abort();
     }
 
@@ -119,7 +119,7 @@ extern "C" int UrRacerHdDrawFrame(
     );
     if (!p2 || !p2->large || p2->width_pixels != 64 ||
         p2->height_pixels != 64) {
-        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid stock P2 OAM\\n");
+        std::fprintf(stderr, "UR_RACER_HD_P1_NATIVE FAIL invalid stock P2 OAM\n");
         std::abort();
     }
 
@@ -143,7 +143,7 @@ extern "C" int UrRacerHdDrawFrame(
             ++p2_roi_pixels;
             if (differs) {
                 std::fprintf(stderr,
-                    "UR_RACER_HD_P1_NATIVE FAIL stock P2 overwritten x=%d y=%d\\n",
+                    "UR_RACER_HD_P1_NATIVE FAIL stock P2 overwritten x=%d y=%d\n",
                     x, y);
                 std::abort();
             }
@@ -154,7 +154,7 @@ extern "C" int UrRacerHdDrawFrame(
         if (logged < 24) {
             std::fprintf(stderr,
                 "UR_RACER_HD_P1_NATIVE PASS p2_stock_roi_exact=1 pixels=%d "
-                "p1_hd_changed_pixels=%d\\n", p2_roi_pixels, hd_changed_pixels);
+                "p1_hd_changed_pixels=%d\n", p2_roi_pixels, hd_changed_pixels);
             ++logged;
         }
     }

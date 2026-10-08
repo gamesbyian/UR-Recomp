@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "verified-original-rom-stunt-message-reward-lookup",
+  "source": "81:C4AA (USA); signed 16-bit little-endian at 2*(message_id-1)",
+  "validated_region": "message_reward_lookup_block, 282 bytes, bank 81 (USA 81:C458..C571)",
+  "validated_region_sha256": "024a5da15bc0d96b4df5e941fb3cb21e4ac60c081533230bb68e5471205d7f4b",
+  "original_rom_builds": [
+    "usa-retail",
+    "europe-retail",
+    "pal-prototype-1994-11-29",
+    "legacy-beta"
+  ],
+  "provenance": {
+    "workflow_run_id": 37755591934,
+    "job_id": 113239294543,
+    "source_test": "tests/unit/test_extract_stunt_message_rewards.py",
+    "tool": "tools/extract_stunt_message_rewards.py"
+  },
+  "signed_words": [
+    {
+      "message_id": "0x01",
+      "value": 128
+    },
+    {
+      "message_id": "0x02",
+      "value": 152
+    },
+    {
+      "message_id": "0x03",
+      "value": 176
+    },
+    {
+      "message_id": "0x04",
+      "value": 200
+    },
+    {
+      "message_id": "0x05",
+      "value": 176
+    },
+    {
+      "message_id": "0x06",
+      "value": 200
+    },
+    {
+      "message_id": "0x07",
+      "value": 224
+    },
+    {
+      "message_id": "0x08",
+      "value": 248
+    },
+    {
+      "message_id": "0x09",
+      "value": 128
+    },
+    {
+      "message_id": "0x0A",
+      "value": 152
+    },
+    {
+      "message_id": "0x0B",
+      "value": 176
+    },
+    {
+      "message_id": "0x0C",
+      "value": 200
+    },
+    {
+      "message_id": "0x0D",
+      "value": -1
+    },
+    {
+      "message_id": "0x0E",
+      "value": -1
+    },
+    {
+      "message_id": "0x0F",
+      "value": 152
+    },
+    {
+      "message_id": "0x10",
+      "value": 152
+    },
+    {
+      "message_id": "0x11",
+      "value": 152
+    },
+    {
+      "message_id": "0x12",
+      "value": 128
+    },
+    {
+      "message_id": "0x13",
+      "value": 152
+    },
+    {
+      "message_id": "0x14",
+      "value": 176
+    },
+    {
+      "message_id": "0x15",
+      "value": 200
+    }
+  ],
+  "historical_named_mapping_disagreements": [],
+  "interpretation": "Numerical words are directly verified against all four original ROMs and the existing structural-block fingerprints. Runtime stunt recognition, delayed message delivery, and speed response require their own event-relative parity witness; no guest gameplay policy is inferred from this artifact."
+}

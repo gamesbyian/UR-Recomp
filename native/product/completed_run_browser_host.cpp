@@ -22,6 +22,8 @@ extern "C" {
 #include "uniracers_restart_policy.h"
 
 #include <algorithm>
+#include <atomic>
+#include <chrono>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -38,6 +40,7 @@ namespace fs = std::filesystem;
 ur::product::CompletedRunBrowser g_browser;
 ur::product::CompletedRunRecordsBrowser g_records_browser;
 ur::product::CompletedRunReplayFlow g_replay_flow;
+fs::path g_replay_staging_directory;
 ur::product::MultiplayerMatchBrowser g_multiplayer_match_browser;
 ur::product::MultiplayerMatchArtifactHealth g_multiplayer_match_health;
 ur::product::MultiplayerMatchSummary g_multiplayer_match_summary;
@@ -501,14 +504,40 @@ bool open_browser() {
     return true;
 }
 
+void clear_replay_input_staging() {
+    if (g_replay_staging_directory.empty()) return;
+    std::error_code ec;
+    fs::remove_all(g_replay_staging_directory, ec);
+    g_replay_staging_directory.clear();
+}
+
 std::string replay_input_path() {
+    // Two independently launched games may use the same profile/data root.
+    // Never truncate a shared selected-run.input while another live process
+    // is staging or playing a different persisted run.
+    clear_replay_input_staging();
     const std::string root = product_user_data_root();
     if (root.empty()) return {};
     const fs::path directory = fs::path(root) / "replay";
     std::error_code ec;
     fs::create_directories(directory, ec);
     if (ec) return {};
-    return (directory / "selected-run.input").string();
+
+    static std::atomic<std::uint64_t> serial{0};
+    for (unsigned attempt = 0; attempt < 64; ++attempt) {
+        const auto tick = std::chrono::steady_clock::now()
+                              .time_since_epoch().count();
+        const fs::path staging = directory /
+            (".pending-replay-" + std::to_string(tick) + "-" +
+             std::to_string(serial.fetch_add(1, std::memory_order_relaxed)));
+        ec.clear();
+        if (fs::create_directory(staging, ec)) {
+            g_replay_staging_directory = staging;
+            return (staging / "selected-run.input").string();
+        }
+        if (ec) return {};
+    }
+    return {};
 }
 
 bool launch_selected_replay() {
@@ -526,11 +555,13 @@ bool launch_selected_replay() {
     if (input_path.empty() ||
         !ur::product::stage_completed_run_replay_input_file(
             input_path, *selected->record, &detail)) {
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_STAGE_FAILED");
         return false;
     }
 
     if (!snesrecomp_desktop_load_relative_input_file(input_path.c_str())) {
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_LOAD_FAILED");
         return false;
     }
@@ -539,6 +570,7 @@ bool launch_selected_replay() {
     // from the same lifecycle-owned race-entry anchor as Retry.
     if (!ur_uniracers_modern_system_key_down(SDLK_r, KMOD_CTRL, 0)) {
         (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+        clear_replay_input_staging();
         diagnostic("UR_RUN_BROWSER REPLAY_RESTART_FAILED");
         return false;
     }
@@ -546,6 +578,7 @@ bool launch_selected_replay() {
     ur_uniracers_restart_policy_reset(&g_replay_policy);
     if (!g_replay_flow.begin()) {
         (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+        clear_replay_input_staging();
         return false;
     }
 
@@ -575,6 +608,7 @@ void return_to_browser(
     const SnesDesktopHostFrameStats* stats,
     bool completed) {
     (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+    clear_replay_input_staging();
 
     // Re-enter the ordinary Modern host exactly once at the terminal surface
     // so its pause/results/frontend policy is synchronized before the browser
@@ -605,6 +639,7 @@ void cancel_active_replay_to_browser() {
     if (!g_replay_flow.active()) return;
     g_replay_flow.cancel();
     (void)snesrecomp_desktop_load_relative_input_file(nullptr);
+    clear_replay_input_staging();
 
     // Synchronize the Modern surface without executing an additional guest
     // frame, then use the established pause gate before reopening Local Runs.

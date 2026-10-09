@@ -173,7 +173,7 @@ jobs:
               'observations_first': obs[:6],
               'accepted_full_original_native_result': False,
           }
-          (root / 'bridge_report.json').write_text(json.dumps(result, indent=2) + '\\n')
+          (root / 'bridge_report.json').write_text(json.dumps(result, indent=2) + '\n')
           print(json.dumps(result, indent=2))
           assert result['frames_identical'] and result['racer_semantic_observations'] > 0
           PY

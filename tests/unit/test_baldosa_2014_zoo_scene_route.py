@@ -1,4 +1,4 @@
-"""2014 original Zoo controller masks to Baldosa route, never result credit."""
+"""Source 2014 Snes9x scene *must not* be padded by Baldosa press-release."""
 import importlib.util
 from pathlib import Path
 import sys
@@ -10,57 +10,65 @@ SPEC = importlib.util.spec_from_file_location(
     "zoo_scene", ROOT / "tools/baldosa_2014_zoo_scene_route.py")
 mod = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(mod)
+import baldosa_2014_zoo_calibrated_input as calibration
+import baldosa_qa_dense_scene_input_patch as qa_patch
 
 
 class Baldosa2014ZooSceneTest(unittest.TestCase):
-    def test_source_masks_preserve_duration_order_and_idle_frames(self):
-        commands = mod.scene_commands([
-            {"start": 0, "duration": 3, "mask": "0x041"},
-            {"start": 5, "duration": 4, "mask": "0x281"},
-            {"start": 9, "duration": 1, "mask": "0x008"},
-        ], count=14)
-        self.assertEqual(commands, [
-            "press b+left 3", "wait 2", "press b+right+x 4",
-            "press start 1", "wait 4"
-        ])
-
-    def test_original_menu_source_is_guarded(self):
-        good = (
+    def test_source_scene_has_no_press_timing_gaps(self):
+        upstream = (
             "turbo on\nuntil16 0053 == F60C\nwait 300\n"
             "press start 2\nuntil16 0053 == 8610\n"
             "until 0E1F != 00\npress left 6000\n"
             "until16 0053 == F60C\nwait 300\ndump end\nquit\n"
         )
-        prefix = mod.source_menu_prefix(good)
+        prefix = mod.source_menu_prefix(upstream)
         self.assertTrue(prefix.endswith(
             "until16 0053 == 8610\nuntil 0313 == 01\ndump scene-entered\n"))
-        route = mod.render(prefix, [{"start": 0, "duration": 1, "mask": "0x040"}], 3)
-        self.assertIn("press left 1\nwait 2\ndump result-onset-candidate", route)
+        cal = mod.render_calibration(prefix)
+        route = mod.render_replay(prefix)
+        self.assertTrue(cal.endswith("dump scene-entered\nquit\n"))
         self.assertTrue(route.endswith(
-            "dump result-onset-candidate\nwait 6\n"
+            "wait 4700\ndump pre-result\nuntil 009F == BC 1200\n"
+            "dump result-onset-candidate\nwait 8\n"
             "dump result-stable-candidate\nquit\n"))
+        self.assertEqual([l for l in route.splitlines() if l.startswith("press ")],
+                         [l for l in prefix.splitlines() if l.startswith("press ")])
         self.assertNotIn("press left 6000", route)
         with self.assertRaises(ValueError):
-            mod.source_menu_prefix(good.replace("until 0E1F != 00\n", ""))
+            mod.source_menu_prefix(upstream.replace("until 0E1F != 00\n", ""))
+
+    def test_phase_calibration_uses_measured_guest_dump_not_input_guess(self):
+        self.assertEqual(calibration.guest_scene_entry(
+            "script f=1604 dump scene-entered fb=256x224\n"), 1604)
+        self.assertEqual(calibration.guest_scene_entry(
+            "script f=1606 dump scene-entered ok\n"), 1606)
+        for log in ("no entry\n", "script f=8 dump scene-entered ok\n"
+                    "script f=9 dump scene-entered ok\n"):
+            with self.assertRaises(ValueError):
+                calibration.guest_scene_entry(log)
+
+    def test_dense_movie_shim_is_single_patch_at_active_host_frame(self):
+        source = (
+            "static uint32 TickScript(void) {\nreturn 0;\n}\n"
+            "    inputs |= debug_server_get_controller_inputs();\n"
+            "    double profile_start = ProfileStart();\n"
+        )
+        patched = qa_patch.patch(source)
+        self.assertIn("UrQaSceneInputAt((uint32)snes_frame_counter)", patched)
+        self.assertIn('getenv("UR_QA_SCENE_INPUT_FILE")', patched)
+        self.assertIn("inputs = (inputs & ~0x0fffu) | ur_qa_mask;", patched)
+        self.assertIn("frame >= g_ur_qa_last", patched)
         with self.assertRaises(ValueError):
-            mod.source_menu_prefix(good.replace("press left 6000", "press left 5"))
+            qa_patch.patch(patched)
+        with self.assertRaises(ValueError):
+            qa_patch.patch(source.replace("TickScript", "Other"))
 
-    def test_bad_masks_overlaps_and_gaps_fail_closed(self):
-        for rows, count in (
-            ([{"start": 0, "duration": 2, "mask": "0x000"}], 5),
-            ([{"start": 0, "duration": 6, "mask": "0x040"}], 5),
-            ([{"start": 0, "duration": 2, "mask": "0x040"},
-              {"start": 1, "duration": 1, "mask": "0x080"}], 5),
-            ([{"start": 0, "duration": 1, "mask": "0x1000"}], 5),
-        ):
-            with self.subTest(rows=rows):
-                with self.assertRaises(ValueError):
-                    mod.scene_commands(rows, count)
-
-    def test_source_scene_horizon_is_movie_result_not_route_completion(self):
+    def test_real_original_movie_is_not_translated_into_340_press_commands(self):
         self.assertEqual(mod.FIRST + mod.WINDOW - 1, 8359)
         self.assertEqual(mod.RESULT_ONSET, 8353)
         self.assertEqual(len(mod.INPUT_SHA_1810), 64)
+        self.assertLess(mod.BEFORE_RESULT, mod.RESULT_ONSET - mod.FIRST)
 
 
 if __name__ == "__main__":

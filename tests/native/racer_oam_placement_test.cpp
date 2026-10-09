@@ -331,5 +331,54 @@ int main() {
     assert(racer_p1_only_no_stock_p2_occlusion(
         partial_p1_top, partial_p1_bottom, partial_p2_top, partial_p2_bottom
     ));
+    // Full-pair capture must not erase the inactive small split copies.
+    // The real 2P slots are top 98/99 and bottom 97/96. At low X=240,
+    // the 16px inactive alias occupies [-16,0) and is invisible; at X=241
+    // it exposes one column if its 8-bit Y reaches the opposite viewport.
+    RacerOamPlacement full_p1_top = *p1_top;
+    RacerOamPlacement full_p2_top = *p2_top;
+    RacerOamPlacement full_p1_bottom = *p1_bottom;
+    RacerOamPlacement full_p2_bottom = *p2_bottom;
+    const auto pair_safe = [&]() {
+        return racer_hd_full_pair_preserves_split_objs(
+            full_p1_top, full_p2_top, full_p1_bottom, full_p2_bottom,
+            0x83, 0x00
+        );
+    };
+    assert(pair_safe());
+    full_p1_bottom.x_signed = 240;
+    full_p1_bottom.y_raw_8bit = 250;
+    assert(pair_safe());
+    full_p1_bottom.x_signed = 241;
+    assert(!pair_safe());  // Y=250 wraps to top scanlines 0..9.
+    full_p1_bottom.x_signed = 240;
+    full_p2_bottom.x_signed = 241;
+    assert(pair_safe());   // Y=153 never reaches the top half.
+    full_p2_bottom.y_raw_8bit = 255;
+    assert(!pair_safe());
+    full_p2_bottom.x_signed = 104;
+    full_p2_bottom.y_raw_8bit = 153;
+    full_p1_top.x_signed = 241;
+    full_p1_top.y_raw_8bit = 110;
+    assert(!pair_safe());  // Inactive top slot98 crosses scanline 112.
+    full_p1_top.y_raw_8bit = 40;
+    assert(pair_safe());
+    full_p2_top.x_signed = 241;
+    full_p2_top.y_raw_8bit = 112;
+    assert(!pair_safe());
+    full_p2_top.x_signed = 104;
+    full_p2_top.y_raw_8bit = 40;
+    assert(pair_safe());
+    full_p2_bottom.attr ^= 0x10;
+    assert(!pair_safe());  // Cross-racer OBJ priority not reconstructed.
+    full_p2_bottom.attr ^= 0x10;
+    assert(!racer_hd_full_pair_preserves_split_objs(
+        full_p1_top, full_p2_top, full_p1_bottom, full_p2_bottom,
+        0x83, 0x80));  // Priority rotation changes the slot ordering.
+    assert(!racer_hd_full_pair_preserves_split_objs(
+        full_p1_top, full_p2_top, full_p1_bottom, full_p2_bottom,
+        0x00, 0x00));  // Other OBJ size/alias modes unproven.
+    full_p1_top.x_signed = -1;
+    assert(!pair_safe());  // Malformed active-large split placement.
     return 0;
 }

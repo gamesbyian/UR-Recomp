@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "classification": "retained reference registration-eligibility measurement; not live native HD display coverage",
+  "source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "run_id": 37756792263,
+    "artifact_name": "racer-hd-broader-frequency-03f9",
+    "artifact_id": 11539984901,
+    "artifact_zip_sha256": "707ef1356b521a4a5220e4339b65685473db4800e1f4858d006267d52d422e70",
+    "source_member": "racer-hd-after-p2-0578-0ec3-trace.json",
+    "source_member_sha256": "1c4197035338422592a6946a4746aa8cc77e360255f9c15dcd2a20b31c7d6ebd",
+    "matched_report": "racer-hd-after-p2-0578-0ec3.json",
+    "matched_report_sha256": "98e954af3116892af0247cd90cd1c427d4fdcec2b95a9761922115b00807a6a5",
+    "input_fixture": "tests/input/two-player-p1-win.input",
+    "frame_range": [
+      1180,
+      3820
+    ],
+    "sampling": "every reference guest frame, post-frame WRAM composition"
+  },
+  "measurement": {
+    "observed_guest_frames": 2641,
+    "consecutive_frame_pairs": 2640,
+    "registered_pair_eligible_guest_frames": 170,
+    "registered_pair_eligible_player_frame_upper_bound": 340,
+    "observed_player_frames": 5282,
+    "eligible_fraction_upper_bound": 0.06436955698599016,
+    "original_fallback_player_frames_lower_bound": 4942,
+    "eligible_episode_count": 49,
+    "one_frame_eligible_episodes": 20,
+    "eligible_longest_episode_frames": 16,
+    "adjacent_stock_to_eligible_edges": 49,
+    "adjacent_eligible_to_stock_edges": 49,
+    "adjacent_eligibility_switches": 98,
+    "eligible_episode_length_histogram": {
+      "1": 20,
+      "2": 10,
+      "3": 2,
+      "4": 2,
+      "5": 4,
+      "6": 6,
+      "9": 1,
+      "10": 2,
+      "15": 1,
+      "16": 1
+    },
+    "longest_consecutive_pair_ineligible_run_frames": 759,
+    "longest_consecutive_pair_ineligible_run_inclusive_range": [
+      3062,
+      3820
+    ],
+    "other_long_pair_ineligible_ranges": [
+      [
+        1306,
+        1966
+      ],
+      [
+        2050,
+        2436
+      ]
+    ],
+    "first_441_guest_frame_window": {
+      "range": [
+        1180,
+        1620
+      ],
+      "registered_pair_eligible_frames": 59
+    },
+    "remaining_2200_guest_frame_window": {
+      "range": [
+        1621,
+        3820
+      ],
+      "registered_pair_eligible_frames": 111
+    }
+  },
+  "eligible_episode_inclusive_ranges": [
+    [
+      1197,
+      1197
+    ],
+    [
+      1204,
+      1219
+    ],
+    [
+      1229,
+      1238
+    ],
+    [
+      1243,
+      1251
+    ],
+    [
+      1257,
+      1266
+    ],
+    [
+      1279,
+      1282
+    ],
+    [
+      1284,
+      1285
+    ],
+    [
+      1298,
+      1299
+    ],
+    [
+      1301,
+      1305
+    ],
+    [
+      1967,
+      1967
+    ],
+    [
+      2049,
+      2049
+    ],
+    [
+      2437,
+      2437
+    ],
+    [
+      2439,
+      2444
+    ],
+    [
+      2447,
+      2452
+    ],
+    [
+      2469,
+      2470
+    ],
+    [
+      2514,
+      2517
+    ],
+    [
+      2532,
+      2533
+    ],
+    [
+      2547,
+      2547
+    ],
+    [
+      2563,
+      2567
+    ],
+    [
+      2578,
+      2578
+    ],
+    [
+      2611,
+      2611
+    ],
+    [
+      2627,
+      2632
+    ],
+    [
+      2640,
+      2640
+    ],
+    [
+      2642,
+      2642
+    ],
+    [
+      2659,
+      2663
+    ],
+    [
+      2670,
+      2670
+    ],
+    [
+      2704,
+      2709
+    ],
+    [
+      2729,
+      2730
+    ],
+    [
+      2734,
+      2735
+    ],
+    [
+      2737,
+      2737
+    ],
+    [
+      2757,
+      2757
+    ],
+    [
+      2771,
+      2772
+    ],
+    [
+      2790,
+      2804
+    ],
+    [
+      2821,
+      2821
+    ],
+    [
+      2835,
+      2835
+    ],
+    [
+      2851,
+      2855
+    ],
+    [
+      2866,
+      2866
+    ],
+    [
+      2884,
+      2885
+    ],
+    [
+      2915,
+      2920
+    ],
+    [
+      2931,
+      2932
+    ],
+    [
+      2948,
+      2949
+    ],
+    [
+      2963,
+      2963
+    ],
+    [
+      2979,
+      2984
+    ],
+    [
+      2992,
+      2994
+    ],
+    [
+      3013,
+      3013
+    ],
+    [
+      3019,
+      3019
+    ],
+    [
+      3022,
+      3022
+    ],
+    [
+      3057,
+      3057
+    ],
+    [
+      3059,
+      3061
+    ]
+  ],
+  "exclusions": [
+    "Selector-eligible frames can still fail at runtime: content availability, sprite OAM, priority, crop/view geometry and capture.",
+    "A change in eligibility is not evidence of visible native Remastered-versus-Original flicker.",
+    "16:9 widened geometry is unsupported by the current Racer-HD extraction seam; this trace does not prove widened replacement.",
+    "The fixed reference input covers one 2P route, not 1P, VS, every track or a player-visible Windows replay."
+  ]
+}

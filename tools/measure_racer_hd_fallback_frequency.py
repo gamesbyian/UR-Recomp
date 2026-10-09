@@ -41,6 +41,54 @@ def episode_count(frames: list[int]) -> int:
     return count
 
 
+def contiguous_episode_lengths(frames: list[int]) -> list[int]:
+    """Lengths of dense guest-frame runs; gaps are not assumed to be stock."""
+    lengths: list[int] = []
+    previous = None
+    for frame in sorted(set(frames)):
+        if previous is None or frame != previous + 1:
+            lengths.append(1)
+        else:
+            lengths[-1] += 1
+        previous = frame
+    return lengths
+
+
+def pair_gate_temporal_metrics(
+    all_frames: list[int],
+    pair_eligible_frames: list[int],
+) -> dict[str, Any]:
+    """Registration-only eligibility: never equate this with native HD draws."""
+    if len(set(all_frames)) != len(all_frames):
+        raise ValueError("duplicate guest-frame rows invalidate pair-gate temporal census")
+    eligible = set(pair_eligible_frames)
+    if not eligible.issubset(all_frames):
+        raise ValueError("pair-eligible frame absent from observed guest frames")
+    runs = contiguous_episode_lengths(pair_eligible_frames)
+    ordered = sorted(all_frames)
+    adjacent = [
+        (a, b) for a, b in zip(ordered, ordered[1:]) if b == a + 1
+    ]
+    to_eligible = sum(a not in eligible and b in eligible for a, b in adjacent)
+    to_stock = sum(a in eligible and b not in eligible for a, b in adjacent)
+    return {
+        "pair_eligible_run_count": len(runs),
+        "pair_eligible_run_lengths": runs,
+        "longest_contiguous_eligible_run": max(runs, default=0),
+        "one_frame_eligible_runs": sum(length == 1 for length in runs),
+        "consecutive_observed_frame_pairs": len(adjacent),
+        "stock_to_pair_eligible_transitions": to_eligible,
+        "pair_eligible_to_stock_transitions": to_stock,
+        "eligibility_switches": to_eligible + to_stock,
+        "measurement_scope": (
+            "registration-only temporal upper bound; actual PPU capture, "
+            "asset, OAM, width, sprite priority and host-draw availability "
+            "can lower this, and an eligible-to-ineligible switch is not "
+            "proof of an observed HD/Original visual flicker"
+        ),
+    }
+
+
 def build_report(
     rows: list[dict[str, Any]],
     registry: dict[str, Any],
@@ -61,6 +109,7 @@ def build_report(
     supported = 0
     observations = 0
     pair_gate_counts = Counter()
+    pair_eligible_frames: list[int] = []
     pair_unlock_counts = Counter()
     pair_unlock_frames: dict[tuple[str, str, str, int, str], set[int]] = defaultdict(set)
 
@@ -118,6 +167,8 @@ def build_report(
 
         selected_count = sum(selected_by_player.values())
         pair_gate_counts[selected_count] += 1
+        if selected_count == 2:
+            pair_eligible_frames.append(row["frame"])
         if selected_count == 1:
             # The shipping presenter currently activates only when *both*
             # selectors resolve. A new player-local family can release this
@@ -178,6 +229,9 @@ def build_report(
             "frames_with_exactly_one_player_selected": pair_gate_counts[1],
             "frames_with_neither_player_selected": pair_gate_counts[0],
             "pair_gate_eligible_player_frames_upper_bound": pair_gate_counts[2] * 2,
+            "temporal_upper_bound": pair_gate_temporal_metrics(
+                [row["frame"] for row in rows], pair_eligible_frames
+            ),
             "selected_but_pair_blocked_player_frames": pair_gate_counts[1],
             "pair_gate_eligible_fraction_upper_bound": (
                 2 * pair_gate_counts[2] / observations if observations else 0.0

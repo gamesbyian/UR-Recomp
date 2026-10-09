@@ -29,6 +29,46 @@ The latter remains a useful content-coverage metric but cannot stand in for
 on-screen host presentation. The 340 are a ceiling before the live OAM size,
 geometry, approved-asset, capture and frame-draw checks.
 
+## Actual temporal structure of the retained pair-eligibility trace
+
+The original dense trace from the cited Snes9x artifact was recovered and
+reanalyzed, retaining the original 2,641 consecutive guest-frame observations.
+Hash-bound evidence is in
+[`analysis/generated/racer-hd-pair-temporal-eligibility-2026-10-08.json`](../analysis/generated/racer-hd-pair-temporal-eligibility-2026-10-08.json).
+It uses the archived `racer-hd-after-p2-0578-0ec3-trace.json` file from
+run `37756792263` / artifact `11539984901`, member SHA256
+`1c4197035338422592a6946a4746aa8cc77e360255f9c15dcd2a20b31c7d6ebd`.
+Its 170 pair-eligible frames comprise **49 runs** (20 one-frame, ten
+two-frame; longest 16 frames). There are **49 entry and 49 exit edges**,
+or 98 changes in pair-registration eligibility over 2,640 consecutive
+guest-frame boundaries. At least 4,942 / 5,282 player-frame slots
+(**93.56%**) remain stock under the *default pair-only capture policy*,
+even before failed live geometry/OAM/capture checks.
+
+The trace also contains a **759-frame uninterrupted ineligible period**
+(guest frames `3062..3820`), another 661-frame interval (`1306..1966`),
+and 387 frames (`2050..2436`). Under the default pair-only presenter,
+these are extended unavoidable Original-only stretches, about 12.6, 11.0
+and 6.4 seconds respectively at approximately 60 guest frames/second.
+The first 441 observed guest frames have 59 eligible frames, whereas the
+remaining 2,200 have only 111; the coverage profile is highly
+non-uniform across a moving play sequence. The priority is whole motion
+and game segments, not a prettier isolated sprite or a percentage gain
+concentrated in a three-second window.
+
+These figures are measured on a real moving reference sequence, but
+**do not count actual native replacement draws**. The 98 edges mark
+potentially rapid Remastered/Original transitions, not a verified
+screen-flicker defect. Each frame still needs a same-frame native selector,
+geometry, OAM, capture, and pixel/priority witness, especially at the
+one-frame bursts, player crossings and 16:9 view. Host priority compositing
+is another separate blocker: pinned SNESRecomp
+`docs/HOST_OVERLAY_EXTRACTION.md` states that a promoted OBJ plane
+drawn over the flattened framebuffer needs additional foreground/occluder
+planes or an intermediate composition hook for authentic depth.
+Do not promote overlapping racer/foreground visuals until this is tested
+against stock same-frame pixels and corrected where necessary.
+
 ## Why the existing capture API offers a P1-only opening
 
 HDMA writes high OAM `0xA5` above split scanline 112 and `0x5A` below it.
@@ -109,6 +149,45 @@ and a mixed stock-P2/HD-P1 image comparison before the opt-in flag is
 eligible to become a player-facing default. It is **not** counted in the
 shipping coverage figures above. The original 256×224 pair path remains
 unchanged when the flag is absent.
+
+## QA-08 full-pair inactive-OBJ edge guard (2026-10-08)
+
+The default full-pair capture originally removed OAM slots 96–99 and reconstructed
+only the two *large* racers per half. In the title's active-display high-OAM
+split ($A5 at the top and $5A at the bottom), the other two slots remain
+16×16 small OBJs with X-high set. They are usually invisible at negative X,
+but LOW_X=241..255 exposes pixels at the left edge if their modulo-256 Y
+falls in the opposite viewport. Removing them without reconstruction
+silently loses Original pixels. The P1-only experimental guard already knew
+about this failure mode; the full-pair path did not test it.
+
+`racer_hd_full_pair_preserves_split_objs()` now gates the default full-pair
+`RemoveFromGame` capture *before* the PPU removal is armed. It checks both
+players' inactive upper/lower aliases, X=240/241, 8-bit Y-wrap and scanline
+112, expected OBSEL=$83 16/64 geometry, fixed OAM sprite ordering and equal
+per-viewport racer OBJ priority. Unsupported or uncertain combinations leave
+the complete stock frame untouched. Pure regressions:
+`tests/native/racer_oam_placement_test.cpp`; live gate:
+`native/presentation/racer_hd_presenter.cpp`.
+
+The existing `tools/measure_racer_hd_fallback_frequency.py` now also emits a
+`host_presenter_pair_gate.temporal_upper_bound` block: contiguous
+pair-selected run lengths, single-frame eligible bursts and actual
+*registration eligibility* switches between adjacent observed guest frames.
+The scanner refuses duplicate guest frames and never interprets gaps as a
+stock-to-HD transition. This enables disciplined temporal family ranking
+from fresh dense traces. None of these model counts is an observed native
+HD draw/flicker count; a live per-present witness is still required.
+
+**Evidence classification:** source-confirmed missing safety check plus
+boundary regression added, not yet a reproduced moving-frame pixel loss or
+a passed native/packaged 2P visual run. No new HD pose is admitted, no artwork
+or guest state changes. A bounded running capture comparing stock against
+enabled HD at X=240/241 and 250/255 Y-wrap, plus real baseline placement
+counts, is still needed. Conservatively rejecting an unsafe capture can
+*increase* Original fallback and does not improve the 6.44% selector-pair
+upper bound in the retained 2,641-frame 2P trace. Review the temporal
+Original/HD transitions before claiming Remastered visual completeness.
 
 ## Next pose priorities when the whole-pair policy remains
 

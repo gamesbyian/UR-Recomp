@@ -76,6 +76,26 @@ class ZooSourceToSpatialCellsTests(unittest.TestCase):
         )
         self.assertEqual(report["course"], "course:02")
         self.assertEqual(report["sample_count"], 5)
+        # The first actual canonical-ROM measurement is a retained,
+        # source-classified witness, not a moving collision/original-vs-native
+        # pass. Fail if a descriptor or coordinate transform silently drifts.
+        pinned = json.loads((
+            ROOT / "analysis/data/zoo-original-2014-spatial-witness.json"
+        ).read_text(encoding="utf-8"))
+        self.assertEqual(
+            report["decoded_course_resource_0x24_candidate_cells"],
+            pinned["candidate_cells"],
+        )
+        observed = [
+            {"movie_frame": row["movie_frame"],
+             "position": [row["x"], row["y"]],
+             "nearest_cell": row["nearest_world_cell"],
+             "axis_gap": row["nearest_separate_axis_gaps"],
+             "c000_slot": row["nearest_c000_slot"],
+             "inside_candidate_cells": row["inside_static_cell_count"]}
+            for row in report["samples"]
+        ]
+        self.assertEqual(observed, pinned["samples"])
         self.assertGreater(report["decoded_course_resource_0x24_candidate_cells"], 0)
         self.assertEqual([item["movie_frame"] for item in report["samples"]],
                          list(probe.FRAMES))

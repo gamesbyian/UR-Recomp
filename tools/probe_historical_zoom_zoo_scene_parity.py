@@ -142,6 +142,15 @@ def read_guest(path: Path, frame: int, decoded: bytes | None = None) -> dict:
             "p1_finish_gate": u(0x119D),
             "p1_laps_remaining": u(0x0EF1),
             "p1_boost": u(0x11CF),
+            # Five original USA race stopwatch BYTES, not combined u16
+            # fields. In the 2014 original run the clock stays at zero
+            # until movie frame 3396 (scene-relative +206) even though
+            # 7E:0313 first enters active race at frame 3190.
+            "timer_minutes_raw": image[0x0E0F],
+            "timer_tens_raw": image[0x0E13],
+            "timer_seconds_raw": image[0x0E17],
+            "timer_tenths_raw": image[0x0E1B],
+            "timer_subtick_raw": image[0x0E1F],
         })
     return row
 

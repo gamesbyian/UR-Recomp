@@ -52,6 +52,12 @@ public:
 
     SessionRequestResult request(SessionCommand command) noexcept;
     std::optional<RuntimeAction> take_pending_action() noexcept;
+    void reconcile_failed_runtime_action(SessionPhase before) noexcept {
+        // Request policy is optimistic; an unacknowledged native pause or
+        // resume must not silently change Modern's authoritative UI phase.
+        phase_ = before;
+        pending_action_.reset();
+    }
     void reconcile_frontend_return() noexcept {
         phase_ = SessionPhase::Running;
         pending_action_.reset();

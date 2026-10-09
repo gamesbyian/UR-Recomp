@@ -39,15 +39,17 @@ def patch_cmake(source: str, ur_root: Path) -> str:
         ur_root / "tools/baldosa_native_racer_presentation.cpp",
         ur_root / "native/presentation/racer_hd_presenter.cpp",
         ur_root / "native/presentation/racer_oam_placement.cpp",
+        ur_root / "native/product/presentation_density_compositor.cpp",
     ]
     for f in files:
         if not f.is_file():
             raise ValueError(f"Missing real UR presentation implementation: {f}")
     inc = (ur_root / "native/presentation").resolve().as_posix()
+    product_inc = (ur_root / "native/product").resolve().as_posix()
     shim = files[0].resolve().as_posix()
     return source.rstrip() + (
         "\n\n# " + MARK + ": reused UR source-derived presenter, isolated AOT\n"
-        + f'set_source_files_properties("{shim}" PROPERTIES INCLUDE_DIRECTORIES "{inc}")\n'
+        + f'set_source_files_properties("{shim}" PROPERTIES INCLUDE_DIRECTORIES "{inc};{product_inc}")\n'
         + "target_sources(UniracersSNESRecomp PRIVATE\n"
         + "".join(f'    "{f.resolve().as_posix()}"\n' for f in files)
         + ")\n"

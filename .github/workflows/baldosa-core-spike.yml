@@ -10,6 +10,8 @@ on:
       - "tools/baldosa_hd_host_spike.py"
       - "tools/baldosa_native_racer_presentation.cpp"
       - "tools/baldosa_hd_presentation_report.py"
+      - "native/product/presentation_density_compositor.cpp"
+      - "tools/baldosa_original_fallback_report.py"
       - "tools/baldosa_hd_enable_renderer.py"
       - "tools/baldosa_single_presentation_scale_patch.py"
       - "tools/baldosa_ws24_host_spike.py"
@@ -261,6 +263,13 @@ jobs:
             --captures "$UR_BALDOSA_HD_CAPTURE_DIR" --density 4 \
             --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation_4x.json"
           echo "PASS: real moving 1024x896 source-derived P1/P2 racers, guest CRCs identical" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/baldosa_original_fallback_report.py \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/log.txt" \
+            --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/original_4x_fallback.json"
+          echo "PASS: real stable-density 4x Original fallback with no split-view subpixel drift" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture calibrated +24 split-screen world pixels without guest writes
         shell: bash
@@ -350,6 +359,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
+            ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam

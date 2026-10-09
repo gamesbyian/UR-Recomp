@@ -1,5 +1,9 @@
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
+## Target design and current-status boundary
+
+The cross-screen proposed information architecture, detailed screen behavior, input/focus invariants and priority implementation sequence are specified in [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Treat it as the design target **only**: no unchecked design row, future Options category, racer studio, or responsive art treatment counts as shipped. Retain this file as the verified route/source-of-authority index, reconcile each newly landed screen against native acceptance, and keep stock menu fidelity and first-time controller discoverability as separate release conditions.
+
 Status snapshot: **2026-10-08 UTC**, reviewed through `main` `7d2a75312`. This is a routing/readiness index, not a new frontend specification. The source of truth for behavior remains the implementation and native acceptance; update this index when the corresponding merge changes a shipping claim.
 
 ## Player-facing surfaces already on main

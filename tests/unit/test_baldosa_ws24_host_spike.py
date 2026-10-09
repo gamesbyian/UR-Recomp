@@ -16,6 +16,7 @@ def load(name):
 
 
 adapter = load("baldosa_ws24_host_spike")
+split_patch = load("baldosa_ws24_framework_split_patch")
 oracle = load("baldosa_ws24_presentation_report")
 
 
@@ -36,6 +37,20 @@ class WorldMarginProbeTests(unittest.TestCase):
         self.assertIn(".native_widescreen = 1", p)
         self.assertIn("&ur_baldosa_ws24_prepare_frame", p)
         self.assertIn("&ur_baldosa_ws24_draw_frame", p)
+
+    def test_pinned_split_band_framework_patch_is_required(self):
+        import hashlib
+        import json
+        manifest = json.loads(
+            (ROOT / "tools/toolchain-entries/snesrecomp.json").read_text())
+        pin = [row for row in manifest["patches"]
+               if row["path"] == split_patch.PATCH]
+        self.assertEqual(len(pin), 1)
+        self.assertEqual(hashlib.sha256(
+            (ROOT / split_patch.PATCH).read_bytes()).hexdigest(), pin[0]["sha256"])
+        with tempfile.TemporaryDirectory() as td:
+            with self.assertRaisesRegex(ValueError, "missing required"):
+                split_patch.apply(ROOT, Path(td))
 
     def test_cmake_reuses_existing_materializer(self):
         with tempfile.TemporaryDirectory() as td:

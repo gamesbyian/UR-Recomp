@@ -69,6 +69,7 @@ bool append_multiplayer_match_pair(
     const CompletedRunRecord& run,
     const MultiplayerMatchRecord& record,
     std::string* stored_run_path = nullptr,
-    std::string* detail = nullptr);
+    std::string* detail = nullptr,
+    void (*after_sidecar_claim_for_test)() = nullptr);
 
 }  // namespace ur::product

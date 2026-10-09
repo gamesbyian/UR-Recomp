@@ -188,6 +188,45 @@ int main(int argc, char** argv) {
         std::puts("QA02_BUSY_AND_STALE_RETRY_REJECTED");
         return 0;
     }
+
+    // An active tournament pointer CAS alone does not establish authority
+    // to close another *living* game's in-flight fixture. The replacement
+    // path must respect the same OS lease as fixture arming.
+    if (action == "owner-wait-replace") {
+        const auto restored = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(restored.usable(), "replacement owner restores event");
+        auto session = *restored.session;
+        arm_first(session, kAttemptOld);
+        signal(root / "barrier" / "owner-armed");
+        await_signal(root / "barrier" / "replacement-attempted");
+        const auto saved = publish_real_pair(session, 0x780);
+        require(commit_local_tournament_capture(
+                    session, kAttemptOld, saved) == Status::Committed,
+                "live owner finishes after blocked replacement");
+        std::puts("QA02_OWNER_SURVIVED_REPLACEMENT");
+        return 0;
+    }
+    if (action == "attempt-replace-live") {
+        await_signal(root / "barrier" / "owner-armed");
+        const auto replacement = create_local_tournament_coordinator(
+            layout, std::string(32, 'b'),
+            {"alpha", "beta"}, catalog(), {"course:01"}, true);
+        signal(root / "barrier" / "replacement-attempted");
+        require(replacement.status == Status::Busy &&
+                !replacement.usable(),
+                "second game must not replace active event during live race");
+        const auto still_active =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(still_active.usable() &&
+                still_active.session->definition.instance_id == kInstance,
+                "busy replacement preserved old active tournament identity");
+        require(!fs::exists(
+                    root / "local-tournaments" / std::string(32, 'b')),
+                "busy replacement did not leave unnecessary new archive");
+        std::puts("QA02_LIVE_REPLACEMENT_BUSY");
+        return 0;
+    }
     if (action == "owner-crash" || action == "owner-hold") {
         std::error_code ec;
         fs::create_directories(layout.multiplayer_runs_directory, ec);

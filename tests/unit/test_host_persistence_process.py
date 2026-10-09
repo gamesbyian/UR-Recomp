@@ -200,11 +200,13 @@ class HostPersistenceProcessTests(unittest.TestCase):
             # its catalog row is written. Only this exact initial snapshot,
             # and no other save artifacts, may be offered for explicit claim.
             pristine = root / "unregistered-initial"
-            pristine.mkdir()
             orphan_profile = pristine / "host-profile.txt"
+            crashed_orphan = call("profile", "orphan-crash", pristine, 4)
             self.assertEqual(
-                call("profile", "write", orphan_profile, 4).returncode, 0
+                crashed_orphan.returncode, 78, crashed_orphan.stderr
             )
+            self.assertTrue(orphan_profile.exists())
+            self.assertFalse((root / "orphan-claim-catalog.dat").exists())
             self.assertEqual(
                 call("profile", "root-pristine", pristine, 4).returncode, 0
             )

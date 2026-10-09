@@ -80,6 +80,22 @@ int main() {
     assert(keyboard.on_button(1, false, session));
     assert(!guest.paused);
     assert(keyboard.on_button(0, false, session));
+    // Reuse the same host edge/release authority for Modern's native
+    // Restart semantic key. Without an authentic guest snapshot, it MUST
+    // fail closed and must not feed guest buttons.
+    BaldosaPhysicalPauseInput restart_key;
+    assert(!restart_key.on_button(
+        1, false, session, UR_MODERN_SESSION_KEY_RESTART));
+    assert(ur_modern_session_pause(session) == UR_MODERN_SESSION_APPLIED);
+    assert(restart_key.on_button(
+        1, false, session, UR_MODERN_SESSION_KEY_RESTART));
+    assert(restart_key.last_result() == UR_MODERN_SESSION_REJECTED_BY_RUNTIME);
+    assert(restart_key.on_button(
+        1, false, session, UR_MODERN_SESSION_KEY_RESTART));
+    assert(restart_key.on_button(
+        0, false, session, UR_MODERN_SESSION_KEY_RESTART));
+    assert(guest.paused);
+    assert(ur_modern_session_resume(session) == UR_MODERN_SESSION_APPLIED);
     ur_modern_session_destroy(session);
     return 0;
 }

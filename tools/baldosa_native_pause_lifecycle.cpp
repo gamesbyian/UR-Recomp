@@ -23,7 +23,9 @@ extern "C" {
 
 extern "C" {
 #include "host_main.h"
+#include "common_rtl.h"
 extern std::uint8_t g_ram[0x20000];
+void ur_baldosa_product_guest_restarted(void);
 int ur_baldosa_product_set_paused(int paused);
 int snesrecomp_desktop_product_is_paused(void);
 void ur_baldosa_guest_snapshot_after_run_frame(
@@ -37,6 +39,8 @@ UrModernSession* g_modern_session;
 bool g_native_live_race;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
+ur::product::BaldosaPhysicalPauseInput g_keyboard_restart;
+bool g_restart_same_frame_checked;
 
 // Deliberately opt-in while the native Baldosa executable lacks the visible
 // established Modern pause/root surfaces. Authentic remains untouched.
@@ -54,13 +58,36 @@ bool acknowledged_guest_pause(void*, int paused) {
     return ur_baldosa_product_set_paused(paused) != 0;
 }
 
+std::size_t save_native_guest(void* bytes, std::size_t capacity) {
+    return RtlRollbackSaveToMemory(bytes, capacity);
+}
+
+bool restore_native_guest_preserving_sram(const void* bytes, std::size_t size) {
+    return ur_modern_session_load_preserving_persistent_bytes(
+        &RtlRollbackLoadFromMemory, bytes, size, g_sram,
+        g_sram_size > 0 ? static_cast<std::size_t>(g_sram_size) : 0u);
+}
+
+void reconcile_after_native_restart() {
+    // This is the existing Modern host's post-restore audio reconciliation
+    // and the already merged two-seat human input release latch. A paused
+    // Restart never gives a held physical Start back to the guest.
+    ur_baldosa_product_guest_restarted();
+    RtlAudioSetFastForward(true);
+    RtlAudioSetFastForward(false);
+}
+
 void create_modern_session() {
     if (g_modern_session) return;
-    // Reuse Modern's real command/phase policy even in the existing bounded
-    // 2P native guest pause witness. This is not a new menu or second host.
     const UrModernNativeSessionHooks hooks{
         nullptr, &acknowledged_guest_pause, nullptr, nullptr, nullptr};
-    g_modern_session = ur_modern_session_create_native(1, &hooks);
+    const auto capacity = RtlRollbackSnapshotBound();
+    g_modern_session = capacity
+        ? ur_modern_session_create_native_with_snapshot(
+              1, &hooks, capacity, &save_native_guest,
+              &restore_native_guest_preserving_sram,
+              &reconcile_after_native_restart)
+        : ur_modern_session_create_native(1, &hooks);
     if (!g_modern_session) {
         std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE FAIL=modern_session_create\n");
         std::abort();

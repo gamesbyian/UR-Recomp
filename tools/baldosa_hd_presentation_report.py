@@ -10,7 +10,9 @@ import re
 COMPOSE = re.compile(r"UR_BALDOSA_NATIVE_COMPOSE frame=(\d+) racer_present=1 logical=(\d+)x(\d+) source_art=ur hd_capture=(\d+)")
 
 
-def assess(baseline: Path, candidate: Path, log: Path, captures: Path) -> dict:
+def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: int = 1) -> dict:
+    if density not in (1, 4):
+        raise ValueError("Only verified 1x and 4x presentation scales are supported")
     left, right = baseline.read_bytes(), candidate.read_bytes()
     base_frames = left.splitlines()
     own_frames = right.splitlines()
@@ -20,10 +22,11 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path) -> dict:
     details = []
     for p in images:
         data = p.read_bytes()
-        if not data.startswith(b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\n"):
+        expected = f"P7\nWIDTH {256*density}\nHEIGHT {224*density}\nDEPTH 4\n".encode()
+        if not data.startswith(expected):
             raise ValueError(f"Unexpected composited frame geometry: {p}")
         parts = data.split(b"ENDHDR\n", 1)
-        if len(parts) != 2 or len(parts[1]) != 256 * 224 * 4:
+        if len(parts) != 2 or len(parts[1]) != 256 * density * 224 * density * 4:
             raise ValueError(f"Truncated or invalid frame: {p}")
         details.append({"file": p.name, "sha256": hashlib.sha256(parts[1]).hexdigest()})
     return {
@@ -41,8 +44,10 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path) -> dict:
         "actual_presented_rgba_frames": details,
         "distinct_presented_frames": len({x["sha256"] for x in details}),
         "logical_geometry": [256, 224],
-        "presentation_density": 1,
+        "composed_raster_dimensions": [256 * density, 224 * density],
+        "presentation_density": density,
         "widescreen_or_4k_proved": False,
+        "real_4x_authored_raster_proved": density == 4 and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2,
         "original_native_completed_event_qa_credit": 0,
         "limits": "Native composed 1x raster only; screenshots require visual/original oracle review; no Windows or full course result gate."
     }
@@ -52,8 +57,9 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     for name in ("baseline", "candidate", "log", "captures", "out"):
         ap.add_argument("--" + name, type=Path, required=True)
+    ap.add_argument("--density", type=int, default=1, choices=[1, 4])
     a = ap.parse_args()
-    result = assess(a.baseline, a.candidate, a.log, a.captures)
+    result = assess(a.baseline, a.candidate, a.log, a.captures, density=a.density)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(result, indent=2))

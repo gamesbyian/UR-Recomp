@@ -64,6 +64,13 @@ int main() {
     const auto hooks = baldosa_modern_session_hooks(backend);
     UrModernSession* session = ur_modern_session_create_native(1, &hooks);
     assert(session);
+    // Launch is not a race-finish/restart oracle: the guest still needs to
+    // enter a real race before Modern permits Restart.
+    assert(!ur_modern_session_restart_available(session));
+    assert(ur_modern_session_restart_race(session) ==
+           UR_MODERN_SESSION_REJECTED_BY_RUNTIME);
+    assert(guest.restarts == 0);
+    ur_modern_session_observe_race_active(session, 1);
     assert(ur_modern_session_restart_available(session));
 
     constexpr std::uint32_t present = 0xc0000000u;
@@ -123,6 +130,7 @@ int main() {
     assert(backend.phase() == BaldosaBackendPhase::Running);
     guest.settled = true;
     assert(backend.finish_from_guest_result() == BaldosaBackendStatus::Applied);
+    ur_modern_session_observe_race_active(session, 0);
     assert(ur_modern_session_restart_available(session));
     assert(ur_modern_session_handle_key(
         session, UR_MODERN_SESSION_KEY_RESTART) == UR_MODERN_SESSION_APPLIED);
@@ -148,7 +156,14 @@ int main() {
     assert(backend.select_players(1) == BaldosaBackendStatus::Applied);
     assert(backend.start_event() == BaldosaBackendStatus::Applied);
     assert(guest.players == 1);
+    assert(!ur_modern_session_restart_available(session));
+    ur_modern_session_observe_race_active(session, 1);
     assert(ur_modern_session_restart_available(session));
+    ur_modern_session_retire_race_attempt(session);
+    assert(!ur_modern_session_restart_available(session));
+    assert(ur_modern_session_restart_race(session) ==
+           UR_MODERN_SESSION_REJECTED_BY_RUNTIME);
+    assert(guest.restarts == 2);
     assert(backend.input().filter(held) == present);
     ur_modern_session_destroy(session);
     return 0;

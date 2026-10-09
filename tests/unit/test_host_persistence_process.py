@@ -153,6 +153,57 @@ class HostPersistenceProcessTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(read_value("profile", cas_path), 14)
+            # Failed catalog registration must never delete the profile
+            # after another process has saved newer canonical SRAM.
+            self.assertEqual(
+                call("profile", "cas-delete-stale",
+                     cas_path, 15).returncode, 0
+            )
+            self.assertEqual(read_value("profile", cas_path), 15)
+            self.assertEqual(
+                call("profile", "cas-delete", cas_path).returncode, 0
+            )
+            deleted = call("profile", "read", cas_path)
+            self.assertEqual(deleted.returncode, 4)
+
+
+            # Profile roster lost-update is a separate artifact from SRAM:
+            # two different new racers based on an identical pre-save
+            # catalogue must not silently replace each other's entry.
+            catalog_path = root / "catalog-cas.dat"
+            self.assertEqual(call("catalog", "write",
+                                  catalog_path, 0).returncode, 0)
+            roster_barrier = root / "roster-barrier"
+            roster_barrier.mkdir()
+            roster_children = [
+                subprocess.Popen(
+                    [str(exe), "catalog", "cas-roster-contend",
+                     str(catalog_path), str(value), str(roster_barrier)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                for value in (8, 9)
+            ]
+            deadline = time.monotonic() + 8
+            while not all((roster_barrier / ("ready-" + str(value))).exists()
+                          for value in (8, 9)):
+                self.assertLess(time.monotonic(), deadline,
+                                "catalog contenders did not reach barrier")
+                time.sleep(0.01)
+            (roster_barrier / "go").touch()
+            statuses = []
+            for child in roster_children:
+                _, stderr = child.communicate(timeout=12)
+                statuses.append(child.returncode)
+                self.assertIn(child.returncode, (0, 6), stderr)
+            self.assertEqual(sorted(statuses), [0, 6], statuses)
+            result = call("catalog", "cas-roster-read", catalog_path)
+            self.assertEqual(result.returncode, 0, result.stderr)
+            roster = result.stdout.decode().strip().split()
+            self.assertEqual(roster[0], "2")
+            self.assertIn("racer", roster)
+            self.assertEqual(
+                len(set(roster).intersection({"racer-8", "racer-9"})), 1
+            )
 
 
 if __name__ == "__main__":

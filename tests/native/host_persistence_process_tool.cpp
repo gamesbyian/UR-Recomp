@@ -93,6 +93,66 @@ int main(int argc, char** argv) {
     const std::string family(argv[1]), action(argv[2]), path(argv[3]);
     const unsigned value = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
     if (value > 15) return 2;
+    if (family == "catalog" && action == "cas-roster-read") {
+        const auto catalog = load_host_profile_catalog_file(path);
+        if (!catalog || catalog->empty()) return 4;
+        std::cout << catalog->size();
+        for (const auto& entry : *catalog) {
+            std::cout << " " << entry.profile_id;
+        }
+        std::cout << "\n";
+        return 0;
+    }
+    if (family == "catalog" && action == "cas-roster-contend" &&
+        argc == 6) {
+        const auto current = load_host_profile_catalog_file(path);
+        if (!current) return 4;
+        auto next = *current;
+        next.push_back({
+            "racer-" + std::to_string(value),
+            {"RACER", static_cast<std::uint8_t>(value)}
+        });
+        const std::filesystem::path synchronization(argv[5]);
+        {
+            std::ofstream marker(
+                synchronization / ("ready-" + std::to_string(value)));
+            if (!marker) return 7;
+        }
+        bool released = false;
+        for (unsigned n = 0; n < 10000; ++n) {
+            if (std::filesystem::exists(synchronization / "go")) {
+                released = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (!released) return 8;
+        const auto result = save_host_profile_catalog_file_if_current(
+            path, *current, next);
+        return result == HostProfileCatalogSaveStatus::Saved ? 0 :
+               result == HostProfileCatalogSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "profile" && action == "cas-delete") {
+        const auto prior = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!prior.loaded()) return 4;
+        return remove_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, *prior.state) ==
+            HostProfileSaveStatus::Saved ? 0 : 9;
+    }
+    if (family == "profile" && action == "cas-delete-stale") {
+        const auto prior = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!prior.loaded()) return 4;
+        // Another owner saves newer valid bytes between this process's
+        // catalog-registration attempt and its stale cleanup decision.
+        if (save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, *prior.state,
+                profile(value)) != HostProfileSaveStatus::Saved) return 8;
+        return remove_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, *prior.state) ==
+            HostProfileSaveStatus::Conflict ? 0 : 9;
+    }
     if (family == "profile" && action == "cas-create") {
         const auto status = save_host_profile_state_file_if_current(
             ExecutionMode::Modern, path, std::nullopt, profile(value));

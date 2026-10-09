@@ -15,19 +15,22 @@ has passed. The nine timed stunt courses have decoded `45` at header byte
 checkpoint/finish *resource family*. These facts do not identify a unique
 contact cell, number of laps, gate order, finish plane or final result.
 
-The initial release comparison matrix covers **three builds**: USA retail,
-Europe retail and the 1994-11-29 PAL prototype. Thus there are **135
-course/build cases**, comprising 108 race/circuit cases and 27 stunt
-cases, or 27 cases for each event-slot family across builds. The historical
-legacy beta remains a separate archival/reference build rather than a
-mandatory release case. A complete `passed` entry must include the
+The primary Windows-original course release gate covers **45 USA-retail
+cases**. A broader comparative matrix separately tracks **90 reference
+cases** from Europe retail and the 1994-11-29 PAL prototype. Together
+this is **135 course/build cases** (108 race/circuit and 27 timed stunt),
+with 27 cases for each event-slot family across all three builds. The
+comparison variants identify regional divergences; completing every
+prototype case is not an automatic Windows shipping requirement. The
+historical legacy beta is a separate archival build. A complete `passed` entry must include the
 original route and start, event-specific contact/checkpoint/lap/finish
 (or stunt score/timer) and result, matched against a pinned Snes9x or
 MesenCE run from an independently named native run, on a fresh process,
 with exact ROM and candidate provenance.
 
-The recorded baseline is **0/135 complete event passes**, **2/135
-partial observations** and **133/135 unverified**, as encoded in
+The primary-USA baseline is **0/45 complete event passes**, **2/45
+partial observations**, **43/45 unverified**. Across all three builds,
+**0/135 complete**, **2/135 partial**, **133/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
 - **USA Dragster (course 01), partial:** the seven-frame native WRAM
@@ -40,7 +43,7 @@ partial observations** and **133/135 unverified**, as encoded in
   event is established. All nine timed-stunt identities remain untested
   end-to-end.
 
-Every Europe-retail and PAL-prototype case remains unverified at L4.
+Every Europe-retail and PAL-prototype case remains unverified at comparative L4.
 No paired-ROM payload CRC, native unit test, static course-cell match,
 or success on Dragster can be counted as a substitute.
 
@@ -57,6 +60,13 @@ The observation register is intentionally small and must change only when
 new original/native evidence is retained. The validator checks
 completeness and source categories, **not** whether a witness is truthful;
 reviewers still admit each candidate and exact trace.
+
+The retained ROM-side evidence separates 42 nonzero numerical matches
+between the optimizer's unused startX constants and header A.x×16, one
+nonzero disagreement (Zoom Zoo), and two zero-value annotations whose
+runtime interpretation is unknown (Jumps, Hill Climb). The source script
+never reads startX when performing calculations. Numeric coincidence
+is useful for track-identity reconciliation, **not** a dynamic spawn witness.
 
 ## Non-Dragster counterexample priorities
 

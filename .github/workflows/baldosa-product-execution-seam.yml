@@ -175,10 +175,12 @@ jobs:
           export BIN="$RUNNER_TEMP/ur-baldosa-x11"
           export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
           export UR_BALDOSA_PAUSE_SMOKE=1
+          export UR_BALDOSA_PAUSE_SMOKE_AT_FRAME=1952
+          export UR_BALDOSA_PAUSE_REQUIRE_RACE=1
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/ur-baldosa-input/paused_resume"
           log="$RUNNER_TEMP/ur-baldosa-input/paused_resume/log.txt"
-          grep -q 'UR_BALDOSA_NATIVE_PAUSE ARMED guest=' "$log"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE ARMED guest=.* live_race=1' "$log"
           grep -q 'UR_BALDOSA_NATIVE_PAUSE RELEASED guest=.* frozen_pumps=24' "$log"
           grep -q 'UR_BALDOSA_NATIVE_PAUSE RESUMED .* frozen_pumps=24' "$log"
           if grep -q 'UR_BALDOSA_NATIVE_PAUSE FAIL=' "$log"; then

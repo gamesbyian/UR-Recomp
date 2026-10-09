@@ -196,16 +196,18 @@
       "id": "QA-08",
       "priority": "P1",
       "claim": "Widescreen and HD moving-scene correctness",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/SEMANTIC-SUFFICIENCY.md"
+        "docs/SEMANTIC-SUFFICIENCY.md",
+        "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
+        "docs/RACER-HD-PIXEL-CONFINEMENT.md"
       ],
       "journeys": [
         "J-13",
         "J-16"
       ],
-      "next_action": "Record actual native 1P/2P/VS HD draw versus Original fallback by guest frame, temporal transitions/flicker, X=240/241 split small-OBJ alias and Y-wrap pixel comparisons, plus 4:3/16:9 composition. Existing 2641-frame registration census is only a 6.44% pair-eligible upper bound; no L4 claim.",
+      "next_action": "Actual native 2P frame-1180..1620 graphics coverage is 87/441 (19.73%), 354 Original (80.27%), 16 HD runs/32 mode switches; reference 2641-frame Snes9x route is a different input. Reconcile full 2641-frame native P1-only diagnostic, then obtain exact candidate moving 1P/2P/VS original-raster and foreground-occlusion comparison at 4:3 and 16:9, including Y-wrap/priority/seams and HD/stock transitions. QA-08 remains L4 unverified.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

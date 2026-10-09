@@ -393,6 +393,11 @@ bool save_multiplayer_match_record_file(
     if (!out) return fail(detail, "cannot open match record");
     out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
     if (!out) return fail(detail, "cannot write match record");
+    // std::ofstream's destructor does not report a late buffered write or
+    // close failure to this caller. Never publish a checksum-bound sidecar
+    // after the filesystem rejects its final buffered data.
+    out.close();
+    if (!out) return fail(detail, "cannot close/flush match record");
     return true;
 }
 

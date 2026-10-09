@@ -58,14 +58,15 @@
         "docs/QA02-STAGED-WRITE-DURABILITY.md",
         "docs/QA02-PROFILE-CAS.md",
         "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md",
-        "docs/QA02-GLOBAL-HOST-STATE-CAS.md"
+        "docs/QA02-GLOBAL-HOST-STATE-CAS.md",
+        "docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Integrate and verify #1018 safe profile-creation retry and #1019 active-profile selection SRAM failure compensation. Then design actual orphan-profile/event recovery, group-commit crash oracle and fault-injection acceptance for framework .srm/profile/catalog/global selector and run/ghost/match/fixture/pending artifacts. Record immutable Windows ZIP/hash, fresh-process J-02/J-07/J-08 and independent power-loss evidence.",
+      "next_action": "Complete #1018 and #1019 integration, then execute the 17 exact cut-point tests in docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md. Reproduce and implement orphan-registration/active-selection recovery across .srm, host profile, global selector and catalog; prioritize C01, C04, C09, C14 before Windows J-02/J-07/J-08 L4 evidence.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

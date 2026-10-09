@@ -38,6 +38,7 @@ HostProfileState initial_unregistered_profile(unsigned value) {
 }
 
 void terminate_before_publish() { std::_Exit(77); }
+void terminate_after_publish() { std::_Exit(79); }
 bool fail_before_durable_stage(std::FILE*) { return false; }
 
 int write_one(const std::string& family, const std::string& path,
@@ -155,6 +156,23 @@ int main(int argc, char** argv) {
             path, *loaded.state, next);
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "profile" && action == "orphan-crash-after-publish") {
+        const std::filesystem::path root(path);
+        std::error_code ec;
+        std::filesystem::create_directories(root, ec);
+        if (ec) return 9;
+        const auto profile_path = (root / "host-profile.txt").string();
+        TournamentLaunchPathLock lock(profile_path);
+        if (!lock.acquired() ||
+            load_host_profile_state_file(
+                ExecutionMode::Modern, profile_path, "qa-profile").status !=
+                HostProfileLoadStatus::Missing) return 9;
+        (void)write_host_replace_staged(
+            profile_path,
+            encode_host_profile_state(initial_unregistered_profile(value)),
+            "urprofile", nullptr, nullptr, &terminate_after_publish);
+        return 8; // the injection callback must kill this process
     }
     if (family == "profile" && action == "orphan-crash") {
         const std::filesystem::path root(path);

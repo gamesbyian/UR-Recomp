@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "classification": "actual native post-PPU stock OBJ emission and HD host-paint visibility; source-limited QA-08 evidence, not full priority/visual completion",
+  "source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "merged_pr": 1040,
+    "exact_pr_head": "864d3cbeb8a4a2db73e6216b7efcb4965d019988",
+    "native_workflow_run": 37880531185,
+    "native_artifact_id": 11594069792,
+    "native_artifact_name": "native-racer-presentation-acceptance",
+    "artifact_zip_sha256": "91fbd4e188e8fc3532a5fd4fc291ef48274dfa3b67f1721bcea1a3f8a7462e9d",
+    "rom": "USA retail",
+    "fixture": "tests/input/two-player-first-race.input",
+    "observation": "native PPU after original OBJ raster, with HD painter gated by OBJ source alpha"
+  },
+  "moving_race": {
+    "window_inclusive": [
+      1180,
+      1620
+    ],
+    "guest_frames": 441,
+    "hd_host_callback_frames": 87,
+    "original_fallback_frames": 354,
+    "source_visibility_member": "racer-hd-source-visibility-race-window.json",
+    "source_visibility_member_sha256": "1500ef5184bea37485119fc20c7d90f06d3ab349e11b4a52a32775c0bc41ea7e",
+    "source_top_only_hd_frames": 87,
+    "source_bottom_only_hd_frames": 0,
+    "source_both_viewports_hd_frames": 0,
+    "source_neither_viewport_hd_frames": 0,
+    "source_top_absent_hd_frames": 0,
+    "source_bottom_absent_hd_frames": 87,
+    "adjacent_hd_callback_frame_edges": 71,
+    "top_source_visibility_switches_on_adjacent_hd_frames": 0,
+    "bottom_source_visibility_switches_on_adjacent_hd_frames": 0,
+    "source_visible_hd_viewport_frames": 87,
+    "total_2p_viewport_frame_slots": 882,
+    "source_visible_hd_viewport_fraction": 0.09863945578231292,
+    "qualifier": "HD callback rate 87/441=19.73% was historically described as both-HD but only the upper split viewport contained Original racer pixels in all 87 callback frames; this is viewport visibility, not attributable per-player OAM ownership."
+  },
+  "static_frame_1220": {
+    "source_raster_member": "racer-hd-frame-1220-confinement.json",
+    "source_raster_member_sha256": "e4f01d02907666894cf7d8a6e806316a6c3b2f186f0a71d9509f5b96d88df3ce",
+    "ppu_original_obj_top_opaque_pixels": 372,
+    "ppu_original_obj_bottom_opaque_pixels": 0,
+    "hd_changed_top_density_pixels": 6545,
+    "hd_changed_bottom_density_pixels": 0,
+    "hd_changed_outside_live_oam_density_pixels": 0,
+    "original_controls_pixel_exact": true,
+    "ppu_capture_proof_passed": true,
+    "exact_eight_word_state_alignment": {
+      "obj_only_offset": 1,
+      "capture_only_offset": -1
+    },
+    "foreground_ambiguous_source_candidates": 0,
+    "foreground_overpaint_candidates": 0,
+    "foreground_scope": "candidate check over a single static frame; zero does not establish whole-scene foreground depth",
+    "pre_fix_native_comparator": {
+      "workflow_run": 37878148035,
+      "artifact_id": 11594020402,
+      "changed_top_density_pixels": 6545,
+      "changed_bottom_density_pixels": 5707,
+      "changed_total_density_pixels": 12252
+    }
+  },
+  "safety": [
+    "source PPU emission is sampled after authentic guest graphics evaluation and does not mutate guest state",
+    "upper/lower gating operates at viewport level and cannot distinguish individual OAM riders within overlapping source ownership",
+    "source presence is not foreground BG/window/other OBJ compositing priority and is not equivalent to all visible pixel boundaries",
+    "mixed P1-only long route previous 1240/5282 describes HD host-admitted racer slots and may overstate visibly painted source; do not retroactively infer long-route per-view source visibility",
+    "1P and VS prior 42/120 and 39/120 HD callbacks likewise lack per-OAM-slot visible art denominator",
+    "342x224 16:9 Remastered replacement remains unverified; Original fallback acceptance does not prove HD composition",
+    "temporal transition fidelity, pose-family coverage and still-unattributed foreground overlap remain QA-08 L4 blockers"
+  ]
+}

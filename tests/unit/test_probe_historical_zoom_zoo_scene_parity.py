@@ -106,6 +106,58 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
             self.assertEqual(inactive["in_race"], 0)
             self.assertNotIn("p1_next_checkpoint", inactive)
 
+    def test_both_runtimes_leaving_original_scene_cannot_pass(self):
+        rows = [{"relative_frame": frame, "in_race": 1, "track_id": 1,
+                 "menu": 0, "p1_next_checkpoint": 3}
+                for frame in probe.CHECKPOINTS]
+        self.assertEqual(probe.expected_active_window(rows)["status"],
+                         "full_original_active_zoom_zoo_window")
+        # Two identical accidental early results must not be claimed to
+        # reproduce original archived +1800 Zoom Zoo racing semantics.
+        for row in rows[10:]:
+            row.update({"in_race": 0, "menu": 0x99})
+            row.pop("p1_next_checkpoint")
+        self.assertIsNone(probe.compare(rows, [dict(row) for row in rows]))
+        observed = probe.expected_active_window(rows)
+        self.assertEqual(observed["status"], "left_original_active_zoom_zoo_window")
+        self.assertEqual(observed["first_nonactive_relative_frame"], probe.CHECKPOINTS[10])
+        self.assertEqual(observed["menu"], 0x99)
+        with self.assertRaisesRegex(probe.SceneReplayError, "phases"):
+            probe.expected_active_window([
+                dict(row, relative_frame=row["relative_frame"] + 1) for row in rows
+            ])
+        with self.assertRaisesRegex(probe.SceneReplayError, "incomplete"):
+            probe.expected_active_window(rows[:-1])
+
+    def test_full_decoded_zoo_payload_is_required_for_live_guest_sample(self):
+        from probe_runtime_course_payload import is_fully_loaded_course
+        decoded = bytes(range(64))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "frame.wram.bin"
+            wr = bytearray(0x20000)
+            wr[0x0313] = 1
+            wr[0x00CE] = 1
+            base = probe.entry.COURSE_RAM_OFFSET
+            wr[base:base + len(decoded)] = decoded
+            path.write_bytes(wr)
+            self.assertTrue(is_fully_loaded_course(decoded, wr[base:]))
+            self.assertEqual(probe.read_guest(path, 0, decoded)["in_race"], 1)
+            wr[base + 11] ^= 1
+            wr[base + 12] ^= 1  # documented loader-mutated cursor is allowed
+            path.write_bytes(wr)
+            self.assertEqual(probe.read_guest(path, 0, decoded)["track_id"], 1)
+            wr[base + 20] ^= 1
+            path.write_bytes(wr)
+            with self.assertRaisesRegex(probe.SceneReplayError, "fully installed"):
+                probe.read_guest(path, 0, decoded)
+            wr[0x0313] = 0
+            path.write_bytes(wr)
+            # The guest may unload 7F after results. Retain the exit rather
+            # than masking it with a wrong-payload exception.
+            self.assertEqual(probe.read_guest(path, 64, decoded)["in_race"], 0)
+            # Matching two incorrect course buffers cannot be promoted as
+            # semantic parity merely because the track selector is still 1.
+
     def test_first_divergence_is_event_relative_and_reports_exact_values(self):
         rows = [
             {"relative_frame": frame, "in_race": 1, "track_id": 1,

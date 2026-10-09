@@ -21,6 +21,9 @@ import probe_jumpover_fallthrough_native as jf
 import probe_original_non_dragster_course_entry as entry
 import extract_historical_smv_scene_window as movie
 import verify_historical_zoom_zoo_scene_anchor as anchor
+from analyze_rnc_streams import find_streams
+from rnc_method1 import unpack_method1
+from probe_runtime_course_payload import is_fully_loaded_course
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL_MOVIE_START = 3190
@@ -70,12 +73,15 @@ def movie_events(window_report: dict, target_entry_frame: int, phase: int = 0
     return events
 
 
-def read_guest(path: Path, frame: int) -> dict:
+def read_guest(path: Path, frame: int, decoded: bytes | None = None) -> dict:
     if not path.is_file():
         raise SceneReplayError(f"missing event-relative WRAM frame {frame}: {path}")
     image = path.read_bytes()
     if len(image) != entry.WRAM_BYTES:
         raise SceneReplayError(f"invalid 128 KiB WRAM frame {frame}: {path}")
+    if (decoded is not None and image[0x0313] == 1
+            and not is_fully_loaded_course(decoded, image[entry.COURSE_RAM_OFFSET:])):
+        raise SceneReplayError(f"frame {frame} has no fully installed canonical Zoom Zoo course")
     row = {"relative_frame": frame, "menu": image[0x009F],
            "in_race": image[0x0313], "track_id": image[0x00CE]}
     if row["in_race"] == 1:
@@ -95,14 +101,14 @@ def read_guest(path: Path, frame: int) -> dict:
     return row
 
 
-def load_rows(directory: Path) -> list[dict]:
+def load_rows(directory: Path, decoded: bytes | None = None) -> list[dict]:
     rows = []
     for frame in CHECKPOINTS:
         name = "race-entered" if frame == 0 else (
             f"race-plus-{frame:03d}" if frame in entry.SAMPLES
             else f"race-plus-{frame:04d}"
         )
-        rows.append(read_guest(directory / f"{name}.wram.bin", frame))
+        rows.append(read_guest(directory / f"{name}.wram.bin", frame, decoded))
     return rows
 
 
@@ -118,6 +124,29 @@ def compare(reference: list[dict], native: list[dict]) -> dict | None:
                     "reference": {k: ref.get(k) for k in fields},
                     "native": {k: nat.get(k) for k in fields}}
     return None
+
+
+def expected_active_window(rows: list[dict]) -> dict:
+    """Prevent matched premature exits from claiming full active-window parity.
+
+    The archived original Zoom Zoo run remains active through movie frame 5000.
+    A matched transition to another menu is observable but is not a passed
+    1811-frame active-circuit comparison.
+    """
+    if len(rows) != len(CHECKPOINTS):
+        raise SceneReplayError("incomplete course input replay snapshots")
+    for expected_frame, row in zip(CHECKPOINTS, rows):
+        if row.get("relative_frame") != expected_frame:
+            raise SceneReplayError("guest-relative active-window phases do not align")
+        if row.get("in_race") != 1 or row.get("track_id") != 1:
+            return {
+                "status": "left_original_active_zoom_zoo_window",
+                "first_nonactive_relative_frame": expected_frame,
+                "race_active": row.get("in_race"),
+                "track_id": row.get("track_id"),
+                "menu": row.get("menu"),
+            }
+    return {"status": "full_original_active_zoom_zoo_window"}
 
 
 def sha256_file(path: Path) -> str:
@@ -144,6 +173,10 @@ def main() -> int:
         setattr(args, key, getattr(args, key).resolve())
     if sha256_file(args.rom) != entry.USA_ROM_SHA256:
         ap.error("requires exact canonical USA retail ROM")
+    course_streams = list(find_streams(args.rom.read_bytes()))
+    if len(course_streams) != 45:
+        ap.error("canonical ROM must have 45 decoded course streams")
+    decoded_zoo = unpack_method1(course_streams[1][1])
     meta = json.loads(movie.METADATA.read_text(encoding="utf-8"))
     anchor.build(
         meta, json.loads(anchor.REFERENCE.read_text(encoding="utf-8")),
@@ -176,9 +209,15 @@ def main() -> int:
     replay_nat_log = jf.run_native(replay, args, script, events, nf - rf)
     if jf.race_entry_frame(replay_ref_log) != rf or jf.race_entry_frame(replay_nat_log) != nf:
         raise SceneReplayError("replayed run shifted its previously calibrated race-entry frame")
-    reference = load_rows(replay / "ref")
-    native = load_rows(replay / "native")
+    reference = load_rows(replay / "ref", decoded_zoo)
+    native = load_rows(replay / "native", decoded_zoo)
     first = compare(reference, native)
+    reference_window = expected_active_window(reference)
+    native_window = expected_active_window(native)
+    complete_active_window = all(
+        row["status"] == "full_original_active_zoom_zoo_window"
+        for row in (reference_window, native_window)
+    )
     report = {
         "schema_version": 1, "kind": "historical-2014-zoo-scene-relative-input-probe",
         "rom_sha256": sha256_file(args.rom),
@@ -193,6 +232,9 @@ def main() -> int:
         "guest_entry_offset": nf - rf,
         "relative_checkpoints": list(CHECKPOINTS),
         "first_divergence": first,
+        "reference_active_window": reference_window,
+        "native_active_window": native_window,
+        "valid_1811_frame_active_window": complete_active_window,
         "reference": reference, "native": native,
         "scope_limit": (
             "This pairs archived 2014 original input on two newly booted "
@@ -207,8 +249,9 @@ def main() -> int:
     print(json.dumps({
         "first_divergence": first, "movie_phase": args.phase,
         "source_sram_match": source_sram_equal, "guest_entry_offset": nf - rf,
+        "valid_1811_frame_active_window": complete_active_window,
     }))
-    return 0 if first is None else 1
+    return 0 if first is None and complete_active_window else 1
 
 
 if __name__ == "__main__":

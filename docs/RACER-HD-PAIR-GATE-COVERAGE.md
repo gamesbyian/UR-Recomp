@@ -130,6 +130,15 @@ the complete stock frame untouched. Pure regressions:
 `tests/native/racer_oam_placement_test.cpp`; live gate:
 `native/presentation/racer_hd_presenter.cpp`.
 
+The existing `tools/measure_racer_hd_fallback_frequency.py` now also emits a
+`host_presenter_pair_gate.temporal_upper_bound` block: contiguous
+pair-selected run lengths, single-frame eligible bursts and actual
+*registration eligibility* switches between adjacent observed guest frames.
+The scanner refuses duplicate guest frames and never interprets gaps as a
+stock-to-HD transition. This enables disciplined temporal family ranking
+from fresh dense traces. None of these model counts is an observed native
+HD draw/flicker count; a live per-present witness is still required.
+
 **Evidence classification:** source-confirmed missing safety check plus
 boundary regression added, not yet a reproduced moving-frame pixel loss or
 a passed native/packaged 2P visual run. No new HD pose is admitted, no artwork

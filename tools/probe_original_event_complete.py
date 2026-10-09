@@ -54,8 +54,8 @@ def sha(path: Path) -> str:
 
 
 def observed_dump_frame(log: str, label: str) -> int:
-    matches = re.findall(r"script f=(\\d+) dump " + re.escape(label) +
-                         r"(?=\\s|$)", log)
+    matches = re.findall(r"script f=(\d+) dump " + re.escape(label) +
+                         r"(?=\s|$)", log)
     if len(matches) != 1:
         raise CompleteEventError(f"expected exactly one source guest dump {label}, got {len(matches)}")
     return int(matches[0])

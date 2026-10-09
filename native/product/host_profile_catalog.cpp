@@ -155,10 +155,19 @@ bool save_host_profile_catalog_file(
         if (size_ec || size > kMaxCatalogBytes) return false;
         std::ifstream existing(path, std::ios::binary);
         if (!existing) return false;
-        std::ostringstream prior;
-        prior << existing.rdbuf();
-        if (!existing.good() && !existing.eof()) return false;
-        if (!decode_host_profile_catalog(prior.str())) return false;
+        // The original code streamed rdbuf() into an unbounded ostringstream.
+        // Bounded read remains safe if another process grows the file after
+        // the size preflight and before the stream is opened.
+        std::string prior(static_cast<std::size_t>(kMaxCatalogBytes) + 1u, '\\0');
+        existing.read(prior.data(), static_cast<std::streamsize>(prior.size()));
+        const auto count = existing.gcount();
+        if (count < 0 ||
+            static_cast<std::uintmax_t>(count) > kMaxCatalogBytes ||
+            (!existing.eof() && existing.fail())) {
+            return false;
+        }
+        prior.resize(static_cast<std::size_t>(count));
+        if (!decode_host_profile_catalog(prior)) return false;
     } else if (exists_ec) {
         return false;
     }

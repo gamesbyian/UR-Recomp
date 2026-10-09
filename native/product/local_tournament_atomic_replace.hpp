@@ -105,7 +105,8 @@ inline bool write_host_replace_staged(
     std::string_view data,
     std::string_view staging_family,
     void (*after_staging_for_test)() = nullptr,
-    bool (*sync_override_for_test)(std::FILE*) = nullptr) {
+    bool (*sync_override_for_test)(std::FILE*) = nullptr,
+    void (*after_publication_for_test)() = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
     const fs::path final_path(final_name);
@@ -148,8 +149,13 @@ inline bool write_host_replace_staged(
     fs::rename(tmp, final_path, ec);
     const bool published = !ec;
 #endif
-    if (published) detail::sync_published_directory_best_effort(
-        final_path.parent_path());
+    if (published) {
+        detail::sync_published_directory_best_effort(final_path.parent_path());
+        // Fault injection: the canonical file is now visible and the private
+        // staging reservation is empty, but its cleanup has not run yet.
+        // Production never provides this callback.
+        if (after_publication_for_test) after_publication_for_test();
+    }
     cleanup();
     return published;
 }

@@ -15,7 +15,9 @@ class PauseSubviewPanelContractTests(unittest.TestCase):
             self.assertIn(subview, guard)
         self.assertIn("if (!frontend_options && !pause_subview_panel) {", guard)
         # The guard precedes every subview's own panel.
-        self.assertLess(start, source.index('"QUIT TO DESKTOP?"'))
+        self.assertLess(start, source.index('"QUIT TO DESKTOP?"', start))
+        # The independent root quit dialog is never admitted while paused.
+        self.assertIn("!paused()", source.split("bool modern_root_visible()", 1)[1].split("\n}", 1)[0])
 
 
 if __name__ == "__main__":

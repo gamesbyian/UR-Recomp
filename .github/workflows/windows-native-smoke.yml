@@ -10,13 +10,7 @@ name: Windows native build and boot smoke
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/windows-native-smoke.yml"
-      - "native/product/uniracers_modern_host.cpp"
-      - "native/product/modern_restart_key_release.hpp"
-      - "tools/qa09_windows_root_pad_probe.py"
-      - "tests/native/run_modern_root_acceptance.sh"
+  workflow_call:
   push:
     branches: [main]
     paths:
@@ -484,7 +478,6 @@ jobs:
           UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
             python -m tools.qa09_windows_root_pad_probe \
               "$LAUNCHER_WIN" "$LOG"
-          grep -q 'UR_WINDOWS_QA09_PAD_ROOT=passed' <(printf 'UR_WINDOWS_QA09_PAD_ROOT=passed\n')
           grep -q 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=x step=0' "$LOG"
           grep -q 'UR_PROFILE_UI OPENED' "$LOG"
           grep -q 'UR_PRACTICE_PICKER CANCELLED' "$LOG"

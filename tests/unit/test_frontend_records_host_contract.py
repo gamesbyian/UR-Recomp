@@ -27,7 +27,15 @@ class FrontendRecordsHostContract(unittest.TestCase):
 
     def test_entry_points_and_native_acceptance(self):
         self.assertIn('"B BACK  F8/PAD X RECORDS"', MODERN)
-        self.assertEqual(MODERN.count("ur_uniracers_product_open_frontend_records()"), 2)
+        self.assertGreaterEqual(
+            MODERN.count("ur_uniracers_product_open_frontend_records()"), 2
+        )
+        # The Modern five-way root is an additional entry to the same
+        # read-only Records authority, not a second browser or store.
+        self.assertIn(
+            "case ur::product::ModernRootDestination::Records:", MODERN
+        )
+        self.assertIn("UR_MODERN_ROOT RECORDS_OPENED", MODERN)
         self.assertIn("UR_RECORDS_BROWSER_ACCEPTANCE=main-menu", WORKFLOW)
         self.assertIn("local_runs_refused=1 closed=1 admissible_after=1", WORKFLOW)
 

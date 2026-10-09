@@ -158,6 +158,59 @@ constexpr bool racer_p1_only_no_stock_p2_occlusion(
     return true;
 }
 
+// Full-pair Remastered capture removes all four split OAM slots, including
+// the *inactive* small copies. HD reconstruction paints only the two active
+// large copies. If an inactive 16px copy is visible, capture would erase a
+// genuine stock pixel without replacing it. The title's $A5/$5A high-OAM
+// split forces the inactive copies to X=LOW_X-256 in OBSEL=$83; their Y still
+// wraps modulo 256. The left edge starts at LOW_X=241, not at 240.
+constexpr bool racer_split_inactive_small_copy_visible(
+    const RacerOamPlacement& placement,
+    RacerViewport inactive_viewport
+) noexcept {
+    if (placement.x_signed < 241) return false;
+    const int first = inactive_viewport == RacerViewport::Top ? 0 : 112;
+    const int end = inactive_viewport == RacerViewport::Top ? 112 : 224;
+    for (int y = first; y < end; ++y) {
+        if (((y - placement.y_raw_8bit) & 0xFF) < 16) return true;
+    }
+    return false;
+}
+
+// Fail closed before RemoveFromGame is armed. The host draws in fixed OAM
+// slot order, so rotated OBJ priority and cross-racer OBJ priority mismatches
+// are unsupported too. This is a conservative title/split-mode proof, not a
+// general SNES sprite rule or a substitute for native moving-frame review.
+constexpr bool racer_hd_full_pair_preserves_split_objs(
+    const RacerOamPlacement& p1_top,
+    const RacerOamPlacement& p2_top,
+    const RacerOamPlacement& p1_bottom,
+    const RacerOamPlacement& p2_bottom,
+    std::uint8_t obsel,
+    std::uint8_t oamaddh
+) noexcept {
+    if (obsel != 0x83 || (oamaddh & 0x80) != 0 ||
+        p1_top.slot != 98 || p2_top.slot != 99 ||
+        p1_bottom.slot != 97 || p2_bottom.slot != 96 ||
+        (p1_top.attr & 0x30) != (p2_top.attr & 0x30) ||
+        (p1_bottom.attr & 0x30) != (p2_bottom.attr & 0x30)) {
+        return false;
+    }
+    for (const RacerOamPlacement* p : {&p1_top, &p2_top, &p1_bottom, &p2_bottom}) {
+        if (!p->large || p->width_pixels != 64 ||
+            p->height_pixels != 64 || p->x_signed < 0 ||
+            p->x_signed > 255) return false;
+    }
+    return !racer_split_inactive_small_copy_visible(
+               p1_bottom, RacerViewport::Top) &&
+           !racer_split_inactive_small_copy_visible(
+               p2_bottom, RacerViewport::Top) &&
+           !racer_split_inactive_small_copy_visible(
+               p1_top, RacerViewport::Bottom) &&
+           !racer_split_inactive_small_copy_visible(
+               p2_top, RacerViewport::Bottom);
+}
+
 std::optional<RacerOamPlacement> decode_racer_oam_placement(
     const std::uint8_t* oam,
     std::size_t oam_size,

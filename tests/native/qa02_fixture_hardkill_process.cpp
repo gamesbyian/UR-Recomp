@@ -4,6 +4,7 @@
 #include "local_tournament_session_coordinator.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
+#include "completed_run_store.hpp"
 
 #include <cstdlib>
 #include <cstdio>
@@ -20,6 +21,8 @@ namespace {
 const std::string kInstance(32, 'a');
 const std::string kAttemptC14(32, '1');
 const std::string kAttemptC15(32, '2');
+const std::string kAttemptC09(32, '3');
+void terminate_after_sidecar_claim() { std::_Exit(79); }
 
 void require(bool ok, const char* message) {
     if (!ok) {
@@ -39,7 +42,8 @@ LocalTournamentCoordinatorPaths paths(const fs::path& root) {
 }
 
 std::string publish_real_pair(const LocalTournamentCoordinator& session,
-                              std::uint16_t input) {
+                              std::uint16_t input,
+                              void (*after_sidecar_for_test)() = nullptr) {
     const auto& fixture = session.results.fixtures.at(0);
     CompletedRunRecord run;
     run.provenance = {
@@ -83,7 +87,7 @@ std::string publish_real_pair(const LocalTournamentCoordinator& session,
     std::string detail;
     require(append_multiplayer_match_pair(
                 session.paths.multiplayer_runs_directory,
-                run, *match, &saved, &detail),
+                run, *match, &saved, &detail, after_sidecar_for_test),
             "durably publish actual run and match pair");
     return saved;
 }
@@ -104,6 +108,61 @@ int main(int argc, char** argv) {
     const std::string action(argv[1]);
     const fs::path root(argv[2]);
     const auto layout = paths(root);
+    if (action == "kill-c09") {
+        std::error_code ec;
+        fs::create_directories(layout.multiplayer_runs_directory, ec);
+        require(!ec, "create records root");
+        const auto created = create_local_tournament_coordinator(
+            layout, kInstance, {"alpha", "beta", "gamma"}, catalog(),
+            {"course:01", "course:04"});
+        require(created.usable(), "C09 created tournament");
+        auto session = *created.session;
+        arm_first(session, kAttemptC09);
+        (void)publish_real_pair(session, 0x180, &terminate_after_sidecar_claim);
+        require(false, "C09 callback must terminate after sidecar claim");
+    }
+    if (action == "verify-c09") {
+        const auto restored =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(restored.usable(), "C09 restore active tournament");
+        require(!restored.session->launch.pending,
+                "C09 pending is not a resumed race");
+        require(!restored.session->results.results.at(0),
+                "C09 orphan sidecar does not grant fixture credit");
+        std::size_t runs = 0;
+        std::size_t sidecars = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 layout.multiplayer_runs_directory)) {
+            if (entry.path().extension() == ".urrun") ++runs;
+            if (entry.path().extension() == ".urmatch") ++sidecars;
+        }
+        require(runs == 0 && sidecars == 1,
+                "C09 only orphan immutable .urmatch publicly visible");
+        const auto& fixture = restored.session->results.fixtures.at(0);
+        const RunPlaybackTarget target{
+            "uniracers-usa",
+            "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+            "native-sim-v1", fixture.course_id, "race-2p",
+        };
+        const auto admitted = load_compatible_run_records(
+            layout.multiplayer_runs_directory, target);
+        require(admitted.empty(), "C09 no ghost/PB-admissible run");
+        std::puts("QA02_C09_NO_RUN_NO_CREDIT");
+        return 0;
+    }
+    if (action == "recover-c09") {
+        const auto restored =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(restored.usable() && !restored.session->results.results.at(0),
+                "C09 recovery cannot invent old result");
+        auto session = *restored.session;
+        arm_first(session, kAttemptC15);
+        const auto saved = publish_real_pair(session, 0x200);
+        require(commit_local_tournament_capture(session, kAttemptC15, saved) ==
+                    Status::Committed, "C09 later honest fixture committed");
+        std::puts("QA02_C09_LATER_VALID_RETRY");
+        return 0;
+    }
     if (action == "kill-c14") {
         std::error_code ec;
         fs::create_directories(layout.multiplayer_runs_directory, ec);

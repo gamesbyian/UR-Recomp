@@ -275,6 +275,14 @@ ur::product::CompletedRunCapture g_multiplayer_run_capture;
 std::optional<ur::product::LocalTournamentCoordinator>
     g_local_tournament_session;
 std::optional<std::string> g_multiplayer_capture_tournament_attempt;
+// Exact captured event, live attempt and saved pair for transient receipt
+// I/O retry. Never let an ended/replaced tournament inherit an old run path.
+struct LocalTournamentReceiptRetry {
+    std::string tournament_id;
+    std::string attempt_id;
+    std::string saved_run_path;
+};
+std::optional<LocalTournamentReceiptRetry> g_local_tournament_receipt_retry;
 bool g_local_tournament_load_attempted;
 bool g_local_tournament_native_acceptance_attempted;
 // Player-facing Local Tournament panel on the stock 2P select surface. It
@@ -4349,8 +4357,40 @@ bool open_local_tournament_panel() {
         !local_tournament_panel_context_valid()) return false;
     ensure_profile_catalog();
     ensure_local_tournament_session_loaded();
-    refresh_local_tournament_history_rows();
     g_local_tournament_panel_notice.clear();
+    if (g_local_tournament_receipt_retry) {
+        // Explicit panel reopening authorizes only the original event,
+        // original live attempt and original saved run. Never associate
+        // Records from an ended event with a newly armed fixture.
+        if (!g_local_tournament_session ||
+            !g_local_tournament_session->launch.pending ||
+            g_local_tournament_session->definition.instance_id !=
+                g_local_tournament_receipt_retry->tournament_id ||
+            g_local_tournament_session->launch.pending->attempt_id !=
+                g_local_tournament_receipt_retry->attempt_id) {
+            g_local_tournament_receipt_retry.reset();
+        } else {
+            auto& session = *g_local_tournament_session;
+            const auto status = ur::product::commit_local_tournament_capture(
+                session, g_local_tournament_receipt_retry->attempt_id,
+                g_local_tournament_receipt_retry->saved_run_path);
+            if (status == ur::product::LocalTournamentCoordinatorStatus::Committed) {
+                g_local_tournament_receipt_retry.reset();
+                g_local_tournament_panel_notice = "RESULT SAVED";
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_COMMITTED");
+            } else if (
+                status == ur::product::LocalTournamentCoordinatorStatus::StorageFailed) {
+                g_local_tournament_panel_notice = "SAVE PENDING - RETRY F4";
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_STORAGE");
+            } else {
+                // Do not silently assign standings from a corrupt/conflicted
+                // pair. Preserve the ordinary saved run for Records.
+                g_local_tournament_panel_notice = "RESULT NOT CREDITED";
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_REJECTED");
+            }
+        }
+    }
+    refresh_local_tournament_history_rows();
     if (g_local_tournament_session) {
         local_tournament_panel_show_overview();
         if (local_tournament_session_complete()) {
@@ -5188,6 +5228,18 @@ void complete_multiplayer_run_record_capture() {
                     g_local_tournament_result_notice.c_str());
                 std::fflush(stderr);
             }
+        } else if (
+            credited == ur::product::LocalTournamentCoordinatorStatus::StorageFailed) {
+            // The valid pair is already published as ordinary Records.
+            // Preserve this exact live lease + pending checkpoint for an
+            // explicit retry when the player reopens F4, rather than
+            // cancelling an honestly finished tournament race.
+            g_local_tournament_receipt_retry = LocalTournamentReceiptRetry{
+                g_local_tournament_session->definition.instance_id,
+                *g_multiplayer_capture_tournament_attempt,
+                stored_path,
+            };
+            product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_SAVE_PENDING");
         } else {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");
             (void)ur::product::cancel_local_tournament_capture(
@@ -7366,6 +7418,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_local_tournament_route_seen_two_player_select = true;
         }
         if (g_local_tournament_route_seen_two_player_select &&
+            !g_local_tournament_receipt_retry &&
             !g_multiplayer_run_capture.capturing() &&
             g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
             const std::string abandoned =

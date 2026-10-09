@@ -49,3 +49,56 @@ prints the candidate source provenance.
 
 **Evidence label: original Snes9x temporal anchor, not an accepted
 course completion, native parity result, or new gameplay bug.**
+
+## Fresh-process paired semantic replay harness (proposed, not yet executed)
+
+`tools/probe_historical_zoom_zoo_scene_parity.py` makes the above lead
+executable without transplanting original guest state. It first confirms the
+retained scene anchor and exact USA ROM, extracts **1,811 source input frames
+3190..5000**, and boots both original pinned Snes9x and native Authentic
+into Zoo through the same original menus with the same supplied SRAM.
+Each engine's race-entry frame is measured independently in a calibration
+run. Archived movie inputs are then shifted to those scene-relative frames,
+and replayed after a fresh boot of each engine.
+
+A bounded matrix compares menu/race state plus active-course X/Y,
+velocities, persisted contact word, next-checkpoint, finish gate,
+laps remaining, and boost at original movie-relative checkpoints
+0, 1, 2, 4, 8, 16, 32, 64, 128, 210, 256, 384, 512, 610,
+768, 1010, 1024, 1280, 1410, 1536 and 1800. These include the
+original movie's later observed frames 3400, 3800, 4200 and 4600.
+The script explicitly carries a `--phase` hypothesis (`-1`, `0`,
+or `+1`) because the movie-frame/controller latch convention has
+not been measured between runtimes. A different phase is an
+experimental intervention, **not** permission to choose a flattering
+result after discarding mismatches.
+
+The supplied run SRAM is SHA-256 compared to the movie's archived
+8 KiB SRAM and the result is tagged if it differs. By default this
+is an **archived input transplant** between identically seeded guest
+runtimes, not a verbatim reproduction of the 2014 race environment.
+`--require-original-sram` rejects input transplant when the supplied
+SRAM does not match the original movie's extracted 8 KiB SRAM. A
+matching SRAM hash alone still cannot prove all emulator startup
+variables are identical.
+
+```sh
+python3 tools/probe_historical_zoom_zoo_scene_parity.py \
+  --snesref <snesref> --core <snes9x-libretro-core> \
+  --native <native-executable> --rom <canonical-usa-rom> \
+  --sram <supplied-sram> --phase 0 \
+  --work-dir /tmp/qa07-zoo-scene \
+  --json-out /tmp/qa07-zoo-scene.json
+```
+
+Both engines must demonstrate the previously calibrated course entry
+frame again before accepting their replay snapshots. A mismatch
+records the first guest-relative checkpoint, exact fields and values.
+Only after determining whether it is phase, scene entry, contact,
+lap or other guest behavior should the original simulation be changed.
+
+**Validation status:** synthetic negative unit tests are provided.
+No guest run of this extended comparator has been admitted here.
+Passing sparse checkpoints would close only this named 1,811-frame
+input-transplant experiment; neither an entire circuit result nor
+the overall QA-01 45-course release requirement.

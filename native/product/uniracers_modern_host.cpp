@@ -1913,9 +1913,13 @@ bool create_profile_from_editor() {
     g_profile_catalog.push_back({id, *state->racer_identity});
     if (!persist_profile_catalog(prior_catalog)) {
         g_profile_catalog.pop_back();
-        std::error_code remove_ec;
-        (void)std::filesystem::remove(path, remove_ec);
-        product_diagnostic("UR_PROFILE_CREATE ROLLED_BACK");
+        const auto removal =
+            ur::product::remove_host_profile_state_file_if_current(
+                ur::product::ExecutionMode::Modern, path, *state);
+        product_diagnostic(
+            removal == ur::product::HostProfileSaveStatus::Saved
+                ? "UR_PROFILE_CREATE ROLLED_BACK"
+                : "UR_PROFILE_CREATE ROLLBACK_CONFLICT");
         return false;
     }
     g_profile_menu_index = g_profile_catalog.size() - 1;

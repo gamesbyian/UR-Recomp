@@ -53,6 +53,14 @@ def sha(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def observed_dump_frame(log: str, label: str) -> int:
+    matches = re.findall(r"script f=(\\d+) dump " + re.escape(label) +
+                         r"(?=\\s|$)", log)
+    if len(matches) != 1:
+        raise CompleteEventError(f"expected exactly one source guest dump {label}, got {len(matches)}")
+    return int(matches[0])
+
+
 def stock_crawler_script(slot: int) -> str:
     if slot not in (2, 3, 4):
         raise CompleteEventError("only independently established Crawler track routes")
@@ -383,6 +391,16 @@ def main(argv: list[str] | None = None) -> int:
         "source_original_state_equivalent"]
     comparison["paired_event_candidate"] &= baseline[
         "source_original_state_equivalent"]
+    terminal_frames = {
+        "reference_relative": observed_dump_frame(rl, "result-onset") - rf,
+        "native_relative": observed_dump_frame(nl, "result-onset") - nf,
+    }
+    comparison["terminal_result_guest_frame"] = terminal_frames
+    comparison["terminal_result_frame_matched"] = (
+        terminal_frames["reference_relative"] ==
+        terminal_frames["native_relative"])
+    comparison["paired_event_candidate"] &= comparison[
+        "terminal_result_frame_matched"]
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,

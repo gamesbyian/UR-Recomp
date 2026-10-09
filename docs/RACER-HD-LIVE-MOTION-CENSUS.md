@@ -70,6 +70,55 @@ mode, logical width and host output density. Never compare a 441-frame
 native sample against the 2,641-frame reference denominator as though
 they were the same observation campaign.
 
+## First exact moving native census (2026-10-09)
+
+The original full-process native acceptance artifact is retained and
+hash-bound in
+[`analysis/generated/racer-hd-native-live-race-window-2026-10-09.json`](../analysis/generated/racer-hd-native-live-race-window-2026-10-09.json).
+Workflow `37871889030`, artifact `11591057403`, candidate
+`6f6076f7fd3857f24efb54cdeaf37732ac346f35`, HD log
+SHA256 `091a42e815e4d94e4140052c9145f73e7800a36f2bfef5492a2497f7e83aeab3`.
+
+The native process reported **103/1,620** HD-presented guest frames,
+but that fraction includes loading and setup. The **actual race-observation
+window, guest frames 1180–1620**, contains:
+
+| Exact live native 2P measurement | Result |
+| --- | ---: |
+| Guest frames with a host present | **441/441** |
+| Real full-pair HD presentations | **87** (19.73%) |
+| Real Original presentations | **354** (80.27%) |
+| HD motion runs / one-frame runs | **16 / 5** |
+| Original→HD / HD→Original edges | **16 / 16** |
+| Longest HD run | 16 frames |
+| Longest uninterrupted Original span | 150 frames, `1471–1620` |
+| Original fallback reasons | P1 composition/art 342; P2 pair gate 12 |
+| Capture armed but no HD draw | **0** in this route |
+
+The contiguous `1205–1220` shipping-art strip is **16/16 genuinely
+HD-drawn frames**, and `1261–1267` is **7/7**, but the remaining
+moving race is mostly Original. This is a measured *draw availability*
+result, not just semantic selection. Fast alternation remains a
+visual-coherence concern: 32 genuine HD/Original callback switches
+during those 441 consecutive frames, with five one-frame HD bursts.
+These edges are a strong candidate for a visible resolution pop but
+must still be checked using aligned moving screenshots.
+
+**Non-interchangeable inputs:** this 441-frame *native* census uses
+`tests/input/two-player-first-race.input` and
+`tests/input/two-player-first-race-observe.script`. The older
+2,641-frame *Snes9x* reference census uses
+`tests/input/two-player-p1-win.input`. Do not describe the two
+percentages as if they sample the same full route. The native P1-only
+acceptance already executes that longer reference input and now
+retains its own 1180–3820 native actual-draw census separately.
+
+The workflow additionally runs a native **full-density** frame-1220
+stock/HD confinement check: two independent Original captures must
+match exactly, and all HD changes must stay inside the four actual
+OAM bounding footprints. This is one explicit compositing check,
+not foreground-occlusion correctness.
+
 ## What this still cannot prove
 
 - A successful `hd` callback **does not** establish correct occlusion

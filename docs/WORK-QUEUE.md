@@ -76,6 +76,17 @@ At Dragster frame 2903, slot 10 remains an unproven prior dispatch
 candidate and slot 8 a postframe contact observation, pending an actual
 instruction-time witness. Guest gameplay code is unchanged.
 
+**QA-01 bounded entry admission improvement (2026-10-09):** The fresh
+Zoom Zoo/Jumps original/native entry probe now compares both racers'
+checkpoint/finish/lap words and P2 velocities, closing a source-confirmed
+false-negative test gap where movement/contact equality could hide
+premature gate or P2 lap credit. A synthetic same-motion counterexample
+is pinned. See
+[QA01-NONDRAGSTER-ENTRY-PROGRESSION.md](QA01-NONDRAGSTER-ENTRY-PROGRESSION.md).
+No native/Snes9x execution or complete course gate is claimed. Next
+work is real paired runs and all-event/result witnesses, not another
+Dragster-only proof.
+
 ### QA-02 new storage fixes and remaining verification, 2026-10-08
 
 Two additional source-confirmed P0-contributing races were found outside the tournament fixture store: shared fixed staging for mutable profile SRAM/catalog/global settings, and POSIX replace-existing rename on multiplayer `.urmatch` then `.urrun` publication. Merged [#991](https://github.com/gamesbyian/UR-Recomp/pull/991) adds isolated staging and has passed the Project tooling unit tests and Native build smoke on its exact head. [#993](https://github.com/gamesbyian/UR-Recomp/pull/993) uses atomic no-replace pair claims, crash injection and a buffered `/dev/full` close-error regression; it is still under review. **Pending focused test execution/review**, not merged/completed claims. Next: finish and review new multi-process L2 probes, perform packaged L4 J-02/J-07/J-08 fault/upgrade tests, and design explicit generation/roster compare-and-swap before asserting two-game same-root safety. Stay out of frontend, course, replay determinism and CI speed lanes.

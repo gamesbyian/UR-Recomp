@@ -367,8 +367,11 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
     std::string_view live_capture_attempt_id,
     const std::string& already_published_run_path) {
     if (!session.launch.pending ||
+        !session.live_fixture_lock || !session.live_fixture_lock->acquired() ||
         !local_tournament_valid_instance_token(live_capture_attempt_id) ||
         session.launch.pending->attempt_id != live_capture_attempt_id) {
+        // A restored or copied pending token is not a live OS lease. Only
+        // the process that armed and retained ownership may claim a receipt.
         return Status::InvalidRequest;
     }
     const auto pending = *session.launch.pending;
@@ -415,6 +418,7 @@ LocalTournamentCoordinatorStatus cancel_local_tournament_capture(
     LocalTournamentCoordinator& session,
     std::string_view live_capture_attempt_id) {
     if (!session.launch.pending ||
+        !session.live_fixture_lock || !session.live_fixture_lock->acquired() ||
         session.launch.pending->attempt_id != live_capture_attempt_id ||
         session.launch.pending->tournament_id != session.definition.instance_id) {
         return Status::InvalidRequest;

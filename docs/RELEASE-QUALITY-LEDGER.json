@@ -42,14 +42,16 @@
       "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/COMPLETED-RUN-RECORDS.md"
+        "docs/COMPLETED-RUN-RECORDS.md",
+        "tests/unit/test_host_persistence_process.py",
+        "tests/unit/test_multiplayer_match_record_cpp.py"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Injected termination and storage-failure recovery across profile/run/ghost/tournament",
+      "next_action": "Run new true multi-process storage tests, capture crash after sidecar/before run and post-stage/pre-replace, then exact candidate Windows J-02/J-07/J-08 two-instance restore with disk-fault and profile-generation conflicts.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -57,9 +59,11 @@
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/982",
         "https://github.com/gamesbyian/UR-Recomp/pull/984",
-        "https://github.com/gamesbyian/UR-Recomp/pull/985"
+        "https://github.com/gamesbyian/UR-Recomp/pull/985",
+        "https://github.com/gamesbyian/UR-Recomp/pull/991",
+        "https://github.com/gamesbyian/UR-Recomp/pull/993"
       ],
-      "remaining_release_risk": "Store-local fixture receipt no-replace (#982), unique mutable staging (#984), and stale-retire OS-handle lock (#985) are implemented. Exact Windows interprocess crash/restore witness, cross-file run/match/receipt/profile transactional recovery, concurrent session last-writer-wins and power-loss durability remain open (#983)."
+      "remaining_release_risk": "Source-confirmed mutable profile/catalog/host .tmp clobber and POSIX multiplayer run/match rename-replacement are addressed in proposed PRs #991/#993 with new process/crash tests; their L2 outcomes are NOT YET VERIFIED. Previous #982/#984/#985 protections remain store-local. Outstanding: stale SRAM generation overwrites, catalog/session lost updates, independent run/ghost/receipt transaction recovery, upgrade and power-loss fsync, exact packaged Windows dual-process L4 evidence. QA-02 P0 remains in_progress."
     },
     {
       "id": "QA-03",

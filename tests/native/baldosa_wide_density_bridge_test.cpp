@@ -31,6 +31,10 @@ extern "C" int ur_baldosa_hd_draw_frame(
     std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, double) {
     ++g_calls;
+    // At 342px the authored presenter refuses source-OBJ capture. Its
+    // production 1x path returns unhandled so the wide wrapper owns stock
+    // memcpy; 2x-4x use the exact nearest-density fallback.
+    if (g_scale == 1) return 0;
     return ur::product::compose_nearest_density_frame(
         dst, pitch, field, width, height, g_scale) ? 1 : 0;
 }

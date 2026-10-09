@@ -146,6 +146,13 @@ bool save_host_profile_catalog_file(
     std::error_code exists_ec;
     if (std::filesystem::exists(path, exists_ec)) {
         if (exists_ec) return false;
+        // A corrupted or interrupted upgrade can leave an oversized
+        // catalog. Validate the byte ceiling BEFORE reading it; the save
+        // path must not allocate unbounded memory while checking whether
+        // it is safe to overwrite legacy metadata.
+        std::error_code size_ec;
+        const auto size = std::filesystem::file_size(path, size_ec);
+        if (size_ec || size > kMaxCatalogBytes) return false;
         std::ifstream existing(path, std::ios::binary);
         if (!existing) return false;
         std::ostringstream prior;

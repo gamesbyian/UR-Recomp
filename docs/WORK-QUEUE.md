@@ -1,5 +1,8 @@
 # Work Queue
 
+> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
+
+
 > **Claude source-recovery audit CLOSED, 2026-10-08:** Compared all 36 visible `claude/*` branch tips; 13 have no ahead commits, and the 23 divergent historical branches have no changed file paths absent from `main`. Records text fitting and P2-HD art/presenter work are represented by newer implementations, including binding-aware text and sprite Y-wrap correction. **No historical branch should be wholesale merged.** This is a source-reconciliation conclusion, not packaged Windows QA acceptance. See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md). Continue unresolved QA-02/03/05/09 and HD moving-scene checks using current-main reproductions.
 
 

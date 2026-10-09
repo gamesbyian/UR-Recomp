@@ -50,6 +50,35 @@ class Baldosa2014ZooSceneTest(unittest.TestCase):
             with self.assertRaises(ValueError):
                 calibration.guest_scene_entry(log)
 
+    def test_only_bounded_native_input_phase_changes_guest_origin(self):
+        self.assertEqual(calibration.native_input_origin(1606, -1), 1605)
+        self.assertEqual(calibration.native_input_origin(1606, 0), 1606)
+        self.assertEqual(calibration.native_input_origin(1606, +1), 1607)
+        for phase in (-2, 2, 20, 1.0, True):
+            with self.assertRaises(ValueError):
+                calibration.native_input_origin(1606, phase)
+        with self.assertRaises(ValueError):
+            calibration.native_input_origin(0, -1)
+        sample = {
+            "movie_frame_range": [3190, 3193],
+            "relative_input_segments": [
+                {"start": 0, "duration": 2, "mask": "0x080"},
+                {"start": 3, "duration": 1, "mask": "0x010"},
+            ],
+        }
+        from extract_historical_smv_scene_window import shifted_input_file
+        original = shifted_input_file(sample, 1604)
+        native_late = shifted_input_file(sample, 1607)
+        self.assertIn("1604:2:080", original)
+        self.assertIn("1607:2:080", native_late)
+        self.assertIn("1610:1:010", native_late)
+        self.assertEqual(
+            [line.split(":")[1:] for line in original.splitlines() if ":" in line
+             and not line.startswith("#")],
+            [line.split(":")[1:] for line in native_late.splitlines() if ":" in line
+             and not line.startswith("#")],
+        )
+
     def test_dense_movie_shim_is_single_patch_at_active_host_frame(self):
         source = (
             "static uint32 TickScript(void) {\nreturn 0;\n}\n"

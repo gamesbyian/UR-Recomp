@@ -185,6 +185,85 @@ jobs:
           cat "$ROOT/paired-result.json" >> "$GITHUB_STEP_SUMMARY"
           echo "IMPORTANT: displayed PPU and active course checks remain candidate diagnostics; independent QA review is required. No 45-course credit issued." >> "$GITHUB_STEP_SUMMARY"
 
+          # Controlled host-side input-latch hypotheses: keep original reference
+          # untouched, change only native input-file absolute frame origin.
+          # Crucially build/ROM/SRAM and original replay are reused, so one
+          # stage tests BOTH -1/+1 instead of recompiling 3 separate jobs.
+          for phase in -1 1; do
+            python3 tools/baldosa_2014_zoo_calibrated_input.py \
+              --original-log "$ROOT/original-calibration.log" \
+              --native-log "$ROOT/native-calibration/log.txt" \
+              --source-report "$ROOT/input-provenance.json" \
+              --native-phase "$phase" \
+              --out-original "$ROOT/original-input-phase-$phase.txt" \
+              --out-native "$ROOT/native-input-phase-$phase.txt" \
+              --report "$ROOT/input-phase-$phase.json"
+            export UR_QA_SCENE_INPUT_FILE="$ROOT/native-input-phase-$phase.txt"
+            if bash baldosa/tools/run_route.sh "$ROOT/replay.txt" "$ROOT/native-phase-$phase" &&
+                test -s "$ROOT/native-phase-$phase/dump/result-stable-candidate.wram.bin"; then
+              python3 tools/baldosa_2014_zoo_scene_report.py \
+                --original "$ROOT/original" \
+                --native "$ROOT/native-phase-$phase/dump" \
+                --source-report "$ROOT/input-provenance.json" \
+                --calibration-report "$ROOT/input-phase-$phase.json" \
+                --original-log "$ROOT/original.log" \
+                --native-log "$ROOT/native-phase-$phase/log.txt" \
+                --rom reference/roms/retail/Uniracers_USA.sfc --with-ppu \
+                --out "$ROOT/paired-result-phase-$phase.json"
+            else
+              echo "native phase $phase: did not produce settled full result" >&2
+              echo "native phase $phase did not finish; retained log is negative evidence" \
+                > "$ROOT/paired-result-phase-$phase.failure.txt"
+            fi
+          done
+
+          python3 - "$ROOT" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+          root = Path(sys.argv[1])
+          rows = []
+          for phase in (0, -1, 1):
+              p = root / ("paired-result.json" if phase == 0 else
+                          f"paired-result-phase-{phase}.json")
+              if p.is_file():
+                  data = json.loads(p.read_text())
+                  timing = data["observed_result_frame_phases"]
+                  ppu = data["ppu_settled_result"]
+                  rows.append({
+                      "native_input_phase": phase,
+                      "reached_both_result_screens": (
+                          data["original_reached_stable_circuit_result_state"] and
+                          data["baldosa_reached_stable_circuit_result_state"]),
+                      "active_named_fields_equal": data["active_sample_field_agreement"],
+                      "result_onset_original_minus_native_relative_frames":
+                          timing["onset_guest_relative_delta"],
+                      "displayed_original_native_result_equal":
+                          ppu["ppu_result_candidate"],
+                      "contact_disagreement_first_stage":
+                          data["contact_disagreement_first_stage"],
+                      "first_sampled_difference": data["first_semantic_difference"],
+                      "credit": 0,
+                  })
+              else:
+                  rows.append({"native_input_phase": phase,
+                               "status": "no_settled_native_capture",
+                               "credit": 0})
+          evidence = {
+              "schema": "UR-QA01-ZOO-NATIVE-LATCH-PHASE/1",
+              "reference_input_phase": 0,
+              "native_phases_exhaustively_tested": [-1, 0, 1],
+              "same_pinned_build_original_movie_sram_and_course": True,
+              "results": rows,
+              "admitted_complete_event_count": 0,
+              "warning": "This is a controlled input-latch intervention, not"
+                         " a rule change or license to select a flattering phase.",
+          }
+          (root / "phase-discriminator.json").write_text(json.dumps(evidence, indent=2) + "\n")
+          print(json.dumps(evidence, indent=2))
+          PY
+          cat "$ROOT/phase-discriminator.json" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
         if: always()
         uses: actions/upload-artifact@v4
@@ -196,6 +275,15 @@ jobs:
             ${{ runner.temp }}/zoo-scene/input-provenance.json
             ${{ runner.temp }}/zoo-scene/input-phase-report.json
             ${{ runner.temp }}/zoo-scene/paired-result.json
+            ${{ runner.temp }}/zoo-scene/phase-discriminator.json
+            ${{ runner.temp }}/zoo-scene/input-phase-*.json
+            ${{ runner.temp }}/zoo-scene/paired-result-phase-*.json
+            ${{ runner.temp }}/zoo-scene/paired-result-phase-*.failure.txt
+            ${{ runner.temp }}/zoo-scene/native-phase-*/log.txt
+            ${{ runner.temp }}/zoo-scene/native-phase-*/dump/*.wram.bin
+            ${{ runner.temp }}/zoo-scene/native-phase-*/dump/*.regs.json
+            ${{ runner.temp }}/zoo-scene/native-phase-*/dump/*.vram.bin
+            ${{ runner.temp }}/zoo-scene/native-phase-*/dump/*.cgram.bin
             ${{ runner.temp }}/zoo-scene/original.log
             ${{ runner.temp }}/zoo-scene/original-calibration.log
             ${{ runner.temp }}/zoo-scene/native-calibration/log.txt

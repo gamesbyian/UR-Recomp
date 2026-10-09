@@ -80,6 +80,16 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     if (present && !replace_existing_tournament) {
         return error(Status::AlreadyExists, "explicit replacement required");
     }
+    std::optional<LocalTournamentSessionDefinition> expected_active;
+    if (present) {
+        const auto prior = load_historical_local_tournament_session_definition(
+            session_file.string());
+        if (!prior.loaded()) {
+            return error(Status::StorageFailed,
+                         "cannot replace invalid existing active session");
+        }
+        expected_active = *prior.session;
+    }
     // A reused instance ID would silently inherit old fixture receipts even
     // when explicit replacement was requested. Refuse reuse whether or not
     // the prior instance is currently active; IDs are unique across events.
@@ -103,9 +113,13 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
         LocalTournamentSessionFileStatus::Saved) {
         return error(Status::StorageFailed, "cannot archive immutable tournament");
     }
-    if (save_local_tournament_session_definition(
-            session_file.string(), next.definition) !=
-        LocalTournamentSessionFileStatus::Saved) {
+    const auto publication = save_local_tournament_session_definition_if_current(
+        session_file.string(), expected_active, next.definition);
+    if (publication == LocalTournamentSessionFileStatus::Conflict) {
+        return error(Status::AlreadyExists,
+                     "active session changed while tournament was created");
+    }
+    if (publication != LocalTournamentSessionFileStatus::Saved) {
         return error(Status::StorageFailed, "cannot publish active session");
     }
     return {Status::Created, std::move(next), {}};

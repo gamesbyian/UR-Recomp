@@ -23,6 +23,7 @@ enum class LocalTournamentSessionFileStatus {
     Missing,
     Rejected,
     IoError,
+    Conflict, // an active session changed since it was observed
 };
 
 struct LocalTournamentSessionFileResult {
@@ -75,6 +76,10 @@ load_historical_local_tournament_session_definition(
 LocalTournamentSessionFileStatus save_local_tournament_session_definition(
     const std::string& path,
     const LocalTournamentSessionDefinition& session);
+LocalTournamentSessionFileStatus save_local_tournament_session_definition_if_current(
+    const std::string& path,
+    const std::optional<LocalTournamentSessionDefinition>& expected_current,
+    const LocalTournamentSessionDefinition& next);
 LocalTournamentSessionFileResult load_local_tournament_session_definition(
     const std::string& path,
     const std::vector<HostProfileCatalogEntry>& authoritative_catalog);

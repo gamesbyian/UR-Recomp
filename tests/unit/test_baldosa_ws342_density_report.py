@@ -37,20 +37,20 @@ class BaldosaWideDensityEvidenceTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             base, candidate, log = (root / p for p in ("base", "candidate", "log"))
-            crc = ("deadbeef\\n" * 2473).encode()
+            crc = ("deadbeef\n" * 2473).encode()
             base.write_bytes(crc)
             candidate.write_bytes(crc)
             log.write_text("".join(
                 f"UR_BALDOSA_WS342_PREP frame={f} calibrated=1 "
-                f"logical=342x224 backing=48 visible=43\\n"
+                f"logical=342x224 backing=48 visible=43\n"
                 f"UR_BALDOSA_WS342_PRESENT frame={f} width=342 height=224 "
                 f"pitch=5472 calibrated=1 saved=1 "
-                f"density=4 raster=1368x896\\n"
+                f"density=4 raster=1368x896\n"
                 for f in (1808, 1856)))
             folder = root / "captures"
             folder.mkdir()
-            header = (b"P7\\nWIDTH 1368\\nHEIGHT 896\\nDEPTH 4\\n"
-                      b"MAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+            header = (b"P7\nWIDTH 1368\nHEIGHT 896\nDEPTH 4\n"
+                      b"MAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n")
             files = []
             for frame, shade in ((1808, 15), (1856, 40)):
                 path = folder / f"ur-baldosa-ws342-{frame:06d}.pam"

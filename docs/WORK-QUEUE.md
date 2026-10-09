@@ -62,10 +62,11 @@ now enforces **45 courses x 3 release ROMs = 135 course/build cases**:
 **0/135 passed**, **2 bounded partial (USA Dragster contact window and
 USA Jumpover input-only landing thresholds)**, **133 unverified**.
 The generator and negative-pass unit tests refuse to turn 45 valid
-RNC streams, resource-family incidence or a six-case stunt sample into
-full-game acceptance. Zoom Zoo circuit lap/finish and Jumps timed-stunt
-score/result are prioritized because their historical start coordinates
-do not satisfy the simplest header-spawn interpretation. PAL Europe
+RNC streams, resource-family incidence or a six-case stunt-*maneuver*
+sample on **Jumpover circuit B** into full-game acceptance. Zoom Zoo
+circuit lap/finish is the sole nonzero historical X/header disagreement;
+Jumps timed-stunt score/result is prioritized for event-class coverage,
+not because the optimizer's unused, hardcoded zero proves a spawn error. PAL Europe
 changed streams 4/16/20/26/27/35/36 need dynamic comparisons; the
 unaltered PAL-prototype streams do not establish runtime equivalence.
 At Dragster frame 2903, slot 10 remains an unproven prior dispatch

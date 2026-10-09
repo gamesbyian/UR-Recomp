@@ -1,8 +1,10 @@
 #include "completed_run_ghost_trace.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <atomic>
 #include <chrono>
 #include <cctype>
+#include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <iomanip>
@@ -448,6 +450,23 @@ bool save_completed_run_ghost_trace_file(
         return false;
     }
 
+    // Close/flush makes bytes visible to the OS, not necessarily durable.
+    // Reopen only our private completed stage with write access and request
+    // the same OS-level data sync as other host-owned persisted artifacts.
+#if defined(_WIN32)
+    std::FILE* sync_file = _wfopen(staged_file.c_str(), L"rb+");
+#else
+    std::FILE* sync_file = std::fopen(staged_file.c_str(), "rb+");
+#endif
+    const bool synced = sync_file &&
+        ur::product::detail::sync_staged_file(sync_file);
+    const bool sync_closed = sync_file && std::fclose(sync_file) == 0;
+    if (!synced || !sync_closed) {
+        cleanup();
+        set_detail(detail, "cannot durably flush ghost trace");
+        return false;
+    }
+
     ec.clear();
     fs::rename(staged_file, final_path, ec);
     if (ec) {
@@ -455,6 +474,9 @@ bool save_completed_run_ghost_trace_file(
         set_detail(detail, "cannot publish ghost trace");
         return false;
     }
+    // Canonical .urghost has already been replaced. A failed directory sync
+    // cannot safely be reported as if the old trace were still committed.
+    ur::product::detail::sync_published_directory_best_effort(parent);
     cleanup();
     return true;
 }

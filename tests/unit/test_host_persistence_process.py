@@ -148,6 +148,19 @@ class HostPersistenceProcessTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertEqual(read_value("profile", cas_path), 14)
+            # Failed catalog registration must never delete the profile
+            # after another process has saved newer canonical SRAM.
+            self.assertEqual(
+                call("profile", "cas-delete-stale",
+                     cas_path, 15).returncode, 0
+            )
+            self.assertEqual(read_value("profile", cas_path), 15)
+            self.assertEqual(
+                call("profile", "cas-delete", cas_path).returncode, 0
+            )
+            deleted = call("profile", "read", cas_path)
+            self.assertEqual(deleted.returncode, 4)
+
 
             # Profile roster lost-update is a separate artifact from SRAM:
             # two different new racers based on an identical pre-save

@@ -43,7 +43,7 @@ if [[ ${1:-} == --inside ]]; then
     wait_line 'UR_PRACTICE_PICKER CANCELLED'
 
     # Root's global Racer & Profiles drawer works outside stock 0x3C.
-    xdotool key x
+    xdotool key F2
     wait_line 'UR_PROFILE_UI OPENED'
     xdotool key Escape
 
@@ -98,9 +98,5 @@ for case_name in root-actions play multiplayer; do
     UR_RECOMP_USER_DATA_ROOT="$WORK/$case_name-data" \
     timeout 105s xvfb-run -a bash "$0" --inside \
       "$EXE" "$ROM" "$WORK/$case_name.log" "$case_name"
-  grep -q "UR_MODERN_ROOT_SMOKE=$case_name passed" <(
-    # The inner test's own success is stdout, not the game log; state the
-    # return-code contract explicitly for scripts that invoke this runner.
-    printf 'UR_MODERN_ROOT_SMOKE=%s passed\n' "$case_name")
 done
 echo 'UR_MODERN_ROOT_ACCEPTANCE=passed (SDL keyboard; not Windows pad/audio)'

@@ -12,6 +12,10 @@ on:
       - "tools/baldosa_hd_presentation_report.py"
       - "tools/baldosa_hd_enable_renderer.py"
       - "tools/baldosa_single_presentation_scale_patch.py"
+      - "tools/baldosa_ws24_host_spike.py"
+      - "tools/baldosa_native_ws24_presentation.cpp"
+      - "tools/baldosa_ws24_presentation_report.py"
+      - "native/title/uniracers_ws_margins.c"
       - "tools/patches/snesrecomp-presentation-scale.patch"
 
 permissions:
@@ -257,6 +261,43 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation_4x.json"
           echo "PASS: real moving 1024x896 source-derived P1/P2 racers, guest CRCs identical" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Capture calibrated +24 split-screen world pixels without guest writes
+        shell: bash
+        env:
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "45"
+          UR_RACER_HD: "1"
+          UR_RACER_HD_CENSUS: "1"
+          UR_BALDOSA_HD: "1"
+          UR_BALDOSA_HD_DENSITY: "1"
+          UR_BALDOSA_WS24: "1"
+        run: |
+          set -euo pipefail
+          python3 tools/baldosa_ws24_host_spike.py \
+            --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          export UR_BALDOSA_WS24_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws24-captures"
+          mkdir -p "$UR_BALDOSA_WS24_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/fd/crc.txt"
+          python3 tools/baldosa_ws24_presentation_report.py \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/log.txt" \
+            --captures "$UR_BALDOSA_WS24_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws24_presentation.json"
+          echo "PASS: actual two-viewport +24 source-world margins, guest CRC unchanged" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Summarize executable evidence
         if: always()
         shell: bash
@@ -288,6 +329,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
+            ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
+            ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-evidence/*.exit

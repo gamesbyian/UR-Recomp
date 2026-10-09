@@ -298,5 +298,31 @@
     "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read.",
     "The historic original JSONL instrumented low WRAM 7E and does NOT record/verify the complete live 7F course buffer. C000 slot-family attribution is independently ROM-static; instruction-time active 7F/C000 mapping remains an additional verifier.",
     "The original stopwatch bytes at the first lap decrement decode to about 0.2 seconds and at the second to about 25.2 seconds. Thus 4->3 occurs just after the starting gate and must not be counted as an already-completed 25-second full circuit."
-  ]
+  ],
+  "original_race_start_phase": {
+    "race_active_frame": 3190,
+    "last_observed_zero_x_displacement_frame": 3394,
+    "first_p1_x_displacement_frame": 3395,
+    "first_p1_moving_x": 9185,
+    "first_p1_signed_vx": -488,
+    "first_p1_boost_nonzero": 384,
+    "first_stopwatch_nonzero_frame": 3396,
+    "stopwatch_at_first_motion": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopwatch_at_first_timer_tick": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "race_active_to_first_motion_guest_frames": 205,
+    "race_active_to_timer_tick_guest_frames": 206,
+    "phase_limit": "This is the first deviation of sampled original P1 X and first nonzero stopwatch byte after race flag active, not an instruction-time input-enabled or official Go HUD capture."
+  }
 }

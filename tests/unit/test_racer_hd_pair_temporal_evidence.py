@@ -50,6 +50,33 @@ class RacerHdPairTemporalEvidenceTests(unittest.TestCase):
         self.assertEqual(max(map(len, episodes)), measure["eligible_longest_episode_frames"])
         self.assertEqual(histogram[1], measure["one_frame_eligible_episodes"])
 
+        stock_runs = []
+        for frame in observed:
+            if frame in eligible:
+                continue
+            if not stock_runs or frame != stock_runs[-1][-1] + 1:
+                stock_runs.append([frame])
+            else:
+                stock_runs[-1].append(frame)
+        longest_stock = max(stock_runs, key=len)
+        self.assertEqual(
+            len(longest_stock),
+            measure["longest_consecutive_pair_ineligible_run_frames"]
+        )
+        self.assertEqual(
+            [longest_stock[0], longest_stock[-1]],
+            measure["longest_consecutive_pair_ineligible_run_inclusive_range"]
+        )
+        for start, end in measure["other_long_pair_ineligible_ranges"]:
+            self.assertTrue(all(frame not in eligible for frame in range(start, end + 1)))
+        for key in ("first_441_guest_frame_window", "remaining_2200_guest_frame_window"):
+            window = measure[key]
+            lo_window, hi_window = window["range"]
+            self.assertEqual(
+                sum(lo_window <= frame <= hi_window for frame in eligible),
+                window["registered_pair_eligible_frames"]
+            )
+
         edges = list(zip(observed, observed[1:]))
         entry = sum(a not in eligible and b in eligible for a, b in edges)
         exit_ = sum(a in eligible and b not in eligible for a, b in edges)

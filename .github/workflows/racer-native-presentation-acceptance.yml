@@ -11,6 +11,7 @@ on:
       - "tools/measure_racer_hd_live_draws.py"
       - "tools/check_racer_hd_pixel_confinement.py"
       - "tools/check_racer_hd_foreground_occlusion.py"
+      - "tools/select_racer_hd_same_state_native_frame.py"
       - "tools/probe_racer_hd_fallback_family.py"
       - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
@@ -33,6 +34,7 @@ on:
       - "tests/unit/test_measure_racer_hd_live_draws.py"
       - "tests/unit/test_racer_hd_pixel_confinement.py"
       - "tests/unit/test_racer_hd_foreground_occlusion.py"
+      - "tests/unit/test_select_racer_hd_same_state_native_frame.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
@@ -243,8 +245,14 @@ jobs:
           run_route() {
             local mode="$1" log="$2" dumps="$3" shot="$4"
             shift 4
+            local -a visual_capture=()
+            if [ "$mode" = Original-OBJ-only ] || [ "$mode" = Capture-Only ]; then
+              local series="$RUNNER_TEMP/racer-$mode-frames"
+              mkdir -p "$series"
+              visual_capture=("SNESRECOMP_SCREENSHOT_DIR=$series" "SNESRECOMP_SCREENSHOT_FROM=1210" "SNESRECOMP_SCREENSHOT_TO=1235")
+            fi
             set +e
-            env "$@" \
+            env "$@" "${visual_capture[@]}" \
               SNESRECOMP_DUMP_DIR="$dumps" \
               SNESRECOMP_INPUT_FILE="$INPUT" \
               SNESRECOMP_SCREENSHOT="$shot" \
@@ -269,20 +277,37 @@ jobs:
           run_route Original-OBJ-only "$OBJ_ONLY_LOG" "$OBJ_ONLY_DUMPS" "$OBJ_ONLY_SHOT" SNESRECOMP_LAYER_MASK=0x10
           run_route Capture-Only "$CAPTURE_LOG" "$CAPTURE_DUMPS" "$CAPTURE_SHOT" UR_RACER_HD=1 UR_RACER_HD_CAPTURE_ONLY=1
 
-          # Four processes must observe the exact same authoritative
-          # composition at guest frame 1220. A screenshot-phase mismatch is
-          # not evidence of authentic foreground occlusion.
-          python3 - "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$HD_LOG" "$OBJ_ONLY_LOG" "$CAPTURE_LOG" <<'PY'
+          # The two extra processes advance slightly differently: on the
+          # retained native reference, OBJ-only matches stock frame 1220
+          # at its 1221, capture-only at its 1219. Select *actual host
+          # screenshots* by exact eight-word guest composition, never by
+          # assuming raw frame indices coincide across processes.
+          python3 - "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$HD_LOG" <<'PY'
           import pathlib, re, sys
-          pattern = re.compile(r"^UR_RACER_PRESENTATION_TRACE frame=1220 (.+)$", re.MULTILINE)
-          observations = []
+          pat = re.compile(r"^UR_RACER_PRESENTATION_TRACE frame=1220 (.+)$", re.MULTILINE)
+          values = []
           for name in sys.argv[1:]:
-              matches = pattern.findall(pathlib.Path(name).read_text(encoding="utf-8"))
+              matches = pat.findall(pathlib.Path(name).read_text(encoding="utf-8"))
               assert len(matches) == 1, (name, matches)
-              observations.append(matches[0])
-          assert len(set(observations)) == 1, observations
-          print("UR_RACER_HD_OBJ_ONLY_SOURCE_ALIGNMENT PASS frame=1220 instances=5")
+              values.append(matches[0])
+          assert len(set(values)) == 1, values
+          print("UR_RACER_HD_BASELINE_SOURCE_ALIGNMENT PASS frame=1220 controls=3")
           PY
+
+          python3 tools/select_racer_hd_same_state_native_frame.py \
+            --reference-log "$ORIGINAL_A_LOG" --reference-frame 1220 \
+            --candidate-log "$OBJ_ONLY_LOG" \
+            --candidate-dir "$RUNNER_TEMP/racer-Original-OBJ-only-frames" \
+            --width 256 --height 224 \
+            --out-ppm "$RUNNER_TEMP/racer-original-obj-only-aligned-1220.ppm" \
+            --json-out "$RUNNER_TEMP/racer-obj-only-source-alignment.json"
+          python3 tools/select_racer_hd_same_state_native_frame.py \
+            --reference-log "$ORIGINAL_A_LOG" --reference-frame 1220 \
+            --candidate-log "$CAPTURE_LOG" \
+            --candidate-dir "$RUNNER_TEMP/racer-Capture-Only-frames" \
+            --width 1024 --height 896 \
+            --out-ppm "$RUNNER_TEMP/racer-hd-capture-only-aligned-1220.ppm" \
+            --json-out "$RUNNER_TEMP/racer-capture-only-source-alignment.json"
 
           # These are actual host presentation results, not registration matches.
           python3 tools/measure_racer_hd_live_draws.py \
@@ -340,7 +365,7 @@ jobs:
           python3 tools/check_racer_hd_pixel_confinement.py \
             --original "$ORIGINAL_A_SHOT" \
             --original-control "$ORIGINAL_B_SHOT" \
-            --hd "$CAPTURE_SHOT" --hd-log "$HD_LOG" --frame 1220 \
+            --hd "$RUNNER_TEMP/racer-hd-capture-only-aligned-1220.ppm" --hd-log "$HD_LOG" --frame 1220 \
             --json-out "$RUNNER_TEMP/racer-hd-capture-removal-1220.json"
 
           # Inspect the isolated stock OBJ layer for *potential* lost
@@ -352,7 +377,7 @@ jobs:
             --original "$ORIGINAL_A_SHOT" \
             --original-control "$ORIGINAL_B_SHOT" \
             --hd "$HD_SHOT" --native-log "$HD_LOG" \
-            --obj-only-ppm "$OBJ_ONLY_SHOT" \
+            --obj-only-ppm "$RUNNER_TEMP/racer-original-obj-only-aligned-1220.ppm" \
             --frame 1220 \
             --json-out "$RUNNER_TEMP/racer-hd-foreground-1220.json" \
             > "$RUNNER_TEMP/racer-hd-foreground-1220.txt"
@@ -1597,6 +1622,12 @@ jobs:
             ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
             ${{ runner.temp }}/racer-original-obj-only.log
             ${{ runner.temp }}/racer-original-obj-only-1220.ppm
+            ${{ runner.temp }}/racer-original-obj-only-aligned-1220.ppm
+            ${{ runner.temp }}/racer-hd-capture-only-aligned-1220.ppm
+            ${{ runner.temp }}/racer-obj-only-source-alignment.json
+            ${{ runner.temp }}/racer-capture-only-source-alignment.json
+            ${{ runner.temp }}/racer-Original-OBJ-only-frames/
+            ${{ runner.temp }}/racer-Capture-Only-frames/
             ${{ runner.temp }}/racer-hd-capture-only.log
             ${{ runner.temp }}/racer-hd-capture-only-1220.ppm
             ${{ runner.temp }}/racer-hd-capture-removal-1220.json

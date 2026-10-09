@@ -137,6 +137,56 @@ void copy_field_scaled(
     }
 }
 
+// Diagnostic only: retain the *isolated Original OBJ layer* already exported
+// by the pinned PPU. Its alpha/colour can be compared against the independent
+// Original screenshot to find likely foreground-occluded racer pixels before
+// anyone changes the actual host compositing policy. It never reads/writes a
+// guest byte and never runs without an explicit output path and frame number.
+void dump_obj_layer_for_occlusion_review() noexcept {
+    const char* output = std::getenv("UR_RACER_HD_OBJ_LAYER_PAM");
+    const char* requested_frame = std::getenv("UR_RACER_HD_OBJ_LAYER_FRAME");
+    if (output == nullptr || output[0] == '\0' ||
+        requested_frame == nullptr || requested_frame[0] == '\0') return;
+    char* end = nullptr;
+    const unsigned long target = std::strtoul(requested_frame, &end, 10);
+    if (end == requested_frame || *end != '\0' ||
+        target != g_sim_frame || !g_frame_active) return;
+
+    // The PPU's ARGB32 colour is 0xAARRGGBB, independent of host byte order.
+    // PAM P7 carries transparent RGBA exactly, avoiding false black-pixel
+    // assumptions or a dependency on image libraries in the native runner.
+    std::FILE* file = std::fopen(output, "wb");
+    if (file == nullptr) return;
+    const char* header =
+        "P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+        "TUPLTYPE RGB_ALPHA\nENDHDR\n";
+    bool ok = std::fwrite(header, 1, std::strlen(header), file) == std::strlen(header);
+    for (int y = 0; ok && y < kBaseHeight; ++y) {
+        const auto* row = reinterpret_cast<const std::uint32_t*>(
+            g_obj_overlay.data() + static_cast<std::size_t>(y) * kBaseWidth * 4
+        );
+        for (int x = 0; x < kBaseWidth; ++x) {
+            const std::uint32_t pixel = row[x];
+            const std::uint8_t rgba[4] = {
+                static_cast<std::uint8_t>((pixel >> 16) & 0xFF),
+                static_cast<std::uint8_t>((pixel >> 8) & 0xFF),
+                static_cast<std::uint8_t>(pixel & 0xFF),
+                static_cast<std::uint8_t>((pixel >> 24) & 0xFF)
+            };
+            if (std::fwrite(rgba, 1, sizeof(rgba), file) != sizeof(rgba)) {
+                ok = false;
+                break;
+            }
+        }
+    }
+    if (std::fclose(file) != 0) ok = false;
+    std::fprintf(
+        stderr,
+        "UR_RACER_HD_OBJ_LAYER frame=%u status=%s path=%s\n",
+        g_sim_frame, ok ? "captured" : "io-error", output
+    );
+}
+
 void draw_asset(
     std::uint8_t* dst,
     std::size_t pitch,
@@ -395,6 +445,7 @@ int racer_hd_draw_frame(
         return 0;
     }
 
+    dump_obj_layer_for_occlusion_review();
     copy_field_scaled(dst, pitch, field, scale);
     // SNES OBJ priority among overlapping sprites follows the ascending OAM
     // index, regardless of the sprite's background-priority attribute bits.

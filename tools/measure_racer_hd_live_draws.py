@@ -17,7 +17,7 @@ import re
 
 CENSUS = re.compile(
     r"UR_RACER_HD_CENSUS frame=(\d+) phase=(gate|present) "
-    r"status=([a-z][a-z-]*) reason=([a-z][a-z-]*)"
+    r"status=([a-z][a-z0-9-]*) reason=([a-z][a-z0-9-]*)\\s*$"
 )
 
 ALLOWED = {

@@ -82,7 +82,7 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
         onset = w["original_race_start_phase"]
         samples[3394] = {
             "movie_frame": 3394,
-            "p1_world_xy": [9200, 1562],
+            "p1_world_xy": [9200, 1563],
             "timer_raw_digits": [0, 0, 0, 0, 0],
         }
         samples[3395] = {
@@ -129,7 +129,7 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
         self.assertEqual(qualified["original_event_frames_reproduced"],
                          [3408, 3794, 4031, 4722, 4911])
         self.assertEqual(qualified["lap_counter_decrements"], [3408, 4911])
-        self.assertEqual(qualified["original_first_motion_frame"], 3395)
+        self.assertEqual(qualified["original_first_horizontal_x_change_frame"], 3395)
         self.assertEqual(qualified["original_first_stopwatch_tick_frame"], 3396)
         changed = copy.deepcopy(result)
         changed["trace_sha256"] = "0" * 64

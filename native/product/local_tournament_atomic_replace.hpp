@@ -104,7 +104,8 @@ inline bool write_host_replace_staged(
     const std::string& final_name,
     std::string_view data,
     std::string_view staging_family,
-    void (*after_staging_for_test)() = nullptr) {
+    void (*after_staging_for_test)() = nullptr,
+    bool (*sync_override_for_test)(std::FILE*) = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
     const fs::path final_path(final_name);
@@ -127,7 +128,9 @@ inline bool write_host_replace_staged(
     // cannot persist these bytes, reject the staged write BEFORE the rename
     // can hide a previously valid profile/SRAM/catalog/checkpoint.
     const bool synced = written == data.size() && flushed &&
-                        detail::sync_staged_file(file);
+                        (sync_override_for_test
+                            ? sync_override_for_test(file)
+                            : detail::sync_staged_file(file));
     const bool closed = std::fclose(file) == 0;
     if (written != data.size() || !flushed || !synced || !closed) {
         cleanup();

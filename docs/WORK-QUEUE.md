@@ -56,11 +56,13 @@ The file-store TOCTOU in [#983](https://github.com/gamesbyian/UR-Recomp/issues/9
 
 ### QA-01/QA-07 original gameplay coverage baseline (2026-10-08)
 
-The [full course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
-now enforces **45 courses x 3 release ROMs = 135 course/build cases**:
-108 Race/Circuit and 27 Stunt. Current L4 course/event completion is
-**0/135 passed**, **2 bounded partial (USA Dragster contact window and
-USA Jumpover input-only landing thresholds)**, **133 unverified**.
+The [course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
+tracks **45 primary-USA Windows release course cases** plus **90 PAL
+retail/prototype comparative cases**, or 135 original ROM/course pairs
+(108 Race/Circuit, 27 timed Stunt). Primary L4 completion is
+**0/45 passed**, **2 bounded partial (USA Dragster contact window and
+USA Jumpover circuit-B input-only landing thresholds)**, **43 unverified**;
+comparative PAL remains **0/90 passed, 90 unverified**.
 The generator and negative-pass unit tests refuse to turn 45 valid
 RNC streams, resource-family incidence or a six-case stunt-*maneuver*
 sample on **Jumpover circuit B** into full-game acceptance. Zoom Zoo

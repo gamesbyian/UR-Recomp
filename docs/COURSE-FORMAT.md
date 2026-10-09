@@ -565,6 +565,44 @@ cells in a circuit and a non-Dragster race. Static X proximity cannot replace
 that dynamic evidence.
 
 
+### All 45 original-course checkpoint-family placements (QA-01, 2026-10-09)
+
+`tools/audit_all_course_checkpoint_placements.py` extends the
+single-course checkpoint/finish *candidate* probe to the full original
+45-course denominator. It decodes all RNC streams from the exact SHA-256
+pinned USA retail ROM **once**, resolves their descriptor-owned C000
+resource spans, and measures every placed `0x24` world cell, coarse
+sector and slot distribution. Race/Circuit resource list membership
+(36/36) and actual occupied world-cell placement are separately counted.
+Timed Stunt courses (9/9) must have neither the ordinary checkpoint
+resource nor derived candidate cells.
+
+For each ordinary race/circuit course the tool compares the X range of
+candidate cells to Dessyreqt's **hand-entered optimizer finish-X lead**.
+A large or nonzero gap is a useful priority signal for an event-relative
+emulator trace; it is **not** proof of a missing finish plane, because
+the collision footprint, approach direction, packed control bits and
+handler dispatch phase have not been established at that location.
+The result is an explicit static per-course candidate inventory, not
+a 45-course gameplay pass.
+
+```sh
+python3 tools/audit_all_course_checkpoint_placements.py \
+  --json-out /tmp/qa01-all-course-cells.json
+python3 tools/audit_all_course_checkpoint_placements.py \
+  --fail-missing-race-placement \
+  --json-out /tmp/qa01-all-course-strict.json
+python3 -m unittest discover -s tests/unit \
+  -p 'test_audit_all_course_checkpoint_placements.py'
+```
+
+The strict option fails only if an ordinary race/circuit course
+**lists** the resource but has zero descriptor-owned world placements,
+which is a concrete structural discrepancy to investigate. Do not
+replace the original QA-01 0/45 complete-event denominator with this
+static count. Runtime collision words and checkpoint/lap/finish results
+still require original/native input-driven reference comparisons.
+
 ### Historical start-X evidence calibration (2026-10-08)
 
 A direct cross-check of all 45 normalized course headers against Dessyreqt's

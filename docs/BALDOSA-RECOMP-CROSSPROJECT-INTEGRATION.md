@@ -14,6 +14,9 @@ Date: 2026-10-09. Source: [baldosa/uniracers-recomp](https://github.com/baldosa/
 
 **Cross-tier oracle limitations.** Ema's tools mask documented timing-phase WRAM bytes and stack (see `tools/state_mask.txt`); their route checkpoint comparisons include SRAM and optionally OAM. Masked checkpoint equality is useful for broad execution checks but does not demonstrate exact per-frame causality, complete all-course parity or screen/HD fidelity. Prefer meaningful semantic event counters, authentic terminal results, and unmasked local witnesses at the disputed frame.
 
+
+**New crosswalk review (2026-10-09):** [`BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md`](BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md) records the 49 local/external exact-address overlaps and the source-backed correction to indexed SRAM result-table slots at `$77:0618`. Before claiming a results/tournament defect, trace actual readers and writes in the existing native/reference process; keep the QA-02 storage work bounded.
+
 ## Bounded execution queue, in priority order
 
 1. **QA-01/QA-07:** replay upstream Zoom Zoo and Race inputs in the appropriate exact-USA original/native drivers. Check actual terminal event/result and measure how far route alignment extends; if one full original/native completion is obtained, promote to our existing 45-case census via its evidence/identity gate. Do not build a second generic runner.

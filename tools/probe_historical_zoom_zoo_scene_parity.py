@@ -312,6 +312,11 @@ def main() -> int:
         "first_progression_state_disagreement": (
             event_diagnostics["first_progression_state_disagreement"]
         ),
+        "first_stopwatch_disagreement": (
+            event_diagnostics["first_stopwatch_disagreement"]
+        ),
+        "reference_start_phase": event_diagnostics["reference_start_phase"],
+        "native_start_phase": event_diagnostics["native_start_phase"],
         "reference_progression_change_interval_count": (
             event_diagnostics["reference_observed"]["progression_change_interval_count"]
         ),

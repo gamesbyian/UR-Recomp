@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "classification": "opt-in diagnostic 2P P1-only mixed-HD/stock-P2 native host render outcome; not a shipping-admitted P1-only compositor",
+  "source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "head_sha": "8115bf0ce4d44461893e1a748633c129f57f3419",
+    "workflow_run": 37873082202,
+    "artifact_id": 11591785951,
+    "artifact_name": "native-racer-presentation-acceptance",
+    "artifact_zip_sha256": "576956f3dcdc74d6c819382f9975e84463807f5cfa229adecb67d8875551ee64",
+    "json_member": "racer-hd-p1-only-live-race-window.json",
+    "json_sha256": "cb84cc8150c04235eb6c726ba974440dd9c1e07a5880eb9b3ad150256d258245",
+    "log_member": "racer-hd-p1-only-native.log",
+    "input_fixture": "tests/input/two-player-p1-win.input",
+    "script": "tests/input/racer-hd-p1-only-probe.script",
+    "window_inclusive": [
+      1180,
+      3820
+    ],
+    "rom": "USA retail",
+    "logical_output": [
+      256,
+      224
+    ],
+    "p1_only_env": "UR_RACER_HD=1 UR_RACER_HD_P1_ONLY=1",
+    "note": "Same input filename as archived Snes9x eligibility reference; guest-frame offsets may drift across emulators, so do not join observations by absolute frame ID"
+  },
+  "measurement": {
+    "guest_frames_observed": 2641,
+    "guest_frames_with_host_presents": 2641,
+    "missing_host_presents": 0,
+    "rendered_both_hd_guest_frames": 169,
+    "rendered_p1_hd_p2_stock_guest_frames": 902,
+    "rendered_both_stock_guest_frames": 1570,
+    "any_hd_guest_frames": 1071,
+    "any_hd_guest_fraction": 0.405528209011738,
+    "p1_only_hd_guest_fraction": 0.3415372964786066,
+    "hd_racer_player_frames": 1240,
+    "original_racer_player_frames": 4042,
+    "total_racer_player_frames": 5282,
+    "hd_racer_player_frame_fraction": 0.23475956077243468,
+    "full_pair_only_native_hd_player_frame_fraction": 0.06399091253313138,
+    "capture_armed_without_hd_draw": 0,
+    "hd_bursts": 179,
+    "one_frame_hd_bursts": 24,
+    "longest_hd_burst_frames": 39,
+    "original_to_hd_edges": 179,
+    "hd_to_original_edges": 179,
+    "total_render_mode_switches": 358,
+    "longest_original_run_frames": 753,
+    "original_gate_reasons": {
+      "p1-selection-or-art": 1570
+    },
+    "actual_native_p1_only_occlusion_rejections": 0
+  },
+  "reference_same_input_selection_only": {
+    "source": "analysis/generated/racer-hd-pair-temporal-eligibility-2026-10-08.json",
+    "guest_frames_observed": 2641,
+    "full_pair_registration_eligible_frames": 170,
+    "p1_only_registration_candidates": 984,
+    "warning": "These are Snes9x selection-model numbers; native observed 169/902 are renderer outcomes with possible emulator frame drift. 170 minus 169 or 984 minus 902 is not a count of native OAM failures."
+  },
+  "accepted_controls": [
+    "Native P1-only acceptance observes unchanged guest state and exact stock-P2 ROI in its admitted sample.",
+    "The live analyzer rejects capture-armed-then-host-declined frames; observed zero such cases.",
+    "Default production P1-only mode remains disabled and no new shipping admission is implied."
+  ],
+  "unverified": [
+    "Original-vs-HD multi-frame foreground BG/color math and other OBJ priority inside racer footprints.",
+    "Visual temporal flicker across 358 native HD/Original mode switches.",
+    "1P and VS scene family coverage, 16:9 Remastered availability and scene resize transitions.",
+    "Identical frame-number semantic states between Snes9x source census and native host route."
+  ]
+}

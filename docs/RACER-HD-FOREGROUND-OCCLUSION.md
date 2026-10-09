@@ -86,6 +86,21 @@ racers, vertical motion, split seams and overlap-heavy sequences.
 Instrument only exact-approved native HD frames and use unchanged
 independent stock screenshots at matching guest state.
 
+## Native acceptance wiring
+
+The existing `racer-native-presentation-acceptance.yml` HD process now
+opts into a **single** isolated OBJ capture at guest frame 1220.
+It pairs the emitted P7 stock OBJ layer with the two existing
+independent Original P6 controls and the actual HD P6 at the same
+guest frame, runs the diagnostic analyzer and retains both the
+PAM and structured JSON in the existing graphics acceptance
+artifact. Acceptance requires a nonempty isolated racer OBJ
+surface and internally consistent candidate counts, but
+**does not require zero possible-overpaint candidates**: those
+must be attributed to original PPU foreground priority before
+being classified as defects. This integration adds no extra
+native process or independent GHA workflow.
+
 ## Stop condition for accepting foreground depth
 
 A meaningful QA-08 L4 result needs a representative course/motion/

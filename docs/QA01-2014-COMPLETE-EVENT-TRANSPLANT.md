@@ -32,10 +32,13 @@ ROM-decoded 7F course validation and PPU text decoder. It:
 1. Extracts archived embedded 8 KiB SRAM (no arbitrary all-silver
    replacement) and raw recorded joypad; independently replays the source
    original movie to a bounded horizon.
-2. Detects a **real** course entry and matching terminal menu from the
-   source WRAM trace, refusing inferred frame anchors, missing results or a
-   Bowl result without its preceding 2F summing screen. Zoo must still
-   start at independently established frame **3190**.
+2. Detects a **real** course entry and **stable** terminal result screen
+   from the source WRAM trace. It reuses the stock source result analyzer's
+   minimum eight consecutive guest frames, while rejecting results marked
+   active-race and requiring an independently stable Bowl 2F tally before
+   the settled 18 screen. This prevents a single reused DP 009F scratch
+   byte or brief fake tally from being mistaken for completed gameplay.
+   Zoo must still start at independently established frame **3190**.
 3. Extracts exact source-original scene input, preserving SMV UID,
    CRC, reset and controller validation.
 4. Boots original Snes9x and native Authentic separately via stock menus,

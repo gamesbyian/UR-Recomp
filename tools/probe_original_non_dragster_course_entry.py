@@ -15,7 +15,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import re
 import shutil
 import struct
 from pathlib import Path
@@ -37,7 +36,7 @@ CASES = {
 SAMPLES = (0, 1, 2, 4, 8, 16)
 WRAM_BYTES = 0x20000
 COURSE_RAM_OFFSET = 0x10000
-MENU_PREFIX = """\\
+MENU_PREFIX = """
 until 009F == D7 3600
 wait 60
 press a 2
@@ -69,7 +68,7 @@ def original_menu_script(case_name: str) -> str:
             raise CourseEntryEvidenceError("tour navigation lacks a validated original route")
         lines += ["press down 2", "until 009B == 02 600", "wait 30"]
     lines += ["press a 2", "until 009F == F6 1200", "wait 60"]
-    for i in range(row):
+    for _ in range(row):
         lines += ["press down 2", "wait 12"]
     lines += [f"until 009B == {row:02X} 600", "wait 30",
               "press a 2", "until 009F == 16 1200",

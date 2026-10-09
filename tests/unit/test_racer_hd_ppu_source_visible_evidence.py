@@ -27,12 +27,6 @@ class RacerHdNativeSourceVisibilityEvidenceTests(unittest.TestCase):
             m["hd_host_callback_frames"],
         )
         self.assertEqual(
-            m["source_top_only_hd_frames"] + m["source_neither_viewport_hd_frames"]
-            + m["source_bottom_only_hd_frames"],
-            m["source_bottom_absent_hd_frames"] + m["source_top_absent_hd_frames"]
-            - m["source_neither_viewport_hd_frames"],
-        ) if False else None
-        self.assertEqual(
             m["source_bottom_absent_hd_frames"],
             m["source_top_only_hd_frames"] + m["source_neither_viewport_hd_frames"],
         )

@@ -8,6 +8,8 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
+      - "tools/baldosa_windows_native_pause_route.py"
+      - "tests/unit/test_baldosa_windows_native_pause_route.py"
   workflow_dispatch:
 
 permissions:
@@ -36,6 +38,9 @@ jobs:
           path: baldosa
           submodules: recursive
           persist-credentials: false
+
+      - name: Guard guest CRC and pause-witness extraction
+        run: python tests/unit/test_baldosa_windows_native_pause_route.py
 
       - name: Verify immutable native source pins
         run: |
@@ -88,3 +93,28 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Execute actual Win32 two-player guest and native pause/resume
+        env:
+          UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS: "1"
+        run: |
+          set -euo pipefail
+          python tools/baldosa_windows_native_pause_route.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
+            --video windows --expected-frames 2473 --timeout 95
+          echo "PASS: Win32 native two-player guest and acknowledged pause/resume; all 2,473 CRCs identical" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded Windows guest evidence (never ROM or saves)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-pause-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt

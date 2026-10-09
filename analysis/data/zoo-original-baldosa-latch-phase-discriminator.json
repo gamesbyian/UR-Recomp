@@ -1,0 +1,81 @@
+{
+  "schema": "UR-QA01-ZOO-LATCH-PHASE-DISCRIMINATOR/1",
+  "status": "bounded native-only controller input phase falsification; no complete-event acceptance",
+  "source": {
+    "ci_run": 38004850276,
+    "artifact_id": 11650877148,
+    "artifact_sha256": "3c70179034ed45a13017eb407be3caac6e8b6cb2cd7cca034815adfed35de7c1",
+    "original_source_input_sha256": "0b6ea7003802d172cdf8a1a8acdcc045f45d02924ac4c3a50a9d18e19186c756",
+    "original_reference": "pinned 2014 Snes9x movie with embedded SRAM, fresh Snes9x-libretro snesref",
+    "native_reference": "Baldosa AOT pinned 10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "course": "USA retail Zoom Zoo, stream 2",
+    "control": "unchanged 340 source controller segments and 5170 source frames; same pinned ROM/SRAM/build; shift native scene-origin guest frame only"
+  },
+  "baseline_phase_0": {
+    "original_scene_entry": 1604,
+    "native_scene_entry": 1606,
+    "original_result_relative": 5163,
+    "native_result_relative": 5162,
+    "both_settled_circuit_result": true,
+    "all_seven_active_named_field_snapshots_equal": true,
+    "result_ppu_text_equal": true,
+    "MIKE_total": "1:16.46",
+    "MIKE_best": "0:25.10",
+    "BRONSEN_total": "1:20.07",
+    "BRONSEN_best": "0:26.45",
+    "post_result_contact_disagreement": {
+      "original_p1": 0,
+      "native_p1": 10240,
+      "original_p2": 0,
+      "native_p2": 512
+    }
+  },
+  "native_phase_minus_1": {
+    "native_first_movie_input_frame": 1605,
+    "first_sampled_game_field_difference_relative_frame": 604,
+    "p1_xy_at_604": [
+      7888,
+      2662
+    ],
+    "p1_contact_at_604": 0,
+    "p1_checkpoint_at_604": 1,
+    "p1_laps_at_1721": 3,
+    "p1_laps_at_4700": 3,
+    "terminal_result": false,
+    "failed_guard": "0xBC result menu not observed by guest-relative +5900 (1200 frames beyond +4700)",
+    "exit_code": 3
+  },
+  "native_phase_plus_1": {
+    "native_first_movie_input_frame": 1607,
+    "first_sampled_game_field_difference_relative_frame": 604,
+    "p1_xy_at_604": [
+      7839,
+      2634
+    ],
+    "p1_contact_at_604": 0,
+    "p1_checkpoint_at_604": 1,
+    "p1_laps_at_1721": 3,
+    "p1_laps_at_4700": 3,
+    "terminal_result": false,
+    "failed_guard": "0xBC result menu not observed by guest-relative +5900 (1200 frames beyond +4700)",
+    "exit_code": 3
+  },
+  "original_comparison_at_relative_604": {
+    "p1_xy": [
+      8478,
+      2907
+    ],
+    "p1_contact": 1798,
+    "p1_checkpoint": 2,
+    "p1_laps": 3
+  },
+  "original_comparison_at_relative_1721": {
+    "p1_laps": 2
+  },
+  "original_comparison_at_relative_4700": {
+    "p1_laps": 1
+  },
+  "deduction": "A blanket -1 or +1 frame rebase of native source masks changes gameplay/contact by +604 and loses lap credit by +1721. Only baseline phase 0 reproduces the full Circuit. Thus the remaining one-frame result-menu observation delta is NOT fixed by simple global input-file origin shifting. This does not yet distinguish host polling phase from a result-transition execution timing defect.",
+  "next_decisive_experiment": "Fixed scene-relative frame capture of original/native menu/0x0313/laps/contact around +5158 through +5173, then if actual guest transition differs, instrument the result-transition owning code without altering game rules.",
+  "admitted_complete_usa_courses": 0
+}

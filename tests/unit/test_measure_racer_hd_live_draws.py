@@ -116,6 +116,46 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "no native Racer HD per-frame"):
             analyze(present(1, "original", "not-armed"))
 
+    def test_exact_scoped_window_separates_race_from_boot(self):
+        log = "\n".join([
+            gate(1, "original", "disabled"),
+            present(1, "original", "not-armed"),
+            gate(2, "original", "disabled"),
+            present(2, "original", "not-armed"),
+            gate(3, "armed", "full-pair"),
+            present(3, "hd", "full-pair"),
+            gate(4, "armed", "full-pair"),
+            present(4, "hd", "full-pair"),
+            gate(5, "original", "p2-pair-gate"),
+            present(5, "original", "not-armed"),
+        ])
+        whole = analyze(log)["measurement"]
+        self.assertEqual(whole["hd_drawn_guest_frames"], 2)
+        self.assertEqual(whole["guest_frames_with_host_presents"], 5)
+        race = analyze(log, from_frame=3, to_frame=5)
+        self.assertEqual(race["frame_window"], {
+            "from": 3, "to": 5, "exact_gate_coverage": True
+        })
+        self.assertEqual(race["measurement"]["guest_frames_observed"], 3)
+        self.assertEqual(race["measurement"]["hd_drawn_guest_frames"], 2)
+        self.assertEqual(race["measurement"]["hd_presented_fraction"], 2 / 3)
+        self.assertEqual(race["measurement"]["hd_run_lengths"], [2])
+        self.assertEqual(race["measurement"]["draw_mode_switches"], 1)
+
+    def test_window_rejects_missing_guest_frame_and_partial_bounds(self):
+        log = "\n".join([
+            gate(10, "armed", "full-pair"),
+            present(10, "hd", "full-pair"),
+            gate(12, "original", "p2-pair-gate"),
+            present(12, "original", "not-armed"),
+        ])
+        with self.assertRaisesRegex(ValueError, "first missing frame 11"):
+            analyze(log, from_frame=10, to_frame=12)
+        with self.assertRaisesRegex(ValueError, "supplied together"):
+            analyze(log, from_frame=10)
+        with self.assertRaisesRegex(ValueError, "invalid inclusive"):
+            analyze(log, from_frame=14, to_frame=10)
+
     def test_episode_rejects_duplicate_frame_ids(self):
         self.assertEqual(episode_lengths([1, 2, 4, 8, 9]), [2, 1, 2])
         with self.assertRaisesRegex(ValueError, "unique"):

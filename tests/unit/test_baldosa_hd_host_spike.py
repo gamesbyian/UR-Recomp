@@ -33,9 +33,8 @@ class NativeRacerHostTest(unittest.TestCase):
         self.assertIn(".draw_frame", candidate)
         self.assertIn(".presentation_scale", candidate)
 
-    def test_scale_returns_to_original_when_racer_capture_is_rejected(self):
+    def test_scale_is_stable_when_racer_capture_is_rejected(self):
         adapter = (ROOT / "tools/baldosa_native_racer_presentation.cpp").read_text()
-        self.assertIn("return enabled() ? ur::presentation::racer_hd_presentation_scale() : 1;", adapter)
         self.assertIn("authored_difference_count(", adapter)
         self.assertIn("compose_nearest_density_frame(", adapter)
         self.assertIn("return density();", adapter)

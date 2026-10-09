@@ -6,7 +6,7 @@
 > **Content-level recovery verification, 2026-10-08:** Exact current-main blob comparisons confirm that Claude's malformed SRAM containment, host input-release latch, multiplayer match summary, two-player join text, and split-delta presentation implementations are already present. See the follow-up section of [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md). Their remaining work is behavioral acceptance, not blind branch cherry-picks. Older Records host differs and must not overwrite newer main.
 
 
-> **Claude usage-limit handoff, 2026-10-08:** See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) for current-main branch ancestry, unresolved selective-recovery candidates, and non-overlap with the active CI owner. No historical Claude branch is approved for wholesale merge merely because it has unique commits. Prioritize concrete QA-02/03 and player-visible regressions before reviving old code. The sole open PR at audit time, #988, remains with CI-speed ownership.
+> **Claude usage-limit handoff, 2026-10-08:** See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) for current-main branch ancestry, unresolved selective-recovery candidates, and non-overlap with the active CI owner. No historical Claude branch is approved for wholesale merge merely because it has unique commits. Prioritize concrete QA-02/03 and player-visible regressions before reviving old code. At the initial audit #988 was open; it was later closed without merge and replaced by the current CI-owner PR #989. See the latest handoff audit.
 
 
 ## Racer Studio material customization work queue (2026-10-08)

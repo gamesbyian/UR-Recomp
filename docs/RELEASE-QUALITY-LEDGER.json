@@ -64,7 +64,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Finish #1003 exact-catalog-roster CAS and conditional profile deletion after fresh current-main CI; then capture exact ZIP/hash Windows two-instance J-02/J-07/J-08 crash, disk-full, interrupted upgrade, .srm/profile/catalog and run/ghost/match/fixture/pending restart evidence.",
+      "next_action": "Review #1016 live profile mirror/framework SRAM second-phase compensation on refreshed main; then reproduce and close profile-create orphan, active-profile switch write-failure and tournament archive/pending/receipt crash windows. Capture exact ZIP/hash Windows two-instance J-02/J-07/J-08 disk-full, sudden-kill, upgrade and power-loss recovery evidence.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -79,9 +79,10 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/996",
         "https://github.com/gamesbyian/UR-Recomp/pull/1003",
         "https://github.com/gamesbyian/UR-Recomp/pull/1005",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1009"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1009",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1016"
       ],
-      "remaining_release_risk": "Merged #982/#984/#985 store-local tournament receipt, staging and checkpoint locks; #991 safe host staging; #993 no-replace multiplayer run+match pair and close errors; #995 bounded catalog recovery; #1005 staged data sync; #996 exact-profile CAS and conditional compensating rollback; #1009 exact active-tournament pointer CAS. #1003 catalog roster CAS and conditional profile removal is pending refreshed CI/integration. No atomic group commit for framework .srm, profile, catalog, run, ghost, match, receipt, active tournament and pending launch. Orphan profiles/events and committed-but-directory-sync-uncertain states lack complete restoration contract. No exact packaged Windows two-process or power-fault L4 witness; QA-02 remains P0 in_progress."
+      "remaining_release_risk": "Merged #982/#984/#985 store-local receipt, staging and checkpoint locks; #991 safe host staging; #993 no-replace multiplayer run+match pair; #995 bounded catalog reads; #996 exact-profile CAS; #1003 catalog roster CAS and conditional profile deletion; #1005 staged data flush; #1009 active tournament pointer CAS. #1016 corrects ordinary live snapshot's ignored second-phase SRAM failure with conditional compensation, subject to PR CI and merge. No atomic group commit for framework .srm, profile, catalog, run, ghost, match, receipt, active tournament and pending launch. Orphan profiles/events, active-switch SRAM write failure, and directory-sync-uncertain states lack complete restoration contract. No exact packaged Windows two-process or power-fault L4 witness; QA-02 stays P0 in_progress."
     },
     {
       "id": "QA-03",

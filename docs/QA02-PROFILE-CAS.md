@@ -103,3 +103,29 @@ newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
 claiming rollback. The process fixture tests both refused stale deletion
 and permitted exact deletion. A crash before catalog publication still
 leaves an orphaned but intact profile requiring separate recovery policy.
+
+## Live SRAM second-phase write failure (2026-10-09)
+
+A further producer of two-artifact inconsistency was the live-profile
+snapshot on profile switching: it committed the new `host-profile.txt`
+mirror, immediately replaced the in-memory CAS baseline, and only then called
+`RtlTryWriteSram()`. If that write failed, the operation reported failure
+but retained the first committed artifact and the new baseline. A subsequent
+process could see conflicting host/framework SRAM snapshots.
+
+The production path now retains the exact previous typed profile until the
+framework write succeeds. A failed SRAM write attempts the same exact-state,
+OS-locked conditional rollback as profile reset: expected = our just-written
+candidate, next = previous profile. If a concurrent writer advanced the
+profile in between, the rollback fails closed and reports
+`UR_PROFILE_SNAPSHOT SRAM_FAILED_ROLLBACK_CONFLICT` instead of clobbering
+the competing writer. Only a successful framework write advances the
+in-memory baseline. The existing independent-process CAS fixture already
+tests both legitimate rollback and refused stale rollback; a new host-source
+regression binds that primitive to the live snapshot's failure branch.
+
+This is compensating recovery, **not atomic two-file publication**. Power
+loss between successful host publication and attempted framework write
+still leaves a crash window; a partial framework write may itself be damaged
+on storage failure. The active-profile switching commit and packaged Windows
+J-02/J-08 recovery witness are still open.

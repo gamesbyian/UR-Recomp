@@ -91,6 +91,11 @@ class HostPersistenceProcessTests(unittest.TestCase):
             self.assertEqual(crashed.returncode, 77)
             self.assertEqual(profile.read_bytes(), incumbent)
             self.assertEqual(read_value("profile", profile), 2)
+            # Simulate a failed fsync / FlushFileBuffers in a fresh process.
+            # A false persistence success would destroy a valid SRAM mirror.
+            self.assertEqual(call("profile", "syncfail", profile, 6).returncode, 0)
+            self.assertEqual(profile.read_bytes(), incumbent)
+            self.assertEqual(read_value("profile", profile), 2)
             abandoned = [
                 p for p in root.iterdir()
                 if p.name.startswith(".pending-urprofile-")

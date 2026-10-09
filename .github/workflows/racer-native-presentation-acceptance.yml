@@ -9,6 +9,7 @@ on:
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
       - "tools/measure_racer_hd_live_draws.py"
+      - "tools/check_racer_hd_pixel_confinement.py"
       - "tools/probe_racer_hd_fallback_family.py"
       - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
@@ -29,6 +30,7 @@ on:
       - "tests/unit/test_check_racer_presentation_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_measure_racer_hd_live_draws.py"
+      - "tests/unit/test_racer_hd_pixel_confinement.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
@@ -277,6 +279,34 @@ jobs:
               f"player_hd={m['hd_drawn_player_frames']}"
           )
           PY
+
+          # Measure the race segment, excluding 1179 boot/setup frames.
+          python3 tools/measure_racer_hd_live_draws.py \
+            "$HD_LOG" --from-frame 1180 --to-frame 1620 \
+            --json-out "$RUNNER_TEMP/racer-hd-live-race-window.json" \
+            > "$RUNNER_TEMP/racer-hd-live-race-window.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-live-race-window.json" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1], encoding="utf-8"))["measurement"]
+          assert m["guest_frames_observed"] == 441, m
+          assert m["guest_frames_with_host_presents"] == 441, m
+          assert m["hd_drawn_guest_frames"] > 0, m
+          assert m["original_presented_guest_frames"] > 0, m
+          print(
+              "UR_RACER_HD_LIVE_RACE_WINDOW PASS "
+              f"hd={m['hd_drawn_guest_frames']}/441 "
+              f"fallback={m['original_presented_guest_frames']} "
+              f"switches={m['draw_mode_switches']} "
+              f"bursts={m['hd_run_count']}"
+          )
+          PY
+
+          # Guard all non-racer pixels at native 4x, not just logical centres.
+          python3 tools/check_racer_hd_pixel_confinement.py \
+            --original "$ORIGINAL_A_SHOT" \
+            --original-control "$ORIGINAL_B_SHOT" \
+            --hd "$HD_SHOT" --hd-log "$HD_LOG" --frame 1220 \
+            --json-out "$RUNNER_TEMP/racer-hd-frame-1220-confinement.json"
 
           for stem in original-a original-b hd; do
             python3 tools/summarize_racer_semantic_trace.py \
@@ -1359,7 +1389,7 @@ jobs:
           LOG="$RUNNER_TEMP/racer-hd-p1-only-native.log"
           set +e
           env UR_RACER_HD=1 UR_RACER_HD_P1_ONLY=1 \
-            UR_RACER_HD_P1_NATIVE_TEST=1 \
+            UR_RACER_HD_CENSUS=1 UR_RACER_HD_P1_NATIVE_TEST=1 \
             SNESRECOMP_INPUT_FILE="$INPUT" \
             SDL_AUDIODRIVER=dummy \
             timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
@@ -1377,6 +1407,27 @@ jobs:
             exit 1
           fi
           echo "UR_RACER_HD_P1_NATIVE_ACCEPTANCE PASS approved_p1=1 stock_p2_exact=1 guest_state_unchanged=1"
+          # Same long input fixture as the 2,641-frame reference census:
+          # report actual native draws and partial stock-P2 substitutions.
+          python3 tools/measure_racer_hd_live_draws.py \
+            "$LOG" --from-frame 1180 --to-frame 3820 \
+            --json-out "$RUNNER_TEMP/racer-hd-p1-only-live-race-window.json" \
+            > "$RUNNER_TEMP/racer-hd-p1-only-live-race-window.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-p1-only-live-race-window.json" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1], encoding="utf-8"))["measurement"]
+          assert m["guest_frames_observed"] == 2641, m
+          assert m["hd_drawn_guest_frames"] > 0, m
+          assert m["hd_drawn_player_frames"] <= 2 * m["guest_frames_with_host_presents"], m
+          print(
+              "UR_RACER_HD_P1_LIVE_WINDOW PASS "
+              f"hd={m['hd_drawn_guest_frames']} "
+              f"presented={m['guest_frames_with_host_presents']} "
+              f"partial={m['present_outcomes'].get('hd/p1-only', 0)} "
+              f"full_pair={m['present_outcomes'].get('hd/full-pair', 0)} "
+              f"fallback={m['original_presented_guest_frames']}"
+          )
+          PY
 
       - name: Shadow structured Racer HD trace relationships
         continue-on-error: true
@@ -1475,6 +1526,9 @@ jobs:
             ${{ runner.temp }}/racer-original-b.log
             ${{ runner.temp }}/racer-hd.log
             ${{ runner.temp }}/racer-hd-live-census.json
+            ${{ runner.temp }}/racer-hd-live-race-window.json
+            ${{ runner.temp }}/racer-hd-live-race-window.txt
+            ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
             ${{ runner.temp }}/racer-hd-live-census.txt
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
@@ -1486,6 +1540,8 @@ jobs:
             ${{ runner.temp }}/racer-wide-parity.json
             ${{ runner.temp }}/racer-wide-parity.txt
             ${{ runner.temp }}/racer-hd-p1-only-native.log
+            ${{ runner.temp }}/racer-hd-p1-only-live-race-window.json
+            ${{ runner.temp }}/racer-hd-p1-only-live-race-window.txt
             ${{ runner.temp }}/racer-wide-original-frames/
             ${{ runner.temp }}/racer-wide-hd-frames/
             ${{ runner.temp }}/racer-original-a-semantic-trace.json

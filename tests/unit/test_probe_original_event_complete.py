@@ -16,8 +16,11 @@ def source_states(entry: int, result: int, track: int, menu: int, tally: bool = 
         m = menu if f >= result else 0x16
         if tally and result - 60 <= f < result:
             m = 0x2F
-        out[f] = {"track": track, "in_race": 1 if entry <= f < result - 30 else 0,
-                  "menu": m}
+        # Archived Bowl results observe 7E:0313 == 0x3C in the
+        # 2F tally phase, not the active-race value 1.
+        race_state = (0x3C if tally and result - 60 <= f < result
+                      else (1 if entry <= f < result - 30 else 0))
+        out[f] = {"track": track, "in_race": race_state, "menu": m}
     return out
 
 
@@ -83,6 +86,14 @@ class CompleteEventProducerTests(unittest.TestCase):
         states[11800]["in_race"] = 0
         with self.assertRaisesRegex(target.CompleteEventError, "missing prior"):
             target.source_event(states, 2, 0x18)
+        # Even a long result-looking run cannot be admitted as a tally
+        # while the original course remains in the active-race state.
+        active_fake = source_states(8620, 11985, 2, 0x18)
+        for f in range(11870, 11915):
+            active_fake[f]["menu"] = 0x2F
+            active_fake[f]["in_race"] = 1
+        with self.assertRaisesRegex(target.CompleteEventError, "missing prior"):
+            target.source_event(active_fake, 2, 0x18)
         for f in range(11915, 11980):
             states[f]["menu"] = 0x2F
             states[f]["in_race"] = 0

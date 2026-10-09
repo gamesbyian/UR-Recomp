@@ -211,6 +211,56 @@ with 1P, VS, split-screen transitions, active sprite layer attribution
 and foreground BG occlusion needing separate native moving-frame proof.
 No guest RAM write, physics change or asset widening is introduced.
 
+## Real native full-length P1-only diagnostic outcome (2026-10-09)
+
+The retained native acceptance artefact, run `37873082202`, ID
+`11591785951`, HEAD
+`8115bf0ce4d44461893e1a748633c129f57f3419`, now covers
+the entire **2,641-guest-frame** interval `1180–3820` on
+`tests/input/two-player-p1-win.input` using the *disabled-by-default*
+`UR_RACER_HD_P1_ONLY=1` path. Hashes and source identity:
+[`analysis/generated/racer-hd-p1-only-native-coverage-2026-10-09.json`](../analysis/generated/racer-hd-p1-only-native-coverage-2026-10-09.json).
+
+| Actual native host display classification | Guest frames | HD player-frame contribution |
+| --- | ---: | ---: |
+| Both racers successfully HD-rendered | 169 | 338 |
+| P1 HD, P2 original stock retained | **902** | **902** |
+| Both racers Original | 1,570 | 0 |
+| **Total** | **2,641** | **1,240 / 5,282 = 23.48%** |
+
+The same native run with a *pair-only* policy would deliver only the
+169 full-pair draws (338/5,282 = **6.40%** HD player-frames).
+P1-only admission therefore adds 902 real HD player-frames, but
+**40.55% of guest frames have any HD** versus 23.48% of total
+racer player-frame slots. Never conflate frame-level and player-level
+availability or call a stock-P2 frame a wholly HD scene.
+
+The actual run contains **179 HD episodes**, 24 of them just one frame,
+358 switches between any-HD and whole-Original, maximum HD span
+39 frames and maximum uninterrupted Original span 753 frames.
+It recorded zero `capture armed → declined HD draw` outcomes, and
+the existing same-frame P2-stock ROI preservation probe passed.
+These are useful safety witnesses, but mixed-resolution motion may
+be distracting. Do **not** enable P1-only automatically until
+foreground BG/other-OBJ occlusion, motion review and player-visible
+quality are explicitly accepted. Default behavior remains unchanged.
+
+**Critical cross-core distinction:** the historical Snes9x report has
+170 pair-selected frames and 984 P1-selected/P2-missing candidate
+frames on the same input filename; native observed 169/902 actual draws.
+The frame-number pairs are *not* semantically identical across
+reference and native streams. For example, 59 of the 170
+Snes9x pair-selected frame IDs do not appear among the native
+full-pair IDs, while native has 58 full-pair frame IDs absent from
+that exact reference list. This establishes a phase/content-alignment
+problem. **The numerical differences 170−169 and 984−902 are
+not measurements of failed native OAM or occlusion checks.**
+Future comparison must align exact original composition events,
+not subtract unmatched absolute-frame counts. Native fallback
+reason for all 1,570 fully Original frames on this diagnostic run
+was `p1-selection-or-art`; zero native P1-only occlusion-guard
+rejections were logged during those sampled frames.
+
 ## Next pose priorities when the whole-pair policy remains
 
 The same exact census ranks missing player-local families *with the opposite

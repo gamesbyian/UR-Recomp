@@ -1923,6 +1923,12 @@ bool create_profile_from_editor() {
             removal == ur::product::HostProfileSaveStatus::Saved
                 ? "UR_PROFILE_CREATE ROLLED_BACK"
                 : "UR_PROFILE_CREATE ROLLBACK_CONFLICT");
+        // The failed CAS can mean another process added a new racer. A
+        // retry must use the latest *disk* roster rather than repeatedly
+        // proposing edits against this process's stale list.
+        const auto latest = ur::product::load_host_profile_catalog_file(
+            profile_catalog_path());
+        if (latest) g_profile_catalog = *latest;
         return false;
     }
     g_profile_menu_index = g_profile_catalog.size() - 1;
@@ -1971,6 +1977,9 @@ bool rename_profile_from_editor() {
             rollback == ur::product::HostProfileSaveStatus::Saved
                 ? "UR_PROFILE_RENAME ROLLED_BACK"
                 : "UR_PROFILE_RENAME ROLLBACK_FAILED");
+        const auto latest = ur::product::load_host_profile_catalog_file(
+            profile_catalog_path());
+        if (latest) g_profile_catalog = *latest;
         return false;
     }
     if (g_product_state.active_profile_id &&

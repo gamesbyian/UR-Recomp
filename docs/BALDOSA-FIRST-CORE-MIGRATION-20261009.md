@@ -1,3 +1,5 @@
+> **2026-10-09 current-main correction, after #1083:** The two equal greenfield spikes proposed below have been overtaken by real merged Baldosa bridge and presentation work. **Read [the repository-wide first-party code/asset reuse audit](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) first.** Baldosa is now the leading integration path, with merged guest, human-input, native pause, 4x HD+Original fallback, real +24 world and Windows PE compilation gates. Continue from these reusable implementations; retain selective old-core upgrade only if a specific Baldosa compatibility blocker warrants it. This banner changes priority, **not** the genuine full player-journey/45-course acceptance standards.
+
 # Baldosa-first remaster-core migration decision
 
 **Decision proposal, 2026-10-09.** Owner goal: an otherwise gameplay-faithful Uniracers with **true 4K-capable presentation, actual widescreen world visibility, modern menus, controller-first accessibility, customization, profiles, records, ghosts, replay, and multiplayer**. A standalone faithful recomp is an enabling core, **not the differentiated product**.

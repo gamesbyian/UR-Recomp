@@ -18,8 +18,10 @@ CATALOG = ROOT / "analysis/data/course-corpus.json"
 EVIDENCE = ROOT / "analysis/data/course-event-runtime-evidence.json"
 OUTPUT = ROOT / "analysis/generated/course-event-qa-census.json"
 
-# The historical beta is comparative archaeology, not a required release ROM.
-RELEASE_ROMS = ("usa-retail", "europe-retail", "pal-prototype-1994-11-29")
+# Primary Windows candidate is USA retail. The two PAL variants are
+# comparative originals, not automatic L4 shipping blockers.
+PRIMARY_RELEASE_ROM = "usa-retail"
+COMPARISON_ROMS = ("usa-retail", "europe-retail", "pal-prototype-1994-11-29")
 SLOT_KINDS = ("race-a", "circuit-a", "stunt", "race-b", "circuit-b")
 RACE_EVENTS = ("menu_entry", "start_state", "contact", "checkpoint",
                "lap", "finish", "result")
@@ -121,7 +123,7 @@ def build_census(catalog: dict, source: dict) -> dict:
             raise ValueError("observation must be an object")
         region = observation.get("rom")
         cid = observation.get("course_id")
-        if region not in RELEASE_ROMS or cid not in known:
+        if region not in COMPARISON_ROMS or cid not in known:
             raise ValueError(f"unknown ROM or canonical course in observation: {region}/{cid}")
         key = (region, cid)
         if key in keyed:
@@ -136,7 +138,7 @@ def build_census(catalog: dict, source: dict) -> dict:
             raise ValueError(f"complete event pass lacks independent witness: {key}")
         keyed[key] = observation
     entries = []
-    for rom in RELEASE_ROMS:
+    for rom in COMPARISON_ROMS:
         for course in courses:
             note = keyed.get((rom, course["id"]))
             row = {
@@ -158,7 +160,7 @@ def build_census(catalog: dict, source: dict) -> dict:
     coordinate_counts = Counter(p["status"] for p in coordinate_probes)
     by_rom = {rom: dict(sorted(Counter(
         row["status"] for row in entries if row["rom"] == rom
-    ).items())) for rom in RELEASE_ROMS}
+    ).items())) for rom in COMPARISON_ROMS}
     by_family = {kind: dict(sorted(Counter(
         row["status"] for row in entries if row["event_kind"] == kind
     ).items())) for kind in SLOT_KINDS}
@@ -167,10 +169,13 @@ def build_census(catalog: dict, source: dict) -> dict:
         "source_catalog": "analysis/data/course-corpus.json",
         "source_observations": "analysis/data/course-event-runtime-evidence.json",
         "meaning": "release-event acceptance, not RNC/parser or static contact coverage",
-        "regions": list(RELEASE_ROMS),
+        "primary_release_rom": PRIMARY_RELEASE_ROM,
+        "regions": list(COMPARISON_ROMS),
         "denominators": {
             "courses_per_rom": 45,
-            "required_region_course_cases": len(entries),
+            "primary_release_cases": len(courses),
+            "regional_comparison_cases": len(entries) - len(courses),
+            "tracked_region_course_cases": len(entries),
             "race_circuit_cases": sum(r["event_kind"] != "stunt" for r in entries),
             "stunt_cases": sum(r["event_kind"] == "stunt" for r in entries),
             "family_cases_per_region": 9,

@@ -67,6 +67,8 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
         "SNESRECOMP_DUMP_DIR": str(output / "dump"),
         "UR_BALDOSA_PAUSE_SMOKE": "1" if pause else "0",
+        "UR_BALDOSA_MODERN_INPUT": "1" if pause else "0",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
         "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
     })
@@ -91,6 +93,8 @@ def check_pause_log(log: str) -> dict[str, str]:
         raise ValueError(f"Missing native pause lifecycle proof: {found}")
     if "live_race=1" not in found["ARMED"]:
         raise ValueError("Native pause was not triggered in authoritative live gameplay")
+    if "physical_sdl=1" not in found["ARMED"] or "physical_sdl=1" not in found["RELEASED"]:
+        raise ValueError("Native pause did not traverse two physical SDL key edges")
     if "modern_session=1" not in found["ARMED"]:
         raise ValueError("Native pause did not use the acknowledged Modern session API")
     if "frozen_pumps=24" not in found["RELEASED"] or "frozen_pumps=24" not in found["RESUMED"]:
@@ -143,6 +147,9 @@ def main() -> int:
         "per_frame_wram_crc_identical": True,
         "native_pause": proof,
         "modern_lifecycle_abi_exercised": True,
+        "physical_sdl_event_pump_exercised": True,
+        "physical_keyboard_hardware_tested": False,
+        "physical_gamepad_hardware_tested": False,
         "course_complete_credit": 0,
         "modern_frontend_connected": False,
         "packaged_windows_product": False,

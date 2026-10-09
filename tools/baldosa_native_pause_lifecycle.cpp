@@ -72,7 +72,29 @@ unsigned g_guest_frame;
 unsigned g_frozen_ticks;
 unsigned g_pause_at_frame = 120;
 bool g_require_race;
+bool g_physical_smoke;
 std::uint8_t g_frozen_ram[0x20000];
+
+// Use the real Baldosa SDL event pump in this explicit bounded acceptance.
+// Queued synthetic keys exercise host dispatch, NOT physical hardware QA.
+void queue_escape_edge() {
+    SDL_Event event{};
+    event.type = SDL_KEYDOWN;
+#if SNESRECOMP_SDL3
+    event.key.key = SDLK_ESCAPE;
+#else
+    event.key.keysym.sym = SDLK_ESCAPE;
+#endif
+    if (SDL_PushEvent(&event) != 1) {
+        std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE FAIL=keydown_not_queued\n");
+        std::abort();
+    }
+    event.type = SDL_KEYUP;
+    if (SDL_PushEvent(&event) != 1) {
+        std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE FAIL=keyup_not_queued\n");
+        std::abort();
+    }
+}
 
 bool smoke_enabled() {
     if (!g_smoke_initialized) {
@@ -94,6 +116,8 @@ bool smoke_enabled() {
             }
             const char* require = std::getenv("UR_BALDOSA_PAUSE_REQUIRE_RACE");
             g_require_race = require && std::strcmp(require, "1") == 0;
+            const char* physical = std::getenv("UR_BALDOSA_PHYSICAL_PAUSE_SMOKE");
+            g_physical_smoke = physical && std::strcmp(physical, "1") == 0;
         }
         g_smoke_initialized = true;
     }
@@ -113,7 +137,8 @@ void require(bool ok, const char* why) {
 // Escape/Start while actually racing belongs to this narrow Modern pause
 // bridge; all ordinary profile/stock/menu controls retain guest authority.
 extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
-    if (!physical_modern_enabled() || smoke_enabled() ||
+    if (!physical_modern_enabled() ||
+        (smoke_enabled() && !g_physical_smoke) ||
         key != SDLK_ESCAPE) return 0;
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
@@ -129,7 +154,8 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_product_system_gamepad(
     int player, int button, int pressed) {
-    if (!physical_modern_enabled() || smoke_enabled() ||
+    if (!physical_modern_enabled() ||
+        (smoke_enabled() && !g_physical_smoke) ||
         player != 0 || button != kGamepadBtn_Start) return 0;
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
@@ -158,6 +184,8 @@ extern "C" void ur_baldosa_product_after_run_frame(
 
     if (g_resumed && stats->frame == g_guest_frame + 1) {
         require(g_frozen_ticks >= 24, "insufficient_frozen_event_pumps");
+        require(snesrecomp_desktop_product_is_paused() == 0,
+                "guest_not_resumed_after_event");
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=%u "
             "new_guest=%u frozen_pumps=%u\n",
@@ -166,6 +194,10 @@ extern "C" void ur_baldosa_product_after_run_frame(
         // Only one synthetic acceptance pause per process; no player data
         // or host controls are modified once the observation is complete.
         g_resumed = false;
+        if (g_physical_smoke) {
+            ur_modern_session_destroy(g_modern_session);
+            g_modern_session = nullptr;
+        }
     }
 
     // Explicit test frame only. Require the actual source guest's in-race
@@ -178,15 +210,20 @@ extern "C" void ur_baldosa_product_after_run_frame(
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
-        create_modern_session();
-        require(ur_modern_session_pause(g_modern_session) ==
-                    UR_MODERN_SESSION_APPLIED,
-                "modern_pause_was_not_acknowledged");
-        require(snesrecomp_desktop_product_is_paused() != 0,
-                "host_not_actually_paused");
+        if (g_physical_smoke) {
+            require(physical_modern_enabled(), "physical_modern_mode_disabled");
+            queue_escape_edge();  // next normal SDL event pump opens pause
+        } else {
+            create_modern_session();
+            require(ur_modern_session_pause(g_modern_session) ==
+                        UR_MODERN_SESSION_APPLIED,
+                    "modern_pause_was_not_acknowledged");
+            require(snesrecomp_desktop_product_is_paused() != 0,
+                    "host_not_actually_paused");
+        }
         std::fprintf(stderr,
-            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u modern_session=1\n",
-            g_guest_frame, live_race ? 1U : 0U);
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u modern_session=1 physical_sdl=%u\n",
+            g_guest_frame, live_race ? 1U : 0U, g_physical_smoke ? 1U : 0U);
         std::fflush(stderr);
     }
 }
@@ -196,21 +233,33 @@ extern "C" void ur_baldosa_product_host_tick(void) {
         g_frozen_ticks >= 24) return;
     require(snesrecomp_desktop_product_is_paused() != 0,
             "host_exited_pause_without_permission");
+    if (g_physical_smoke) {
+        require(g_modern_session &&
+                    ur_modern_session_is_paused(g_modern_session),
+                "physical_sdl_did_not_reach_modern_session");
+    }
     require(std::memcmp(g_ram, g_frozen_ram, sizeof(g_frozen_ram)) == 0,
             "guest_wram_advanced_during_pause");
     ++g_frozen_ticks;
     if (g_frozen_ticks == 24) {
-        require(ur_modern_session_resume(g_modern_session) ==
-                    UR_MODERN_SESSION_APPLIED,
-                "modern_resume_was_not_acknowledged");
-        require(snesrecomp_desktop_product_is_paused() == 0,
-                "host_still_paused_after_resume");
+        if (g_physical_smoke) {
+            // A second physical SDL edge, not a direct lifecycle call, resumes.
+            // If the host fails to dispatch it, the guest remains frozen and
+            // the existing bounded native route fails closed.
+            queue_escape_edge();
+        } else {
+            require(ur_modern_session_resume(g_modern_session) ==
+                        UR_MODERN_SESSION_APPLIED,
+                    "modern_resume_was_not_acknowledged");
+            require(snesrecomp_desktop_product_is_paused() == 0,
+                    "host_still_paused_after_resume");
+            ur_modern_session_destroy(g_modern_session);
+            g_modern_session = nullptr;
+        }
         g_resumed = true;
-        ur_modern_session_destroy(g_modern_session);
-        g_modern_session = nullptr;
         std::fprintf(stderr,
-            "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=%u frozen_pumps=%u\n",
-            g_guest_frame, g_frozen_ticks);
+            "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=%u frozen_pumps=%u physical_sdl=%u\n",
+            g_guest_frame, g_frozen_ticks, g_physical_smoke ? 1U : 0U);
         std::fflush(stderr);
     }
 }

@@ -103,3 +103,28 @@ newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
 claiming rollback. The process fixture tests both refused stale deletion
 and permitted exact deletion. A crash before catalog publication still
 leaves an orphaned but intact profile requiring separate recovery policy.
+
+## Explicit retry after a failed catalog registration (2026-10-09)
+
+The OS-handle lock deliberately survives profile deletion as
+`host-profile.txt.urmutex`, since unlinking an active lock path could split
+exclusion between processes. A normal CAS loser may conditionally remove
+its newly created `host-profile.txt`, but the Modern creation route
+previously rejected any existing root directory. This stranded the chosen
+racer ID after an ordinary recoverable conflict; another click on Create
+could fail indefinitely even though no profile had been registered.
+
+The creation gate now admits an **explicit retry** only when the canonical
+root is a real directory containing no entries except an optional regular
+`host-profile.txt.urmutex` file. It rejects symlink roots, unknown files,
+`save.srm`, real orphan profiles, interrupted staging directories, and
+non-file lock entries. New profile publication still uses create-only
+locked CAS and catalog publication still uses the exact old roster. The
+process probe validates eligible empty/lock-only roots and rejects the
+unknown-progress and interrupted-staging counterexamples.
+
+This is **not orphan progression recovery**. When a process dies after the
+profile snapshot was created but before the catalog row was published, the
+state and SRAM remain unlisted and are intentionally not adopted or deleted
+by this change. A separate documented recovery/claim flow needs to validate
+identity, progress, provenance and the catalog authorization step.

@@ -172,3 +172,40 @@ the latter controls how closely the fresh-run initial conditions match
 the historic 2014 movie, while the SHA controls whether the source
 **input intervention** is actually authentic.
 
+
+## Event-state parity independent of early motion drift (2026-10-09)
+
+The original/native replay now also emits
+`event_state_diagnostics` through
+`tools/summarize_zoo_scene_event_transitions.py`. On the original
+and native observation streams independently it records every interval
+where P1 `next_checkpoint (1199)`, `finish_gate (119D)`, or
+`laps_remaining (0EF1)` changes. It also inventories changes to the
+persisted P1 contact word `0E95` and decodes its C000 slot, separately
+from progression and boost.
+
+This is necessary because the **first raw mismatch** may be a harmless
+initial position/velocity phase difference while the **first gameplay
+progression mismatch** appears much later. The report now preserves the
+earliest *sampled* disagreement in each of three independent dimensions:
+checkpoint/lap/gate, stored contact and boost. Matching world positions
+are not required for those questions, but any initial phase discrepancy
+still needs adjudication before assigning a gameplay bug.
+
+For any changed progression value, consecutive postframe samples can
+localize the change only to that one guest-frame interval. The **prior
+postframe P1 contact word** is retained as the hypothesis for next
+dispatch input, alongside the newly sampled postframe word, following
+the ROM-authoritative USA object-dispatch-before-surface-sample order.
+Neither value is promoted as the instruction-time consumed word.
+Transitions between sparse checkpoints are labeled
+`sparse_interval_may_contain_multiple_events`, never assigned an
+invented exact frame. An empty set of observed progression changes
+does not mean a circuit or its result has passed.
+
+The existing active-course identity gate and 101-checkpoint sampling
+window remain intact. The new event summary is additional diagnostic
+evidence, not a replacement for full event and result acceptance.
+Validate its pure contracts with
+`python3 -m unittest discover -s tests/unit -p
+'test_summarize_zoo_scene_event_transitions.py'`.

@@ -42,16 +42,14 @@
       "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/COMPLETED-RUN-RECORDS.md",
-        "tests/unit/test_host_persistence_process.py",
-        "tests/unit/test_multiplayer_match_record_cpp.py"
+        "docs/COMPLETED-RUN-RECORDS.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Run new true multi-process storage tests, capture crash after sidecar/before run and post-stage/pre-replace, then exact candidate Windows J-02/J-07/J-08 two-instance restore with disk-fault and profile-generation conflicts.",
+      "next_action": "Run and review all focused process and disk-full tests in #991/#993 and multi-process Windows L4 J-02/J-07/J-08 with crash/upgrades. Profile/SRAM generation and catalog lost-update arbitration remain blocked.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -63,7 +61,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/991",
         "https://github.com/gamesbyian/UR-Recomp/pull/993"
       ],
-      "remaining_release_risk": "Source-confirmed mutable profile/catalog/host .tmp clobber is addressed by merged #991 with successful focused Linux tooling/unit acceptance. POSIX multiplayer run/match rename-replacement and sidecar close-failure are addressed in pending #993 with process/crash/disk-full tests. #993 latest head verification and packaged L4 remain open. Previous #982/#984/#985 protections remain store-local. Outstanding: stale SRAM generation overwrites, catalog/session lost updates, independent run/ghost/receipt transaction recovery, upgrade and power-loss fsync, exact packaged Windows dual-process L4 evidence. QA-02 P0 remains in_progress."
+      "remaining_release_risk": "Source-confirmed mutable profile/catalog/host .tmp clobber is addressed by merged #991 with successful focused Linux tooling/unit acceptance. POSIX multiplayer run/match rename-replacement and sidecar close-failure are addressed in pending #993 with process/crash/disk-full tests. #993 focused multiplayer test is green; full tooling validator failed because source tests were incorrectly listed as docs-only evidence_refs (corrected here). Current head needs fresh green acceptance, and packaged L4 remains open. Previous #982/#984/#985 protections remain store-local. Outstanding: stale SRAM generation overwrites, catalog/session lost updates, independent run/ghost/receipt transaction recovery, upgrade and power-loss fsync, exact packaged Windows dual-process L4 evidence. QA-02 P0 remains in_progress."
     },
     {
       "id": "QA-03",

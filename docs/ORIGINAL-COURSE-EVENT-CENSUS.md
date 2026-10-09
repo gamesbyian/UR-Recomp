@@ -100,6 +100,53 @@ is useful for track-identity reconciliation, **not** a dynamic spawn witness.
    result. Existing R-hold (22–25) and A-hold (4–5) cases are useful
    threshold seeds, not coverage of these other classes.
 
+## Executable non-Dragster entry discriminator (QA-01 step 1)
+
+`tools/probe_original_non_dragster_course_entry.py` now supplies two
+**bounded original-menu input-only** reference/native probes:
+
+- `--case zoom-zoo`: Crawler tour, second track, canonical USA stream 2,
+  guest track ID 1, circuit A. Candidate for live spawn and repeated lap
+  progression investigations.
+- `--case jumps`: Shuffler tour, third track, canonical USA stream 13,
+  guest track ID 12, timed Stunt. Candidate for 45-second score/timer
+  acceptance. This must not be mislabeled a race/finish event.
+
+Both drives use a recovered-SRAM fresh boot, the existing scripted original
+menu state labels, and Snes9x vs native Authentic. They admit a snapshot
+**only** if guest course ID, active-race state and entire decompressed stream
+match the exact canonical USA ROM at `7F:0000` except the established
+loader-mutated cursor bytes. They compare WRAM racer positions, velocities,
+contact words, lap and boost fields at six fixed relative frames
+(0/1/2/4/8/16), including early P1/P2 candidate-header spawn assignment.
+There are no WRAM pokes. Any first discrepancy retains its frame and field
+values, but capture-phase differences require a writer/phase diagnosis
+before claiming guest semantics differ.
+
+Example (use locally built Snes9x reference driver, core and native target):
+
+```sh
+python3 tools/probe_original_non_dragster_course_entry.py \
+  --case zoom-zoo --snesref <snesref> --core <snes9x-core> \
+  --native <native-executable> --work-dir /tmp/qa01-zoo \
+  --json-out /tmp/qa01-zoo.json
+python3 tools/probe_original_non_dragster_course_entry.py \
+  --case jumps --snesref <snesref> --core <snes9x-core> \
+  --native <native-executable> --work-dir /tmp/qa01-jumps \
+  --json-out /tmp/qa01-jumps.json
+```
+
+Self-check without ROM or emulator:
+`python3 -m unittest discover -s tests/unit -p 'test_probe_original_non_dragster_course_entry.py'`.
+
+**Acceptance boundary:** these are runnable investigative probes,
+**not successful guest executions in the retained corpus yet**.
+Even a matching 16-frame window proves entry/start semantics only.
+Neither course may become a fully `passed` event/candidate row until
+full checkpoint/laps/result (Zoom Zoo) or scoring/timer/result (Jumps) is
+captured from each engine. Do not adjust the 0/45 release denominator on
+the strength of a test fixture's existence.
+
 ## Frame-2903 causal exclusion
 
 The native artifact `analysis/data/dragster-finish-contact-transition.json`

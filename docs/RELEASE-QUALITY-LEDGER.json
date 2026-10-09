@@ -214,7 +214,7 @@
         "J-13",
         "J-16"
       ],
-      "next_action": "Actual native 2P frame-1180..1620 graphics coverage is 87/441 (19.73%), 354 Original (80.27%), 16 HD runs/32 mode switches; reference 2641-frame Snes9x route is a different input. Reconcile full 2641-frame native P1-only diagnostic, then obtain exact candidate moving 1P/2P/VS original-raster and foreground-occlusion comparison at 4:3 and 16:9, including Y-wrap/priority/seams and HD/stock transitions. QA-08 remains L4 unverified.",
+      "next_action": "Native draw availability (not pixel fidelity) measured: ordinary 2P 87/441 full-pair HD; long 2P opt-in P1-only 1240/5282 HD racer player-frames with 358 any-HD/Original switches; first moving 1P 42/120 and VS 39/120 full-pair HD frames (14 and 16 switches). Retained exact-source evidence in docs/RACER-HD-LIVE-MOTION-CENSUS.md. Next block: same-frame authoritative Original-vs-HD foreground BG/other OBJ raster depth attribution, verified actual PPU RemoveFromGame sprite elimination, original-vs-HD moving 1P/2P/VS and 342x224 16:9 screenshots including Y-wrap, split seams, camera, HUD/ghost, player identity and abrupt mode switches. QA-08 is not L4 passed and must not ship as complete Remastered fidelity.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

@@ -21,6 +21,10 @@ class NativePauseIntegrationTest(unittest.TestCase):
             "static bool g_netplay_session;\n"
             + spike.GLOBAL +
             spike.EVENT +
+            "static void HandleCommand(unsigned j) {\n" +
+            spike.LEGACY_COMMAND +
+            "}\n" +
+            spike.PAUSE_GATE +
             "    if (g_paused && !g_savestate_menu_hotkey) {\n"
             "      HostSleepMs(16);\n      continue;\n    }\n"
         )
@@ -38,7 +42,10 @@ class NativePauseIntegrationTest(unittest.TestCase):
         self.assertEqual(spike.patch_host_header(head), head)
 
         host = spike.patch_host_source(self.host)
-        self.assertEqual(host.count(spike.MARK), 2)
+        self.assertEqual(host.count(spike.MARK), 4)
+        self.assertIn("if (g_product_pause_owned) {", host)
+        self.assertIn("default: return;", host)
+        self.assertIn("g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;", host)
         self.assertIn("if (g_netplay_session) return 0", host)
         self.assertIn("if (g_paused && !g_product_pause_owned) return 0", host)
         self.assertIn("if (!g_product_pause_owned) return 0", host)

@@ -27,6 +27,16 @@ it does not execute an original guest race.
 | Two-entrant duel | 3 legs, 2 entrants, 3 fixtures, alternating stock seat order | Create; arm+cancel once; separately arm/publish/commit fixture 0, 1, 2; independently verify twice; explicitly replace active event | Exactly 3 matching Records run+match pairs and 3 immutable receipts; each racer played 3; exactly 9 standing points; finished archive survives replacement |
 | Odd-roster tournament | 3 entrants, 2 complete round-robin legs, 6 fixtures, one bye per entrant per leg | Create; arm+cancel; 6 new fixture writer processes; independently verify twice; explicitly replace active event | Exactly 6 saved Records pairs and 6 receipts; each racer played 4; exactly 18 points; completed archive remains accessible |
  
+A third targeted crash variation runs the same 3-entrant two-leg event, credits
+fixture 0, then kills the next writer with `std::_Exit(82)` after it
+published its valid run+match pair **but before** fixture 1's receipt. The
+fresh process must retain fixture 0, explicitly rearm fixture 1 with a
+different token, finish fixtures 1–5 and produce six credited receipts.
+Seven valid Records pairs must remain: six receipt-linked results plus the
+dead owner's uncredited but legitimate ordinary Records pair. Replacement
+must preserve the completed archive. This covers a *mid-series C14 process
+exit* but not physical power loss or a guest-process Windows crash.
+
 Both journeys must reject rearming a credited fixture, never award a cancelled
 fixture, restore a full schedule from its immutable definition, preserve
 historical completed standings after a new active event starts, and retain

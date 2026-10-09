@@ -54,6 +54,27 @@ Mutable `local_tournament_session_store.cpp` and `local_tournament_fixture_launc
 
 The file-store TOCTOU in [#983](https://github.com/gamesbyian/UR-Recomp/issues/983) is addressed at the **local store** seam: checkpoint publication and exact-attempt retirement now take the same persistent, OS-handle-owned per-path `.urmutex` lock, enclosing the entire read/compare/remove critical section. POSIX uses `flock`, Windows uses `LockFileEx`; death of a process releases the OS lock without scavenging a PID sentinel. Unit test races 100 old-retire/new-save interleavings, with both possible orders always preserving the newer attempt and an explicit held-lock/release path. Isolated POSIX lock model passed 1,000 racing trials. **Do not mark QA-02 release accepted**: Windows packaged two-process, active event/session lost-update, power-loss and multi-file run/receipt/launch transaction remain open. Locking is cooperative and scoped to the canonical launch path.
 
+### QA-01/QA-07 original gameplay coverage baseline (2026-10-08)
+
+The [course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
+tracks **45 primary-USA Windows release course cases** plus **90 PAL
+retail/prototype comparative cases**, or 135 original ROM/course pairs
+(108 Race/Circuit, 27 timed Stunt). Primary L4 completion is
+**0/45 passed**, **2 bounded partial (USA Dragster contact window and
+USA Jumpover circuit-B input-only landing thresholds)**, **43 unverified**;
+comparative PAL remains **0/90 passed, 90 unverified**.
+The generator and negative-pass unit tests refuse to turn 45 valid
+RNC streams, resource-family incidence or a six-case stunt-*maneuver*
+sample on **Jumpover circuit B** into full-game acceptance. Zoom Zoo
+circuit lap/finish is the sole nonzero historical X/header disagreement;
+Jumps timed-stunt score/result is prioritized for event-class coverage,
+not because the optimizer's unused, hardcoded zero proves a spawn error. PAL Europe
+changed streams 4/16/20/26/27/35/36 need dynamic comparisons; the
+unaltered PAL-prototype streams do not establish runtime equivalence.
+At Dragster frame 2903, slot 10 remains an unproven prior dispatch
+candidate and slot 8 a postframe contact observation, pending an actual
+instruction-time witness. Guest gameplay code is unchanged.
+
 ### QA-02 new storage fixes and remaining verification, 2026-10-08
 
 Two additional source-confirmed P0-contributing races were found outside the tournament fixture store: shared fixed staging for mutable profile SRAM/catalog/global settings, and POSIX replace-existing rename on multiplayer `.urmatch` then `.urrun` publication. Merged [#991](https://github.com/gamesbyian/UR-Recomp/pull/991) adds isolated staging and has passed the Project tooling unit tests and Native build smoke on its exact head. [#993](https://github.com/gamesbyian/UR-Recomp/pull/993) uses atomic no-replace pair claims, crash injection and a buffered `/dev/full` close-error regression; it is still under review. **Pending focused test execution/review**, not merged/completed claims. Next: finish and review new multi-process L2 probes, perform packaged L4 J-02/J-07/J-08 fault/upgrade tests, and design explicit generation/roster compare-and-swap before asserting two-game same-root safety. Stay out of frontend, course, replay determinism and CI speed lanes.

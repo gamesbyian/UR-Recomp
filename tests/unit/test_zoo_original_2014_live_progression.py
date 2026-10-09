@@ -110,6 +110,14 @@ class ZooOriginal2014LiveProgressTests(unittest.TestCase):
                 surface_slot(int(record["p1_stored_contact_after_hex"], 16)),
                 record["new_postframe_contact_slot"],
             )
+        self.assertEqual(
+            [row["original_timer_raw_digits"] for row in self.events],
+            [[0, 0, 0, 2, 1], [0, 0, 6, 6, 3],
+             [0, 1, 0, 6, 0], [0, 2, 2, 1, 1],
+             [0, 2, 5, 2, 4]],
+        )
+        self.assertEqual(self.witness["initial_active_frame"]["timer_raw_digits"],
+                         [0, 0, 0, 0, 0])
         self.assertEqual(self.events[-1]["p1_world_xy_after"], [8961, 1568])
         self.assertEqual(
             self.events[-1]["transition_frame"] - self.events[0]["transition_frame"],

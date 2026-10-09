@@ -35,6 +35,13 @@ EVENT = "    if (!running)\n      break;\n    OverlaySelftestPadMainTick(frameCt
 PAUSE_GATE = ("    if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&\n"
               "        !g_open_launcher_hotkey) {\n")
 LEGACY_COMMAND = "  if (j == kKeys_Turbo) {\n"
+# Pinned Baldosa's own SDL handlers are authoritative. No parallel event loop.
+KEY_EVENT = ("static void HandleInput(int keyCode, int keyMod, bool pressed) {\n"
+             "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n")
+PAD_EVENT = ("static void HandleGamepadInput(GamepadInfo *gi, int button, bool pressed) {\n"
+             "  if (!!(gi->modifiers & (1 << button)) == pressed)\n"
+             "    return;\n"
+             "  gi->modifiers ^= 1 << button;\n")
 STAT = "    .after_run_frame     = &ur_baldosa_guest_snapshot_after_run_frame,\n"
 HOST = "static const SnesDesktopHostGame kGameHost = {\n"
 
@@ -47,7 +54,10 @@ def patch_host_header(source: str) -> str:
     addition = (
         HEADER +
         "  /* " + MARK + ": tick while paused, after SDL events, before guest. */\n"
-        "  void (*product_tick)(void);\n")
+        "  void (*product_tick)(void);\n"
+        "  /* Optional Modern physical edge dispatch before guest mapping. */\n"
+        "  int (*product_system_key)(int key, int pressed);\n"
+        "  int (*product_system_gamepad)(int player, int button, int pressed);\n")
     public = (
         "/* Title-facing synchronous host control; false means no state change.\n"
         " * No cross-thread invocation; offline only. Query is for acknowledgement. */\n"
@@ -60,7 +70,9 @@ def patch_host_header(source: str) -> str:
 def patch_host_source(source: str) -> str:
     if MARK in source:
         return source
-    if REQUIRED not in source or any(source.count(s) != 1 for s in (GLOBAL, EVENT, PAUSE_GATE, LEGACY_COMMAND)):
+    if REQUIRED not in source or any(source.count(s) != 1 for s in
+                                     (GLOBAL, EVENT, PAUSE_GATE, LEGACY_COMMAND,
+                                      KEY_EVENT, PAD_EVENT)):
         raise ValueError("Pinned Baldosa input and SDL event loop changed")
     # g_paused already gates RtlRunFrame, pacing debt and SetAudioPaused.
     # Never invent a second frame loop or freeze by replacing controller words.
@@ -112,9 +124,24 @@ def patch_host_source(source: str) -> str:
         "      HostSleepMs(16);\n"
         "      continue;\n"
         "    }\n" + PAUSE_GATE)
+    key = (
+        "static void HandleInput(int keyCode, int keyMod, bool pressed) {\n"
+        "  if (g_game->product_system_key &&\n"
+        "      g_game->product_system_key(keyCode, pressed ? 1 : 0)) return;\n"
+        "  int j = FindCmdForSdlKey(keyCode, (SDL_Keymod)keyMod);\n")
+    pad = (
+        PAD_EVENT
+        + "  if (g_game->product_system_gamepad &&\n"
+          "      g_game->product_system_gamepad(gi->index, button, pressed ? 1 : 0)) {\n"
+          "    /* Clear legacy command latch on a consumed physical edge. */\n"
+          "    gi->last_cmd[button] = 0;\n"
+          "    return;\n"
+          "  }\n")
     return (source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
                   .replace(LEGACY_COMMAND, commands, 1)
-                  .replace(PAUSE_GATE, gate, 1))
+                  .replace(PAUSE_GATE, gate, 1)
+                  .replace(KEY_EVENT, key, 1)
+                  .replace(PAD_EVENT, pad, 1))
 
 
 def patch_game_main(source: str) -> str:
@@ -126,10 +153,15 @@ def patch_game_main(source: str) -> str:
         "/* " + MARK + ": product lifecycle, no guest or Modern UI rewrite */\n"
         "extern void ur_baldosa_product_after_run_frame("
         "const SnesDesktopHostFrameStats *stats);\n"
-        "extern void ur_baldosa_product_host_tick(void);\n")
+        "extern void ur_baldosa_product_host_tick(void);\n"
+        "extern int ur_baldosa_product_system_key(int key, int pressed);\n"
+        "extern int ur_baldosa_product_system_gamepad("
+        "int player, int button, int pressed);\n")
     host = (
         "    .after_run_frame     = &ur_baldosa_product_after_run_frame,\n"
-        "    .product_tick        = &ur_baldosa_product_host_tick,\n")
+        "    .product_tick        = &ur_baldosa_product_host_tick,\n"
+        "    .product_system_key  = &ur_baldosa_product_system_key,\n"
+        "    .product_system_gamepad = &ur_baldosa_product_system_gamepad,\n")
     return source.replace(HOST, decl + HOST, 1).replace(STAT, host, 1)
 
 

@@ -1,7 +1,8 @@
 # QA-02: Two active fixture attempts, one durable checkpoint
 
-Status: proposed native two-process adversarial acceptance, not a Windows
-packaged game-UI witness or full race-preserving concurrency design.
+Status: **historical reproduced pre-lease counterexample**; #1052's
+native two-process live-lease correction merged. Not a packaged Windows
+full race/old-build compatibility witness.
 
 ## Why this test exists
 
@@ -59,11 +60,11 @@ create-only (which would strand legitimate restarts). QA-02 stays P0
 with J-07/J-08 packaged Windows L4 unverified.
 
 
-## Proposed live-lease correction (2026-10-09, pending CI)
+## Integrated live-lease correction (#1052, 2026-10-09)
 
 The original interleaving above remains a genuine reproducible
 pre-lease counterexample and a reason #1042's fail-closed receipt fencing
-was necessary. The live-lease candidate changes its *correct expected
+was necessary. The merged live-lease code changes its *correct expected
 outcome*: game B attempts a new arm while A still owns a nonblocking OS
 fixture handle, receives Busy, and **never overwrites A's pending token**.
 A then commits the original real saved pair. After A releases ownership,

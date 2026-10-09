@@ -49,12 +49,18 @@ class FixtureLiveLeaseContract(unittest.TestCase):
         self.assertIn("live_lock->busy() ? Status::Busy", arm)
         commit = cpp.split("LocalTournamentCoordinatorStatus commit_local_tournament_capture(", 1)[1].split(
             "\nLocalTournamentCoordinatorStatus cancel_local_tournament_capture(", 1)[0]
+        self.assertIn("!session.live_fixture_lock->acquired()", commit)
+        self.assertLess(commit.index("!session.live_fixture_lock->acquired()"),
+                        commit.index("commit_saved_local_tournament_fixture("))
         self.assertLess(commit.index("commit_saved_local_tournament_fixture("),
                         commit.index("session.live_fixture_lock.reset()"))
         self.assertLess(commit.index("retire_local_tournament_launch_file("),
                         commit.index("session.live_fixture_lock.reset()"))
         cancel = cpp.split("LocalTournamentCoordinatorStatus cancel_local_tournament_capture(", 1)[1].split(
             "\nbool local_tournament_coordinator_complete(", 1)[0]
+        self.assertIn("!session.live_fixture_lock->acquired()", cancel)
+        self.assertLess(cancel.index("!session.live_fixture_lock->acquired()"),
+                        cancel.index("retire_local_tournament_launch_file("))
         self.assertLess(cancel.index("retire_local_tournament_launch_file("),
                         cancel.index("session.live_fixture_lock.reset()"))
 

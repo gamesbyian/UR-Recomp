@@ -77,7 +77,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Validate merged #1052 and proposed #1054 active-event replacement fence on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
+      "next_action": "Run hash-pinned packaged Windows acceptance for merged #1052 and #1054 nonblocking live-fixture and active-event replacement fences on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -112,7 +112,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1052",
         "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. PR #1054 additionally fences a source-confirmed active-event replacement race: an independent process previously could replace the entire active tournament while the original owner held a live fixture lease. A nonblocking lease on the incumbent now returns Busy before new archive/active mutation; a two-process owner/replace regression is proposed, pending green CI and merge. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
+      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. Merged green #1054 (61feb486) additionally fences a source-confirmed active-event replacement race: an independent process previously could replace the entire active tournament while the original owner held a live fixture lease. A nonblocking lease on the incumbent now returns Busy before new archive/active mutation; a two-process owner/replace regression passed scoped native CI. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
     },
     {
       "id": "QA-03",
@@ -130,7 +130,7 @@
         "J-05",
         "J-06"
       ],
-      "next_action": "Review/green/merge #1054 for complete 3-leg duel and 3-entrant 2-leg backend process-journey coverage; separately supply and execute actual stock 2P controller-raced leg 2/3 and three-entrant completion across fresh packaged Windows game processes, asserting Records, standings, history, cancellations and fixture credit on the exact candidate.",
+      "next_action": "Use merged green #1054 complete native backend process journeys as fixtures, then extend existing controller/guest-script acceptance to actually finish leg 2/3 and 3+ entrant round robin on exact packaged Windows ZIP across processes; assert terminal guest results, standings, Records, History, P2 isolation and cancellation. QA03 P0/L4 remains open until these are observed.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -140,7 +140,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/981",
         "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "#1054 implements full backend artifact-driven 3-leg duel (3 fixtures) and 3-entrant two-leg round robin (6 fixtures), each fixture in a fresh executable, with cancel, exact run+match/receipt, restored standings/history and replacement preservation. Pending CI/merge at this review; uses simulated stock 2P outcomes, not guest-executed races. Existing native guest acceptance stops at leg-2 arm/End Event and existing packaged Windows acceptance ends after one fixture. Real pad-input multi-leg and 3+ entrant L4 are still unverified; QA03 P0 stays in_progress."
+      "remaining_release_risk": "#1054 implements full backend artifact-driven 3-leg duel (3 fixtures) and 3-entrant two-leg round robin (6 fixtures), each fixture in a fresh executable, with cancel, exact run+match/receipt, restored standings/history and replacement preservation. Merged green as 61feb486; uses simulated stock 2P outcomes, not guest-executed races. Existing native guest acceptance stops at leg-2 arm/End Event and existing packaged Windows acceptance ends after one fixture. Real pad-input multi-leg and 3+ entrant L4 are still unverified; QA03 P0 stays in_progress."
     },
     {
       "id": "QA-04",

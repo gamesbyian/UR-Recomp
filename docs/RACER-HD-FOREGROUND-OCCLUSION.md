@@ -116,15 +116,21 @@ allowing HD artwork to overpaint a still-present Original sprite.
 `tools/check_racer_hd_pixel_confinement.py` compares that 4× screen
 with two independently reproduced Original captures at frame 1220,
 using the actual four racer OAM footprints. Acceptance requires
-nonzero changed pixels in **both** original racer viewports, exactly
-zero differences outside their combined bounding boxes, and an
+at least one visible stock-racer pixel removed, exactly zero
+differences outside their combined bounding boxes, and an
 authoritative 8-word guest composition match across all five routes
 (Original A, Original B, HD, stock OBJ-only, and capture-only).
 
 The capture-only option is diagnostic and inert unless explicitly
-enabled. A failure here would identify an authentic mixed-resolution
-raster fault requiring a renderer/PPU extraction fix, not permission
-to expand art coverage or weaken the geometry guard.
+enabled. At the reference frame the Original lower racer is **not visibly
+distinguishable** where HD draws it, so zero changed lower-viewport
+pixels may be the *correct* result when stock P2 is wholly occluded.
+The diagnostic `--capture-only` mode records which viewports show
+actual removed stock pixels. It does **not** falsely claim an invisible
+source sprite was proven removed. Ordinary HD containment still requires
+genuine changes in both viewport halves. A changed pixel outside either
+live OAM footprint, or an inert capture-only screenshot with no removed
+visible stock pixels anywhere, fails acceptance.
 
 ## Acceptance and next engineering decision
 

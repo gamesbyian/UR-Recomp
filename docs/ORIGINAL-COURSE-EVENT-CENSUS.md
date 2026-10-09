@@ -100,6 +100,26 @@ observed contact, handler instruction or lap/finish event: original
 instruction-time `0F09` and previous-frame contact remain the required
 causal witness. This work does not raise the 0/45 complete-event count.
 
+The first canonical-ROM/source-pinned 2D witness has **784**
+Zoom Zoo checkpoint-family candidate world cells. The nearest
+candidate cell center-to-rectangle separations at original Snes9x
+movie frames **3400, 3800, 4200, 4600, 5000** are respectively
+**(91,0), (54,0), (2568,0), (1778,0), (893,258)** world units on
+(X,Y). The nearest C000 slot IDs are 195, 193, 200, 200 and 200.
+**None of those five rider centers is inside a candidate cell**.
+The exact per-frame position, nearest 16×16 world rectangle and slot are
+preserved in `analysis/data/zoo-original-2014-spatial-witness.json`.
+A canonical-ROM unit test now recomputes every value and rejects drift.
+
+This sharply narrows the *sampled* observations but does not claim the
+rider never touched a checkpoint between the 400-frame-spaced archived
+snapshots. A useful next original-Snes9x trace should sample the
+vicinity of frames 3400 and 3800 densely, record
+`7E:0E95` (previous stored contact), `7E:0F09` (dispatched
+contact), `7E:1199` (next checkpoint), `7E:119D` (finish gate),
+`7E:0EF1` (laps remaining) and the actual `81:8050`
+handler entry. Observe PC order before inferring active cell or finish.
+
 ```sh
 python3 tools/correlate_zoo_original_positions_with_cells.py \
   --json-out /tmp/qa01-zoo-real-2d-cells.json

@@ -6206,6 +6206,8 @@ SDL_GamepadButton main_menu_pad_acceptance_button(const std::string& name) {
     if (name == "y") return SDL_GAMEPAD_BUTTON_NORTH;
     if (name == "r") return SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
     if (name == "start") return SDL_GAMEPAD_BUTTON_START;
+    if (name == "up") return SDL_GAMEPAD_BUTTON_DPAD_UP;
+    if (name == "down") return SDL_GAMEPAD_BUTTON_DPAD_DOWN;
     return SDL_GAMEPAD_BUTTON_INVALID;
 }
 #endif
@@ -8812,6 +8814,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
     update_frontend_modal_hold();
+
+    // The existing SDL virtual-pad native acceptance normally advances on
+    // emulated frames. The human Modern root correctly freezes those frames,
+    // so advance the same probe on presentation frames *only* while frozen.
+    // Scripted stock-route acceptance does not hold and keeps the original
+    // simulation-frame clock. No second synthetic controller/router exists.
+    if (snesrecomp_desktop_frame_hold()) run_main_menu_pad_acceptance();
 
     if (onboarding_surface_active()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);

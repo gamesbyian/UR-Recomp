@@ -256,7 +256,56 @@ jobs:
               run_route ui-splash-capture ui-splash-capture.script ui-ending-dumps 90 required || exit $?
               test -s "$RUNNER_TEMP/ui-ending-dumps/ui-splash-observed.wram.bin" || { echo "::error::Missing authentic splash capture"; exit 1; }
               run_route ui-attract-route ui-attract-route.script ui-attract-dumps 90
+              # Temporary matched-state pacing experiment; keep original atlas.
+              python3 - "$RUNNER_TEMP/ur-recomp-build/UniracersSNESRecomp/build" "$RUNNER_TEMP/ui-pause-seed" <<'PY'
+          from pathlib import Path
+          import shutil,sys
+          src,dst=map(Path,sys.argv[1:])
+          dst.mkdir(parents=True,exist_ok=True)
+          copied=[]
+          for p in sorted(src.rglob("*")):
+              if not p.is_file() or p.is_symlink(): continue
+              rel=p.relative_to(src)
+              if len(rel.parts)>4 or p.suffix.lower() not in {".ini",".srm",".sav",".dat",".urrun",".urghost"}: continue
+              if p.stat().st_size>8*1024*1024: raise SystemExit(f"Unexpected large pause state: {rel}")
+              q=dst/rel
+              q.parent.mkdir(parents=True,exist_ok=True)
+              shutil.copy2(p,q)
+              copied.append(str(rel))
+          print(f"UR_PAUSE_SEED files={len(copied)} paths={copied}")
+          PY
               run_route ui-pause-route ui-pause-route.script ui-pause-dumps 90
+              for pacing in paced unpaced; do
+                (
+                  export SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/ui-pause-$pacing-user"
+                  mkdir -p "$SNESRECOMP_USER_DATA_DIR" || exit $?
+                  cp -a "$RUNNER_TEMP/ui-pause-seed/." "$SNESRECOMP_USER_DATA_DIR/" || exit $?
+                  delay=0
+                  if [ "$pacing" = unpaced ]; then delay=1; fi
+                  printf '[General]\nDisableFrameDelay = %s\n' "$delay" > "$SNESRECOMP_USER_DATA_DIR/config.ini" || exit $?
+                  run_route "ui-pause-$pacing" ui-pause-route.script "ui-pause-$pacing-dumps" 90 required || exit $?
+                  grep -Fq "config dir anchored: $SNESRECOMP_USER_DATA_DIR" \
+                    "$RUNNER_TEMP/ui-pause-$pacing.log" || exit $?
+                ) || exit $?
+              done
+              python3 - "$RUNNER_TEMP/ui-pause-paced-dumps" "$RUNNER_TEMP/ui-pause-unpaced-dumps" "$RUNNER_TEMP/ui-pause-dumps" <<'PY'
+          from pathlib import Path
+          import hashlib,sys
+          def digest(root):
+              return {p.relative_to(root).as_posix():hashlib.sha256(p.read_bytes()).hexdigest()
+                      for p in sorted(root.rglob("*")) if p.is_file()}
+          a,b,original=[digest(Path(p)) for p in sys.argv[1:]]
+          required=[x.split(None,1)[1].strip()+".wram.bin" for x in
+                    Path("tests/input/ui-pause-route.script").read_text().splitlines()
+                    if x.startswith("dump ")]
+          if len(required)!=3 or any(x not in a or x not in b for x in required):
+              raise SystemExit("Pause checkpoint evidence missing")
+          if set(a)!=set(b): raise SystemExit("Pause file set mismatch")
+          mismatch=[x for x in a if a[x]!=b[x]]
+          if mismatch: raise SystemExit(f"Pause paced/unpaced mismatch: {mismatch}")
+          drift=sorted(x for x in original.keys()|a.keys() if original.get(x)!=a.get(x))
+          print(f"UR_PAUSE_PACING_PARITY PASS files={len(a)} checkpoints=3 baseline_drift={len(drift)} sample={drift[:12]}")
+          PY
               # Pre-route mutable-state clone proved 198/198 bytes identical to
               # the existing shared-root capture (paced and unpaced).
               (

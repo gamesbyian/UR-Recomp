@@ -467,8 +467,35 @@ int racer_hd_draw_frame(
             );
         }
     );
+    // Source OBJ isolation is read-only. A populated WRAM frame and OAM
+    // placement can exist even when the authentic PPU emitted no sprite
+    // pixels in one half of the screen. Painting that half fabricates a
+    // rider (demonstrated on the frame-1220 bottom player).
+    std::array<std::size_t, 2> source_opaque{{0, 0}};
+    for (std::size_t i = 0; i < g_instance_count; ++i) {
+        const auto& instance = g_instances[i];
+        const unsigned index =
+            instance.viewport == RacerViewport::Top ? 0u : 1u;
+        source_opaque[index] += racer_stock_obj_pixels_in_footprint(
+            g_obj_overlay.data(), g_obj_overlay.size(),
+            instance.placement, instance.viewport
+        );
+    }
+    if (hd_census_enabled()) {
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_SOURCE_OBJ frame=%u top_opaque=%zu bottom_opaque=%zu "
+            "top_painted=%u bottom_painted=%u\\n",
+            g_sim_frame, source_opaque[0], source_opaque[1],
+            source_opaque[0] != 0 ? 1u : 0u,
+            source_opaque[1] != 0 ? 1u : 0u
+        );
+    }
     for (std::size_t rank = 0; rank < g_instance_count; ++rank) {
         const auto& instance = g_instances[draw_order[rank]];
+        const unsigned index =
+            instance.viewport == RacerViewport::Top ? 0u : 1u;
+        if (source_opaque[index] == 0) continue;
         draw_asset(
             dst,
             pitch,

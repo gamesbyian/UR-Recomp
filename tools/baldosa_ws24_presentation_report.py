@@ -54,16 +54,16 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
     backing = 48 if wide else 24
     prefix = "ur-baldosa-ws342" if wide else "ur-baldosa-ws24"
     header = HEADER if not wide else (
-        b"P7\\nWIDTH 342\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-        b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+        b"P7\nWIDTH 342\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+        b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
     present_regex = PRESENT if not wide else re.compile(
-        r"UR_BALDOSA_WS342_PRESENT frame=(\\d+) width=(\\d+) height=(\\d+) "
-        r"pitch=(\\d+) calibrated=(\\d+) saved=(\\d+)")
+        r"UR_BALDOSA_WS342_PRESENT frame=(\d+) width=(\d+) height=(\d+) "
+        r"pitch=(\d+) calibrated=(\d+) saved=(\d+)")
     prep_regex = PREP if not wide else re.compile(
-        r"UR_BALDOSA_WS342_PREP frame=(\\d+) calibrated=(\\d+) "
-        r"logical=(\\d+)x(\\d+) backing=48 visible=43")
+        r"UR_BALDOSA_WS342_PREP frame=(\d+) calibrated=(\d+) "
+        r"logical=(\d+)x(\d+) backing=48 visible=43")
     filename_regex = NAME if not wide else re.compile(
-        r"ur-baldosa-ws342-(\\d{6})\\.pam")
+        r"ur-baldosa-ws342-(\d{6})\.pam")
     original = base.read_bytes().splitlines()
     candidate_crc = candidate.read_bytes().splitlines()
     text = log.read_text(encoding="utf-8", errors="replace")
@@ -81,7 +81,7 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
             raise ValueError(f"Invalid frame name: {file.name}")
         content = file.read_bytes()
         if not content.startswith(header) or len(content) != len(header) + width * HEIGHT * 4:
-            raise ValueError(f"Invalid +24 physical raster: {file}")
+            raise ValueError(f"Invalid calibrated world physical raster: {file}")
         raster = content[len(header):]
         margin = edge_differences(raster, width=width, extra=extra)
         frame = int(match.group(1))

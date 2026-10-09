@@ -75,7 +75,7 @@ Each engine's race-entry frame is measured independently in a calibration
 run. Archived movie inputs are then shifted to those scene-relative frames,
 and replayed after a fresh boot of each engine.
 
-A 101-sample matrix compares menu/race state plus active-course X/Y,
+A 151-sample matrix compares menu/race state plus active-course X/Y,
 velocities, persisted contact word, next-checkpoint, finish gate,
 laps remaining, and boost. It retains the original 21 sparse phase
 checkpoints and additionally captures **every guest frame** in relative
@@ -85,7 +85,28 @@ Those are the neighborhoods of original Snes9x movie frames
 two-dimensional test found rider centers just **91** and **54** world X
 units from a checkpoint-family cell with overlapping Y. The selected
 capture windows are an explicit spatial hypothesis, not proof of
-frame-specific guest contact. They target brief contact-word,
+frame-specific guest contact.
+
+A subsequent **original Snes9x full low-WRAM write trace**, independently
+retained under `analysis/data/zoo-original-2014-live-progression.json`,
+revealed exact checkpoint/gate/lap changes at original movie frames
+**3408, 3794, 4031, 4722 and 4911** (relative +218, +604, +841,
++1532 and +1721). The previous two proximity windows already cover
+the first two event frames. The runner now adds **±8 guest-frame**
+dense samples around the other three events (inclusive relative ranges
+**833..849**, **1524..1540**, **1713..1729**). Each event has prior,
+current and succeeding guest state in the input-driven paired replay
+matrix, without relying on arbitrary 400-frame checkpoints. Total
+**151 nonduplicate snapshots** per engine; all remain subject to
+full decoded course residency and active-Zoo validation.
+
+The original frame numbers are **reference source evidence**, not
+assumptions that a fresh, scene-aligned input transplant must change
+progress at exactly the same frame. The original and native run must
+each be measured with their own guest entry frame; the ±1 controller
+latch phase remains an explicit hypothesis. Position, progression,
+contact and boost first divergences remain separately reported;
+no event can be called matched without the actual paired capture. They target brief contact-word,
 checkpoint-order and lap-gate transients that sparse observations
 could miss. Source inputs, individual active-course checks and
 reference/native calibration remain identical.
@@ -138,7 +159,7 @@ the entire resident `7F:0000` course payload at **every observed active
 checkpoint**, except the original loader-mutated two-byte cursor at
 `0x0B..0x0C`. A wrong/partially loaded course causes explicit evidence
 rejection even when both runtimes match each other. After comparing guest
-state, it separately verifies that all 101 event-relative checkpoint samples
+state, it separately verifies that all 151 event-relative checkpoint samples
 still show `inRace=1`, `trackID=1`, as expected for the archived original
 movie through frame 5000.
 

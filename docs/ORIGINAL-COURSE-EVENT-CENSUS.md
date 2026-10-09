@@ -117,8 +117,9 @@ menu state labels, and Snes9x vs native Authentic. They admit a snapshot
 **only** if guest course ID, active-race state and entire decompressed stream
 match the exact canonical USA ROM at `7F:0000` except the established
 loader-mutated cursor bytes. They compare WRAM racer positions, velocities,
-contact words, lap and boost fields at six fixed relative frames
-(0/1/2/4/8/16), including early P1/P2 candidate-header spawn assignment.
+contact words, lap and boost fields, plus original-ROM timer digits at eight fixed relative
+frames (0/1/2/4/8/16/32/64), including early P1/P2 candidate-header
+spawn assignment.
 There are no WRAM pokes. Any first discrepancy retains its frame and field
 values, but capture-phase differences require a writer/phase diagnosis
 before claiming guest semantics differ.
@@ -141,7 +142,7 @@ Self-check without ROM or emulator:
 
 **Acceptance boundary:** these are runnable investigative probes,
 **not successful guest executions in the retained corpus yet**.
-Even a matching 16-frame window proves entry/start semantics only.
+Even a matching 64-frame window proves entry/start and initial timer semantics only.
 Neither course may become a fully `passed` event/candidate row until
 full checkpoint/laps/result (Zoom Zoo) or scoring/timer/result (Jumps) is
 captured from each engine. Do not adjust the 0/45 release denominator on

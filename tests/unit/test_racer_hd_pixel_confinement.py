@@ -87,6 +87,74 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
                 source_obj_layer=b"P7\\nBAD"
             )
 
+    def test_disjoint_same_viewport_phantom_fails_real_obj_alpha_oracle(self):
+        stock, hd = frames()
+        pam = (
+            b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
+            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+        )
+        source = bytearray(W * H * 4)
+        source[(42 * W + 125) * 4 + 3] = 255
+        # Disjoint top racers: P1 at 104, P2 at 190. The isolated PPU
+        # emitted source alpha only at P1. A viewport-wide guard says
+        # top is nonempty, but must not license P2's new artwork.
+        shifted = "\\n".join(
+            line.replace("slot=99 x=104", "slot=99 x=190")
+            for line in draw_log().splitlines()
+        )
+        paint(hd, 4, 125, 42)
+        ok = audit(
+            stock, bytes(hd), shifted, 1220, second_original=stock,
+            source_obj_layer=pam + source
+        )
+        self.assertTrue(ok["ok"], ok)
+        self.assertEqual(
+            {(d["slot"], d["source_opaque_in_footprint"])
+             for d in ok["source_obj_opaque_by_oam_footprint"]
+             if d["viewport"] == "top"},
+            {(98, 1), (99, 0)}
+        )
+        self.assertEqual(ok["outside_source_visible_oam_pixel_samples"], [])
+        paint(hd, 4, 192, 44)
+        bad = audit(
+            stock, bytes(hd), shifted, 1220, second_original=stock,
+            source_obj_layer=pam + source
+        )
+        self.assertFalse(bad["ok"], bad)
+        # The phantom is inside a registered OAM box; the old generic
+        # confinement test would have accepted the exact same screen.
+        self.assertEqual(bad["outside_live_oam_pixel_samples"], [])
+        self.assertEqual(
+            bad["outside_source_visible_oam_pixel_samples"], [[768, 176, 192, 44]]
+        )
+
+    def test_same_viewport_source_discriminator_handles_wrap_and_1x(self):
+        stock, hd = frames(scale=1)
+        pam = (
+            b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
+            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+        )
+        source = bytearray(W * H * 4)
+        source[(2 * W + 125) * 4 + 3] = 255
+        # Raw Y=250 wraps to screen Y=2. Keep P2's top bounding box
+        # disjoint in X and make its purported HD rider fail at 1x too.
+        lines = draw_log(top_y=250).splitlines()
+        shifted = "\\n".join(
+            line.replace("slot=99 x=104", "slot=99 x=190") for line in lines
+        )
+        paint(hd, 1, 125, 2)
+        self.assertTrue(audit(
+            stock, bytes(hd), shifted, 1220, source_obj_layer=pam + source
+        )["ok"])
+        paint(hd, 1, 192, 3)
+        result = audit(
+            stock, bytes(hd), shifted, 1220, source_obj_layer=pam + source
+        )
+        self.assertFalse(result["ok"])
+        self.assertEqual(
+            result["outside_source_visible_oam_pixel_samples"], [[192, 3, 192, 3]]
+        )
+
     def test_single_pixel_hud_or_world_corruption_fails_even_at_4x(self):
         stock, hd = frames()
         paint(hd, 4, 125, 42)

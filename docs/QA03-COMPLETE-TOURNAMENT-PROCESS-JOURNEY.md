@@ -50,6 +50,28 @@ Run the focused acceptance as:
 python3 -m unittest discover -s tests/unit -p test_qa02_fixture_hardkill_process.py -v
 ```
 
+## Cross-window replacement during an active fixture
+
+A further **source-confirmed** lost-progress route existed after #1052:
+the live fixture OS lease stopped a competing `arm`, but the active
+tournament's **explicit replacement** path only used its global
+`active.urtournament` CAS. A second game could switch the active pointer
+to a new tournament while the first remained alive and was legitimately
+racing the old one. The first game's later result could be committed to an
+inactive, incomplete archive, stranding its intended tournament progress.
+
+The production coordinator now takes the **incumbent tournament's** live OS
+lease nonblocking before any replacement archive or active pointer mutation,
+holding it through the exact active CAS. A living owner causes `Busy`
+without changing the current active tournament or creating a successor
+archive; after owner death the OS releases the lease and an explicit
+replacement can proceed. A second independent-process test forces a
+replacement attempt between the original owner's fixture arm and receipt,
+then asserts Busy, original active identity and a credited original owner
+after completion. Both sides use the existing production stores and process
+test tool. This extends the same cooperative-new-build, local-filesystem
+boundary as #1052; old clients and Windows packaged GUI need separate tests.
+
 ## Remaining P0 release cuts
 
 1. **Guest-raced, controller-driven QA-03 L4:** existing native

@@ -208,13 +208,14 @@
       "evidence_refs": [
         "docs/SEMANTIC-SUFFICIENCY.md",
         "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
-        "docs/RACER-HD-PIXEL-CONFINEMENT.md"
+        "docs/RACER-HD-PIXEL-CONFINEMENT.md",
+        "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md"
       ],
       "journeys": [
         "J-13",
         "J-16"
       ],
-      "next_action": "Native draw availability (not pixel fidelity) measured: ordinary 2P 87/441 full-pair HD; long 2P opt-in P1-only 1240/5282 HD racer player-frames with 358 any-HD/Original switches; first moving 1P 42/120 and VS 39/120 full-pair HD frames (14 and 16 switches). Retained exact-source evidence in docs/RACER-HD-LIVE-MOTION-CENSUS.md. Next block: same-frame authoritative Original-vs-HD foreground BG/other OBJ raster depth attribution, verified actual PPU RemoveFromGame sprite elimination, original-vs-HD moving 1P/2P/VS and 342x224 16:9 screenshots including Y-wrap, split seams, camera, HUD/ghost, player identity and abrupt mode switches. QA-08 is not L4 passed and must not ship as complete Remastered fidelity.",
+      "next_action": "QA-08 P1/L4 still unverified. Confirmed native first-race visual counterexample: source PPU emitted 372 upper-viewport racer OBJ alpha pixels and zero lower-viewport alpha pixels at 2P frame 1220, yet earlier HD host painted both racers. #1037 introduces source-alpha per-viewport admission and actual native raster parity, plus a 441-frame source-presence/visibility-toggle denominator. Require its exact-head native acceptance and moving-sequence review, reconcile #1034 exact-state priority diagnostics, then expand per-OAM-slot foreground/bg depth, 1P/2P/VS, Y-wrap and 16:9 camera/split-scene trials. Never treat OAM registration or candidate frame-1220 pixel confinement as proof of actual stock rider visibility.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

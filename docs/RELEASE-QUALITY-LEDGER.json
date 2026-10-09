@@ -240,8 +240,7 @@
         "docs/SEMANTIC-SUFFICIENCY.md",
         "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
         "docs/RACER-HD-PIXEL-CONFINEMENT.md",
-        "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md",
-        "analysis/generated/racer-hd-ppu-source-visible-2026-10-09.json"
+        "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md"
       ],
       "journeys": [
         "J-13",

@@ -29,6 +29,8 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
     witnessed_frames = {x[0] for x in records if x[3] == 1}
     images = sorted(captures.glob("ur-baldosa-frame-*.pam"))
     details = []
+    captured_frames = set()
+    spatially_nonuniform_frames = set()
     for p in images:
         data = p.read_bytes()
         expected = f"P7\nWIDTH {256*density}\nHEIGHT {224*density}\nDEPTH 4\n".encode()
@@ -37,15 +39,28 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
         parts = data.split(b"ENDHDR\n", 1)
         if len(parts) != 2 or len(parts[1]) != 256 * density * 224 * density * 4:
             raise ValueError(f"Truncated or invalid frame: {p}")
-        details.append({"file": p.name, "sha256": hashlib.sha256(parts[1]).hexdigest()})
+        match = re.fullmatch(r"ur-baldosa-frame-(\\d{6}).pam", p.name)
+        if match is None:
+            raise ValueError(f"Unexpected capture filename: {p}")
+        frame = int(match.group(1))
+        captured_frames.add(frame)
+        pixels = parts[1]
+        # Distinct solid-color frames do not establish moving rider imagery.
+        # Every accepted capture must have actual spatial detail.
+        if len(set(pixels[0::4])) > 1 or len(set(pixels[1::4])) > 1 or len(set(pixels[2::4])) > 1:
+            spatially_nonuniform_frames.add(frame)
+        details.append({"file": p.name, "frame": frame, "sha256": hashlib.sha256(pixels).hexdigest()})
+    verified_captures = captured_frames & visible_frames & witnessed_frames & spatially_nonuniform_frames
+    passed = (
+        base_frames == own_frames and len(own_frames) == 2473
+        and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2
+        and len(records) >= 2
+        and all(x[1:3] == (256, 224) and x[3] == 1 for x in records)
+        and len(verified_captures) >= 2
+    )
     return {
         "schema_version": 1,
-        "status": "passed" if (
-            base_frames == own_frames and len(own_frames) == 2473
-            and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2
-            and len(records) >= 2 and all(x[1:3] == (256, 224) and x[3] == 1 for x in records)
-            and len(visible_frames & witnessed_frames) >= 2
-        ) else "unproven",
+        "status": "passed" if passed else "unproven",
         "native_title": "Baldosa AOT with UR racer asset/PPU compositor callbacks",
         "baseline_frame_count": len(base_frames),
         "candidate_frame_count": len(own_frames),
@@ -54,15 +69,16 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
         "source_obj_capture_records": len(pixel_records),
         "visible_source_obj_frame_count": len(visible_frames & witnessed_frames),
         "requires_actual_source_obj_pixels_both_viewports": True,
+        "captured_source_obj_spatial_frames": len(verified_captures),
         "actual_presented_rgba_frames": details,
         "distinct_presented_frames": len({x["sha256"] for x in details}),
         "logical_geometry": [256, 224],
         "composed_raster_dimensions": [256 * density, 224 * density],
         "presentation_density": density,
         "widescreen_or_4k_proved": False,
-        "real_4x_authored_raster_proved": density == 4 and base_frames == own_frames and len(own_frames) == 2473 and len(visible_frames & witnessed_frames) >= 2 and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2,
+        "real_4x_authored_raster_proved": density == 4 and passed,
         "original_native_completed_event_qa_credit": 0,
-        "limits": "Native composed 1x raster only; screenshots require visual/original oracle review; no Windows or full course result gate."
+        "limits": "Native 1x/4x raster only; spatial variation alone cannot prove correct racer placement or animation. No widescreen, 4K, Windows, or completed-event gate."
     }
 
 

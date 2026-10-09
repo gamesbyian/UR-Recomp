@@ -134,7 +134,7 @@ def patch_game_cmake(source: str, root: Path) -> str:
     return source.rstrip() + (
         "\n\n# " + MARK + ": linked on original pinned game host\n"
         + f'target_sources(UniracersSNESRecomp PRIVATE '
-          f'"{path.as_posix()}" "{authority.as_posix()}")\\n'
+          f'"{path.as_posix()}" "{authority.as_posix()}")\n'
     )
 
 

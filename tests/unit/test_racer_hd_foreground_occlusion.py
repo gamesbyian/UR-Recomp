@@ -106,6 +106,33 @@ class RacerForegroundDepthTests(unittest.TestCase):
         self.assertEqual(got["potential_foreground_occlusion_overpaint_pixels"], 1)
         self.assertIn("lower-bound", got["source_layer_classification"])
 
+    def test_colored_red_backdrop_is_not_falsely_treated_as_sprite(self):
+        masked = bytearray(bytes((240, 0, 0)) * (WIDTH * HEIGHT))
+        set_rgb(masked, 125, 42, [80, 120, 200])
+        set_rgb(self.stock, 125, 42, [80, 120, 200])
+        self.hd[:] = self.stock
+        set_rgb(self.hd, 125, 42, [120, 160, 240])
+        got = analyze(
+            ppm(self.stock), ppm(self.stock), ppm(self.hd),
+            b"", placements(), 1220,
+            obj_only_ppm=ppm(masked)
+        )
+        self.assertEqual(got["excluded_backdrop_rgb"], [240, 0, 0])
+        self.assertEqual(got["backdrop_pixel_count"], WIDTH * HEIGHT - 1)
+        self.assertEqual(got["native_split_obj_opaque_pixels"], 1)
+        self.assertEqual(got["stock_obj_differs_from_original_rgb_pixels"], 0)
+
+    def test_nonuniform_obj_only_background_is_unsafe(self):
+        alternating = bytearray(WIDTH * HEIGHT * 3)
+        for y in range(HEIGHT):
+            for x in range(WIDTH):
+                set_rgb(alternating, x, y, (255, 0, 0) if x % 2 else (0, 255, 0))
+        with self.assertRaisesRegex(ValueError, "backdrop is not sufficiently uniform"):
+            analyze(
+                ppm(self.stock), ppm(self.stock), ppm(self.hd), b"",
+                placements(), 1220, obj_only_ppm=ppm(alternating)
+            )
+
     def test_empty_obj_only_frame_fails_instead_of_faking_zero_occlusion(self):
         with self.assertRaisesRegex(ValueError, "no opaque racer"):
             analyze(

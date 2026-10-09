@@ -54,3 +54,23 @@ A further review compared **exact blob SHAs** on current `main` versus the histo
 | Records text | `completed_run_browser_host.cpp` differs; current main is 76,473 bytes vs historical branch 71,151 | Do not revert or merge older host. Compare current screenshot/overflows against acceptance and isolate defects before changes. |
 
 These comparisons establish content presence for the **named files**, not entire-branch equivalence or passing native runs. This review did not execute a Windows build or claim full recovery QA. The highest-priority action is to test current-main behavior; cherry-picking old branches is explicitly deprioritized.
+
+## Second pass: remaining source-content checks (2026-10-08)
+
+More candidate branches were compared using the exact blob hashes from their tips and latest main. The following are **identical at the named evidence seam**, so their older commits should not be transplanted without a new reproduction:
+
+- `claude/finish-snapshot-time`: `native/title/uniracers_run_data.cpp` identical.
+- `claude/paused-overlay-present`: `tools/check_paused_overlay_dump.py` identical.
+- `claude/quit-confirm-panel`: `tests/unit/test_pause_subview_panel_contract.py` identical.
+- `claude/help-pauses`: `tests/unit/test_help_pauses_race_contract.py` identical.
+- `claude/pause-restart-resumes`: `tests/unit/test_pause_restart_resumes_contract.py` identical.
+- `claude/main-menu-row-guard`: `native/product/modern_tour_continue.hpp` identical.
+- `claude/jumpover-native-fixture`: `tools/probe_jumpover_fallthrough_native.py` identical.
+- `claude/boost-speed-probe`: `tools/probe_boost_speed.py` identical.
+
+Two later-main divergences merit **focused review, not reverse merge**:
+
+- `claude/records-text-fit`: `tests/unit/test_modern_overlay_text_fit.py` differs (main 8,351 bytes; old branch 7,981) and the production browser host differs. Check current native acceptance and real 4:3/16:9 clipped records before editing.
+- `claude/racer-hd-p2-0578-0ec3`: `native/presentation/racer_hd_presenter.hpp` differs (main 116,242 bytes; old branch 115,969). Graphics owner should compare exact pose admission and hash-proven mixed P1-HD/P2-stock evidence, not replace a newer presenter.
+
+**Audit limitation:** Equality is established for specified blobs only, not all files in each branch. There has been no local Windows runtime or full integration suite execution in this pass. All quality gates retain their prior statuses.

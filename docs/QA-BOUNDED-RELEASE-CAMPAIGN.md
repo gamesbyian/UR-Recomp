@@ -12,7 +12,7 @@ Status: active joint Baldosa/QA resource and witness policy, revised 2026-10-09.
 |---|---|---|
 | Original + native settled Race, Circuit and scored Stunt | Gameplay/QA-01/07, original Snes9x/Baldosa, merged #1079 stable-but-not-equal Zoo paired result witness | Real course identity, active-to-terminal result, time/score/laps; only then expand 45 USA |
 | Human P1/P2, real native pause/resume, Modern root, Restart Return | merged #1086 genuine 2P live pause and #1056 original-host frontend, integration remains | QA-05/06/09: controller focus, guest held-button release and audible resumption |
-| 2P moving riders, true new world pixels, HD/Original fallback, 4K output | existing presenter, merged #1082 342-world and QA-08 #1045 per-instance OBJ | QA-08/10: actual per-rider source OBJ, visible extra world, calibrated 7:6 PAR and physical resolution |
+| 2P moving riders, true new world pixels, HD/Original fallback, 4K output | existing presenter, merged #1082 342-world and merged #1045 per-instance OBJ | QA-08/10: actual per-rider source OBJ, visible extra world, calibrated 7:6 PAR and physical resolution |
 | Completed tournament/result after crash/disk outage and fresh process | existing host stores, merged #1058 in-process exact-attempt receipt retry | QA-02/03/11: exactly one genuine award, no lost legitimate run, no stale actor win |
 | Profile → original gameplay → result → Records/replay → Repeat/Quit in a portable Windows build | Baldosa adapter + existing Modern product, Windows packager | QA-04/05/06/09/10/12: same candidate ZIP/hash, real gamepad/audio/display, physical checks where required |
 

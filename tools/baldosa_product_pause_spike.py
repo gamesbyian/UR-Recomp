@@ -20,9 +20,9 @@ HEADER = "  uint32_t (*filter_human_frame_inputs)(uint32_t word, unsigned frame)
 PUBLIC = "int snesrecomp_desktop_frame_width(void);\n"
 GLOBAL = "static uint8 g_paused, g_turbo, g_cursor = true;\n"
 EVENT = "    if (!running)\n      break;\n    OverlaySelftestPadMainTick(frameCtr);\n"
-PAUSE_GATE = ("    if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&\\n"
-              "        !g_open_launcher_hotkey) {\\n")
-LEGACY_COMMAND = "  if (j == kKeys_Turbo) {\\n"
+PAUSE_GATE = ("    if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&\n"
+              "        !g_open_launcher_hotkey) {\n")
+LEGACY_COMMAND = "  if (j == kKeys_Turbo) {\n"
 STAT = "    .after_run_frame     = &ur_baldosa_guest_snapshot_after_run_frame,\n"
 HOST = "static const SnesDesktopHostGame kGameHost = {\n"
 

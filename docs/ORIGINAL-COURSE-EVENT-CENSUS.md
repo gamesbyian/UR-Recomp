@@ -205,6 +205,34 @@ to equal the optimizer's unused `8961`, that coincidence does not
 retroactively identify the recorded historical X as a spawn or
 authoritative finish plane.
 
+**Original within-frame write order challenges a blanket one-frame
+dispatch explanation.** The original Snes9x trace retains an ordered
+series of actual changed `7E` WRAM writes for each guest frame.
+For the first observed lap decrement at frame **3408**, the
+low-byte P1 persisted contact `0E95` changes at **zero-based write
+index 88**, followed by the lap decrement `0EF1` at index **91**
+and checkpoint/gate `1199/119D` at **107/108**. At the second
+lap decrement **4911**, the order is P1 contact index **107**,
+lap **113**, checkpoint/gate **141/142**. The original first
+non-lap checkpoint changes at **3794** and **4031** also follow
+a persisted P1-contact low-byte change earlier in the same labeled
+frame. At **4722**, checkpoint 3→0 is observed with no changed
+P1 `0E95` byte that frame.
+
+This is not an instruction-PC trace: unchanged writes and other
+register/7F activity may be absent, the emulator's `f` boundary
+is external to a CPU call frame, and more than one sampling/dispatch
+bracket may occur. Therefore **do not assert** that either the
+prior postframe word or the same-frame newly stored contact word
+was consumed by the finish handler. The ROM-authoritative bank-83
+call order (dispatch before later sampler in the identified main
+path) remains valid, but its simple one-guest-frame causal application
+is underdetermined by the original execution chronology.
+The source-reconstruction verifier now checks exact in-frame
+contact/progression write indices against the reduced fixture.
+The decisive next witness remains instruction-time 82:8C32,
+81:82ED/805D, 81:8DF3 with a frame counter.
+
 These original contact words are **postframe** P1 stored values from
 `7E:0E95`; their decoded C000 slots are candidates, not a
 per-instruction cell/collision assertion. USA ROM call order dispatches

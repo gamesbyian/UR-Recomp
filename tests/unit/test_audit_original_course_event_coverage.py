@@ -42,6 +42,34 @@ class OriginalCourseCensusTests(unittest.TestCase):
             ["course:01", "course:20"],
         )
 
+    def test_historical_optimizer_start_x_is_never_promoted_to_runtime_spawn(self):
+        report = audit.build_census(self.catalog, self.evidence)
+        source = report["historical_start_probes"]
+        self.assertEqual(source["classification_counts"], {
+            "nonzero_numeric_disagreement": 1,
+            "nonzero_numeric_match_only": 42,
+            "zero_optimizer_constant_unqualified": 2,
+        })
+        by_name = {x["name"]: x for x in source["unqualified_and_disagreements"]}
+        self.assertEqual(set(by_name), {"Zoom Zoo", "Jumps", "Hill Climb"})
+        self.assertEqual(
+            (by_name["Zoom Zoo"]["historical_start_x"],
+             by_name["Zoom Zoo"]["header_candidate_x16"]),
+            (8961, 9200),
+        )
+        self.assertEqual(
+            (by_name["Jumps"]["historical_start_x"],
+             by_name["Jumps"]["header_candidate_x16"]),
+            (0, 4192),
+        )
+        self.assertEqual(
+            (by_name["Hill Climb"]["historical_start_x"],
+             by_name["Hill Climb"]["header_candidate_x16"]),
+            (0, 0),
+        )
+        self.assertTrue(all(not row["runtime_spawn_proven"]
+                            for row in by_name.values()))
+
     def test_dragster_native_only_evidence_does_not_pass_full_course(self):
         report = audit.build_census(self.catalog, self.evidence)
         row = report["entries"][0]

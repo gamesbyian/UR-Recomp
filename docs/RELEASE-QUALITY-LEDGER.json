@@ -32,7 +32,7 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "Release census remains 0/45 USA complete, 4 partial (including source-only Bowl Stunt), 41 unverified. Historical original Snes9x already finishes Zoom Zoo Circuit (BC, frame 8353) and scored Bowl Stunt (18, frame 11985), but neither has a fresh original/native pair. Execute #1055 event-complete historical-input transplantation on pinned original and native Authentic for Zoo and Bowl; check actual source-SRAM, scene/latch alignment, checkpoint/lap/score, and settled result. Find and validate a non-Dragster Race B source finish (Switcher first); #1055 must reject unavailable original results. Only after those three independently reviewed terminal families, extend route producers toward all 45. Keep frame-2903 causal attribution unresolved and PAL comparative 90 separate.",
+      "next_action": "0/45 USA independently accepted complete pairs, four partial, 41 unverified. Merged #1079 replays the 2014 original Zoo scene controller policy in original Snes9x and Baldosa: both reach stable Circuit result state, but sampled p1_stored_contact differs (original 0, Baldosa 10240); guest scene entry differs by 2 frames. Diagnose source SRAM/scene initialization and controller latch phase versus a real guest semantic mismatch using the existing two-run captures. Admit only after true final time/lap/score and PPU result text compare against independent original. The Bowl Stunt has original-only complete evidence; find an actual native same-result Stunt and independent non-Dragster Race before scaling 45 courses.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -78,7 +78,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Verify merged #1057 C04 selector-last profile activation on an exact packaged Windows restart, including crash before/after framework SRAM publication, concurrent selector CAS and recovery from a torn/failed framework save. Finish and review #1058 native C16 receipt I/O retry and same-event host handling (pending CI); then validate real Windows two-game Busy/takeover under #1052/#1054, actual ENOSPC/permissions, and C17 schema upgrade/downgrade on a hash-pinned ZIP. Keep J-02/J-07/J-08 L4 gate open.",
+      "next_action": "Merged green #1058 implements exact-lease C16 receipt storage failure classification, preserves same in-process run/match attempt and retries only the exact pending receipt via SAVE PENDING. **It does not journal a pending receipt for automatic post-crash credit.** On one exact Windows package and real Baldosa-raced two-pad event, verify merged #1057 C04 selector-last SRAM CAS/crash recovery, #1058 permission/path outage + restoration with exactly-once standings/Records, two-process Busy/kill-takeover from #1052/#1054, and genuine disk-full/fault + schema migration boundaries. Design a versioned, evidence-tight post-restart pending-receipt recovery only after reproducing the missing path; never scan arbitrary Records to manufacture credit. J-02/J-07/J-08 L4 remains open.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -179,7 +179,7 @@
         "J-12",
         "J-20"
       ],
-      "next_action": "Modal held-release/seat/hotplug checks with guest-state assertions",
+      "next_action": "Merged green #1056 proves existing-host visible five-destination Modern root and default Return->guest Start release barrier, including a Windows candidate. Merged #1086 separately proves Baldosa real 2P guest pause/resume in live race with 24 SDL event pumps and unchanged 2,473 WRAM CRC frames. Now join those *actual* existing implementation seams in one native Baldosa+Modern Windows controller-only player journey, including P1/P2 hold release, profile, pause/restart and audible 5/5 default Return restarts. No independent L4/L5 hardware candidate is admitted yet.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -219,7 +219,7 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "Original-only 2014 Snes9x Zoo Circuit already settles at BC and Bowl scored Stunt settles at 18, but no independent fresh native/reference completion is admitted. Prioritize #1055 source-verified full-event Zoo/Bowl scene-rebased input and matched actual result/score/clock/lap; independently discover a completed non-Dragster Race source (Switcher hypothesis). Once event families finish, graft existing Jumpover boundary/expert inputs onto accepted full events, report first WRAM discrepancies without assigning postframe contact causality. PR #1043 stopwatch onset remains a bounded diagnostic and cannot substitute for a terminal result.",
+      "next_action": "Merged #1079's original-vs-Baldosa 2014 Zoo scene reaches stable result on both cores but remains semantically different at stored contact and is not a complete original/native result admission. Separate source-movie frame-1604 vs native-frame-1606 latch/scene-entry offset from genuine course divergence; verify source-selected SRAM, result PPU clock/laps/score. Independently transplant the scored original Bowl Stunt and find a finished non-Dragster Race oracle. Only then add expert speed/boost/transition scenarios to *admitted* genuine full events. The original-only evidence and old #1043 stopwatch onset do not themselves satisfy L4.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -265,7 +265,7 @@
         "J-01",
         "J-19"
       ],
-      "next_action": "Blind first-player task completion, TV legibility, controller only and finished UI",
+      "next_action": "Merged #1056 visible Modern root and typed controller navigation exist for the current Windows product; route/profile/back/quit controls must be joined to Baldosa native input/pause and retested on exact packaged Windows. Obtain independent blind controller-only cold-start -> profile/racer -> authentic result -> Records/repeat/quit, 4:3/true 16:9 legibility and source-family visual evidence, with TV and accessibility checks. No generic route rewrite or acceptance from old-host component smoke.",
       "waiver_reason": null,
       "required_layer": "L5",
       "witnesses": [],

@@ -45,7 +45,7 @@ def patch_host_header(source: str) -> str:
 def patch_host_source(source: str) -> str:
     if MARK in source:
         return source
-    if REQUIRED not in source or any(source.count(s) != 1 for s in (GLOBAL, EVENT)):
+    if REQUIRED not in source or any(source.count(s) != 1 for s in (GLOBAL, EVENT, PAUSE_GATE, LEGACY_COMMAND)):
         raise ValueError("Pinned Baldosa input and SDL event loop changed")
     # g_paused already gates RtlRunFrame, pacing debt and SetAudioPaused.
     # Never invent a second frame loop or freeze by replacing controller words.
@@ -74,7 +74,32 @@ def patch_host_source(source: str) -> str:
         "    /* " + MARK + ": title may resume while no guest frames advance. */\n"
         "    if (game->product_tick) game->product_tick();\n"
         "    OverlaySelftestPadMainTick(frameCtr);\n")
-    return source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
+    # No legacy guest-state mutation, save/load, or parallel overlay may
+    # bypass a Modern-owned pause. Presentation hotkeys remain permissible.
+    commands = (
+        "  /* " + MARK + ": host-owned pause blocks guest hotkeys. */\\n"
+        "  if (g_product_pause_owned) {\\n"
+        "    switch (j) {\\n"
+        "    case kKeys_Fullscreen: case kKeys_WindowBigger:\\n"
+        "    case kKeys_WindowSmaller: case kKeys_DisplayPerf:\\n"
+        "    case kKeys_Screenshot: case kKeys_VolumeUp:\\n"
+        "    case kKeys_VolumeDown: break;\\n"
+        "    default: return;\\n"
+        "    }\\n"
+        "  }\\n"
+        + LEGACY_COMMAND)
+    gate = (
+        "    /* " + MARK + ": never open stock overlays during product pause. */\\n"
+        "    if (g_product_pause_owned) {\\n"
+        "      g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;\\n"
+        "      snes_host_clock_reset(&video_clock, MonotonicSeconds(),\\n"
+        "          g_simulation_hz, presentation_hz);\\n"
+        "      HostSleepMs(16);\\n"
+        "      continue;\\n"
+        "    }\\n" + PAUSE_GATE)
+    return (source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
+                  .replace(LEGACY_COMMAND, commands, 1)
+                  .replace(PAUSE_GATE, gate, 1))
 
 
 def patch_game_main(source: str) -> str:

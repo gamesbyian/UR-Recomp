@@ -485,7 +485,7 @@ int racer_hd_draw_frame(
         std::fprintf(
             stderr,
             "UR_RACER_HD_SOURCE_OBJ frame=%u top_opaque=%zu bottom_opaque=%zu "
-            "top_painted=%u bottom_painted=%u\\n",
+            "top_painted=%u bottom_painted=%u\n",
             g_sim_frame, source_opaque[0], source_opaque[1],
             source_opaque[0] != 0 ? 1u : 0u,
             source_opaque[1] != 0 ? 1u : 0u

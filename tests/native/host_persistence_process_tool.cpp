@@ -27,6 +27,7 @@ HostProfileState profile(unsigned value) {
 }
 
 void terminate_before_publish() { std::_Exit(77); }
+bool fail_before_durable_stage(std::FILE*) { return false; }
 
 int write_one(const std::string& family, const std::string& path,
               unsigned value) {
@@ -90,6 +91,12 @@ int main(int argc, char** argv) {
     if (value > 15) return 2;
     if (action == "write") return write_one(family, path, value);
     if (action == "read") return read_one(family, path);
+    if (action == "syncfail" && family == "profile") {
+        const auto result = write_host_replace_staged(
+            path, encode_host_profile_state(profile(value)), "urprofile",
+            nullptr, &fail_before_durable_stage);
+        return result ? 8 : 0;
+    }
     if (action == "crash" && family == "profile") {
         (void)write_host_replace_staged(
             path, encode_host_profile_state(profile(value)), "urprofile",

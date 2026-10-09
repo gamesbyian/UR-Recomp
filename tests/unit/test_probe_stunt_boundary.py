@@ -69,7 +69,9 @@ class StuntBoundaryProbeTests(unittest.TestCase):
                      for start, count, value in events
                      for frame in range(start, start + count)}
             self.assertEqual(masks[probe.SHOULDER_START], 0x81 | mask)
-            self.assertEqual(masks[probe.SHOULDER_START + hold], 0x081)
+            after_hold = probe.SHOULDER_START + hold
+            expected = 0x080 | (0x001 if after_hold < probe.JUMP[0] + probe.JUMP[1] else 0)
+            self.assertEqual(masks[after_hold], expected)
 
     def test_load_rows_rejects_short_or_missing_dumps(self):
         with tempfile.TemporaryDirectory() as tmp:

@@ -50,6 +50,20 @@ prints the candidate source provenance.
 **Evidence label: original Snes9x temporal anchor, not an accepted
 course completion, native parity result, or new gameplay bug.**
 
+## Preserved movie-input fingerprint
+
+The separate authentic-input unit probe (#1008) decoded **1,810 original
+controller frames** 3190..4999 as **116 nonzero runs** with 15 distinct
+button masks. Exact raw 3,620-byte controller-window SHA-256:
+
+`e77f10e4d652dfb2ed9afcf4c252e3e9f14e551a30edbbaa2a69ec50996f90b6`
+
+This is the archived original source input, not yet evidence that either
+newly booted guest completed Zoom Zoo under those inputs. The 1,811-frame
+comparison extension includes the following sample at movie frame 5000,
+and also retains the separate 1,810-frame exact-source fingerprint
+regression before constructing any runtime comparison.
+
 ## Fresh-process paired semantic replay harness (proposed, not yet executed)
 
 `tools/probe_historical_zoom_zoo_scene_parity.py` makes the above lead

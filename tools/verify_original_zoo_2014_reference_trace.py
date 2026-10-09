@@ -186,7 +186,7 @@ def verify(extracted: dict, witness: dict) -> dict:
         "source_record_count": extracted["raw_record_count"],
         "course_id": witness["course"]["id"],
         "original_event_frames_reproduced": audited,
-        "original_first_motion_frame": first["movie_frame"],
+        "original_first_horizontal_x_change_frame": first["movie_frame"],
         "original_first_stopwatch_tick_frame": timer_start["movie_frame"],
         "lap_counter_decrements": [
             f for f in audited

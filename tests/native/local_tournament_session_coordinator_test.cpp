@@ -96,6 +96,30 @@ int main() {
     check(created.usable() && created.status == Status::Created,
           "catalog-authorized tournament created explicitly");
     auto state = *created.session;
+    // Once a tournament's instance ID owns an archived plan, an unrelated
+    // creator must not overwrite that durable schedule through a stale
+    // exists() preflight. The coordinator now uses this exact create-only
+    // store operation for its *first* immutable archive publication.
+    const auto archive_path =
+        (tour / instance / "session.urtournament").string();
+    const auto incumbent_archive =
+        load_historical_local_tournament_session_definition(archive_path);
+    check(incumbent_archive.loaded(), "new tournament has a full archive");
+    const auto conflicting_plan = make_local_tournament_session_definition(
+        instance, {"alpha", "beta"}, catalog, {"course:01"});
+    check(bool(conflicting_plan), "construct alternative valid same-ID plan");
+    check(save_local_tournament_session_definition_if_current(
+              archive_path, std::nullopt, *conflicting_plan) ==
+              LocalTournamentSessionFileStatus::Conflict,
+          "immutable instance archive rejects another valid creator");
+    const auto preserved_archive =
+        load_historical_local_tournament_session_definition(archive_path);
+    check(preserved_archive.loaded() &&
+          encode_local_tournament_session_definition(
+              *preserved_archive.session) ==
+          encode_local_tournament_session_definition(
+              *incumbent_archive.session),
+          "conflicting archive claim preserves original bytes and schedule");
     check(state.results.fixtures.size() == 3 &&
           local_tournament_next_unplayed_fixture(state) == 0 &&
           !local_tournament_coordinator_complete(state),

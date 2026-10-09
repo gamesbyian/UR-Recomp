@@ -108,9 +108,17 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
     // BEFORE replacing the active pointer. Completed tournaments then stay
     // restorable after their successor becomes active. A failed active write
     // may leave an inert archive but cannot redirect the old active session.
-    if (save_local_tournament_session_definition(
-            archived_session_path(next), next.definition) !=
-        LocalTournamentSessionFileStatus::Saved) {
+    // Two cooperating creators can both pass instance_exists before either
+    // creates the receipts root. Reserve the immutable archive itself with
+    // create-only OS-path-locked CAS, never overwrite a different completed
+    // schedule or its receipt namespace after the preflight race.
+    const auto archive_status = save_local_tournament_session_definition_if_current(
+        archived_session_path(next), std::nullopt, next.definition);
+    if (archive_status == LocalTournamentSessionFileStatus::Conflict) {
+        return error(Status::AlreadyExists,
+                     "tournament archive instance was claimed by another process");
+    }
+    if (archive_status != LocalTournamentSessionFileStatus::Saved) {
         return error(Status::StorageFailed, "cannot archive immutable tournament");
     }
     const auto publication = save_local_tournament_session_definition_if_current(

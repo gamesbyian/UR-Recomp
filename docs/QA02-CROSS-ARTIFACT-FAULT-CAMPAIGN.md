@@ -55,17 +55,29 @@ staging and prepublication data flush have focused native regressions.
 Selected multi-process and crash-before-publish tests exercise real store
 APIs. These do **not** make C01–C17 pass for the complete application.
 
-**Known source-level defects already corrected:** no conditional compensation
-after ordinary profile snapshot SRAM failure (#1016); full global state
-last-writer-wins (#1017); failed catalog registration could strand a lock-only
-racer root (#1018 proposal); active selection ignored failed target SRAM
-(#1019 proposal). Verify each proposed PR merged and tested before marking
-the corresponding source fix closed.
+**Known source-level defects corrected and merged:** #1016 compensates
+a failed profile snapshot's second-phase framework SRAM write; #1017 fences
+global active racer and settings to exact disk baseline; #1018 permits
+explicit retry of lock-only failed-registration residue; #1019 compensates
+failed target SRAM on profile switch; #1027/#1030 support explicit narrow
+pristine-orphan claim across pre-catalog and post-rename staging-cleanup
+process deaths; #1033/#1035 request OS data flush before publishing run,
+match and ghost bytes; #1038/#1041 use create-only immutable archive
+publication on create and legacy restore. #1042 verifies an exact still-live
+durable pending launch under mutex through receipt admission, with native
+in-process reconstruction at C14/C15. #1044 proposes fail-closed
+downgrade handling for a valid future ghost schema, subject to CI and merge.
+None of these equals a verified power-loss group transaction.
 
-**Risk hypotheses needing first reproduction:** abrupt death between host
-mirror and framework SRAM; auto-recovery of genuine orphan profiles;
-group durability after rename; inconsistent replay/ghost/fixture restore in
-the exact candidate. Do not record a hypothesis as a confirmed defect.
+**Remaining risk hypotheses and unexecuted acceptance:** abrupt death
+between a global profile selector and target framework SRAM (C04);
+progressed/foreign orphan recovery beyond exact pristine initial snapshots;
+simultaneous live fixture ownership; independent executable death between
+saved run/match and receipt (C14) or between receipt and pending retirement
+(C15); group metadata durability after canonical publication; and
+future-schema downgrade/upgrade on a pinned portable ZIP (C17). Native
+store/process fixtures and coordinator reloads establish narrower properties.
+Do not count them as executed packaged Windows L4 evidence.
 
 Pass criteria for *every* cut: no destruction of an unrelated valid
 artifact; no incorrect racer attribution, false lap/award, duplicate fixture

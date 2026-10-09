@@ -1,3 +1,5 @@
+> **Baldosa native-runtime patch candidates (2026-10-09):** Exact 86-commit framework ancestry delta and an unapplied OAM HDMA patch live under `docs/BALDOSA-FRAMEWORK-DELTA-20261009.md` and `analysis/patches/`. Scope new implementation to QA-08's source-visible P1/P2 OAM discrepancy first; parity-test clock-driven HVBJOY and compiled continuations separately. No blanket submodule re-pin.
+
 > **Baldosa inventory closed (2026-10-09):** `docs/BALDOSA-SOURCE-CENSUS-20261009.md` inventories 186 files, 22 directories and two submodules. No new source-intake work is required for Ema's pinned main; use the 85 immutable source inputs and full generated-file digest inventory. Highest-return follow-up stays QA-01 circuit completion, QA-08 P2 OAM, and QA-02 indexed results consumers.
 
 > **Source-backed SRAM symbol correction (2026-10-09):** `docs/BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md` narrows indexed result-table base `$77:0618` after external compiled-code examination. QA-02/03/Records should verify whether any production consumer assumes it holds fixed P1/P2 last-race results before making changes. This is not an admitted data-loss defect.

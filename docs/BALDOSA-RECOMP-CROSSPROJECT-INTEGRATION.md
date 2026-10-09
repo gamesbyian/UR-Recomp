@@ -19,6 +19,9 @@ Date: 2026-10-09. Source: [baldosa/uniracers-recomp](https://github.com/baldosa/
 
 **New crosswalk review (2026-10-09):** [`BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md`](BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md) records the 49 local/external exact-address overlaps and the source-backed correction to indexed SRAM result-table slots at `$77:0618`. Before claiming a results/tournament defect, trace actual readers and writes in the existing native/reference process; keep the QA-02 storage work bounded.
 
+
+**Native framework delta indexed (2026-10-09):** [`BALDOSA-FRAMEWORK-DELTA-20261009.md`](BALDOSA-FRAMEWORK-DELTA-20261009.md) enumerates 86 ancestor commits/121 changed files between our pinned SNESRecomp and Ema's fork, with the game-specific OAM patch preserved but **unapplied** in `analysis/patches/baldosa-oam-address-pin.patch`. This does not supersede the active QA-08 controller/graphics lane or authorize a global framework upgrade.
+
 ## Bounded execution queue, in priority order
 
 1. **QA-01/QA-07:** replay upstream Zoom Zoo and Race inputs in the appropriate exact-USA original/native drivers. Check actual terminal event/result and measure how far route alignment extends; if one full original/native completion is obtained, promote to our existing 45-case census via its evidence/identity gate. Do not build a second generic runner.

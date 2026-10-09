@@ -8747,7 +8747,10 @@ bool frontend_modal_hold_wanted() {
     }
     const bool frontend_settings =
         g_frontend_options_active && (g_options_visible || g_controls_visible);
-    return modern_root_visible() ||
+    // Profiles was historically opened at stock 0x3C, but the new global
+    // identity drawer can open over settled 0xD7. Hold that main-menu timer
+    // through profile selection, including create/reset confirmation.
+    return modern_root_visible() || g_profile_menu_visible ||
         g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings ||
         g_frontend_records_open || onboarding_surface_active();

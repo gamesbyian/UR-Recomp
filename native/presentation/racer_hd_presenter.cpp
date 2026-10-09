@@ -71,7 +71,7 @@ void hd_census_gate(const char* status, const char* reason) noexcept {
     if (!hd_census_enabled()) return;
     std::fprintf(
         stderr,
-        "UR_RACER_HD_CENSUS frame=%u phase=gate status=%s reason=%s\\n",
+        "UR_RACER_HD_CENSUS frame=%u phase=gate status=%s reason=%s\n",
         g_sim_frame, status, reason
     );
 }
@@ -80,7 +80,7 @@ void hd_census_present(const char* status, const char* reason) noexcept {
     if (!hd_census_enabled()) return;
     std::fprintf(
         stderr,
-        "UR_RACER_HD_CENSUS frame=%u phase=present status=%s reason=%s\\n",
+        "UR_RACER_HD_CENSUS frame=%u phase=present status=%s reason=%s\n",
         g_sim_frame, status, reason
     );
 }

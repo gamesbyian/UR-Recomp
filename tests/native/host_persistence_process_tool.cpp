@@ -101,6 +101,29 @@ int main(int argc, char** argv) {
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
     }
+    if (family == "host" && action == "cas-rollback") {
+        const auto loaded = load_host_product_state_file(path);
+        if (!loaded.loaded()) return 4;
+        auto intermediate = *loaded.state;
+        intermediate.active_profile_id = "racer-" + std::to_string(value);
+        if (save_host_product_state_file_if_current(
+                path, *loaded.state, intermediate) !=
+            HostProductSaveStatus::Saved) return 7;
+        if (argc == 6 && std::string(argv[5]) == "interleave") {
+            auto winner = intermediate;
+            winner.active_profile_id = "racer-" +
+                std::to_string(value + 1u);
+            if (save_host_product_state_file_if_current(
+                    path, intermediate, winner) !=
+                HostProductSaveStatus::Saved) return 8;
+            return save_host_product_state_file_if_current(
+                path, intermediate, *loaded.state) ==
+                HostProductSaveStatus::Conflict ? 0 : 9;
+        }
+        return save_host_product_state_file_if_current(
+            path, intermediate, *loaded.state) ==
+            HostProductSaveStatus::Saved ? 0 : 9;
+    }
     if (family == "host" && action == "cas-contend" && argc == 6) {
         const auto loaded = load_host_product_state_file(path);
         if (!loaded.loaded()) return 4;

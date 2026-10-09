@@ -1,3 +1,5 @@
+> **Source-backed SRAM symbol correction (2026-10-09):** `docs/BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md` narrows indexed result-table base `$77:0618` after external compiled-code examination. QA-02/03/Records should verify whether any production consumer assumes it holds fixed P1/P2 last-race results before making changes. This is not an admitted data-loss defect.
+
 > **Cross-project intake (2026-10-09):** Ema Guillén's independently named USA-ROM disassembly, nine game routes and dump comparison tools are pinned in `reference/imported/reverse-engineering/baldosa-uniracers-recomp/`. Prioritized experiments and exact provenance: [`docs/BALDOSA-RECOMP-CROSSPROJECT-INTEGRATION.md`](BALDOSA-RECOMP-CROSSPROJECT-INTEGRATION.md). QA-01/07 first test Zoom Zoo to a genuine paired terminal result; QA-08 test the opt-in OAM/HDMA fix against exact P1/P2 source visibility. Do not broaden framework, add generic QA harnesses or mark coverage complete from external checkpoint claims.
 
 # Work Queue

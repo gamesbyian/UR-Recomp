@@ -279,6 +279,45 @@ artifact SHA-verified reconstruction is a separate, reproducible
 confirmation of the original run already executed in 2014-movie
 workflow `37184022134`.
 
+## Historical complete-original results versus pending fresh native pairing (2026-10-09)
+
+The archived, anchored 2014 original Snes9x movie already has **settled
+original-only** Crawler results: Dragster race menu `99` at movie frame 2874;
+Zoom Zoo circuit `BC` at 8353 with MIKE total 1:16.46, best lap 0:25.10;
+Bowl scored 45-second stunt with tally `2F` at 11915, final `18` at
+11985 and MIKE score 764. The source is
+`analysis/generated/result-screens-probe.json`, created by
+`tools/probe_result_screens.py` on the original Snes9x reference.
+This is meaningful **original event-complete source evidence**, but is
+**not** a new USA release-course acceptance: it is not an independent,
+scene-rebased native/authentic comparison and does not establish matching
+native result or contact/lap semantics.
+
+`tools/probe_original_event_complete.py` (implementation PR #1055;
+[bounded execution plan](QA01-2014-COMPLETE-EVENT-TRANSPLANT.md)) now
+attempts a genuine original/native pairing: pin original SMV SRAM, discover
+course entry and result from independently executed source movie, calibrate
+fresh guest entries through stock menus, transplant the exact original input
+relative to each entry, and compare scene samples plus actual guest PPU
+result text and score. It fails closed for a missing original course/result
+source, missing non-Dragster finish time, unmatched result, zero-score stunt
+or circuit lacking two sampled lap decrements. Crawler Switcher is the
+first non-Dragster Race candidate; its complete original source result
+has not yet been confirmed and is an **explicit unresolved producer
+dependency**, not a successful replay. No binary pairing was executed
+as part of #1055's initial tool-only contribution, so the census
+remains **0/45 USA complete; 3 partial; 42 unverified** and the release
+ledger stays **in_progress**.
+
+**Next actual discriminator:** execute Zoo and Bowl on prepared pinned
+Snes9x plus native Authentic binaries, verify source-entry state,
+controller latch phase and result fidelity; independently find an actual
+Switcher finish in original source or select another completed
+non-Dragster Race. Only promote a reviewed, fresh-process exact-identity
+witness to the 45-row machine-readable census. The disputed Dragster
+frame-2903 consumed contact remains unresolved absent instruction-PC
+evidence of an actual result divergence.
+
 ## Non-Dragster counterexample priorities
 
 1. **Zoom Zoo, USA circuit A (02):** historical hand-entered start X

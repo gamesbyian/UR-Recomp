@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "source": "Merged Baldosa 342-world 4x native CI evidence",
+  "date_utc": "2026-10-09",
+  "repository": "gamesbyian/UR-Recomp",
+  "merged_pr": 1092,
+  "merged_commit": "fc2c4d48d46f754106d7f3028951597b348e0324",
+  "workflow_run_id": 38004162535,
+  "workflow_job_id": 114069196561,
+  "tested_head": "eb0b61934296e10c9129cf697ba18f3e630a1f73",
+  "baldosa_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "baldosa_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "simulated_guest_geometry": [
+    256,
+    224
+  ],
+  "native_world_logical": [
+    342,
+    224
+  ],
+  "native_4x_raster": [
+    1368,
+    896
+  ],
+  "per_side_visible_added_world_pixels": 43,
+  "per_side_materialized_backing_pixels": 48,
+  "calibrated_split_viewports": 2,
+  "guest_crc_identical_all_frames": true,
+  "guest_crc_frames": 2473,
+  "distinct_native_image_pairs": 6,
+  "four_margin_nonflat_captures": 6,
+  "all_4x4_blocks_exact": true,
+  "frame_raster_sha256": [
+    {
+      "sim_frame": 1808,
+      "one_x": "bebcb839b63d99c8c9bbace0836dbc2af003ba7dd76743ab3f8ca31baadfe655",
+      "four_x": "2ba0a890186c8e584528db6e283dcb2a7753ff0970558220b21e784374f84fd0"
+    },
+    {
+      "sim_frame": 1824,
+      "one_x": "95ffd98ca21239bf43aad690c6240246274cd154517d3f0b127efff073bcd8f5",
+      "four_x": "c08de19b04992dc796a419d53368caff575ffbb324404f82343f37a847587e80"
+    },
+    {
+      "sim_frame": 1840,
+      "one_x": "4ead1a40c2d5b9c2a70a3caed148e3cb06cfdcbabca8e56ba039f4b903cfc49e",
+      "four_x": "1c965f6d0d40180a691024d5cbaa88d6ac117fcf284eee6f2c2e797dd4c0a722"
+    },
+    {
+      "sim_frame": 1856,
+      "one_x": "0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9",
+      "four_x": "2c61d698f6922a2724acf550c6a42e185c0f3e1824db824a0aa741a9f06a6535"
+    },
+    {
+      "sim_frame": 1872,
+      "one_x": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "four_x": "05382b590d71b8bbd25e90e1616a9bb8c7aad87a78ee4b3d101d4b2527e542ce"
+    },
+    {
+      "sim_frame": 1888,
+      "one_x": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+      "four_x": "b79ca244c5aaf122ac437059d06cb6e07e67dffefb45a63de3cf5d9e3d7b1d44"
+    }
+  ],
+  "cross_density_pixel_identity": "Not measured in this CI; independent same-guest-frame cross-density parity gate under development.",
+  "physical_3840x2160_output_proven": false,
+  "authored_racer_replacement_in_wide_proven": false,
+  "source_slot_obj_and_foreground_parity_proven": false,
+  "complete_usa_course_events_accepted": 0,
+  "limits": "Six native 2P Baldosa scripted route samples, not original-emulator complete-event or foreground PPU parity. CI artifacts retain seven days; raw exact raster hashes persist here."
+}

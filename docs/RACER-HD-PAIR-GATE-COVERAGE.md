@@ -189,6 +189,28 @@ counts, is still needed. Conservatively rejecting an unsafe capture can
 upper bound in the retained 2,641-frame 2P trace. Review the temporal
 Original/HD transitions before claiming Remastered visual completeness.
 
+## Full-pair racer OBJ tile provenance before destructive capture
+
+A second independent QA-08 guard now checks that slots 98 and 97 are
+P1's confirmed race graphic tile family (`0x00/0x08`) and that slots
+99 and 96 are P2's (`0x80/0x88`) **before** removing the whole
+`[96,100)` OAM range for Remastered. Size/coordinate/split-high-OAM
+checks alone did not establish object identity: a stale or coincidental
+presentation registration could otherwise remove an unrelated object
+when moving between scene modes. The diagnostic P1-only path already
+required exactly this tile provenance; the full-pair production path
+now enforces it too.
+
+The narrow regression mutates each of the four tiles independently
+while leaving legitimate OAM dimensions and priorities untouched,
+and asserts Original fallback. Valid 00/08 and 80/88 pairs still
+admit the normal full-pair path. **This is source-contracted defensive
+correction, not proof of a reproduced 1P/VS visible sprite deletion**.
+The current replacement engine remains a two-viewport compositor,
+with 1P, VS, split-screen transitions, active sprite layer attribution
+and foreground BG occlusion needing separate native moving-frame proof.
+No guest RAM write, physics change or asset widening is introduced.
+
 ## Next pose priorities when the whole-pair policy remains
 
 The same exact census ranks missing player-local families *with the opposite

@@ -2,6 +2,7 @@
 
 #include "local_tournament_fixture_receipt.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <cerrno>
 #include <charconv>
@@ -309,6 +310,35 @@ LocalTournamentSessionFileResult load_local_tournament_session_definition(
 LocalTournamentSessionFileResult
 load_historical_local_tournament_session_definition(const std::string& path) {
     return load_session_impl(path, nullptr);
+}
+
+LocalTournamentSessionFileStatus save_local_tournament_session_definition_if_current(
+    const std::string& path,
+    const std::optional<LocalTournamentSessionDefinition>& expected_current,
+    const LocalTournamentSessionDefinition& next) {
+    const auto encoded = encode_local_tournament_session_definition(next);
+    if (path.empty() || encoded.empty()) {
+        return LocalTournamentSessionFileStatus::Rejected;
+    }
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return LocalTournamentSessionFileStatus::IoError;
+
+    // Compare against historical canonical bytes: an existing session's
+    // entrants may since have left the profile catalog, but that cannot
+    // authorize silently overwriting its durable active pointer.
+    const auto loaded = load_historical_local_tournament_session_definition(path);
+    if (loaded.status == LocalTournamentSessionFileStatus::IoError)
+        return LocalTournamentSessionFileStatus::IoError;
+    if (expected_current) {
+        if (!loaded.loaded() ||
+            encode_local_tournament_session_definition(*loaded.session) !=
+                encode_local_tournament_session_definition(*expected_current)) {
+            return LocalTournamentSessionFileStatus::Conflict;
+        }
+    } else if (loaded.status != LocalTournamentSessionFileStatus::Missing) {
+        return LocalTournamentSessionFileStatus::Conflict;
+    }
+    return save_local_tournament_session_definition(path, next);
 }
 
 } // namespace ur::product

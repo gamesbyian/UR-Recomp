@@ -382,6 +382,7 @@
     "review_state_caveat": "PR states recorded at planning review; refresh before work. No listed PR qualifies as release-accepted solely by merging.",
     "campaign_interpretation": "Four integrated journeys A-D, plus targeted storage fault cuts overlaying B/D; original five categories retained for historical continuity.",
     "candidate_rule": "Never treat prior SHA as an exact newer candidate acceptance; rerun relevant shared smoke and affected gates; record actual ZIP hash.",
-    "scope_controls": "USA primary 45; PAL/prototype 90 comparative; Original/Upscaled versus Remastered exposure and public ROM/legal decision handled explicitly at release level."
+    "scope_controls": "USA primary 45; PAL/prototype 90 comparative; Original/Upscaled versus Remastered exposure and public ROM/legal decision handled explicitly at release level.",
+    "product_root_implementation_issue": "https://github.com/gamesbyian/UR-Recomp/issues/1053"
   }
 }

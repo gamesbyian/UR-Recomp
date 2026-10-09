@@ -65,7 +65,7 @@ jobs:
         run: |
           set -euo pipefail
           sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
-          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends             ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev             libxrandr-dev libxcursor-dev libxi-dev libxss-dev             libwayland-dev libxkbcommon-dev libegl-dev libgles-dev             libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev             libdbus-1-dev
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends             ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev             libxrandr-dev libxcursor-dev libxi-dev libxss-dev             libwayland-dev libxkbcommon-dev libegl-dev libgles-dev             libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev             libdbus-1-dev xvfb x11-utils
 
       - name: Configure pinned Ema native AOT core without source changes
         shell: bash
@@ -84,7 +84,7 @@ jobs:
           # but the upstream route wrapper copies a file before first boot.
           # Seed only the external test fixture, never upstream source.
           if [ ! -f baldosa/build/config.ini ]; then
-            printf '[Sound]\\nEnableAudio = 0\\n' > baldosa/build/config.ini
+            printf '%s\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
           fi
           test -f baldosa/build/config.ini
           ls -l baldosa/build/UniracersSNESRecomp baldosa/build/config.ini
@@ -101,7 +101,23 @@ jobs:
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-evidence"
           export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
-          export BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          # Upstream route.sh sets SDL_VIDEODRIVER=dummy. The native host
+          # uses SDL_CreateRenderer; provide a real software-capable X11 display.
+          Xvfb :99 -screen 0 1280x720x24 -ac > "$RUNNER_TEMP/baldosa-xvfb.log" 2>&1 &
+          export DISPLAY=:99
+          for _attempt in 1 2 3 4 5; do
+            xdpyinfo -display :99 >/dev/null 2>&1 && break
+            sleep 1
+          done
+          xdpyinfo -display :99 >/dev/null
+          cat > "$RUNNER_TEMP/baldosa-x11-exec" <<'SH'
+          #!/usr/bin/env bash
+          export SDL_VIDEODRIVER=x11
+          exec "$BALDOSA_REAL_BIN" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/baldosa-x11-exec"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export BIN="$RUNNER_TEMP/baldosa-x11-exec"
           failed=0
           for name in race_1p race_2p_split zoomzoo_1p; do
             echo "::group::Baldosa route: $name"

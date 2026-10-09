@@ -156,6 +156,31 @@ class DragsterFinishContactTransitionWitnessTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "prior stored"):
             infer_pre_dispatch_course_word(self.contract, altered)
 
+    def test_phase_causality_rejects_reverse_or_multi_lap_discontinuity(self):
+        rows = self.trace["samples"]
+        reverse = [dict(item) for item in rows]
+        for item in reverse[:2]:
+            item.update(checkpoint=1, finish_gate=1, laps_remaining=0)
+        for item in reverse[2:]:
+            item.update(checkpoint=3, finish_gate=0, laps_remaining=1)
+        with self.assertRaisesRegex(ValueError, "valid observed finish/lap"):
+            infer_pre_dispatch_course_word(self.contract, reverse)
+
+        skipped_lap = [dict(item) for item in rows]
+        for item in skipped_lap[:2]:
+            item["laps_remaining"] = 2
+        with self.assertRaisesRegex(ValueError, "valid observed finish/lap"):
+            infer_pre_dispatch_course_word(self.contract, skipped_lap)
+
+    def test_phase_discriminator_uses_actual_observed_frame_and_words(self):
+        shifted = [dict(item, frame=item["frame"] + 100) for item in self.trace["samples"]]
+        report = infer_pre_dispatch_course_word(self.contract, shifted)
+        self.assertEqual(report["first_progress_change_frame"], 3003)
+        self.assertIn("frame 3003", report["discriminator"])
+        self.assertIn("2024", report["discriminator"])
+        self.assertIn("2020", report["discriminator"])
+        self.assertNotIn("frame 2903", report["discriminator"])
+
     def test_all_confirmed_checkpoint_family_contacts_have_exact_rom_cells(self):
         by_slot = {}
         for row in self.trace["samples"]:

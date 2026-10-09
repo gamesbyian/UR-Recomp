@@ -80,7 +80,7 @@ jobs:
           assert len(image) > 65536, "empty or placeholder executable"
           assert image[:2] == b"MZ", "missing DOS header"
           pe = struct.unpack_from("<I", image, 0x3c)[0]
-          assert image[pe:pe+4] == b"PE\\x00\\x00", "missing PE signature"
+          assert image[pe:pe+4] == b"PE\x00\x00", "missing PE signature"
           machine = struct.unpack_from("<H", image, pe + 4)[0]
           magic = struct.unpack_from("<H", image, pe + 24)[0]
           assert machine == 0x8664 and magic == 0x20b, (machine, magic)

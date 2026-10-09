@@ -34,6 +34,18 @@ def capture(menu=0xBC, text=None):
 
 
 class CompleteEventProducerTests(unittest.TestCase):
+    def test_terminal_result_is_guest_frame_bound_not_menu_alone(self):
+        log = ("script f=3190 dump race-entered\n"
+               "script f=8353 dump result-onset\n"
+               "script f=8359 dump result-stable\n")
+        self.assertEqual(target.observed_dump_frame(log, "result-onset"), 8353)
+        self.assertEqual(target.observed_dump_frame(log, "result-stable"), 8359)
+        with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
+            target.observed_dump_frame(log, "result-tally")
+        with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
+            target.observed_dump_frame(log + "script f=8354 dump result-onset\n",
+                                       "result-onset")
+
     def test_source_anchors_come_from_real_state_change_not_guess(self):
         event = target.source_event(source_states(3190, 8353, 1, 0xBC),
                                     1, 0xBC)

@@ -1,4 +1,5 @@
 #include "completed_run_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <algorithm>
 #include <atomic>
@@ -116,6 +117,14 @@ bool append_completed_run_record(
         fs::remove_all(staging, ec);
         return false;
     }
+    // Closing the codec's ofstream drains buffered data but does not request
+    // persistence from the OS. Never make a .urrun name visible if the staged
+    // run itself could not be flushed to the storage device.
+    if (!detail::sync_closed_staged_file(staged_file)) {
+        set_detail(detail, "cannot durably flush staged run record");
+        fs::remove_all(staging, ec);
+        return false;
+    }
 
     const std::string prefix = "run-" + timestamp_prefix();
     for (unsigned suffix = 0; suffix < 10000; ++suffix) {
@@ -130,6 +139,7 @@ bool append_completed_run_record(
             fs::remove_all(staging, ec);
             return false;
         }
+        detail::sync_published_directory_best_effort(directory_path);
         fs::remove_all(staging, ec);
         if (stored_path) *stored_path = path.string();
         return true;

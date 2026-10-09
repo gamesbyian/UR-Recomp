@@ -1,5 +1,8 @@
 # Work Queue
 
+> **Claude handoff recovery, 2026-10-08 closed at branch-file level:** All 36 `claude/*` branches examined: 13 have no ahead commits; 23 have divergent ancestry, but none of their changed paths are missing from `main`. Principal corrupt-SRAM, input-latch, P2 seat text, match-summary, split-timing and P2-HD manifest code/tests already exist. The older P2-HD renderer lacks the current SNES OBJ Y-wrap fix. **No historical branch is approved for a raw merge or cherry-pick.** See [the completed branch-file audit](CLAUDE-HANDOFF-AUDIT-2026-10-08.md). P0 release-quality acceptance remains unverified; continue current-main QA-02 cross-artifact crash recovery, QA-03 tournament/controller device journeys, QA-09 Records/layout and QA-08 HD/stock motion checks. Do not restore old shortcut assertions or replace newer host code.
+
+
 > **Content-level recovery verification, 2026-10-08:** Exact current-main blob comparisons confirm that Claude's malformed SRAM containment, host input-release latch, multiplayer match summary, two-player join text, and split-delta presentation implementations are already present. See the follow-up section of [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md). Their remaining work is behavioral acceptance, not blind branch cherry-picks. Older Records host differs and must not overwrite newer main.
 
 

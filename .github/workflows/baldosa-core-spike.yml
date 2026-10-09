@@ -346,6 +346,16 @@ jobs:
             --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_4x_presentation.json"
           echo "PASS: 1368x896 native density, exact 4x source-wide nearest pixels in both split margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          # Two separately executed native guest processes must emit the
+          # *same* logical Original 342-column image at each shared guest
+          # frame. A perfect 4x nearest block with the wrong color must fail.
+          # Keep the exact paired pixel and source-frame hashes in evidence.
+          python3 tools/check_baldosa_wide_density_parity.py \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-captures" \
+            --four-x "$RUNNER_TEMP/baldosa-ws342-captures-4x" \
+            --min-shared 4 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_density_parity.json"
+          echo "PASS: aligned 1x vs 4x 342-column native full-frame pixel identity, not just internally uniform 4x blocks" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -383,6 +393,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam

@@ -5239,6 +5239,12 @@ void complete_multiplayer_run_record_capture() {
                 *g_multiplayer_capture_tournament_attempt,
                 stored_path,
             };
+            // An otherwise successful stock 2P race has NOT earned its
+            // tournament points yet. Show a player-readable recovery action
+            // on the current stock Results screen, not just a log line.
+            g_local_tournament_result_notice = "SAVE PENDING - F4 RETRY";
+            g_local_tournament_result_notice_screen =
+                g_ram ? g_ram[0x009F] : 0;
             product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_SAVE_PENDING");
         } else {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");

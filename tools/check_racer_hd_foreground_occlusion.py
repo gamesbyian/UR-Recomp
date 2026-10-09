@@ -11,6 +11,7 @@ other stock OBJ, and palette effects can also produce differences.
 from __future__ import annotations
 
 import argparse
+from collections import Counter
 import json
 from pathlib import Path
 import sys
@@ -53,6 +54,8 @@ def analyze(original: bytes, original_control: bytes, hd: bytes,
     scale = hw // sw
     if scale not in range(1, 5):
         raise ValueError("unsupported replacement raster density")
+    backdrop_rgb = None
+    backdrop_sample_count = None
     if obj_only_ppm is None:
         obj_rgba = parse_obj_pam(isolated)
         layer_origin = "isolated-ARGB-layer-PAM"
@@ -60,17 +63,26 @@ def analyze(original: bytes, original_control: bytes, hd: bytes,
         ow, oh, layer_rgb = parse_ppm(obj_only_ppm)
         if (ow, oh) != (WIDTH, HEIGHT):
             raise ValueError("OBJ-only PPM must be exactly 256x224")
-        # A full Original frame rendered with the pinned native PPU
-        # layer filter bit4 (OBJ) and no BG is an independent isolation
-        # witness, even when the optional PPU overlay plane is empty.
-        # Black is ambiguous, so exclude it as unobservable rather
-        # than manufacturing false foreground classifications.
+        # OBJ-only does not force the backdrop to black: native uses red.
+        # PPM lacks alpha, so infer a uniformly dominant backdrop RGB,
+        # excluding all matching pixels. This intentionally excludes
+        # indistinguishable real OBJ pixels too: a conservative lower bound.
+        colors = Counter(
+            layer_rgb[i:i + 3] for i in range(0, len(layer_rgb), 3)
+        )
+        majority, backdrop_sample_count = colors.most_common(1)[0]
+        if backdrop_sample_count < (WIDTH * HEIGHT * 3) // 4:
+            raise ValueError(
+                "OBJ-only backdrop is not sufficiently uniform to "
+                "disambiguate from sprite pixels"
+            )
+        backdrop_rgb = list(majority)
         obj_rgba = bytearray(WIDTH * HEIGHT * 4)
         for i in range(WIDTH * HEIGHT):
             rgb = layer_rgb[i * 3:i * 3 + 3]
             obj_rgba[i * 4:i * 4 + 3] = rgb
-            obj_rgba[i * 4 + 3] = 255 if any(rgb) else 0
-        layer_origin = "independent-original-OBJ-only-PPM-nonblack-lower-bound"
+            obj_rgba[i * 4 + 3] = 255 if rgb != majority else 0
+        layer_origin = "independent-original-OBJ-only-PPM-backdrop-excluded-lower-bound"
     mask = allowed_logical_mask(live_placements(native_log, frame))
     visible_stock_obj = 0
     ambiguous_obj_pixels = 0
@@ -113,6 +125,8 @@ def analyze(original: bytes, original_control: bytes, hd: bytes,
     return {
         "schema_version": 1,
         "source_layer_classification": layer_origin,
+        "excluded_backdrop_rgb": backdrop_rgb,
+        "backdrop_pixel_count": backdrop_sample_count,
         "frame": frame,
         "density": scale,
         "native_split_obj_opaque_pixels": visible_stock_obj + ambiguous_obj_pixels,

@@ -27,6 +27,7 @@ import extract_menu_visual_language as visual
 import probe_attract_cycle as trace
 import probe_jumpover_fallthrough_native as engine
 import probe_original_non_dragster_course_entry as entry
+import probe_result_screens as result_probe
 import probe_tier_opponents as textdecode
 from probe_runtime_course_payload import is_fully_loaded_course
 from rnc_method1 import unpack_method1
@@ -81,11 +82,16 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     entries = [f for f in frames if states[f]["track"] == track
                and states[f]["in_race"] == 1
                and (f == frames[0] or states.get(f - 1, {}).get("in_race") != 1)]
-    results = [f for f in frames if states[f]["menu"] == result_menu
-               and states.get(f - 1, {}).get("menu") != result_menu]
+    # DP $9F is reused as scratch. A single occurrence of 99/BC/18
+    # mid-race is not a legitimate result. Reuse the already validated
+    # stock result-screen analyzer and its >=8-frame stable-menu rule.
+    stable_results = result_probe.result_runs(states)
+    results = [row for row in stable_results
+               if row["menu"] == result_menu and row["in_race"] != 1
+               and states[row["start"]]["track"] == track]
     for start in entries:
-        stop = next((f for f in results if f > start and
-                     states[f]["track"] == track), None)
+        stop = next((row["start"] for row in results
+                     if row["start"] > start), None)
         if stop is None:
             continue
         # Intervening active gameplay on *another* course makes this
@@ -96,8 +102,10 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
             continue
         if stop - start < 250:
             raise CompleteEventError("implausibly short source event")
-        tally = next((f for f in frames if start < f < stop
-                      and states[f]["menu"] == 0x2F), None)
+        tally = next((row["start"] for row in stable_results
+                      if row["menu"] == 0x2F and row["in_race"] != 1
+                      and start < row["start"] < stop
+                      and states[row["start"]]["track"] == track), None)
         if result_menu == 0x18 and tally is None:
             raise CompleteEventError("Stunt result missing prior 0x2F tally")
         return {"original_entry_frame": start, "original_result_frame": stop,

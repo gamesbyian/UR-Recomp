@@ -31,6 +31,12 @@ HostProfileState profile(unsigned value) {
     return state;
 }
 
+HostProfileState initial_unregistered_profile(unsigned value) {
+    auto state = profile(value);
+    state.racer_identity = HostRacerIdentity{"QA Racer", 2u};
+    return state;
+}
+
 void terminate_before_publish() { std::_Exit(77); }
 bool fail_before_durable_stage(std::FILE*) { return false; }
 
@@ -150,6 +156,20 @@ int main(int argc, char** argv) {
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
     }
+    if (family == "profile" && action == "orphan-crash") {
+        const std::filesystem::path root(path);
+        std::error_code ec;
+        std::filesystem::create_directories(root, ec);
+        if (ec) return 9;
+        const auto profile_path = (root / "host-profile.txt").string();
+        const auto status = save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, profile_path, std::nullopt,
+            initial_unregistered_profile(value));
+        if (status != HostProfileSaveStatus::Saved) return 9;
+        // Same first-phase production CAS, no catalog row: sudden death at
+        // the boundary after a completed profile publication.
+        std::_Exit(78);
+    }
     if (family == "profile" && action == "orphan-claim" && argc == 6) {
         const std::string profile_path =
             (std::filesystem::path(path) / "host-profile.txt").string();
@@ -158,7 +178,7 @@ int main(int argc, char** argv) {
         if (!pristine_unregistered_profile_creation_root(path)) return 6;
         const auto loaded = load_host_profile_state_file(
             ExecutionMode::Modern, profile_path, "qa-profile");
-        if (!loaded.loaded() || !(*loaded.state == profile(value))) return 6;
+        if (!loaded.loaded() || !(*loaded.state == initial_unregistered_profile(value))) return 6;
 
         const std::string catalog_path(argv[5]);
         const auto current = load_host_profile_catalog_file(catalog_path);
@@ -179,7 +199,7 @@ int main(int argc, char** argv) {
             ExecutionMode::Modern,
             (std::filesystem::path(path) / "host-profile.txt").string(),
             "qa-profile");
-        return loaded.loaded() && *loaded.state == profile(value) ? 0 : 6;
+        return loaded.loaded() && *loaded.state == initial_unregistered_profile(value) ? 0 : 6;
     }
     if (family == "profile" && action == "root-reusable") {
         return reusable_aborted_profile_creation_root(path) ? 0 : 6;

@@ -463,7 +463,7 @@ int racer_hd_draw_frame(
     if (capture_only != nullptr && capture_only[0] == '1' &&
         capture_only[1] == '\0') {
         std::fprintf(
-            stderr, "UR_RACER_HD_CAPTURE_ONLY frame=%u instances=%zu\\n",
+            stderr, "UR_RACER_HD_CAPTURE_ONLY frame=%u instances=%zu\n",
             g_sim_frame, g_instance_count
         );
         return 1;

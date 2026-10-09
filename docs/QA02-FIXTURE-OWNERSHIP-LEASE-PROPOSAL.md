@@ -88,6 +88,9 @@ as an unmerged candidate. Production arm acquires it nonblocking and
 retains its handle in the coordinator through commit or cancellation.
 Arm also rechecks the current active archive and receipt-derived fixture
 completion to refuse stale in-memory rearm after another window finishes.
-Native simultaneous processes and crash-released retry exercise its
-fail-fast Busy and OS death semantics. This is still not a shipped menu
-or permission to downgrade QA-02 P0 before L4.
+Native simultaneous processes, std::_Exit and an externally forced
+OS hard kill exercise fail-fast Busy and automatic lease release.
+The existing Modern panel shows "FIXTURE IN USE" for a healthy rival,
+without retrying or mutating its checkpoint. This is a narrow integration
+message, **not** a complete Retry/Discard UX after process death and not
+permission to downgrade QA-02 P0 before L4.

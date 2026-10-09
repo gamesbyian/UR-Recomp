@@ -259,7 +259,24 @@ jobs:
 
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
-          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1 UR_RACER_HD_CENSUS=1
+          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" \
+            UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 \
+            UR_RACER_HD_OBJ_LAYER_PAM="$RUNNER_TEMP/racer-hd-legacy-obj-1220.pam" \
+            UR_RACER_HD_OBJ_LAYER_FRAME=1220
+
+          # The pinned legacy PPU previously populated the source OBJ
+          # z-buffer but failed to publish its ARGB overlay render line.
+          # Require at least one truly opaque alpha pixel in the native
+          # accepted frame. Do not mistake a written all-transparent PAM
+          # for successfully extracted Original graphics.
+          python3 - "$RUNNER_TEMP/racer-hd-legacy-obj-1220.pam" <<'PY'
+          import pathlib, sys
+          from tools.check_racer_hd_foreground_occlusion import parse_obj_pam
+          rgba = parse_obj_pam(pathlib.Path(sys.argv[1]).read_bytes())
+          alpha = sum(rgba[i] != 0 for i in range(3, len(rgba), 4))
+          assert alpha > 0, "legacy PPU OBJ capture is entirely transparent"
+          print(f"UR_RACER_HD_LEGACY_OBJ_CAPTURE PASS opaque_pixels={alpha}")
+          PY
 
           # These are actual host presentation results, not registration matches.
           python3 tools/measure_racer_hd_live_draws.py \
@@ -1566,6 +1583,7 @@ jobs:
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
+            ${{ runner.temp }}/racer-hd-legacy-obj-1220.pam
             ${{ runner.temp }}/racer-wide-original.log
             ${{ runner.temp }}/racer-wide-hd.log
             ${{ runner.temp }}/racer-wide-original-1220.ppm

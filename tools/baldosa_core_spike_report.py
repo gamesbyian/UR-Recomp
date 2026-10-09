@@ -28,6 +28,8 @@ def summarize(evidence: Path) -> dict:
         oam = sorted((target / "dump").glob("*.oam.bin"))
         sram = sorted((target / "dump").glob("*.sram.bin"))
         log = target / "log.txt"
+        crc_file = target / "fd/crc.txt"
+        crcs = crc_file.read_text(encoding="utf-8").splitlines() if crc_file.is_file() else []
         observed.append({
             "route": name,
             "exit_code": exit_code,
@@ -35,6 +37,8 @@ def summarize(evidence: Path) -> dict:
             "wram_checkpoints": [p.name for p in raw],
             "oam_checkpoints": [p.name for p in oam],
             "sram_checkpoint_count": len(sram),
+            "recorded_frame_crc_count": len(crcs),
+            "last_frame_crc": crcs[-1] if crcs else None,
             "log_sha256": hashlib.sha256(log.read_bytes()).hexdigest() if log.exists() else None,
             "original_native_terminal_result_admitted": False,
             "complete_event_qa_credit": 0,

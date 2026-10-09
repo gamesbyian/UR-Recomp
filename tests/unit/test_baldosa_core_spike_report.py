@@ -28,10 +28,14 @@ class BaldosaSpikeReportTest(unittest.TestCase):
             (sub / "log.txt").write_text("script complete\n")
             (sub / "dump" / "end.wram.bin").write_bytes(b"WRAM")
             (sub / "dump" / "end.oam.bin").write_bytes(b"OAM")
+            (sub / "fd").mkdir()
+            (sub / "fd" / "crc.txt").write_text("0x00000001\\n0x00000002\\n")
             x = mod.summarize(root)["routes"][0]
             self.assertTrue(x["ran_and_exited_cleanly"])
             self.assertEqual(x["wram_checkpoints"], ["end.wram.bin"])
             self.assertEqual(x["oam_checkpoints"], ["end.oam.bin"])
+            self.assertEqual(x["recorded_frame_crc_count"], 2)
+            self.assertEqual(x["last_frame_crc"], "0x00000002")
             self.assertFalse(x["original_native_terminal_result_admitted"])
             self.assertEqual(x["complete_event_qa_credit"], 0)
 

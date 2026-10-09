@@ -96,7 +96,7 @@ jobs:
           SDL_AUDIODRIVER: dummy
           PIXELS: "0"
           KEEP_WRAM: "0"
-          TMO: "180"
+          TMO: "95"
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/baldosa-evidence"
@@ -127,6 +127,10 @@ jobs:
               rc=$?
               echo "$rc" > "$RUNNER_TEMP/baldosa-evidence/$name.exit"
               failed=1
+              echo "::warning::Route $name stopped with exit code $rc. Last 55 native guest log lines:"
+              if test -f "$RUNNER_TEMP/baldosa-evidence/$name/log.txt"; then
+                tail -n 55 "$RUNNER_TEMP/baldosa-evidence/$name/log.txt"
+              fi
             fi
             echo "::endgroup::"
           done

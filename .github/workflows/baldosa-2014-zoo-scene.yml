@@ -151,6 +151,7 @@ jobs:
             --original-log "$ROOT/original-calibration.log" \
             --native-log "$ROOT/native-calibration/log.txt" \
             --source-report "$ROOT/input-provenance.json" \
+            --calibration-report "$ROOT/input-phase-report.json" \
             --out-original "$ROOT/original-input.txt" \
             --out-native "$ROOT/native-input.txt" \
             --report "$ROOT/input-phase-report.json"
@@ -199,3 +200,12 @@ jobs:
             ${{ runner.temp }}/zoo-scene/native/log.txt
             ${{ runner.temp }}/zoo-scene/original/*.wram.bin
             ${{ runner.temp }}/zoo-scene/native/dump/*.wram.bin
+            ${{ runner.temp }}/zoo-scene/original/*.fb.bmp
+            ${{ runner.temp }}/zoo-scene/original/*.vram.bin
+            ${{ runner.temp }}/zoo-scene/original/*.cgram.bin
+            ${{ runner.temp }}/zoo-scene/original/*.oam.bin
+            ${{ runner.temp }}/zoo-scene/original/*.info.json
+            ${{ runner.temp }}/zoo-scene/native/dump/*.fb.bmp
+            ${{ runner.temp }}/zoo-scene/native/dump/*.vram.bin
+            ${{ runner.temp }}/zoo-scene/native/dump/*.cgram.bin
+            ${{ runner.temp }}/zoo-scene/native/dump/*.oam.bin

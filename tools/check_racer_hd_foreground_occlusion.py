@@ -40,7 +40,8 @@ def parse_obj_pam(data: bytes) -> bytes:
 
 
 def analyze(original: bytes, original_control: bytes, hd: bytes,
-            isolated: bytes, native_log: str, frame: int) -> dict:
+            isolated: bytes, native_log: str, frame: int,
+            *, obj_only_ppm: bytes | None = None) -> dict:
     if original != original_control:
         raise ValueError("independent Original references differ")
     sw, sh, stock = parse_ppm(original)
@@ -52,7 +53,24 @@ def analyze(original: bytes, original_control: bytes, hd: bytes,
     scale = hw // sw
     if scale not in range(1, 5):
         raise ValueError("unsupported replacement raster density")
-    obj_rgba = parse_obj_pam(isolated)
+    if obj_only_ppm is None:
+        obj_rgba = parse_obj_pam(isolated)
+        layer_origin = "isolated-ARGB-layer-PAM"
+    else:
+        ow, oh, layer_rgb = parse_ppm(obj_only_ppm)
+        if (ow, oh) != (WIDTH, HEIGHT):
+            raise ValueError("OBJ-only PPM must be exactly 256x224")
+        # A full Original frame rendered with the pinned native PPU
+        # layer filter bit4 (OBJ) and no BG is an independent isolation
+        # witness, even when the optional PPU overlay plane is empty.
+        # Black is ambiguous, so exclude it as unobservable rather
+        # than manufacturing false foreground classifications.
+        obj_rgba = bytearray(WIDTH * HEIGHT * 4)
+        for i in range(WIDTH * HEIGHT):
+            rgb = layer_rgb[i * 3:i * 3 + 3]
+            obj_rgba[i * 4:i * 4 + 3] = rgb
+            obj_rgba[i * 4 + 3] = 255 if any(rgb) else 0
+        layer_origin = "independent-original-OBJ-only-PPM-nonblack-lower-bound"
     mask = allowed_logical_mask(live_placements(native_log, frame))
     visible_stock_obj = 0
     ambiguous_obj_pixels = 0
@@ -94,6 +112,7 @@ def analyze(original: bytes, original_control: bytes, hd: bytes,
         raise ValueError("isolated OBJ surface has no opaque racer pixels")
     return {
         "schema_version": 1,
+        "source_layer_classification": layer_origin,
         "frame": frame,
         "density": scale,
         "native_split_obj_opaque_pixels": visible_stock_obj + ambiguous_obj_pixels,
@@ -117,7 +136,9 @@ def main() -> int:
     ap.add_argument("--original", type=Path, required=True)
     ap.add_argument("--original-control", type=Path, required=True)
     ap.add_argument("--hd", type=Path, required=True)
-    ap.add_argument("--obj-layer", type=Path, required=True)
+    group = ap.add_mutually_exclusive_group(required=True)
+    group.add_argument("--obj-layer", type=Path)
+    group.add_argument("--obj-only-ppm", type=Path)
     ap.add_argument("--native-log", type=Path, required=True)
     ap.add_argument("--frame", type=int, required=True)
     ap.add_argument("--json-out", type=Path)
@@ -126,9 +147,10 @@ def main() -> int:
         args.original.read_bytes(),
         args.original_control.read_bytes(),
         args.hd.read_bytes(),
-        args.obj_layer.read_bytes(),
+        args.obj_layer.read_bytes() if args.obj_layer else b"",
         args.native_log.read_text(encoding="utf-8", errors="replace"),
         args.frame,
+        obj_only_ppm=args.obj_only_ppm.read_bytes() if args.obj_only_ppm else None,
     )
     result = json.dumps(report, sort_keys=True, indent=2) + "\n"
     if args.json_out:

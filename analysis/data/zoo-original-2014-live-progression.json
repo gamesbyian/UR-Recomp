@@ -323,6 +323,14 @@
     ],
     "race_active_to_first_motion_guest_frames": 205,
     "race_active_to_timer_tick_guest_frames": 206,
-    "phase_limit": "This is the first deviation of sampled original P1 X and first nonzero stopwatch byte after race flag active, not an instruction-time input-enabled or official Go HUD capture."
+    "phase_limit": "At frame3190 the active race has vertical movement/velocity immediately afterward; frame3395 is first P1 world-X coordinate displacement, NOT first physical motion. At frame3396 original stopwatch first increments. The first unchanged-X frame3394 has P1 Y=1563, first X-displaced frame3395 has Y=1562.",
+    "last_unchanged_p1_x_position_at_3394": [
+      9200,
+      1563
+    ],
+    "first_x_displaced_p1_position_at_3395": [
+      9185,
+      1562
+    ]
   }
 }

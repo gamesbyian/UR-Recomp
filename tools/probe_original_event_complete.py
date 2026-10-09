@@ -204,7 +204,7 @@ def archived_p1_positive_result(lines: list[str], stunt: bool) -> bool:
     """This one archived original movie races MIKE (P1). An opponent's score
     or clock cannot satisfy MIKE's achievement on a no-time result.
     Expand this identity oracle before admitting any *other* input source."""
-    pattern = r":\\s*[1-9]\\d*" if stunt else r"\\d+:[0-5]\\d\\.\\d\\d"
+    pattern = r":\s*[1-9]\d*" if stunt else r"\d+:[0-5]\d\.\d\d"
     for i, text in enumerate(lines):
         if text.strip() == "MIKE":
             return any(re.fullmatch(pattern, value.strip())

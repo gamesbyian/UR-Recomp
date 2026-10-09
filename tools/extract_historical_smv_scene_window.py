@@ -61,7 +61,9 @@ def window(data: bytes, meta: dict, first: int, frames: int) -> dict:
     if not (data[0x17] & 0x40) or meta.get("rom_info", {}).get("crc32") is None:
         raise MovieWindowError("original ROM CRC must be present")
     rom_info_start = u32(0x18) - 30
-    if rom_info_start < 64 or f"{u32(rom_info_start + 3):08x}" != meta["rom_info"]["crc32"]:
+    if rom_info_start < 64 or rom_info_start + 7 > len(data):
+        raise MovieWindowError("truncated or invalid archived SMV ROM-info header")
+    if f"{u32(rom_info_start + 3):08x}" != meta["rom_info"]["crc32"]:
         raise MovieWindowError("movie ROM CRC differs from pinned source metadata")
     controller_data_offset = u32(0x1C)
     if controller_data_offset != meta.get("controller_data_offset"):

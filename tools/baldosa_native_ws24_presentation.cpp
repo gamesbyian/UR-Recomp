@@ -12,6 +12,7 @@
 
 extern "C" {
 void ur_baldosa_hd_begin_sim_frame(unsigned);
+int ur_baldosa_hd_presentation_scale(void);
 int ur_baldosa_hd_draw_frame(std::uint8_t*, std::size_t,
     const std::uint8_t*, int, int, double);
 }
@@ -107,26 +108,51 @@ extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
     std::size_t pitch, const std::uint8_t* field,
     int width, int height, double alpha) {
     if (!racing_window() || !ur_ws_margins_calibrated() ||
-        width != wide_width() || height != 224 || !dst || !field ||
-        pitch < static_cast<std::size_t>(width) * 4)
+        width != wide_width() || height != 224)
         return ur_baldosa_hd_draw_frame(dst, pitch, field, width, height, alpha);
-    // The PPU produced actual 304- or 342-column course-derived pixels.
-    // The 342-column view uses 43 visible logical pixels per side while
-    // supplying 48 pixels' worth of host-owned course tiles for its
-    // fractional tile-phase guard. No authored sprite inventing.
-    for (int y = 0; y < height; ++y)
-        std::memcpy(dst + static_cast<std::size_t>(y) * pitch,
-                    field + static_cast<std::size_t>(y) * width * 4,
-                    static_cast<std::size_t>(width) * 4);
+
+    // One existing source/HD/fallback compositor owns every host frame.
+    // The wide PPU supplies genuine course-derived logical world pixels;
+    // density changes only the destination. The former path copied 1x
+    // pixels into a 4x output, leaving most of the buffer unwritten.
+    // Racer HD conservatively refuses to remove stock OBJ at 342 columns;
+    // its existing generic nearest fallback composes the complete wide field
+    // until source-visible wide OBJ replacement is independently validated.
+    const int scale = ur_baldosa_hd_presentation_scale();
+    if (!dst || !field || scale < 1 || scale > 4 ||
+        pitch < static_cast<std::size_t>(width) *
+                    static_cast<std::size_t>(scale) * 4u) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_FATAL unsafe wide density geometry width=%d height=%d "
+            "pitch=%zu density=%d\\n", width, height, pitch, scale);
+        std::abort();
+    }
+    const int handled = ur_baldosa_hd_draw_frame(
+        dst, pitch, field, width, height, alpha);
+    if (!handled) {
+        // An unhandled high-density draw would expose unwritten pixels.
+        // Original's existing 1x stock contract remains valid.
+        if (scale != 1) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_FATAL wide density compositor declined scale=%d\\n",
+                scale);
+            std::abort();
+        }
+        for (int y = 0; y < height; ++y)
+            std::memcpy(dst + static_cast<std::size_t>(y) * pitch,
+                        field + static_cast<std::size_t>(y) * width * 4u,
+                        static_cast<std::size_t>(width) * 4u);
+    }
     if (capture_count < 6 && frame_number != last_capture) {
-        const bool saved = dump_pam(dst, pitch, width, height, frame_number);
+        const bool saved = dump_pam(dst, pitch, width * scale, height * scale, frame_number);
         std::fprintf(stderr,
             full_view_enabled()
                 ? "UR_BALDOSA_WS342_PRESENT frame=%u width=%d height=%d "
-                  "pitch=%zu calibrated=1 saved=%d\n"
+                  "pitch=%zu calibrated=1 saved=%d density=%d raster=%dx%d\n"
                 : "UR_BALDOSA_WS24_PRESENT frame=%u width=%d height=%d "
-                  "pitch=%zu calibrated=1 saved=%d\n",
-            frame_number, width, height, pitch, saved ? 1 : 0);
+                  "pitch=%zu calibrated=1 saved=%d density=%d raster=%dx%d\n",
+            frame_number, width, height, pitch, saved ? 1 : 0,
+            scale, width * scale, height * scale);
         last_capture = frame_number;
         if (saved) ++capture_count;
     }

@@ -124,7 +124,7 @@ extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
                     static_cast<std::size_t>(scale) * 4u) {
         std::fprintf(stderr,
             "UR_BALDOSA_FATAL unsafe wide density geometry width=%d height=%d "
-            "pitch=%zu density=%d\\n", width, height, pitch, scale);
+            "pitch=%zu density=%d\n", width, height, pitch, scale);
         std::abort();
     }
     const int handled = ur_baldosa_hd_draw_frame(
@@ -134,7 +134,7 @@ extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
         // Original's existing 1x stock contract remains valid.
         if (scale != 1) {
             std::fprintf(stderr,
-                "UR_BALDOSA_FATAL wide density compositor declined scale=%d\\n",
+                "UR_BALDOSA_FATAL wide density compositor declined scale=%d\n",
                 scale);
             std::abort();
         }

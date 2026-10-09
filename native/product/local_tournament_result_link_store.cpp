@@ -1,4 +1,5 @@
 #include "local_tournament_result_link_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <atomic>
 #include <cerrno>
@@ -164,8 +165,13 @@ LinkPublishStatus publish_link(const std::string& path,
     }
     const auto wrote = std::fwrite(bytes.data(), 1, bytes.size(), file);
     const bool flushed = std::fflush(file) == 0;
+    // A fixture receipt is the authority for standings. A correct no-replace
+    // directory entry is not enough when its target's bytes remain in the
+    // OS page cache. Reject data-flush failure before publishing the receipt.
+    const bool synced = wrote == bytes.size() && flushed &&
+                        detail::sync_staged_file(file);
     const bool closed = std::fclose(file) == 0;
-    if (wrote != bytes.size() || !flushed || !closed) {
+    if (wrote != bytes.size() || !flushed || !synced || !closed) {
         cleanup();
         return LinkPublishStatus::IoError;
     }
@@ -186,6 +192,13 @@ LinkPublishStatus publish_link(const std::string& path,
     const bool published = !ec;
     const bool conflict = ec == std::errc::file_exists;
 #endif
+    if (published) {
+        // After the no-replace visibility transition, metadata flush is
+        // best effort. Never report "not committed" after a successful
+        // publication: the caller might then retry with a false result.
+        detail::sync_published_directory_best_effort(
+            final_path.parent_path());
+    }
     cleanup();
     if (published) return LinkPublishStatus::Published;
     if (conflict) return LinkPublishStatus::Conflict;

@@ -94,7 +94,7 @@ def patch_main_text(source: str) -> str:
     second_player_anchor = (
         "    .filter_player_input   = &ur_uniracers_modern_filter_player_input,\n"
     )
-    if (second_player_anchor in source and "filter_second_player_input" not in source:
+    if second_player_anchor in source and "filter_second_player_input" not in source:
         source = source.replace(
             second_player_anchor,
             second_player_anchor

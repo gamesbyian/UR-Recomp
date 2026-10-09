@@ -59,6 +59,14 @@ MultiplayerMatchRecord record(const CompletedRunRecord& run) {
 }  // namespace
 
 int main(int argc, char** argv) {
+    if (argc == 3 && std::string(argv[1]) == "crash") {
+        const auto run = run_record();
+        const auto match = record(run);
+        const auto abort_after_sidecar = [] { std::_Exit(77); };
+        (void)append_multiplayer_match_pair(
+            argv[2], run, match, nullptr, nullptr, abort_after_sidecar);
+        return 9; // callback must abort after canonical sidecar claim
+    }
     if (argc == 4 && std::string(argv[1]) == "append") {
         auto run = run_record();
         const unsigned serial = static_cast<unsigned>(std::strtoul(argv[3], nullptr, 10));

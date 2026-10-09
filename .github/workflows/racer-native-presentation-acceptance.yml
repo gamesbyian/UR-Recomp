@@ -227,15 +227,18 @@ jobs:
           ORIGINAL_B_LOG="$RUNNER_TEMP/racer-original-b.log"
           HD_LOG="$RUNNER_TEMP/racer-hd.log"
           OBJ_ONLY_LOG="$RUNNER_TEMP/racer-original-obj-only.log"
+          CAPTURE_LOG="$RUNNER_TEMP/racer-hd-capture-only.log"
           ORIGINAL_A_DUMPS="$RUNNER_TEMP/racer-original-a-dumps"
           ORIGINAL_B_DUMPS="$RUNNER_TEMP/racer-original-b-dumps"
           HD_DUMPS="$RUNNER_TEMP/racer-hd-dumps"
           OBJ_ONLY_DUMPS="$RUNNER_TEMP/racer-original-obj-only-dumps"
+          CAPTURE_DUMPS="$RUNNER_TEMP/racer-hd-capture-only-dumps"
           ORIGINAL_A_SHOT="$RUNNER_TEMP/racer-original-a-1220.ppm"
           ORIGINAL_B_SHOT="$RUNNER_TEMP/racer-original-b-1220.ppm"
           HD_SHOT="$RUNNER_TEMP/racer-hd-1220.ppm"
           OBJ_ONLY_SHOT="$RUNNER_TEMP/racer-original-obj-only-1220.ppm"
-          mkdir -p "$ORIGINAL_A_DUMPS" "$ORIGINAL_B_DUMPS" "$HD_DUMPS" "$OBJ_ONLY_DUMPS"
+          CAPTURE_SHOT="$RUNNER_TEMP/racer-hd-capture-only-1220.ppm"
+          mkdir -p "$ORIGINAL_A_DUMPS" "$ORIGINAL_B_DUMPS" "$HD_DUMPS" "$OBJ_ONLY_DUMPS" "$CAPTURE_DUMPS"
 
           run_route() {
             local mode="$1" log="$2" dumps="$3" shot="$4"
@@ -264,11 +267,12 @@ jobs:
           # Independently render stock OBJ without BG1-4 via its documented
           # diagnostic bitmask, then compare with same-frame Original and HD.
           run_route Original-OBJ-only "$OBJ_ONLY_LOG" "$OBJ_ONLY_DUMPS" "$OBJ_ONLY_SHOT" SNESRECOMP_LAYER_MASK=0x10
+          run_route Capture-Only "$CAPTURE_LOG" "$CAPTURE_DUMPS" "$CAPTURE_SHOT" UR_RACER_HD=1 UR_RACER_HD_CAPTURE_ONLY=1
 
           # Four processes must observe the exact same authoritative
           # composition at guest frame 1220. A screenshot-phase mismatch is
           # not evidence of authentic foreground occlusion.
-          python3 - "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$HD_LOG" "$OBJ_ONLY_LOG" <<'PY'
+          python3 - "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$HD_LOG" "$OBJ_ONLY_LOG" "$CAPTURE_LOG" <<'PY'
           import pathlib, re, sys
           pattern = re.compile(r"^UR_RACER_PRESENTATION_TRACE frame=1220 (.+)$", re.MULTILINE)
           observations = []
@@ -277,7 +281,7 @@ jobs:
               assert len(matches) == 1, (name, matches)
               observations.append(matches[0])
           assert len(set(observations)) == 1, observations
-          print("UR_RACER_HD_OBJ_ONLY_SOURCE_ALIGNMENT PASS frame=1220 instances=4")
+          print("UR_RACER_HD_OBJ_ONLY_SOURCE_ALIGNMENT PASS frame=1220 instances=5")
           PY
 
           # These are actual host presentation results, not registration matches.
@@ -331,6 +335,13 @@ jobs:
             --original-control "$ORIGINAL_B_SHOT" \
             --hd "$HD_SHOT" --hd-log "$HD_LOG" --frame 1220 \
             --json-out "$RUNNER_TEMP/racer-hd-frame-1220-confinement.json"
+
+          grep -F 'UR_RACER_HD_CAPTURE_ONLY frame=1220' "$CAPTURE_LOG"
+          python3 tools/check_racer_hd_pixel_confinement.py \
+            --original "$ORIGINAL_A_SHOT" \
+            --original-control "$ORIGINAL_B_SHOT" \
+            --hd "$CAPTURE_SHOT" --hd-log "$HD_LOG" --frame 1220 \
+            --json-out "$RUNNER_TEMP/racer-hd-capture-removal-1220.json"
 
           # Inspect the isolated stock OBJ layer for *potential* lost
           # foreground depth at one exact original/HD 2P guest frame.
@@ -1586,6 +1597,9 @@ jobs:
             ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
             ${{ runner.temp }}/racer-original-obj-only.log
             ${{ runner.temp }}/racer-original-obj-only-1220.ppm
+            ${{ runner.temp }}/racer-hd-capture-only.log
+            ${{ runner.temp }}/racer-hd-capture-only-1220.ppm
+            ${{ runner.temp }}/racer-hd-capture-removal-1220.json
             ${{ runner.temp }}/racer-hd-foreground-1220.json
             ${{ runner.temp }}/racer-hd-foreground-1220.txt
             ${{ runner.temp }}/racer-hd-live-census.txt

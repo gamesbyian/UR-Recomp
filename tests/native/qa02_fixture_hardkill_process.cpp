@@ -8,6 +8,9 @@
 
 #include <cstdlib>
 #include <cstdio>
+#include <chrono>
+#include <fstream>
+#include <thread>
 #include <filesystem>
 #include <string>
 #include <vector>
@@ -22,6 +25,8 @@ const std::string kInstance(32, 'a');
 const std::string kAttemptC14(32, '1');
 const std::string kAttemptC15(32, '2');
 const std::string kAttemptC09(32, '3');
+const std::string kAttemptOld(32, '4');
+const std::string kAttemptNew(32, '5');
 void terminate_after_sidecar_claim() { std::_Exit(79); }
 
 void require(bool ok, const char* message) {
@@ -92,6 +97,19 @@ std::string publish_real_pair(const LocalTournamentCoordinator& session,
     return saved;
 }
 
+void signal(const fs::path& file) {
+    std::ofstream marker(file, std::ios::binary);
+    require(bool(marker), "create cross-process fixture barrier marker");
+}
+
+void await_signal(const fs::path& file) {
+    for (unsigned attempt = 0; attempt < 10000; ++attempt) {
+        if (fs::exists(file)) return;
+        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+    require(false, "timed out waiting for other process's checkpoint");
+}
+
 void arm_first(LocalTournamentCoordinator& session,
                const std::string& attempt) {
     const auto& fixture = session.results.fixtures.at(0);
@@ -108,6 +126,57 @@ int main(int argc, char** argv) {
     const std::string action(argv[1]);
     const fs::path root(argv[2]);
     const auto layout = paths(root);
+    if (action == "seed-overlap") {
+        std::error_code ec;
+        fs::create_directories(layout.multiplayer_runs_directory, ec);
+        require(!ec, "overlap save root");
+        fs::create_directories(root / "barrier", ec);
+        require(!ec, "overlap coordination barrier");
+        const auto created = create_local_tournament_coordinator(
+            layout, kInstance, {"alpha", "beta", "gamma"}, catalog(),
+            {"course:01", "course:04"});
+        require(created.usable(), "overlap event creation");
+        return 0;
+    }
+    if (action == "contend-old") {
+        const auto restored =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(restored.usable(), "older live window restores event");
+        auto session = *restored.session;
+        arm_first(session, kAttemptOld);
+        const auto saved = publish_real_pair(session, 0x080);
+        signal(root / "barrier" / "old-ready");
+        await_signal(root / "barrier" / "new-armed");
+        // A new game instance has superseded the canonical pending attempt.
+        // The old window must fail to publish a fixture credit, even though
+        // its own .urrun/.urmatch are complete and locally playable.
+        const auto status = commit_local_tournament_capture(
+            session, kAttemptOld, saved);
+        require(status == Status::EvidenceRejected &&
+                !session.results.results.at(0),
+                "superseded old process must never credit its result");
+        signal(root / "barrier" / "old-rejected");
+        std::puts("QA02_OLD_ATTEMPT_REJECTED");
+        return 0;
+    }
+    if (action == "contend-new") {
+        await_signal(root / "barrier" / "old-ready");
+        const auto restored =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(restored.usable() && !restored.session->launch.pending &&
+                !restored.session->results.results.at(0),
+                "second game process starts with unplayed event");
+        auto session = *restored.session;
+        arm_first(session, kAttemptNew);
+        const auto saved = publish_real_pair(session, 0x100);
+        signal(root / "barrier" / "new-armed");
+        await_signal(root / "barrier" / "old-rejected");
+        require(commit_local_tournament_capture(
+                session, kAttemptNew, saved) == Status::Committed,
+                "current durable attempt earns exactly one result");
+        std::puts("QA02_NEW_ATTEMPT_COMMITTED");
+        return 0;
+    }
     if (action == "kill-c09") {
         std::error_code ec;
         fs::create_directories(layout.multiplayer_runs_directory, ec);

@@ -162,6 +162,40 @@ class HostPersistenceProcessTests(unittest.TestCase):
             )
             self.assertEqual(corrupt_host.read_bytes(), before)
 
+            # A catalog CAS failure can delete the just-created profile
+            # but cannot unlink its persistent OS-handle lock pathname. An
+            # explicit retry must work without adopting unknown old SRAM.
+            retry_root = root / "registration-retry"
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 6
+            )
+            retry_root.mkdir()
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 0
+            )
+            lock_file = retry_root / "host-profile.txt.urmutex"
+            lock_file.touch()
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 0
+            )
+            unknown_sram = retry_root / "save.srm"
+            unknown_sram.write_bytes(b"existing progress")
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 6
+            )
+            unknown_sram.unlink()
+            abandoned_stage = retry_root / ".pending-urprofile-old"
+            abandoned_stage.mkdir()
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 6
+            )
+            abandoned_stage.rmdir()
+            lock_file.unlink()
+            lock_file.mkdir()  # A lock *directory* is never an OS lock file.
+            self.assertEqual(
+                call("profile", "root-reusable", retry_root).returncode, 6
+            )
+
             # Compare-and-swap uses the exact prior disk snapshot rather
             # than autosave_generation alone. Both children load the SAME
             # previous SRAM before either receives the "go" marker.

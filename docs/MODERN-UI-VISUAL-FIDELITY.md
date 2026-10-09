@@ -1,5 +1,9 @@
 # Modern frontend visual-fidelity contract
 
+## Screen system design companion
+
+The companion [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) details the proposed screen hierarchy, reusable menu-component grammar, contextual layouts, controller/focus and modal rules, and visual implementation sequence. This document remains the authoritative *quality and source-fidelity gate*: stock screenshot/SFX evidence must determine actual tokens and animation decisions, and a tidy new component library alone does not satisfy stock-family visual acceptance. Check responsive 4:3/16:9, original regional identity, packaged-native captures, and Authentic inertness.
+
 Status: **required final-product presentation; current host-drawn black panels are provisional functional scaffolding**.
 
 This document clarifies the presentation acceptance requirement already established in `PROJECT-PLAN.md` and the stock menu evidence in `UI-STATE-MAP.md`, `analysis/generated/menu-visual-language.json` and `analysis/generated/menu-sfx-ids.json`. It does not create a new gameplay/menu router, require changing stock ROM assets, or authorize writing guest state.

@@ -33,7 +33,7 @@ CASES = {
     "zoom-zoo": (2, 1, 0, 1, "circuit-a"),
     "jumps": (13, 12, 2, 2, "stunt"),
 }
-SAMPLES = (0, 1, 2, 4, 8, 16)
+SAMPLES = (0, 1, 2, 4, 8, 16, 32, 64)
 WRAM_BYTES = 0x20000
 COURSE_RAM_OFFSET = 0x10000
 MENU_PREFIX = """
@@ -103,6 +103,14 @@ def sample_state(wram: bytes, case_name: str, decoded: bytes) -> dict:
         "p1_contact_stored": u(0x0E95), "p2_contact_stored": u(0x0E97),
         "p1_laps_remaining": u(0x0EF1),
         "p1_boost": u(0x11CF),
+        # USA bank-81 live timer digits: distinct minutes, tens, seconds,
+        # tenths and six-step subtick phase. Numeric decoding is deferred
+        # until an actual input-only reference/native trace is retained.
+        "timer_minutes_raw": u(0x0E0F),
+        "timer_tens_raw": u(0x0E13),
+        "timer_seconds_raw": u(0x0E17),
+        "timer_tenths_raw": u(0x0E1B),
+        "timer_subtick_raw": u(0x0E1F),
     }
     return fields
 
@@ -216,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         "first_divergence": difference,
         "parity": "passed_entry_window" if difference is None else "discrepant_entry_window",
         "scope_limit": (
-            "Full decoded USA course identity and first sixteen active frames only. "
+            "Full decoded USA course identity and first 64 active frames only. "
             "No finish, complete lap, 45-second stunt timeout, score or result certified."
         ),
     }

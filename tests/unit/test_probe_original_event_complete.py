@@ -136,13 +136,18 @@ class CompleteEventProducerTests(unittest.TestCase):
         }
         equal = target.entry_diagnostics(source, dict(source), dict(source))
         self.assertTrue(equal["source_original_state_equivalent"])
+        self.assertTrue(equal["fresh_reference_native_equivalent"])
         fresh = dict(source, p2_rider=18)
         wrong = target.entry_diagnostics(source, dict(source), fresh)
         self.assertFalse(wrong["source_original_state_equivalent"])
+        self.assertFalse(wrong["fresh_reference_native_equivalent"])
         self.assertEqual(wrong["discrepancies"]["fresh_native"]["fields"],
                          ["p2_rider"])
         wrong = target.entry_diagnostics(source, fresh, fresh)
         self.assertFalse(wrong["source_original_state_equivalent"])
+        # A shared different in-tour history is diagnostic only. A genuine
+        # fresh paired completion remains admissible, if all other oracles pass.
+        self.assertTrue(wrong["fresh_reference_native_equivalent"])
         with self.assertRaisesRegex(target.CompleteEventError, "incomplete"):
             target.entry_diagnostics(source, {"p1_x": 9200}, source)
 

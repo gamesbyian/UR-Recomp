@@ -76,6 +76,28 @@ Color math, palette setup and different host-present timing can also
 produce mismatches; always align actual guest composition and account
 for capture phase before making a causal claim.
 
+## Visible difference in the accepted static reference
+
+Manual inspection of the archived **same-run** 256×224 Original and 4×
+HD screenshots at native 2P frame 1220 shows an important counterexample
+to the assumption that confinement within a sprite box ensures faithful
+presentation: the Original bottom viewport shows **no visibly distinct
+unicycle at the expected racer placement**, while the HD frame paints a
+complete bottom racer in front of the scene. Large white directional
+graphics also cross that region. The top viewport does have a visible
+Original racer that the HD image replaces. This is a genuine difference
+in the two native captures inside the approved OAM box, and is why a
+successful `check_racer_hd_pixel_confinement.py` alone cannot prove
+correct racer visibility.
+
+This observation is **not yet attributed** to a specific original PPU
+OBJ/window/BG priority, sprite-timing or source-emulator discrepancy,
+and cannot establish whether the large white graphic itself is
+ROM-authentic. The OBJ-only and capture-removal witnesses are designed
+to discriminate these causes before changing production composition.
+Do not promote the bottom-rider discrepancy into a fully diagnosed
+priority bug without aligned authoritative rendering evidence.
+
 ## Direct native stock-removal test
 
 A separate opt-in `UR_RACER_HD_CAPTURE_ONLY=1` host run arms exactly

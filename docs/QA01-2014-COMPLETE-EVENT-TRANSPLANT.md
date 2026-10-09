@@ -11,6 +11,14 @@ The separate **pinned Baldosa AOT and original Snes9x** route in PR #1091 / [CI 
 
 This closes the **result PPU identity** experiment, but retains the **one-frame phase** and **post-result contact cleanup** uncertainties; nothing has been admitted to the release denominator (**0/45 USA**). The dedicated `tools/probe_original_event_complete.py` producer below remains a separate candidate framework and has not itself earned a completed-event witness. Use the already-built route and its independently retained artifacts before scheduling costly general replays.
 
+## Native-only one-frame input-phase experiment (2026-10-09)
+
+Merged PR #1093 drove the **same original 2014 340-segment controller scene** through one pinned Baldosa build using explicitly tagged native input origins -1, 0 and +1 guest frame relative to independent scene entry. The **original Snes9x input phase and complete result** were held unchanged; three phase reports and the failing native checkpoint captures are retained in [analysis/data/zoo-original-baldosa-latch-phase-discriminator.json](../analysis/data/zoo-original-baldosa-latch-phase-discriminator.json), with [CI run 38004850276](https://github.com/gamesbyian/UR-Recomp/actions/runs/38004850276).
+
+Native **phase 0** alone reproduced the complete Circuit and matching P1/P2 original result text. Each native ±1 input shift had matching initial race entry but diverged from the original at **scene-relative +604** in world position, course contact and checkpoint, lost expected lap progression (**P1 remaining 3, original 2 at +1721; remaining 3, original 1 at +4700**), and never reached the 0xBC result by +5900. No artificial completion, undocumented checkpoint patch, or rules change was introduced. The surviving one-frame result onset discrepancy **cannot be cured by simply shifting the entire native controller movie**. Inspect the native/original guest state at fixed relative frames +5158..+5173 next to decide whether that remaining delta is a host observation convention or an actual result-transition difference; only then consider the original guest code's owning result handler.
+
+The release denominator remains **0/45 accepted USA courses**. This finding narrows a specific causal hypothesis and does not independently establish a newly accepted Race or Stunt.
+
 ## Why these three targets
 
 The pinned 2014 input movie already produced **actual original Snes9x

@@ -16,6 +16,7 @@ struct Host {
     bool launched = false;
     bool paused = false;
     bool returned = false;
+    bool settled_result = false;
     unsigned players = 0;
     int restarts = 0;
     bool fail = false;
@@ -39,6 +40,9 @@ bool restart(void* ctx) {
     ++h.restarts;
     return true;
 }
+bool has_settled_result(void* ctx) {
+    return static_cast<Host*>(ctx)->settled_result;
+}
 bool exit_frontend(void* ctx) {
     auto& h = *static_cast<Host*>(ctx);
     if (h.fail) return false;
@@ -58,7 +62,8 @@ int main() {
     assert(absent.phase() == BaldosaBackendPhase::Ready);
 
     Host h;
-    BaldosaBackendHooks hooks{&h, launch, pause, restart, exit_frontend};
+    BaldosaBackendHooks hooks{&h, launch, pause, restart, exit_frontend,
+                              has_settled_result};
     BaldosaExecutionBackend backend(hooks);
     assert(backend.initialize() == BaldosaBackendStatus::Applied);
     assert(backend.select_players(2) == BaldosaBackendStatus::Applied);
@@ -101,6 +106,8 @@ int main() {
     assert(inputs.filter(present) == present);
     assert(inputs.filter(present | p1_start) == (present | p1_start));
 
+    assert(backend.finish_from_guest_result() == BaldosaBackendStatus::Rejected);
+    h.settled_result = true;
     assert(backend.finish_from_guest_result() == BaldosaBackendStatus::Applied);
     assert(backend.exit_to_frontend() == BaldosaBackendStatus::Applied);
     assert(h.returned && backend.phase() == BaldosaBackendPhase::Frontend);

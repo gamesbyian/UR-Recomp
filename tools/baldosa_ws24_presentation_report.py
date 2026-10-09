@@ -83,8 +83,8 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path,
     backing = 48 if wide else 24
     prefix = "ur-baldosa-ws342" if wide else "ur-baldosa-ws24"
     raster_width, raster_height = width * density, HEIGHT * density
-    header = (f"P7\\nWIDTH {raster_width}\\nHEIGHT {raster_height}\\n"
-              "DEPTH 4\\nMAXVAL 255\\nTUPLTYPE RGB_ALPHA\\nENDHDR\\n").encode()
+    header = (f"P7\nWIDTH {raster_width}\nHEIGHT {raster_height}\n"
+              "DEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
     present_regex = PRESENT if not wide else re.compile(
         r"UR_BALDOSA_WS342_PRESENT frame=(\d+) width=(\d+) height=(\d+) "
         r"pitch=(\d+) calibrated=(\d+) saved=(\d+)")
@@ -92,12 +92,12 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path,
         r"UR_BALDOSA_WS342_PREP frame=(\d+) calibrated=(\d+) "
         r"logical=(\d+)x(\d+) backing=48 visible=43")
     filename_regex = NAME if not wide else re.compile(
-        r"ur-baldosa-ws342-(\\d{6})\\.pam")
+        r"ur-baldosa-ws342-(\d{6})\.pam")
     if density != 1:
         # A 1x native log cannot establish a real scaled host allocation.
         present_regex = re.compile(
             present_regex.pattern +
-            r" density=(\\d+) raster=(\\d+)x(\\d+)")
+            r" density=(\d+) raster=(\d+)x(\d+)")
     original = base.read_bytes().splitlines()
     candidate_crc = candidate.read_bytes().splitlines()
     text = log.read_text(encoding="utf-8", errors="replace")

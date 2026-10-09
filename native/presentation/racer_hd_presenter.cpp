@@ -55,6 +55,36 @@ bool env_enabled() noexcept {
     return enabled;
 }
 
+// Opt-in per-guest-frame and per-present diagnostics. A selector registration
+// is not evidence that an authored HD racer survived placement and raster
+// capture, nor that a capture was actually presented. Keep these phases
+// separate and do not add any guest-state write surface for measurement.
+bool hd_census_enabled() noexcept {
+    static const bool enabled = [] {
+        const char* value = std::getenv("UR_RACER_HD_CENSUS");
+        return value != nullptr && value[0] == '1' && value[1] == '\0';
+    }();
+    return enabled;
+}
+
+void hd_census_gate(const char* status, const char* reason) noexcept {
+    if (!hd_census_enabled()) return;
+    std::fprintf(
+        stderr,
+        "UR_RACER_HD_CENSUS frame=%u phase=gate status=%s reason=%s\\n",
+        g_sim_frame, status, reason
+    );
+}
+
+void hd_census_present(const char* status, const char* reason) noexcept {
+    if (!hd_census_enabled()) return;
+    std::fprintf(
+        stderr,
+        "UR_RACER_HD_CENSUS frame=%u phase=present status=%s reason=%s\\n",
+        g_sim_frame, status, reason
+    );
+}
+
 // Experimental opt-in until native stock-P2 occlusion acceptance is complete.
 // The pinned PPU only supports one contiguous OBJ extraction range: P1's
 // bottom/top slots 97/98 are adjacent, unlike P2's 96/99.
@@ -181,7 +211,10 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     g_instance_count = 0;
     g_sim_frame = number;
 
-    if (!env_enabled() || g_ppu == nullptr) return;
+    if (!env_enabled() || g_ppu == nullptr) {
+        hd_census_gate("original", !env_enabled() ? "disabled" : "no-ppu");
+        return;
+    }
 
     PpuClearOverlayCaptures(g_ppu);
 
@@ -194,6 +227,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     if (!racer_hd_can_capture_frame_geometry(
             snesrecomp_desktop_frame_width(),
             snesrecomp_desktop_frame_height())) {
+        hd_census_gate("original", "unsupported-geometry");
         return;
     }
 
@@ -210,13 +244,19 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         2
     );
     if (!p1.uses_replacement() || p1.registration == nullptr ||
-        !racer_hd_asset_available(p1.registration->semantic_frame_id)) return;
+        !racer_hd_asset_available(p1.registration->semantic_frame_id)) {
+        hd_census_gate("original", "p1-selection-or-art");
+        return;
+    }
 
     const bool p2_ready = p2.uses_replacement() &&
         p2.registration != nullptr &&
         racer_hd_asset_available(p2.registration->semantic_frame_id);
     const bool p1_only = !p2_ready && p1_only_capture_enabled();
-    if (!p2_ready && !p1_only) return;
+    if (!p2_ready && !p1_only) {
+        hd_census_gate("original", "p2-pair-gate");
+        return;
+    }
 
     const auto p1_top = decode_racer_split_ppu_placement(
         g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Top
@@ -230,7 +270,10 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     const auto p2_bottom = decode_racer_split_ppu_placement(
         g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Bottom
     );
-    if (!p1_top || !p2_top || !p1_bottom || !p2_bottom) return;
+    if (!p1_top || !p2_top || !p1_bottom || !p2_bottom) {
+        hd_census_gate("original", "missing-oam-placement");
+        return;
+    }
 
     const std::array<const RacerRegistration*, 4> registrations = {
         p1.registration, p2_ready ? p2.registration : nullptr,
@@ -244,6 +287,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         if (!placements[i].large ||
             placements[i].width_pixels != registrations[i]->logical_width ||
             placements[i].height_pixels != registrations[i]->logical_height) {
+            hd_census_gate("original", "oam-size-mismatch");
             return;
         }
     }
@@ -254,6 +298,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     if (p2_ready && !racer_hd_full_pair_preserves_split_objs(
             *p1_top, *p2_top, *p1_bottom, *p2_bottom,
             g_ppu->obsel, g_ppu->oamaddh)) {
+        hd_census_gate("original", "full-pair-split-obj");
         return;
     }
     // Stock bottom P2 slot 96 paints in front of P1 97. The flattened
@@ -263,10 +308,17 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     // A rotated OAM first-sprite index can reverse the usual ordering.
     // Preserve stock in that unsupported priority mode.
     // Only the proven 16/64px split-OBJ mode has a validated alias rule.
-    if (p1_only && g_ppu->obsel != 0x83) return;
-    if (p1_only && (g_ppu->oamaddh & 0x80) != 0) return;
+    if (p1_only && g_ppu->obsel != 0x83) {
+        hd_census_gate("original", "p1-only-obsel");
+        return;
+    }
+    if (p1_only && (g_ppu->oamaddh & 0x80) != 0) {
+        hd_census_gate("original", "p1-only-priority-rotation");
+        return;
+    }
     if (p1_only && !racer_p1_only_no_stock_p2_occlusion(
             *p1_top, *p1_bottom, *p2_top, *p2_bottom)) {
+        hd_census_gate("original", "p1-only-occlusion");
         return;
     }
 
@@ -294,6 +346,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     const std::uint64_t after = guest_state_digest();
 
     if (!ranged || before != after) {
+        hd_census_gate("original", before != after ? "guest-state-mutated" : "ppu-capture-failed");
         PpuClearOverlayCaptures(g_ppu);
         if (before != after) {
             std::fprintf(
@@ -318,6 +371,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     }};
     g_instance_count = p1_only ? 2 : g_instances.size();
     g_frame_active = true;
+    hd_census_gate("armed", p1_only ? "p1-only" : "full-pair");
 }
 
 int racer_hd_draw_frame(
@@ -329,6 +383,7 @@ int racer_hd_draw_frame(
     double
 ) noexcept {
     if (!env_enabled() || !g_frame_active || dst == nullptr || field == nullptr) {
+        hd_census_present("original", !g_frame_active ? "not-armed" : "unavailable-output");
         return 0;
     }
     const int scale = racer_hd_presentation_scale();
@@ -336,6 +391,7 @@ int racer_hd_draw_frame(
         frame_h != kBaseHeight ||
         !valid_racer_hd_internal_render_scale(scale) ||
         pitch < static_cast<std::size_t>(frame_w * scale) * 4) {
+        hd_census_present("original", "unsupported-output");
         return 0;
     }
 
@@ -404,6 +460,7 @@ int racer_hd_draw_frame(
         g_last_logged_p2_registration = p2_registration;
         ++g_logged_state_transitions;
     }
+    hd_census_present("hd", g_instance_count == 2 ? "p1-only" : "full-pair");
     return 1;
 }
 

@@ -10,6 +10,7 @@ on:
       - "tools/baldosa_hd_host_spike.py"
       - "tools/baldosa_native_racer_presentation.cpp"
       - "tools/baldosa_hd_presentation_report.py"
+      - "tools/baldosa_hd_enable_renderer.py"
 
 permissions:
   contents: read
@@ -116,6 +117,24 @@ jobs:
           cat > "$RUNNER_TEMP/baldosa-x11-exec" <<'SH'
           #!/usr/bin/env bash
           export SDL_VIDEODRIVER=x11
+          # Only the isolated HD candidate enables the modern/span PPU
+          # renderer. Legacy Baldosa default new_renderer=0 exposes empty
+          # source OBJ capture despite successful drawing callbacks.
+          if [ "${UR_BALDOSA_HD:-0}" = "1" ]; then
+            args=("$@")
+            config=""
+            for ((i=0; i+1<${#args[@]}; i++)); do
+              if [ "${args[i]}" = "--config" ]; then
+                config="${args[i+1]}"
+                break
+              fi
+            done
+            if [ -z "$config" ]; then
+              echo "HD candidate has no isolated --config" >&2
+              exit 3
+            fi
+            python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
+          fi
           exec "$BALDOSA_REAL_BIN" "$@"
           SH
           chmod +x "$RUNNER_TEMP/baldosa-x11-exec"

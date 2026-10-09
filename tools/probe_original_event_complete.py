@@ -241,7 +241,12 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
     complete = all(x["result"]["menu"] == result_menu and
                    x["onset"]["menu"] == result_menu
                    for x in (original, native))
-    texts_match = original["result_text"] == native["result_text"]
+    # The settled score/time string is the gameplay oracle. Temporary
+    # tally-animation lettering and onset PPU glyph timing belong to a
+    # separate presentation gate and remain useful diagnostics only.
+    texts_match = (original["result_text"]["final"] ==
+                   native["result_text"]["final"])
+    intermediate_text_match = original["result_text"] == native["result_text"]
     # This anchored SMV has MIKE in P1. A CPU score or a timed-out P1
     # cannot masquerade as the player's own successful original result.
     p1_positive = archived_p1_positive_result(original["result_text"]["final"],
@@ -262,6 +267,7 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
     return {"first_sample_disagreement": first,
             "both_reached_terminal_menu": complete,
             "rendered_result_and_score_text_matched": texts_match,
+            "intermediate_result_text_matched": intermediate_text_match,
             "stunt_positive_score_visible": scored,
             "timed_race_or_circuit_result_visible": timed_finish,
             "circuit_multiple_lap_decrements_sampled": lap_evidence,

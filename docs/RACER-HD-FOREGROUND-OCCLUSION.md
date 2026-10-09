@@ -54,9 +54,17 @@ python3 tools/check_racer_hd_foreground_occlusion.py \
   --json-out racer-hd-foreground-1220.json
 ```
 
-This gives a **conservative nonblack lower bound** on visible OBJ-only
-pixels, not a fully alpha-correct PPU plane. Black may be either an
-actual black OBJ pixel or the masked-out backdrop, so it is excluded.
+This gives a **conservative backdrop-excluded lower bound** on
+isolated OBJ pixels, not a fully alpha-correct PPU plane. The first
+independent masked-OBJ screenshot actually has a **red PPU backdrop**,
+not a black one: 56,420 of 57,344 pixels are `#FF0000`. A previous
+candidate-analyzer draft incorrectly treated every nonblack pixel as
+opaque sprite content. The corrected analyzer derives the dominant
+uniform backdrop RGB (requiring at least 75% of the raster), excludes
+all pixels of that colour, reports its sampled RGB/count, and refuses
+nonuniform images instead of asserting a false mass of foreground
+overpainting. Real sprite pixels that exactly match the PPU backdrop
+are also excluded by design.
 The tool refuses a completely empty OBJ-only witness rather than
 manufacturing a zero-overpaint success. It uses the four live OAM
 placements, 256-line Y wrapping, 112-line split, full 1×–4× output

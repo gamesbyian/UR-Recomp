@@ -7764,8 +7764,14 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
     if (g_modern_root_stock_target >= 0) {
         if (key == SDLK_ESCAPE) {
-            g_modern_root_stock_target = -1;
-            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            // A discrete stock input may already be queued for a future
+            // emulated frame. Reset through the existing session-reboot
+            // authority rather than merely hiding this route and allowing a
+            // stale Confirm to fire into the stock menu.
+            if (request_frontend_reboot(false)) {
+                g_modern_root_stock_target = -1;
+                product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            }
         }
         return 1;
     }
@@ -8334,8 +8340,14 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
     }
     if (g_modern_root_stock_target >= 0) {
         if (pressed && button == kGamepadBtn_B) {
-            g_modern_root_stock_target = -1;
-            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            // A discrete stock input may already be queued for a future
+            // emulated frame. Reset through the existing session-reboot
+            // authority rather than merely hiding this route and allowing a
+            // stale Confirm to fire into the stock menu.
+            if (request_frontend_reboot(false)) {
+                g_modern_root_stock_target = -1;
+                product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            }
         }
         return 1;
     }

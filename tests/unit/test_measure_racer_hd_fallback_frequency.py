@@ -131,6 +131,50 @@ class RacerHdFallbackFrequencyTests(unittest.TestCase):
         self.assertEqual(unlock[0]["potential_pair_gate_player_frame_gain_upper_bound"], 4)
         self.assertEqual(unlock[0]["episode_count"], 1)
 
+
+    def test_temporal_upper_bound_counts_one_frame_flashes_and_dense_switches(self):
+        lines = [
+            f"UR_RACER_PRESENTATION_TRACE frame={frame} "
+            f"p1_primary={p1} p2_primary={p2} "
+            "p1_companion=0000 p2_companion=0000 "
+            "p1_selector=0000 p2_selector=0000 p1_gate=0000 p2_gate=0000"
+            for frame, p1, p2 in [
+                (10, "0540", "0542"),  # eligible
+                (11, "0540", "0542"),  # eligible
+                (12, "0540", "0543"),  # fallback
+                (13, "0540", "0542"),  # single-frame eligibility
+                (14, "0540", "0543"),  # fallback
+                (16, "0540", "0542"),  # observation gap, NOT a switch
+            ]
+        ]
+        registrations = {"entries": [
+            entry("p1", "0x0540", "0x0540", "0x0542"),
+            entry("p2", "0x0542", "0x0540", "0x0542"),
+            entry("p1", "0x0540", "0x0540", "0x0543"),
+        ]}
+        temporal = build_report(
+            parse_trace("\n".join(lines)), registrations
+        )["host_presenter_pair_gate"]["temporal_upper_bound"]
+        self.assertEqual(temporal["pair_eligible_run_lengths"], [2, 1, 1])
+        self.assertEqual(temporal["pair_eligible_run_count"], 3)
+        self.assertEqual(temporal["longest_contiguous_eligible_run"], 2)
+        self.assertEqual(temporal["one_frame_eligible_runs"], 2)
+        self.assertEqual(temporal["stock_to_pair_eligible_transitions"], 1)
+        self.assertEqual(temporal["pair_eligible_to_stock_transitions"], 2)
+        self.assertEqual(temporal["eligibility_switches"], 3)
+        self.assertEqual(temporal["consecutive_observed_frame_pairs"], 4)
+
+    def test_temporal_upper_bound_rejects_duplicate_guest_frames(self):
+        log = (
+            "UR_RACER_PRESENTATION_TRACE frame=10 "
+            "p1_primary=0540 p2_primary=0542 p1_companion=0000 "
+            "p2_companion=0000 p1_selector=0000 p2_selector=0000 "
+            "p1_gate=0000 p2_gate=0000"
+        )
+        rows = parse_trace(log)
+        with self.assertRaisesRegex(ValueError, "duplicate guest-frame"):
+            build_report(rows + rows, {"entries": []})
+
     def test_empty_census_has_no_live_pair_coverage(self):
         report = build_report([], {"entries": []})
         self.assertEqual(report["host_presenter_pair_gate"]["pair_gate_eligible_fraction_upper_bound"], 0.0)

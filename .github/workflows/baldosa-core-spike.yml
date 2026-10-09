@@ -79,7 +79,15 @@ jobs:
           set -euo pipefail
           cmake --build baldosa/build --target UniracersSNESRecomp -j 3             2>&1 | tee "$RUNNER_TEMP/baldosa-build.log"
           test -x baldosa/build/UniracersSNESRecomp
-          test -s baldosa/build/config.ini
+          # The pinned source does not call snesrecomp_target_config_seed().
+          # Desktop host uses built-in defaults when its config is absent,
+          # but the upstream route wrapper copies a file before first boot.
+          # Seed only the external test fixture, never upstream source.
+          if [ ! -f baldosa/build/config.ini ]; then
+            printf '[Sound]\\nEnableAudio = 0\\n' > baldosa/build/config.ini
+          fi
+          test -f baldosa/build/config.ini
+          ls -l baldosa/build/UniracersSNESRecomp baldosa/build/config.ini
 
       - name: Run real Baldosa 1P, split-screen P2 and Circuit routes
         shell: bash

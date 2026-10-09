@@ -25,6 +25,18 @@ std::optional<std::vector<HostProfileCatalogEntry>> decode_host_profile_catalog(
 bool save_host_profile_catalog_file(
     const std::string& path,
     const std::vector<HostProfileCatalogEntry>& entries);
+
+enum class HostProfileCatalogSaveStatus {
+    Saved,
+    Conflict, // the canonical roster has changed since the caller read it
+    Rejected,
+    IoError,
+};
+
+HostProfileCatalogSaveStatus save_host_profile_catalog_file_if_current(
+    const std::string& path,
+    const std::vector<HostProfileCatalogEntry>& expected_current,
+    const std::vector<HostProfileCatalogEntry>& next);
 std::optional<std::vector<HostProfileCatalogEntry>> load_host_profile_catalog_file(
     const std::string& path);
 std::string make_profile_id(

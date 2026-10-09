@@ -63,3 +63,43 @@ directory-sync durability guarantee.
 QA-02 remains P0 until the exact packaged candidate completes Windows
 two-game J-02/J-07/J-08, disk-full/power-failure, interrupted upgrade and
 cross-artifact restore acceptance.
+
+## Catalog/roster lost-update extension
+
+The production profile catalog used a safe staged replacement but retained a
+blind, last-writer-wins complete-roster write. During concurrent creation or
+rename, two instances could each load the same old `profiles-v1.txt`, then
+publish different lists. Whichever wrote last would discard the other's racer.
+An intact `host-profile.txt` would no longer have an authorizing catalog row.
+
+`save_host_profile_catalog_file_if_current(path, expected, next)` now acquires
+the same OS-handle-owned per-path lock discipline as profile CAS, loads the
+bounded previous roster from disk, compares the **whole typed roster** and
+publishes only if it is unchanged. A missing catalog is the canonical empty
+roster. Malformed/unavailable catalog data is never silently defaulted during
+mutation. Profile create and rename supply their exact pre-edit roster. If
+publication conflicts, creation abandons its newly written profile and rename
+uses profile CAS to compensate the staged identity change, provided nobody
+else has changed that intermediate profile.
+
+A two-process fixture independently loads the same one-entry catalog, then
+attempts two different additions after a barrier: exactly one succeeds and the
+other reports conflict; a fresh process verifies the original row and exactly
+one new row. A source contract guards against unprotected production catalog
+mutations. This does not provide atomicity across the profile file and catalog
+file, nor recovery from a hard kill between the two commits. Cross-artifact
+transaction and orphan-profile restoration remain QA-02 P0 follow-ups.
+
+### Conditional cleanup of a failed profile registration
+
+After a new profile file is created but the catalog CAS conflicts, the old
+code unconditionally removed the profile pathname. An intervening process
+could already have updated that file, so the registration loser would then
+delete the winner's newer SRAM. Production cleanup now calls
+`remove_host_profile_state_file_if_current` using the exact profile snapshot
+it originally authored, holding the same per-path OS lock during comparison
+and unlink. An intervening write causes `Conflict` and preserves the valid
+newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
+claiming rollback. The process fixture tests both refused stale deletion
+and permitted exact deletion. A crash before catalog publication still
+leaves an orphaned but intact profile requiring separate recovery policy.

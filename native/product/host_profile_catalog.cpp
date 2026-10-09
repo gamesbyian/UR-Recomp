@@ -1,5 +1,6 @@
 #include "host_profile_catalog.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 #include "host_product_state.hpp"
 #include "host_profile_runtime.hpp"
 
@@ -249,6 +250,33 @@ bool profile_catalog_authorizes_state(
         }
     }
     return false;
+}
+
+HostProfileCatalogSaveStatus save_host_profile_catalog_file_if_current(
+    const std::string& path,
+    const std::vector<HostProfileCatalogEntry>& expected_current,
+    const std::vector<HostProfileCatalogEntry>& next) {
+    const auto expected_bytes = encode_host_profile_catalog(expected_current);
+    const auto next_bytes = encode_host_profile_catalog(next);
+    if (path.empty() || expected_bytes.empty() || next_bytes.empty() ||
+        expected_bytes.size() > kMaxCatalogBytes ||
+        next_bytes.size() > kMaxCatalogBytes) {
+        return HostProfileCatalogSaveStatus::Rejected;
+    }
+
+    // Match the profile state path-lock discipline. Both callers' comparison
+    // and publication must happen under ONE persistent OS-handle lock.
+    // Ordinary last-writer-wins saves exist for isolated fixtures/migration,
+    // but production roster mutation must use this conflict-aware entrypoint.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProfileCatalogSaveStatus::IoError;
+    const auto current = load_host_profile_catalog_file(path);
+    if (!current) return HostProfileCatalogSaveStatus::IoError;
+    if (*current != expected_current)
+        return HostProfileCatalogSaveStatus::Conflict;
+    if (!save_host_profile_catalog_file(path, next))
+        return HostProfileCatalogSaveStatus::IoError;
+    return HostProfileCatalogSaveStatus::Saved;
 }
 
 }  // namespace ur::product

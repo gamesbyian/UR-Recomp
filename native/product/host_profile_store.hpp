@@ -79,4 +79,12 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
     const std::optional<HostProfileState>& expected_current,
     const HostProfileState& next);
 
+// Retire a profile file only while it still matches the exact snapshot this
+// process created. Prevents catalog-create failure cleanup from deleting an
+// unrelated process's subsequent valid state.
+HostProfileSaveStatus remove_host_profile_state_file_if_current(
+    ExecutionMode mode,
+    const std::string& path,
+    const HostProfileState& expected_current);
+
 }  // namespace ur::product

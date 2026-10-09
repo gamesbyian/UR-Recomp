@@ -1,5 +1,15 @@
 # Work Queue
 
+## Modern menu design implementation queue (2026-10-08)
+
+**Design source:** [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Use [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md) for verified current routes and [`MODERN-UI-VISUAL-FIDELITY.md`](MODERN-UI-VISUAL-FIDELITY.md) for mandatory stock-family presentation. This is planned work, not a claim the five-destination root or finished art has shipped. Preserve existing feature ownership and coordinate with active frontend agents before edits.
+
+1. **P0 root routing:** Make the existing typed Play/Practice/Multiplayer/Records/Options model a genuine, controller-discoverable rendered root using already admitted guest/host routes. Preserve working F-key shortcuts; prove a packaged, first-time-player end-to-end journey and Authentic inertness. No second progression, records or navigation state authority.
+2. **P0 visual foundations:** inventory source-backed original menu fonts, colour/motion/selection/SFX and regional differences; implement shared title/row/focus/dialog/legend components and layout rules. Replace provisional black developer rectangles screen-by-screen, not by putting borders around debug copy. Independently review packaged 4:3 and 16:9 screenshots at multiple densities against real original-menu captures.
+3. **P0 task integration:** Play continuation/tour selection, Practice course/ghost, Local Race/Tournament, Records, and Options must link to existing validated authorities; a global Racer & Profiles identity entry must preserve isolated saves. Ensure pause/results/confirmations share predictable focus, release suppression, modal hold, controller seat and recovery behavior.
+4. **P1 polish/accessibility:** complete source-inspired Tour Progress, Controls, Records detail, Help and tournament presentations, plus real persisted accessibility consumers and tested remapped glyph prompts. Do not advertise inert settings, post-baseline cosmetics or incomplete audio/graphics modes as delivered.
+5. **Acceptance:** QA-09 uncoached controller-only launch -> racer -> race -> results -> repeat/continue -> records -> quit; keyboard parity, held-input/modal close, 2P hotplug, fresh-process profile/data safety, 4:3/16:9/readability, original-stock visual comparison, and Authentic no-regression.
+
 ## Integration checkpoint (2026-10-08)
 
 Current `main` includes replay frame-window parity (#938), atomic ghost sidecar publication (#942), terminal digest parity (#957), selected Previous/PB source revalidation (#958), and the course dispatch-before-sampling causality correction (#959). The latter distinguishes postframe slot 8 from the stronger, still unproven preceding slot-10 dispatch candidate. Local Tournament multi-leg continuation and packaged Windows acceptance (#946, #964) have also merged. Remaining course causality needs instruction-time evidence, not further assumptions based solely on frame-end snapshots. CI-speed work has a separate active owner. Historical divergent branches are not automatically missing functionality: compare them with merged successor PRs before recovery.

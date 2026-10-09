@@ -1736,10 +1736,13 @@ void ensure_profile_catalog() {
     if (loaded) g_profile_catalog = *loaded;
 }
 
-bool persist_profile_catalog() {
+bool persist_profile_catalog(
+    const std::vector<ur::product::HostProfileCatalogEntry>& expected_current) {
     const std::string path = profile_catalog_path();
     return !path.empty() &&
-        ur::product::save_host_profile_catalog_file(path, g_profile_catalog);
+        ur::product::save_host_profile_catalog_file_if_current(
+            path, expected_current, g_profile_catalog) ==
+                ur::product::HostProfileCatalogSaveStatus::Saved;
 }
 
 std::string profile_state_path_for(std::string_view profile_id) {
@@ -1903,8 +1906,12 @@ bool create_profile_from_editor() {
         return false;
     }
 
+    // A second process may have registered another racer while this one
+    // created its profile file. Compare the actual prior roster under the
+    // persistent per-catalog lock rather than replacing the other's entry.
+    const auto prior_catalog = g_profile_catalog;
     g_profile_catalog.push_back({id, *state->racer_identity});
-    if (!persist_profile_catalog()) {
+    if (!persist_profile_catalog(prior_catalog)) {
         g_profile_catalog.pop_back();
         std::error_code remove_ec;
         (void)std::filesystem::remove(path, remove_ec);
@@ -1940,6 +1947,7 @@ bool rename_profile_from_editor() {
     }
 
     const auto original_state = *loaded.state;
+    const auto original_catalog = g_profile_catalog;
     const auto original_identity = entry.identity;
     auto state = original_state;
     state.racer_identity->name = g_profile_edit_name;
@@ -1948,7 +1956,7 @@ bool rename_profile_from_editor() {
             ur::product::ExecutionMode::Modern, path, original_state, state) !=
         ur::product::HostProfileSaveStatus::Saved) return false;
     entry.identity = *state.racer_identity;
-    if (!persist_profile_catalog()) {
+    if (!persist_profile_catalog(original_catalog)) {
         entry.identity = original_identity;
         const auto rollback = ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern, path, state, original_state);

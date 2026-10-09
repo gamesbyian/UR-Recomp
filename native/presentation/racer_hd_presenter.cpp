@@ -516,7 +516,7 @@ int racer_hd_draw_frame(
         std::fprintf(
             stderr,
             "UR_RACER_HD_SOURCE_FOOTPRINTS frame=%u count=%zu "
-            "alpha0=%zu alpha1=%zu alpha2=%zu alpha3=%zu\\n",
+            "alpha0=%zu alpha1=%zu alpha2=%zu alpha3=%zu\n",
             g_sim_frame, g_instance_count,
             footprint_opaque[0], footprint_opaque[1],
             footprint_opaque[2], footprint_opaque[3]

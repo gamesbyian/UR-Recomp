@@ -11,6 +11,8 @@ on:
       - "tools/baldosa_native_racer_presentation.cpp"
       - "tools/baldosa_hd_presentation_report.py"
       - "tools/baldosa_hd_enable_renderer.py"
+      - "tools/baldosa_single_presentation_scale_patch.py"
+      - "tools/patches/snesrecomp-presentation-scale.patch"
 
 permissions:
   contents: read
@@ -117,9 +119,6 @@ jobs:
           cat > "$RUNNER_TEMP/baldosa-x11-exec" <<'SH'
           #!/usr/bin/env bash
           export SDL_VIDEODRIVER=x11
-          # Only the isolated HD candidate enables the modern/span PPU
-          # renderer. Legacy Baldosa default new_renderer=0 exposes empty
-          # source OBJ capture despite successful drawing callbacks.
           if [ "${UR_BALDOSA_HD:-0}" = "1" ]; then
             args=("$@")
             config=""
@@ -217,6 +216,8 @@ jobs:
           set -euo pipefail
           # Layer on the already-proven read-only observer. Existing UR
           # asset/OAM renderer owns only post-guest presentation callbacks.
+          python3 tools/baldosa_single_presentation_scale_patch.py \
+            --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
           python3 tools/baldosa_hd_host_spike.py \
             --game baldosa --ur-root "$GITHUB_WORKSPACE"
           cmake -S baldosa -B baldosa/build -G Ninja \
@@ -239,6 +240,22 @@ jobs:
             --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation.json"
           echo "PASS: moving UR-derived racer composites, preserved Baldosa 2P guest CRCs" >> "$GITHUB_STEP_SUMMARY"
+          # Same binary, no guest patch. Only the host's presentation buffer
+          # and UR's authored asset raster now use their genuine 4x density.
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-hd-captures-4x"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt"
+          python3 tools/baldosa_hd_presentation_report.py \
+            --baseline "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/log.txt" \
+            --captures "$UR_BALDOSA_HD_CAPTURE_DIR" --density 4 \
+            --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation_4x.json"
+          echo "PASS: real moving 1024x896 source-derived P1/P2 racers, guest CRCs identical" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -270,6 +287,8 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-evidence/*.exit
             ${{ runner.temp }}/baldosa-evidence/*/log.txt

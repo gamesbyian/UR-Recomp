@@ -1,5 +1,8 @@
 # Uniracers Modern Port Plan
 
+> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
+
+
 ## Claude integration handoff, 2026-10-08
 
 The [full 36-branch reconciliation](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) found no changed Claude branch path absent from current `main`; core high-priority algorithms, evidence and fixtures are retained in newer implementations. **Do not merge divergent historical Claude branches by ancestry alone.** Source-level recovery is complete for the inspected candidates, but no broad release acceptance is implied. Prioritize the current-main QA-02 crash/storage journey, QA-03 2P controller and multi-leg tournament, QA-09 Records/layout and onboarding, and QA-08 moving-scene P2 HD/stock fallback. Track release gates in [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) and [WORK-QUEUE.md](WORK-QUEUE.md). CI Pause acceleration remains owned by the independent speedup lane (replacement PR #989 as of this handoff).

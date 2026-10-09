@@ -64,14 +64,17 @@
         "docs/QA02-RUN-MATCH-DURABILITY.md",
         "docs/QA02-GHOST-DATA-DURABILITY.md",
         "docs/QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md",
-        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md"
+        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md",
+        "docs/QA02-GHOST-FUTURE-SCHEMA.md",
+        "docs/QA02-FIXTURE-HARDKILL-C14-C15.md",
+        "docs/QA02-COORDINATOR-C12-PROCESS-RACE.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Review and merge #1044 ghost future-schema downgrade protection after green CI. Capture real fresh-executable hard-kill C04, C09, C14 and C15, two-process pending-owner arbitration, controlled disk-failure and older/newer upgrade restores; pin Windows portable ZIP SHA-256 and independently execute J-02/J-07/J-08 at L4.",
+      "next_action": "Execute exact pinned Windows portable ZIP/hash J-02/J-07/J-08 with two *game* processes sharing one real user-data root; validate forced crash C04 profile selector vs framework SRAM, process-kill C09/C12/C14/C15 at full game seam, disk-full/read-only/upgrade-downgrade restores, and physical power-loss metadata durability. Preserve one-to-one witness pointers; do not promote P0 without L4.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -99,9 +102,11 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1038",
         "https://github.com/gamesbyian/UR-Recomp/pull/1041",
         "https://github.com/gamesbyian/UR-Recomp/pull/1042",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1044"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1044",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1046",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1048"
       ],
-      "remaining_release_risk": "Merged through #1042 exact-on-disk pending launch attempt fencing held under OS lock through immutable fixture receipt commit, plus native C14 (valid run/match without receipt awards no points) and C15 (receipt published before pending retirement restores once) bounded tests. Previous #1033/#1035 staged run/match/ghost byte flushing; #1038 immutable archive create-only and #1041 legacy archive CAS migration; earlier profile/catalog/global/active-session CAS, compensating rollback and narrow C01 pristine-orphan recovery are merged. #1044 proposes preserving checksum-valid future-version .urghost during downgraded writer replacement and is pending CI. Group atomicity across framework save.srm, profile/roster/global selector, run/match/ghost, fixture receipt and pending still absent; two concurrent live fixtures can supersede pending and strand an otherwise valid run. No independent-process kill C04/C14/C15 or packaged Windows J-02/J-07/J-08 disk-full/upgrade/power-loss L4 witness. Postcommit directory durability remains uncertain. QA-02 P0 in_progress."
+      "remaining_release_risk": "Merged green #1044 future valid ghost schema preservation; #1046 actual independent OS-process _Exit cuts C09 (.urmatch claimed before public .urrun), C14 (valid saved pair before receipt), C15 (receipt before pending retire), with fresh reexec exact credit/ghost/PB/receipt corruption checks; #1048 five rounds of competing full coordinator create C12 with exactly one active winner and fresh restore. Earlier #982-#1042 profile/catalog/global CAS, host mirror SRAM compensations, C01 pristine orphan recovery, immutable tournament archive create/migrate, staged record sync, and on-disk pending fence remain store/native-accepted only. No group commit across framework save.srm, profile, global selector, run/match/ghost, fixture receipt and pending. C04 and C08 full-game crash cuts remain unexecuted. Partially progressed orphan and inert archive salvage, directory-sync committed-uncertain states and noncooperating game processes remain risks. No exact candidate Windows two-instance J-02/J-07/J-08, disk-full, upgrade/rollback or power-off L4 witness. QA-02 P0 in_progress."
     },
     {
       "id": "QA-03",

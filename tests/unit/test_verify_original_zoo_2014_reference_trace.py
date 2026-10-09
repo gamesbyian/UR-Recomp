@@ -79,6 +79,23 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
                 "timer_raw_digits": initial["timer_raw_digits"],
             }
         }
+        onset = w["original_race_start_phase"]
+        samples[3394] = {
+            "movie_frame": 3394,
+            "p1_world_xy": [9200, 1562],
+            "timer_raw_digits": [0, 0, 0, 0, 0],
+        }
+        samples[3395] = {
+            "movie_frame": 3395,
+            "p1_world_xy": [onset["first_p1_moving_x"], 1562],
+            "p1_speed_x": onset["first_p1_signed_vx"],
+            "p1_boost": onset["first_p1_boost_nonzero"],
+            "timer_raw_digits": onset["stopwatch_at_first_motion"],
+        }
+        samples[3396] = {
+            "movie_frame": 3396,
+            "timer_raw_digits": onset["stopwatch_at_first_timer_tick"],
+        }
         writes = {}
         for row in w["observed_progression"]:
             frame = row["transition_frame"]
@@ -112,6 +129,8 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
         self.assertEqual(qualified["original_event_frames_reproduced"],
                          [3408, 3794, 4031, 4722, 4911])
         self.assertEqual(qualified["lap_counter_decrements"], [3408, 4911])
+        self.assertEqual(qualified["original_first_motion_frame"], 3395)
+        self.assertEqual(qualified["original_first_stopwatch_tick_frame"], 3396)
         changed = copy.deepcopy(result)
         changed["trace_sha256"] = "0" * 64
         with self.assertRaisesRegex(tool.TraceWitnessError, "source hash"):

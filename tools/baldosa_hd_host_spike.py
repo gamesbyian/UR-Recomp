@@ -9,7 +9,8 @@ import argparse
 from pathlib import Path
 
 MARK = "UR_BALDOSA_NATIVE_RACER_PRESENTATION"
-PROTOTYPES = """extern void ur_baldosa_hd_begin_sim_frame(unsigned number);
+PROTOTYPES = """extern int ur_baldosa_hd_presentation_scale(void);
+extern void ur_baldosa_hd_begin_sim_frame(unsigned number);
 extern int ur_baldosa_hd_draw_frame(uint8_t *dst, size_t pitch,
     const uint8_t *field, int frame_w, int frame_h, double alpha);
 """
@@ -25,7 +26,8 @@ def patch_main(source: str) -> str:
     source = source.replace(ANCHOR, "/* " + MARK + " */\n" + PROTOTYPES + "\n" + ANCHOR, 1)
     return source.replace(
         FIELD, FIELD + "    .begin_sim_frame    = &ur_baldosa_hd_begin_sim_frame,\n"
-        + "    .draw_frame         = &ur_baldosa_hd_draw_frame,\n", 1)
+        + "    .draw_frame         = &ur_baldosa_hd_draw_frame,\n"
+        + "    .presentation_scale = &ur_baldosa_hd_presentation_scale,\n", 1)
 
 
 def patch_cmake(source: str, ur_root: Path) -> str:

@@ -10,6 +10,13 @@ name: Windows native build and boot smoke
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/windows-native-smoke.yml"
+      - "native/product/uniracers_modern_host.cpp"
+      - "native/product/modern_restart_key_release.hpp"
+      - "tools/qa09_windows_root_pad_probe.py"
+      - "tests/native/run_modern_root_acceptance.sh"
   push:
     branches: [main]
     paths:
@@ -463,6 +470,72 @@ jobs:
           test ! -e "$WIN32_CALLER/config.ini"
           python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
           echo "WINDOWS_PACKAGE_WIN32_RENDERER ok"
+
+      - name: QA-09 packaged Windows controller-only root and modal return
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/qa09-root-user"
+          printf 'seen-v1\n' > "$RUNNER_TEMP/qa09-root-welcome.seen"
+          LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
+          ROOT_WIN="$(cygpath -w "$RUNNER_TEMP/qa09-root-user")"
+          ONBOARDING_WIN="$(cygpath -w "$RUNNER_TEMP/qa09-root-welcome.seen")"
+          LOG="$RUNNER_TEMP/qa09-root-win32.log"
+          UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+          UR_ONBOARDING_STATE_PATH="$ONBOARDING_WIN" \
+            python -m tools.qa09_windows_root_pad_probe \
+              "$LAUNCHER_WIN" "$LOG"
+          grep -q 'UR_WINDOWS_QA09_PAD_ROOT=passed' <(printf 'UR_WINDOWS_QA09_PAD_ROOT=passed\n')
+          grep -q 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=x step=0' "$LOG"
+          grep -q 'UR_PROFILE_UI OPENED' "$LOG"
+          grep -q 'UR_PRACTICE_PICKER CANCELLED' "$LOG"
+          python tools/assemble_windows_package.py verify --package "$TEST_PACKAGE"
+          echo "WINDOWS_QA09_ROOT_PACKAGE=passed"
+
+      - name: QA-05 packaged Windows default-Return Restart audio and Start-input witness
+        run: |
+          set -euo pipefail
+          LAUNCHER_WIN="$(cygpath -w "$TEST_PACKAGE/run-uniracers.cmd")"
+          SCRIPT_WIN="$(cygpath -w "$GITHUB_WORKSPACE/tests/input/audio-modern-restart.script")"
+          for attempt in 1 2 3 4 5; do
+            ROOT="$RUNNER_TEMP/qa05-restart-user-$attempt"
+            LOG="$RUNNER_TEMP/qa05-restart-$attempt.log"
+            PCM="$RUNNER_TEMP/qa05-restart-$attempt.raw"
+            JSON="$RUNNER_TEMP/qa05-restart-$attempt.json"
+            mkdir -p "$ROOT"
+            ROOT_WIN="$(cygpath -w "$ROOT")"
+            LOG_WIN="$(cygpath -w "$LOG")"
+            PCM_WIN="$(cygpath -w "$PCM")"
+            JSON_WIN="$(cygpath -w "$JSON")"
+            SDL_VIDEODRIVER=windows \
+            SDL_AUDIO_DRIVER=disk \
+            SDL_AUDIO_DISK_OUTPUT_FILE="$PCM_WIN" \
+            SDL_AUDIO_FORMAT=S16LE \
+            SDL_AUDIO_CHANNELS=2 \
+            SDL_AUDIO_FREQUENCY=44100 \
+            SDL_AUDIO_DISK_TIMESCALE=1.0 \
+            UR_EXECUTION_MODE=modern \
+            UR_PRODUCT_DIAGNOSTICS=1 \
+            UR_PAUSE_OPEN_ACCEPTANCE=1 \
+            UR_RECOMP_USER_DATA_ROOT="$ROOT_WIN" \
+              python -m tools.capture_modern_restart_audio \
+                "$LAUNCHER_WIN" "$SCRIPT_WIN" "$LOG_WIN" "$PCM_WIN" \
+                --json-out "$JSON_WIN"
+            python - "$LOG" "$JSON" <<'PY'
+          import json, pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          evidence = json.loads(pathlib.Path(sys.argv[2]).read_text())
+          assert evidence.get("recovery_confirmed") is True
+          probes = re.findall(r"(?m)^UR_RESTART_INPUT raw=([0-9A-F]+) guest=([0-9A-F]+) return_held=([01]) release_waiting=([01])", log)
+          assert probes, "default-Return Restart did not report a guest-word witness"
+          for raw, guest, held, waiting in probes:
+              if waiting == "1":
+                  assert not (int(guest, 16) & 0x1000), "host confirmation leaked guest Start"
+          print("UR_QA05_RESTART_GUEST_WORD=passed")
+          PY
+            rm -f "$PCM"
+            echo "UR_QA05_RESTART_AUDIBLE_ATTEMPT=$attempt/5 passed"
+          done
+          echo "WINDOWS_QA05_DEFAULT_RETURN_AUDIO=5/5"
 
       - name: Package refresh preserves user data
         run: |

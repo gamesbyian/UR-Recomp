@@ -1,6 +1,6 @@
-# QA-02: Crash-released fixture ownership lease, proposed contract
+# QA-02: Crash-released fixture ownership lease and acceptance contract
 
-Status: **implementation candidate** in this PR, pending exact-head native CI; **not** a packaged Windows release witness.
+Status: **merged native implementation in #1052** (commit `01f2b1aa`); **not** a packaged Windows release witness.
 Owner: QA-02 persistence. Keep distinct from frontend, guest gameplay
 and tournament rules. Current safety baseline: exact on-disk attempt
 fence at receipt commit (#1042), with two-process adversarial coverage
@@ -83,8 +83,8 @@ A live OS handle plus explicit rearm semantics separates a *still-running*
 owner from a *dead but durably pending* attempt, without relying on
 unverifiable heartbeat age.
 
-The coordinator and OS-lock primitive now implement the core live lease
-as an unmerged candidate. Production arm acquires it nonblocking and
+The coordinator and OS-lock primitive implement the core live lease
+in merged #1052. Production arm acquires it nonblocking and
 retains its handle in the coordinator through commit or cancellation.
 Arm also rechecks the current active archive and receipt-derived fixture
 completion to refuse stale in-memory rearm after another window finishes.

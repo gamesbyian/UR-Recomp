@@ -354,6 +354,86 @@
       "review_status": "unverified-leads"
     },
     {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank00.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 28179,
+      "git_blob_sha1": "4492bc4c02c699207320c8c2356f9f41fb867373",
+      "upstream_git_blob_sha1": "4492bc4c02c699207320c8c2356f9f41fb867373",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank01.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 7418,
+      "git_blob_sha1": "e0e3653f1d76d874d414a0ca736849411f154160",
+      "upstream_git_blob_sha1": "e0e3653f1d76d874d414a0ca736849411f154160",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank02.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 7170,
+      "git_blob_sha1": "9293b70a6e65816dd3897f63635f4c1b73375c42",
+      "upstream_git_blob_sha1": "9293b70a6e65816dd3897f63635f4c1b73375c42",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank03.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 5402,
+      "git_blob_sha1": "97015261e796cc00f699e3a4b434a303c50f24aa",
+      "upstream_git_blob_sha1": "97015261e796cc00f699e3a4b434a303c50f24aa",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank80.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 14242,
+      "git_blob_sha1": "b1e84ed090e0a3255dcafce7c331a476e75e5989",
+      "upstream_git_blob_sha1": "b1e84ed090e0a3255dcafce7c331a476e75e5989",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank81.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 3249,
+      "git_blob_sha1": "057a45712b0fa9f84cadad92852533efc5ec476e",
+      "upstream_git_blob_sha1": "057a45712b0fa9f84cadad92852533efc5ec476e",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank82.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 3777,
+      "git_blob_sha1": "2335e818ff992d6134079392c4f82ed8867bbc7e",
+      "upstream_git_blob_sha1": "2335e818ff992d6134079392c4f82ed8867bbc7e",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/bank83.cfg",
+      "category": "aot-analysis-config-reference",
+      "size": 6095,
+      "git_blob_sha1": "ae3d10022515cf60f844becd7d645b198e101246",
+      "upstream_git_blob_sha1": "ae3d10022515cf60f844becd7d645b198e101246",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/README.md",
+      "category": "aot-analysis-config-reference",
+      "size": 1740,
+      "git_blob_sha1": "ca70f0316a7ffaabf3056c46f9e567ef0b8eb0e1",
+      "upstream_git_blob_sha1": "ca70f0316a7ffaabf3056c46f9e567ef0b8eb0e1",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml",
+      "category": "aot-analysis-config-reference",
+      "size": 103475,
+      "git_blob_sha1": "231e6ffef8f74473ec6af84c51e218ba62ca8f30",
+      "upstream_git_blob_sha1": "231e6ffef8f74473ec6af84c51e218ba62ca8f30",
+      "review_status": "unverified-leads"
+    },
+    {
       "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/attract.txt",
       "category": "historical-route-reference",
       "size": 158,
@@ -426,11 +506,27 @@
       "review_status": "unverified-leads"
     },
     {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/capture_coverage.sh",
+      "category": "aot-build-tool-reference",
+      "size": 1402,
+      "git_blob_sha1": "1c0243f7eefcee497661dfa6beb537d30988c44a",
+      "upstream_git_blob_sha1": "1c0243f7eefcee497661dfa6beb537d30988c44a",
+      "review_status": "unverified-leads"
+    },
+    {
       "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/compare_dumps.py",
       "category": "comparison-tool-reference",
       "size": 2613,
       "git_blob_sha1": "11d78b1c89d439c39e5b70e499717301c01e6aab",
       "upstream_git_blob_sha1": "11d78b1c89d439c39e5b70e499717301c01e6aab",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/coverage_iter.sh",
+      "category": "aot-build-tool-reference",
+      "size": 753,
+      "git_blob_sha1": "590916a79bf9fe14f7d36b8b52b8b9f6c977dca1",
+      "upstream_git_blob_sha1": "590916a79bf9fe14f7d36b8b52b8b9f6c977dca1",
       "review_status": "unverified-leads"
     },
     {
@@ -447,6 +543,38 @@
       "size": 1551,
       "git_blob_sha1": "7438f0124c6ddcddec931afdd4d520a3aea503c7",
       "upstream_git_blob_sha1": "7438f0124c6ddcddec931afdd4d520a3aea503c7",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/promote_roots.py",
+      "category": "aot-build-tool-reference",
+      "size": 3884,
+      "git_blob_sha1": "b9790b4bc910d18336fea53cf9de75ea9de6ae72",
+      "upstream_git_blob_sha1": "b9790b4bc910d18336fea53cf9de75ea9de6ae72",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/regen.sh",
+      "category": "aot-build-tool-reference",
+      "size": 4532,
+      "git_blob_sha1": "1bc1aff6966c85fcb192d31aee91b191b3357275",
+      "upstream_git_blob_sha1": "1bc1aff6966c85fcb192d31aee91b191b3357275",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/run_ref.sh",
+      "category": "aot-build-tool-reference",
+      "size": 846,
+      "git_blob_sha1": "1475e79a846fe06a72246508f25344f002d0d230",
+      "upstream_git_blob_sha1": "1475e79a846fe06a72246508f25344f002d0d230",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/run_route.sh",
+      "category": "aot-build-tool-reference",
+      "size": 1387,
+      "git_blob_sha1": "9415f2b5f8d40a9d4f48842f437abf0d5fa48a1f",
+      "upstream_git_blob_sha1": "9415f2b5f8d40a9d4f48842f437abf0d5fa48a1f",
       "review_status": "unverified-leads"
     },
     {

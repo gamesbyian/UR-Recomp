@@ -43,10 +43,10 @@ bool smoke_enabled() {
                 errno = 0;
                 char* end = nullptr;
                 const unsigned long n = std::strtoul(frame, &end, 10);
-                if (errno != 0 || !end || end == frame || *end != '\\0' ||
+                if (errno != 0 || !end || end == frame || *end != '\0' ||
                     n == 0 || n > UINT_MAX) {
                     std::fprintf(stderr,
-                        "UR_BALDOSA_NATIVE_PAUSE FAIL=invalid_test_frame\\n");
+                        "UR_BALDOSA_NATIVE_PAUSE FAIL=invalid_test_frame\n");
                     std::abort();
                 }
                 g_pause_at_frame = static_cast<unsigned>(n);

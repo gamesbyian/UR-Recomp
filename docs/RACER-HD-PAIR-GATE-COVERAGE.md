@@ -45,6 +45,17 @@ guest-frame boundaries. At least 4,942 / 5,282 player-frame slots
 (**93.56%**) remain stock under the *default pair-only capture policy*,
 even before failed live geometry/OAM/capture checks.
 
+The trace also contains a **759-frame uninterrupted ineligible period**
+(guest frames `3062..3820`), another 661-frame interval (`1306..1966`),
+and 387 frames (`2050..2436`). Under the default pair-only presenter,
+these are extended unavoidable Original-only stretches, about 12.6, 11.0
+and 6.4 seconds respectively at approximately 60 guest frames/second.
+The first 441 observed guest frames have 59 eligible frames, whereas the
+remaining 2,200 have only 111; the coverage profile is highly
+non-uniform across a moving play sequence. The priority is whole motion
+and game segments, not a prettier isolated sprite or a percentage gain
+concentrated in a three-second window.
+
 These figures are measured on a real moving reference sequence, but
 **do not count actual native replacement draws**. The 98 edges mark
 potentially rapid Remastered/Original transitions, not a verified

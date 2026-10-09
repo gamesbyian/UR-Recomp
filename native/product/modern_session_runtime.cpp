@@ -6,6 +6,9 @@ RestartLifecycleEvent ModernSessionRuntime::observe_race_active(bool active) {
     if (control_.mode() != ExecutionMode::Modern) {
         return RestartLifecycleEvent::None;
     }
+    // Native backends own restart lifecycle/availability. Do not attempt
+    // to capture old-executor snapshots in their guest address space.
+    if (hooks_.native_restart_race) return RestartLifecycleEvent::None;
     const auto event = restart_lifecycle_.observe_race_active(active);
     if (event == RestartLifecycleEvent::AnchorCaptured) {
         if (hooks_.set_rewind_audio_timing_lock) {
@@ -32,6 +35,7 @@ RestartLifecycleEvent ModernSessionRuntime::retire_race_attempt() noexcept {
 
 ModernSessionDispatchResult ModernSessionRuntime::request(
     SessionCommand command) noexcept {
+    const SessionPhase phase_before = control_.phase();
     const SessionRequestResult requested = control_.request(command);
     ModernSessionDispatchResult result{};
     result.request_status = requested.status;
@@ -51,6 +55,12 @@ ModernSessionDispatchResult ModernSessionRuntime::request(
         *action,
         hooks_,
         &restart_lifecycle_);
+
+    if (result.dispatch_status != RuntimeDispatchStatus::Applied &&
+        (*action == RuntimeAction::SuspendGuest ||
+         *action == RuntimeAction::ResumeGuest)) {
+        control_.reconcile_failed_runtime_action(phase_before);
+    }
 
     if (*action == RuntimeAction::ExitToFrontend &&
         result.dispatch_status == RuntimeDispatchStatus::Applied) {

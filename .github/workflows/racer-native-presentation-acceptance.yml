@@ -226,13 +226,16 @@ jobs:
           ORIGINAL_A_LOG="$RUNNER_TEMP/racer-original-a.log"
           ORIGINAL_B_LOG="$RUNNER_TEMP/racer-original-b.log"
           HD_LOG="$RUNNER_TEMP/racer-hd.log"
+          OBJ_ONLY_LOG="$RUNNER_TEMP/racer-original-obj-only.log"
           ORIGINAL_A_DUMPS="$RUNNER_TEMP/racer-original-a-dumps"
           ORIGINAL_B_DUMPS="$RUNNER_TEMP/racer-original-b-dumps"
           HD_DUMPS="$RUNNER_TEMP/racer-hd-dumps"
+          OBJ_ONLY_DUMPS="$RUNNER_TEMP/racer-original-obj-only-dumps"
           ORIGINAL_A_SHOT="$RUNNER_TEMP/racer-original-a-1220.ppm"
           ORIGINAL_B_SHOT="$RUNNER_TEMP/racer-original-b-1220.ppm"
           HD_SHOT="$RUNNER_TEMP/racer-hd-1220.ppm"
-          mkdir -p "$ORIGINAL_A_DUMPS" "$ORIGINAL_B_DUMPS" "$HD_DUMPS"
+          OBJ_ONLY_SHOT="$RUNNER_TEMP/racer-original-obj-only-1220.ppm"
+          mkdir -p "$ORIGINAL_A_DUMPS" "$ORIGINAL_B_DUMPS" "$HD_DUMPS" "$OBJ_ONLY_DUMPS"
 
           run_route() {
             local mode="$1" log="$2" dumps="$3" shot="$4"
@@ -256,10 +259,11 @@ jobs:
 
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
-          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" \
-            UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 \
-            UR_RACER_HD_OBJ_LAYER_PAM="$RUNNER_TEMP/racer-hd-obj-layer-1220.pam" \
-            UR_RACER_HD_OBJ_LAYER_FRAME=1220
+          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1 UR_RACER_HD_CENSUS=1
+          # Pinned native PPU OBJ overlay export is empty in this route.
+          # Independently render stock OBJ without BG1-4 via its documented
+          # diagnostic bitmask, then compare with same-frame Original and HD.
+          run_route Original-OBJ-only "$OBJ_ONLY_LOG" "$OBJ_ONLY_DUMPS" "$OBJ_ONLY_SHOT" SNESRECOMP_LAYER_MASK=0x10
 
           # These are actual host presentation results, not registration matches.
           python3 tools/measure_racer_hd_live_draws.py \
@@ -317,12 +321,12 @@ jobs:
           # foreground depth at one exact original/HD 2P guest frame.
           # The analyzer never treats RGB disagreement alone as proof of BG
           # priority: other OBJ and PPU colour math remain valid causes.
-          grep -F 'UR_RACER_HD_OBJ_LAYER frame=1220 status=captured' "$HD_LOG"
+          test -s "$OBJ_ONLY_SHOT"
           python3 tools/check_racer_hd_foreground_occlusion.py \
             --original "$ORIGINAL_A_SHOT" \
             --original-control "$ORIGINAL_B_SHOT" \
             --hd "$HD_SHOT" --native-log "$HD_LOG" \
-            --obj-layer "$RUNNER_TEMP/racer-hd-obj-layer-1220.pam" \
+            --obj-only-ppm "$OBJ_ONLY_SHOT" \
             --frame 1220 \
             --json-out "$RUNNER_TEMP/racer-hd-foreground-1220.json" \
             > "$RUNNER_TEMP/racer-hd-foreground-1220.txt"
@@ -1565,7 +1569,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-live-race-window.json
             ${{ runner.temp }}/racer-hd-live-race-window.txt
             ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
-            ${{ runner.temp }}/racer-hd-obj-layer-1220.pam
+            ${{ runner.temp }}/racer-original-obj-only.log
+            ${{ runner.temp }}/racer-original-obj-only-1220.ppm
             ${{ runner.temp }}/racer-hd-foreground-1220.json
             ${{ runner.temp }}/racer-hd-foreground-1220.txt
             ${{ runner.temp }}/racer-hd-live-census.txt

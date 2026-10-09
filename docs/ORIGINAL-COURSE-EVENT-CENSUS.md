@@ -311,6 +311,18 @@ workflow `37184022134`.
    result. Existing R-hold (22–25) and A-hold (4–5) cases are useful
    threshold seeds, not coverage of these other classes.
 
+**Entry-probe measurement correction, 2026-10-09:** The original/native
+first-64-frame comparison now also observes **P1 and P2 checkpoint,
+finish gate and lap words**, plus P2 velocities. Previously, equal
+positions and stored contacts could conceal early phantom finish/gate
+credit or an erroneous P2 lap decrement. The synthetic fail-first
+regression is documented in
+[QA01-NONDRAGSTER-ENTRY-PROGRESSION.md](QA01-NONDRAGSTER-ENTRY-PROGRESSION.md).
+No fresh engine execution was performed for this change; it is a
+measurement-coverage correction and retains the **0/45** USA complete
+event denominator, **3** partial cases and **0/135** broader complete
+event count.
+
 ## Executable non-Dragster entry discriminator (QA-01 step 1)
 
 `tools/probe_original_non_dragster_course_entry.py` now supplies two

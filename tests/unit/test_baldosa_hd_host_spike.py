@@ -31,6 +31,7 @@ class NativeRacerHostTest(unittest.TestCase):
         self.assertEqual(patch.patch_main(candidate), candidate)
         self.assertIn(".begin_sim_frame", candidate)
         self.assertIn(".draw_frame", candidate)
+        self.assertIn(".presentation_scale", candidate)
 
     def test_only_first_party_presenter_is_linked(self):
         with tempfile.TemporaryDirectory() as td:
@@ -69,11 +70,38 @@ class NativeRacerHostTest(unittest.TestCase):
                       b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
             for f, pixel in ((1800, b"\x10"), (1860, b"\x20")):
                 (captures / f"ur-baldosa-frame-{f:06d}.pam").write_bytes(
-                    header + pixel * (256 * 224 * 4))
+                    header + pixel * (256 * 224 * 4 - 4) + b"\\xff\\x00\\x00\\xff")
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "passed")
-            self.assertEqual(report.assess(base, candidate, log, captures)["visible_source_obj_frame_count"], 2)
+            # 4x requires a real dense raster, not the same 1x framebuffer
+            # with altered metadata. Wrong geometry must fail closed.
+            with self.assertRaises(ValueError):
+                report.assess(base, candidate, log, captures, density=4)
+            for f, pixel in ((1800, b"\x10"), (1860, b"\x20")):
+                (captures / f"ur-baldosa-frame-{f:06d}.pam").write_bytes(
+                    (b"P7\nWIDTH 1024\nHEIGHT 896\nDEPTH 4\nMAXVAL 255\n"
+                     b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
+                    + pixel * (1024 * 896 * 4 - 4) + b"\\xff\\x00\\x00\\xff")
+            hi = report.assess(base, candidate, log, captures, density=4)
+            self.assertEqual(hi["status"], "passed")
+            self.assertEqual(hi["composed_raster_dimensions"], [1024, 896])
+            self.assertTrue(hi["real_4x_authored_raster_proved"])
+
+            self.assertEqual(hi["visible_source_obj_frame_count"], 2)
+            self.assertEqual(hi["captured_source_obj_spatial_frames"], 2)
+            # Two changing uniform screens plus plausible logs must never
+            # receive credit as source-derived moving racer imagery.
+            second = captures / "ur-baldosa-frame-001860.pam"
+            second.write_bytes(
+                (b"P7\\nWIDTH 1024\\nHEIGHT 896\\nDEPTH 4\\nMAXVAL 255\\n"
+                 b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+                + b"\\x20" * (1024 * 896 * 4))
+            self.assertEqual(report.assess(base, candidate, log, captures, density=4)["status"], "unproven")
+            second.write_bytes(
+                (b"P7\\nWIDTH 1024\\nHEIGHT 896\\nDEPTH 4\\nMAXVAL 255\\n"
+                 b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+                + b"\\x20" * (1024 * 896 * 4 - 4) + b"\\xff\\x00\\x00\\xff")
             log.write_text(log.read_text().replace("top_opaque=12", "top_opaque=0"))
-            self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")
+            self.assertEqual(report.assess(base, candidate, log, captures, density=4)["status"], "unproven")
             log.write_text(log.read_text().replace("top_opaque=0", "top_opaque=12"))
             candidate.write_bytes(frames.replace(b"0xAAAA0000", b"0xBBBB0000", 1))
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")

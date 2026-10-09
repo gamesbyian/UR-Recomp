@@ -1,4 +1,5 @@
 #include "host_profile_catalog.hpp"
+#include "local_tournament_atomic_replace.hpp"
 #include "host_product_state.hpp"
 #include "host_profile_runtime.hpp"
 
@@ -10,27 +11,10 @@
 #include <fstream>
 #include <sstream>
 
-#if defined(_WIN32)
-#include <windows.h>
-#endif
-
 namespace ur::product {
 namespace {
 constexpr std::string_view kHeader = "UR-PROFILE-CATALOG/1";
 constexpr std::uintmax_t kMaxCatalogBytes = 1024u * 1024u;
-
-bool replace_file_atomically(
-    const std::string& temporary_path,
-    const std::string& final_path) noexcept {
-#if defined(_WIN32)
-    return MoveFileExA(
-        temporary_path.c_str(),
-        final_path.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
-#else
-    return std::rename(temporary_path.c_str(), final_path.c_str()) == 0;
-#endif
-}
 
 std::string escape_field(std::string_view value) {
     std::string out;
@@ -172,16 +156,7 @@ bool save_host_profile_catalog_file(
         return false;
     }
 
-    const std::string tmp = path + ".tmp";
-    std::ofstream out(tmp, std::ios::binary | std::ios::trunc);
-    out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
-    out.close();
-    if (!out) return false;
-    if (!replace_file_atomically(tmp, path)) {
-        std::remove(tmp.c_str());
-        return false;
-    }
-    return true;
+    return write_host_replace_staged(path, encoded, "urcatalog");
 }
 
 std::optional<std::vector<HostProfileCatalogEntry>> load_host_profile_catalog_file(

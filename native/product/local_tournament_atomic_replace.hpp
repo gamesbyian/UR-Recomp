@@ -1,10 +1,11 @@
 #pragma once
 
-// Narrow tournament mutable-file writer. The active definition and pending
-// launch are intentionally *replaceable* host state. Their old path+".tmp"
-// writers could race across processes and truncate/mix each other's staging
-// bytes before rename. This helper isolates staging, while retaining the
-// existing last-writer-wins replacement policy for the canonical target.
+// Generic host-owned mutable-file writer, first introduced for tournament
+// sessions/checkpoints and now used by profiles, profile catalogs and options.
+// A fixed path+".tmp" races across processes: another writer can truncate or
+// rename a staged payload before its owner publishes it. Private same-directory
+// reservations preserve complete-file visibility and the previous good target
+// on failed staging; replacement remains last-writer-wins.
 //
 // This is NOT a cross-process compare-and-swap or multi-file transaction.
 // Concurrent save-versus-retire, stale attempt deletion, and power-loss fsync
@@ -53,10 +54,11 @@ inline std::optional<std::filesystem::path> reserve_tournament_staging(
 
 } // namespace detail
 
-inline bool write_tournament_replace_staged(
+inline bool write_host_replace_staged(
     const std::string& final_name,
     std::string_view data,
-    std::string_view staging_family) {
+    std::string_view staging_family,
+    void (*after_staging_for_test)() = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
     const fs::path final_path(final_name);
@@ -80,6 +82,9 @@ inline bool write_tournament_replace_staged(
         cleanup();
         return false;
     }
+    // An optional test callback models immediate process death after close
+    // and before the atomic visibility transition. Production never supplies it.
+    if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
     const bool published = MoveFileExW(
         tmp.c_str(), final_path.c_str(),
@@ -91,6 +96,14 @@ inline bool write_tournament_replace_staged(
 #endif
     cleanup();
     return published;
+}
+
+// Compatibility entrypoint for the tournament stores and existing tests.
+inline bool write_tournament_replace_staged(
+    const std::string& final_name,
+    std::string_view data,
+    std::string_view staging_family) {
+    return write_host_replace_staged(final_name, data, staging_family);
 }
 
 } // namespace ur::product

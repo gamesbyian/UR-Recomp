@@ -94,8 +94,8 @@ def audit(
     source_counts = None
     if source_obj_layer is not None:
         pam = (
-            b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
         )
         if not source_obj_layer.startswith(pam) or (
             len(source_obj_layer) != len(pam) + 256 * 224 * 4

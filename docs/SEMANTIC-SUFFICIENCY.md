@@ -1,5 +1,9 @@
 # Semantic Sufficiency Scoreboard
 
+## Modern frontend design readiness distinction (2026-10-08)
+
+[`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) defines the planned screen tree, shared visual grammar, interaction semantics and acceptance matrix. This is **design readiness**, not proof of live player-facing implementation. In particular, the pure typed five-entry `modern_root_menu.hpp` remains distinct from a fully rendered/connected root; existing F-key/menu-context panels and production-looking graphics cannot be inferred from a design spec. The live surface-by-surface inventory and evidentiary status remain in [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md). The original-family visual quality bar is owned by [`MODERN-UI-VISUAL-FIDELITY.md`](MODERN-UI-VISUAL-FIDELITY.md). Require real packaged visual and controller-only QA before promoting this row to full release quality.
+
 Last updated: 2026-10-08 (post-integration frontend and course-state reconciliation)
 
 This is a product-facing readiness map, not a decompilation-completeness score. A subsystem is judged by whether the project can **observe** its authoritative state, **explain** the behavior needed by the product, **modify safely** at the correct ownership seam, and **validate** the result.

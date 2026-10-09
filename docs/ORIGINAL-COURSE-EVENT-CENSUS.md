@@ -28,15 +28,25 @@ original route and start, event-specific contact/checkpoint/lap/finish
 MesenCE run from an independently named native run, on a fresh process,
 with exact ROM and candidate provenance.
 
-The primary-USA baseline is **0/45 complete event passes**, **2/45
-partial observations**, **43/45 unverified**. Across all three builds,
-**0/135 complete**, **2/135 partial**, **133/135 unverified**, as encoded in
+The primary-USA baseline is **0/45 complete event passes**, **3/45
+partial observations**, **42/45 unverified**. Across all three builds,
+**0/135 complete**, **3/135 partial**, **132/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
 - **USA Dragster (course 01), partial:** the seven-frame native WRAM
   progression witness observes the postframe checkpoint/lap/finish gate
   transition, but does not capture the instruction-time dispatcher value
   or demonstrate original/native all-event/result parity.
+- **USA Zoom Zoo (course 02), partial:** the original pinned 2014
+  Snes9x 5,000-frame WRAM write trace has an actual Crawler circuit
+  entry at movie frame **3190**, both racers at **(9200,1489)** versus
+  identical ROM header pairs **(9200,1488)**, and five verified
+  P1 checkpoint/finish-gate/lap transitions at **3408, 3794, 4031,
+  4722, 4911**. P1 laps remaining drops **4→3** and later **3→2**;
+  this is independent **original-only live progression**, not a paired
+  native gameplay parity result, a completed circuit or a terminal result.
+  Full reduced trace and original write provenance:
+  `analysis/data/zoo-original-2014-live-progression.json`.
 - **USA Jumpover (course 20), partial:** six bounded input-only
   original/native stunt landing-reward thresholds match **on a circuit B
   course**, but no complete circuit lap/finish/result or 45-second stunt
@@ -126,6 +136,67 @@ python3 tools/correlate_zoo_original_positions_with_cells.py \
 python3 -m unittest discover -s tests/unit \
   -p 'test_correlate_zoo_original_positions_with_cells.py'
 ```
+
+## Actual Snes9x Zoom Zoo spawn, checkpoint and lap chronology
+
+**Recovered from authentic original execution, 2026-10-09.**
+Historical workflow run `37184022134` artifact `11296685866`
+retained a 35,428,252-byte original Snes9x JSONL WRAM write trace
+(`669,690` records, guest frames 1..5000, source SHA-256
+`5fc0e88c89d2dc35b945a2c1f37f522fe8ba3090ea64a0efe50e1748b39f93ab`).
+That **raw** trace was reconstructed frame-by-frame, not inferred from
+the movie's sparse reference output or the out-of-phase native screenshots.
+
+At the original Zoom Zoo race entry **frame 3190**, guest track ID is 1,
+`inRace=1`, P1 and P2 are both **(9200,1489)**. The two identical
+header coordinate pairs are **(575,93)** ×16 = **(9200,1488)**.
+Thus the header's X is a live start-position match, with the first
+active-frame Y one unit lower. The historical unused
+`magicnumber.lua startX=8961` is **not** the actual start position,
+resolving that earlier static interpretation question without guessing
+whether the Y unit came from gravity or postframe ordering.
+Because both header pairs are identical, their P1/P2 assignment
+remains intrinsically uninformative.
+
+| Snes9x guest frame | P1 world X/Y | Checkpoint index | Finish gate | P1 laps remaining | Previous stored P1 contact → new postframe |
+|---|---|---|---|---|---|
+| 3190 | 9200, 1489 | 0 | 0 | 4 | first active frame |
+| 3408 | 8943, 1568 | 0→1 | 0→1 | **4→3** | `2304` (slot 194) → `2308` (196) |
+| 3794 | 8478, 2907 | 1→2 | 1 | 3 | `2704` (194) → `0706` (195) |
+| 4031 | 11931, 3568 | 2→3 | 1→0 | 3 | `2B04` (194) → `0B06` (195) |
+| 4722 | 11852, 1073 | 3→0 | 0 | 3 | `0F20` (200) → `0F20` (200) |
+| 4911 | 8961, 1568 | 0→1 | 0→1 | **3→2** | `0306` (195) → `2304` (194) |
+
+The Snes9x trace records the **direct writes** to `0EF1`
+(laps), `1199` (checkpoint), and `119D` (finish gate) in
+those same frames. The second observed lap decrement is **1,503
+original frames** after the first; intervening checkpoint order
+is **1→2→3→0→1**. Although the P1 X at the second decrement happens
+to equal the optimizer's unused `8961`, that coincidence does not
+retroactively identify the recorded historical X as a spawn or
+authoritative finish plane.
+
+These original contact words are **postframe** P1 stored values from
+`7E:0E95`; their decoded C000 slots are candidates, not a
+per-instruction cell/collision assertion. USA ROM call order dispatches
+course objects before sampling new contact, and 0F09 frame-end scratch
+belongs to the most recently updated player. **Do not assign the new
+same-frame postframe contact word as the cause of the lap transition.**
+At frames 3408 and 4911 the *previous* stored words/slots differ,
+yet both progression transitions have checkpoint/gate/lap patterns
+`0/0/n → 1/1/n−1`. An instruction-time P1 dispatch trace is required
+to establish whether both select the same gate/class.
+
+**Coverage disposition:** this is the third primary-USA `partial`
+case, not a full `passed` case. It establishes real original-start
+and bounded circuit checkpoint/lap semantics over frames 3190..5000,
+but no finished circuit result, no independently synchronized native
+replay, and no assertion about the other 44 course events. The primary
+full-event release denominator remains **0/45**. For future recovery,
+download workflow run `37184022134` artifact `11296685866` and
+reconstruct its `_temp/dessyreqt-first-race-trace.jsonl`;
+the reduced evidence fixture is retained in the repository even after
+the workflow artifact expires.
 
 ## Non-Dragster counterexample priorities
 

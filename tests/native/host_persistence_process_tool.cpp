@@ -126,6 +126,9 @@ int main(int argc, char** argv) {
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
     }
+    if (family == "profile" && action == "root-reusable") {
+        return reusable_aborted_profile_creation_root(path) ? 0 : 6;
+    }
     if (family == "catalog" && action == "cas-roster-read") {
         const auto catalog = load_host_profile_catalog_file(path);
         if (!catalog || catalog->empty()) return 4;

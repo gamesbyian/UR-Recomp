@@ -87,4 +87,11 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
     const std::string& path,
     const HostProfileState& expected_current);
 
+// A failed catalog registration can leave the persistent OS lock pathname
+// behind even after conditional cleanup removed its profile file. A new
+// explicit creation may safely reuse only that inert lock-only directory.
+// Never infer recoverability from a root containing SRAM, profile, staging,
+// symlinks, or other unknown preexisting data.
+bool reusable_aborted_profile_creation_root(const std::string& root_path);
+
 }  // namespace ur::product

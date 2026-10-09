@@ -44,7 +44,14 @@
     "historical_unused_optimizer_start_x": 8961,
     "p1_next_checkpoint": 0,
     "p1_finish_gate": 0,
-    "p1_laps_remaining": 4
+    "p1_laps_remaining": 4,
+    "timer_raw_digits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
   },
   "observed_progression": [
     {
@@ -89,6 +96,13 @@
           "old": 0,
           "new": 1
         }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        0,
+        0,
+        2,
+        1
       ]
     },
     {
@@ -123,6 +137,13 @@
           "old": 1,
           "new": 2
         }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        0,
+        6,
+        6,
+        3
       ]
     },
     {
@@ -162,6 +183,13 @@
           "old": 1,
           "new": 0
         }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        1,
+        0,
+        6,
+        0
       ]
     },
     {
@@ -196,6 +224,13 @@
           "old": 3,
           "new": 0
         }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        2,
+        2,
+        1,
+        1
       ]
     },
     {
@@ -240,6 +275,13 @@
           "old": 0,
           "new": 1
         }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        2,
+        5,
+        2,
+        4
       ]
     }
   ],
@@ -252,6 +294,7 @@
     "The temporary 0F09 shared collision word at frame end is not a permanent P1 record; the per-player stored 0E95 was tracked.",
     "Original initial racer X=9200 matches both header A/B.x*16, but identical header pairs cannot resolve player slot assignment. Y=1489 at first active frame is 1 world unit below header 1488.",
     "The historical magicnumber.lua startX=8961 is not the original first active X; the original P1 reaches X=8961 during the second observed lap-counter decrement.",
-    "This is original-only course semantics, not a demonstrated native discrepancy or a full QA-01 accepted completion."
+    "This is original-only course semantics, not a demonstrated native discrepancy or a full QA-01 accepted completion.",
+    "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read."
   ]
 }

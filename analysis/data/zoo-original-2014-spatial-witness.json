@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "classification": "original-Snes9x-sampled-position / USA-ROM-static-cell proximity only",
+  "original_movie": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+  "source_reference": "analysis/generated/historical-2014-first-race-replay.json",
+  "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "course_id": "course:02",
+  "candidate_cells": 784,
+  "samples": [
+    {
+      "movie_frame": 3400,
+      "position": [
+        9098,
+        1568
+      ],
+      "nearest_cell": [
+        8992,
+        1568,
+        9007,
+        1583
+      ],
+      "axis_gap": [
+        91,
+        0
+      ],
+      "c000_slot": 195,
+      "inside_candidate_cells": 0
+    },
+    {
+      "movie_frame": 3800,
+      "position": [
+        8565,
+        2868
+      ],
+      "nearest_cell": [
+        8496,
+        2864,
+        8511,
+        2879
+      ],
+      "axis_gap": [
+        54,
+        0
+      ],
+      "c000_slot": 193,
+      "inside_candidate_cells": 0
+    },
+    {
+      "movie_frame": 4200,
+      "position": [
+        14535,
+        2880
+      ],
+      "nearest_cell": [
+        11952,
+        2880,
+        11967,
+        2895
+      ],
+      "axis_gap": [
+        2568,
+        0
+      ],
+      "c000_slot": 200,
+      "inside_candidate_cells": 0
+    },
+    {
+      "movie_frame": 4600,
+      "position": [
+        13745,
+        1585
+      ],
+      "nearest_cell": [
+        11952,
+        1584,
+        11967,
+        1599
+      ],
+      "axis_gap": [
+        1778,
+        0
+      ],
+      "c000_slot": 200,
+      "inside_candidate_cells": 0
+    },
+    {
+      "movie_frame": 5000,
+      "position": [
+        7587,
+        1470
+      ],
+      "nearest_cell": [
+        8480,
+        1728,
+        8495,
+        1743
+      ],
+      "axis_gap": [
+        893,
+        258
+      ],
+      "c000_slot": 200,
+      "inside_candidate_cells": 0
+    }
+  ],
+  "limitation": "Five sparse original postframe position samples only. Center-to-cell 2D proximity neither proves nor excludes an earlier guest contact, collision footprint, chosen C000 slot, checkpoint, lap or finish event."
+}

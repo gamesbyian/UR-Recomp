@@ -75,12 +75,20 @@ Each engine's race-entry frame is measured independently in a calibration
 run. Archived movie inputs are then shifted to those scene-relative frames,
 and replayed after a fresh boot of each engine.
 
-A bounded matrix compares menu/race state plus active-course X/Y,
+A 101-sample matrix compares menu/race state plus active-course X/Y,
 velocities, persisted contact word, next-checkpoint, finish gate,
-laps remaining, and boost at original movie-relative checkpoints
-0, 1, 2, 4, 8, 16, 32, 64, 128, 210, 256, 384, 512, 610,
-768, 1010, 1024, 1280, 1410, 1536 and 1800. These include the
-original movie's later observed frames 3400, 3800, 4200 and 4600.
+laps remaining, and boost. It retains the original 21 sparse phase
+checkpoints and additionally captures **every guest frame** in relative
+windows **190..230** and **590..630** (inclusive, no duplicate dumps).
+Those are the neighborhoods of original Snes9x movie frames
+**3400** (+210) and **3800** (+610), where the first exact USA-ROM
+two-dimensional test found rider centers just **91** and **54** world X
+units from a checkpoint-family cell with overlapping Y. The selected
+capture windows are an explicit spatial hypothesis, not proof of
+frame-specific guest contact. They target brief contact-word,
+checkpoint-order and lap-gate transients that sparse observations
+could miss. Source inputs, individual active-course checks and
+reference/native calibration remain identical.
 The script explicitly carries a `--phase` hypothesis (`-1`, `0`,
 or `+1`) because the movie-frame/controller latch convention has
 not been measured between runtimes. A different phase is an
@@ -113,7 +121,7 @@ lap or other guest behavior should the original simulation be changed.
 
 **Validation status:** synthetic negative unit tests are provided.
 No guest run of this extended comparator has been admitted here.
-Passing sparse checkpoints would close only this named 1,811-frame
+Passing the bounded sampled checkpoints would close only this named 1,811-frame
 input-transplant experiment; neither an entire circuit result nor
 the overall QA-01 45-course release requirement.
 
@@ -130,7 +138,7 @@ the entire resident `7F:0000` course payload at **every observed active
 checkpoint**, except the original loader-mutated two-byte cursor at
 `0x0B..0x0C`. A wrong/partially loaded course causes explicit evidence
 rejection even when both runtimes match each other. After comparing guest
-state, it separately verifies that all 21 event-relative checkpoint samples
+state, it separately verifies that all 101 event-relative checkpoint samples
 still show `inRace=1`, `trackID=1`, as expected for the archived original
 movie through frame 5000.
 

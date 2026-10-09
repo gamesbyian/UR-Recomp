@@ -28,8 +28,18 @@ from probe_runtime_course_payload import is_fully_loaded_course
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL_MOVIE_START = 3190
 ORIGINAL_WINDOW_FRAMES = 1811  # 3190..5000, both endpoints included.
-EXTRA_SAMPLES = (128, 210, 256, 384, 512, 610, 768, 1010, 1024,
-                 1280, 1410, 1536, 1800)
+# Movie-frame 3400/3800 (+210/+610 relative to the 3190 scene
+# anchor) have the nearest *sampled* original Zoom Zoo rider positions
+# to ROM candidate 0x24 cells: 91 and 54 world-X units respectively.
+# A one-frame transient can disappear between sparse snapshots.
+ORIGINAL_ANCHOR_SAMPLES = (
+    128, 210, 256, 384, 512, 610, 768, 1010, 1024,
+    1280, 1410, 1536, 1800,
+)
+DENSE_CONTACT_WINDOWS = ((190, 230), (590, 630))  # inclusive guest-relative frames
+EXTRA_SAMPLES = tuple(sorted(set(ORIGINAL_ANCHOR_SAMPLES).union(
+    *(range(first, last + 1) for first, last in DENSE_CONTACT_WINDOWS)
+)))
 CHECKPOINTS = (*entry.SAMPLES, *EXTRA_SAMPLES)
 
 
@@ -231,6 +241,8 @@ def main() -> int:
         "reference_race_entry": rf, "native_race_entry": nf,
         "guest_entry_offset": nf - rf,
         "relative_checkpoints": list(CHECKPOINTS),
+        "dense_contact_windows": [list(w) for w in DENSE_CONTACT_WINDOWS],
+        "observation_count": len(CHECKPOINTS),
         "first_divergence": first,
         "reference_active_window": reference_window,
         "native_active_window": native_window,

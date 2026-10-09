@@ -11,6 +11,12 @@ The Racer Studio design now calls for an animated 2D hero and independently edit
 
 A distinct confirmed defect, [#890](https://github.com/gamesbyian/UR-Recomp/issues/890), links Modern Restart's Return confirmation to guest Start and subsequent silence. Frontend/input owns the host/guest release correction and first resumed guest-word witness; QA-06 reuses its **audible tail** as a co-oracle. Do not redirect this to original SPC/DSP archaeology or accept `Start=None` as the consumer fix.
 
+## QA-05/09 pending implementation candidate (2026-10-08, unmerged)
+
+Branch `qa05-modern-root-and-restart-ownership-20261008` adds a rendered five-destination host shell and controller/keyboard focus handoffs to the **existing** stock 1P/2P, Quick Practice, Records, Options and Racer/Profiles authorities. It introduces a physical-key-release barrier for default Return-as-guest-Start after Restart and targeted guest-word diagnostics. `tests/native/run_modern_root_acceptance.sh` and `tests/native/modern_restart_key_release_test.cpp` provide fresh-process root smoke and pure edge-policy coverage. Details and independent evidence requirements: [QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md](QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md).
+
+**Status: under review, not shipped.** Local pure restart filter assertions pass, but native integrated build, packaged Windows pad-only journey, 5/5 audible default-Return Restart tails, and approved visual fidelity are **unverified**. The table and main-branch assertions below remain unchanged until a reviewed merge. Do not close #890 or #1053 on source-only evidence.
+
 ## Target design and current-status boundary
 
 The cross-screen proposed information architecture, detailed screen behavior, input/focus invariants and priority implementation sequence are specified in [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Treat it as the design target **only**: no unchecked design row, future Options category, racer studio, or responsive art treatment counts as shipped. Retain this file as the verified route/source-of-authority index, reconcile each newly landed screen against native acceptance, and keep stock menu fidelity and first-time controller discoverability as separate release conditions.

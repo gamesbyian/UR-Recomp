@@ -10,6 +10,11 @@ RuntimeDispatchStatus dispatch_runtime_action(
     RaceRestartLifecycle* restart_lifecycle) noexcept {
     switch (action) {
     case RuntimeAction::SuspendGuest:
+        if (hooks.native_set_paused) {
+            return hooks.native_set_paused(hooks.native_context, 1)
+                ? RuntimeDispatchStatus::Applied
+                : RuntimeDispatchStatus::RejectedByRuntime;
+        }
         if (!hooks.set_paused) {
             return RuntimeDispatchStatus::MissingHook;
         }
@@ -17,6 +22,11 @@ RuntimeDispatchStatus dispatch_runtime_action(
         return RuntimeDispatchStatus::Applied;
 
     case RuntimeAction::ResumeGuest:
+        if (hooks.native_set_paused) {
+            return hooks.native_set_paused(hooks.native_context, 0)
+                ? RuntimeDispatchStatus::Applied
+                : RuntimeDispatchStatus::RejectedByRuntime;
+        }
         if (!hooks.set_paused) {
             return RuntimeDispatchStatus::MissingHook;
         }
@@ -24,6 +34,11 @@ RuntimeDispatchStatus dispatch_runtime_action(
         return RuntimeDispatchStatus::Applied;
 
     case RuntimeAction::RestartRace:
+        if (hooks.native_restart_race) {
+            return hooks.native_restart_race(hooks.native_context)
+                ? RuntimeDispatchStatus::Applied
+                : RuntimeDispatchStatus::RejectedByRuntime;
+        }
         if (restart_lifecycle) {
             switch (restart_lifecycle->restart()) {
             case RestartAnchorRestoreStatus::Restored:
@@ -46,6 +61,13 @@ RuntimeDispatchStatus dispatch_runtime_action(
             : RuntimeDispatchStatus::RejectedByRuntime;
 
     case RuntimeAction::ExitToFrontend:
+        if (hooks.native_exit_to_frontend) {
+            // The native guest must acknowledge the complete transition,
+            // including any unpause. No legacy void call can certify it.
+            return hooks.native_exit_to_frontend(hooks.native_context)
+                ? RuntimeDispatchStatus::Applied
+                : RuntimeDispatchStatus::RejectedByRuntime;
+        }
         if (!hooks.exit_to_frontend || !hooks.set_paused) {
             return RuntimeDispatchStatus::MissingHook;
         }

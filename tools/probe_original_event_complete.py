@@ -81,12 +81,12 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
                      states[f]["track"] == track), None)
         if stop is None:
             continue
-        if any(states[f]["track"] != track or states[f]["in_race"] != 1
-               for f in range(start, stop) if f in states
-               and states[f]["menu"] not in (0x84, 0x2F)):
-            # The event may fade or enter the results sequence before
-            # the final result. Do not require in_race=1 across a fade.
-            pass
+        # Intervening active gameplay on *another* course makes this
+        # candidate a later, unrelated result. Fade/transient menu values
+        # alone cannot disqualify an otherwise legitimate result.
+        if any(states[f]["in_race"] == 1 and states[f]["track"] != track
+               for f in range(start, stop) if f in states):
+            continue
         if stop - start < 250:
             raise CompleteEventError("implausibly short source event")
         tally = next((f for f in frames if start < f < stop
@@ -184,16 +184,31 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
                    x["onset"]["menu"] == result_menu
                    for x in (original, native))
     texts_match = original["result_text"] == native["result_text"]
-    scored = True
-    if stunt:
-        # A zero-score idle run cannot count as the requested scored Stunt.
-        score_lines = " ".join(original["result_text"]["final"])
-        scored = bool(re.search(r":\s*[1-9][0-9]*", score_lines))
+    result_text = " ".join(original["result_text"]["final"])
+    # A no-time result or an idle zero-score timeout is not an event-complete
+    # *player* witness. The original guest still owns every value displayed.
+    scored = not stunt or bool(re.search(r":\s*[1-9][0-9]*", result_text))
+    timed_finish = stunt or bool(re.search(r"\b\d+:\d{2}\.\d{2}\b", result_text))
+    ref_laps = [row.get("p1_laps") for row in r_rows]
+    nat_laps = [row.get("p1_laps") for row in n_rows]
+    # An explicitly sampled >=2 lap sequence is required for multi-lap
+    # Circuit candidate qualification; no assertion about unobserved
+    # intervening events between those sample frames.
+    def laps_drop(values):
+        return sum(type(a) is int and type(b) is int and b < a
+                   for a, b in zip(values, values[1:]))
+    lap_evidence = result_menu != 0xBC or (
+        laps_drop(ref_laps) >= 2 and laps_drop(nat_laps) >= 2
+    )
     return {"first_sample_disagreement": first,
             "both_reached_terminal_menu": complete,
             "rendered_result_and_score_text_matched": texts_match,
             "stunt_positive_score_visible": scored,
-            "paired_event_candidate": bool(complete and texts_match and scored and first is None),
+            "timed_race_or_circuit_result_visible": timed_finish,
+            "circuit_multiple_lap_decrements_sampled": lap_evidence,
+            "paired_event_candidate": bool(complete and texts_match and scored and
+                                           timed_finish and lap_evidence and
+                                           first is None),
             "qualification": "candidate only; source/original and native complete-event evidence still requires independent review"}
 
 

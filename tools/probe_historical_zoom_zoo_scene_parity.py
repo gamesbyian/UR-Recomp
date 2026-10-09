@@ -24,6 +24,7 @@ import verify_historical_zoom_zoo_scene_anchor as anchor
 from analyze_rnc_streams import find_streams
 from rnc_method1 import unpack_method1
 from probe_runtime_course_payload import is_fully_loaded_course
+from summarize_zoo_scene_event_transitions import paired_event_diagnostics
 
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL_MOVIE_START = 3190
@@ -245,6 +246,7 @@ def main() -> int:
     reference = load_rows(replay / "ref", decoded_zoo)
     native = load_rows(replay / "native", decoded_zoo)
     first = compare(reference, native)
+    event_diagnostics = paired_event_diagnostics(reference, native)
     reference_window = expected_active_window(reference)
     native_window = expected_active_window(native)
     complete_active_window = all(
@@ -268,6 +270,7 @@ def main() -> int:
         "dense_contact_windows": [list(w) for w in DENSE_CONTACT_WINDOWS],
         "observation_count": len(CHECKPOINTS),
         "first_divergence": first,
+        "event_state_diagnostics": event_diagnostics,
         "reference_active_window": reference_window,
         "native_active_window": native_window,
         "valid_1811_frame_active_window": complete_active_window,
@@ -284,6 +287,15 @@ def main() -> int:
         args.json_out.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
         "first_divergence": first, "movie_phase": args.phase,
+        "first_progression_state_disagreement": (
+            event_diagnostics["first_progression_state_disagreement"]
+        ),
+        "reference_progression_change_interval_count": (
+            event_diagnostics["reference_observed"]["progression_change_interval_count"]
+        ),
+        "native_progression_change_interval_count": (
+            event_diagnostics["native_observed"]["progression_change_interval_count"]
+        ),
         "source_sram_match": source_sram_equal, "guest_entry_offset": nf - rf,
         "valid_1811_frame_active_window": complete_active_window,
     }))

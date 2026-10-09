@@ -30,17 +30,21 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "Census baseline 0/135 full passes (2 partial): reproduce full Zoom Zoo circuit lap/finish and Jumps stunt result vs pinned emulator; retain instruction-time frame-2903 P1 dispatcher witness, then all 45 x 3 region/build cases.",
+      "next_action": "Primary USA event census 0/45 passes (2 partial): capture Zoom Zoo circuit and Jumps timed-stunt full results vs pinned emulator; frame-2903 dispatch witness. Track 90 PAL comparative cases separately without treating prototype completion as an automatic Windows release blocker.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/967",
       "coverage": {
-        "denominator": 135,
+        "denominator": 45,
         "complete_event_passes": 0,
         "partial": 2,
-        "unverified": 133,
-        "scope": "45 course identities × USA retail / Europe retail / PAL prototype; historical beta archival only"
+        "unverified": 43,
+        "regional_comparison_denominator": 90,
+        "regional_comparison_complete": 0,
+        "regional_comparison_unverified": 90,
+        "total_tracked_course_rom_pairs": 135,
+        "scope": "USA retail is primary Windows-original release gate; Europe retail and PAL prototype are comparative evidence. Legacy beta archival only."
       }
     },
     {

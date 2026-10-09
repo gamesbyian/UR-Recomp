@@ -20,20 +20,28 @@
       "id": "QA-01",
       "priority": "P0",
       "claim": "Course and finish-event completeness",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/COURSE-CONTACT-MARSHAL.md"
+        "docs/COURSE-CONTACT-MARSHAL.md",
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Full content/event census and disputed instruction-time contact trace",
+      "next_action": "Census baseline 0/135 full passes (2 partial): reproduce full Zoom Zoo circuit lap/finish and Jumps stunt result vs pinned emulator; retain instruction-time frame-2903 P1 dispatcher witness, then all 45 x 3 region/build cases.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/967"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/967",
+      "coverage": {
+        "denominator": 135,
+        "complete_event_passes": 0,
+        "partial": 2,
+        "unverified": 133,
+        "scope": "45 course identities × USA retail / Europe retail / PAL prototype; historical beta archival only"
+      }
     },
     {
       "id": "QA-02",
@@ -149,20 +157,26 @@
       "id": "QA-07",
       "priority": "P1",
       "claim": "Expert and unusual race/physics semantics",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/EXPERT-PLAYTEST-PROTOCOL.md"
+        "docs/EXPERT-PLAYTEST-PROTOCOL.md",
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Original reference against expert-play threshold transitions",
+      "next_action": "Extend six input-only Jumpover stunt thresholds to L shoulder, combos, imperfect landing, boost/collision and actual full scored timed event; independently compare original/native before a pass.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/973"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/973",
+      "coverage": {
+        "complete_expert_event_passes": 0,
+        "partial_stunt_threshold_cases": 6,
+        "provenance": "analysis/generated/stunt-boundary-probe.json; none certifies a whole scored event"
+      }
     },
     {
       "id": "QA-08",

@@ -41,7 +41,13 @@ def episode_lengths(frames: list[int]) -> list[int]:
     return result
 
 
-def analyze(log: str, *, source: str = "") -> dict:
+def analyze(
+    log: str,
+    *,
+    source: str = "",
+    from_frame: int | None = None,
+    to_frame: int | None = None,
+) -> dict:
     gates: dict[int, tuple[str, str]] = {}
     presents: dict[int, list[tuple[str, str]]] = {}
     for lineno, line in enumerate(log.splitlines(), 1):
@@ -64,6 +70,20 @@ def analyze(log: str, *, source: str = "") -> dict:
             if status == "hd" and reason not in ORIGINS:
                 raise ValueError(f"invalid HD render mode at frame {frame}: {reason}")
             presents.setdefault(frame, []).append((status, reason))
+    if (from_frame is None) != (to_frame is None):
+        raise ValueError("frame-window bounds must be supplied together")
+    if from_frame is not None:
+        if from_frame < 0 or to_frame < from_frame:
+            raise ValueError("invalid inclusive guest-frame window")
+        expected = set(range(from_frame, to_frame + 1))
+        missing = sorted(expected - set(gates))
+        if missing:
+            raise ValueError(
+                f"missing {len(missing)} guest-frame gates in requested window; "
+                f"first missing frame {missing[0]}"
+            )
+        gates = {f: v for f, v in gates.items() if f in expected}
+        presents = {f: v for f, v in presents.items() if f in expected}
     if not gates:
         raise ValueError("no native Racer HD per-frame gate observations")
     if not presents:
@@ -119,6 +139,11 @@ def analyze(log: str, *, source: str = "") -> dict:
         "schema_version": 1,
         "classification": "native-per-present-raster-outcome; not pixel-fidelity/occlusion proof",
         "source": source,
+        "frame_window": (
+            {"from": from_frame, "to": to_frame, "exact_gate_coverage": True}
+            if from_frame is not None else
+            {"from": min(gates), "to": max(gates), "exact_gate_coverage": False}
+        ),
         "measurement": {
             "guest_frames_observed": len(gates),
             "guest_frames_with_host_presents": denom,
@@ -165,9 +190,14 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("log", type=Path)
     parser.add_argument("--json-out", type=Path)
+    parser.add_argument("--from-frame", type=int)
+    parser.add_argument("--to-frame", type=int)
     args = parser.parse_args()
     report = analyze(
-        args.log.read_text(encoding="utf-8", errors="replace"), source=str(args.log)
+        args.log.read_text(encoding="utf-8", errors="replace"),
+        source=str(args.log),
+        from_frame=args.from_frame,
+        to_frame=args.to_frame,
     )
     result = json.dumps(report, sort_keys=True, indent=2) + "\n"
     if args.json_out:

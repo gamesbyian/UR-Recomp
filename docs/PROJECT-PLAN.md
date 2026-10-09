@@ -1,5 +1,10 @@
 # Uniracers Modern Port Plan
 
+## Claude integration handoff, 2026-10-08
+
+The [full 36-branch reconciliation](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) found no changed Claude branch path absent from current `main`; core high-priority algorithms, evidence and fixtures are retained in newer implementations. **Do not merge divergent historical Claude branches by ancestry alone.** Source-level recovery is complete for the inspected candidates, but no broad release acceptance is implied. Prioritize the current-main QA-02 crash/storage journey, QA-03 2P controller and multi-leg tournament, QA-09 Records/layout and onboarding, and QA-08 moving-scene P2 HD/stock fallback. Track release gates in [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) and [WORK-QUEUE.md](WORK-QUEUE.md). CI Pause acceleration remains owned by the independent speedup lane (replacement PR #989 as of this handoff).
+
+
 ## Racer appearance colours and materials decision (2026-10-08)
 
 The modern Racer Studio target now includes four independently configurable **tire, rim/spokes, frame/body, saddle** colour/material slots, updating the large animated 2D showroom hero immediately. Exact classic named/palette combinations remain selectable, unchanged presets. Source-derived or authored pose masks/layers, a small curated colour range and in-race fidelity across admitted poses precede full player release; richer tread/metallic/fabric textures are post-baseline. Keep these render-only and host-owned, independent of racer name/profile and guest palette/SRAM authority. The original SNES sprite/palette evidence does **not** yet establish independent recolourability of all four components, so component separation must be measured rather than presumed. See [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md) and [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Do not divert current root/menu shipping work to claim all pose coverage or texture shipping prematurely.

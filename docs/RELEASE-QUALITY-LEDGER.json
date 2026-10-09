@@ -1,6 +1,6 @@
 {
   "schema": "UR-RELEASE-QUALITY-LEDGER/1",
-  "updated": "2026-10-08",
+  "updated": "2026-10-09",
   "candidate": {
     "commit_sha": null,
     "zip_sha256": null,
@@ -59,14 +59,15 @@
         "docs/QA02-PROFILE-CAS.md",
         "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md",
         "docs/QA02-GLOBAL-HOST-STATE-CAS.md",
-        "docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md"
+        "docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md",
+        "docs/QA02-FIXTURE-RECEIPT-DURABILITY.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Validate and integrate #1027 exact pristine-orphan explicit Create recovery, preserving a same-state profile if another process wins its catalogue row. Execute C01 kill after final profile publication, with and without staging cleanup; then C04, C09, C14, C15. Record exact Windows ZIP/hash and J-02/J-07/J-08 L4 evidence.",
+      "next_action": "Integrate #1033 run/match byte durability and #1035 optional ghost data durability only after their refreshed CI succeeds; then execute C04/C09/C10/C14/C15 fault cuts in independent processes, verify exact Windows ZIP/hash, two-instance J-02/J-07/J-08, out-of-space and physical power-fault recovery.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -86,9 +87,11 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1017",
         "https://github.com/gamesbyian/UR-Recomp/pull/1018",
         "https://github.com/gamesbyian/UR-Recomp/pull/1019",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1027"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1027",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1030",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1032"
       ],
-      "remaining_release_risk": "Merged QA-02 fixes: #982/#984/#985 store-level receipt, staging and launch checkpoint; #991 private same-directory host staging; #993 no-replace run/match pair; #995 bounded catalog; #996 exact profile CAS; #1003 catalog CAS and conditional cleanup; #1005 prepublish data flush; #1009 active event CAS; #1016 SRAM snapshot second-phase conditional rollback; #1017 global host state CAS; #1018 guarded lock-only create retry with authoritative roster refresh; #1019 active profile selection SRAM compensation. #1018 final reconciled head's CI remained in progress at merge (prior focused tests green). No cross-file commit journal or deterministic full restoration for orphan racer/event, group-committed framework .srm/profile/catalog/global pointer, partial replay/ghost/receipt or uncertain directory durability. #1027 proposes an explicitly requested, exact-pristine-snapshot claim of C01 orphan registration, but its CI and application integration are pending; progressed or debris-containing orphans remain unsupported. Exact packaged Windows two-instance and disk-full/power-failure L4 evidence absent; QA-02 remains P0 in_progress."
+      "remaining_release_risk": "Merged through #1027 pristine unregistered profile claim and #1030 post-rename/pre-cleanup empty-stage orphan recovery; #1032 now flushes immutable fixture receipt bytes before public no-replace. #1033 proposes OS data flush for .urrun and .urmatch before public claims; #1035 proposes .urghost flush before atomic replacement. Both remain under CI and are not accepted evidence yet. Existing profile/catalog/global-state and tournament-active CAS, rollback, private staging, and prepublish data flush corrections remain store-local. No atomic group commit or journal across framework save.srm, host-profile, roster/global selector, .urrun/.urmatch/.urghost, fixture receipt and pending launch. Progressed/ambiguous orphan racer and inert tournament archives lack automatic recovery. Postpublish directory durability and real controller power-loss behavior remain uncertain. No exact packaged Windows two-instance/disk-full/power-interruption L4 witness. QA-02 stays P0 in_progress."
     },
     {
       "id": "QA-03",

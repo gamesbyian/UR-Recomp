@@ -180,7 +180,6 @@ std::string g_main_menu_strip_reported;
 // The typed root owns ephemeral focus only. All destinations hand off to the
 // existing profile, records, options or stock title authorities.
 ur::product::ModernRootMenu g_modern_root_menu{};
-bool g_modern_root_guest_handoff = false;
 bool g_modern_root_quit_confirm = false;
 bool g_modern_root_transfer = false;
 // Bounded stock-title cursor handoff to 1P or 2P. No guest SRAM or shadow
@@ -4118,7 +4117,7 @@ bool modern_root_visible() {
     return modern_mode() && g_ram && !paused() &&
         !snesrecomp_desktop_script_active() &&
         g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
-        !g_modern_root_guest_handoff && !g_modern_root_transfer &&
+        !g_modern_root_transfer &&
         g_modern_root_stock_target < 0 &&
         !g_local_multiplayer_join_visible && !g_local_tournament_panel_visible &&
         !g_frontend_records_open && !g_practice_picker.visible &&
@@ -4134,8 +4133,7 @@ bool modern_root_visible() {
 bool host_owns_human_player_input() {
     return modern_mode() &&
            (modern_root_visible() || g_modern_root_stock_target >= 0 ||
-           
-           (g_local_multiplayer_join_visible ||
+            g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
             g_frontend_records_open ||
             g_practice_picker.visible ||
@@ -7148,11 +7146,6 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_next_event_verify_track.reset();
         }
     }
-    // Returning from the guest title/race restores the Modern root. The
-    // handoff is never persisted or mistaken for profile/stock authority.
-    if (g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01) {
-        g_modern_root_guest_handoff = false;
-    }
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
         g_fast_repeat_sram_before) {
         const bool sram_equal =
@@ -9836,6 +9829,139 @@ extern "C" void ur_uniracers_modern_system_overlay(
         if (g_profile_cool_name_notice) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
                 "COOL NAME!", 0xFFFFFFFFu, scale);
+        }
+        return;
+    }
+
+    if (modern_root_visible()) {
+        // One full, legible Modern shell. Keep the measured stock BG2 palette,
+        // title shadow and cursor emphasis; at wider logical viewports add a
+        // separate detail region instead of stretching the 4:3 list.
+        auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w = std::min(logical_width - 16, 356);
+        constexpr int kRootHeight = 204;
+        if (panel_w <= 40) return;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale, panel_w, kRootHeight, panel_w, kRootHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        const auto& palette = ur::product::kModernStockMenuPalette;
+        const bool wide = panel_w >= 320;
+        const int list_w = wide ? 168 : panel_w - 16;
+        snes_ovl_fill_rect(pixels, stride, height,
+            x, y, rect.width, rect.height, palette.background);
+        snes_ovl_fill_rect(pixels, stride, height,
+            x, y, rect.width, 27 * scale, palette.header_band);
+        snes_ovl_stroke_rect(pixels, stride, height,
+            x, y, rect.width, rect.height, palette.frame_grey);
+        const char* title = g_product_state.regional_presentation ==
+                ur::product::RegionalPresentation::Europe
+            ? "UNIRALLY" : "UNIRACERS";
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 10 * scale, y + 7 * scale, title,
+            palette.shadow_black, 2 * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 9 * scale, y + 6 * scale, title,
+            palette.title_yellow, 2 * scale);
+        const char* racer =
+            g_profile_state && g_profile_state->racer_identity
+                ? g_profile_state->racer_identity->name.c_str()
+                : "CREATE A RACER WITH X";
+        const std::string identity = ur::product::fit_modern_overlay_text(
+            std::string("RACER: ") + racer,
+            ur::product::modern_overlay_text_cells(panel_w));
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 36 * scale,
+            identity.c_str(), palette.secondary_grey, scale);
+        constexpr int kRootFirstRow = 57;
+        constexpr int kRootRowStride = 21;
+        for (std::size_t i = 0;
+             i < ur::product::kModernRootDestinationCount; ++i) {
+            const auto destination =
+                ur::product::modern_root_destination_from_index(i);
+            const bool selected =
+                destination == ur::product::modern_root_menu_selected(
+                    g_modern_root_menu);
+            const int row_y = y + (kRootFirstRow +
+                static_cast<int>(i) * kRootRowStride) * scale;
+            if (selected) {
+                snes_ovl_fill_rect(pixels, stride, height,
+                    x + 5 * scale, row_y - 3 * scale,
+                    list_w * scale, 17 * scale, palette.cursor_blue);
+                snes_ovl_stroke_rect(pixels, stride, height,
+                    x + 5 * scale, row_y - 3 * scale,
+                    list_w * scale, 17 * scale, palette.frame_grey);
+            }
+            const std::string label = std::string(
+                selected ? "> " : "  ") +
+                ur::product::modern_root_destination_label(destination);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 9 * scale, row_y,
+                label.c_str(),
+                selected ? palette.shadow_black : 0xFFFFFFFFu, scale);
+        }
+        constexpr const char* kDetails[] = {
+            "TOUR AND CONTINUE",
+            "CHOOSE A COURSE",
+            "LOCAL TWO PLAYER",
+            "RUNS AND BEST TIMES",
+            "DISPLAY AND CONTROLS"
+        };
+        const auto selected_index = ur::product::modern_root_destination_index(
+            ur::product::modern_root_menu_selected(g_modern_root_menu));
+        if (wide) {
+            snes_ovl_fill_rect(pixels, stride, height,
+                x + 184 * scale, y + 52 * scale,
+                (panel_w - 191) * scale, 109 * scale, palette.header_band);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 193 * scale, y + 64 * scale,
+                "SELECTED", palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 193 * scale, y + 85 * scale,
+                ur::product::fit_modern_overlay_text(
+                    kDetails[selected_index],
+                    ur::product::modern_overlay_text_cells(panel_w - 193)
+                ).c_str(), 0xFFFFFFFFu, scale);
+            if (selected_index == 0 && tour_continue_available()) {
+                snes_ovl_draw_text(pixels, stride, height,
+                    x + 193 * scale, y + 111 * scale,
+                    "CONTINUE READY", palette.cursor_blue, scale);
+            }
+        } else {
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 8 * scale, y + 165 * scale,
+                ur::product::fit_modern_overlay_text(
+                    kDetails[selected_index],
+                    ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+                palette.title_yellow, scale);
+        }
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 181 * scale,
+            ur::product::fit_modern_overlay_text(
+                "A/ENTER SELECT   B/ESC QUIT",
+                ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 193 * scale,
+            "X/F2 RACERS   F1 HELP", palette.cursor_blue, scale);
+        if (g_modern_root_quit_confirm) {
+            const int qx = x + 12 * scale, qy = y + 65 * scale;
+            const int qw = (panel_w - 24) * scale;
+            snes_ovl_fill_rect(pixels, stride, height,
+                qx, qy, qw, 67 * scale, palette.background);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                qx, qy, qw, 67 * scale, palette.title_yellow);
+            snes_ovl_draw_text(pixels, stride, height,
+                qx + 8 * scale, qy + 10 * scale,
+                "QUIT TO DESKTOP?", palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                qx + 8 * scale, qy + 37 * scale,
+                "A/ENTER YES   B/ESC NO", 0xFFFFFFFFu, scale);
         }
         return;
     }

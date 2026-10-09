@@ -24,13 +24,14 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/COURSE-CONTACT-MARSHAL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+        "docs/QA01-NONDRAGSTER-ENTRY-PROGRESSION.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Primary USA release census remains 0/45 complete (3 partial): original Snes9x Zoo trace now proves header-aligned start, five checkpoint/gate changes and two lap decrements. Compare the original Zoo contact/progression windows with fresh native Authentic and finish all 4 laps/result; independently close Jumps timed-stunt score/timer/result and frame-2903 dispatcher PC. Keep 90 PAL comparative cases separate.",
+      "next_action": "Primary USA release census remains 0/45 complete (3 partial): original Snes9x Zoo trace now proves header-aligned start, five checkpoint/gate changes and two lap decrements. First run the corrected P1/P2 checkpoint, finish-gate and lap entry comparisons on fresh native/USA-original Zoom Zoo and Jumps; then compare the original Zoo contact/progression windows with fresh native Authentic and finish all 4 laps/result; independently close Jumps timed-stunt score/timer/result and frame-2903 dispatcher PC. Keep 90 PAL comparative cases separate.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

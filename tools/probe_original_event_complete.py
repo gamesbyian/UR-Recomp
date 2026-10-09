@@ -202,6 +202,12 @@ def entry_diagnostics(source: dict, original: dict, native: dict) -> dict:
         }
     return {"source_original_state_equivalent": all(
                 not item["fields"] for item in discrepancies.values()),
+            # The archive supplies a proven-effective input route, NOT
+            # necessarily the same in-tour history as either fresh guest.
+            # Source differences are diagnostic; a successful independent
+            # fresh reference/native pair can still be accepted.
+            "fresh_reference_native_equivalent": all(
+                original[field] == native[field] for field in ENTRY_SIGNATURE),
             "discrepancies": discrepancies,
             "limit": ("A mismatch may reflect earlier original in-tour state, "
                       "controller latch/sample phase, or an authentic guest defect. "
@@ -389,8 +395,10 @@ def main(argv: list[str] | None = None) -> int:
     comparison = diagnose(reference, native, menu, kind == "stunt")
     comparison["original_source_entry_equivalent"] = baseline[
         "source_original_state_equivalent"]
+    comparison["fresh_guest_entry_equivalent"] = baseline[
+        "fresh_reference_native_equivalent"]
     comparison["paired_event_candidate"] &= baseline[
-        "source_original_state_equivalent"]
+        "fresh_reference_native_equivalent"]
     terminal_frames = {
         "reference_relative": observed_dump_frame(rl, "result-onset") - rf,
         "native_relative": observed_dump_frame(nl, "result-onset") - nf,

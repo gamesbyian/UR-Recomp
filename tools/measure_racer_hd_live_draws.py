@@ -79,6 +79,11 @@ def analyze(log: str, *, source: str = "") -> dict:
         if gate is None:
             raise ValueError(f"present at unobserved guest frame {frame}")
         for status, reason in observations:
+            if gate[0] == "armed" and status != "hd":
+                raise ValueError(
+                    f"capture-armed frame {frame} fell through without HD: "
+                    "stock OBJ may have been removed before presentation"
+                )
             if gate[0] == "original" and status == "hd":
                 raise ValueError(f"HD draw after Original-only gate at frame {frame}")
             if gate[0] == "armed" and status == "hd" and gate[1] != reason:

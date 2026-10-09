@@ -179,9 +179,11 @@ jobs:
             --original "$ROOT/original" --native "$ROOT/native/dump" \
             --source-report "$ROOT/input-provenance.json" \
             --calibration-report "$ROOT/input-phase-report.json" \
+            --original-log "$ROOT/original.log" --native-log "$ROOT/native/log.txt" \
+            --rom reference/roms/retail/Uniracers_USA.sfc --with-ppu \
             --out "$ROOT/paired-result.json"
           cat "$ROOT/paired-result.json" >> "$GITHUB_STEP_SUMMARY"
-          echo "IMPORTANT: PPU time/text and authentic results remain a separate QA acceptance gate. No 45-course credit issued." >> "$GITHUB_STEP_SUMMARY"
+          echo "IMPORTANT: displayed PPU and active course checks remain candidate diagnostics; independent QA review is required. No 45-course credit issued." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
         if: always()
@@ -205,6 +207,8 @@ jobs:
             ${{ runner.temp }}/zoo-scene/original/*.cgram.bin
             ${{ runner.temp }}/zoo-scene/original/*.oam.bin
             ${{ runner.temp }}/zoo-scene/original/*.info.json
+            ${{ runner.temp }}/zoo-scene/original/*.regs.json
+            ${{ runner.temp }}/zoo-scene/native/dump/*.regs.json
             ${{ runner.temp }}/zoo-scene/native/dump/*.fb.bmp
             ${{ runner.temp }}/zoo-scene/native/dump/*.vram.bin
             ${{ runner.temp }}/zoo-scene/native/dump/*.cgram.bin

@@ -23,14 +23,14 @@ class HostProfileSramFailureContract(unittest.TestCase):
         self.assertIn("const auto original_state = *g_profile_state;", body)
         self.assertRegex(
             body,
-            r"save_host_profile_state_file_if_current\\s*\\("
-            r"[^;]*original_state,\\s*candidate\\)",
+            r"save_host_profile_state_file_if_current\s*\("
+            r"[^;]*original_state,\s*candidate\)",
         )
         self.assertRegex(
             body,
-            r"if \\(!RtlTryWriteSram\\(\\)\\)\\s*\\{"
-            r"[^}]*save_host_profile_state_file_if_current\\s*\\("
-            r"[^;]*candidate,\\s*original_state\\)",
+            r"if \(!RtlTryWriteSram\(\)\)\s*\{"
+            r"[^}]*save_host_profile_state_file_if_current\s*\("
+            r"[^;]*candidate,\s*original_state\)",
         )
         self.assertIn("SRAM_FAILED_ROLLBACK_CONFLICT", body)
         self.assertLess(

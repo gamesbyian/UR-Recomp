@@ -4377,6 +4377,12 @@ bool open_local_tournament_panel() {
             if (status == ur::product::LocalTournamentCoordinatorStatus::Committed) {
                 g_local_tournament_receipt_retry.reset();
                 g_local_tournament_panel_notice = "RESULT SAVED";
+                ensure_profile_catalog();
+                g_local_tournament_result_notice =
+                    ur::product::local_tournament_result_notice(
+                        session.results, g_profile_catalog);
+                g_local_tournament_result_notice_screen =
+                    g_ram ? g_ram[0x009F] : 0;
                 product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_COMMITTED");
             } else if (
                 status == ur::product::LocalTournamentCoordinatorStatus::StorageFailed) {

@@ -39,3 +39,18 @@ Branches observed with **zero** unique commits relative to main include `claude/
 ## Recovery policy and release truth
 
 Prioritize QA-02 malformed-SRAM containment and QA-03 actual P2 held input, then high-value player-visible results, 2P joining and modal correctness. Each selective recovery needs current-main repro, evidence that the feature is not already merged under a successor PR, current-main test, untouched ownership from the active CI agent, and independent review of host / toolchain conflicts. Do not promote QA-01/02/03/04 to release-passed based on narrow component acceptance. The main source of truth stays `WORK-QUEUE.md`, `SEMANTIC-SUFFICIENCY.md`, `RELEASE-QUALITY-LEDGER.json` and the modern shipping-status documents.
+
+## Follow-up: content-level reconciliation (2026-10-08)
+
+A further review compared **exact blob SHAs** on current `main` versus the historical Claude branch tip; this supersedes the speculative candidate ranking above where noted. An ahead count reflects distinct Git ancestry, not necessarily distinct content.
+
+| Workstream | Source blob comparison | Disposition |
+| --- | --- | --- |
+| Malformed SRAM | `native/product/clean_stock_sram.cpp` and `tests/native/malformed_sram_containment_test.cpp` **identical** | Do not transplant existing implementation/test; independently validate the remaining QA-02 end-to-end recovery requirements. |
+| Host input latch | `modern_host_input_release_latch.hpp` and its native test **identical** | Already present. Separate P2/tournament guest-word acceptance still required. |
+| Match summary | `multiplayer_match_summary.cpp` and its native test **identical** | Already present; verify player-visible routing rather than recopy algorithm. |
+| Two-player join | `local_multiplayer_seat_text.hpp` and its native test **identical** to `claude/two-player-join-fit` | Existing seat labels/layout authority present; actual disconnect/rejoin journey remains a QA case. |
+| Split delta | `completed_run_presentation.cpp` **identical** to `claude/split-delta-occurrence` | No algorithm transplant warranted. |
+| Records text | `completed_run_browser_host.cpp` differs; current main is 76,473 bytes vs historical branch 71,151 | Do not revert or merge older host. Compare current screenshot/overflows against acceptance and isolate defects before changes. |
+
+These comparisons establish content presence for the **named files**, not entire-branch equivalence or passing native runs. This review did not execute a Windows build or claim full recovery QA. The highest-priority action is to test current-main behavior; cherry-picking old branches is explicitly deprioritized.

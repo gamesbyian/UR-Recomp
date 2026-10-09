@@ -34,7 +34,9 @@ public:
     SessionPhase phase() const noexcept { return control_.phase(); }
     bool restart_available() const noexcept {
         return control_.mode() == ExecutionMode::Modern &&
-               restart_lifecycle_.restart_available();
+               (hooks_.native_restart_available
+                    ? hooks_.native_restart_available(hooks_.native_context)
+                    : restart_lifecycle_.restart_available());
     }
 
     RestartLifecycleEvent observe_race_active(bool active);

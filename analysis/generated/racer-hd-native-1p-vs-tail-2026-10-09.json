@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "classification": "actual native host-present 1P and VS first-race graphics admission; bounded 120-frame tail, not pixel-fidelity or priority acceptance",
+  "source": {
+    "repository": "gamesbyian/UR-Recomp",
+    "accepted_pr": 1022,
+    "candidate_head_sha": "c52c2a6f581cb159a31c7e2c84a464b11922ec2a",
+    "workflow_run": 37875965496,
+    "artifact_id": 11592851071,
+    "artifact_zip_sha256": "5144977bb07b744d0a8c119c21e1063c4decf8060176b45f304db98b72c68f91",
+    "rom": "USA retail",
+    "graphics_mode": "Remastered opt-in native renderer; otherwise Original",
+    "input_provenance": {
+      "one-player": "tests/input/qa08-one-player-racer-motion.script",
+      "vs": "tests/input/qa08-vs-racer-motion.script + tests/input/vs-first-race.input"
+    },
+    "scene_gate": "7E:0313 == 01 required by both deterministic scripts"
+  },
+  "measurements": {
+    "one_player": {
+      "source_json": "racer-hd-one-player-scene-tail.json",
+      "source_json_sha256": "f3d5b53ad67eb4503ac360f2bfb4b53abe65a5fbf4358bbdd92394c75bee7764",
+      "guest_window_inclusive": [
+        1068,
+        1187
+      ],
+      "guest_frames": 120,
+      "actual_full_pair_hd_frames": 42,
+      "actual_original_frames": 78,
+      "hd_present_fraction": 0.35,
+      "original_present_fraction": 0.65,
+      "hd_player_frames": 84,
+      "hd_runs": 7,
+      "one_frame_hd_runs": 0,
+      "longest_hd_run": 10,
+      "hd_original_mode_switches": 14,
+      "host_missing_frames": 0,
+      "armed_without_hd_draw": 0,
+      "original_gate_reasons": {
+        "p1-selection-or-art": 78
+      }
+    },
+    "vs": {
+      "source_json": "racer-hd-vs-scene-tail.json",
+      "source_json_sha256": "c8c2a4d51d736b235e134e89cb1d84c09e6f0614ee1179550b90a39d8f6317ae",
+      "guest_window_inclusive": [
+        1235,
+        1354
+      ],
+      "guest_frames": 120,
+      "actual_full_pair_hd_frames": 39,
+      "actual_original_frames": 81,
+      "hd_present_fraction": 0.325,
+      "original_present_fraction": 0.675,
+      "hd_player_frames": 78,
+      "hd_runs": 9,
+      "one_frame_hd_runs": 1,
+      "longest_hd_run": 10,
+      "hd_original_mode_switches": 16,
+      "host_missing_frames": 0,
+      "armed_without_hd_draw": 0,
+      "original_gate_reasons": {
+        "p1-selection-or-art": 81
+      }
+    }
+  },
+  "limitations": [
+    "These are different entry-route guest windows; no direct ratio comparison with ordinary 2P 441-frame or 2641-frame route.",
+    "No authentic stock-vs-HD screenshot alignment, foreground BG/object priority or HUD/ghost overlap attribution in 1P/VS.",
+    "No 342x224 widescreen HD replacement evidence; current capture explicitly refuses widened geometry.",
+    "Full-pair HD on active 1P/VS inputs does not imply correct players/riders, split seams, composition or rendering completeness.",
+    "QA-08 remains in_progress with unverified L4 moving full-scene fidelity."
+  ]
+}

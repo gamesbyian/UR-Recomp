@@ -26,7 +26,6 @@ RACE_EVENTS = ("menu_entry", "start_state", "contact", "checkpoint",
 STUNT_EVENTS = ("menu_entry", "start_state", "contact", "stunt_scoring",
                 "timer_expiry", "result")
 ACCEPTED_CORE = ("pinned-snes9x", "mesen-ce")
-ACCEPTED_FIELDS = {"observed", "reference_matched"}
 
 
 def validate_catalog(catalog: dict) -> list[dict]:
@@ -55,6 +54,32 @@ def validate_catalog(catalog: dict) -> list[dict]:
         if (0x24 in resources) != (kind != "stunt"):
             raise ValueError(f"{course['id']}: checkpoint family incidence mismatch")
     return courses
+
+
+def historic_start_probe(course: dict) -> dict:
+    """Classify hand-entered TAS optimizer X leads, not live spawn evidence.
+
+    The preserved magicnumber.lua script assigns startX constants but never
+    uses them to compute its boost/finish distance. Zero is especially
+    ambiguous; equality with a zero header does NOT verify a spawn.
+    """
+    landmark = course["historical_landmarks"]
+    historic = landmark["start_x"]
+    header_x = course["header"]["spawn_or_landmark_a"][0] * 16
+    if historic == 0:
+        status = "zero_optimizer_constant_unqualified"
+    elif historic == header_x:
+        status = "nonzero_numeric_match_only"
+    else:
+        status = "nonzero_numeric_disagreement"
+    return {
+        "course_id": course["id"],
+        "name": course["name"],
+        "historical_start_x": historic,
+        "header_candidate_x16": header_x,
+        "status": status,
+        "runtime_spawn_proven": False,
+    }
 
 
 def validated_witness(witness: dict, kind: str) -> bool:
@@ -129,6 +154,8 @@ def build_census(catalog: dict, source: dict) -> dict:
             }
             entries.append(row)
     counts = Counter(row["status"] for row in entries)
+    coordinate_probes = [historic_start_probe(course) for course in courses]
+    coordinate_counts = Counter(p["status"] for p in coordinate_probes)
     by_rom = {rom: dict(sorted(Counter(
         row["status"] for row in entries if row["rom"] == rom
     ).items())) for rom in RELEASE_ROMS}
@@ -150,12 +177,21 @@ def build_census(catalog: dict, source: dict) -> dict:
         },
         "status_counts": dict(sorted(counts.items())),
         "by_rom": by_rom, "by_event_family": by_family,
+        "historical_start_probes": {
+            "authority": "hand-entered magicnumber.lua constants, no runtime spawn witness",
+            "classification_counts": dict(sorted(coordinate_counts.items())),
+            "unqualified_and_disagreements": [
+                p for p in coordinate_probes
+                if p["status"] != "nonzero_numeric_match_only"
+            ],
+        },
         "entries": entries,
         "limits": [
             "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
             "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
             "Input-only Jumpover reward thresholds are partial; no timed stunt result was certified.",
             "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
+            "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
             "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",
         ],
     }

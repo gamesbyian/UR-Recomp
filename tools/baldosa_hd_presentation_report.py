@@ -8,6 +8,7 @@ from pathlib import Path
 import re
 
 COMPOSE = re.compile(r"UR_BALDOSA_NATIVE_COMPOSE frame=(\d+) racer_present=1 logical=(\d+)x(\d+) source_art=ur hd_capture=(\d+)")
+SOURCE_PIXELS = re.compile(r"UR_RACER_HD_SOURCE_OBJ frame=(\d+) top_opaque=(\d+) bottom_opaque=(\d+) top_painted=(\d+) bottom_painted=(\d+)")
 
 
 def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: int = 1) -> dict:
@@ -16,8 +17,16 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
     left, right = baseline.read_bytes(), candidate.read_bytes()
     base_frames = left.splitlines()
     own_frames = right.splitlines()
-    records = [tuple(map(int, m.groups())) for m in COMPOSE.finditer(
-        log.read_text(encoding="utf-8", errors="replace"))]
+    native_log = log.read_text(encoding="utf-8", errors="replace")
+    records = [tuple(map(int, m.groups())) for m in COMPOSE.finditer(native_log)]
+    pixel_records = [
+        tuple(map(int, m.groups())) for m in SOURCE_PIXELS.finditer(native_log)
+    ]
+    visible_frames = {
+        x[0] for x in pixel_records
+        if x[1] > 0 and x[2] > 0 and x[3] > 0 and x[4] > 0
+    }
+    witnessed_frames = {x[0] for x in records if x[3] == 1}
     images = sorted(captures.glob("ur-baldosa-frame-*.pam"))
     details = []
     for p in images:
@@ -35,19 +44,23 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
             base_frames == own_frames and len(own_frames) == 2473
             and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2
             and len(records) >= 2 and all(x[1:3] == (256, 224) and x[3] == 1 for x in records)
+            and len(visible_frames & witnessed_frames) >= 2
         ) else "unproven",
         "native_title": "Baldosa AOT with UR racer asset/PPU compositor callbacks",
         "baseline_frame_count": len(base_frames),
         "candidate_frame_count": len(own_frames),
         "all_wram_crcs_identical": base_frames == own_frames,
         "source_derived_racer_presented_records": len(records),
+        "source_obj_capture_records": len(pixel_records),
+        "visible_source_obj_frame_count": len(visible_frames & witnessed_frames),
+        "requires_actual_source_obj_pixels_both_viewports": True,
         "actual_presented_rgba_frames": details,
         "distinct_presented_frames": len({x["sha256"] for x in details}),
         "logical_geometry": [256, 224],
         "composed_raster_dimensions": [256 * density, 224 * density],
         "presentation_density": density,
         "widescreen_or_4k_proved": False,
-        "real_4x_authored_raster_proved": density == 4 and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2,
+        "real_4x_authored_raster_proved": density == 4 and base_frames == own_frames and len(own_frames) == 2473 and len(visible_frames & witnessed_frames) >= 2 and len(images) >= 2 and len({x["sha256"] for x in details}) >= 2,
         "original_native_completed_event_qa_credit": 0,
         "limits": "Native composed 1x raster only; screenshots require visual/original oracle review; no Windows or full course result gate."
     }

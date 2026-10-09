@@ -136,6 +136,44 @@ jobs:
             exit 1
           fi
 
+          # A real cross-project migration check, without replacing guest code:
+          # connect UR-Recomp's exact WRAM racer reader to Ema's frame callback,
+          # rebuild the title shim incrementally, and prove the same 1P route
+          # generates byte-identical guest WRAM CRCs as the untouched AOT build.
+          python3 tools/baldosa_guest_snapshot_adapter.py \
+            --game baldosa --repo-root "$GITHUB_WORKSPACE"
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_adapter"
+          test -s "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt"
+          test -s "$RUNNER_TEMP/baldosa-evidence/race_1p_adapter/fd/crc.txt"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_adapter/fd/crc.txt"
+          grep -q 'UR_BALDOSA_BRIDGE frame=' \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_adapter/log.txt"
+          python3 - "$RUNNER_TEMP/baldosa-evidence" <<'PY'
+          import json
+          import pathlib
+          import sys
+          root = pathlib.Path(sys.argv[1])
+          baseline = (root / 'race_1p/fd/crc.txt').read_text().splitlines()
+          adapter = (root / 'race_1p_adapter/fd/crc.txt').read_text().splitlines()
+          lines = (root / 'race_1p_adapter/log.txt').read_text().splitlines()
+          obs = [line for line in lines if 'UR_BALDOSA_BRIDGE frame=' in line]
+          result = {
+              'source': 'UR-Recomp native/presentation/racer_guest_snapshot.cpp',
+              'host': 'Baldosa pinned desktop after_run_frame',
+              'frames_identical': baseline == adapter and len(baseline) > 0,
+              'crc_frames': len(baseline),
+              'racer_semantic_observations': len(obs),
+              'observations_first': obs[:6],
+              'accepted_full_original_native_result': False,
+          }
+          (root / 'bridge_report.json').write_text(json.dumps(result, indent=2) + '\\n')
+          print(json.dumps(result, indent=2))
+          assert result['frames_identical'] and result['racer_semantic_observations'] > 0
+          PY
+
       - name: Summarize executable evidence
         if: always()
         shell: bash
@@ -148,6 +186,7 @@ jobs:
             echo '- Compatibility: SDL2 desktop fallback. No modifications to either upstream revision.'
             echo '- ROM: exact USA SHA256; each route has isolated SRAM.'
             echo '- **Route exit codes are only smoke evidence**, not full original/native game-result parity.'
+            echo '- UR snapshot adapter compares untouched versus observed per-frame WRAM CRCs; see uploaded bridge_report.json.'
             echo ''
             for name in race_1p race_2p_split zoomzoo_1p; do
               p="$RUNNER_TEMP/baldosa-evidence/$name.exit"
@@ -165,5 +204,6 @@ jobs:
           retention-days: 7
           path: |
             ${{ runner.temp }}/baldosa-evidence/report.json
+            ${{ runner.temp }}/baldosa-evidence/bridge_report.json
             ${{ runner.temp }}/baldosa-evidence/*.exit
             ${{ runner.temp }}/baldosa-evidence/*/log.txt

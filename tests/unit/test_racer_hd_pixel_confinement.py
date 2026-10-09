@@ -57,6 +57,30 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
         self.assertFalse(report["ok"])
         self.assertEqual(report["outside_live_oam_pixel_samples"][0], [40, 40, 10, 10])
 
+    def test_capture_only_allows_fully_occluded_original_bottom_racer(self):
+        stock, only = frames()
+        paint(only, 4, 125, 42)
+        ordinary = audit(stock, bytes(only), draw_log(), 1220,
+                         second_original=stock)
+        self.assertFalse(ordinary["ok"])
+        removal = audit(stock, bytes(only), draw_log(), 1220,
+                        second_original=stock, capture_only=True)
+        self.assertTrue(removal["ok"])
+        self.assertEqual(removal["viewports_with_visible_changes"], ["top"])
+        self.assertEqual(removal["bottom_changed_pixels"], 0)
+        self.assertTrue(removal["diagnostic_capture_only"])
+
+    def test_capture_only_does_not_accept_inert_or_outside_corruption(self):
+        stock, only = frames()
+        self.assertFalse(audit(stock, bytes(only), draw_log(), 1220,
+                               capture_only=True)["ok"])
+        paint(only, 4, 125, 42)
+        paint(only, 4, 10, 10)
+        result = audit(stock, bytes(only), draw_log(), 1220,
+                       capture_only=True)
+        self.assertFalse(result["ok"])
+        self.assertTrue(result["outside_live_oam_pixel_samples"])
+
     def test_live_split_scanline_112_is_not_top_viewport(self):
         mask = allowed_logical_mask(live_placements(draw_log(top_y=110), 1220))
         self.assertEqual(mask[111 * W + 125], 1)

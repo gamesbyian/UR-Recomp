@@ -43,6 +43,35 @@
       "10": 2,
       "15": 1,
       "16": 1
+    },
+    "longest_consecutive_pair_ineligible_run_frames": 759,
+    "longest_consecutive_pair_ineligible_run_inclusive_range": [
+      3062,
+      3820
+    ],
+    "other_long_pair_ineligible_ranges": [
+      [
+        1306,
+        1966
+      ],
+      [
+        2050,
+        2436
+      ]
+    ],
+    "first_441_guest_frame_window": {
+      "range": [
+        1180,
+        1620
+      ],
+      "registered_pair_eligible_frames": 59
+    },
+    "remaining_2200_guest_frame_window": {
+      "range": [
+        1621,
+        3820
+      ],
+      "registered_pair_eligible_frames": 111
     }
   },
   "eligible_episode_inclusive_ranges": [

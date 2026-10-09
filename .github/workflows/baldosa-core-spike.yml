@@ -309,6 +309,24 @@ jobs:
             --captures "$UR_BALDOSA_WS24_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws24_presentation.json"
           echo "PASS: actual two-viewport +24 source-world margins, guest CRC unchanged" >> "$GITHUB_STEP_SUMMARY"
+          # Second native route: the same first-party calibrated materializer
+          # now serves +48 backing while the actual PPU exposes 43 pixels per
+          # side. This is a 342x224 logical raster, NOT a tested 4K viewport.
+          export UR_BALDOSA_WS342=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-captures"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt"
+          python3 tools/baldosa_ws24_presentation_report.py \
+            --view ws342 \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_presentation.json"
+          echo "PASS: 342x224 logical native PPU with both split-world +43 margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -344,6 +362,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
+            ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam

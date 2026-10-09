@@ -1,8 +1,5 @@
 # Work Queue
 
-> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
-
-
 > **Claude source-recovery audit CLOSED, 2026-10-08:** Compared all 36 visible `claude/*` branch tips; 13 have no ahead commits, and the 23 divergent historical branches have no changed file paths absent from `main`. Records text fitting and P2-HD art/presenter work are represented by newer implementations, including binding-aware text and sprite Y-wrap correction. **No historical branch should be wholesale merged.** This is a source-reconciliation conclusion, not packaged Windows QA acceptance. See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md). Continue unresolved QA-02/03/05/09 and HD moving-scene checks using current-main reproductions.
 
 
@@ -79,6 +76,17 @@ At Dragster frame 2903, slot 10 remains an unproven prior dispatch
 candidate and slot 8 a postframe contact observation, pending an actual
 instruction-time witness. Guest gameplay code is unchanged.
 
+**QA-01 bounded entry admission improvement (2026-10-09):** The fresh
+Zoom Zoo/Jumps original/native entry probe now compares both racers'
+checkpoint/finish/lap words and P2 velocities, closing a source-confirmed
+false-negative test gap where movement/contact equality could hide
+premature gate or P2 lap credit. A synthetic same-motion counterexample
+is pinned. See
+[QA01-NONDRAGSTER-ENTRY-PROGRESSION.md](QA01-NONDRAGSTER-ENTRY-PROGRESSION.md).
+No native/Snes9x execution or complete course gate is claimed. Next
+work is real paired runs and all-event/result witnesses, not another
+Dragster-only proof.
+
 ### QA-02 new storage fixes and remaining verification, 2026-10-08
 
 Two additional source-confirmed P0-contributing races were found outside the tournament fixture store: shared fixed staging for mutable profile SRAM/catalog/global settings, and POSIX replace-existing rename on multiplayer `.urmatch` then `.urrun` publication. Merged [#991](https://github.com/gamesbyian/UR-Recomp/pull/991) adds isolated staging and has passed the Project tooling unit tests and Native build smoke on its exact head. [#993](https://github.com/gamesbyian/UR-Recomp/pull/993) uses atomic no-replace pair claims, crash injection and a buffered `/dev/full` close-error regression; it is still under review. **Pending focused test execution/review**, not merged/completed claims. Next: finish and review new multi-process L2 probes, perform packaged L4 J-02/J-07/J-08 fault/upgrade tests, and design explicit generation/roster compare-and-swap before asserting two-game same-root safety. Stay out of frontend, course, replay determinism and CI speed lanes.
@@ -103,9 +111,9 @@ Two additional source-confirmed P0-contributing races were found outside the tou
 
 **Merged and verified on individual PR heads:** #1033 (durably flush complete `.urrun` and bound `.urmatch` before no-replace final-name claims), #1035 (durably flush optional `.urghost` before replacement), #1038 (immutable tournament instance archive create-only CAS), #1041 (old-version active tournament archive migration create-only CAS and exact winner verification). Previous #1030 post-rename cleanup crash and #1032 fixture receipt staged durability fixes are also merged. See `QA02-RUN-MATCH-DURABILITY.md`, `QA02-GHOST-DATA-DURABILITY.md`, and `QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md`.
 
-**Merged #1042:** fixture credit now requires the exact **current on-disk pending attempt** under the same OS mutex as checkpoint publication and retirement. The mutex encloses saved-pair admission and immutable receipt claim; a stale/superseded process cannot award points. Native fixture tests cover C14 run/match without receipt and C15 receipt before pending retirement, each restoring a new coordinator from disk. They are not executable process-kills or packaged Windows L4. **Merged #1044:** a downgraded writer refuses replacement of a checksum-valid future-version ghost trace, retaining same-version repairs. **Merged #1046:** real separate-executable process cuts C09/C14/C15 (orphan public match sidecar, paired run before receipt, authoritative receipt before pending retirement), with fresh-process restoration and no phantom PB/points. **Merged #1048:** five races between full coordinator creators, exactly one active winner and safe inactive archive.
+**Merged #1042:** fixture credit now requires the exact **current on-disk pending attempt** under the same OS mutex as checkpoint publication and retirement. The mutex encloses saved-pair admission and immutable receipt claim; a stale/superseded process cannot award points. Native fixture tests cover C14 run/match without receipt and C15 receipt before pending retirement, each restoring a new coordinator from disk. They are not executable process-kills or packaged Windows L4. **Pending #1044:** prevent an older game build from overwriting a checksum-valid future-version ghost trace, while retaining supported same-version replacement; checks and merge still required.
 
-**Unclosed P0:** cross-artifact group atomicity, accurate re-entry after abrupt death during profile selector/framework SRAM publication (C04), actual full-game/package crash cuts C14/C15, two live *game* processes with overlapping fixture ownership and abandoned checkpoint cleanup, disk-full/read-only device and interrupted upgrade restoration, directory metadata persistence and packaged Windows/power-fault evidence. Keep QA-02 `in_progress` with zero L4 witnesses.
+**Unclosed P0:** cross-artifact group atomicity, accurate re-entry after abrupt death during profile selector/framework SRAM publication (C04), actual fresh-executable crash cuts C14/C15, two live processes and abandoned checkpoint ownership, disk-full/read-only device and interrupted upgrade restoration, directory metadata persistence and packaged Windows/power-fault evidence. Keep QA-02 `in_progress` with zero L4 witnesses.
 
 ## Immediate adversarial QA critical path (independently owned)
 

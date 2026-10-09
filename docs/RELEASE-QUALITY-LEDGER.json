@@ -55,14 +55,16 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/COMPLETED-RUN-RECORDS.md",
-        "docs/QA02-STAGED-WRITE-DURABILITY.md"
+        "docs/QA02-STAGED-WRITE-DURABILITY.md",
+        "docs/QA02-PROFILE-CAS.md",
+        "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Finish #996 exact-profile CAS and its stacked #1003 roster/conditional-delete integration; verify #1009 active tournament CAS. Run a pinned packaged Windows two-instance J-02/J-07/J-08 across genuine .srm/profile, run/ghost/match/fixture/pending crash windows, disk faults, interrupted upgrades and power-loss restoration.",
+      "next_action": "Finish #1003 exact-catalog-roster CAS and conditional profile deletion after fresh current-main CI; then capture exact ZIP/hash Windows two-instance J-02/J-07/J-08 crash, disk-full, interrupted upgrade, .srm/profile/catalog and run/ghost/match/fixture/pending restart evidence.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -79,7 +81,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1005",
         "https://github.com/gamesbyian/UR-Recomp/pull/1009"
       ],
-      "remaining_release_risk": "Merged #991 host/private staging, #993 no-replace run+match pair and sidecar disk-close checks, #995 bounded corrupt catalog loading, and #1005 staged file-content fsync/FlushFileBuffers. Earlier #982/#984/#985 tournament receipt/launch fixes are store-local. Pending #996 profile exact-state CAS, stacked #1003 catalog roster CAS plus conditional deletion, and #1009 active-session CAS. Focused Linux checks do not establish power-loss or Windows dual-game L4; no atomic commit across .srm+profile+catalog or run+ghost+match+fixture+launch, no complete interrupted upgrade restore, and no accepted packaged Windows J-02/J-07/J-08 witness. Directory sync after published commit is best-effort under current bool API. P0 remains in_progress."
+      "remaining_release_risk": "Merged #982/#984/#985 store-local tournament receipt, staging and checkpoint locks; #991 safe host staging; #993 no-replace multiplayer run+match pair and close errors; #995 bounded catalog recovery; #1005 staged data sync; #996 exact-profile CAS and conditional compensating rollback; #1009 exact active-tournament pointer CAS. #1003 catalog roster CAS and conditional profile removal is pending refreshed CI/integration. No atomic group commit for framework .srm, profile, catalog, run, ghost, match, receipt, active tournament and pending launch. Orphan profiles/events and committed-but-directory-sync-uncertain states lack complete restoration contract. No exact packaged Windows two-process or power-fault L4 witness; QA-02 remains P0 in_progress."
     },
     {
       "id": "QA-03",

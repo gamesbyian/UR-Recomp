@@ -24,6 +24,8 @@ LOW_WRAM = {
     0x009F, 0x0313, 0x00CE,
     *range(0x0411, 0x0419),   # P1 and P2 position words
     0x0E95, 0x0E96,         # persisted P1 contact
+    0x04B7, 0x04B8,         # P1 signed horizontal velocity
+    0x11CF, 0x11D0,         # P1 boost meter
     0x0EF1, 0x0EF2,         # P1 laps remaining
     0x1199, 0x119A,         # P1 checkpoint
     0x119D, 0x119E,         # P1 finish gate
@@ -31,7 +33,8 @@ LOW_WRAM = {
 }
 PROGRESS_ADDRESSES = {0x0EF1, 0x1199, 0x119D}
 EVENT_FRAMES = (3408, 3794, 4031, 4722, 4911)
-TARGETS = frozenset({3190, *EVENT_FRAMES, *(f - 1 for f in EVENT_FRAMES)})
+TARGETS = frozenset({3190, 3394, 3395, 3396, *EVENT_FRAMES,
+                     *(f - 1 for f in EVENT_FRAMES)})
 
 
 class TraceWitnessError(ValueError):
@@ -51,6 +54,8 @@ def snapshot(frame: int, state: dict[int, int]) -> dict:
         "p1_world_xy": [u16(state, 0x0411), u16(state, 0x0415)],
         "p2_world_xy": [u16(state, 0x0413), u16(state, 0x0417)],
         "p1_stored_contact_word": u16(state, 0x0E95),
+        "p1_speed_x": (u16(state, 0x04B7) + 0x8000) % 0x10000 - 0x8000,
+        "p1_boost": u16(state, 0x11CF),
         "progress": [u16(state, 0x1199), u16(state, 0x119D),
                      u16(state, 0x0EF1)],
         "timer_raw_digits": [state.get(a, 0) for a in
@@ -129,6 +134,23 @@ def verify(extracted: dict, witness: dict) -> dict:
     if start["progress"] != [anchored[x] for x in (
             "p1_next_checkpoint", "p1_finish_gate", "p1_laps_remaining")]:
         raise TraceWitnessError("original Zoom Zoo initial progress state changed")
+    onset = witness["original_race_start_phase"]
+    still = extracted["samples"][onset["last_observed_zero_x_displacement_frame"]]
+    first = extracted["samples"][onset["first_p1_x_displacement_frame"]]
+    timer_start = extracted["samples"][onset["first_stopwatch_nonzero_frame"]]
+    if (still["p1_world_xy"][0] != start["p1_world_xy"][0]
+            or still["timer_raw_digits"] != [0, 0, 0, 0, 0]
+            or first["p1_world_xy"][0] != onset["first_p1_moving_x"]
+            or first["p1_speed_x"] != onset["first_p1_signed_vx"]
+            or first["p1_boost"] != onset["first_p1_boost_nonzero"]
+            or first["timer_raw_digits"] != onset["stopwatch_at_first_motion"]
+            or timer_start["timer_raw_digits"] != onset["stopwatch_at_first_timer_tick"]):
+        raise TraceWitnessError("original active-race-to-motion/timer phase witness changed")
+    if (first["movie_frame"] - start["movie_frame"]
+            != onset["race_active_to_first_motion_guest_frames"]
+            or timer_start["movie_frame"] - start["movie_frame"]
+            != onset["race_active_to_timer_tick_guest_frames"]):
+        raise TraceWitnessError("original scene-entry frame cadence changed")
     audited = []
     if [r["transition_frame"] for r in witness["observed_progression"]] != list(EVENT_FRAMES):
         raise TraceWitnessError("expected original course event frame sequence changed")
@@ -164,6 +186,8 @@ def verify(extracted: dict, witness: dict) -> dict:
         "source_record_count": extracted["raw_record_count"],
         "course_id": witness["course"]["id"],
         "original_event_frames_reproduced": audited,
+        "original_first_motion_frame": first["movie_frame"],
+        "original_first_stopwatch_tick_frame": timer_start["movie_frame"],
         "lap_counter_decrements": [
             f for f in audited
             if extracted["samples"][f]["progress"][2]

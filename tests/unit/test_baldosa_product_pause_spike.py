@@ -10,6 +10,13 @@ import baldosa_product_pause_spike as spike
 
 
 class NativePauseIntegrationTest(unittest.TestCase):
+    @staticmethod
+    def stage_modern_sources(root):
+        modern = root / "native/product"
+        modern.mkdir(parents=True)
+        for name in spike.MODERN_SESSION_SOURCES:
+            (modern / name).write_text("// Modern session build fixture")
+
     def setUp(self):
         self.header = (
             "/* UR_BALDOSA_PRODUCT_INPUT_SEAM */\n"
@@ -72,12 +79,16 @@ class NativePauseIntegrationTest(unittest.TestCase):
             (root / "tools").mkdir()
             (root / "tools/baldosa_native_pause_lifecycle.cpp").write_text("// smoke")
             (root / "tools/baldosa_native_product_pause_authority.cpp").write_text("// authority")
+            self.stage_modern_sources(root)
             initial = "# UR_BALDOSA_PRODUCT_INPUT_SEAM\n"
             result = spike.patch_game_cmake(initial, root)
             self.assertTrue(result.startswith(initial))
             self.assertEqual(result.count(spike.MARK), 1)
             self.assertIn("baldosa_native_pause_lifecycle.cpp", result)
             self.assertIn("baldosa_native_product_pause_authority.cpp", result)
+            self.assertIn("modern_session_c_api.cpp", result)
+            self.assertIn("modern_session_runtime.cpp", result)
+            self.assertIn("target_include_directories(UniracersSNESRecomp PRIVATE", result)
             self.assertEqual(spike.patch_game_cmake(result, root), result)
             with self.assertRaisesRegex(ValueError, "native human-input"):
                 spike.patch_game_cmake("unrecognized CMake", root)
@@ -89,6 +100,7 @@ class NativePauseIntegrationTest(unittest.TestCase):
             (root / "tools").mkdir()
             (root / "tools/baldosa_native_pause_lifecycle.cpp").write_text("// smoke")
             (root / "tools/baldosa_native_product_pause_authority.cpp").write_text("// authority")
+            self.stage_modern_sources(root)
             (game / "src").mkdir(parents=True)
             (game / "snesrecomp/runner/src/desktop").mkdir(parents=True)
             (game / "src/main.c").write_text(self.main)

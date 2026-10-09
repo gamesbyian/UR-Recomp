@@ -189,7 +189,7 @@ def build_census(catalog: dict, source: dict) -> dict:
         "limits": [
             "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
             "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
-            "Input-only Jumpover reward thresholds are partial; no timed stunt result was certified.",
+            "Input-only Jumpover CIRCUIT-B maneuver rewards are partial; no circuit result or 45-second stunt event was certified.",
             "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
             "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
             "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",

@@ -489,14 +489,16 @@ int racer_hd_draw_frame(
     // pixels in one half of the screen. Painting that half fabricates a
     // rider (demonstrated on the frame-1220 bottom player).
     std::array<std::size_t, 2> source_opaque{{0, 0}};
+    std::array<std::size_t, 4> footprint_opaque{{0, 0, 0, 0}};
     for (std::size_t i = 0; i < g_instance_count; ++i) {
         const auto& instance = g_instances[i];
         const unsigned index =
             instance.viewport == RacerViewport::Top ? 0u : 1u;
-        source_opaque[index] += racer_stock_obj_pixels_in_footprint(
+        footprint_opaque[i] = racer_stock_obj_pixels_in_footprint(
             g_obj_overlay.data(), g_obj_overlay.size(),
             instance.placement, instance.viewport
         );
+        source_opaque[index] += footprint_opaque[i];
     }
     if (hd_census_enabled()) {
         std::fprintf(
@@ -508,11 +510,25 @@ int racer_hd_draw_frame(
             source_opaque[1] != 0 ? 1u : 0u
         );
     }
+    if (hd_census_enabled()) {
+        // These are *footprint* hits in the composite OBJ source plane, not
+        // independently attributed pixels from the individual OAM slots.
+        std::fprintf(
+            stderr,
+            "UR_RACER_HD_SOURCE_FOOTPRINTS frame=%u count=%zu "
+            "alpha0=%zu alpha1=%zu alpha2=%zu alpha3=%zu\\n",
+            g_sim_frame, g_instance_count,
+            footprint_opaque[0], footprint_opaque[1],
+            footprint_opaque[2], footprint_opaque[3]
+        );
+    }
     for (std::size_t rank = 0; rank < g_instance_count; ++rank) {
-        const auto& instance = g_instances[draw_order[rank]];
-        const unsigned index =
-            instance.viewport == RacerViewport::Top ? 0u : 1u;
-        if (source_opaque[index] == 0) continue;
+        const auto instance_index = draw_order[rank];
+        const auto& instance = g_instances[instance_index];
+        // One player's OBJ emission in this viewport cannot authorize a
+        // disjoint, source-empty second racer. Overlapping OBJ footprints
+        // remain ambiguous until the PPU exports per-slot visibility.
+        if (footprint_opaque[instance_index] == 0) continue;
         draw_asset(
             dst,
             pitch,

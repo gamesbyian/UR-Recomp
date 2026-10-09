@@ -61,6 +61,48 @@ adding these experiment routes. For an actual mismatch, retain first diverging
 guest frame, queue contents/cursors, input mask and original handler PC before
 changing the guest physics or stunt finalizer.
 
+## QA-07 trajectory shadow channel: a real coverage omission (2026-10-09)
+
+The admitted six-case R-hold/A-twist capture compares P1 pose, progress,
+airtime, boost and queue-write index. It deliberately did not compare
+**world position, signed velocity or persisted course contact**. A native
+racer could land on a different cell, or begin to drift in speed, while
+both engines still awarded identical 128-unit boosts. The existing
+91-frame equality and stored fixture hashes would not detect that.
+
+An opt-in `--trajectory-evidence` runs on **the same original/native
+128 KiB input-only WRAM dumps**, without changing the six accepted default
+cases or their retained hashes. It checks P1 `0411/0415` XY,
+`04B7/04BB` signed velocity, `0E95` contact word, angle, airborne
+state and boost for **all 91 consecutive frames** of each selected
+input/hold case (262..352 relative to original race entry), using
+the established `probe_jumpover_fallthrough_native.read_p1` decoder.
+It independently records first field/frame disagreement and the exact
+sampled `air_time > 0 → 0` transitions for both engines.
+
+A ROM-free synthetic regression retains identical pose/boost readings
+while changing only native X, X-speed and course contact at frame +270.
+It establishes that the **old summary would have missed** this discrepancy
+and the new channel rejects it. The fixture neither proves a real
+original/native discrepancy nor attributes a sampled `air_time=0`
+transition to a particular surface, collision-PC, stunt reward or
+message-consumer pop.
+
+To exercise the previously retained six cases with the new channel:
+
+```sh
+python3 tools/probe_stunt_boundary.py --snesref <snesref> \
+  --core <snes9x-core> --native <native-executable> \
+  --rom <canonical-usa-rom> --work-dir /tmp/qa07-stunt-motion \
+  --trajectory-evidence --queue-evidence --json-out /tmp/qa07-stunt-motion.json
+```
+
+The optional L-shoulder/simultaneous-A+R hypotheses may also be run
+with `--explore`. Capture and compare the first trajectory divergence
+**before** asserting that a later equal stunt reward proves physics
+parity. The full 45-second timed-Stunt and course-completion gates are
+unchanged: no new original/native comparison was executed by this patch.
+
 ## Remaining precise discriminators
 
 1. **Stunt semantics beyond the two admitted thresholds:** try L-shoulder flip landings, X/Z-flips and multi-stunt combinations, using the same fresh-boot intervention and per-frame event-relative control. Distinguish transient progress from completed-count fields, queue contents from queue cursors, and delayed boost addition from continuous drain.

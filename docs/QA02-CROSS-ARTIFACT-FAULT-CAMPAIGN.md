@@ -89,7 +89,7 @@ A gate cannot advance to accepted until L4 evidence is attached to the
 specific shipped artifact, not merely a green Actions workflow.
 
 
-## Focused independent-process evidence, pending current PR validation
+## Focused independent-process evidence, merged green 2026-10-09
 
 The previously accepted store tests and in-process coordinator reconstructors
 did not exhaust C09/C12/C14/C15. New native harnesses keep the **actual**
@@ -107,9 +107,10 @@ processes, and retain one user-data directory throughout each trial.
   independently verifying one Created / one AlreadyExists and a
   single canonical active owner with no fake completed event.
 
-These PRs are **not counted as accepted until exact-head CI passes and they
-merge**. Even after that, such OS-process tests are L2 evidence, not the
-pinned packaged Windows/real controller power-off L4 witness. A process
+Both PRs have passed exact-head project tooling and native heavy-router
+checks and merged, establishing bounded L2 OS-process evidence for their
+explicit fault cuts. They do not certify the pinned portable Windows
+game or physical storage power-off L4 witness. A process
 can die after a successful OS data flush while directory metadata still
 has uncertain durability, and the framework SRAM/profile group
 remains uncommitted as one transaction.

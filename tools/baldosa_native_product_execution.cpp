@@ -34,5 +34,10 @@ extern "C" void ur_baldosa_product_set_host_focus(int owned) {
 }
 
 extern "C" void ur_baldosa_product_guest_restarted(void) {
+    // A Modern Restart is legal while the acknowledged native guest is
+    // paused. Reset physical latches, but keep host input ownership through
+    // that transaction; dropping focus here can leak held Start on resume.
+    const bool was_host_owned = g_input.host_owns_input();
     g_input.reset();
+    if (was_host_owned) g_input.host_focus(true);
 }

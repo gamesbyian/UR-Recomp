@@ -435,6 +435,20 @@ those three state inputs, validates its actual host user-data root, and
 keeps the strict native atlas gate. The triple-run research harness was
 not merged.
 
+### Pause native UI captured state acceleration
+
+[Experimental #987](https://github.com/gamesbyian/UR-Recomp/pull/987)
+proved full **33/33 byte-identical files** across the original three
+Pause/resume checkpoints, with **zero difference** against the original
+shared-root capture. Both tooling and the full native router passed in
+[run 37865447897](https://github.com/gamesbyian/UR-Recomp/actions/runs/37865447897).
+The required starting state is copied from three files left by previous
+Navigation probes: `config.ini`, `keybinds.ini`, and
+`saves/save.srm`. The unpaced research route completed in about six
+seconds. Production preserves the original capture script, dumps and
+atlas acceptance while verifying the cloned native root and requiring
+a successful run; the triple-run experiment remains unmerged.
+
 ## Remaining semantic debt
 
 ### Racer native presentation exact-frame contracts

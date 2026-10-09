@@ -68,6 +68,45 @@ runtime interpretation is unknown (Jumps, Hill Climb). The source script
 never reads startX when performing calculations. Numeric coincidence
 is useful for track-identity reconciliation, **not** a dynamic spawn witness.
 
+## Measured USA checkpoint-family cell census (2026-10-09)
+
+The full-ROM placement job (`tools/audit_all_course_checkpoint_placements.py`,
+unit log `QA01-45-COURSE-PLACED-CELLS`, PR #1014) confirms all **36/36
+Race/Circuit** courses contain *placed* `0x24` cells, and all nine timed
+Stunt courses are negative controls. There are **zero** Race/Circuit
+courses which list `0x24` but have no placed 16×16 cell. This closes the
+specific hypothesis that shipped races are missing the entire checkpoint
+resource family.
+
+However, **34/36** courses have *no candidate world cell in the exact
+X column* of the historical optimizer's hand-entered finish-X number.
+This is primarily evidence that the handwritten coordinate is not an
+authoritative event predicate. It does not mean 34 courses are missing
+their finish! ROM-static nearest horizontal gaps were 95 units for
+**Zoom Zoo**, 30 for **Two Loops**, 28 for **To and Fro**, 27 for
+**Hairpin Hill** and 26 for **Flat Fun** and **123 Jump**. Historical
+positions are world X only and omit the Y component, racer collision
+footprint, entry direction and checkpoint order.
+
+The paired archived **original** Zoom Zoo movie preserves P1 world XY
+at guest frames 3400/3800/4200/4600/5000 while still racing. The
+follow-on `tools/correlate_zoo_original_positions_with_cells.py` uses
+those exact Snes9x samples and all decoded candidate 16×16 rectangles
+to report the nearest *two-dimensional* gap and candidate C000 slot
+for each sample. This tests whether the historical 95-X-unit anomaly
+survives comparison against actual executed world positions rather than
+another handwritten coordinate. A geometric zero gap is NOT an
+observed contact, handler instruction or lap/finish event: original
+instruction-time `0F09` and previous-frame contact remain the required
+causal witness. This work does not raise the 0/45 complete-event count.
+
+```sh
+python3 tools/correlate_zoo_original_positions_with_cells.py \
+  --json-out /tmp/qa01-zoo-real-2d-cells.json
+python3 -m unittest discover -s tests/unit \
+  -p 'test_correlate_zoo_original_positions_with_cells.py'
+```
+
 ## Non-Dragster counterexample priorities
 
 1. **Zoom Zoo, USA circuit A (02):** historical hand-entered start X

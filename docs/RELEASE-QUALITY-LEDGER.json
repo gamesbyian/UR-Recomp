@@ -336,6 +336,52 @@
       "physical packaged Windows and audio/soak",
       "cross-artifact fault recovery"
     ],
-    "note": "Execution budget and reusable witness grouping only. Does not modify gate thresholds/statuses or waive verified P0 defects. New budget must follow evidence-based checkpoint review."
+    "note": "Execution budget and reusable witness grouping only. Does not modify gate thresholds/statuses or waive verified P0 defects. New budget must follow evidence-based checkpoint review.",
+    "review_document": "docs/QA-AUDIT-OF-AUDIT-20261008.md",
+    "tranche_definition": "Initial discovery-and-repair tranche only, not a forecast to complete all QA gates or unimplemented product features.",
+    "measurement": "Productive agent hours linked to PR/witness/completed journey; report queue and waiting costs separately.",
+    "priority_rule": "Confirmed defect/data integrity, then blocked player journey/missing implementation, then low-cost independent oracle, then breadth, then speculation.",
+    "qa_vs_product": "QA-09 depends on unfinished five-destination Modern root implementation; keep product work separately estimated and owned.",
+    "active_review_items": [
+      {
+        "issue": 890,
+        "category": "confirmed_player_defect",
+        "owner": "frontend_input",
+        "shared_gates": [
+          "QA-05",
+          "QA-06"
+        ]
+      },
+      {
+        "pr": 1052,
+        "category": "unmerged_proposed_fix",
+        "owner": "persistence_tournament",
+        "shared_gates": [
+          "QA-02",
+          "QA-03"
+        ]
+      },
+      {
+        "pr": 1045,
+        "category": "unmerged_proposed_fix",
+        "owner": "graphics",
+        "shared_gates": [
+          "QA-08"
+        ]
+      },
+      {
+        "pr": 1043,
+        "category": "unmerged_evidence_discriminator",
+        "owner": "gameplay",
+        "shared_gates": [
+          "QA-01",
+          "QA-07"
+        ]
+      }
+    ],
+    "review_state_caveat": "PR states recorded at planning review; refresh before work. No listed PR qualifies as release-accepted solely by merging.",
+    "campaign_interpretation": "Four integrated journeys A-D, plus targeted storage fault cuts overlaying B/D; original five categories retained for historical continuity.",
+    "candidate_rule": "Never treat prior SHA as an exact newer candidate acceptance; rerun relevant shared smoke and affected gates; record actual ZIP hash.",
+    "scope_controls": "USA primary 45; PAL/prototype 90 comparative; Original/Upscaled versus Remastered exposure and public ROM/legal decision handled explicitly at release level."
   }
 }

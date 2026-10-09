@@ -1,31 +1,15 @@
 #include "host_profile_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <cerrno>
 #include <cstdio>
 #include <string>
-
-#if defined(_WIN32)
-#include <windows.h>
-#endif
 
 namespace ur::product {
 namespace {
 
 constexpr long kMaxProfileStateBytes =
     static_cast<long>(kStockSramBytes * 2 + 1024);
-
-bool replace_file_atomically(
-    const std::string& temporary_path,
-    const std::string& final_path) noexcept {
-#if defined(_WIN32)
-    return MoveFileExA(
-        temporary_path.c_str(),
-        final_path.c_str(),
-        MOVEFILE_REPLACE_EXISTING | MOVEFILE_WRITE_THROUGH) != 0;
-#else
-    return std::rename(temporary_path.c_str(), final_path.c_str()) == 0;
-#endif
-}
 
 }  // namespace
 
@@ -170,26 +154,9 @@ HostProfileSaveStatus save_host_profile_state_file(
         return HostProfileSaveStatus::Rejected;
     }
 
-    const std::string temporary_path = path + ".tmp";
-    std::FILE* file = std::fopen(temporary_path.c_str(), "wb");
-    if (!file) {
+    if (!write_host_replace_staged(path, encoded, "urprofile")) {
         return HostProfileSaveStatus::IoError;
     }
-
-    const std::size_t written =
-        std::fwrite(encoded.data(), 1, encoded.size(), file);
-    const bool flushed = std::fflush(file) == 0;
-    const bool closed = std::fclose(file) == 0;
-    if (written != encoded.size() || !flushed || !closed) {
-        std::remove(temporary_path.c_str());
-        return HostProfileSaveStatus::IoError;
-    }
-
-    if (!replace_file_atomically(temporary_path, path)) {
-        std::remove(temporary_path.c_str());
-        return HostProfileSaveStatus::IoError;
-    }
-
     return HostProfileSaveStatus::Saved;
 }
 

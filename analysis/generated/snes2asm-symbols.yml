@@ -41,7 +41,6 @@ memory:
   Save_TrackRecords: 0x770422
   Save_TrackRecordsChecksum: 0x77054E
   Save_TrackRecordHolders: 0x770550
-  Save_IndexedResultWordTable: 0x770618
   Progress_MedalMatrix: 0x77069C
   Progress_BlockChecksum: 0x77073C
   Player1_StuntScore: 0x7707BB

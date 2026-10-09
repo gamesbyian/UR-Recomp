@@ -1,3 +1,5 @@
+> **External shared-test leverage (2026-10-09):** Ema Guillén's nine original-route inputs and byte-identical disassembly toolchain have been preserved and inventoried in `docs/BALDOSA-SOURCE-CENSUS-20261009.md`. They are **input leads**, not new course/tournament L4 evidence; first run the Zoom Zoo case with actual settled-result checks and the split-screen OAM discriminator. Don't fund a second general harness or count their masked checkpoints as the 45-course denominator.
+
 # Bounded, cross-productive release QA campaign
 
 Status: planning and resource policy, 2026-10-08. Applies to QA-01..QA-12. This document **does not waive** the release criteria in `ADVERSARIAL-QA-AND-RELEASE-READINESS.md`, promote any ledger gate, or assert that unexecuted journeys pass. It sets a cost-controlled **first campaign** and an explicit decision point, not an unconditional promise of release readiness.

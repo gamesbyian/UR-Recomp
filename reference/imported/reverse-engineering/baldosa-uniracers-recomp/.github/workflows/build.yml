@@ -1,0 +1,126 @@
+# Native player builds: Linux x64, Linux arm64 (Raspberry Pi), Windows x64.
+# Linux builds on 22.04 so the binaries need only glibc 2.35: they run on
+# Raspberry Pi OS bookworm, Debian 12 and Ubuntu 22.04+.
+#
+# The full recomp, built from the committed src/gen/ (no assets: each build
+# plays the player's own ROM). Every push uploads the zips as workflow
+# artifacts; a v* tag also publishes them as a GitHub Release.
+name: Builds
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  EXE_NAME: UniracersSNESRecomp
+
+jobs:
+  build:
+    name: ${{ matrix.artifact }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            artifact: linux-x64
+          - os: ubuntu-22.04-arm
+            artifact: linux-arm64
+          - os: windows-2022
+            artifact: windows-x64
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install build dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y -q build-essential cmake ninja-build pkg-config \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev \
+            libxtst-dev libxfixes-dev libwayland-dev libxkbcommon-dev libegl-dev \
+            libgles-dev libgl-dev libdrm-dev libgbm-dev libasound2-dev libpulse-dev \
+            libudev-dev libdbus-1-dev
+
+      # Windows builds with the framework's clang toolchain pack (cmake, ninja,
+      # clang), the same one its setup-pack release uses.
+      - name: Fetch toolchain pack (Windows)
+        if: runner.os == 'Windows'
+        run: bash snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64
+
+      - name: Configure and build
+        run: |
+          set -euo pipefail
+          if [[ -n "${TOOLCHAIN_DIR:-}" ]]; then
+            # shellcheck disable=SC1091
+            source "${TOOLCHAIN_DIR}/env.sh"
+          fi
+          cmake -S . -B build-ci -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build build-ci --target "${EXE_NAME}"
+
+      - name: Package
+        run: |
+          set -euo pipefail
+          STAGE="uniracers-${{ matrix.artifact }}"
+          mkdir -p "dist/${STAGE}"
+          EXE="build-ci/${EXE_NAME}"
+          [[ -f "${EXE}.exe" ]] && EXE="${EXE}.exe"
+          cp "${EXE}" "dist/${STAGE}/"
+          [[ -d build-ci/mods ]] && cp -r build-ci/mods "dist/${STAGE}/"
+          cp -r build-ci/assets "dist/${STAGE}/"   # recomp-ui launcher fonts and art
+          cat > "dist/${STAGE}/README.txt" <<'TXT'
+          Uniracers (snesrecomp native recompilation)
+
+          No game is included. Start the program with your own
+          "Uniracers (USA)" ROM, e.g.:
+              ./UniracersSNESRecomp uni.sfc        (Linux)
+              UniracersSNESRecomp.exe uni.sfc      (Windows; or drag the ROM onto the exe)
+
+          The launcher opens first: pick the ROM, set controls, display and
+          audio. Ctrl+L reopens it during the game. Settings are saved in
+          config.ini and keybinds.ini next to the program.
+          Source: https://github.com/${{ github.repository }}
+          TXT
+          sed -i 's/^          //' "dist/${STAGE}/README.txt"
+          cd dist
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            7z a -tzip "${STAGE}.zip" "${STAGE}" >/dev/null
+          else
+            zip -qr "${STAGE}.zip" "${STAGE}"
+          fi
+          ls -la
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: uniracers-${{ matrix.artifact }}
+          path: dist/uniracers-${{ matrix.artifact }}.zip
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" dist/*.zip --repo "${GITHUB_REPOSITORY}" \
+            --title "Uniracers ${GITHUB_REF_NAME}" \
+            --notes "Native recomp builds for Linux x64, Linux arm64 (Raspberry Pi) and Windows x64. Bring your own ROM. Web player: https://${GITHUB_REPOSITORY_OWNER}.github.io/${GITHUB_REPOSITORY#*/}/"

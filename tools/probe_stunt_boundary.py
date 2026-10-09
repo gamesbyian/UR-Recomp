@@ -33,6 +33,20 @@ FAMILIES = (
     ("r-shoulder-rotation", 0x0800, (22, 23, 24, 25)),
     ("a-twist", 0x0100, (4, 5)),
 )
+# Hypothesis-generating cases only. Durations are chosen to bracket known
+# input rhythms, not claimed threshold values. Keep separate from the six
+# established admissible R/A boundary examples.
+EXPLORATORY_FAMILIES = (
+    ("l-shoulder-flip", 0x0400, (20, 22, 23, 24, 25, 28, 32)),
+    ("a-r-simultaneous", 0x0900, (4, 5, 22, 24, 25)),
+)
+
+
+def planned_cases(explore: bool = False) -> list[tuple[str, int, int]]:
+    families = FAMILIES + (EXPLORATORY_FAMILIES if explore else ())
+    return [(family, mask, hold) for family, mask, holds in families
+            for hold in holds]
+
 WINDOW = (262, 352)         # dumped frames after race entry
 
 
@@ -112,12 +126,16 @@ def main(argv=None) -> int:
     ap.add_argument("--sram", type=Path, default=jf.DEFAULT_SRAM)
     ap.add_argument("--work-dir", type=Path, required=True)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument("--explore", action="store_true",
+                    help="also compare non-admitted L-flip and simultaneous-A/R input hypotheses")
+    ap.add_argument("--queue-evidence", action="store_true",
+                    help="record per-frame P1 ring-buffer enqueues and delayed boost events")
     args = ap.parse_args(argv)
     for name in ("snesref", "core", "native", "rom", "sram", "work_dir"):
         setattr(args, name, getattr(args, name).resolve())
 
     ref_race, shift, cases, ok = 1088, None, [], True
-    cases_to_run = [(family, mask, hold) for family, mask, holds in FAMILIES for hold in holds]
+    cases_to_run = planned_cases(args.explore)
     for family, stunt_mask, hold in cases_to_run:
         work = args.work_dir / f"{family}-{hold}"
         shutil.rmtree(work, ignore_errors=True)
@@ -144,10 +162,33 @@ def main(argv=None) -> int:
         divergence = next((i for i, (a, b) in enumerate(zip(ref_rows, nat_rows)) if a != b), None)
         ref_summary, nat_summary = summarize(ref_rows), summarize(nat_rows)
         nat_summary.pop("series")
-        ok &= divergence is None
-        cases.append({"family": family, "mask": f"0x{stunt_mask:03x}", "hold_frames": hold,
-                      "reference": ref_summary, "native": nat_summary,
-                      "first_divergence_frame": divergence})
+        queue_report = None
+        if args.queue_evidence:
+            # Reading the actual ring contents avoids inferring a named
+            # message from the numeric boost alone. We still cannot assign
+            # a consumer-pop event to a particular enqueue without a PC trace.
+            from extract_stunt_queue_events import read_series, analyze, compare
+            first, last = 0, WINDOW[1] - WINDOW[0]
+            q_ref = read_series(work / "ref", first, last, track=jf.JUMPOVER_TRACK_ID)
+            q_nat = read_series(work / "native", first, last, track=jf.JUMPOVER_TRACK_ID)
+            queue_check = compare(q_ref, q_nat)
+            queue_report = {
+                "cross_engine": queue_check,
+                "reference": analyze(q_ref),
+                "native": analyze(q_nat),
+            }
+        ok &= divergence is None and (
+            queue_report is None or queue_report["cross_engine"]["native_reference_equal"]
+        )
+        entry = {"family": family, "mask": f"0x{stunt_mask:03x}", "hold_frames": hold,
+                 "reference": ref_summary, "native": nat_summary,
+                 "first_divergence_frame": divergence,
+                 "admission_class": "exploratory" if family in {
+                     item[0] for item in EXPLORATORY_FAMILIES
+                 } else "retained_boundary"}
+        if queue_report is not None:
+            entry["message_queue"] = queue_report
+        cases.append(entry)
         print(json.dumps({"family": family, "hold": hold, "peak_progress": ref_summary["peak_roll_progress"],
                           "peak_z": ref_summary["peak_z_rotation"],
                           "rewarded": ref_summary["rewarded"], "boost": ref_summary["boost_after_reward"],
@@ -166,6 +207,8 @@ def main(argv=None) -> int:
         "window_frames_after_race_entry": list(WINDOW),
         "series_format": "space-separated pitch/roll_progress/z_rotation/air_time/boost/queue_write per frame",
         "cases": cases,
+        "exploratory_cases_included": args.explore,
+        "ring_buffer_observations_included": args.queue_evidence,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")

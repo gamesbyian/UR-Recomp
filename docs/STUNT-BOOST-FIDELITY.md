@@ -26,6 +26,41 @@ The signed message reward table is independently established across all four ori
 - **Recognized stunt landing rewards (R-2026-10-08-PHYS-04, merged #874):** `tools/probe_stunt_boundary.py` uses *input only* from an original-SRAM fresh boot with a single controlled jump. All six bounded native/reference cases agree frame-for-frame (`analysis/generated/stunt-boundary-probe.json`). R shoulder holds of 22/23 frames reach roll progress 2 without reward; 24/25 reach progress 3 and credit **128** boost at landing. The `7E:11F9` completed-roll count remains zero, so three roll-progress steps cannot be named one completed roll. An A twist hold of 4 frames remains unrewarded; 5 frames commits the Z rotation `7E:0DFD=16` and credits **128** boost. These experiments establish two input-duration reward boundaries without writing guest state.
 - **Cross-provenance limit:** the positive base reward magnitude 128 also appears in the direct ROM lookup for messages `0x01` (Roll), `0x09` (Twist) and `0x12` (Z Flip). The admitted stunt samples include queue-write indices and boost transitions but not the full *message ID* observed at each consumer pop. Equal numbers alone do **not** prove which named message credited an individual landing, nor the complete recognition/praise/combo policy.
 
+## QA-07 optional exploratory parity, not yet admitted (2026-10-09)
+
+`tools/probe_stunt_boundary.py` now retains the six accepted R-shoulder and
+A-twist cases as its **unchanged default**. Opt-in `--explore` adds seven
+L-shoulder holds (20, 22–25, 28, 32 frames) and five simultaneous A+R
+holds (4, 5, 22, 24, 25 frames). These are **input hypotheses**, not
+asserted thresholds or already-observed results. Each still runs paired
+fresh-process original/reference and native from the same SRAM and stock
+Jumpover circuit with no guest WRAM writes. These exploratory observations
+cannot be counted as 45-second Stunt course completions.
+
+Opt-in `--queue-evidence` additionally reads each engine's **actual P1
+32-byte message ring** at `7E:0CBB`, read/write cursors `0CE1/0CE3`,
+persistent boost `11CF`, airborne value and X speed for every frame of
+the same landing window. It uses the already accepted
+`tools/extract_stunt_queue_events.py` validator, rejects missing frames,
+invalid queue indices or cross-engine mismatch, and retains the enqueued
+message IDs plus net boost increases. Do **not** attribute an increase to
+a particular queued message without observing the original consumer pop:
+queued IDs, their consumption and concurrent meter drain are distinct.
+
+Example manual diagnostic after staging the existing drivers/binaries:
+
+```sh
+python3 tools/probe_stunt_boundary.py --snesref <snesref> \
+  --core <snes9x-core> --native <native-executable> \
+  --rom <canonical-usa-rom> --work-dir /tmp/qa07-stunts \
+  --explore --queue-evidence --json-out /tmp/qa07-stunts.json
+```
+
+No new behavioral or original/native comparison result has been promoted by
+adding these experiment routes. For an actual mismatch, retain first diverging
+guest frame, queue contents/cursors, input mask and original handler PC before
+changing the guest physics or stunt finalizer.
+
 ## Remaining precise discriminators
 
 1. **Stunt semantics beyond the two admitted thresholds:** try L-shoulder flip landings, X/Z-flips and multi-stunt combinations, using the same fresh-boot intervention and per-frame event-relative control. Distinguish transient progress from completed-count fields, queue contents from queue cursors, and delayed boost addition from continuous drain.

@@ -41,6 +41,38 @@ class StuntBoundaryProbeTests(unittest.TestCase):
         rows = [dict(r, boost=0) for r in rows]
         self.assertFalse(probe.summarize(rows)["rewarded"])
 
+    def test_default_boundary_cases_remain_exactly_the_admitted_six(self):
+        cases = probe.planned_cases()
+        self.assertEqual(len(cases), 6)
+        self.assertEqual([(f, h) for f, _, h in cases], [
+            ("r-shoulder-rotation", 22), ("r-shoulder-rotation", 23),
+            ("r-shoulder-rotation", 24), ("r-shoulder-rotation", 25),
+            ("a-twist", 4), ("a-twist", 5),
+        ])
+        self.assertTrue(all(mask in (0x800, 0x100) for _, mask, _ in cases))
+
+    def test_exploration_is_opt_in_and_does_not_claim_thresholds(self):
+        normal = probe.planned_cases()
+        explored = probe.planned_cases(True)
+        self.assertEqual(explored[:len(normal)], normal)
+        self.assertGreater(len(explored), len(normal))
+        self.assertEqual(len(explored), len({
+            (family, hold) for family, _, hold in explored
+        }))
+        self.assertEqual({
+            family for family, _, _ in explored[len(normal):]
+        }, {"l-shoulder-flip", "a-r-simultaneous"})
+        for family, mask, hold in explored[len(normal):]:
+            self.assertIn(mask, (0x400, 0x900))
+            events = probe.stunt_events(1088, hold, mask)
+            masks = {frame - 1088: value
+                     for start, count, value in events
+                     for frame in range(start, start + count)}
+            self.assertEqual(masks[probe.SHOULDER_START], 0x81 | mask)
+            after_hold = probe.SHOULDER_START + hold
+            expected = 0x080 | (0x001 if after_hold < probe.JUMP[0] + probe.JUMP[1] else 0)
+            self.assertEqual(masks[after_hold], expected)
+
     def test_load_rows_rejects_short_or_missing_dumps(self):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(probe.jf.EvidenceError):

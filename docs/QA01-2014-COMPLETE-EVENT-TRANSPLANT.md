@@ -5,6 +5,12 @@ Owner: gameplay fidelity/course acceptance. The canonical **0/45 USA complete,
 4/45 partial, 41/45 unverified** census and QA-01/QA-07 release ledger
 remain unchanged until a reviewed run reaches genuine settled parity.
 
+## Measured original/Baldosa Zoo result (2026-10-09)
+
+The separate **pinned Baldosa AOT and original Snes9x** route in PR #1091 / [CI run 38003554403](https://github.com/gamesbyian/UR-Recomp/actions/runs/38003554403) has now captured the previously missing **actual matching settled result PPU text** with original 2014 controller input. Both guests have P1 laps remaining zero at result onset and print MIKE total **1:16.46**, best lap **0:25.10**, and BRONSEN total **1:20.07**, best lap **0:26.45**. Exact live decoded USA stream-2 course residency is established at seven sampled active checkpoints per guest; all 14 compared game fields match at each of those checkpoints. In-scene progress samples show lap counter **4→3→2→1**, with **0** at both result onsets, and finish-gate/checkpoint agreement. At result onset both stored player contacts are zero; at the eight-frame-later result snapshot, they differ (**P1 0/10240; P2 0/512**). Original result onset is **5163** frames after original Zoo entry versus native **5162** after native entry. No game-rule change has been made. The raw evidence and owning gate/census are in [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md).
+
+This closes the **result PPU identity** experiment, but retains the **one-frame phase** and **post-result contact cleanup** uncertainties; nothing has been admitted to the release denominator (**0/45 USA**). The dedicated `tools/probe_original_event_complete.py` producer below remains a separate candidate framework and has not itself earned a completed-event witness. Use the already-built route and its independently retained artifacts before scheduling costly general replays.
+
 ## Why these three targets
 
 The pinned 2014 input movie already produced **actual original Snes9x
@@ -18,9 +24,7 @@ Switcher, Crawler's Race B, is the nearest **non-Dragster Race** target,
 but a genuine original Switcher end-to-end result must first be found
 in the longer original movie. No Switcher result is assumed.
 
-The missing proof is a correctly rebased **fresh-boot native and original**
-completion of the same event, with actual terminal **time/lap/score text**
-compared and course identity guarded, rather than a 64-frame entry probe.
+The original/native Zoo **PPU result text and course identity are now compared** in the separate PR #1091 run above. Remaining full admission requires adjudicating its result-onset phase and post-result contact discrepancy, a reviewed repeat, and extending this route to a scored Stunt and independently sourced non-Dragster Race; the dedicated producer described below is still only experimental.
 
 ## New runner
 

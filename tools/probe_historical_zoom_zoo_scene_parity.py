@@ -79,9 +79,8 @@ def read_guest(path: Path, frame: int, decoded: bytes | None = None) -> dict:
     image = path.read_bytes()
     if len(image) != entry.WRAM_BYTES:
         raise SceneReplayError(f"invalid 128 KiB WRAM frame {frame}: {path}")
-    if decoded is not None and not is_fully_loaded_course(
-        decoded, image[entry.COURSE_RAM_OFFSET:]
-    ):
+    if (decoded is not None and image[0x0313] == 1
+            and not is_fully_loaded_course(decoded, image[entry.COURSE_RAM_OFFSET:])):
         raise SceneReplayError(f"frame {frame} has no fully installed canonical Zoom Zoo course")
     row = {"relative_frame": frame, "menu": image[0x009F],
            "in_race": image[0x0313], "track_id": image[0x00CE]}

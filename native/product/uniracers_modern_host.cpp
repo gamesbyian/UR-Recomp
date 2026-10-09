@@ -4133,7 +4133,8 @@ bool modern_root_visible() {
 
 bool host_owns_human_player_input() {
     return modern_mode() &&
-           (modern_root_visible() || g_modern_root_stock_target >= 0 ||
+           (paused() || modern_root_visible() ||
+            g_modern_root_stock_target >= 0 ||
             g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
             g_frontend_records_open ||
@@ -5673,7 +5674,9 @@ bool modern_root_confirm() {
         g_modern_root_transfer = true;
         const bool opened = ur_uniracers_product_open_frontend_records() != 0;
         g_modern_root_transfer = false;
-        if (!opened) product_diagnostic("UR_MODERN_ROOT RECORDS_UNAVAILABLE");
+        product_diagnostic(opened
+            ? "UR_MODERN_ROOT RECORDS_OPENED"
+            : "UR_MODERN_ROOT RECORDS_UNAVAILABLE");
         return opened;
     }
     case ur::product::ModernRootDestination::Options:
@@ -7719,6 +7722,12 @@ extern "C" int ur_uniracers_modern_system_key_down(
     }
 
     if (modern_root_visible()) {
+        if (g_modern_root_quit_confirm) {
+            if (key == SDLK_RETURN || key == SDLK_KP_ENTER)
+                return modern_root_confirm() ? 1 : 0;
+            if (key == SDLK_ESCAPE) return modern_root_back() ? 1 : 0;
+            return 1;
+        }
         if (key == SDLK_UP || key == SDLK_DOWN) {
             if (!g_modern_root_quit_confirm) {
                 g_modern_root_menu = ur::product::modern_root_menu_move(
@@ -8303,6 +8312,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
 
     if (modern_root_visible()) {
         if (!pressed) return 1;
+        if (g_modern_root_quit_confirm &&
+            button != kGamepadBtn_A && button != kGamepadBtn_Start &&
+            button != kGamepadBtn_B) return 1;
         if (button == kGamepadBtn_A || button == kGamepadBtn_Start)
             return modern_root_confirm() ? 1 : 0;
         if (button == kGamepadBtn_B)

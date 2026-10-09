@@ -1,5 +1,6 @@
 #include "host_profile_catalog.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 #include "host_product_state.hpp"
 #include "host_profile_runtime.hpp"
 
@@ -15,6 +16,23 @@ namespace ur::product {
 namespace {
 constexpr std::string_view kHeader = "UR-PROFILE-CATALOG/1";
 constexpr std::uintmax_t kMaxCatalogBytes = 1024u * 1024u;
+
+std::optional<std::string> read_bounded_catalog(std::ifstream& in) {
+    std::string data;
+    char buffer[8192];
+    for (;;) {
+        in.read(buffer, sizeof(buffer));
+        const auto read = in.gcount();
+        if (read < 0) return std::nullopt;
+        if (read > 0) {
+            if (static_cast<std::uintmax_t>(read) >
+                kMaxCatalogBytes - data.size()) return std::nullopt;
+            data.append(buffer, static_cast<std::size_t>(read));
+        }
+        if (in.eof()) return data;
+        if (in.fail()) return std::nullopt;
+    }
+}
 
 std::string escape_field(std::string_view value) {
     std::string out;
@@ -146,12 +164,17 @@ bool save_host_profile_catalog_file(
     std::error_code exists_ec;
     if (std::filesystem::exists(path, exists_ec)) {
         if (exists_ec) return false;
+        // A corrupted or interrupted upgrade can leave an oversized
+        // catalog. Validate the byte ceiling BEFORE reading it; the save
+        // path must not allocate unbounded memory while checking whether
+        // it is safe to overwrite legacy metadata.
+        std::error_code size_ec;
+        const auto size = std::filesystem::file_size(path, size_ec);
+        if (size_ec || size > kMaxCatalogBytes) return false;
         std::ifstream existing(path, std::ios::binary);
         if (!existing) return false;
-        std::ostringstream prior;
-        prior << existing.rdbuf();
-        if (!existing.good() && !existing.eof()) return false;
-        if (!decode_host_profile_catalog(prior.str())) return false;
+        const auto prior = read_bounded_catalog(existing);
+        if (!prior || !decode_host_profile_catalog(*prior)) return false;
     } else if (exists_ec) {
         return false;
     }
@@ -172,10 +195,9 @@ std::optional<std::vector<HostProfileCatalogEntry>> load_host_profile_catalog_fi
     std::error_code size_ec;
     const auto size = std::filesystem::file_size(path, size_ec);
     if (size_ec || size > kMaxCatalogBytes) return std::nullopt;
-    std::ostringstream data;
-    data << in.rdbuf();
-    if (!in.good() && !in.eof()) return std::nullopt;
-    return decode_host_profile_catalog(data.str());
+    const auto data = read_bounded_catalog(in);
+    if (!data) return std::nullopt;
+    return decode_host_profile_catalog(*data);
 }
 
 std::string make_profile_id(
@@ -228,6 +250,33 @@ bool profile_catalog_authorizes_state(
         }
     }
     return false;
+}
+
+HostProfileCatalogSaveStatus save_host_profile_catalog_file_if_current(
+    const std::string& path,
+    const std::vector<HostProfileCatalogEntry>& expected_current,
+    const std::vector<HostProfileCatalogEntry>& next) {
+    const auto expected_bytes = encode_host_profile_catalog(expected_current);
+    const auto next_bytes = encode_host_profile_catalog(next);
+    if (path.empty() || expected_bytes.empty() || next_bytes.empty() ||
+        expected_bytes.size() > kMaxCatalogBytes ||
+        next_bytes.size() > kMaxCatalogBytes) {
+        return HostProfileCatalogSaveStatus::Rejected;
+    }
+
+    // Match the profile state path-lock discipline. Both callers' comparison
+    // and publication must happen under ONE persistent OS-handle lock.
+    // Ordinary last-writer-wins saves exist for isolated fixtures/migration,
+    // but production roster mutation must use this conflict-aware entrypoint.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProfileCatalogSaveStatus::IoError;
+    const auto current = load_host_profile_catalog_file(path);
+    if (!current) return HostProfileCatalogSaveStatus::IoError;
+    if (*current != expected_current)
+        return HostProfileCatalogSaveStatus::Conflict;
+    if (!save_host_profile_catalog_file(path, next))
+        return HostProfileCatalogSaveStatus::IoError;
+    return HostProfileCatalogSaveStatus::Saved;
 }
 
 }  // namespace ur::product

@@ -21,6 +21,12 @@ bool enabled() noexcept {
     return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
+int density() noexcept {
+    if (!enabled()) return 1;
+    const char* value = std::getenv("UR_BALDOSA_HD_DENSITY");
+    return value != nullptr && std::strcmp(value, "4") == 0 ? 4 : 1;
+}
+
 bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
                         int width, int height, unsigned frame) noexcept {
     const char* dir = std::getenv("UR_BALDOSA_HD_CAPTURE_DIR");
@@ -60,12 +66,16 @@ bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
 }
 } // namespace
 
+extern "C" int ur_baldosa_hd_presentation_scale(void) {
+    return density();
+}
+
 extern "C" void ur_baldosa_hd_begin_sim_frame(unsigned number) {
     if (!enabled()) return;
     g_frame = number;
-    // The pinned Baldosa host accepts logical 256x224 pixels in draw_frame;
-    // 4x internal output belongs to the subsequent adapter, not this gate.
-    ur::presentation::racer_hd_set_internal_render_scale(1);
+    // A single imported UR host patch allocates scaled host-presentation
+    // pixels; the PPU, WRAM, and original logical field stay 256x224.
+    ur::presentation::racer_hd_set_internal_render_scale(density());
     ur::presentation::racer_hd_begin_sim_frame(number);
 }
 
@@ -80,11 +90,14 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     // Sample actual successful draw callbacks, not arbitrary frame moduli.
     if (g_frame >= 1800 && g_frame <= 2450
         && g_last_captured_frame != g_frame && g_captured < 9) {
-        const bool saved = save_presented_pam(dst, pitch, frame_w, frame_h, g_frame);
+        const int scale = density();
+        const bool saved = save_presented_pam(
+            dst, pitch, frame_w * scale, frame_h * scale, g_frame);
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_COMPOSE frame=%u racer_present=1 "
-            "logical=%dx%d source_art=ur hd_capture=%u\n",
-            g_frame, frame_w, frame_h, saved ? 1u : 0u);
+            "logical=%dx%d source_art=ur hd_capture=%u raster=%dx%d density=%d\n",
+            g_frame, frame_w, frame_h, saved ? 1u : 0u,
+            frame_w * scale, frame_h * scale, scale);
         g_last_captured_frame = g_frame;
         if (saved) ++g_captured;
     }

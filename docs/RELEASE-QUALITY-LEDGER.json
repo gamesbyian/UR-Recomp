@@ -32,7 +32,7 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "0/45 USA independently accepted complete pairs, four partial, 41 unverified. Merged #1079 replays the 2014 original Zoo scene controller policy in original Snes9x and Baldosa: both reach stable Circuit result state, but sampled p1_stored_contact differs (original 0, Baldosa 10240); guest scene entry differs by 2 frames. Diagnose source SRAM/scene initialization and controller latch phase versus a real guest semantic mismatch using the existing two-run captures. Admit only after true final time/lap/score and PPU result text compare against independent original. The Bowl Stunt has original-only complete evidence; find an actual native same-result Stunt and independent non-Dragster Race before scaling 45 courses.",
+      "next_action": "0/45 USA independently accepted complete pairs, four partial, 41 unverified. Original Snes9x and Baldosa played the exact 2014 Zoo scene input in independently fresh boots (CI 38003554403, PR #1091). Both reach lap-zero 0xBC Circuit result, 7/7 canonical course-resident active samples agree in all 14 compared game fields, and decoded settled PPU time/lap/score text agrees exactly: MIKE 1:16.46 total, 0:25.10 best lap; BRONSEN 1:20.07, 0:26.45. Reference/native guest-relative result onset is +5163/+5162 (one frame different); contact words differ ONLY eight frames into the result (P1 0/10240, P2 0/512), not during sampled active gameplay or at result onset. Do not admit the Circuit until the latch/terminal discrepancy and reproducibility are reviewed; dense result-boundary and bounded phase discriminator are next. Source Bowl is original-only; get an independently paired positive-score Stunt and a non-Dragster Race, then expand the 45-course census. Do not alter guest rules or infer a result from menu state alone.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -219,7 +219,7 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "Merged #1079's original-vs-Baldosa 2014 Zoo scene reaches stable result on both cores but remains semantically different at stored contact and is not a complete original/native result admission. Separate source-movie frame-1604 vs native-frame-1606 latch/scene-entry offset from genuine course divergence; verify source-selected SRAM, result PPU clock/laps/score. Independently transplant the scored original Bowl Stunt and find a finished non-Dragster Race oracle. Only then add expert speed/boost/transition scenarios to *admitted* genuine full events. The original-only evidence and old #1043 stopwatch onset do not themselves satisfy L4.",
+      "next_action": "PR #1091 CI 38003554403 now proves matching actual displayed original/native Zoo P1/P2 totals and best laps, full stream-2 course residency at 7 active samples, zero P1 laps at result onset and no sampled active contact difference. A one-frame guest-relative result-onset delta (+5163 Snes9x versus +5162 Baldosa) remains and both stored contact words differ at the eight-frame-later stable result (P1 0/10240; P2 0/512). Determine whether result cleanup/contact differences arise from host latch/reporting phase or guest execution using narrow result-boundary captures; retain the difference unless causally resolved. Finish verified scored Bowl Stunt and an independently sourced non-Dragster Race before releasing expert-course completion credit.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

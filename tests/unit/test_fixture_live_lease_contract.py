@@ -20,6 +20,14 @@ class FixtureLiveLeaseContract(unittest.TestCase):
         self.assertIn("bool busy() const noexcept", header)
         self.assertIn("GetLastError() == ERROR_LOCK_VIOLATION", header)
 
+    def test_live_conflict_reports_busy_without_reentering_guest(self):
+        host = (ROOT / "native/product/uniracers_modern_host.cpp").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn("LocalTournamentCoordinatorStatus::Busy", host)
+        self.assertIn('g_local_tournament_panel_notice = "FIXTURE IN USE"', host)
+        self.assertIn("UR_LOCAL_TOURNAMENT ARM_BUSY", host)
+
     def test_live_lease_spans_guest_attempt_and_actual_fixture_commit(self):
         header = (ROOT / "native/product/local_tournament_session_coordinator.hpp"
                   ).read_text(encoding="utf-8")

@@ -72,7 +72,8 @@ int main() {
         assert(source_count(top, RacerViewport::Bottom) == 0);
         top.y_raw_8bit = 250;
         mark(104, 0);
-        assert(source_count(top, RacerViewport::Top) == 1);
+        // Both logical rows 0 and 40 are reachable after 256-line wrap.
+        assert(source_count(top, RacerViewport::Top) == 2);
         assert(source_count(top, RacerViewport::Bottom) == 0);
         top.large = false;
         assert(source_count(top, RacerViewport::Top) == 0);

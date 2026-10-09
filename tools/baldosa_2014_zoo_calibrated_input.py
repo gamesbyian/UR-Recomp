@@ -23,24 +23,37 @@ def guest_scene_entry(log: str) -> int:
     return int(frames[0])
 
 
+def native_input_origin(entry: int, phase: int) -> int:
+    """Bounded host-latch discriminator: shift original movie masks, not guest rules."""
+    if type(entry) is not int or type(phase) is not int or phase not in (-1, 0, 1):
+        raise ValueError("only explicit native -1, 0 or +1 guest input frame phases")
+    if entry + phase < 0:
+        raise ValueError("negative guest input origin")
+    return entry + phase
+
+
 def generate(meta: Path, original_log: Path, native_log: Path,
              original_out: Path, native_out: Path, report_path: Path,
-             source_report: Path) -> dict:
+             source_report: Path, *, native_phase: int = 0) -> dict:
     original_entry = guest_scene_entry(original_log.read_text(encoding="utf-8"))
     native_entry = guest_scene_entry(native_log.read_text(encoding="utf-8"))
+    native_origin = native_input_origin(native_entry, native_phase)
     provenance = json.loads(source_report.read_text(encoding="utf-8"))
     window = scene.verified_window(meta)
     if (provenance["raw_original_input_sha256"] != window["raw_controller_window_sha256"]
             or not provenance["requires_direct_frame_inputs"]):
         raise ValueError("source movie fingerprint or direct-input policy changed")
     for path, entry in ((original_out, original_entry),
-                        (native_out, native_entry)):
+                        (native_out, native_origin)):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(movie.shifted_input_file(window, entry), encoding="utf-8")
     result = {
         "schema_version": 1,
         "original_guest_scene_entry_frame": original_entry,
         "baldosa_guest_scene_entry_frame": native_entry,
+        "baldosa_guest_input_origin": native_origin,
+        "native_controller_latch_phase_intervention": native_phase,
+        "native_phase_is_experiment_not_admission": native_phase != 0,
         "original_minus_baldosa_entry_frames": original_entry - native_entry,
         "original_frame_input_sha256": hashlib.sha256(original_out.read_bytes()).hexdigest(),
         "baldosa_frame_input_sha256": hashlib.sha256(native_out.read_bytes()).hexdigest(),
@@ -65,10 +78,11 @@ def main() -> int:
     ap.add_argument("--out-original", type=Path, required=True)
     ap.add_argument("--out-native", type=Path, required=True)
     ap.add_argument("--report", type=Path, required=True)
+    ap.add_argument("--native-phase", type=int, choices=(-1, 0, 1), default=0)
     args = ap.parse_args()
     print(json.dumps(generate(args.meta, args.original_log, args.native_log,
                               args.out_original, args.out_native, args.report,
-                              args.source_report)))
+                              args.source_report, native_phase=args.native_phase)))
     return 0
 
 

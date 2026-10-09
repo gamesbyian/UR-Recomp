@@ -33,7 +33,7 @@ class ModernProfileResetHostContractTests(unittest.TestCase):
             "std::memcpy(g_sram, original_sram.data()", sram_save
         )
         rollback_profile = body.index(
-            "save_host_profile_state_file(", rollback_live
+            "save_host_profile_state_file_if_current(", rollback_live
         )
 
         self.assertLess(profile_save, install_live)

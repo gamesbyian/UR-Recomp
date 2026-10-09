@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include <cstring>
 #include <cstdint>
 #include <initializer_list>
 #include <optional>
@@ -81,6 +82,46 @@ struct RacerOamPlacement {
     std::uint8_t width_pixels;
     std::uint8_t height_pixels;
 };
+
+// Retain a racer viewport only when the pinned PPU itself emitted an
+// Original OBJ pixel within the corresponding active 64x64 footprint.
+// The independently extracted packed ARGB plane is populated during the
+// real PPU render, before the host paints HD. A source-absent viewport must
+// not acquire a new HD rider merely because WRAM and OAM registration exist.
+// This proves *source presence*, not BG foreground priority or individual
+// OBJ ownership when two active rider slots overlap.
+inline std::size_t racer_stock_obj_pixels_in_footprint(
+    const std::uint8_t* argb,
+    std::size_t bytes,
+    const RacerOamPlacement& placement,
+    RacerViewport viewport
+) noexcept {
+    if (argb == nullptr || bytes < 256u * 224u * 4u ||
+        !placement.large || placement.width_pixels != 64 ||
+        placement.height_pixels != 64) return 0;
+    const int left = placement.x_signed < 0 ? 0 : placement.x_signed;
+    const int right = placement.x_signed + 64 > 256
+        ? 256 : placement.x_signed + 64;
+    if (left >= right) return 0;
+    std::size_t count = 0;
+    for (int ry = 0; ry < 64; ++ry) {
+        const int y = racer_obj_wrapped_output_row(
+            placement.y_raw_8bit, ry, 1
+        );
+        if (y < 0 || !racer_split_viewport_contains_row(viewport, y, 1))
+            continue;
+        for (int x = left; x < right; ++x) {
+            std::uint32_t pixel = 0;
+            std::memcpy(
+                &pixel,
+                argb + (static_cast<std::size_t>(y) * 256u + x) * 4u,
+                sizeof(pixel)
+            );
+            if ((pixel >> 24) != 0) ++count;
+        }
+    }
+    return count;
+}
 
 // P1 owns contiguous OAM slots 97 (bottom) and 98 (top). The current
 // extractor can capture exactly these two slots and leave P2 stock. The

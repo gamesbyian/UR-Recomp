@@ -7,6 +7,8 @@
 #include <filesystem>
 #include <fstream>
 #include <iterator>
+#include <iomanip>
+#include <sstream>
 
 using namespace ur::product;
 
@@ -184,6 +186,48 @@ int main(int argc, char** argv) {
             std::istreambuf_iterator<char>{});
         assert(bytes == stable_encoded);
     }
+
+    // A downgraded game may still encounter a valid checksum-protected
+    // future-version ghost. It must leave those bytes untouched rather
+    // than "repair" them with an old schema from the current run.
+    std::string future_body = stable_encoded.substr(
+        0, stable_encoded.rfind("checksum "));
+    const auto version_at = future_body.find("URRUN_GHOST_TRACE 1");
+    assert(version_at != std::string::npos);
+    future_body[version_at + std::string("URRUN_GHOST_TRACE ").size()] = '2';
+    std::uint64_t future_digest = 1469598103934665603ull;
+    for (unsigned char ch : future_body) {
+        future_digest ^= ch;
+        future_digest *= 1099511628211ull;
+    }
+    std::ostringstream future_seal;
+    future_seal << "checksum " << std::hex << std::setw(16)
+                << std::setfill('0') << future_digest << "\n";
+    const auto future_encoded = future_body + future_seal.str();
+    assert(decode_completed_run_ghost_trace(future_encoded).status ==
+           CompletedRunGhostTraceLoadStatus::UnsupportedVersion);
+    {
+        std::ofstream future_file(trace_path, std::ios::binary | std::ios::trunc);
+        future_file.write(future_encoded.data(),
+                          static_cast<std::streamsize>(future_encoded.size()));
+        future_file.close();
+        assert(bool(future_file));
+    }
+    detail.clear();
+    assert(!save_completed_run_ghost_trace_file(
+        trace_path.string(), trace, &detail));
+    assert(detail == "refusing to replace future ghost trace schema");
+    {
+        std::ifstream incumbent(trace_path, std::ios::binary);
+        std::string bytes(std::istreambuf_iterator<char>(incumbent),
+                          std::istreambuf_iterator<char>{});
+        assert(bytes == future_encoded);
+    }
+    // Explicit test teardown, NOT a production automatic downgrade:
+    // supported test fixtures below require the original valid trace.
+    assert(std::filesystem::remove(trace_path));
+    assert(save_completed_run_ghost_trace_file(
+        trace_path.string(), trace, &detail));
 
     // A non-file destination must never be displaced by publication.
     const auto blocked_trace_path =

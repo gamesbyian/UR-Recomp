@@ -118,6 +118,20 @@ Do not mark QA-02 passed even after those merges. Crash after creating a profile
 
 [The audited execution map](QA-AUDIT-OF-AUDIT-20261008.md) takes precedence over the *historical next-step order below* for **task assignment only**, without weakening any P0/P1 release acceptance. First revisit the current status of proposed #1052 live-fixture ownership, #1045 per-rider HD source visibility and #1043 Zoo source evidence; independently reproduce or close the current-candidate default-keymap Restart leak #890. Prioritize a true original/native Race, Circuit and timed-Stunt **result**, the actual 2P multi-leg and 3+ entrant completed tournament, and a functional five-destination Modern UI before commissioning further duplicate test infrastructure. Original and Upscaled may be explicitly release-supported while sparse Remastered remains withheld or experimental, subject to correct fallback and user-visible claims. Log productive hours and actual user outcomes; stop automatic spend for a 100h tranche review if yield is poor. Hardware and uncoached human testing cannot be credited by CI.
 
+**2026-10-09 integration checkpoint, after the dated QA-of-QA review:**
+#1052 merged the crash-released live fixture OS lease and #1054 merged
+active-tournament replacement fencing plus full two-entrant/three-leg and
+three-entrant/two-leg fresh-process backend fixture journeys. #1054's unit,
+native build/boot and local multiplayer product checks passed. The source
+regressions use real persisted run/match/receipt stores and separate process
+lifetimes, but simulated stock race observations. Real game completion through
+the guest on all legs, two game windows on one hash-pinned Windows package,
+C04 profile selector/framework SRAM crash, C16 disk failure, C17 upgrade
+behavior and physical power-loss durability remain unverified. Neither P0
+gate is release accepted. See
+[QA-03 process acceptance](QA03-COMPLETE-TOURNAMENT-PROCESS-JOURNEY.md)
+and [the current ledger](RELEASE-QUALITY-LEDGER.json).
+
 ## Next concrete work
 
 1. Freeze a current candidate and record the Windows package from *that* SHA.

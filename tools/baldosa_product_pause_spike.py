@@ -128,9 +128,9 @@ def patch_game_cmake(source: str, root: Path) -> str:
         raise ValueError("Stage the native human-input object first")
     path = (root / "tools/baldosa_native_pause_lifecycle.cpp").resolve()
     authority = (root / "tools/baldosa_native_product_pause_authority.cpp").resolve()
-    for source in (path, authority):
-        if not source.is_file():
-            raise ValueError(f"Missing project-owned native pause implementation: {source}")
+    for candidate in (path, authority):
+        if not candidate.is_file():
+            raise ValueError(f"Missing project-owned native pause implementation: {candidate}")
     return source.rstrip() + (
         "\n\n# " + MARK + ": linked on original pinned game host\n"
         + f'target_sources(UniracersSNESRecomp PRIVATE '

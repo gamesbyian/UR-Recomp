@@ -11,6 +11,7 @@ on:
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tests/unit/test_baldosa_product_pause_spike.py"
+      - "tests/native/baldosa_product_pause_bridge_test.cpp"
       - "tests/native/baldosa_execution_backend_test.cpp"
       - "tests/unit/test_baldosa_product_execution_spike.py"
       - ".github/workflows/baldosa-product-execution-seam.yml"
@@ -47,7 +48,13 @@ jobs:
             -I native/product \
             -c tools/baldosa_native_product_execution.cpp \
             -o "$RUNNER_TEMP/baldosa_native_product_execution.o"
-          echo "PASS: injected C ABI translation unit compiles independently" >> "$GITHUB_STEP_SUMMARY"
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            -I native/product \
+            tests/native/baldosa_product_pause_bridge_test.cpp \
+            tools/baldosa_native_product_execution.cpp \
+            -o "$RUNNER_TEMP/baldosa-product-pause-bridge-test"
+          "$RUNNER_TEMP/baldosa-product-pause-bridge-test"
+          echo "PASS: injected C ABI handles rejected and acknowledged pause without P1/P2 held Start leakage" >> "$GITHUB_STEP_SUMMARY"
 
   # This is a targeted, one-route AOT integration gate, not a second
   # complete-event or HD presentation campaign. Only run native when the

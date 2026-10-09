@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "classification": "real native host draw callback census over observed 2P race frames; does not prove pixel occlusion, other courses, 1P or VS",
+  "provenance": {
+    "repository": "gamesbyian/UR-Recomp",
+    "candidate_sha": "6f6076f7fd3857f24efb54cdeaf37732ac346f35",
+    "workflow_run_id": 37871889030,
+    "artifact_name": "native-racer-presentation-acceptance",
+    "artifact_id": 11591057403,
+    "artifact_zip_sha256": "4ef0aed049a084f9c1eea8b52fdeca08b6ac0790557a865d75c7276e56a72e4f",
+    "member_log": "racer-hd.log",
+    "member_log_sha256": "091a42e815e4d94e4140052c9145f73e7800a36f2bfef5492a2497f7e83aeab3",
+    "member_full_native_census": "racer-hd-live-census.json",
+    "member_full_native_census_sha256": "39ba2ba587431563a298e70a7a4b5114e793b5f0b6cb83983f1c8936a9358b91",
+    "rom": "retail USA",
+    "script": "tests/input/two-player-first-race-observe.script",
+    "input": "tests/input/two-player-first-race.input",
+    "layout": "ordinary two-player split 256x224",
+    "presentation_density": 4
+  },
+  "native_route_total": {
+    "guest_frames": 1620,
+    "hd_drawn_frames": 103,
+    "original_drawn_frames": 1517,
+    "hd_fraction": 0.06358024691358025,
+    "note": "Includes boot/setup: deliberately not promoted as an active-race percentage"
+  },
+  "analyzed_window": {
+    "guest_frames_inclusive": [
+      1180,
+      1620
+    ],
+    "guest_frames_observed": 441,
+    "guest_frames_presented": 441,
+    "missing_guest_frames": 0,
+    "hd_full_pair_drawn_frames": 87,
+    "hd_p1_only_drawn_frames": 0,
+    "original_presented_frames": 354,
+    "hd_player_frames": 174,
+    "total_player_frames": 882,
+    "hd_fraction": 0.19727891156462585,
+    "original_fraction": 0.8027210884353742,
+    "render_mode_switches": 32,
+    "original_to_hd_edges": 16,
+    "hd_to_original_edges": 16,
+    "hd_run_count": 16,
+    "one_frame_hd_runs": 5,
+    "highest_hd_run_length": 16,
+    "longest_original_run_frames": 150,
+    "longest_original_run": [
+      1471,
+      1620
+    ],
+    "original_gate_reasons": {
+      "p1-selection-or-art": 342,
+      "p2-pair-gate": 12
+    },
+    "hd_run_ranges": [
+      [
+        1198,
+        1198
+      ],
+      [
+        1205,
+        1220
+      ],
+      [
+        1230,
+        1239
+      ],
+      [
+        1244,
+        1252
+      ],
+      [
+        1258,
+        1267
+      ],
+      [
+        1280,
+        1283
+      ],
+      [
+        1285,
+        1286
+      ],
+      [
+        1299,
+        1300
+      ],
+      [
+        1302,
+        1306
+      ],
+      [
+        1352,
+        1352
+      ],
+      [
+        1354,
+        1356
+      ],
+      [
+        1378,
+        1392
+      ],
+      [
+        1418,
+        1418
+      ],
+      [
+        1421,
+        1421
+      ],
+      [
+        1450,
+        1450
+      ],
+      [
+        1465,
+        1470
+      ]
+    ]
+  },
+  "exclusions": [
+    "Not comparable as one denominator with 2641-frame reference using tests/input/two-player-p1-win.input.",
+    "A native callback success does not establish PPU-vs-host foreground depth parity.",
+    "The 342x224 widened scene retains Original racer fallback and has no proven HD replacement.",
+    "No complete native 1P/VS/cross-course/cross-presentation replay; no physical hardware proof."
+  ]
+}

@@ -3,6 +3,7 @@
   "source_catalog": "analysis/data/course-corpus.json",
   "source_observations": "analysis/data/course-event-runtime-evidence.json",
   "meaning": "release-event acceptance, not RNC/parser or static contact coverage",
+  "primary_release_rom": "usa-retail",
   "regions": [
     "usa-retail",
     "europe-retail",
@@ -10,7 +11,9 @@
   ],
   "denominators": {
     "courses_per_rom": 45,
-    "required_region_course_cases": 135,
+    "primary_release_cases": 45,
+    "regional_comparison_cases": 90,
+    "tracked_region_course_cases": 135,
     "race_circuit_cases": 108,
     "stunt_cases": 27,
     "family_cases_per_region": 9

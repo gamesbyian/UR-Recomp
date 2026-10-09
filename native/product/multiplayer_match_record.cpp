@@ -13,6 +13,14 @@
 #include <string>
 #include <utility>
 #include <vector>
+#include <system_error>
+
+#if defined(_WIN32)
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 namespace ur::product {
 namespace {
@@ -20,6 +28,28 @@ namespace {
 constexpr std::string_view kMagic = "UR-MULTIPLAYER-MATCH/1";
 constexpr std::size_t kChecksumHexSize = 16;
 constexpr std::size_t kMaxRecordBytes = 4096;
+
+enum class PairClaim { Claimed, AlreadyExists, IoError };
+
+// Atomic create-if-absent for the final public name. POSIX rename() silently
+// REPLACES an existing file, even if an earlier exists() preflight was clear.
+// The source is always in a private staging directory on the same volume.
+PairClaim claim_pair_artifact(const std::filesystem::path& staged,
+                             const std::filesystem::path& final_path) {
+#if defined(_WIN32)
+    if (MoveFileW(staged.c_str(), final_path.c_str()))
+        return PairClaim::Claimed;
+    const auto code = GetLastError();
+    return code == ERROR_FILE_EXISTS || code == ERROR_ALREADY_EXISTS
+        ? PairClaim::AlreadyExists : PairClaim::IoError;
+#else
+    std::error_code ec;
+    std::filesystem::create_hard_link(staged, final_path, ec);
+    if (!ec) return PairClaim::Claimed;
+    return ec == std::errc::file_exists
+        ? PairClaim::AlreadyExists : PairClaim::IoError;
+#endif
+}
 
 bool fail(std::string* detail, const char* message) noexcept {
     if (detail) *detail = message;
@@ -363,6 +393,11 @@ bool save_multiplayer_match_record_file(
     if (!out) return fail(detail, "cannot open match record");
     out.write(encoded.data(), static_cast<std::streamsize>(encoded.size()));
     if (!out) return fail(detail, "cannot write match record");
+    // std::ofstream's destructor does not report a late buffered write or
+    // close failure to this caller. Never publish a checksum-bound sidecar
+    // after the filesystem rejects its final buffered data.
+    out.close();
+    if (!out) return fail(detail, "cannot close/flush match record");
     return true;
 }
 
@@ -426,7 +461,8 @@ bool append_multiplayer_match_pair(
     const CompletedRunRecord& run,
     const MultiplayerMatchRecord& record,
     std::string* stored_run_path,
-    std::string* detail) {
+    std::string* detail,
+    void (*after_sidecar_claim_for_test)()) {
     if (!multiplayer_match_record_matches_run(record, run)) {
         return fail(detail, "match record does not bind completed run");
     }
@@ -477,68 +513,67 @@ bool append_multiplayer_match_pair(
     const fs::path staged_sidecar_path(
         multiplayer_match_record_path_for_run(staged_run));
 
-    // Reserve an unused public basename. A concurrent writer can still win
-    // after this check; rename then fails closed without replacing its pair.
-    fs::path final_run_path;
-    fs::path final_sidecar_path;
+    // Sidecar is the first atomic claim. Only a writer that owns that exact
+    // sidecar name may attempt the corresponding public run name. Neither
+    // final artifact can replace an incumbent even if processes race between
+    // filename selection and publication.
     const std::string stem = staged_run_path.stem().string();
     for (unsigned suffix = 0; suffix < 10000; ++suffix) {
         const std::string filename =
             suffix == 0
                 ? staged_run_path.filename().string()
                 : stem + "-pair-" + std::to_string(suffix) + ".urrun";
-        const fs::path candidate = fs::path(directory) / filename;
-        const fs::path candidate_sidecar(
-            multiplayer_match_record_path_for_run(candidate.string()));
+        const fs::path final_run_path = fs::path(directory) / filename;
+        const fs::path final_sidecar_path(
+            multiplayer_match_record_path_for_run(final_run_path.string()));
 
-        ec.clear();
-        const bool run_exists = fs::exists(candidate, ec);
-        if (ec) {
+        const auto sidecar_claim =
+            claim_pair_artifact(staged_sidecar_path, final_sidecar_path);
+        if (sidecar_claim == PairClaim::AlreadyExists) continue;
+        if (sidecar_claim != PairClaim::Claimed) {
             cleanup_staging();
-            return fail(detail, "cannot inspect multiplayer-run path");
+            return fail(detail, "cannot atomically claim multiplayer-match sidecar");
         }
-        ec.clear();
-        const bool sidecar_exists = fs::exists(candidate_sidecar, ec);
-        if (ec) {
+
+        // Test-only deterministic crash window: the sidecar exists but no
+        // public .urrun has yet been claimed. Production passes null.
+        if (after_sidecar_claim_for_test) after_sidecar_claim_for_test();
+
+        const auto run_claim =
+            claim_pair_artifact(staged_run_path, final_run_path);
+        if (run_claim == PairClaim::Claimed) {
             cleanup_staging();
-            return fail(detail, "cannot inspect multiplayer-match path");
+            if (stored_run_path) *stored_run_path = final_run_path.string();
+            return true;
         }
-        if (!run_exists && !sidecar_exists) {
-            final_run_path = candidate;
-            final_sidecar_path = candidate_sidecar;
-            break;
-        }
-    }
-    if (final_run_path.empty()) {
-        cleanup_staging();
-        return fail(detail, "multiplayer-pair filename space exhausted");
-    }
 
-    // Publish the sidecar first. Until the run rename succeeds there is no
-    // catalog-visible *.urrun, so a crash cannot expose a half-bound run.
-    ec.clear();
-    fs::rename(staged_sidecar_path, final_sidecar_path, ec);
-    if (ec) {
-        cleanup_staging();
-        return fail(detail, "cannot commit multiplayer-match sidecar");
-    }
-
-    ec.clear();
-    fs::rename(staged_run_path, final_run_path, ec);
-    if (ec) {
+        // The sidecar was OUR claim: undo it on any run-publication failure.
+        // A concurrent writer can never have legitimately published a run
+        // under this name while we owned its corresponding sidecar.
         std::error_code rollback_ec;
-        fs::remove(final_sidecar_path, rollback_ec);
-        cleanup_staging();
-        if (detail) {
-            *detail = "cannot commit completed-run pair";
-            if (rollback_ec) *detail += "; sidecar rollback failed";
+#if defined(_WIN32)
+        if (run_claim == PairClaim::AlreadyExists) {
+            // Move the sidecar BACK to private staging before retrying; on
+            // Windows its first claim moved rather than hard-linked it.
+            if (!MoveFileW(final_sidecar_path.c_str(),
+                           staged_sidecar_path.c_str())) {
+                cleanup_staging();
+                return fail(detail, "cannot restore staged match after run collision");
+            }
+            continue;
         }
-        return false;
+#endif
+        fs::remove(final_sidecar_path, rollback_ec);
+        if (rollback_ec) {
+            cleanup_staging();
+            return fail(detail, "cannot roll back claimed match sidecar");
+        }
+        if (run_claim == PairClaim::AlreadyExists) continue;
+        cleanup_staging();
+        return fail(detail, "cannot atomically claim completed-run pair");
     }
-
     cleanup_staging();
-    if (stored_run_path) *stored_run_path = final_run_path.string();
-    return true;
+    return fail(detail, "multiplayer-pair filename space exhausted");
 }
 
 }  // namespace ur::product

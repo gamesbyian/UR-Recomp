@@ -61,7 +61,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Injected termination and storage-failure recovery across profile/run/ghost/tournament",
+      "next_action": "Review and integrate #993 match pair no-replace/close-time disk fault and #996 profile exact-state CAS. Obtain exact packaged Windows dual-process crash/upgrade/storage-fault J-02/J-07/J-08 witness plus `.srm`+profile, run/ghost/fixture receipt and catalog recovery.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -69,9 +69,13 @@
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/982",
         "https://github.com/gamesbyian/UR-Recomp/pull/984",
-        "https://github.com/gamesbyian/UR-Recomp/pull/985"
+        "https://github.com/gamesbyian/UR-Recomp/pull/985",
+        "https://github.com/gamesbyian/UR-Recomp/pull/991",
+        "https://github.com/gamesbyian/UR-Recomp/pull/993",
+        "https://github.com/gamesbyian/UR-Recomp/pull/995",
+        "https://github.com/gamesbyian/UR-Recomp/pull/996"
       ],
-      "remaining_release_risk": "Store-local fixture receipt no-replace (#982), unique mutable staging (#984), and stale-retire OS-handle lock (#985) are implemented. Exact Windows interprocess crash/restore witness, cross-file run/match/receipt/profile transactional recovery, concurrent session last-writer-wins and power-loss durability remain open (#983)."
+      "remaining_release_risk": "Merged #991 isolated host/profile/catalog staging and #995 bounded corrupt catalog load/pre-save recovery read. Proposed #993 atomically claims match/run pairs without replacement and checks sidecar close-time disk errors; its process/crash regression passed focused Linux multiplayer tests. Proposed #996 compares exact profile state under OS lock, including authorized conditional rollback; fresh-process race tests await acceptance. Earlier #982/#984/#985 tournament protections are local to their stores. No power-loss fsync guarantee, cross-file `.srm`+profile/run/ghost/receipt transaction, concurrent catalog/session lost-update arbitration, interrupted upgrade witness or packaged Windows two-process L4 proof. QA-02 remains P0 in_progress."
     },
     {
       "id": "QA-03",

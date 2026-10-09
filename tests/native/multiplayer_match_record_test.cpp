@@ -1,8 +1,11 @@
 #include "multiplayer_match_record.hpp"
 
 #include <cassert>
+#include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <iostream>
+#include <set>
 #include <string>
 
 using namespace ur::product;
@@ -55,7 +58,52 @@ MultiplayerMatchRecord record(const CompletedRunRecord& run) {
 
 }  // namespace
 
-int main() {
+int main(int argc, char** argv) {
+    if (argc == 3 && std::string(argv[1]) == "crash") {
+        const auto run = run_record();
+        const auto match = record(run);
+        const auto abort_after_sidecar = [] { std::_Exit(77); };
+        (void)append_multiplayer_match_pair(
+            argv[2], run, match, nullptr, nullptr, abort_after_sidecar);
+        return 9; // callback must abort after canonical sidecar claim
+    }
+    if (argc == 4 && std::string(argv[1]) == "append") {
+        auto run = run_record();
+        const unsigned serial = static_cast<unsigned>(std::strtoul(argv[3], nullptr, 10));
+        if (serial >= 16) return 2;
+        run.elapsed_ticks60 += serial;
+        const auto match = record(run);
+        std::string path, error;
+        if (!append_multiplayer_match_pair(argv[2], run, match, &path, &error)) {
+            std::cerr << error << std::endl;
+            return 3;
+        }
+        std::cout << path << std::endl;
+        return 0;
+    }
+    if (argc == 3 && std::string(argv[1]) == "inspect") {
+        std::set<std::uint64_t> times;
+        std::size_t sidecars = 0;
+        for (const auto& entry : std::filesystem::directory_iterator(argv[2])) {
+            if (entry.path().extension() == ".urmatch") {
+                ++sidecars;
+                continue;
+            }
+            if (entry.path().extension() != ".urrun") return 4;
+            const auto run = load_completed_run_record_file(entry.path().string());
+            if (!run.loaded()) return 5;
+            const auto match = load_multiplayer_match_record_for_run(
+                entry.path().string(), *run.record);
+            if (!match) return 6;
+            times.insert(run.record->elapsed_ticks60);
+        }
+        if (times.size() != 8 || sidecars != 8) return 7;
+        for (unsigned i = 0; i != 8; ++i) {
+            if (!times.count(1726u + i)) return 8;
+        }
+        return 0;
+    }
+    if (argc != 1) return 2;
     const auto run = run_record();
     const auto original = record(run);
     const auto constructed =
@@ -122,6 +170,17 @@ int main() {
         path.string(), original, &detail));
     const auto loaded = load_multiplayer_match_record_file(path.string());
     assert(loaded);
+
+#if !defined(_WIN32)
+    // A buffered write may appear successful until close; /dev/full
+    // rejects the final flush and must not be reported as a stored match.
+    if (std::filesystem::exists("/dev/full")) {
+        std::string disk_error;
+        assert(!save_multiplayer_match_record_file(
+            "/dev/full", original, &disk_error));
+        assert(!disk_error.empty());
+    }
+#endif
     assert(multiplayer_match_record_matches_run(*loaded.record, run));
 
     {

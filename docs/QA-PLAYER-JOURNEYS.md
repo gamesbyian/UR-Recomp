@@ -29,6 +29,12 @@ Record guest `controller_word` for the last active frame before opening tourname
 
 Exercise a real Windows candidate with two processes sharing the same tournament instance and fixture before either has credited it. Each records a separately valid ordinary-2P run/match pair and attempts to publish the fixture receipt. The expected result is exactly one committed fixture result, conflict for the other, no overwritten incumbent receipt, no double points, valid independent Records retained, and fresh-process restoration crediting only the chosen winner. Repeat with termination after staged write but before publish, and after publish but before stale launch retirement; abandoned `.pending-urfixture-*` directories cannot count as receipts. Native eight-thread acceptance of the low-level adapter is a prerequisite, not substitute for this J-07 exact ZIP witness.
 
+### Additional J-07/J-08 storage-transition process matrix
+
+At the storage API seam, run 8 **separate** contenders (not 8 threads) against profile SRAM state, profile catalog, global host options and completed 2P run/match pairs. Each resulting canonical file must be one fully decoded writer's payload. For pairs, verify unique immutable basenames, admitted checksum-bound sidecars, no lost incumbent, and no false duplicate fixture credit. Also inject an immediate exit after private profile staging is flushed but before replacement; the previous profile's exact bytes must survive. Inject a second exit after a `.urmatch` final-name claim but before its `.urrun` final-name claim; on fresh reentry, orphan sidecar and abandoned staging confer **zero** run, PB or fixture credit, and a new complete pair must still save correctly. Cover unwritable/missing parents without damaging the incumbent, and a buffered sidecar write into `/dev/full` to prove that close-time disk-full failure is reported rather than treated as a published match.
+
+The added focused regressions in #991 and #993 are prerequisites; they do not imply a packaged Windows/gameplay pass. Record the exit point, subsequent process identity, exact bytes and whether a canonical artifact was visible. Separately test a stale profile generation attempting to replace a newer SRAM snapshot, a catalog writer based on an obsolete roster, and session/launch interactions across two active games; these have no accepted compare-and-swap contract yet.
+
 ## P1 integrated journeys
 
 | ID | Combined path | Oracle |

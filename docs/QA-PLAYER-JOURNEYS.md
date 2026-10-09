@@ -5,6 +5,12 @@
 
 Status: test specification, **not a claim these cases have passed**. Date 2026-10-08. Owner: cross-cutting QA. Priorities and release thresholds: ADVERSARIAL-QA-AND-RELEASE-READINESS.md. Gate states: RELEASE-QUALITY-LEDGER.json.
 
+## Executability prerequisites and shared-witness policy
+
+Reference: [QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) and [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md). **Don't rerun a journey whose required player-facing feature is not yet implemented.** J-01/J-19 require the product frontend owner to provide a discoverable, actual five-destination Modern root; J-04/J-05 require working second/third leg and 3+ entrant tournament routes; J-09 requires a legitimate entry-to-terminal-result producer for Race, Circuit and timed Stunt, before automation across 45. A blocked producer is an owned **implementation/test-input dependency**, not a failed or passed race.
+
+J-07/J-08 fault cuts are a targeted subcampaign of the *same* tournament/Records process journey, not another standalone long journey. J-13/J-16 graphics checks must distinguish host HD callback, original source-visible racer footprint, actual drawn HD racer, and transition/fallback continuity. J-17 must include the current candidate's default Return/Start binding and verify Restart ownership and audible return; an audio-device presence check does not clear this. Pin an exact current ZIP+hash for hardware or integrated L4 checks, and require independent evidence for each claimed QA gate even when it shares a run ID. No automatic extension of the initial 300 productive-agent-hour tranche.
+
 ## Common protocol
 
 Run the exact release candidate portable ZIP with recorded SHA-256 and source revision. Use clean Windows user data and separately an established multi-version root. Retain: build/artifact ID, OS/GPU/display/audio/controllers, initial state, guest-frame and wall-time observations, outcome, artifact inventory, logs, recording when possible, and independent repeat. Report unverified, blocked, unsupported and failed explicitly. Do not count offscreen runner acceptance as physical input/display/audio or first-user comprehension.

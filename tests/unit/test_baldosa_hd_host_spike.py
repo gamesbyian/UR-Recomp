@@ -116,7 +116,7 @@ class NativeRacerHostTest(unittest.TestCase):
             self.assertEqual(report.assess(base, candidate, log, captures, density=4)["status"], "unproven")
             log.write_text(log.read_text().replace("top_opaque=0", "top_opaque=12"))
             candidate.write_bytes(frames.replace(b"0xAAAA0000", b"0xBBBB0000", 1))
-            self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")
+            self.assertEqual(report.assess(base, candidate, log, captures, density=4)["status"], "unproven")
 
 
 if __name__ == "__main__":

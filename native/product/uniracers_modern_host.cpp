@@ -124,6 +124,10 @@ std::string uppercase_keybind_label(SDL_Scancode scancode) {
 
 UrModernSession* g_session;
 ur::product::HostProductState g_product_state;
+// Last state actually read from or successfully published to shared disk.
+// A live regional setting can be mutated before publication, so g_product_state
+// itself cannot serve as the expected-state CAS baseline.
+std::optional<ur::product::HostProductState> g_product_state_disk_baseline;
 std::optional<ur::product::RegionalPresentationInputCoordinator>
     g_regional_input;
 bool g_regional_title_surface_previous;
@@ -1675,6 +1679,7 @@ void ensure_product_state() {
         ur::product::load_host_product_state_file(g_product_state_path);
     if (loaded.loaded()) {
         g_product_state = *loaded.state;
+        g_product_state_disk_baseline = *loaded.state;
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
             std::fprintf(
                 stderr,
@@ -1711,12 +1716,16 @@ bool persist_product_state(const ur::product::HostProductState& candidate) {
     if (!modern_mode() || g_product_state_path.empty()) {
         return false;
     }
-    const auto status = ur::product::save_host_product_state_file(
-        g_product_state_path, candidate);
+    const auto status = ur::product::save_host_product_state_file_if_current(
+        g_product_state_path, g_product_state_disk_baseline, candidate);
     if (status != ur::product::HostProductSaveStatus::Saved) {
-        product_diagnostic("UR_HOST_STATE SAVE_FAILED");
+        product_diagnostic(
+            status == ur::product::HostProductSaveStatus::Conflict
+                ? "UR_HOST_STATE SAVE_CONFLICT"
+                : "UR_HOST_STATE SAVE_FAILED");
         return false;
     }
+    g_product_state_disk_baseline = candidate;
     product_diagnostic("UR_HOST_STATE SAVED");
     return true;
 }

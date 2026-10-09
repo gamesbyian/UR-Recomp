@@ -93,6 +93,39 @@ int main(int argc, char** argv) {
     const std::string family(argv[1]), action(argv[2]), path(argv[3]);
     const unsigned value = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
     if (value > 15) return 2;
+    if (family == "host" && action == "cas-create") {
+        HostProductState next;
+        next.active_profile_id = "racer-" + std::to_string(value);
+        const auto status =
+            save_host_product_state_file_if_current(path, std::nullopt, next);
+        return status == HostProductSaveStatus::Saved ? 0 :
+               status == HostProductSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "host" && action == "cas-contend" && argc == 6) {
+        const auto loaded = load_host_product_state_file(path);
+        if (!loaded.loaded()) return 4;
+        auto next = *loaded.state;
+        next.active_profile_id = "racer-" + std::to_string(value);
+        const std::filesystem::path synchronization(argv[5]);
+        {
+            std::ofstream marker(
+                synchronization / ("ready-" + std::to_string(value)));
+            if (!marker) return 7;
+        }
+        bool released = false;
+        for (unsigned n = 0; n < 10000; ++n) {
+            if (std::filesystem::exists(synchronization / "go")) {
+                released = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (!released) return 8;
+        const auto status = save_host_product_state_file_if_current(
+            path, *loaded.state, next);
+        return status == HostProductSaveStatus::Saved ? 0 :
+               status == HostProductSaveStatus::Conflict ? 6 : 9;
+    }
     if (family == "catalog" && action == "cas-roster-read") {
         const auto catalog = load_host_profile_catalog_file(path);
         if (!catalog || catalog->empty()) return 4;

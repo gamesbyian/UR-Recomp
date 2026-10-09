@@ -107,6 +107,45 @@ class HostPersistenceProcessTests(unittest.TestCase):
             self.assertTrue(all(p.exists() for p in abandoned),
                             "recovery does not delete unrelated crash evidence")
 
+            # Global host settings and active-profile selection are shared
+            # across processes. A stale instance must not silently switch
+            # another instance's selected racer back to its old value.
+            global_host = root / "cas-host.dat"
+            self.assertEqual(call("host", "cas-create", global_host, 2).returncode, 0)
+            self.assertEqual(call("host", "cas-create", global_host, 3).returncode, 6)
+            barrier_host = root / "barrier-host"
+            barrier_host.mkdir()
+            host_children = [
+                subprocess.Popen(
+                    [str(exe), "host", "cas-contend",
+                     str(global_host), str(value), str(barrier_host)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                for value in (8, 9)
+            ]
+            deadline = time.monotonic() + 8
+            while not all((barrier_host / ("ready-" + str(value))).exists()
+                          for value in (8, 9)):
+                self.assertLess(time.monotonic(), deadline,
+                                "host writers failed to reach the barrier")
+                time.sleep(0.01)
+            (barrier_host / "go").touch()
+            statuses = []
+            for child in host_children:
+                _, stderr = child.communicate(timeout=12)
+                statuses.append(child.returncode)
+                self.assertIn(child.returncode, (0, 6), stderr)
+            self.assertEqual(sorted(statuses), [0, 6], statuses)
+            self.assertIn(read_value("host", global_host), (8, 9))
+
+            corrupt_host = root / "corrupt-host.dat"
+            corrupt_host.write_text("bad historic state", encoding="utf-8")
+            before = corrupt_host.read_bytes()
+            self.assertEqual(
+                call("host", "cas-create", corrupt_host, 5).returncode, 6
+            )
+            self.assertEqual(corrupt_host.read_bytes(), before)
+
             # Compare-and-swap uses the exact prior disk snapshot rather
             # than autosave_generation alone. Both children load the SAME
             # previous SRAM before either receives the "go" marker.

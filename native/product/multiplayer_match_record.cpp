@@ -1,6 +1,7 @@
 #include "multiplayer_match_record.hpp"
 
 #include "completed_run_store.hpp"
+#include "local_tournament_atomic_replace.hpp"
 
 #include <array>
 #include <charconv>
@@ -509,6 +510,17 @@ bool append_multiplayer_match_pair(
         return false;
     }
 
+    // The .urrun created inside this private directory was already synced
+    // by append_completed_run_record. Do not publicly claim either half of
+    // the checksum-bound pair before the separately closed .urmatch is also
+    // flushed to storage.
+    const fs::path staged_sidecar(
+        multiplayer_match_record_path_for_run(staged_run));
+    if (!ur::product::detail::sync_closed_staged_file(staged_sidecar)) {
+        cleanup_staging();
+        return fail(detail, "cannot durably flush staged match record");
+    }
+
     const fs::path staged_run_path(staged_run);
     const fs::path staged_sidecar_path(
         multiplayer_match_record_path_for_run(staged_run));
@@ -542,6 +554,11 @@ bool append_multiplayer_match_pair(
         const auto run_claim =
             claim_pair_artifact(staged_run_path, final_run_path);
         if (run_claim == PairClaim::Claimed) {
+            // Both public names now exist. Directory-entry durability is
+            // requested without treating a committed-but-uncertain metadata
+            // sync as failure and accidentally publishing a duplicate pair.
+            ur::product::detail::sync_published_directory_best_effort(
+                fs::path(directory));
             cleanup_staging();
             if (stored_run_path) *stored_run_path = final_run_path.string();
             return true;

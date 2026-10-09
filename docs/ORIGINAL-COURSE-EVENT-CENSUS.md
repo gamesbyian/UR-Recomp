@@ -47,7 +47,7 @@ Recompute the matrix and deny a forged/incomplete pass:
 ```sh
 python3 tools/audit_original_course_event_coverage.py
 python3 tools/audit_original_course_event_coverage.py --check
-python3 -m unittest tests.unit.test_audit_original_course_event_coverage
+python3 -m unittest discover -s tests/unit -p 'test_audit_original_course_event_coverage.py'
 ```
 
 The report is generated at `analysis/generated/course-event-qa-census.json`.

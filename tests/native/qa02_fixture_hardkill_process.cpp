@@ -322,7 +322,7 @@ int main(int argc, char** argv) {
             layout, catalog());
         require(reread.usable() && reread.session->results.results.at(*index),
                 "QA03 newly published result survives fresh store reload");
-        std::printf("QA03_CREDITED_FIXTURE %zu\\n", *index);
+        std::printf("QA03_CREDITED_FIXTURE %zu\n", *index);
         return 0;
     }
     if (action == "qa03-verify-duel" ||

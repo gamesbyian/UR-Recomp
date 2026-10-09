@@ -9,6 +9,7 @@ on:
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
       - "tools/measure_racer_hd_live_draws.py"
+      - "tools/measure_racer_hd_scene_tail.py"
       - "tools/check_racer_hd_pixel_confinement.py"
       - "tools/probe_racer_hd_fallback_family.py"
       - "tools/probe_racer_hd_state_reuse.py"
@@ -30,6 +31,7 @@ on:
       - "tests/unit/test_check_racer_presentation_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_measure_racer_hd_live_draws.py"
+      - "tests/unit/test_measure_racer_hd_scene_tail.py"
       - "tests/unit/test_racer_hd_pixel_confinement.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
@@ -37,6 +39,9 @@ on:
       - "tests/native/racer_oam_placement_test.cpp"
       - "tests/input/two-player-first-race-observe.script"
       - "tests/input/two-player-first-race.input"
+      - "tests/input/qa08-one-player-racer-motion.script"
+      - "tests/input/qa08-vs-racer-motion.script"
+      - "tests/input/vs-first-race.input"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snesrecomp.json"
       - "tools/toolchain-entries/sdl3.json"
@@ -1429,6 +1434,34 @@ jobs:
           )
           PY
 
+      - name: Measure actual native 1P and VS moving-race host presentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          run_scene() {
+            local scene="$1" script="$2" input="$3"
+            local log="$RUNNER_TEMP/racer-hd-$scene-scene.log"
+            local report="$RUNNER_TEMP/racer-hd-$scene-scene-tail.json"
+            local -a envvars=(UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 SDL_AUDIODRIVER=dummy)
+            if [ -n "$input" ]; then
+              envvars+=("SNESRECOMP_INPUT_FILE=$input")
+            fi
+            set +e
+            env "${envvars[@]}" timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$script" >"$log" 2>&1
+            local status=$?
+            set -e
+            if [ "$status" -ne 0 ]; then
+              tail -n 100 "$log"
+              echo "::error::$scene QA-08 native scene failed ($status)"
+              exit "$status"
+            fi
+            python3 tools/measure_racer_hd_scene_tail.py "$log" --mode "$scene" --tail 120 --json-out "$report"
+          }
+          run_scene one-player "$GITHUB_WORKSPACE/tests/input/qa08-one-player-racer-motion.script" ""
+          run_scene vs "$GITHUB_WORKSPACE/tests/input/qa08-vs-racer-motion.script" "$GITHUB_WORKSPACE/tests/input/vs-first-race.input"
       - name: Shadow structured Racer HD trace relationships
         continue-on-error: true
         shell: bash
@@ -1542,6 +1575,10 @@ jobs:
             ${{ runner.temp }}/racer-hd-p1-only-native.log
             ${{ runner.temp }}/racer-hd-p1-only-live-race-window.json
             ${{ runner.temp }}/racer-hd-p1-only-live-race-window.txt
+            ${{ runner.temp }}/racer-hd-one-player-scene.log
+            ${{ runner.temp }}/racer-hd-one-player-scene-tail.json
+            ${{ runner.temp }}/racer-hd-vs-scene.log
+            ${{ runner.temp }}/racer-hd-vs-scene-tail.json
             ${{ runner.temp }}/racer-wide-original-frames/
             ${{ runner.temp }}/racer-wide-hd-frames/
             ${{ runner.temp }}/racer-original-a-semantic-trace.json

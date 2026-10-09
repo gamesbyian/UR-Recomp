@@ -1,0 +1,7 @@
+# QA-08 graphics-only VS scene-entry and moving-race host presentation.
+# Uses original deterministic input file: tests/input/vs-first-race.input.
+# Wait for the ROM's actual active-race byte; do not poke memory.
+until 0313 == 01 2500
+wait 220
+dump qa08-vs-race-moving
+quit

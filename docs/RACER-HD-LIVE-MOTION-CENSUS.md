@@ -151,6 +151,38 @@ to qualify differences. See
 and the hash-bound
 [`racer-hd-p1-only-native-coverage-2026-10-09.json`](../analysis/generated/racer-hd-p1-only-native-coverage-2026-10-09.json).
 
+## 1P and VS actual native moving-scene census
+
+The same graphics-only native acceptance now exercises two pre-existing
+ROM-authoritative entry routes with `UR_RACER_HD=1
+UR_RACER_HD_CENSUS=1`, without memory pokes or guest-state injection:
+
+- **1P:** `tests/input/qa08-one-player-racer-motion.script`
+  follows the proven first-race menu route, waits for active race
+  `7E:0313 == 01`, then drives right and samples the final 120
+  consecutive host-presented guest frames.
+- **VS:** `tests/input/vs-first-race.input` and
+  `tests/input/qa08-vs-racer-motion.script` wait for the
+  actual active-race byte and take the final 120 consecutive host
+  presentations after a moving interval.
+
+`tools/measure_racer_hd_scene_tail.py` uses the existing gate+present
+witnesses but analyzes **only those bounded race tails**. It refuses
+missing guest frames, missing host presents, an armed capture that
+fell through to stock, inconsistent 1P/VS trace states and duplicate
+gate entries. The HD count is allowed to be zero: the current 2P
+split-OBJ presenter may appropriately reject a 1P or VS frame and
+preserve Original, but the test must observe that honestly.
+Results and original logs are retained separately as
+`racer-hd-one-player-scene-tail.json` and
+`racer-hd-vs-scene-tail.json`.
+
+These are **scene-specific admission/fallback safety measurements**,
+not 1P/VS original pixel parity, widescreen HD coverage, or complete
+mode visuals. Passing the probes never promotes QA-08 to L4.
+Native same-frame screenshot and foreground-depth comparisons still
+need to be expanded to these modes.
+
 ## What this still cannot prove
 
 - A successful `hd` callback **does not** establish correct occlusion

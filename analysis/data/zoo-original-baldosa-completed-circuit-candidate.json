@@ -1,0 +1,240 @@
+{
+  "schema": "UR-QA01-ORIGINAL-BALDOSA-ZOO-RESULT/1",
+  "evidence_class": "original/native completed-Circuit candidate; NOT yet L4 admitted",
+  "provenance": {
+    "workflow_run": 38003554403,
+    "artifact_id": 11650466437,
+    "artifact_zip_sha256": "7a25f222b8f3487ac5c344f4bd7c7e2b8fea4476a63cedc5475d3088730790f2",
+    "original_engine": "pinned Snes9x-libretro via snesref",
+    "baldosa_game_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "baldosa_framework_commit": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_2014_movie_frames": [
+      3190,
+      8359
+    ],
+    "original_2014_controller_window_sha256": "0b6ea7003802d172cdf8a1a8acdcc045f45d02924ac4c3a50a9d18e19186c756",
+    "original_controller_runs": 340,
+    "controller_frames": 5170,
+    "inserted_press_release_frames": 0
+  },
+  "identity": {
+    "course": "Zoom Zoo",
+    "usa_stream": 2,
+    "track_id": 1,
+    "course_bytes": 50665,
+    "decoded_course_residency": "all 7 active sampled states in both engines"
+  },
+  "event": {
+    "scene_entry_guest_frame": {
+      "original": 1604,
+      "baldosa": 1606
+    },
+    "result_onset_guest_frame": {
+      "original": 6767,
+      "baldosa": 6768
+    },
+    "result_onset_relative_frame": {
+      "original": 5163,
+      "baldosa": 5162
+    },
+    "result_stable_relative_frame": {
+      "original": 5171,
+      "baldosa": 5170
+    },
+    "result_menu_hex": "0xBC",
+    "result_race_flag_hex": "0x3D",
+    "p1_laps_at_result_onset": {
+      "original": 0,
+      "baldosa": 0
+    },
+    "p1_checkpoint_at_result_onset": {
+      "original": 1,
+      "baldosa": 1
+    },
+    "p1_finish_gate_at_result_onset": {
+      "original": 1,
+      "baldosa": 1
+    },
+    "raw_stopwatch_at_result_onset": [
+      15,
+      15,
+      15,
+      15,
+      10
+    ],
+    "settled_ppu_result_both": [
+      "PLAYER",
+      "TOTAL",
+      "BEST LAP",
+      "MIKE",
+      "1:16.46",
+      "0:25.10",
+      "BRONSEN",
+      "1:20.07",
+      "0:26.45",
+      "0:26",
+      "T",
+      "I",
+      "M",
+      "E",
+      "0:24",
+      "LAPS ON ZOOM ZOO"
+    ]
+  },
+  "active_reference_equals_baldosa": true,
+  "active_samples": [
+    [
+      "scene-entered",
+      0,
+      0,
+      0,
+      4,
+      0,
+      [
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    ],
+    [
+      "progress-0218",
+      218,
+      1,
+      1,
+      3,
+      8968,
+      [
+        0,
+        0,
+        0,
+        2,
+        1
+      ]
+    ],
+    [
+      "progress-0604",
+      604,
+      2,
+      1,
+      3,
+      1798,
+      [
+        0,
+        0,
+        6,
+        6,
+        3
+      ]
+    ],
+    [
+      "progress-0841",
+      841,
+      3,
+      0,
+      3,
+      2822,
+      [
+        0,
+        1,
+        0,
+        6,
+        0
+      ]
+    ],
+    [
+      "progress-1532",
+      1532,
+      0,
+      0,
+      3,
+      3872,
+      [
+        0,
+        2,
+        2,
+        1,
+        1
+      ]
+    ],
+    [
+      "progress-1721",
+      1721,
+      1,
+      1,
+      2,
+      8964,
+      [
+        0,
+        2,
+        5,
+        2,
+        4
+      ]
+    ],
+    [
+      "pre-result",
+      4700,
+      0,
+      0,
+      1,
+      16390,
+      [
+        1,
+        1,
+        4,
+        9,
+        1
+      ]
+    ]
+  ],
+  "active_samples_columns": [
+    "dump_label",
+    "scene_relative_frame",
+    "p1_checkpoint",
+    "p1_finish_gate",
+    "p1_laps_remaining",
+    "p1_stored_contact",
+    "raw_stopwatch"
+  ],
+  "active_field_groups_compared_per_sample": 14,
+  "stored_contacts_at_result_onset": {
+    "original": [
+      0,
+      0
+    ],
+    "baldosa": [
+      0,
+      0
+    ]
+  },
+  "stored_contacts_eight_frames_after_result_onset": {
+    "original": [
+      0,
+      0
+    ],
+    "baldosa": [
+      10240,
+      512
+    ]
+  },
+  "wram_differing_bytes_by_dump": {
+    "scene-entered": 4,
+    "progress-0218": 0,
+    "progress-0604": 0,
+    "progress-0841": 4,
+    "progress-1532": 4,
+    "progress-1721": 0,
+    "pre-result": 4,
+    "result-onset-candidate": 13,
+    "result-stable-candidate": 147
+  },
+  "accepted_usa_complete_courses": 0,
+  "blockers": [
+    "One guest-relative frame of result onset differs; host controller latch versus execution unresolved",
+    "Both persisted contact words differ eight frames after result onset; causality/semantic relevance unresolved",
+    "Independent reviewer admission and fresh-process repeat pending"
+  ]
+}

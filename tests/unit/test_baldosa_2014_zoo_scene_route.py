@@ -29,12 +29,14 @@ class Baldosa2014ZooSceneTest(unittest.TestCase):
         route = mod.render_replay(prefix)
         self.assertTrue(cal.endswith("dump scene-entered\nquit\n"))
         self.assertTrue(route.endswith(
-            "wait 4700\ndump pre-result\nuntil 009F == BC 1200\n"
+            "wait 2979\ndump pre-result\nuntil 009F == BC 1200\n"
             "dump result-onset-candidate\nwait 8\n"
             "dump result-stable-candidate\nquit\n"))
         self.assertEqual([l for l in route.splitlines() if l.startswith("press ")],
                          [l for l in prefix.splitlines() if l.startswith("press ")])
         self.assertNotIn("press left 6000", route)
+        for frame in mod.PROGRESS_FRAMES:
+            self.assertIn(f"dump progress-{frame:04d}\n", route)
         with self.assertRaises(ValueError):
             mod.source_menu_prefix(upstream.replace("until 0E1F != 00\n", ""))
 

@@ -131,6 +131,27 @@ int main(int argc, char** argv) {
         return result == HostProfileCatalogSaveStatus::Saved ? 0 :
                result == HostProfileCatalogSaveStatus::Conflict ? 6 : 9;
     }
+    if (family == "profile" && action == "cas-delete") {
+        const auto prior = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!prior.loaded()) return 4;
+        return remove_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, *prior.state) ==
+            HostProfileSaveStatus::Saved ? 0 : 9;
+    }
+    if (family == "profile" && action == "cas-delete-stale") {
+        const auto prior = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!prior.loaded()) return 4;
+        // Another owner saves newer valid bytes between this process's
+        // catalog-registration attempt and its stale cleanup decision.
+        if (save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, *prior.state,
+                profile(value)) != HostProfileSaveStatus::Saved) return 8;
+        return remove_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, *prior.state) ==
+            HostProfileSaveStatus::Conflict ? 0 : 9;
+    }
     if (family == "profile" && action == "cas-create") {
         const auto status = save_host_profile_state_file_if_current(
             ExecutionMode::Modern, path, std::nullopt, profile(value));

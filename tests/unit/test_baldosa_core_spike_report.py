@@ -39,6 +39,69 @@ class BaldosaSpikeReportTest(unittest.TestCase):
             self.assertFalse(x["original_native_terminal_result_admitted"])
             self.assertEqual(x["complete_event_qa_credit"], 0)
 
+    @staticmethod
+    def _zoo_frame(path: Path, *, lap: int, checkpoint: int, gate: int,
+                   contact: int = 0x2304, track: int = 1,
+                   in_race: int = 1, handler: int = 0x8610):
+        image = bytearray(0x20000)
+        image[0x0313] = in_race
+        image[0x00CE] = track
+        for offset, value in ((0x0053, handler), (0x0411, 9200),
+                              (0x0415, 1489), (0x0E95, contact),
+                              (0x1199, checkpoint), (0x119D, gate),
+                              (0x0EF1, lap)):
+            image[offset:offset + 2] = value.to_bytes(2, "little")
+        path.write_bytes(image)
+
+    def test_progression_snapshots_are_observations_not_event_results(self):
+        with tempfile.TemporaryDirectory() as td:
+            dump = Path(td)
+            frames = [
+                ("go", 4, 0, 0),
+                ("after_first_left", 3, 1, 1),
+                ("before_long_left", 3, 2, 1),
+                ("after_drive", 3, 2, 1),
+            ]
+            for name, lap, checkpoint, gate in frames:
+                self._zoo_frame(dump / f"{name}.wram.bin",
+                                lap=lap, checkpoint=checkpoint, gate=gate)
+            result = mod.zoom_zoo_progression(dump)
+            self.assertTrue(result["complete_samples"])
+            self.assertTrue(result["after_drive_active_zoo"])
+            self.assertEqual(result["sampled_active_zoo_count"], 4)
+            self.assertEqual(len(result["sampled_progress_changes"]), 2)
+            self.assertEqual(
+                result["sampled_progress_changes"][0]["changes"]["p1_laps_remaining"],
+                [4, 3])
+            self.assertFalse(result["after_drive_terminal_menu_gate_f60c"])
+            self.assertFalse(result["independent_original_emulator_comparison"])
+            self.assertFalse(result["original_native_terminal_result_admitted"])
+
+    def test_missing_or_wrong_sized_zoo_snapshots_never_admitted(self):
+        with tempfile.TemporaryDirectory() as td:
+            dump = Path(td)
+            evidence = mod.zoom_zoo_progression(dump)
+            self.assertFalse(evidence["complete_samples"])
+            self.assertEqual(evidence["missing"], list(mod.ZOO_SAMPLES))
+            for name in mod.ZOO_SAMPLES:
+                (dump / f"{name}.wram.bin").write_bytes(b"not WRAM")
+            with self.assertRaisesRegex(ValueError, "128 KiB WRAM"):
+                mod.zoom_zoo_progression(dump)
+
+    def test_premature_exit_cannot_qualify_as_active_zoo(self):
+        with tempfile.TemporaryDirectory() as td:
+            dump = Path(td)
+            for name in mod.ZOO_SAMPLES:
+                self._zoo_frame(dump / f"{name}.wram.bin",
+                                lap=4, checkpoint=0, gate=0,
+                                track=0, in_race=0, handler=0xF60C)
+            result = mod.zoom_zoo_progression(dump)
+            self.assertTrue(result["complete_samples"])
+            self.assertEqual(result["sampled_active_zoo_count"], 0)
+            self.assertTrue(result["after_drive_terminal_menu_gate_f60c"])
+            self.assertFalse(result["original_native_terminal_result_admitted"])
+
+
 
 if __name__ == "__main__":
     unittest.main()

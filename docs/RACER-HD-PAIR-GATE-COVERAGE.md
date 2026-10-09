@@ -29,6 +29,35 @@ The latter remains a useful content-coverage metric but cannot stand in for
 on-screen host presentation. The 340 are a ceiling before the live OAM size,
 geometry, approved-asset, capture and frame-draw checks.
 
+## Actual temporal structure of the retained pair-eligibility trace
+
+The original dense trace from the cited Snes9x artifact was recovered and
+reanalyzed, retaining the original 2,641 consecutive guest-frame observations.
+Hash-bound evidence is in
+[`analysis/generated/racer-hd-pair-temporal-eligibility-2026-10-08.json`](../analysis/generated/racer-hd-pair-temporal-eligibility-2026-10-08.json).
+It uses the archived `racer-hd-after-p2-0578-0ec3-trace.json` file from
+run `37756792263` / artifact `11539984901`, member SHA256
+`1c4197035338422592a6946a4746aa8cc77e360255f9c15dcd2a20b31c7d6ebd`.
+Its 170 pair-eligible frames comprise **49 runs** (20 one-frame, ten
+two-frame; longest 16 frames). There are **49 entry and 49 exit edges**,
+or 98 changes in pair-registration eligibility over 2,640 consecutive
+guest-frame boundaries. At least 4,942 / 5,282 player-frame slots
+(**93.56%**) remain stock under the *default pair-only capture policy*,
+even before failed live geometry/OAM/capture checks.
+
+These figures are measured on a real moving reference sequence, but
+**do not count actual native replacement draws**. The 98 edges mark
+potentially rapid Remastered/Original transitions, not a verified
+screen-flicker defect. Each frame still needs a same-frame native selector,
+geometry, OAM, capture, and pixel/priority witness, especially at the
+one-frame bursts, player crossings and 16:9 view. Host priority compositing
+is another separate blocker: pinned SNESRecomp
+`docs/HOST_OVERLAY_EXTRACTION.md` states that a promoted OBJ plane
+drawn over the flattened framebuffer needs additional foreground/occluder
+planes or an intermediate composition hook for authentic depth.
+Do not promote overlapping racer/foreground visuals until this is tested
+against stock same-frame pixels and corrected where necessary.
+
 ## Why the existing capture API offers a P1-only opening
 
 HDMA writes high OAM `0xA5` above split scanline 112 and `0x5A` below it.

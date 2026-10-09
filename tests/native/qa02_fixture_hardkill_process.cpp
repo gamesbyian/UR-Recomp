@@ -146,17 +146,16 @@ int main(int argc, char** argv) {
         arm_first(session, kAttemptOld);
         const auto saved = publish_real_pair(session, 0x080);
         signal(root / "barrier" / "old-ready");
-        await_signal(root / "barrier" / "new-armed");
-        // A new game instance has superseded the canonical pending attempt.
-        // The old window must fail to publish a fixture credit, even though
-        // its own .urrun/.urmatch are complete and locally playable.
+        await_signal(root / "barrier" / "new-blocked");
+        // B is genuinely alive but cannot steal the OS-held fixture lease.
+        // A's exact on-disk token must still be authoritative.
         const auto status = commit_local_tournament_capture(
             session, kAttemptOld, saved);
-        require(status == Status::EvidenceRejected &&
-                !session.results.results.at(0),
-                "superseded old process must never credit its result");
-        signal(root / "barrier" / "old-rejected");
-        std::puts("QA02_OLD_ATTEMPT_REJECTED");
+        require(status == Status::Committed &&
+                session.results.results.at(0),
+                "live owner must complete safely without checkpoint theft");
+        signal(root / "barrier" / "old-committed");
+        std::puts("QA02_LIVE_OWNER_COMMITTED");
         return 0;
     }
     if (action == "contend-new") {
@@ -167,14 +166,55 @@ int main(int argc, char** argv) {
                 !restored.session->results.results.at(0),
                 "second game process starts with unplayed event");
         auto session = *restored.session;
-        arm_first(session, kAttemptNew);
+        const auto& fixture = session.results.fixtures.at(0);
+        const auto blocked = arm_local_tournament_fixture(
+            session, 0, kAttemptNew,
+            session.results.entrants.at(fixture.player1),
+            session.results.entrants.at(fixture.player2));
+        require(blocked == Status::Busy && !session.launch.pending,
+                "second live game must fail fast without stealing checkpoint");
+        signal(root / "barrier" / "new-blocked");
+        await_signal(root / "barrier" / "old-committed");
+        // Even after A releases the lease, B's stale in-memory event must
+        // detect the credited receipt before attempting a new arm.
+        const auto stale = arm_local_tournament_fixture(
+            session, 0, kAttemptNew,
+            session.results.entrants.at(fixture.player1),
+            session.results.entrants.at(fixture.player2));
+        require(stale == Status::EvidenceRejected &&
+                !session.launch.pending,
+                "released lease does not authorize re-arming completed fixture");
+        std::puts("QA02_BUSY_AND_STALE_RETRY_REJECTED");
+        return 0;
+    }
+    if (action == "owner-crash") {
+        std::error_code ec;
+        fs::create_directories(layout.multiplayer_runs_directory, ec);
+        require(!ec, "crash-owner records root");
+        const auto created = create_local_tournament_coordinator(
+            layout, kInstance, {"alpha", "beta", "gamma"}, catalog(),
+            {"course:01", "course:04"});
+        require(created.usable(), "crash-owner event created");
+        auto session = *created.session;
+        arm_first(session, kAttemptOld);
+        const auto saved = publish_real_pair(session, 0x080);
+        require(fs::exists(saved), "old run saved before process death");
+        std::_Exit(81); // OS releases live lease; pending remains durable
+    }
+    if (action == "retry-owner-crash") {
+        const auto restored =
+            restore_local_tournament_coordinator(layout, catalog());
+        require(restored.usable() &&
+                !restored.session->results.results.at(0) &&
+                !restored.session->launch.pending,
+                "dead owner leaves only uncredited, inert pending checkpoint");
+        auto session = *restored.session;
+        arm_first(session, kAttemptNew); // explicit new attempt, new token
         const auto saved = publish_real_pair(session, 0x100);
-        signal(root / "barrier" / "new-armed");
-        await_signal(root / "barrier" / "old-rejected");
         require(commit_local_tournament_capture(
                 session, kAttemptNew, saved) == Status::Committed,
-                "current durable attempt earns exactly one result");
-        std::puts("QA02_NEW_ATTEMPT_COMMITTED");
+                "OS-released lease permits new explicit valid fixture attempt");
+        std::puts("QA02_CRASH_RELEASED_AND_RETRIED");
         return 0;
     }
     if (action == "kill-c09") {

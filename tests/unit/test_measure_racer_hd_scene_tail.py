@@ -55,7 +55,7 @@ class HdSceneTailTests(unittest.TestCase):
             gate(2, "armed", "full-pair"),
             gate(3, "original", "disabled"), present(3, "original", "not-armed"),
         ])
-        with self.assertRaisesRegex(ValueError, "missing"):
+        with self.assertRaisesRegex(ValueError, "incomplete host presents"):
             analyze_tail(broken, mode="vs", count=3)
         with self.assertRaisesRegex(ValueError, "no actual native"):
             analyze_tail(gate(1, "original", "disabled"), mode="vs", count=1)

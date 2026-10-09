@@ -1,0 +1,188 @@
+#!/usr/bin/env python3
+"""Fail-closed QA-01/QA-07 content/event census, never an emulator oracle.
+
+Course identity and type come from the normalized ROM-derived course corpus.
+Release evidence must be supplied separately, with event-level reference/native
+witnesses. Static RNC decoding, candidate finish cells and partial experiments
+can never silently pass a complete player journey.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+from collections import Counter
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+CATALOG = ROOT / "analysis/data/course-corpus.json"
+EVIDENCE = ROOT / "analysis/data/course-event-runtime-evidence.json"
+OUTPUT = ROOT / "analysis/generated/course-event-qa-census.json"
+
+# The historical beta is comparative archaeology, not a required release ROM.
+RELEASE_ROMS = ("usa-retail", "europe-retail", "pal-prototype-1994-11-29")
+SLOT_KINDS = ("race-a", "circuit-a", "stunt", "race-b", "circuit-b")
+RACE_EVENTS = ("menu_entry", "start_state", "contact", "checkpoint",
+               "lap", "finish", "result")
+STUNT_EVENTS = ("menu_entry", "start_state", "contact", "stunt_scoring",
+                "timer_expiry", "result")
+ACCEPTED_CORE = ("pinned-snes9x", "mesen-ce")
+ACCEPTED_FIELDS = {"observed", "reference_matched"}
+
+
+def validate_catalog(catalog: dict) -> list[dict]:
+    courses = catalog.get("courses")
+    if not isinstance(courses, list) or len(courses) != 45:
+        raise ValueError("census requires all 45 canonical courses")
+    expected_ids = [f"course:{index:02d}" for index in range(1, 46)]
+    if [c.get("id") for c in courses] != expected_ids:
+        raise ValueError("missing, repeated or out-of-order canonical course ID")
+    if [c.get("stream_index") for c in courses] != list(range(1, 46)):
+        raise ValueError("stream identity is not contiguous 1..45")
+    if len({c.get("name") for c in courses}) != 45:
+        raise ValueError("course names must be present and unique")
+    if len({c.get("tour") for c in courses}) != 9:
+        raise ValueError("expected nine named tours")
+    for index, course in enumerate(courses):
+        kind = SLOT_KINDS[index % 5]
+        if course.get("track_kind") != kind:
+            raise ValueError(f"{course['id']}: wrong event-slot kind")
+        if course.get("tour_slot") != (index % 5) + 1:
+            raise ValueError(f"{course['id']}: wrong tour slot")
+        header = course.get("header", {})
+        if header.get("stunt_time_or_mode") != (45 if kind == "stunt" else 0):
+            raise ValueError(f"{course['id']}: inconsistent stunt header")
+        resources = course.get("resources", {}).get("ids", [])
+        if (0x24 in resources) != (kind != "stunt"):
+            raise ValueError(f"{course['id']}: checkpoint family incidence mismatch")
+    return courses
+
+
+def validated_witness(witness: dict, kind: str) -> bool:
+    """True only for a full, independently compared end-to-end event.
+
+    These assertions validate report completeness, not the truth of an
+    external measurement. A human/reviewer still admits its provenance.
+    """
+    required = STUNT_EVENTS if kind == "stunt" else RACE_EVENTS
+    observed = witness.get("event_observations")
+    return (
+        witness.get("reference_core") in ACCEPTED_CORE
+        and isinstance(witness.get("candidate_sha"), str)
+        and len(witness["candidate_sha"]) == 40
+        and isinstance(witness.get("rom_sha256"), str)
+        and len(witness["rom_sha256"]) == 64
+        and isinstance(witness.get("reference_run"), str)
+        and bool(witness["reference_run"].strip())
+        and isinstance(witness.get("native_run"), str)
+        and bool(witness["native_run"].strip())
+        and isinstance(witness.get("input_script"), str)
+        and bool(witness["input_script"].strip())
+        and isinstance(observed, dict)
+        and all(observed.get(event) == "reference_matched" for event in required)
+        and witness.get("result_compared") is True
+        and witness.get("fresh_process") is True
+    )
+
+
+def build_census(catalog: dict, source: dict) -> dict:
+    courses = validate_catalog(catalog)
+    observations = source.get("observations")
+    if source.get("schema_version") != 1 or not isinstance(observations, list):
+        raise ValueError("expected version-1 independent observation register")
+    known = {c["id"]: c for c in courses}
+    keyed = {}
+    for observation in observations:
+        if not isinstance(observation, dict):
+            raise ValueError("observation must be an object")
+        region = observation.get("rom")
+        cid = observation.get("course_id")
+        if region not in RELEASE_ROMS or cid not in known:
+            raise ValueError(f"unknown ROM or canonical course in observation: {region}/{cid}")
+        key = (region, cid)
+        if key in keyed:
+            raise ValueError(f"duplicate course/ROM observation: {key}")
+        if observation.get("status") not in ("partial", "passed", "failed", "blocked"):
+            raise ValueError(f"unsupported observation status: {key}")
+        if not observation.get("evidence_ref"):
+            raise ValueError(f"observation missing evidence path: {key}")
+        if observation["status"] == "passed" and not validated_witness(
+            observation, known[cid]["track_kind"]
+        ):
+            raise ValueError(f"complete event pass lacks independent witness: {key}")
+        keyed[key] = observation
+    entries = []
+    for rom in RELEASE_ROMS:
+        for course in courses:
+            note = keyed.get((rom, course["id"]))
+            row = {
+                "rom": rom, "course_id": course["id"],
+                "stream_index": course["stream_index"],
+                "name": course["name"], "tour": course["tour"],
+                "event_kind": course["track_kind"],
+                "expected_events": (
+                    list(STUNT_EVENTS) if course["track_kind"] == "stunt"
+                    else list(RACE_EVENTS)
+                ),
+                "status": note["status"] if note else "unverified",
+                "evidence_ref": note["evidence_ref"] if note else None,
+                "coverage_note": note.get("coverage_note") if note else None,
+            }
+            entries.append(row)
+    counts = Counter(row["status"] for row in entries)
+    by_rom = {rom: dict(sorted(Counter(
+        row["status"] for row in entries if row["rom"] == rom
+    ).items())) for rom in RELEASE_ROMS}
+    by_family = {kind: dict(sorted(Counter(
+        row["status"] for row in entries if row["event_kind"] == kind
+    ).items())) for kind in SLOT_KINDS}
+    return {
+        "schema_version": 1,
+        "source_catalog": "analysis/data/course-corpus.json",
+        "source_observations": "analysis/data/course-event-runtime-evidence.json",
+        "meaning": "release-event acceptance, not RNC/parser or static contact coverage",
+        "regions": list(RELEASE_ROMS),
+        "denominators": {
+            "courses_per_rom": 45,
+            "required_region_course_cases": len(entries),
+            "race_circuit_cases": sum(r["event_kind"] != "stunt" for r in entries),
+            "stunt_cases": sum(r["event_kind"] == "stunt" for r in entries),
+            "family_cases_per_region": 9,
+        },
+        "status_counts": dict(sorted(counts.items())),
+        "by_rom": by_rom, "by_event_family": by_family,
+        "entries": entries,
+        "limits": [
+            "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
+            "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
+            "Input-only Jumpover reward thresholds are partial; no timed stunt result was certified.",
+            "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
+            "A complete pass requires original menu entry, player result and event-relative independent reference comparison.",
+        ],
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--catalog", type=Path, default=CATALOG)
+    parser.add_argument("--evidence", type=Path, default=EVIDENCE)
+    parser.add_argument("--out", type=Path, default=OUTPUT)
+    parser.add_argument("--check", action="store_true")
+    args = parser.parse_args()
+    report = build_census(
+        json.loads(args.catalog.read_text(encoding="utf-8")),
+        json.loads(args.evidence.read_text(encoding="utf-8")),
+    )
+    rendered = json.dumps(report, indent=2) + "\n"
+    if args.check:
+        if not args.out.exists() or args.out.read_text(encoding="utf-8") != rendered:
+            raise SystemExit("course-event census is missing/stale; regenerate")
+    else:
+        args.out.parent.mkdir(parents=True, exist_ok=True)
+        args.out.write_text(rendered, encoding="utf-8")
+    print(json.dumps(report["denominators"], sort_keys=True))
+    print(json.dumps(report["status_counts"], sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

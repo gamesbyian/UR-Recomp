@@ -64,14 +64,15 @@
         "docs/QA02-RUN-MATCH-DURABILITY.md",
         "docs/QA02-GHOST-DATA-DURABILITY.md",
         "docs/QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md",
-        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md"
+        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md",
+        "docs/QA02-GHOST-FUTURE-SCHEMA.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Finish #1042 exact on-disk pending-attempt fencing after fresh PR CI. Then implement independently executed C14/C15 forced process-cut and C04 selector/SRAM fault injection, with exact receipt inventory before/after restart; capture packaged Windows two-instance J-02/J-07/J-08, disk-full, interrupted upgrade and power-off L4 witnesses.",
+      "next_action": "Review and merge #1044 ghost future-schema downgrade protection after green CI. Capture real fresh-executable hard-kill C04, C09, C14 and C15, two-process pending-owner arbitration, controlled disk-failure and older/newer upgrade restores; pin Windows portable ZIP SHA-256 and independently execute J-02/J-07/J-08 at L4.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -98,9 +99,10 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1035",
         "https://github.com/gamesbyian/UR-Recomp/pull/1038",
         "https://github.com/gamesbyian/UR-Recomp/pull/1041",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1042"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1042",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1044"
       ],
-      "remaining_release_risk": "Merged #1033 staged .urrun/.urmatch OS data flush, #1035 .urghost data flush before replace, #1038 immutable tournament archive create-only CAS, and #1041 create-only old active-session archive migration with exact same-plan winner verification. Earlier QA-02 store/profile/catalog/global CAS and C01 pristine orphan recovery (#982-#1032) remain accepted only in scoped native tests. #1042 adds on-disk pending token validation held through receipt publication, native C14/C15 restore cuts; CI still pending. Group atomicity across framework save.srm, host profile/catalog/global selector, run/match/ghost, fixture receipt and pending checkpoint is not guaranteed. Abandoned-but-progressed profile and inert tournament orphans need explicit salvage. Postpublication directory durability, storage-controller power failure, exact packaged Windows two-instance J-02/J-07/J-08 and disk-full/upgrade fault acceptance absent. P0 L4 in_progress, no release witness."
+      "remaining_release_risk": "Merged through #1042 exact-on-disk pending launch attempt fencing held under OS lock through immutable fixture receipt commit, plus native C14 (valid run/match without receipt awards no points) and C15 (receipt published before pending retirement restores once) bounded tests. Previous #1033/#1035 staged run/match/ghost byte flushing; #1038 immutable archive create-only and #1041 legacy archive CAS migration; earlier profile/catalog/global/active-session CAS, compensating rollback and narrow C01 pristine-orphan recovery are merged. #1044 proposes preserving checksum-valid future-version .urghost during downgraded writer replacement and is pending CI. Group atomicity across framework save.srm, profile/roster/global selector, run/match/ghost, fixture receipt and pending still absent; two concurrent live fixtures can supersede pending and strand an otherwise valid run. No independent-process kill C04/C14/C15 or packaged Windows J-02/J-07/J-08 disk-full/upgrade/power-loss L4 witness. Postcommit directory durability remains uncertain. QA-02 P0 in_progress."
     },
     {
       "id": "QA-03",

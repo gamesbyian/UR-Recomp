@@ -106,6 +106,33 @@ to discriminate these causes before changing production composition.
 Do not promote the bottom-rider discrepancy into a fully diagnosed
 priority bug without aligned authoritative rendering evidence.
 
+## Initial OBJ-only native bottom-racer discriminator
+
+A first OBJ-only native render was retained as workflow
+`37876563359`, artifact `11592612779`, PPM SHA256
+`16871b305533f0ecb68b92c062b30934edc7dcaf6b2b8a56457e53ae2ca86b0b`.
+Its PPU backdrop is exactly RGB `#FF0000` on **56,420/57,344**
+pixels, confirming why treating all nonblack pixels as opaque objects
+would be catastrophically misleading.
+
+Excluding that backdrop, within the *expected* live frame-1220 OAM
+footprints (X=104–167, top Y=40–103, bottom Y=153–216), the
+source-only PPU screenshot has **371** nonbackdrop pixels in the upper
+racer and **zero** in the lower racer. This is a concrete visual
+counterexample candidate: the full HD screenshot shows the lower rider,
+while the corresponding Original screenshot does not visibly expose it
+above the large white directional graphic.
+
+**This first sample cannot yet establish a priority violation**:
+the masked native process captured frame 1220 at a guest state matching
+Original/HD frame **1219**, not frame 1220. Exact state matching places
+the proper masked snapshot at native frame **1221**, and the independent
+capture-removal run's matching snapshot at **1219**. The revised
+acceptance reads the per-present image sequences, aligns exact eight-word
+guest state, and compares only the matched source frames. Until that
+succeeds, the 371/0 numbers are explicitly exploratory rather than a
+verified same-frame pixel or layer-priority finding.
+
 ## Direct native stock-removal test
 
 A separate opt-in `UR_RACER_HD_CAPTURE_ONLY=1` host run arms exactly

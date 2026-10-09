@@ -119,6 +119,38 @@ match exactly, and all HD changes must stay inside the four actual
 OAM bounding footprints. This is one explicit compositing check,
 not foreground-occlusion correctness.
 
+## Native 2,641-frame P1-only comparison, same input fixture
+
+The previously proposed long native comparator now has accepted exact
+native PPU/host evidence. Run `37873082202` / artifact
+`11591785951`, using `two-player-p1-win.input` and
+`UR_RACER_HD_P1_ONLY=1`, produced **169 full-pair HD frames**,
+**902 HD-P1/stock-P2 frames**, and **1,570 all-Original frames**.
+Every guest frame 1180–3820 was presented, zero armed captures missed
+their HD draw, and actual HD player-frame coverage is
+**1,240/5,282 = 23.48%**. Frame-level *any-HD* availability
+is 1,071/2,641 = 40.55%, a different statistic. The production
+default remains pair-only (169/2,641 both-HD native frames in this
+same run).
+
+The diagnostic also produces 179 HD episodes, 24 one-frame episodes
+and **358 actual HD/Original switches**, which require meaningful
+moving-scene visual review before P1-only is ever player-facing.
+The existing original-stock P2 pixel preservation acceptance passed
+but independent foreground BG priority is still open.
+
+The Snes9x reference and native host use the **same input file** but
+are *not frame-exact state-aligned*. The nominal Snes9x figures
+170 full-pair selected and 984 P1-only candidates cannot be
+subtracted from native 169/902 as a 1-frame/82-frame capture
+failure count. Native and reference disagree about **59 native
+pair-draw omissions and 58 native pair-draw additions at identical
+absolute guest-frame IDs**. Compare event-relative WRAM composition
+to qualify differences. See
+[`RACER-HD-PAIR-GATE-COVERAGE.md`](RACER-HD-PAIR-GATE-COVERAGE.md)
+and the hash-bound
+[`racer-hd-p1-only-native-coverage-2026-10-09.json`](../analysis/generated/racer-hd-p1-only-native-coverage-2026-10-09.json).
+
 ## What this still cannot prove
 
 - A successful `hd` callback **does not** establish correct occlusion

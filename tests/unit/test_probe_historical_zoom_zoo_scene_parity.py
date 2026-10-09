@@ -101,6 +101,19 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
         self.assertIn("dump race-plus-0630", script)
         self.assertEqual(script.count("dump race-plus-"), len(probe.CHECKPOINTS) - 1)
         self.assertEqual(probe.DENSE_CONTACT_WINDOWS, ((190, 230), (590, 630)))
+        self.assertEqual(probe.ORIGINAL_PROGRESSION_WRITE_FRAMES,
+                         (3408, 3794, 4031, 4722, 4911))
+        self.assertEqual(probe.ORIGINAL_PROGRESSION_RELATIVE_FRAMES,
+                         (218, 604, 841, 1532, 1721))
+        self.assertEqual(probe.ADDITIONAL_EVENT_WINDOWS,
+                         ((833, 849), (1524, 1540), (1713, 1729)))
+        self.assertEqual(len(probe.CHECKPOINTS), 151)
+        for event in probe.ORIGINAL_PROGRESSION_RELATIVE_FRAMES:
+            for offset in (-1, 0, 1):
+                self.assertIn(event + offset, probe.CHECKPOINTS)
+        for start, end in probe.ADDITIONAL_EVENT_WINDOWS:
+            self.assertTrue(all(frame in probe.CHECKPOINTS
+                                for frame in range(start, end + 1)))
         for start, end in probe.DENSE_CONTACT_WINDOWS:
             self.assertTrue(all(frame in probe.CHECKPOINTS for frame in range(start, end + 1)))
         self.assertEqual(script.count("quit"), 1)

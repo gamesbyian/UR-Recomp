@@ -140,8 +140,12 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
                 "UR_BALDOSA_FATAL original density fallback changed pixels\n");
             std::abort();
         }
+        // Spread stock snapshots across the route's changing frontend and
+        // prerace interval, not three adjacent redraws of one static menu.
         if (g_frame >= 400 && g_frame <= 1700 &&
-            g_fallback_captured < 3 && g_last_fallback_frame != g_frame) {
+            g_fallback_captured < 6 &&
+            (g_last_fallback_frame == 0 ||
+             g_frame - g_last_fallback_frame >= 240)) {
             const bool saved = save_presented_pam(
                 dst, pitch, frame_w * scale, frame_h * scale, g_frame,
                 "ur-baldosa-fallback");

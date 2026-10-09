@@ -196,6 +196,76 @@ class HostPersistenceProcessTests(unittest.TestCase):
                 call("profile", "root-reusable", retry_root).returncode, 6
             )
 
+            # A killed process can leave a *complete initial* profile before
+            # its catalog row is written. Only this exact initial snapshot,
+            # and no other save artifacts, may be offered for explicit claim.
+            pristine = root / "unregistered-initial"
+            orphan_profile = pristine / "host-profile.txt"
+            crashed_orphan = call("profile", "orphan-crash", pristine, 4)
+            self.assertEqual(
+                crashed_orphan.returncode, 78, crashed_orphan.stderr
+            )
+            self.assertTrue(orphan_profile.exists())
+            self.assertFalse((root / "orphan-claim-catalog.dat").exists())
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 0
+            )
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 5).returncode, 6,
+                "a different complete SRAM snapshot is not the requested racer",
+            )
+            old_progress = pristine / "save.srm"
+            old_progress.write_bytes(b"do not adopt old progression")
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+            old_progress.unlink()
+            staging = pristine / ".pending-urprofile-interrupted"
+            staging.mkdir()
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+            staging.rmdir()
+            # Two separate games explicitly claim the exact same pristine
+            # orphan. One registrar wins; neither may erase its profile, and
+            # the catalog must authorize precisely one complete entry.
+            claim_catalog = root / "orphan-claim-catalog.dat"
+            claim_children = [
+                subprocess.Popen(
+                    [str(exe), "profile", "orphan-claim",
+                     str(pristine), "4", str(claim_catalog)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                for _ in range(2)
+            ]
+            claim_statuses = []
+            for child in claim_children:
+                _, stderr = child.communicate(timeout=12)
+                claim_statuses.append(child.returncode)
+                self.assertIn(child.returncode, (0, 6), stderr)
+            self.assertEqual(sorted(claim_statuses), [0, 6])
+            self.assertEqual(read_value("profile", orphan_profile), 4)
+            catalog_result = call("catalog", "cas-roster-read", claim_catalog)
+            self.assertEqual(catalog_result.returncode, 0, catalog_result.stderr)
+            self.assertEqual(
+                catalog_result.stdout.decode().strip(), "1 qa-profile"
+            )
+            self.assertEqual(
+                subprocess.run(
+                    [str(exe), "profile", "orphan-claim",
+                     str(pristine), "4", str(claim_catalog)],
+                    cwd=ROOT, capture_output=True,
+                ).returncode,
+                6,
+                "an already-registered orphan cannot claim another row",
+            )
+            self.assertEqual(
+                call("profile", "write", orphan_profile, 5).returncode, 0
+            )
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+
             # Compare-and-swap uses the exact prior disk snapshot rather
             # than autosave_generation alone. Both children load the SAME
             # previous SRAM before either receives the "go" marker.

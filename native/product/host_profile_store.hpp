@@ -94,4 +94,12 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
 // symlinks, or other unknown preexisting data.
 bool reusable_aborted_profile_creation_root(const std::string& root_path);
 
+// For an explicit Create retry after process death *between* initial profile
+// publication and catalog insertion, admit only a real directory containing
+// a regular host-profile.txt and optional regular persistent mutex file.
+// The caller must ALSO hold the profile OS lock, decode and compare the
+// complete canonical profile against its freshly constructed clean snapshot
+// until the catalog expected-roster CAS succeeds.
+bool pristine_unregistered_profile_creation_root(const std::string& root_path);
+
 }  // namespace ur::product

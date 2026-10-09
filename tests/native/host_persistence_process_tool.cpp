@@ -4,6 +4,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <algorithm>
 #include <array>
@@ -27,6 +28,12 @@ HostProfileState profile(unsigned value) {
     std::array<std::uint8_t, kStockSramBytes> sram{};
     sram.fill(static_cast<std::uint8_t>(value));
     state.stock_sram = sram;
+    return state;
+}
+
+HostProfileState initial_unregistered_profile(unsigned value) {
+    auto state = profile(value);
+    state.racer_identity = HostRacerIdentity{"QA Racer", 2u};
     return state;
 }
 
@@ -148,6 +155,51 @@ int main(int argc, char** argv) {
             path, *loaded.state, next);
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "profile" && action == "orphan-crash") {
+        const std::filesystem::path root(path);
+        std::error_code ec;
+        std::filesystem::create_directories(root, ec);
+        if (ec) return 9;
+        const auto profile_path = (root / "host-profile.txt").string();
+        const auto status = save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, profile_path, std::nullopt,
+            initial_unregistered_profile(value));
+        if (status != HostProfileSaveStatus::Saved) return 9;
+        // Same first-phase production CAS, no catalog row: sudden death at
+        // the boundary after a completed profile publication.
+        std::_Exit(78);
+    }
+    if (family == "profile" && action == "orphan-claim" && argc == 6) {
+        const std::string profile_path =
+            (std::filesystem::path(path) / "host-profile.txt").string();
+        TournamentLaunchPathLock lock(profile_path);
+        if (!lock.acquired()) return 9;
+        if (!pristine_unregistered_profile_creation_root(path)) return 6;
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern, profile_path, "qa-profile");
+        if (!loaded.loaded() || !(*loaded.state == initial_unregistered_profile(value))) return 6;
+
+        const std::string catalog_path(argv[5]);
+        const auto current = load_host_profile_catalog_file(catalog_path);
+        if (!current) return 9;
+        for (const auto& entry : *current) {
+            if (entry.profile_id == "qa-profile") return 6;
+        }
+        auto next = *current;
+        next.push_back({"qa-profile", {"QA Racer", 2u}});
+        const auto published = save_host_profile_catalog_file_if_current(
+            catalog_path, *current, next);
+        return published == HostProfileCatalogSaveStatus::Saved ? 0 :
+               published == HostProfileCatalogSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "profile" && action == "root-pristine") {
+        if (!pristine_unregistered_profile_creation_root(path)) return 6;
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern,
+            (std::filesystem::path(path) / "host-profile.txt").string(),
+            "qa-profile");
+        return loaded.loaded() && *loaded.state == initial_unregistered_profile(value) ? 0 : 6;
     }
     if (family == "profile" && action == "root-reusable") {
         return reusable_aborted_profile_creation_root(path) ? 0 : 6;

@@ -90,19 +90,24 @@ mutations. This does not provide atomicity across the profile file and catalog
 file, nor recovery from a hard kill between the two commits. Cross-artifact
 transaction and orphan-profile restoration remain QA-02 P0 follow-ups.
 
-### Conditional cleanup of a failed profile registration
+### Profile preservation on failed catalogue registration
 
-After a new profile file is created but the catalog CAS conflicts, the old
-code unconditionally removed the profile pathname. An intervening process
-could already have updated that file, so the registration loser would then
-delete the winner's newer SRAM. Production cleanup now calls
-`remove_host_profile_state_file_if_current` using the exact profile snapshot
-it originally authored, holding the same per-path OS lock during comparison
-and unlink. An intervening write causes `Conflict` and preserves the valid
-newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
-claiming rollback. The process fixture tests both refused stale deletion
-and permitted exact deletion. A crash before catalog publication still
-leaves an orphaned but intact profile requiring separate recovery policy.
+Historical regression #1003 introduced exact-state conditional deletion instead of
+unconditional deletion so a losing registrar could not erase an intervening
+writer's newer SRAM. The production registration policy has subsequently
+tightened: **failed catalogue CAS now preserves the first-phase profile**
+even if its bytes still equal our initial snapshot. A separate process could
+already have registered exactly those bytes into the authoritative catalogue
+after this instance observed the old roster; deleting them, even through
+profile-only CAS, would destroy the newly authorized racer's only snapshot.
+The `remove_host_profile_state_file_if_current` primitive remains useful and
+its process fixture still proves stale deletion refusal, but it is **not**
+called by the current profile-create CAS-failure path.
+
+A failed registration keeps an explicitly unregistered, bounded initial
+profile for a future exact-state retry; it never invents a catalogue row
+silently. This trades a safe temporary orphan for the stronger invariant that
+a competing registration winner cannot lose its progress.
 
 ## Live SRAM second-phase write failure (2026-10-09)
 
@@ -162,3 +167,44 @@ could retry against the same stale roster forever; an eligible lock-only root
 alone would not make the operation retryable. A malformed/unavailable roster
 is never synthesized or saved. The UI remains explicitly failure-reporting;
 the user initiates the next retry.
+
+## Explicit recovery of an exact pristine orphan (2026-10-09)
+
+A process may die after publishing a brand-new `host-profile.txt` but before
+the catalogue row, leaving a complete initial SRAM mirror that ordinary
+profile selection cannot discover. When the player explicitly uses Create
+with the **same name and racer preset**, the host computes the expected
+initial clean `HostProfileState` from the canonical clean stock SRAM and
+accepts recovery only if all of these hold:
+
+- The existing profile root is a real directory, not a symlink.
+- Its only entries are a regular `host-profile.txt` and optional regular
+  `host-profile.txt.urmutex`. Existing `save.srm`, staging directories,
+  ghost/run data, symlinks or unknown entries force refusal.
+- While holding that profile's persistent OS-handle mutex, the decoded
+  complete on-disk profile equals the exact freshly computed initial
+  state, including identity, generation, stock SRAM bytes, continuation,
+  ghost preference and Recent Course.
+- The profile lock remains held while the authoritative catalog
+  expected-roster CAS attempts to publish this single new entry.
+
+On success the original profile bytes are not rewritten and the existing
+activation route takes over. On catalogue contention or I/O failure the
+initial profile is **preserved**, the in-memory tentative row is undone,
+and the latest readable authoritative roster is reloaded for a later
+explicit attempt. This prevents a losing registrar from removing a
+second process's already-authorized profile when both were registering
+the exact same initial bytes.
+
+The native process fixture covers exact-state match and rejection of
+foreign snapshots, pre-existing `save.srm` and interrupted staging.
+The production source contract checks the cross-file lock lifetime and
+preservation of the first-phase profile on catalogue failure.
+
+**Nonclaims:** This does not recover an older progressed, renamed or
+corrupt unlisted profile, nor an orphan root still containing crash debris
+from a kill between rename and staging cleanup. It is not an automatic
+boot-time adoption mechanism and does not make the initial profile and
+catalogue row a single power-loss-durable commit. Fail-closed diagnostic
+and separate salvage policy remain required for those cases. QA-02 stays
+P0 until exact packaged Windows L4 fault acceptance.

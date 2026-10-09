@@ -242,4 +242,27 @@ bool reusable_aborted_profile_creation_root(const std::string& root_path) {
     return !ec;
 }
 
+
+bool pristine_unregistered_profile_creation_root(const std::string& root_path) {
+    namespace fs = std::filesystem;
+    if (root_path.empty()) return false;
+    const fs::path root(root_path);
+    std::error_code ec;
+    if (fs::symlink_status(root, ec).type() != fs::file_type::directory ||
+        ec) return false;
+    bool has_profile = false;
+    fs::directory_iterator it(root, ec);
+    if (ec) return false;
+    for (; it != fs::directory_iterator{}; it.increment(ec)) {
+        if (ec) return false;
+        const auto name = it->path().filename();
+        if (name != "host-profile.txt" &&
+            name != "host-profile.txt.urmutex") return false;
+        if (it->symlink_status(ec).type() != fs::file_type::regular ||
+            ec) return false;
+        if (name == "host-profile.txt") has_profile = true;
+    }
+    return !ec && has_profile;
+}
+
 }  // namespace ur::product

@@ -17,6 +17,20 @@ Modern mode adds *host-owned* presentation and conveniences, without a second ga
 
 **Deferred until one complete Windows product journey is proven:** other OS/console/browser ports, online multiplayer, custom courses/editor, extravagant material/cosmetic variants, new replay editors and speculative original-code archaeology. These remain desirable later; they are not immediate QA gates. See [PLATFORM-TARGETS.md](PLATFORM-TARGETS.md), [MODERN-FRONTEND-MASTER-DESIGN.md](MODERN-FRONTEND-MASTER-DESIGN.md) and [MODERN-RACER-COSMETICS.md](MODERN-RACER-COSMETICS.md).
 
+## Racer identity and legacy cast
+
+Profiles are modern, independent player/save identities. Racer selection is separate: preserve the **16 original racer name/colour presets** precisely, including the canonical stock opponent identities **Bronsen, Silvia, Goldwyn and ANTI-UNI**; do not invent new personalities for them or make a preset a cartridge SRAM slot. Modern permits independently chosen legacy presets for P1/P2. Human-entered racer names, including names blocked by the original profanity/rejection grid, are permitted in the Modern host with a friendly acknowledgment; retain the stock rejection dialogue in Authentic mode. For guest-sized name constraints, derive a stable compatible alias rather than truncating or corrupting the persisted Modern name. Appearance/customization remains host-owned and must not modify simulation.
+
+## Modern frontend product policy
+
+Modern replaces original cartridge-era **administrative** friction, not gameplay or recognisable presentation artifacts. The top level is **Play / Practice / Multiplayer / Records / Options**, with visible racer/profile access. Play owns tours, Practice owns Quick Practice and retries, Multiplayer owns fast local join/VS and Local Tournament, Records joins classic results with durable PB/Previous/run/ghost/tournament records, and Options contains preferences, controls and accessibility rather than unrelated programme administration. Every destination must be controller-discoverable without undocumented shortcuts.
+
+Retain the stock attract/demo cycle, recognizable menus, indicators and result rituals as Authentic behaviour and visual references; Modern may extend them with clear additional actions, not erase them. Modern replaces stock sequential P1→P2 rider selection with independent local join; stock League administration becomes **host-persisted Local Tournament** with round-robin points default and original League as an Authentic view. Results offer contextual **Next Event / Retry / Track Select / Tour Select / Records** while preserving the original result presentation. Support ordinary keyboard text and controller on-screen keyboard instead of requiring the original cartridge alphabet grid. Avoid a second generic UI router or hidden F-key-only modes. See [MODERN-FRONTEND-MASTER-DESIGN.md](MODERN-FRONTEND-MASTER-DESIGN.md) and [MODERN-PRODUCT-LAYER.md](MODERN-PRODUCT-LAYER.md).
+
+## Modern progression policy
+
+Original timers, opponents, medal thresholds, hidden eligibility and track results remain unchanged. Authentic mode keeps original **Bronze → Silver → Gold sequential clears**. Modern lets a player choose Bronze, Silver or Gold challenge tier, records the cleared tier and satisfies lower tiers when a higher tier is completed. **Bronsen, Silvia and Goldwyn** remain the stock tier opponents. Hidden/Hunter discovery stays secret and may use highest canonical cleared tiers without exposing a spoiler checklist. Modern host saves per-profile current tour, racer and settled events, and offers explicit **Resume Tour / Restart Tour** without overwriting stock progression/SRAM. Never fabricate event completion to satisfy a new UX path.
+
 ## One simulation, independent product layers
 
 ```text

@@ -149,6 +149,14 @@ int main(int argc, char** argv) {
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
     }
+    if (family == "profile" && action == "root-pristine") {
+        if (!pristine_unregistered_profile_creation_root(path)) return 6;
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern,
+            (std::filesystem::path(path) / "host-profile.txt").string(),
+            "qa-profile");
+        return loaded.loaded() && *loaded.state == profile(value) ? 0 : 6;
+    }
     if (family == "profile" && action == "root-reusable") {
         return reusable_aborted_profile_creation_root(path) ? 0 : 6;
     }

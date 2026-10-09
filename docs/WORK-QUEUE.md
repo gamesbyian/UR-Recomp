@@ -1,5 +1,17 @@
 # Work Queue
 
+## Racer Studio material customization work queue (2026-10-08)
+
+**Planned, not shipped.** Source contracts: [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md), [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Four independent slots: tire, rim/spokes, frame/body, saddle. Exact legacy presets preserved. The showcase hero must immediately reflect draft changes; actual racing poses must ultimately match.
+
+1. **P1 research/foundation (safe separate art/data lane):** audit actual racer palette sharing and per-pose pixel ownership; capture ambiguous boundaries and source-based classic colour fixtures. Define host-owned stable material IDs and four-part mask/layer schema. Do not claim arbitrary SNES palette recolour works until proved.
+2. **P1 interactive pilot (after Racer Studio UI owner is ready):** editable four-part curated colour swatches on prominent animated 2D hero, immutable classic presets, visible draft/Apply/Cancel, colour-independent focus, source-faithful original mode.
+3. **P1/P2 coverage gate:** host renderer shares appearance configuration with in-race racers, validates masks for all advertised poses, 1P/2P, HD fallback, flips, split, Widescreen and scales; bounded persistent racer appearance survives fresh process. If full race coverage is incomplete, retain as internal preview pilot, not a shipped cosmetic picker. Verify guest determinism unchanged.
+4. **P2 post-baseline texture catalog:** tire treads, metallic/painted rim variants, frame and saddle finishes, supported by authored material/detail assets. Optional free RGB selection, animated/glowing effects and extensive finishes follow evidence-backed contrast and reduced-flashing support.
+
+Acceptance: paired showroom/race screenshots for each slot and modes, deterministic zero guest-state difference, legacy exactness, process-restart persistence, invalid-asset fallback, cancel rollback, controller-only usage and no phantom visual resets across animation transitions. Root/frontend release is not blocked by post-baseline cosmetic completeness.
+
+
 ## Modern menu design implementation queue (2026-10-08)
 
 **Design source:** [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Use [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md) for verified current routes and [`MODERN-UI-VISUAL-FIDELITY.md`](MODERN-UI-VISUAL-FIDELITY.md) for mandatory stock-family presentation. This is planned work, not a claim the five-destination root or finished art has shipped. Preserve existing feature ownership and coordinate with active frontend agents before edits.

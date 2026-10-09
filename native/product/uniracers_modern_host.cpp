@@ -181,6 +181,7 @@ std::string g_main_menu_strip_reported;
 // existing profile, records, options or stock title authorities.
 ur::product::ModernRootMenu g_modern_root_menu{};
 bool g_modern_root_quit_confirm = false;
+bool g_modern_root_draw_reported = false;
 bool g_modern_root_transfer = false;
 // Bounded stock-title cursor handoff to 1P or 2P. No guest SRAM or shadow
 // gameplay/menu authority; input is sent through the existing route transport.
@@ -5659,7 +5660,11 @@ bool modern_root_confirm() {
         if (tour_continue_available()) return open_tour_action_menu();
         return begin_modern_root_stock_entry(0);
     case ur::product::ModernRootDestination::Practice:
-        return open_practice_picker();
+        if (!open_practice_picker()) {
+            product_diagnostic("UR_MODERN_ROOT PRACTICE_UNAVAILABLE");
+            return false;
+        }
+        return true;
     case ur::product::ModernRootDestination::Multiplayer:
         return begin_modern_root_stock_entry(1);
     case ur::product::ModernRootDestination::Records: {
@@ -5672,7 +5677,11 @@ bool modern_root_confirm() {
         return opened;
     }
     case ur::product::ModernRootDestination::Options:
-        return open_frontend_options();
+        if (!open_frontend_options()) {
+            product_diagnostic("UR_MODERN_ROOT OPTIONS_UNAVAILABLE");
+            return false;
+        }
+        return true;
     }
     return false;
 }
@@ -7722,6 +7731,10 @@ extern "C" int ur_uniracers_modern_system_key_down(
         if (key == SDLK_ESCAPE) return modern_root_back() ? 1 : 0;
         if (key == SDLK_F2) { open_profile_menu(); return 1; }
         if (key == SDLK_F5) return open_practice_picker() ? 1 : 0;
+        if (key == SDLK_F9) return open_frontend_controls() ? 1 : 0;
+        if (key == SDLK_F7) return open_progress_overview() ? 1 : 0;
+        if (key == SDLK_F6 && recent_course_available_for_active_profile())
+            return launch_recent_course_practice() ? 1 : 0;
         if (key == SDLK_F10) return open_frontend_options() ? 1 : 0;
         if (key == SDLK_F8) {
             g_modern_root_transfer = true;
@@ -9834,6 +9847,11 @@ extern "C" void ur_uniracers_modern_system_overlay(
     }
 
     if (modern_root_visible()) {
+        if (!g_modern_root_draw_reported &&
+            std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            g_modern_root_draw_reported = true;
+            product_diagnostic("UR_MODERN_ROOT PRESENT");
+        }
         // One full, legible Modern shell. Keep the measured stock BG2 palette,
         // title shadow and cursor emphasis; at wider logical viewports add a
         // separate detail region instead of stretching the 4:3 list.

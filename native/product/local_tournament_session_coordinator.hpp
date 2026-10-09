@@ -29,7 +29,7 @@ struct LocalTournamentCoordinator {
     LocalTournamentCoordinatorPaths paths;
     // OS-handle live fixture lease, held across the guest race by the host.
     // Copies share ownership; death of the last process releases it.
-    std::shared_ptr<TournamentLaunchPathLock> live_fixture_lock;
+    std::shared_ptr<TournamentLaunchPathLock> live_fixture_lock{};
 };
 
 enum class LocalTournamentCoordinatorStatus {

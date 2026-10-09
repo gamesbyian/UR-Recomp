@@ -251,5 +251,6 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-evidence/*.exit
             ${{ runner.temp }}/baldosa-evidence/*/log.txt

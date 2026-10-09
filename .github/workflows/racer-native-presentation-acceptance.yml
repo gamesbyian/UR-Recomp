@@ -8,6 +8,7 @@ on:
       - "tools/apply_native_racer_presentation_probe.py"
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
+      - "tools/measure_racer_hd_live_draws.py"
       - "tools/probe_racer_hd_fallback_family.py"
       - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
@@ -27,6 +28,7 @@ on:
       - "tests/unit/test_summarize_racer_semantic_trace.py"
       - "tests/unit/test_check_racer_presentation_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
+      - "tests/unit/test_measure_racer_hd_live_draws.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
@@ -250,7 +252,31 @@ jobs:
 
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
-          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1
+          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1 UR_RACER_HD_CENSUS=1
+
+          # These are actual host presentation results, not registration matches.
+          python3 tools/measure_racer_hd_live_draws.py \
+            "$HD_LOG" --json-out "$RUNNER_TEMP/racer-hd-live-census.json" \
+            > "$RUNNER_TEMP/racer-hd-live-census.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-live-census.json" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1], encoding="utf-8"))["measurement"]
+          assert m["guest_frames_with_host_presents"] >= 100, m
+          assert m["hd_drawn_guest_frames"] > 0, m
+          assert m["original_presented_guest_frames"] > 0, m
+          assert m["capture_armed_guest_frames"] >= m["hd_drawn_guest_frames"], m
+          assert m["hd_run_count"] > 0, m
+          assert m["player_frame_denominator"] == 2 * m["guest_frames_with_host_presents"], m
+          print(
+              "UR_RACER_HD_LIVE_CENSUS PASS "
+              f"hd={m['hd_drawn_guest_frames']} "
+              f"presented={m['guest_frames_with_host_presents']} "
+              f"fallback={m['original_presented_guest_frames']} "
+              f"bursts={m['hd_run_count']} "
+              f"switches={m['draw_mode_switches']} "
+              f"player_hd={m['hd_drawn_player_frames']}"
+          )
+          PY
 
           for stem in original-a original-b hd; do
             python3 tools/summarize_racer_semantic_trace.py \
@@ -1448,6 +1474,8 @@ jobs:
             ${{ runner.temp }}/racer-original-a.log
             ${{ runner.temp }}/racer-original-b.log
             ${{ runner.temp }}/racer-hd.log
+            ${{ runner.temp }}/racer-hd-live-census.json
+            ${{ runner.temp }}/racer-hd-live-census.txt
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm

@@ -35,6 +35,13 @@ class Baldosa2014ZooSceneTest(unittest.TestCase):
         self.assertEqual([l for l in route.splitlines() if l.startswith("press ")],
                          [l for l in prefix.splitlines() if l.startswith("press ")])
         self.assertNotIn("press left 6000", route)
+        boundary = mod.render_fixed_boundary(prefix)
+        self.assertNotIn("until 009F == BC", boundary)
+        self.assertIn("wait 5158\ndump boundary-05158\n", boundary)
+        self.assertIn("dump boundary-05175\nquit\n", boundary)
+        self.assertEqual(boundary.count("dump boundary-"), len(mod.BOUNDARY_FRAMES))
+        self.assertEqual([l for l in boundary.splitlines() if l.startswith("press ")],
+                         [l for l in prefix.splitlines() if l.startswith("press ")])
         for frame in mod.PROGRESS_FRAMES:
             self.assertIn(f"dump progress-{frame:04d}\n", route)
         with self.assertRaises(ValueError):

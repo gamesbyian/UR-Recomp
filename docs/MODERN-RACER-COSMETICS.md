@@ -1,5 +1,12 @@
 # Modern racer cosmetics and contributor crown Easter egg
 
+## Racer Studio preview integration (2026-10-08)
+
+The intended racer-creation screen has a **large, animated unicycle showroom hero**, not a static thumbnail. Baseline animations are side-on racing-in-place, wheel motion, small hops, restless shimmies and occasional stunts. Each supported colour, legacy preset and accessory edit previews immediately before commitment. A real vertical-axis 3D turntable is not required and cannot be reconstructed from the known side-view SNES/OAM sprite frames alone. Prefer a 2D frontend-only composited animator that reuses verified racer poses, anchor geometry and optional authored in-between drawings; do not drive a hidden guest race. Keep uncommitted preview state separate from active racer/profile persistence, and discard it on Cancel. Source the honorary crown from the *previewed accepted name* in the same pure name policy, without saving a crown flag.
+
+Preview fidelity and in-race fidelity are separate gates: the showroom may use deliberately authored presentation frames, but must not advertise an accessory as available in races until the gameplay presentation pipeline supports it. On unsupported pose/cosmetic combinations, use validated fallback or suppress the accessory visibly and non-destructively. The same animation options must support reduced motion and render density, and must be testable without a 3D engine. See [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) for the detailed Racer Studio screen/animation contract.
+
+
 Status: **post-baseline planned feature**, architecture specification only (2026-10-08). No cosmetics renderer, cosmetic pose registry, persistence field or crown artwork is claimed to exist. Windows x64 shipping fidelity, gameplay, frontend and HD coverage remain higher priority.
 
 ## Product intent

@@ -86,6 +86,34 @@ class RacerForegroundDepthTests(unittest.TestCase):
         self.assertEqual(out["native_split_obj_opaque_pixels"], 1)
         self.assertEqual(out["potential_foreground_occlusion_overpaint_pixels"], 0)
 
+    def test_independent_original_obj_only_ppm_works_without_overlay_api(self):
+        isolated_stock = bytearray(WIDTH * HEIGHT * 3)
+        set_rgb(self.stock, 125, 42, [100, 10, 20])
+        set_rgb(isolated_stock, 125, 42, [100, 10, 20])
+        # Original foreground obscures the stock OBJ-only pixel.
+        set_rgb(self.stock, 126, 43, [0, 200, 0])
+        set_rgb(isolated_stock, 126, 43, [100, 10, 20])
+        # Black is indistinguishable from backdrop in P6 and must be excluded.
+        self.hd[:] = self.stock
+        set_rgb(self.hd, 125, 42, [200, 180, 90])
+        set_rgb(self.hd, 126, 43, [200, 180, 90])
+        got = analyze(
+            ppm(self.stock), ppm(self.stock), ppm(self.hd),
+            b"", placements(), 1220,
+            obj_only_ppm=ppm(isolated_stock),
+        )
+        self.assertEqual(got["native_split_obj_opaque_pixels"], 2)
+        self.assertEqual(got["potential_foreground_occlusion_overpaint_pixels"], 1)
+        self.assertIn("lower-bound", got["source_layer_classification"])
+
+    def test_empty_obj_only_frame_fails_instead_of_faking_zero_occlusion(self):
+        with self.assertRaisesRegex(ValueError, "no opaque racer"):
+            analyze(
+                ppm(self.stock), ppm(self.stock), ppm(self.hd),
+                b"", placements(), 1220,
+                obj_only_ppm=ppm(bytearray(WIDTH * HEIGHT * 3)),
+            )
+
     def test_missing_obj_pixels_and_bad_inputs_fail(self):
         with self.assertRaisesRegex(ValueError, "no opaque racer"):
             analyze(

@@ -12,10 +12,10 @@ from baldosa_2014_zoo_scene_route import BOUNDARY_FRAMES
 
 
 def log(entry):
-    return (f"script f={entry} dump scene-entered ok\n" +
-            "".join(f"script f={entry+frame} dump boundary-{frame:05d} ok\n"
-                    for frame in BOUNDARY_FRAMES)).replace("\\\n", "\n")
-
+    lines = [f"script f={entry} dump scene-entered ok"]
+    lines += [f"script f={entry+frame} dump boundary-{frame:05d} ok"
+              for frame in BOUNDARY_FRAMES]
+    return "\n".join(lines) + "\n"
 
 class FixedZooBoundaryTest(unittest.TestCase):
     def test_rejects_host_phase_or_missing_frame(self):

@@ -1,5 +1,10 @@
 # Semantic Sufficiency Scoreboard
 
+## Appearance/material semantic sufficiency (2026-10-08)
+
+Independently recolourable tire, rim, frame/body and saddle slots are a **planned design requirement**, not a proven source/graphics capability. Current racer registration and palette-asset selection enable pose/composition-guarded replacement but do not themselves identify per-part component pixels. A source-palette audit, per-pose provenance-backed material masks/layers, shared showroom/race composition, full pose/2P fallback coverage and fresh-process host appearance persistence remain unverified. Do not mark this feature `sufficient` or shipped from existing HD pose extraction or a showroom mock alone. Ownership and gates: [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md) and [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md).
+
+
 ## Modern frontend design readiness distinction (2026-10-08)
 
 [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) defines the planned screen tree, shared visual grammar, interaction semantics and acceptance matrix. This is **design readiness**, not proof of live player-facing implementation. In particular, the pure typed five-entry `modern_root_menu.hpp` remains distinct from a fully rendered/connected root; existing F-key/menu-context panels and production-looking graphics cannot be inferred from a design spec. The live surface-by-surface inventory and evidentiary status remain in [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md). The original-family visual quality bar is owned by [`MODERN-UI-VISUAL-FIDELITY.md`](MODERN-UI-VISUAL-FIDELITY.md). Require real packaged visual and controller-only QA before promoting this row to full release quality.

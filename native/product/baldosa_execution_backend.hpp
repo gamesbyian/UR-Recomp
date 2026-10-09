@@ -135,13 +135,19 @@ public:
     }
 
     BaldosaBackendStatus restart() noexcept {
-        if (phase_ != BaldosaBackendPhase::Running)
+        if (phase_ != BaldosaBackendPhase::Running &&
+            phase_ != BaldosaBackendPhase::Paused &&
+            phase_ != BaldosaBackendPhase::Finished)
             return BaldosaBackendStatus::InvalidPhase;
         if (!hooks_.restart_event) return BaldosaBackendStatus::MissingHook;
         if (!hooks_.restart_event(hooks_.context))
             return BaldosaBackendStatus::Rejected;
+        const bool keep_paused = phase_ == BaldosaBackendPhase::Paused;
         input_.reset();
+        if (keep_paused) input_.host_focus(true);
         frames_ = 0;
+        phase_ = keep_paused ? BaldosaBackendPhase::Paused
+                             : BaldosaBackendPhase::Running;
         return BaldosaBackendStatus::Applied;
     }
 

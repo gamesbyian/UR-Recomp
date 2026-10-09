@@ -111,9 +111,12 @@ in-session history**. The new producer independently replays the 2014
 original a second time to dump its exact course-loaded entry state, and
 compares rider IDs, positions, live lap/checkpoint/finish state and raw
 clock to both fresh guests. The report retains each mismatch under
-original_source_vs_fresh_entry; even a matched terminal PPU screen is
-**not promotable** while original-source baseline equivalence is
-unresolved. A one-frame snapshot discrepancy may be phase rather
+original_source_vs_fresh_entry. **Source-to-fresh equality is diagnostic,
+not a release veto:** if independently booted native and original are
+equal at entry, and both actually finish with equal frames, event states
+and terminal results, the fresh pairing is meaningful even if the source
+SMV's earlier tour state differed. A mismatch between the two fresh
+guests itself denies admission. A one-frame snapshot discrepancy may be phase rather
 than gameplay causality. If this gate blocks Zoo/Bowl, preserve the
 earlier original course outcomes by replaying the preceding stock
 tour sequence with authentic input, then independently recalibrate.

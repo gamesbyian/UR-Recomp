@@ -115,6 +115,14 @@ Two additional source-confirmed P0-contributing races were found outside the tou
 
 **Unclosed P0:** cross-artifact group atomicity, accurate re-entry after abrupt death during profile selector/framework SRAM publication (C04), actual fresh-executable crash cuts C14/C15, two live processes and abandoned checkpoint ownership, disk-full/read-only device and interrupted upgrade restoration, directory metadata persistence and packaged Windows/power-fault evidence. Keep QA-02 `in_progress` with zero L4 witnesses.
 
+### QA-02 live fixture ownership after process-crash acceptance, 2026-10-09
+
+**Merged #1050:** two simultaneously running native processes reproduce the original live fixture takeover: a newer pending checkpoint invalidates the older process's otherwise valid saved pair. The exact disk-token fence safely refuses the older fixture credit; nevertheless the old player's in-flight tournament work is stranded. This is confirmed, not a hypothetical race.
+
+**Proposed #1052:** fix the player-visible failure at its source by retaining a distinct nonblocking, OS-handle-owned fixture lease from arm through commit/cancel. Busy rival windows do not replace pending. Old game crashes (both `std::_Exit` and externally imposed hard kill) release the OS handle; a new explicit arm retries with a fresh token but cannot retroactively award the dead owner's run. Re-read exact active instance and receipt-derived completion under the lease to reject stale in-memory rearm. The panel shows `FIXTURE IN USE` for an alive rival. The previous exact-checkpoint fence remains defense in depth against noncooperating old binaries. **Do not merge #1052 without green fresh-head native CI.**
+
+**Remaining P0:** prove this behavior in two actually running packaged Windows game windows sharing one pinned ZIP/hash and root; verify UI retry/abandon clarity, process death and disk faults, C04 profile-selector/framework SRAM transaction, directory-entry power durability, and false-PB/receipt rejection across upgrade/downgrade. L2 source/native passes do not make J-02/J-07/J-08 an L4 pass.
+
 ## Immediate adversarial QA critical path (independently owned)
 
 **P0, blocking broad beta/release claims**: [QA-01] full playable-course and event-result census, including frame-phase-correct finish semantics; [QA-02] cross-artifact save/receipt/run/ghost crash and storage fault recovery; [QA-03] finish native/packaged 2P 3-leg and 3+ entrant tournament over multiple processes, plus P2 tournament-panel input-latch integrity; [QA-04] immutable current-candidate ZIP tested on dissimilar physical Windows machines. See [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) and numbered [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) cases J-01–J-20. **No current P0 release-level gate is marked passed.** This does not erase previously passing subsystem/Windows-hosted smoke tests.

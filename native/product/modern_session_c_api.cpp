@@ -104,6 +104,21 @@ extern "C" UrModernSession* ur_modern_session_create(
         runtime_hooks);
 }
 
+extern "C" UrModernSession* ur_modern_session_create_native(
+    int modern_mode, const UrModernNativeSessionHooks* hooks) {
+    if (!hooks) return nullptr;
+    const ExecutionMode mode =
+        modern_mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
+    SessionRuntimeHooks runtime_hooks{};
+    runtime_hooks.native_context = hooks->context;
+    runtime_hooks.native_set_paused = hooks->set_paused;
+    runtime_hooks.native_restart_race = hooks->restart_race;
+    runtime_hooks.native_exit_to_frontend = hooks->exit_to_frontend;
+    runtime_hooks.native_restart_available = hooks->restart_available;
+    return new (std::nothrow) UrModernSession(
+        mode, 0, SnapshotRuntimeHooks{}, runtime_hooks);
+}
+
 extern "C" void ur_modern_session_destroy(UrModernSession* session) {
     delete session;
 }

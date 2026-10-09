@@ -25,6 +25,19 @@ def segment_report() -> dict:
 
 
 class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
+    def test_original_archived_zoo_inputs_share_pinned_1810_frame_digest(self):
+        import json
+        import extract_historical_smv_scene_window as archived
+        source, member = archived.read_movie(archived.ARCHIVE)
+        self.assertEqual(member, "100% run.smv")
+        meta = json.loads(archived.METADATA.read_text(encoding="utf-8"))
+        window = archived.window(source, meta, 3190, 1810)
+        self.assertEqual(
+            window["raw_controller_window_sha256"],
+            "e77f10e4d652dfb2ed9afcf4c252e3e9f14e551a30edbbaa2a69ec50996f90b6",
+        )
+        self.assertEqual(len(window["relative_input_segments"]), 116)
+
     def test_exact_event_rebasing_includes_phase_hypothesis(self):
         source = segment_report()
         self.assertEqual(probe.movie_events(source, 1200, 0), [

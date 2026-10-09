@@ -129,6 +129,27 @@ class ZooOriginal2014LiveProgressTests(unittest.TestCase):
             != r["progress_after"]["laps_remaining"]
         ], [3408, 4911])
 
+    def test_checkpoint_wrap_is_not_a_lap_decrement_in_the_original_game(self):
+        events = {row["transition_frame"]: row for row in self.events}
+        rearm = events[4031]
+        wrap = events[4722]
+        lap = events[4911]
+        self.assertEqual(rearm["progress_before"],
+                         {"checkpoint": 2, "finish_gate": 1, "laps_remaining": 3})
+        self.assertEqual(rearm["progress_after"],
+                         {"checkpoint": 3, "finish_gate": 0, "laps_remaining": 3})
+        self.assertEqual(wrap["progress_before"],
+                         {"checkpoint": 3, "finish_gate": 0, "laps_remaining": 3})
+        self.assertEqual(wrap["progress_after"],
+                         {"checkpoint": 0, "finish_gate": 0, "laps_remaining": 3})
+        self.assertEqual(lap["progress_before"],
+                         {"checkpoint": 0, "finish_gate": 0, "laps_remaining": 3})
+        self.assertEqual(lap["progress_after"],
+                         {"checkpoint": 1, "finish_gate": 1, "laps_remaining": 2})
+        self.assertEqual(lap["transition_frame"] - wrap["transition_frame"], 189)
+        # Never model checkpoint 3->0 as a lap award. It is 189 original
+        # guest frames before the next observed lap decrement.
+
     def test_exact_original_movie_input_masks_at_each_event(self):
         movie, member = smv.read_movie(smv.ARCHIVE)
         self.assertEqual(member, "100% run.smv")

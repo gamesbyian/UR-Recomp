@@ -1888,12 +1888,18 @@ bool create_profile_from_editor() {
     if (!root.isolated()) return false;
     std::error_code ec;
     const bool root_exists = std::filesystem::exists(root.save_root, ec);
-    if (ec || root_exists) {
+    if (ec || (root_exists &&
+        !ur::product::reusable_aborted_profile_creation_root(root.save_root))) {
         product_diagnostic("UR_PROFILE_CREATE REJECTED_EXISTING_ROOT");
         return false;
     }
-    std::filesystem::create_directories(root.save_root, ec);
-    if (ec) return false;
+    if (!root_exists) {
+        std::filesystem::create_directories(root.save_root, ec);
+        if (ec) return false;
+    }
+    // A completed failed-registration rollback leaves only the durable
+    // host-profile.txt.urmutex lock file. Reuse that namespace on explicit
+    // retry, but create-only profile CAS still prevents simultaneous claims.
     const std::string path = root.save_root + "/host-profile.txt";
     std::error_code exists_ec;
     if (std::filesystem::exists(path, exists_ec) || exists_ec) {

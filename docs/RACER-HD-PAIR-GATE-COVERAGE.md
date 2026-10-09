@@ -110,6 +110,36 @@ eligible to become a player-facing default. It is **not** counted in the
 shipping coverage figures above. The original 256×224 pair path remains
 unchanged when the flag is absent.
 
+## QA-08 full-pair inactive-OBJ edge guard (2026-10-08)
+
+The default full-pair capture originally removed OAM slots 96–99 and reconstructed
+only the two *large* racers per half. In the title's active-display high-OAM
+split ($A5 at the top and $5A at the bottom), the other two slots remain
+16×16 small OBJs with X-high set. They are usually invisible at negative X,
+but LOW_X=241..255 exposes pixels at the left edge if their modulo-256 Y
+falls in the opposite viewport. Removing them without reconstruction
+silently loses Original pixels. The P1-only experimental guard already knew
+about this failure mode; the full-pair path did not test it.
+
+`racer_hd_full_pair_preserves_split_objs()` now gates the default full-pair
+`RemoveFromGame` capture *before* the PPU removal is armed. It checks both
+players' inactive upper/lower aliases, X=240/241, 8-bit Y-wrap and scanline
+112, expected OBSEL=$83 16/64 geometry, fixed OAM sprite ordering and equal
+per-viewport racer OBJ priority. Unsupported or uncertain combinations leave
+the complete stock frame untouched. Pure regressions:
+`tests/native/racer_oam_placement_test.cpp`; live gate:
+`native/presentation/racer_hd_presenter.cpp`.
+
+**Evidence classification:** source-confirmed missing safety check plus
+boundary regression added, not yet a reproduced moving-frame pixel loss or
+a passed native/packaged 2P visual run. No new HD pose is admitted, no artwork
+or guest state changes. A bounded running capture comparing stock against
+enabled HD at X=240/241 and 250/255 Y-wrap, plus real baseline placement
+counts, is still needed. Conservatively rejecting an unsafe capture can
+*increase* Original fallback and does not improve the 6.44% selector-pair
+upper bound in the retained 2,641-frame 2P trace. Review the temporal
+Original/HD transitions before claiming Remastered visual completeness.
+
 ## Next pose priorities when the whole-pair policy remains
 
 The same exact census ranks missing player-local families *with the opposite

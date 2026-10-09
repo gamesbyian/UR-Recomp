@@ -2,7 +2,7 @@
 
 Status: **executable investigative producer, NOT a completed/native release witness**.
 Owner: gameplay fidelity/course acceptance. The canonical **0/45 USA complete,
-3/45 partial, 42/45 unverified** census and QA-01/QA-07 release ledger
+4/45 partial, 41/45 unverified** census and QA-01/QA-07 release ledger
 remain unchanged until a reviewed run reaches genuine settled parity.
 
 ## Why these three targets

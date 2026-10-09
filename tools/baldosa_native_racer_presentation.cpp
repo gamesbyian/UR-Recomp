@@ -131,6 +131,15 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
                 frame_w, frame_h, pitch, scale);
             std::abort(); // fail closed before partial/mis-sized texture writes
         }
+        const std::size_t changed_top = authored_difference_count(
+            dst, pitch, field, frame_w, frame_h, scale, false);
+        const std::size_t changed_bottom = authored_difference_count(
+            dst, pitch, field, frame_w, frame_h, scale, true);
+        if (changed_top != 0 || changed_bottom != 0) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_FATAL original density fallback changed pixels\n");
+            std::abort();
+        }
         if (g_frame >= 400 && g_frame <= 1700 &&
             g_fallback_captured < 3 && g_last_fallback_frame != g_frame) {
             const bool saved = save_presented_pam(
@@ -138,9 +147,9 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
                 "ur-baldosa-fallback");
             std::fprintf(stderr,
                 "UR_BALDOSA_ORIGINAL_FALLBACK frame=%u logical=%dx%d "
-                "raster=%dx%d pitch=%zu saved=%d\n",
+                "raster=%dx%d pitch=%zu top_changed=%zu bottom_changed=%zu saved=%d\n",
                 g_frame, frame_w, frame_h, frame_w * scale,
-                frame_h * scale, pitch, saved ? 1 : 0);
+                frame_h * scale, pitch, changed_top, changed_bottom, saved ? 1 : 0);
             g_last_fallback_frame = g_frame;
             if (saved) ++g_fallback_captured;
         }

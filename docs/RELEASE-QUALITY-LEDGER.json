@@ -314,5 +314,22 @@
       "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/978"
     }
-  ]
+  ],
+  "execution_policy": {
+    "reference": "docs/QA-BOUNDED-RELEASE-CAMPAIGN.md",
+    "initial_productive_agent_hours": 300,
+    "review_checkpoints_hours": [
+      100,
+      200,
+      300
+    ],
+    "campaigns": [
+      "authentic course and expert event completion",
+      "integrated tournament/persistence/replay",
+      "moving-scene graphics/input/UX",
+      "physical packaged Windows and audio/soak",
+      "cross-artifact fault recovery"
+    ],
+    "note": "Execution budget and reusable witness grouping only. Does not modify gate thresholds/statuses or waive verified P0 defects. New budget must follow evidence-based checkpoint review."
+  }
 }

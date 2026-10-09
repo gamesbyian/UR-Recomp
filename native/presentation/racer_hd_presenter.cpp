@@ -455,6 +455,19 @@ int racer_hd_draw_frame(
 
     dump_obj_layer_for_occlusion_review();
     copy_field_scaled(dst, pitch, field, scale);
+    // QA-08 opt-in destructive-capture witness: render exactly the captured
+    // PPU stock framebuffer, without authored racers, so a native screenshot
+    // can prove that RemoveFromGame really erased the original OBJ. Unset in
+    // all ordinary builds and never alters guest state or admission policy.
+    const char* capture_only = std::getenv("UR_RACER_HD_CAPTURE_ONLY");
+    if (capture_only != nullptr && capture_only[0] == '1' &&
+        capture_only[1] == '\0') {
+        std::fprintf(
+            stderr, "UR_RACER_HD_CAPTURE_ONLY frame=%u instances=%zu\\n",
+            g_sim_frame, g_instance_count
+        );
+        return 1;
+    }
     // SNES OBJ priority among overlapping sprites follows the ascending OAM
     // index, regardless of the sprite's background-priority attribute bits.
     // Draw in descending slot order: the lowest-numbered OAM slot paints last

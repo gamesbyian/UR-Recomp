@@ -456,7 +456,8 @@ bool append_multiplayer_match_pair(
     const CompletedRunRecord& run,
     const MultiplayerMatchRecord& record,
     std::string* stored_run_path,
-    std::string* detail) {
+    std::string* detail,
+    void (*after_sidecar_claim_for_test)()) {
     if (!multiplayer_match_record_matches_run(record, run)) {
         return fail(detail, "match record does not bind completed run");
     }
@@ -528,6 +529,10 @@ bool append_multiplayer_match_pair(
             cleanup_staging();
             return fail(detail, "cannot atomically claim multiplayer-match sidecar");
         }
+
+        // Test-only deterministic crash window: the sidecar exists but no
+        // public .urrun has yet been claimed. Production passes null.
+        if (after_sidecar_claim_for_test) after_sidecar_claim_for_test();
 
         const auto run_claim =
             claim_pair_artifact(staged_run_path, final_run_path);

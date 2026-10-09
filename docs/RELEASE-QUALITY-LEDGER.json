@@ -64,8 +64,7 @@
         "docs/QA02-RUN-MATCH-DURABILITY.md",
         "docs/QA02-GHOST-DATA-DURABILITY.md",
         "docs/QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md",
-        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md",
-        "docs/QA02-GHOST-FUTURE-SCHEMA.md"
+        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md"
       ],
       "journeys": [
         "J-02",

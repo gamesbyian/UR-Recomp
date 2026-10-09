@@ -195,8 +195,7 @@
       "evidence_refs": [
         "docs/SEMANTIC-SUFFICIENCY.md",
         "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
-        "docs/RACER-HD-PIXEL-CONFINEMENT.md",
-        "analysis/generated/racer-hd-native-live-race-window-2026-10-09.json"
+        "docs/RACER-HD-PIXEL-CONFINEMENT.md"
       ],
       "journeys": [
         "J-13",

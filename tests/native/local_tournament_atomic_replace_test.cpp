@@ -15,6 +15,8 @@
 namespace fs = std::filesystem;
 using ur::product::write_tournament_replace_staged;
 
+bool simulate_disk_sync_failure(std::FILE*) { return false; }
+
 void check(bool good, const char* message) {
     if (!good) {
         std::fprintf(stderr, "FAIL: %s\n", message);
@@ -43,6 +45,20 @@ int main() {
           "nonexistent parent never created implicitly");
 
     const fs::path destination = root / "pending.urlaunch";
+    check(write_tournament_replace_staged(
+              destination.string(), "original", "urlaunch"),
+          "establish a valid incumbent before syncing failure");
+    check(!ur::product::write_host_replace_staged(
+              destination.string(), "new bytes not safely synced", "urlaunch",
+              nullptr, &simulate_disk_sync_failure),
+          "injected durable-stage failure aborts canonical publication");
+    check(bytes(destination) == "original",
+          "stage sync failure preserves exact incumbent bytes");
+    for (const auto& item : fs::directory_iterator(root)) {
+        check(item.path().filename().string().rfind(
+                  ".pending-urlaunch-", 0) != 0,
+              "sync failure cleans its own private staging");
+    }
     constexpr std::size_t kWriters = 8;
     std::array<std::string, kWriters> candidate{};
     for (std::size_t i = 0; i < kWriters; ++i) {

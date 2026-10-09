@@ -8,10 +8,11 @@
 // on failed staging; replacement remains last-writer-wins.
 //
 // This is NOT a cross-process compare-and-swap or multi-file transaction.
-// Concurrent save-versus-retire, stale attempt deletion, and power-loss fsync
-// durability need separate QA-02 design and acceptance.
+// File-content durability is requested before publication; exact Windows
+// device/power-loss witnesses and cross-file commit durability are still open.
 
 #include <atomic>
+#include <cerrno>
 #include <chrono>
 #include <cstdint>
 #include <cstdio>
@@ -26,6 +27,10 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
+#include <io.h>
+#else
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 
 namespace ur::product {
@@ -52,13 +57,55 @@ inline std::optional<std::filesystem::path> reserve_tournament_staging(
     return std::nullopt;
 }
 
+
+inline bool sync_staged_file(std::FILE* file) {
+    if (!file) return false;
+#if defined(_WIN32)
+    const int descriptor = _fileno(file);
+    if (descriptor < 0) return false;
+    const intptr_t handle = _get_osfhandle(descriptor);
+    return handle != -1 && FlushFileBuffers(
+        reinterpret_cast<HANDLE>(handle)) != 0;
+#else
+    const int descriptor = fileno(file);
+    if (descriptor < 0) return false;
+    int result = -1;
+    do {
+        result = fsync(descriptor);
+    } while (result < 0 && errno == EINTR);
+    return result == 0;
+#endif
+}
+
+inline void sync_published_directory_best_effort(
+    const std::filesystem::path& parent) {
+#if !defined(_WIN32)
+    // Atomic rename alone does not durably record its directory entry.
+    // Publication has already occurred and the bool API cannot distinguish
+    // "published but directory sync failed" from a genuinely failed write.
+    // Do not return false and invite a compensating rollback after commit.
+    const auto directory = parent.empty() ? std::filesystem::path(".") : parent;
+    const int fd = open(directory.c_str(), O_RDONLY | O_DIRECTORY);
+    if (fd < 0) return;
+    int result = -1;
+    do {
+        result = fsync(fd);
+    } while (result < 0 && errno == EINTR);
+    (void)result;
+    (void)close(fd);
+#else
+    (void)parent;
+#endif
+}
+
 } // namespace detail
 
 inline bool write_host_replace_staged(
     const std::string& final_name,
     std::string_view data,
     std::string_view staging_family,
-    void (*after_staging_for_test)() = nullptr) {
+    void (*after_staging_for_test)() = nullptr,
+    bool (*sync_override_for_test)(std::FILE*) = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
     const fs::path final_path(final_name);
@@ -77,8 +124,15 @@ inline bool write_host_replace_staged(
     }
     const auto written = std::fwrite(data.data(), 1, data.size(), file);
     const bool flushed = std::fflush(file) == 0;
+    // fwrite/fflush/fclose merely drain userspace buffering. When the OS
+    // cannot persist these bytes, reject the staged write BEFORE the rename
+    // can hide a previously valid profile/SRAM/catalog/checkpoint.
+    const bool synced = written == data.size() && flushed &&
+                        (sync_override_for_test
+                            ? sync_override_for_test(file)
+                            : detail::sync_staged_file(file));
     const bool closed = std::fclose(file) == 0;
-    if (written != data.size() || !flushed || !closed) {
+    if (written != data.size() || !flushed || !synced || !closed) {
         cleanup();
         return false;
     }
@@ -94,6 +148,8 @@ inline bool write_host_replace_staged(
     fs::rename(tmp, final_path, ec);
     const bool published = !ec;
 #endif
+    if (published) detail::sync_published_directory_best_effort(
+        final_path.parent_path());
     cleanup();
     return published;
 }

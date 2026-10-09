@@ -140,6 +140,8 @@ def first_difference(reference: list[dict], native: list[dict]) -> dict | None:
     for ref, nat in zip(reference, native):
         if ref["relative_frame"] != nat["relative_frame"]:
             raise CourseEntryEvidenceError("guest-relative frame phases do not align")
+        if set(ref) != set(nat):
+            raise CourseEntryEvidenceError("reference/native semantic field sets do not align")
         mismatched = sorted(key for key in ref if ref[key] != nat[key])
         if mismatched:
             return {

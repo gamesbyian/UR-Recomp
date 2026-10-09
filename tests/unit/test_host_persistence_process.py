@@ -137,6 +137,22 @@ class HostPersistenceProcessTests(unittest.TestCase):
                 self.assertIn(child.returncode, (0, 6), stderr)
             self.assertEqual(sorted(statuses), [0, 6], statuses)
             self.assertIn(read_value("host", global_host), (8, 9))
+            prior_selected = read_value("host", global_host)
+            # Failed second-phase SRAM write is permitted to restore only
+            # the global selection this process just published.
+            self.assertEqual(
+                call("host", "cas-rollback", global_host, 11).returncode, 0
+            )
+            self.assertEqual(read_value("host", global_host), prior_selected)
+            # If another game advances the global selection before rollback,
+            # its new racer must survive the stale compensating write.
+            conflict = subprocess.run(
+                [str(exe), "host", "cas-rollback",
+                 str(global_host), "12", "interleave"],
+                cwd=ROOT, capture_output=True,
+            )
+            self.assertEqual(conflict.returncode, 0, conflict.stderr)
+            self.assertEqual(read_value("host", global_host), 13)
 
             corrupt_host = root / "corrupt-host.dat"
             corrupt_host.write_text("bad historic state", encoding="utf-8")

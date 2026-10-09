@@ -1,0 +1,7272 @@
+# Progressive symbol map for Uniracers.
+#
+# Each [[func]] names an address the analyzer should treat as a function.
+# Set emit = true to promote one into ahead-of-time codegen; leave it false
+# to keep it interpreted. tools/regen.sh syncs labels and tier choices into
+# each recomp/bankNN.cfg; only emit=true adds a func/funcs.h declaration.
+# Do not hand-edit the generated blocks in the bank configs.
+
+[[func]]
+name = "I_RESET"
+addr = "8858"
+bank = 0
+emit = true
+note = "Emulation RESET vector ($FFFC)"
+
+[[func]]
+name = "I_NMI"
+addr = "8588"
+bank = 0
+emit = true
+note = "Native NMI vector ($FFEA)"
+
+[[func]]
+name = "NmiHandler_Race"
+addr = "8610"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_CheckExited"
+addr = "88DD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ValidateOrInit"
+addr = "8C4E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_DrawLapRace"
+addr = "8D6E"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CopyWord"
+addr = "933C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_UploadTilemap"
+addr = "93A5"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_UploadTilemapBottom"
+addr = "93CB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main"
+addr = "93FB"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_Show"
+addr = "951C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNameGrid"
+addr = "95AB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_SetupTrackGridSprites"
+addr = "9625"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_Div16by8"
+addr = "9701"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Tour_DrawSelectIcons"
+addr = "974B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_ResetMarkerSpritesOnce"
+addr = "9805"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_AnimateLapMarkers"
+addr = "98B3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_ScaleClampVelocity"
+addr = "9980"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start"
+addr = "99A4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_CopyPlayerName"
+addr = "9B2F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CopyTrackName"
+addr = "9B55"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CopyTourName"
+addr = "9BA0"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal"
+addr = "9F6B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeCover"
+addr = "A022"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_UploadSpritePalettes"
+addr = "A6F6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadOverlayTilesA"
+addr = "A81C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_LoadMenuSpritePalettes"
+addr = "A849"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Run"
+addr = "ABB9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw"
+addr = "ACC6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_SortStandingsLong"
+addr = "AD34"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_SortStandings"
+addr = "AD38"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_PlayToggle"
+addr = "B100"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_Show"
+addr = "B17E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleRace"
+addr = "B21B"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleLaps"
+addr = "B229"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_BuildPlayerLine"
+addr = "B569"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_Main"
+addr = "B611"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsAnyButtonHeld"
+addr = "B6BE"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsCancelHeld"
+addr = "B735"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsLeftHeld"
+addr = "B7A4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsRightHeld"
+addr = "B7C9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsUpHeld2"
+addr = "B7EE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsDownHeld"
+addr = "B81B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_IsSelectHeld"
+addr = "B8DC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_RunVerticalFromTop"
+addr = "B927"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_RunVerticalAlt"
+addr = "BA55"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace"
+addr = "BB87"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace"
+addr = "BCAA"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace"
+addr = "BF34"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer"
+addr = "C115"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_ClearCursorHFlip"
+addr = "C1DA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_WaitAllReleased"
+addr = "C23B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_DrawTopTimes"
+addr = "C2FD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DrawText"
+addr = "C3AB"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop"
+addr = "C3AF"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdEnd"
+addr = "C440"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdPrintNum5"
+addr = "C445"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPos"
+addr = "C481"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterLine"
+addr = "C4A7"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterWord"
+addr = "C4EF"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette"
+addr = "C546"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdPlayerNameVar"
+addr = "C5C2"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdRomNameVar"
+addr = "C617"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdPrintTime"
+addr = "C6AA"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdPlaceSprite"
+addr = "C6C4"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_RecordResults"
+addr = "C775"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_RecordTimeRace"
+addr = "C7B3"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_RecordP1Time"
+addr = "C80B"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_RecordP2Time"
+addr = "C83F"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_InsertTime"
+addr = "C9C6"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Stats_IncP1Races"
+addr = "CA63"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Stats_IncP1Wins"
+addr = "CA72"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Stats_IncP2Races"
+addr = "CA99"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Stats_IncP2Wins"
+addr = "CAB4"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open"
+addr = "CAF3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Loop"
+addr = "CBB2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_ShowRaceTable"
+addr = "CE7F"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowP1"
+addr = "CF90"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowP2"
+addr = "CFF6"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowRecord1"
+addr = "D061"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowRecord2"
+addr = "D088"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowRecord3"
+addr = "D0AF"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_LoadRowPalette"
+addr = "D152"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_ResetMenuSprites"
+addr = "D2B0"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_HideRowSprites"
+addr = "D40F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_Menu"
+addr = "D518"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_TrackRecords"
+addr = "D5D9"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Slide_Forward"
+addr = "E21D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Slide_DefaultFwdStep"
+addr = "E23B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Slide_DefaultBackStep"
+addr = "E286"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "TrackRecords_HandleInput"
+addr = "E3D3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour"
+addr = "E53A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ApplyCycledSpriteColor"
+addr = "E6C7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourList"
+addr = "E71A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_CheckTourUnlocked"
+addr = "E78B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack"
+addr = "E838"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_CycleSpriteTiles"
+addr = "EB0D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables"
+addr = "EB60"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable"
+addr = "ED07"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNumber"
+addr = "EEDC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawOptionList"
+addr = "EF37"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Util_SortTable8Ascending"
+addr = "F06C"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_HideSpritesAndReloadGfx"
+addr = "F4A2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ResetScreenGfx"
+addr = "F4D3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_SnapPanelOpen"
+addr = "F529"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "NmiHandler_Menu"
+addr = "F60C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Dma_UploadTilemapRows"
+addr = "F802"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Dma_UploadVramC0"
+addr = "F859"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Scores_StoreResult"
+addr = "F877"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_ConvertBufferCase"
+addr = "F8A3"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlankLong"
+addr = "FAC5"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Track_SetupSizeParamsLong"
+addr = "A30F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Track_SetupSizeParams"
+addr = "A313"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_UpdateFullScreenNmi"
+addr = "E8D9"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_Long"
+addr = "D80C"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState"
+addr = "D849"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_Long"
+addr = "DC56"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics"
+addr = "DC68"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData"
+addr = "E165"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_CopyRomTileToWram"
+addr = "8484"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_ApplyRaceResult"
+addr = "879A"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_CheckRaceWin"
+addr = "88D3"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_RoundTrackToTierLong"
+addr = "893C"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_RoundTrackToTier"
+addr = "8940"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Ppu_ResetBgScroll"
+addr = "89BA"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Str_CopyLong"
+addr = "8BC9"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Str_Copy"
+addr = "8BCD"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_FormatDecimal5"
+addr = "8BE7"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_FormatRaceTimeLong"
+addr = "8C7B"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_FormatRaceTime"
+addr = "8C7F"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_Divide32By16Long"
+addr = "8D5D"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_Divide32By16"
+addr = "8D61"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTierBadge"
+addr = "8D8F"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Anim_DecodeFrame"
+addr = "8E3A"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_CalcTrackTimeRange"
+addr = "904A"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksumsLong"
+addr = "90F4"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums"
+addr = "90F8"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_LoadPlayerColorLong"
+addr = "91F7"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_LoadPlayerColor"
+addr = "91FB"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_InitLeagues"
+addr = "93F5"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadTiles7A00A"
+addr = "94D0"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadTiles7A00B"
+addr = "94FF"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_DisablePad1"
+addr = "952E"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_DisablePad2"
+addr = "9543"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vs_SortPlayersForRace"
+addr = "958C"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vs_UnswapPlayers"
+addr = "95CA"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_SetXHighBit"
+addr = "961E"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_CopyMenuOrder"
+addr = "96BE"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_CalcMaxima"
+addr = "97BD"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_PercentOfRaces"
+addr = "986A"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_RestoreDirectPage"
+addr = "987D"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_FadeUnlessKind1"
+addr = "9972"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_AnimateSprites"
+addr = "9A1E"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Index_TrackX2"
+addr = "9E2C"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Index_Track"
+addr = "9E3A"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Index_PlayerBest"
+addr = "9E47"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Index_TierMedal"
+addr = "9EB4"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Index_TierX5"
+addr = "9ED5"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Player_GetTier"
+addr = "9F14"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Player_GetPromoted"
+addr = "9F5E"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main"
+addr = "C8E0"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA4C"
+addr = "CA4C"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_UpdateCpuRival"
+addr = "E066"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_UpdatePauseMenu"
+addr = "F602"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "WaitForNMI_D4EE"
+addr = "D4EE"
+bank = 130
+emit = true
+entry_m = 1
+entry_x = 0
+note = "experiment: frame-yield resume point inside WaitForNMI"
+
+[[func]]
+name = "Vram_UploadTilemapAtA8"
+addr = "937B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Util_SortTable8Descending"
+addr = "EFBE"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTablesLong"
+addr = "99D6"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables"
+addr = "9A5A"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8Long"
+addr = "B6C0"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8"
+addr = "B6C4"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ResetEventQueuesLong"
+addr = "C605"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ResetEventQueues"
+addr = "C609"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRaceLong"
+addr = "CCE6"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRace"
+addr = "CD07"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Res_Lookup_Long"
+addr = "B2A9"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ClearRam_Long"
+addr = "D810"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ClearRam"
+addr = "D814"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_SetPpuRegs"
+addr = "DC1F"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ClearSessionData"
+addr = "8B23"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ClearPlayerBests"
+addr = "9340"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_InitOptions"
+addr = "9486"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_WriteSignature"
+addr = "94A5"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ClearWRAM_92F7"
+addr = "92F7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ClearWRAM_92FF"
+addr = "92FF"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ClearWRAM_9300"
+addr = "9300"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A0A7"
+addr = "A0A7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B3C2"
+addr = "B3C2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B3C8"
+addr = "B3C8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_ClearAll_B609"
+addr = "B609"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_ClearAll_B60C"
+addr = "B60C"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_ClearAll_B60D"
+addr = "B60D"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3B1"
+addr = "C3B1"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3B9"
+addr = "C3B9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3ED"
+addr = "C3ED"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3F7"
+addr = "C3F7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette_C570"
+addr = "C570"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette_C5B2"
+addr = "C5B2"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNumber_EEFF"
+addr = "EEFF"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Util_SortTable8Descending_EFC9"
+addr = "EFC9"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlank_FAD2"
+addr = "FAD2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlank_FAD6"
+addr = "FAD6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlank_FADB"
+addr = "FADB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9A6D"
+addr = "9A6D"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B46"
+addr = "9B46"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B53"
+addr = "9B53"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CBB"
+addr = "9CBB"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CD1"
+addr = "9CD1"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D00"
+addr = "9D00"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9E08"
+addr = "9E08"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8Long_B6C3"
+addr = "B6C3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8_B6E1"
+addr = "B6E1"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8_B6E2"
+addr = "B6E2"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8_B6EE"
+addr = "B6EE"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Math_MulFixed8p8_B6FC"
+addr = "B6FC"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B962"
+addr = "B962"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B965"
+addr = "B965"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B970"
+addr = "B970"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B976"
+addr = "B976"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B978"
+addr = "B978"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B983"
+addr = "B983"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B985"
+addr = "B985"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B986"
+addr = "B986"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B987"
+addr = "B987"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B98C"
+addr = "B98C"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B98E"
+addr = "B98E"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B990"
+addr = "B990"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B991"
+addr = "B991"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B992"
+addr = "B992"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B993"
+addr = "B993"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9A0"
+addr = "B9A0"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9AC"
+addr = "B9AC"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9AE"
+addr = "B9AE"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9C8"
+addr = "B9C8"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9CA"
+addr = "B9CA"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9CC"
+addr = "B9CC"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9D5"
+addr = "B9D5"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA04"
+addr = "BA04"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA07"
+addr = "BA07"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA18"
+addr = "BA18"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA2A"
+addr = "BA2A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA2C"
+addr = "BA2C"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA35"
+addr = "BA35"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA44"
+addr = "BA44"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA4D"
+addr = "BA4D"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA54"
+addr = "BA54"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_DecodeSymbol_BA59"
+addr = "BA59"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BA8A"
+addr = "BA8A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BA90"
+addr = "BA90"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BA93"
+addr = "BA93"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BA99"
+addr = "BA99"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BA9C"
+addr = "BA9C"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BAA9"
+addr = "BAA9"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BAB3"
+addr = "BAB3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BAED"
+addr = "BAED"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BAF4"
+addr = "BAF4"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB10"
+addr = "BB10"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB14"
+addr = "BB14"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB39"
+addr = "BB39"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB60"
+addr = "BB60"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_FetchWord_BB86"
+addr = "BB86"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SendQueuedCommand_8045"
+addr = "8045"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SendQueuedCommand_8077"
+addr = "8077"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_8097"
+addr = "8097"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_809A"
+addr = "809A"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80CE"
+addr = "80CE"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80D1"
+addr = "80D1"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80D3"
+addr = "80D3"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80D6"
+addr = "80D6"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80D8"
+addr = "80D8"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80DB"
+addr = "80DB"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80DE"
+addr = "80DE"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80E0"
+addr = "80E0"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80E2"
+addr = "80E2"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80E3"
+addr = "80E3"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80FB"
+addr = "80FB"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_810A"
+addr = "810A"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_810D"
+addr = "810D"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SeekDataBlock_813D"
+addr = "813D"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SeekDataBlock_8140"
+addr = "8140"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SeekDataBlock_814B"
+addr = "814B"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_IncDataPtr_815F"
+addr = "815F"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_IncDataPtr_8160"
+addr = "8160"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82B8"
+addr = "82B8"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82BD"
+addr = "82BD"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82EF"
+addr = "82EF"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82F0"
+addr = "82F0"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82F2"
+addr = "82F2"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82F5"
+addr = "82F5"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82F6"
+addr = "82F6"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82F9"
+addr = "82F9"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82FA"
+addr = "82FA"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8301"
+addr = "8301"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8304"
+addr = "8304"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8306"
+addr = "8306"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8307"
+addr = "8307"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8308"
+addr = "8308"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8317"
+addr = "8317"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8318"
+addr = "8318"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SendByteWait_832F"
+addr = "832F"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToCgram_B19A"
+addr = "B19A"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B1F2"
+addr = "B1F2"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B1F5"
+addr = "B1F5"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B1F9"
+addr = "B1F9"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B1FC"
+addr = "B1FC"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B200"
+addr = "B200"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B201"
+addr = "B201"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToVram_B202"
+addr = "B202"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_ReadByte_B299"
+addr = "B299"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_Lookup_Long_B2AC"
+addr = "B2AC"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_Clear_D506"
+addr = "D506"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_Clear_D509"
+addr = "D509"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_Clear_D50A"
+addr = "D50A"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_InitBuffer_D778"
+addr = "D778"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ClearRam_D840"
+addr = "D840"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ClearRam_D843"
+addr = "D843"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E16D"
+addr = "E16D"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E171"
+addr = "E171"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E172"
+addr = "E172"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E1FF"
+addr = "E1FF"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E220"
+addr = "E220"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E271"
+addr = "E271"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E292"
+addr = "E292"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E293"
+addr = "E293"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2E7"
+addr = "E2E7"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E340"
+addr = "E340"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E342"
+addr = "E342"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums_9177"
+addr = "9177"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums_91A5"
+addr = "91A5"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums_91BC"
+addr = "91BC"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ClearAll_FACC"
+addr = "FACC"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3FB"
+addr = "C3FB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9ACE"
+addr = "9ACE"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B2A"
+addr = "9B2A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9C0F"
+addr = "9C0F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D75"
+addr = "9D75"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D9F"
+addr = "9D9F"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9E04"
+addr = "9E04"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B96F"
+addr = "B96F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B995"
+addr = "B995"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9BD"
+addr = "B9BD"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9DA"
+addr = "B9DA"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9E5"
+addr = "B9E5"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9F5"
+addr = "B9F5"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA16"
+addr = "BA16"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA1A"
+addr = "BA1A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ReadBits_BAAE"
+addr = "BAAE"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB65"
+addr = "BB65"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToCgram_B197"
+addr = "B197"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToWram_B2E5"
+addr = "B2E5"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitHdma_D614"
+addr = "D614"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitHdma_D61A"
+addr = "D61A"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E24D"
+addr = "E24D"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2A7"
+addr = "E2A7"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2EB"
+addr = "E2EB"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2FA"
+addr = "E2FA"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E33A"
+addr = "E33A"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums_9149"
+addr = "9149"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_BuildMemberList_966F"
+addr = "966F"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette_C575"
+addr = "C575"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9AD4"
+addr = "9AD4"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9BD3"
+addr = "9BD3"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D16"
+addr = "9D16"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D85"
+addr = "9D85"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B960"
+addr = "B960"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9CF"
+addr = "B9CF"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2E1"
+addr = "E2E1"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Ppu_WaitVBlank_A938"
+addr = "A938"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainLoop"
+addr = "8881"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_DrawLapRace_8FFD"
+addr = "8FFD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9481"
+addr = "9481"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Tour_DrawSelectIcons_9764"
+addr = "9764"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Tour_DrawSelectIcons_9782"
+addr = "9782"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Tour_DrawSelectIcons_97D9"
+addr = "97D9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Video_FadeIn_9871"
+addr = "9871"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Video_FadeOut_988F"
+addr = "988F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_AnimateLapMarkers_9971"
+addr = "9971"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_9F7C"
+addr = "9F7C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_9FB0"
+addr = "9FB0"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_9FCB"
+addr = "9FCB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_A01A"
+addr = "A01A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeCover_A03D"
+addr = "A03D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A118"
+addr = "A118"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadOverlayTilesA_A840"
+addr = "A840"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_LoadMenuSpritePalettes_A84C"
+addr = "A84C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_LoadMenuSpritePalettes_A85B"
+addr = "A85B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadOverlayTilesB_A88C"
+addr = "A88C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Pal_UploadBgPalettes_A89C"
+addr = "A89C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Run_ABD7"
+addr = "ABD7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw_ACEB"
+addr = "ACEB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B082"
+addr = "B082"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B0C6"
+addr = "B0C6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B3D3"
+addr = "B3D3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B3ED"
+addr = "B3ED"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B45C"
+addr = "B45C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_VerticalLoop_B96B"
+addr = "B96B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_VerticalLoopAlt_BA97"
+addr = "BA97"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C14E"
+addr = "C14E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C167"
+addr = "C167"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_WaitAnyButton_C1FE"
+addr = "C1FE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_WaitAnyButton_C214"
+addr = "C214"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_WaitAllReleased_C244"
+addr = "C244"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C40A"
+addr = "C40A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterLine_C4CE"
+addr = "C4CE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB00"
+addr = "CB00"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB11"
+addr = "CB11"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB29"
+addr = "CB29"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Loop_CBFB"
+addr = "CBFB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_ShowRaceTable_CF48"
+addr = "CF48"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_ShowRaceTable_CF76"
+addr = "CF76"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_RowRecord3_D102"
+addr = "D102"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D200"
+addr = "D200"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_ResetMenuSprites_D361"
+addr = "D361"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_TrackRecords_D5DE"
+addr = "D5DE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_TrackRecords_D6CF"
+addr = "D6CF"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Slide_DefaultFwdStep_E242"
+addr = "E242"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Slide_DefaultBackStep_E289"
+addr = "E289"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Screen_OpenWipe_E30F"
+addr = "E30F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Screen_OpenWipe_E31F"
+addr = "E31F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Screen_OpenWipe_E356"
+addr = "E356"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour_E554"
+addr = "E554"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour_E5ED"
+addr = "E5ED"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E865"
+addr = "E865"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E913"
+addr = "E913"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E9F7"
+addr = "E9F7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EBCC"
+addr = "EBCC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EBF2"
+addr = "EBF2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC0A"
+addr = "EC0A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC1F"
+addr = "EC1F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC49"
+addr = "EC49"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC5D"
+addr = "EC5D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC7E"
+addr = "EC7E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_ECB1"
+addr = "ECB1"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawOptionList_EF62"
+addr = "EF62"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_HideSpritesAndReloadGfx_F4BC"
+addr = "F4BC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ResetScreenGfx_F4DC"
+addr = "F4DC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ResetScreenGfx_F4E5"
+addr = "F4E5"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen_F5B7"
+addr = "F5B7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlankLong_FAC8"
+addr = "FAC8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTablesLong_99D9"
+addr = "99D9"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9BC3"
+addr = "9BC3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9C7F"
+addr = "9C7F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9C96"
+addr = "9C96"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CB2"
+addr = "9CB2"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CFC"
+addr = "9CFC"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D37"
+addr = "9D37"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D47"
+addr = "9D47"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9DB6"
+addr = "9DB6"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B949"
+addr = "B949"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B94F"
+addr = "B94F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9A5"
+addr = "B9A5"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9AB"
+addr = "B9AB"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9B1"
+addr = "B9B1"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9FF"
+addr = "B9FF"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA0A"
+addr = "BA0A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB09"
+addr = "BB09"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82C0"
+addr = "82C0"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82CC"
+addr = "82CC"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82D4"
+addr = "82D4"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8316"
+addr = "8316"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToCgram_B1A0"
+addr = "B1A0"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitHdma_Long_D529"
+addr = "D529"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_ClearRam_Long_D813"
+addr = "D813"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_DC0B"
+addr = "DC0B"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DE12"
+addr = "DE12"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_ApplyRaceResult_87D2"
+addr = "87D2"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Str_Copy_8BD1"
+addr = "8BD1"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CBBC"
+addr = "CBBC"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ClearAllL_FAC3"
+addr = "FAC3"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_8861"
+addr = "8861"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_886D"
+addr = "886D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_887E"
+addr = "887E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainLoop_889D"
+addr = "889D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ValidateOrInit_8C78"
+addr = "8C78"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9400"
+addr = "9400"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9408"
+addr = "9408"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_947A"
+addr = "947A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_94BC"
+addr = "94BC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_Show_9575"
+addr = "9575"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_Show_9596"
+addr = "9596"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNameGrid_960B"
+addr = "960B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start_9A3A"
+addr = "9A3A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start_9A3D"
+addr = "9A3D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start_9A49"
+addr = "9A49"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start_9A4C"
+addr = "9A4C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_9F95"
+addr = "9F95"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Fx_HdmaWipeReveal_9F98"
+addr = "9F98"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw_AD06"
+addr = "AD06"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw_AD09"
+addr = "AD09"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo"
+addr = "B07D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B085"
+addr = "B085"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B0C0"
+addr = "B0C0"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B0CC"
+addr = "B0CC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_PlayConfirm"
+addr = "B115"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_Show_B188"
+addr = "B188"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PreRace_TitleStunt_B41D"
+addr = "B41D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_ClearAll"
+addr = "B5FD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_Main_B62A"
+addr = "B62A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_Main_B644"
+addr = "B644"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BB9A"
+addr = "BB9A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BBE5"
+addr = "BBE5"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BBE8"
+addr = "BBE8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC41"
+addr = "BC41"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC69"
+addr = "BC69"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BCBD"
+addr = "BCBD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BCDD"
+addr = "BCDD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD24"
+addr = "BD24"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD27"
+addr = "BD27"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD68"
+addr = "BD68"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BF47"
+addr = "BF47"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BF67"
+addr = "BF67"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BF9F"
+addr = "BF9F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BFA2"
+addr = "BFA2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Challenge_ExitIfDone_BFF5"
+addr = "BFF5"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C124"
+addr = "C124"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C154"
+addr = "C154"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3C8"
+addr = "C3C8"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C3F9"
+addr = "C3F9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C403"
+addr = "C403"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C406"
+addr = "C406"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterLine_C4C4"
+addr = "C4C4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette_C581"
+addr = "C581"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdSetPalette_C5B4"
+addr = "C5B4"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB3F"
+addr = "CB3F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D203"
+addr = "D203"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_Menu_D535"
+addr = "D535"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_TrackRecords_D601"
+addr = "D601"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_TrackRecords_D71B"
+addr = "D71B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour_E563"
+addr = "E563"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour_E59A"
+addr = "E59A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourList_E728"
+addr = "E728"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E927"
+addr = "E927"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E9BB"
+addr = "E9BB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC07"
+addr = "EC07"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC6C"
+addr = "EC6C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC6F"
+addr = "EC6F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EE3F"
+addr = "EE3F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNumber_EF1C"
+addr = "EF1C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawOptionList_EF6E"
+addr = "EF6E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawOptionList_EF72"
+addr = "EF72"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Util_SortTable8Descending_EFDC"
+addr = "EFDC"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ResetScreenGfx_F4DF"
+addr = "F4DF"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen"
+addr = "F549"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen_F5AA"
+addr = "F5AA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen_F601"
+addr = "F601"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B30"
+addr = "9B30"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B83"
+addr = "9B83"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CE0"
+addr = "9CE0"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CFD"
+addr = "9CFD"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D08"
+addr = "9D08"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9DA1"
+addr = "9DA1"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9DA4"
+addr = "9DA4"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9DD2"
+addr = "9DD2"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9E0F"
+addr = "9E0F"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B95A"
+addr = "B95A"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B973"
+addr = "B973"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B988"
+addr = "B988"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B99D"
+addr = "B99D"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9C3"
+addr = "B9C3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9F3"
+addr = "B9F3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9F7"
+addr = "B9F7"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA05"
+addr = "BA05"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_BA08"
+addr = "BA08"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82B4"
+addr = "82B4"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82B5"
+addr = "82B5"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82D2"
+addr = "82D2"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82EA"
+addr = "82EA"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8310"
+addr = "8310"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8313"
+addr = "8313"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_Lookup_B2B9"
+addr = "B2B9"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_DC13"
+addr = "DC13"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_Long_DC59"
+addr = "DC59"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E238"
+addr = "E238"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E248"
+addr = "E248"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E24B"
+addr = "E24B"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E26D"
+addr = "E26D"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E270"
+addr = "E270"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2A0"
+addr = "E2A0"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2A5"
+addr = "E2A5"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2CD"
+addr = "E2CD"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2D0"
+addr = "E2D0"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2D3"
+addr = "E2D3"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E307"
+addr = "E307"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E33E"
+addr = "E33E"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_CheckSizeMirror"
+addr = "8AF7"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Str_Copy_8BDF"
+addr = "8BDF"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadTiles7A00A_94D7"
+addr = "94D7"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Gfx_UploadTiles7A00B_9506"
+addr = "9506"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_BuildMemberList_9661"
+addr = "9661"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Ppu_WaitVBlank_A933"
+addr = "A933"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_C905"
+addr = "C905"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_C9AD"
+addr = "C9AD"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA7C"
+addr = "CA7C"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CC5D"
+addr = "CC5D"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[variant]]
+bank = 0
+addr = "9B2F"
+entry_m = 0
+entry_x = 0
+
+[[variant]]
+bank = 0
+addr = "9B55"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 0
+addr = "C3AB"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 0
+addr = "C3AF"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 3
+addr = "8BC9"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 3
+addr = "8BCD"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 3
+addr = "8D8F"
+entry_m = 1
+entry_x = 0
+
+[[variant]]
+bank = 3
+addr = "9E3A"
+entry_m = 0
+entry_x = 0
+
+[[variant]]
+bank = 3
+addr = "9F14"
+entry_m = 0
+entry_x = 0
+
+[[func]]
+name = "I_RESET_885E"
+addr = "885E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_8864"
+addr = "8864"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_886A"
+addr = "886A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_887B"
+addr = "887B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainLoop_8884"
+addr = "8884"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_941F"
+addr = "941F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9428"
+addr = "9428"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_Show_9522"
+addr = "9522"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_Show_95A4"
+addr = "95A4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A0DA"
+addr = "A0DA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw_ACE8"
+addr = "ACE8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_SortStandings_AD44"
+addr = "AD44"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B0AA"
+addr = "B0AA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLogo_B0B3"
+addr = "B0B3"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_Main_B627"
+addr = "B627"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BBE2"
+addr = "BBE2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BBF9"
+addr = "BBF9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC33"
+addr = "BC33"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC44"
+addr = "BC44"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC4C"
+addr = "BC4C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC59"
+addr = "BC59"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC66"
+addr = "BC66"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BCD6"
+addr = "BCD6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD21"
+addr = "BD21"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD34"
+addr = "BD34"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD4B"
+addr = "BD4B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD6B"
+addr = "BD6B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BF64"
+addr = "BF64"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BF9C"
+addr = "BF9C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BFB7"
+addr = "BFB7"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BFCE"
+addr = "BFCE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Challenge_ExitIfDone_BFF8"
+addr = "BFF8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C12B"
+addr = "C12B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C145"
+addr = "C145"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Options_DefinePlayer_C14B"
+addr = "C14B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Input_WaitAnyButtonL_C1F4"
+addr = "C1F4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdPlayerNameVar_C60B"
+addr = "C60B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB06"
+addr = "CB06"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "PickUni_Open_CB0E"
+addr = "CB0E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D26A"
+addr = "D26A"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D274"
+addr = "D274"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D27E"
+addr = "D27E"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D288"
+addr = "D288"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D292"
+addr = "D292"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitScreen_D29C"
+addr = "D29C"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_Menu_D532"
+addr = "D532"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Records_Menu_D552"
+addr = "D552"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTour_E551"
+addr = "E551"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourList_E725"
+addr = "E725"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E872"
+addr = "E872"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E8C4"
+addr = "E8C4"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E8E8"
+addr = "E8E8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E910"
+addr = "E910"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_PickTrack_E9FE"
+addr = "E9FE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_EC56"
+addr = "EC56"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_ShowTourTables_ECA1"
+addr = "ECA1"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EDB6"
+addr = "EDB6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EE0E"
+addr = "EE0E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EE34"
+addr = "EE34"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EE66"
+addr = "EE66"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNumber_EF09"
+addr = "EF09"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen_F599"
+addr = "F599"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ShowLegalScreen_F5A2"
+addr = "F5A2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9BB3"
+addr = "9BB3"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9E11"
+addr = "9E11"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B93D"
+addr = "B93D"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockLong_8081"
+addr = "8081"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_8092"
+addr = "8092"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80E5"
+addr = "80E5"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockListLong_82A8"
+addr = "82A8"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Res_LoadToWram_B326"
+addr = "B326"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "WaitForNMI_Long_D4E8"
+addr = "D4E8"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Vram_Clear_Long_D4F9"
+addr = "D4F9"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitHdma_D6C8"
+addr = "D6C8"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_Long_D80F"
+addr = "D80F"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DCA3"
+addr = "DCA3"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DCB1"
+addr = "DCB1"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DD9A"
+addr = "DD9A"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DDD6"
+addr = "DDD6"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_ApplyRaceResult_87B0"
+addr = "87B0"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksumsLong_90F7"
+addr = "90F7"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_C9A9"
+addr = "C9A9"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ValidateOrInit_8CC6"
+addr = "8CC6"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_DrawLapRace_910E"
+addr = "910E"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9447"
+addr = "9447"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9450"
+addr = "9450"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9459"
+addr = "9459"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Attract_Main_9460"
+addr = "9460"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A0F1"
+addr = "A0F1"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A0FA"
+addr = "A0FA"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A103"
+addr = "A103"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_InitVideo_A10A"
+addr = "A10A"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_SortStandingsLong_AD37"
+addr = "AD37"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC08"
+addr = "BC08"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD43"
+addr = "BD43"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_TwoPlayerRace_BD73"
+addr = "BD73"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_ChallengeRace_BFC6"
+addr = "BFC6"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Challenge_ExitIfDone_C004"
+addr = "C004"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_RecordTimeRace_C7ED"
+addr = "C7ED"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Scores_StoreResult_F8A2"
+addr = "F8A2"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9BF"
+addr = "B9BF"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitVideo_D768"
+addr = "D768"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E190"
+addr = "E190"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_FadeUnlessKind1_9981"
+addr = "9981"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_C9B1"
+addr = "C9B1"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA55"
+addr = "CA55"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA5E"
+addr = "CA5E"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA67"
+addr = "CA67"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CA6E"
+addr = "CA6E"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_CC66"
+addr = "CC66"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "I_RESET_8874"
+addr = "8874"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Results_DrawLapRace_910A"
+addr = "910A"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC53"
+addr = "BC53"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_OnePlayerRace_BC5C"
+addr = "BC5C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B19"
+addr = "9B19"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitVideo_Long_D734"
+addr = "D734"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_InitLeagues_9413"
+addr = "9413"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Ppu_ResetAllRegisters"
+addr = "F940"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_ValidateOrInit_8CAD"
+addr = "8CAD"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Start_9A2F"
+addr = "9A2F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "WaitVBlank_FACD"
+addr = "FACD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_8123"
+addr = "8123"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_82DE"
+addr = "82DE"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlockList_8315"
+addr = "8315"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_Main_C98F"
+addr = "C98F"
+bank = 3
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Boot_ClearWRAM_9302"
+addr = "9302"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_SortStandings_AD81"
+addr = "AD81"
+bank = 0
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterLine_C4CB"
+addr = "C4CB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Oam_ResetMenuSprites_D2BA"
+addr = "D2BA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTourTrackTable_EE8C"
+addr = "EE8C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9A93"
+addr = "9A93"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B97"
+addr = "9B97"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9CCC"
+addr = "9CCC"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9D61"
+addr = "9D61"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B943"
+addr = "B943"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B9C5"
+addr = "B9C5"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB30"
+addr = "BB30"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRace_CED1"
+addr = "CED1"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRace_D860"
+addr = "D860"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_DBCF"
+addr = "DBCF"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackGraphics_DDE6"
+addr = "DDE6"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E28C"
+addr = "E28C"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E2B6"
+addr = "E2B6"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_LoadTrackData_E376"
+addr = "E376"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9A88"
+addr = "9A88"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_ToRam_B997"
+addr = "B997"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRaceLong_CCE9"
+addr = "CCE9"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRace_CF1D"
+addr = "CF1D"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Race_InitState_DC1E"
+addr = "DC1E"
+bank = 2
+emit = true
+entry_m = 0
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawOptionList_EF58"
+addr = "EF58"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B55"
+addr = "9B55"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9DB8"
+addr = "9DB8"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_SendQueuedCommand_8050"
+addr = "8050"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 1
+note = "coverage discovery"
+
+[[func]]
+name = "Sram_UpdateChecksums_91AF"
+addr = "91AF"
+bank = 3
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_CmdCenterLine_C4D2"
+addr = "C4D2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9BF2"
+addr = "9BF2"
+bank = 1
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Decomp_BuildHuffTable_BB36"
+addr = "BB36"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Hud_InitRace_D6D8"
+addr = "D6D8"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Snd_UploadBlock_80C4"
+addr = "80C4"
+bank = 2
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainLoop_88AE"
+addr = "88AE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Menu_DrawTrackNameGrid_95E0"
+addr = "95E0"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9BE2"
+addr = "9BE2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9BE8"
+addr = "9BE8"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9BEB"
+addr = "9BEB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9BF1"
+addr = "9BF1"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9C04"
+addr = "9C04"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9C2E"
+addr = "9C2E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9CA2"
+addr = "9CA2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9CAC"
+addr = "9CAC"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9CB2"
+addr = "9CB2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9CE9"
+addr = "9CE9"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9CFE"
+addr = "9CFE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9D22"
+addr = "9D22"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9D96"
+addr = "9D96"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9D9F"
+addr = "9D9F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_PickTracks_9DD2"
+addr = "9DD2"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9E62"
+addr = "9E62"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9E68"
+addr = "9E68"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9E6B"
+addr = "9E6B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9E71"
+addr = "9E71"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_SelectSlot_9F09"
+addr = "9F09"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_SelectSlot_9F0C"
+addr = "9F0C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_NameEntry_A203"
+addr = "A203"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_NameEntry_A225"
+addr = "A225"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_DrawTable_A54C"
+addr = "A54C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_DrawTable_A62B"
+addr = "A62B"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_DrawTable_A65D"
+addr = "A65D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_DrawTable_A66E"
+addr = "A66E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_DrawTable_A67D"
+addr = "A67D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "MainMenu_Draw_ACFE"
+addr = "ACFE"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BE06"
+addr = "BE06"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BE09"
+addr = "BE09"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BE1C"
+addr = "BE1C"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BEEB"
+addr = "BEEB"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BEFA"
+addr = "BEFA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BEFD"
+addr = "BEFD"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BF0D"
+addr = "BF0D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Text_DrawLoop_C40D"
+addr = "C40D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Rider_BuildRotationTables_9B57"
+addr = "9B57"
+bank = 1
+emit = true
+entry_m = 0
+entry_x = 0
+note = "coverage discovery"
+
+[[variant]]
+bank = 3
+addr = "90F7"
+entry_m = 1
+entry_x = 0
+
+[[func]]
+name = "DefineLeague_Main_9BD1"
+addr = "9BD1"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9C3D"
+addr = "9C3D"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9E7F"
+addr = "9E7F"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_CalcItemPos_9EBA"
+addr = "9EBA"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BDCF"
+addr = "BDCF"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "Mode_League_BE45"
+addr = "BE45"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "League_Clear_D40E"
+addr = "D40E"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"
+
+[[func]]
+name = "DefineLeague_Main_9C3A"
+addr = "9C3A"
+bank = 0
+emit = true
+entry_m = 1
+entry_x = 0
+note = "coverage discovery"

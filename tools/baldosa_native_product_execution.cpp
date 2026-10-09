@@ -36,3 +36,16 @@ extern "C" void ur_baldosa_product_set_host_focus(int owned) {
 extern "C" void ur_baldosa_product_guest_restarted(void) {
     g_input.reset();
 }
+
+
+/* Modern pause commits only after the real Baldosa host acknowledges it.
+ * Atomically transfer human input ownership AFTER the successful host action,
+ * so a rejected pause cannot swallow gameplay controls and a rejected resume
+ * cannot leak a held Return/Start into the guest. No scripted/debug mutation. */
+extern "C" int snesrecomp_desktop_product_set_paused(int paused);
+extern "C" int ur_baldosa_product_set_paused(int paused) {
+    if (!snesrecomp_desktop_product_set_paused(paused != 0))
+        return 0;
+    g_input.host_focus(paused != 0);
+    return 1;
+}

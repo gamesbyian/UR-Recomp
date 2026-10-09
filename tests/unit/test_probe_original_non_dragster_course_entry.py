@@ -59,6 +59,8 @@ class NonDragsterCourseEntryTests(unittest.TestCase):
         self.assertEqual(row["p1_contact_stored"], 0x2024)
         self.assertEqual(row["p2_contact_stored"], 0x1804)
         self.assertEqual(row["p1_laps_remaining"], 2)
+        self.assertEqual(row["timer_minutes_raw"], 0)
+        self.assertEqual(row["timer_tenths_raw"], 0)
         buf = bytearray(image("zoom-zoo"))
         buf[probe.COURSE_RAM_OFFSET + 11] ^= 1
         buf[probe.COURSE_RAM_OFFSET + 12] ^= 1
@@ -100,7 +102,7 @@ class NonDragsterCourseEntryTests(unittest.TestCase):
     def test_real_case_ids_match_canonical_stream_and_event_types(self):
         self.assertEqual(probe.CASES["zoom-zoo"], (2, 1, 0, 1, "circuit-a"))
         self.assertEqual(probe.CASES["jumps"], (13, 12, 2, 2, "stunt"))
-        self.assertEqual(probe.SAMPLES, (0, 1, 2, 4, 8, 16))
+        self.assertEqual(probe.SAMPLES, (0, 1, 2, 4, 8, 16, 32, 64))
 
 
 if __name__ == "__main__":

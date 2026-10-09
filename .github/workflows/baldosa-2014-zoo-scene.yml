@@ -1,0 +1,166 @@
+name: Baldosa 2014 completed-Zoo input transplant
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/baldosa-2014-zoo-scene.yml"
+      - "tools/baldosa_2014_zoo_scene_route.py"
+      - "tools/baldosa_2014_zoo_scene_report.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+      - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
+      - "tests/unit/test_baldosa_2014_zoo_scene_report.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-2014-zoo-scene-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  paired-original-native-scene:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out canonical USA original inputs
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out exact Ema Baldosa AOT guest and framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Install reference and AOT host build closure
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev \
+            libxrandr-dev libxcursor-dev libxi-dev libxss-dev \
+            libwayland-dev libxkbcommon-dev libegl-dev libgles-dev \
+            libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb x11-utils
+
+      - name: Verify canonical ROM, source core pins and generate source-backed scene
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          mkdir -p "$RUNNER_TEMP/zoo-scene"
+          python3 tools/baldosa_2014_zoo_scene_route.py \
+            --upstream baldosa/tests/routes/zoomzoo_1p.txt \
+            --out "$RUNNER_TEMP/zoo-scene/route.txt" \
+            --report "$RUNNER_TEMP/zoo-scene/input-provenance.json"
+          python3 tools/extract_smv_input.py \
+            reference/imported/tas-bots/dessyreqt-4250-submission.smv \
+            --input-out "$RUNNER_TEMP/zoo-scene/historical-input" \
+            --sram-out "$RUNNER_TEMP/zoo-scene/movie.srm" \
+            --sram-size 8192 \
+            --json-out "$RUNNER_TEMP/zoo-scene/movie-metadata.json"
+          cmp baldosa/tests/routes/zoomzoo_1p.txt \
+              reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/zoomzoo_1p.txt
+
+      - name: Build pinned original Snes9x oracle and Baldosa snesref interface
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+                -B "$RUNNER_TEMP/zoo-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/zoo-snesref" -j2
+
+      - name: Replay actual 2014 source input after Zoom Zoo race entry in original Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/zoo-scene"
+          mkdir -p "$ROOT/original"
+          grep -v '^turbo' "$ROOT/route.txt" > "$ROOT/original-route.txt"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$ROOT/movie.srm" \
+          SNESREF_SCRIPT="$ROOT/original-route.txt" \
+          SNESREF_DUMP_DIR="$ROOT/original" \
+            timeout 120 "$RUNNER_TEMP/zoo-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$ROOT/original.log" 2>&1
+          tail -n 25 "$ROOT/original.log"
+          test -s "$ROOT/original/scene-entered.wram.bin"
+          test -s "$ROOT/original/result-stable-candidate.wram.bin"
+
+      - name: Compile the untouched pinned Baldosa full AOT title
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          test -x baldosa/build/UniracersSNESRecomp
+          if [ ! -f baldosa/build/config.ini ]; then
+            printf '%s\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
+          fi
+
+      - name: Replay identical source scene with Baldosa AOT guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/zoo-scene"
+          Xvfb :99 -screen 0 1280x720x24 -ac > "$ROOT/xvfb.log" 2>&1 &
+          export DISPLAY=:99
+          for _ in 1 2 3 4 5; do
+            xdpyinfo -display :99 > /dev/null 2>&1 && break
+            sleep 1
+          done
+          xdpyinfo -display :99 >/dev/null
+          cat > "$ROOT/x11-wrap" <<'SH'
+          #!/bin/sh
+          export SDL_VIDEODRIVER=x11
+          exec "$BALDOSA_REAL_BIN" "$@"
+          SH
+          chmod +x "$ROOT/x11-wrap"
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export BIN="$ROOT/x11-wrap" SRM="$ROOT/movie.srm"
+          export SDL_AUDIODRIVER=dummy PIXELS=0 KEEP_WRAM=0 TMO=120
+          bash baldosa/tools/run_route.sh "$ROOT/route.txt" "$ROOT/native"
+          tail -n 25 "$ROOT/native/log.txt"
+          test -s "$ROOT/native/dump/scene-entered.wram.bin"
+          test -s "$ROOT/native/dump/result-stable-candidate.wram.bin"
+
+      - name: Check original and native real Zoo entry and result candidates
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/zoo-scene"
+          python3 tools/baldosa_2014_zoo_scene_report.py \
+            --original "$ROOT/original" --native "$ROOT/native/dump" \
+            --source-report "$ROOT/input-provenance.json" \
+            --out "$ROOT/paired-result.json"
+          echo "Original 2014 source-scene rehost remains candidate only; result text and 45-course release parity are separately gated." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload scene output, excluding copyrighted movie and SRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-zoo-2014-original-native-scene-candidates
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/zoo-scene/input-provenance.json
+            ${{ runner.temp }}/zoo-scene/paired-result.json
+            ${{ runner.temp }}/zoo-scene/original.log
+            ${{ runner.temp }}/zoo-scene/native/log.txt
+            ${{ runner.temp }}/zoo-scene/original/*.wram.bin
+            ${{ runner.temp }}/zoo-scene/native/dump/*.wram.bin

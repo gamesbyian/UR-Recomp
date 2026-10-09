@@ -1,5 +1,24 @@
 # Modern racer cosmetics and contributor crown Easter egg
 
+## Four-slot colour and texture architecture (2026-10-08)
+
+**Core appearance target:** independent player-selectable `tire`, `rim` (spokes/hub subject to measured separation), `frame/body` and `saddle` colour/material slots. Original named/palette racers remain faithful unmodified presets; a custom selection derives a new appearance rather than overwriting the preset. These material slots are distinct from headwear, scarf, wheel accents, aura and trail slots and distinct from the automatic honorary crown. Prefer a small curated, source-inspired palette at first; offer arbitrary custom colour only after masks, luminance/contrast and both rendering modes are validated.
+
+**Evidence-first part mapping:** inventory source palette/cgram colours and all recovered component pixels across semantic-frame and composition variants, including wheel rotation, flips and overlaps. Determine whether components have independent palette entries; never assume `palette_asset_id` identifies tire, rim, frame or saddle individually. Implement a per-pose, provenance-backed component mask/layer atlas in host presentation data; handwritten artwork/masks are allowed when source extraction cannot separate shared palette entries. Record ambiguous edges and unsupported frames; no guessing based solely on raw RGB. Check OAM/split priority and window occlusion.
+
+**Preview/race parity:** the animated 2D hero renders draft appearance instantly. Only expose supported end-user choices if the actual race presenter can reproduce the same component selection across all admitted poses, fallback and two-player views. If a pose is unsupported, either retain a visually exact material-aware stock fallback or withhold that customization variant from release. Avoid the dangerous 'beautiful coloured menu preview, default grey wheel during race' failure. Validation includes full pose windows and mode switches, not just a single 1205–1220 strip. New texture variant assets must carry deterministic IDs, bounds, masks and mode-specific fallback policy.
+
+**Persistence/ownership:** versioned host-owned appearance record should encode small stable material/colour IDs, or bounded explicit sRGB values if free colours are eventually admitted, per racer. No guest palette/VRAM/WRAM/SRAM modifications or collision/timing changes. Separate uncommitted studio draft from active profile; Apply is transactional. Missing/stale material pack resolves to an explicit safe visual choice and retains the user's stored preference for potential future recovery where feasible. Replay optional appearance snapshots never influence deterministic validity. Honour reduced flashing for glowing material variants.
+
+**Delivery slices:**
+1. Source-palette and component-boundary audit, exact legacy preset fixtures, stable semantic material slots and four independent swatches in showroom pilot.
+2. Pose masks/layers, rotating wheel and body/saddle mapping, in-race visual parity across player seats, flips/landing/overlap and scaling; durable fresh-process persistence.
+3. Curated tire tread, rim metallic, frame finish and saddle texture/material variants with measurable preview/race fidelity.
+4. Optional custom colour input and animated/emissive materials after contrast and compositor/occlusion correctness.
+
+**Non-negotiable:** colour/material changes are render-only and preserve guest state, authoritative timing, result events and run validity. See `MODERN-FRONTEND-MASTER-DESIGN.md` for editor interaction and art review.
+
+
 ## Racer Studio preview integration (2026-10-08)
 
 The intended racer-creation screen has a **large, animated unicycle showroom hero**, not a static thumbnail. Baseline animations are side-on racing-in-place, wheel motion, small hops, restless shimmies and occasional stunts. Each supported colour, legacy preset and accessory edit previews immediately before commitment. A real vertical-axis 3D turntable is not required and cannot be reconstructed from the known side-view SNES/OAM sprite frames alone. Prefer a 2D frontend-only composited animator that reuses verified racer poses, anchor geometry and optional authored in-between drawings; do not drive a hidden guest race. Keep uncommitted preview state separate from active racer/profile persistence, and discard it on Cancel. Source the honorary crown from the *previewed accepted name* in the same pure name policy, without saving a crown flag.

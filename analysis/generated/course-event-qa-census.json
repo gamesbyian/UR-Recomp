@@ -19,13 +19,13 @@
     "family_cases_per_region": 9
   },
   "status_counts": {
-    "partial": 3,
-    "unverified": 132
+    "partial": 4,
+    "unverified": 131
   },
   "by_rom": {
     "usa-retail": {
-      "partial": 3,
-      "unverified": 42
+      "partial": 4,
+      "unverified": 41
     },
     "europe-retail": {
       "unverified": 45
@@ -44,7 +44,8 @@
       "unverified": 26
     },
     "stunt": {
-      "unverified": 27
+      "partial": 1,
+      "unverified": 26
     },
     "race-b": {
       "unverified": 27
@@ -127,7 +128,7 @@
       ],
       "status": "partial",
       "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
-      "coverage_note": "Independent original Snes9x 2014 full WRAM write trace proves actual Zoom Zoo header-aligned entry at frame 3190, four-state checkpoint sequence with transitions at 3408/3794/4031/4722/4911 and two P1 lap decrements 4->3->2; original only, no complete circuit result or paired native parity."
+      "coverage_note": "Independent original 2014 Snes9x trace proves Zoom Zoo entry at frame 3190, checkpoint/lap transitions at 3408/3794/4031/4722/4911 (P1 4->3->2), and archived original Circuit result menu BC at 8353 with MIKE total 1:16.46/best lap 0:25.10. Original-only source; no independently synchronized fresh native circuit and terminal comparison."
     },
     {
       "rom": "usa-retail",
@@ -144,9 +145,9 @@
         "timer_expiry",
         "result"
       ],
-      "status": "unverified",
-      "evidence_ref": null,
-      "coverage_note": null
+      "status": "partial",
+      "evidence_ref": "analysis/generated/result-screens-probe.json",
+      "coverage_note": "Source-pinned archived 2014 original Snes9x Bowl 45-second Stunt reaches tally menu 2F at frame 11915 and settled 18 at 11985 with MIKE score 764; independently proven original-only full source event, without fresh reference/native event-relative parity or accepted USA release-complete witness."
     },
     {
       "rom": "usa-retail",
@@ -2766,8 +2767,9 @@
   "limits": [
     "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
     "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
-    "Original-only Zoom Zoo shows two lap decrements and checkpoint order, but no paired native execution or terminal circuit result.",
-    "Input-only Jumpover CIRCUIT-B maneuver rewards are partial; no circuit result or 45-second stunt event was certified.",
+    "Original-only Zoo demonstrates checkpoint/lap order and archived settled Circuit result, but no fresh original/native result parity.",
+    "Original-only archived Bowl proves settled scored Stunt result; no paired original/native timed Stunt is certified.",
+    "Input-only Jumpover CIRCUIT-B rewards are partial; no paired Circuit result or scored 45-second Stunt outcome was certified.",
     "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
     "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
     "A complete pass requires original menu entry, player result and event-relative independent reference comparison."

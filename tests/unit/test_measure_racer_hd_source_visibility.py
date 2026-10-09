@@ -44,7 +44,7 @@ class RacerOriginalObjSourceVisibilityTests(unittest.TestCase):
         # Only the first emitted source OBJ pixels. A viewport-level
         # top_opaque=9 would otherwise authorize both host drawings.
         log = (
-            frame(1220, 9, 0) + "\\n"
+            frame(1220, 9, 0) + "\n"
             "UR_RACER_HD_SOURCE_FOOTPRINTS frame=1220 count=4 "
             "alpha0=9 alpha1=0 alpha2=0 alpha3=0"
         )
@@ -58,7 +58,7 @@ class RacerOriginalObjSourceVisibilityTests(unittest.TestCase):
 
     def test_p1_only_footprint_order_and_malformed_counts(self):
         log = (
-            frame(1300, 3, 2).replace("full-pair", "p1-only") + "\\n"
+            frame(1300, 3, 2).replace("full-pair", "p1-only") + "\n"
             "UR_RACER_HD_SOURCE_FOOTPRINTS frame=1300 count=2 "
             "alpha0=3 alpha1=2 alpha2=0 alpha3=0"
         )
@@ -70,10 +70,10 @@ class RacerOriginalObjSourceVisibilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "inactive P1-only"):
             analyze(log.replace("alpha2=0", "alpha2=1"), 1300, 1300)
         with self.assertRaisesRegex(ValueError, "duplicate OBJ footprint"):
-            analyze(log + "\\n" + log.splitlines()[-1], 1300, 1300)
+            analyze(log + "\n" + log.splitlines()[-1], 1300, 1300)
         with self.assertRaisesRegex(ValueError, "does not match HD source"):
             analyze(
-                log + "\\nUR_RACER_HD_SOURCE_FOOTPRINTS frame=1301 "
+                log + "\nUR_RACER_HD_SOURCE_FOOTPRINTS frame=1301 "
                 "count=2 alpha0=0 alpha1=0 alpha2=0 alpha3=0",
                 1300, 1301
             )

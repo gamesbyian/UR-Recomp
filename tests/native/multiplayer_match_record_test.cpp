@@ -170,6 +170,17 @@ int main(int argc, char** argv) {
         path.string(), original, &detail));
     const auto loaded = load_multiplayer_match_record_file(path.string());
     assert(loaded);
+
+#if !defined(_WIN32)
+    // A buffered write may appear successful until close; /dev/full
+    // rejects the final flush and must not be reported as a stored match.
+    if (std::filesystem::exists("/dev/full")) {
+        std::string disk_error;
+        assert(!save_multiplayer_match_record_file(
+            "/dev/full", original, &disk_error));
+        assert(!disk_error.empty());
+    }
+#endif
     assert(multiplayer_match_record_matches_run(*loaded.record, run));
 
     {

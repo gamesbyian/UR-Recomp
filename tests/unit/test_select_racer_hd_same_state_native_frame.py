@@ -46,7 +46,7 @@ class RacerNativeExactStateScreenshotTests(unittest.TestCase):
             self.assertEqual(image, ppm())
             self.assertEqual(report["selected_guest_frame"], 1221)
             self.assertEqual(report["guest_frame_offset"], 1)
-            self.assertEqual(report["matching_state_fields"]["p1_companion"], "0D0D")
+            self.assertEqual(report["matching_state_fields"]["p1_companion"], "0x0D0D")
 
     def test_rejects_multiple_same_state_guest_frames_and_missing_present(self):
         with tempfile.TemporaryDirectory() as td:

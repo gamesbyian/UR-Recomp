@@ -80,8 +80,7 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     frames = sorted(states)
     entries = [f for f in frames if states[f]["track"] == track
                and states[f]["in_race"] == 1
-               and (f == frames[0] or states.get(f - 1, {}).get("in_race") != 1
-                    or states.get(f - 1, {}).get("track") != track)]
+               and (f == frames[0] or states.get(f - 1, {}).get("in_race") != 1)]
     results = [f for f in frames if states[f]["menu"] == result_menu
                and states.get(f - 1, {}).get("menu") != result_menu]
     for start in entries:

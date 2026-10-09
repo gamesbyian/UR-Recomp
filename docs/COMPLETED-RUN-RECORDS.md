@@ -16,6 +16,10 @@ native/product/completed_run_record.{hpp,cpp} owns the typed record, strict vali
 
 The versioned codec, checksums, exact selected-source revalidation (#958), terminal digest parity (#957), and atomic publication are strong L2 contracts. **None alone proves recoverable user-visible session state** if the process terminates after a run but before its ghost sidecar or tournament receipt, or during profile continuation and upgrade. QA-02 and QA-11 require complete fresh-process J-02/J-07/J-08/J-13/J-14 journeys, injected disk-full/unwritable/colliding filename/two-process failures, clean recovery messages and original run/guest authority. The documented one-frame replay retirement window must remain confined to its justified boundary, not used as generic gameplay-event parity tolerance.
 
+### QA-02 interrupted multiplayer pair publication
+
+The existing stand-alone `.urrun` append path has an atomic no-replace final claim. The paired `.urrun` + `.urmatch` append path was separately found to have a check-then-rename race on POSIX, where rename **replaces** an incumbent. Proposed [#993](https://github.com/gamesbyian/UR-Recomp/pull/993) closes that route with two independent no-replace claims and rollback/retry; the sidecar remains deliberately published first so a crash before the run claim leaves no discoverable primary. Its new multi-process and injected sidecar-only crash tests are **not yet accepted as run evidence**. A power failure remains outside the current durability contract because complete close plus atomic naming does not imply flushed file data and parent directories.
+
 ## Replay interoperability
 
 The controller payload intentionally uses the same start:duration:p1-mask[:p2-mask] semantics as tools/controller_input.py and the pinned native INPUT_FILE replay path. encode_completed_run_input_file() emits that grammar directly. Playback should initialize the requested course through the normal guest/runtime path and feed these controller words back through the existing deterministic input route. The record must never write arbitrary WRAM to force course or racer state.

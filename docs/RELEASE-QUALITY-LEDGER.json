@@ -200,13 +200,14 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/EXPERT-PLAYTEST-PROTOCOL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+        "docs/STUNT-BOOST-FIDELITY.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Original Snes9x Zoo expert-movie evidence is now anchored to five live checkpoint transitions and two lap decrements, but native paired result and completion are unproven. Run the dense 2014 Zoom Zoo scene-relative original/native input oracle at both +210/+610 contact neighborhoods, preserve first progress divergence separately from motion; continue L-flip/combo experiment and scored 45-second Jumps result.",
+      "next_action": "Original Snes9x Zoo expert-movie evidence is now anchored to five live checkpoint transitions and two lap decrements, but native paired result and completion are unproven. Run the dense 2014 Zoom Zoo scene-relative original/native input oracle at both +210/+610 contact neighborhoods, preserve first progress divergence separately from motion; exercise opt-in same-frame Jumpover stunt trajectory/landed-contact parity on existing six inputs and L-flip/combo experiments; then obtain a scored 45-second timed-Stunt result.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

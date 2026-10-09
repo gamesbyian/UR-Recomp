@@ -41,6 +41,7 @@ extern "C" {
 #include "modern_restart_key_release.hpp"
 #include "modern_tournament_p2_guest_input.hpp"
 #include "modern_main_menu_strip.hpp"
+#include "modern_root_menu.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -176,6 +177,21 @@ int g_main_menu_pad_acceptance_stage;
 unsigned g_main_menu_pad_acceptance_frames;
 std::size_t g_main_menu_pad_acceptance_step;
 std::string g_main_menu_strip_reported;
+// The typed root owns ephemeral focus only. All destinations hand off to the
+// existing profile, records, options or stock title authorities.
+ur::product::ModernRootMenu g_modern_root_menu{};
+bool g_modern_root_guest_handoff = false;
+bool g_modern_root_quit_confirm = false;
+bool g_modern_root_transfer = false;
+// Bounded stock-title cursor handoff to 1P or 2P. No guest SRAM or shadow
+// gameplay/menu authority; input is sent through the existing route transport.
+int g_modern_root_stock_target = -1;
+unsigned g_modern_root_stock_observations = 0;
+unsigned g_modern_root_stock_settle = 0;
+bool g_modern_root_stock_waiting_cursor = false;
+bool g_modern_root_stock_waiting_transition = false;
+std::uint8_t g_modern_root_stock_previous_cursor = 0;
+std::string g_modern_root_stock_input_path;
 int g_controller_hotplug_acceptance_stage;
 unsigned g_controller_hotplug_acceptance_frames;
 std::uint64_t g_controller_hotplug_acceptance_source;
@@ -4098,8 +4114,27 @@ bool host_subview_visible() {
            g_quit_confirm_visible;
 }
 
+bool modern_root_visible() {
+    return modern_mode() && g_ram && !paused() &&
+        !snesrecomp_desktop_script_active() &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+        !g_modern_root_guest_handoff && !g_modern_root_transfer &&
+        g_modern_root_stock_target < 0 &&
+        !g_local_multiplayer_join_visible && !g_local_tournament_panel_visible &&
+        !g_frontend_records_open && !g_practice_picker.visible &&
+        !g_progress_overview_visible && !g_tour_action_visible &&
+        !g_profile_menu_visible && !g_practice_active &&
+        !practice_routing() && !tour_continue_routing() &&
+        !results_navigation_active() && !onboarding_surface_active() &&
+        !host_subview_visible() &&
+        !g_exit_frontend_waiting_for_main &&
+        !g_exit_frontend_waiting_for_usable;
+}
+
 bool host_owns_human_player_input() {
     return modern_mode() &&
+           (modern_root_visible() || g_modern_root_stock_target >= 0 ||
+           
            (g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
             g_frontend_records_open ||
@@ -5518,6 +5553,130 @@ bool open_frontend_controls() {
     diagnose_controls_bindings();
     product_diagnostic("UR_FRONTEND_CONTROLS OPENED");
     return true;
+}
+
+// The Modern root sits on the settled guest main menu. It never guesses at
+// race progression or writes guest state. Play/Multiplayer select the stock
+// 1P/2P cursor using the same bounded relative-input transport as Practice.
+bool begin_modern_root_stock_entry(int target) {
+    if (!modern_root_visible() || (target != 0 && target != 1)) return false;
+    g_modern_root_stock_target = target;
+    g_modern_root_stock_observations = 0;
+    g_modern_root_stock_settle = 0;
+    g_modern_root_stock_waiting_cursor = false;
+    g_modern_root_stock_waiting_transition = false;
+    g_modern_root_stock_input_path =
+        product_user_data_path("modern-root-input.txt");
+    if (g_modern_root_stock_input_path.empty()) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_INPUT_UNAVAILABLE");
+        return false;
+    }
+    product_diagnostic(target == 0
+        ? "UR_MODERN_ROOT PLAY_STOCK_ENTRY"
+        : "UR_MODERN_ROOT MULTIPLAYER_STOCK_ENTRY");
+    return true;
+}
+
+void advance_modern_root_stock_entry(std::uint64_t next_frame) {
+    if (g_modern_root_stock_target < 0) return;
+    const int target = g_modern_root_stock_target;
+    if (!modern_mode() || !g_ram ||
+        ++g_modern_root_stock_observations > 2400) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_TIMEOUT");
+        return;
+    }
+    if (g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01) {
+        g_modern_root_stock_target = -1;
+        if (g_ram[0x0313] != 0x01 &&
+            g_ram[0x009F] == static_cast<std::uint8_t>(
+                target == 0 ? 0x3C : 0x3D)) {
+            product_diagnostic(target == 0
+                ? "UR_MODERN_ROOT PLAY_ENTERED"
+                : "UR_MODERN_ROOT MULTIPLAYER_ENTERED");
+        } else {
+            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_UNEXPECTED_MENU");
+        }
+        return;
+    }
+    if (g_modern_root_stock_waiting_transition) return;
+    const std::uint8_t cursor = g_ram[0x009B];
+    if (g_modern_root_stock_waiting_cursor) {
+        if (cursor == g_modern_root_stock_previous_cursor) return;
+        g_modern_root_stock_waiting_cursor = false;
+        g_modern_root_stock_settle = 0;
+    }
+    // The guest exposes D7 before its menu accepts input. Reuse the measured
+    // stock 60-frame settling window from Quick Practice.
+    if (++g_modern_root_stock_settle <
+        ur::product::kQuickPracticeMenuSettleObservations) return;
+    if (cursor > 4) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_CURSOR_INVALID");
+        return;
+    }
+    const auto desired = target == 0
+        ? ur::product::stock_main_menu_one_player_input(cursor)
+        : (cursor < 1 ? ur::product::QuickPracticeMenuInput::Down
+           : cursor > 1 ? ur::product::QuickPracticeMenuInput::Up
+           : ur::product::QuickPracticeMenuInput::Accept);
+    if (!queue_relative_menu_input(
+            g_modern_root_stock_input_path, next_frame,
+            ur::product::quick_practice_runner_mask(
+                ur::product::launch_input_from_menu_input(desired)))) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_INPUT_FAILED");
+        return;
+    }
+    if (desired == ur::product::QuickPracticeMenuInput::Accept) {
+        g_modern_root_stock_waiting_transition = true;
+    } else {
+        g_modern_root_stock_waiting_cursor = true;
+        g_modern_root_stock_previous_cursor = cursor;
+    }
+}
+
+// Back opens a deliberate desktop quit confirmation. A/B never become guest
+// Start/A while the shell owns focus, including at the instant it closes.
+bool modern_root_back() {
+    if (!modern_root_visible()) return false;
+    if (g_modern_root_quit_confirm) {
+        g_modern_root_quit_confirm = false;
+        product_diagnostic("UR_MODERN_ROOT QUIT_CANCELLED");
+    } else {
+        g_modern_root_quit_confirm = true;
+        product_diagnostic("UR_MODERN_ROOT QUIT_CONFIRM");
+    }
+    return true;
+}
+
+bool modern_root_confirm() {
+    if (!modern_root_visible()) return false;
+    if (g_modern_root_quit_confirm) return request_desktop_quit();
+    const auto selected =
+        ur::product::modern_root_menu_selected(g_modern_root_menu);
+    switch (selected) {
+    case ur::product::ModernRootDestination::Play:
+        if (tour_continue_available()) return open_tour_action_menu();
+        return begin_modern_root_stock_entry(0);
+    case ur::product::ModernRootDestination::Practice:
+        return open_practice_picker();
+    case ur::product::ModernRootDestination::Multiplayer:
+        return begin_modern_root_stock_entry(1);
+    case ur::product::ModernRootDestination::Records: {
+        // Records already has one strict modal admission guard. Temporarily
+        // transfer root focus rather than creating a second Records authority.
+        g_modern_root_transfer = true;
+        const bool opened = ur_uniracers_product_open_frontend_records() != 0;
+        g_modern_root_transfer = false;
+        if (!opened) product_diagnostic("UR_MODERN_ROOT RECORDS_UNAVAILABLE");
+        return opened;
+    }
+    case ur::product::ModernRootDestination::Options:
+        return open_frontend_options();
+    }
+    return false;
 }
 
 bool request_desktop_quit() {
@@ -6989,6 +7148,11 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_next_event_verify_track.reset();
         }
     }
+    // Returning from the guest title/race restores the Modern root. The
+    // handoff is never persisted or mistaken for profile/stock authority.
+    if (g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01) {
+        g_modern_root_guest_handoff = false;
+    }
     if (g_surface == UR_UNIRACERS_RESTART_ACTIVE_RACE &&
         g_fast_repeat_sram_before) {
         const bool sram_equal =
@@ -7050,6 +7214,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (stats) {
         advance_practice_route(stats->frame + 1u);
         advance_tour_continue_route(stats->frame + 1u);
+        advance_modern_root_stock_entry(stats->frame + 1u);
 
         // Acceptance-only synchronization belongs on the emulated-frame
         // boundary, not in wall-clock X11 polling. Hold the real Practice
@@ -7550,6 +7715,39 @@ extern "C" int ur_uniracers_modern_system_key_down(
         // Keep the established Escape pause and R / Ctrl+R retry shortcuts
         // below. Their edge is still suppressed from the guest by ownership.
     }
+
+    if (modern_root_visible()) {
+        if (key == SDLK_UP || key == SDLK_DOWN) {
+            if (!g_modern_root_quit_confirm) {
+                g_modern_root_menu = ur::product::modern_root_menu_move(
+                    g_modern_root_menu, key == SDLK_DOWN ? 1 : -1);
+            }
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER)
+            return modern_root_confirm() ? 1 : 0;
+        if (key == SDLK_ESCAPE) return modern_root_back() ? 1 : 0;
+        if (key == SDLK_F2) { open_profile_menu(); return 1; }
+        if (key == SDLK_F5) return open_practice_picker() ? 1 : 0;
+        if (key == SDLK_F10) return open_frontend_options() ? 1 : 0;
+        if (key == SDLK_F8) {
+            g_modern_root_transfer = true;
+            const int opened = ur_uniracers_product_open_frontend_records();
+            g_modern_root_transfer = false;
+            return opened ? 1 : 0;
+        }
+        if (key == SDLK_F3 && tour_continue_available())
+            return open_tour_action_menu() ? 1 : 0;
+        if (key == SDLK_F1) {
+            g_onboarding_visible = true;
+            g_onboarding_manual_open = true;
+            product_diagnostic("UR_ONBOARDING HELP_OPENED");
+            return 1;
+        }
+        // Root owns all remaining human input, not the underlying stock menu.
+        return 1;
+    }
+    if (g_modern_root_stock_target >= 0) return 1;
 
     {
         const auto regional = regional_input_coordinator().keyboard_key(
@@ -8097,6 +8295,21 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return -1;
     }
 
+    if (modern_root_visible()) {
+        if (!pressed) return 1;
+        if (button == kGamepadBtn_A || button == kGamepadBtn_Start)
+            return modern_root_confirm() ? 1 : 0;
+        if (button == kGamepadBtn_B)
+            return modern_root_back() ? 1 : 0;
+        if (button == kGamepadBtn_X) {
+            open_profile_menu();
+            return 1;
+        }
+        // Mapped directions are delivered through the semantic callback.
+        return -1;
+    }
+    if (g_modern_root_stock_target >= 0) return 1;
+
     if (!pressed) {
         if (button == g_practice_cancel_gamepad_button) {
             g_practice_cancel_gamepad_button = -1;
@@ -8362,6 +8575,17 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         }
         return 1;
     }
+    if (modern_root_visible()) {
+        if (pressed && !g_modern_root_quit_confirm &&
+            (control == 0 || control == 1)) {
+            g_modern_root_menu = ur::product::modern_root_menu_move(
+                g_modern_root_menu, control == 1 ? 1 : -1);
+        } else if (pressed && control == 5) {
+            (void)modern_root_back();
+        }
+        return 1;
+    }
+    if (g_modern_root_stock_target >= 0) return 1;
     // The Select semantic enters the same live Options surface used by pause.
     if (pressed && control == 4 && open_frontend_options()) return 1;
     // The L semantic is resolved through the live GamepadMap (including
@@ -8505,7 +8729,8 @@ bool frontend_modal_hold_wanted() {
     }
     const bool frontend_settings =
         g_frontend_options_active && (g_options_visible || g_controls_visible);
-    return g_practice_picker.visible || g_progress_overview_visible ||
+    return modern_root_visible() ||
+        g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings ||
         g_frontend_records_open || onboarding_surface_active();
 }

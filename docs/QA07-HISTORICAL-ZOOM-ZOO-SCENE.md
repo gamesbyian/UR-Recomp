@@ -230,3 +230,35 @@ evidence, not a replacement for full event and result acceptance.
 Validate its pure contracts with
 `python3 -m unittest discover -s tests/unit -p
 'test_summarize_zoo_scene_event_transitions.py'`.
+
+## Stopwatch versus horizontal motion phase (QA-07, 2026-10-09)
+
+The same independent original Snes9x WRAM write trace reveals
+that Zoo first sets `inRace=1` at movie frame **3190**; P1 world X
+stays **9200** through frame **3394**, then changes to **9185**
+at **3395** (scene-relative **+205**), while the five-byte race clock
+remains zero. The original clock's first nonzero subtick is at
+**3396** (scene-relative **+206**, raw stopwatch bytes
+`0/0/0/0/1`). P1 **Y already changes during the countdown**;
+3395 is the onset of *horizontal X displacement*, not the onset
+of all physical motion or independently verified Go HUD.
+
+The paired runner now reads each original USA timer byte:
+`0E0F` minutes, `0E13` tens, `0E17` seconds,
+`0E1B` tenths and `0E1F` subtick. Event diagnostics retain
+both guests' first observed P1 horizontal-X change interval and
+first nonzero stopwatch interval **independently of** checkpoint
+and contact disagreement, plus first timer-byte mismatch. All
+relative samples +190..230 are already one guest frame apart,
+so each actual input-transplant's first horizontal travel and
+clock onset can be localized precisely if it falls in that
+window. A one-frame clock mismatch with equal X positions
+must not be labeled a collision/physics error.
+
+The historical original (+205, +206) timings are an archival
+**reference hypothesis** for a fresh scene-aligned input transplant.
+Controller latch phase and SRAM/start-state equivalence must be
+checked before assigning those absolute relative times to a
+newly booted Snes9x or native guest. No new paired run was
+performed by this tool-only change, and neither stopwatch
+agreement nor checkpoint agreement certifies a completed circuit.

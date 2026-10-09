@@ -113,6 +113,27 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source, 1, 0xBC)
 
+    def test_original_source_entry_must_match_both_fresh_guests(self):
+        source = {
+            "p1_rider": 0, "p2_rider": 17,
+            "p1_x": 9200, "p1_y": 1489,
+            "p2_x": 9200, "p2_y": 1489,
+            "p1_laps": 4, "p2_laps": 4,
+            "p1_checkpoint": 0, "p1_finish_gate": 0,
+            "clock_raw": [0, 0, 0, 0, 0],
+        }
+        equal = target.entry_diagnostics(source, dict(source), dict(source))
+        self.assertTrue(equal["source_original_state_equivalent"])
+        fresh = dict(source, p2_rider=18)
+        wrong = target.entry_diagnostics(source, dict(source), fresh)
+        self.assertFalse(wrong["source_original_state_equivalent"])
+        self.assertEqual(wrong["discrepancies"]["fresh_native"]["fields"],
+                         ["p2_rider"])
+        wrong = target.entry_diagnostics(source, fresh, fresh)
+        self.assertFalse(wrong["source_original_state_equivalent"])
+        with self.assertRaisesRegex(target.CompleteEventError, "incomplete"):
+            target.entry_diagnostics(source, {"p1_x": 9200}, source)
+
     def test_stunt_idle_zero_score_cannot_pass_scored_result(self):
         ref = capture(0x18, ["BOWL", "MIKE", ": 0"])
         nat = capture(0x18, ["BOWL", "MIKE", ": 0"])

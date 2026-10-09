@@ -116,3 +116,28 @@ No guest run of this extended comparator has been admitted here.
 Passing sparse checkpoints would close only this named 1,811-frame
 input-transplant experiment; neither an entire circuit result nor
 the overall QA-01 45-course release requirement.
+
+## Fail-closed course and active-window validation (2026-10-09)
+
+The +1,800-frame benchmark has two especially dangerous false-pass modes:
+both engines could carry an identical **wrong** course buffer despite the
+menu reporting track 1, or both could leave the race early and subsequently
+display the same menu/results state. Either condition would cause sparse
+field equality to overstate fidelity to the archived Zoom Zoo race.
+
+The paired runner now unpacks the exact canonical USA stream 2 and requires
+the entire resident `7F:0000` course payload at **every observed active
+checkpoint**, except the original loader-mutated two-byte cursor at
+`0x0B..0x0C`. A wrong/partially loaded course causes explicit evidence
+rejection even when both runtimes match each other. After comparing guest
+state, it separately verifies that all 21 event-relative checkpoint samples
+still show `inRace=1`, `trackID=1`, as expected for the archived original
+movie through frame 5000.
+
+A matched **premature exit** is retained as `reference_active_window` and
+`native_active_window` diagnostics but makes the 1,811-frame active-window
+result nonpassing. This check does not assert an early result is itself a
+gameplay defect: scene phase, SRAM identity and input origin must first
+be adjudicated. ROM-free regression tests cover identical early exits,
+wrong resident course bytes and the authorized cursor exception.
+

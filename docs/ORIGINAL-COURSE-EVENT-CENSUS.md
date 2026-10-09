@@ -148,6 +148,63 @@ full checkpoint/laps/result (Zoom Zoo) or scoring/timer/result (Jumps) is
 captured from each engine. Do not adjust the 0/45 release denominator on
 the strength of a test fixture's existence.
 
+## Archived expert-input route to first real timed Stunt result
+
+The imported reset-anchored 2014 `dessyreqt-4250-submission.smv` contains
+over 8.7 million original input samples. Its pre-existing first-race replay
+`analysis/generated/historical-2014-first-race-replay.json` demonstrates
+that **absolute frame-zero native playback is not aligned to the original
+reference**: the original first-race entry is frame 794, while the native
+screen at that same frame was still in menu flow. Those differences are
+timing/phase counterexamples; assigning them to physics would be invalid.
+Repeatedly increasing absolute-replay duration would not repair the
+starting condition.
+
+`tools/extract_historical_smv_scene_window.py` now selects a bounded
+scene-relative input window (up to 24,000 samples) from the pinned original
+SMV or its single-file ZIP wrapper. It validates the original movie UID,
+sample count, P1 controller bit, NTSC/reset anchor, ROM CRC, controller
+offset, reserved joypad bits and absence of reset markers *in the selected
+window*. It outputs original input-run lengths and hash/provenance. When
+given a **caller-measured** target race-entry frame it can rebase the
+exact input masks to a fresh reference/native session. It intentionally
+does not infer the actual movie's race-entry frame.
+
+**Prospective expert-play experiment (not yet performed):**
+
+1. First trace the Snes9x archive replay on the **original** core beyond the
+   verified first-race window, sampling current track `7E:00CE`,
+   active-race `0313`, current menu `009F`, five stunt timer bytes,
+   boost and stunt-message ring. Source reconnaissance reports an active
+   historical Bowl stunt run ending around movie frame 11867; treat that
+   frame as a **search lead**, not a verified event timestamp.
+2. Only after observing the exact first original Bowl (`course:03`,
+   track ID 2) **race-entry** frame, extract enough of its original input
+   timeline to cover scored gameplay, expiry and the actual Stunt results
+   transition. Example with *illustrative* frame values:
+   ```sh
+   python3 tools/extract_historical_smv_scene_window.py \
+     --first-movie-frame <verified-original-bowl-entry> \
+     --frames <verified-bounded-stunt-window> \
+     --json-out /tmp/bowl-original-input.json
+   ```
+3. Boot both original Snes9x and native Authentic into Bowl through the
+   same scene-keyed menu route using the identical original SRAM. Measure
+   their own `race-entered` guest frames and independently rebase the
+   preserved controller input window to each; do not reuse the movie's
+   absolute frame as a native timestamp or transplant a Snes9x freeze.
+4. Compare scored-stunt message enqueues, queue-pop and actual reward,
+   original clock countdown, results transition and final outcome. Classify
+   first divergence at **event-relative guest frames**, with clear
+   attribution of reset/host phase and score/physics differences.
+
+The existing idle `ui-stunt-result-route.script` did **not** produce a
+result at timer zero in either original or native Bowl. This hypothesis
+tests whether *active archived stunt play* reaches results and whether
+actual scoring/timeout handling agrees. The scene-window tool is an
+input extraction seam only; **no full timed Stunt acceptance row is
+promoted** until that paired run has executed and retained its outcome.
+
 ## Frame-2903 causal exclusion
 
 The native artifact `analysis/data/dragster-finish-contact-transition.json`

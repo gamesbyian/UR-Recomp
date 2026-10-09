@@ -1,6 +1,6 @@
 # Presentation Density Contract
 
-Status: existing Modern Windows x64 host contract; maintenance/reference. **Baldosa-specific proof**: merged #1074/#1080 provide actual stable 1024×896 4× native source/Original fallback and 2P CRC non-interference, but not physical 3840×2160 nor accepted 342×224 Widescreen. Bind density, logical width and output scaling as separate host decisions on one Windows candidate.
+Status: existing Modern Windows x64 host contract; maintenance/reference. **Baldosa-specific proof**: merged #1074/#1080 provide 1024×896 4× moving authored racer art and exact Original fallback on 256×224 scenes. Merged #1082/#1092 add genuine source-world 342×224 logical views at 1368×896 4× Original density with six distinct moving 2P split captures and unchanged 2,473-frame guest WRAM CRCs (native run `38004162535`). The wide fallback is exact nearest Original: unsupported wide source OBJ capture is intentionally refused before any destructive sprite removal. This does not prove 342-wide authored HD riders, full scene parity or a physical 3840×2160 Modern Windows window. Logical source width, internal density and actual output remain independent.
 
 ## Why this exists
 

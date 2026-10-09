@@ -31,6 +31,7 @@ class NativeRacerHostTest(unittest.TestCase):
         self.assertEqual(patch.patch_main(candidate), candidate)
         self.assertIn(".begin_sim_frame", candidate)
         self.assertIn(".draw_frame", candidate)
+        self.assertIn(".presentation_scale", candidate)
 
     def test_only_first_party_presenter_is_linked(self):
         with tempfile.TemporaryDirectory() as td:
@@ -69,6 +70,20 @@ class NativeRacerHostTest(unittest.TestCase):
                 (captures / f"ur-baldosa-frame-{f:06d}.pam").write_bytes(
                     header + pixel * (256 * 224 * 4))
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "passed")
+            # 4x requires a real dense raster, not the same 1x framebuffer
+            # with altered metadata. Wrong geometry must fail closed.
+            with self.assertRaises(ValueError):
+                report.assess(base, candidate, log, captures, density=4)
+            for f, pixel in ((1800, b"\x10"), (1860, b"\x20")):
+                (captures / f"ur-baldosa-frame-{f:06d}.pam").write_bytes(
+                    (b"P7\nWIDTH 1024\nHEIGHT 896\nDEPTH 4\nMAXVAL 255\n"
+                     b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
+                    + pixel * (1024 * 896 * 4))
+            hi = report.assess(base, candidate, log, captures, density=4)
+            self.assertEqual(hi["status"], "passed")
+            self.assertEqual(hi["composed_raster_dimensions"], [1024, 896])
+            self.assertTrue(hi["real_4x_authored_raster_proved"])
+
             candidate.write_bytes(frames.replace(b"0xAAAA0000", b"0xBBBB0000", 1))
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")
 

@@ -97,6 +97,7 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
             "timer_raw_digits": onset["stopwatch_at_first_timer_tick"],
         }
         writes = {}
+        within_frame = {}
         for row in w["observed_progression"]:
             frame = row["transition_frame"]
             for index, (at, key) in enumerate((
@@ -117,12 +118,14 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
                     "timer_raw_digits": row["original_timer_raw_digits"],
                 }
             writes[frame] = row["observed_original_progress_writes"]
+            within_frame[frame] = row["original_lowwram_write_sequence"]
         result = {
             "trace_sha256": w["provenance"]["source_sha256"],
             "raw_record_count": w["provenance"]["raw_trace_write_records"],
             "last_written_frame": w["observed_original_up_to_frame"],
             "samples": samples,
             "direct_progress_writes": writes,
+            "within_frame_event_write_sequence": within_frame,
         }
         qualified = tool.verify(result, w)
         self.assertTrue(qualified["qualified_original_write_trace"])
@@ -131,6 +134,13 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
         self.assertEqual(qualified["lap_counter_decrements"], [3408, 4911])
         self.assertEqual(qualified["original_first_horizontal_x_change_frame"], 3395)
         self.assertEqual(qualified["original_first_stopwatch_tick_frame"], 3396)
+        for event in w["observed_progression"]:
+            sequence = event["original_lowwram_write_sequence"]
+            self.assertEqual(sequence, sorted(sequence, key=lambda x: x["zero_based_write_index_in_frame"]))
+        for event in (w["observed_progression"][0], w["observed_progression"][-1]):
+            sequence = event["original_lowwram_write_sequence"]
+            self.assertEqual(sequence[0]["wram_offset_hex"], "0E95")
+            self.assertIn("0EF1", [x["wram_offset_hex"] for x in sequence[1:]])
         changed = copy.deepcopy(result)
         changed["trace_sha256"] = "0" * 64
         with self.assertRaisesRegex(tool.TraceWitnessError, "source hash"):
@@ -142,6 +152,10 @@ class OriginalZooRawTraceReconstructionTests(unittest.TestCase):
         changed = copy.deepcopy(result)
         changed["direct_progress_writes"][4911].reverse()
         with self.assertRaisesRegex(tool.TraceWitnessError, "write order"):
+            tool.verify(changed, w)
+        changed = copy.deepcopy(result)
+        changed["within_frame_event_write_sequence"][3408].reverse()
+        with self.assertRaisesRegex(tool.TraceWitnessError, "within-frame write order"):
             tool.verify(changed, w)
 
 

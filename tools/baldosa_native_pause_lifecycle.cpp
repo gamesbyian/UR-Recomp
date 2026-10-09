@@ -14,7 +14,7 @@
 extern "C" {
 #include "host_main.h"
 extern std::uint8_t g_ram[0x20000];
-int snesrecomp_desktop_product_set_paused(int paused);
+int ur_baldosa_product_set_paused(int paused);
 int snesrecomp_desktop_product_is_paused(void);
 void ur_baldosa_guest_snapshot_after_run_frame(
     const SnesDesktopHostFrameStats* stats);
@@ -71,7 +71,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
-        require(snesrecomp_desktop_product_set_paused(1) != 0,
+        require(ur_baldosa_product_set_paused(1) != 0,
                 "pause_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() != 0,
                 "host_not_actually_paused");
@@ -90,7 +90,7 @@ extern "C" void ur_baldosa_product_host_tick(void) {
             "guest_wram_advanced_during_pause");
     ++g_frozen_ticks;
     if (g_frozen_ticks == 24) {
-        require(snesrecomp_desktop_product_set_paused(0) != 0,
+        require(ur_baldosa_product_set_paused(0) != 0,
                 "resume_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() == 0,
                 "host_still_paused_after_resume");

@@ -90,19 +90,24 @@ mutations. This does not provide atomicity across the profile file and catalog
 file, nor recovery from a hard kill between the two commits. Cross-artifact
 transaction and orphan-profile restoration remain QA-02 P0 follow-ups.
 
-### Conditional cleanup of a failed profile registration
+### Profile preservation on failed catalogue registration
 
-After a new profile file is created but the catalog CAS conflicts, the old
-code unconditionally removed the profile pathname. An intervening process
-could already have updated that file, so the registration loser would then
-delete the winner's newer SRAM. Production cleanup now calls
-`remove_host_profile_state_file_if_current` using the exact profile snapshot
-it originally authored, holding the same per-path OS lock during comparison
-and unlink. An intervening write causes `Conflict` and preserves the valid
-newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
-claiming rollback. The process fixture tests both refused stale deletion
-and permitted exact deletion. A crash before catalog publication still
-leaves an orphaned but intact profile requiring separate recovery policy.
+Historical regression #1003 introduced exact-state conditional deletion instead of
+unconditional deletion so a losing registrar could not erase an intervening
+writer's newer SRAM. The production registration policy has subsequently
+tightened: **failed catalogue CAS now preserves the first-phase profile**
+even if its bytes still equal our initial snapshot. A separate process could
+already have registered exactly those bytes into the authoritative catalogue
+after this instance observed the old roster; deleting them, even through
+profile-only CAS, would destroy the newly authorized racer's only snapshot.
+The `remove_host_profile_state_file_if_current` primitive remains useful and
+its process fixture still proves stale deletion refusal, but it is **not**
+called by the current profile-create CAS-failure path.
+
+A failed registration keeps an explicitly unregistered, bounded initial
+profile for a future exact-state retry; it never invents a catalogue row
+silently. This trades a safe temporary orphan for the stronger invariant that
+a competing registration winner cannot lose its progress.
 
 ## Live SRAM second-phase write failure (2026-10-09)
 

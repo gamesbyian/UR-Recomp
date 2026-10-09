@@ -295,6 +295,8 @@
     "Original initial racer X=9200 matches both header A/B.x*16, but identical header pairs cannot resolve player slot assignment. Y=1489 at first active frame is 1 world unit below header 1488.",
     "The historical magicnumber.lua startX=8961 is not the original first active X; the original P1 reaches X=8961 during the second observed lap-counter decrement.",
     "This is original-only course semantics, not a demonstrated native discrepancy or a full QA-01 accepted completion.",
-    "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read."
+    "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read.",
+    "The historic original JSONL instrumented low WRAM 7E and does NOT record/verify the complete live 7F course buffer. C000 slot-family attribution is independently ROM-static; instruction-time active 7F/C000 mapping remains an additional verifier.",
+    "The original stopwatch bytes at the first lap decrement decode to about 0.2 seconds and at the second to about 25.2 seconds. Thus 4->3 occurs just after the starting gate and must not be counted as an already-completed 25-second full circuit."
   ]
 }

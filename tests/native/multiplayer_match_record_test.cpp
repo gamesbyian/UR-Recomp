@@ -67,10 +67,10 @@ int main(int argc, char** argv) {
         const auto match = record(run);
         std::string path, error;
         if (!append_multiplayer_match_pair(argv[2], run, match, &path, &error)) {
-            std::cerr << error << "\\n";
+            std::cerr << error << std::endl;
             return 3;
         }
-        std::cout << path << "\\n";
+        std::cout << path << std::endl;
         return 0;
     }
     if (argc == 3 && std::string(argv[1]) == "inspect") {

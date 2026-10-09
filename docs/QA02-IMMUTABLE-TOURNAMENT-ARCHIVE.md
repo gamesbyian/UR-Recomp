@@ -38,3 +38,32 @@ archive, or a valid inert archive when the active pointer CAS loses.
 Neither may be credited or autoactivated without independent authority;
 the canonical active pointer and receipt-bound records remain distinct.
 QA-02 P0 remains `in_progress`.
+
+## Historical active-session archive migration (2026-10-09)
+
+A separate restore-time race existed after new-instance archive creation was
+fixed. Older installations can contain `active.urtournament` without the
+later per-instance `session.urtournament`. On restore, the coordinator
+observed a missing archive and then unconditionally wrote its own bytes. A
+second process could create a different existing archive between that
+observation and the write. Last-writer-wins migration would silently erase
+that file.
+
+Migration now reserves the historical instance archive using the **same
+create-only typed CAS** as new tournament creation. If another process wins
+the exact same migration, the loser reloads the historical archive and
+accepts it **only if every canonical byte agrees** with the active pointer.
+If a foreign, unsupported or corrupt archive is present, restore rejects
+with `EvidenceRejected`, preserving the evidence for future salvage.
+Storage failures remain `StorageFailed`; no fallback reinitializes
+standings or the original global active pointer. Normal same-plan concurrent
+restores still succeed.
+
+The native coordinator lifecycle fixture removes an archived plan to model
+an old build, restores it, validates canonical bytes, verifies a second
+restore, and tests foreign-valid and corrupt archive rejection. A source
+contract protects this migration call from regressing to unconditional save.
+
+This closes a bounded restore-time overwrite, not an atomic
+`active.urtournament`/archive transaction. Sudden power loss between them,
+and Windows two-instance recovery acceptance, remain QA-02 P0.

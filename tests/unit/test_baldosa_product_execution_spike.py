@@ -29,21 +29,20 @@ class ProductSeamTests(unittest.TestCase):
         self.assertIn(".filter_frame_inputs = WebNetplayFilterInputs", staged)
         self.assertIn("#ifndef __EMSCRIPTEN__", staged)
         self.assertEqual(spike.patch_main(staged), staged)
-        self.assertEqual(spike.patch_main(staged).count(
-            ".filter_frame_inputs"), 2)
+        self.assertEqual(staged.count(".filter_human_frame_inputs"), 1)
 
     def test_framework_filters_human_only_and_keeps_script_debug(self):
-        header = ("typedef struct SnesDesktopHostGame {\\n" +
-                  spike.HEADER_ANCHOR + "} SnesDesktopHostGame;\\n")
+        header = ("typedef struct SnesDesktopHostGame {\n" +
+                  spike.HEADER_ANCHOR + "} SnesDesktopHostGame;\n")
         header_staged = spike.patch_framework_header(header)
         self.assertIn("filter_human_frame_inputs", header_staged)
         self.assertEqual(spike.patch_framework_header(header_staged), header_staged)
         source = (
-            "uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\\n"
+            "uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\n"
             + spike.SCRIPT_ANCHOR +
-            "    inputs |= debug_server_get_controller_inputs();\\n"
+            "    inputs |= debug_server_get_controller_inputs();\n"
             + spike.WORD_ANCHOR +
-            "        RtlRunFrame(word);\\n")
+            "        RtlRunFrame(word);\n")
         staged = spike.patch_framework_source(source)
         self.assertEqual(spike.patch_framework_source(staged), staged)
         self.assertLess(staged.index("filter_human_frame_inputs"),

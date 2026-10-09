@@ -1,6 +1,6 @@
 # Presentation Density Contract
 
-Status: implemented Windows x64 contract; maintenance/reference
+Status: existing Modern Windows x64 host contract; maintenance/reference. **Baldosa-specific proof**: merged #1074/#1080 provide actual stable 1024×896 4× native source/Original fallback and 2P CRC non-interference, but not physical 3840×2160 nor accepted 342×224 Widescreen. Bind density, logical width and output scaling as separate host decisions on one Windows candidate.
 
 ## Why this exists
 

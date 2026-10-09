@@ -1,6 +1,8 @@
 # Platform Targets
 
-Last updated: 2026-10-02
+Product priority confirmed 2026-10-09: **Windows x64 Baldosa/Modern integration and QA first**. Browser, Switch, macOS and PS5 targets stay deferred feasibility work, even though Ema has browser/ARM64 references. Do not start parallel platform implementation before the integrated Windows product journey passes.
+
+Platform-target inventory last reviewed: 2026-10-02
 
 UR-Recomp is a private personal-use preservation/remaster project. The intended end state is one authoritative recompiled Uniracers simulation with multiple host implementations, not separate gameplay rewrites.
 

@@ -1,3 +1,5 @@
+> **2026-10-09 live integration qualifier:** The legacy Windows Modern state models and typed five-destination root are reusable, but **controller-only root on a completed Baldosa Modern product has not yet been admitted**. Open #1056 owns visible root/Restart Return guest-input release on the established host; the Baldosa C ABI/lifecycle lane must *consume* that work, not fork a new frontend. Merged #1085 proves native Win32 2P/pause behavior, not the complete Modern root or packaged record journey. [WORK-QUEUE.md](WORK-QUEUE.md) owns the current feature/QA join.
+
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
 ## Material-colour customization status (2026-10-08)

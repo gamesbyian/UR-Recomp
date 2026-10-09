@@ -1,12 +1,26 @@
-> **External shared-test leverage (2026-10-09):** Ema Guillén's nine original-route inputs and byte-identical disassembly toolchain have been preserved and inventoried in `docs/BALDOSA-SOURCE-CENSUS-20261009.md`. They are **input leads**, not new course/tournament L4 evidence; first run the Zoom Zoo case with actual settled-result checks and the split-screen OAM discriminator. Don't fund a second general harness or count their masked checkpoints as the 45-course denominator.
-
 # Bounded, cross-productive release QA campaign
 
-Status: planning and resource policy, 2026-10-08. Applies to QA-01..QA-12. This document **does not waive** the release criteria in `ADVERSARIAL-QA-AND-RELEASE-READINESS.md`, promote any ledger gate, or assert that unexecuted journeys pass. It sets a cost-controlled **first campaign** and an explicit decision point, not an unconditional promise of release readiness.
+**Joint execution priority (2026-10-09):** Baldosa native-core incorporation and the remaining QA are **one candidate and evidence programme**. Feature owners deliver real Windows Modern guest/UI/presentation/data outputs; independent QA tests settled original/native events, source-visible P1/P2 art, controller/audio, persisted profiles/records and physical Windows behavior on the **same exact build**. Existing input scripts, replay/process fixtures and renderer tests must be reused. A 2,473-frame WRAM CRC match, clean CI build or upstream route exit alone earns no course/release gate credit. [WORK-QUEUE.md](WORK-QUEUE.md) owns live priorities; [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns gate status.
+
+
+
+Status: active joint Baldosa/QA resource and witness policy, revised 2026-10-09. Applies to QA-01..QA-12. This document **does not waive** the release criteria in `ADVERSARIAL-QA-AND-RELEASE-READINESS.md`, promote any ledger gate, or assert that unexecuted journeys pass. It sets a cost-controlled **first campaign** and an explicit decision point, not an unconditional promise of release readiness.
+
+## One Baldosa/Modern candidate, multiple independent QA oracles
+
+| Shared route / artifact | Producer already working | Independent acceptance |
+|---|---|---|
+| Original + native settled Race, Circuit and scored Stunt | Gameplay/QA-01/07, original Snes9x/Baldosa, open #1079 historical Zoo movie | Real course identity, active-to-terminal result, time/score/laps; only then expand 45 USA |
+| Human P1/P2, real native pause/resume, Modern root, Restart Return | Baldosa lifecycle/open #1086 plus frontend open #1056 | QA-05/06/09: controller focus, guest held-button release and audible resumption |
+| 2P moving riders, true new world pixels, HD/Original fallback, 4K output | Existing presenter/margins, open #1045 and #1082 | QA-08/10: actual per-rider source OBJ, visible extra world, calibrated 7:6 PAR and physical resolution |
+| Completed tournament/result after crash/disk outage and fresh process | Existing host stores, open #1058 | QA-02/03/11: exactly one genuine award, no lost legitimate run, no stale actor win |
+| Profile → original gameplay → result → Records/replay → Repeat/Quit in a portable Windows build | Baldosa adapter + existing Modern product, Windows packager | QA-04/05/06/09/10/12: same candidate ZIP/hash, real gamepad/audio/display, physical checks where required |
+
+Each completed candidate may feed multiple gate assertions but cannot substitute one for another. Never build separate generalized harnesses for these rows or credit a design spec as executable output. The initial 300 productive-agent-hour QA tranche remains checkpointed at 100/200/300, **not** a forecast to finish everything.
 
 ## Corrective QA-of-QA policy: outcome-first execution
 
-[QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) is the latest **planning critique**, including defect/evidence/feature classification, open PR status at review, dependency order and cost checkpoint template. It does not supersede the release ledger or historic measurements below.
+[QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) is a dated **planning critique**, including defect/evidence/feature classification, open PR status at review, dependency order and cost checkpoint template. It does not supersede the release ledger or historic measurements below.
 
 **Meaning of 300h:** one *initial aggregate productive engineering tranche*, not a completion forecast or unconditional budget to finish every release gate. When a genuine new P0 is found, fix it or record the new required estimate; neither a six-hour exploratory cap nor tranche exhaustion closes a known defect. Count actual productive agent-hours and link work to concrete PR/witness/finished journeys; do not count CI queue time as engineering output. Resource shortages and physical human tests must be called out separately, not quietly assumed automatable.
 
@@ -14,7 +28,7 @@ Status: planning and resource policy, 2026-10-08. Applies to QA-01..QA-12. This 
 
 **Product-feature dependency:** `MODERN-FRONTEND-SHIPPING-STATUS.md` still identifies the five-destination root as an unintegrated typed model; [implementation issue #1053](https://github.com/gamesbyian/UR-Recomp/issues/1053) now owns the missing visible feature. QA-09 cannot pass until a frontend **implementation** lane supplies discoverable controller-first Play/Practice/Multiplayer/Records/Options routes through existing authorities. The 55h graphics/UX/input budget funds targeted QA and small necessary fixes; a larger full art/menu build-out is an **explicit separate scope and resource decision**, not free work implied by QA. Do not test an unimplemented root repeatedly or invent a parallel router.
 
-**Known red cases first:** `#890` packaged Restart Return→guest Start/audio silence belongs to input ownership repair with an audio co-oracle; `#1052` proposed live fixture OS lease requires two running game instances, owner crash/takeover and older-client compatibility bounds; `#1045` proposed HD per-source-footprint guard requires exact candidate visible-OBJ and stock-fallback evidence. All three were unresolved at this review; inspect current branch/CI state before assigning them again. `#1043` is a scoped original countdown/timer discriminator, not a substitute for a completed Zoo/Circuit event.
+**Latest defects and ownership:** Restart Return→guest Start/audio silence (#890, frontend PR #1056) still requires real default-key audible native/packaged acceptance. Rider phantom/source-OBJ mismatch (#1045) needs real moving P1/P2 pixel proof. The live tournament fixture OS lease proposed in #1052 and 2P storage-fixture work in #1054 have **merged**, so do not reimplement them; only their actual guest-raced Windows/fault scenarios remain, with receipt retry on open #1058. Contact/timer microanalysis (#1043) is not a complete Circuit result.
 
 **QA-02/QA-03 integration update (2026-10-09):** #1052 and #1054
 are merged with scoped green native process, local-multiplayer and boot
@@ -25,8 +39,7 @@ The existing process fixture also completes a 3-leg duel (3 results) and a
 3-entrant 2-leg round robin (6 results), including a C14 mid-event crash,
 uncredited Records preservation, fresh restore, standings and History.
 These are simulated stock-result **storage** journeys, not actual guest-raced
-full tournaments. The original 2026-10-08 status paragraph immediately
-above remains a dated historical review, not the latest PR state. Highest
+full tournaments. Highest
 yield now is exact-package real two-pad leg 2/3 and 3+ completion, C04
 selector/SRAM recovery, C16/C17 disk/version faults and cross-process
 Windows Busy/crash observations. Preserve QA02 and QA03 P0/L4.

@@ -1,6 +1,8 @@
 # Open-work integration register (2026-10-08)
 
-This register records a read-only reconciliation of currently open pull requests against `main`. It is an **integration gate**, not evidence that unexecuted acceptance passed. Keep `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md`, and `docs/SEMANTIC-SUFFICIENCY.md` authoritative for product policy. Do not call a feature shipped solely because its model or unit test exists.
+**Historical 2026-10-08 PR snapshot. Do not use as a live open-PR board.** Later Baldosa native/presentation, Windows 2P and pause bridges have merged, and active integration is in [WORK-QUEUE.md](WORK-QUEUE.md) plus GitHub. This record is preserved for old branch recovery evidence only.
+
+This register records a read-only reconciliation of pull requests against main **at its original review**. It is an **integration gate**, not evidence that unexecuted acceptance passed. Keep `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md`, and `docs/SEMANTIC-SUFFICIENCY.md` authoritative for product policy. Do not call a feature shipped solely because its model or unit test exists.
 
 ## PR dependency groups and merged status
 

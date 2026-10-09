@@ -3,7 +3,9 @@
 > **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
 
 
-Status: **active cross-cutting product-quality programme**, opened 2026-10-08. This is the canonical release-risk and QA prioritization document. `PROJECT-PLAN.md` remains the product intent; `WORK-QUEUE.md` owns active execution; subsystem contracts own original technical evidence. See `QA-PLAYER-JOURNEYS.md` for executable scenarios and `RELEASE-QUALITY-LEDGER.json` for current gate states.
+Status: **active cross-cutting product-quality programme**, opened 2026-10-08 and integrated with Baldosa 2026-10-09. This is the canonical release-risk and QA prioritization document. `PROJECT-PLAN.md` remains the product intent; `WORK-QUEUE.md` owns active execution; subsystem contracts own original technical evidence. See `QA-PLAYER-JOURNEYS.md` for executable scenarios and `RELEASE-QUALITY-LEDGER.json` for current gate states.
+
+**Joint execution priority (2026-10-09):** Baldosa native-core incorporation and the remaining QA are **one candidate and evidence programme**. Feature owners deliver real Windows Modern guest/UI/presentation/data outputs; independent QA tests settled original/native events, source-visible P1/P2 art, controller/audio, persisted profiles/records and physical Windows behavior on the **same exact build**. Existing input scripts, replay/process fixtures and renderer tests must be reused. A 2,473-frame WRAM CRC match, clean CI build or upstream route exit alone earns no course/release gate credit. [WORK-QUEUE.md](WORK-QUEUE.md) owns live priorities; [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns gate status.
 
 ## Why this programme exists
 

@@ -1,3 +1,5 @@
+> **2026-10-09 Baldosa migration reuse:** Existing engine-neutral ordinary-2P and VS controller fixtures, split-line 0/112 OAM evidence and original/native oracle remain valid source harnesses. Merged #1085 adds Win32 2P/pause native coverage. The *remaining* gate is live Modern controller authority, source-visible P1/P2 HD and complete 2P result/records/persistence on the **same candidate**, including genuine hardware-audio behavior. Reuse those fixtures with the Baldosa backend; no second general 2P replay transport. [WORK-QUEUE.md](WORK-QUEUE.md) and [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) own next tests.
+
 # Two-Player Fixture Capability Plan
 
 Status: deterministic VS and ordinary-2P routes are both reproduced. Ordinary 2P is promoted to a durable two-controller fixture with isolated P1-only, P2-only and simultaneous movement checkpoints plus the active-display OAM seam. The former frame-1532 one-unit X-speed seam is resolved as an absolute host-frame anchoring artifact: native, Snes9x and Beetle cut the common race-entry transition on adjacent frame boundaries, while race-relative scheduler and racer semantics align.

@@ -1,17 +1,19 @@
 # UR-Recomp agent guide
 
-Compact router for coding and research agents. Load the smallest current authority that answers the task. Repository state is canonical over conversational summaries.
+Compact router for coding and research agents. **Current priority: merge the verified Baldosa-native execution bridge into the existing Windows Modern product while independently closing remaining QA blockers on the same player journeys.** Start with `docs/WORK-QUEUE.md` (live) and `docs/PROJECT-PLAN.md` (durable intent), then only your owning specialist authority. Use `docs/README.md` to find it. Historical project plan, queue and resource notes now live under `docs/archive/` and are not assignments. Repository state and latest merged evidence supersede conversation recaps.
 
 ## Route by task
 
 | Task | Read first |
 |---|---|
-| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc; for active standard lanes, `python3 tools/build_agent_context.py <lane>` may generate a bounded orientation packet |
+| Current priority / continue work | `docs/WORK-QUEUE.md`, then the owning specialist doc and live PR owner. For established lanes `python3 tools/build_agent_context.py <lane>` yields a bounded orientation packet |
 | Understand how the game currently appears to work / orient to a subsystem | `docs/knowledge/README.md`, then the relevant concept page |
-| Overall project architecture / product plan | `docs/PROJECT-PLAN.md` |
+| Overall project architecture / product plan | `docs/PROJECT-PLAN.md` for current, `docs/archive/PROJECT-PLAN-THROUGH-20261009.md` only for old detail |
 | Widescreen feature implementation | `docs/WIDESCREEN.md`, then `docs/PROJECT-PLAN.md` |
 | Bonus emulator-assisted widescreen ROM hack | `docs/bonus/WIDESCREEN-ROM-HACK.md`; keep isolated from the shipping/native path |
 | Research strategy / external-resource work | `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md` |
+| Baldosa native / Modern integration | `docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md`, `docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md`, relevant active PR, then exact source adapters |
+| Shared original/native and release QA | `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/QA-PLAYER-JOURNEYS.md`, `docs/RELEASE-QUALITY-LEDGER.json` (sole gate status owner) |
 | Native build / boot / runtime failure | `docs/BRINGUP.md`, `docs/VALIDATION.md`, then the changed workflow/runtime files |
 | First-party C / C ABI / guest-memory code | `docs/RECOMP-C-PRACTICES.md`, then `docs/VALIDATION.md` and the owning subsystem authority |
 | GitHub Actions / CI workflow design or optimization | `docs/CI-WORKFLOW-BEST-PRACTICES.md`, `docs/OPERATIONS-ACCELERATION.md`, then the affected workflow files |
@@ -38,7 +40,7 @@ If you have no project history, do **not** reconstruct priority from chronology,
 3. use current generated evidence and specialist docs to attack that gate;
 4. prefer work that removes uncertainty for multiple downstream features over locally interesting archaeology.
 
-At present the Windows x64 product path is **not** the old fidelity → Widescreen → HD ladder. Those foundations are sufficient for current work. Read the agent-ready lanes at the top of `WORK-QUEUE.md` and prefer independent shipping leaves: profile/progression continuation, controls/accessibility, timing/statistics presentation, fast repeat/navigation, measured Racer HD coverage, presentation polish, and Windows packaging/release acceptance. Secondary-platform work, broad archaeology, and coverage-for-coverage's-sake are deferred unless a concrete product counterexample reopens them.
+**At present Baldosa-core incorporation and adversarial QA are coupled priorities.** The proven 1P/2P input, pause, moving HD, 4x Original fallback, +24 world and Windows build bridges must be consolidated into the existing Modern frontend/records/profiles; real original/native complete events, source-visible P1/P2 graphics, storage and controller-only Windows acceptance independently decide readiness. This is a single integration and QA pipeline, not two competing general framework programmes. Refresh the live work queue and PRs before touching shared code. Defer new platforms, generic source archaeology and post-baseline cosmetics unless a reproduced blocker changes that choice.
 
 
 ## Working rules

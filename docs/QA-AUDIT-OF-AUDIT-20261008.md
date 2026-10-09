@@ -1,5 +1,7 @@
 # QA-of-QA: completeness, economics and implementation audit
 
+**Historical QA-of-QA critique, not an active implementation queue.** Its defect/evidence/feature taxonomy and resource stop rules remain valuable; the joint Baldosa/QA work now uses [WORK-QUEUE.md](WORK-QUEUE.md) and [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md).
+
 Status: **reviewed planning assessment; not release acceptance**. Review point: 2026-10-08 America/Edmonton / 2026-10-09 UTC. This audits the current `main` QA programme, issue inventory, the proposed 300-agent-hour campaign and the separate product plan. The canonical release gate states remain `RELEASE-QUALITY-LEDGER.json`. Future PRs may supersede the status here; do not quote this snapshot as a live CI report.
 
 ## Executive conclusion

@@ -1,6 +1,6 @@
 # Validation Strategy
 
-Fidelity should be falsifiable.
+Fidelity should be falsifiable. **The old UR-Recomp native guest and Baldosa are not independent emulators of the original; independent Snes9x/original-hardware provenance is still necessary for event claims.** Reuse the same guest-route and exact candidate identity across Baldosa integration and shared QA.
 
 ## Reference hierarchy
 
@@ -34,6 +34,14 @@ Rigor should scale with downstream consequence. A claim that changes authoritati
 Expert/community playtesting is a **discriminator surface**, not an alternate simulation oracle. `EXPERT-PLAYTEST-PROTOCOL.md` defines the release-readiness pass and the privacy-safe `ur-recomp-playtest-report-v1` intake format. Valid reports bind one finding to an exact build revision and distribution-artifact SHA-256, record the tested region/execution/view/graphics context, and deliberately exclude tester identity/contact data.
 
 A human report may directly motivate a host/product test for a presentation or UX issue. A report that could imply a physics, collision, timing, camera/gameplay, AI, RNG or progression difference must first be reproduced against the canonical original/reference route. Promote resolved simulation findings into `tests/fixtures.json` or an already-established title-specific acceptance harness rather than creating a parallel replay/evidence system.
+
+## Baldosa migration: three distinct evidence classes
+
+1. **Guest non-interference:** original Baldosa vs our adapter, identical inputs, per-frame WRAM/checkpoint or timing where applicable. This is not source-original equivalence.
+2. **Source-authentic completion:** independent original emulator/movie vs Baldosa, legitimate Race/Circuit/Stunt start, real contact/laps/timer/score and settled result. Do not promote an input-script exit or masked state compare.
+3. **Modern consumer acceptance:** exact Windows ZIP/ROM/core, controller-only route, authentic source-visible P1/P2 HD/Original+wider world, stable audio, physical display, host-owned save/record/ghost/receipt durability across fresh processes.
+
+Share one compiled guest and evidence scripts, but retain a distinct oracle and gate for each class. Evidence is logged in the owning document; release gate status is written only to RELEASE-QUALITY-LEDGER.json.
 
 ## Deterministic cases
 

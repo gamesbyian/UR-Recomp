@@ -2,14 +2,32 @@
 
 Status: planning and resource policy, 2026-10-08. Applies to QA-01..QA-12. This document **does not waive** the release criteria in `ADVERSARIAL-QA-AND-RELEASE-READINESS.md`, promote any ledger gate, or assert that unexecuted journeys pass. It sets a cost-controlled **first campaign** and an explicit decision point, not an unconditional promise of release readiness.
 
+## Corrective QA-of-QA policy: outcome-first execution
+
+[QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) is the latest **planning critique**, including defect/evidence/feature classification, open PR status at review, dependency order and cost checkpoint template. It does not supersede the release ledger or historic measurements below.
+
+**Meaning of 300h:** one *initial aggregate productive engineering tranche*, not a completion forecast or unconditional budget to finish every release gate. When a genuine new P0 is found, fix it or record the new required estimate; neither a six-hour exploratory cap nor tranche exhaustion closes a known defect. Count actual productive agent-hours and link work to concrete PR/witness/finished journeys; do not count CI queue time as engineering output. Resource shortages and physical human tests must be called out separately, not quietly assumed automatable.
+
+**Criticality before raw gate number:** (1) proven data loss, wrong winner, guest input contamination, or fabricated graphics; (2) a missing feature blocking an ordinary player from completing a named journey; (3) the cheapest missing original/native or packaged witness for that journey; (4) breadth expansion; (5) speculative hardening. This ordering is constrained by release stage: a private technical alpha can document incomplete Modern UX/Remastered while an advertised consumer-facing beta cannot.
+
+**Product-feature dependency:** `MODERN-FRONTEND-SHIPPING-STATUS.md` still identifies the five-destination root as an unintegrated typed model. QA-09 cannot pass until a frontend **implementation** lane supplies discoverable controller-first Play/Practice/Multiplayer/Records/Options routes through existing authorities. The 55h graphics/UX/input budget funds targeted QA and small necessary fixes; a larger full art/menu build-out is an **explicit separate scope and resource decision**, not free work implied by QA. Do not test an unimplemented root repeatedly or invent a parallel router.
+
+**Known red cases first:** `#890` packaged Restart Return→guest Start/audio silence belongs to input ownership repair with an audio co-oracle; `#1052` proposed live fixture OS lease requires two running game instances, owner crash/takeover and older-client compatibility bounds; `#1045` proposed HD per-source-footprint guard requires exact candidate visible-OBJ and stock-fallback evidence. All three were unresolved at this review; inspect current branch/CI state before assigning them again. `#1043` is a scoped original countdown/timer discriminator, not a substitute for a completed Zoo/Circuit event.
+
+**First completions before deepening theory:** the 45 USA rows remain the release denominator. Immediately obtain a valid original/native terminal result for a non-Dragster Race, multi-lap Circuit and timed Stunt (three mechanics families, retaining Race A/B and Circuit A/B identities in the later full census). Build any generalized 45-course runner **from** those verified event producers. Stop investing in detailed contact traces that do not change correctness or unlock a terminal result.
+
+**Four reusable journeys and a fault overlay:** Campaign A (course/event/reference + expert/replay), B (real tournament/records/storage), C (moving visual/camera/input), D (physical Windows/audio/UX/soak); the earlier Campaign E is *fault-injection cuts layered on B/D*, not an independent full integration suite. Each evidence reuse still requires a named oracle, source independence and an exact identity manifest. A product run may satisfy several gates but never automatically satisfies them all.
+
+**Checkpoints:** after each 100 productive hours, report actual hours by outcome, new full-game results (Race/Circuit/Stunt and tournament), #890/#1052/#1045 disposition, 45-course complete/partial/blocked denominator, physically available testers, remaining P0s and marginal yield. If no new full-event completion, prioritize **entry/terminal-result producers** before any new generalized test harness. At 300h stop automatic expenditure and issue evidence-based reforecast. Keep separate feature implementation, physical-human capacity and legal/public-distribution decisions in the plan.
+
 ## Objective and budget
 
-Optimize for **player-visible correctness per productive agent-hour**, rather than number of tests, fixtures, archaeological facts, or PRs. Initial capacity planning target: **300 aggregate productive agent-hours**, with checkpoints at 100 and 200 hours. This is a *planning hypothesis*, not time tracking or a claim that release can be completed for that amount. Review the last 100 hours' reproduced defects, severity, coverage gained, duplicate work, and remaining blockers at every checkpoint. Do not silently authorize further work when the evidence has weak yield.
+Optimize for **player-visible correctness per productive agent-hour**, rather than number of tests, fixtures, archaeological facts, or PRs. Initial capacity planning target: **300 aggregate productive agent-hours**, with mandatory checkpoints at 100, 200 and 300 measured productive hours. This is a *planning hypothesis*, not time tracking or a claim that release can be completed for that amount. Review the last 100 hours' reproduced defects, severity, coverage gained, duplicate work, and remaining blockers at every checkpoint. Do not silently authorize further work when the evidence has weak yield.
 
 Suggested initial allocations (total 300; reallocate by evidence at checkpoints):
 - 100h course and expert original/native event fidelity (QA-01 + QA-07).
 - 55h storage, tournament and replay integrated journeys (QA-02 + QA-03 + QA-11).
-- 55h moving-scene graphics, visual UX and controller/input review (QA-05 + QA-08 + QA-09).
+- 55h moving-scene graphics, visual UX and controller/input review (QA-05 + QA-08 + QA-09), including the smallest repairs that unblock a player journey; any larger unfinished product-feature work must be separately estimated.
 - 35h audio, physical Windows candidate and session longevity (QA-04 + QA-06 + QA-10).
 - 25h independent QA oracle, candidate/repro/coverage instrumentation (QA-12, supports all).
 - 30h contingency for **reproduced P0/P1 defects only**; unused contingency returns to the pool.

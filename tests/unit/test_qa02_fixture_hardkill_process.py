@@ -223,6 +223,75 @@ class FixtureHardkillProcessTests(unittest.TestCase):
             )
             self.assertEqual(verified.returncode, 0, verified.stderr)
 
+
+            # QA-03: complete TWO different tournament formats, fixture by
+            # fixture, with *every* credit performed in a new OS process.
+            # These exercise durable coordinator/Records semantics. They are
+            # genuine saved 2P pair fixtures, not proof of a guest-played
+            # controller/Windows tournament.
+            for create_action, total, verify_action in (
+                ("qa03-create-duel", 3, "qa03-verify-duel"),
+                ("qa03-create-round-robin", 6,
+                 "qa03-verify-round-robin"),
+            ):
+                journey = root / create_action
+
+                def step(action):
+                    result = subprocess.run(
+                        [str(exe), action, str(journey)],
+                        cwd=ROOT, capture_output=True, timeout=20,
+                    )
+                    self.assertEqual(
+                        result.returncode, 0,
+                        (action, result.stdout.decode(errors="replace"),
+                         result.stderr.decode(errors="replace")),
+                    )
+                    return result
+
+                self.assertIn(
+                    b"QA03_CREATED_UNPLAYED",
+                    step(create_action).stdout,
+                )
+                self.assertIn(
+                    b"QA03_CANCELLED_WITHOUT_CREDIT",
+                    step("qa03-cancel-next").stdout,
+                )
+                records_root = journey / "multiplayer-runs"
+                self.assertEqual(len(list(records_root.glob("*.urrun"))), 0)
+                receipts_root = journey / "local-tournaments" / instance / "fixtures"
+                for index in range(total):
+                    self.assertIn(
+                        f"QA03_CREDITED_FIXTURE {index}".encode(),
+                        step("qa03-credit-next").stdout,
+                    )
+                    self.assertEqual(
+                        len(list(records_root.glob("*.urrun"))), index + 1,
+                        "each fresh process adds exactly one durable run",
+                    )
+                    self.assertEqual(
+                        len(list(receipts_root.glob("fixture-*.urfixture"))),
+                        index + 1,
+                        "each fixture credited once, never inferred from Records",
+                    )
+                for _ in range(2):
+                    self.assertIn(
+                        b"QA03_COMPLETED_RESTORED_STANDINGS_HISTORY_RECORDS",
+                        step(verify_action).stdout,
+                    )
+                self.assertIn(
+                    b"QA03_REPLACED_WITH_COMPLETED_HISTORY_PRESERVED",
+                    step("qa03-replace-completed").stdout,
+                )
+                self.assertEqual(
+                    len(list(records_root.glob("*.urrun"))), total,
+                    "replacing active event preserves old Records pairs",
+                )
+                self.assertEqual(
+                    len(list(receipts_root.glob("fixture-*.urfixture"))),
+                    total,
+                    "replacing active event preserves immutable receipts",
+                )
+
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))
             self.assertEqual(len(pair_before), 1)

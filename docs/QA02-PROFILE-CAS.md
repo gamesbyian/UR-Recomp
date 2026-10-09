@@ -128,3 +128,11 @@ profile snapshot was created but before the catalog row was published, the
 state and SRAM remain unlisted and are intentionally not adopted or deleted
 by this change. A separate documented recovery/claim flow needs to validate
 identity, progress, provenance and the catalog authorization step.
+
+On a failed catalog publication during create or rename, the caller also
+reloads the current bounded authoritative roster **after** it has undone its
+own tentative in-memory entry. Without this, a process that lost a roster CAS
+could retry against the same stale roster forever; an eligible lock-only root
+alone would not make the operation retryable. A malformed/unavailable roster
+is never synthesized or saved. The UI remains explicitly failure-reporting;
+the user initiates the next retry.

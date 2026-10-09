@@ -118,6 +118,18 @@ class AllCourseCheckpointPlacementTests(unittest.TestCase):
             e["candidate_world_cells"] == 0
             for e in report["cases"] if e["event_kind"] == "stunt"
         ))
+        # Compact measurement comes from the actual canonical USA ROM,
+        # not synthetic cells or the 36/45 resource-list incidence.
+        # This emitted line is a bounded acceptance-research artifact,
+        # NOT confirmation of any live checkpoint/finish event.
+        import json
+        print("QA01-45-COURSE-PLACED-CELLS " + json.dumps({
+            "race_with_cells": report["race_with_any_placed_checkpoint_family_cells"],
+            "race_without_cells": report["race_with_no_placed_checkpoint_family_cells"],
+            "priority_class_counts": report["priority_class_counts"],
+            "nonoverlap": report["static_finish_x_nonoverlap_cases"],
+            "stunt_negative_control": report["timed_stunt_count"],
+        }, sort_keys=True), flush=True)
 
 
 if __name__ == "__main__":

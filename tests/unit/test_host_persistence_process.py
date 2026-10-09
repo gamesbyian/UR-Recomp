@@ -197,6 +197,22 @@ class HostPersistenceProcessTests(unittest.TestCase):
             # exactly the already validated target framework SRAM.
             self.assertEqual(len(b_save.read_bytes()), len(old_b))
 
+            # A concurrent game can select racer-3 after our prewritten
+            # racer-2 SRAM but before our selector CAS. Its winning pointer
+            # must remain authoritative, with both racers' saves intact.
+            conflict_root = root / "c04-intervening-selector"
+            def c04_conflict(action, expected=0):
+                result = call("host", action, conflict_root)
+                self.assertEqual(result.returncode, expected, result.stderr)
+                return result
+            c04_conflict("c04-seed")
+            c04_conflict("c04-kill-after-target-publication", 82)
+            c04_conflict("c04-contended-selector")
+            c04_conflict("c04-verify-contended")
+            self.assertEqual(
+                (conflict_root / "racer-1" / "save.srm").read_bytes(), old_a
+            )
+
             corrupt_host = root / "corrupt-host.dat"
             corrupt_host.write_text("bad historic state", encoding="utf-8")
             before = corrupt_host.read_bytes()

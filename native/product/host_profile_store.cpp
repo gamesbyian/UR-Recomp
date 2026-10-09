@@ -4,6 +4,7 @@
 
 #include <cerrno>
 #include <cstdio>
+#include <filesystem>
 #include <string>
 
 namespace ur::product {
@@ -192,6 +193,28 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
             return HostProfileSaveStatus::Conflict;
     }
     return save_host_profile_state_file(mode, path, next);
+}
+
+HostProfileSaveStatus remove_host_profile_state_file_if_current(
+    ExecutionMode mode,
+    const std::string& path,
+    const HostProfileState& expected_current) {
+    if (!policy_for(mode).host_profiles || path.empty() ||
+        encode_host_profile_state(expected_current).empty()) {
+        return HostProfileSaveStatus::Rejected;
+    }
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProfileSaveStatus::IoError;
+    const auto current = load_host_profile_state_file(
+        mode, path, expected_current.profile_id);
+    if (current.status == HostProfileLoadStatus::IoError)
+        return HostProfileSaveStatus::IoError;
+    if (!current.loaded() || !(*current.state == expected_current))
+        return HostProfileSaveStatus::Conflict;
+    std::error_code ec;
+    const bool removed = std::filesystem::remove(path, ec);
+    if (!removed || ec) return HostProfileSaveStatus::IoError;
+    return HostProfileSaveStatus::Saved;
 }
 
 }  // namespace ur::product

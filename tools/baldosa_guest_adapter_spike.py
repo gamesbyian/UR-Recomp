@@ -43,7 +43,7 @@ def patch_cmake(text: str, repo_root: Path) -> str:
     src = root / "native" / "presentation"
     appendix = (
         "\n# " + HOST_MARK + ": external read-only integration experiment\n"
-        f'target_include_directories(UniracersSNESRecomp PRIVATE "{src.as_posix()}")\n'
+        f'set_source_files_properties("{cpp.as_posix()}" PROPERTIES INCLUDE_DIRECTORIES "{src.as_posix()}")\n'
         "target_sources(UniracersSNESRecomp PRIVATE\n"
         f'    "{cpp.as_posix()}"\n'
         f'    "{(src / "racer_guest_snapshot.cpp").as_posix()}"\n'

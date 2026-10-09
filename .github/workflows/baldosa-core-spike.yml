@@ -89,7 +89,7 @@ jobs:
           test -f baldosa/build/config.ini
           ls -l baldosa/build/UniracersSNESRecomp baldosa/build/config.ini
 
-      - name: Run real Baldosa 1P, split-screen P2 and Circuit routes
+      - name: Run Baldosa 1P, 2P and bounded nonterminal Circuit progress
         shell: bash
         env:
           SDL_VIDEODRIVER: dummy
@@ -118,10 +118,18 @@ jobs:
           chmod +x "$RUNNER_TEMP/baldosa-x11-exec"
           export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
           export BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          python3 tools/baldosa_zoo_progress_probe.py \
+            --source baldosa/tests/routes/zoomzoo_1p.txt \
+            --out "$RUNNER_TEMP/baldosa-zoo-progress.txt"
           failed=0
-          for name in race_1p race_2p_split zoomzoo_1p; do
+          for name in race_1p race_2p_split zoomzoo_progress; do
             echo "::group::Baldosa route: $name"
-            if bash baldosa/tools/run_route.sh "baldosa/tests/routes/$name.txt"                  "$RUNNER_TEMP/baldosa-evidence/$name"; then
+            route="baldosa/tests/routes/$name.txt"
+            if [ "$name" = zoomzoo_progress ]; then
+              route="$RUNNER_TEMP/baldosa-zoo-progress.txt"
+            fi
+            if bash baldosa/tools/run_route.sh "$route" \
+                "$RUNNER_TEMP/baldosa-evidence/$name"; then
               echo 0 > "$RUNNER_TEMP/baldosa-evidence/$name.exit"
             else
               rc=$?
@@ -186,7 +194,7 @@ jobs:
             echo '- ROM: exact USA SHA256; each route has isolated SRAM.'
             echo '- **Route exit codes are only smoke evidence**, not full original/native game-result parity.'
             echo ''
-            for name in race_1p race_2p_split zoomzoo_1p; do
+            for name in race_1p race_2p_split zoomzoo_progress; do
               p="$RUNNER_TEMP/baldosa-evidence/$name.exit"
               if test -f "$p"; then echo "- $name: exit $(cat "$p")"
               else echo "- $name: not executed"; fi

@@ -45,7 +45,36 @@ def edge_differences(raster: bytes, width: int = WIDTH, extra: int = EXTRA) -> d
     return count
 
 
-def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "ws24") -> dict:
+
+def restore_logical_nearest(raster: bytes, width: int, height: int,
+                            density: int) -> tuple[bytes, bool]:
+    """Reverse an integer nearest expansion and inspect *every* subpixel.
+
+    Reading a single subpixel could accept a 1x source written to just the
+    corner of a 4x output, leaving the rest uninitialized.
+    """
+    if density == 1:
+        return raster, True
+    row_bytes = width * density * 4
+    out = bytearray(width * height * 4)
+    source = memoryview(raster)
+    for y in range(height):
+        for x in range(width):
+            offset = (y * density * width * density + x * density) * 4
+            pixel = source[offset:offset + 4].tobytes()
+            block = pixel * density
+            for sy in range(density):
+                at = (y * density + sy) * row_bytes + x * density * 4
+                if source[at:at + len(block)] != block:
+                    return bytes(out), False
+            out[(y * width + x) * 4:(y * width + x + 1) * 4] = pixel
+    return bytes(out), True
+
+
+def assess(base: Path, candidate: Path, log: Path, captures: Path,
+           view: str = "ws24", density: int = 1) -> dict:
+    if density not in (1, 2, 3, 4):
+        raise ValueError("Only 1x-4x integer density is supported")
     if view not in ("ws24", "ws342"):
         raise ValueError("Only witnessed +24 and 342-wide source world modes are supported")
     wide = view == "ws342"
@@ -53,9 +82,9 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
     extra = 43 if wide else EXTRA
     backing = 48 if wide else 24
     prefix = "ur-baldosa-ws342" if wide else "ur-baldosa-ws24"
-    header = HEADER if not wide else (
-        b"P7\nWIDTH 342\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
-        b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
+    raster_width, raster_height = width * density, HEIGHT * density
+    header = (f"P7\nWIDTH {raster_width}\nHEIGHT {raster_height}\n"
+              "DEPTH 4\nMAXVAL 255\nTUPLTYPE RGB_ALPHA\nENDHDR\n").encode()
     present_regex = PRESENT if not wide else re.compile(
         r"UR_BALDOSA_WS342_PRESENT frame=(\d+) width=(\d+) height=(\d+) "
         r"pitch=(\d+) calibrated=(\d+) saved=(\d+)")
@@ -64,6 +93,11 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
         r"logical=(\d+)x(\d+) backing=48 visible=43")
     filename_regex = NAME if not wide else re.compile(
         r"ur-baldosa-ws342-(\d{6})\.pam")
+    if density != 1:
+        # A 1x native log cannot establish a real scaled host allocation.
+        present_regex = re.compile(
+            present_regex.pattern +
+            r" density=(\d+) raster=(\d+)x(\d+)")
     original = base.read_bytes().splitlines()
     candidate_crc = candidate.read_bytes().splitlines()
     text = log.read_text(encoding="utf-8", errors="replace")
@@ -71,8 +105,9 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
     preps = [tuple(map(int, m.groups())) for m in prep_regex.finditer(text)]
     accepted = {
         x[0] for x in presents
-        if x[1:3] == (width, HEIGHT) and x[3] >= width * 4 and
-        x[4] == 1 and x[5] == 1
+        if x[1:3] == (width, HEIGHT) and
+        x[3] >= raster_width * 4 and x[4] == 1 and x[5] == 1 and
+        (density == 1 or x[6:] == (density, raster_width, raster_height))
     }
     evidence = []
     for file in sorted(captures.glob(prefix + "-*.pam")):
@@ -80,19 +115,23 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
         if match is None:
             raise ValueError(f"Invalid frame name: {file.name}")
         content = file.read_bytes()
-        if not content.startswith(header) or len(content) != len(header) + width * HEIGHT * 4:
+        if not content.startswith(header) or len(content) != len(header) + raster_width * raster_height * 4:
             raise ValueError(f"Invalid calibrated world physical raster: {file}")
         raster = content[len(header):]
-        margin = edge_differences(raster, width=width, extra=extra)
+        logical, exact_nearest = restore_logical_nearest(
+            raster, width, HEIGHT, density)
+        margin = edge_differences(logical, width=width, extra=extra)
         frame = int(match.group(1))
         evidence.append({
             "frame": frame, "filename": file.name,
             "sha256": hashlib.sha256(raster).hexdigest(),
             "world_margin_differences": margin,
+            "exact_nearest_blocks": exact_nearest,
             "valid_four_margins": all(value > 32 for value in margin.values()),
         })
     witnessed = [v for v in evidence if
-                 v["frame"] in accepted and v["valid_four_margins"]]
+                 v["frame"] in accepted and v["valid_four_margins"] and
+                 v["exact_nearest_blocks"]]
     passed = (
         original == candidate_crc and len(original) == 2473
         and len(witnessed) >= 2
@@ -103,6 +142,8 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
         "schema_version": 1, "status": "passed" if passed else "unproven",
         "logical_guest_geometry": [256, 224],
         "host_wide_raster": [width, HEIGHT],
+        "presentation_raster": [raster_width, raster_height],
+        "internal_density": density,
         "view_mode": view,
         "backing_course_margin": backing,
         "per_side_new_world_pixels": extra,
@@ -113,8 +154,12 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "
         "captures": evidence,
         "4k_or_hd_wide_claimed": False,
         "completed_usa_course_credit": 0,
-        "limits": "Two-player fixed-route 1x world margins only, subject to stock/original"
-                  " image and source tile-by-tile parity; not 16:9 or 4K.",
+        "limits": (
+            "Two-player bounded route with exact nearest Original world "
+            "pixels; still subject to stock/source geometry and per-slot "
+            "OBJ/depth verification. Neither authored wide HD racer "
+            "composition nor physical 3840x2160 output is established."
+        ),
     }
 
 
@@ -123,8 +168,9 @@ def main() -> int:
     for name in ("base", "candidate", "log", "captures", "out"):
         p.add_argument("--" + name, type=Path, required=True)
     p.add_argument("--view", choices=["ws24", "ws342"], default="ws24")
+    p.add_argument("--density", type=int, choices=(1, 2, 3, 4), default=1)
     a = p.parse_args()
-    evidence = assess(a.base, a.candidate, a.log, a.captures, view=a.view)
+    evidence = assess(a.base, a.candidate, a.log, a.captures, view=a.view, density=a.density)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))

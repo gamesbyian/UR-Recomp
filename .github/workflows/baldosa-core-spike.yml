@@ -328,6 +328,25 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_presentation.json"
           echo "PASS: 342x224 logical native PPU with both split-world +43 margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
 
+          # Reuse the *same* wide guest/world materializer and the *same*
+          # first-party HD/Original compositor at density 4. Stock OBJ stays
+          # source-owned in this geometry pending per-slot wide admission.
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-captures-4x"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_4x/fd/crc.txt"
+          python3 tools/baldosa_ws24_presentation_report.py \
+            --view ws342 --density 4 \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_4x/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_4x/log.txt" \
+            --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_4x_presentation.json"
+          echo "PASS: 1368x896 native density, exact 4x source-wide nearest pixels in both split margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Summarize executable evidence
         if: always()
         shell: bash
@@ -363,6 +382,8 @@ jobs:
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
+            ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam

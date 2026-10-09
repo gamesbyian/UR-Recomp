@@ -93,6 +93,9 @@ int main(int argc, char** argv) {
     const std::string family(argv[1]), action(argv[2]), path(argv[3]);
     const unsigned value = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
     if (value > 15) return 2;
+    if (family == "profile" && action == "root-reusable") {
+        return reusable_aborted_profile_creation_root(path) ? 0 : 6;
+    }
     if (family == "catalog" && action == "cas-roster-read") {
         const auto catalog = load_host_profile_catalog_file(path);
         if (!catalog || catalog->empty()) return 4;

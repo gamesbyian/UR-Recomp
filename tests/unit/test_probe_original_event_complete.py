@@ -100,6 +100,16 @@ class CompleteEventProducerTests(unittest.TestCase):
         nat = capture(menu=0x99)
         self.assertFalse(target.diagnose(ref, nat, 0xBC, False)["both_reached_terminal_menu"])
 
+    def test_settled_score_parity_does_not_gate_on_tally_animation_glyphs(self):
+        original = capture(0x18, ["BOWL", "MIKE", ": 764"])
+        native = capture(0x18, ["BOWL", "MIKE", ": 764"])
+        original["result_text"]["tally"] = ["BOWL", "COUNTING", "MIKE", ": 500"]
+        native["result_text"]["tally"] = ["BOWL", "COUNTING", "MIKE", ": 720"]
+        compared = target.diagnose(original, native, 0x18, True)
+        self.assertFalse(compared["intermediate_result_text_matched"])
+        self.assertTrue(compared["rendered_result_and_score_text_matched"])
+        self.assertTrue(compared["paired_event_candidate"])
+
     def test_circuit_requires_two_observed_lap_decrements(self):
         reference, native = capture(), capture()
         self.assertTrue(target.diagnose(reference, native, 0xBC, False)[

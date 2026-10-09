@@ -48,8 +48,9 @@ LocalTournamentCoordinatorPaths paths(const fs::path& root) {
 
 std::string publish_real_pair(const LocalTournamentCoordinator& session,
                               std::uint16_t input,
-                              void (*after_sidecar_for_test)() = nullptr) {
-    const auto& fixture = session.results.fixtures.at(0);
+                              void (*after_sidecar_for_test)() = nullptr,
+                              std::size_t fixture_index = 0) {
+    const auto& fixture = session.results.fixtures.at(fixture_index);
     CompletedRunRecord run;
     run.provenance = {
         "uniracers-usa",
@@ -225,6 +226,154 @@ int main(int argc, char** argv) {
                 session, kAttemptNew, saved) == Status::Committed,
                 "OS-released lease permits new explicit valid fixture attempt");
         std::puts("QA02_CRASH_RELEASED_AND_RETRIED");
+        return 0;
+    }
+
+    // Each action below is invoked by an independent executable. Together
+    // they finish actual canonical persisted 2P-pair fixtures across game-store
+    // lifetimes, rather than merely constructing a schedule in memory.
+    if (action == "qa03-create-duel" ||
+        action == "qa03-create-round-robin") {
+        const bool duel = action == "qa03-create-duel";
+        std::error_code ec;
+        fs::create_directories(layout.multiplayer_runs_directory, ec);
+        require(!ec, "QA03 records root");
+        const auto created = create_local_tournament_coordinator(
+            layout, kInstance,
+            duel ? std::vector<std::string>{"alpha", "beta"} :
+                   std::vector<std::string>{"alpha", "beta", "gamma"},
+            catalog(), {"course:01", "course:04"}, false, duel ? 3 : 2);
+        require(created.usable() &&
+                created.session->results.fixtures.size() == (duel ? 3u : 6u),
+                "QA03 exact three-leg duel or two-leg three-entrant event");
+        const auto history = load_completed_local_tournament_history(layout);
+        require(history.scanned && history.completed.empty() &&
+                history.incomplete_instances == 1,
+                "unplayed event is not forged into completed history");
+        std::puts("QA03_CREATED_UNPLAYED");
+        return 0;
+    }
+    if (action == "qa03-cancel-next") {
+        const auto restored = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(restored.usable() && !restored.session->results.results.at(0),
+                "QA03 cancellation starts without credit");
+        auto session = *restored.session;
+        arm_first(session, kAttemptC09);
+        require(cancel_local_tournament_capture(session, kAttemptC09) ==
+                    Status::Cancelled && !session.results.results.at(0),
+                "explicit cancellation cannot fabricate fixture result");
+        std::puts("QA03_CANCELLED_WITHOUT_CREDIT");
+        return 0;
+    }
+    if (action == "qa03-credit-next") {
+        const auto restored = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(restored.usable() && !restored.session->launch.pending,
+                "QA03 fresh process reads active event without live attempt");
+        auto session = *restored.session;
+        const auto index = local_tournament_next_unplayed_fixture(session);
+        require(index.has_value() && *index < 6,
+                "QA03 next scheduled fixture remains uncredited");
+        const auto& fixture = session.results.fixtures.at(*index);
+        const std::string attempt(32, static_cast<char>('1' + *index));
+        require(arm_local_tournament_fixture(
+                    session, *index, attempt,
+                    session.results.entrants.at(fixture.player1),
+                    session.results.entrants.at(fixture.player2)) ==
+                    Status::Armed, "QA03 independently armed scheduled fixture");
+        const auto bound = local_tournament_capture_attempt_for(
+            session, session.results.entrants.at(fixture.player1),
+            session.results.entrants.at(fixture.player2),
+            fixture.course_id);
+        require(bound && *bound == attempt,
+                "QA03 source course and exact participants tag live attempt");
+        const auto saved = publish_real_pair(
+            session, static_cast<std::uint16_t>(0x300 + *index),
+            nullptr, *index);
+        require(commit_local_tournament_capture(session, attempt, saved) ==
+                    Status::Committed && session.results.results.at(*index),
+                "QA03 exact saved pair earns exactly one scheduled credit");
+        const auto reread = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(reread.usable() && reread.session->results.results.at(*index),
+                "QA03 newly published result survives fresh store reload");
+        std::printf("QA03_CREDITED_FIXTURE %zu\\n", *index);
+        return 0;
+    }
+    if (action == "qa03-verify-duel" ||
+        action == "qa03-verify-round-robin") {
+        const bool duel = action == "qa03-verify-duel";
+        const std::size_t expected = duel ? 3 : 6;
+        const auto restored = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(restored.usable() &&
+                restored.session->results.fixtures.size() == expected &&
+                !restored.session->launch.pending &&
+                local_tournament_coordinator_complete(*restored.session) &&
+                !local_tournament_next_unplayed_fixture(*restored.session),
+                "QA03 all scheduled fixtures fully credited after restart");
+        const auto standings = local_tournament_standings(
+            restored.session->results);
+        require(standings.size() == (duel ? 2u : 3u),
+                "QA03 complete persisted roster");
+        unsigned points = 0;
+        for (const auto& row : standings) {
+            require(row.played == (duel ? 3u : 4u),
+                    "QA03 every entrant played all their scheduled legs");
+            points += row.points;
+        }
+        require(points == 3u * expected,
+                "QA03 no phantom, lost or duplicated fixture points");
+        const auto history = load_completed_local_tournament_history(layout);
+        require(history.scanned && !history.truncated &&
+                history.completed.size() == 1 &&
+                history.incomplete_instances == 0 &&
+                history.unavailable_instances == 0 &&
+                local_tournament_coordinator_complete(history.completed[0]),
+                "QA03 completed event appears in strict archived history");
+        std::size_t runs = 0, matches = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 layout.multiplayer_runs_directory)) {
+            if (entry.path().extension() == ".urrun") ++runs;
+            if (entry.path().extension() == ".urmatch") ++matches;
+        }
+        require(runs == expected && matches == expected,
+                "QA03 exact Records run+match count across processes");
+        const auto& fixture = restored.session->results.fixtures.at(0);
+        auto stale = *restored.session;
+        require(arm_local_tournament_fixture(
+                    stale, 0, kAttemptNew,
+                    stale.results.entrants.at(fixture.player1),
+                    stale.results.entrants.at(fixture.player2)) ==
+                    Status::InvalidRequest,
+                "QA03 completed fixture cannot be rearmed or recredited");
+        std::puts("QA03_COMPLETED_RESTORED_STANDINGS_HISTORY_RECORDS");
+        return 0;
+    }
+    if (action == "qa03-replace-completed") {
+        const auto old = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(old.usable() && local_tournament_coordinator_complete(
+                    *old.session), "QA03 predecessor must be finished");
+        const auto replacement = create_local_tournament_coordinator(
+            layout, std::string(32, 'b'), {"alpha", "beta"}, catalog(),
+            {"course:01"}, true);
+        require(replacement.usable() &&
+                !local_tournament_coordinator_complete(*replacement.session),
+                "QA03 explicit successor starts without inherited credits");
+        const auto fresh = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(fresh.usable() &&
+                fresh.session->definition.instance_id == std::string(32, 'b') &&
+                !fresh.session->results.results.at(0),
+                "QA03 fresh process restores successor as active");
+        const auto history = load_completed_local_tournament_history(layout);
+        require(history.scanned && history.completed.size() == 1 &&
+                history.incomplete_instances == 1 &&
+                history.completed[0].definition.instance_id == kInstance,
+                "QA03 predecessor remains in Records after event replacement");
+        std::puts("QA03_REPLACED_WITH_COMPLETED_HISTORY_PRESERVED");
         return 0;
     }
     if (action == "kill-c09") {

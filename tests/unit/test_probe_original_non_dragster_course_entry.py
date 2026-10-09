@@ -96,6 +96,12 @@ class NonDragsterCourseEntryTests(unittest.TestCase):
             probe.first_difference(a, b)
         with self.assertRaisesRegex(probe.CourseEntryEvidenceError, "incomplete"):
             probe.first_difference(a[:-1], a)
+        # An asymmetric new semantic field must not be omitted from the
+        # reference comparison silently, even if all common fields agree.
+        mismatched_schema = [dict(row) for row in a]
+        mismatched_schema[0]["p2_finish_gate"] = 1
+        with self.assertRaisesRegex(probe.CourseEntryEvidenceError, "field sets"):
+            probe.first_difference(a, mismatched_schema)
 
     def test_phantom_checkpoint_finish_or_p2_lap_fails_at_first_bounded_frame(self):
         # A guest can appear to handle identically while its race progression

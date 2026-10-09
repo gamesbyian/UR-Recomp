@@ -7726,6 +7726,19 @@ extern "C" int ur_uniracers_modern_system_key_down(
         // below. Their edge is still suppressed from the guest by ownership.
     }
 
+    // Regional title input remains a globally admitted stock-main gesture.
+    // The new root must not swallow its 'PAL'/'NTSC' sequence. During
+    // a stock-entry transport, however, that router retains exclusive input
+    // ownership; do not run the coordinator on its pending human edges.
+    if (g_modern_root_stock_target < 0) {
+        const auto regional = regional_input_coordinator().keyboard_key(
+            g_product_state,
+            key,
+            static_cast<std::uint64_t>(SDL_GetTicks()),
+            current_regional_secret_context());
+        if (apply_regional_input_decision(regional, "keyboard")) return 1;
+    }
+
     if (modern_root_visible()) {
         if (g_modern_root_quit_confirm) {
             if (key == SDLK_RETURN || key == SDLK_KP_ENTER)
@@ -7779,17 +7792,6 @@ extern "C" int ur_uniracers_modern_system_key_down(
             }
         }
         return 1;
-    }
-
-    {
-        const auto regional = regional_input_coordinator().keyboard_key(
-            g_product_state,
-            key,
-            static_cast<std::uint64_t>(SDL_GetTicks()),
-            current_regional_secret_context());
-        if (apply_regional_input_decision(regional, "keyboard")) {
-            return 1;
-        }
     }
 
     // Controls is modal input ownership. In particular, capture must see keys
@@ -8727,7 +8729,8 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     const auto filtered = ur::product::modern_host_input_filter(
         g_human_input_release_latch, host_owned, inputs);
     g_human_input_release_latch = filtered.latch;
-    inputs = host_owned ? 0u : filtered.inputs;
+    const std::uint32_t guest_filtered_word =
+        host_owned ? 0u : filtered.inputs;
     if (g_restart_input_probe_remaining != 0) {
         --g_restart_input_probe_remaining;
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -8736,7 +8739,7 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
                 "UR_RESTART_INPUT raw=%04X guest=%04X return_held=%d "
                 "release_waiting=%d host_owned=%d remaining=%u\n",
                 static_cast<unsigned>(raw_word),
-                static_cast<unsigned>(inputs),
+                static_cast<unsigned>(guest_filtered_word),
                 return_held ? 1 : 0,
                 g_restart_return_release.awaiting_return_release ? 1 : 0,
                 host_owned ? 1 : 0,
@@ -8745,6 +8748,7 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
         }
     }
     if (host_owned) return 0u;
+    inputs = filtered.inputs;
 
     // L/R have no ordinary settled-main action, so removing only those two
     // bits makes the stock Left+A+L+R erase-all gesture impossible in Modern

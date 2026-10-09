@@ -10,6 +10,7 @@ on:
       - "tools/measure_racer_hd_fallback_frequency.py"
       - "tools/measure_racer_hd_live_draws.py"
       - "tools/check_racer_hd_pixel_confinement.py"
+      - "tools/check_racer_hd_foreground_occlusion.py"
       - "tools/probe_racer_hd_fallback_family.py"
       - "tools/probe_racer_hd_state_reuse.py"
       - "tools/build_racer_hd_asset_dossier.py"
@@ -31,6 +32,7 @@ on:
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_measure_racer_hd_live_draws.py"
       - "tests/unit/test_racer_hd_pixel_confinement.py"
+      - "tests/unit/test_racer_hd_foreground_occlusion.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
       - "tests/native/racer_hd_presenter_test.cpp"
       - "tests/native/racer_replacement_selector_test.cpp"
@@ -254,7 +256,10 @@ jobs:
 
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
-          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" UR_RACER_HD=1 UR_RACER_HD_CENSUS=1
+          run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" \
+            UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 \
+            UR_RACER_HD_OBJ_LAYER_PAM="$RUNNER_TEMP/racer-hd-obj-layer-1220.pam" \
+            UR_RACER_HD_OBJ_LAYER_FRAME=1220
 
           # These are actual host presentation results, not registration matches.
           python3 tools/measure_racer_hd_live_draws.py \
@@ -307,6 +312,37 @@ jobs:
             --original-control "$ORIGINAL_B_SHOT" \
             --hd "$HD_SHOT" --hd-log "$HD_LOG" --frame 1220 \
             --json-out "$RUNNER_TEMP/racer-hd-frame-1220-confinement.json"
+
+          # Inspect the isolated stock OBJ layer for *potential* lost
+          # foreground depth at one exact original/HD 2P guest frame.
+          # The analyzer never treats RGB disagreement alone as proof of BG
+          # priority: other OBJ and PPU colour math remain valid causes.
+          grep -F 'UR_RACER_HD_OBJ_LAYER frame=1220 status=captured' "$HD_LOG"
+          python3 tools/check_racer_hd_foreground_occlusion.py \
+            --original "$ORIGINAL_A_SHOT" \
+            --original-control "$ORIGINAL_B_SHOT" \
+            --hd "$HD_SHOT" --native-log "$HD_LOG" \
+            --obj-layer "$RUNNER_TEMP/racer-hd-obj-layer-1220.pam" \
+            --frame 1220 \
+            --json-out "$RUNNER_TEMP/racer-hd-foreground-1220.json" \
+            > "$RUNNER_TEMP/racer-hd-foreground-1220.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-foreground-1220.json" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1], encoding="utf-8"))
+          assert m["frame"] == 1220, m
+          assert m["density"] == 4, m
+          assert m["native_split_obj_opaque_pixels"] > 0, m
+          assert m["potential_foreground_occlusion_overpaint_pixels"] <= m[
+              "stock_obj_differs_from_original_rgb_pixels"
+          ], m
+          print(
+              "UR_RACER_HD_FOREGROUND_WITNESS PASS "
+              f"obj={m['native_split_obj_opaque_pixels']} "
+              f"ambiguous={m['stock_obj_differs_from_original_rgb_pixels']} "
+              f"possible_overpaint={m['potential_foreground_occlusion_overpaint_pixels']} "
+              f"needs_priority_review={int(m['review_required'])}"
+          )
+          PY
 
           for stem in original-a original-b hd; do
             python3 tools/summarize_racer_semantic_trace.py \
@@ -1529,6 +1565,9 @@ jobs:
             ${{ runner.temp }}/racer-hd-live-race-window.json
             ${{ runner.temp }}/racer-hd-live-race-window.txt
             ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
+            ${{ runner.temp }}/racer-hd-obj-layer-1220.pam
+            ${{ runner.temp }}/racer-hd-foreground-1220.json
+            ${{ runner.temp }}/racer-hd-foreground-1220.txt
             ${{ runner.temp }}/racer-hd-live-census.txt
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm

@@ -57,6 +57,38 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source_states(3190, 8353, 1, 0xBC), 1, 0x99)
 
+    def test_transient_menu_scratch_and_inrace_result_like_values_do_not_end_event(self):
+        states = source_states(3190, 8353, 1, 0xBC)
+        # The stock DP $9F menu byte is reused as scratch during ordinary
+        # gameplay. Even an observed 0xBC while still racing is not a result.
+        states[4000]["menu"] = 0xBC
+        states[4000]["in_race"] = 0
+        for f in range(6200, 6220):
+            states[f]["menu"] = 0xBC
+            states[f]["in_race"] = 1
+        event = target.source_event(states, 1, 0xBC)
+        self.assertEqual(event["original_result_frame"], 8353)
+        self.assertEqual(event["source_active_frames_to_result"], 5163)
+        # No eight-frame settled result screen must fail closed.
+        states = source_states(3190, 8353, 1, 0xBC)
+        for f in range(8353, 8369):
+            states[f]["menu"] = 0x16
+        states[8353]["menu"] = 0xBC
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(states, 1, 0xBC)
+
+    def test_stunt_tally_must_be_stable_and_track_matched(self):
+        states = source_states(8620, 11985, 2, 0x18)
+        states[11800]["menu"] = 0x2F
+        states[11800]["in_race"] = 0
+        with self.assertRaisesRegex(target.CompleteEventError, "missing prior"):
+            target.source_event(states, 2, 0x18)
+        for f in range(11915, 11980):
+            states[f]["menu"] = 0x2F
+            states[f]["in_race"] = 0
+        event = target.source_event(states, 2, 0x18)
+        self.assertEqual(event["source_stunt_tally_frame"], 11915)
+
     def test_stunt_requires_two_distinct_original_result_phases(self):
         states = source_states(8620, 11985, 2, 0x18, tally=True)
         event = target.source_event(states, 2, 0x18)

@@ -88,6 +88,31 @@ class CompleteEventProducerTests(unittest.TestCase):
         nat = capture(menu=0x99)
         self.assertFalse(target.diagnose(ref, nat, 0xBC, False)["both_reached_terminal_menu"])
 
+    def test_circuit_requires_two_observed_lap_decrements(self):
+        reference, native = capture(), capture()
+        self.assertTrue(target.diagnose(reference, native, 0xBC, False)[
+            "circuit_multiple_lap_decrements_sampled"])
+        for case in (reference, native):
+            case["samples"][2]["p1_laps"] = 3
+        result = target.diagnose(reference, native, 0xBC, False)
+        self.assertTrue(result["both_reached_terminal_menu"])
+        self.assertFalse(result["circuit_multiple_lap_decrements_sampled"])
+        self.assertFalse(result["paired_event_candidate"])
+
+    def test_result_menu_with_no_player_finish_time_is_not_a_race(self):
+        reference = capture(0x99, ["SWITCHER", "MIKE", "NO TIME"])
+        native = capture(0x99, ["SWITCHER", "MIKE", "NO TIME"])
+        result = target.diagnose(reference, native, 0x99, False)
+        self.assertTrue(result["both_reached_terminal_menu"])
+        self.assertFalse(result["timed_race_or_circuit_result_visible"])
+        self.assertFalse(result["paired_event_candidate"])
+
+    def test_source_result_on_different_course_cannot_finish_event(self):
+        source = source_states(3190, 8353, 1, 0xBC)
+        source[4500]["track"] = 3
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(source, 1, 0xBC)
+
     def test_stunt_idle_zero_score_cannot_pass_scored_result(self):
         ref = capture(0x18, ["BOWL", "MIKE", ": 0"])
         nat = capture(0x18, ["BOWL", "MIKE", ": 0"])

@@ -1,0 +1,44 @@
+# QA-01 external-route candidate, not a release-gating fixture.
+# Source of driving rhythm: baldosa/uniracers-recomp tests/routes/zoomzoo_1p.txt
+# commit 10b864b9d14a7b7416dd909eb7b054c88faef101.
+# Entry sequence uses our established ui-circuit-result-route.script grammar.
+# No complete native/reference result is claimed by adding this file.
+until 009F == D7 3600
+wait 60
+press a 2
+until 009F == 3C 1200
+wait 60
+press a 2
+until 009F == 6D 1200
+wait 60
+press a 2
+until 009F == F6 1200
+wait 60
+press down 1
+wait 30
+press a 2
+until 009F == 16 1200
+wait 60
+press a 2
+until 0313 == 01 1800
+wait 60
+dump baldosa-zoo-entry
+press left 300
+press left+up 20
+press left 200
+press left+down 20
+press left 200
+press left+l 40
+press left 200
+press left+r 40
+press left+y 20
+press left 900
+press left+x 20
+press left 6000
+dump baldosa-zoo-after-drive
+# The upstream script waits for the menu NMI handler; our stronger
+# candidate checks the original circuit result screen, 009F == BC.
+until 009F == BC 12000
+wait 60
+dump baldosa-zoo-result-candidate
+quit

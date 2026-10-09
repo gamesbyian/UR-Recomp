@@ -1,3 +1,5 @@
+> **External route lead, 2026-10-09:** `baldosa/uniracers-recomp` at `10b864b9` has a scripted Zoom Zoo (Circuit A) route, now preserved byte-exact under `reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/zoomzoo_1p.txt`. Its reported menu return is not an original/native terminal-result pair. `tests/input/qa01-baldosa-zoo-candidate.script` adapts the drive policy for our own runner, with a stronger result-state gate, but has not been executed here. Try this before inventing another circuit controller; preserve **0/45 complete** pending independently admitted evidence. See `docs/BALDOSA-RECOMP-CROSSPROJECT-INTEGRATION.md`.
+
 # QA-01 / QA-07: original course and expert-event acceptance census
 
 **Status (2026-10-08): bounded L2 investigation, no L4 course/event completion pass.**

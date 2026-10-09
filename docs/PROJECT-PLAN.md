@@ -1,3 +1,5 @@
+> **External research acceleration (2026-10-09):** `docs/BALDOSA-RECOMP-CROSSPROJECT-INTEGRATION.md` pins the independently developed `baldosa/uniracers-recomp` disassembly, route scripts and comparison tools (all classified in `reference/imported/MANIFEST.json`), and orders bounded Zoom Zoo event-completion and split-screen OAM/HDMA validation ahead of any wholesale framework migration. No new release-quality gate is credited by this static intake.
+
 # Uniracers Modern Port Plan
 
 > **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.

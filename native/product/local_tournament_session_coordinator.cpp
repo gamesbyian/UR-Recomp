@@ -91,6 +91,27 @@ LocalTournamentCoordinatorResult create_local_tournament_coordinator(
         }
         expected_active = *prior.session;
     }
+    // A CAS on active.urtournament serializes pointer updates, but does not
+    // protect a live guest race. If the incumbent owns a live fixture, a
+    // second game must not explicitly replace its active event underneath
+    // it. Take the *incumbent's* nonblocking OS fixture lease before
+    // creating the replacement archive or publishing the active pointer.
+    // Keep it until the exact active-pointer CAS has completed, so arming
+    // the old event cannot interleave with the replacement.
+    std::unique_ptr<TournamentLaunchPathLock> incumbent_lease;
+    if (expected_active) {
+        LocalTournamentCoordinator incumbent{
+            *expected_active, expected_active->empty_schedule, {}, paths};
+        incumbent_lease = std::make_unique<TournamentLaunchPathLock>(
+            pending_path(incumbent) + ".live", true);
+        if (!incumbent_lease->acquired()) {
+            return error(incumbent_lease->busy()
+                             ? Status::Busy : Status::StorageFailed,
+                         incumbent_lease->busy()
+                             ? "active tournament fixture is in use"
+                             : "cannot lock active tournament for replacement");
+        }
+    }
     // A reused instance ID would silently inherit old fixture receipts even
     // when explicit replacement was requested. Refuse reuse whether or not
     // the prior instance is currently active; IDs are unique across events.

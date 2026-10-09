@@ -149,6 +149,55 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 restored_overlap.stdout,
             )
 
+
+            # An explicit event replacement in game B cannot invalidate a
+            # legitimate event A still owns through a live race. Both are
+            # genuinely independent processes with a shared tournament root.
+            replace_root = root / "live-replacement-race"
+            created = subprocess.run(
+                [str(exe), "seed-overlap", str(replace_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(created.returncode, 0, created.stderr)
+            replacement_owner = subprocess.Popen(
+                [str(exe), "owner-wait-replace", str(replace_root)],
+                cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            replacement_rival = None
+            try:
+                deadline = time.monotonic() + 10
+                while not (replace_root / "barrier" / "owner-armed").exists():
+                    self.assertIsNone(replacement_owner.poll())
+                    self.assertLess(time.monotonic(), deadline)
+                    time.sleep(0.01)
+                replacement_rival = subprocess.Popen(
+                    [str(exe), "attempt-replace-live", str(replace_root)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                contender_out, contender_err = replacement_rival.communicate(
+                    timeout=20
+                )
+                self.assertEqual(
+                    replacement_rival.returncode, 0, contender_err
+                )
+                self.assertIn(b"QA02_LIVE_REPLACEMENT_BUSY", contender_out)
+                owner_out, owner_err = replacement_owner.communicate(timeout=20)
+                self.assertEqual(replacement_owner.returncode, 0, owner_err)
+                self.assertIn(
+                    b"QA02_OWNER_SURVIVED_REPLACEMENT", owner_out
+                )
+            finally:
+                for child in (replacement_rival, replacement_owner):
+                    if child and child.poll() is None:
+                        child.kill()
+                        child.communicate(timeout=5)
+            replacement_verified = subprocess.run(
+                [str(exe), "verify-c15", str(replace_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(replacement_verified.returncode, 0,
+                             replacement_verified.stderr)
+
             # A dead owner must release its *OS handle*, not rely on
             # timeout/pid cleanup. An explicit new attempt uses fresh token,
             # leaves the old saved run as ordinary Records, and credits only
@@ -222,6 +271,123 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 cwd=ROOT, capture_output=True, timeout=20,
             )
             self.assertEqual(verified.returncode, 0, verified.stderr)
+
+
+            # QA-03: complete TWO different tournament formats, fixture by
+            # fixture, with *every* credit performed in a new OS process.
+            # These exercise durable coordinator/Records semantics. They are
+            # genuine saved 2P pair fixtures, not proof of a guest-played
+            # controller/Windows tournament.
+            for create_action, total, verify_action in (
+                ("qa03-create-duel", 3, "qa03-verify-duel"),
+                ("qa03-create-round-robin", 6,
+                 "qa03-verify-round-robin"),
+            ):
+                journey = root / create_action
+
+                def step(action):
+                    result = subprocess.run(
+                        [str(exe), action, str(journey)],
+                        cwd=ROOT, capture_output=True, timeout=20,
+                    )
+                    self.assertEqual(
+                        result.returncode, 0,
+                        (action, result.stdout.decode(errors="replace"),
+                         result.stderr.decode(errors="replace")),
+                    )
+                    return result
+
+                self.assertIn(
+                    b"QA03_CREATED_UNPLAYED",
+                    step(create_action).stdout,
+                )
+                self.assertIn(
+                    b"QA03_CANCELLED_WITHOUT_CREDIT",
+                    step("qa03-cancel-next").stdout,
+                )
+                records_root = journey / "multiplayer-runs"
+                self.assertEqual(len(list(records_root.glob("*.urrun"))), 0)
+                receipts_root = journey / "local-tournaments" / instance / "fixtures"
+                for index in range(total):
+                    self.assertIn(
+                        f"QA03_CREDITED_FIXTURE {index}".encode(),
+                        step("qa03-credit-next").stdout,
+                    )
+                    self.assertEqual(
+                        len(list(records_root.glob("*.urrun"))), index + 1,
+                        "each fresh process adds exactly one durable run",
+                    )
+                    self.assertEqual(
+                        len(list(receipts_root.glob("fixture-*.urfixture"))),
+                        index + 1,
+                        "each fixture credited once, never inferred from Records",
+                    )
+                for _ in range(2):
+                    self.assertIn(
+                        b"QA03_COMPLETED_RESTORED_STANDINGS_HISTORY_RECORDS",
+                        step(verify_action).stdout,
+                    )
+                self.assertIn(
+                    b"QA03_REPLACED_WITH_COMPLETED_HISTORY_PRESERVED",
+                    step("qa03-replace-completed").stdout,
+                )
+                self.assertEqual(
+                    len(list(records_root.glob("*.urrun"))), total,
+                    "replacing active event preserves old Records pairs",
+                )
+                self.assertEqual(
+                    len(list(receipts_root.glob("fixture-*.urfixture"))),
+                    total,
+                    "replacing active event preserves immutable receipts",
+                )
+
+
+            # Recover a 3-player event AFTER its first credited fixture.
+            # The second owner's process dies after real run+match publication
+            # but before receipt claim. The first result must survive while
+            # the orphan pair remains ordinary Records, not tournament points.
+            interrupted = root / "qa03-midseries-c14"
+
+            def resume(action, expected=0):
+                result = subprocess.run(
+                    [str(exe), action, str(interrupted)],
+                    cwd=ROOT, capture_output=True, timeout=20,
+                )
+                self.assertEqual(
+                    result.returncode, expected,
+                    (action, result.stdout.decode(errors="replace"),
+                     result.stderr.decode(errors="replace")),
+                )
+                return result
+
+            resume("qa03-create-round-robin")
+            self.assertIn(
+                b"QA03_CREDITED_FIXTURE 0",
+                resume("qa03-credit-next").stdout,
+            )
+            resume("qa03-kill-midseries", 82)
+            int_records = interrupted / "multiplayer-runs"
+            int_receipts = interrupted / "local-tournaments" / instance / "fixtures"
+            self.assertEqual(len(list(int_records.glob("*.urrun"))), 2)
+            self.assertEqual(
+                len(list(int_receipts.glob("fixture-*.urfixture"))), 1,
+                "a saved run without receipt never awards the second leg",
+            )
+            for index in range(1, 6):
+                self.assertIn(
+                    f"QA03_CREDITED_FIXTURE {index}".encode(),
+                    resume("qa03-credit-next").stdout,
+                )
+            self.assertIn(
+                b"QA03_COMPLETED_RESTORED_STANDINGS_HISTORY_RECORDS",
+                resume("qa03-verify-round-robin-interrupted").stdout,
+            )
+            self.assertEqual(len(list(int_records.glob("*.urrun"))), 7)
+            self.assertEqual(
+                len(list(int_receipts.glob("fixture-*.urfixture"))), 6,
+                "all six fixtures have one immutable receipt after takeover",
+            )
+            resume("qa03-replace-completed")
 
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))

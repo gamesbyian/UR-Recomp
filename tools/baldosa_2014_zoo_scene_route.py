@@ -23,6 +23,9 @@ FIRST = 3190
 RESULT_ONSET = 8353
 WINDOW = 5170
 BEFORE_RESULT = 4700
+# Original 2014 WRAM-transition neighborhoods; a diagnostic capture is frame-neutral.
+# These are hypotheses for the fresh boot, not assumed proof of lap crossings.
+PROGRESS_FRAMES = (218, 604, 841, 1532, 1721)
 GO_GATE = "until 0E1F != 00\n"
 START_GATE = "until16 0053 == 8610\n"
 
@@ -51,12 +54,16 @@ def render_replay(prefix: str) -> str:
     """Use zero in-scene `press` calls: direct frame file holds all input."""
     if not prefix.endswith("dump scene-entered\n"):
         raise ValueError("missing scene anchor")
-    return (
-        prefix + f"wait {BEFORE_RESULT}\ndump pre-result\n"
-        "until 009F == BC 1200\n"
-        "dump result-onset-candidate\nwait 8\n"
-        "dump result-stable-candidate\nquit\n"
-    )
+    parts = [prefix]
+    previous = 0
+    for relative_frame in PROGRESS_FRAMES:
+        parts.append(f"wait {relative_frame - previous}\ndump progress-{relative_frame:04d}\n")
+        previous = relative_frame
+    parts.append(f"wait {BEFORE_RESULT - previous}\ndump pre-result\n")
+    parts.append("until 009F == BC 1200\n"
+                 "dump result-onset-candidate\nwait 8\n"
+                 "dump result-stable-candidate\nquit\n")
+    return "".join(parts)
 
 
 def verified_window(meta: Path) -> dict:

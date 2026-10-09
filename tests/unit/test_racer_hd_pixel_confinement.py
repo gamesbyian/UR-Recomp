@@ -48,6 +48,45 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
         self.assertEqual(len(report["actual_live_oam_slots"]), 4)
         self.assertTrue(report["original_controls_pixel_exact"])
 
+    def test_source_empty_lower_viewport_must_not_acquire_hd_rider(self):
+        stock, hd = frames()
+        pam = (
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
+        )
+        rgba = bytearray(256 * 224 * 4)
+        rgba[(42 * W + 125) * 4 + 3] = 255
+        paint(hd, 4, 125, 42)
+        report = audit(
+            stock, bytes(hd), draw_log(), 1220,
+            second_original=stock, source_obj_layer=pam + rgba,
+        )
+        self.assertTrue(report["ok"], report)
+        self.assertEqual(
+            report["source_obj_opaque_by_viewport"], {"top": 1, "bottom": 0}
+        )
+        self.assertEqual(report["bottom_changed_pixels"], 0)
+        self.assertFalse(report["hd_changes_without_source_obj"])
+        # The formerly fabricated lower rider is independently detectable:
+        paint(hd, 4, 125, 155)
+        bad = audit(
+            stock, bytes(hd), draw_log(), 1220,
+            second_original=stock, source_obj_layer=pam + rgba,
+        )
+        self.assertFalse(bad["ok"])
+        self.assertTrue(bad["hd_changes_without_source_obj"])
+        # No valid PPU source cannot be promoted to a high-confidence pass.
+        with self.assertRaisesRegex(ValueError, "entirely absent"):
+            audit(
+                stock, bytes(hd), draw_log(), 1220,
+                source_obj_layer=pam + bytes(256 * 224 * 4)
+            )
+        with self.assertRaisesRegex(ValueError, "invalid original PPU"):
+            audit(
+                stock, bytes(hd), draw_log(), 1220,
+                source_obj_layer=b"P7\\nBAD"
+            )
+
     def test_single_pixel_hud_or_world_corruption_fails_even_at_4x(self):
         stock, hd = frames()
         paint(hd, 4, 125, 42)

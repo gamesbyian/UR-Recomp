@@ -76,6 +76,7 @@ def audit(
     *,
     second_original: bytes | None = None,
     capture_only: bool = False,
+    source_obj_layer: bytes | None = None,
 ) -> dict:
     sw, sh, stock = parse_ppm(original)
     if (sw, sh) != (256, 224):
@@ -90,6 +91,23 @@ def audit(
         raise ValueError("unsupported native presentation density")
     places = live_placements(log, frame)
     allowed = allowed_logical_mask(places)
+    source_counts = None
+    if source_obj_layer is not None:
+        pam = (
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
+        )
+        if not source_obj_layer.startswith(pam) or (
+            len(source_obj_layer) != len(pam) + 256 * 224 * 4
+        ):
+            raise ValueError("invalid original PPU source OBJ RGBA/P7 layer")
+        source_counts = [0, 0]
+        payload = source_obj_layer[len(pam):]
+        for i in range(256 * 224):
+            if allowed[i] and payload[i * 4 + 3] != 0:
+                source_counts[int(i // 256 >= 112)] += 1
+        if not any(source_counts):
+            raise ValueError("original PPU source OBJ alpha is entirely absent")
 
     changed = 0
     top = 0
@@ -126,10 +144,23 @@ def audit(
         "outside_live_oam_pixel_samples": outside,
         "original_controls_pixel_exact": second_original is not None,
         "diagnostic_capture_only": capture_only,
+        "source_obj_opaque_by_viewport": (
+            {"top": source_counts[0], "bottom": source_counts[1]}
+            if source_counts is not None else None
+        ),
+        "hd_changes_without_source_obj": bool(
+            source_counts is not None and
+            ((source_counts[0] == 0 and top > 0) or
+             (source_counts[1] == 0 and bottom > 0))
+        ),
         "viewports_with_visible_changes": [
             name for name, count in (("top", top), ("bottom", bottom)) if count
         ],
-        "ok": bool(changed and not outside and (capture_only or (top and bottom))),
+        "ok": bool(changed and not outside and (
+            (capture_only or (top and bottom)) if source_counts is None
+            else not ((source_counts[0] == 0 and top > 0) or
+                      (source_counts[1] == 0 and bottom > 0))
+        )),
         "claim_scope": (
             "original raster remains bit-exact outside 64x64 split OBJ footprints; "
             "capture-only can only prove removal of visible source pixels, not "
@@ -147,6 +178,8 @@ def main() -> int:
     ap.add_argument("--hd-log", required=True, type=Path)
     ap.add_argument("--frame", type=int, required=True)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument("--source-obj-layer", type=Path,
+                    help="actual captured Original PPU OBJ source alpha")
     ap.add_argument("--capture-only", action="store_true",
                     help="PPU stock removal proof; allow wholly occluded viewport")
     args = ap.parse_args()
@@ -156,6 +189,9 @@ def main() -> int:
         args.hd_log.read_text(encoding="utf-8", errors="replace"),
         args.frame,
         capture_only=args.capture_only,
+        source_obj_layer=(
+            args.source_obj_layer.read_bytes() if args.source_obj_layer else None
+        ),
         second_original=(
             args.original_control.read_bytes() if args.original_control else None
         ),

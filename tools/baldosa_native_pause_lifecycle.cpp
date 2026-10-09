@@ -90,8 +90,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
     // byte, shared with Modern's existing title-state observer, when enabled.
     // A script advancing frames without entering a race cannot pass the gate.
     if (!g_armed && stats->frame == g_pause_at_frame) {
+        const bool live_race = g_ram[0x0313] == 0x01;
         if (g_require_race)
-            require(g_ram[0x0313] == 0x01, "expected_live_race_state");
+            require(live_race, "expected_live_race_state");
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
@@ -99,8 +100,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
                 "pause_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() != 0,
                 "host_not_actually_paused");
-        std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u\n",
-                     g_guest_frame);
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u\n",
+            g_guest_frame, live_race ? 1U : 0U);
         std::fflush(stderr);
     }
 }

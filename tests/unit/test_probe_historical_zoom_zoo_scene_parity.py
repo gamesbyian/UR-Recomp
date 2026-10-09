@@ -150,6 +150,11 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
             path.write_bytes(wr)
             with self.assertRaisesRegex(probe.SceneReplayError, "fully installed"):
                 probe.read_guest(path, 0, decoded)
+            wr[0x0313] = 0
+            path.write_bytes(wr)
+            # The guest may unload 7F after results. Retain the exit rather
+            # than masking it with a wrong-payload exception.
+            self.assertEqual(probe.read_guest(path, 64, decoded)["in_race"], 0)
             # Matching two incorrect course buffers cannot be promoted as
             # semantic parity merely because the track selector is still 1.
 

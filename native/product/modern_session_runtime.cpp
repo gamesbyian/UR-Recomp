@@ -6,6 +6,12 @@ RestartLifecycleEvent ModernSessionRuntime::observe_race_active(bool active) {
     if (control_.mode() != ExecutionMode::Modern) {
         return RestartLifecycleEvent::None;
     }
+    // Native backends own restart lifecycle/availability. Do not attempt
+    // to capture old-executor snapshots in their guest address space.
+    if (hooks_.native_restart_race) {
+        if (active) native_attempt_observed_ = true;
+        return RestartLifecycleEvent::None;
+    }
     const auto event = restart_lifecycle_.observe_race_active(active);
     if (event == RestartLifecycleEvent::AnchorCaptured) {
         if (hooks_.set_rewind_audio_timing_lock) {
@@ -23,6 +29,12 @@ RestartLifecycleEvent ModernSessionRuntime::retire_race_attempt() noexcept {
     if (control_.mode() != ExecutionMode::Modern) {
         return RestartLifecycleEvent::None;
     }
+    if (hooks_.native_restart_race) {
+        const bool was_observed = native_attempt_observed_;
+        native_attempt_observed_ = false;
+        return was_observed ? RestartLifecycleEvent::AnchorRetired
+                            : RestartLifecycleEvent::None;
+    }
     const auto event = restart_lifecycle_.retire_attempt();
     if (hooks_.set_rewind_audio_timing_lock) {
         hooks_.set_rewind_audio_timing_lock(0);
@@ -32,6 +44,7 @@ RestartLifecycleEvent ModernSessionRuntime::retire_race_attempt() noexcept {
 
 ModernSessionDispatchResult ModernSessionRuntime::request(
     SessionCommand command) noexcept {
+    const SessionPhase phase_before = control_.phase();
     const SessionRequestResult requested = control_.request(command);
     ModernSessionDispatchResult result{};
     result.request_status = requested.status;
@@ -47,14 +60,24 @@ ModernSessionDispatchResult ModernSessionRuntime::request(
     }
 
     result.dispatched = true;
-    result.dispatch_status = dispatch_runtime_action(
-        *action,
-        hooks_,
-        &restart_lifecycle_);
+    if (*action == RuntimeAction::RestartRace &&
+        hooks_.native_restart_race && !restart_available()) {
+        result.dispatch_status = RuntimeDispatchStatus::RejectedByRuntime;
+    } else {
+        result.dispatch_status = dispatch_runtime_action(
+            *action, hooks_, &restart_lifecycle_);
+    }
+
+    if (result.dispatch_status != RuntimeDispatchStatus::Applied &&
+        (*action == RuntimeAction::SuspendGuest ||
+         *action == RuntimeAction::ResumeGuest)) {
+        control_.reconcile_failed_runtime_action(phase_before);
+    }
 
     if (*action == RuntimeAction::ExitToFrontend &&
         result.dispatch_status == RuntimeDispatchStatus::Applied) {
         control_.reconcile_frontend_return();
+        native_attempt_observed_ = false;
         (void)restart_lifecycle_.retire_attempt();
         if (hooks_.set_rewind_audio_timing_lock) {
             hooks_.set_rewind_audio_timing_lock(0);

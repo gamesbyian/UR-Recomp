@@ -17,6 +17,18 @@ typedef void (*UrSetRewindAudioTimingLockFn)(int active);
 typedef void (*UrReconcileAfterRestartFn)(void);
 typedef bool (*UrExitToFrontendFn)(void);
 
+/* A real native guest may reject pause, restart or frontend return. Unlike
+ * the legacy void pause/snapshot API, these hooks only report success after
+ * the backend acknowledges the actual transition. No profile or save hooks
+ * cross this boundary. The caller owns context for the session lifetime. */
+typedef struct UrModernNativeSessionHooks {
+    void* context;
+    bool (*set_paused)(void* context, int paused);
+    bool (*restart_race)(void* context);
+    bool (*exit_to_frontend)(void* context);
+    bool (*restart_available)(void* context);
+} UrModernNativeSessionHooks;
+
 typedef enum UrModernSessionKey {
     UR_MODERN_SESSION_KEY_ESCAPE = 0,
     UR_MODERN_SESSION_KEY_ACCEPT = 1,
@@ -43,6 +55,12 @@ UrModernSession* ur_modern_session_create(
     UrSetRewindAudioTimingLockFn set_rewind_audio_timing_lock,
     UrReconcileAfterRestartFn reconcile_after_restart,
     UrExitToFrontendFn exit_to_frontend);
+
+/* Uses the same typed Modern session policy and key/router APIs, with
+ * acknowledged native guest lifecycle instead of old-executor snapshots.
+ * Missing individual hooks fail closed. Null hooks reject construction. */
+UrModernSession* ur_modern_session_create_native(
+    int modern_mode, const UrModernNativeSessionHooks* hooks);
 
 void ur_modern_session_destroy(UrModernSession* session);
 

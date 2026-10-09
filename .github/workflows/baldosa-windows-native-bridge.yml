@@ -10,6 +10,12 @@ on:
       - ".github/workflows/baldosa-windows-native-bridge.yml"
       - "tools/baldosa_windows_native_pause_route.py"
       - "tests/unit/test_baldosa_windows_native_pause_route.py"
+      - "tools/baldosa_native_pause_lifecycle.cpp"
+      - "tools/baldosa_product_pause_spike.py"
+      - "native/product/modern_session_c_api.*"
+      - "native/product/modern_session_runtime.*"
+      - "native/product/session_runtime_adapter.*"
+      - "native/product/baldosa_modern_session_binding.hpp"
   workflow_dispatch:
 
 permissions:
@@ -105,7 +111,7 @@ jobs:
             --script "baldosa/tests/routes/race_2p_split.txt" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
             --video windows --expected-frames 2473 --timeout 95
-          echo "PASS: Win32 native two-player guest and acknowledged pause/resume; all 2,473 CRCs identical" >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 native two-player guest, Modern session C ABI acknowledgement and pause/resume; all 2,473 CRCs identical" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

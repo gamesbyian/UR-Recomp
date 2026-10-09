@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "modern_session_c_api.h"
+
 extern "C" {
 #include "host_main.h"
 extern std::uint8_t g_ram[0x20000];
@@ -25,6 +27,23 @@ void ur_baldosa_guest_snapshot_after_run_frame(
 namespace {
 bool g_smoke_initialized;
 bool g_smoke_enabled;
+UrModernSession* g_modern_session;
+
+bool acknowledged_guest_pause(void*, int paused) {
+    return ur_baldosa_product_set_paused(paused) != 0;
+}
+
+void create_modern_session() {
+    // Reuse Modern's real command/phase policy even in the existing bounded
+    // 2P native guest pause witness. This is not a new menu or second host.
+    const UrModernNativeSessionHooks hooks{
+        nullptr, &acknowledged_guest_pause, nullptr, nullptr, nullptr};
+    g_modern_session = ur_modern_session_create_native(1, &hooks);
+    if (!g_modern_session) {
+        std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE FAIL=modern_session_create\n");
+        std::abort();
+    }
+}
 bool g_armed;
 bool g_resumed;
 unsigned g_guest_frame;
@@ -96,12 +115,14 @@ extern "C" void ur_baldosa_product_after_run_frame(
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
-        require(ur_baldosa_product_set_paused(1) != 0,
-                "pause_was_not_acknowledged");
+        create_modern_session();
+        require(ur_modern_session_pause(g_modern_session) ==
+                    UR_MODERN_SESSION_APPLIED,
+                "modern_pause_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() != 0,
                 "host_not_actually_paused");
         std::fprintf(stderr,
-            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u\n",
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u modern_session=1\n",
             g_guest_frame, live_race ? 1U : 0U);
         std::fflush(stderr);
     }
@@ -116,11 +137,14 @@ extern "C" void ur_baldosa_product_host_tick(void) {
             "guest_wram_advanced_during_pause");
     ++g_frozen_ticks;
     if (g_frozen_ticks == 24) {
-        require(ur_baldosa_product_set_paused(0) != 0,
-                "resume_was_not_acknowledged");
+        require(ur_modern_session_resume(g_modern_session) ==
+                    UR_MODERN_SESSION_APPLIED,
+                "modern_resume_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() == 0,
                 "host_still_paused_after_resume");
         g_resumed = true;
+        ur_modern_session_destroy(g_modern_session);
+        g_modern_session = nullptr;
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=%u frozen_pumps=%u\n",
             g_guest_frame, g_frozen_ticks);

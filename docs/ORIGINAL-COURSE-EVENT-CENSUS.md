@@ -28,9 +28,9 @@ original route and start, event-specific contact/checkpoint/lap/finish
 MesenCE run from an independently named native run, on a fresh process,
 with exact ROM and candidate provenance.
 
-The primary-USA baseline is **0/45 complete event passes**, **3/45
-partial observations**, **42/45 unverified**. Across all three builds,
-**0/135 complete**, **3/135 partial**, **132/135 unverified**, as encoded in
+The primary-USA baseline is **0/45 complete event passes**, **4/45
+partial observations**, **41/45 unverified**. Across all three builds,
+**0/135 complete**, **4/135 partial**, **131/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
 - **USA Dragster (course 01), partial:** the seven-frame native WRAM
@@ -43,15 +43,23 @@ partial observations**, **42/45 unverified**. Across all three builds,
   identical ROM header pairs **(9200,1488)**, and five verified
   P1 checkpoint/finish-gate/lap transitions at **3408, 3794, 4031,
   4722, 4911**. P1 laps remaining drops **4→3** and later **3→2**;
-  this is independent **original-only live progression**, not a paired
-  native gameplay parity result, a completed circuit or a terminal result.
-  Full reduced trace and original write provenance:
-  `analysis/data/zoo-original-2014-live-progression.json`.
+  the separate archived Snes9x result-screen proof reaches a settled
+  Circuit result (`0xBC`) at movie frame **8353**, MIKE total 1:16.46
+  and best lap 0:25.10. Both are **original-only** observations, not
+  a paired native gameplay/result parity acceptance.
+  Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
+  Original terminal evidence: `analysis/generated/result-screens-probe.json`.
+- **USA Bowl (course 03), partial:** the archived original 2014 Snes9x
+  movie reaches a legitimate scored 45-second Stunt result. The source
+  reports tally `0x2F` at frame **11915** and settled result `0x18` at
+  **11985**, with MIKE score **764**. This is an authentic **original-only
+  source completion**, not an independently matched fresh native Stunt
+  run. Provenance: `analysis/generated/result-screens-probe.json`.
 - **USA Jumpover (course 20), partial:** six bounded input-only
   original/native stunt landing-reward thresholds match **on a circuit B
   course**, but no complete circuit lap/finish/result or 45-second stunt
-  event is established. All nine timed-stunt identities remain untested
-  end-to-end.
+  event is established on Jumpover. **No timed-Stunt identity has
+  an accepted fresh original/native complete-event pair**, including Bowl.
 
 Every Europe-retail and PAL-prototype case remains unverified at comparative L4.
 No paired-ROM payload CRC, native unit test, static course-cell match,
@@ -278,6 +286,45 @@ they do not claim a fresh original emulator execution. The full
 artifact SHA-verified reconstruction is a separate, reproducible
 confirmation of the original run already executed in 2014-movie
 workflow `37184022134`.
+
+## Historical complete-original results versus pending fresh native pairing (2026-10-09)
+
+The archived, anchored 2014 original Snes9x movie already has **settled
+original-only** Crawler results: Dragster race menu `99` at movie frame 2874;
+Zoom Zoo circuit `BC` at 8353 with MIKE total 1:16.46, best lap 0:25.10;
+Bowl scored 45-second stunt with tally `2F` at 11915, final `18` at
+11985 and MIKE score 764. The source is
+`analysis/generated/result-screens-probe.json`, created by
+`tools/probe_result_screens.py` on the original Snes9x reference.
+This is meaningful **original event-complete source evidence**, but is
+**not** a new USA release-course acceptance: it is not an independent,
+scene-rebased native/authentic comparison and does not establish matching
+native result or contact/lap semantics.
+
+`tools/probe_original_event_complete.py` (implementation PR #1055;
+[bounded execution plan](QA01-2014-COMPLETE-EVENT-TRANSPLANT.md)) now
+attempts a genuine original/native pairing: pin original SMV SRAM, discover
+course entry and result from independently executed source movie, calibrate
+fresh guest entries through stock menus, transplant the exact original input
+relative to each entry, and compare scene samples plus actual guest PPU
+result text and score. It fails closed for a missing original course/result
+source, missing non-Dragster finish time, unmatched result, zero-score stunt
+or circuit lacking two sampled lap decrements. Crawler Switcher is the
+first non-Dragster Race candidate; its complete original source result
+has not yet been confirmed and is an **explicit unresolved producer
+dependency**, not a successful replay. No binary pairing was executed
+as part of #1055's initial tool-only contribution, so the census
+remains **0/45 USA complete; 4 partial; 41 unverified** and the release
+ledger stays **in_progress**.
+
+**Next actual discriminator:** execute Zoo and Bowl on prepared pinned
+Snes9x plus native Authentic binaries, verify source-entry state,
+controller latch phase and result fidelity; independently find an actual
+Switcher finish in original source or select another completed
+non-Dragster Race. Only promote a reviewed, fresh-process exact-identity
+witness to the 45-row machine-readable census. The disputed Dragster
+frame-2903 consumed contact remains unresolved absent instruction-PC
+evidence of an actual result divergence.
 
 ## Non-Dragster counterexample priorities
 

@@ -60,6 +60,8 @@ class NativeRacerHostTest(unittest.TestCase):
             log.write_text("".join(
                 f"UR_BALDOSA_NATIVE_COMPOSE frame={f} racer_present=1 "
                 f"logical=256x224 source_art=ur hd_capture=1\n"
+                f"UR_RACER_HD_SOURCE_OBJ frame={f} top_opaque=12 "
+                f"bottom_opaque=12 top_painted=8 bottom_painted=8\n"
                 for f in (1800, 1860)))
             captures = root / "captures"
             captures.mkdir()
@@ -69,6 +71,10 @@ class NativeRacerHostTest(unittest.TestCase):
                 (captures / f"ur-baldosa-frame-{f:06d}.pam").write_bytes(
                     header + pixel * (256 * 224 * 4))
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "passed")
+            self.assertEqual(report.assess(base, candidate, log, captures)["visible_source_obj_frame_count"], 2)
+            log.write_text(log.read_text().replace("top_opaque=12", "top_opaque=0"))
+            self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")
+            log.write_text(log.read_text().replace("top_opaque=0", "top_opaque=12"))
             candidate.write_bytes(frames.replace(b"0xAAAA0000", b"0xBBBB0000", 1))
             self.assertEqual(report.assess(base, candidate, log, captures)["status"], "unproven")
 

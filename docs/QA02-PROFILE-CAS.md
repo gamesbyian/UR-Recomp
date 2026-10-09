@@ -89,3 +89,17 @@ one new row. A source contract guards against unprotected production catalog
 mutations. This does not provide atomicity across the profile file and catalog
 file, nor recovery from a hard kill between the two commits. Cross-artifact
 transaction and orphan-profile restoration remain QA-02 P0 follow-ups.
+
+### Conditional cleanup of a failed profile registration
+
+After a new profile file is created but the catalog CAS conflicts, the old
+code unconditionally removed the profile pathname. An intervening process
+could already have updated that file, so the registration loser would then
+delete the winner's newer SRAM. Production cleanup now calls
+`remove_host_profile_state_file_if_current` using the exact profile snapshot
+it originally authored, holding the same per-path OS lock during comparison
+and unlink. An intervening write causes `Conflict` and preserves the valid
+newer profile; cleanup reports `ROLLBACK_CONFLICT` rather than falsely
+claiming rollback. The process fixture tests both refused stale deletion
+and permitted exact deletion. A crash before catalog publication still
+leaves an orphaned but intact profile requiring separate recovery policy.

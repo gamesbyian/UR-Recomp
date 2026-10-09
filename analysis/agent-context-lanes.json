@@ -2,20 +2,108 @@
   "schema_version": 1,
   "lanes": {
     "widescreen": {
-      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/WIDESCREEN-RECONNAISSANCE.md","docs/DISPLAY-PRESENTATION-POLICY.md","analysis/widescreen-policy.yml"],
-      "keywords": ["Widescreen","viewport","capacity","composition","Authentic"]
+      "authorities": [
+        "docs/PROJECT-PLAN.md",
+        "docs/WORK-QUEUE.md",
+        "docs/SEMANTIC-SUFFICIENCY.md",
+        "docs/WIDESCREEN-RECONNAISSANCE.md",
+        "docs/DISPLAY-PRESENTATION-POLICY.md",
+        "analysis/widescreen-policy.yml"
+      ],
+      "keywords": [
+        "Widescreen",
+        "viewport",
+        "capacity",
+        "composition",
+        "Authentic"
+      ]
     },
     "racer-hd": {
-      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/HD-VISUAL-REFERENCE-PIPELINE.md","docs/HD-ART-DIRECTION.md","analysis/data/racer-hd-replacement-prototype.json"],
-      "keywords": ["Racer HD","authored","pose","representation","motion-reviewed"]
+      "authorities": [
+        "docs/PROJECT-PLAN.md",
+        "docs/WORK-QUEUE.md",
+        "docs/SEMANTIC-SUFFICIENCY.md",
+        "docs/HD-VISUAL-REFERENCE-PIPELINE.md",
+        "docs/HD-ART-DIRECTION.md",
+        "analysis/data/racer-hd-replacement-prototype.json"
+      ],
+      "keywords": [
+        "Racer HD",
+        "authored",
+        "pose",
+        "representation",
+        "motion-reviewed"
+      ]
     },
     "modern-product": {
-      "authorities": ["docs/PROJECT-PLAN.md","docs/WORK-QUEUE.md","docs/SEMANTIC-SUFFICIENCY.md","docs/MODERN-PRODUCT-LAYER.md","analysis/modern-product-settings.json"],
-      "keywords": ["Modern","Options","setting","host-state","pause","frontend"]
+      "authorities": [
+        "docs/PROJECT-PLAN.md",
+        "docs/WORK-QUEUE.md",
+        "docs/SEMANTIC-SUFFICIENCY.md",
+        "docs/MODERN-PRODUCT-LAYER.md",
+        "analysis/modern-product-settings.json"
+      ],
+      "keywords": [
+        "Modern",
+        "Options",
+        "setting",
+        "host-state",
+        "pause",
+        "frontend"
+      ]
     },
     "ci": {
-      "authorities": ["docs/CI-WORKFLOW-BEST-PRACTICES.md","docs/PERIODIC-REPOSITORY-HYGIENE.md","docs/WORK-QUEUE.md"],
-      "keywords": ["workflow","CI","native","evidence","runner"]
+      "authorities": [
+        "docs/CI-WORKFLOW-BEST-PRACTICES.md",
+        "docs/PERIODIC-REPOSITORY-HYGIENE.md",
+        "docs/WORK-QUEUE.md"
+      ],
+      "keywords": [
+        "workflow",
+        "CI",
+        "native",
+        "evidence",
+        "runner"
+      ]
+    },
+    "baldosa-integration": {
+      "authorities": [
+        "docs/WORK-QUEUE.md",
+        "docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md",
+        "docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md",
+        "docs/BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md"
+      ],
+      "keywords": [
+        "Baldosa",
+        "Modern",
+        "guest",
+        "pause",
+        "controller",
+        "input",
+        "Windows",
+        "2P",
+        "acceptance"
+      ]
+    },
+    "release-qa": {
+      "authorities": [
+        "docs/WORK-QUEUE.md",
+        "docs/QA-BOUNDED-RELEASE-CAMPAIGN.md",
+        "docs/QA-PLAYER-JOURNEYS.md",
+        "docs/RELEASE-QUALITY-LEDGER.json"
+      ],
+      "keywords": [
+        "QA-01",
+        "QA-02",
+        "QA-05",
+        "QA-08",
+        "QA-09",
+        "in_progress",
+        "unverified",
+        "Baldosa",
+        "candidate",
+        "acceptance"
+      ]
     }
   }
 }

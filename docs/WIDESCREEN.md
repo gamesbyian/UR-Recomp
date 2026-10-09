@@ -1,5 +1,7 @@
 # Widescreen Feature Architecture
 
+**Baldosa integration, 2026-10-09:** First-party course-derived margins and merged #1078 produce bounded +24 additional logical world pixels in both split-screen views. Open #1082 owns the proposed **342×224 true-16:9 7:6-PAR** expansion with +48 tile backing. It is not yet admitted as complete 4K host output or exact HUD/OBJ visibility. Reuse the existing world provider and 4× fallback compositor; QA-08 open #1045 covers original source-visible P1/P2 sprites. No second widening subsystem.
+
 The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This document owns the **Widescreen** feature specifically: implementation notes for expanding the logical horizontal view beyond the original 4:3 presentation.
 
 ## Principle

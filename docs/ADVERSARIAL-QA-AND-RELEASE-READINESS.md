@@ -1,6 +1,11 @@
 # Adversarial QA and Release Readiness Programme
 
-Status: **active cross-cutting product-quality programme**, opened 2026-10-08. This is the canonical release-risk and QA prioritization document. `PROJECT-PLAN.md` remains the product intent; `WORK-QUEUE.md` owns active execution; subsystem contracts own original technical evidence. See `QA-PLAYER-JOURNEYS.md` for executable scenarios and `RELEASE-QUALITY-LEDGER.json` for current gate states.
+> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
+
+
+Status: **active cross-cutting product-quality programme**, opened 2026-10-08 and integrated with Baldosa 2026-10-09. This is the canonical release-risk and QA prioritization document. `PROJECT-PLAN.md` remains the product intent; `WORK-QUEUE.md` owns active execution; subsystem contracts own original technical evidence. See `QA-PLAYER-JOURNEYS.md` for executable scenarios and `RELEASE-QUALITY-LEDGER.json` for current gate states.
+
+**Joint execution priority (2026-10-09):** Baldosa native-core incorporation and the remaining QA are **one candidate and evidence programme**. Feature owners deliver real Windows Modern guest/UI/presentation/data outputs; independent QA tests settled original/native events, source-visible P1/P2 art, controller/audio, persisted profiles/records and physical Windows behavior on the **same exact build**. Existing input scripts, replay/process fixtures and renderer tests must be reused. A 2,473-frame WRAM CRC match, clean CI build or upstream route exit alone earns no course/release gate credit. [WORK-QUEUE.md](WORK-QUEUE.md) owns live priorities; [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone owns gate status.
 
 ## Why this programme exists
 
@@ -110,6 +115,24 @@ The source-confirmed fixed-temp-file clobber (#991), POSIX match/run pair filena
 Two further source-confirmed lost-update bugs are now merged: [#996](https://github.com/gamesbyian/UR-Recomp/pull/996) exact profile/SRAM expected-state CAS including rollback, and [#1009](https://github.com/gamesbyian/UR-Recomp/pull/1009) guarded tournament active-pointer replacement. [#1003](https://github.com/gamesbyian/UR-Recomp/pull/1003) catalog prior-roster CAS and conditional profile deletion is rebased on main and awaits fresh CI verification before merge. Their store-level tests require distinct operating-system processes that read the same incumbent before a barrier, then prove exactly one commit and one conflict, rather than trusting in-process thread tests or preflight `exists()`.
 
 Do not mark QA-02 passed even after those merges. Crash after creating a profile but before catalog registration can leave an orphan with no discovery policy; framework `.srm` and host profile commits can split; a canonical `.urrun` may precede its optional ghost trace or fixture receipt; immutable archives and active tournament/launch pointer updates are not a group commit. Directory sync failures after rename are **committed but durability-uncertain**, not safe precommit failures. Demand exact-candidate Windows dual-instance J-02/J-07/J-08 restore evidence, disk faults, interrupted upgrades, replay/fixture authority and no fabricated or duplicate credit.
+
+## QA-of-QA corrective ordering (2026-10-08 local)
+
+[The audited execution map](QA-AUDIT-OF-AUDIT-20261008.md) takes precedence over the *historical next-step order below* for **task assignment only**, without weakening any P0/P1 release acceptance. First revisit the current status of proposed #1052 live-fixture ownership, #1045 per-rider HD source visibility and #1043 Zoo source evidence; independently reproduce or close the current-candidate default-keymap Restart leak #890. Prioritize a true original/native Race, Circuit and timed-Stunt **result**, the actual 2P multi-leg and 3+ entrant completed tournament, and a functional five-destination Modern UI before commissioning further duplicate test infrastructure. Original and Upscaled may be explicitly release-supported while sparse Remastered remains withheld or experimental, subject to correct fallback and user-visible claims. Log productive hours and actual user outcomes; stop automatic spend for a 100h tranche review if yield is poor. Hardware and uncoached human testing cannot be credited by CI.
+
+**2026-10-09 integration checkpoint, after the dated QA-of-QA review:**
+#1052 merged the crash-released live fixture OS lease and #1054 merged
+active-tournament replacement fencing plus full two-entrant/three-leg and
+three-entrant/two-leg fresh-process backend fixture journeys. #1054's unit,
+native build/boot and local multiplayer product checks passed. The source
+regressions use real persisted run/match/receipt stores and separate process
+lifetimes, but simulated stock race observations. Real game completion through
+the guest on all legs, two game windows on one hash-pinned Windows package,
+C04 profile selector/framework SRAM crash, C16 disk failure, C17 upgrade
+behavior and physical power-loss durability remain unverified. Neither P0
+gate is release accepted. See
+[QA-03 process acceptance](QA03-COMPLETE-TOURNAMENT-PROCESS-JOURNEY.md)
+and [the current ledger](RELEASE-QUALITY-LEDGER.json).
 
 ## Next concrete work
 

@@ -24,8 +24,11 @@ def image(case: str, payload: bytes = bytes(range(64))) -> bytes:
         (0x0411, 1234), (0x0415, 2034),
         (0x0413, 4321), (0x0417, 3045),
         (0x04B7, 0xFFF1), (0x04BB, 0x0010),
+        (0x04B9, 0xFFEF), (0x04BD, 0x0020),
         (0x0E95, 0x2024), (0x0E97, 0x1804),
-        (0x0EF1, 2), (0x11CF, 64),
+        (0x1199, 0), (0x119B, 2),
+        (0x119D, 0), (0x119F, 1),
+        (0x0EF1, 2), (0x0EF3, 3), (0x11CF, 64),
     ):
         struct.pack_into("<H", wram, addr, word)
     return bytes(wram)
@@ -58,7 +61,11 @@ class NonDragsterCourseEntryTests(unittest.TestCase):
         self.assertEqual(row["p1_speed_x"], -15)
         self.assertEqual(row["p1_contact_stored"], 0x2024)
         self.assertEqual(row["p2_contact_stored"], 0x1804)
-        self.assertEqual(row["p1_laps_remaining"], 2)
+        self.assertEqual((row["p2_speed_x"], row["p2_speed_y"]), (-17, 32))
+        self.assertEqual((row["p1_next_checkpoint"], row["p1_finish_gate"],
+                          row["p1_laps_remaining"]), (0, 0, 2))
+        self.assertEqual((row["p2_next_checkpoint"], row["p2_finish_gate"],
+                          row["p2_laps_remaining"]), (2, 1, 3))
         self.assertEqual(row["timer_minutes_raw"], 0)
         self.assertEqual(row["timer_tenths_raw"], 0)
         buf = bytearray(image("zoom-zoo"))
@@ -89,6 +96,55 @@ class NonDragsterCourseEntryTests(unittest.TestCase):
             probe.first_difference(a, b)
         with self.assertRaisesRegex(probe.CourseEntryEvidenceError, "incomplete"):
             probe.first_difference(a[:-1], a)
+        # An asymmetric new semantic field must not be omitted from the
+        # reference comparison silently, even if all common fields agree.
+        mismatched_schema = [dict(row) for row in a]
+        mismatched_schema[0]["p2_finish_gate"] = 1
+        with self.assertRaisesRegex(probe.CourseEntryEvidenceError, "field sets"):
+            probe.first_difference(a, mismatched_schema)
+
+    def test_phantom_checkpoint_finish_or_p2_lap_fails_at_first_bounded_frame(self):
+        # A guest can appear to handle identically while its race progression
+        # state differs. This checks the actual paired sampling path, not a
+        # hand-built dictionary with hypothetical field names.
+        decoded = bytes(range(64))
+        reference = [
+            {"relative_frame": frame, **probe.sample_state(
+                image("zoom-zoo"), "zoom-zoo", decoded)}
+            for frame in probe.SAMPLES
+        ]
+        native = [dict(row) for row in reference]
+        bad = bytearray(image("zoom-zoo"))
+        struct.pack_into("<H", bad, 0x1199, 1)  # P1 checkpoint credit
+        struct.pack_into("<H", bad, 0x119D, 1)  # P1 finish gate
+        struct.pack_into("<H", bad, 0x0EF3, 2)  # P2 lap credit
+        native[4] = {"relative_frame": 8, **probe.sample_state(
+            bytes(bad), "zoom-zoo", decoded)}
+        self.assertEqual(reference[4]["p1_x"], native[4]["p1_x"])
+        self.assertEqual(reference[4]["p2_x"], native[4]["p2_x"])
+        self.assertEqual(reference[4]["p1_contact_stored"],
+                         native[4]["p1_contact_stored"])
+        self.assertEqual(reference[4]["p2_contact_stored"],
+                         native[4]["p2_contact_stored"])
+        difference = probe.first_difference(reference, native)
+        self.assertEqual(difference["relative_frame"], 8)
+        self.assertEqual(difference["fields"], [
+            "p1_finish_gate", "p1_next_checkpoint", "p2_laps_remaining"
+        ])
+        self.assertEqual(difference["reference_values"],
+                         {"p1_finish_gate": 0, "p1_next_checkpoint": 0,
+                          "p2_laps_remaining": 3})
+        self.assertEqual(difference["native_values"],
+                         {"p1_finish_gate": 1, "p1_next_checkpoint": 1,
+                          "p2_laps_remaining": 2})
+
+    def test_stunt_course_records_raw_progress_without_asserting_race_lap_rules(self):
+        # Jumps is a timed stunt event, not a circuit; its raw register
+        # values are useful parity signals but cannot prove race-lap rules.
+        row = probe.sample_state(image("jumps"), "jumps", bytes(range(64)))
+        self.assertEqual((row["p1_next_checkpoint"], row["p1_finish_gate"],
+                          row["p2_next_checkpoint"], row["p2_finish_gate"]),
+                         (0, 0, 2, 1))
 
     def test_zero_snapshot_can_never_prove_loaded_course(self):
         # The decoded stream must be fully present, not a mostly-zero,

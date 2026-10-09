@@ -1,0 +1,61 @@
+name: Baldosa framework patch portability probe
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/baldosa-patch-portability.yml"
+      - "tools/baldosa_patch_portability.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-ordered-patches-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ordered-patch-probe:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out UR-Recomp patch and manifest authority
+        uses: actions/checkout@v4
+
+      - name: Check out exact Baldosa framework fork
+        uses: actions/checkout@v4
+        with:
+          repository: baldosa/snesrecomp
+          ref: 075fbe4c8e0d97b0013be541795c39cb644a9709
+          path: baldosa-framework
+          persist-credentials: false
+
+      - name: Apply UR's 35 ordered host patches to disposable candidate
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa-framework rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          python3 tools/baldosa_patch_portability.py \
+            --project "$GITHUB_WORKSPACE" \
+            --framework "$GITHUB_WORKSPACE/baldosa-framework" \
+            --report "$RUNNER_TEMP/baldosa-patch-portability.json"
+          python3 - "$RUNNER_TEMP/baldosa-patch-portability.json" <<'PY'
+          import json, sys
+          data=json.load(open(sys.argv[1], encoding='utf-8'))
+          with open('portability-summary.md','w',encoding='utf-8') as fp:
+              fp.write('## Framework migration: ordered source patch portability\\n\\n')
+              fp.write(f'- Applied: {data["applied_in_scratch_fork"]}/{data["total_ordered_patches"]}\\n')
+              fp.write(f'- Failed contexts: {data["conflict_or_missing_anchor"]}\\n')
+              fp.write('- This test does not verify compilation, feature behavior or source parity.\\n')
+          PY
+          cat portability-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain concise evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-ordered-patch-portability
+          path: ${{ runner.temp }}/baldosa-patch-portability.json
+          if-no-files-found: ignore
+          retention-days: 7

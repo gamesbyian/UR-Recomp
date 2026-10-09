@@ -17,7 +17,10 @@ class ModernControlsHostContractTests(unittest.TestCase):
         body = source[start:end]
 
         controls = body.index("if (g_controls_visible)")
-        help_shortcut = body.index("key == SDLK_F1")
+        # The root owns a disjoint no-subview F1 shortcut before this
+        # handler. For active Controls capture, only the global help route
+        # after the Controls modal guard matters.
+        help_shortcut = body.index("if (modern_mode() && key == SDLK_F1")
         tour_shortcut = body.index(
             "if (modern_mode() && key == SDLK_F3 && !paused()"
         )

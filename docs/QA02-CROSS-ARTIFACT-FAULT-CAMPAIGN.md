@@ -89,7 +89,7 @@ A gate cannot advance to accepted until L4 evidence is attached to the
 specific shipped artifact, not merely a green Actions workflow.
 
 
-## Focused independent-process evidence, pending current PR validation
+## Focused independent-process evidence, merged green 2026-10-09
 
 The previously accepted store tests and in-process coordinator reconstructors
 did not exhaust C09/C12/C14/C15. New native harnesses keep the **actual**
@@ -107,9 +107,61 @@ processes, and retain one user-data directory throughout each trial.
   independently verifying one Created / one AlreadyExists and a
   single canonical active owner with no fake completed event.
 
-These PRs are **not counted as accepted until exact-head CI passes and they
-merge**. Even after that, such OS-process tests are L2 evidence, not the
-pinned packaged Windows/real controller power-off L4 witness. A process
+Both PRs have passed exact-head project tooling and native heavy-router
+checks and merged, establishing bounded L2 OS-process evidence for their
+explicit fault cuts. They do not certify the pinned portable Windows
+game or physical storage power-off L4 witness. A process
 can die after a successful OS data flush while directory metadata still
 has uncertain durability, and the framework SRAM/profile group
 remains uncommitted as one transaction.
+
+## C16 receipt storage interruption: exact-attempt recovery candidate
+
+A storage-path failure after a valid two-player `.urrun` + `.urmatch`
+pair previously emerged from `commit_local_tournament_capture` as
+`EvidenceRejected`, because the coordinator collapsed *all* noncommitted
+fixture-link statuses. This obscured the actual I/O failure and made an
+honest retry indistinguishable from corrupted or foreign race evidence.
+The fixture-link store already retained both in-memory standings and
+receipt files on I/O failure. The coordinator now forwards its explicit
+`IoError` as `StorageFailed`, keeping the same live OS fixture lease and
+exact pending attempt. Only an authoritative receipt can award points.
+
+The existing QA02 process tool now runs a bounded two-executable test:
+a live owner arms fixture 0 and publishes a checksum-bound ordinary run/match;
+the receipt directory is temporarily moved away to simulate an unavailable
+destination. Commit must report `StorageFailed`, award zero points and
+leave the original saved pair present. A distinct process attempts
+restoration while the receipt authority directory is absent and fails
+closed. After restoring the *same* directory, the original owner
+retries its exact attempt, commits one immutable receipt, and a third
+fresh process verifies exactly three points, one Records pair and no
+duplicated award. No new persistence authority or harness was introduced.
+
+**Player-facing coordination:** The real Modern capture path previously
+cancelled every failed receipt commit immediately, even when the coordinator
+could safely retain ownership after `StorageFailed`. It now retains the
+exact already-published saved run path together with **both** the original
+tournament instance ID and live attempt ID. Reopening the existing tournament
+panel in the *same running process* explicitly retries that exact
+run/attempt while the OS lease is still owned. Success displays saved
+credit and refreshes History; continued I/O failure displays a recoverable
+save-pending notice without releasing the lease. Another event/attempt
+mismatch clears the cached retry, never credits an unrelated saved match.
+A fresh process never fabricates a live token from Records. The generic
+abandoned-route cancellation excludes the in-process pending receipt retry
+to avoid discarding a finished match when exiting the Results screen.
+
+No new standalone UI router or persistence authority was introduced. This
+does **not** persist the transient retry binding across process death; a
+crash while storage is unavailable retains ordinary Records but may still
+require a fresh replayed tournament fixture. That crash gap requires a
+separate reviewed recovery contract before any automatic post-restart
+credit from old run pairs, and is not covered by this C16 cut.
+
+**Scope:** This models receipt-path I/O unavailability, not a true OS ENOSPC,
+short write, controller cache loss or power-off. Prepublication data-flush
+failure is separately tested by the staged writer. Exact packaged Windows
+disk-full/permission and post-publication directory-sync uncertainty
+remain C16/L4 open; no QA-02 release gate is promoted from this native
+failure-mode regression.

@@ -38,8 +38,10 @@ extern "C" {
 #include "modern_results_navigation.hpp"
 #include "modern_tour_continue.hpp"
 #include "modern_host_input_release_latch.hpp"
+#include "modern_restart_key_release.hpp"
 #include "modern_tournament_p2_guest_input.hpp"
 #include "modern_main_menu_strip.hpp"
+#include "modern_root_menu.hpp"
 #include "next_event_derivation.hpp"
 #include "modern_challenge_tier_selector.hpp"
 #include "quick_practice_catalog.hpp"
@@ -175,6 +177,21 @@ int g_main_menu_pad_acceptance_stage;
 unsigned g_main_menu_pad_acceptance_frames;
 std::size_t g_main_menu_pad_acceptance_step;
 std::string g_main_menu_strip_reported;
+// The typed root owns ephemeral focus only. All destinations hand off to the
+// existing profile, records, options or stock title authorities.
+ur::product::ModernRootMenu g_modern_root_menu{};
+bool g_modern_root_quit_confirm = false;
+bool g_modern_root_draw_reported = false;
+bool g_modern_root_transfer = false;
+// Bounded stock-title cursor handoff to 1P or 2P. No guest SRAM or shadow
+// gameplay/menu authority; input is sent through the existing route transport.
+int g_modern_root_stock_target = -1;
+unsigned g_modern_root_stock_observations = 0;
+unsigned g_modern_root_stock_settle = 0;
+bool g_modern_root_stock_waiting_cursor = false;
+bool g_modern_root_stock_waiting_transition = false;
+std::uint8_t g_modern_root_stock_previous_cursor = 0;
+std::string g_modern_root_stock_input_path;
 int g_controller_hotplug_acceptance_stage;
 unsigned g_controller_hotplug_acceptance_frames;
 std::uint64_t g_controller_hotplug_acceptance_source;
@@ -195,6 +212,14 @@ bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
 bool g_suppress_human_input_once;
 ur::product::ModernHostInputReleaseLatch g_human_input_release_latch;
+// P2 is deliberately not a root navigator, but must not sneak stock-menu
+// inputs through the P1-owned shell or retain held edges after the handoff.
+ur::product::ModernHostInputReleaseLatch g_root_p2_input_release_latch;
+// Restart confirmation is host-owned even when the frozen guest has never
+// sampled Return. The physical key-up, not a guessed guest-frame delay,
+// releases this additional default Return -> SNES Start barrier.
+ur::product::ModernRestartKeyRelease g_restart_return_release;
+unsigned g_restart_input_probe_remaining = 0;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -275,6 +300,14 @@ ur::product::CompletedRunCapture g_multiplayer_run_capture;
 std::optional<ur::product::LocalTournamentCoordinator>
     g_local_tournament_session;
 std::optional<std::string> g_multiplayer_capture_tournament_attempt;
+// Exact captured event, live attempt and saved pair for transient receipt
+// I/O retry. Never let an ended/replaced tournament inherit an old run path.
+struct LocalTournamentReceiptRetry {
+    std::string tournament_id;
+    std::string attempt_id;
+    std::string saved_run_path;
+};
+std::optional<LocalTournamentReceiptRetry> g_local_tournament_receipt_retry;
 bool g_local_tournament_load_attempted;
 bool g_local_tournament_native_acceptance_attempted;
 // Player-facing Local Tournament panel on the stock 2P select surface. It
@@ -1847,31 +1880,35 @@ bool activate_profile_id(const std::string& profile_id) {
     const auto previous_product = g_product_state;
     auto product = previous_product;
     product.active_profile_id = profile_id;
-    if (!persist_product_state(product)) return false;
+
+    // C04 crash boundary: the canonical active selector must be the LAST
+    // publication. Temporarily choose the target framework save root only in
+    // this process, then restore its exact authoritative profile SRAM and
+    // require the framework write BEFORE the global selector CAS. A hard kill
+    // before that CAS leaves the old selector + old SRAM intact; a kill after
+    // it observes the already-written target SRAM. Do not publish a global
+    // identity that points at an uncommitted framework save.
     g_product_state = product;
     apply_profile_save_root();
 
-    // The global selector was committed first. Its rollback must be an
-    // exact-state CAS, never a blind write that overwrites another window.
-    const auto rollback_selection = [&]() {
-        if (!persist_product_state(previous_product)) {
-            product_diagnostic("UR_PROFILE_SELECT ROLLBACK_CONFLICT_OR_IO");
-            return false;
-        }
+    // The selector on disk is still previous_product. Failures restore the
+    // in-process root and SRAM; no compensating global CAS is appropriate.
+    // An intervening independent selector writer must remain untouched.
+    const auto restore_previous = [&]() {
         g_product_state = previous_product;
         apply_profile_save_root();
         std::memcpy(g_sram, previous_sram.data(), previous_sram.size());
         const bool restored = RtlTryWriteSram();
         product_diagnostic(
-            restored ? "UR_PROFILE_SELECT ROLLED_BACK"
-                     : "UR_PROFILE_SELECT ROLLBACK_SRAM_WRITE_FAILED");
+            restored ? "UR_PROFILE_SELECT RESTORED_PRECOMMIT"
+                     : "UR_PROFILE_SELECT RESTORE_SRAM_WRITE_FAILED");
         return false;
     };
 
     if (!g_profile_state || !g_profile_state->racer_identity ||
         !g_profile_state->stock_sram) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");
-        return rollback_selection();
+        return restore_previous();
     }
     if (ur::product::restore_stock_sram_from_profile(
             ur::product::ExecutionMode::Modern,
@@ -1880,12 +1917,19 @@ bool activate_profile_id(const std::string& profile_id) {
             static_cast<std::size_t>(g_sram_size)) !=
         ur::product::HostProfileTransferStatus::Applied) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_RESTORE_FAILED");
-        return rollback_selection();
+        return restore_previous();
     }
     g_sram[0x0748] = g_profile_state->racer_identity->rider_index;
     if (!RtlTryWriteSram()) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_SRAM_WRITE_FAILED");
-        return rollback_selection();
+        return restore_previous();
+    }
+    // This is the only identity publication. A stale concurrent host-state
+    // writer makes CAS fail without undoing their selection or claiming ours
+    // applied. The target SRAM is already valid if the next attempt retries.
+    if (!persist_product_state(product)) {
+        product_diagnostic("UR_PROFILE_SELECT SELECTOR_COMMIT_FAILED");
+        return restore_previous();
     }
     product_diagnostic("UR_PROFILE_SELECT APPLIED");
     return true;
@@ -4092,9 +4136,28 @@ bool host_subview_visible() {
            g_quit_confirm_visible;
 }
 
+bool modern_root_visible() {
+    return modern_mode() && g_ram && !paused() &&
+        !snesrecomp_desktop_script_active() &&
+        g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7 &&
+        !g_modern_root_transfer &&
+        g_modern_root_stock_target < 0 &&
+        !g_local_multiplayer_join_visible && !g_local_tournament_panel_visible &&
+        !g_frontend_records_open && !g_practice_picker.visible &&
+        !g_progress_overview_visible && !g_tour_action_visible &&
+        !g_profile_menu_visible && !g_practice_active &&
+        !practice_routing() && !tour_continue_routing() &&
+        !results_navigation_active() && !onboarding_surface_active() &&
+        !host_subview_visible() &&
+        !g_exit_frontend_waiting_for_main &&
+        !g_exit_frontend_waiting_for_usable;
+}
+
 bool host_owns_human_player_input() {
     return modern_mode() &&
-           (g_local_multiplayer_join_visible ||
+           (paused() || modern_root_visible() ||
+            g_modern_root_stock_target >= 0 ||
+            g_local_multiplayer_join_visible ||
             g_local_tournament_panel_visible ||
             g_frontend_records_open ||
             g_practice_picker.visible ||
@@ -4338,8 +4401,46 @@ bool open_local_tournament_panel() {
         !local_tournament_panel_context_valid()) return false;
     ensure_profile_catalog();
     ensure_local_tournament_session_loaded();
-    refresh_local_tournament_history_rows();
     g_local_tournament_panel_notice.clear();
+    if (g_local_tournament_receipt_retry) {
+        // Explicit panel reopening authorizes only the original event,
+        // original live attempt and original saved run. Never associate
+        // Records from an ended event with a newly armed fixture.
+        if (!g_local_tournament_session ||
+            !g_local_tournament_session->launch.pending ||
+            g_local_tournament_session->definition.instance_id !=
+                g_local_tournament_receipt_retry->tournament_id ||
+            g_local_tournament_session->launch.pending->attempt_id !=
+                g_local_tournament_receipt_retry->attempt_id) {
+            g_local_tournament_receipt_retry.reset();
+        } else {
+            auto& session = *g_local_tournament_session;
+            const auto status = ur::product::commit_local_tournament_capture(
+                session, g_local_tournament_receipt_retry->attempt_id,
+                g_local_tournament_receipt_retry->saved_run_path);
+            if (status == ur::product::LocalTournamentCoordinatorStatus::Committed) {
+                g_local_tournament_receipt_retry.reset();
+                g_local_tournament_panel_notice = "RESULT SAVED";
+                ensure_profile_catalog();
+                g_local_tournament_result_notice =
+                    ur::product::local_tournament_result_notice(
+                        session.results, g_profile_catalog);
+                g_local_tournament_result_notice_screen =
+                    g_ram ? g_ram[0x009F] : 0;
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_COMMITTED");
+            } else if (
+                status == ur::product::LocalTournamentCoordinatorStatus::StorageFailed) {
+                g_local_tournament_panel_notice = "SAVE PENDING - RETRY F4";
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_STORAGE");
+            } else {
+                // Do not silently assign standings from a corrupt/conflicted
+                // pair. Preserve the ordinary saved run for Records.
+                g_local_tournament_panel_notice = "RESULT NOT CREDITED";
+                product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_RETRY_REJECTED");
+            }
+        }
+    }
+    refresh_local_tournament_history_rows();
     if (g_local_tournament_session) {
         local_tournament_panel_show_overview();
         if (local_tournament_session_complete()) {
@@ -4447,8 +4548,16 @@ void arm_local_tournament_from_panel(std::size_t fixture_index) {
     const auto armed = ur::product::arm_local_tournament_fixture(
         session, fixture_index, *attempt, p1, p2);
     if (armed != ur::product::LocalTournamentCoordinatorStatus::Armed) {
-        g_local_tournament_panel_notice = "ARM FAILED";
-        product_diagnostic("UR_LOCAL_TOURNAMENT ARM_FAILED");
+        if (armed == ur::product::LocalTournamentCoordinatorStatus::Busy) {
+            // A different *living* game process owns this event's fixture.
+            // Preserve its on-track attempt and tell this player why a new
+            // one was not started. Never retry or overwrite pending here.
+            g_local_tournament_panel_notice = "FIXTURE IN USE";
+            product_diagnostic("UR_LOCAL_TOURNAMENT ARM_BUSY");
+        } else {
+            g_local_tournament_panel_notice = "ARM FAILED";
+            product_diagnostic("UR_LOCAL_TOURNAMENT ARM_FAILED");
+        }
         return;
     }
     g_local_tournament_route_seen_two_player_select = true;
@@ -5169,6 +5278,24 @@ void complete_multiplayer_run_record_capture() {
                     g_local_tournament_result_notice.c_str());
                 std::fflush(stderr);
             }
+        } else if (
+            credited == ur::product::LocalTournamentCoordinatorStatus::StorageFailed) {
+            // The valid pair is already published as ordinary Records.
+            // Preserve this exact live lease + pending checkpoint for an
+            // explicit retry when the player reopens F4, rather than
+            // cancelling an honestly finished tournament race.
+            g_local_tournament_receipt_retry = LocalTournamentReceiptRetry{
+                g_local_tournament_session->definition.instance_id,
+                *g_multiplayer_capture_tournament_attempt,
+                stored_path,
+            };
+            // An otherwise successful stock 2P race has NOT earned its
+            // tournament points yet. Show a player-readable recovery action
+            // on the current stock Results screen, not just a log line.
+            g_local_tournament_result_notice = "SAVE PENDING - F4 RETRY";
+            g_local_tournament_result_notice_screen =
+                g_ram ? g_ram[0x009F] : 0;
+            product_diagnostic("UR_LOCAL_TOURNAMENT RECEIPT_SAVE_PENDING");
         } else {
             product_diagnostic("UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED");
             (void)ur::product::cancel_local_tournament_capture(
@@ -5504,6 +5631,140 @@ bool open_frontend_controls() {
     diagnose_controls_bindings();
     product_diagnostic("UR_FRONTEND_CONTROLS OPENED");
     return true;
+}
+
+// The Modern root sits on the settled guest main menu. It never guesses at
+// race progression or writes guest state. Play/Multiplayer select the stock
+// 1P/2P cursor using the same bounded relative-input transport as Practice.
+bool begin_modern_root_stock_entry(int target) {
+    if (!modern_root_visible() || (target != 0 && target != 1)) return false;
+    g_modern_root_stock_target = target;
+    g_modern_root_stock_observations = 0;
+    g_modern_root_stock_settle = 0;
+    g_modern_root_stock_waiting_cursor = false;
+    g_modern_root_stock_waiting_transition = false;
+    g_modern_root_stock_input_path =
+        product_user_data_path("modern-root-input.txt");
+    if (g_modern_root_stock_input_path.empty()) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_INPUT_UNAVAILABLE");
+        return false;
+    }
+    product_diagnostic(target == 0
+        ? "UR_MODERN_ROOT PLAY_STOCK_ENTRY"
+        : "UR_MODERN_ROOT MULTIPLAYER_STOCK_ENTRY");
+    return true;
+}
+
+void advance_modern_root_stock_entry(std::uint64_t next_frame) {
+    if (g_modern_root_stock_target < 0) return;
+    const int target = g_modern_root_stock_target;
+    if (!modern_mode() || !g_ram ||
+        ++g_modern_root_stock_observations > 2400) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_TIMEOUT");
+        return;
+    }
+    if (g_ram[0x009F] != 0xD7 || g_ram[0x0313] == 0x01) {
+        g_modern_root_stock_target = -1;
+        if (g_ram[0x0313] != 0x01 &&
+            g_ram[0x009F] == static_cast<std::uint8_t>(
+                target == 0 ? 0x3C : 0x3D)) {
+            product_diagnostic(target == 0
+                ? "UR_MODERN_ROOT PLAY_ENTERED"
+                : "UR_MODERN_ROOT MULTIPLAYER_ENTERED");
+        } else {
+            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_UNEXPECTED_MENU");
+        }
+        return;
+    }
+    if (g_modern_root_stock_waiting_transition) return;
+    const std::uint8_t cursor = g_ram[0x009B];
+    if (g_modern_root_stock_waiting_cursor) {
+        if (cursor == g_modern_root_stock_previous_cursor) return;
+        g_modern_root_stock_waiting_cursor = false;
+        g_modern_root_stock_settle = 0;
+    }
+    // The guest exposes D7 before its menu accepts input. Reuse the measured
+    // stock 60-frame settling window from Quick Practice.
+    if (++g_modern_root_stock_settle <
+        ur::product::kQuickPracticeMenuSettleObservations) return;
+    if (cursor > 4) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_CURSOR_INVALID");
+        return;
+    }
+    const auto desired = target == 0
+        ? ur::product::stock_main_menu_one_player_input(cursor)
+        : (cursor < 1 ? ur::product::QuickPracticeMenuInput::Down
+           : cursor > 1 ? ur::product::QuickPracticeMenuInput::Up
+           : ur::product::QuickPracticeMenuInput::Accept);
+    if (!queue_relative_menu_input(
+            g_modern_root_stock_input_path, next_frame,
+            ur::product::quick_practice_runner_mask(
+                ur::product::launch_input_from_menu_input(desired)))) {
+        g_modern_root_stock_target = -1;
+        product_diagnostic("UR_MODERN_ROOT STOCK_INPUT_FAILED");
+        return;
+    }
+    if (desired == ur::product::QuickPracticeMenuInput::Accept) {
+        g_modern_root_stock_waiting_transition = true;
+    } else {
+        g_modern_root_stock_waiting_cursor = true;
+        g_modern_root_stock_previous_cursor = cursor;
+    }
+}
+
+// Back opens a deliberate desktop quit confirmation. A/B never become guest
+// Start/A while the shell owns focus, including at the instant it closes.
+bool modern_root_back() {
+    if (!modern_root_visible()) return false;
+    if (g_modern_root_quit_confirm) {
+        g_modern_root_quit_confirm = false;
+        product_diagnostic("UR_MODERN_ROOT QUIT_CANCELLED");
+    } else {
+        g_modern_root_quit_confirm = true;
+        product_diagnostic("UR_MODERN_ROOT QUIT_CONFIRM");
+    }
+    return true;
+}
+
+bool modern_root_confirm() {
+    if (!modern_root_visible()) return false;
+    if (g_modern_root_quit_confirm) return request_desktop_quit();
+    const auto selected =
+        ur::product::modern_root_menu_selected(g_modern_root_menu);
+    switch (selected) {
+    case ur::product::ModernRootDestination::Play:
+        if (tour_continue_available()) return open_tour_action_menu();
+        return begin_modern_root_stock_entry(0);
+    case ur::product::ModernRootDestination::Practice:
+        if (!open_practice_picker()) {
+            product_diagnostic("UR_MODERN_ROOT PRACTICE_UNAVAILABLE");
+            return false;
+        }
+        return true;
+    case ur::product::ModernRootDestination::Multiplayer:
+        return begin_modern_root_stock_entry(1);
+    case ur::product::ModernRootDestination::Records: {
+        // Records already has one strict modal admission guard. Temporarily
+        // transfer root focus rather than creating a second Records authority.
+        g_modern_root_transfer = true;
+        const bool opened = ur_uniracers_product_open_frontend_records() != 0;
+        g_modern_root_transfer = false;
+        product_diagnostic(opened
+            ? "UR_MODERN_ROOT RECORDS_OPENED"
+            : "UR_MODERN_ROOT RECORDS_UNAVAILABLE");
+        return opened;
+    }
+    case ur::product::ModernRootDestination::Options:
+        if (!open_frontend_options()) {
+            product_diagnostic("UR_MODERN_ROOT OPTIONS_UNAVAILABLE");
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 bool request_desktop_quit() {
@@ -6020,6 +6281,8 @@ SDL_GamepadButton main_menu_pad_acceptance_button(const std::string& name) {
     if (name == "y") return SDL_GAMEPAD_BUTTON_NORTH;
     if (name == "r") return SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER;
     if (name == "start") return SDL_GAMEPAD_BUTTON_START;
+    if (name == "up") return SDL_GAMEPAD_BUTTON_DPAD_UP;
+    if (name == "down") return SDL_GAMEPAD_BUTTON_DPAD_DOWN;
     return SDL_GAMEPAD_BUTTON_INVALID;
 }
 #endif
@@ -7036,6 +7299,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
     if (stats) {
         advance_practice_route(stats->frame + 1u);
         advance_tour_continue_route(stats->frame + 1u);
+        advance_modern_root_stock_entry(stats->frame + 1u);
 
         // Acceptance-only synchronization belongs on the emulated-frame
         // boundary, not in wall-clock X11 polling. Hold the real Practice
@@ -7347,6 +7611,7 @@ extern "C" void ur_uniracers_modern_after_run_frame(
             g_local_tournament_route_seen_two_player_select = true;
         }
         if (g_local_tournament_route_seen_two_player_select &&
+            !g_local_tournament_receipt_retry &&
             !g_multiplayer_run_capture.capturing() &&
             g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7) {
             const std::string abandoned =
@@ -7537,15 +7802,72 @@ extern "C" int ur_uniracers_modern_system_key_down(
         // below. Their edge is still suppressed from the guest by ownership.
     }
 
-    {
+    // Regional title input remains a globally admitted stock-main gesture.
+    // The new root must not swallow its 'PAL'/'NTSC' sequence. During
+    // a stock-entry transport, however, that router retains exclusive input
+    // ownership; do not run the coordinator on its pending human edges.
+    if (g_modern_root_stock_target < 0) {
         const auto regional = regional_input_coordinator().keyboard_key(
             g_product_state,
             key,
             static_cast<std::uint64_t>(SDL_GetTicks()),
             current_regional_secret_context());
-        if (apply_regional_input_decision(regional, "keyboard")) {
+        if (apply_regional_input_decision(regional, "keyboard")) return 1;
+    }
+
+    if (modern_root_visible()) {
+        if (g_modern_root_quit_confirm) {
+            if (key == SDLK_RETURN || key == SDLK_KP_ENTER)
+                return modern_root_confirm() ? 1 : 0;
+            if (key == SDLK_ESCAPE) return modern_root_back() ? 1 : 0;
             return 1;
         }
+        if (key == SDLK_UP || key == SDLK_DOWN) {
+            if (!g_modern_root_quit_confirm) {
+                g_modern_root_menu = ur::product::modern_root_menu_move(
+                    g_modern_root_menu, key == SDLK_DOWN ? 1 : -1);
+            }
+            return 1;
+        }
+        if (key == SDLK_RETURN || key == SDLK_KP_ENTER)
+            return modern_root_confirm() ? 1 : 0;
+        if (key == SDLK_ESCAPE) return modern_root_back() ? 1 : 0;
+        if (key == SDLK_F2) { open_profile_menu(); return 1; }
+        if (key == SDLK_F5) return open_practice_picker() ? 1 : 0;
+        if (key == SDLK_F9) return open_frontend_controls() ? 1 : 0;
+        if (key == SDLK_F7) return open_progress_overview() ? 1 : 0;
+        if (key == SDLK_F6 && recent_course_available_for_active_profile())
+            return launch_recent_course_practice() ? 1 : 0;
+        if (key == SDLK_F10) return open_frontend_options() ? 1 : 0;
+        if (key == SDLK_F8) {
+            g_modern_root_transfer = true;
+            const int opened = ur_uniracers_product_open_frontend_records();
+            g_modern_root_transfer = false;
+            return opened ? 1 : 0;
+        }
+        if (key == SDLK_F3 && tour_continue_available())
+            return open_tour_action_menu() ? 1 : 0;
+        if (key == SDLK_F1) {
+            g_onboarding_visible = true;
+            g_onboarding_manual_open = true;
+            product_diagnostic("UR_ONBOARDING HELP_OPENED");
+            return 1;
+        }
+        // Root owns all remaining human input, not the underlying stock menu.
+        return 1;
+    }
+    if (g_modern_root_stock_target >= 0) {
+        if (key == SDLK_ESCAPE) {
+            // A discrete stock input may already be queued for a future
+            // emulated frame. Reset through the existing session-reboot
+            // authority rather than merely hiding this route and allowing a
+            // stale Confirm to fire into the stock menu.
+            if (request_frontend_reboot(false)) {
+                g_modern_root_stock_target = -1;
+                product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            }
+        }
+        return 1;
     }
 
     // Controls is modal input ownership. In particular, capture must see keys
@@ -7688,7 +8010,24 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return handled ? 1 : 0;
     }
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
-        return activate_pause_selection() ? 1 : 0;
+        const bool restarting =
+            ur_modern_pause_menu_selected(
+                &g_pause_menu,
+                ur_modern_session_restart_available(g_session)) ==
+            UR_MODERN_PAUSE_RESTART;
+        // The pause itself freezes guest sampling. Arm before the restore
+        // and unpause so the next human word cannot reinterpret Enter as a
+        // fresh guest Start, even if the first restored sample is delayed.
+        if (restarting) {
+            g_restart_return_release.awaiting_return_release = true;
+            g_restart_input_probe_remaining = 12;
+        }
+        const bool handled = activate_pause_selection();
+        if (restarting && !handled) {
+            g_restart_return_release = {};
+            g_restart_input_probe_remaining = 0;
+        }
+        return handled ? 1 : 0;
     }
     if (modern_mode() && key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface()) {
@@ -8066,6 +8405,36 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         return -1;
     }
 
+    if (modern_root_visible()) {
+        if (!pressed) return 1;
+        if (g_modern_root_quit_confirm &&
+            button != kGamepadBtn_A && button != kGamepadBtn_Start &&
+            button != kGamepadBtn_B) return 1;
+        if (button == kGamepadBtn_A)
+            return modern_root_confirm() ? 1 : 0;
+        if (button == kGamepadBtn_B || button == kGamepadBtn_Start)
+            return modern_root_back() ? 1 : 0;
+        if (button == kGamepadBtn_X) {
+            open_profile_menu();
+            return 1;
+        }
+        // Mapped directions are delivered through the semantic callback.
+        return -1;
+    }
+    if (g_modern_root_stock_target >= 0) {
+        if (pressed && button == kGamepadBtn_B) {
+            // A discrete stock input may already be queued for a future
+            // emulated frame. Reset through the existing session-reboot
+            // authority rather than merely hiding this route and allowing a
+            // stale Confirm to fire into the stock menu.
+            if (request_frontend_reboot(false)) {
+                g_modern_root_stock_target = -1;
+                product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+            }
+        }
+        return 1;
+    }
+
     if (!pressed) {
         if (button == g_practice_cancel_gamepad_button) {
             g_practice_cancel_gamepad_button = -1;
@@ -8331,6 +8700,17 @@ extern "C" int ur_uniracers_modern_system_gamepad_control(
         }
         return 1;
     }
+    if (modern_root_visible()) {
+        if (pressed && !g_modern_root_quit_confirm &&
+            (control == 0 || control == 1)) {
+            g_modern_root_menu = ur::product::modern_root_menu_move(
+                g_modern_root_menu, control == 1 ? 1 : -1);
+        } else if (pressed && control == 5) {
+            (void)modern_root_back();
+        }
+        return 1;
+    }
+    if (g_modern_root_stock_target >= 0) return 1;
     // The Select semantic enters the same live Options surface used by pause.
     if (pressed && control == 4 && open_frontend_options()) return 1;
     // The L semantic is resolved through the live GamepadMap (including
@@ -8383,12 +8763,35 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
         g_tournament_p2_guest_input, g_local_tournament_panel_visible,
         inputs);
     g_tournament_p2_guest_input = filtered.state;
-    return filtered.inputs;
+    // Protect the entire D7 host shell, including nested profile/options/
+    // records modals and the queued stock 1P/2P entry. Keep this separate
+    // from tournament P2 ownership, which remains authoritative on 0x3D.
+    const bool root_owned = g_ram && g_ram[0x009F] == 0xD7 &&
+        !snesrecomp_desktop_script_active() &&
+        (modern_root_visible() || g_modern_root_stock_target >= 0 ||
+         g_profile_menu_visible || g_practice_picker.visible ||
+         g_frontend_records_open || g_tour_action_visible ||
+         host_subview_visible() || onboarding_surface_active());
+    const auto owned = ur::product::modern_host_input_filter(
+        g_root_p2_input_release_latch, root_owned, filtered.inputs);
+    g_root_p2_input_release_latch = owned.latch;
+    return owned.inputs;
 }
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     g_last_human_input_word = inputs;
     ++g_human_input_observations;
+    const std::uint32_t raw_word = inputs;
+    // This physical SDL state advances even while a host Pause menu freezes
+    // guest frames. Never infer Return's release from the first zero sampled
+    // guest word: the queued, resumed Start edge could arrive later.
+    const auto* keys = SDL_GetKeyboardState(nullptr);
+    const bool return_held = keys &&
+        (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_KP_ENTER]);
+    const auto restart_filtered = ur::product::modern_restart_key_filter(
+        g_restart_return_release, return_held, inputs);
+    g_restart_return_release = restart_filtered.state;
+    inputs = restart_filtered.inputs;
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
     // mapping but before guest dispatch. Host-owned input must not also reach
     // the stock game underneath. The latch covers the closing edge, where the
@@ -8402,6 +8805,24 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     const auto filtered = ur::product::modern_host_input_filter(
         g_human_input_release_latch, host_owned, inputs);
     g_human_input_release_latch = filtered.latch;
+    const std::uint32_t guest_filtered_word =
+        host_owned ? 0u : filtered.inputs;
+    if (g_restart_input_probe_remaining != 0) {
+        --g_restart_input_probe_remaining;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RESTART_INPUT raw=%04X guest=%04X return_held=%d "
+                "release_waiting=%d host_owned=%d remaining=%u\n",
+                static_cast<unsigned>(raw_word),
+                static_cast<unsigned>(guest_filtered_word),
+                return_held ? 1 : 0,
+                g_restart_return_release.awaiting_return_release ? 1 : 0,
+                host_owned ? 1 : 0,
+                g_restart_input_probe_remaining);
+            std::fflush(stderr);
+        }
+    }
     if (host_owned) return 0u;
     inputs = filtered.inputs;
 
@@ -8447,7 +8868,11 @@ bool frontend_modal_hold_wanted() {
     }
     const bool frontend_settings =
         g_frontend_options_active && (g_options_visible || g_controls_visible);
-    return g_practice_picker.visible || g_progress_overview_visible ||
+    // Profiles was historically opened at stock 0x3C, but the new global
+    // identity drawer can open over settled 0xD7. Hold that main-menu timer
+    // through profile selection, including create/reset confirmation.
+    return modern_root_visible() || g_profile_menu_visible ||
+        g_practice_picker.visible || g_progress_overview_visible ||
         g_tour_action_visible || frontend_settings ||
         g_frontend_records_open || onboarding_surface_active();
 }
@@ -8469,6 +8894,13 @@ extern "C" void ur_uniracers_modern_system_overlay(
         return;
     }
     update_frontend_modal_hold();
+
+    // The existing SDL virtual-pad native acceptance normally advances on
+    // emulated frames. The human Modern root correctly freezes those frames,
+    // so advance the same probe on presentation frames *only* while frozen.
+    // Scripted stock-route acceptance does not hold and keeps the original
+    // simulation-frame clock. No second synthetic controller/router exists.
+    if (snesrecomp_desktop_frame_hold()) run_main_menu_pad_acceptance();
 
     if (onboarding_surface_active()) {
         uint32_t* pixels = reinterpret_cast<uint32_t*>(dst);
@@ -9553,6 +9985,171 @@ extern "C" void ur_uniracers_modern_system_overlay(
         if (g_profile_cool_name_notice) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
                 "COOL NAME!", 0xFFFFFFFFu, scale);
+        }
+        return;
+    }
+
+    if (g_modern_root_stock_target >= 0 && modern_mode() &&
+        g_ram && g_ram[0x009F] == 0xD7) {
+        auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale, 216, 35, 216, 35);
+        if (layout.visible) {
+            const auto rect = layout.presentation_rect;
+            const auto& palette = ur::product::kModernStockMenuPalette;
+            snes_ovl_fill_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, palette.background);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height,
+                palette.frame_grey);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 7 * scale, rect.y + 6 * scale,
+                g_modern_root_stock_target == 0
+                    ? "ENTERING PLAY" : "ENTERING MULTIPLAYER",
+                palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 7 * scale, rect.y + 21 * scale,
+                "B / ESC CANCEL", palette.cursor_blue, scale);
+        }
+        return;
+    }
+
+    if (modern_root_visible()) {
+        if (!g_modern_root_draw_reported &&
+            std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            g_modern_root_draw_reported = true;
+            product_diagnostic("UR_MODERN_ROOT PRESENT");
+        }
+        // One full, legible Modern shell. Keep the measured stock BG2 palette,
+        // title shadow and cursor emphasis; at wider logical viewports add a
+        // separate detail region instead of stretching the 4:3 list.
+        auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const int logical_width = width / scale;
+        const int panel_w = std::min(logical_width - 16, 356);
+        constexpr int kRootHeight = 204;
+        if (panel_w <= 40) return;
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale, panel_w, kRootHeight, panel_w, kRootHeight);
+        if (!layout.visible) return;
+        const auto& rect = layout.presentation_rect;
+        const int x = rect.x;
+        const int y = rect.y;
+        const auto& palette = ur::product::kModernStockMenuPalette;
+        const bool wide = panel_w >= 320;
+        const int list_w = wide ? 168 : panel_w - 16;
+        snes_ovl_fill_rect(pixels, stride, height,
+            x, y, rect.width, rect.height, palette.background);
+        snes_ovl_fill_rect(pixels, stride, height,
+            x, y, rect.width, 27 * scale, palette.header_band);
+        snes_ovl_stroke_rect(pixels, stride, height,
+            x, y, rect.width, rect.height, palette.frame_grey);
+        const char* title = g_product_state.regional_presentation ==
+                ur::product::RegionalPresentation::Europe
+            ? "UNIRALLY" : "UNIRACERS";
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 10 * scale, y + 7 * scale, title,
+            palette.shadow_black, 2 * scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 9 * scale, y + 6 * scale, title,
+            palette.title_yellow, 2 * scale);
+        const char* racer =
+            g_profile_state && g_profile_state->racer_identity
+                ? g_profile_state->racer_identity->name.c_str()
+                : "CREATE A RACER WITH X";
+        const std::string identity = ur::product::fit_modern_overlay_text(
+            std::string("RACER: ") + racer,
+            ur::product::modern_overlay_text_cells(panel_w));
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 36 * scale,
+            identity.c_str(), palette.secondary_grey, scale);
+        constexpr int kRootFirstRow = 57;
+        constexpr int kRootRowStride = 21;
+        for (std::size_t i = 0;
+             i < ur::product::kModernRootDestinationCount; ++i) {
+            const auto destination =
+                ur::product::modern_root_destination_from_index(i);
+            const bool selected =
+                destination == ur::product::modern_root_menu_selected(
+                    g_modern_root_menu);
+            const int row_y = y + (kRootFirstRow +
+                static_cast<int>(i) * kRootRowStride) * scale;
+            if (selected) {
+                snes_ovl_fill_rect(pixels, stride, height,
+                    x + 5 * scale, row_y - 3 * scale,
+                    list_w * scale, 17 * scale, palette.cursor_blue);
+                snes_ovl_stroke_rect(pixels, stride, height,
+                    x + 5 * scale, row_y - 3 * scale,
+                    list_w * scale, 17 * scale, palette.frame_grey);
+            }
+            const std::string label = std::string(
+                selected ? "> " : "  ") +
+                ur::product::modern_root_destination_label(destination);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 9 * scale, row_y,
+                label.c_str(),
+                selected ? palette.shadow_black : 0xFFFFFFFFu, scale);
+        }
+        constexpr const char* kDetails[] = {
+            "TOUR AND CONTINUE",
+            "CHOOSE A COURSE",
+            "LOCAL TWO PLAYER",
+            "RUNS AND BEST TIMES",
+            "DISPLAY AND CONTROLS"
+        };
+        const auto selected_index = ur::product::modern_root_destination_index(
+            ur::product::modern_root_menu_selected(g_modern_root_menu));
+        if (wide) {
+            snes_ovl_fill_rect(pixels, stride, height,
+                x + 184 * scale, y + 52 * scale,
+                (panel_w - 191) * scale, 109 * scale, palette.header_band);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 193 * scale, y + 64 * scale,
+                "SELECTED", palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 193 * scale, y + 85 * scale,
+                ur::product::fit_modern_overlay_text(
+                    kDetails[selected_index],
+                    ur::product::modern_overlay_text_cells(panel_w - 193)
+                ).c_str(), 0xFFFFFFFFu, scale);
+            if (selected_index == 0 && tour_continue_available()) {
+                snes_ovl_draw_text(pixels, stride, height,
+                    x + 193 * scale, y + 111 * scale,
+                    "CONTINUE READY", palette.cursor_blue, scale);
+            }
+        } else {
+            snes_ovl_draw_text(pixels, stride, height,
+                x + 8 * scale, y + 165 * scale,
+                ur::product::fit_modern_overlay_text(
+                    kDetails[selected_index],
+                    ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+                palette.title_yellow, scale);
+        }
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 181 * scale,
+            ur::product::fit_modern_overlay_text(
+                "A/ENTER SELECT   B/ESC QUIT",
+                ur::product::modern_overlay_text_cells(panel_w)).c_str(),
+            0xFFFFFFFFu, scale);
+        snes_ovl_draw_text(pixels, stride, height,
+            x + 8 * scale, y + 193 * scale,
+            "X/F2 RACERS   F1 HELP", palette.cursor_blue, scale);
+        if (g_modern_root_quit_confirm) {
+            const int qx = x + 12 * scale, qy = y + 65 * scale;
+            const int qw = (panel_w - 24) * scale;
+            snes_ovl_fill_rect(pixels, stride, height,
+                qx, qy, qw, 67 * scale, palette.background);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                qx, qy, qw, 67 * scale, palette.title_yellow);
+            snes_ovl_draw_text(pixels, stride, height,
+                qx + 8 * scale, qy + 10 * scale,
+                "QUIT TO DESKTOP?", palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                qx + 8 * scale, qy + 37 * scale,
+                "A/ENTER YES   B/ESC NO", 0xFFFFFFFFu, scale);
         }
         return;
     }

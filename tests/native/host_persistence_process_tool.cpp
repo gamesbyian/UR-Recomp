@@ -101,6 +101,134 @@ int main(int argc, char** argv) {
     const std::string family(argv[1]), action(argv[2]), path(argv[3]);
     const unsigned value = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
     if (value > 15) return 2;
+
+    // C04: exact selector-versus-framework-SRAM authority cut. Existing
+    // production typed host/profile stores and staged-file primitive perform
+    // real filesystem writes; separate executable invocations simulate the
+    // framework save as the distinct second artifact. No new data schema.
+    if (family == "host" && action.rfind("c04-", 0) == 0) {
+        namespace fs = std::filesystem;
+        const fs::path root(path);
+        const auto host_path = (root / "host-state.txt").string();
+        const auto racer_a = root / "racer-1";
+        const auto racer_b = root / "racer-2";
+        const auto a_sram = racer_a / "save.srm";
+        const auto b_sram = racer_b / "save.srm";
+        const auto b_profile_path = (racer_b / "host-profile.txt").string();
+        auto saved_sram = [](const fs::path& p, unsigned expected) {
+            std::ifstream input(p, std::ios::binary);
+            std::string bytes(
+                static_cast<std::size_t>(kStockSramBytes), '\0');
+            input.read(bytes.data(), static_cast<std::streamsize>(bytes.size()));
+            return input.gcount() == static_cast<std::streamsize>(bytes.size()) &&
+                input.peek() == std::char_traits<char>::eof() &&
+                std::all_of(bytes.begin(), bytes.end(), [&](char c) {
+                    return static_cast<unsigned char>(c) == expected;
+                });
+        };
+        if (action == "c04-seed") {
+            std::error_code ec;
+            fs::create_directories(racer_a, ec);
+            if (ec) return 9;
+            fs::create_directories(racer_b, ec);
+            if (ec) return 9;
+            HostProductState initial;
+            initial.active_profile_id = "racer-1";
+            auto prior_profile = profile(2);
+            prior_profile.profile_id = "racer-1";
+            auto target_profile = profile(9);
+            target_profile.profile_id = "racer-2";
+            if (save_host_product_state_file(host_path, initial) !=
+                    HostProductSaveStatus::Saved ||
+                save_host_profile_state_file(
+                    ExecutionMode::Modern,
+                    (racer_a / "host-profile.txt").string(),
+                    prior_profile) != HostProfileSaveStatus::Saved ||
+                save_host_profile_state_file(
+                    ExecutionMode::Modern, b_profile_path, target_profile) !=
+                    HostProfileSaveStatus::Saved ||
+                !write_host_replace_staged(
+                    a_sram.string(), std::string(kStockSramBytes, '\x02'),
+                    "ursram") ||
+                !write_host_replace_staged(
+                    b_sram.string(), std::string(kStockSramBytes, '\x03'),
+                    "ursram")) return 9;
+            return 0;
+        }
+        const auto old = load_host_product_state_file(host_path);
+        const auto b_profile = load_host_profile_state_file(
+            ExecutionMode::Modern, b_profile_path, "racer-2");
+        if (!old.loaded() || !old.state->active_profile_id ||
+            !b_profile.loaded() || !b_profile.state->stock_sram ||
+            !saved_sram(a_sram, 2)) return 7;
+        const auto target_bytes = std::string(
+            b_profile.state->stock_sram->begin(),
+            b_profile.state->stock_sram->end());
+        if (action == "c04-stage-fail") {
+            const auto staged = write_host_replace_staged(
+                b_sram.string(), target_bytes, "ursram",
+                nullptr, &fail_before_durable_stage);
+            return !staged && *old.state->active_profile_id == "racer-1" &&
+                saved_sram(b_sram, 3) ? 0 : 9;
+        }
+        if (action == "c04-kill-before-target-publication") {
+            auto exit_before = []() { std::_Exit(84); };
+            (void)write_host_replace_staged(
+                b_sram.string(), target_bytes, "ursram",
+                exit_before);
+            return 9;
+        }
+        if (action == "c04-kill-after-target-publication") {
+            auto exit_after = []() { std::_Exit(82); };
+            (void)write_host_replace_staged(
+                b_sram.string(), target_bytes, "ursram",
+                nullptr, nullptr, exit_after);
+            return 9;
+        }
+        if (action == "c04-verify-uncommitted") {
+            return *old.state->active_profile_id == "racer-1" &&
+                saved_sram(b_sram, 3) ? 0 : 9;
+        }
+        if (action == "c04-verify-precommit") {
+            return *old.state->active_profile_id == "racer-1" &&
+                saved_sram(b_sram, 9) ? 0 : 9;
+        }
+        if (action == "c04-commit-selector") {
+            if (!saved_sram(b_sram, 9) ||
+                *old.state->active_profile_id != "racer-1") return 9;
+            auto selected = *old.state;
+            selected.active_profile_id = "racer-2";
+            if (save_host_product_state_file_if_current(
+                    host_path, *old.state, selected) !=
+                HostProductSaveStatus::Saved) return 9;
+            std::_Exit(83); // power-off boundary: global pointer committed
+        }
+        if (action == "c04-contended-selector") {
+            if (*old.state->active_profile_id != "racer-1" ||
+                !saved_sram(b_sram, 9)) return 9;
+            // A different process legitimately selects racer-3 after we
+            // staged racer-2 SRAM. Our stale CAS cannot rewind its pointer.
+            auto competitor = *old.state;
+            competitor.active_profile_id = "racer-3";
+            if (save_host_product_state_file_if_current(
+                    host_path, *old.state, competitor) !=
+                HostProductSaveStatus::Saved) return 9;
+            auto stale = *old.state;
+            stale.active_profile_id = "racer-2";
+            return save_host_product_state_file_if_current(
+                    host_path, *old.state, stale) ==
+                    HostProductSaveStatus::Conflict ? 0 : 9;
+        }
+        if (action == "c04-verify-contended") {
+            return *old.state->active_profile_id == "racer-3" &&
+                saved_sram(b_sram, 9) ? 0 : 9;
+        }
+        if (action == "c04-verify-postcommit") {
+            return *old.state->active_profile_id == "racer-2" &&
+                saved_sram(b_sram, 9) ? 0 : 9;
+        }
+        return 2;
+    }
     if (family == "host" && action == "cas-create") {
         HostProductState next;
         next.active_profile_id = "racer-" + std::to_string(value);

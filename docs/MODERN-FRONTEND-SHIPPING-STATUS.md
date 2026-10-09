@@ -1,9 +1,23 @@
+> **2026-10-09 live integration qualifier:** The legacy Windows Modern state models and typed five-destination root are reusable, but **controller-only root on a completed Baldosa Modern product has not yet been admitted**. Open #1056 owns visible root/Restart Return guest-input release on the established host; the Baldosa C ABI/lifecycle lane must *consume* that work, not fork a new frontend. Merged #1085 proves native Win32 2P/pause behavior, not the complete Modern root or packaged record journey. [WORK-QUEUE.md](WORK-QUEUE.md) owns the current feature/QA join.
+
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
 ## Material-colour customization status (2026-10-08)
 
 The Racer Studio design now calls for an animated 2D hero and independently editable **tire, rim, frame/body and saddle** colours, with future curated textures. This is **planned only**: the current game does not have a verified four-part mask atlas, complete showroom/race recolour pipeline, or claimed player-facing persistence. Track implementation against [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) and [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md); do not promote an attractive preview without complete race-pose parity and original-preset fidelity.
 
+
+## QA-of-QA implementation dependency (2026-10-08 local)
+
+[QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) confirms that **unimplemented real five-destination root routing is a feature-completion job** (tracked as [#1053](https://github.com/gamesbyian/UR-Recomp/issues/1053)), not merely a QA-09 evidence gap. Treat the master design P0-A/P0-C visible root and Play/Practice/Multiplayer/Records/Options wiring as one bounded frontend implementation slice using the existing typed root, product state, and stock/host route authorities. First demonstrate controller-only cold launch → visible root → Play or Practice → authentic result → Records/Repeat → Quit without F-key hints. Then improve stock-inspired presentation, accessibility and TV legibility on the same route. Start with the smallest end-to-end vertical slice; after 12 productive agent-hours without a usable controller-only root route or confirmed blocker, stop and re-estimate instead of erecting another menu framework. Full visual art/content effort is separately costed; never silently count it as QA validation.
+
+A distinct confirmed defect, [#890](https://github.com/gamesbyian/UR-Recomp/issues/890), links Modern Restart's Return confirmation to guest Start and subsequent silence. Frontend/input owns the host/guest release correction and first resumed guest-word witness; QA-06 reuses its **audible tail** as a co-oracle. Do not redirect this to original SPC/DSP archaeology or accept `Start=None` as the consumer fix.
+
+## QA-05/09 pending implementation candidate (2026-10-08, unmerged)
+
+Branch `qa05-modern-root-and-restart-ownership-20261008` adds a rendered five-destination host shell and controller/keyboard focus handoffs to the **existing** stock 1P/2P, Quick Practice, Records, Options and Racer/Profiles authorities. It introduces a physical-key-release barrier for default Return-as-guest-Start after Restart and targeted guest-word diagnostics. `tests/native/run_modern_root_acceptance.sh` and `tests/native/modern_restart_key_release_test.cpp` provide fresh-process root smoke and pure edge-policy coverage. Details and independent evidence requirements: [QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md](QA05-QA09-FRONTEND-INTEGRATION-EVIDENCE.md).
+
+**Status: under review, not shipped.** Local pure restart filter assertions pass, but native integrated build, packaged Windows pad-only journey, 5/5 audible default-Return Restart tails, and approved visual fidelity are **unverified**. The table and main-branch assertions below remain unchanged until a reviewed merge. Do not close #890 or #1053 on source-only evidence.
 
 ## Target design and current-status boundary
 

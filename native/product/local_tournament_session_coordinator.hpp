@@ -5,12 +5,14 @@
 #include "local_tournament_result_link_store.hpp"
 
 #include <cstddef>
+#include <memory>
 #include <optional>
 #include <string>
 #include <string_view>
 #include <vector>
 
 namespace ur::product {
+class TournamentLaunchPathLock;
 
 // Host-supplied location in the EXISTING per-user data root. All tournament
 // files are owned under this root; authoritative 2P Records stay in the
@@ -25,12 +27,16 @@ struct LocalTournamentCoordinator {
     LocalTournamentState results;
     LocalTournamentLaunchState launch;
     LocalTournamentCoordinatorPaths paths;
+    // OS-handle live fixture lease, held across the guest race by the host.
+    // Copies share ownership; death of the last process releases it.
+    std::shared_ptr<TournamentLaunchPathLock> live_fixture_lock{};
 };
 
 enum class LocalTournamentCoordinatorStatus {
     Created,
     Restored,
     Armed,
+    Busy, // another still-running game owns this fixture instance
     Committed,
     Cancelled,
     InvalidRequest,

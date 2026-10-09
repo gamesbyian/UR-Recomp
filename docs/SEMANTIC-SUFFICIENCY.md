@@ -1,5 +1,8 @@
 # Semantic Sufficiency Scoreboard
 
+> **Backend migration qualifier (2026-10-09):** The per-subsystem labels below refer to our original game knowledge and established legacy host model, **not** acceptance of the Baldosa Windows Modern product. Existing AOT/2P/density/world/Win32 component proofs do not imply completed event-family parity, actual controller-first UI or portable player-data durability. Use [WORK-QUEUE.md](WORK-QUEUE.md) and the **release ledger** for integration/release decisions.
+
+
 ## Appearance/material semantic sufficiency (2026-10-08)
 
 Independently recolourable tire, rim, frame/body and saddle slots are a **planned design requirement**, not a proven source/graphics capability. Current racer registration and palette-asset selection enable pose/composition-guarded replacement but do not themselves identify per-part component pixels. A source-palette audit, per-pose provenance-backed material masks/layers, shared showroom/race composition, full pose/2P fallback coverage and fresh-process host appearance persistence remain unverified. Do not mark this feature `sufficient` or shipped from existing HD pose extraction or a showroom mock alone. Ownership and gates: [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md) and [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md).

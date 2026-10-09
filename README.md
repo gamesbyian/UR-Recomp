@@ -1,55 +1,33 @@
 # UR-Recomp
 
-Experimental static recompilation and modern-port project for **Uniracers / Unirally** (SNES, 1994).
+Private research and modern-port project for **Uniracers / Unirally** (SNES, 1994). The goal is **original gameplay, faithfully preserved, presented as a genuinely modern 4K-capable Widescreen game** with authored high-density art, a coherent controller-first frontend, profiles, records, replays/ghosts and local multiplayer. Authentic stock presentation remains available.
 
-## Project goal
+**Current priority (October 2026): incorporate Ema Guillén's Baldosa native recompilation and complete the remaining adversarial QA as one integrated effort.** The existing first-party Modern product, authored racer art, world-margin compositor, data formats and original-reference evidence are assets to **reuse**, not rewrite.
 
-Preserve the original game's simulation and behavior as the source of truth while building toward a modern native port with deterministic fidelity, a true-view **Widescreen** feature, an **HD Presentation** feature, documented course/asset formats, and eventually a level editor and custom-course pipeline.
+## Start here
 
-The stock native baseline is already beyond first boot and race entry. The current critical milestone is stricter:
+- **Coding agent:** [AGENTS.md](AGENTS.md) → [live work queue](docs/WORK-QUEUE.md) → one lane-specific authority.
+- **Product architecture:** [project plan](docs/PROJECT-PLAN.md); feature-status and provenance are distinguished from implementation and release proof.
+- **Baldosa reuse:** [UR-Recomp/Baldosa code and asset audit](docs/BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), [measured native bridge](docs/BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md), [migration runbook](docs/BALDOSA-FIRST-CORE-MIGRATION-20261009.md).
+- **Independent QA:** [bounded shared campaign](docs/QA-BOUNDED-RELEASE-CAMPAIGN.md), [player journeys](docs/QA-PLAYER-JOURNEYS.md), [authoritative release ledger](docs/RELEASE-QUALITY-LEDGER.json). A smoke route or guest WRAM checksum is not a settled original/native event.
+- **Document ownership:** [docs/README.md](docs/README.md). Dated prior phase narratives are retained under `docs/archive/` and are **not active work instructions**.
 
-> **Explain and eliminate the first meaningful native/reference divergence on a deterministic stock route, then use that evidence to finish the semantic map of the gameplay/rendering boundaries needed by the modern port.**
+## What is actually established
 
-Widescreen and HD Presentation should advance only behind a trustworthy 4:3 simulation/reference gate.
+Our original Windows host already has substantial separate Modern product, replay/ghost/profile/tournament code and a deterministic portable ZIP path. The **Baldosa-first candidate** now has a real pinned native guest, read-only racer observer, 2P input authority, native pause handling, 4× authored-racer rendering plus stable 4× Original fallback, calibrated extra world margins and a Windows native build/execution experiment. These are **separate verified components**, not yet a released Modern Baldosa Windows product.
 
-## ROM policy
+As of the 2026-10-09 status checkpoint, **0/45 USA courses** have been independently admitted as matching complete original/native events. Windows full-player journeys, source-visible 2P HD, physical 4K output, user-data migration and hardware acceptance retain their specific gates. Refer to the live ledger rather than treating this README as updated CI status.
 
-This is currently a **private research repository** and intentionally contains the canonical project ROM, `reference/roms/retail/Uniracers_USA.sfc`, so repository-hosted analysis and CI can operate on the same input.
+## Runtime and presentation invariants
 
-That is an explicit project choice, not an assumption inherited from SNESRecomp's public-release model. Before any public release or visibility change, the ROM and any other proprietary game-derived material must be removed and the full Git history audited/re-written as needed.
+The verified original game is the gameplay authority (physics, track contact, stunt/scoring, AI, timers, RNG, collision and progression mechanics). Baldosa is the leading candidate *execution backend*; our patched legacy runtime remains a rollback until the Baldosa Modern player journey passes. Host-managed preferences, profiles, saves, records, modern menus and graphics **never form a second simulation**.
 
-Preserved development builds and source archives live under `reference/roms/` and are never aliases for the canonical retail input.
+**Widescreen** expands original world visibility; **HD Presentation** supplies faithful higher-density art and fallback; **4K output** is a separate physical display-resolution goal. Original 256×224 and validated 7:6 display PAR retain their independent reference path. Do not silently stretch/crop, substitute guessed graphics or alter guest physics to fill a wider view.
 
-See `docs/ROM-SAFETY.md`.
+Windows x64 is the first supported consumer build. Other platforms are explicitly deferred until the Windows product works. See [PLATFORM-TARGETS.md](docs/PLATFORM-TARGETS.md).
 
-## Platform targets
+## Private ROM and distribution boundary
 
-The modern port is now explicitly host-portable. **Windows x64 is the primary consumer/reference build**, with planned peer targets for modern macOS, a best-effort macOS 10.13 High Sierra legacy build, WebAssembly/browser execution, Nintendo Switch homebrew, and a PlayStation 5 personal-use port when lawful tooling is available. All targets share the same authoritative recompiled simulation; platform-specific code stays in host adapters.
+The repository currently includes the canonical original USA retail ROM under `reference/roms/retail/Uniracers_USA.sfc` for exact research/CI, as well as preserved comparative material. **Do not make this repository or its accumulated history public** on the assumption that code and game assets are redistributable. A separate audited public-source/ROM-user-supplied packaging decision would be required. [ROM-SAFETY.md](docs/ROM-SAFETY.md) owns this boundary.
 
-See `docs/PLATFORM-TARGETS.md` and `docs/SWITCH-HOMEBREW-PORT.md`.
-
-## Framework
-
-Target framework: https://github.com/RetroPortingToolKit/snesrecomp
-
-The framework revision is pinned by the repository rather than floating on upstream `main`.
-
-## Working principles
-
-1. Original behavior is the oracle.
-2. Fix configuration/runtime behavior rather than hand-editing generated C as a permanent solution.
-3. Stock 4:3 behavior comes before the Widescreen feature.
-4. Recomp correctness comes before prettiness.
-5. Every reverse-engineering claim should be traceable to evidence.
-6. Keep generated bulk code/assets out of Git unless there is a specific reason to version them.
-7. Prefer deterministic tests over subjective "feels right" judgments.
-8. Document unknowns explicitly.
-9. Treat public-release hygiene as a separate gate from private research convenience.
-
-## Current work
-
-Agents should start with `AGENTS.md`, which routes tasks to the smallest current authority. For human project orientation, start with `docs/PROJECT-PLAN.md`, `docs/RESOURCE-COLLECTION-AND-DEV-RESEARCH-PLAN.md`, and `docs/WORK-QUEUE.md`. Tool selection/bootstrap is documented in `docs/TOOLCHAIN.md`.
-
-## Status
-
-**Native bring-up is established; fidelity and semantic recovery are the active critical path.** The canonical game boots, navigates deterministically into gameplay, and supports native/reference replay and state comparison. The strongest current discriminator is the exact 2014 replay, where native and the pinned Snes9x reference have diverged by the dense frame-440 sampling window. Current work is to bracket that first causal divergence, map the responsible routines/state transitions, and expand the comparative four-ROM/multi-analyzer code atlas around the core simulation and rendering boundaries needed for finish fidelity, Widescreen, HD Presentation, and course tooling.
+Build/runtime bootstrap: [TOOLCHAIN.md](docs/TOOLCHAIN.md), [BRINGUP.md](docs/BRINGUP.md), [VALIDATION.md](docs/VALIDATION.md) and [WINDOWS-X64-PACKAGING.md](docs/WINDOWS-X64-PACKAGING.md). Do not choose a build recipe from an old dated experiment without checking today's pinned source and toolchain.

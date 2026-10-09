@@ -1,0 +1,1499 @@
+{
+  "schema_version": 1,
+  "compared": "baldosa/snesrecomp",
+  "from_ur_recomp_pinned": "cd5875cbdaf19f5e324272b1f8051d671fce9215",
+  "to_baldosa_pinned": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "comparison_status": "ahead",
+  "ahead_by": 86,
+  "behind_by": 0,
+  "total_commits": 86,
+  "meaning": "Ancestry delta between pinned revisions, including upstream merges and other contributors, not 86 commits authored solely by Ema. Imported only as metadata, not new runtime.",
+  "commits": [
+    {
+      "sha": "8895952eab5d42fa8ede6f1152a1b3415979e9d2",
+      "date": "2026-09-23T05:57:39Z",
+      "author": "Matthew Stanley",
+      "subject": "Add opt-in guarded snapshots and composable interpreter hooks"
+    },
+    {
+      "sha": "10f0fa01872e31211486d9a67c0d7cf4ad3ef2b2",
+      "date": "2026-09-23T06:33:00Z",
+      "author": "Matthew Stanley",
+      "subject": "Add opt-in extra OBJ pictures with private colors and native composition"
+    },
+    {
+      "sha": "84177dff249eea5b8331f2e2354d78b6d6050f50",
+      "date": "2026-09-23T10:57:17Z",
+      "author": "Matthew Stanley",
+      "subject": "Honor declared inline dispatch table boundaries"
+    },
+    {
+      "sha": "9cd89113ce879add6c879ecc52d4b07171a0f220",
+      "date": "2026-09-28T21:25:35Z",
+      "author": "Matthew Stanley",
+      "subject": "Fix scaffold portability and trace hook ownership"
+    },
+    {
+      "sha": "e541e8c18aae35c1f05365e54f5204dfec828d27",
+      "date": "2026-09-28T21:28:12Z",
+      "author": "Matthew Stanley",
+      "subject": "Use the active Python in Windows tooling tests and cache native ROM paths"
+    },
+    {
+      "sha": "5ae054118844daddde1d9e4ef8c5e73496e411bb",
+      "date": "2026-09-28T21:30:13Z",
+      "author": "Matthew Stanley",
+      "subject": "Propagate nested deadline unwinds to the scheduler owner"
+    },
+    {
+      "sha": "8aedfc09ceccbe8e9116636e76e9c232f90ef845",
+      "date": "2026-09-28T21:32:45Z",
+      "author": "Matthew Stanley",
+      "subject": "Correct indexed read timing without double-charging writes"
+    },
+    {
+      "sha": "daa33106717a387f2636aeda4371f9ef05b4005d",
+      "date": "2026-09-28T21:35:29Z",
+      "author": "Matthew Stanley",
+      "subject": "Latch RDNMI independently and preserve it in versioned snapshots"
+    },
+    {
+      "sha": "3678164ebb7653e5f3c2da40cd1cbc171295758b",
+      "date": "2026-09-28T21:40:09Z",
+      "author": "Matthew Stanley",
+      "subject": "Honor inline and per-entry-variant exit width contracts"
+    },
+    {
+      "sha": "a87feb18a0947a1279ce4efff9a0426ecd41e3c4",
+      "date": "2026-09-28T21:42:13Z",
+      "author": "Matthew Stanley",
+      "subject": "Add reduced native PHP/PLP exit proof coverage for issue 110"
+    },
+    {
+      "sha": "03c68806c9a25f08177d1c1915f3b8abae9fe6aa",
+      "date": "2026-09-28T22:13:16Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #121 from RetroPortingToolKit/review/scaffold-portability-118-120"
+    },
+    {
+      "sha": "6dc066926f9755d1cf0e8b97fe123f23bcc05eaa",
+      "date": "2026-09-28T22:13:23Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #122 from RetroPortingToolKit/review/windows-tooling-115"
+    },
+    {
+      "sha": "28807ebe17d2fd30f9c8dd4c3173b66b496adf3c",
+      "date": "2026-09-28T22:13:29Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #126 from RetroPortingToolKit/review/cfg-exit-contracts-111-112"
+    },
+    {
+      "sha": "285e22324ae5d803c7337b44740c930623f50e1a",
+      "date": "2026-09-28T22:13:34Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #123 from RetroPortingToolKit/review/nested-deadline-109"
+    },
+    {
+      "sha": "69e3fb16c224b4ad0b2e36e86c7ec4fa54a6d8ad",
+      "date": "2026-09-28T22:13:40Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #124 from RetroPortingToolKit/review/indexed-read-timing-113"
+    },
+    {
+      "sha": "143de36836c61753d59a5092723a06b78234b865",
+      "date": "2026-09-28T22:13:46Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #125 from RetroPortingToolKit/review/rdnmi-latch-116"
+    },
+    {
+      "sha": "98ce81bcb35d102b4bf72e995c84bf583b15545d",
+      "date": "2026-09-29T16:14:44Z",
+      "author": "Matthew Stanley",
+      "subject": "feat: share mod source ROM selections and verify normalized hashes"
+    },
+    {
+      "sha": "8566fdb02b5e452d1700677c581ae83e3349e8d9",
+      "date": "2026-09-29T16:39:27Z",
+      "author": "Matthew Stanley",
+      "subject": "test: isolate shared ROM resource checks from content variants"
+    },
+    {
+      "sha": "7e99da86845b900ce6e95a13c20646500ea89008",
+      "date": "2026-09-29T16:43:19Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #131 from RetroPortingToolKit/feat/zero-source-rom-release"
+    },
+    {
+      "sha": "b403ec52ac1d1008e63cb82ee191280bc98a0c25",
+      "date": "2026-09-30T03:59:52Z",
+      "author": "Matthew Stanley",
+      "subject": "fix(input): honor keyboard source assignments per player"
+    },
+    {
+      "sha": "c92f8c25596fcef9f95142be1051e2969f3e0755",
+      "date": "2026-09-30T06:34:21Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #134 from RetroPortingToolKit/fix/desktop-keyboard-seats"
+    },
+    {
+      "sha": "4d2b83113c65a1b5a549b8fe85af1233312b1d7d",
+      "date": "2026-09-30T16:07:49Z",
+      "author": "Matthew Stanley",
+      "subject": "fix: synchronize scaffold symbols during shared code generation"
+    },
+    {
+      "sha": "2f9e610f238f4db8e5129e12b42ed2bcc278e1a3",
+      "date": "2026-09-30T16:12:10Z",
+      "author": "Matthew Stanley",
+      "subject": "fix: include symbol synchronizer in standalone CLI package"
+    },
+    {
+      "sha": "6b017a8936ca41dbd2d42b654c2184d1a3085c7c",
+      "date": "2026-09-30T16:20:25Z",
+      "author": "Matthew Stanley",
+      "subject": "Support deterministic desktop netplay sessions and temporary mod policies"
+    },
+    {
+      "sha": "74bd54c9e6ee2583c8adaf53102bd39934157027",
+      "date": "2026-09-30T16:22:07Z",
+      "author": "Matthew Stanley",
+      "subject": "fix: preserve CLI compatibility before Python 3.11"
+    },
+    {
+      "sha": "5cfd90743f326d6bf78baab95e129015edaf0da6",
+      "date": "2026-09-30T16:25:13Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #135 from RetroPortingToolKit/fix/scaffold-symbol-sync"
+    },
+    {
+      "sha": "0d5e90c293ea662e2c9ecc9aa0c6764777d31230",
+      "date": "2026-09-30T16:26:30Z",
+      "author": "Matthew Stanley",
+      "subject": "Cap netplay guest speed independently of display synchronization"
+    },
+    {
+      "sha": "f4b5a08726bfe1c27c552bafc149426510375035",
+      "date": "2026-09-30T17:00:23Z",
+      "author": "Matthew Stanley",
+      "subject": "Batch desktop diagnostic writes and capture frame timing without disk stalls"
+    },
+    {
+      "sha": "3703223322cbc91d81f4de75bdc5271b63bfeb4f",
+      "date": "2026-09-30T17:05:40Z",
+      "author": "Matthew Stanley",
+      "subject": "Share bounded HD Mode 7 sampling and reuse adjacent texels"
+    },
+    {
+      "sha": "8d9d8934de5f8aa9705fa656f2dfdfb1401c762f",
+      "date": "2026-09-30T17:11:27Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #137 from RetroPortingToolKit/perf/shared-mode7-sampling"
+    },
+    {
+      "sha": "e13f21ac19652fc72064fec1a9b4dfde4f2dbc10",
+      "date": "2026-09-30T17:40:07Z",
+      "author": "Matthew Stanley",
+      "subject": "Support both controller ports in desktop input scripts"
+    },
+    {
+      "sha": "3fcd8b5031df5009c9b5fb921ca83a971560a314",
+      "date": "2026-09-30T19:17:27Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #136 from RetroPortingToolKit/feat/netplay-session-policy"
+    },
+    {
+      "sha": "572f80df080d2da96be2b5bb91fb87a8532e148f",
+      "date": "2026-10-01T23:14:24Z",
+      "author": "Alex Vanderveen",
+      "subject": "netplay: host relay -- a launch that says transport \"host\" takes the LAN path"
+    },
+    {
+      "sha": "720d9e535876dc175bc7ffa28a19beeb7d1cc32d",
+      "date": "2026-10-01T23:18:44Z",
+      "author": "Alex Vanderveen",
+      "subject": "Merge pull request #138 from RetroPortingToolKit/feat/host-relay"
+    },
+    {
+      "sha": "0fc01df1040a8f3e5299893f127c33219f707e62",
+      "date": "2026-10-02T16:06:11Z",
+      "author": "Matt Stanley",
+      "subject": "Make features that claim the same plugin mutually exclusive on selection"
+    },
+    {
+      "sha": "5c7385e40a8bff1d64cc82dc313173deceb68414",
+      "date": "2026-10-03T05:38:11Z",
+      "author": "Alex Vanderveen",
+      "subject": "update recomp-net"
+    },
+    {
+      "sha": "d72dcf0998c9533aae5fa0cba9f298b97af104ae",
+      "date": "2026-10-03T17:22:21Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #127 from RetroPortingToolKit/review/native-exit-repro-110"
+    },
+    {
+      "sha": "ae921ee740837378635c887fc71c7aaea0700713",
+      "date": "2026-10-03T17:26:00Z",
+      "author": "Matthew Stanley",
+      "subject": "Skip SPC player re-init on reset when the title has none"
+    },
+    {
+      "sha": "7369043e1eaee6d9b3834cd82c5774f479471759",
+      "date": "2026-10-03T17:29:47Z",
+      "author": "Matthew Stanley",
+      "subject": "Resolve a scaffolded project's ROM in the CLI, including rom.cfg"
+    },
+    {
+      "sha": "d0804622b2b7ac33b4dbfcb5089881a45f6f6c1f",
+      "date": "2026-10-03T17:34:28Z",
+      "author": "Matthew Stanley",
+      "subject": "Link recomp-net's host relay into the lobby caps C test"
+    },
+    {
+      "sha": "b39da5637a0bdf97841bab79bcf5f40c2d2eabc3",
+      "date": "2026-10-03T17:38:16Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #139 from RetroPortingToolKit/fix/rtlreset-null-spc-player"
+    },
+    {
+      "sha": "17d592a39a80444a39cea7469233b19b6b5e2ff5",
+      "date": "2026-10-03T17:38:19Z",
+      "author": "Matthew Stanley",
+      "subject": "Merge remote-tracking branch 'origin/main' into fix/regen-reads-rom-cfg"
+    },
+    {
+      "sha": "5e33a9f92e6179f29145ecda5015086c97c0122a",
+      "date": "2026-10-03T17:39:21Z",
+      "author": "Matthew Stanley",
+      "subject": "Merge origin/main into feat/native-coop-runtime"
+    },
+    {
+      "sha": "e997b7c2f80b89b1875c5e036097846f33e07d1f",
+      "date": "2026-10-03T17:44:18Z",
+      "author": "Matthew Stanley",
+      "subject": "Bound inline and auto-recovered dispatch tables identically in the native analyzer"
+    },
+    {
+      "sha": "155ce247c73c78c4bcd5a2ca4821f2a093c9b02a",
+      "date": "2026-10-03T17:44:18Z",
+      "author": "Matthew Stanley",
+      "subject": "Collect the extra-object, snapshot-guard and bridge harnesses under pytest"
+    },
+    {
+      "sha": "3c18063bca7c6bbcff341764223ca1870295e3b5",
+      "date": "2026-10-03T18:09:34Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #140 from RetroPortingToolKit/fix/regen-reads-rom-cfg"
+    },
+    {
+      "sha": "fef9e5abe12089c244c80285d63c170a3fd9c398",
+      "date": "2026-10-03T18:12:18Z",
+      "author": "Matthew Stanley",
+      "subject": "Treat a drive-letter rom.cfg path as absolute under MSYS/Cygwin Python"
+    },
+    {
+      "sha": "6d6f432f29f50d2ce60d28329451c0308d613c0b",
+      "date": "2026-10-03T18:14:12Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #95 from RetroPortingToolKit/feat/native-coop-runtime"
+    },
+    {
+      "sha": "185e417d64ed7edf37b794828515b5cdc19210cf",
+      "date": "2026-10-03T18:15:21Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #141 from RetroPortingToolKit/fix/resolve-rom-msys-paths"
+    },
+    {
+      "sha": "a8e00d837e16c5284077a731860bde90b38f7d5b",
+      "date": "2026-10-03T18:21:08Z",
+      "author": "Matthew Stanley",
+      "subject": "Never decode an hle_func routine into another function's body"
+    },
+    {
+      "sha": "ac9abb836b6d422bb1f16e0060540c2547c3cbf9",
+      "date": "2026-10-03T18:21:08Z",
+      "author": "Matthew Stanley",
+      "subject": "Document the hle_func seam and its helper contract"
+    },
+    {
+      "sha": "c2720c67c4f486faab6ffda5b2497f65995563f5",
+      "date": "2026-10-03T18:25:10Z",
+      "author": "Matthew Stanley",
+      "subject": "Merge remote-tracking branch 'origin/main' into docs/hle-func-seam"
+    },
+    {
+      "sha": "097a355a53ae2ebca5dc268f2f5f478a681443cb",
+      "date": "2026-10-03T18:30:23Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #142 from RetroPortingToolKit/docs/hle-func-seam"
+    },
+    {
+      "sha": "447aeb8c382e2893c3dcb867a9c33b03f20834bb",
+      "date": "2026-09-19T17:46:33Z",
+      "author": "Alex Vanderveen",
+      "subject": "Stop discarding the render flags on non-widescreen ports"
+    },
+    {
+      "sha": "808d0ea2cfc061d0a53419e20d8242bda0e40635",
+      "date": "2026-09-19T17:46:14Z",
+      "author": "Alex Vanderveen",
+      "subject": "BRK vectors architecturally instead of being swallowed"
+    },
+    {
+      "sha": "ffb2d8a3c63cab4b298a1cc9e5f621b9d9e7922b",
+      "date": "2026-09-19T17:45:57Z",
+      "author": "Alex Vanderveen",
+      "subject": "debug: name the instruction behind a WRAM write, and the mode behind a scanline"
+    },
+    {
+      "sha": "177b9ad320ece3430e67514b6eb0dba49f3a600f",
+      "date": "2026-09-19T18:12:30Z",
+      "author": "Alex Vanderveen",
+      "subject": "Fix: the WRAM write-site PC globals must exist outside SNESRECOMP_TRACE"
+    },
+    {
+      "sha": "50b2c700bb173b73bbac1a7eab6f9a88f7b19683",
+      "date": "2026-09-19T17:46:33Z",
+      "author": "Alex Vanderveen",
+      "subject": "tools: audit cfg func boundaries against the ROM"
+    },
+    {
+      "sha": "f70dfc847d18261ebd4f47b95dc8d64190b0730b",
+      "date": "2026-10-03T18:47:40Z",
+      "author": "Matthew Stanley",
+      "subject": "Port the PR #89 instruments onto main's always-on interpreter rings"
+    },
+    {
+      "sha": "59977763df81dcb516537901207508ce50c6fb6d",
+      "date": "2026-10-03T18:50:04Z",
+      "author": "Matthew Stanley",
+      "subject": "Pin the interpreter edge ring, resume ring and write-site PC in the bridge harness"
+    },
+    {
+      "sha": "45284441bbcdf051d0c1a58bb301da69172d8679",
+      "date": "2026-10-03T18:52:11Z",
+      "author": "Matthew Stanley",
+      "subject": "Audit cfg boundaries through the recompiler's cfg loader, and pin it"
+    },
+    {
+      "sha": "83ff30efe5d97991703a78fdf5a927eb965dd295",
+      "date": "2026-09-19T17:46:14Z",
+      "author": "Alex Vanderveen",
+      "subject": "Hand a stable-value poll outward from a nested frame too"
+    },
+    {
+      "sha": "67dd19faf243f4c973e11e74fd6a8873a69a9461",
+      "date": "2026-10-03T19:07:45Z",
+      "author": "Matthew Stanley",
+      "subject": "Detect interrupt waits by repeated state instead of byte shape"
+    },
+    {
+      "sha": "c1a515b1140cb79a49fe8f58ff2de4e0a36bfa76",
+      "date": "2026-10-03T19:09:08Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #143 from RetroPortingToolKit/split89/instruments"
+    },
+    {
+      "sha": "72b912d8ac53ace869c24dfa1bfe7a56e37c6986",
+      "date": "2026-10-03T20:46:42Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #144 from RetroPortingToolKit/split89/render-flags"
+    },
+    {
+      "sha": "ffdf1808d11f34d74eb479334d772344262d8133",
+      "date": "2026-10-03T20:50:40Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #146 from RetroPortingToolKit/split89/nested-poll"
+    },
+    {
+      "sha": "e3ea7cd54e1b0ac55b0887e53cef24630d98417a",
+      "date": "2026-10-03T20:50:52Z",
+      "author": "Matthew Stanley",
+      "subject": "Merge remote-tracking branch 'origin/main' into split89/brk-vector"
+    },
+    {
+      "sha": "894ce61ebafdc9e78a225af798856df879d73115",
+      "date": "2026-10-03T20:52:59Z",
+      "author": "Matthew Stanley",
+      "subject": "Put S7's poll under a real caller instead of a BRK slide"
+    },
+    {
+      "sha": "88a9f7f51be3b1f0a805821e0fff7aa6f9e2246e",
+      "date": "2026-10-03T20:56:47Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #145 from RetroPortingToolKit/split89/brk-vector"
+    },
+    {
+      "sha": "38728fed3e25d3707f11e30d03f713b0d9eaee80",
+      "date": "2026-10-06T18:15:09Z",
+      "author": "Matthew Stanley",
+      "subject": "Beam-aligned frame driver; raster journal cut by the beam and covering every display register"
+    },
+    {
+      "sha": "c2db855e6a62e08af16f321696b32328a5209329",
+      "date": "2026-10-06T19:00:27Z",
+      "author": "Matthew Stanley",
+      "subject": "Stub the raster journal and port-ring probe in standalone harnesses"
+    },
+    {
+      "sha": "c637b2588408cad1d83bc4ce6e52c6f081f340a5",
+      "date": "2026-10-06T19:02:51Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #147 from RetroPortingToolKit/fix/beam-field-raster-journal"
+    },
+    {
+      "sha": "e4f8d31ee5035badfae999da3deee750870f1dcb",
+      "date": "2026-10-06T19:05:43Z",
+      "author": "Matthew Stanley",
+      "subject": "Beam driver: keep a WAI-halted CPU halted until an interrupt line asserts"
+    },
+    {
+      "sha": "77867082d9f9e1252a840ee3ade5a07e43796c67",
+      "date": "2026-10-06T19:07:53Z",
+      "author": "Matt Stanley",
+      "subject": "Merge pull request #148 from RetroPortingToolKit/fix/beam-driver-wai-halt"
+    },
+    {
+      "sha": "96b7e9f50c81f193fddc9d45818790a99c6078d4",
+      "date": "2026-10-06T20:15:26Z",
+      "author": "Ema Guillén",
+      "subject": "HVBJOY: report a clock-driven beam at the reading instruction's master clock"
+    },
+    {
+      "sha": "4337898103a306c7ede158e5ce84f59e8689eaac",
+      "date": "2026-10-06T20:36:52Z",
+      "author": "Ema Guillén",
+      "subject": "snesref: scripted pad-2 input (p2: prefix), as in the recomp host grammar"
+    },
+    {
+      "sha": "876319645002fbc1c7cfddd754457094b1e3b97d",
+      "date": "2026-10-06T21:10:44Z",
+      "author": "Ema Guillén",
+      "subject": "WIP: native entry hand-off (opt-in, default off)"
+    },
+    {
+      "sha": "5882addc64424705513cc0e9a27f0b5a97e400b3",
+      "date": "2026-10-07T01:18:07Z",
+      "author": "Ema Guillén",
+      "subject": "Native entry hand-off: run frame resumes and interrupts compiled"
+    },
+    {
+      "sha": "ff9936309f53f9eb75cc3cd79859186b411eacaf",
+      "date": "2026-10-07T01:39:54Z",
+      "author": "Ema Guillén",
+      "subject": "generate: forward --historical-profile-manifest to v2_emit"
+    },
+    {
+      "sha": "ce196a45145a1fff4db9f11780aa0ed586fb9bf6",
+      "date": "2026-10-07T02:11:16Z",
+      "author": "Ema Guillén",
+      "subject": "symbols.toml [[variant]] roots; record native hand-off landings"
+    },
+    {
+      "sha": "b7b4318fba3ad7695e4e37eaf103e9e5c41fc806",
+      "date": "2026-10-07T02:35:06Z",
+      "author": "Ema Guillén",
+      "subject": "paced_bus codegen mode: AOT master clock matches the interpreter tier"
+    },
+    {
+      "sha": "eaaa7d9a9f77f0dcf271ade543614d7bc5a1d5ee",
+      "date": "2026-10-07T18:52:07Z",
+      "author": "Ema Guillén",
+      "subject": "Interpreter host and web (Emscripten) support"
+    },
+    {
+      "sha": "df5713dc83afc41472f95d267d12f3d5555fdfff",
+      "date": "2026-10-07T19:18:09Z",
+      "author": "Ema Guillén",
+      "subject": "Web: pace on requestAnimationFrame, instrument only the wait paths"
+    },
+    {
+      "sha": "48748da8c68f534ee298b4058e877c2c4dbbfcb6",
+      "date": "2026-10-08T09:37:42Z",
+      "author": "Ema Guillén",
+      "subject": "Host: optional filter_frame_inputs game hook"
+    },
+    {
+      "sha": "608a6796e2ed2f32840b1e72ddc20a4bd1e8a4f5",
+      "date": "2026-10-08T23:18:45Z",
+      "author": "Ema Guillén",
+      "subject": "Web host: stop the present blocking for vsync; pace to the nearest animation frame"
+    },
+    {
+      "sha": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+      "date": "2026-10-09T11:59:23Z",
+      "author": "Ema Guillén",
+      "subject": "PPU/HDMA: optional Uniracers OAM address pin for HDMA writes to OAMDATA"
+    }
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/native-analyzer.yml",
+      "category": "ci-and-automation",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 1,
+      "changes": 5
+    },
+    {
+      "path": "README.md",
+      "category": "other-framework",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3
+    },
+    {
+      "path": "docs/EXIT_WIDTH_CONTRACTS.md",
+      "category": "documentation",
+      "status": "added",
+      "additions": 18,
+      "deletions": 0,
+      "changes": 18
+    },
+    {
+      "path": "docs/FRAME_MODEL_HOSTS.md",
+      "category": "documentation",
+      "status": "modified",
+      "additions": 26,
+      "deletions": 0,
+      "changes": 26
+    },
+    {
+      "path": "docs/GAME_PROJECT_SETUP.md",
+      "category": "documentation",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 2,
+      "changes": 9
+    },
+    {
+      "path": "docs/HD_MODE7.md",
+      "category": "documentation",
+      "status": "modified",
+      "additions": 27,
+      "deletions": 1,
+      "changes": 28
+    },
+    {
+      "path": "docs/HLE_FUNC.md",
+      "category": "documentation",
+      "status": "added",
+      "additions": 288,
+      "deletions": 0,
+      "changes": 288
+    },
+    {
+      "path": "docs/MOD_PACKAGES.md",
+      "category": "documentation",
+      "status": "modified",
+      "additions": 25,
+      "deletions": 0,
+      "changes": 25
+    },
+    {
+      "path": "docs/MOD_SHARED_RESOURCES.md",
+      "category": "documentation",
+      "status": "added",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21
+    },
+    {
+      "path": "docs/NATIVE_EXIT_PROOF_TRIAGE.md",
+      "category": "documentation",
+      "status": "added",
+      "additions": 22,
+      "deletions": 0,
+      "changes": 22
+    },
+    {
+      "path": "docs/PERFORMANCE.md",
+      "category": "documentation",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3
+    },
+    {
+      "path": "docs/WINDOWS_STARTUP_TIMING.md",
+      "category": "documentation",
+      "status": "added",
+      "additions": 133,
+      "deletions": 0,
+      "changes": 133
+    },
+    {
+      "path": "lib/recomp-net",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
+    },
+    {
+      "path": "recompiler-rs/src/bin/analyze.rs",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 22,
+      "deletions": 3,
+      "changes": 25
+    },
+    {
+      "path": "recompiler-rs/src/cfg.rs",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 63,
+      "deletions": 0,
+      "changes": 63
+    },
+    {
+      "path": "recompiler-rs/src/decoder.rs",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 376,
+      "deletions": 5,
+      "changes": 381
+    },
+    {
+      "path": "recompiler/snes65816.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 1,
+      "changes": 6
+    },
+    {
+      "path": "recompiler/snes_cycles.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 8,
+      "changes": 19
+    },
+    {
+      "path": "recompiler/v2/cfg_loader.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 50,
+      "deletions": 20,
+      "changes": 70
+    },
+    {
+      "path": "recompiler/v2/codegen.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 32,
+      "deletions": 1,
+      "changes": 33
+    },
+    {
+      "path": "recompiler/v2/decoder.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 62,
+      "deletions": 2,
+      "changes": 64
+    },
+    {
+      "path": "recompiler/v2/emit_function.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 50,
+      "deletions": 6,
+      "changes": 56
+    },
+    {
+      "path": "recompiler/v2/exit_mx_autoroute.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6
+    },
+    {
+      "path": "recompiler/v2/widths.py",
+      "category": "codegen-analysis",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 0,
+      "changes": 8
+    },
+    {
+      "path": "runner/runner.cmake",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 26,
+      "deletions": 1,
+      "changes": 27
+    },
+    {
+      "path": "runner/src/audio_trace.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 40,
+      "deletions": 0,
+      "changes": 40
+    },
+    {
+      "path": "runner/src/audio_trace.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 25,
+      "deletions": 0,
+      "changes": 25
+    },
+    {
+      "path": "runner/src/beam_frame_driver.c",
+      "category": "runner-core",
+      "status": "added",
+      "additions": 265,
+      "deletions": 0,
+      "changes": 265
+    },
+    {
+      "path": "runner/src/beam_frame_driver.h",
+      "category": "runner-core",
+      "status": "added",
+      "additions": 23,
+      "deletions": 0,
+      "changes": 23
+    },
+    {
+      "path": "runner/src/common_cpu_infra.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 0,
+      "changes": 8
+    },
+    {
+      "path": "runner/src/common_cpu_infra.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 9,
+      "deletions": 0,
+      "changes": 9
+    },
+    {
+      "path": "runner/src/common_rtl.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 106,
+      "deletions": 24,
+      "changes": 130
+    },
+    {
+      "path": "runner/src/common_rtl.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6
+    },
+    {
+      "path": "runner/src/cpu_state.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 15,
+      "deletions": 0,
+      "changes": 15
+    },
+    {
+      "path": "runner/src/cpu_state.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14
+    },
+    {
+      "path": "runner/src/cpu_trace.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 18,
+      "deletions": 3,
+      "changes": 21
+    },
+    {
+      "path": "runner/src/debug_server.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 175,
+      "deletions": 2,
+      "changes": 177
+    },
+    {
+      "path": "runner/src/debug_server.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 0,
+      "changes": 10
+    },
+    {
+      "path": "runner/src/desktop/host_main.c",
+      "category": "desktop-host",
+      "status": "modified",
+      "additions": 350,
+      "deletions": 63,
+      "changes": 413
+    },
+    {
+      "path": "runner/src/desktop/host_main.h",
+      "category": "desktop-host",
+      "status": "modified",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17
+    },
+    {
+      "path": "runner/src/host_report.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4
+    },
+    {
+      "path": "runner/src/mod_runtime.cpp",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 136,
+      "deletions": 7,
+      "changes": 143
+    },
+    {
+      "path": "runner/src/mod_runtime.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 0,
+      "changes": 6
+    },
+    {
+      "path": "runner/src/netplay/snes_host_app.c",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3
+    },
+    {
+      "path": "runner/src/netplay/snes_host_lobby.c",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3
+    },
+    {
+      "path": "runner/src/netplay/snes_host_lobby.h",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2
+    },
+    {
+      "path": "runner/src/netplay/snes_netplay.c",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 15,
+      "deletions": 1,
+      "changes": 16
+    },
+    {
+      "path": "runner/src/netplay/snes_netplay.h",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 0,
+      "changes": 5
+    },
+    {
+      "path": "runner/src/netplay/snes_netplay_rb.c",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 2,
+      "changes": 9
+    },
+    {
+      "path": "runner/src/netplay/snes_netplay_rb.h",
+      "category": "netplay",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4
+    },
+    {
+      "path": "runner/src/setup_host_dispatch.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 3,
+      "changes": 10
+    },
+    {
+      "path": "runner/src/snapshot_guard.c",
+      "category": "runner-core",
+      "status": "added",
+      "additions": 43,
+      "deletions": 0,
+      "changes": 43
+    },
+    {
+      "path": "runner/src/snapshot_guard.h",
+      "category": "runner-core",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16
+    },
+    {
+      "path": "runner/src/snes/dma.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 18,
+      "deletions": 0,
+      "changes": 18
+    },
+    {
+      "path": "runner/src/snes/interp816.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 37,
+      "deletions": 11,
+      "changes": 48
+    },
+    {
+      "path": "runner/src/snes/interp_bridge.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 658,
+      "deletions": 121,
+      "changes": 779
+    },
+    {
+      "path": "runner/src/snes/interp_bridge.h",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 101,
+      "deletions": 1,
+      "changes": 102
+    },
+    {
+      "path": "runner/src/snes/mode7_hd.h",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 54,
+      "deletions": 11,
+      "changes": 65
+    },
+    {
+      "path": "runner/src/snes/ppu.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 305,
+      "deletions": 142,
+      "changes": 447
+    },
+    {
+      "path": "runner/src/snes/ppu.h",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 42,
+      "deletions": 13,
+      "changes": 55
+    },
+    {
+      "path": "runner/src/snes/ppu_legacy.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "changes": 4
+    },
+    {
+      "path": "runner/src/snes/snes.c",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 32,
+      "deletions": 5,
+      "changes": 37
+    },
+    {
+      "path": "runner/src/snes/snes.h",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 12,
+      "deletions": 0,
+      "changes": 12
+    },
+    {
+      "path": "runner/src/snes/snes_cycles.h",
+      "category": "ppu-cpu-hardware",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 14,
+      "changes": 28
+    },
+    {
+      "path": "runner/src/state_dump.c",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 23,
+      "deletions": 0,
+      "changes": 23
+    },
+    {
+      "path": "runner/src/state_dump.h",
+      "category": "runner-core",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2
+    },
+    {
+      "path": "snesrecomp_cli.py",
+      "category": "other-framework",
+      "status": "modified",
+      "additions": 51,
+      "deletions": 0,
+      "changes": 51
+    },
+    {
+      "path": "tests/audio_delivery_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 24,
+      "deletions": 4,
+      "changes": 28
+    },
+    {
+      "path": "tests/dma/hdma_timing_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 1,
+      "changes": 8
+    },
+    {
+      "path": "tests/dma/rdnmi_test.c",
+      "category": "verification",
+      "status": "added",
+      "additions": 60,
+      "deletions": 0,
+      "changes": 60
+    },
+    {
+      "path": "tests/interp816/bridge_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 311,
+      "deletions": 8,
+      "changes": 319
+    },
+    {
+      "path": "tests/interp816/interp816_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 18,
+      "deletions": 1,
+      "changes": 19
+    },
+    {
+      "path": "tests/mod_resources/exclusive_plugin_test.cpp",
+      "category": "verification",
+      "status": "added",
+      "additions": 54,
+      "deletions": 0,
+      "changes": 54
+    },
+    {
+      "path": "tests/mod_resources/shared_source_rom_test.cpp",
+      "category": "verification",
+      "status": "added",
+      "additions": 57,
+      "deletions": 0,
+      "changes": 57
+    },
+    {
+      "path": "tests/ppu/ppu_extra_object_test.c",
+      "category": "verification",
+      "status": "added",
+      "additions": 87,
+      "deletions": 0,
+      "changes": 87
+    },
+    {
+      "path": "tests/ppu/ppu_mode7_hd_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 60,
+      "deletions": 1,
+      "changes": 61
+    },
+    {
+      "path": "tests/ppu/ppu_raster_journal_test.c",
+      "category": "verification",
+      "status": "added",
+      "additions": 110,
+      "deletions": 0,
+      "changes": 110
+    },
+    {
+      "path": "tests/ppu/run.ps1",
+      "category": "verification",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
+    },
+    {
+      "path": "tests/ppu/test_extra_objects.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 35,
+      "deletions": 0,
+      "changes": 35
+    },
+    {
+      "path": "tests/run_c_tests.sh",
+      "category": "verification",
+      "status": "modified",
+      "additions": 23,
+      "deletions": 0,
+      "changes": 23
+    },
+    {
+      "path": "tests/runtime_dispatch/apu_port_diag_getenv_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "changes": 4
+    },
+    {
+      "path": "tests/runtime_dispatch/diagnostic_gates_test.c",
+      "category": "verification",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "changes": 3
+    },
+    {
+      "path": "tests/snapshot_guard/guard_test.c",
+      "category": "verification",
+      "status": "added",
+      "additions": 32,
+      "deletions": 0,
+      "changes": 32
+    },
+    {
+      "path": "tests/snapshot_guard/test_guard.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 36,
+      "deletions": 0,
+      "changes": 36
+    },
+    {
+      "path": "tests/test_cfg_boundary_audit.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 151,
+      "deletions": 0,
+      "changes": 151
+    },
+    {
+      "path": "tests/test_generate_ci.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
+    },
+    {
+      "path": "tests/test_new_project.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 91,
+      "deletions": 4,
+      "changes": 95
+    },
+    {
+      "path": "tests/test_rdnmi.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 19,
+      "deletions": 0,
+      "changes": 19
+    },
+    {
+      "path": "tests/test_rom_identity.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3
+    },
+    {
+      "path": "tests/test_scaffold_trace_contract.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 42,
+      "deletions": 0,
+      "changes": 42
+    },
+    {
+      "path": "tests/test_snes_cycles.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 0,
+      "changes": 14
+    },
+    {
+      "path": "tests/test_sync_symbols.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 206,
+      "deletions": 0,
+      "changes": 206
+    },
+    {
+      "path": "tests/v2/test_cfg_exit_contracts.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 50,
+      "deletions": 0,
+      "changes": 50
+    },
+    {
+      "path": "tests/v2/test_cli_imports.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 0,
+      "changes": 16
+    },
+    {
+      "path": "tests/v2/test_continuation_live_pb.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "changes": 2
+    },
+    {
+      "path": "tests/v2/test_decoder_data_region.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 21,
+      "deletions": 0,
+      "changes": 21
+    },
+    {
+      "path": "tests/v2/test_emit_cycle_charge.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 0,
+      "changes": 7
+    },
+    {
+      "path": "tests/v2/test_hle_func_seam.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 459,
+      "deletions": 0,
+      "changes": 459
+    },
+    {
+      "path": "tests/v2/test_inline_dispatch_table_parity.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 125,
+      "deletions": 0,
+      "changes": 125
+    },
+    {
+      "path": "tests/v2/test_interp_bridge_contract.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 27,
+      "deletions": 2,
+      "changes": 29
+    },
+    {
+      "path": "tests/v2/test_lle_memory_poll.py",
+      "category": "verification",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4
+    },
+    {
+      "path": "tests/v2/test_native_php_plp_exits.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 26,
+      "deletions": 0,
+      "changes": 26
+    },
+    {
+      "path": "tests/v2/test_paced_bus.py",
+      "category": "verification",
+      "status": "added",
+      "additions": 39,
+      "deletions": 0,
+      "changes": 39
+    },
+    {
+      "path": "tools/build_cli.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "changes": 1
+    },
+    {
+      "path": "tools/cfg_boundary_audit.py",
+      "category": "tooling-and-oracle",
+      "status": "added",
+      "additions": 214,
+      "deletions": 0,
+      "changes": 214
+    },
+    {
+      "path": "tools/mesen_scene/scene_runner.lua",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 91,
+      "deletions": 0,
+      "changes": 91
+    },
+    {
+      "path": "tools/new_project/README.md",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3
+    },
+    {
+      "path": "tools/new_project/fill_tokens.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "changes": 3
+    },
+    {
+      "path": "tools/new_project/probe_rom.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 2,
+      "changes": 5
+    },
+    {
+      "path": "tools/new_project/setup_project.sh",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 4,
+      "changes": 15
+    },
+    {
+      "path": "tools/new_project/templates/README.md.in",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 11,
+      "deletions": 7,
+      "changes": 18
+    },
+    {
+      "path": "tools/new_project/templates/game_rtl.c.in",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 27,
+      "deletions": 169,
+      "changes": 196
+    },
+    {
+      "path": "tools/new_project/templates/host_contract.c.in",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "changes": 2
+    },
+    {
+      "path": "tools/new_project/templates/regen.sh.in",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 16,
+      "changes": 32
+    },
+    {
+      "path": "tools/new_project/templates/symbols_readme.md.in",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 22,
+      "deletions": 4,
+      "changes": 26
+    },
+    {
+      "path": "tools/sdk_generate.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 17,
+      "deletions": 0,
+      "changes": 17
+    },
+    {
+      "path": "tools/smoke_cli_package.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 10,
+      "deletions": 0,
+      "changes": 10
+    },
+    {
+      "path": "tools/snesref/frontend.cpp",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 37,
+      "deletions": 19,
+      "changes": 56
+    },
+    {
+      "path": "tools/sync_symbols.py",
+      "category": "tooling-and-oracle",
+      "status": "added",
+      "additions": 202,
+      "deletions": 0,
+      "changes": 202
+    },
+    {
+      "path": "tools/v2_emit.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 25,
+      "deletions": 3,
+      "changes": 28
+    },
+    {
+      "path": "tools/v2_regen.py",
+      "category": "tooling-and-oracle",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "changes": 4
+    }
+  ]
+}

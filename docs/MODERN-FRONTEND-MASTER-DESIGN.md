@@ -1,3 +1,5 @@
+> **Implementation scope (2026-10-09):** This file defines desired UI/interaction behavior, not shipping status. Integrate the existing typed root, profiles/records, controller semantics and pause design with Baldosa native lifecycle and independent QA-05/09 first. Defer Racer Studio material masks and speculative navigation redesigns until the ordinary Windows controller-only first-launch→event→result→Records→quit route works. Live ownership: [WORK-QUEUE.md](WORK-QUEUE.md); evidence: [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md).
+
 # Modern frontend master design specification
 
 ## Racer Studio: independently editable colours and materials (2026-10-08)
@@ -105,6 +107,10 @@ Controller-first; keyboard parity; P1 controls shell outside explicitly joined m
 ## State and serialization
 
 Treat UI selection/scroll as ephemeral session state; profile/racer identity and options use existing versioned bounded stores; guest tour/SRAM remains authoritative for its own semantics; records/replays/ghosts use established profile-scoped artifacts. Do not persist menu stack or stale guest contexts as playable authority. Fresh-process load must reconcile stale, missing and corrupt contexts and offer benign fallback without destroying source evidence. All external file choices and failure responses have bounded decoding and safe traversal rules. Changes to graphics/output settings are transactional and roll back on application or persistence failure. Profile switch is blocked or confirmed when a race or unsaved operation has exclusive ownership.
+
+## Bounded root-route implementation gate (QA-of-QA 2026-10-08)
+
+The first increment ([#1053](https://github.com/gamesbyian/UR-Recomp/issues/1053)) is **one functioning, player-visible, pad-operated Modern root** over the existing typed model. Use existing host/stock destinations and a single focus/hold policy, then expand to all five destinations before adding elaborate animations or new menus. A mockup, isolated root unit test, keyboard F-key path, or newly built shadow router does not meet this implementation gate. Capture cold ZIP → root → practice/race → result → Records → Quit, then validate P2 join and pause/held-input transitions. Route production work belongs to frontend; independent QA-09 measures uncoached discovery on that completed implementation. Timebox the first minimal vertical slice to 12 productive hours for a demonstrable path or a specific blocker and re-estimate wider visual art separately; see [QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md). The planned Racer Studio hero/material customizer remains deliberately outside this first critical path.
 
 ## Priority implementation slices
 

@@ -1,0 +1,29 @@
+name: QA-05/09 Windows candidate package
+
+# PR-only validation for the frontend shipping lane. The existing Windows
+# package workflow remains main-push-only for the distributable release;
+# workflow_call reuses its exact build, ZIP and real Win32 acceptance with
+# no second package-building implementation.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/qa05-qa09-windows-candidate.yml"
+      - ".github/workflows/windows-native-smoke.yml"
+      - "native/product/uniracers_modern_host.cpp"
+      - "native/product/modern_restart_key_release.hpp"
+      - "tools/qa09_windows_root_pad_probe.py"
+      - "tests/native/run_modern_root_acceptance.sh"
+  workflow_dispatch:
+
+concurrency:
+  group: qa05-qa09-windows-candidate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  windows-candidate:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    uses: ./.github/workflows/windows-native-smoke.yml

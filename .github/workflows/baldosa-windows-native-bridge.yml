@@ -1,0 +1,120 @@
+# One bounded Windows x64 build of the exact pinned Baldosa AOT title with
+# UR's existing guest observer, human input and acknowledged pause bridge.
+# Does not assert a packaged Modern product or course/event completion.
+name: Baldosa native Windows x64 bridge feasibility
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/baldosa-windows-native-bridge.yml"
+      - "tools/baldosa_windows_native_pause_route.py"
+      - "tests/unit/test_baldosa_windows_native_pause_route.py"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-windows-probe-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  native-windows-x64:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out owning UR product bridge
+        uses: actions/checkout@v4
+
+      - name: Check out exact pinned native AOT and framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Guard guest CRC and pause-witness extraction
+        run: python tests/unit/test_baldosa_windows_native_pause_route.py
+
+      - name: Verify immutable native source pins
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s baldosa/src/gen/dispatch_v2.c
+          git -C baldosa submodule status --recursive
+
+      - name: Stage only the verified UR native boundary
+        run: |
+          set -euo pipefail
+          python tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # No second native core, ROM or alternate product frontend.
+          test -s baldosa/src/main.c
+          test -s baldosa/snesrecomp/runner/src/desktop/host_main.c
+
+      - name: Use Baldosa's already-proven Windows clang toolchain path
+        run: |
+          set -euo pipefail
+          bash baldosa/snesrecomp/tools/ci/fetch_toolchain.sh --artifact windows-x64
+
+      - name: Build real native AOT Windows x64 title plus UR host bridges
+        run: |
+          set -euo pipefail
+          # Same toolchain as pinned Baldosa upstream Windows workflow.
+          source "${TOOLCHAIN_DIR}/env.sh"
+          cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
+          cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
+          test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
+
+      - name: Admit only a real Windows x64 PE32+ executable
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          from pathlib import Path
+          import struct
+          image = Path("baldosa/build-ur-win/UniracersSNESRecomp.exe").read_bytes()
+          assert len(image) > 65536, "empty or placeholder executable"
+          assert image[:2] == b"MZ", "missing DOS header"
+          pe = struct.unpack_from("<I", image, 0x3c)[0]
+          assert image[pe:pe+4] == b"PE\x00\x00", "missing PE signature"
+          machine = struct.unpack_from("<H", image, pe + 4)[0]
+          magic = struct.unpack_from("<H", image, pe + 24)[0]
+          assert machine == 0x8664 and magic == 0x20b, (machine, magic)
+          print(f"PASS native Baldosa+UR Windows x64 PE32+: bytes={len(image)}")
+          PY
+          echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
+          echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Execute actual Win32 two-player guest and native pause/resume
+        env:
+          UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS: "1"
+        run: |
+          set -euo pipefail
+          python tools/baldosa_windows_native_pause_route.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --script "baldosa/tests/routes/race_2p_split.txt" \
+            --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
+            --video windows --expected-frames 2473 --timeout 95
+          echo "PASS: Win32 native two-player guest and acknowledged pause/resume; all 2,473 CRCs identical" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain bounded Windows guest evidence (never ROM or saves)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-win32-native-pause-evidence
+          if-no-files-found: warn
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt

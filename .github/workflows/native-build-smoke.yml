@@ -36,6 +36,8 @@ on:
       - "tests/unit/test_uniracers_ws_margins_c.py"
       - "tools/patches/snesrecomp-ws-shadow-split-band.patch"
       - "tests/input/reach-first-race.script"
+      - "tests/native/run_modern_root_acceptance.sh"
+      - "tests/native/modern_restart_key_release_test.cpp"
       - "tests/input/widescreen-product-acceptance.script"
       - ".github/workflows/native-build-smoke.yml"
       - "third_party/archives/SDL3-3.4.10.tar.gz"
@@ -386,6 +388,21 @@ jobs:
           grep -q "range_reject_ok=1" "$LOG"
           grep -Eq "native=[1-9][0-9]*x[1-9][0-9]*@[0-9]+" "$LOG"
           grep -Eq "first=[1-9][0-9]*x[1-9][0-9]*@[0-9]+" "$LOG"
+
+      - name: QA-05/09 real SDL Modern root and Restart-release acceptance
+        shell: bash
+        run: |
+          set -euo pipefail
+          g++ -std=c++17 -Wall -Wextra -Werror -pedantic \
+            -I "$GITHUB_WORKSPACE/native/product" \
+            "$GITHUB_WORKSPACE/tests/native/modern_restart_key_release_test.cpp" \
+            -o "$RUNNER_TEMP/modern-restart-key-release"
+          "$RUNNER_TEMP/modern-restart-key-release"
+          bash "$GITHUB_WORKSPACE/tests/native/run_modern_root_acceptance.sh" \
+            "${{ steps.exe.outputs.exe }}" \
+            "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            "$RUNNER_TEMP/modern-root-fresh"
+          echo "UR_QA05_QA09_ROOT_NATIVE=passed"
 
       - name: Deterministic native input route
         shell: bash

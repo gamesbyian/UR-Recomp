@@ -1,5 +1,6 @@
 import json
 import pathlib
+import struct
 import sys
 import tempfile
 import unittest
@@ -77,6 +78,87 @@ class StuntBoundaryProbeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaises(probe.jf.EvidenceError):
                 probe.load_rows(pathlib.Path(tmp))
+
+    def test_motion_channel_catches_speed_contact_and_world_xy_with_equal_rewards(self):
+        # The existing six-case probe can declare pose/reward parity while
+        # contact and trajectory are wrong. Exercise SAME 128KiB snapshots.
+        with tempfile.TemporaryDirectory() as temp:
+            source = pathlib.Path(temp) / "reference"
+            target = pathlib.Path(temp) / "native"
+            source.mkdir()
+            target.mkdir()
+            for index in range(probe.WINDOW[1] - probe.WINDOW[0] + 1):
+                buf = bytearray(probe.jf.WRAM_SIZE)
+                buf[0x00CE] = probe.jf.JUMPOVER_TRACK_ID
+                buf[0x0313] = 1
+                buf[0x0545] = 4 if index < 5 else 0
+                for address, number in (
+                    (0x0411, 4000 + index), (0x0415, 800),
+                    (0x04B7, 448), (0x04BB, 0),
+                    (0x0E95, 0x1804), (0x11CF, 128),
+                ):
+                    struct.pack_into("<H", buf, address, number)
+                (source / f"w{index:03d}.wram.bin").write_bytes(buf)
+                corrupt = bytearray(buf)
+                if index == 8:
+                    struct.pack_into("<H", corrupt, 0x0411, 4099)
+                    struct.pack_into("<h", corrupt, 0x04B7, 436)
+                    struct.pack_into("<H", corrupt, 0x0E95, 0x2024)
+                (target / f"w{index:03d}.wram.bin").write_bytes(corrupt)
+
+            default_reference = probe.load_rows(source)
+            default_native = probe.load_rows(target)
+            self.assertEqual(default_reference, default_native)
+            # But the full P1 course-physics channel rejects same reward.
+            report = probe.trajectory_diagnostics(
+                probe.load_trajectory_rows(source),
+                probe.load_trajectory_rows(target),
+            )
+            first = report["first_trajectory_disagreement"]
+            self.assertFalse(report["motion_reference_native_equal"])
+            self.assertEqual(first["frame_after_race_entry"], probe.WINDOW[0] + 8)
+            self.assertEqual(first["fields"], ["contact_word", "x", "x_speed"])
+            self.assertEqual(first["reference"],
+                             {"x": 4008, "x_speed": 448, "contact_word": 0x1804})
+            self.assertEqual(first["native"],
+                             {"x": 4099, "x_speed": 436, "contact_word": 0x2024})
+            self.assertEqual(
+                report["reference_airborne_to_zero_transitions"][0]
+                ["frame_after_race_entry"], probe.WINDOW[0] + 5,
+            )
+            self.assertEqual(
+                report["native_airborne_to_zero_transitions"],
+                report["reference_airborne_to_zero_transitions"],
+            )
+            self.assertIn("not instruction-time collision",
+                          report["interpretation_limit"])
+
+            # Invalid course or absent frame must fail, not shrink denominator.
+            (target / "w008.wram.bin").write_bytes(bytes(probe.jf.WRAM_SIZE))
+            with self.assertRaisesRegex(probe.jf.EvidenceError, "left Jumpover"):
+                probe.load_trajectory_rows(target)
+            (target / "w008.wram.bin").unlink()
+            with self.assertRaisesRegex(probe.jf.EvidenceError, "missing trajectory"):
+                probe.load_trajectory_rows(target)
+
+    def test_trajectory_requires_same_complete_guest_relative_schema(self):
+        one = {"frame_after_race_entry": probe.WINDOW[0],
+               **{key: 0 for key in probe.jf.FIELDS}}
+        reference = [dict(one, frame_after_race_entry=frame)
+                     for frame in range(probe.WINDOW[0], probe.WINDOW[1] + 1)]
+        self.assertTrue(probe.trajectory_diagnostics(
+            reference, [dict(row) for row in reference],
+        )["motion_reference_native_equal"])
+        with self.assertRaisesRegex(probe.jf.EvidenceError, "incomplete"):
+            probe.trajectory_diagnostics(reference[:-1], reference)
+        missing = [dict(row) for row in reference]
+        missing[4].pop("x")
+        with self.assertRaisesRegex(probe.jf.EvidenceError, "field sets"):
+            probe.trajectory_diagnostics(reference, missing)
+        shifted = [dict(row) for row in reference]
+        shifted[7]["frame_after_race_entry"] += 1
+        with self.assertRaisesRegex(probe.jf.EvidenceError, "guest-relative"):
+            probe.trajectory_diagnostics(reference, shifted)
 
     def test_committed_evidence_boundaries(self):
         evidence = json.loads(EVIDENCE.read_text(encoding="utf-8"))

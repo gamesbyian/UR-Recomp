@@ -1,3 +1,5 @@
+> **Joint Baldosa/QA execution policy (2026-10-09):** Reuse the compiled pinned native guest across the original/native game-event, 2P/HD/widening and Modern Windows player-journey checks. Agents own independent source seams, not duplicate native build matrices. Prefer one common evidence envelope plus gate-specific assertions, and rerun only checks invalidated by a change. Current priority/PR ownership: [WORK-QUEUE.md](WORK-QUEUE.md). Historical +40/+48 experiments below are examples, not permission to duplicate open #1082's 342×224 work.
+
 # Operations acceleration
 
 This document owns the project-wide process changes that reduce repeated agent, CI and evidence-production work. It does not replace subsystem plans or the work queue.

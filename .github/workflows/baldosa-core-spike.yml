@@ -1,0 +1,371 @@
+name: Baldosa AOT core native experiment
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - ".github/workflows/baldosa-core-spike.yml"
+      - "tools/baldosa_core_spike_report.py"
+      - "tools/baldosa_hd_host_spike.py"
+      - "tools/baldosa_native_racer_presentation.cpp"
+      - "tools/baldosa_hd_presentation_report.py"
+      - "native/product/presentation_density_compositor.cpp"
+      - "tools/baldosa_original_fallback_report.py"
+      - "tools/baldosa_hd_enable_renderer.py"
+      - "tools/baldosa_single_presentation_scale_patch.py"
+      - "tools/baldosa_ws24_host_spike.py"
+      - "tools/baldosa_ws24_framework_split_patch.py"
+      - "tools/baldosa_native_ws24_presentation.cpp"
+      - "tools/baldosa_ws24_presentation_report.py"
+      - "native/title/uniracers_ws_margins.c"
+      - "tools/patches/snesrecomp-presentation-scale.patch"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-core-spike-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pinned-baldosa-native:
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      BALDOSA_PIN: 10b864b9d14a7b7416dd909eb7b054c88faef101
+      BALDOSA_FRAMEWORK_PIN: 075fbe4c8e0d97b0013be541795c39cb644a9709
+      USA_ROM_SHA256: 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
+    steps:
+      - name: Check out UR-Recomp oracle and report tools
+        uses: actions/checkout@v4
+
+      - name: Validate title ROM identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          test -s "$ROM"
+          printf '%s  %s\n' "$USA_ROM_SHA256" "$ROM" | sha256sum -c -
+          python3 tools/verify_rom.py "$ROM"
+
+      - name: Check out pinned full Baldosa AOT game and gitlinks
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify pinned guest, framework and generated C
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa rev-parse HEAD)" = "$BALDOSA_PIN"
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = "$BALDOSA_FRAMEWORK_PIN"
+          git -C baldosa submodule status --recursive
+          test -s baldosa/src/gen/dispatch_v2.c
+          test -s baldosa/recomp/funcs.h
+          test -s baldosa/src/gen/program_manifest.json
+          test -s baldosa/snesrecomp/runner/src/beam_frame_driver.c
+          test -s baldosa/recomp-ui/recomp_ui.cmake
+          echo "Pinned Baldosa AOT + beam driver + launcher files verified."
+
+      - name: Install minimal SDL2 native-host build requirements
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends             ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev             libxrandr-dev libxcursor-dev libxi-dev libxss-dev             libwayland-dev libxkbcommon-dev libegl-dev libgles-dev             libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev             libdbus-1-dev xvfb x11-utils
+
+      - name: Configure pinned Ema native AOT core without source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake -S baldosa -B baldosa/build -G Ninja             -DCMAKE_BUILD_TYPE=Release             -DSNESRECOMP_SDL_BACKEND=SDL2             -DSNESRECOMP_SDL3_FETCH=OFF             -DRECOMP_UI_SDL3=OFF             2>&1 | tee "$RUNNER_TEMP/baldosa-configure.log"
+
+      - name: Build pinned full guest and desktop host
+        shell: bash
+        run: |
+          set -euo pipefail
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3             2>&1 | tee "$RUNNER_TEMP/baldosa-build.log"
+          test -x baldosa/build/UniracersSNESRecomp
+          # The pinned source does not call snesrecomp_target_config_seed().
+          # Desktop host uses built-in defaults when its config is absent,
+          # but the upstream route wrapper copies a file before first boot.
+          # Seed only the external test fixture, never upstream source.
+          if [ ! -f baldosa/build/config.ini ]; then
+            printf '%s\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
+          fi
+          test -f baldosa/build/config.ini
+          ls -l baldosa/build/UniracersSNESRecomp baldosa/build/config.ini
+
+      - name: Run Baldosa 1P, 2P and bounded nonterminal Circuit progress
+        shell: bash
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "95"
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/baldosa-evidence"
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          # Upstream route.sh sets SDL_VIDEODRIVER=dummy. The native host
+          # uses SDL_CreateRenderer; provide a real software-capable X11 display.
+          Xvfb :99 -screen 0 1280x720x24 -ac > "$RUNNER_TEMP/baldosa-xvfb.log" 2>&1 &
+          export DISPLAY=:99
+          for _attempt in 1 2 3 4 5; do
+            xdpyinfo -display :99 >/dev/null 2>&1 && break
+            sleep 1
+          done
+          xdpyinfo -display :99 >/dev/null
+          cat > "$RUNNER_TEMP/baldosa-x11-exec" <<'SH'
+          #!/usr/bin/env bash
+          export SDL_VIDEODRIVER=x11
+          if [ "${UR_BALDOSA_HD:-0}" = "1" ]; then
+            args=("$@")
+            config=""
+            for ((i=0; i+1<${#args[@]}; i++)); do
+              if [ "${args[i]}" = "--config" ]; then
+                config="${args[i+1]}"
+                break
+              fi
+            done
+            if [ -z "$config" ]; then
+              echo "HD candidate has no isolated --config" >&2
+              exit 3
+            fi
+            python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
+          fi
+          exec "$BALDOSA_REAL_BIN" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/baldosa-x11-exec"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          python3 tools/baldosa_zoo_progress_probe.py \
+            --source baldosa/tests/routes/zoomzoo_1p.txt \
+            --out "$RUNNER_TEMP/baldosa-zoo-progress.txt"
+          failed=0
+          for name in race_1p race_2p_split zoomzoo_progress; do
+            echo "::group::Baldosa route: $name"
+            route="baldosa/tests/routes/$name.txt"
+            if [ "$name" = zoomzoo_progress ]; then
+              route="$RUNNER_TEMP/baldosa-zoo-progress.txt"
+            fi
+            if bash baldosa/tools/run_route.sh "$route" \
+                "$RUNNER_TEMP/baldosa-evidence/$name"; then
+              echo 0 > "$RUNNER_TEMP/baldosa-evidence/$name.exit"
+            else
+              rc=$?
+              echo "$rc" > "$RUNNER_TEMP/baldosa-evidence/$name.exit"
+              failed=1
+              echo "::warning::Route $name stopped with exit code $rc. Last 55 native guest log lines:"
+              if test -f "$RUNNER_TEMP/baldosa-evidence/$name/log.txt"; then
+                tail -n 55 "$RUNNER_TEMP/baldosa-evidence/$name/log.txt"
+              fi
+            fi
+            echo "::endgroup::"
+          done
+          python3 tools/baldosa_core_spike_report.py             --game baldosa             --evidence "$RUNNER_TEMP/baldosa-evidence"             --out "$RUNNER_TEMP/baldosa-evidence/report.json"
+          if [ "$failed" -ne 0 ]; then
+            echo "::error::At least one pinned Baldosa route failed. This is an experimental negative, not a UR-Recomp regression."
+            exit 1
+          fi
+
+      - name: Attach UR-Recomp's actual racer-state reader to Baldosa
+        if: always()
+        shell: bash
+        env:
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "45"
+        run: |
+          set -euo pipefail
+          test -x baldosa/build/UniracersSNESRecomp
+          test -s "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt"
+          python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99
+          export BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          # Earlier route step owns Xvfb; all steps share the same job process space.
+          test -x "$BIN"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge"
+          grep -q 'UR_BALDOSA_GUEST_SNAPSHOT frame=' \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/log.txt"
+          # The observer must not change guest WRAM on ANY of the route's frames.
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/fd/crc.txt"
+          echo "PASS: UR-Recomp racer guest-state adapter linked and 2P WRAM CRC is identical frame-by-frame" >> "$GITHUB_STEP_SUMMARY"
+          tail -n 8 "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/log.txt"
+
+      - name: Rehost UR's real moving racer compositor in Baldosa
+        shell: bash
+        env:
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "45"
+          UR_RACER_HD: "1"
+          UR_RACER_HD_CENSUS: "1"
+          UR_BALDOSA_HD: "1"
+        run: |
+          set -euo pipefail
+          # Layer on the already-proven read-only observer. Existing UR
+          # asset/OAM renderer owns only post-guest presentation callbacks.
+          python3 tools/baldosa_single_presentation_scale_patch.py \
+            --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          python3 tools/baldosa_hd_host_spike.py \
+            --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-hd-captures"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt"
+          python3 tools/baldosa_hd_presentation_report.py \
+            --baseline "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/log.txt" \
+            --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation.json"
+          echo "PASS: moving UR-derived racer composites, preserved Baldosa 2P guest CRCs" >> "$GITHUB_STEP_SUMMARY"
+          # Same binary, no guest patch. Only the host's presentation buffer
+          # and UR's authored asset raster now use their genuine 4x density.
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-hd-captures-4x"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt"
+          python3 tools/baldosa_hd_presentation_report.py \
+            --baseline "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/log.txt" \
+            --captures "$UR_BALDOSA_HD_CAPTURE_DIR" --density 4 \
+            --out "$RUNNER_TEMP/baldosa-evidence/hd_presentation_4x.json"
+          echo "PASS: real moving 1024x896 source-derived P1/P2 racers, guest CRCs identical" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/baldosa_original_fallback_report.py \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_4x/log.txt" \
+            --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/original_4x_fallback.json"
+          echo "PASS: real stable-density 4x Original fallback with no split-view subpixel drift" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Capture calibrated +24 split-screen world pixels without guest writes
+        shell: bash
+        env:
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "45"
+          UR_RACER_HD: "1"
+          UR_RACER_HD_CENSUS: "1"
+          UR_BALDOSA_HD: "1"
+          UR_BALDOSA_HD_DENSITY: "1"
+          UR_BALDOSA_WS24: "1"
+        run: |
+          set -euo pipefail
+          python3 tools/baldosa_ws24_framework_split_patch.py \
+            --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          python3 tools/baldosa_ws24_host_spike.py \
+            --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99 BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          export UR_BALDOSA_WS24_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws24-captures"
+          mkdir -p "$UR_BALDOSA_WS24_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/fd/crc.txt"
+          python3 tools/baldosa_ws24_presentation_report.py \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws24/log.txt" \
+            --captures "$UR_BALDOSA_WS24_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws24_presentation.json"
+          echo "PASS: actual two-viewport +24 source-world margins, guest CRC unchanged" >> "$GITHUB_STEP_SUMMARY"
+          # Second native route: the same first-party calibrated materializer
+          # now serves +48 backing while the actual PPU exposes 43 pixels per
+          # side. This is a 342x224 logical raster, NOT a tested 4K viewport.
+          export UR_BALDOSA_WS342=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-captures"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt"
+          python3 tools/baldosa_ws24_presentation_report.py \
+            --view ws342 \
+            --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_presentation.json"
+          echo "PASS: 342x224 logical native PPU with both split-world +43 margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarize executable evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Baldosa pinned executable experiment'
+            echo ''
+            echo '- AOT game: `10b864b9d14a7b7416dd909eb7b054c88faef101`'
+            echo '- SNESRecomp: `075fbe4c8e0d97b0013be541795c39cb644a9709`'
+            echo '- Compatibility: SDL2 desktop fallback. No modifications to either upstream revision.'
+            echo '- ROM: exact USA SHA256; each route has isolated SRAM.'
+            echo '- **Route exit codes are only smoke evidence**, not full original/native game-result parity.'
+            echo ''
+            for name in race_1p race_2p_split zoomzoo_progress; do
+              p="$RUNNER_TEMP/baldosa-evidence/$name.exit"
+              if test -f "$p"; then echo "- $name: exit $(cat "$p")"
+              else echo "- $name: not executed"; fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload machine-readable route observations (no ROM or SRAM)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-native-spike-evidence
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/baldosa-evidence/report.json
+            ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
+            ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
+            ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
+            ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam
+            ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam
+            ${{ runner.temp }}/baldosa-evidence/*.exit
+            ${{ runner.temp }}/baldosa-evidence/*/log.txt

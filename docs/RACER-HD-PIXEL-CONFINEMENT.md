@@ -68,3 +68,39 @@ comparison and the actual draw/fallback census.
 
 Owner: graphics/raster presentation only. The check never writes guest
 state, changes gameplay or alters art admission.
+
+## QA-08 same-viewport source-empty raster rejection (2026-10-09)
+
+The first source-presence fix #1040 blocked an *entirely empty* viewport,
+but the previous exact-density frame comparator permitted changes anywhere
+inside the union of four live OAM bounding rectangles. Two **disjoint**
+riders in the same viewport were therefore indistinguishable to that test:
+one could have a nonempty Original PPU source footprint while an entirely
+unemitted second racer gained HD pixels inside its own valid OAM box.
+
+When `--source-obj-layer` is supplied, the pixel oracle now evaluates
+the authoritative Original OBJ alpha **separately in each signed-X,
+256-wrap Y, split-clipped 64x64 racer footprint**. It builds the union
+of only source-bearing footprints. Every changed density subpixel must
+fall inside that smaller union; a changed pixel in a registered but
+source-empty, disjoint footprint fails as
+`outside_source_visible_oam_pixel_samples`, even when it would have
+passed the old `outside_live_oam_pixel_samples` bounding-box test.
+The report includes `source_obj_opaque_by_oam_footprint` and keeps
+the existing aggregate viewport counts for historical consumers.
+
+Synthetic **4x** exact pixel comparisons and **1x** Y=250 modulo-256
+wrap comparisons deliberately inject a false second top-viewport HD
+rider while preserving the independent P1 source sprite. The old
+rectangle-only and viewport-only checks would have passed; the
+source-authorization test must fail. No host C++ gameplay authority
+or ROM state changes are needed to run this checker.
+
+This protects only source-empty *disjoint* regions and does not
+infer sprite identity or SNES priority from overlapping original OBJ
+alpha. The PPU's source plane is composited across OBJ slots. Foreground
+BG/window/colour math, source pixels belonging to another object inside
+the box, frame-phase alignment and the final displayed priority still
+need same-state native/reference evidence. The new comparator runs in
+the existing exact native frame-1220 job, but a disjoint-rider **native
+moving-frame** screenshot and L4 release proof remain outstanding.

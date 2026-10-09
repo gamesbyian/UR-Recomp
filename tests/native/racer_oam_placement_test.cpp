@@ -63,8 +63,36 @@ int main() {
         mark(167, 103);
         mark(104, 111);  // Outside top OAM's 64-row tile.
         mark(10, 10);
+        // The isolated OBJ plane includes both racers. An unrelated source
+        // pixel elsewhere in the same viewport must not authorize HD pixels
+        // inside a second, disjoint 64x64 OAM footprint.
+        RacerOamPlacement other_top{
+            99, 10, 10, 10, 0x88, 0, false, false, true, 64, 64
+        };
         assert(source_count(top, RacerViewport::Top) == 2);
+        assert(source_count(other_top, RacerViewport::Top) == 1);
         assert(source_count(bottom, RacerViewport::Bottom) == 0);
+        // Clear the second rider while leaving the first one's top OBJ
+        // source intact. A viewport-level any-OBJ test would falsely pass.
+        std::array<std::uint8_t, 256u * 224u * 4u> single_source{};
+        const std::uint32_t stock = 0xFF102030u;
+        std::memcpy(
+            single_source.data() + (40u * 256u + 104u) * 4u,
+            &stock, sizeof(stock)
+        );
+        const auto count_single = [&](const RacerOamPlacement& p) {
+            return racer_stock_obj_pixels_in_footprint(
+                single_source.data(), single_source.size(), p,
+                RacerViewport::Top
+            );
+        };
+        assert(count_single(top) == 1);
+        assert(count_single(other_top) == 0);
+        other_top.x_signed = -12;
+        other_top.x_raw_9bit = 500;
+        assert(count_single(other_top) == 0);
+        other_top.x_signed = 10;
+        other_top.x_raw_9bit = 10;
         mark(130, 180);
         assert(source_count(bottom, RacerViewport::Bottom) == 1);
         top.y_raw_8bit = 110;

@@ -39,9 +39,11 @@ pinned PPU. The new
 `racer_stock_obj_pixels_in_footprint()` inspects the resulting
 256×224 ARGB32 plane inside the corresponding logical 64×64 racer
 placement, including 256-line Y wrapping and scanline-112 split
-ownership. The host determines per-viewport source presence **after
-authentic PPU rendering** and only paints authored HD assets where at
-least one source OBJ pixel exists in that viewport.
+ownership. After authentic PPU rendering, the host measures source alpha inside
+**each active racer instance's own OAM footprint**, and paints that
+instance only if its footprint contains source pixels. This is stricter
+than the first per-viewport guard and avoids authorizing a disjoint
+source-empty second rider using another rider's pixels.
 
 This does not delete the Original sprite or alter the PPU's
 `RemoveFromGame` policy; there were no stock sprite pixels to remove
@@ -49,13 +51,13 @@ in the absent half. It never modifies WRAM, SRAM, VRAM, OAM, palette,
 guest timing, inputs or race physics. The paired replacement still
 respects SNES OAM paint order within each admitted viewport.
 
-The check is intentionally **per viewport**, not per rider slot:
-the current isolated OBJ buffer contains composited color and alpha,
-not an individual per-OAM-slot ownership mask. A visible racer in one
-viewport therefore establishes only that some registered racer OBJ
-source was emitted in that half. Per-slot visual completeness, other
-sprites' occlusion and foreground BG/window priority remain separate
-QA-08 L4 obligations.
+The isolated OBJ buffer contains composited color and alpha, **not an
+individual per-OAM-slot ownership mask**. The stricter check is per
+racer *footprint* rather than true per-slot attribution. When two
+64x64 racers overlap, either one's pixels can make both footprint
+counts nonzero. Other sprites may also contribute pixels inside
+the box. Per-slot visibility, sprite overlap and foreground BG/window
+priority remain separate QA-08 L4 obligations.
 
 ## Native and unit acceptance
 
@@ -80,3 +82,46 @@ depth if stock OBJ alpha was emitted but BG overlays should obscure it.
 Do not promote this guard into a blanket L4 priority or whole-course
 visual fidelity pass. Continue the native moving-scene, 1P/VS,
 single-slot ownership and 16:9 presentation counterexample campaign.
+
+## QA-08 follow-up: same-viewport phantom-rider guard (2026-10-09)
+
+Source-confirmed defect in the prior implementation: the renderer
+accumulated all original OBJ alpha inside both registered racer rectangles
+into one `source_opaque[top|bottom]` count, then used that viewport-wide
+count to authorize **every** rider in that half. For spatially disjoint
+footprints, one real visible racer could therefore authorize a second
+source-empty HD racer. This was a distinct remaining defect even after
+the already-fixed entirely empty bottom-viewport case.
+
+The host now evaluates `racer_stock_obj_pixels_in_footprint()` separately
+for each draw instance and skips an instance with zero source alpha in
+its own OAM footprint. The normal full pair uses four instances (98,
+99, 97, 96); diagnostic P1-only uses two (98, 97). Source diagnostic
+`UR_RACER_HD_SOURCE_FOOTPRINTS` records `alpha0..alpha3` and `count=2|4`,
+while the existing `UR_RACER_HD_SOURCE_OBJ` line is retained for
+historical parser compatibility. The viewport counts are sums of
+footprint samples, **not distinct source pixels** when rectangles
+overlap, so do not use them as a unique alpha-pixel denominator.
+
+The existing moving-source analyzer now validates that every new
+per-footprint line agrees with the viewport total, rejects duplicates,
+P1-only inactive-slot data and missing witnesses, and reports empty
+individual footprints. Older native logs remain analyzable but cannot
+prove individual rider-source gating. The synthetic C++ witness
+deliberately places original pixels inside only one of two disjoint
+top-viewport racers; the second footprint must report zero. This
+change is **committed with unit/regression fixtures, pending fresh
+native moving-scene validation on the exact PR candidate**. Do not
+retroactively revise the published 87/441 or 169+902/2641 native
+callback census as actual visible pixel counts. Those measurements
+predate the per-footprint guard and classify presenter callbacks,
+which can include a source-empty skipped instance.
+
+Next native discriminator: capture real top/bottom per-instance alpha
+for an event-aligned moving 2P interval, including disjoint and
+overlapping footprints, Y-wrap and scanline-112 transitions. Compare
+same-frame Original and HD at both 1x and 4x and preserve guest state.
+A per-footprint hit does not identify which OAM slot emitted it;
+ambiguous overlaps and BG/window/other-OBJ priority still require
+a PPU-visible ownership/depth seam or a conservative pre-capture
+admission policy before L4 can pass.

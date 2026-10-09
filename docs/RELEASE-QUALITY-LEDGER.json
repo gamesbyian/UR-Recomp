@@ -246,7 +246,7 @@
         "J-13",
         "J-16"
       ],
-      "next_action": "QA-08 P1/L4 unverified: native 2P first-race frame 1220 emitted 372 upper racer Original PPU OBJ pixels and zero lower-viewport pixels, yet the original HD host had fabricated a visible lower racer. Renderer fix now suppresses HD sprite painting in a viewport where the original PPU emitted no source OBJ pixels, retaining exact-state masked-OBJ and capture-only controls from #1034 and legacy plane export from #1029. Require exact native screenshot acceptance and 441-frame stock-OBJ visibility/toggle census, then advance per-OAM-slot foreground BG/window/other-OBJ priority, moving 1P/2P/VS and 4:3/16:9 scaling/camera/split-scene counterexamples; no whole-game art completion claim.",
+      "next_action": "QA-08 P1/L4 remains UNVERIFIED. Implemented per-instance HD source-OBJ footprint gating replaces the prior per-viewport authority error: no HD rider may be painted where its individual Original PPU OAM footprint has no source alpha. Recovered original moving 2P evidence observed 87/882 actual source-visible viewport-frame slots rather than 174/882 inferred callbacks, but cannot disambiguate overlapping riders. Accept only after exact fresh native 441-frame source footprint census, matched stock-HD moving 1P/2P/VS screenshots, per-OAM-slot overlap and BG/window priority, full widened 342x224 7:6 PAR HUD/OBJ and physical 4K output on the same candidate. No Remastered release pass or blanket art coverage.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

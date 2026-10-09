@@ -86,8 +86,8 @@ window, guest frames 1180–1620**, contains:
 | Exact live native 2P measurement | Result |
 | --- | ---: |
 | Guest frames with a host present | **441/441** |
-| Real full-pair HD presentations | **87** (19.73%) |
-| Real Original presentations | **354** (80.27%) |
+| Full-pair HD **host callbacks**, not guaranteed two visible riders | **87** (19.73%) |
+| Original host fallback presentations | **354** (80.27%) |
 | HD motion runs / one-frame runs | **16 / 5** |
 | Original→HD / HD→Original edges | **16 / 16** |
 | Longest HD run | 16 frames |
@@ -95,8 +95,7 @@ window, guest frames 1180–1620**, contains:
 | Original fallback reasons | P1 composition/art 342; P2 pair gate 12 |
 | Capture armed but no HD draw | **0** in this route |
 
-The contiguous `1205–1220` shipping-art strip is **16/16 genuinely
-HD-drawn frames**, and `1261–1267` is **7/7**, but the remaining
+The contiguous `1205–1220` shipping-art strip is **16/16 host-HD-presented frames**, and `1261–1267` is **7/7**, but the remaining
 moving race is mostly Original. This is a measured *draw availability*
 result, not just semantic selection. Fast alternation remains a
 visual-coherence concern: 32 genuine HD/Original callback switches
@@ -240,3 +239,42 @@ a passed release gate based on bounded admissions.
 This work owns graphics diagnostics only. It does not change gameplay,
 controller input, profile saves, tournaments, frontend, audio, package
 policy or CI scheduling.
+
+## Recovered post-fix original-OBJ visibility denominator (2026-10-09)
+
+The hash-bound QA-08 artifact
+[`analysis/generated/racer-hd-ppu-source-visible-2026-10-09.json`](../analysis/generated/racer-hd-ppu-source-visible-2026-10-09.json)
+was recovered from a completed but unintegrated graphics branch.
+This is **another native run**, workflow `37880531185`, artifact
+`11594069792`, PR #1040 exact head
+`864d3cbeb8a4a2db73e6216b7efcb4965d019988`,
+ZIP SHA256
+`91fbd4e188e8fc3532a5fd4fc291ef48274dfa3b67f1721bcea1a3f8a7462e9d`.
+It uses the ordinary USA retail 2P first-race fixture and native guest
+frames 1180–1620 (441 consecutive frames), after the conservative
+source-empty viewport suppression.
+
+| Source-visible 2P window denominator | Observed |
+| --- | ---: |
+| HD host callback frames | 87/441 (19.73%) |
+| Original host fallback frames | 354/441 (80.27%) |
+| HD callbacks with source OBJ alpha in **top only** | **87/87** |
+| HD callbacks with source OBJ alpha in bottom | **0/87** |
+| Source-visible HD viewport slots (two per frame) | **87/882 (9.86%)** |
+| Top/bottom source-presence switches within 71 adjacent HD callback edges | **0 / 0** |
+
+**Correction to historical interpretation:** "87 full-pair HD
+presentations" was a statement about successful host draw callbacks,
+not an actual two-visible-rider image. The hardware-source raster had
+no lower viewport racer pixels in any of those 87 callback frames.
+The old callback-based player-frame statistic (2 for full-pair, 1 for
+P1-only) is therefore a ceiling for host admission, **not a demonstrated
+count of source-visible HD rider player-frames**.
+
+The visible upper-viewport count likewise is **not** independently
+attributed to P1 versus P2 when the sprite footprints overlap, and it
+does not establish that HDR-style artwork actually changes every
+source-bearing pixel or respects foreground depth. The new per-instance
+footprint probes are meant to discriminate disjoint same-viewport
+source-empty riders in future native runs. Until that exact-candidate
+visual validation passes, retain the original zero L4 witness count.

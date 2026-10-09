@@ -22,6 +22,12 @@ PRESENT = re.compile(
     re.MULTILINE,
 )
 
+FOOTPRINTS = re.compile(
+    r"^UR_RACER_HD_SOURCE_FOOTPRINTS frame=(\d+) count=([24]) "
+    r"alpha0=(\d+) alpha1=(\d+) alpha2=(\d+) alpha3=(\d+)$",
+    re.MULTILINE,
+)
+
 
 def analyze(log: str, first: int, last: int) -> dict:
     if first < 0 or last < first:
@@ -39,6 +45,28 @@ def analyze(log: str, first: int, last: int) -> dict:
         if drawn_top != int(source_top > 0) or drawn_bottom != int(source_bottom > 0):
             raise ValueError(f"source-empty viewport was painted at {frame}")
         sources[frame] = (source_top, source_bottom, drawn_top, drawn_bottom)
+    # Footprint counts distinguish disjoint racer envelopes, unlike the
+    # existing viewport aggregate. Counts in overlaps are not slot-attributed.
+    footprints = {}
+    for hit in FOOTPRINTS.finditer(log):
+        f = int(hit[1])
+        if not first <= f <= last:
+            continue
+        if f in footprints:
+            raise ValueError(f"duplicate OBJ footprint witness for frame {f}")
+        count = int(hit[2])
+        alpha = tuple(int(hit[i]) for i in range(3, 7))
+        if count == 2 and (alpha[2] or alpha[3]):
+            raise ValueError(f"inactive P1-only footprint populated at {f}")
+        footprints[f] = (count, alpha)
+    if footprints:
+        if set(footprints) != set(sources):
+            raise ValueError("OBJ footprint witness does not match HD source frames")
+        for f, (count, alpha) in footprints.items():
+            top = alpha[0] + (alpha[1] if count == 4 else 0)
+            bottom = alpha[2] + alpha[3] if count == 4 else alpha[1]
+            if (top, bottom) != sources[f][:2]:
+                raise ValueError(f"OBJ footprint/source summary disagreement at {f}")
     presented = [
         int(hit[1]) for hit in PRESENT.finditer(log)
         if first <= int(hit[1]) <= last
@@ -99,14 +127,36 @@ def analyze(log: str, first: int, last: int) -> dict:
         + counts["bottom_only_obj_frames"] != counts["hd_guest_frames"]
     ):
         raise ValueError("source visibility category denominator drift")
+    instance_counts = {
+        "full_pair_frames": sum(count == 4 for count, _ in footprints.values()),
+        "p1_only_frames": sum(count == 2 for count, _ in footprints.values()),
+        "nonempty_footprints": sum(
+            sum(a > 0 for a in alpha[:count])
+            for count, alpha in footprints.values()
+        ),
+        "empty_footprints": sum(
+            sum(a == 0 for a in alpha[:count])
+            for count, alpha in footprints.values()
+        ),
+        "one_empty_top_rider_footprint_frames": sum(
+            count == 4 and ((alpha[0] > 0) != (alpha[1] > 0))
+            for count, alpha in footprints.values()
+        ),
+        "one_empty_bottom_rider_footprint_frames": sum(
+            count == 4 and ((alpha[2] > 0) != (alpha[3] > 0))
+            for count, alpha in footprints.values()
+        ),
+    }
     return {
-        "schema_version": 1,
+        "schema_version": 2 if footprints else 1,
         "window": [first, last],
         "measurement": counts,
+        "footprint_measurement": instance_counts if footprints else None,
         "examples": examples,
         "scope": (
             "actual post-PPU captured OBJ alpha and HD paint suppression per "
-            "split viewport, not isolated OAM-slot ownership or foreground BG priority"
+            "split viewport; individual footprint samples are not OAM-slot "
+            "attribution for overlapping riders or foreground BG priority"
         ),
     }
 

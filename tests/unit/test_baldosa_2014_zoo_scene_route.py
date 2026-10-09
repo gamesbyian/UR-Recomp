@@ -36,7 +36,7 @@ class Baldosa2014ZooSceneTest(unittest.TestCase):
                          [l for l in prefix.splitlines() if l.startswith("press ")])
         self.assertNotIn("press left 6000", route)
         for frame in mod.PROGRESS_FRAMES:
-            self.assertIn(f"dump progress-{frame:04d}\\n".replace("\\\\n", "\\n"), route)
+            self.assertIn(f"dump progress-{frame:04d}\n", route)
         with self.assertRaises(ValueError):
             mod.source_menu_prefix(upstream.replace("until 0E1F != 00\n", ""))
 

@@ -7,6 +7,7 @@ its on-disk root. This is process-kill evidence, not a power-loss witness.
 import pathlib
 import subprocess
 import tempfile
+import time
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -93,6 +94,60 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 capture_output=True, timeout=20,
             )
             self.assertEqual(verify_credit.returncode, 0, verify_credit.stderr)
+
+            # J-07 process-level overlap: old window has a valid completed
+            # saved pair, but a second window supersedes its pending token.
+            # Only the NEW durable checkpoint owner may claim the receipt.
+            overlap = root / "same-event-two-windows"
+            seeded = subprocess.run(
+                [str(exe), "seed-overlap", str(overlap)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(seeded.returncode, 0, seeded.stderr)
+            old = subprocess.Popen(
+                [str(exe), "contend-old", str(overlap)], cwd=ROOT,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            new = None
+            try:
+                deadline = time.monotonic() + 10
+                while not (overlap / "barrier" / "old-ready").exists():
+                    self.assertLess(time.monotonic(), deadline,
+                                    "old game never armed its exact attempt")
+                    time.sleep(0.01)
+                new = subprocess.Popen(
+                    [str(exe), "contend-new", str(overlap)], cwd=ROOT,
+                    stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                out_old, err_old = old.communicate(timeout=20)
+                self.assertEqual(old.returncode, 0, err_old)
+                self.assertIn(b"QA02_OLD_ATTEMPT_REJECTED", out_old)
+                out_new, err_new = new.communicate(timeout=20)
+                self.assertEqual(new.returncode, 0, err_new)
+                self.assertIn(b"QA02_NEW_ATTEMPT_COMMITTED", out_new)
+            finally:
+                for child in (old, new):
+                    if child and child.poll() is None:
+                        child.kill()
+                        child.communicate(timeout=5)
+            overlap_records = overlap / "multiplayer-runs"
+            self.assertEqual(len(list(overlap_records.glob("*.urrun"))), 2)
+            self.assertEqual(
+                len(list(overlap_records.glob("*.urrun.urmatch"))), 2)
+            overlap_receipts = list(
+                (overlap / "local-tournaments").glob(
+                    "*/fixtures/fixture-0.urfixture"))
+            self.assertEqual(len(overlap_receipts), 1)
+            restored_overlap = subprocess.run(
+                [str(exe), "verify-c15", str(overlap)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(restored_overlap.returncode, 0,
+                             restored_overlap.stderr)
+            self.assertIn(
+                b"QA02_C15_SINGLE_RECEIPT_SINGLE_AWARD",
+                restored_overlap.stdout,
+            )
 
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))

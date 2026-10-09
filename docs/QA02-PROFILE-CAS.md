@@ -208,3 +208,33 @@ boot-time adoption mechanism and does not make the initial profile and
 catalogue row a single power-loss-durable commit. Fail-closed diagnostic
 and separate salvage policy remain required for those cases. QA-02 stays
 P0 until exact packaged Windows L4 fault acceptance.
+
+## C01: crash after canonical rename, before staging cleanup (2026-10-09)
+
+The previous exact-pristine orphan policy rejected any `.pending-urprofile-*`
+directory, even when a process died **after** the durable profile file was
+published and moved `record.tmp` out of its private staging reservation.
+That crash leaves an empty directory with no unpublished data but made the
+newly created racer irrecoverable by an explicit Create retry.
+
+The classifier now admits such reserved names only if they are **real empty
+directories**, while continuing to reject symlinks, other names, unfinished
+`record.tmp` payloads, unknown SRAM and changed profile state. The caller
+holds the persistent profile mutex while checking the whole initial snapshot
+and publishing its catalog row; recovery never removes the empty directory or
+reinterprets its contents as progress.
+
+The real staged-file primitive has a test-only fault callback immediately
+after successful canonical publication and directory-sync attempt but before
+staging cleanup. A child process exits from that exact point. A fresh process
+verifies intact profile bytes and the empty reservation, claims the original
+identity through the exact roster CAS, and checks that the profile bytes and
+staging evidence survive. A nonempty stage with `record.tmp` is explicitly
+rejected. The earlier prepublication crash fixture continues to prove that
+no newly published file appears before the rename. These are fault-injected
+process-kill witnesses, **not power-loss durability evidence**.
+
+The remaining C01 interruption between successful catalog publication and
+cleanup of unrelated paths, and C04/C09/C14/C15 multi-artifact recovery,
+remain part of QA-02 P0. The packaged Windows candidate needs the same
+fresh-process experiment.

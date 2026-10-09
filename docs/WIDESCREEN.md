@@ -1,6 +1,6 @@
 # Widescreen Feature Architecture
 
-**Baldosa integration, 2026-10-09:** First-party course-derived margins and merged #1078 produce bounded +24 additional logical world pixels in both split-screen views. Open #1082 owns the proposed **342×224 true-16:9 7:6-PAR** expansion with +48 tile backing. It is not yet admitted as complete 4K host output or exact HUD/OBJ visibility. Reuse the existing world provider and 4× fallback compositor; QA-08 open #1045 covers original source-visible P1/P2 sprites. No second widening subsystem.
+**Baldosa integration, 2026-10-09:** Merged #1078 and #1082 preserve guest geometry and produce native, course-derived +24 and +43 logical world pixels per side, respectively. The 342×224 view uses calibrated +48-cell backing to cover fine scroll phase and has been witnessed in both 2P split views without changing guest CRCs. Merged #1045 conservatively protects original source-visible P1/P2 OBJ. PR #1092 connects this *existing* widened source field to the existing stable integer-density compositor and tests exact 1368×896 host-presentation pixels at 4×. Its runtime QA is a component gate until exact native CI completes. This is still not a demonstrated physical 3840×2160 Windows drawable, 4K-capable product window integration, authored HD racer replacement in widened frames, or independent PPU/HUD/foreground layer parity. The first-party world provider, original sprite capture guards and approved artwork remain the only authorities; do not create another renderer.
 
 The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This document owns the **Widescreen** feature specifically: implementation notes for expanding the logical horizontal view beyond the original 4:3 presentation.
 
@@ -9,6 +9,14 @@ The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This docume
 Increase presentation width while keeping original simulation semantics.
 
 Original 4:3 remains the canonical regression mode. With the Widescreen feature disabled, defined deterministic routes must remain equivalent to the stock native/reference path.
+
+## Baldosa wide host presentation boundary
+
+The title-owned course materializer `native/title/uniracers_ws_margins.c` reads real bank-$7F course cells, calibrates against native per-band PPU VRAM and HDMA scroll, and serves additional tiles through the framework's world-shadow hooks. It does not modify guest camera, WRAM, VRAM, collision or course execution. A failed calibration must shrink back to a stock 256×224 field. The host samples at 342×224 only for an independently recognized live-race scene; the bounded Baldosa experiment still uses its 1800..2450 route window, which is **not** a shipping game-state classifier. Agent 2's guest-state evidence should drive the eventual production scene decision, using the existing `observe_widescreen_scene` contract.
+
+The same native compositor must receive every fixed and wide field. Its internal density is 1×–4× *separately from* logical world extent and the final output/window size. With current source-OBJ limitations, the widened 342×224 field retains every Original stock rider and is fully nearest-composed at any accepted density. **Do not arm Racer HD RemoveFromGame for 342-wide geometry until isolated source-visible per-slot 2P ownership and final draw coordinates are proved.** Merged authored 256×224 4× graphics continue to work in supported fixed scenes. This conservative fallback is preferable to fabricating missing or overpainted riders.
+
+The original source display is 7:6 PAR, and discrete 342-wide source geometry uses 512/513 horizontal fit to target exact 16:9. The pure output-layout authority is `native/product/widescreen_output_composition.*`; **neither 342×224 nor 1368×896 is the physical 3840×2160 drawable**. Agent 1 owns final host window/display application and the actual pixel-aspect/output evidence. Preserve source-present-frame identity, host pitch, band ownership, original RGB/OBJ comparisons and guest CRCs when giving it captures.
 
 ## Systems to map before widening
 

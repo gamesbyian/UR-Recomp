@@ -118,7 +118,7 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
     if stunt:
         lines += ["until 009F == 2F 9000", "dump result-tally"]
     lines += [f"until 009F == {result_menu:02X} 9000",
-              "dump result-onset", "wait 2", "dump result-stable", "quit"]
+              "dump result-onset", "wait 6", "dump result-stable", "quit"]
     return "\n".join(lines) + "\n"
 
 

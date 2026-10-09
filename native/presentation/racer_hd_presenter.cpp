@@ -161,6 +161,7 @@ void dump_obj_layer_for_occlusion_review() noexcept {
         "P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
         "TUPLTYPE RGB_ALPHA\nENDHDR\n";
     bool ok = std::fwrite(header, 1, std::strlen(header), file) == std::strlen(header);
+    std::size_t opaque_pixels = 0;
     for (int y = 0; ok && y < kBaseHeight; ++y) {
         for (int x = 0; x < kBaseWidth; ++x) {
             const std::size_t byte_offset =
@@ -177,6 +178,7 @@ void dump_obj_layer_for_occlusion_review() noexcept {
                 static_cast<std::uint8_t>(pixel & 0xFF),
                 static_cast<std::uint8_t>((pixel >> 24) & 0xFF)
             };
+            if (rgba[3] != 0) ++opaque_pixels;
             if (std::fwrite(rgba, 1, sizeof(rgba), file) != sizeof(rgba)) {
                 ok = false;
                 break;
@@ -186,8 +188,10 @@ void dump_obj_layer_for_occlusion_review() noexcept {
     if (std::fclose(file) != 0) ok = false;
     std::fprintf(
         stderr,
-        "UR_RACER_HD_OBJ_LAYER frame=%u status=%s path=%s\n",
-        g_sim_frame, ok ? "captured" : "io-error", output
+        "UR_RACER_HD_OBJ_LAYER frame=%u status=%s opaque_pixels=%zu path=%s\n",
+        g_sim_frame,
+        !ok ? "io-error" : opaque_pixels ? "captured" : "empty",
+        opaque_pixels, output
     );
 }
 

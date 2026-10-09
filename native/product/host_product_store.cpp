@@ -1,5 +1,6 @@
 #include "host_product_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -75,6 +76,33 @@ HostProductSaveStatus save_host_product_state_file(
         return HostProductSaveStatus::IoError;
     }
     return HostProductSaveStatus::Saved;
+}
+
+
+HostProductSaveStatus save_host_product_state_file_if_current(
+    const std::string& path,
+    const std::optional<HostProductState>& expected_current,
+    const HostProductState& next) {
+    if (path.empty() || encode_host_product_state(next).empty()) {
+        return HostProductSaveStatus::Rejected;
+    }
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProductSaveStatus::IoError;
+
+    const auto current = load_host_product_state_file(path);
+    if (current.status == HostProductLoadStatus::IoError) {
+        return HostProductSaveStatus::IoError;
+    }
+    if (expected_current) {
+        if (!current.loaded() || !(*current.state == *expected_current)) {
+            return HostProductSaveStatus::Conflict;
+        }
+    } else if (current.status != HostProductLoadStatus::Missing) {
+        // Corrupt/unsupported global state is not an absent file. Do not
+        // obliterate it by writing defaults through a create-only request.
+        return HostProductSaveStatus::Conflict;
+    }
+    return save_host_product_state_file(path, next);
 }
 
 }  // namespace ur::product

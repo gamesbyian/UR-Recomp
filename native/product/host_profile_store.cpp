@@ -1,5 +1,6 @@
 #include "host_profile_store.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <cerrno>
 #include <cstdio>
@@ -158,6 +159,39 @@ HostProfileSaveStatus save_host_profile_state_file(
         return HostProfileSaveStatus::IoError;
     }
     return HostProfileSaveStatus::Saved;
+}
+
+HostProfileSaveStatus save_host_profile_state_file_if_current(
+    ExecutionMode mode,
+    const std::string& path,
+    const std::optional<HostProfileState>& expected_current,
+    const HostProfileState& next) {
+    if (!policy_for(mode).host_profiles || path.empty() ||
+        encode_host_profile_state(next).empty() ||
+        (expected_current &&
+         expected_current->profile_id != next.profile_id)) {
+        return HostProfileSaveStatus::Rejected;
+    }
+
+    // The lock must cover both the comparison and the publication. A read
+    // followed by a separate unlocked write is vulnerable to the same
+    // two-process lost-update race as the previous .tmp implementation.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProfileSaveStatus::IoError;
+    const auto current =
+        load_host_profile_state_file(mode, path, next.profile_id);
+    if (expected_current) {
+        if (current.status == HostProfileLoadStatus::IoError)
+            return HostProfileSaveStatus::IoError;
+        if (!current.loaded() || *current.state != *expected_current)
+            return HostProfileSaveStatus::Conflict;
+    } else {
+        if (current.status == HostProfileLoadStatus::IoError)
+            return HostProfileSaveStatus::IoError;
+        if (current.status != HostProfileLoadStatus::Missing)
+            return HostProfileSaveStatus::Conflict;
+    }
+    return save_host_profile_state_file(mode, path, next);
 }
 
 }  // namespace ur::product

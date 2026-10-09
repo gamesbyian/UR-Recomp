@@ -212,6 +212,9 @@ bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
 bool g_suppress_human_input_once;
 ur::product::ModernHostInputReleaseLatch g_human_input_release_latch;
+// P2 is deliberately not a root navigator, but must not sneak stock-menu
+// inputs through the P1-owned shell or retain held edges after the handoff.
+ur::product::ModernHostInputReleaseLatch g_root_p2_input_release_latch;
 // Restart confirmation is host-owned even when the frozen guest has never
 // sampled Return. The physical key-up, not a guessed guest-frame delay,
 // releases this additional default Return -> SNES Start barrier.
@@ -8680,7 +8683,19 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
         g_tournament_p2_guest_input, g_local_tournament_panel_visible,
         inputs);
     g_tournament_p2_guest_input = filtered.state;
-    return filtered.inputs;
+    // Protect the entire D7 host shell, including nested profile/options/
+    // records modals and the queued stock 1P/2P entry. Keep this separate
+    // from tournament P2 ownership, which remains authoritative on 0x3D.
+    const bool root_owned = g_ram && g_ram[0x009F] == 0xD7 &&
+        !snesrecomp_desktop_script_active() &&
+        (modern_root_visible() || g_modern_root_stock_target >= 0 ||
+         g_profile_menu_visible || g_practice_picker.visible ||
+         g_frontend_records_open || g_tour_action_visible ||
+         host_subview_visible() || onboarding_surface_active());
+    const auto owned = ur::product::modern_host_input_filter(
+        g_root_p2_input_release_latch, root_owned, filtered.inputs);
+    g_root_p2_input_release_latch = owned.latch;
+    return owned.inputs;
 }
 
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {

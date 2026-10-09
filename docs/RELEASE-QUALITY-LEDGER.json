@@ -24,8 +24,7 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/COURSE-CONTACT-MARSHAL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
-        "analysis/data/zoo-original-2014-live-progression.json"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",
@@ -183,8 +182,7 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/EXPERT-PLAYTEST-PROTOCOL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
-        "analysis/data/zoo-original-2014-live-progression.json"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",

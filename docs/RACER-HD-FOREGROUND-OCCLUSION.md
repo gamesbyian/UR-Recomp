@@ -86,6 +86,33 @@ racers, vertical motion, split seams and overlap-heavy sequences.
 Instrument only exact-approved native HD frames and use unchanged
 independent stock screenshots at matching guest state.
 
+## Legacy PPU raster extraction defect and narrow framework correction
+
+The pinned SNESRecomp revision
+`cd5875cbdaf19f5e324272b1f8051d671fce9215` contained
+a source-confirmed diagnostic omission: sprite evaluation wrote
+Original OBJ pixels into
+`ppu->overlayBuffers[kPpuOverlaySource_Obj]`, but
+`PpuWriteOverlayRenderLine` exported that buffer only via the
+new raster pathway. The default authentic legacy renderer called
+`ppu_draw_whole_line_legacy` without exporting the isolated OBJ line,
+so the opted-in RGBA/P7 capture was completely transparent despite
+native full-pair HD admission.
+
+The repo-owned SHA256-pinned
+`tools/patches/snesrecomp-racer-legacy-obj-overlay.patch`
+adds **one opt-in source-plane copy after legacy PPU line rendering**.
+The already-existing `PpuWriteOverlayRenderLine` checks the output
+binding and active capture, so without a host capture it leaves
+the Original framebuffer and guest state untouched.
+
+Native graphics acceptance now requires the captured frame-1220
+isolated OBJ layer to contain nonzero alpha, while keeping the
+Original/HD screenshot regressions. This patch fixes extraction,
+**not** SNES priority compositing: even a fully populated RGBA
+OBJ layer cannot alone establish the visibility of sprites behind
+BG1/BG2, windows, other OBJ or color math. QA-08 L4 remains open.
+
 ## Stop condition for accepting foreground depth
 
 A meaningful QA-08 L4 result needs a representative course/motion/

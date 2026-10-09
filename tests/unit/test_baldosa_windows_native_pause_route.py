@@ -33,7 +33,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 probe.frame_crcs(root)
 
     def test_pause_needs_all_three_real_witnesses(self):
-        valid = ("UR_BALDOSA_NATIVE_PAUSE ARMED guest=120\n"
+        valid = ("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24\n"
                  "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n")
         self.assertEqual(set(probe.check_pause_log(valid)),

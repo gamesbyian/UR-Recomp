@@ -103,6 +103,14 @@ The #982 receipt claim, #984 mutable tournament staging and #985 exact-launch re
 
 Still unclosed: monotonic profile/SRAM generation ownership, catalog/session stale-write conflicts, complete run→ghost→match→fixture receipt→launch retirement recovery, migration/interrupted upgrades, disk-full errors, directory durability after power loss, and the exact Windows packaged two-process J-02/J-07/J-08 journeys. Publication integrity is necessary but not a multi-file transaction. Treat crash-orphan staged directories and sidecars without a committed matching primary as non-authoritative.
 
+### QA-02 2026-10-09 transaction-level checkpoint
+
+The source-confirmed fixed-temp-file clobber (#991), POSIX match/run pair filename replacement and buffered close errors (#993), oversized corrupt catalog recovery read (#995), and missing staged file-data sync (#1005) are merged with focused Linux CI evidence. The precise cross-process failure classes exposed by those changes are actionable tests, **not** an L4 packaged Windows acceptance or a power-failure durability guarantee.
+
+Three remaining source-confirmed lost-update bugs have standalone, implementation-and-test PRs: [#996](https://github.com/gamesbyian/UR-Recomp/pull/996) exact profile/SRAM expected-state CAS including rollback; [#1003](https://github.com/gamesbyian/UR-Recomp/pull/1003) catalog prior-roster CAS and conditional profile deletion (stacked on #996); and [#1009](https://github.com/gamesbyian/UR-Recomp/pull/1009) guarded tournament active-pointer replacement. Their store-level tests require distinct operating-system processes that read the same incumbent before a barrier, then prove exactly one commit and one conflict, rather than trusting in-process thread tests or preflight `exists()`.
+
+Do not mark QA-02 passed even after those merges. Crash after creating a profile but before catalog registration can leave an orphan with no discovery policy; framework `.srm` and host profile commits can split; a canonical `.urrun` may precede its optional ghost trace or fixture receipt; immutable archives and active tournament/launch pointer updates are not a group commit. Directory sync failures after rename are **committed but durability-uncertain**, not safe precommit failures. Demand exact-candidate Windows dual-instance J-02/J-07/J-08 restore evidence, disk faults, interrupted upgrades, replay/fixture authority and no fabricated or duplicate credit.
+
 ## Next concrete work
 
 1. Freeze a current candidate and record the Windows package from *that* SHA.

@@ -20,6 +20,9 @@ HEADER = "  uint32_t (*filter_human_frame_inputs)(uint32_t word, unsigned frame)
 PUBLIC = "int snesrecomp_desktop_frame_width(void);\n"
 GLOBAL = "static uint8 g_paused, g_turbo, g_cursor = true;\n"
 EVENT = "    if (!running)\n      break;\n    OverlaySelftestPadMainTick(frameCtr);\n"
+PAUSE_GATE = ("    if (g_paused && !g_savestate_menu_hotkey && !g_rewind_hotkey &&\\n"
+              "        !g_open_launcher_hotkey) {\\n")
+LEGACY_COMMAND = "  if (j == kKeys_Turbo) {\\n"
 STAT = "    .after_run_frame     = &ur_baldosa_guest_snapshot_after_run_frame,\n"
 HOST = "static const SnesDesktopHostGame kGameHost = {\n"
 
@@ -77,26 +80,26 @@ def patch_host_source(source: str) -> str:
     # No legacy guest-state mutation, save/load, or parallel overlay may
     # bypass a Modern-owned pause. Presentation hotkeys remain permissible.
     commands = (
-        "  /* " + MARK + ": host-owned pause blocks guest hotkeys. */\\n"
-        "  if (g_product_pause_owned) {\\n"
-        "    switch (j) {\\n"
-        "    case kKeys_Fullscreen: case kKeys_WindowBigger:\\n"
-        "    case kKeys_WindowSmaller: case kKeys_DisplayPerf:\\n"
-        "    case kKeys_Screenshot: case kKeys_VolumeUp:\\n"
-        "    case kKeys_VolumeDown: break;\\n"
-        "    default: return;\\n"
-        "    }\\n"
-        "  }\\n"
+        "  /* " + MARK + ": host-owned pause blocks guest hotkeys. */\n"
+        "  if (g_product_pause_owned) {\n"
+        "    switch (j) {\n"
+        "    case kKeys_Fullscreen: case kKeys_WindowBigger:\n"
+        "    case kKeys_WindowSmaller: case kKeys_DisplayPerf:\n"
+        "    case kKeys_Screenshot: case kKeys_VolumeUp:\n"
+        "    case kKeys_VolumeDown: break;\n"
+        "    default: return;\n"
+        "    }\n"
+        "  }\n"
         + LEGACY_COMMAND)
     gate = (
-        "    /* " + MARK + ": never open stock overlays during product pause. */\\n"
-        "    if (g_product_pause_owned) {\\n"
-        "      g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;\\n"
-        "      snes_host_clock_reset(&video_clock, MonotonicSeconds(),\\n"
-        "          g_simulation_hz, presentation_hz);\\n"
-        "      HostSleepMs(16);\\n"
-        "      continue;\\n"
-        "    }\\n" + PAUSE_GATE)
+        "    /* " + MARK + ": never open stock overlays during product pause. */\n"
+        "    if (g_product_pause_owned) {\n"
+        "      g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;\n"
+        "      snes_host_clock_reset(&video_clock, MonotonicSeconds(),\n"
+        "          g_simulation_hz, presentation_hz);\n"
+        "      HostSleepMs(16);\n"
+        "      continue;\n"
+        "    }\n" + PAUSE_GATE)
     return (source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
                   .replace(LEGACY_COMMAND, commands, 1)
                   .replace(PAUSE_GATE, gate, 1))

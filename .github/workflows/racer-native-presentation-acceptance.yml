@@ -9,6 +9,7 @@ on:
       - "tools/summarize_racer_semantic_trace.py"
       - "tools/measure_racer_hd_fallback_frequency.py"
       - "tools/measure_racer_hd_live_draws.py"
+      - "tools/measure_racer_hd_source_visibility.py"
       - "tools/measure_racer_hd_scene_tail.py"
       - "tools/check_racer_hd_pixel_confinement.py"
       - "tools/probe_racer_hd_fallback_family.py"
@@ -31,6 +32,7 @@ on:
       - "tests/unit/test_check_racer_presentation_trace.py"
       - "tests/unit/test_measure_racer_hd_fallback_frequency.py"
       - "tests/unit/test_measure_racer_hd_live_draws.py"
+      - "tests/unit/test_measure_racer_hd_source_visibility.py"
       - "tests/unit/test_measure_racer_hd_scene_tail.py"
       - "tests/unit/test_racer_hd_pixel_confinement.py"
       - "tests/unit/test_probe_racer_hd_fallback_family.py"
@@ -320,6 +322,27 @@ jobs:
               f"fallback={m['original_presented_guest_frames']} "
               f"switches={m['draw_mode_switches']} "
               f"bursts={m['hd_run_count']}"
+          )
+          PY
+
+          # A WRAM/OAM pose can be registered despite emitting zero Original
+          # sprite pixels in its viewport. Record actual PPU source presence
+          # throughout the real moving race and guard missing-source painting.
+          python3 tools/measure_racer_hd_source_visibility.py \
+            "$HD_LOG" --from-frame 1180 --to-frame 1620 \
+            --json-out "$RUNNER_TEMP/racer-hd-source-visibility-race-window.json" \
+            > "$RUNNER_TEMP/racer-hd-source-visibility-race-window.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-source-visibility-race-window.json" <<'PY'
+          import json, sys
+          m = json.load(open(sys.argv[1], encoding="utf-8"))["measurement"]
+          assert m["hd_guest_frames"] == 87, m
+          assert m["bottom_obj_absent_frames"] > 0, m
+          assert m["both_obj_absent_frames"] <= m["hd_guest_frames"], m
+          print(
+              "UR_RACER_HD_SOURCE_WINDOW PASS "
+              f"hd={m['hd_guest_frames']} "
+              f"bottom_missing={m['bottom_obj_absent_frames']} "
+              f"top_missing={m['top_obj_absent_frames']}"
           )
           PY
 
@@ -1593,6 +1616,8 @@ jobs:
             ${{ runner.temp }}/racer-hd.log
             ${{ runner.temp }}/racer-hd-live-census.json
             ${{ runner.temp }}/racer-hd-live-race-window.json
+            ${{ runner.temp }}/racer-hd-source-visibility-race-window.json
+            ${{ runner.temp }}/racer-hd-source-visibility-race-window.txt
             ${{ runner.temp }}/racer-hd-live-race-window.txt
             ${{ runner.temp }}/racer-hd-frame-1220-confinement.json
             ${{ runner.temp }}/racer-hd-live-census.txt

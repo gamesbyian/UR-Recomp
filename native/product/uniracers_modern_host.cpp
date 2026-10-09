@@ -1759,7 +1759,8 @@ bool persist_live_profile_snapshot() {
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
         return true;
     }
-    auto candidate = *g_profile_state;
+    const auto original_state = *g_profile_state;
+    auto candidate = original_state;
     if (ur::product::capture_stock_sram_for_profile(
             ur::product::ExecutionMode::Modern,
             candidate,
@@ -1771,12 +1772,29 @@ bool persist_live_profile_snapshot() {
     if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
-            *g_profile_state,
+            original_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         return false;
     }
+    // The framework SRAM is a separate artifact. A failed second-phase
+    // write must not leave a newer profile mirror silently committed while
+    // the caller believes the snapshot failed. Never undo another process's
+    // newer profile: authorize rollback against our exact intermediate state.
+    if (!RtlTryWriteSram()) {
+        const auto rollback =
+            ur::product::save_host_profile_state_file_if_current(
+                ur::product::ExecutionMode::Modern,
+                g_profile_state_path,
+                candidate,
+                original_state);
+        product_diagnostic(
+            rollback == ur::product::HostProfileSaveStatus::Saved
+                ? "UR_PROFILE_SNAPSHOT SRAM_FAILED_ROLLED_BACK"
+                : "UR_PROFILE_SNAPSHOT SRAM_FAILED_ROLLBACK_CONFLICT");
+        return false;
+    }
     g_profile_state = std::move(candidate);
-    return RtlTryWriteSram();
+    return true;
 }
 
 bool activate_profile_id(const std::string& profile_id) {

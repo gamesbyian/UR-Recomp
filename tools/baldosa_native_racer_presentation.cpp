@@ -64,10 +64,40 @@ bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
     if (!ok) std::remove(path);
     return ok;
 }
+// Compare the actual composited raster to the nearest-scaled logical stock
+// field *after* the title's source-derived draw callback. Both split views
+// must contain genuine authored pixels, rather than merely changing stock
+// scenery or positive source-OBJ admission logs. Diagnostic/capture frames
+// only; no guest, PPU, or product-state mutation.
+std::size_t authored_difference_count(
+    const std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
+    int width, int height, int scale, bool bottom) noexcept {
+    if (dst == nullptr || field == nullptr || width != 256 ||
+        height != 224 || (scale != 1 && scale != 4) ||
+        pitch < static_cast<std::size_t>(width * scale) * 4)
+        return 0;
+    const int split = height * scale / 2;
+    const int row_start = bottom ? split : 0;
+    const int row_end = bottom ? height * scale : split;
+    std::size_t changed = 0;
+    for (int y = row_start; y < row_end; ++y) {
+        const auto* source_row = field +
+            static_cast<std::size_t>(y / scale) * width * 4;
+        const auto* composed_row = dst + static_cast<std::size_t>(y) * pitch;
+        for (int x = 0; x < width * scale; ++x)
+            if (std::memcmp(composed_row + static_cast<std::size_t>(x) * 4,
+                            source_row + static_cast<std::size_t>(x / scale) * 4,
+                            4) != 0)
+                ++changed;
+    }
+    return changed;
+}
 } // namespace
 
 extern "C" int ur_baldosa_hd_presentation_scale(void) {
-    return density();
+    // A rejected source-art gate must not allocate a 4x presenter and then
+    // fall back to Baldosa's 1x Original RtlWidescreenPresent writer.
+    return enabled() ? ur::presentation::racer_hd_presentation_scale() : 1;
 }
 
 extern "C" void ur_baldosa_hd_begin_sim_frame(unsigned number) {
@@ -90,7 +120,16 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     // Sample actual successful draw callbacks, not arbitrary frame moduli.
     if (g_frame >= 1800 && g_frame <= 2450
         && g_last_captured_frame != g_frame && g_captured < 9) {
-        const int scale = density();
+        const int scale = ur::presentation::racer_hd_presentation_scale();
+        const std::size_t top_changed = authored_difference_count(
+            dst, pitch, field, frame_w, frame_h, scale, false);
+        const std::size_t bottom_changed = authored_difference_count(
+            dst, pitch, field, frame_w, frame_h, scale, true);
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAINT frame=%u raster=%dx%d pitch=%zu "
+            "top_changed=%zu bottom_changed=%zu\n",
+            g_frame, frame_w * scale, frame_h * scale, pitch,
+            top_changed, bottom_changed);
         const bool saved = save_presented_pam(
             dst, pitch, frame_w * scale, frame_h * scale, g_frame);
         std::fprintf(stderr,

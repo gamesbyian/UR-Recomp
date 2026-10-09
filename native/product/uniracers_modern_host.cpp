@@ -57,6 +57,7 @@ extern "C" {
 #include "regional_presentation_input_coordinator.hpp"
 #include "regional_title_presenter.hpp"
 #include "host_profile_store.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 #include "internal_render_scale_policy.hpp"
 #include "local_multiplayer_setup.hpp"
 #include "local_multiplayer_participants.hpp"
@@ -99,6 +100,7 @@ extern "C" {
 #include <cstdint>
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <cstring>
 #include <cstdio>
 #include <optional>
@@ -1947,8 +1949,12 @@ bool create_profile_from_editor() {
     if (!root.isolated()) return false;
     std::error_code ec;
     const bool root_exists = std::filesystem::exists(root.save_root, ec);
-    if (ec || (root_exists &&
-        !ur::product::reusable_aborted_profile_creation_root(root.save_root))) {
+    if (ec) return false;
+    const bool reusable_empty_root = root_exists &&
+        ur::product::reusable_aborted_profile_creation_root(root.save_root);
+    const bool possible_pristine_orphan = root_exists && !reusable_empty_root &&
+        ur::product::pristine_unregistered_profile_creation_root(root.save_root);
+    if (root_exists && !reusable_empty_root && !possible_pristine_orphan) {
         product_diagnostic("UR_PROFILE_CREATE REJECTED_EXISTING_ROOT");
         return false;
     }
@@ -1956,39 +1962,53 @@ bool create_profile_from_editor() {
         std::filesystem::create_directories(root.save_root, ec);
         if (ec) return false;
     }
-    // A completed failed-registration rollback leaves only the durable
-    // host-profile.txt.urmutex lock file. Reuse that namespace on explicit
-    // retry, but create-only profile CAS still prevents simultaneous claims.
     const std::string path = root.save_root + "/host-profile.txt";
-    std::error_code exists_ec;
-    if (std::filesystem::exists(path, exists_ec) || exists_ec) {
-        product_diagnostic("UR_PROFILE_CREATE REJECTED_EXISTING_STATE");
-        return false;
-    }
-    if (ur::product::save_host_profile_state_file_if_current(
-            ur::product::ExecutionMode::Modern, path, std::nullopt, *state) !=
-        ur::product::HostProfileSaveStatus::Saved) {
-        return false;
+    // Claiming an old unregistered *initial* snapshot is an explicit Create
+    // operation, never a background scan. Hold its persistent profile mutex
+    // through the catalog CAS so another cooperating profile writer cannot
+    // change the bytes after we checked the exact clean state.
+    std::unique_ptr<ur::product::TournamentLaunchPathLock> orphan_lock;
+    if (possible_pristine_orphan) {
+        orphan_lock =
+            std::make_unique<ur::product::TournamentLaunchPathLock>(path);
+        if (!orphan_lock->acquired() ||
+            !ur::product::pristine_unregistered_profile_creation_root(
+                root.save_root)) {
+            product_diagnostic("UR_PROFILE_CREATE ORPHAN_LOCK_REJECTED");
+            return false;
+        }
+        const auto loaded = ur::product::load_host_profile_state_file(
+            ur::product::ExecutionMode::Modern, path, id);
+        if (!loaded.loaded() || !(*loaded.state == *state)) {
+            product_diagnostic("UR_PROFILE_CREATE ORPHAN_NOT_PRISTINE");
+            return false;
+        }
+    } else {
+        if (ur::product::save_host_profile_state_file_if_current(
+                ur::product::ExecutionMode::Modern, path, std::nullopt,
+                *state) != ur::product::HostProfileSaveStatus::Saved) {
+            return false;
+        }
     }
 
     const auto prior_catalog = g_profile_catalog;
     g_profile_catalog.push_back({id, *state->racer_identity});
     if (!persist_profile_catalog(prior_catalog)) {
         g_profile_catalog.pop_back();
-        const auto removal =
-            ur::product::remove_host_profile_state_file_if_current(
-                ur::product::ExecutionMode::Modern, path, *state);
-        product_diagnostic(
-            removal == ur::product::HostProfileSaveStatus::Saved
-                ? "UR_PROFILE_CREATE ROLLED_BACK"
-                : "UR_PROFILE_CREATE ROLLBACK_CONFLICT");
-        // The failed CAS can mean another process added a new racer. A
-        // retry must use the latest *disk* roster rather than repeatedly
-        // proposing edits against this process's stale list.
+        // Do not delete the first-phase profile on a roster CAS conflict.
+        // Another process could have just registered these exact bytes while
+        // this process was in flight. Even conditional profile-state deletion
+        // alone cannot distinguish that new catalog ownership. Leave the
+        // pristine orphan intact for a later exact-state explicit retry.
+        product_diagnostic("UR_PROFILE_CREATE UNREGISTERED_PRESERVED");
         const auto latest = ur::product::load_host_profile_catalog_file(
             profile_catalog_path());
         if (latest) g_profile_catalog = *latest;
         return false;
+    }
+    orphan_lock.reset();
+    if (possible_pristine_orphan) {
+        product_diagnostic("UR_PROFILE_CREATE PRISTINE_ORPHAN_REGISTERED");
     }
     g_profile_menu_index = g_profile_catalog.size() - 1;
     g_profile_cool_name_notice =

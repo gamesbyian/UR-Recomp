@@ -7762,7 +7762,13 @@ extern "C" int ur_uniracers_modern_system_key_down(
         // Root owns all remaining human input, not the underlying stock menu.
         return 1;
     }
-    if (g_modern_root_stock_target >= 0) return 1;
+    if (g_modern_root_stock_target >= 0) {
+        if (key == SDLK_ESCAPE) {
+            g_modern_root_stock_target = -1;
+            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+        }
+        return 1;
+    }
 
     {
         const auto regional = regional_input_coordinator().keyboard_key(
@@ -8326,7 +8332,13 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         // Mapped directions are delivered through the semantic callback.
         return -1;
     }
-    if (g_modern_root_stock_target >= 0) return 1;
+    if (g_modern_root_stock_target >= 0) {
+        if (pressed && button == kGamepadBtn_B) {
+            g_modern_root_stock_target = -1;
+            product_diagnostic("UR_MODERN_ROOT STOCK_ENTRY_CANCELLED");
+        }
+        return 1;
+    }
 
     if (!pressed) {
         if (button == g_practice_cancel_gamepad_button) {
@@ -9857,6 +9869,33 @@ extern "C" void ur_uniracers_modern_system_overlay(
         if (g_profile_cool_name_notice) {
             snes_ovl_draw_text(pixels, stride, height, x + 8 * scale, y + 137 * scale,
                 "COOL NAME!", 0xFFFFFFFFu, scale);
+        }
+        return;
+    }
+
+    if (g_modern_root_stock_target >= 0 && modern_mode() &&
+        g_ram && g_ram[0x009F] == 0xD7) {
+        auto* pixels = reinterpret_cast<std::uint32_t*>(dst);
+        const int stride = static_cast<int>(pitch / 4u);
+        const int scale = modern_overlay_surface_scale(width, height);
+        const auto layout = centered_modern_modal_layout(
+            width, height, scale, 216, 35, 216, 35);
+        if (layout.visible) {
+            const auto rect = layout.presentation_rect;
+            const auto& palette = ur::product::kModernStockMenuPalette;
+            snes_ovl_fill_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height, palette.background);
+            snes_ovl_stroke_rect(pixels, stride, height,
+                rect.x, rect.y, rect.width, rect.height,
+                palette.frame_grey);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 7 * scale, rect.y + 6 * scale,
+                g_modern_root_stock_target == 0
+                    ? "ENTERING PLAY" : "ENTERING MULTIPLAYER",
+                palette.title_yellow, scale);
+            snes_ovl_draw_text(pixels, stride, height,
+                rect.x + 7 * scale, rect.y + 21 * scale,
+                "B / ESC CANCEL", palette.cursor_blue, scale);
         }
         return;
     }

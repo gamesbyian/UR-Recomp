@@ -73,4 +73,4 @@ The canonical five-stream groups are:
 | 36–40 | Sprinter |
 | 41–45 | Hunter |
 
-With this ordering, historical start X equals decoded header A.x × 16 on 43 of 45 courses. The only exceptions are Zoom Zoo and Jumps, both of which remain historical-coordinate special cases requiring local interpretation. This alignment is strong enough to promote stream-to-name identity in the normalized course corpus while retaining explicit provenance.
+With this ordering, the *literal constants* in the historical optimizer match header A.x × 16 on 43/45 rows. That is **42 nonzero numeric matches**, **one nonzero discrepancy** (Zoom Zoo: 8961 vs 9200), and **two zero-valued optimizer constants** (Jumps and Hill Climb) that cannot independently validate a runtime spawn. The script never reads its startX values during computation; even nonzero matches support stream/name transcription, not observed starting positions. Keep Jumps' zero as an unresolved annotation rather than an established coordinate mismatch. The normalized course identity is cross-source supported, while runtime spawn mapping still requires direct guest evidence.

@@ -46,6 +46,8 @@ Exercise a real Windows candidate with two processes sharing the same tournament
 
 ## Content census protocol (J-09)
 
+Source of truth for 45 primary USA release cases plus 90 Europe-retail/PAL-prototype comparative cases, current admitted partial observations, and the required event-level pass schema: [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md). The opening USA release baseline is 0/45 complete, 2 partial, 43 unverified; the full three-ROM research census is 0/135 complete, 2 partial, 133 unverified. These are evidence classifications, not predicted failures. Run Zoom Zoo full circuit and Jumps timed-stunt outcomes before expanding to the remaining roster, and do not count Dragster frame-2903 contact slots as proven event causes without instruction-time P1 dispatch evidence.
+
 Create one record per canonical course/event, each ROM variant as applicable, containing original-menu entry, guest course identity, start-state validity, checkpoint/lap/finish sequence and result, reference source, native result, edge-case coverage, and known exclusion. Distinguish 45 RNC stream CRC recovery from gameplay/event pass. Record denominators, not just successful examples.
 
 ## Cross-factor combinatorial selection

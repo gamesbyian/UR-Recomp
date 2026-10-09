@@ -1,0 +1,2773 @@
+{
+  "schema_version": 1,
+  "source_catalog": "analysis/data/course-corpus.json",
+  "source_observations": "analysis/data/course-event-runtime-evidence.json",
+  "meaning": "release-event acceptance, not RNC/parser or static contact coverage",
+  "primary_release_rom": "usa-retail",
+  "regions": [
+    "usa-retail",
+    "europe-retail",
+    "pal-prototype-1994-11-29"
+  ],
+  "denominators": {
+    "courses_per_rom": 45,
+    "primary_release_cases": 45,
+    "regional_comparison_cases": 90,
+    "tracked_region_course_cases": 135,
+    "race_circuit_cases": 108,
+    "stunt_cases": 27,
+    "family_cases_per_region": 9
+  },
+  "status_counts": {
+    "partial": 2,
+    "unverified": 133
+  },
+  "by_rom": {
+    "usa-retail": {
+      "partial": 2,
+      "unverified": 43
+    },
+    "europe-retail": {
+      "unverified": 45
+    },
+    "pal-prototype-1994-11-29": {
+      "unverified": 45
+    }
+  },
+  "by_event_family": {
+    "race-a": {
+      "partial": 1,
+      "unverified": 26
+    },
+    "circuit-a": {
+      "unverified": 27
+    },
+    "stunt": {
+      "unverified": 27
+    },
+    "race-b": {
+      "unverified": 27
+    },
+    "circuit-b": {
+      "partial": 1,
+      "unverified": 26
+    }
+  },
+  "historical_start_probes": {
+    "authority": "hand-entered magicnumber.lua constants, no runtime spawn witness",
+    "classification_counts": {
+      "nonzero_numeric_disagreement": 1,
+      "nonzero_numeric_match_only": 42,
+      "zero_optimizer_constant_unqualified": 2
+    },
+    "unqualified_and_disagreements": [
+      {
+        "course_id": "course:02",
+        "name": "Zoom Zoo",
+        "historical_start_x": 8961,
+        "header_candidate_x16": 9200,
+        "status": "nonzero_numeric_disagreement",
+        "runtime_spawn_proven": false
+      },
+      {
+        "course_id": "course:13",
+        "name": "Jumps",
+        "historical_start_x": 0,
+        "header_candidate_x16": 4192,
+        "status": "zero_optimizer_constant_unqualified",
+        "runtime_spawn_proven": false
+      },
+      {
+        "course_id": "course:23",
+        "name": "Hill Climb",
+        "historical_start_x": 0,
+        "header_candidate_x16": 0,
+        "status": "zero_optimizer_constant_unqualified",
+        "runtime_spawn_proven": false
+      }
+    ]
+  },
+  "entries": [
+    {
+      "rom": "usa-retail",
+      "course_id": "course:01",
+      "stream_index": 1,
+      "name": "Dragster",
+      "tour": "Crawler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "partial",
+      "evidence_ref": "analysis/data/dragster-finish-contact-transition.json",
+      "coverage_note": "Native postframe P1/P2 contact and checkpoint/lap transition at 2903; no independent instruction-time 82:8C32/81:805D event capture, full end result, or course-wide launch witness."
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:02",
+      "stream_index": 2,
+      "name": "Zoom Zoo",
+      "tour": "Crawler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:03",
+      "stream_index": 3,
+      "name": "Bowl",
+      "tour": "Crawler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:04",
+      "stream_index": 4,
+      "name": "Switcher",
+      "tour": "Crawler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:05",
+      "stream_index": 5,
+      "name": "Monster",
+      "tour": "Crawler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:06",
+      "stream_index": 6,
+      "name": "Wobble",
+      "tour": "Jumper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:07",
+      "stream_index": 7,
+      "name": "Twinpeak",
+      "tour": "Jumper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:08",
+      "stream_index": 8,
+      "name": "Skier",
+      "tour": "Jumper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:09",
+      "stream_index": 9,
+      "name": "Loopback",
+      "tour": "Jumper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:10",
+      "stream_index": 10,
+      "name": "Small Cut",
+      "tour": "Jumper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:11",
+      "stream_index": 11,
+      "name": "Looper",
+      "tour": "Shuffler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:12",
+      "stream_index": 12,
+      "name": "MegaJump",
+      "tour": "Shuffler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:13",
+      "stream_index": 13,
+      "name": "Jumps",
+      "tour": "Shuffler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:14",
+      "stream_index": 14,
+      "name": "Flat Fun",
+      "tour": "Shuffler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:15",
+      "stream_index": 15,
+      "name": "Infinity",
+      "tour": "Shuffler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:16",
+      "stream_index": 16,
+      "name": "Last One",
+      "tour": "Bounder",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:17",
+      "stream_index": 17,
+      "name": "Marathon",
+      "tour": "Bounder",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:18",
+      "stream_index": 18,
+      "name": "Circle",
+      "tour": "Bounder",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:19",
+      "stream_index": 19,
+      "name": "Plinkey",
+      "tour": "Bounder",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:20",
+      "stream_index": 20,
+      "name": "Jumpover",
+      "tour": "Bounder",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "partial",
+      "evidence_ref": "analysis/generated/stunt-boundary-probe.json",
+      "coverage_note": "Six input-only, paired Snes9x/native landing stunt-maneuver thresholds on Jumpover CIRCUIT-B (not a timed stunt course); full circuit checkpoint/lap/finish/result and every 45-second stunt course remain unverified."
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:21",
+      "stream_index": 21,
+      "name": "Dragrace",
+      "tour": "Walker",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:22",
+      "stream_index": 22,
+      "name": "Ping Pong",
+      "tour": "Walker",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:23",
+      "stream_index": 23,
+      "name": "Hill Climb",
+      "tour": "Walker",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:24",
+      "stream_index": 24,
+      "name": "Hybrid",
+      "tour": "Walker",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:25",
+      "stream_index": 25,
+      "name": "Short Cut",
+      "tour": "Walker",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:26",
+      "stream_index": 26,
+      "name": "Down+Up",
+      "tour": "Runner",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:27",
+      "stream_index": 27,
+      "name": "Highroad",
+      "tour": "Runner",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:28",
+      "stream_index": 28,
+      "name": "Spine",
+      "tour": "Runner",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:29",
+      "stream_index": 29,
+      "name": "Boo!",
+      "tour": "Runner",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:30",
+      "stream_index": 30,
+      "name": "Fire Escape",
+      "tour": "Runner",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:31",
+      "stream_index": 31,
+      "name": "Wario Paint",
+      "tour": "Hopper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:32",
+      "stream_index": 32,
+      "name": "Crock",
+      "tour": "Hopper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:33",
+      "stream_index": 33,
+      "name": "Downer",
+      "tour": "Hopper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:34",
+      "stream_index": 34,
+      "name": "East",
+      "tour": "Hopper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:35",
+      "stream_index": 35,
+      "name": "Hairpin Hill",
+      "tour": "Hopper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:36",
+      "stream_index": 36,
+      "name": "Vertical",
+      "tour": "Sprinter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:37",
+      "stream_index": 37,
+      "name": "Flash",
+      "tour": "Sprinter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:38",
+      "stream_index": 38,
+      "name": "Little Dipper",
+      "tour": "Sprinter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:39",
+      "stream_index": 39,
+      "name": "Fruitbat",
+      "tour": "Sprinter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:40",
+      "stream_index": 40,
+      "name": "123 Jump",
+      "tour": "Sprinter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:41",
+      "stream_index": 41,
+      "name": "Griller",
+      "tour": "Hunter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:42",
+      "stream_index": 42,
+      "name": "Two Loops",
+      "tour": "Hunter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:43",
+      "stream_index": 43,
+      "name": "Neon",
+      "tour": "Hunter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:44",
+      "stream_index": 44,
+      "name": "Hamster",
+      "tour": "Hunter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:45",
+      "stream_index": 45,
+      "name": "To and Fro",
+      "tour": "Hunter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:01",
+      "stream_index": 1,
+      "name": "Dragster",
+      "tour": "Crawler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:02",
+      "stream_index": 2,
+      "name": "Zoom Zoo",
+      "tour": "Crawler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:03",
+      "stream_index": 3,
+      "name": "Bowl",
+      "tour": "Crawler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:04",
+      "stream_index": 4,
+      "name": "Switcher",
+      "tour": "Crawler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:05",
+      "stream_index": 5,
+      "name": "Monster",
+      "tour": "Crawler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:06",
+      "stream_index": 6,
+      "name": "Wobble",
+      "tour": "Jumper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:07",
+      "stream_index": 7,
+      "name": "Twinpeak",
+      "tour": "Jumper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:08",
+      "stream_index": 8,
+      "name": "Skier",
+      "tour": "Jumper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:09",
+      "stream_index": 9,
+      "name": "Loopback",
+      "tour": "Jumper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:10",
+      "stream_index": 10,
+      "name": "Small Cut",
+      "tour": "Jumper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:11",
+      "stream_index": 11,
+      "name": "Looper",
+      "tour": "Shuffler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:12",
+      "stream_index": 12,
+      "name": "MegaJump",
+      "tour": "Shuffler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:13",
+      "stream_index": 13,
+      "name": "Jumps",
+      "tour": "Shuffler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:14",
+      "stream_index": 14,
+      "name": "Flat Fun",
+      "tour": "Shuffler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:15",
+      "stream_index": 15,
+      "name": "Infinity",
+      "tour": "Shuffler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:16",
+      "stream_index": 16,
+      "name": "Last One",
+      "tour": "Bounder",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:17",
+      "stream_index": 17,
+      "name": "Marathon",
+      "tour": "Bounder",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:18",
+      "stream_index": 18,
+      "name": "Circle",
+      "tour": "Bounder",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:19",
+      "stream_index": 19,
+      "name": "Plinkey",
+      "tour": "Bounder",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:20",
+      "stream_index": 20,
+      "name": "Jumpover",
+      "tour": "Bounder",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:21",
+      "stream_index": 21,
+      "name": "Dragrace",
+      "tour": "Walker",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:22",
+      "stream_index": 22,
+      "name": "Ping Pong",
+      "tour": "Walker",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:23",
+      "stream_index": 23,
+      "name": "Hill Climb",
+      "tour": "Walker",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:24",
+      "stream_index": 24,
+      "name": "Hybrid",
+      "tour": "Walker",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:25",
+      "stream_index": 25,
+      "name": "Short Cut",
+      "tour": "Walker",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:26",
+      "stream_index": 26,
+      "name": "Down+Up",
+      "tour": "Runner",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:27",
+      "stream_index": 27,
+      "name": "Highroad",
+      "tour": "Runner",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:28",
+      "stream_index": 28,
+      "name": "Spine",
+      "tour": "Runner",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:29",
+      "stream_index": 29,
+      "name": "Boo!",
+      "tour": "Runner",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:30",
+      "stream_index": 30,
+      "name": "Fire Escape",
+      "tour": "Runner",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:31",
+      "stream_index": 31,
+      "name": "Wario Paint",
+      "tour": "Hopper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:32",
+      "stream_index": 32,
+      "name": "Crock",
+      "tour": "Hopper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:33",
+      "stream_index": 33,
+      "name": "Downer",
+      "tour": "Hopper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:34",
+      "stream_index": 34,
+      "name": "East",
+      "tour": "Hopper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:35",
+      "stream_index": 35,
+      "name": "Hairpin Hill",
+      "tour": "Hopper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:36",
+      "stream_index": 36,
+      "name": "Vertical",
+      "tour": "Sprinter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:37",
+      "stream_index": 37,
+      "name": "Flash",
+      "tour": "Sprinter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:38",
+      "stream_index": 38,
+      "name": "Little Dipper",
+      "tour": "Sprinter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:39",
+      "stream_index": 39,
+      "name": "Fruitbat",
+      "tour": "Sprinter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:40",
+      "stream_index": 40,
+      "name": "123 Jump",
+      "tour": "Sprinter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:41",
+      "stream_index": 41,
+      "name": "Griller",
+      "tour": "Hunter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:42",
+      "stream_index": 42,
+      "name": "Two Loops",
+      "tour": "Hunter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:43",
+      "stream_index": 43,
+      "name": "Neon",
+      "tour": "Hunter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:44",
+      "stream_index": 44,
+      "name": "Hamster",
+      "tour": "Hunter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "europe-retail",
+      "course_id": "course:45",
+      "stream_index": 45,
+      "name": "To and Fro",
+      "tour": "Hunter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:01",
+      "stream_index": 1,
+      "name": "Dragster",
+      "tour": "Crawler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:02",
+      "stream_index": 2,
+      "name": "Zoom Zoo",
+      "tour": "Crawler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:03",
+      "stream_index": 3,
+      "name": "Bowl",
+      "tour": "Crawler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:04",
+      "stream_index": 4,
+      "name": "Switcher",
+      "tour": "Crawler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:05",
+      "stream_index": 5,
+      "name": "Monster",
+      "tour": "Crawler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:06",
+      "stream_index": 6,
+      "name": "Wobble",
+      "tour": "Jumper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:07",
+      "stream_index": 7,
+      "name": "Twinpeak",
+      "tour": "Jumper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:08",
+      "stream_index": 8,
+      "name": "Skier",
+      "tour": "Jumper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:09",
+      "stream_index": 9,
+      "name": "Loopback",
+      "tour": "Jumper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:10",
+      "stream_index": 10,
+      "name": "Small Cut",
+      "tour": "Jumper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:11",
+      "stream_index": 11,
+      "name": "Looper",
+      "tour": "Shuffler",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:12",
+      "stream_index": 12,
+      "name": "MegaJump",
+      "tour": "Shuffler",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:13",
+      "stream_index": 13,
+      "name": "Jumps",
+      "tour": "Shuffler",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:14",
+      "stream_index": 14,
+      "name": "Flat Fun",
+      "tour": "Shuffler",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:15",
+      "stream_index": 15,
+      "name": "Infinity",
+      "tour": "Shuffler",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:16",
+      "stream_index": 16,
+      "name": "Last One",
+      "tour": "Bounder",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:17",
+      "stream_index": 17,
+      "name": "Marathon",
+      "tour": "Bounder",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:18",
+      "stream_index": 18,
+      "name": "Circle",
+      "tour": "Bounder",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:19",
+      "stream_index": 19,
+      "name": "Plinkey",
+      "tour": "Bounder",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:20",
+      "stream_index": 20,
+      "name": "Jumpover",
+      "tour": "Bounder",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:21",
+      "stream_index": 21,
+      "name": "Dragrace",
+      "tour": "Walker",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:22",
+      "stream_index": 22,
+      "name": "Ping Pong",
+      "tour": "Walker",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:23",
+      "stream_index": 23,
+      "name": "Hill Climb",
+      "tour": "Walker",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:24",
+      "stream_index": 24,
+      "name": "Hybrid",
+      "tour": "Walker",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:25",
+      "stream_index": 25,
+      "name": "Short Cut",
+      "tour": "Walker",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:26",
+      "stream_index": 26,
+      "name": "Down+Up",
+      "tour": "Runner",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:27",
+      "stream_index": 27,
+      "name": "Highroad",
+      "tour": "Runner",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:28",
+      "stream_index": 28,
+      "name": "Spine",
+      "tour": "Runner",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:29",
+      "stream_index": 29,
+      "name": "Boo!",
+      "tour": "Runner",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:30",
+      "stream_index": 30,
+      "name": "Fire Escape",
+      "tour": "Runner",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:31",
+      "stream_index": 31,
+      "name": "Wario Paint",
+      "tour": "Hopper",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:32",
+      "stream_index": 32,
+      "name": "Crock",
+      "tour": "Hopper",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:33",
+      "stream_index": 33,
+      "name": "Downer",
+      "tour": "Hopper",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:34",
+      "stream_index": 34,
+      "name": "East",
+      "tour": "Hopper",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:35",
+      "stream_index": 35,
+      "name": "Hairpin Hill",
+      "tour": "Hopper",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:36",
+      "stream_index": 36,
+      "name": "Vertical",
+      "tour": "Sprinter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:37",
+      "stream_index": 37,
+      "name": "Flash",
+      "tour": "Sprinter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:38",
+      "stream_index": 38,
+      "name": "Little Dipper",
+      "tour": "Sprinter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:39",
+      "stream_index": 39,
+      "name": "Fruitbat",
+      "tour": "Sprinter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:40",
+      "stream_index": 40,
+      "name": "123 Jump",
+      "tour": "Sprinter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:41",
+      "stream_index": 41,
+      "name": "Griller",
+      "tour": "Hunter",
+      "event_kind": "race-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:42",
+      "stream_index": 42,
+      "name": "Two Loops",
+      "tour": "Hunter",
+      "event_kind": "circuit-a",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:43",
+      "stream_index": 43,
+      "name": "Neon",
+      "tour": "Hunter",
+      "event_kind": "stunt",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "stunt_scoring",
+        "timer_expiry",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:44",
+      "stream_index": 44,
+      "name": "Hamster",
+      "tour": "Hunter",
+      "event_kind": "race-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    },
+    {
+      "rom": "pal-prototype-1994-11-29",
+      "course_id": "course:45",
+      "stream_index": 45,
+      "name": "To and Fro",
+      "tour": "Hunter",
+      "event_kind": "circuit-b",
+      "expected_events": [
+        "menu_entry",
+        "start_state",
+        "contact",
+        "checkpoint",
+        "lap",
+        "finish",
+        "result"
+      ],
+      "status": "unverified",
+      "evidence_ref": null,
+      "coverage_note": null
+    }
+  ],
+  "limits": [
+    "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
+    "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
+    "Input-only Jumpover CIRCUIT-B maneuver rewards are partial; no circuit result or 45-second stunt event was certified.",
+    "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
+    "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",
+    "A complete pass requires original menu entry, player result and event-relative independent reference comparison."
+  ]
+}

@@ -20,20 +20,32 @@
       "id": "QA-01",
       "priority": "P0",
       "claim": "Course and finish-event completeness",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/COURSE-CONTACT-MARSHAL.md"
+        "docs/COURSE-CONTACT-MARSHAL.md",
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Full content/event census and disputed instruction-time contact trace",
+      "next_action": "Primary USA event census 0/45 passes (2 partial): capture Zoom Zoo circuit and Jumps timed-stunt full results vs pinned emulator; frame-2903 dispatch witness. Track 90 PAL comparative cases separately without treating prototype completion as an automatic Windows release blocker.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/967"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/967",
+      "coverage": {
+        "denominator": 45,
+        "complete_event_passes": 0,
+        "partial": 2,
+        "unverified": 43,
+        "regional_comparison_denominator": 90,
+        "regional_comparison_complete": 0,
+        "regional_comparison_unverified": 90,
+        "total_tracked_course_rom_pairs": 135,
+        "scope": "USA retail is primary Windows-original release gate; Europe retail and PAL prototype are comparative evidence. Legacy beta archival only."
+      }
     },
     {
       "id": "QA-02",
@@ -149,20 +161,26 @@
       "id": "QA-07",
       "priority": "P1",
       "claim": "Expert and unusual race/physics semantics",
-      "status": "unverified",
+      "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/EXPERT-PLAYTEST-PROTOCOL.md"
+        "docs/EXPERT-PLAYTEST-PROTOCOL.md",
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Original reference against expert-play threshold transitions",
+      "next_action": "Extend six input-only Jumpover CIRCUIT-B stunt-maneuver thresholds to L shoulder, combos, imperfect landing, boost/collision; separately capture a full actual 45-second Jumps stunt result and compare original/native.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
-      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/973"
+      "issue": "https://github.com/gamesbyian/UR-Recomp/issues/973",
+      "coverage": {
+        "complete_expert_event_passes": 0,
+        "partial_stunt_threshold_cases": 6,
+        "provenance": "analysis/generated/stunt-boundary-probe.json; none certifies a whole scored event"
+      }
     },
     {
       "id": "QA-08",

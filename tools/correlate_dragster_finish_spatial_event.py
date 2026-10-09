@@ -164,8 +164,17 @@ def infer_pre_dispatch_course_word(contract: dict, rows: list[dict]) -> dict:
         raise ValueError("prior stored word is not a checkpoint-family object")
     if transition["object_code"] != 0x14:
         raise ValueError("post-transition stored word is not checkpoint family")
-    if state(prior) == state(transition):
-        raise ValueError("selected rows contain no progression")
+    # This routine identifies the one retained Dragster lap/finish transition,
+    # not an arbitrary state mutation. A reverse transition or a multi-lap
+    # discontinuity must never be reported as affirmative finish causality.
+    if not (
+        prior["finish_gate"] == 0
+        and transition["finish_gate"] == 1
+        and prior["laps_remaining"] >= 1
+        and transition["laps_remaining"] == prior["laps_remaining"] - 1
+        and transition["checkpoint"] == 1
+    ):
+        raise ValueError("progress change is not a valid observed finish/lap transition")
     prior_correlated = correlate(contract, prior)
     current_correlated = correlate(contract, transition)
     return {
@@ -199,11 +208,14 @@ def infer_pre_dispatch_course_word(contract: dict, rows: list[dict]) -> dict:
             "0E95 can be consumed at the next object dispatch"
         ),
         "discriminator": (
-            "At frame 2903 progression, prior postframe stored word is 2024 "
-            "(slot 10), whereas new postframe sample is 2020 (slot 8). "
-            "A slot-8 cause cannot be inferred from the simultaneous "
-            "frame-end snapshot. The next instruction-time trace must "
-            "sample 0F09 at 82:8C32/81:82ED and handler entry."
+            f"At frame {transition['frame']} progression, the prior "
+            f"postframe stored word is {prior['collision_word']:04X} "
+            f"(slot {prior['object_index']}), whereas the new postframe "
+            f"sample is {transition['collision_word']:04X} "
+            f"(slot {transition['object_index']}). This frame-end "
+            "comparison cannot establish which word actually entered "
+            "the same-frame object dispatcher. Sample the USA shared "
+            "word 0F09 at 82:8C32/81:82ED and the handler entry."
         ),
         "runtime_limit": (
             "Frame-end snapshots cannot prove the specific instruction-time "

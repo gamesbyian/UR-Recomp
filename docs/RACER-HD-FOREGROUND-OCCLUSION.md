@@ -1,119 +1,95 @@
-# QA-08: Foreground BG priority and isolated OBJ counterexample probe
+# QA-08: foreground depth and Original OBJ isolation witness
 
-Status: **diagnostic-only candidate detector; no original sprite-priority claim or player shipping admission**.
+Status: **diagnostic candidate finder**, not a certified SNES BG/OBJ priority
+compositor or a player-facing Remastered completion claim.
 
-## Known problem
+## The raster limitation
 
-The current Racer HD host compositor paints the authored racer above
-a *flattened* original PPU framebuffer. This preserves deterministic
-guest animation, size/position, X/Y transforms, split-OBJ ownership
-and the raster outside each racer footprint, but the original SNES
-priority chain may place BG1/BG2 tiles, another OBJ, or color math
-in front of particular parts of the racer. A 256×224 frame with a
-correct HD replacement *position* can therefore still be visually
-wrong at overlaps inside that bounding box.
+The Remastered presenter currently paints HD racers over an already
+flattened Original framebuffer. The existing 4× pixel-confinement witness
+proves the area *outside* actual racer bounding boxes is unchanged at
+guest frame 1220. It says nothing about foreground BG tiles, other OBJ,
+SNES window masks or subscreen/color-math pixels that should appear
+**in front** of a racer *inside* those rectangles. The pinned
+SNESRecomp `docs/HOST_OVERLAY_EXTRACTION.md` calls for a priority-aware
+composition seam before host-placed graphics can preserve those depths.
 
-The pinned SNESRecomp `docs/HOST_OVERLAY_EXTRACTION.md` explicitly
-states that host promotion of scenery/OBJ beneath foreground pixels
-needs a priority-aware plane export or intermediate compositing
-seam. Do not infer this missing behaviour from one successful HD
-pose or a 4× stock-pixel containment test, which allows any changes
-*inside* the racer rectangle.
+## First native experiment: empty direct OBJ capture
 
-## Opt-in original-renderer layer witness
+Native workflow `37875602021`, artifact `11591573934` attempted
+a single frame-1220 export of `g_obj_overlay` (PAM/P7) using the pinned
+PPU's optional source-plane interface. The producer printed
+`status=captured`, but byte inspection proved **all 57,344 alpha
+pixels are zero**. Meanwhile the same native log recorded four valid
+HD racer placements at frame 1220 (top OAM slots 98/99 at X=104,Y=40;
+bottom 97/96 at X=104,Y=153) and full-pair render admission.
 
-The existing PPU already writes a transparent ARGB32 copy of the
-captured racer OBJ plane into `g_obj_overlay` when the exact
-two-player HD presentation is armed. The new
-`UR_RACER_HD_OBJ_LAYER_PAM=<path>` plus
-`UR_RACER_HD_OBJ_LAYER_FRAME=1220` diagnostic exports this
-read-only isolated layer as a 256×224 RGBA PAM/P7 file on the
-specified presented frame. The output contains alpha, literal
-RGB and exact logical positions; no simulation or VRAM write,
-intermediate graphics policy mutation or rendering API change.
-No opt-in means no file I/O.
+Therefore an all-transparent PAM is **not a valid Original sprite
+reference**, and the attempted foreground comparison correctly failed.
+It cannot establish either correct compositing or absence of sprite
+occlusion. The export function now labels an all-empty plane
+`status=empty` with `opaque_pixels=0` rather than claiming success.
+The optional exporter remains for future PPU-layer debugging but is no
+longer the acceptance witness.
 
-The independently captured Original-A/Original-B 256×224 PPM
-frames are the control, and the 4× HD screen is the treatment.
-`tools/check_racer_hd_foreground_occlusion.py` analyzes the same
-guest frame using the four live split-OBJ OAM placements. For each
-opaque isolated OBJ pixel inside the actual racer footprints:
+## Independent stock OBJ-only raster
 
-1. If isolated OBJ RGB exactly equals Original screen RGB,
-   it is a direct Original-colour visible candidate. Whether HD
-   changes it is tracked separately, as this is the expected art
-   replacement situation.
-2. If isolated OBJ RGB **differs** from the Original screen RGB,
-   foreground BG priority, subscreen color math, another OBJ or
-   other compositing effects *may* be responsible. This is an
-   **ambiguous original-layer discrepancy** until attributed by
-   an independent renderer-priority witness.
-3. If HD **also changes** that ambiguous pixel, record a
-   `potential_foreground_occlusion_overpaint_pixel` for targeted
-   reference investigation. These are candidate bugs only,
-   not proof that a BG tile should obscure the racer.
+The pinned SNESRecomp also provides a non-mutating display debug mask:
+`SNESRECOMP_LAYER_MASK=0x10` retains OBJ while masking BG1–BG4.
+Run the **identical original two-player script, ROM and input** in a
+fourth process with this setting, capturing its original 256×224 P6
+screen at guest/present frame 1220. Original-A and Original-B controls
+still run unchanged, and the normal HD process still renders its 4×
+1024×896 screenshot at frame 1220.
 
-The diagnostic keeps the alpha channel, original control hash
-discipline, exact 1–4× per-subpixel comparison and live split
-scanline/X/Y wrap. It refuses missing layer data or mismatched
-Original controls.
-
-## Suggested exact 2P native capture
-
-```sh
-UR_RACER_HD=1 \
-UR_RACER_HD_OBJ_LAYER_PAM=/tmp/racer-obj-1220.pam \
-UR_RACER_HD_OBJ_LAYER_FRAME=1220 \
-  ./UniracersSNESRecomp <retail-USA-ROM> --script <ordinary-2p-script>
-```
-
-Then:
+The acceptance step now invokes:
 
 ```sh
 python3 tools/check_racer_hd_foreground_occlusion.py \
   --original racer-original-a-1220.ppm \
   --original-control racer-original-b-1220.ppm \
   --hd racer-hd-1220.ppm \
-  --obj-layer racer-obj-1220.pam \
+  --obj-only-ppm racer-original-obj-only-1220.ppm \
   --native-log racer-hd.log --frame 1220 \
-  --json-out racer-foreground-candidates-1220.json
+  --json-out racer-hd-foreground-1220.json
 ```
 
-*The precise reference/input/artifact/run SHA must be recorded before
-any conclusion.* Initial frame 1220 may have no foreground-obscured
-racer pixels, so probe additional frames near course objects, other
-racers, vertical motion, split seams and overlap-heavy sequences.
-Instrument only exact-approved native HD frames and use unchanged
-independent stock screenshots at matching guest state.
+This gives a **conservative nonblack lower bound** on visible OBJ-only
+pixels, not a fully alpha-correct PPU plane. Black may be either an
+actual black OBJ pixel or the masked-out backdrop, so it is excluded.
+The tool refuses a completely empty OBJ-only witness rather than
+manufacturing a zero-overpaint success. It uses the four live OAM
+placements, 256-line Y wrapping, 112-line split, full 1×–4× output
+pixels and exact independent Original controls.
 
-## Native acceptance wiring
+For nonblack OBJ pixels inside those OAM footprints, it counts:
 
-The existing `racer-native-presentation-acceptance.yml` HD process now
-opts into a **single** isolated OBJ capture at guest frame 1220.
-It pairs the emitted P7 stock OBJ layer with the two existing
-independent Original P6 controls and the actual HD P6 at the same
-guest frame, runs the diagnostic analyzer and retains both the
-PAM and structured JSON in the existing graphics acceptance
-artifact. Acceptance requires a nonempty isolated racer OBJ
-surface and internally consistent candidate counts, but
-**does not require zero possible-overpaint candidates**: those
-must be attributed to original PPU foreground priority before
-being classified as defects. This integration adds no extra
-native process or independent GHA workflow.
+- OBJ-only color matching Original display color, optionally changed by
+  HD as expected for a replacement;
+- OBJ-only color **different** from Original, an ambiguity that might
+  reflect foreground BG, other OBJ, PPU window or color math;
+- such ambiguous pixels **overpainted by HD**, yielding candidates for
+  exact original-renderer depth investigation.
 
-## Stop condition for accepting foreground depth
+These candidates are not automatically confirmed priority defects.
+Color math, palette setup and different host-present timing can also
+produce mismatches; always align actual guest composition and account
+for capture phase before making a causal claim.
 
-A meaningful QA-08 L4 result needs a representative course/motion/
-viewpoint census of **the actual native host output** compared
-against authoritative stock rendering, plus a demonstrated
-priority-aware correction whenever a foreground sprite or BG layer
-should obscure any part of the HD racer. Explicitly distinguish
-BG priority, main/subscreen color math, other OBJ depth, windows,
-and still-unregistered poses. This probe creates the first
-narrowly testable candidates but does not itself repair renderer
-ordering. Zero candidates on one static frame is never whole-game
-occlusion acceptance.
+## Acceptance and next engineering decision
 
-Ownership: racer renderer, host-only graphics and split-screen
-raster. No menus, progression, gameplay, persistence, packaging or
-CI optimization.
+The existing native graphics job now retains the OBJ-only PPM/log and
+candidate JSON beside the two Original controls, HD frame and OAM
+confinement evidence. It requires a nonempty layer witness and
+structurally valid counts, **not zero ambiguous or suspect pixels**.
+A successful 1220 static check is only the beginning; prioritize
+motion where racers cross scenery, overlap each other, wrap around Y=255,
+cross scanline 112 and move with the camera, in ordinary 2P, 1P, VS,
+4:3 and 16:9.
+
+Before accepting QA-08 L4, identify the source of any candidate through
+original PPU main/subscreen and per-layer priority evidence, correct
+the actual raster compositor and verify same-frame native Original/HD
+pixel ordering across moving scenes. No debug capture here changes guest
+physics, ROM state, input, frontend, persistence or ordinary player
+graphics.

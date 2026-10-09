@@ -75,7 +75,10 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     const int handled = ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_w, frame_h, alpha);
     if (!handled) return 0;
-    if (g_frame >= 1800 && g_frame <= 2450 && g_frame % 60 == 0
+    // Turbo presentation is asynchronous to guest frame cadence: accepted
+    // HD frames occurred at 1808, 1856 and 1952 in the first native run.
+    // Sample actual successful draw callbacks, not arbitrary frame moduli.
+    if (g_frame >= 1800 && g_frame <= 2450
         && g_last_captured_frame != g_frame && g_captured < 9) {
         const bool saved = save_presented_pam(dst, pitch, frame_w, frame_h, g_frame);
         std::fprintf(stderr,

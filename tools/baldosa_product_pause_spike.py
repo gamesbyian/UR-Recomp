@@ -12,6 +12,18 @@ import argparse
 from pathlib import Path
 
 MARK = "UR_BALDOSA_NATIVE_PRODUCT_PAUSE"
+# Existing dependency-free Modern session runtime linked into the SAME AOT
+# game, only for its acknowledged native pause lifecycle (no second host).
+MODERN_SESSION_SOURCES = (
+    "output_resolution_policy.cpp",
+    "host_product_state.cpp",
+    "session_control.cpp",
+    "session_runtime_adapter.cpp",
+    "race_restart_anchor.cpp",
+    "race_restart_lifecycle.cpp",
+    "modern_session_runtime.cpp",
+    "modern_session_c_api.cpp",
+)
 REQUIRED = "UR_BALDOSA_PRODUCT_INPUT_SEAM"
 
 # The descriptor addition sits BELOW the existing input hook to preserve ABI
@@ -128,13 +140,17 @@ def patch_game_cmake(source: str, root: Path) -> str:
         raise ValueError("Stage the native human-input object first")
     path = (root / "tools/baldosa_native_pause_lifecycle.cpp").resolve()
     authority = (root / "tools/baldosa_native_product_pause_authority.cpp").resolve()
-    for candidate in (path, authority):
+    modern_root = (root / "native/product").resolve()
+    modern_sources = [modern_root / name for name in MODERN_SESSION_SOURCES]
+    for candidate in (path, authority, *modern_sources):
         if not candidate.is_file():
             raise ValueError(f"Missing project-owned native pause implementation: {candidate}")
+    modern_args = " ".join(f'"{file.as_posix()}"' for file in modern_sources)
     return source.rstrip() + (
-        "\n\n# " + MARK + ": linked on original pinned game host\n"
+        "\n\n# " + MARK + ": same AOT host, real Modern acknowledged pause API\n"
+        + f'target_include_directories(UniracersSNESRecomp PRIVATE "{modern_root.as_posix()}")\n'
         + f'target_sources(UniracersSNESRecomp PRIVATE '
-          f'"{path.as_posix()}" "{authority.as_posix()}")\n'
+          f'"{path.as_posix()}" "{authority.as_posix()}" {modern_args})\n'
     )
 
 

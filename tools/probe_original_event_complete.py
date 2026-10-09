@@ -200,6 +200,18 @@ def entry_diagnostics(source: dict, original: dict, native: dict) -> dict:
                       "Do not infer the last cause without a controlled witness.")}
 
 
+def archived_p1_positive_result(lines: list[str], stunt: bool) -> bool:
+    """This one archived original movie races MIKE (P1). An opponent's score
+    or clock cannot satisfy MIKE's achievement on a no-time result.
+    Expand this identity oracle before admitting any *other* input source."""
+    pattern = r":\\s*[1-9]\\d*" if stunt else r"\\d+:[0-5]\\d\\.\\d\\d"
+    for i, text in enumerate(lines):
+        if text.strip() == "MIKE":
+            return any(re.fullmatch(pattern, value.strip())
+                       for value in lines[i + 1:i + 4])
+    return False
+
+
 def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dict:
     r_rows, n_rows = original["samples"], native["samples"]
     if [r["relative_frame"] for r in r_rows] != [r["relative_frame"] for r in n_rows]:
@@ -216,11 +228,12 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
                    x["onset"]["menu"] == result_menu
                    for x in (original, native))
     texts_match = original["result_text"] == native["result_text"]
-    result_text = " ".join(original["result_text"]["final"])
-    # A no-time result or an idle zero-score timeout is not an event-complete
-    # *player* witness. The original guest still owns every value displayed.
-    scored = not stunt or bool(re.search(r":\s*[1-9][0-9]*", result_text))
-    timed_finish = stunt or bool(re.search(r"\b\d+:\d{2}\.\d{2}\b", result_text))
+    # This anchored SMV has MIKE in P1. A CPU score or a timed-out P1
+    # cannot masquerade as the player's own successful original result.
+    p1_positive = archived_p1_positive_result(original["result_text"]["final"],
+                                               stunt)
+    scored = not stunt or p1_positive
+    timed_finish = stunt or p1_positive
     ref_laps = [row.get("p1_laps") for row in r_rows]
     nat_laps = [row.get("p1_laps") for row in n_rows]
     # An explicitly sampled >=2 lap sequence is required for multi-lap

@@ -29,7 +29,7 @@ class BaldosaSpikeReportTest(unittest.TestCase):
             (sub / "dump" / "end.wram.bin").write_bytes(b"WRAM")
             (sub / "dump" / "end.oam.bin").write_bytes(b"OAM")
             (sub / "fd").mkdir()
-            (sub / "fd" / "crc.txt").write_text("0x00000001\\n0x00000002\\n")
+            (sub / "fd" / "crc.txt").write_text("0x00000001\n0x00000002\n")
             x = mod.summarize(root)["routes"][0]
             self.assertTrue(x["ran_and_exited_cleanly"])
             self.assertEqual(x["wram_checkpoints"], ["end.wram.bin"])

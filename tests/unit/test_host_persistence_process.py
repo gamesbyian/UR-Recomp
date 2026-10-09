@@ -224,6 +224,39 @@ class HostPersistenceProcessTests(unittest.TestCase):
                 call("profile", "root-pristine", pristine, 4).returncode, 6
             )
             staging.rmdir()
+            # Two separate games explicitly claim the exact same pristine
+            # orphan. One registrar wins; neither may erase its profile, and
+            # the catalog must authorize precisely one complete entry.
+            claim_catalog = root / "orphan-claim-catalog.dat"
+            claim_children = [
+                subprocess.Popen(
+                    [str(exe), "profile", "orphan-claim",
+                     str(pristine), "4", str(claim_catalog)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                for _ in range(2)
+            ]
+            claim_statuses = []
+            for child in claim_children:
+                _, stderr = child.communicate(timeout=12)
+                claim_statuses.append(child.returncode)
+                self.assertIn(child.returncode, (0, 6), stderr)
+            self.assertEqual(sorted(claim_statuses), [0, 6])
+            self.assertEqual(read_value("profile", orphan_profile), 4)
+            catalog_result = call("catalog", "cas-roster-read", claim_catalog)
+            self.assertEqual(catalog_result.returncode, 0, catalog_result.stderr)
+            self.assertEqual(
+                catalog_result.stdout.decode().strip(), "1 qa-profile"
+            )
+            self.assertEqual(
+                subprocess.run(
+                    [str(exe), "profile", "orphan-claim",
+                     str(pristine), "4", str(claim_catalog)],
+                    cwd=ROOT, capture_output=True,
+                ).returncode,
+                6,
+                "an already-registered orphan cannot claim another row",
+            )
             self.assertEqual(
                 call("profile", "write", orphan_profile, 5).returncode, 0
             )

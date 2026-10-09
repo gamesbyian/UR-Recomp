@@ -1,4 +1,4 @@
-# QA-02 C14/C15 independent-process kill acceptance
+# QA-02 C09/C14/C15 independent-process kill acceptance
 
 Status: executable native fault harness, pending CI review. **Not** a packaged
 Windows game or physical power interruption witness. This is narrower L2
@@ -14,6 +14,21 @@ run, and match stores. Each step starts a separate OS process with no
 in-memory state transferred between stages, using one unchanged user-data
 root. A child exits using std::_Exit, bypassing normal teardown and therefore
 making this a true process-death cut, **not** an OS storage power cut.
+
+## C09: sidecar claimed, public run absent
+
+The multiplayer pair publisher already exposes a test-only callback invoked
+after the real final .urmatch no-replace claim, before the corresponding
+.urrun public name exists. A first process creates/arms a real event,
+publishes a complete pair up to that callback and calls std::_Exit(79).
+A new reader sees exactly one orphan public match sidecar, no public run,
+no admitted compatible Previous/PB run, no fixture receipt and zero credit.
+The private staged run and sidecar remain forensic evidence.
+
+A fresh explicitly retried fixture publishes a new complete pair, commits its
+own immutable receipt and restores precisely one genuine victory from a new
+process. The original half-pair sidecar is preserved but can never become a
+result. This uses a separate root from the C14/C15 cases.
 
 ## C14: saved 2P pair, no fixture receipt
 
@@ -53,6 +68,6 @@ This test is OS-process death, not a full game binary reaching a race or
 Windows packaging. It cannot demonstrate storage-controller or directory
 metadata persistence under power loss, and its controlled steps are not a
 real background opponent racing simultaneously. C04 profile/SRAM
-two-artifact crash, C09 half-pair, active tournament C11/C12, and Windows
+two-artifact crash, active tournament C11/C12, and Windows
 same-user-root J-02/J-07/J-08 remain independent unpassed requirements.
 QA-02 stays P0 and in_progress. This fixture creates no L4 witness.

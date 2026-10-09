@@ -99,6 +99,80 @@ def load_rows(directory: Path) -> list[dict]:
     return rows
 
 
+def load_trajectory_rows(directory: Path) -> list[dict]:
+    """Independent motion/contact channel over the SAME input-only stunt window.
+
+    The historic six-case acceptance serializes only pose/progress/boost and
+    queue cursor. Equal rewards can conceal incorrect velocity, geometry or
+    persisted collision words; keep their original hashes unchanged while
+    exposing these fields in an optional diagnostic.
+    """
+    frames = []
+    for i in range(WINDOW[1] - WINDOW[0] + 1):
+        path = directory / f"w{i:03d}.wram.bin"
+        if not path.is_file():
+            raise jf.EvidenceError(f"missing trajectory guest frame {i}: {path}")
+        image = path.read_bytes()
+        if len(image) != jf.WRAM_SIZE:
+            raise jf.EvidenceError(f"short trajectory guest frame {i}")
+        if image[0x00CE] != jf.JUMPOVER_TRACK_ID or image[0x0313] != 1:
+            raise jf.EvidenceError(f"trajectory frame {i} left Jumpover race")
+        frames.append({"frame_after_race_entry": WINDOW[0] + i,
+                       **jf.read_p1(image)})
+    return frames
+
+
+def trajectory_diagnostics(reference: list[dict], native: list[dict]) -> dict:
+    """Report motion divergence and airborne-to-zero changes independently.
+
+    AIR=0 is a sampled state transition, not instruction-time proof of a
+    particular collision cell, landing reward, or stunt message consumer.
+    """
+    count = WINDOW[1] - WINDOW[0] + 1
+    if len(reference) != count or len(native) != count:
+        raise jf.EvidenceError("incomplete trajectory window")
+    required = set(jf.FIELDS) | {"frame_after_race_entry"}
+    for index, (ref, nat) in enumerate(zip(reference, native)):
+        if set(ref) != required or set(nat) != required:
+            raise jf.EvidenceError("trajectory semantic field sets differ")
+        if ref["frame_after_race_entry"] != WINDOW[0] + index or (
+                nat["frame_after_race_entry"] != WINDOW[0] + index):
+            raise jf.EvidenceError("trajectory guest-relative frame mismatch")
+    first = next((
+        {"frame_after_race_entry": ref["frame_after_race_entry"],
+         "fields": sorted(k for k in jf.FIELDS if ref[k] != nat[k]),
+         "reference": {k: ref[k] for k in jf.FIELDS if ref[k] != nat[k]},
+         "native": {k: nat[k] for k in jf.FIELDS if ref[k] != nat[k]}}
+        for ref, nat in zip(reference, native) if ref != nat
+    ), None)
+
+    def air_to_zero(rows: list[dict]) -> list[dict]:
+        return [
+            {"frame_after_race_entry": curr["frame_after_race_entry"],
+             "prior_air_time": prev["air_time"],
+             "contact_word": curr["contact_word"],
+             "y": curr["y"], "y_speed": curr["y_speed"]}
+            for prev, curr in zip(rows, rows[1:])
+            if prev["air_time"] > 0 and curr["air_time"] == 0
+        ]
+
+    ref_landing = air_to_zero(reference)
+    nat_landing = air_to_zero(native)
+    return {
+        "scope": "same input-only Jumpover circuit B window; guest postframe motion and contact",
+        "observed_guest_frames": count,
+        "first_trajectory_disagreement": first,
+        "reference_airborne_to_zero_transitions": ref_landing,
+        "native_airborne_to_zero_transitions": nat_landing,
+        "motion_reference_native_equal": first is None,
+        "interpretation_limit": (
+            "Equal pose and boost never prove equal course-boundary physics. "
+            "An airborne-to-zero state change is a landing candidate, not "
+            "instruction-time collision or stunt-message reward causality."
+        ),
+    }
+
+
 def summarize(rows: list[dict]) -> dict:
     if not rows:
         raise ValueError("no rows")
@@ -130,6 +204,8 @@ def main(argv=None) -> int:
                     help="also compare non-admitted L-flip and simultaneous-A/R input hypotheses")
     ap.add_argument("--queue-evidence", action="store_true",
                     help="record per-frame P1 ring-buffer enqueues and delayed boost events")
+    ap.add_argument("--trajectory-evidence", action="store_true",
+                    help="compare P1 world XY, signed speed and stored contact across stunt windows")
     args = ap.parse_args(argv)
     for name in ("snesref", "core", "native", "rom", "sram", "work_dir"):
         setattr(args, name, getattr(args, name).resolve())
@@ -177,8 +253,15 @@ def main(argv=None) -> int:
                 "reference": analyze(q_ref),
                 "native": analyze(q_nat),
             }
+        trajectory_report = None
+        if args.trajectory_evidence:
+            original_motion = load_trajectory_rows(work / "ref")
+            native_motion = load_trajectory_rows(work / "native")
+            trajectory_report = trajectory_diagnostics(original_motion, native_motion)
         ok &= divergence is None and (
             queue_report is None or queue_report["cross_engine"]["native_reference_equal"]
+        ) and (
+            trajectory_report is None or trajectory_report["motion_reference_native_equal"]
         )
         entry = {"family": family, "mask": f"0x{stunt_mask:03x}", "hold_frames": hold,
                  "reference": ref_summary, "native": nat_summary,
@@ -188,6 +271,8 @@ def main(argv=None) -> int:
                  } else "retained_boundary"}
         if queue_report is not None:
             entry["message_queue"] = queue_report
+        if trajectory_report is not None:
+            entry["trajectory"] = trajectory_report
         cases.append(entry)
         print(json.dumps({"family": family, "hold": hold, "peak_progress": ref_summary["peak_roll_progress"],
                           "peak_z": ref_summary["peak_z_rotation"],
@@ -209,6 +294,7 @@ def main(argv=None) -> int:
         "cases": cases,
         "exploratory_cases_included": args.explore,
         "ring_buffer_observations_included": args.queue_evidence,
+        "trajectory_observations_included": args.trajectory_evidence,
     }
     if args.json_out:
         args.json_out.write_text(json.dumps(evidence, indent=2, sort_keys=True) + "\n")

@@ -247,6 +247,15 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
             return;
         }
     }
+    // Full-pair removal also captures the inactive 16px split aliases.
+    // A copy peeking in from the left or across Y-wrap would otherwise be
+    // erased from the stock PPU raster and never redrawn. Refuse the capture
+    // before PpuSetOverlayCapture(RemoveFromGame), preserving all stock OBJ.
+    if (p2_ready && !racer_hd_full_pair_preserves_split_objs(
+            *p1_top, *p2_top, *p1_bottom, *p2_bottom,
+            g_ppu->obsel, g_ppu->oamaddh)) {
+        return;
+    }
     // Stock bottom P2 slot 96 paints in front of P1 97. The flattened
     // framebuffer has no reusable P2 depth plane, so an isolated host P1
     // cannot be painted where its lower sprite rectangle intersects P2.

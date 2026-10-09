@@ -106,6 +106,15 @@ extern "C" UrModernSession* ur_modern_session_create(
 
 extern "C" UrModernSession* ur_modern_session_create_native(
     int modern_mode, const UrModernNativeSessionHooks* hooks) {
+    return ur_modern_session_create_native_with_snapshot(
+        modern_mode, hooks, 0, nullptr, nullptr, nullptr);
+}
+
+extern "C" UrModernSession* ur_modern_session_create_native_with_snapshot(
+    int modern_mode, const UrModernNativeSessionHooks* hooks,
+    size_t snapshot_capacity, UrSaveSnapshotFn save_snapshot,
+    UrLoadSnapshotFn load_snapshot,
+    UrReconcileAfterRestartFn reconcile_after_restart) {
     if (!hooks) return nullptr;
     const ExecutionMode mode =
         modern_mode ? ExecutionMode::Modern : ExecutionMode::Authentic;
@@ -115,8 +124,12 @@ extern "C" UrModernSession* ur_modern_session_create_native(
     runtime_hooks.native_restart_race = hooks->restart_race;
     runtime_hooks.native_exit_to_frontend = hooks->exit_to_frontend;
     runtime_hooks.native_restart_available = hooks->restart_available;
+    runtime_hooks.reconcile_after_restart = reconcile_after_restart;
+    // Reuse the SAME existing Modern restart anchor for a native rollback
+    // snapshot, without introducing a second state or persistence engine.
+    const SnapshotRuntimeHooks snapshots{save_snapshot, load_snapshot};
     return new (std::nothrow) UrModernSession(
-        mode, 0, SnapshotRuntimeHooks{}, runtime_hooks);
+        mode, snapshot_capacity, snapshots, runtime_hooks);
 }
 
 extern "C" void ur_modern_session_destroy(UrModernSession* session) {

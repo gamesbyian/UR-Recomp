@@ -62,6 +62,16 @@ UrModernSession* ur_modern_session_create(
 UrModernSession* ur_modern_session_create_native(
     int modern_mode, const UrModernNativeSessionHooks* hooks);
 
+/* Add the established Modern race snapshot/retry lifecycle to a native
+ * execution backend without changing its acknowledged pause/exit callbacks.
+ * The native load_snapshot MUST preserve stock SRAM and other persistent
+ * host-owned state. No persistence format or storage authority is added. */
+UrModernSession* ur_modern_session_create_native_with_snapshot(
+    int modern_mode, const UrModernNativeSessionHooks* hooks,
+    size_t snapshot_capacity, UrSaveSnapshotFn save_snapshot,
+    UrLoadSnapshotFn load_snapshot,
+    UrReconcileAfterRestartFn reconcile_after_restart);
+
 void ur_modern_session_destroy(UrModernSession* session);
 
 /* Load a restart snapshot while keeping the current persistent byte domain

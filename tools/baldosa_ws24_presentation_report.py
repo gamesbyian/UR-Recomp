@@ -22,7 +22,7 @@ HEADER = (b"P7\nWIDTH 304\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
 WIDTH, HEIGHT, EXTRA = 304, 224, 24
 
 
-def edge_differences(raster: bytes) -> dict[str, int]:
+def edge_differences(raster: bytes, width: int = WIDTH, extra: int = EXTRA) -> dict[str, int]:
     """Require new pixels in each of four split-screen margins.
 
     This rejects solid black mattes, an ordinary 256-wide image padded at
@@ -34,10 +34,10 @@ def edge_differences(raster: bytes) -> dict[str, int]:
         for side in ("left", "right"):
             changed = 0
             for y in range(y0, y1):
-                row = memoryview(raster)[y * WIDTH * 4:(y + 1) * WIDTH * 4]
-                edge = EXTRA if side == "left" else WIDTH - EXTRA - 1
+                row = memoryview(raster)[y * width * 4:(y + 1) * width * 4]
+                edge = extra if side == "left" else width - extra - 1
                 baseline = row[edge * 4:edge * 4 + 4].tobytes()
-                xs = range(EXTRA) if side == "left" else range(WIDTH - EXTRA, WIDTH)
+                xs = range(extra) if side == "left" else range(width - extra, width)
                 for x in xs:
                     if row[x * 4:x * 4 + 4].tobytes() != baseline:
                         changed += 1
@@ -45,27 +45,45 @@ def edge_differences(raster: bytes) -> dict[str, int]:
     return count
 
 
-def assess(base: Path, candidate: Path, log: Path, captures: Path) -> dict:
+def assess(base: Path, candidate: Path, log: Path, captures: Path, view: str = "ws24") -> dict:
+    if view not in ("ws24", "ws342"):
+        raise ValueError("Only witnessed +24 and 342-wide source world modes are supported")
+    wide = view == "ws342"
+    width = 342 if wide else WIDTH
+    extra = 43 if wide else EXTRA
+    backing = 48 if wide else 24
+    prefix = "ur-baldosa-ws342" if wide else "ur-baldosa-ws24"
+    header = HEADER if not wide else (
+        b"P7\\nWIDTH 342\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
+        b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n")
+    present_regex = PRESENT if not wide else re.compile(
+        r"UR_BALDOSA_WS342_PRESENT frame=(\\d+) width=(\\d+) height=(\\d+) "
+        r"pitch=(\\d+) calibrated=(\\d+) saved=(\\d+)")
+    prep_regex = PREP if not wide else re.compile(
+        r"UR_BALDOSA_WS342_PREP frame=(\\d+) calibrated=(\\d+) "
+        r"logical=(\\d+)x(\\d+) backing=48 visible=43")
+    filename_regex = NAME if not wide else re.compile(
+        r"ur-baldosa-ws342-(\\d{6})\\.pam")
     original = base.read_bytes().splitlines()
     candidate_crc = candidate.read_bytes().splitlines()
     text = log.read_text(encoding="utf-8", errors="replace")
-    presents = [tuple(map(int, m.groups())) for m in PRESENT.finditer(text)]
-    preps = [tuple(map(int, m.groups())) for m in PREP.finditer(text)]
+    presents = [tuple(map(int, m.groups())) for m in present_regex.finditer(text)]
+    preps = [tuple(map(int, m.groups())) for m in prep_regex.finditer(text)]
     accepted = {
         x[0] for x in presents
-        if x[1:3] == (WIDTH, HEIGHT) and x[3] >= WIDTH * 4 and
+        if x[1:3] == (width, HEIGHT) and x[3] >= width * 4 and
         x[4] == 1 and x[5] == 1
     }
     evidence = []
-    for file in sorted(captures.glob("ur-baldosa-ws24-*.pam")):
-        match = NAME.fullmatch(file.name)
+    for file in sorted(captures.glob(prefix + "-*.pam")):
+        match = filename_regex.fullmatch(file.name)
         if match is None:
             raise ValueError(f"Invalid frame name: {file.name}")
         content = file.read_bytes()
-        if not content.startswith(HEADER) or len(content) != len(HEADER) + WIDTH * HEIGHT * 4:
+        if not content.startswith(header) or len(content) != len(header) + width * HEIGHT * 4:
             raise ValueError(f"Invalid +24 physical raster: {file}")
-        raster = content[len(HEADER):]
-        margin = edge_differences(raster)
+        raster = content[len(header):]
+        margin = edge_differences(raster, width=width, extra=extra)
         frame = int(match.group(1))
         evidence.append({
             "frame": frame, "filename": file.name,
@@ -79,13 +97,15 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path) -> dict:
         original == candidate_crc and len(original) == 2473
         and len(witnessed) >= 2
         and len({e["sha256"] for e in witnessed}) >= 2
-        and any(row[1] == 1 and row[2:4] == (WIDTH, HEIGHT) for row in preps)
+        and any(row[1] == 1 and row[2:4] == (width, HEIGHT) for row in preps)
     )
     return {
         "schema_version": 1, "status": "passed" if passed else "unproven",
         "logical_guest_geometry": [256, 224],
-        "host_wide_raster": [WIDTH, HEIGHT],
-        "per_side_new_world_pixels": EXTRA,
+        "host_wide_raster": [width, HEIGHT],
+        "view_mode": view,
+        "backing_course_margin": backing,
+        "per_side_new_world_pixels": extra,
         "base_frames": len(original), "candidate_frames": len(candidate_crc),
         "identical_guest_crc_sequence": original == candidate_crc,
         "calibrated_presentations": len(accepted),
@@ -93,7 +113,7 @@ def assess(base: Path, candidate: Path, log: Path, captures: Path) -> dict:
         "captures": evidence,
         "4k_or_hd_wide_claimed": False,
         "completed_usa_course_credit": 0,
-        "limits": "Two-player fixed-route +24 at 1x only, subject to stock/original"
+        "limits": "Two-player fixed-route 1x world margins only, subject to stock/original"
                   " image and source tile-by-tile parity; not 16:9 or 4K.",
     }
 
@@ -102,8 +122,9 @@ def main() -> int:
     p = argparse.ArgumentParser()
     for name in ("base", "candidate", "log", "captures", "out"):
         p.add_argument("--" + name, type=Path, required=True)
+    p.add_argument("--view", choices=["ws24", "ws342"], default="ws24")
     a = p.parse_args()
-    evidence = assess(a.base, a.candidate, a.log, a.captures)
+    evidence = assess(a.base, a.candidate, a.log, a.captures, view=a.view)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(evidence, indent=2))

@@ -220,3 +220,53 @@ provided the live per-player `0EF5` early-exit gate allowed it.
 It does not prove the actual dispatcher contact word, the live
 `0EF5` condition at handler entry, or the contacted Y cell.
 The previously asserted slot-8 same-frame trigger remains unproven.
+
+## Independent 2014 original Dragster complete-race result (2026-10-09)
+
+The preserved original Snes9x 2014 movie is no longer only a
+startup/menu timing counterexample. Its historical workflow run
+`37184022134`, artifact `11296685866` includes a raw
+`7E`-WRAM write trace of **669,690 records** covering first Dragster
+course entry through original results. The reduced original-only
+trace result is retained in
+`analysis/data/dragster-original-2014-race-result.json`.
+
+The original active-race frame **794** has P1 world `(1088,801)`,
+checkpoint 0, gate 0, laps remaining 2. The corresponding decoded
+USA header coordinate pair x16 is `(1088,800)`. Actual original
+event writes:
+
+| Original movie frame | Course state [checkpoint, gate, laps] before → after | Original raw stopwatch |
+|---|---|---|
+| **1031** | `0/0/2 → 1/1/1` | `0/0/0/5/2` (~0.5s) |
+| **1772** | `1/1/1 → 3/0/1` | `0/1/2/8/5` (~12.8s) |
+| **2505** | `3/0/1 → 1/1/0` | `0/2/5/1/0` (~25.1s) |
+
+The source result path then changes menu `0x00→0x84` at
+**2835**, `0x84→0x16` at **2869**, clears `inRace`
+at **2873**, and enters menu `0x99` at **2874**.
+This is an **authentic original-only full race/result**; it is
+not a complete same-input reference/native course fidelity pass.
+
+The separately retained **native** Dragster frame-2903 window
+observes the same *state-change shape* `3/0/1 → 1/1/0`,
+but its previous stored P1 contact word `0x2024` differs
+from the original run's `0x2020` near frame 2505.
+Those two sequences use different player inputs and independent
+guest timelines; matching this event-state pattern is not
+instruction-time contact causality or native/original parity.
+
+A short input-test-derived original stopwatch duration does not
+automatically demonstrate a fully traversed lap: the first `2→1`
+decrement at about 0.5 seconds is the start-line gate transition.
+The later decrement `1→0` is the original path's next lap
+event. The intermediate checkpoint `1→3` resets finish gate
+without decrementing laps, another original counterexample to
+the shortcut that any checkpoint-index change means a new lap.
+
+`tests/unit/test_dragster_original_2014_race_result.py`
+protects original source/menu/result observations, exact source
+provenance, and the native-shape-but-not-parity distinction.
+The complete original race strengthens the existing Dragster
+**partial** course observation; the **0/45 full paired-event**
+release denominator is unchanged.

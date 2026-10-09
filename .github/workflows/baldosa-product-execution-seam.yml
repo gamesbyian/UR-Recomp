@@ -137,10 +137,11 @@ jobs:
           export UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS=1
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/ur-baldosa-input/modern_seam"
-          grep -q 'UR_BALDOSA_PRODUCT_INPUT frame=0 ' \
-            "$RUNNER_TEMP/ur-baldosa-input/modern_seam/log.txt"
-          grep -q 'UR_BALDOSA_PRODUCT_INPUT frame=479 ' \
-            "$RUNNER_TEMP/ur-baldosa-input/modern_seam/log.txt"
+          # Exercise callback repeatedly without tying the invariant to an
+          # absolute scripted frame number. Scripts/debug remain independent.
+          input_log="$RUNNER_TEMP/ur-baldosa-input/modern_seam/log.txt"
+          test "$(grep -c 'UR_BALDOSA_PRODUCT_INPUT frame=' "$input_log")" -ge 3
+          grep -q 'UR_BALDOSA_PRODUCT_INPUT .* incoming=.* guest=.* host_owns=0' "$input_log"
           cmp "$RUNNER_TEMP/ur-baldosa-input/original/fd/crc.txt" \
             "$RUNNER_TEMP/ur-baldosa-input/modern_seam/fd/crc.txt"
           echo "PASS: actual 2P native Baldosa execution with mapped human callback; CRC identical to pinned unchanged guest" >> "$GITHUB_STEP_SUMMARY"

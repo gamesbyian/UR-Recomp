@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
         std::puts("QA02_BUSY_AND_STALE_RETRY_REJECTED");
         return 0;
     }
-    if (action == "owner-crash") {
+    if (action == "owner-crash" || action == "owner-hold") {
         std::error_code ec;
         fs::create_directories(layout.multiplayer_runs_directory, ec);
         require(!ec, "crash-owner records root");
@@ -199,6 +199,16 @@ int main(int argc, char** argv) {
         arm_first(session, kAttemptOld);
         const auto saved = publish_real_pair(session, 0x080);
         require(fs::exists(saved), "old run saved before process death");
+        if (action == "owner-hold") {
+            fs::create_directories(root / "barrier", ec);
+            require(!ec, "owner hold barrier root");
+            signal(root / "barrier" / "owner-live");
+            // The test controller must terminate this still-running process
+            // with an OS hard kill. Do not let normal C++ destructors release
+            // the live fixture lease before the owner actually dies.
+            std::this_thread::sleep_for(std::chrono::seconds(30));
+            require(false, "owner hold should have been hard-killed");
+        }
         std::_Exit(81); // OS releases live lease; pending remains durable
     }
     if (action == "retry-owner-crash") {

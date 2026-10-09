@@ -158,7 +158,7 @@ bool save_host_profile_catalog_file(
         // The original code streamed rdbuf() into an unbounded ostringstream.
         // Bounded read remains safe if another process grows the file after
         // the size preflight and before the stream is opened.
-        std::string prior(static_cast<std::size_t>(kMaxCatalogBytes) + 1u, '\\0');
+        std::string prior(static_cast<std::size_t>(kMaxCatalogBytes) + 1u, '\0');
         existing.read(prior.data(), static_cast<std::streamsize>(prior.size()));
         const auto count = existing.gcount();
         if (count < 0 ||

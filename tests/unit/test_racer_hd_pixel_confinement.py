@@ -51,8 +51,8 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
     def test_source_empty_lower_viewport_must_not_acquire_hd_rider(self):
         stock, hd = frames()
         pam = (
-            b"P7\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
         )
         rgba = bytearray(256 * 224 * 4)
         rgba[(42 * W + 125) * 4 + 3] = 255

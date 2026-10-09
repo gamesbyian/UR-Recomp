@@ -183,6 +183,41 @@ mode visuals. Passing the probes never promotes QA-08 to L4.
 Native same-frame screenshot and foreground-depth comparisons still
 need to be expanded to these modes.
 
+## Accepted 1P and VS native results
+
+The newly accepted [PR #1022](https://github.com/gamesbyian/UR-Recomp/pull/1022)
+captured the actual native 120-guest-frame tails after each mode's
+ROM-gated active-race entry. Native graphics workflow `37875965496`,
+artifact `11592851071`, candidate
+`c52c2a6f581cb159a31c7e2c84a464b11922ec2a`.
+Source JSON hashes, exact windows, fixture names and quality limitations
+are retained in
+[`analysis/generated/racer-hd-native-1p-vs-tail-2026-10-09.json`](../analysis/generated/racer-hd-native-1p-vs-tail-2026-10-09.json).
+
+| Native first-race guest-frame tail | One-player | VS |
+| --- | ---: | ---: |
+| Actual full-pair HD host draws | **42/120 (35.0%)** | **39/120 (32.5%)** |
+| Actual Original fallback draws | 78/120 (65.0%) | 81/120 (67.5%) |
+| HD runs | 7 | 9 |
+| One-frame HD bursts | 0 | 1 |
+| HD↔Original mode switches | **14** | **16** |
+| Missing host presents | 0 | 0 |
+| Capture armed but HD never drawn | **0** | **0** |
+| Last 120 guest frames | 1068–1187 | 1235–1354 |
+
+All Original fallback frames in these tails were attributed to the
+P1 selection/art gate. There were real full-pair HD presenter returns
+in both modes, but **successful draws do not prove authentic
+composition or racer identity**. Neither mode has a same-frame
+Original-vs-HD raster priority witness, nor demonstrated complete
+4:3/16:9 composition, moving camera/occlusion behavior or HD coverage
+over an entire race.
+
+The separate ordinary-2P 441-frame and 2,641-frame reference routes
+are **different observations** and must keep their own denominators.
+In particular, do not average these scene rates or promote QA-08 to
+a passed release gate based on bounded admissions.
+
 ## What this still cannot prove
 
 - A successful `hd` callback **does not** establish correct occlusion

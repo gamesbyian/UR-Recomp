@@ -76,14 +76,14 @@ def render_fixed_boundary(prefix: str) -> str:
     result-onset logs disagree by one frame, and this experiment must
     independently decide whether script polling created it.
     """
-    if not prefix.endswith("dump scene-entered\\n"):
+    if not prefix.endswith("dump scene-entered\n"):
         raise ValueError("missing genuine scene anchor")
-    parts = [prefix, f"wait {BOUNDARY_FRAMES[0]}\\n"]
+    parts = [prefix, f"wait {BOUNDARY_FRAMES[0]}\n"]
     for index, frame in enumerate(BOUNDARY_FRAMES):
         if index:
-            parts.append("wait 1\\n")
-        parts.append(f"dump boundary-{frame:05d}\\n")
-    parts.append("quit\\n")
+            parts.append("wait 1\n")
+        parts.append(f"dump boundary-{frame:05d}\n")
+    parts.append("quit\n")
     return "".join(parts)
 
 

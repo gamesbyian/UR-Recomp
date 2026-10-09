@@ -31,6 +31,8 @@ class ReceiptStorageRetryHostContract(unittest.TestCase):
         self.assertIn("*g_multiplayer_capture_tournament_attempt", saved)
         self.assertNotIn("cancel_local_tournament_capture(", saved)
         self.assertIn("UR_LOCAL_TOURNAMENT RECEIPT_SAVE_PENDING", saved)
+        self.assertIn("g_local_tournament_result_notice", saved)
+        self.assertIn("SAVE PENDING - F4 RETRY", saved)
         self.assertIn("g_multiplayer_capture_tournament_attempt.reset();", capture)
         panel = source.split("bool open_local_tournament_panel() {", 1)[1].split(
             "\nvoid create_local_tournament_from_panel(", 1

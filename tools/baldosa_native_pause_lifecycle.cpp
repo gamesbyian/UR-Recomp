@@ -12,6 +12,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include "modern_session_c_api.h"
 #include "baldosa_physical_pause_input.hpp"
@@ -165,14 +166,29 @@ void require(bool ok, const char* why) {
 // bridge; all ordinary profile/stock/menu controls retain guest authority.
 extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
     if (!physical_modern_enabled() ||
-        (smoke_enabled() && !g_physical_smoke) ||
-        key != SDLK_ESCAPE) return 0;
+        (smoke_enabled() && !g_physical_smoke)) return 0;
+    if (key == SDLK_r) {
+        // R is a Modern Restart command only inside an acknowledged host
+        // pause. Normal stock racing and menu navigation retain the key.
+        if (!g_modern_session ||
+            (!ur_modern_session_is_paused(g_modern_session) &&
+             !g_keyboard_restart.holding())) return 0;
+        const bool used = g_keyboard_restart.on_button(
+            pressed, false, g_modern_session, UR_MODERN_SESSION_KEY_RESTART);
+        if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS"))
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_INPUT key=restart status=%d paused=%d\n",
+                static_cast<int>(g_keyboard_restart.last_result()),
+                ur_modern_session_is_paused(g_modern_session));
+        return used ? 1 : 0;
+    }
+    if (key != SDLK_ESCAPE) return 0;
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
     const bool used = g_keyboard_pause.on_button(
         pressed, g_native_live_race, g_modern_session);
     if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
-        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT key=escape action=%d paused=%d\\n",
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT key=escape action=%d paused=%d\n",
                      static_cast<int>(g_keyboard_pause.last_result()),
                      ur_modern_session_is_paused(g_modern_session));
     }
@@ -189,7 +205,7 @@ extern "C" int ur_baldosa_product_system_gamepad(
     const bool used = g_p1_gamepad_pause.on_button(
         pressed, g_native_live_race, g_modern_session);
     if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
-        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT pad=p1_start action=%d paused=%d\\n",
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT pad=p1_start action=%d paused=%d\n",
                      static_cast<int>(g_p1_gamepad_pause.last_result()),
                      ur_modern_session_is_paused(g_modern_session));
     }
@@ -202,9 +218,41 @@ extern "C" void ur_baldosa_product_after_run_frame(
     ur_baldosa_guest_snapshot_after_run_frame(stats);
     if (stats) {
         g_native_live_race = g_ram[0x0313] == 0x01;
+        // Create at the FIRST observed authentic racing frame, not at the
+        // first human pause. That gives Restart a real immutable race anchor.
+        if (physical_modern_enabled() && g_native_live_race &&
+            !g_modern_session) create_modern_session();
         if (g_modern_session)
             ur_modern_session_observe_race_active(
                 g_modern_session, g_native_live_race ? 1 : 0);
+
+        // Explicit test-only, real same-boundary native rollback round trip.
+        // It must leave guest WRAM, persistent SRAM and all future 2P frame
+        // CRCs unchanged; the user-facing, multi-frame Retry still needs QA.
+        if (!g_restart_same_frame_checked && g_native_live_race &&
+            std::getenv("UR_BALDOSA_RESTART_SAME_FRAME_SMOKE")) {
+            g_restart_same_frame_checked = true;
+            require(g_modern_session &&
+                    ur_modern_session_restart_available(g_modern_session),
+                    "native_restart_anchor_missing");
+            std::uint8_t before_ram[0x20000];
+            std::memcpy(before_ram, g_ram, sizeof(before_ram));
+            require(g_sram != nullptr && g_sram_size > 0,
+                    "native_restart_sram_unavailable");
+            const std::vector<std::uint8_t> preserved(
+                g_sram, g_sram + static_cast<std::size_t>(g_sram_size));
+            require(ur_modern_session_restart_race(g_modern_session) ==
+                        UR_MODERN_SESSION_APPLIED,
+                    "native_rollback_restore_rejected");
+            require(std::memcmp(g_ram, before_ram, sizeof(before_ram)) == 0,
+                    "native_rollback_wram_changed");
+            require(std::memcmp(g_sram, preserved.data(), preserved.size()) == 0,
+                    "native_rollback_sram_changed");
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=%u sram_equal=1 wram_equal=1\n",
+                stats->frame);
+            std::fflush(stderr);
+        }
     }
     if (!smoke_enabled()) return;
     require(stats != nullptr, "missing_frame_statistics");
@@ -221,10 +269,8 @@ extern "C" void ur_baldosa_product_after_run_frame(
         // Only one synthetic acceptance pause per process; no player data
         // or host controls are modified once the observation is complete.
         g_resumed = false;
-        if (g_physical_smoke) {
-            ur_modern_session_destroy(g_modern_session);
-            g_modern_session = nullptr;
-        }
+        // Keep the real Modern session and immutable race anchor alive for
+        // Retry after the smoke; only guest completion/front-end owns retirement.
     }
 
     // Explicit test frame only. Require the actual source guest's in-race

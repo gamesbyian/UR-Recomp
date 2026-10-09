@@ -265,6 +265,21 @@ jobs:
           # diagnostic bitmask, then compare with same-frame Original and HD.
           run_route Original-OBJ-only "$OBJ_ONLY_LOG" "$OBJ_ONLY_DUMPS" "$OBJ_ONLY_SHOT" SNESRECOMP_LAYER_MASK=0x10
 
+          # Four processes must observe the exact same authoritative
+          # composition at guest frame 1220. A screenshot-phase mismatch is
+          # not evidence of authentic foreground occlusion.
+          python3 - "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$HD_LOG" "$OBJ_ONLY_LOG" <<'PY'
+          import pathlib, re, sys
+          pattern = re.compile(r"^UR_RACER_PRESENTATION_TRACE frame=1220 (.+)$", re.MULTILINE)
+          observations = []
+          for name in sys.argv[1:]:
+              matches = pattern.findall(pathlib.Path(name).read_text(encoding="utf-8"))
+              assert len(matches) == 1, (name, matches)
+              observations.append(matches[0])
+          assert len(set(observations)) == 1, observations
+          print("UR_RACER_HD_OBJ_ONLY_SOURCE_ALIGNMENT PASS frame=1220 instances=4")
+          PY
+
           # These are actual host presentation results, not registration matches.
           python3 tools/measure_racer_hd_live_draws.py \
             "$HD_LOG" --json-out "$RUNNER_TEMP/racer-hd-live-census.json" \

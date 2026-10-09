@@ -1,6 +1,6 @@
-/* Native guest-word seam in the pinned Baldosa SnesDesktopHostGame.
+/* Native mapped-human-word seam in the pinned Baldosa SnesDesktopHostGame.
  * No gameplay, profile, SRAM, records or renderer ownership is transferred.
- * The currently attached upstream host supplies mapped/scripted words. An
+ * The pinned host supplies mapped human words BEFORE scripts/debug are merged. An
  * eventual Modern host must call focus/reset only at authoritative boundaries.
  */
 #include "baldosa_execution_backend.hpp"
@@ -13,7 +13,7 @@ namespace {
 ur::product::BaldosaGuestInputAuthority g_input;
 }
 
-extern "C" std::uint32_t ur_baldosa_product_filter_frame_inputs(
+extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
     std::uint32_t word, unsigned frame) {
     const std::uint32_t accepted = g_input.filter(word);
     if (std::getenv("UR_BALDOSA_PRODUCT_INPUT_DIAGNOSTICS") &&

@@ -34,8 +34,10 @@ public:
     SessionPhase phase() const noexcept { return control_.phase(); }
     bool restart_available() const noexcept {
         return control_.mode() == ExecutionMode::Modern &&
-               (hooks_.native_restart_available
-                    ? hooks_.native_restart_available(hooks_.native_context)
+               (hooks_.native_restart_race
+                    ? (native_attempt_observed_ &&
+                       hooks_.native_restart_available &&
+                       hooks_.native_restart_available(hooks_.native_context))
                     : restart_lifecycle_.restart_available());
     }
 
@@ -47,6 +49,10 @@ private:
     SessionControl control_;
     RaceRestartLifecycle& restart_lifecycle_;
     SessionRuntimeHooks hooks_;
+    // Native restart cannot be armed by launch alone. It requires a genuine
+    // guest-race observation, and stays armed through authentic results until
+    // the attempt is retired or frontend return succeeds.
+    bool native_attempt_observed_ = false;
 };
 
 }  // namespace ur::product

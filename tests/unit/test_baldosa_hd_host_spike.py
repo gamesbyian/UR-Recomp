@@ -37,6 +37,8 @@ class NativeRacerHostTest(unittest.TestCase):
         adapter = (ROOT / "tools/baldosa_native_racer_presentation.cpp").read_text()
         self.assertIn("return enabled() ? ur::presentation::racer_hd_presentation_scale() : 1;", adapter)
         self.assertIn("authored_difference_count(", adapter)
+        self.assertIn("compose_nearest_density_frame(", adapter)
+        self.assertIn("return density();", adapter)
 
     def test_only_first_party_presenter_is_linked(self):
         with tempfile.TemporaryDirectory() as td:
@@ -45,6 +47,7 @@ class NativeRacerHostTest(unittest.TestCase):
                 "tools/baldosa_native_racer_presentation.cpp",
                 "native/presentation/racer_hd_presenter.cpp",
                 "native/presentation/racer_oam_placement.cpp",
+                "native/product/presentation_density_compositor.cpp",
             ):
                 path = root / filename
                 path.parent.mkdir(parents=True, exist_ok=True)
@@ -55,6 +58,7 @@ class NativeRacerHostTest(unittest.TestCase):
                 "# UR_BALDOSA_GUEST_SNAPSHOT_BRIDGE\n", root)
             self.assertEqual(patch.patch_cmake(candidate, root), candidate)
             self.assertIn("racer_hd_presenter.cpp", candidate)
+            self.assertIn("presentation_density_compositor.cpp", candidate)
 
     def test_requires_distinct_presented_rasters_and_same_guest_crc(self):
         with tempfile.TemporaryDirectory() as td:

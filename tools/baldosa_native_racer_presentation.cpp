@@ -4,6 +4,7 @@
  * mutation. The original renderer owns pixels whenever UR's gate refuses.
  */
 #include "racer_hd_presenter.hpp"
+#include "presentation_density_compositor.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -15,6 +16,8 @@ namespace {
 unsigned g_frame = 0;
 unsigned g_captured = 0;
 unsigned g_last_captured_frame = 0;
+unsigned g_fallback_captured = 0;
+unsigned g_last_fallback_frame = 0;
 
 bool enabled() noexcept {
     const char* value = std::getenv("UR_BALDOSA_HD");
@@ -28,12 +31,13 @@ int density() noexcept {
 }
 
 bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
-                        int width, int height, unsigned frame) noexcept {
+                        int width, int height, unsigned frame,
+                        const char* stem = "ur-baldosa-frame") noexcept {
     const char* dir = std::getenv("UR_BALDOSA_HD_CAPTURE_DIR");
     if (dir == nullptr || dir[0] == '\0') return false;
     char path[1024];
     const int length = std::snprintf(path, sizeof(path),
-        "%s/ur-baldosa-frame-%06u.pam", dir, frame);
+        "%s/%s-%06u.pam", dir, stem, frame);
     if (length <= 0 || static_cast<std::size_t>(length) >= sizeof(path))
         return false;
     std::FILE* out = std::fopen(path, "wb");
@@ -95,9 +99,10 @@ std::size_t authored_difference_count(
 } // namespace
 
 extern "C" int ur_baldosa_hd_presentation_scale(void) {
-    // A rejected source-art gate must not allocate a 4x presenter and then
-    // fall back to Baldosa's 1x Original RtlWidescreenPresent writer.
-    return enabled() ? ur::presentation::racer_hd_presentation_scale() : 1;
+    // Stable density for every accepted fixed logical scene: real HD art when
+    // available, first-party nearest Original fallback otherwise. Neither
+    // may let Baldosa's 1x raster write into a scaled buffer.
+    return density();
 }
 
 extern "C" void ur_baldosa_hd_begin_sim_frame(unsigned number) {
@@ -114,7 +119,33 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     if (!enabled()) return 0;
     const int handled = ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_w, frame_h, alpha);
-    if (!handled) return 0;
+    if (!handled) {
+        const int scale = density();
+        if (scale == 1) return 0; // stock host owns 1x Original
+        const bool safe = ur::product::compose_nearest_density_frame(
+            dst, pitch, field, frame_w, frame_h, scale);
+        if (!safe) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_FATAL invalid density fallback geometry width=%d "
+                "height=%d pitch=%zu scale=%d\n",
+                frame_w, frame_h, pitch, scale);
+            std::abort(); // fail closed before partial/mis-sized texture writes
+        }
+        if (g_frame >= 400 && g_frame <= 1700 &&
+            g_fallback_captured < 3 && g_last_fallback_frame != g_frame) {
+            const bool saved = save_presented_pam(
+                dst, pitch, frame_w * scale, frame_h * scale, g_frame,
+                "ur-baldosa-fallback");
+            std::fprintf(stderr,
+                "UR_BALDOSA_ORIGINAL_FALLBACK frame=%u logical=%dx%d "
+                "raster=%dx%d pitch=%zu saved=%d\n",
+                g_frame, frame_w, frame_h, frame_w * scale,
+                frame_h * scale, pitch, saved ? 1 : 0);
+            g_last_fallback_frame = g_frame;
+            if (saved) ++g_fallback_captured;
+        }
+        return 1;
+    }
     // Turbo presentation is asynchronous to guest frame cadence: accepted
     // HD frames occurred at 1808, 1856 and 1952 in the first native run.
     // Sample actual successful draw callbacks, not arbitrary frame moduli.

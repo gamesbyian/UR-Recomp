@@ -8,6 +8,10 @@
 #include <algorithm>
 #include <array>
 #include <cstdint>
+#include <chrono>
+#include <filesystem>
+#include <fstream>
+#include <thread>
 #include <cstdlib>
 #include <iostream>
 #include <string>
@@ -85,10 +89,62 @@ int read_one(const std::string& family, const std::string& path) {
 } // namespace
 
 int main(int argc, char** argv) {
-    if (argc != 5) return 2;
+    if (argc != 5 && argc != 6) return 2;
     const std::string family(argv[1]), action(argv[2]), path(argv[3]);
     const unsigned value = static_cast<unsigned>(std::strtoul(argv[4], nullptr, 10));
     if (value > 15) return 2;
+    if (family == "profile" && action == "cas-create") {
+        const auto status = save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, std::nullopt, profile(value));
+        return status == HostProfileSaveStatus::Saved ? 0 :
+               status == HostProfileSaveStatus::Conflict ? 6 : 7;
+    }
+    if (family == "profile" && action == "cas-rollback") {
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!loaded.loaded()) return 4;
+        const auto intermediate = profile(value);
+        if (save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, *loaded.state, intermediate) !=
+            HostProfileSaveStatus::Saved) return 7;
+        if (argc == 6 && std::string(argv[5]) == "interleave") {
+            const auto winner = profile(value + 1u);
+            if (save_host_profile_state_file_if_current(
+                    ExecutionMode::Modern, path, intermediate, winner) !=
+                HostProfileSaveStatus::Saved) return 8;
+            return save_host_profile_state_file_if_current(
+                ExecutionMode::Modern, path, intermediate, *loaded.state) ==
+                HostProfileSaveStatus::Conflict ? 0 : 9;
+        }
+        return save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, intermediate, *loaded.state) ==
+            HostProfileSaveStatus::Saved ? 0 : 9;
+    }
+    if (family == "profile" && action == "cas-contend" && argc == 6) {
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern, path, "qa-profile");
+        if (!loaded.loaded()) return 4;
+        const std::filesystem::path synchronization(argv[5]);
+        const auto ready = synchronization /
+            ("ready-" + std::to_string(value));
+        {
+            std::ofstream marker(ready);
+            if (!marker) return 7;
+        }
+        bool released = false;
+        for (unsigned n = 0; n < 10000; ++n) {
+            if (std::filesystem::exists(synchronization / "go")) {
+                released = true;
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+        if (!released) return 8;
+        const auto status = save_host_profile_state_file_if_current(
+            ExecutionMode::Modern, path, *loaded.state, profile(value));
+        return status == HostProfileSaveStatus::Saved ? 0 :
+               status == HostProfileSaveStatus::Conflict ? 6 : 9;
+    }
     if (action == "write") return write_one(family, path, value);
     if (action == "read") return read_one(family, path);
     if (action == "syncfail" && family == "profile") {

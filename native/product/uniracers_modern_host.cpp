@@ -1249,9 +1249,10 @@ void persist_recent_course_for_active_profile(std::uint8_t track_id) {
     }
     auto candidate = *g_profile_state;
     candidate.recent_track = track_id;
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         // The in-memory recent still works for this process; the durable
         // profile keeps its previous value.
@@ -1764,9 +1765,10 @@ bool persist_live_profile_snapshot() {
         ur::product::HostProfileTransferStatus::Applied) {
         return false;
     }
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         return false;
     }
@@ -1895,8 +1897,8 @@ bool create_profile_from_editor() {
         product_diagnostic("UR_PROFILE_CREATE REJECTED_EXISTING_STATE");
         return false;
     }
-    if (ur::product::save_host_profile_state_file(
-            ur::product::ExecutionMode::Modern, path, *state) !=
+    if (ur::product::save_host_profile_state_file_if_current(
+            ur::product::ExecutionMode::Modern, path, std::nullopt, *state) !=
         ur::product::HostProfileSaveStatus::Saved) {
         return false;
     }
@@ -1942,14 +1944,14 @@ bool rename_profile_from_editor() {
     auto state = original_state;
     state.racer_identity->name = g_profile_edit_name;
     if (!ur::product::valid_racer_identity(*state.racer_identity)) return false;
-    if (ur::product::save_host_profile_state_file(
-            ur::product::ExecutionMode::Modern, path, state) !=
+    if (ur::product::save_host_profile_state_file_if_current(
+            ur::product::ExecutionMode::Modern, path, original_state, state) !=
         ur::product::HostProfileSaveStatus::Saved) return false;
     entry.identity = *state.racer_identity;
     if (!persist_profile_catalog()) {
         entry.identity = original_identity;
-        const auto rollback = ur::product::save_host_profile_state_file(
-            ur::product::ExecutionMode::Modern, path, original_state);
+        const auto rollback = ur::product::save_host_profile_state_file_if_current(
+            ur::product::ExecutionMode::Modern, path, state, original_state);
         product_diagnostic(
             rollback == ur::product::HostProfileSaveStatus::Saved
                 ? "UR_PROFILE_RENAME ROLLED_BACK"
@@ -2051,9 +2053,10 @@ bool execute_active_profile_progress_reset() {
 
     // Publish host metadata first. If the framework SRAM write then fails,
     // restore both the live bytes and the original host profile state.
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         product_diagnostic("UR_PROFILE_RESET PROFILE_SAVE_FAILED");
         return false;
@@ -2063,9 +2066,10 @@ bool execute_active_profile_progress_reset() {
     if (!RtlTryWriteSram()) {
         std::memcpy(g_sram, original_sram.data(), original_sram.size());
         const bool profile_rolled_back =
-            ur::product::save_host_profile_state_file(
+            ur::product::save_host_profile_state_file_if_current(
                 ur::product::ExecutionMode::Modern,
                 g_profile_state_path,
+                candidate,
                 original_state) == ur::product::HostProfileSaveStatus::Saved;
         const bool sram_rolled_back = RtlTryWriteSram();
         if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
@@ -2514,9 +2518,10 @@ bool cycle_ghost_target_setting() {
         break;
     }
 
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         product_diagnostic("UR_RUN_GHOST TARGET_SAVE_FAILED");
         return false;
@@ -3418,18 +3423,20 @@ bool retire_tour_continuation_after_stock_reset() {
     // a profile-file failure cannot leave save.srm durably wiped while the old
     // resumable continuation remains. If the SRAM write then fails, roll the
     // profile metadata back to the exact pre-retirement state.
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         product_diagnostic("UR_TOUR_RESTART PROFILE_SAVE_FAILED");
         return false;
     }
 
     if (!RtlTryWriteSram()) {
-        const auto rollback = ur::product::save_host_profile_state_file(
+        const auto rollback = ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            candidate,
             original);
         product_diagnostic(
             rollback == ur::product::HostProfileSaveStatus::Saved
@@ -3479,9 +3486,10 @@ bool save_active_profile_state(
         ur::product::HostProfileTransferStatus::Applied) {
         return false;
     }
-    if (ur::product::save_host_profile_state_file(
+    if (ur::product::save_host_profile_state_file_if_current(
             ur::product::ExecutionMode::Modern,
             g_profile_state_path,
+            *g_profile_state,
             candidate) != ur::product::HostProfileSaveStatus::Saved) {
         product_diagnostic("UR_TOUR_RESUME PROFILE_SAVE_FAILED");
         return false;

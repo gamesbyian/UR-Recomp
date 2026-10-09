@@ -51,6 +51,7 @@ enum class HostProfileSaveStatus {
     Saved,
     Rejected,
     IoError,
+    Conflict, // another process replaced the expected snapshot
 };
 
 HostProfileLoadResult load_host_profile_state_file(
@@ -67,5 +68,15 @@ HostProfileSaveStatus save_host_profile_state_file(
     ExecutionMode mode,
     const std::string& path,
     const HostProfileState& state);
+
+// Compare-and-replace under the same persistent per-path OS handle lock
+// used by launch-checkpoint retirement. A rollback is authorized only if the
+// disk still contains the exact intermediate state it is undoing. std::nullopt
+// means create-only: a missing target must remain missing until publication.
+HostProfileSaveStatus save_host_profile_state_file_if_current(
+    ExecutionMode mode,
+    const std::string& path,
+    const std::optional<HostProfileState>& expected_current,
+    const HostProfileState& next);
 
 }  // namespace ur::product

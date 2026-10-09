@@ -8,6 +8,7 @@ import os
 import pathlib
 import subprocess
 import tempfile
+import time
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
@@ -105,6 +106,53 @@ class HostPersistenceProcessTests(unittest.TestCase):
             self.assertEqual(read_value("profile", profile), 5)
             self.assertTrue(all(p.exists() for p in abandoned),
                             "recovery does not delete unrelated crash evidence")
+
+            # Compare-and-swap uses the exact prior disk snapshot rather
+            # than autosave_generation alone. Both children load the SAME
+            # previous SRAM before either receives the "go" marker.
+            cas_path = root / "cas-profile.dat"
+            self.assertEqual(call("profile", "cas-create", cas_path, 2).returncode, 0)
+            self.assertEqual(call("profile", "cas-create", cas_path, 3).returncode, 6)
+            self.assertEqual(read_value("profile", cas_path), 2)
+
+            barrier = root / "barrier"
+            barrier.mkdir()
+            competing = [
+                subprocess.Popen(
+                    [str(exe), "profile", "cas-contend",
+                     str(cas_path), str(value), str(barrier)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                for value in (8, 9)
+            ]
+            deadline = time.monotonic() + 8
+            while not all((barrier / ("ready-" + str(value))).exists()
+                          for value in (8, 9)):
+                self.assertLess(time.monotonic(), deadline,
+                                "contending writers failed to reach the barrier")
+                time.sleep(0.01)
+            (barrier / "go").touch()
+            statuses = []
+            for child in competing:
+                _, stderr = child.communicate(timeout=12)
+                statuses.append(child.returncode)
+                self.assertIn(child.returncode, (0, 6), stderr)
+            self.assertEqual(sorted(statuses), [0, 6], statuses)
+            winner = read_value("profile", cas_path)
+            self.assertIn(winner, (8, 9))
+
+            # A legitimate same-process rollback may decrease generation,
+            # but only if nobody replaced its exact intermediate state.
+            self.assertEqual(call("profile", "cas-rollback",
+                                  cas_path, 12).returncode, 0)
+            self.assertEqual(read_value("profile", cas_path), winner)
+            result = subprocess.run(
+                [str(exe), "profile", "cas-rollback", str(cas_path),
+                 "13", "interleave"],
+                cwd=ROOT, capture_output=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertEqual(read_value("profile", cas_path), 14)
 
 
 if __name__ == "__main__":

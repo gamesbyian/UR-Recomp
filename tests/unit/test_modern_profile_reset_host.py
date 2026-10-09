@@ -26,14 +26,14 @@ class ModernProfileResetHostContractTests(unittest.TestCase):
         fn_end = HOST.index("\nvoid open_profile_reset_confirmation()", fn_start)
         body = HOST[fn_start:fn_end]
 
-        profile_save = body.index("save_host_profile_state_file(")
+        profile_save = body.index("save_host_profile_state_file_if_current(")
         install_live = body.index("std::memcpy(g_sram, reset_sram.data()")
         sram_save = body.index("RtlTryWriteSram()", install_live)
         rollback_live = body.index(
             "std::memcpy(g_sram, original_sram.data()", sram_save
         )
         rollback_profile = body.index(
-            "save_host_profile_state_file(", rollback_live
+            "save_host_profile_state_file_if_current(", rollback_live
         )
 
         self.assertLess(profile_save, install_live)

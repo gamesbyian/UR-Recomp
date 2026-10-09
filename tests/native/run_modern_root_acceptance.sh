@@ -39,10 +39,13 @@ if [[ ${1:-} == --inside ]]; then
     # Existing SDL3 virtual gamepad is attached as actual P1, then drives
     # default mapped D-pad Down, physical A and physical B with real edges.
     # The root's modal hold must not stall the driver or leak into guest P1.
-    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=down step=0'
-    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=a step=1'
+    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=x step=0'
+    wait_line 'UR_PROFILE_UI OPENED'
+    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=b step=1'
+    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=down step=2'
+    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=a step=3'
     wait_line 'UR_PRACTICE_PICKER OPENED'
-    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=b step=2'
+    wait_line 'UR_MAIN_MENU_PAD_ACCEPTANCE PRESSED button=b step=4'
     wait_line 'UR_PRACTICE_PICKER CANCELLED'
     ! grep -q 'UR_PRACTICE STARTED' "$LOG"
   elif [[ "$MODE" == root-actions ]]; then
@@ -101,7 +104,7 @@ printf 'seen-v1\n' > "$WORK/onboarding.seen"
 for case_name in root-actions pad play multiplayer; do
   mkdir -p "$WORK/$case_name-data"
   SDL_AUDIODRIVER=dummy \
-    UR_MAIN_MENU_PAD_ACCEPTANCE="$([[ "$case_name" == pad ]] && printf 'down,a,b' || true)" \
+    UR_MAIN_MENU_PAD_ACCEPTANCE="$([[ "$case_name" == pad ]] && printf 'x,b,down,a,b' || true)" \
     UR_EXECUTION_MODE=modern \
     UR_PRODUCT_DIAGNOSTICS=1 \
     UR_ONBOARDING_STATE_PATH="$WORK/onboarding.seen" \

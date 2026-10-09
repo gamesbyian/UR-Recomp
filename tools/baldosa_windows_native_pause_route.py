@@ -67,6 +67,8 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
         "SNESRECOMP_DUMP_DIR": str(output / "dump"),
         "UR_BALDOSA_PAUSE_SMOKE": "1" if pause else "0",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
     })
     cmd = [str(exe), "--no-launcher", "--config", str(config),
            "--script", str(script), "--framedump", str(framedump), str(rom)]
@@ -87,6 +89,8 @@ def check_pause_log(log: str) -> dict[str, str]:
     found = {kind: rest for kind, rest in PAUSE.findall(log)}
     if set(found) != {"ARMED", "RELEASED", "RESUMED"}:
         raise ValueError(f"Missing native pause lifecycle proof: {found}")
+    if "live_race=1" not in found["ARMED"]:
+        raise ValueError("Native pause was not triggered in authoritative live gameplay")
     if "frozen_pumps=24" not in found["RELEASED"] or "frozen_pumps=24" not in found["RESUMED"]:
         raise ValueError(f"Guest hold too short: {found}")
     if "FAIL=" in log:

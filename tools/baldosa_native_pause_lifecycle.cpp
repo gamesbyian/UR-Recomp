@@ -7,6 +7,8 @@
  */
 #include <cstddef>
 #include <cstdint>
+#include <cerrno>
+#include <climits>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -27,12 +29,31 @@ bool g_armed;
 bool g_resumed;
 unsigned g_guest_frame;
 unsigned g_frozen_ticks;
+unsigned g_pause_at_frame = 120;
+bool g_require_race;
 std::uint8_t g_frozen_ram[0x20000];
 
 bool smoke_enabled() {
     if (!g_smoke_initialized) {
         const char* env = std::getenv("UR_BALDOSA_PAUSE_SMOKE");
         g_smoke_enabled = env && std::strcmp(env, "1") == 0;
+        if (g_smoke_enabled) {
+            const char* frame = std::getenv("UR_BALDOSA_PAUSE_SMOKE_AT_FRAME");
+            if (frame && frame[0]) {
+                errno = 0;
+                char* end = nullptr;
+                const unsigned long n = std::strtoul(frame, &end, 10);
+                if (errno != 0 || !end || end == frame || *end != '\0' ||
+                    n == 0 || n > UINT_MAX) {
+                    std::fprintf(stderr,
+                        "UR_BALDOSA_NATIVE_PAUSE FAIL=invalid_test_frame\n");
+                    std::abort();
+                }
+                g_pause_at_frame = static_cast<unsigned>(n);
+            }
+            const char* require = std::getenv("UR_BALDOSA_PAUSE_REQUIRE_RACE");
+            g_require_race = require && std::strcmp(require, "1") == 0;
+        }
         g_smoke_initialized = true;
     }
     return g_smoke_enabled;
@@ -65,9 +86,13 @@ extern "C" void ur_baldosa_product_after_run_frame(
         g_resumed = false;
     }
 
-    // Frame 120 precedes the 2P route's confirmed gameplay. Its identity
-    // is for the isolated smoke exercise, NEVER course/event acceptance.
-    if (!g_armed && stats->frame == 120) {
+    // Explicit test frame only. Require the actual source guest's in-race
+    // byte, shared with Modern's existing title-state observer, when enabled.
+    // A script advancing frames without entering a race cannot pass the gate.
+    if (!g_armed && stats->frame == g_pause_at_frame) {
+        const bool live_race = g_ram[0x0313] == 0x01;
+        if (g_require_race)
+            require(live_race, "expected_live_race_state");
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
@@ -75,8 +100,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
                 "pause_was_not_acknowledged");
         require(snesrecomp_desktop_product_is_paused() != 0,
                 "host_not_actually_paused");
-        std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u\n",
-                     g_guest_frame);
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u\n",
+            g_guest_frame, live_race ? 1U : 0U);
         std::fflush(stderr);
     }
 }

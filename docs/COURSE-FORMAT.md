@@ -603,6 +603,35 @@ replace the original QA-01 0/45 complete-event denominator with this
 static count. Runtime collision words and checkpoint/lap/finish results
 still require original/native input-driven reference comparisons.
 
+### Original Zoom Zoo proves position-only historical finish rules unsafe (QA-01, 2026-10-09)
+
+The retained original 2014 Snes9x replay has two unambiguous **active
+Zoom Zoo** guest samples on opposite sides of Dessyreqt's manually
+entered historical finish-X constant `8881`:
+
+| Original movie frame | active guest / track ID | P1 X | Relative to historical X |
+| --- | --- | ---: | --- |
+| 3400 | `inRace=1`, track `1` (Zoom Zoo) | `9098` | +217 |
+| 3800 | `inRace=1`, track `1` (Zoom Zoo) | `8565` | −316 |
+| 4200 | `inRace=1`, track `1` (Zoom Zoo) | `14535` | +5654 |
+| 4600 | `inRace=1`, track `1` (Zoom Zoo) | `13745` | +4864 |
+
+The source is `analysis/generated/historical-2014-first-race-replay.json`
+**reference** columns only. Its native columns at those absolute frames are
+known to be menu/startup-phase misaligned and have no course-parity authority.
+`tests/unit/test_original_zoo_historical_finish_threshold.py` pins
+the original active-race and x-position observations against the
+historical handwritten constant, refusing to equate `X >= 8881` with a
+completed circuit.
+
+This refutes the tempting *optimizer-coordinate monotone finish
+shortcut*, not the shipped original guest's behavior. The historical
+`finishX` was not established as the actual collision trigger and the
+two snapshots do not show intermediate executed contact/warp/wrap
+operations. Circuit checkpoint/lap order and instruction-time object
+dispatch must be observed independently. Do not use this X comparison
+as a surrogate for real finish causality in a track editor or test oracle.
+
 ### Historical start-X evidence calibration (2026-10-08)
 
 A direct cross-check of all 45 normalized course headers against Dessyreqt's

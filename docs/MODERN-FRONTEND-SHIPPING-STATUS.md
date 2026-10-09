@@ -1,5 +1,10 @@
 # Windows x64 Modern frontend: shipped surfaces and remaining integration
 
+## Material-colour customization status (2026-10-08)
+
+The Racer Studio design now calls for an animated 2D hero and independently editable **tire, rim, frame/body and saddle** colours, with future curated textures. This is **planned only**: the current game does not have a verified four-part mask atlas, complete showroom/race recolour pipeline, or claimed player-facing persistence. Track implementation against [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md) and [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md); do not promote an attractive preview without complete race-pose parity and original-preset fidelity.
+
+
 ## Target design and current-status boundary
 
 The cross-screen proposed information architecture, detailed screen behavior, input/focus invariants and priority implementation sequence are specified in [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Treat it as the design target **only**: no unchecked design row, future Options category, racer studio, or responsive art treatment counts as shipped. Retain this file as the verified route/source-of-authority index, reconcile each newly landed screen against native acceptance, and keep stock menu fidelity and first-time controller discoverability as separate release conditions.

@@ -54,6 +54,24 @@ Mutable `local_tournament_session_store.cpp` and `local_tournament_fixture_launc
 
 The file-store TOCTOU in [#983](https://github.com/gamesbyian/UR-Recomp/issues/983) is addressed at the **local store** seam: checkpoint publication and exact-attempt retirement now take the same persistent, OS-handle-owned per-path `.urmutex` lock, enclosing the entire read/compare/remove critical section. POSIX uses `flock`, Windows uses `LockFileEx`; death of a process releases the OS lock without scavenging a PID sentinel. Unit test races 100 old-retire/new-save interleavings, with both possible orders always preserving the newer attempt and an explicit held-lock/release path. Isolated POSIX lock model passed 1,000 racing trials. **Do not mark QA-02 release accepted**: Windows packaged two-process, active event/session lost-update, power-loss and multi-file run/receipt/launch transaction remain open. Locking is cooperative and scoped to the canonical launch path.
 
+### QA-01/QA-07 original gameplay coverage baseline (2026-10-08)
+
+The [full course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
+now enforces **45 courses x 3 release ROMs = 135 course/build cases**:
+108 Race/Circuit and 27 Stunt. Current L4 course/event completion is
+**0/135 passed**, **2 bounded partial (USA Dragster contact window and
+USA Jumpover input-only landing thresholds)**, **133 unverified**.
+The generator and negative-pass unit tests refuse to turn 45 valid
+RNC streams, resource-family incidence or a six-case stunt sample into
+full-game acceptance. Zoom Zoo circuit lap/finish and Jumps timed-stunt
+score/result are prioritized because their historical start coordinates
+do not satisfy the simplest header-spawn interpretation. PAL Europe
+changed streams 4/16/20/26/27/35/36 need dynamic comparisons; the
+unaltered PAL-prototype streams do not establish runtime equivalence.
+At Dragster frame 2903, slot 10 remains an unproven prior dispatch
+candidate and slot 8 a postframe contact observation, pending an actual
+instruction-time witness. Guest gameplay code is unchanged.
+
 ## Immediate adversarial QA critical path (independently owned)
 
 **P0, blocking broad beta/release claims**: [QA-01] full playable-course and event-result census, including frame-phase-correct finish semantics; [QA-02] cross-artifact save/receipt/run/ghost crash and storage fault recovery; [QA-03] finish native/packaged 2P 3-leg and 3+ entrant tournament over multiple processes, plus P2 tournament-panel input-latch integrity; [QA-04] immutable current-candidate ZIP tested on dissimilar physical Windows machines. See [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) and numbered [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) cases J-01–J-20. **No current P0 release-level gate is marked passed.** This does not erase previously passing subsystem/Windows-hosted smoke tests.

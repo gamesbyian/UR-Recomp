@@ -12,6 +12,23 @@
 > **Claude usage-limit handoff, 2026-10-08:** See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) for current-main branch ancestry, unresolved selective-recovery candidates, and non-overlap with the active CI owner. No historical Claude branch is approved for wholesale merge merely because it has unique commits. Prioritize concrete QA-02/03 and player-visible regressions before reviving old code. At the initial audit #988 was open; it was later closed without merge and replaced by the current CI-owner PR #989. See the latest handoff audit.
 
 
+## QA-of-QA execution order and stop conditions (2026-10-08 local / 2026-10-09 UTC)
+
+**Read before assigning any new QA agent:** [QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) identifies missing *implementation* work, duplicate test costs, new confirmed failure classes, and actual dependencies; [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) now makes the initial 300 productive-agent-hour tranche conditional on measured outcome and 100/200/300h review. Historic work-queue sections below are evidence/history, **not automatic active assignments**. Do not create a QA PR purely to rewrite this plan again.
+
+| Order | Owned output (do not duplicate in parallel) | Lowest-cost next action | Exit or re-evaluation |
+| --- | --- | --- | --- |
+| 0: Integration/QA coordinator | Evidence+budget register; current main PR/issue reconciliation; candidate scope | Verify live state of #1043/#1045/#1052, issue #890 and QA-01 denominator; establish one existing script and SHA per shared journey | One named owner+oracle per task; classify defect/evidence gap/missing feature/optional limitation, account productive hours; no gate status promotion |
+| 1A: Persistence/tournament | **Correct live-fixture ownership** | Review #1052 regression and merge only after CI; then two actual Windows game windows Busy → owner completes → rival stale retry, hard-kill → explicit rearm; inspect older-client lease bypass as residual risk | No legitimate in-flight fixture silently displaced, valid independent runs preserved, one receipt/credit; J-07/08 exact candidate still separate |
+| 1B: Frontend/input with audio QA | **Fix reproduced Restart Return/Start leak (#890)** | Reproduce current Windows candidate with default keymap; apply smallest input-latch/ownership correction; rerun Return=Start vs None interleaved and guest word observations | Default binding resumes with correct audio, no leaked Start; no SPC overhaul |
+| 1C: Graphics | **Close phantom HD rider/source overlap** | Review #1045 per-instance PPU source footprints; native screenshot and moving 441-frame stock source observables; validate foreground priority, then 1P/VS and 4:3/16:9 | No fabricated rider, no stock sprite/foreground corruption; report visible per-player frames vs callback counts; optional Remastered may be withheld |
+| 1D: Gameplay QA-01/07 | **First full non-Dragster Race, Circuit and timed Stunt source/native results** | Use existing 2014 Zoo and archived Bowl/Jumps script leads, run legitimate origin to authoritative end; retain start, lap/checkpoint/score/time/result and independent reference | One reproducible event-complete witness per mechanics family or specific obstacle after bounded probe; only then expand to 45 |
+| 1E: Frontend product (implementation, not QA-only) | **Real Modern five-destination root ([#1053](https://github.com/gamesbyian/UR-Recomp/issues/1053))** | Consume `modern_root_menu` model and existing routes; wire Play/Practice/Multiplayer/Records/Options plus identity action; preserve guest/host authority | Packaged cold controller-only new-player journey works without F-keys, with original-inspired visible UI; actual product work must be estimated beyond small QA checks |
+| 2: Independent integrator + human tester | **Candidate player journeys** | One shared 2P multi-leg/3+ tournament, Records/replay, crash recovery; one real hardware 1P/2P + audio + focus/soak session | Original authority and durable results, human actual feedback; exact ZIP+hash and source identity. Hardware gap must be `blocked`, not `passed` |
+| 3: Expansion only if useful | Full USA course census; stress seeds; visual and audio source alignment | Generalize proven event-completion runner; add highest-yield expert, scene and storage cuts; minimize new infra/CI runs | Report 45 USA complete/partial/blocked/unverified; preserve optional PAL 90 comparative rows independently |
+
+**Coordination:** Assign production repairs to the owning lanes and *independent acceptance* to a QA integrator. A single player journey may witness QA-02/03/05/11 or QA-04/06/09/10, but only when all required observations are logged. Run audio fidelity/hardware acceptance on nominated candidate or audio changes, not repeatedly for unrelated PRs; the existing lightweight automatic sound-presence workflow is a distinct CI-owner policy. CI-speed lane stays separate. P2 cosmetic scope and historical forensic expansion remain deferred unless they repair a named shipping-blocking outcome. Every new speculative spike states its 6h stop and independent oracle; a verified P0 defect is **not** abandoned at 6h.
+
 ## Racer Studio material customization work queue (2026-10-08)
 
 **Planned, not shipped.** Source contracts: [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md), [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Four independent slots: tire, rim/spokes, frame/body, saddle. Exact legacy presets preserved. The showcase hero must immediately reflect draft changes; actual racing poses must ultimately match.
@@ -60,8 +77,10 @@ The [course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
 tracks **45 primary-USA Windows release course cases** plus **90 PAL
 retail/prototype comparative cases**, or 135 original ROM/course pairs
 (108 Race/Circuit, 27 timed Stunt). Primary L4 completion is
-**0/45 passed**, **2 bounded partial (USA Dragster contact window and
-USA Jumpover circuit-B input-only landing thresholds)**, **43 unverified**;
+**0/45 passed**, **4 bounded partial** (USA Dragster native contact window,
+USA Zoom Zoo original Snes9x checkpoint/lap plus settled original result,
+USA Bowl 2014 original-only scored 45-second Stunt result, and USA Jumpover
+circuit-B input-only landing thresholds), **41 unverified**;
 comparative PAL remains **0/90 passed, 90 unverified**.
 The generator and negative-pass unit tests refuse to turn 45 valid
 RNC streams, resource-family incidence or a six-case stunt-*maneuver*
@@ -74,6 +93,17 @@ unaltered PAL-prototype streams do not establish runtime equivalence.
 At Dragster frame 2903, slot 10 remains an unproven prior dispatch
 candidate and slot 8 a postframe contact observation, pending an actual
 instruction-time witness. Guest gameplay code is unchanged.
+
+**QA-01 bounded entry admission improvement (2026-10-09):** The fresh
+Zoom Zoo/Jumps original/native entry probe now compares both racers'
+checkpoint/finish/lap words and P2 velocities, closing a source-confirmed
+false-negative test gap where movement/contact equality could hide
+premature gate or P2 lap credit. A synthetic same-motion counterexample
+is pinned. See
+[QA01-NONDRAGSTER-ENTRY-PROGRESSION.md](QA01-NONDRAGSTER-ENTRY-PROGRESSION.md).
+No native/Snes9x execution or complete course gate is claimed. Next
+work is real paired runs and all-event/result witnesses, not another
+Dragster-only proof.
 
 ### QA-02 new storage fixes and remaining verification, 2026-10-08
 
@@ -95,11 +125,29 @@ Two additional source-confirmed P0-contributing races were found outside the tou
 
 **Next P0 work:** Execute independent fresh-process C04/C09/C10/C14/C15 receipt/pending/run and global-profile SRAM crash cuts, including two live Windows instances using the **same** pinned portable ZIP and data root, injected disk-full/read-only failures, old-version restore and hardware power interruption. Classify uncommitted versus already-visible-but-directory-sync-uncertain state without harmful compensation. An archived tournament left inactive, progressed/ambiguous orphan, or a missing optional ghost must never become an invented winner, fixture award, PB or profile. QA-02 stays `in_progress`, L4, no witness pinned in `RELEASE-QUALITY-LEDGER.json`.
 
+### QA-02 2026-10-09: artifact durability integrated and fixture authority retested
+
+**Merged and verified on individual PR heads:** #1033 (durably flush complete `.urrun` and bound `.urmatch` before no-replace final-name claims), #1035 (durably flush optional `.urghost` before replacement), #1038 (immutable tournament instance archive create-only CAS), #1041 (old-version active tournament archive migration create-only CAS and exact winner verification). Previous #1030 post-rename cleanup crash and #1032 fixture receipt staged durability fixes are also merged. See `QA02-RUN-MATCH-DURABILITY.md`, `QA02-GHOST-DATA-DURABILITY.md`, and `QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md`.
+
+**Merged #1042:** fixture credit now requires the exact **current on-disk pending attempt** under the same OS mutex as checkpoint publication and retirement. The mutex encloses saved-pair admission and immutable receipt claim; a stale/superseded process cannot award points. Native fixture tests cover C14 run/match without receipt and C15 receipt before pending retirement, each restoring a new coordinator from disk. They are not executable process-kills or packaged Windows L4. **Pending #1044:** prevent an older game build from overwriting a checksum-valid future-version ghost trace, while retaining supported same-version replacement; checks and merge still required.
+
+**Unclosed P0:** cross-artifact group atomicity, accurate re-entry after abrupt death during profile selector/framework SRAM publication (C04), actual fresh-executable crash cuts C14/C15, two live processes and abandoned checkpoint ownership, disk-full/read-only device and interrupted upgrade restoration, directory metadata persistence and packaged Windows/power-fault evidence. Keep QA-02 `in_progress` with zero L4 witnesses.
+
+### QA-02 live fixture ownership after process-crash acceptance, 2026-10-09
+
+**Merged #1050:** two simultaneously running native processes reproduce the original live fixture takeover: a newer pending checkpoint invalidates the older process's otherwise valid saved pair. The exact disk-token fence safely refuses the older fixture credit; nevertheless the old player's in-flight tournament work is stranded. This is confirmed, not a hypothetical race.
+
+**Proposed #1052:** fix the player-visible failure at its source by retaining a distinct nonblocking, OS-handle-owned fixture lease from arm through commit/cancel. Busy rival windows do not replace pending. Old game crashes (both `std::_Exit` and externally imposed hard kill) release the OS handle; a new explicit arm retries with a fresh token but cannot retroactively award the dead owner's run. Re-read exact active instance and receipt-derived completion under the lease to reject stale in-memory rearm. The panel shows `FIXTURE IN USE` for an alive rival. The previous exact-checkpoint fence remains defense in depth against noncooperating old binaries. **Do not merge #1052 without green fresh-head native CI.**
+
+**Remaining P0:** prove this behavior in two actually running packaged Windows game windows sharing one pinned ZIP/hash and root; verify UI retry/abandon clarity, process death and disk faults, C04 profile-selector/framework SRAM transaction, directory-entry power durability, and false-PB/receipt rejection across upgrade/downgrade. L2 source/native passes do not make J-02/J-07/J-08 an L4 pass.
+
 ## Immediate adversarial QA critical path (independently owned)
 
 **P0, blocking broad beta/release claims**: [QA-01] full playable-course and event-result census, including frame-phase-correct finish semantics; [QA-02] cross-artifact save/receipt/run/ghost crash and storage fault recovery; [QA-03] finish native/packaged 2P 3-leg and 3+ entrant tournament over multiple processes, plus P2 tournament-panel input-latch integrity; [QA-04] immutable current-candidate ZIP tested on dissimilar physical Windows machines. See [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) and numbered [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) cases J-01–J-20. **No current P0 release-level gate is marked passed.** This does not erase previously passing subsystem/Windows-hosted smoke tests.
 
 > **QA-08 graphics counterexample (2026-10-08):** Full-pair HD capture had no guard against removing the inactive small 16px OAM aliases in the split-screen raster; at low X=241..255 an alias can become visible after modulo-256 Y wrap. A conservative pre-capture gate and edge regressions are on the dedicated QA-08 branch. This is a source-level correctness fix requiring actual moving native screenshots/OAM placements before any L4 credit. The 2,641-frame retained 2P census still only admits 170 frames of pair-complete HD (6.44% of observed player-frames as an **upper bound**); obtain live accepted/stock transition counts, fallback episodes, 1P/2P/VS views and 4:3/16:9 captures. Keep unverified in the release ledger.
+
+> **QA-08 confirmed phantom lower rider in source-empty viewport (2026-10-09):** Native USA 2P original guest frame 1220 shows an upper unicycle but no bottom rider. Before corrective work, the HD host painted a complete lower unicycle anyway, despite the merged #1029 PPU source layer reporting 372 upper pixels and **zero lower racer source pixels**. #1037 adds source-alpha-gated per-viewport painting with 256-line wrap, scanline-112 clip and native screenshot rejection of fabricated riders. Measure its actual 441-frame top/bottom absence and mode switches via `tools/measure_racer_hd_source_visibility.py`; follow up with independent per-slot OBJ priority attribution and moving-scene validation. Until validated and merged, the host can visibly invent a rider; QA-08 remains **P1 release-blocking, L4 unverified**. Contract: `docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md`.
 
 > **QA-08 first native moving 1P/VS admission (2026-10-09):** [PR #1022](https://github.com/gamesbyian/UR-Recomp/pull/1022) is merged. Exact 120-guest-frame active-race tails (native workflow `37875965496`, artifact `11592851071`): **1P 42 HD/78 Original, 14 transitions; VS 39 HD/81 Original, 16 transitions**. Both are full-pair host draws; all unsupported frames correctly fell back, with zero armed-but-not-drawn captures. Evidence: `analysis/generated/racer-hd-native-1p-vs-tail-2026-10-09.json` and `docs/RACER-HD-LIVE-MOTION-CENSUS.md`. Immediate follow-up is **same-frame authentic raster fidelity** for 1P/VS at 4:3 and 16:9, including foreground priority, viewports, riders, HUD/ghost and camera, before any L4 acceptance. These are small mode-specific samples; never blend their denominators with 2P.
 

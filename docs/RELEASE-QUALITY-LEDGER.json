@@ -24,13 +24,15 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/COURSE-CONTACT-MARSHAL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+        "docs/QA01-NONDRAGSTER-ENTRY-PROGRESSION.md",
+        "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Primary USA event census 0/45 passes (2 partial): capture Zoom Zoo circuit and Jumps timed-stunt full results vs pinned emulator; frame-2903 dispatch witness. Track 90 PAL comparative cases separately without treating prototype completion as an automatic Windows release blocker.",
+      "next_action": "Release census remains 0/45 USA complete, 4 partial (including source-only Bowl Stunt), 41 unverified. Historical original Snes9x already finishes Zoom Zoo Circuit (BC, frame 8353) and scored Bowl Stunt (18, frame 11985), but neither has a fresh original/native pair. Execute #1055 event-complete historical-input transplantation on pinned original and native Authentic for Zoo and Bowl; check actual source-SRAM, scene/latch alignment, checkpoint/lap/score, and settled result. Find and validate a non-Dragster Race B source finish (Switcher first); #1055 must reject unavailable original results. Only after those three independently reviewed terminal families, extend route producers toward all 45. Keep frame-2903 causal attribution unresolved and PAL comparative 90 separate.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -38,8 +40,8 @@
       "coverage": {
         "denominator": 45,
         "complete_event_passes": 0,
-        "partial": 2,
-        "unverified": 43,
+        "partial": 4,
+        "unverified": 41,
         "regional_comparison_denominator": 90,
         "regional_comparison_complete": 0,
         "regional_comparison_unverified": 90,
@@ -60,14 +62,23 @@
         "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md",
         "docs/QA02-GLOBAL-HOST-STATE-CAS.md",
         "docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md",
-        "docs/QA02-FIXTURE-RECEIPT-DURABILITY.md"
+        "docs/QA02-FIXTURE-RECEIPT-DURABILITY.md",
+        "docs/QA02-RUN-MATCH-DURABILITY.md",
+        "docs/QA02-GHOST-DATA-DURABILITY.md",
+        "docs/QA02-IMMUTABLE-TOURNAMENT-ARCHIVE.md",
+        "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md",
+        "docs/QA02-GHOST-FUTURE-SCHEMA.md",
+        "docs/QA02-FIXTURE-HARDKILL-C14-C15.md",
+        "docs/QA02-COORDINATOR-C12-PROCESS-RACE.md",
+        "docs/QA02-SUPERSEDED-FIXTURE-PROCESS-RACE.md",
+        "docs/QA02-FIXTURE-OWNERSHIP-LEASE-PROPOSAL.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Integrate pending #1033 (.urrun/.urmatch durability), #1035 (.urghost durability), and #1038 (create-only immutable tournament archive) only after exact PR checks pass; then execute independent-process C04/C09/C10/C11/C14/C15 and Windows two-instance J-02/J-07/J-08 fault cuts with pinned ZIP/hash, disk-full, upgrade and power-loss witnesses.",
+      "next_action": "Run hash-pinned packaged Windows acceptance for merged #1052 and #1054 nonblocking live-fixture and active-event replacement fences on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -89,9 +100,20 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1019",
         "https://github.com/gamesbyian/UR-Recomp/pull/1027",
         "https://github.com/gamesbyian/UR-Recomp/pull/1030",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1032"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1032",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1033",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1035",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1038",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1041",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1042",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1044",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1046",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1048",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1050",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1052",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "Merged through #1027 pristine unregistered profile claim and #1030 post-rename/pre-cleanup empty-stage orphan recovery; #1032 now flushes immutable fixture receipt bytes before public no-replace. #1033 proposes OS data flush for .urrun and .urmatch before public claims; #1035 proposes .urghost flush before atomic replacement. Both remain under CI and are not accepted evidence yet. Existing profile/catalog/global-state and tournament-active CAS, rollback, private staging, and prepublish data flush corrections remain store-local. No atomic group commit or journal across framework save.srm, host-profile, roster/global selector, .urrun/.urmatch/.urghost, fixture receipt and pending launch. Progressed/ambiguous orphan racer and inert tournament archives lack automatic recovery. Postpublish directory durability and real controller power-loss behavior remain uncertain. No exact packaged Windows two-instance/disk-full/power-interruption L4 witness. QA-02 stays P0 in_progress. #1038 proposes preventing deliberately colliding new tournament creators from replacing an immutable session archive after a raced instance-directory preflight; CI is pending and restored-historical archive migration still has separate publication boundaries."
+      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. Merged green #1054 (61feb486) additionally fences a source-confirmed active-event replacement race: an independent process previously could replace the entire active tournament while the original owner held a live fixture lease. A nonblocking lease on the incumbent now returns Busy before new archive/active mutation; a two-process owner/replace regression passed scoped native CI. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
     },
     {
       "id": "QA-03",
@@ -100,7 +122,8 @@
       "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md"
+        "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md",
+        "docs/QA03-COMPLETE-TOURNAMENT-PROCESS-JOURNEY.md"
       ],
       "journeys": [
         "J-03",
@@ -108,16 +131,17 @@
         "J-05",
         "J-06"
       ],
-      "next_action": "Finish leg two/three and a three-entrant tournament from packaged candidate across processes",
+      "next_action": "Use merged green #1054 complete native backend process journeys as fixtures, then extend existing controller/guest-script acceptance to actually finish leg 2/3 and 3+ entrant round robin on exact packaged Windows ZIP across processes; assert terminal guest results, standings, Records, History, P2 isolation and cancellation. QA03 P0/L4 remains open until these are observed.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/969",
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/979",
-        "https://github.com/gamesbyian/UR-Recomp/pull/981"
+        "https://github.com/gamesbyian/UR-Recomp/pull/981",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "Real two-pad guest-word and complete multi-leg/3+ player journeys remain unverified."
+      "remaining_release_risk": "#1054 implements full backend artifact-driven 3-leg duel (3 fixtures) and 3-entrant two-leg round robin (6 fixtures), each fixture in a fresh executable, with cancel, exact run+match/receipt, restored standings/history and replacement preservation. Merged green as 61feb486; uses simulated stock 2P outcomes, not guest-executed races. Existing native guest acceptance stops at leg-2 arm/End Event and existing packaged Windows acceptance ends after one fixture. Real pad-input multi-leg and 3+ entrant L4 are still unverified; QA03 P0 stays in_progress."
     },
     {
       "id": "QA-04",
@@ -185,13 +209,15 @@
       "candidate_commit": null,
       "evidence_refs": [
         "docs/EXPERT-PLAYTEST-PROTOCOL.md",
-        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md"
+        "docs/ORIGINAL-COURSE-EVENT-CENSUS.md",
+        "docs/STUNT-BOOST-FIDELITY.md",
+        "docs/QA01-2014-COMPLETE-EVENT-TRANSPLANT.md"
       ],
       "journeys": [
         "J-09",
         "J-15"
       ],
-      "next_action": "Extend six input-only Jumpover CIRCUIT-B stunt-maneuver thresholds to L shoulder, combos, imperfect landing, boost/collision; separately capture a full actual 45-second Jumps stunt result and compare original/native.",
+      "next_action": "Original-only 2014 Snes9x Zoo Circuit already settles at BC and Bowl scored Stunt settles at 18, but no independent fresh native/reference completion is admitted. Prioritize #1055 source-verified full-event Zoo/Bowl scene-rebased input and matched actual result/score/clock/lap; independently discover a completed non-Dragster Race source (Switcher hypothesis). Once event families finish, graft existing Jumpover boundary/expert inputs onto accepted full events, report first WRAM discrepancies without assigning postframe contact causality. PR #1043 stopwatch onset remains a bounded diagnostic and cannot substitute for a terminal result.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -211,13 +237,14 @@
       "evidence_refs": [
         "docs/SEMANTIC-SUFFICIENCY.md",
         "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
-        "docs/RACER-HD-PIXEL-CONFINEMENT.md"
+        "docs/RACER-HD-PIXEL-CONFINEMENT.md",
+        "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md"
       ],
       "journeys": [
         "J-13",
         "J-16"
       ],
-      "next_action": "Native draw availability (not pixel fidelity) measured: ordinary 2P 87/441 full-pair HD; long 2P opt-in P1-only 1240/5282 HD racer player-frames with 358 any-HD/Original switches; first moving 1P 42/120 and VS 39/120 full-pair HD frames (14 and 16 switches). Retained exact-source evidence in docs/RACER-HD-LIVE-MOTION-CENSUS.md. Next block: same-frame authoritative Original-vs-HD foreground BG/other OBJ raster depth attribution, verified actual PPU RemoveFromGame sprite elimination, original-vs-HD moving 1P/2P/VS and 342x224 16:9 screenshots including Y-wrap, split seams, camera, HUD/ghost, player identity and abrupt mode switches. QA-08 is not L4 passed and must not ship as complete Remastered fidelity.",
+      "next_action": "QA-08 P1/L4 unverified: native 2P first-race frame 1220 emitted 372 upper racer Original PPU OBJ pixels and zero lower-viewport pixels, yet the original HD host had fabricated a visible lower racer. Renderer fix now suppresses HD sprite painting in a viewport where the original PPU emitted no source OBJ pixels, retaining exact-state masked-OBJ and capture-only controls from #1034 and legacy plane export from #1029. Require exact native screenshot acceptance and 441-frame stock-OBJ visibility/toggle census, then advance per-OAM-slot foreground BG/window/other-OBJ priority, moving 1P/2P/VS and 4:3/16:9 scaling/camera/split-scene counterexamples; no whole-game art completion claim.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -298,5 +325,69 @@
       "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/978"
     }
-  ]
+  ],
+  "execution_policy": {
+    "reference": "docs/QA-BOUNDED-RELEASE-CAMPAIGN.md",
+    "initial_productive_agent_hours": 300,
+    "review_checkpoints_hours": [
+      100,
+      200,
+      300
+    ],
+    "campaigns": [
+      "authentic course and expert event completion",
+      "integrated tournament/persistence/replay",
+      "moving-scene graphics/input/UX",
+      "physical packaged Windows and audio/soak",
+      "cross-artifact fault recovery"
+    ],
+    "note": "Execution budget and reusable witness grouping only. Does not modify gate thresholds/statuses or waive verified P0 defects. New budget must follow evidence-based checkpoint review.",
+    "review_document": "docs/QA-AUDIT-OF-AUDIT-20261008.md",
+    "tranche_definition": "Initial discovery-and-repair tranche only, not a forecast to complete all QA gates or unimplemented product features.",
+    "measurement": "Productive agent hours linked to PR/witness/completed journey; report queue and waiting costs separately.",
+    "priority_rule": "Confirmed defect/data integrity, then blocked player journey/missing implementation, then low-cost independent oracle, then breadth, then speculation.",
+    "qa_vs_product": "QA-09 depends on unfinished five-destination Modern root implementation; keep product work separately estimated and owned.",
+    "active_review_items": [
+      {
+        "issue": 890,
+        "category": "confirmed_player_defect",
+        "owner": "frontend_input",
+        "shared_gates": [
+          "QA-05",
+          "QA-06"
+        ]
+      },
+      {
+        "pr": 1052,
+        "category": "unmerged_proposed_fix",
+        "owner": "persistence_tournament",
+        "shared_gates": [
+          "QA-02",
+          "QA-03"
+        ]
+      },
+      {
+        "pr": 1045,
+        "category": "unmerged_proposed_fix",
+        "owner": "graphics",
+        "shared_gates": [
+          "QA-08"
+        ]
+      },
+      {
+        "pr": 1043,
+        "category": "unmerged_evidence_discriminator",
+        "owner": "gameplay",
+        "shared_gates": [
+          "QA-01",
+          "QA-07"
+        ]
+      }
+    ],
+    "review_state_caveat": "PR states recorded at planning review; refresh before work. No listed PR qualifies as release-accepted solely by merging.",
+    "campaign_interpretation": "Four integrated journeys A-D, plus targeted storage fault cuts overlaying B/D; original five categories retained for historical continuity.",
+    "candidate_rule": "Never treat prior SHA as an exact newer candidate acceptance; rerun relevant shared smoke and affected gates; record actual ZIP hash.",
+    "scope_controls": "USA primary 45; PAL/prototype 90 comparative; Original/Upscaled versus Remastered exposure and public ROM/legal decision handled explicitly at release level.",
+    "product_root_implementation_issue": "https://github.com/gamesbyian/UR-Recomp/issues/1053"
+  }
 }

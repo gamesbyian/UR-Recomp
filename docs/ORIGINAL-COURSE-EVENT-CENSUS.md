@@ -28,20 +28,38 @@ original route and start, event-specific contact/checkpoint/lap/finish
 MesenCE run from an independently named native run, on a fresh process,
 with exact ROM and candidate provenance.
 
-The primary-USA baseline is **0/45 complete event passes**, **2/45
-partial observations**, **43/45 unverified**. Across all three builds,
-**0/135 complete**, **2/135 partial**, **133/135 unverified**, as encoded in
+The primary-USA baseline is **0/45 complete event passes**, **4/45
+partial observations**, **41/45 unverified**. Across all three builds,
+**0/135 complete**, **4/135 partial**, **131/135 unverified**, as encoded in
 `analysis/data/course-event-runtime-evidence.json`. Specifically:
 
 - **USA Dragster (course 01), partial:** the seven-frame native WRAM
   progression witness observes the postframe checkpoint/lap/finish gate
   transition, but does not capture the instruction-time dispatcher value
   or demonstrate original/native all-event/result parity.
+- **USA Zoom Zoo (course 02), partial:** the original pinned 2014
+  Snes9x 5,000-frame WRAM write trace has an actual Crawler circuit
+  entry at movie frame **3190**, both racers at **(9200,1489)** versus
+  identical ROM header pairs **(9200,1488)**, and five verified
+  P1 checkpoint/finish-gate/lap transitions at **3408, 3794, 4031,
+  4722, 4911**. P1 laps remaining drops **4→3** and later **3→2**;
+  the separate archived Snes9x result-screen proof reaches a settled
+  Circuit result (`0xBC`) at movie frame **8353**, MIKE total 1:16.46
+  and best lap 0:25.10. Both are **original-only** observations, not
+  a paired native gameplay/result parity acceptance.
+  Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
+  Original terminal evidence: `analysis/generated/result-screens-probe.json`.
+- **USA Bowl (course 03), partial:** the archived original 2014 Snes9x
+  movie reaches a legitimate scored 45-second Stunt result. The source
+  reports tally `0x2F` at frame **11915** and settled result `0x18` at
+  **11985**, with MIKE score **764**. This is an authentic **original-only
+  source completion**, not an independently matched fresh native Stunt
+  run. Provenance: `analysis/generated/result-screens-probe.json`.
 - **USA Jumpover (course 20), partial:** six bounded input-only
   original/native stunt landing-reward thresholds match **on a circuit B
   course**, but no complete circuit lap/finish/result or 45-second stunt
-  event is established. All nine timed-stunt identities remain untested
-  end-to-end.
+  event is established on Jumpover. **No timed-Stunt identity has
+  an accepted fresh original/native complete-event pair**, including Bowl.
 
 Every Europe-retail and PAL-prototype case remains unverified at comparative L4.
 No paired-ROM payload CRC, native unit test, static course-cell match,
@@ -127,6 +145,187 @@ python3 -m unittest discover -s tests/unit \
   -p 'test_correlate_zoo_original_positions_with_cells.py'
 ```
 
+## Actual Snes9x Zoom Zoo spawn, checkpoint and lap chronology
+
+**Recovered from authentic original execution, 2026-10-09.**
+Historical workflow run `37184022134` artifact `11296685866`
+retained a 35,428,252-byte original Snes9x JSONL WRAM write trace
+(`669,690` records, guest frames 1..5000, source SHA-256
+`5fc0e88c89d2dc35b945a2c1f37f522fe8ba3090ea64a0efe50e1748b39f93ab`).
+That **raw** trace was reconstructed frame-by-frame, not inferred from
+the movie's sparse reference output or the out-of-phase native screenshots.
+
+At the original Zoom Zoo race entry **frame 3190**, guest track ID is 1,
+`inRace=1`, P1 and P2 are both **(9200,1489)**. The two identical
+header coordinate pairs are **(575,93)** ×16 = **(9200,1488)**.
+Thus the header's X is a live start-position match, with the first
+active-frame Y one unit lower. The historical unused
+`magicnumber.lua startX=8961` is **not** the actual start position,
+resolving that earlier static interpretation question without guessing
+whether the Y unit came from gravity or postframe ordering.
+Because both header pairs are identical, their P1/P2 assignment
+remains intrinsically uninformative.
+
+| Snes9x guest frame | P1 world X/Y | Checkpoint index | Finish gate | P1 laps remaining | Previous stored P1 contact → new postframe |
+|---|---|---|---|---|---|
+| 3190 | 9200, 1489 | 0 | 0 | 4 | first active frame |
+| 3408 | 8943, 1568 | 0→1 | 0→1 | **4→3** | `2304` (slot 194) → `2308` (196) |
+| 3794 | 8478, 2907 | 1→2 | 1 | 3 | `2704` (194) → `0706` (195) |
+| 4031 | 11931, 3568 | 2→3 | 1→0 | 3 | `2B04` (194) → `0B06` (195) |
+| 4722 | 11852, 1073 | 3→0 | 0 | 3 | `0F20` (200) → `0F20` (200) |
+| 4911 | 8961, 1568 | 0→1 | 0→1 | **3→2** | `0306` (195) → `2304` (194) |
+
+At the first observed lap-counter decrement, the original timer bytes
+`0E0F/0E13/0E17/0E1B/0E1F` read `0/0/0/2/1`,
+approximately **0.2 seconds** elapsed. At the second decrement they
+read `0/2/5/2/4`, approximately **25.2 seconds**. Thus the first
+`4→3` is an initial start-line crossing shortly after the start,
+not evidence of a completed 25-second lap; the 1,503 guest frames
+between the two observed decrements provide the stronger bounded
+original circuit traversal. Intermediate checkpoint changes have
+their raw stopwatch bytes retained in the fixture for timing or
+region-cadence comparisons.
+
+The Snes9x trace records **low WRAM 7E writes only**. It does not
+dump or verify the full resident `7F:0000` course decompression
+buffer. ROM-static resource-0x24 slot membership is a separate
+evidence source, and same-frame original live C000/handler execution
+remains to be observed before attributing geometry causally.
+
+The Snes9x trace records the **direct writes** to `0EF1`
+(laps), `1199` (checkpoint), and `119D` (finish gate) in
+those same frames. The second observed lap decrement is **1,503
+original frames** after the first; intervening checkpoint order
+is **1→2→3→0→1**.
+
+**Distinct original lap-semantic counterexample:** checkpoint **3→0**
+at frame **4722** does **not** decrement laps (`3` remains `3`)
+or set the finish gate (`0` remains `0`). Only **189 original guest
+frames later**, at frame **4911**, does checkpoint **0→1** accompany
+a gate `0→1` and lap `3→2`. A reconstructed circuit that awards
+a lap on checkpoint-index wrap is therefore inconsistent with this
+original Zoom Zoo sequence. The direct event-write regression
+`test_checkpoint_wrap_is_not_a_lap_decrement_in_the_original_game`
+now pins that distinction. It is an original-game semantic invariant
+for this observed course sequence, not yet evidence that the native
+guest violates it. Although the P1 X at the second decrement happens
+to equal the optimizer's unused `8961`, that coincidence does not
+retroactively identify the recorded historical X as a spawn or
+authoritative finish plane.
+
+**Original within-frame write order challenges a blanket one-frame
+dispatch explanation.** The original Snes9x trace retains an ordered
+series of actual changed `7E` WRAM writes for each guest frame.
+For the first observed lap decrement at frame **3408**, the
+low-byte P1 persisted contact `0E95` changes at **zero-based write
+index 88**, followed by the lap decrement `0EF1` at index **91**
+and checkpoint/gate `1199/119D` at **107/108**. At the second
+lap decrement **4911**, the order is P1 contact index **107**,
+lap **113**, checkpoint/gate **141/142**. The original first
+non-lap checkpoint changes at **3794** and **4031** also follow
+a persisted P1-contact low-byte change earlier in the same labeled
+frame. At **4722**, checkpoint 3→0 is observed with no changed
+P1 `0E95` byte that frame.
+
+This is not an instruction-PC trace: unchanged writes and other
+register/7F activity may be absent, the emulator's `f` boundary
+is external to a CPU call frame, and more than one sampling/dispatch
+bracket may occur. Therefore **do not assert** that either the
+prior postframe word or the same-frame newly stored contact word
+was consumed by the finish handler. The ROM-authoritative bank-83
+call order (dispatch before later sampler in the identified main
+path) remains valid, but its simple one-guest-frame causal application
+is underdetermined by the original execution chronology.
+The source-reconstruction verifier now checks exact in-frame
+contact/progression write indices against the reduced fixture.
+The decisive next witness remains instruction-time 82:8C32,
+81:82ED/805D, 81:8DF3 with a frame counter.
+
+These original contact words are **postframe** P1 stored values from
+`7E:0E95`; their decoded C000 slots are candidates, not a
+per-instruction cell/collision assertion. USA ROM call order dispatches
+course objects before sampling new contact, and 0F09 frame-end scratch
+belongs to the most recently updated player. **Do not assign the new
+same-frame postframe contact word as the cause of the lap transition.**
+At frames 3408 and 4911 the *previous* stored words/slots differ,
+yet both progression transitions have checkpoint/gate/lap patterns
+`0/0/n → 1/1/n−1`. An instruction-time P1 dispatch trace is required
+to establish whether both select the same gate/class.
+
+**Coverage disposition:** this is the third primary-USA `partial`
+case, not a full `passed` case. It establishes real original-start
+and bounded circuit checkpoint/lap semantics over frames 3190..5000,
+but no finished circuit result, no independently synchronized native
+replay, and no assertion about the other 44 course events. The primary
+full-event release denominator remains **0/45**. For future recovery,
+download workflow run `37184022134` artifact `11296685866` and
+reconstruct its `_temp/dessyreqt-first-race-trace.jsonl`;
+the reduced evidence fixture is retained in the repository even after
+the workflow artifact expires.
+
+The retained `tools/verify_original_zoo_2014_reference_trace.py`
+reprocessor can re-read that exact **raw** zipped JSONL, verify the
+35MB source hash and **669,690** source records, reconstruct original
+postframe P1/P2 state from changed bytes, and reproduce **all five**
+checkpoint/gate/lap intervals, preceding/succeeding stored P1 contact
+words, raw stopwatch bytes and the exact intra-frame progression write
+order. It refuses a modified full source, missing sampled frames, or
+changed reference event values. Example after downloading the
+historical run artifact:
+
+```sh
+python3 tools/verify_original_zoo_2014_reference_trace.py \
+  --artifact-zip /path/to/dessyreqt-4250-first-race-replay.zip \
+  --json-out /tmp/original-zoo-wram-witness.json
+python3 -m unittest discover -s tests/unit \
+  -p 'test_verify_original_zoo_2014_reference_trace.py'
+```
+
+The latter tests source parser behavior with synthetic WRAM writes;
+they do not claim a fresh original emulator execution. The full
+artifact SHA-verified reconstruction is a separate, reproducible
+confirmation of the original run already executed in 2014-movie
+workflow `37184022134`.
+
+## Historical complete-original results versus pending fresh native pairing (2026-10-09)
+
+The archived, anchored 2014 original Snes9x movie already has **settled
+original-only** Crawler results: Dragster race menu `99` at movie frame 2874;
+Zoom Zoo circuit `BC` at 8353 with MIKE total 1:16.46, best lap 0:25.10;
+Bowl scored 45-second stunt with tally `2F` at 11915, final `18` at
+11985 and MIKE score 764. The source is
+`analysis/generated/result-screens-probe.json`, created by
+`tools/probe_result_screens.py` on the original Snes9x reference.
+This is meaningful **original event-complete source evidence**, but is
+**not** a new USA release-course acceptance: it is not an independent,
+scene-rebased native/authentic comparison and does not establish matching
+native result or contact/lap semantics.
+
+`tools/probe_original_event_complete.py` (implementation PR #1055;
+[bounded execution plan](QA01-2014-COMPLETE-EVENT-TRANSPLANT.md)) now
+attempts a genuine original/native pairing: pin original SMV SRAM, discover
+course entry and result from independently executed source movie, calibrate
+fresh guest entries through stock menus, transplant the exact original input
+relative to each entry, and compare scene samples plus actual guest PPU
+result text and score. It fails closed for a missing original course/result
+source, missing non-Dragster finish time, unmatched result, zero-score stunt
+or circuit lacking two sampled lap decrements. Crawler Switcher is the
+first non-Dragster Race candidate; its complete original source result
+has not yet been confirmed and is an **explicit unresolved producer
+dependency**, not a successful replay. No binary pairing was executed
+as part of #1055's initial tool-only contribution, so the census
+remains **0/45 USA complete; 4 partial; 41 unverified** and the release
+ledger stays **in_progress**.
+
+**Next actual discriminator:** execute Zoo and Bowl on prepared pinned
+Snes9x plus native Authentic binaries, verify source-entry state,
+controller latch phase and result fidelity; independently find an actual
+Switcher finish in original source or select another completed
+non-Dragster Race. Only promote a reviewed, fresh-process exact-identity
+witness to the 45-row machine-readable census. The disputed Dragster
+frame-2903 consumed contact remains unresolved absent instruction-PC
+evidence of an actual result divergence.
+
 ## Non-Dragster counterexample priorities
 
 1. **Zoom Zoo, USA circuit A (02):** historical hand-entered start X
@@ -158,6 +357,18 @@ python3 -m unittest discover -s tests/unit \
    transient progress, queued message IDs, pop-time reward and final
    result. Existing R-hold (22–25) and A-hold (4–5) cases are useful
    threshold seeds, not coverage of these other classes.
+
+**Entry-probe measurement correction, 2026-10-09:** The original/native
+first-64-frame comparison now also observes **P1 and P2 checkpoint,
+finish gate and lap words**, plus P2 velocities. Previously, equal
+positions and stored contacts could conceal early phantom finish/gate
+credit or an erroneous P2 lap decrement. The synthetic fail-first
+regression is documented in
+[QA01-NONDRAGSTER-ENTRY-PROGRESSION.md](QA01-NONDRAGSTER-ENTRY-PROGRESSION.md).
+No fresh engine execution was performed for this change; it is a
+measurement-coverage correction and retains the **0/45** USA complete
+event denominator, **3** partial cases and **0/135** broader complete
+event count.
 
 ## Executable non-Dragster entry discriminator (QA-01 step 1)
 

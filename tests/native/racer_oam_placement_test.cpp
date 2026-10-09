@@ -34,6 +34,58 @@ void set_slot(
 }  // namespace
 
 int main() {
+    // An accepted OAM placement is not evidence the Original PPU emitted
+    // that rider. Regression: guest frame 1220 has top OBJ pixels but no
+    // bottom OBJ pixels; host art must not invent the absent lower racer.
+    {
+        std::array<std::uint8_t, 256u * 224u * 4u> isolated{};
+        RacerOamPlacement top{
+            98, 104, 104, 40, 0, 0, false, false, true, 64, 64
+        };
+        RacerOamPlacement bottom{
+            97, 104, 104, 153, 0, 0, false, false, true, 64, 64
+        };
+        const auto mark = [&](int x, int y) {
+            const std::uint32_t argb = 0xFF102030u;
+            std::memcpy(
+                isolated.data() + (static_cast<std::size_t>(y) * 256u + x) * 4u,
+                &argb, sizeof(argb)
+            );
+        };
+        const auto source_count = [&](const RacerOamPlacement& p, RacerViewport view) {
+            return racer_stock_obj_pixels_in_footprint(
+                isolated.data(), isolated.size(), p, view
+            );
+        };
+        assert(source_count(top, RacerViewport::Top) == 0);
+        assert(source_count(bottom, RacerViewport::Bottom) == 0);
+        mark(104, 40);
+        mark(167, 103);
+        mark(104, 111);  // Outside top OAM's 64-row tile.
+        mark(10, 10);
+        assert(source_count(top, RacerViewport::Top) == 2);
+        assert(source_count(bottom, RacerViewport::Bottom) == 0);
+        mark(130, 180);
+        assert(source_count(bottom, RacerViewport::Bottom) == 1);
+        top.y_raw_8bit = 110;
+        assert(source_count(top, RacerViewport::Top) == 1);
+        assert(source_count(top, RacerViewport::Bottom) == 0);
+        top.y_raw_8bit = 250;
+        mark(104, 0);
+        // Both logical rows 0 and 40 are reachable after 256-line wrap.
+        assert(source_count(top, RacerViewport::Top) == 2);
+        assert(source_count(top, RacerViewport::Bottom) == 0);
+        top.large = false;
+        assert(source_count(top, RacerViewport::Top) == 0);
+        top.large = true;
+        assert(racer_stock_obj_pixels_in_footprint(
+            nullptr, isolated.size(), top, RacerViewport::Top
+        ) == 0);
+        assert(racer_stock_obj_pixels_in_footprint(
+            isolated.data(), 5, top, RacerViewport::Top
+        ) == 0);
+    }
+
     // Exhaust all possible hardware Y values and the full 64-row large OBJ:
     // each source row must land on exactly the corresponding modulo-256
     // scanline or be culled by the 224-row visible field.

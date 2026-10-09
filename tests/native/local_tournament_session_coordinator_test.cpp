@@ -120,6 +120,53 @@ int main() {
           encode_local_tournament_session_definition(
               *incumbent_archive.session),
           "conflicting archive claim preserves original bytes and schedule");
+    // Old builds could have a valid active pointer without an instance
+    // archive. Migration must create-only claim that absent archive, and
+    // must fail closed on a foreign/malformed archive rather than replace it.
+    check(fs::remove(archive_path), "simulate pre-archive old build");
+    const auto migrated = restore_local_tournament_coordinator(paths, catalog);
+    check(migrated.usable(), "valid historical active session migrates archive");
+    const auto migrated_archive =
+        load_historical_local_tournament_session_definition(archive_path);
+    check(migrated_archive.loaded() &&
+          encode_local_tournament_session_definition(*migrated_archive.session) ==
+          encode_local_tournament_session_definition(*incumbent_archive.session),
+          "migration restores exact canonical session, not new results");
+    // Another restorer may have won the exact same create-only claim.
+    // A later normal restore must accept that identical complete archive.
+    check(restore_local_tournament_coordinator(paths, catalog).usable(),
+          "subsequent restorer accepts identical archive");
+    check(fs::remove(archive_path), "prepare foreign archive migration denial");
+    check(save_local_tournament_session_definition(
+              archive_path, *conflicting_plan) ==
+              LocalTournamentSessionFileStatus::Saved,
+          "store alternative valid archive for migration refusal");
+    check(restore_local_tournament_coordinator(paths, catalog).status ==
+              Status::EvidenceRejected,
+          "foreign archived schedule does not inherit current active result");
+    const auto still_foreign =
+        load_historical_local_tournament_session_definition(archive_path);
+    check(still_foreign.loaded() &&
+          encode_local_tournament_session_definition(*still_foreign.session) ==
+              encode_local_tournament_session_definition(*conflicting_plan),
+          "migration refuses to clobber the foreign archive");
+    check(fs::remove(archive_path), "prepare corrupt archive migration denial");
+    {
+        std::ofstream damaged(archive_path, std::ios::binary);
+        damaged << "corrupt-future-archive\n";
+        check(bool(damaged), "write unsupported archive bytes");
+    }
+    const auto prior_corrupt_bytes = fs::file_size(archive_path);
+    check(restore_local_tournament_coordinator(paths, catalog).status ==
+              Status::EvidenceRejected,
+          "corrupt archive is not silently overwritten by migration");
+    check(fs::file_size(archive_path) == prior_corrupt_bytes,
+          "corrupt existing archive preserved for salvage");
+    check(fs::remove(archive_path), "remove corrupt fixture before continuation");
+    check(save_local_tournament_session_definition_if_current(
+              archive_path, std::nullopt, *incumbent_archive.session) ==
+              LocalTournamentSessionFileStatus::Saved,
+          "restore known canonical archive before fixture gameplay");
     check(state.results.fixtures.size() == 3 &&
           local_tournament_next_unplayed_fixture(state) == 0 &&
           !local_tournament_coordinator_complete(state),
@@ -169,6 +216,30 @@ int main() {
             Status::InvalidRequest &&
           state.launch.pending && !state.results.results[0],
           "mismatched live capture token cannot award tournament points");
+    const auto prior_checkpoint = *state.launch.pending;
+    const auto checkpoint_file = (tour / instance / "pending.urlaunch").string();
+    auto newer_checkpoint = prior_checkpoint;
+    newer_checkpoint.attempt_id = token1;
+    check(save_local_tournament_launch_file(checkpoint_file, newer_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "second process replaced disk launch checkpoint while owner raced");
+    check(commit_local_tournament_capture(state, token0, stored0) ==
+              Status::EvidenceRejected &&
+          state.launch.pending && !state.results.results[0],
+          "stale live attempt cannot claim receipt after checkpoint superseded");
+    check(restore_local_tournament_coordinator(paths, catalog).usable() &&
+          !restore_local_tournament_coordinator(paths, catalog)
+               .session->results.results[0],
+          "fresh recovery does not falsely credit superseded attempt");
+    check(save_local_tournament_launch_file(checkpoint_file, prior_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "restore originally authorized checkpoint for next native test");
+    const auto after_pair_before_receipt =
+        restore_local_tournament_coordinator(paths, catalog);
+    check(after_pair_before_receipt.usable() &&
+          !after_pair_before_receipt.session->launch.pending &&
+          !after_pair_before_receipt.session->results.results[0],
+          "C14: saved run and match without fixture receipt award zero points");
     check(commit_local_tournament_capture(state, token0, stored0) ==
             Status::Committed &&
           !state.launch.pending && state.results.results[0],
@@ -211,9 +282,37 @@ int main() {
             Status::EvidenceRejected && !state.results.results[1] &&
           state.launch.pending,
           "a different already-saved race cannot inherit new fixture authority");
-    check(commit_local_tournament_capture(state, token1, stored1) ==
-            Status::Committed && state.results.results[1],
-          "second exact saved pair committed with its own attempt");
+    const auto prior_fixture1_checkpoint = *state.launch.pending;
+    // C15 crash cut: commit the real immutable fixture receipt without
+    // calling coordinator's exact checkpoint retirement. This is the same
+    // production receipt-publish operation at the boundary before cleanup.
+    check(commit_saved_local_tournament_fixture(
+              (tour / instance / "fixtures").string(), records.string(),
+              stored1, instance, token1, state.launch, state.results) ==
+              LocalTournamentResultLinkStatus::Committed &&
+          state.results.results[1] &&
+          fs::exists(tour / instance / "pending.urlaunch"),
+          "C15: receipt is authoritative before pending retirement");
+    const auto after_receipt_before_retire =
+        restore_local_tournament_coordinator(paths, catalog);
+    check(after_receipt_before_retire.usable() &&
+          after_receipt_before_retire.session->results.results[1] &&
+          !after_receipt_before_retire.session->launch.pending,
+          "C15: restart credits exactly the receipt and never rearms old token");
+    const auto restore_twice = restore_local_tournament_coordinator(paths, catalog);
+    check(restore_twice.usable() &&
+          restore_twice.session->results.results[1] &&
+          !restore_twice.session->launch.pending,
+          "C15: repeated restarts cannot duplicate the fixture result");
+    check(retire_local_tournament_launch_file(
+              checkpoint_file, prior_fixture1_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "retiring exact checkpoint after receipt preserves credit");
+    // This C15 fixture deliberately bypassed the normal coordinator's
+    // commit/retire method to stop at an exact crash boundary. Its simulated
+    // recovery has now completed that cleanup, including the live OS lease.
+    // A real process death would release the handle automatically.
+    state.live_fixture_lock.reset();
 
     const auto& third = state.results.fixtures[2];
     check(arm_local_tournament_fixture(

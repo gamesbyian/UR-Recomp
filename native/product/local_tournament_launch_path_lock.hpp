@@ -29,7 +29,8 @@ namespace ur::product {
 
 class TournamentLaunchPathLock {
 public:
-    explicit TournamentLaunchPathLock(const std::string& target) {
+    explicit TournamentLaunchPathLock(const std::string& target,
+                                      bool nonblocking = false) {
         if (target.empty()) return;
         const std::filesystem::path lock_path =
             std::filesystem::path(target).concat(".urmutex");
@@ -39,8 +40,10 @@ public:
             FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
             nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
         if (file_ == INVALID_HANDLE_VALUE) return;
-        if (!LockFileEx(file_, LOCKFILE_EXCLUSIVE_LOCK, 0, 1u, 0u,
-                        &overlapped_)) {
+        const DWORD flags = LOCKFILE_EXCLUSIVE_LOCK |
+            (nonblocking ? LOCKFILE_FAIL_IMMEDIATELY : 0u);
+        if (!LockFileEx(file_, flags, 0, 1u, 0u, &overlapped_)) {
+            busy_ = GetLastError() == ERROR_LOCK_VIOLATION;
             CloseHandle(file_);
             file_ = INVALID_HANDLE_VALUE;
         }
@@ -49,9 +52,10 @@ public:
         if (fd_ < 0) return;
         int result;
         do {
-            result = flock(fd_, LOCK_EX);
+            result = flock(fd_, LOCK_EX | (nonblocking ? LOCK_NB : 0));
         } while (result < 0 && errno == EINTR);
         if (result < 0) {
+            busy_ = errno == EWOULDBLOCK || errno == EAGAIN;
             close(fd_);
             fd_ = -1;
         }
@@ -75,6 +79,10 @@ public:
 #endif
     }
 
+    // Distinguish another live process from I/O/permission failure.
+    // Only nonblocking construction can report busy().
+    bool busy() const noexcept { return busy_; }
+
     bool acquired() const noexcept {
 #if defined(_WIN32)
         return file_ != INVALID_HANDLE_VALUE;
@@ -84,6 +92,7 @@ public:
     }
 
 private:
+    bool busy_ = false;
 #if defined(_WIN32)
     HANDLE file_ = INVALID_HANDLE_VALUE;
     OVERLAPPED overlapped_{};

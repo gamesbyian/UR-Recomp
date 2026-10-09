@@ -1,13 +1,8 @@
 name: Windows audio output acceptance
 
-# Reuse a completed Windows native smoke package. Never rebuild it in this
-# specialist lane. Follow successful main-branch Windows package builds,
-# and rerun validation on main audio-tool changes using the latest successful
-# package artifact. Never compile for this specialist workflow.
+# Specialist audio acceptance reuses a verified Windows package.
+# Run on audio test changes or manually for release qualification.
 on:
-  workflow_run:
-    workflows: ["Windows native build and boot smoke"]
-    types: [completed]
   push:
     branches: [main]
     paths:
@@ -38,12 +33,9 @@ on:
         required: true
         type: string
 
-# A skipped workflow_run from a cancelled/failed source build must never
-# cancel a legitimate push-triggered audio acceptance or successful source
-# build capture. Keep those event/outcome classes isolated, while coalescing
-# redundant runs within the same class and branch.
+# Avoid overlapping redundant pushes without cancelling manual checks.
 concurrency:
-  group: windows-native-audio-${{ github.event_name }}-${{ github.event.workflow_run.conclusion || 'direct' }}-${{ github.ref }}
+  group: windows-native-audio-${{ github.event_name }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -52,10 +44,7 @@ permissions:
 
 jobs:
   output-capture:
-    # workflow_run executes on default branch. Trust only successful main
-    # builds from this repository, never a PR artifact. Push reuses a verified
-    # successful main package without rebuilding.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && github.event.workflow_run.head_repository.full_name == github.repository) }}
+    # Push reuses the latest verified main package; dispatch selects a build.
     runs-on: windows-2022
     timeout-minutes: 12
     defaults:
@@ -95,14 +84,14 @@ jobs:
         with:
           name: ur-recomp-windows-x64-portable
           repository: ${{ github.repository }}
-          run-id: ${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}
+          run-id: ${{ inputs.source_run_id || steps.source-package.outputs.run_id }}
           github-token: ${{ github.token }}
           path: ${{ runner.temp }}/audio-source
 
       - name: Capture named SDL3 audio checkpoints and APU counters
         run: |
           set -euo pipefail
-          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}"
+          SOURCE="${{ inputs.source_run_id || steps.source-package.outputs.run_id }}"
           [[ "$SOURCE" =~ ^[0-9]{1,20}$ ]]
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
           EXTRACT="$RUNNER_TEMP/audio-product"
@@ -293,7 +282,7 @@ jobs:
       - name: Capture stock guest Start pause/resume audio envelopes
         run: |
           set -euo pipefail
-          SOURCE="${{ inputs.source_run_id || github.event.workflow_run.id || steps.source-package.outputs.run_id }}"
+          SOURCE="${{ inputs.source_run_id || steps.source-package.outputs.run_id }}"
           ARCHIVE="$RUNNER_TEMP/audio-source/UR-Recomp-Windows-x64.zip"
           EXTRACT="$RUNNER_TEMP/audio-pause-product"
           test -s "$ARCHIVE"

@@ -1,6 +1,15 @@
 # Player-journey and cross-feature adversarial acceptance matrix
 
+> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
+
+
 Status: test specification, **not a claim these cases have passed**. Date 2026-10-08. Owner: cross-cutting QA. Priorities and release thresholds: ADVERSARIAL-QA-AND-RELEASE-READINESS.md. Gate states: RELEASE-QUALITY-LEDGER.json.
+
+## Executability prerequisites and shared-witness policy
+
+Reference: [QA-AUDIT-OF-AUDIT-20261008.md](QA-AUDIT-OF-AUDIT-20261008.md) and [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md). **Don't rerun a journey whose required player-facing feature is not yet implemented.** J-01/J-19 require the product frontend owner to provide a discoverable, actual five-destination Modern root; J-04/J-05 require working second/third leg and 3+ entrant tournament routes; J-09 requires a legitimate entry-to-terminal-result producer for Race, Circuit and timed Stunt, before automation across 45. A blocked producer is an owned **implementation/test-input dependency**, not a failed or passed race.
+
+J-07/J-08 fault cuts are a targeted subcampaign of the *same* tournament/Records process journey, not another standalone long journey. J-13/J-16 graphics checks must distinguish host HD callback, original source-visible racer footprint, actual drawn HD racer, and transition/fallback continuity. J-17 must include the current candidate's default Return/Start binding and verify Restart ownership and audible return; an audio-device presence check does not clear this. Pin an exact current ZIP+hash for hardware or integrated L4 checks, and require independent evidence for each claimed QA gate even when it shares a run ID. No automatic extension of the initial 300 productive-agent-hour tranche.
 
 ## Common protocol
 
@@ -52,7 +61,7 @@ The added focused regressions in #991 and #993 are prerequisites; they do not im
 
 ## Content census protocol (J-09)
 
-Source of truth for 45 primary USA release cases plus 90 Europe-retail/PAL-prototype comparative cases, current admitted partial observations, and the required event-level pass schema: [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md). The opening USA release baseline is 0/45 complete, 2 partial, 43 unverified; the full three-ROM research census is 0/135 complete, 2 partial, 133 unverified. These are evidence classifications, not predicted failures. Run Zoom Zoo full circuit and Jumps timed-stunt outcomes before expanding to the remaining roster, and do not count Dragster frame-2903 contact slots as proven event causes without instruction-time P1 dispatch evidence.
+Source of truth for 45 primary USA release cases plus 90 Europe-retail/PAL-prototype comparative cases, current admitted partial observations, and the required event-level pass schema: [ORIGINAL-COURSE-EVENT-CENSUS.md](ORIGINAL-COURSE-EVENT-CENSUS.md). The opening USA release baseline is 0/45 complete, 3 partial, 42 unverified; the full three-ROM research census is 0/135 complete, 3 partial, 132 unverified. These are evidence classifications, not predicted failures. Run Zoom Zoo full circuit and Jumps timed-stunt outcomes before expanding to the remaining roster, and do not count Dragster frame-2903 contact slots as proven event causes without instruction-time P1 dispatch evidence.
 
 Create one record per canonical course/event, each ROM variant as applicable, containing original-menu entry, guest course identity, start-state validity, checkpoint/lap/finish sequence and result, reference source, native result, edge-case coverage, and known exclusion. Distinguish 45 RNC stream CRC recovery from gameplay/event pass. Record denominators, not just successful examples.
 

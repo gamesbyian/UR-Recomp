@@ -217,4 +217,29 @@ HostProfileSaveStatus remove_host_profile_state_file_if_current(
     return HostProfileSaveStatus::Saved;
 }
 
+
+bool reusable_aborted_profile_creation_root(const std::string& root_path) {
+    namespace fs = std::filesystem;
+    if (root_path.empty()) return false;
+    const fs::path root(root_path);
+    std::error_code ec;
+    const auto status = fs::symlink_status(root, ec);
+    // Do not follow a renamed/symlinked profile root or adopt an existing
+    // SRAM/progression namespace merely because the catalog lacks its row.
+    if (ec || status.type() != fs::file_type::directory) return false;
+    fs::directory_iterator it(root, ec);
+    if (ec) return false;
+    const fs::directory_iterator end;
+    for (; it != end; it.increment(ec)) {
+        if (ec || it->path().filename() != "host-profile.txt.urmutex") {
+            return false;
+        }
+        const auto entry_status = it->symlink_status(ec);
+        if (ec || entry_status.type() != fs::file_type::regular) {
+            return false;
+        }
+    }
+    return !ec;
+}
+
 }  // namespace ur::product

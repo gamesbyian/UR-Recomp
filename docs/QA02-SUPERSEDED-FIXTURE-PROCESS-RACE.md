@@ -57,3 +57,26 @@ to steal ownership. That requires a crash-safe lease or explicit
 recovery/takeover contract, not simply changing last-writer-wins to
 create-only (which would strand legitimate restarts). QA-02 stays P0
 with J-07/J-08 packaged Windows L4 unverified.
+
+
+## Proposed live-lease correction (2026-10-09, pending CI)
+
+The original interleaving above remains a genuine reproducible
+pre-lease counterexample and a reason #1042's fail-closed receipt fencing
+was necessary. The live-lease candidate changes its *correct expected
+outcome*: game B attempts a new arm while A still owns a nonblocking OS
+fixture handle, receives Busy, and **never overwrites A's pending token**.
+A then commits the original real saved pair. After A releases ownership,
+B's stale in-memory roster/receipt snapshot is rejected instead of
+rearming a fixture already credited by A.
+
+A separate child exits abruptly while holding the live handle and leaving
+a valid saved pair and pending checkpoint. A new process can explicitly
+acquire the OS-released handle, retry with a new token and credit only its
+own genuine saved result, preserving the dead owner's ordinary Records.
+
+This new oracle supersedes the earlier expected A=EvidenceRejected,
+B=Committed outcome *when both writers are cooperating new builds*.
+The lower-level #1042 exact durable-token check remains essential against
+older or noncooperating writers, corruption, and commit races. No packaged
+Windows L4 evidence has been established.

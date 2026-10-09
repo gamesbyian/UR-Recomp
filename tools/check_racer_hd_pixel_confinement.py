@@ -92,6 +92,8 @@ def audit(
     places = live_placements(log, frame)
     allowed = allowed_logical_mask(places)
     source_counts = None
+    source_by_instance = None
+    source_authorized = None
     if source_obj_layer is not None:
         pam = (
             b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
@@ -109,10 +111,33 @@ def audit(
         if not any(source_counts):
             raise ValueError("original PPU source OBJ alpha is entirely absent")
 
+        # The aggregate viewport test can admit a phantom second racer
+        # whenever only the first, spatially disjoint source OBJ is present.
+        # Only the union of footprints with *actual* Original source alpha
+        # can authorize a changed pixel. Where two OAM rectangles overlap,
+        # attribution remains deliberately unresolved.
+        source_by_instance = []
+        source_authorized = bytearray(256 * 224)
+        for viewport, slot, x, raw_y in places:
+            own_mask = allowed_logical_mask([(viewport, slot, x, raw_y)])
+            own_count = sum(
+                payload[i * 4 + 3] != 0 for i, present in enumerate(own_mask)
+                if present
+            )
+            source_by_instance.append({
+                "viewport": viewport, "slot": slot,
+                "source_opaque_in_footprint": own_count,
+            })
+            if own_count:
+                for i, present in enumerate(own_mask):
+                    if present:
+                        source_authorized[i] = 1
+
     changed = 0
     top = 0
     bottom = 0
     outside = []
+    outside_source = []
     for output_y in range(hh):
         src_row = output_y // scale
         for output_x in range(hw):
@@ -126,8 +151,13 @@ def audit(
                 top += 1
             else:
                 bottom += 1
-            if not allowed[src_row * sw + src_col] and len(outside) < 10:
+            logical_index = src_row * sw + src_col
+            if not allowed[logical_index] and len(outside) < 10:
                 outside.append([output_x, output_y, src_col, src_row])
+            if (source_authorized is not None
+                    and not source_authorized[logical_index]
+                    and len(outside_source) < 10):
+                outside_source.append([output_x, output_y, src_col, src_row])
     return {
         "schema_version": 1,
         "candidate_guest_frame": frame,
@@ -142,6 +172,10 @@ def audit(
         "top_changed_pixels": top,
         "bottom_changed_pixels": bottom,
         "outside_live_oam_pixel_samples": outside,
+        "outside_source_visible_oam_pixel_samples": (
+            outside_source if source_obj_layer is not None else None
+        ),
+        "source_obj_opaque_by_oam_footprint": source_by_instance,
         "original_controls_pixel_exact": second_original is not None,
         "diagnostic_capture_only": capture_only,
         "source_obj_opaque_by_viewport": (
@@ -156,7 +190,7 @@ def audit(
         "viewports_with_visible_changes": [
             name for name, count in (("top", top), ("bottom", bottom)) if count
         ],
-        "ok": bool(changed and not outside and (
+        "ok": bool(changed and not outside and not outside_source and (
             (capture_only or (top and bottom)) if source_counts is None
             else not ((source_counts[0] == 0 and top > 0) or
                       (source_counts[1] == 0 and bottom > 0))
@@ -164,8 +198,9 @@ def audit(
         "claim_scope": (
             "original raster remains bit-exact outside 64x64 split OBJ footprints; "
             "capture-only can only prove removal of visible source pixels, not "
-            "an entirely occluded racer; neither mode establishes internal "
-            "sprite-vs-foreground priority or temporal quality"
+            "an entirely occluded racer; disjoint source-empty OAM footprints "
+            "cannot gain HD pixels, but overlapping source owners remain "
+            "ambiguous and foreground BG/window priority is not established"
         ),
     }
 

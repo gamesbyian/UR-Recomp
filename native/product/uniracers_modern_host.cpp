@@ -4447,8 +4447,16 @@ void arm_local_tournament_from_panel(std::size_t fixture_index) {
     const auto armed = ur::product::arm_local_tournament_fixture(
         session, fixture_index, *attempt, p1, p2);
     if (armed != ur::product::LocalTournamentCoordinatorStatus::Armed) {
-        g_local_tournament_panel_notice = "ARM FAILED";
-        product_diagnostic("UR_LOCAL_TOURNAMENT ARM_FAILED");
+        if (armed == ur::product::LocalTournamentCoordinatorStatus::Busy) {
+            // A different *living* game process owns this event's fixture.
+            // Preserve its on-track attempt and tell this player why a new
+            // one was not started. Never retry or overwrite pending here.
+            g_local_tournament_panel_notice = "FIXTURE IN USE";
+            product_diagnostic("UR_LOCAL_TOURNAMENT ARM_BUSY");
+        } else {
+            g_local_tournament_panel_notice = "ARM FAILED";
+            product_diagnostic("UR_LOCAL_TOURNAMENT ARM_FAILED");
+        }
         return;
     }
     g_local_tournament_route_seen_two_player_select = true;

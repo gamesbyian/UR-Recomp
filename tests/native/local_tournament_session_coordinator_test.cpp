@@ -308,7 +308,11 @@ int main() {
               checkpoint_file, prior_fixture1_checkpoint) ==
               LocalTournamentLaunchFileStatus::Saved,
           "retiring exact checkpoint after receipt preserves credit");
-
+    // This C15 fixture deliberately bypassed the normal coordinator's
+    // commit/retire method to stop at an exact crash boundary. Its simulated
+    // recovery has now completed that cleanup, including the live OS lease.
+    // A real process death would release the handle automatically.
+    state.live_fixture_lock.reset();
 
     const auto& third = state.results.fixtures[2];
     check(arm_local_tournament_fixture(

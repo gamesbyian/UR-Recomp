@@ -1,6 +1,6 @@
 # QA-02: Crash-released fixture ownership lease, proposed contract
 
-Status: **design only**, not implemented or an accepted release witness.
+Status: **implementation candidate** in this PR, pending exact-head native CI; **not** a packaged Windows release witness.
 Owner: QA-02 persistence. Keep distinct from frontend, guest gameplay
 and tournament rules. Current safety baseline: exact on-disk attempt
 fence at receipt commit (#1042), with two-process adversarial coverage
@@ -83,5 +83,14 @@ A live OS handle plus explicit rearm semantics separates a *still-running*
 owner from a *dead but durably pending* attempt, without relying on
 unverifiable heartbeat age.
 
-This is a proposed next persistence milestone, **not** an implemented
-live lock, a shipped menu or permission to downgrade QA-02 P0.
+The coordinator and OS-lock primitive now implement the core live lease
+as an unmerged candidate. Production arm acquires it nonblocking and
+retains its handle in the coordinator through commit or cancellation.
+Arm also rechecks the current active archive and receipt-derived fixture
+completion to refuse stale in-memory rearm after another window finishes.
+Native simultaneous processes, std::_Exit and an externally forced
+OS hard kill exercise fail-fast Busy and automatic lease release.
+The existing Modern panel shows "FIXTURE IN USE" for a healthy rival,
+without retrying or mutating its checkpoint. This is a narrow integration
+message, **not** a complete Retry/Discard UX after process death and not
+permission to downgrade QA-02 P0 before L4.

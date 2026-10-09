@@ -297,13 +297,50 @@ LocalTournamentCoordinatorStatus arm_local_tournament_fixture(
             *planned.pending, confirmed_p1_profile, confirmed_p2_profile)) {
         return Status::InvalidRequest;
     }
-    // The checkpoint MUST be on disk before the guest route begins.
+    // A short checkpoint mutex cannot protect the entire guest race.
+    // Hold a distinct NONBLOCKING OS lease from arm through commit/cancel.
+    // Two running games can no longer overwrite one another's live pending
+    // token; process death automatically frees the handle for explicit retry.
+    auto live_lock = std::make_shared<TournamentLaunchPathLock>(
+        pending_path(session) + ".live", true);
+    if (!live_lock->acquired()) {
+        return live_lock->busy() ? Status::Busy : Status::StorageFailed;
+    }
+    // The caller may have restored an old, still-unplayed in-memory copy
+    // while another window completed or replaced this event. A freed lease
+    // does not imply that the fixture remains unplayed or active.
+    const auto active = load_historical_local_tournament_session_definition(
+        active_session_path(session.paths));
+    if (!active.loaded() ||
+        encode_local_tournament_session_definition(*active.session) !=
+            encode_local_tournament_session_definition(session.definition)) {
+        return Status::EvidenceRejected;
+    }
+    const auto disk = restore_saved_local_tournament_fixtures(
+        receipts_directory(session),
+        session.paths.multiplayer_runs_directory,
+        session.definition.instance_id,
+        session.definition.empty_schedule);
+    if (!disk.restored() ||
+        disk.state->results.size() != session.results.results.size()) {
+        return Status::EvidenceRejected;
+    }
+    for (std::size_t i = 0; i < disk.state->results.size(); ++i) {
+        if (disk.state->results[i].has_value() !=
+            session.results.results[i].has_value()) {
+            return Status::EvidenceRejected;
+        }
+    }
+    // With live ownership retained, write the checkpoint under its separate
+    // short-duration OS mutex. Never hold the checkpoint lock while trying
+    // to acquire the live lease, which would invert the lock order.
     if (save_local_tournament_launch_file(
             pending_path(session), *planned.pending) !=
         LocalTournamentLaunchFileStatus::Saved) {
         return Status::StorageFailed;
     }
     session.launch = std::move(planned);
+    session.live_fixture_lock = std::move(live_lock);
     return Status::Armed;
 }
 
@@ -330,8 +367,11 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
     std::string_view live_capture_attempt_id,
     const std::string& already_published_run_path) {
     if (!session.launch.pending ||
+        !session.live_fixture_lock || !session.live_fixture_lock->acquired() ||
         !local_tournament_valid_instance_token(live_capture_attempt_id) ||
         session.launch.pending->attempt_id != live_capture_attempt_id) {
+        // A restored or copied pending token is not a live OS lease. Only
+        // the process that armed and retained ownership may claim a receipt.
         return Status::InvalidRequest;
     }
     const auto pending = *session.launch.pending;
@@ -367,6 +407,10 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
     // The durable receipt is now the authority. Retirement acquires the
     // same mutex separately; an intervening newer attempt cannot be unlinked.
     (void)retire_local_tournament_launch_file(checkpoint, pending);
+    // The immutable receipt is committed. Drop the OS live lease even if
+    // exact checkpoint retirement failed; a later explicit retry must
+    // recheck disk receipts and cannot re-credit this completed fixture.
+    session.live_fixture_lock.reset();
     return Status::Committed;
 }
 
@@ -374,6 +418,7 @@ LocalTournamentCoordinatorStatus cancel_local_tournament_capture(
     LocalTournamentCoordinator& session,
     std::string_view live_capture_attempt_id) {
     if (!session.launch.pending ||
+        !session.live_fixture_lock || !session.live_fixture_lock->acquired() ||
         session.launch.pending->attempt_id != live_capture_attempt_id ||
         session.launch.pending->tournament_id != session.definition.instance_id) {
         return Status::InvalidRequest;
@@ -389,6 +434,7 @@ LocalTournamentCoordinatorStatus cancel_local_tournament_capture(
             live_capture_attempt_id) != LocalTournamentLaunchStatus::Cancelled) {
         return Status::InvalidRequest;
     }
+    session.live_fixture_lock.reset();
     return Status::Cancelled;
 }
 

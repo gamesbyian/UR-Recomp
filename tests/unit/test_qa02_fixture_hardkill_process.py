@@ -61,6 +61,39 @@ class FixtureHardkillProcessTests(unittest.TestCase):
             pending = tournament / "pending.urlaunch"
             records = user_root / "multiplayer-runs"
 
+            # C09 uses its own complete event namespace. The pair writer
+            # exits inside its REAL sidecar-claimed/pre-run publication hook.
+            # A fresh reader must see no public run, PB or fixture credit.
+            c09_root = root / "c09-player-data"
+            c09 = subprocess.run(
+                [str(exe), "kill-c09", str(c09_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(c09.returncode, 79, c09.stderr)
+            orphan_records = c09_root / "multiplayer-runs"
+            self.assertEqual(len(list(orphan_records.glob("*.urrun"))), 0)
+            self.assertEqual(len(list(orphan_records.glob("*.urmatch"))), 1)
+            for _ in range(2):
+                check = subprocess.run(
+                    [str(exe), "verify-c09", str(c09_root)], cwd=ROOT,
+                    capture_output=True, timeout=20,
+                )
+                self.assertEqual(check.returncode, 0, check.stderr)
+                self.assertIn(b"QA02_C09_NO_RUN_NO_CREDIT", check.stdout)
+            recovered = subprocess.run(
+                [str(exe), "recover-c09", str(c09_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(recovered.returncode, 0, recovered.stderr)
+            self.assertIn(b"QA02_C09_LATER_VALID_RETRY", recovered.stdout)
+            self.assertEqual(len(list(orphan_records.glob("*.urrun"))), 1)
+            self.assertEqual(len(list(orphan_records.glob("*.urmatch"))), 2)
+            verify_credit = subprocess.run(
+                [str(exe), "verify-c15", str(c09_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(verify_credit.returncode, 0, verify_credit.stderr)
+
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))
             self.assertEqual(len(pair_before), 1)

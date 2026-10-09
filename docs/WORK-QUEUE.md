@@ -1,5 +1,8 @@
 # Work Queue
 
+> **Claude usage-limit handoff, 2026-10-08:** See [CLAUDE-HANDOFF-AUDIT-2026-10-08.md](CLAUDE-HANDOFF-AUDIT-2026-10-08.md) for current-main branch ancestry, unresolved selective-recovery candidates, and non-overlap with the active CI owner. No historical Claude branch is approved for wholesale merge merely because it has unique commits. Prioritize concrete QA-02/03 and player-visible regressions before reviving old code. The sole open PR at audit time, #988, remains with CI-speed ownership.
+
+
 ## Racer Studio material customization work queue (2026-10-08)
 
 **Planned, not shipped.** Source contracts: [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md), [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Four independent slots: tire, rim/spokes, frame/body, saddle. Exact legacy presets preserved. The showcase hero must immediately reflect draft changes; actual racing poses must ultimately match.

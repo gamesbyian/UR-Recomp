@@ -40,6 +40,9 @@
 
 The JSON inventory maps **every file** individually, including every multi-megabyte `src/gen/bank..._v2.c` translation unit. These are outputs produced by `tools/regen.sh` from source-ROM bytes, tracked analyzer configuration and its pinned SNESRecomp fork, not independently hand-authored game systems. The source tree is available through the existing `gamesbyian/uniracers-recomp` fork for on-demand inspection without copying 67 MB of duplicative generated content.
 
+
+**Native framework delta indexed (2026-10-09):** [`BALDOSA-FRAMEWORK-DELTA-20261009.md`](BALDOSA-FRAMEWORK-DELTA-20261009.md) enumerates 86 ancestor commits/121 changed files between our pinned SNESRecomp and Ema's fork, with the game-specific OAM patch preserved but **unapplied** in `analysis/patches/baldosa-oam-address-pin.patch`. This does not supersede the active QA-08 controller/graphics lane or authorize a global framework upgrade.
+
 ## High-value technical seams, after inspecting source
 
 ### AOT execution and decompilation

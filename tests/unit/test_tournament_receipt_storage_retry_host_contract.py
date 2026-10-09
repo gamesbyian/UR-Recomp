@@ -43,6 +43,8 @@ class ReceiptStorageRetryHostContract(unittest.TestCase):
         self.assertIn("g_local_tournament_session->definition.instance_id", panel)
         self.assertIn("g_local_tournament_receipt_retry->saved_run_path", panel)
         self.assertIn("RECEIPT_RETRY_COMMITTED", panel)
+        self.assertIn("local_tournament_result_notice(", panel)
+        self.assertIn('g_local_tournament_panel_notice = "RESULT SAVED"', panel)
         self.assertIn("RECEIPT_RETRY_STORAGE", panel)
         self.assertNotIn("append_multiplayer_match_pair(", panel)
         # A completed result must not be cancelled when moving from 2P

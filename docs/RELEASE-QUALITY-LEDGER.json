@@ -66,7 +66,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Complete #1018 and #1019 integration, then execute the 17 exact cut-point tests in docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md. Reproduce and implement orphan-registration/active-selection recovery across .srm, host profile, global selector and catalog; prioritize C01, C04, C09, C14 before Windows J-02/J-07/J-08 L4 evidence.",
+      "next_action": "Execute C01-C17 cross-artifact fault cuts from docs/QA02-CROSS-ARTIFACT-FAULT-CAMPAIGN.md on an immutable Windows ZIP with SHA-256. Prioritize crash after profile snapshot before catalog, crash between global active selector and framework .srm, run/match/ghost partial publication, and fixture receipt and pending checkpoint windows. Document deterministic orphan preservation/recovery rather than silently deleting or adopting existing progress.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -87,7 +87,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1018",
         "https://github.com/gamesbyian/UR-Recomp/pull/1019"
       ],
-      "remaining_release_risk": "Merged #982/#984/#985, #991, #993, #995, #996, #1003, #1005, #1009, #1016 and #1017: guarded host staging, no-replace run/match pair, bounded catalog recovery, exact profile/catalog/active-tournament/global selector CAS, staged data flush and second-phase profile snapshot compensation. #1018 guarded lock-only creation retry and #1019 active-profile selection/SRAM compensating rollback are pending verification and integration. No crash-safe group atomicity for framework .srm, profile, global selector, catalog, run, ghost, match, fixture, active tournament or pending launch. Actual orphan profiles/events, interrupted rename, committed-but-directory-sync-uncertain states and partially written framework SRAM lack complete deterministic recovery. No exact packaged Windows two-instance or storage-fault L4 witness; QA-02 remains P0 in_progress."
+      "remaining_release_risk": "Merged QA-02 fixes: #982/#984/#985 store-level receipt, staging and launch checkpoint; #991 private same-directory host staging; #993 no-replace run/match pair; #995 bounded catalog; #996 exact profile CAS; #1003 catalog CAS and conditional cleanup; #1005 prepublish data flush; #1009 active event CAS; #1016 SRAM snapshot second-phase conditional rollback; #1017 global host state CAS; #1018 guarded lock-only create retry with authoritative roster refresh; #1019 active profile selection SRAM compensation. #1018 final reconciled head's CI remained in progress at merge (prior focused tests green). No cross-file commit journal or deterministic full restoration for orphan racer/event, group-committed framework .srm/profile/catalog/global pointer, partial replay/ghost/receipt or uncertain directory durability. Exact packaged Windows two-instance and disk-full/power-failure L4 evidence absent; QA-02 remains P0 in_progress."
     },
     {
       "id": "QA-03",

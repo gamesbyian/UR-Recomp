@@ -8330,9 +8330,9 @@ extern "C" int ur_uniracers_modern_system_gamepad_button(
         if (g_modern_root_quit_confirm &&
             button != kGamepadBtn_A && button != kGamepadBtn_Start &&
             button != kGamepadBtn_B) return 1;
-        if (button == kGamepadBtn_A || button == kGamepadBtn_Start)
+        if (button == kGamepadBtn_A)
             return modern_root_confirm() ? 1 : 0;
-        if (button == kGamepadBtn_B)
+        if (button == kGamepadBtn_B || button == kGamepadBtn_Start)
             return modern_root_back() ? 1 : 0;
         if (button == kGamepadBtn_X) {
             open_profile_menu();

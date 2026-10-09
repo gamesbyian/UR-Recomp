@@ -58,5 +58,16 @@ int main() {
     assert(ur_baldosa_product_filter_human_frame_inputs(ports, 10) == ports);
     assert(ur_baldosa_product_filter_human_frame_inputs(
                ports | p1_a, 11) == (ports | p1_a));
+
+    // Restart while the real host remains paused MUST NOT return guest focus.
+    assert(ur_baldosa_product_set_paused(1));
+    assert(ur_baldosa_product_filter_human_frame_inputs(held, 12) == ports);
+    ur_baldosa_product_guest_restarted();
+    assert(ur_baldosa_product_filter_human_frame_inputs(held, 13) == ports);
+    assert(ur_baldosa_product_set_paused(0));
+    assert(ur_baldosa_product_filter_human_frame_inputs(held, 14) == ports);
+    assert(ur_baldosa_product_filter_human_frame_inputs(ports, 15) == ports);
+    assert(ur_baldosa_product_filter_human_frame_inputs(
+               ports | p2_start, 16) == (ports | p2_start));
     return 0;
 }

@@ -12,7 +12,7 @@ PROGRESS = (218, 604, 841, 1532, 1721)
 ACTIVE_SAMPLES = ("scene-entered",) + tuple(
     f"progress-{frame:04d}" for frame in PROGRESS) + ("pre-result",)
 SAMPLES = ACTIVE_SAMPLES + ("result-onset-candidate", "result-stable-candidate")
-TIME = re.compile(r"^\\d+:[0-5]\\d\\.\\d\\d$")
+TIME = re.compile(r"^\d+:[0-5]\d\.\d\d$")
 
 
 def result_frames(log: str) -> dict:
@@ -21,8 +21,8 @@ def result_frames(log: str) -> dict:
     labels = ("scene-entered", "result-onset-candidate", "result-stable-candidate")
     values = {}
     for name in labels:
-        matches = re.findall(r"(?m)^script f=(\\d+) dump " + re.escape(name) +
-                             r"(?=\\s|$)", log)
+        matches = re.findall(r"(?m)^script f=(\d+) dump " + re.escape(name) +
+                             r"(?=\s|$)", log)
         if len(matches) != 1:
             raise ValueError(f"expected exactly one logged {name} frame")
         values[name] = int(matches[0])

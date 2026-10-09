@@ -211,13 +211,14 @@
       "evidence_refs": [
         "docs/SEMANTIC-SUFFICIENCY.md",
         "docs/RACER-HD-LIVE-MOTION-CENSUS.md",
-        "docs/RACER-HD-PIXEL-CONFINEMENT.md"
+        "docs/RACER-HD-PIXEL-CONFINEMENT.md",
+        "docs/RACER-HD-SOURCE-OBJ-VISIBILITY.md"
       ],
       "journeys": [
         "J-13",
         "J-16"
       ],
-      "next_action": "Native draw availability (not pixel fidelity) measured: ordinary 2P 87/441 full-pair HD; long 2P opt-in P1-only 1240/5282 HD racer player-frames with 358 any-HD/Original switches; first moving 1P 42/120 and VS 39/120 full-pair HD frames (14 and 16 switches). Retained exact-source evidence in docs/RACER-HD-LIVE-MOTION-CENSUS.md. Next block: same-frame authoritative Original-vs-HD foreground BG/other OBJ raster depth attribution, verified actual PPU RemoveFromGame sprite elimination, original-vs-HD moving 1P/2P/VS and 342x224 16:9 screenshots including Y-wrap, split seams, camera, HUD/ghost, player identity and abrupt mode switches. QA-08 is not L4 passed and must not ship as complete Remastered fidelity.",
+      "next_action": "QA-08 P1/L4 unverified: native 2P first-race frame 1220 emitted 372 upper racer Original PPU OBJ pixels and zero lower-viewport pixels, yet the original HD host had fabricated a visible lower racer. Renderer fix now suppresses HD sprite painting in a viewport where the original PPU emitted no source OBJ pixels, retaining exact-state masked-OBJ and capture-only controls from #1034 and legacy plane export from #1029. Require exact native screenshot acceptance and 441-frame stock-OBJ visibility/toggle census, then advance per-OAM-slot foreground BG/window/other-OBJ priority, moving 1P/2P/VS and 4:3/16:9 scaling/camera/split-scene counterexamples; no whole-game art completion claim.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],

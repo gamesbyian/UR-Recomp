@@ -32,7 +32,7 @@
         "J-09",
         "J-15"
       ],
-      "next_action": "Release census remains 0/45 USA complete, 3 partial, 42 unverified. Historical original Snes9x already finishes Zoom Zoo Circuit (BC, frame 8353) and scored Bowl Stunt (18, frame 11985), but neither has a fresh original/native pair. Execute #1055 event-complete historical-input transplantation on pinned original and native Authentic for Zoo and Bowl; check actual source-SRAM, scene/latch alignment, checkpoint/lap/score, and settled result. Find and validate a non-Dragster Race B source finish (Switcher first); #1055 must reject unavailable original results. Only after those three independently reviewed terminal families, extend route producers toward all 45. Keep frame-2903 causal attribution unresolved and PAL comparative 90 separate.",
+      "next_action": "Release census remains 0/45 USA complete, 4 partial (including source-only Bowl Stunt), 41 unverified. Historical original Snes9x already finishes Zoom Zoo Circuit (BC, frame 8353) and scored Bowl Stunt (18, frame 11985), but neither has a fresh original/native pair. Execute #1055 event-complete historical-input transplantation on pinned original and native Authentic for Zoo and Bowl; check actual source-SRAM, scene/latch alignment, checkpoint/lap/score, and settled result. Find and validate a non-Dragster Race B source finish (Switcher first); #1055 must reject unavailable original results. Only after those three independently reviewed terminal families, extend route producers toward all 45. Keep frame-2903 causal attribution unresolved and PAL comparative 90 separate.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -40,8 +40,8 @@
       "coverage": {
         "denominator": 45,
         "complete_event_passes": 0,
-        "partial": 3,
-        "unverified": 42,
+        "partial": 4,
+        "unverified": 41,
         "regional_comparison_denominator": 90,
         "regional_comparison_complete": 0,
         "regional_comparison_unverified": 90,

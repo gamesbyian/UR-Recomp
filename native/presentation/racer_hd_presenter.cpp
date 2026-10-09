@@ -162,11 +162,15 @@ void dump_obj_layer_for_occlusion_review() noexcept {
         "TUPLTYPE RGB_ALPHA\nENDHDR\n";
     bool ok = std::fwrite(header, 1, std::strlen(header), file) == std::strlen(header);
     for (int y = 0; ok && y < kBaseHeight; ++y) {
-        const auto* row = reinterpret_cast<const std::uint32_t*>(
-            g_obj_overlay.data() + static_cast<std::size_t>(y) * kBaseWidth * 4
-        );
         for (int x = 0; x < kBaseWidth; ++x) {
-            const std::uint32_t pixel = row[x];
+            const std::size_t byte_offset =
+                (static_cast<std::size_t>(y) * kBaseWidth + x) * 4;
+            // The PPU exposes byte storage; avoid assuming a uint32_t
+            // alignment or introducing an aliasing violation on other hosts.
+            std::uint32_t pixel = 0;
+            std::memcpy(
+                &pixel, g_obj_overlay.data() + byte_offset, sizeof(pixel)
+            );
             const std::uint8_t rgba[4] = {
                 static_cast<std::uint8_t>((pixel >> 16) & 0xFF),
                 static_cast<std::uint8_t>((pixel >> 8) & 0xFF),

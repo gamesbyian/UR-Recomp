@@ -67,7 +67,7 @@ class ModernControlsHostContractTests(unittest.TestCase):
         end = source.index("bool save_active_profile_state(", start)
         body = source[start:end]
 
-        profile_save = body.index("save_host_profile_state_file(")
+        profile_save = body.index("save_host_profile_state_file_if_current(")
         sram_save = body.index("RtlTryWriteSram()")
         rollback = body.index("UR_TOUR_RESTART PROFILE_ROLLED_BACK")
         self.assertLess(profile_save, sram_save)

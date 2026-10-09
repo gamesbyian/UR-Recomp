@@ -77,7 +77,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Finish #1052 native/Windows-oriented CI for fail-fast OS live-fixture lease, current archive/receipt check and process-kill recovery; only integrate after full green. Then exercise two actual packaged Windows game instances same user root, crash while racing, deliberate rearm, file/OS hard kill, disk-full/upgrade faults and hash-pinned J-02/J-07/J-08 L4. Complete C04 profile selector/framework SRAM crash restore.",
+      "next_action": "Validate merged #1052 live OS lease on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -111,7 +111,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1050",
         "https://github.com/gamesbyian/UR-Recomp/pull/1052"
       ],
-      "remaining_release_risk": "Merged green #1050 reproduced in two live native processes an overwritten in-flight fixture attempt: stale old owner rightly loses irreversible receipt credit but loses its intended tournament progress. #1052 proposes dedicated crash-released, nonblocking OS live-lease retained in coordinator from arm through commit/cancel, with active archive and receipt-state revalidation, Busy status/notice, two live-process test and external OS hard-kill restart. #1052 remains under fresh CI and is NOT accepted until merge. #1044/1046/1048 and earlier QA02 narrowed store/process durability, archive, C09/C12/C14/C15 acceptance merged. No committed group transaction across framework save.srm, profile/roster/global selection, run/match/ghost, fixture receipt/pending; no exact Windows package two-instance/disk fault/upgrade/power-loss L4 witness. Future lease needs incompatible older-client and stale-retry UX assessment. QA02 P0 in_progress."
+      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
     },
     {
       "id": "QA-03",
@@ -120,7 +120,8 @@
       "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md"
+        "docs/MODERN-LOCAL-TOURNAMENT-PANEL.md",
+        "docs/QA03-COMPLETE-TOURNAMENT-PROCESS-JOURNEY.md"
       ],
       "journeys": [
         "J-03",
@@ -128,16 +129,17 @@
         "J-05",
         "J-06"
       ],
-      "next_action": "Finish leg two/three and a three-entrant tournament from packaged candidate across processes",
+      "next_action": "Review/green/merge #1054 for complete 3-leg duel and 3-entrant 2-leg backend process-journey coverage; separately supply and execute actual stock 2P controller-raced leg 2/3 and three-entrant completion across fresh packaged Windows game processes, asserting Records, standings, history, cancellations and fixture credit on the exact candidate.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
       "issue": "https://github.com/gamesbyian/UR-Recomp/issues/969",
       "implementation_prs": [
         "https://github.com/gamesbyian/UR-Recomp/pull/979",
-        "https://github.com/gamesbyian/UR-Recomp/pull/981"
+        "https://github.com/gamesbyian/UR-Recomp/pull/981",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "Real two-pad guest-word and complete multi-leg/3+ player journeys remain unverified."
+      "remaining_release_risk": "#1054 implements full backend artifact-driven 3-leg duel (3 fixtures) and 3-entrant two-leg round robin (6 fixtures), each fixture in a fresh executable, with cancel, exact run+match/receipt, restored standings/history and replacement preservation. Pending CI/merge at this review; uses simulated stock 2P outcomes, not guest-executed races. Existing native guest acceptance stops at leg-2 arm/End Event and existing packaged Windows acceptance ends after one fixture. Real pad-input multi-leg and 3+ entrant L4 are still unverified; QA03 P0 stays in_progress."
     },
     {
       "id": "QA-04",

@@ -220,8 +220,13 @@ def archived_p1_positive_result(lines: list[str], stunt: bool) -> bool:
     pattern = r":\s*[1-9]\d*" if stunt else r"\d+:[0-5]\d\.\d\d"
     for i, text in enumerate(lines):
         if text.strip() == "MIKE":
-            return any(re.fullmatch(pattern, value.strip())
-                       for value in lines[i + 1:i + 4])
+            # The source PPU decoder emits one token per row. On known
+            # original result screens MIKE's actual total/score is the
+            # immediately following token; scanning beyond it can consume
+            # an opponent's time or the unrelated qualifying threshold.
+            # Require the anchored source layout, never nearby numerals.
+            return i + 1 < len(lines) and bool(
+                re.fullmatch(pattern, lines[i + 1].strip()))
     return False
 
 

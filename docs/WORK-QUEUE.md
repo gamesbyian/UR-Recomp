@@ -60,8 +60,9 @@ The [course/event admission matrix](ORIGINAL-COURSE-EVENT-CENSUS.md)
 tracks **45 primary-USA Windows release course cases** plus **90 PAL
 retail/prototype comparative cases**, or 135 original ROM/course pairs
 (108 Race/Circuit, 27 timed Stunt). Primary L4 completion is
-**0/45 passed**, **2 bounded partial (USA Dragster contact window and
-USA Jumpover circuit-B input-only landing thresholds)**, **43 unverified**;
+**0/45 passed**, **3 bounded partial** (USA Dragster native contact window,
+USA Zoom Zoo original Snes9x checkpoint/lap sequence, USA Jumpover
+circuit-B input-only landing thresholds), **42 unverified**;
 comparative PAL remains **0/90 passed, 90 unverified**.
 The generator and negative-pass unit tests refuse to turn 45 valid
 RNC streams, resource-family incidence or a six-case stunt-*maneuver*

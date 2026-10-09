@@ -1,0 +1,25 @@
+diff --git a/runner/src/snes/ppu.c b/runner/src/snes/ppu.c
+--- a/runner/src/snes/ppu.c
++++ b/runner/src/snes/ppu.c
+@@ -65,6 +65,8 @@
+ 
+ static void PpuDrawWholeLine(Ppu *ppu, uint y);
+ static void PpuDrawMode7HdLine(Ppu *ppu, unsigned line);
++static void PpuWriteOverlayRenderLine(Ppu *ppu, PpuOverlaySource source,
++                                      uint y);
+ 
+ static bool ppu_evaluateSprites(Ppu* ppu, int line);
+ static uint16_t ppu_getVramRemap(Ppu* ppu);
+@@ -844,7 +846,12 @@
+       g_ppu_sec_line_n++;
+ #endif
+     } else {
+       ppu_draw_whole_line_legacy(ppu, line);
++      // OBJ extraction is an opt-in host diagnostic. The legacy raster
++      // evaluates/captures sprite priority data just like the new raster,
++      // but previously omitted the per-line copy into the bound overlay.
++      // This does not modify the authentic stock framebuffer or guest state.
++      PpuWriteOverlayRenderLine(ppu, kPpuOverlaySource_Obj, line);
+     }
+     if (ppu->mode7Hd.pixels)
+       PpuDrawMode7HdLine(ppu, (unsigned)line);

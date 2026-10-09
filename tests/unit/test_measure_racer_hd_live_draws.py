@@ -61,15 +61,12 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
             "unsupported-geometry": 1,
         })
 
-    def test_armed_but_declined_output_counts_actual_original(self):
-        result = analyze("\n".join([
-            gate(70, "armed", "full-pair"),
-            present(70, "original", "unsupported-output"),
-        ]))["measurement"]
-        self.assertEqual(result["capture_armed_guest_frames"], 1)
-        self.assertEqual(result["armed_without_hd_draw_guest_frames"], 1)
-        self.assertEqual(result["hd_presented_fraction"], 0)
-        self.assertEqual(result["stock_fallback_fraction"], 1)
+    def test_armed_but_declined_output_is_a_possible_missing_racer(self):
+        with self.assertRaisesRegex(ValueError, "stock OBJ may have been removed"):
+            analyze("\n".join([
+                gate(70, "armed", "full-pair"),
+                present(70, "original", "unsupported-output"),
+            ]))
 
     def test_gaps_are_not_fake_transitions(self):
         result = analyze("\n".join([

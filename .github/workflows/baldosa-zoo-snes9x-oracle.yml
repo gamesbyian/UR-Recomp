@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - ".github/workflows/baldosa-zoo-snes9x-oracle.yml"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
   workflow_dispatch:
 
 permissions:

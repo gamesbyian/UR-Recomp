@@ -222,8 +222,15 @@ class HostPersistenceProcessTests(unittest.TestCase):
             old_progress.unlink()
             staging = pristine / ".pending-urprofile-interrupted"
             staging.mkdir()
+            (staging / "record.tmp").write_bytes(b"unfinished publication")
             self.assertEqual(
-                call("profile", "root-pristine", pristine, 4).returncode, 6
+                call("profile", "root-pristine", pristine, 4).returncode, 6,
+                "never adopt a directory containing an unpublished stage",
+            )
+            (staging / "record.tmp").unlink()
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 0,
+                "empty post-rename reservations are not unfinished data",
             )
             staging.rmdir()
             # Two separate games explicitly claim the exact same pristine
@@ -265,6 +272,50 @@ class HostPersistenceProcessTests(unittest.TestCase):
             self.assertEqual(
                 call("profile", "root-pristine", pristine, 4).returncode, 6
             )
+
+            # Crash after canonical publication but before private staging
+            # cleanup leaves an empty reservation and a full pristine profile.
+            # Recovered Create must tolerate only that empty debris, while
+            # still using the OS profile mutex and exact expected-roster CAS.
+            post_publish = root / "orphan-post-publish-crash"
+            fault = call(
+                "profile", "orphan-crash-after-publish", post_publish, 6
+            )
+            self.assertEqual(fault.returncode, 79, fault.stderr)
+            final_profile = post_publish / "host-profile.txt"
+            self.assertTrue(final_profile.is_file())
+            stage_dirs = [
+                d for d in post_publish.iterdir()
+                if d.name.startswith(".pending-urprofile-")
+            ]
+            self.assertTrue(stage_dirs)
+            self.assertTrue(all(d.is_dir() and not any(d.iterdir())
+                                for d in stage_dirs))
+            snapshot = final_profile.read_bytes()
+            self.assertEqual(
+                call("profile", "root-pristine", post_publish, 6).returncode, 0
+            )
+            post_catalog = root / "orphan-post-publish-catalog.dat"
+            claim = subprocess.run(
+                [str(exe), "profile", "orphan-claim",
+                 str(post_publish), "6", str(post_catalog)],
+                cwd=ROOT, capture_output=True,
+            )
+            self.assertEqual(claim.returncode, 0, claim.stderr)
+            self.assertEqual(final_profile.read_bytes(), snapshot)
+            self.assertEqual(
+                call("catalog", "cas-roster-read", post_catalog)
+                .stdout.decode().strip(), "1 qa-profile"
+            )
+            self.assertTrue(all(d.exists() for d in stage_dirs),
+                            "recovery must preserve crash evidence")
+            # An adversarial nonempty reservation blocks the same pristine
+            # profile; this must fail without modifying either artifact.
+            (stage_dirs[0] / "record.tmp").write_bytes(b"uncommitted bytes")
+            self.assertEqual(
+                call("profile", "root-pristine", post_publish, 6).returncode, 6
+            )
+            self.assertEqual(final_profile.read_bytes(), snapshot)
 
             # Compare-and-swap uses the exact prior disk snapshot rather
             # than autosave_generation alone. Both children load the SAME

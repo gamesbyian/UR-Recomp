@@ -1,5 +1,10 @@
 # Uniracers Modern Port Plan
 
+## Racer appearance colours and materials decision (2026-10-08)
+
+The modern Racer Studio target now includes four independently configurable **tire, rim/spokes, frame/body, saddle** colour/material slots, updating the large animated 2D showroom hero immediately. Exact classic named/palette combinations remain selectable, unchanged presets. Source-derived or authored pose masks/layers, a small curated colour range and in-race fidelity across admitted poses precede full player release; richer tread/metallic/fabric textures are post-baseline. Keep these render-only and host-owned, independent of racer name/profile and guest palette/SRAM authority. The original SNES sprite/palette evidence does **not** yet establish independent recolourability of all four components, so component separation must be measured rather than presumed. See [`MODERN-RACER-COSMETICS.md`](MODERN-RACER-COSMETICS.md) and [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). Do not divert current root/menu shipping work to claim all pose coverage or texture shipping prematurely.
+
+
 ## Modern frontend design integration (2026-10-08)
 
 The implementable cross-screen design specification is [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). It is the canonical *proposed screen hierarchy, interaction/focus policy, cohesive original-inspired visual-system brief, implementation slices and acceptance matrix* for Modern menus. Its five destinations remain **Play / Practice / Multiplayer / Records / Options**, with Racer & Profiles available through a global identity action rather than an additional root destination. Original menu art, sounds, typography and selection character are the first design priority; working black engineering overlays are not shipping-quality artwork. Implement by reusing the existing host/guest authorities; do not create shadow progression, records, router, settings or persistence state. Keep Authentic untouched.

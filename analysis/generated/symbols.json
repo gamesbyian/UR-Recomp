@@ -419,11 +419,11 @@
     },
     {
       "kind": "ram",
-      "address": "77:0618",
-      "name": "Save_IndexedResultWordTable",
-      "width": "16-bit word pairs",
+      "address": "77:0618` / `77:061A",
+      "name": "Save_LastRaceResultP1` / `Save_LastRaceResultP2",
+      "width": "16-bit",
       "confidence": 4,
-      "notes": "USA `$80:F877` reads a 16-bit index at direct page `$CC`, then a word at SRAM `$770678 + index`; it computes byte offset `(index << 3) + (word << 1)` before storing a 16-bit value at `$770618 + offset` and optionally a second at `$77061A + offset`, then updates checksums. These are indexed result-table slots, not two fixed last-race values. The exact higher-level player/league slot meanings need a fresh source/native write trace. Independent baldosa symbol data labels the containing 96-byte region `sLeaguePointTable` (commit `10b864b9`); see `docs/BALDOSA-SYMBOL-CROSSWALK-FINDINGS-20261009.md`."
+      "notes": "Last race result value for P1 / the opponent (time in 1/100 s, circuit total, or stunt score), rewritten every race."
     },
     {
       "kind": "ram",

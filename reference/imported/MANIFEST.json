@@ -322,6 +322,54 @@
       "review_status": "unverified-leads"
     },
     {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/.github/workflows/build.yml",
+      "category": "external-ci-reference",
+      "size": 4527,
+      "git_blob_sha1": "6b476394b49086c73cfb6f4511a983ee90cc5a3d",
+      "upstream_git_blob_sha1": "6b476394b49086c73cfb6f4511a983ee90cc5a3d",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/.github/workflows/pages.yml",
+      "category": "external-ci-reference",
+      "size": 1164,
+      "git_blob_sha1": "2bd22cf2585a769b09a5e3f18f2323bc0eb26414",
+      "upstream_git_blob_sha1": "2bd22cf2585a769b09a5e3f18f2323bc0eb26414",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/.github/workflows/release.yml",
+      "category": "external-ci-reference",
+      "size": 14680,
+      "git_blob_sha1": "9efb11743e67ed4024cd153c8829c64f90857282",
+      "upstream_git_blob_sha1": "9efb11743e67ed4024cd153c8829c64f90857282",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/.gitignore",
+      "category": "upstream-build-metadata",
+      "size": 715,
+      "git_blob_sha1": "cac0712d8e5ad2e4b8acb3e9b3efa942640ff670",
+      "upstream_git_blob_sha1": "cac0712d8e5ad2e4b8acb3e9b3efa942640ff670",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/.gitmodules",
+      "category": "upstream-build-metadata",
+      "size": 230,
+      "git_blob_sha1": "1cf90664748684d957eaf73887293b2a9064a915",
+      "upstream_git_blob_sha1": "1cf90664748684d957eaf73887293b2a9064a915",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/CMakeLists.txt",
+      "category": "build-contract-reference",
+      "size": 6954,
+      "git_blob_sha1": "f58a5cb9cd03e877335e0467a745e5f4b5141a74",
+      "upstream_git_blob_sha1": "f58a5cb9cd03e877335e0467a745e5f4b5141a74",
+      "review_status": "unverified-leads"
+    },
+    {
       "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/hw.asm",
       "category": "rom-archaeology-reference",
       "size": 3002,
@@ -351,6 +399,62 @@
       "size": 70209,
       "git_blob_sha1": "54360f38f9d0dd701d4c7231e6be151e1c02cdf8",
       "upstream_git_blob_sha1": "54360f38f9d0dd701d4c7231e6be151e1c02cdf8",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/docs/superpowers/plans/2026-10-06-uniracers-recomp.md",
+      "category": "upstream-development-note",
+      "size": 6456,
+      "git_blob_sha1": "17da454d70d8db1c3986db00e62d24060ce5a7bd",
+      "upstream_git_blob_sha1": "17da454d70d8db1c3986db00e62d24060ce5a7bd",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/docs/superpowers/specs/2026-10-06-uniracers-recomp-design.md",
+      "category": "upstream-development-note",
+      "size": 3637,
+      "git_blob_sha1": "3acdbfbea54cee341e8cc7bf36962a22e66d1de6",
+      "upstream_git_blob_sha1": "3acdbfbea54cee341e8cc7bf36962a22e66d1de6",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/docs/superpowers/specs/2026-10-07-uniracers-decomp-design.md",
+      "category": "upstream-development-note",
+      "size": 3489,
+      "git_blob_sha1": "c11db2281b2446d5471b41128f437384d6d487ce",
+      "upstream_git_blob_sha1": "c11db2281b2446d5471b41128f437384d6d487ce",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/framework_pins.txt",
+      "category": "build-contract-reference",
+      "size": 162,
+      "git_blob_sha1": "fba2e09df2eb6821bf01159146fc967047c61c4f",
+      "upstream_git_blob_sha1": "fba2e09df2eb6821bf01159146fc967047c61c4f",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/LICENSE",
+      "category": "upstream-license-reference",
+      "size": 3791,
+      "git_blob_sha1": "6804d6f5cf1a102d5f8ed6dd6fe4df621ecf41f1",
+      "upstream_git_blob_sha1": "6804d6f5cf1a102d5f8ed6dd6fe4df621ecf41f1",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/mods/preloaded/README.md",
+      "category": "upstream-documentation",
+      "size": 911,
+      "git_blob_sha1": "cc61de62a17da19ff5fb9343aaec163ae090d0c1",
+      "upstream_git_blob_sha1": "cc61de62a17da19ff5fb9343aaec163ae090d0c1",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/README.md",
+      "category": "upstream-documentation",
+      "size": 9379,
+      "git_blob_sha1": "e3de1939494fd7e8ca6daa2ad5a58fb80478ce3c",
+      "upstream_git_blob_sha1": "e3de1939494fd7e8ca6daa2ad5a58fb80478ce3c",
       "review_status": "unverified-leads"
     },
     {
@@ -431,6 +535,102 @@
       "size": 103475,
       "git_blob_sha1": "231e6ffef8f74473ec6af84c51e218ba62ca8f30",
       "upstream_git_blob_sha1": "231e6ffef8f74473ec6af84c51e218ba62ca8f30",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/rom_identity.txt",
+      "category": "build-contract-reference",
+      "size": 1230,
+      "git_blob_sha1": "dd472941301a18aacdca4eabd8e46a6a93e59d97",
+      "upstream_git_blob_sha1": "dd472941301a18aacdca4eabd8e46a6a93e59d97",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/scripts/package_release.sh",
+      "category": "release-packaging-reference",
+      "size": 2915,
+      "git_blob_sha1": "948aacb675a1da88c3cb0b4f5269fb8cfdd61a04",
+      "upstream_git_blob_sha1": "948aacb675a1da88c3cb0b4f5269fb8cfdd61a04",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.c",
+      "category": "title-host-source-reference",
+      "size": 2898,
+      "git_blob_sha1": "1b004262376dd9908d77a3e020cbea9a251d3a28",
+      "upstream_git_blob_sha1": "1b004262376dd9908d77a3e020cbea9a251d3a28",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.h",
+      "category": "title-host-source-reference",
+      "size": 285,
+      "git_blob_sha1": "157676da91a9d2fc8e1c76b3af505b9ee045cfa5",
+      "upstream_git_blob_sha1": "157676da91a9d2fc8e1c76b3af505b9ee045cfa5",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen_stubs.c",
+      "category": "title-host-source-reference",
+      "size": 2567,
+      "git_blob_sha1": "e2c971498711919b9165f371356a30e78a74882c",
+      "upstream_git_blob_sha1": "e2c971498711919b9165f371356a30e78a74882c",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json",
+      "category": "title-host-source-reference",
+      "size": 58597,
+      "git_blob_sha1": "666b3bdf5a9b3c5b7b124ae7d439a5ec8c7324f4",
+      "upstream_git_blob_sha1": "666b3bdf5a9b3c5b7b124ae7d439a5ec8c7324f4",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/README.md",
+      "category": "title-host-source-reference",
+      "size": 2693,
+      "git_blob_sha1": "a9735f81f57882a79fd8116b351021c2d88c61d5",
+      "upstream_git_blob_sha1": "a9735f81f57882a79fd8116b351021c2d88c61d5",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/host_contract.c",
+      "category": "title-host-source-reference",
+      "size": 1166,
+      "git_blob_sha1": "fa82ca50d92152026032b19af46c9a5dec2bcdd0",
+      "upstream_git_blob_sha1": "fa82ca50d92152026032b19af46c9a5dec2bcdd0",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/main.c",
+      "category": "title-host-source-reference",
+      "size": 3161,
+      "git_blob_sha1": "7bd9c7306b9680824734464b45627a103137bc7a",
+      "upstream_git_blob_sha1": "7bd9c7306b9680824734464b45627a103137bc7a",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/variables.h",
+      "category": "title-host-source-reference",
+      "size": 406,
+      "git_blob_sha1": "29f1dc39cfa7f8da97315c0b7b3089d339271e26",
+      "upstream_git_blob_sha1": "29f1dc39cfa7f8da97315c0b7b3089d339271e26",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/web_debug.c",
+      "category": "browser-client-reference",
+      "size": 841,
+      "git_blob_sha1": "58966211bfcecc4579ec09017f88b7321895612b",
+      "upstream_git_blob_sha1": "58966211bfcecc4579ec09017f88b7321895612b",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/web_netplay.c",
+      "category": "browser-client-reference",
+      "size": 2727,
+      "git_blob_sha1": "80c5b296b9035337006c545b75b64635e458cbaf",
+      "upstream_git_blob_sha1": "80c5b296b9035337006c545b75b64635e458cbaf",
       "review_status": "unverified-leads"
     },
     {
@@ -530,11 +730,139 @@
       "review_status": "unverified-leads"
     },
     {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/aarch64-linux.cmake",
+      "category": "cross-platform-build-reference",
+      "size": 1581,
+      "git_blob_sha1": "660577a95e552359d23b889f9cfa6c8a7fb88ee9",
+      "upstream_git_blob_sha1": "660577a95e552359d23b889f9cfa6c8a7fb88ee9",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/run-arm64.sh",
+      "category": "cross-platform-build-reference",
+      "size": 166,
+      "git_blob_sha1": "4ded50566e4623af162234578569880ffc797c12",
+      "upstream_git_blob_sha1": "4ded50566e4623af162234578569880ffc797c12",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/zig-ar",
+      "category": "cross-platform-build-reference",
+      "size": 74,
+      "git_blob_sha1": "36ffc095da3477ed564547e6706ee1ca741ec8a3",
+      "upstream_git_blob_sha1": "36ffc095da3477ed564547e6706ee1ca741ec8a3",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/zig-c++",
+      "category": "cross-platform-build-reference",
+      "size": 120,
+      "git_blob_sha1": "3d08cc6d567ba529aade591b975e60d4a7e4cd66",
+      "upstream_git_blob_sha1": "3d08cc6d567ba529aade591b975e60d4a7e4cd66",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/zig-cc",
+      "category": "cross-platform-build-reference",
+      "size": 118,
+      "git_blob_sha1": "72612a63bbbd4f9a583ae1c788e6d2dbdf0303fa",
+      "upstream_git_blob_sha1": "72612a63bbbd4f9a583ae1c788e6d2dbdf0303fa",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/cross/zig-ranlib",
+      "category": "cross-platform-build-reference",
+      "size": 82,
+      "git_blob_sha1": "1be57ea0f746cb71d7581b986342b25a631e04b7",
+      "upstream_git_blob_sha1": "1be57ea0f746cb71d7581b986342b25a631e04b7",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/annotate_gen.py",
+      "category": "decomp-tool-reference",
+      "size": 3034,
+      "git_blob_sha1": "54e729f99dc910c38fea1092b75c3999672e2f27",
+      "upstream_git_blob_sha1": "54e729f99dc910c38fea1092b75c3999672e2f27",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/apply_names.py",
+      "category": "decomp-tool-reference",
+      "size": 3587,
+      "git_blob_sha1": "59db91b3a0df8e94800240c65900f6e19fd3fbf0",
+      "upstream_git_blob_sha1": "59db91b3a0df8e94800240c65900f6e19fd3fbf0",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/build.sh",
+      "category": "decomp-tool-reference",
+      "size": 994,
+      "git_blob_sha1": "97e89ced0cd057145a6e822bf10a3e7b0d65465f",
+      "upstream_git_blob_sha1": "97e89ced0cd057145a6e822bf10a3e7b0d65465f",
+      "review_status": "unverified-leads"
+    },
+    {
       "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/code_hints.txt",
       "category": "rom-archaeology-reference",
       "size": 469,
       "git_blob_sha1": "8937e1355452dc61473af74a7d30e8336f7360b2",
       "upstream_git_blob_sha1": "8937e1355452dc61473af74a7d30e8336f7360b2",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/decode_dump.py",
+      "category": "decomp-tool-reference",
+      "size": 24111,
+      "git_blob_sha1": "fdb4067d4b8cc18c589461141903aa95dac87331",
+      "upstream_git_blob_sha1": "fdb4067d4b8cc18c589461141903aa95dac87331",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/export_names.py",
+      "category": "decomp-tool-reference",
+      "size": 3965,
+      "git_blob_sha1": "735cdedc0b006d4e92192af52b3e9b6a1722377d",
+      "upstream_git_blob_sha1": "735cdedc0b006d4e92192af52b3e9b6a1722377d",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/gen_disasm.py",
+      "category": "decomp-tool-reference",
+      "size": 14314,
+      "git_blob_sha1": "40c064a67cc497d98ec66828f6b97e14d8c0e300",
+      "upstream_git_blob_sha1": "40c064a67cc497d98ec66828f6b97e14d8c0e300",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/ownership.py",
+      "category": "decomp-tool-reference",
+      "size": 3550,
+      "git_blob_sha1": "48bbd2452339b8b5601f6c5c990b0e9d5078bfee",
+      "upstream_git_blob_sha1": "48bbd2452339b8b5601f6c5c990b0e9d5078bfee",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/progress.py",
+      "category": "decomp-tool-reference",
+      "size": 2318,
+      "git_blob_sha1": "1ab7e961b4525671d3bb8596d2f837d0dd6063e1",
+      "upstream_git_blob_sha1": "1ab7e961b4525671d3bb8596d2f837d0dd6063e1",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/decomp/test_decomp.py",
+      "category": "decomp-tool-reference",
+      "size": 1431,
+      "git_blob_sha1": "b16e8952783e49c458121d9f83ae59116d836c70",
+      "upstream_git_blob_sha1": "b16e8952783e49c458121d9f83ae59116d836c70",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/dis65816.py",
+      "category": "upstream-build-metadata",
+      "size": 5872,
+      "git_blob_sha1": "931da02157298a89ebe48d8404ff3d7adf82381e",
+      "upstream_git_blob_sha1": "931da02157298a89ebe48d8404ff3d7adf82381e",
       "review_status": "unverified-leads"
     },
     {
@@ -559,6 +887,14 @@
       "size": 4532,
       "git_blob_sha1": "1bc1aff6966c85fcb192d31aee91b191b3357275",
       "upstream_git_blob_sha1": "1bc1aff6966c85fcb192d31aee91b191b3357275",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/routes.sh",
+      "category": "upstream-build-metadata",
+      "size": 1385,
+      "git_blob_sha1": "1778dff6fbd19eb58f474307f17e9b463074ff5b",
+      "upstream_git_blob_sha1": "1778dff6fbd19eb58f474307f17e9b463074ff5b",
       "review_status": "unverified-leads"
     },
     {
@@ -591,6 +927,78 @@
       "size": 3656,
       "git_blob_sha1": "27347b04c3c3e699ba1b7e04190bca976de0ee92",
       "upstream_git_blob_sha1": "27347b04c3c3e699ba1b7e04190bca976de0ee92",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/test_firstdiff.py",
+      "category": "external-test-reference",
+      "size": 1435,
+      "git_blob_sha1": "b3d5a766e0cbefbd5ebcfd4b2b134a2ff9013ea0",
+      "upstream_git_blob_sha1": "b3d5a766e0cbefbd5ebcfd4b2b134a2ff9013ea0",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/test_promote_roots.py",
+      "category": "external-test-reference",
+      "size": 1911,
+      "git_blob_sha1": "61d1e6ed22b3479c53af45919cb345e0c1dcec56",
+      "upstream_git_blob_sha1": "61d1e6ed22b3479c53af45919cb345e0c1dcec56",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/test_statetrace.py",
+      "category": "external-test-reference",
+      "size": 1631,
+      "git_blob_sha1": "ae1c56c3b0630887e422eb4da55df3ac319ef610",
+      "upstream_git_blob_sha1": "ae1c56c3b0630887e422eb4da55df3ac319ef610",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/web/build.sh",
+      "category": "browser-build-test-reference",
+      "size": 804,
+      "git_blob_sha1": "136bdb6073d0ef9bd0cd2e7df301dd1a92b97feb",
+      "upstream_git_blob_sha1": "136bdb6073d0ef9bd0cd2e7df301dd1a92b97feb",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/tools/web/test_settings.js",
+      "category": "browser-build-test-reference",
+      "size": 1766,
+      "git_blob_sha1": "802216bf255c333e57462e312c6aa5d689e80fe1",
+      "upstream_git_blob_sha1": "802216bf255c333e57462e312c6aa5d689e80fe1",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/VERSION",
+      "category": "upstream-release-metadata",
+      "size": 6,
+      "git_blob_sha1": "6e8bf73aa550d4c57f6f35830f1bcdc7a4a62f38",
+      "upstream_git_blob_sha1": "6e8bf73aa550d4c57f6f35830f1bcdc7a4a62f38",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/web/index.html",
+      "category": "browser-client-reference",
+      "size": 21911,
+      "git_blob_sha1": "c7b1a764242e3daa2bf160cf3450ac8879c10ac0",
+      "upstream_git_blob_sha1": "c7b1a764242e3daa2bf160cf3450ac8879c10ac0",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/web/netplay.js",
+      "category": "browser-client-reference",
+      "size": 4359,
+      "git_blob_sha1": "516b7605b07357313a3b1715443b2a6554f0d512",
+      "upstream_git_blob_sha1": "516b7605b07357313a3b1715443b2a6554f0d512",
+      "review_status": "unverified-leads"
+    },
+    {
+      "path": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/web/settings.js",
+      "category": "browser-client-reference",
+      "size": 16935,
+      "git_blob_sha1": "65b510078e8b478c95f350b9e50419bcb017b2a6",
+      "upstream_git_blob_sha1": "65b510078e8b478c95f350b9e50419bcb017b2a6",
       "review_status": "unverified-leads"
     },
     {

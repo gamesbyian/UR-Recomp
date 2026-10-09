@@ -1,0 +1,1876 @@
+{
+  "schema_version": 1,
+  "source": "baldosa/uniracers-recomp",
+  "pinned_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "acquired": "2026-10-09",
+  "source_tree_entries": 210,
+  "explanation": "Every Git tree entry, including directories, gitlinked submodules and unimported generated/cached artifacts. Exact upstream Git tree SHA and byte counts permit retrieval from the user's existing full fork. All hand-maintained nonempty sources are imported byte-identically into reference/imported; generated guest code is deliberately not duplicated.",
+  "entries": [
+    {
+      "path": ".github",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "21e2ce1412b811c82d7ec2f53e1f630ffbe0fb24",
+      "role": "GitHub Actions workflow directory",
+      "disposition": "directory"
+    },
+    {
+      "path": ".github/workflows",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "da9f591c1ed936b2505777a1070502f721d558d2",
+      "role": "Native full-AOT, web Pages, and alternative setup-host packaging pipelines",
+      "disposition": "directory"
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6b476394b49086c73cfb6f4511a983ee90cc5a3d",
+      "size": 4527,
+      "role": "Build/publish full native recompiled Windows x64 and Linux x64/ARM64 players",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": ".github/workflows/pages.yml",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "2bd22cf2585a769b09a5e3f18f2323bc0eb26414",
+      "size": 1164,
+      "role": "Build and deploy Emscripten browser player to Pages",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": ".github/workflows/release.yml",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "9efb11743e67ed4024cd153c8829c64f90857282",
+      "size": 14680,
+      "role": "Human-triggered alternative setup-host release, currently incompatible with checked-in generated C",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": ".gitignore",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cac0712d8e5ad2e4b8acb3e9b3efa942640ff670",
+      "size": 715,
+      "role": "Exclude local builds, ROM input, captures and temporary outputs",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": ".gitmodules",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "1cf90664748684d957eaf73887293b2a9064a915",
+      "size": 230,
+      "role": "Declare snesrecomp and recomp-ui submodule origins",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "CMakeLists.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "f58a5cb9cd03e877335e0467a745e5f4b5141a74",
+      "size": 6954,
+      "role": "Build graph, ROM identity, generated-code mode, desktop host, mods, web addon and launcher",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "LICENSE",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6804d6f5cf1a102d5f8ed6dd6fe4df621ecf41f1",
+      "size": 3791,
+      "role": "Noncommercial license text and upstream attribution",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "README.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e3de1939494fd7e8ca6daa2ad5a58fb80478ce3c",
+      "size": 9379,
+      "role": "Project identity, coverage claims, building, play, decomp and cross-platform documentation",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "VERSION",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6e8bf73aa550d4c57f6f35830f1bcdc7a4a62f38",
+      "size": 6,
+      "role": "Version string read by release packaging",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "decomp",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "3a456b56e87906b4d346c24b81585a1d6c6533a1",
+      "role": "Human-maintained exact-USA disassembly symbols, RAM map, hardware defines, and subsystem partitions",
+      "disposition": "directory"
+    },
+    {
+      "path": "decomp/hw.asm",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3df6c975afbc96bb191474355ffd5426b035fc6c",
+      "size": 3002,
+      "role": "Asar I/O register symbol definitions",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "decomp/ram.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6a39be138ed55e4cb0470fdb38f03925e47a236a",
+      "size": 52902,
+      "role": "Named SRAM and WRAM region database",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "decomp/subsystems.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3963ce6f0695362ff75625e4a6b7ad68ebac6a4e",
+      "size": 1739,
+      "role": "20 ordered subsystem boundary declarations",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "decomp/symbols.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "54360f38f9d0dd701d4c7231e6be151e1c02cdf8",
+      "size": 70209,
+      "role": "Named and commented 65816 function database",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "docs",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "78bc9c20e84c5eae4b86bcca835a143a24cc65eb",
+      "role": "Upstream research specifications and agent development records",
+      "disposition": "directory"
+    },
+    {
+      "path": "docs/superpowers",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "07b149ae8c7c15fe3beb5559e3f200383f4242f2",
+      "role": "Research planning and architectural specifications",
+      "disposition": "directory"
+    },
+    {
+      "path": "docs/superpowers/plans",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "8648fecb73727f55b70da547d464a100ba556b68",
+      "role": "October 6 implementation plan with checked and outstanding steps",
+      "disposition": "directory"
+    },
+    {
+      "path": "docs/superpowers/plans/2026-10-06-uniracers-recomp.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "17da454d70d8db1c3986db00e62d24060ce5a7bd",
+      "size": 6456,
+      "role": "Detailed execution plan and early AOT bottleneck chronology",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "docs/superpowers/specs",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "3922c57ce40d809e9dab44219459022257539c98",
+      "role": "Initial native-AOT and matching disassembly architecture decisions",
+      "disposition": "directory"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-06-uniracers-recomp-design.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3acdbfbea54cee341e8cc7bf36962a22e66d1de6",
+      "size": 3637,
+      "role": "Original AOT determinism, interpreter parity and emulator oracle design",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "docs/superpowers/specs/2026-10-07-uniracers-decomp-design.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c11db2281b2446d5471b41128f437384d6d487ce",
+      "size": 3489,
+      "role": "Exact-byte Asar assembly reconstruction and symbol ownership design",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "framework_pins.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "fba2e09df2eb6821bf01159146fc967047c61c4f",
+      "size": 162,
+      "role": "Scaffold-era framework and networking pin record, distinct from current gitlinks",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "mods",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "267f418d855ae9959c500dc9c66a058c013efec4",
+      "role": "Player-defined mod package area",
+      "disposition": "directory"
+    },
+    {
+      "path": "mods/preloaded",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "71a2973e4a688adb082eef15c19fd5eab3f87c22",
+      "role": "Checked-in default-disabled mod catalog contract",
+      "disposition": "directory"
+    },
+    {
+      "path": "mods/preloaded/README.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cc61de62a17da19ff5fb9343aaec163ae090d0c1",
+      "size": 911,
+      "role": "How to stage/install reviewed default-disabled game mod packages",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "mods/preloaded/packages",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "d564d0bc3dd917926892c55e3706cc116d5b165e",
+      "role": "Empty placeholder for reviewed .snesmod packages",
+      "disposition": "directory"
+    },
+    {
+      "path": "mods/preloaded/packages/.gitkeep",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "role": "Empty placeholder file to retain an otherwise empty directory",
+      "disposition": "metadata-only-empty-placeholder"
+    },
+    {
+      "path": "recomp-ui",
+      "type": "commit",
+      "mode": "160000",
+      "sha": "7e884a227accea91ddb378671bd49aaeeea13371",
+      "role": "Submodule pin for framework's desktop launcher UI",
+      "disposition": "pinned-submodule"
+    },
+    {
+      "path": "recomp",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "9581a6803a0619a2a0700dad84457c7888465c66",
+      "role": "Bank-specific 65816 analysis directives, function variants, names, and generated prototypes",
+      "disposition": "directory"
+    },
+    {
+      "path": "recomp/README.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ca70f0316a7ffaabf3056c46f9e567ef0b8eb0e1",
+      "size": 1740,
+      "role": "Analyzer and function naming/configuration overview",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank00.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4492bc4c02c699207320c8c2356f9f41fb867373",
+      "size": 28179,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 00",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank01.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e0e3653f1d76d874d414a0ca736849411f154160",
+      "size": 7418,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 01",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank02.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "9293b70a6e65816dd3897f63635f4c1b73375c42",
+      "size": 7170,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 02",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank03.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "97015261e796cc00f699e3a4b434a303c50f24aa",
+      "size": 5402,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 03",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank80.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b1e84ed090e0a3255dcafce7c331a476e75e5989",
+      "size": 14242,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 80",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank81.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "057a45712b0fa9f84cadad92852533efc5ec476e",
+      "size": 3249,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 81",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank82.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "2335e818ff992d6134079392c4f82ed8867bbc7e",
+      "size": 3777,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 82",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/bank83.cfg",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ae3d10022515cf60f844becd7d645b198e101246",
+      "size": 6095,
+      "role": "Analyzer directives and root/dispatch variants for mirrored 65816 ROM bank 83",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "recomp/funcs.h",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e793fd7fde2f8253be1df55321db379152c1b9b2",
+      "size": 232852,
+      "role": "Generated ahead-of-time function declarations for native bridge dispatch",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "recomp/symbols.toml",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "231e6ffef8f74473ec6af84c51e218ba62ca8f30",
+      "size": 103475,
+      "role": "Authoritative cfg variants, names, bounds and generated root definitions",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "rom_identity.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "dd472941301a18aacdca4eabd8e46a6a93e59d97",
+      "size": 1230,
+      "role": "Authoritative USA-ROM hashes and build identity",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "scripts",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "758e220f05eb72292d9aa4a4485fa789a19b93cf",
+      "role": "Setup-host ZIP packaging and release scripts",
+      "disposition": "directory"
+    },
+    {
+      "path": "scripts/package_release.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "948aacb675a1da88c3cb0b4f5269fb8cfdd61a04",
+      "size": 2915,
+      "role": "Standalone first-run setup ZIP staging front end",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "snesrecomp",
+      "type": "commit",
+      "mode": "160000",
+      "sha": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+      "role": "Submodule pin for Ema's SNESRecomp fork, native handoff, paced bus and PPU modifications",
+      "disposition": "pinned-submodule"
+    },
+    {
+      "path": "src",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "d0b0fae20cc3b9dd725c308ac9fbd1fb47835c19",
+      "role": "Game-specific host initialization, frame driver, HLE trampoline, web hooks, and generated guest code",
+      "disposition": "directory"
+    },
+    {
+      "path": "src/game_rtl.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "1b004262376dd9908d77a3e020cbea9a251d3a28",
+      "size": 2898,
+      "role": "Title beam-aligned frame, PPU draw, reset and native handoff hooks",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/game_rtl.h",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "157676da91a9d2fc8e1c76b3af505b9ee045cfa5",
+      "size": 285,
+      "role": "Game runtime interface declarations",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/gen",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "47b13aa1be7140786161095b824f5df9624f2e10",
+      "role": "Machine-generated AOT 65816 C translation, dispatch tables, program manifest and cache",
+      "disposition": "directory"
+    },
+    {
+      "path": "src/gen/.gitkeep",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+      "size": 0,
+      "role": "Empty placeholder file to retain an otherwise empty directory",
+      "disposition": "metadata-only-empty-placeholder"
+    },
+    {
+      "path": "src/gen/.snesrecomp-cache.json",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "666b3bdf5a9b3c5b7b124ae7d439a5ec8c7324f4",
+      "size": 58597,
+      "role": "AOT generator digests and per-bank output ledger with compiler statistics",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/gen/README.md",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a9735f81f57882a79fd8116b351021c2d88c61d5",
+      "size": 2693,
+      "role": "Generated code provenance, modes, names and regeneration contract",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/gen/bank00_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "841ee7a3df3fdd5ade256bdcc8ef1cdfaa915796",
+      "size": 129722,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cc9ef833a5c7c0809aaab53ea00c182158241b83",
+      "size": 851971,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "11413c726e2ace1698158000ae89aabf2e154139",
+      "size": 1402154,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "9e430a7bacd060e3dbe9c1c8ced54fd6bd4360ce",
+      "size": 2143370,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e26bf10f377e45df1f516daf50cfb4619e7d2dae",
+      "size": 1041378,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "144d48c52420cbab45fb7d2603f39467759c3317",
+      "size": 909750,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4ae29c2f5ba2a6771fe6a1ad3c303588fd315613",
+      "size": 1435052,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part07_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a5860b4a6b07f26d455161ecfd8dc3e1e6f513cd",
+      "size": 5614081,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part08_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "482edcf026683691d0603e05ba209207cfa0ef5f",
+      "size": 1538423,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "0a74160ca0cbf26145bfb5c6662daa7d17cb3f6b",
+      "size": 1620237,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ba0e415c0bb0045a3b9ab932f2e6629622bbd398",
+      "size": 1271888,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0b_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "406334a831ad6a5976c89e0791a0cfecdb7b7c22",
+      "size": 227216,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0c_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "77e2893f77bed4ce6801bda74d8d3c0e77a33b0d",
+      "size": 1057619,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "bf67ce24c2b918505648470fadc4c9c32f057057",
+      "size": 2430834,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0e_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "188fe98d6338f8ed795f37e563352c9cf157e67b",
+      "size": 585631,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank00_part0f_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cccd74290405558efb757854225f2728b4aa69ae",
+      "size": 280177,
+      "role": "AOT C translation of source-ROM instructions for bank 00, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "560a5da909727a405fdd8c448f0815babbc28d69",
+      "size": 4620501,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8f0239c46f42a93eb844f7c254f8d35ed3b362dd",
+      "size": 58832,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8cafa388084978a6ac5a126effb6463eb5107895",
+      "size": 89422,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part07_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a145566cbad27063f67fa6ec5008c497c0f4a97e",
+      "size": 1302218,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part08_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cea4d00361b152e51b294bcca512d3744e2d79e7",
+      "size": 15213,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4392a342316c66616b2ea2e86d49ff683458ec5d",
+      "size": 689565,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "f5a1738aee0697deb78554e92c5c4315382e760b",
+      "size": 10688,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part0b_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "eb21d98771c024472c441da6f7694bf89c2e7272",
+      "size": 6884,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank01_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3834c92fbf3ba3a8cac3c88f094165631c1b5377",
+      "size": 276878,
+      "role": "AOT C translation of source-ROM instructions for bank 01, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "15a22e70694acd206443fc7f22b25f0f2e9645db",
+      "size": 2844162,
+      "role": "AOT C translation of source-ROM instructions for bank 02, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "aa0e001291b3ba610dffdd6d39f38d6093b4785d",
+      "size": 285103,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6a9199e3518539de5e349fec868c64036e34f426",
+      "size": 369728,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "0c6f0eb840dca21a72da8c0a3a759fcc345f5ee2",
+      "size": 492654,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4e9693794a3416b9a9216060694579c657471f43",
+      "size": 177641,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "79281cf288c405d4ed8882cf831f4b6cf5bbd505",
+      "size": 27336,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "51499fc78b3dffa4502716ca693cb67af76ce6f7",
+      "size": 3823355,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "2413d30d5bb0f0a251c9aec2ea2c49410fef4d3e",
+      "size": 661513,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part0c_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c57cddbd3edcfdc297c006c54002650c02996080",
+      "size": 691631,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8894ce2254de367e381eb00fc3087ef1c6bdea12",
+      "size": 52843,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part0e_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ae175f600e46df317af2de2dbab9c1a04b27b140",
+      "size": 392842,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank03_part0f_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "37e2f1461677b7e0a91eff074dbd6db4ab23fb4f",
+      "size": 59598,
+      "role": "AOT C translation of source-ROM instructions for bank 03, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "177ed21996cfa10ed0984e7a1b6866a6e2822e9d",
+      "size": 98303,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "445246b9337dc32e2264c6e6f61684c5f37330d1",
+      "size": 426116,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "646a6ddf8a7d05dee892044c993bfd67b4db1ee4",
+      "size": 356896,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "08e6af47edc706a8f7be23902dc84fb9ed5d7d5c",
+      "size": 595771,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "67f770957854535109ed5f2dd2df4f19ad378a3d",
+      "size": 409026,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ab62b70e9f712eab7748f74501ae12e41aa9a4bb",
+      "size": 563198,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c14cce28d50aeb4fee83028fce172f8981b994d6",
+      "size": 327620,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part07_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8ee0cb3235031328aa159106a6b1668023ade374",
+      "size": 852665,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part08_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "0f28fe56e5f8ab915a0634cbf28caac15b199fa9",
+      "size": 683496,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7e61e143f4c13aef787d90d542a7ada8fd4df75f",
+      "size": 717877,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7cfc6574e6e3f979521d819930c1b07ce4ccddd0",
+      "size": 514426,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0b_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "f822302838ea912bc4b0481fa98064e1648bf417",
+      "size": 228196,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0c_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e1182ca1833579edfd46beef1d8d77fe7547bb0a",
+      "size": 397516,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "998b87f713953f07c7712dfec04b3e70311cc2f7",
+      "size": 482215,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0e_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "314811d48d664a1326d53427d275a1bf860618ee",
+      "size": 427780,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank80_part0f_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "70e1527fef0e3f11eb735136753bf01e41f6a8de",
+      "size": 277755,
+      "role": "AOT C translation of source-ROM instructions for bank 80, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "5ff8bc627fdd14aa88ed63cdc165fe250c575000",
+      "size": 474975,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e30d6f63b62abcb268b3757f2aae5c1b0d158505",
+      "size": 737682,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "6b7bdf9fd3eaf589e6d82389b9651aec31f21664",
+      "size": 563946,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a14266c7cce70526af37b7c3a45a3f31bc20fa81",
+      "size": 217168,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c64ddab431b4d5f273366bdb24b4a587554e6514",
+      "size": 321159,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "be535e0fc88ecf36a3b832636f4a8ae7d9d59ebd",
+      "size": 186955,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part07_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "40956ef7f899c4b1472e072463733885329bc58e",
+      "size": 525879,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part08_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a1ecce78f660b62bae101b90ed57053f273a9bfe",
+      "size": 377792,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3df6353e3d99157257df80f6229935cdee334897",
+      "size": 442382,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part0b_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7b51ce40269f3cd89ce7cad94b2b0a3445610c53",
+      "size": 442375,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank81_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b0395d1c5dcd20518d835097af203689c4f4bfaa",
+      "size": 277036,
+      "role": "AOT C translation of source-ROM instructions for bank 81, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e70382e7f3e33234b25e7dab65039d00e8bf33ec",
+      "size": 509969,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "1c588a059b2498fa3962d5dae9cbb61f0ff4553e",
+      "size": 313210,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a5cdf3f715730e9e32f1f3765cdebbb6ca59a847",
+      "size": 245990,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "32b807510650b8fa41b08a1043d0b2da8eb8742b",
+      "size": 484536,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "adcd5aa398efda6bd779797c68e1a2b3ad0cc330",
+      "size": 497647,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4f7704d5cf9dd37e2460bfa56be837bc7a2089f1",
+      "size": 554998,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "15399bb38d9f8e4088630309a8030c7a8f9a6038",
+      "size": 171573,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part07_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "21d901ca949787c9311b5694bb7691815253c98e",
+      "size": 872218,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "24aec20338cc6aa5f149711da71e5bb3b00c2a7a",
+      "size": 352454,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part0b_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "dfd511b5ff5121876926f0bf74e27fc35d003d5e",
+      "size": 385090,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank82_part0c_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "aa647fb95de935c706d31d9465a632c2992ea43e",
+      "size": 209657,
+      "role": "AOT C translation of source-ROM instructions for bank 82, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part00_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "497dc308cdee0ce3495e982a071fa638083f5d6c",
+      "size": 169344,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part01_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "4b699ab3b7b4ffaf6c68597febb5bf012b484fbb",
+      "size": 524545,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part02_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "024862d1bc92c4231ee348b33eac6df6a98fa4af",
+      "size": 796777,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part03_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "da29bb06ac66cb6222b207c6662a81a13d7ade16",
+      "size": 542896,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part04_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "24545c6ed6851ef77543773522e97271944e4db6",
+      "size": 275637,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part05_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "728de7c45fb126c2b227b24621591cd94cc53efa",
+      "size": 147779,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part06_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "090136e8e858b740249d2d02853f362e39b55b57",
+      "size": 20912,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part08_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "0aaa24838a19a480afbb32dbbed5ec4c622ae1a1",
+      "size": 107176,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part09_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "5ff1b58b37729627972c7b577dce7f4169e8d21e",
+      "size": 1714372,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part0a_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c3a74132c4f6d0a5dd1cf81858e6f12ee96bd2d2",
+      "size": 663473,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part0c_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "9e5daf3f90ab6370f6be3c296641ee4b22c7ebe7",
+      "size": 692560,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part0d_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "df383b9abb79ea02924113d781b49eefa430d39d",
+      "size": 441380,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part0e_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8eb1bb7ef979f5b4f6e9aabe6b169cfceae84a35",
+      "size": 400389,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/bank83_part0f_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "27c4807625b438387de44aa5155bba7cb2a26e7e",
+      "size": 31902,
+      "role": "AOT C translation of source-ROM instructions for bank 83, split for native compilation",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/dispatch_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "5a938e6a826ea00cf484316d0aee368b4647a656",
+      "size": 241638,
+      "role": "Generated native dispatch and interprocedural call routing table",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/module_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8e03b5c7dd5071cc271cf63a07d8df4d453fc154",
+      "size": 1560,
+      "role": "Generated compiled module registration source",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/program_manifest.json",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "249450d3e5087b6c0ff31ddc7abbb3301a95b113",
+      "size": 3910153,
+      "role": "Machine-generated compiled-function, variant and dispatch provenance manifest",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen/unresolved_stubs_v2.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7850fd2574819776ab502f0797d6d0247e8f787c",
+      "size": 68,
+      "role": "Generated unresolved dispatch placeholder source",
+      "disposition": "metadata-only-generated"
+    },
+    {
+      "path": "src/gen_stubs.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e2c971498711919b9165f371356a30e78a74882c",
+      "size": 2567,
+      "role": "Game-specific true HLE MVN trampoline emulation with cycle accounting",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/host_contract.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "fa82ca50d92152026032b19af46c9a5dec2bcdd0",
+      "size": 1166,
+      "role": "Framework trace hooks for non-trace production builds",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/main.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7bd9c7306b9680824734464b45627a103137bc7a",
+      "size": 3161,
+      "role": "SDL desktop host metadata, ROM matching, two-pad mode and OAM pin enable",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/variables.h",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "29f1dc39cfa7f8da97315c0b7b3089d339271e26",
+      "size": 406,
+      "role": "Title-specific RAM variable-header placeholder",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/web_debug.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "58966211bfcecc4579ec09017f88b7321895612b",
+      "size": 841,
+      "role": "Browser export of audio underrun/queue production and consumption counters",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "src/web_netplay.c",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "80c5b296b9035337006c545b75b64635e458cbaf",
+      "size": 2727,
+      "role": "Deterministic web two-player frame-input filter, 3-frame delay, WRAM CRC exchange",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "a13f24e09e700892dddb01af791feb28885a87f6",
+      "role": "Deterministic gameplay input and UI oracle routes",
+      "disposition": "directory"
+    },
+    {
+      "path": "tests/routes",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "b756052a8f94647d3caec41325b8424ada8c1a9d",
+      "role": "Nine input scripts for gameplay, multiplayer, menu and SRAM scenarios",
+      "disposition": "directory"
+    },
+    {
+      "path": "tests/routes/attract.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "e779bde630faed51e342c3c84683aeb275932986",
+      "size": 158,
+      "role": "Original route input fixture: attract",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/league.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "cdb1d6857f61d769fd196de4a996026bf9a72849",
+      "size": 1130,
+      "role": "Original route input fixture: league",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/options_define.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ca5fd1612cf3a828a125fb26fdc3cdc93cad5f53",
+      "size": 495,
+      "role": "Original route input fixture: options define",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/options_records.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b998020cedda2d18619e1e75d86b0acee40d8f73",
+      "size": 582,
+      "role": "Original route input fixture: options records",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/race_1p.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "771d1dc62ddd14a268899808e83fcb1abbe96507",
+      "size": 533,
+      "role": "Original route input fixture: race 1p",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/race_2p.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8f6df56ed92fa94f19872fbf0d0f72260a36b200",
+      "size": 585,
+      "role": "Original route input fixture: race 2p",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/race_2p_split.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "3e2fcd991aa47e3003cfc962a7e1fb4692033299",
+      "size": 637,
+      "role": "Original route input fixture: race 2p split",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/vs.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "a9c49ec2d88769d7b5383c1ac09e3cbcb9f3c6ff",
+      "size": 541,
+      "role": "Original route input fixture: vs",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tests/routes/zoomzoo_1p.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "46b3d37af2a43ac8aa31a4d86a6afff9b4897396",
+      "size": 584,
+      "role": "Original route input fixture: zoomzoo 1p",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "8264c1d5ea2a0b50637588edf5348b2c62ad689f",
+      "role": "Native analysis, decompilation, state-diff, routes and build utilities",
+      "disposition": "directory"
+    },
+    {
+      "path": "tools/__pycache__",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "6922bda67ab13d8cbbc10da2e8f85b6a40739e12",
+      "role": "Accidentally tracked CPython 3.13 bytecode caches; not source",
+      "disposition": "directory"
+    },
+    {
+      "path": "tools/__pycache__/compare_dumps.cpython-313.pyc",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "1ff31b1d9f72fbec15edb5acaea86efa076b5440",
+      "size": 4710,
+      "role": "CPython 3.13 generated cache for compare_dumps.cpython-313.pyc, never a source of truth",
+      "disposition": "metadata-only-pycache"
+    },
+    {
+      "path": "tools/__pycache__/dis65816.cpython-313.pyc",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "92d7bad617e697ce072917e96750546549815edd",
+      "size": 7791,
+      "role": "CPython 3.13 generated cache for dis65816.cpython-313.pyc, never a source of truth",
+      "disposition": "metadata-only-pycache"
+    },
+    {
+      "path": "tools/__pycache__/firstdiff.cpython-313.pyc",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "9f6d4970f6f9c0b7fdc20cdc872e9123b1d693d7",
+      "size": 3689,
+      "role": "CPython 3.13 generated cache for firstdiff.cpython-313.pyc, never a source of truth",
+      "disposition": "metadata-only-pycache"
+    },
+    {
+      "path": "tools/__pycache__/promote_roots.cpython-313.pyc",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "d840f69112ecbb5d080a5d36013eac918bc66858",
+      "size": 6674,
+      "role": "CPython 3.13 generated cache for promote_roots.cpython-313.pyc, never a source of truth",
+      "disposition": "metadata-only-pycache"
+    },
+    {
+      "path": "tools/__pycache__/statetrace.cpython-313.pyc",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "84c372a47c7ec957c9233026d17380049e8e6fc1",
+      "size": 6830,
+      "role": "CPython 3.13 generated cache for statetrace.cpython-313.pyc, never a source of truth",
+      "disposition": "metadata-only-pycache"
+    },
+    {
+      "path": "tools/capture_coverage.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "1c0243f7eefcee497661dfa6beb537d30988c44a",
+      "size": 1402,
+      "role": "Capture interpreter/native route gap profiles",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/compare_dumps.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "11d78b1c89d439c39e5b70e499717301c01e6aab",
+      "size": 2613,
+      "role": "Compare masked checkpoint WRAM/SRAM and available OAM",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/coverage_iter.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "590916a79bf9fe14f7d36b8b52b8b9f6c977dca1",
+      "size": 753,
+      "role": "Iterate branch coverage captures and promote roots to AOT",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "b6820418b2ef2421ca7957058fcc4f185c810dba",
+      "role": "Zig/aarch64 build, archiver, linker and qemu runner wrappers",
+      "disposition": "directory"
+    },
+    {
+      "path": "tools/cross/aarch64-linux.cmake",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "660577a95e552359d23b889f9cfa6c8a7fb88ee9",
+      "size": 1581,
+      "role": "Zig-musl arm64 cross-toolchain and qemu configuration",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross/run-arm64.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "4ded50566e4623af162234578569880ffc797c12",
+      "size": 166,
+      "role": "qemu-aarch64 script runner",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross/zig-ar",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "36ffc095da3477ed564547e6706ee1ca741ec8a3",
+      "size": 74,
+      "role": "Zig-based archive wrapper",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross/zig-c++",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "3d08cc6d567ba529aade591b975e60d4a7e4cd66",
+      "size": 120,
+      "role": "Zig-based C++ compiler wrapper",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross/zig-cc",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "72612a63bbbd4f9a583ae1c788e6d2dbdf0303fa",
+      "size": 118,
+      "role": "Zig-based C compiler wrapper",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/cross/zig-ranlib",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "1be57ea0f746cb71d7581b986342b25a631e04b7",
+      "size": 82,
+      "role": "Zig-based ranlib wrapper",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "6686cdfbcbd34dab936ee34af5bc2b8b53285851",
+      "role": "Matching Asar generator, dead-code classifier, naming and independent tests",
+      "disposition": "directory"
+    },
+    {
+      "path": "tools/decomp/annotate_gen.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "54e729f99dc910c38fea1092b75c3999672e2f27",
+      "size": 3034,
+      "role": "Regenerate C function comments from maintained disassembly descriptions",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/apply_names.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "59db91b3a0df8e94800240c65900f6e19fd3fbf0",
+      "size": 3587,
+      "role": "Merge validated function/RAM naming edits into upstream authority",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/build.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "97e89ced0cd057145a6e822bf10a3e7b0d65465f",
+      "size": 994,
+      "role": "Generate and Asar-rebuild ROM, assert byte-for-byte identity",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/code_hints.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "8937e1355452dc61473af74a7d30e8336f7360b2",
+      "size": 469,
+      "role": "Manual hints to disambiguate instruction/data gaps",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/decode_dump.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "fdb4067d4b8cc18c589461141903aa95dac87331",
+      "size": 24111,
+      "role": "Wrap analyzer instruction decoder, recover static/dead code, resolve width conflicts",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/export_names.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "735cdedc0b006d4e92192af52b3e9b6a1722377d",
+      "size": 3965,
+      "role": "Export authoritative decomp names to recomp analyzer configuration",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/gen_disasm.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "40c064a67cc497d98ec66828f6b97e14d8c0e300",
+      "size": 14314,
+      "role": "Generate named per-subsystem Asar assembly from decoded ROM",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/ownership.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "48bbd2452339b8b5601f6c5c990b0e9d5078bfee",
+      "size": 3550,
+      "role": "Partition disassembly for naming ownership and RAM reference density",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/progress.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "1ab7e961b4525671d3bb8596d2f837d0dd6063e1",
+      "size": 2318,
+      "role": "Measure named/decoded disassembly progress",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/decomp/test_decomp.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b16e8952783e49c458121d9f83ae59116d836c70",
+      "size": 1431,
+      "role": "Assembler operand widths and disassembly filter self-tests",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/dis65816.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "931da02157298a89ebe48d8404ff3d7adf82381e",
+      "size": 5872,
+      "role": "Compact 65816 disassembler with M/X width tracking",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/firstdiff.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "7438f0124c6ddcddec931afdd4d520a3aea503c7",
+      "size": 1551,
+      "role": "Locate earliest byte-divergent WRAM frame across replay captures",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/promote_roots.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b9790b4bc910d18336fea53cf9de75ea9de6ae72",
+      "size": 3884,
+      "role": "Promote discovered interpreter fallbacks to candidate compiled variants",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/regen.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "1bc1aff6966c85fcb192d31aee91b191b3357275",
+      "size": 4532,
+      "role": "ROM verification and cfg-root/profile-driven C regeneration",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/routes.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "1778dff6fbd19eb58f474307f17e9b463074ff5b",
+      "size": 1385,
+      "role": "Batch nine deterministic gameplay scripts against emulator/native checkpoints",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/run_ref.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "1475e79a846fe06a72246508f25344f002d0d230",
+      "size": 846,
+      "role": "Run one route in pinned Snes9x oracle",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/run_route.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "9415f2b5f8d40a9d4f48842f437abf0d5fa48a1f",
+      "size": 1387,
+      "role": "Run one route in headless native host and save traces",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/state_mask.txt",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "84687dc3c711e09c53b65e49a716b4fd7d0ed702",
+      "size": 617,
+      "role": "Documented stack/timing-phase bytes masked only for external oracle comparisons",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/statetrace.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "27347b04c3c3e699ba1b7e04190bca976de0ee92",
+      "size": 3656,
+      "role": "Identify timing-offset-equivalent WRAM state transitions",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/test_firstdiff.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "b3d5a766e0cbefbd5ebcfd4b2b134a2ff9013ea0",
+      "size": 1435,
+      "role": "First-divergent-frame regression tests",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/test_promote_roots.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "61d1e6ed22b3479c53af45919cb345e0c1dcec56",
+      "size": 1911,
+      "role": "Native candidate root promotion tests",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/test_statetrace.py",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "ae1c56c3b0630887e422eb4da55df3ac319ef610",
+      "size": 1631,
+      "role": "Cross-tier timing phase state comparison tests",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/web",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "63103f20af5cec9c3a3cd7b0d4727d2c40a16607",
+      "role": "Emscripten website builder and settings INI parser tests",
+      "disposition": "directory"
+    },
+    {
+      "path": "tools/web/build.sh",
+      "type": "blob",
+      "mode": "100755",
+      "sha": "136bdb6073d0ef9bd0cd2e7df301dd1a92b97feb",
+      "size": 804,
+      "role": "Emscripten compile and static site assembly",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "tools/web/test_settings.js",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "802216bf255c333e57462e312c6aa5d689e80fe1",
+      "size": 1766,
+      "role": "Settings INI serialization and input-mapping tests",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "web",
+      "type": "tree",
+      "mode": "040000",
+      "sha": "2fe5b1a721ab57b8a50b044d030dc25d4c18f38e",
+      "role": "Browser HTML/JS launcher, persistent settings, WebRTC transport and debug UI",
+      "disposition": "directory"
+    },
+    {
+      "path": "web/index.html",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "c7b1a764242e3daa2bf160cf3450ac8879c10ac0",
+      "size": 21911,
+      "role": "Browser ROM picker, persistent IDBFS, in-game UI, diagnostics and multiplayer session flow",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "web/netplay.js",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "516b7605b07357313a3b1715443b2a6554f0d512",
+      "size": 4359,
+      "role": "PeerJS broker, WebRTC input/CRC exchange, session pairing and disconnects",
+      "disposition": "imported-byte-identical"
+    },
+    {
+      "path": "web/settings.js",
+      "type": "blob",
+      "mode": "100644",
+      "sha": "65b510078e8b478c95f350b9e50419bcb017b2a6",
+      "size": 16935,
+      "role": "Browser keyboard/gamepad remapping, graphics/audio and save import/export",
+      "disposition": "imported-byte-identical"
+    }
+  ]
+}

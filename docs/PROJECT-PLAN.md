@@ -1,3 +1,5 @@
+> **Baldosa complete-source census (2026-10-09):** `docs/BALDOSA-SOURCE-CENSUS-20261009.md` catalogs all 210 upstream tree entries and selectively preserves 85 exact-source files, including build/host/decomp/browser/tools. The urgent tests remain Zoom Zoo complete event, 2P OAM, and indexed SRAM slot consumers; cross-platform/web/netplay remain deferred. Existing Windows QA budget and lane ownership unchanged.
+
 > **External research acceleration (2026-10-09):** `docs/BALDOSA-RECOMP-CROSSPROJECT-INTEGRATION.md` pins the independently developed `baldosa/uniracers-recomp` disassembly, route scripts and comparison tools (all classified in `reference/imported/MANIFEST.json`), and orders bounded Zoom Zoo event-completion and split-screen OAM/HDMA validation ahead of any wholesale framework migration. No new release-quality gate is credited by this static intake.
 
 # Uniracers Modern Port Plan

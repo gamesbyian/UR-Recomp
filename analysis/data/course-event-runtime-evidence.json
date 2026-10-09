@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "observations": [
+    {
+      "rom": "usa-retail",
+      "course_id": "course:01",
+      "status": "partial",
+      "evidence_ref": "analysis/data/dragster-finish-contact-transition.json",
+      "coverage_note": "Native postframe P1/P2 contact and checkpoint/lap transition at 2903; no independent instruction-time 82:8C32/81:805D event capture, full end result, or course-wide launch witness."
+    },
+    {
+      "rom": "usa-retail",
+      "course_id": "course:20",
+      "status": "partial",
+      "evidence_ref": "analysis/generated/stunt-boundary-probe.json",
+      "coverage_note": "Six input-only, paired Snes9x/native landing stunt-maneuver thresholds on Jumpover CIRCUIT-B (not a timed stunt course); full circuit checkpoint/lap/finish/result and every 45-second stunt course remain unverified."
+    }
+  ]
+}

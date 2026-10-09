@@ -1,5 +1,8 @@
 # Player-journey and cross-feature adversarial acceptance matrix
 
+> **Bounded QA campaign (2026-10-08):** [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md) coordinates QA-01..12 through five shared evidence campaigns and an initial **300 productive agent-hour** checkpoint budget (reviews at 100/200/300). Reuse original/native, packaged and cross-feature witnesses rather than duplicating journeys or archaeology. This is an execution budget, **not** a waiver, passed gate or unconditional completion estimate. The release ledger and existing evidence requirements remain authoritative.
+
+
 Status: test specification, **not a claim these cases have passed**. Date 2026-10-08. Owner: cross-cutting QA. Priorities and release thresholds: ADVERSARIAL-QA-AND-RELEASE-READINESS.md. Gate states: RELEASE-QUALITY-LEDGER.json.
 
 ## Common protocol

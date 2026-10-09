@@ -8,6 +8,9 @@ on:
       - "native/product/modern_host_input_release_latch.hpp"
       - "tools/baldosa_native_product_execution.cpp"
       - "tools/baldosa_product_execution_spike.py"
+      - "tools/baldosa_product_pause_spike.py"
+      - "tools/baldosa_native_pause_lifecycle.cpp"
+      - "tests/unit/test_baldosa_product_pause_spike.py"
       - "tests/native/baldosa_execution_backend_test.cpp"
       - "tests/unit/test_baldosa_product_execution_spike.py"
       - ".github/workflows/baldosa-product-execution-seam.yml"
@@ -39,6 +42,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 tests/unit/test_baldosa_product_execution_spike.py
+          python3 tests/unit/test_baldosa_product_pause_spike.py
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product \
             -c tools/baldosa_native_product_execution.cpp \
@@ -146,3 +150,33 @@ jobs:
             "$RUNNER_TEMP/ur-baldosa-input/modern_seam/fd/crc.txt"
           echo "PASS: actual 2P native Baldosa execution with mapped human callback; CRC identical to pinned unchanged guest" >> "$GITHUB_STEP_SUMMARY"
           tail -n 12 "$RUNNER_TEMP/ur-baldosa-input/modern_seam/log.txt"
+      - name: Exercise real native host pause and resume with unchanged 2P guest frames
+        shell: bash
+        run: |
+          set -euo pipefail
+          # This is the same already-built pinned AOT game. Inject only one
+          # additive SDL pump / pause authority; no second native graph.
+          python3 tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
+            -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
+            -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export DISPLAY=:99
+          export BIN="$RUNNER_TEMP/ur-baldosa-x11"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export UR_BALDOSA_PAUSE_SMOKE=1
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/ur-baldosa-input/paused_resume"
+          log="$RUNNER_TEMP/ur-baldosa-input/paused_resume/log.txt"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE ARMED guest=' "$log"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE RELEASED guest=.* frozen_pumps=24' "$log"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE RESUMED .* frozen_pumps=24' "$log"
+          if grep -q 'UR_BALDOSA_NATIVE_PAUSE FAIL=' "$log"; then
+            echo "::error::Baldosa native pause violated its guest hold invariant"
+            exit 1
+          fi
+          cmp "$RUNNER_TEMP/ur-baldosa-input/original/fd/crc.txt" \
+              "$RUNNER_TEMP/ur-baldosa-input/paused_resume/fd/crc.txt"
+          echo "PASS: genuine native guest hold across 24 SDL event polls, acknowledged pause/resume and identical complete 2P route guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          grep 'UR_BALDOSA_NATIVE_PAUSE ' "$log"

@@ -19,6 +19,9 @@ PROGRESS_FIELDS = ("p1_next_checkpoint", "p1_finish_gate",
                    "p1_laps_remaining")
 CONTACT_FIELD = "p1_stored_contact"
 BOOST_FIELD = "p1_boost"
+TIMER_FIELDS = ("timer_minutes_raw", "timer_tens_raw",
+                "timer_seconds_raw", "timer_tenths_raw",
+                "timer_subtick_raw")
 
 
 class EventEvidenceError(ValueError):
@@ -149,6 +152,57 @@ def first_field_disagreement(
     return None
 
 
+def observed_start_phase(rows: list[dict]) -> dict:
+    """Bound race-flag versus first P1 horizontal X change / stopwatch tick.
+
+    A horizontal-X change is NOT first physical motion. In the historic
+    original Snes9x Zoo race, P1 vertical motion occurs during countdown.
+    The first observed X deviation and stopwatch tick instead delimit
+    original release/horizontal travel and live clock activation.
+    """
+    if not rows:
+        raise EventEvidenceError("empty start-phase rows")
+    active = []
+    for row in rows:
+        if not _active(row):
+            break
+        _required(row, ("relative_frame", "p1_x", *TIMER_FIELDS))
+        for name in TIMER_FIELDS:
+            if not 0 <= row[name] <= 255:
+                raise EventEvidenceError("timer digit out of byte range")
+        active.append(row)
+    if not active:
+        return {
+            "initial_active_frame": None,
+            "first_p1_x_change_interval": None,
+            "first_nonzero_timer_interval": None,
+        }
+    start = active[0]
+    start_x = start["p1_x"]
+    timer_initial = tuple(start[x] for x in TIMER_FIELDS)
+    x_change = None
+    tick = None
+    for previous, current in zip(active, active[1:]):
+        if current["relative_frame"] <= previous["relative_frame"]:
+            raise EventEvidenceError("start-phase frames are not chronological")
+        if x_change is None and current["p1_x"] != start_x:
+            x_change = [previous["relative_frame"], current["relative_frame"]]
+        if tick is None and any(current[name] != 0 for name in TIMER_FIELDS):
+            tick = [previous["relative_frame"], current["relative_frame"]]
+    return {
+        "initial_active_frame": start["relative_frame"],
+        "initial_p1_x": start_x,
+        "initial_timer_raw": list(timer_initial),
+        "first_p1_x_change_interval": x_change,
+        "first_nonzero_timer_interval": tick,
+        "qualifier": (
+            "Sampled postframe windows only. First P1 X displacement is "
+            "horizontal onset, NOT first vertical motion or proof of Go HUD. "
+            "Exact frame requires adjacent observations including the change."
+        ),
+    }
+
+
 def paired_event_diagnostics(reference: list[dict], native: list[dict]) -> dict:
     original = observed_transitions(reference)
     recomp = observed_transitions(native)
@@ -166,6 +220,11 @@ def paired_event_diagnostics(reference: list[dict], native: list[dict]) -> dict:
         "first_boost_disagreement": first_field_disagreement(
             reference, native, (BOOST_FIELD,)
         ),
+        "first_stopwatch_disagreement": first_field_disagreement(
+            reference, native, TIMER_FIELDS
+        ),
+        "reference_start_phase": observed_start_phase(reference),
+        "native_start_phase": observed_start_phase(native),
         "authority_limit": (
             "Separate diagnostics preserve event-state disagreements after "
             "earlier motion divergence. Equality at sampled frames or an "

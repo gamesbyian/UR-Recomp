@@ -328,7 +328,23 @@ jobs:
             --original "$ORIGINAL_A_SHOT" \
             --original-control "$ORIGINAL_B_SHOT" \
             --hd "$HD_SHOT" --hd-log "$HD_LOG" --frame 1220 \
+            --source-obj-layer "$RUNNER_TEMP/racer-hd-legacy-obj-1220.pam" \
             --json-out "$RUNNER_TEMP/racer-hd-frame-1220-confinement.json"
+          python3 - "$RUNNER_TEMP/racer-hd-frame-1220-confinement.json" <<'PY'
+          import json, sys
+          o = json.load(open(sys.argv[1], encoding="utf-8"))
+          src = o["source_obj_opaque_by_viewport"]
+          assert src["top"] > 0 and src["bottom"] == 0, o
+          assert o["top_changed_pixels"] > 0, o
+          assert o["bottom_changed_pixels"] == 0, o
+          assert not o["hd_changes_without_source_obj"], o
+          print(
+              "UR_RACER_HD_NO_FABRICATED_RIDER PASS "
+              f"top_source={src['top']} bottom_source={src['bottom']} "
+              f"changed_top={o['top_changed_pixels']} "
+              f"changed_bottom={o['bottom_changed_pixels']}"
+          )
+          PY
 
           for stem in original-a original-b hd; do
             python3 tools/summarize_racer_semantic_trace.py \

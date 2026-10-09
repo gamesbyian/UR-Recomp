@@ -154,6 +154,49 @@ class HostPersistenceProcessTests(unittest.TestCase):
             self.assertEqual(conflict.returncode, 0, conflict.stderr)
             self.assertEqual(read_value("host", global_host), 13)
 
+
+            # C04: a profile selector is allowed to advance only AFTER the
+            # target framework SRAM exists. Separate executables exercise a
+            # failed flush, death before SRAM publication, death after SRAM
+            # publication but before selector CAS, and death immediately
+            # after selector publication. Previous racer's SRAM must survive.
+            c04_root = root / "c04-selector-last"
+            def c04(action, expected=0):
+                result = call("host", action, c04_root)
+                self.assertEqual(
+                    result.returncode, expected,
+                    (action, result.stdout.decode(errors="replace"),
+                     result.stderr.decode(errors="replace")),
+                )
+                return result
+
+            c04("c04-seed")
+            a_save = c04_root / "racer-1" / "save.srm"
+            b_save = c04_root / "racer-2" / "save.srm"
+            old_a = a_save.read_bytes()
+            old_b = b_save.read_bytes()
+            self.assertEqual(len(old_a), 8192)
+            self.assertEqual(len(old_b), 8192)
+            c04("c04-stage-fail")
+            c04("c04-verify-uncommitted")
+            self.assertEqual(a_save.read_bytes(), old_a)
+            self.assertEqual(b_save.read_bytes(), old_b)
+            c04("c04-kill-before-target-publication", 84)
+            c04("c04-verify-uncommitted")
+            self.assertEqual(b_save.read_bytes(), old_b)
+            c04("c04-kill-after-target-publication", 82)
+            c04("c04-verify-precommit")
+            self.assertEqual(a_save.read_bytes(), old_a)
+            self.assertNotEqual(b_save.read_bytes(), old_b)
+            c04("c04-commit-selector", 83)
+            for _ in range(2):
+                c04("c04-verify-postcommit")
+                self.assertEqual(a_save.read_bytes(), old_a,
+                                 "switch must not overwrite previous racer")
+            # The fresh process still has access to both typed profiles and
+            # exactly the already validated target framework SRAM.
+            self.assertEqual(len(b_save.read_bytes()), len(old_b))
+
             corrupt_host = root / "corrupt-host.dat"
             corrupt_host.write_text("bad historic state", encoding="utf-8")
             before = corrupt_host.read_bytes()

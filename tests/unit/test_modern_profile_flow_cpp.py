@@ -28,6 +28,11 @@ class ModernProfileFlowCppTests(unittest.TestCase):
             state_dir = pathlib.Path(tmp) / "state"
             subprocess.run([str(exe),"bootstrap",str(state_dir)], cwd=ROOT, check=True)
             subprocess.run([str(exe),"fresh",str(state_dir)], cwd=ROOT, check=True)
+            # The C++ fixture refuses to read/overwrite a corrupted catalog
+            # resized to 32 MiB. Preserve the canonical rejected file across
+            # process exit without silently resetting the profile roster.
+            oversized = state_dir / "oversized.catalog"
+            self.assertEqual(oversized.stat().st_size, 32 * 1024 * 1024)
 
 if __name__ == "__main__":
     unittest.main()

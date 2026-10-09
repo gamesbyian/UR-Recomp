@@ -4,6 +4,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <algorithm>
 #include <array>
@@ -148,6 +149,29 @@ int main(int argc, char** argv) {
             path, *loaded.state, next);
         return status == HostProductSaveStatus::Saved ? 0 :
                status == HostProductSaveStatus::Conflict ? 6 : 9;
+    }
+    if (family == "profile" && action == "orphan-claim" && argc == 6) {
+        const std::string profile_path =
+            (std::filesystem::path(path) / "host-profile.txt").string();
+        TournamentLaunchPathLock lock(profile_path);
+        if (!lock.acquired()) return 9;
+        if (!pristine_unregistered_profile_creation_root(path)) return 6;
+        const auto loaded = load_host_profile_state_file(
+            ExecutionMode::Modern, profile_path, "qa-profile");
+        if (!loaded.loaded() || !(*loaded.state == profile(value))) return 6;
+
+        const std::string catalog_path(argv[5]);
+        const auto current = load_host_profile_catalog_file(catalog_path);
+        if (!current) return 9;
+        for (const auto& entry : *current) {
+            if (entry.profile_id == "qa-profile") return 6;
+        }
+        auto next = *current;
+        next.push_back({"qa-profile", {"QA Racer", 2u}});
+        const auto published = save_host_profile_catalog_file_if_current(
+            catalog_path, *current, next);
+        return published == HostProfileCatalogSaveStatus::Saved ? 0 :
+               published == HostProfileCatalogSaveStatus::Conflict ? 6 : 9;
     }
     if (family == "profile" && action == "root-pristine") {
         if (!pristine_unregistered_profile_creation_root(path)) return 6;

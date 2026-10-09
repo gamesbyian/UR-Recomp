@@ -196,6 +196,41 @@ class HostPersistenceProcessTests(unittest.TestCase):
                 call("profile", "root-reusable", retry_root).returncode, 6
             )
 
+            # A killed process can leave a *complete initial* profile before
+            # its catalog row is written. Only this exact initial snapshot,
+            # and no other save artifacts, may be offered for explicit claim.
+            pristine = root / "unregistered-initial"
+            pristine.mkdir()
+            orphan_profile = pristine / "host-profile.txt"
+            self.assertEqual(
+                call("profile", "write", orphan_profile, 4).returncode, 0
+            )
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 0
+            )
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 5).returncode, 6,
+                "a different complete SRAM snapshot is not the requested racer",
+            )
+            old_progress = pristine / "save.srm"
+            old_progress.write_bytes(b"do not adopt old progression")
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+            old_progress.unlink()
+            staging = pristine / ".pending-urprofile-interrupted"
+            staging.mkdir()
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+            staging.rmdir()
+            self.assertEqual(
+                call("profile", "write", orphan_profile, 5).returncode, 0
+            )
+            self.assertEqual(
+                call("profile", "root-pristine", pristine, 4).returncode, 6
+            )
+
             # Compare-and-swap uses the exact prior disk snapshot rather
             # than autosave_generation alone. Both children load the SAME
             # previous SRAM before either receives the "go" marker.

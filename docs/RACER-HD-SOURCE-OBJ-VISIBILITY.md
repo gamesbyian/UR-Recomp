@@ -5,6 +5,35 @@ correction. This closes **source-absent viewport painting** on the
 tested 256×224 scene, not full SNES foreground priority or moving-HD
 shipping acceptance.
 
+## Baldosa 342-wide single-slot source-OBJ evidence (read-only diagnostic)
+
+The pinned SNESRecomp PPU exposes real isolated source pixels for **one exact
+OAM slot** through its existing overlay capture API. The 342-wide coordinate
+space spans SNES X `[-43, 299)`, centered in a physical 342×224 RGB-alpha
+diagnostic raster. With `PpuSetOverlayCapture(..., flags=0)`, the OBJ slot is
+*also rendered normally* into Original main/subscreen. **RemoveFromGame is
+never armed by this wide probe; authored art remains gated off at width 342.**
+
+Native QA can set `UR_RACER_HD_WIDE_SOURCE_SLOT=96|97|98|99`,
+`UR_RACER_HD_WIDE_SOURCE_FRAME=1856` and
+`UR_RACER_HD_WIDE_SOURCE_DIR=<existing folder>` on four separately
+executed identical deterministic 2P routes. Each process emits
+`ur-baldosa-ws342-obj-slotNN-frame001856.pam` with exact isolated hardware
+slot alpha, native bbox and split-band source counts. Native artifact/report
+`ws342_obj_slot_NN.json` preserves the image SHA256 and rejects *any*
+difference between the entire probed and uninstrumented 342×224 Original
+raster on shared guest frames, in addition to the independent guest CRC gate.
+An empty isolated source slot is valid evidence that the PPU emitted no pixels
+from it at that frame, and **must never cause a fabricated rider**.
+
+This is an **observation-only** step toward proving individual P1/P2
+ownership. Isolated OBJ emission precedes final BG/window priority and may
+be fully occluded; it cannot itself authorize HD substitution, wide sprite
+repositioning or foreground-overpaint. Once this evidence resolves the
+occlusion/slot problem, any new wide art admission must still satisfy the
+existing real-source-visible footprint rule independently per viewport and
+per owner, with Original fallback for ambiguous cases.
+
 ## Original counterexample
 
 At ordinary USA-retail 2P starting-line guest frame **1220**,

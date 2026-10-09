@@ -357,6 +357,49 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_density_parity.json"
           echo "PASS: aligned 1x vs 4x 342-column native full-frame pixel identity, not just internally uniform 4x blocks" >> "$GITHUB_STEP_SUMMARY"
 
+          # Isolate each genuine OBJ hardware slot with pinned PPU extraction
+          # and removal explicitly OFF. Full stock frames must be identical.
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_RACER_HD_WIDE_SOURCE_FRAME=1856
+          export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-obj-slots"
+          mkdir -p "$UR_RACER_HD_WIDE_SOURCE_DIR"
+          for slot in 96 97 98 99; do
+            export UR_RACER_HD_WIDE_SOURCE_SLOT="$slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-source-slot-$slot"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/fd/crc.txt"
+            python3 tools/check_baldosa_wide_single_slot_source.py \
+              --original-dir "$RUNNER_TEMP/baldosa-ws342-captures" \
+              --probe-dir "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+              --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame001856.pam" \
+              --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
+              --slot "$slot" --min-shared 4 \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_$slot.json"
+          done
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "baldosa-evidence"
+          records = [
+              json.loads((root / f"ws342_obj_slot_{s}.json").read_text())
+              for s in range(96, 100)
+          ]
+          assert [r["source"]["slot"] for r in records] == [96, 97, 98, 99]
+          assert all(r["status"] == "passed" for r in records)
+          opaque = sum(
+              r["source"]["top_opaque_source_pixels"] +
+              r["source"]["bottom_opaque_source_pixels"]
+              for r in records
+          )
+          assert opaque > 0, "No source OBJ emitted by any racer slot"
+          print(f"PASS: four single-slot source planes, stock unchanged; pixels={opaque}")
+          PY
+          echo "PASS: single-slot wide OBJ source and exact stock 342-wide raster invariance" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Summarize executable evidence
         if: always()
         shell: bash
@@ -394,6 +437,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
+            ${{ runner.temp }}/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot*.pam
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam

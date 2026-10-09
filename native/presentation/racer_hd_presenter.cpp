@@ -29,8 +29,16 @@ constexpr int kBaseWidth = 256;
 constexpr int kBaseHeight = 224;
 constexpr std::size_t kOverlayBytes =
     static_cast<std::size_t>(kBaseWidth) * kBaseHeight * 4;
+constexpr int kWideProbeWidth = 342;
+constexpr int kWideProbeHalfMargin = (kWideProbeWidth - kBaseWidth) / 2;
+constexpr std::size_t kWideProbeBytes =
+    static_cast<std::size_t>(kWideProbeWidth) * kBaseHeight * 4;
 
 std::array<std::uint8_t, kOverlayBytes> g_obj_overlay{};
+std::array<std::uint8_t, kWideProbeBytes> g_wide_obj_overlay{};
+bool g_wide_probe_armed = false;
+bool g_wide_probe_dumped = false;
+int g_wide_probe_slot = -1;
 bool g_frame_active = false;
 int g_internal_render_scale = kRacerHdDensityScale;
 unsigned g_logged_state_transitions = 0;
@@ -83,6 +91,79 @@ void hd_census_present(const char* status, const char* reason) noexcept {
         "UR_RACER_HD_CENSUS frame=%u phase=present status=%s reason=%s\n",
         g_sim_frame, status, reason
     );
+}
+
+// Read-only, single-OAM-slot native visibility probe for *widened* 2P
+// raster, using the pinned PPU's own isolated OBJ export with removal OFF.
+// Every slot 96..99 is tested in a separate deterministic process. Never
+// authorize HD painting from this diagnostic alone: isolated OBJ emission is
+// still earlier than final BG/window priority composition.
+int wide_source_probe_slot() noexcept {
+    const char* value = std::getenv("UR_RACER_HD_WIDE_SOURCE_SLOT");
+    const char* directory = std::getenv("UR_RACER_HD_WIDE_SOURCE_DIR");
+    if (!value || !*value || !directory || !*directory) return -1;
+    char* end = nullptr;
+    const long slot = std::strtol(value, &end, 10);
+    if (end == value || *end != '\0' || slot < 96 || slot > 99) return -1;
+    return static_cast<int>(slot);
+}
+
+void dump_wide_obj_source() noexcept {
+    if (!g_wide_probe_armed || g_wide_probe_dumped) return;
+    const char* requested = std::getenv("UR_RACER_HD_WIDE_SOURCE_FRAME");
+    const char* directory = std::getenv("UR_RACER_HD_WIDE_SOURCE_DIR");
+    if (!requested || !*requested || !directory || !*directory) return;
+    char* end = nullptr;
+    const unsigned long target = std::strtoul(requested, &end, 10);
+    if (end == requested || *end != '\0' || target != g_sim_frame) return;
+    g_wide_probe_dumped = true;  // one exact source-frame capture per process
+
+    char path[1024];
+    const int n = std::snprintf(path, sizeof(path),
+        "%s/ur-baldosa-ws342-obj-slot%d-frame%06u.pam",
+        directory, g_wide_probe_slot, g_sim_frame);
+    if (n <= 0 || static_cast<std::size_t>(n) >= sizeof(path)) return;
+    std::FILE* out = std::fopen(path, "wb");
+    if (!out) return;
+    const char* header =
+        "P7\nWIDTH 342\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+        "TUPLTYPE RGB_ALPHA\nENDHDR\n";
+    bool ok = std::fwrite(header, 1, std::strlen(header), out) ==
+              std::strlen(header);
+    std::size_t alpha_top = 0, alpha_bottom = 0;
+    int min_x = kWideProbeWidth, min_y = kBaseHeight, max_x = -1, max_y = -1;
+    for (int y = 0; ok && y < kBaseHeight; ++y) {
+        for (int x = 0; x < kWideProbeWidth; ++x) {
+            std::uint32_t argb = 0;
+            std::memcpy(&argb, g_wide_obj_overlay.data() +
+                (static_cast<std::size_t>(y) * kWideProbeWidth + x) * 4, 4);
+            const std::uint8_t rgba[4] = {
+                static_cast<std::uint8_t>((argb >> 16) & 255),
+                static_cast<std::uint8_t>((argb >> 8) & 255),
+                static_cast<std::uint8_t>(argb & 255),
+                static_cast<std::uint8_t>((argb >> 24) & 255),
+            };
+            if (rgba[3]) {
+                (y < 112 ? alpha_top : alpha_bottom)++;
+                min_x = std::min(min_x, x);
+                min_y = std::min(min_y, y);
+                max_x = std::max(max_x, x);
+                max_y = std::max(max_y, y);
+            }
+            if (std::fwrite(rgba, 1, 4, out) != 4) {
+                ok = false;
+                break;
+            }
+        }
+    }
+    if (std::fclose(out) != 0) ok = false;
+    if (!ok) std::remove(path);
+    std::fprintf(stderr,
+        "UR_RACER_HD_WIDE_SOURCE frame=%u slot=%d status=%s "
+        "top_alpha=%zu bottom_alpha=%zu bbox=%d,%d,%d,%d path=%s\n",
+        g_sim_frame, g_wide_probe_slot,
+        !ok ? "io-error" : (alpha_top + alpha_bottom ? "source" : "empty"),
+        alpha_top, alpha_bottom, min_x, min_y, max_x, max_y, path);
 }
 
 // Experimental opt-in until native stock-P2 occlusion acceptance is complete.
@@ -267,6 +348,9 @@ int racer_hd_presentation_scale() noexcept {
 void racer_hd_begin_sim_frame(unsigned number) noexcept {
     g_frame_active = false;
     g_instance_count = 0;
+    g_wide_probe_armed = false;
+    g_wide_probe_dumped = false;
+    g_wide_probe_slot = -1;
     g_sim_frame = number;
 
     if (!env_enabled() || g_ppu == nullptr) {
@@ -285,6 +369,39 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     if (!racer_hd_can_capture_frame_geometry(
             snesrecomp_desktop_frame_width(),
             snesrecomp_desktop_frame_height())) {
+        if (snesrecomp_desktop_frame_width() == kWideProbeWidth &&
+            snesrecomp_desktop_frame_height() == kBaseHeight) {
+            const int slot = wide_source_probe_slot();
+            if (slot >= 0) {
+                const std::uint64_t before = guest_state_digest();
+                std::memset(g_wide_obj_overlay.data(), 0,
+                            g_wide_obj_overlay.size());
+                // PPU widescreen logical X spans [-43, 299); the isolated
+                // 342-column raster stores them at [0, 342). Selecting one
+                // exact OAM slot avoids cross-rider source attribution.
+                const bool bound = PpuBindOverlaySurface(
+                    g_ppu, kPpuOverlaySource_Obj, g_wide_obj_overlay.data(),
+                    kWideProbeWidth * 4);
+                const bool captured = bound && PpuSetOverlayCapture(
+                    g_ppu, kPpuOverlaySource_Obj, -kWideProbeHalfMargin,
+                    0, kWideProbeWidth, kBaseHeight, 0 /* no removal */);
+                const bool ranged = captured && PpuSetOverlayOamRange(
+                    g_ppu, static_cast<std::uint8_t>(slot), 1);
+                const bool unchanged = before == guest_state_digest();
+                if (ranged && unchanged) {
+                    g_wide_probe_armed = true;
+                    g_wide_probe_slot = slot;
+                } else {
+                    PpuClearOverlayCaptures(g_ppu);
+                    std::fprintf(stderr,
+                        "UR_RACER_HD_WIDE_SOURCE_FAIL frame=%u slot=%d "
+                        "reason=%s\n", number, slot,
+                        !unchanged ? "guest-state-mutated" : "overlay-unavailable");
+                }
+            }
+        }
+        // Read-only overlay never authorizes RemoveFromGame, new art or a
+        // change to the actual stock PPU output in widened scenes.
         hd_census_gate("original", "unsupported-geometry");
         return;
     }
@@ -440,6 +557,8 @@ int racer_hd_draw_frame(
     int frame_h,
     double
 ) noexcept {
+    if (frame_w == kWideProbeWidth && frame_h == kBaseHeight)
+        dump_wide_obj_source();
     if (!env_enabled() || !g_frame_active || dst == nullptr || field == nullptr) {
         hd_census_present("original", !g_frame_active ? "not-armed" : "unavailable-output");
         return 0;

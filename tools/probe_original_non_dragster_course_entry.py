@@ -100,8 +100,15 @@ def sample_state(wram: bytes, case_name: str, decoded: bytes) -> dict:
         "p1_x": u(0x0411), "p1_y": u(0x0415),
         "p2_x": u(0x0413), "p2_y": u(0x0417),
         "p1_speed_x": s(0x04B7), "p1_speed_y": s(0x04BB),
+        "p2_speed_x": s(0x04B9), "p2_speed_y": s(0x04BD),
         "p1_contact_stored": u(0x0E95), "p2_contact_stored": u(0x0E97),
-        "p1_laps_remaining": u(0x0EF1),
+        # The exact USA per-racer words are independently catalogued in
+        # summarize_paired_player_slots.RACE_PROGRESS. Before this check
+        # an early phantom checkpoint/finish (or P2 lap credit) could pass
+        # the entry window while both racers had identical motion/contact.
+        "p1_next_checkpoint": u(0x1199), "p2_next_checkpoint": u(0x119B),
+        "p1_finish_gate": u(0x119D), "p2_finish_gate": u(0x119F),
+        "p1_laps_remaining": u(0x0EF1), "p2_laps_remaining": u(0x0EF3),
         "p1_boost": u(0x11CF),
         # USA bank-81 live timer *bytes*: minutes, tens, seconds,
         # tenths and six-step subtick phase, per recovered original Lua.

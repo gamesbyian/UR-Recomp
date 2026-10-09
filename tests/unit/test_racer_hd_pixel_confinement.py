@@ -90,15 +90,15 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
     def test_disjoint_same_viewport_phantom_fails_real_obj_alpha_oracle(self):
         stock, hd = frames()
         pam = (
-            b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
         )
         source = bytearray(W * H * 4)
         source[(42 * W + 125) * 4 + 3] = 255
         # Disjoint top racers: P1 at 104, P2 at 190. The isolated PPU
         # emitted source alpha only at P1. A viewport-wide guard says
         # top is nonempty, but must not license P2's new artwork.
-        shifted = "\\n".join(
+        shifted = "\n".join(
             line.replace("slot=99 x=104", "slot=99 x=190")
             for line in draw_log().splitlines()
         )
@@ -131,15 +131,15 @@ class RacerHdPixelConfinementTests(unittest.TestCase):
     def test_same_viewport_source_discriminator_handles_wrap_and_1x(self):
         stock, hd = frames(scale=1)
         pam = (
-            b"P7\\nWIDTH 256\\nHEIGHT 224\\nDEPTH 4\\nMAXVAL 255\\n"
-            b"TUPLTYPE RGB_ALPHA\\nENDHDR\\n"
+            b"P7\nWIDTH 256\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+            b"TUPLTYPE RGB_ALPHA\nENDHDR\n"
         )
         source = bytearray(W * H * 4)
         source[(2 * W + 125) * 4 + 3] = 255
         # Raw Y=250 wraps to screen Y=2. Keep P2's top bounding box
         # disjoint in X and make its purported HD rider fail at 1x too.
         lines = draw_log(top_y=250).splitlines()
-        shifted = "\\n".join(
+        shifted = "\n".join(
             line.replace("slot=99 x=104", "slot=99 x=190") for line in lines
         )
         paint(hd, 1, 125, 2)

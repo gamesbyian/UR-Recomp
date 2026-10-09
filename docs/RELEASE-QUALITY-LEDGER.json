@@ -77,7 +77,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Validate merged #1052 live OS lease on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
+      "next_action": "Validate merged #1052 and proposed #1054 active-event replacement fence on two actual hash-pinned packaged Windows game instances: Busy during A's race, original owner credit, OS kill/takeover with a fresh token, stale retry refusal, old-client compatibility and explicit user recovery. Then targeted C04 selector/SRAM crash, C16 disk-full and C17 upgrade/downgrade recovery. Preserve strict J-02/J-07/J-08 L4 evidence threshold.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -109,9 +109,10 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1046",
         "https://github.com/gamesbyian/UR-Recomp/pull/1048",
         "https://github.com/gamesbyian/UR-Recomp/pull/1050",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1052"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1052",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1054"
       ],
-      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
+      "remaining_release_risk": "Merged green #1052 (01f2b1aa) prevents live fixture theft between cooperating builds: fail-fast OS-handle Busy, owner credit, stale retry rejection, _Exit and externally killed-owner explicit takeover with exactly one fixture receipt and preserved older Records. PR #1054 additionally fences a source-confirmed active-event replacement race: an independent process previously could replace the entire active tournament while the original owner held a live fixture lease. A nonblocking lease on the incumbent now returns Busy before new archive/active mutation; a two-process owner/replace regression is proposed, pending green CI and merge. These are native production-store process tests and a narrow Modern Busy notice, not two actual Windows game windows, old-client compatibility or power loss. Separate group transactions across selector/profile/SRAM, run/match/ghost and receipt/pending remain unproven. C04/C16/C17 and exact ZIP-hash-pinned Windows J-02/J-07/J-08 L4 remain open; QA02 P0 stays in_progress."
     },
     {
       "id": "QA-03",

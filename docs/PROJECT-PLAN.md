@@ -1,5 +1,11 @@
 # Uniracers Modern Port Plan
 
+## Modern frontend design integration (2026-10-08)
+
+The implementable cross-screen design specification is [`MODERN-FRONTEND-MASTER-DESIGN.md`](MODERN-FRONTEND-MASTER-DESIGN.md). It is the canonical *proposed screen hierarchy, interaction/focus policy, cohesive original-inspired visual-system brief, implementation slices and acceptance matrix* for Modern menus. Its five destinations remain **Play / Practice / Multiplayer / Records / Options**, with Racer & Profiles available through a global identity action rather than an additional root destination. Original menu art, sounds, typography and selection character are the first design priority; working black engineering overlays are not shipping-quality artwork. Implement by reusing the existing host/guest authorities; do not create shadow progression, records, router, settings or persistence state. Keep Authentic untouched.
+
+Read this design together with [`MODERN-UI-VISUAL-FIDELITY.md`](MODERN-UI-VISUAL-FIDELITY.md) (binding visual fidelity/review criteria), [`MODERN-PRODUCT-LAYER.md`](MODERN-PRODUCT-LAYER.md) (product/ownership semantics), [`MODERN-FRONTEND-SHIPPING-STATUS.md`](MODERN-FRONTEND-SHIPPING-STATUS.md) (what really ships), and [`WORK-QUEUE.md`](WORK-QUEUE.md) (sequenced outstanding work). Proposed screens/options are *not* claims of integrated UI or functioning host consumers. An end-to-end, uncoached controller-only packaged-Windows journey and original-vs-Modern screenshot review are release gates.
+
 ## Integration checkpoint (2026-10-08)
 
 Current `main` includes replay frame-window parity (#938), atomic ghost sidecar publication (#942), terminal digest parity (#957), selected Previous/PB source revalidation (#958), and the course dispatch-before-sampling causality correction (#959). The latter distinguishes postframe slot 8 from the stronger, still unproven preceding slot-10 dispatch candidate. Local Tournament multi-leg continuation and packaged Windows acceptance (#946, #964) have also merged. Remaining course causality needs instruction-time evidence, not further assumptions based solely on frame-end snapshots. CI-speed work has a separate active owner. Historical divergent branches are not automatically missing functionality: compare them with merged successor PRs before recovery.

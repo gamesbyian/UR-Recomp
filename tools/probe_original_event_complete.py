@@ -133,6 +133,7 @@ def load_state(path: Path, decoded: bytes, track: int, active: bool) -> dict:
     u = lambda a: int.from_bytes(w[a:a + 2], "little")
     signed = lambda a: int.from_bytes(w[a:a + 2], "little", signed=True)
     return {"menu": w[0x009F], "in_race": w[0x0313],
+            "p1_rider": w[0x017D], "p2_rider": w[0x017F],
             "p1_x": u(0x0411), "p1_y": u(0x0415),
             "p2_x": u(0x0413), "p2_y": u(0x0417),
             "p1_vx": signed(0x04B7), "p1_vy": signed(0x04BB),
@@ -166,6 +167,37 @@ def load_capture(directory: Path, frames: list[int], decoded: bytes,
         screens["tally"] = textdecode.screen_texts(visual.Dump(directory, "result-tally"))
     return {"samples": rows, "result": final, "onset": onset,
             "result_text": screens}
+
+
+ENTRY_SIGNATURE = ("p1_rider", "p2_rider", "p1_x", "p1_y",
+                   "p2_x", "p2_y", "p1_laps", "p2_laps",
+                   "p1_checkpoint", "p1_finish_gate", "clock_raw")
+
+
+def entry_diagnostics(source: dict, original: dict, native: dict) -> dict:
+    """Screen/clock/lap prerequisites before attributing a replay mismatch
+    to physics. Source was played *after earlier tour events*, while the
+    newly calibrated guests start from the original embedded SRAM."""
+    snapshots = {"source_original": source, "fresh_reference": original,
+                 "fresh_native": native}
+    absent = [(name, field) for name, row in snapshots.items()
+              for field in ENTRY_SIGNATURE if field not in row]
+    if absent:
+        raise CompleteEventError(f"incomplete source/current guest start signature: {absent}")
+    discrepancies = {}
+    for name, row in list(snapshots.items())[1:]:
+        fields = [field for field in ENTRY_SIGNATURE if row[field] != source[field]]
+        discrepancies[name] = {
+            "fields": fields,
+            "source": {k: source[k] for k in fields},
+            "guest": {k: row[k] for k in fields},
+        }
+    return {"source_original_state_equivalent": all(
+                not item["fields"] for item in discrepancies.values()),
+            "discrepancies": discrepancies,
+            "limit": ("A mismatch may reflect earlier original in-tour state, "
+                      "controller latch/sample phase, or an authentic guest defect. "
+                      "Do not infer the last cause without a controlled witness.")}
 
 
 def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dict:
@@ -212,7 +244,8 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
             "qualification": "candidate only; source/original and native complete-event evidence still requires independent review"}
 
 
-def scan_source(args, work: Path, sram: Path, source_input: Path) -> dict:
+def scan_source(args, work: Path, sram: Path, source_input: Path,
+                decoded: bytes) -> dict:
     scan = work / "source"
     scan.mkdir(parents=True)
     (scan / "scan.script").write_text(f"wait {args.source_horizon}\nquit\n")
@@ -232,6 +265,23 @@ def scan_source(args, work: Path, sram: Path, source_input: Path) -> dict:
     event = source_event(states, track, menu)
     if args.case == "zoom-zoo" and event["original_entry_frame"] != 3190:
         raise CompleteEventError("2014 Zoom Zoo entry disagrees with pinned original 3190")
+    # The first chronological source trace carries only changed low-WRAM
+    # bytes. Replay a second time with identical ROM/SRAM/movie to capture
+    # the actual 128KiB entry state and loaded course. This is a distinct
+    # original-source baseline, not a native savestate transplant.
+    anchor = scan / "original-anchor.script"
+    anchor.write_text(
+        f'wait {event["original_entry_frame"]}\ndump source-race-entered\nquit\n')
+    anchor_env = dict(env, SNESREF_SCRIPT=str(anchor))
+    anchor_env.pop("SNESREF_TRACE_FILE", None)
+    rerun = subprocess.run([str(args.snesref), str(args.core), str(args.rom)],
+                           env=anchor_env, cwd=scan, capture_output=True,
+                           text=True, timeout=900)
+    if rerun.returncode:
+        raise CompleteEventError("original entry capture failed: " + (
+            rerun.stdout + rerun.stderr)[-1200:])
+    event["original_source_entry"] = load_state(
+        scan / "source-race-entered.wram.bin", decoded, track, True)
     return event
 
 
@@ -271,7 +321,7 @@ def main(argv: list[str] | None = None) -> int:
                     str(args.movie), "--input-out", str(source_input),
                     "--sram-out", str(sram), "--sram-size", "8192",
                     "--json-out", str(work / "original-movie-meta.json")], check=True)
-    original_event = scan_source(args, work, sram, source_input)
+    original_event = scan_source(args, work, sram, source_input, decoded)
     original_bytes, _ = movie.read_movie(args.movie)
     pinned_meta = json.loads(args.movie_meta.read_text())
     source_length = original_event["source_active_frames_to_result"] + 40
@@ -289,6 +339,12 @@ def main(argv: list[str] | None = None) -> int:
     rf, nf = engine.race_entry_frame(rl), engine.race_entry_frame(nl)
     if rf is None or nf is None:
         raise CompleteEventError("could not calibrate both stock Crawler race entries")
+    baseline = entry_diagnostics(
+        original_event["original_source_entry"],
+        load_state(calibration / "ref" / "race-entered.wram.bin",
+                   decoded, track, True),
+        load_state(calibration / "native" / "race-entered.wram.bin",
+                   decoded, track, True))
     replay = work / "replay"
     replay.mkdir()
     script = replay / "complete.script"
@@ -304,6 +360,10 @@ def main(argv: list[str] | None = None) -> int:
     reference = load_capture(replay / "ref", frames, decoded, track, kind == "stunt")
     native = load_capture(replay / "native", frames, decoded, track, kind == "stunt")
     comparison = diagnose(reference, native, menu, kind == "stunt")
+    comparison["original_source_entry_equivalent"] = baseline[
+        "source_original_state_equivalent"]
+    comparison["paired_event_candidate"] &= baseline[
+        "source_original_state_equivalent"]
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,
@@ -311,6 +371,7 @@ def main(argv: list[str] | None = None) -> int:
         "source_sram_sha256": sha(sram), "native_executable_sha256": sha(args.native),
         "reference_core_sha256": sha(args.core), "input_sha256": sha(script),
         "original_source_event": original_event,
+        "original_source_vs_fresh_entry": baseline,
         "original_movie_window_sha256": source_window["raw_controller_window_sha256"],
         "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf,
         "relative_sample_frames": frames, "comparison": comparison,

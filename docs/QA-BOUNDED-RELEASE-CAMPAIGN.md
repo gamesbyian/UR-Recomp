@@ -14,6 +14,21 @@ Status: planning and resource policy, 2026-10-08. Applies to QA-01..QA-12. This 
 
 **Known red cases first:** `#890` packaged Restart Return→guest Start/audio silence belongs to input ownership repair with an audio co-oracle; `#1052` proposed live fixture OS lease requires two running game instances, owner crash/takeover and older-client compatibility bounds; `#1045` proposed HD per-source-footprint guard requires exact candidate visible-OBJ and stock-fallback evidence. All three were unresolved at this review; inspect current branch/CI state before assigning them again. `#1043` is a scoped original countdown/timer discriminator, not a substitute for a completed Zoo/Circuit event.
 
+**QA-02/QA-03 integration update (2026-10-09):** #1052 and #1054
+are merged with scoped green native process, local-multiplayer and boot
+acceptance. Cooperating simultaneous game-store processes now hold a
+crash-released live fixture lease, and explicit replacement of an active
+tournament must acquire the incumbent lease before mutating the pointer.
+The existing process fixture also completes a 3-leg duel (3 results) and a
+3-entrant 2-leg round robin (6 results), including a C14 mid-event crash,
+uncredited Records preservation, fresh restore, standings and History.
+These are simulated stock-result **storage** journeys, not actual guest-raced
+full tournaments. The original 2026-10-08 status paragraph immediately
+above remains a dated historical review, not the latest PR state. Highest
+yield now is exact-package real two-pad leg 2/3 and 3+ completion, C04
+selector/SRAM recovery, C16/C17 disk/version faults and cross-process
+Windows Busy/crash observations. Preserve QA02 and QA03 P0/L4.
+
 **First completions before deepening theory:** the 45 USA rows remain the release denominator. Immediately obtain a valid original/native terminal result for a non-Dragster Race, multi-lap Circuit and timed Stunt (three mechanics families, retaining Race A/B and Circuit A/B identities in the later full census). Build any generalized 45-course runner **from** those verified event producers. Stop investing in detailed contact traces that do not change correctness or unlock a terminal result.
 
 **Four reusable journeys and a fault overlay:** Campaign A (course/event/reference + expert/replay), B (real tournament/records/storage), C (moving visual/camera/input), D (physical Windows/audio/UX/soak); the earlier Campaign E is *fault-injection cuts layered on B/D*, not an independent full integration suite. Each evidence reuse still requires a named oracle, source independence and an exact identity manifest. A product run may satisfy several gates but never automatically satisfies them all.

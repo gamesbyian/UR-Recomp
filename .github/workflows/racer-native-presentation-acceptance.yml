@@ -365,7 +365,7 @@ jobs:
           python3 tools/check_racer_hd_pixel_confinement.py \
             --original "$ORIGINAL_A_SHOT" \
             --original-control "$ORIGINAL_B_SHOT" \
-            --hd "$RUNNER_TEMP/racer-hd-capture-only-aligned-1220.ppm" --hd-log "$HD_LOG" --frame 1220 \
+            --hd "$RUNNER_TEMP/racer-hd-capture-only-aligned-1220.ppm" --hd-log "$HD_LOG" --frame 1220 --capture-only \
             --json-out "$RUNNER_TEMP/racer-hd-capture-removal-1220.json"
 
           # Inspect the isolated stock OBJ layer for *potential* lost

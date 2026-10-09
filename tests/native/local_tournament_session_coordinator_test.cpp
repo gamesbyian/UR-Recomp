@@ -169,6 +169,30 @@ int main() {
             Status::InvalidRequest &&
           state.launch.pending && !state.results.results[0],
           "mismatched live capture token cannot award tournament points");
+    const auto prior_checkpoint = *state.launch.pending;
+    const auto checkpoint_file = (tour / instance / "pending.urlaunch").string();
+    auto newer_checkpoint = prior_checkpoint;
+    newer_checkpoint.attempt_id = token1;
+    check(save_local_tournament_launch_file(checkpoint_file, newer_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "second process replaced disk launch checkpoint while owner raced");
+    check(commit_local_tournament_capture(state, token0, stored0) ==
+              Status::EvidenceRejected &&
+          state.launch.pending && !state.results.results[0],
+          "stale live attempt cannot claim receipt after checkpoint superseded");
+    check(restore_local_tournament_coordinator(paths, catalog).usable() &&
+          !restore_local_tournament_coordinator(paths, catalog)
+               .session->results.results[0],
+          "fresh recovery does not falsely credit superseded attempt");
+    check(save_local_tournament_launch_file(checkpoint_file, prior_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "restore originally authorized checkpoint for next native test");
+    const auto after_pair_before_receipt =
+        restore_local_tournament_coordinator(paths, catalog);
+    check(after_pair_before_receipt.usable() &&
+          !after_pair_before_receipt.session->launch.pending &&
+          !after_pair_before_receipt.session->results.results[0],
+          "C14: saved run and match without fixture receipt award zero points");
     check(commit_local_tournament_capture(state, token0, stored0) ==
             Status::Committed &&
           !state.launch.pending && state.results.results[0],
@@ -211,9 +235,33 @@ int main() {
             Status::EvidenceRejected && !state.results.results[1] &&
           state.launch.pending,
           "a different already-saved race cannot inherit new fixture authority");
-    check(commit_local_tournament_capture(state, token1, stored1) ==
-            Status::Committed && state.results.results[1],
-          "second exact saved pair committed with its own attempt");
+    const auto prior_fixture1_checkpoint = *state.launch.pending;
+    // C15 crash cut: commit the real immutable fixture receipt without
+    // calling coordinator's exact checkpoint retirement. This is the same
+    // production receipt-publish operation at the boundary before cleanup.
+    check(commit_saved_local_tournament_fixture(
+              (tour / instance / "fixtures").string(), records.string(),
+              stored1, instance, token1, state.launch, state.results) ==
+              LocalTournamentResultLinkStatus::Committed &&
+          state.results.results[1] &&
+          fs::exists(tour / instance / "pending.urlaunch"),
+          "C15: receipt is authoritative before pending retirement");
+    const auto after_receipt_before_retire =
+        restore_local_tournament_coordinator(paths, catalog);
+    check(after_receipt_before_retire.usable() &&
+          after_receipt_before_retire.session->results.results[1] &&
+          !after_receipt_before_retire.session->launch.pending,
+          "C15: restart credits exactly the receipt and never rearms old token");
+    const auto restore_twice = restore_local_tournament_coordinator(paths, catalog);
+    check(restore_twice.usable() &&
+          restore_twice.session->results.results[1] &&
+          !restore_twice.session->launch.pending,
+          "C15: repeated restarts cannot duplicate the fixture result");
+    check(retire_local_tournament_launch_file(
+              checkpoint_file, prior_fixture1_checkpoint) ==
+              LocalTournamentLaunchFileStatus::Saved,
+          "retiring exact checkpoint after receipt preserves credit");
+
 
     const auto& third = state.results.fixtures[2];
     check(arm_local_tournament_fixture(

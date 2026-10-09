@@ -114,6 +114,10 @@ Two further source-confirmed lost-update bugs are now merged: [#996](https://git
 
 Do not mark QA-02 passed even after those merges. Crash after creating a profile but before catalog registration can leave an orphan with no discovery policy; framework `.srm` and host profile commits can split; a canonical `.urrun` may precede its optional ghost trace or fixture receipt; immutable archives and active tournament/launch pointer updates are not a group commit. Directory sync failures after rename are **committed but durability-uncertain**, not safe precommit failures. Demand exact-candidate Windows dual-instance J-02/J-07/J-08 restore evidence, disk faults, interrupted upgrades, replay/fixture authority and no fabricated or duplicate credit.
 
+## QA-of-QA corrective ordering (2026-10-08 local)
+
+[The audited execution map](QA-AUDIT-OF-AUDIT-20261008.md) takes precedence over the *historical next-step order below* for **task assignment only**, without weakening any P0/P1 release acceptance. First revisit the current status of proposed #1052 live-fixture ownership, #1045 per-rider HD source visibility and #1043 Zoo source evidence; independently reproduce or close the current-candidate default-keymap Restart leak #890. Prioritize a true original/native Race, Circuit and timed-Stunt **result**, the actual 2P multi-leg and 3+ entrant completed tournament, and a functional five-destination Modern UI before commissioning further duplicate test infrastructure. Original and Upscaled may be explicitly release-supported while sparse Remastered remains withheld or experimental, subject to correct fallback and user-visible claims. Log productive hours and actual user outcomes; stop automatic spend for a 100h tranche review if yield is poor. Hardware and uncoached human testing cannot be credited by CI.
+
 ## Next concrete work
 
 1. Freeze a current candidate and record the Windows package from *that* SHA.

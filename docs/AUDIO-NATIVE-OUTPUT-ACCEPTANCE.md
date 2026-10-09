@@ -4,6 +4,12 @@ Status: SDL3 disk-backend PCM capture and fail-closed metrics tooling available;
 **native music/SFX fidelity is not yet closed**. This is a playback-device
 evidence lane, not a replacement for ROM-derived SPC/DSP reference rendering.
 
+## QA-of-QA: focus audio acceptance on release-relevant differences
+
+The [QA-of-QA review](QA-AUDIT-OF-AUDIT-20261008.md) distinguishes **cheap continuity smoke** (SDL disk backend tail/nonzero) from **source-aligned fidelity** and **real output-device judgment**. Keep the existing automatic packaged sound-presence gate subject to CI owner policy, but avoid additional expensive independent multi-checkpoint audio comparisons for unrelated code-only QA PRs. Use nominated immutable candidates or changes to sound, input/pause transitions, timing, audio device handling and associated source windows. Record the actual sonic event/guest phase and physical device; no RMS-only sound-presence result can close QA-06.
+
+The reproduced Modern Restart default Return/Start issue [#890](https://github.com/gamesbyian/UR-Recomp/issues/890) is a cross-owner **input-release regression with audible consequences**. The frontend/input lane should fix the guest-word leak; this lane validates its sound-on-return outcome on default controls as part of J-17 and should not attempt an independent APU workaround.
+
 ## Release-level audio QA gate (2026-10-08)
 
 QA-06 in [ADVERSARIAL-QA-AND-RELEASE-READINESS.md](ADVERSARIAL-QA-AND-RELEASE-READINESS.md) remains **unverified**. Genuine packaged SDL PCM output, correct channel rate and RMS/underflow envelopes prove output-path operation; they do not prove faithful melody, instrument envelope, sound priority, accurate SFX, latency or speaker/headphone experience. Previous same-volume A/A runs had substantially different captured windows. Require guest/sound-command-aligned original/native windows, transition/click tests after pause/resume/restart/exit, extended time drift and different real playback devices; report evidence denominators and physical hardware provenance. J-17 owns the combined session.

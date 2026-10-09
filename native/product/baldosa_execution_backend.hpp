@@ -63,6 +63,9 @@ struct BaldosaBackendHooks {
     bool (*set_paused)(void* context, bool paused) = nullptr;
     bool (*restart_event)(void* context) = nullptr;
     bool (*exit_to_frontend)(void* context) = nullptr;
+    // True only for the actual game's settled result condition. Never
+    // infer a completion from elapsed frames or a requested exit.
+    bool (*has_settled_result)(void* context) = nullptr;
 };
 
 class BaldosaExecutionBackend {
@@ -145,8 +148,12 @@ public:
     BaldosaBackendStatus finish_from_guest_result() noexcept {
         if (phase_ != BaldosaBackendPhase::Running)
             return BaldosaBackendStatus::InvalidPhase;
-        // Caller must provide the real guest result observation; this
-        // transition does not create a result, .urrun or fixture receipt.
+        if (!hooks_.has_settled_result)
+            return BaldosaBackendStatus::MissingHook;
+        if (!hooks_.has_settled_result(hooks_.context))
+            return BaldosaBackendStatus::Rejected;
+        // A true guest result may now be read by the existing Modern
+        // Records capture. We still never manufacture .urrun or a receipt.
         phase_ = BaldosaBackendPhase::Finished;
         input_.host_focus(true);
         return BaldosaBackendStatus::Applied;

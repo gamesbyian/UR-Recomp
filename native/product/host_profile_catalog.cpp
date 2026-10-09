@@ -16,6 +16,23 @@ namespace {
 constexpr std::string_view kHeader = "UR-PROFILE-CATALOG/1";
 constexpr std::uintmax_t kMaxCatalogBytes = 1024u * 1024u;
 
+std::optional<std::string> read_bounded_catalog(std::ifstream& in) {
+    std::string data;
+    char buffer[8192];
+    for (;;) {
+        in.read(buffer, sizeof(buffer));
+        const auto read = in.gcount();
+        if (read < 0) return std::nullopt;
+        if (read > 0) {
+            if (static_cast<std::uintmax_t>(read) >
+                kMaxCatalogBytes - data.size()) return std::nullopt;
+            data.append(buffer, static_cast<std::size_t>(read));
+        }
+        if (in.eof()) return data;
+        if (in.fail()) return std::nullopt;
+    }
+}
+
 std::string escape_field(std::string_view value) {
     std::string out;
     for (char ch : value) {
@@ -155,19 +172,8 @@ bool save_host_profile_catalog_file(
         if (size_ec || size > kMaxCatalogBytes) return false;
         std::ifstream existing(path, std::ios::binary);
         if (!existing) return false;
-        // The original code streamed rdbuf() into an unbounded ostringstream.
-        // Bounded read remains safe if another process grows the file after
-        // the size preflight and before the stream is opened.
-        std::string prior(static_cast<std::size_t>(kMaxCatalogBytes) + 1u, '\0');
-        existing.read(prior.data(), static_cast<std::streamsize>(prior.size()));
-        const auto count = existing.gcount();
-        if (count < 0 ||
-            static_cast<std::uintmax_t>(count) > kMaxCatalogBytes ||
-            (!existing.eof() && existing.fail())) {
-            return false;
-        }
-        prior.resize(static_cast<std::size_t>(count));
-        if (!decode_host_profile_catalog(prior)) return false;
+        const auto prior = read_bounded_catalog(existing);
+        if (!prior || !decode_host_profile_catalog(*prior)) return false;
     } else if (exists_ec) {
         return false;
     }
@@ -188,10 +194,9 @@ std::optional<std::vector<HostProfileCatalogEntry>> load_host_profile_catalog_fi
     std::error_code size_ec;
     const auto size = std::filesystem::file_size(path, size_ec);
     if (size_ec || size > kMaxCatalogBytes) return std::nullopt;
-    std::ostringstream data;
-    data << in.rdbuf();
-    if (!in.good() && !in.eof()) return std::nullopt;
-    return decode_host_profile_catalog(data.str());
+    const auto data = read_bounded_catalog(in);
+    if (!data) return std::nullopt;
+    return decode_host_profile_catalog(*data);
 }
 
 std::string make_profile_id(

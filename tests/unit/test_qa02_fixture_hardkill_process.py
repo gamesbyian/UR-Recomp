@@ -183,6 +183,46 @@ class FixtureHardkillProcessTests(unittest.TestCase):
             self.assertEqual(verified_dead.returncode, 0,
                              verified_dead.stderr)
 
+            # Stronger than std::_Exit: the OS test controller forcibly
+            # terminates an owner that is demonstrably still alive while
+            # holding the fixture lease. No destructor/normal release runs.
+            hard_root = root / "hard-killed-fixture-owner"
+            owner = subprocess.Popen(
+                [str(exe), "owner-hold", str(hard_root)], cwd=ROOT,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            try:
+                deadline = time.monotonic() + 12
+                marker = hard_root / "barrier" / "owner-live"
+                while not marker.exists():
+                    self.assertIsNone(
+                        owner.poll(), "owner died before acquiring live lease"
+                    )
+                    self.assertLess(time.monotonic(), deadline,
+                                    "live OS owner did not reach kill barrier")
+                    time.sleep(0.01)
+                self.assertIsNone(owner.poll())
+                owner.kill()  # SIGKILL / TerminateProcess, not a polite exit
+                owner.communicate(timeout=10)
+                self.assertNotEqual(owner.returncode, 0)
+            finally:
+                if owner.poll() is None:
+                    owner.kill()
+                    owner.communicate(timeout=5)
+            owner_data = hard_root / "multiplayer-runs"
+            self.assertEqual(len(list(owner_data.glob("*.urrun"))), 1)
+            recovered = subprocess.run(
+                [str(exe), "retry-owner-crash", str(hard_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(recovered.returncode, 0, recovered.stderr)
+            self.assertEqual(len(list(owner_data.glob("*.urrun"))), 2)
+            verified = subprocess.run(
+                [str(exe), "verify-c15", str(hard_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(verified.returncode, 0, verified.stderr)
+
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))
             self.assertEqual(len(pair_before), 1)

@@ -34,10 +34,12 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
 
     def test_pause_needs_all_three_real_witnesses(self):
         valid = ("UR_BALDOSA_NATIVE_PAUSE ARMED guest=120\n"
-                 "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=120 frozen_pumps=24\n"
-                 "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=120 new_guest=121 frozen_pumps=24\n")
+                 "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24\n"
+                 "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n")
         self.assertEqual(set(probe.check_pause_log(valid)),
                          {"ARMED", "RELEASED", "RESUMED"})
+        with self.assertRaisesRegex(ValueError, "live gameplay"):
+            probe.check_pause_log(valid.replace("live_race=1", "live_race=0"))
         with self.assertRaisesRegex(ValueError, "Missing"):
             probe.check_pause_log(valid.replace(" RESUMED ", " MISSING "))
         with self.assertRaisesRegex(ValueError, "too short"):

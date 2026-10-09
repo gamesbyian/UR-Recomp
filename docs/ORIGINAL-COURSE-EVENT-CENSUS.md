@@ -215,6 +215,30 @@ reconstruct its `_temp/dessyreqt-first-race-trace.jsonl`;
 the reduced evidence fixture is retained in the repository even after
 the workflow artifact expires.
 
+The retained `tools/verify_original_zoo_2014_reference_trace.py`
+reprocessor can re-read that exact **raw** zipped JSONL, verify the
+35MB source hash and **669,690** source records, reconstruct original
+postframe P1/P2 state from changed bytes, and reproduce **all five**
+checkpoint/gate/lap intervals, preceding/succeeding stored P1 contact
+words, raw stopwatch bytes and the exact intra-frame progression write
+order. It refuses a modified full source, missing sampled frames, or
+changed reference event values. Example after downloading the
+historical run artifact:
+
+```sh
+python3 tools/verify_original_zoo_2014_reference_trace.py \
+  --artifact-zip /path/to/dessyreqt-4250-first-race-replay.zip \
+  --json-out /tmp/original-zoo-wram-witness.json
+python3 -m unittest discover -s tests/unit \
+  -p 'test_verify_original_zoo_2014_reference_trace.py'
+```
+
+The latter tests source parser behavior with synthetic WRAM writes;
+they do not claim a fresh original emulator execution. The full
+artifact SHA-verified reconstruction is a separate, reproducible
+confirmation of the original run already executed in 2014-movie
+workflow `37184022134`.
+
 ## Non-Dragster counterexample priorities
 
 1. **Zoom Zoo, USA circuit A (02):** historical hand-entered start X

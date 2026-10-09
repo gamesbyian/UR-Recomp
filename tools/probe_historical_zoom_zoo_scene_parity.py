@@ -39,9 +39,20 @@ ORIGINAL_ANCHOR_SAMPLES = (
     128, 210, 256, 384, 512, 610, 768, 1010, 1024,
     1280, 1410, 1536, 1800,
 )
-DENSE_CONTACT_WINDOWS = ((190, 230), (590, 630))  # inclusive guest-relative frames
+DENSE_CONTACT_WINDOWS = ((190, 230), (590, 630))  # old near-cell tests
+# Independent ORIGINAL Snes9x WRAM trace from run 37184022134:
+# P1 checkpoint/gate/lap writes at 3408, 3794, 4031, 4722, 4911,
+# with course scene entry at 3190. First two are already inside the
+# original contact windows above. These extra windows cover the
+# previously unsampled original events including second lap decrement.
+ORIGINAL_PROGRESSION_WRITE_FRAMES = (3408, 3794, 4031, 4722, 4911)
+ORIGINAL_PROGRESSION_RELATIVE_FRAMES = tuple(
+    frame - ORIGINAL_MOVIE_START for frame in ORIGINAL_PROGRESSION_WRITE_FRAMES
+)
+ADDITIONAL_EVENT_WINDOWS = ((833, 849), (1524, 1540), (1713, 1729))
 EXTRA_SAMPLES = tuple(sorted(set(ORIGINAL_ANCHOR_SAMPLES).union(
-    *(range(first, last + 1) for first, last in DENSE_CONTACT_WINDOWS)
+    *(range(first, last + 1) for first, last in
+      (*DENSE_CONTACT_WINDOWS, *ADDITIONAL_EVENT_WINDOWS))
 )))
 CHECKPOINTS = (*entry.SAMPLES, *EXTRA_SAMPLES)
 
@@ -268,6 +279,8 @@ def main() -> int:
         "guest_entry_offset": nf - rf,
         "relative_checkpoints": list(CHECKPOINTS),
         "dense_contact_windows": [list(w) for w in DENSE_CONTACT_WINDOWS],
+        "original_snes9x_source_event_frames": list(ORIGINAL_PROGRESSION_WRITE_FRAMES),
+        "additional_dense_event_windows": [list(w) for w in ADDITIONAL_EVENT_WINDOWS],
         "observation_count": len(CHECKPOINTS),
         "first_divergence": first,
         "event_state_diagnostics": event_diagnostics,

@@ -9,18 +9,18 @@ shipping acceptance.
 
 The pinned SNESRecomp PPU exposes real isolated source pixels for **one exact
 OAM slot** through its existing overlay capture API. The 342-wide coordinate
-space spans SNES X \`[-43, 299)\`, centered in a physical 342×224 RGB-alpha
-diagnostic raster. With \`PpuSetOverlayCapture(..., flags=0)\`, the OBJ slot is
+space spans SNES X `[-43, 299)`, centered in a physical 342×224 RGB-alpha
+diagnostic raster. With `PpuSetOverlayCapture(..., flags=0)`, the OBJ slot is
 *also rendered normally* into Original main/subscreen. **RemoveFromGame is
 never armed by this wide probe; authored art remains gated off at width 342.**
 
-Native QA can set \`UR_RACER_HD_WIDE_SOURCE_SLOT=96|97|98|99\`,
-\`UR_RACER_HD_WIDE_SOURCE_FRAME=1856\` and
-\`UR_RACER_HD_WIDE_SOURCE_DIR=<existing folder>\` on four separately
+Native QA can set `UR_RACER_HD_WIDE_SOURCE_SLOT=96|97|98|99`,
+`UR_RACER_HD_WIDE_SOURCE_FRAME=1856` and
+`UR_RACER_HD_WIDE_SOURCE_DIR=<existing folder>` on four separately
 executed identical deterministic 2P routes. Each process emits
-\`ur-baldosa-ws342-obj-slotNN-frame001856.pam\` with exact isolated hardware
+`ur-baldosa-ws342-obj-slotNN-frame001856.pam` with exact isolated hardware
 slot alpha, native bbox and split-band source counts. Native artifact/report
-\`ws342_obj_slot_NN.json\` preserves the image SHA256 and rejects *any*
+`ws342_obj_slot_NN.json` preserves the image SHA256 and rejects *any*
 difference between the entire probed and uninstrumented 342×224 Original
 raster on shared guest frames, in addition to the independent guest CRC gate.
 An empty isolated source slot is valid evidence that the PPU emitted no pixels

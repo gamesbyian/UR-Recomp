@@ -77,6 +77,23 @@ inline bool sync_staged_file(std::FILE* file) {
 #endif
 }
 
+// Existing codec writers close std::ofstream before returning, so they
+// cannot pass their original FILE handle to sync_staged_file. Reopen only
+// the private, already closed staged file with write access and require an
+// OS durability request BEFORE claiming any public immutable filename.
+// On Windows, preserve native Unicode path support with _wfopen.
+inline bool sync_closed_staged_file(const std::filesystem::path& staged) {
+#if defined(_WIN32)
+    std::FILE* file = _wfopen(staged.c_str(), L"rb+");
+#else
+    std::FILE* file = std::fopen(staged.c_str(), "rb+");
+#endif
+    if (!file) return false;
+    const bool synced = sync_staged_file(file);
+    const bool closed = std::fclose(file) == 0;
+    return synced && closed;
+}
+
 inline void sync_published_directory_best_effort(
     const std::filesystem::path& parent) {
 #if !defined(_WIN32)

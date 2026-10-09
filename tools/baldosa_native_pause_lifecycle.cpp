@@ -122,7 +122,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
         require(snesrecomp_desktop_product_is_paused() != 0,
                 "host_not_actually_paused");
         std::fprintf(stderr,
-            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u\n",
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=%u live_race=%u modern_session=1\n",
             g_guest_frame, live_race ? 1U : 0U);
         std::fflush(stderr);
     }

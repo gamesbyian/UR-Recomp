@@ -91,6 +91,8 @@ def check_pause_log(log: str) -> dict[str, str]:
         raise ValueError(f"Missing native pause lifecycle proof: {found}")
     if "live_race=1" not in found["ARMED"]:
         raise ValueError("Native pause was not triggered in authoritative live gameplay")
+    if "modern_session=1" not in found["ARMED"]:
+        raise ValueError("Native pause did not use the acknowledged Modern session API")
     if "frozen_pumps=24" not in found["RELEASED"] or "frozen_pumps=24" not in found["RESUMED"]:
         raise ValueError(f"Guest hold too short: {found}")
     if "FAIL=" in log:
@@ -140,6 +142,7 @@ def main() -> int:
         "guest_frames": len(original),
         "per_frame_wram_crc_identical": True,
         "native_pause": proof,
+        "modern_lifecycle_abi_exercised": True,
         "course_complete_credit": 0,
         "modern_frontend_connected": False,
         "packaged_windows_product": False,

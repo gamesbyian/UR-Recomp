@@ -1,4 +1,5 @@
 #include "local_tournament_session_coordinator.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <algorithm>
 #include <filesystem>
@@ -334,17 +335,38 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
         return Status::InvalidRequest;
     }
     const auto pending = *session.launch.pending;
-    if (commit_saved_local_tournament_fixture(
-            receipts_directory(session), session.paths.multiplayer_runs_directory,
-            already_published_run_path, session.definition.instance_id,
-            live_capture_attempt_id, session.launch, session.results) !=
-        LocalTournamentResultLinkStatus::Committed) {
-        return Status::EvidenceRejected;
+    const auto checkpoint = pending_path(session);
+    {
+        // An independent window may already have replaced this fixture's
+        // checkpoint with a newer attempt. A memory-only attempt token is NOT
+        // durable authorization to credit a saved match. Hold the same
+        // per-path OS mutex used by launch save/retire until the immutable
+        // receipt claim is complete, so no cooperative writer can supersede
+        // our attempt between validation and awarding points.
+        TournamentLaunchPathLock lock(checkpoint);
+        if (!lock.acquired()) return Status::StorageFailed;
+        const auto on_disk = load_local_tournament_launch_file(
+            checkpoint, session.results, session.definition.instance_id);
+        if (on_disk.status == LocalTournamentLaunchFileStatus::IoError) {
+            return Status::StorageFailed;
+        }
+        if (!on_disk.loaded() ||
+            encode_local_tournament_pending_fixture(*on_disk.pending) !=
+                encode_local_tournament_pending_fixture(pending)) {
+            return Status::EvidenceRejected;
+        }
+        if (commit_saved_local_tournament_fixture(
+                receipts_directory(session),
+                session.paths.multiplayer_runs_directory,
+                already_published_run_path, session.definition.instance_id,
+                live_capture_attempt_id, session.launch, session.results) !=
+            LocalTournamentResultLinkStatus::Committed) {
+            return Status::EvidenceRejected;
+        }
     }
-    // The receipt is durable and authoritative now. Retirement failures can
-    // leave an inert old checkpoint, but never roll back or duplicate points.
-    (void)retire_local_tournament_launch_file(
-        pending_path(session), pending);
+    // The durable receipt is now the authority. Retirement acquires the
+    // same mutex separately; an intervening newer attempt cannot be unlinked.
+    (void)retire_local_tournament_launch_file(checkpoint, pending);
     return Status::Committed;
 }
 

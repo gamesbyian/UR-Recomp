@@ -18,6 +18,9 @@ def row(frame: int, *, checkpoint=3, gate=0, laps=1, word=0x2024,
         "p1_next_checkpoint": checkpoint, "p1_finish_gate": gate,
         "p1_laps_remaining": laps, "p1_stored_contact": word,
         "p1_boost": boost,
+        "timer_minutes_raw": 0, "timer_tens_raw": 0,
+        "timer_seconds_raw": 0, "timer_tenths_raw": 0,
+        "timer_subtick_raw": 0,
     }
 
 
@@ -87,6 +90,49 @@ class ZooSceneTransitionEvidenceTests(unittest.TestCase):
         self.assertEqual(output["first_stored_contact_disagreement"]["reference"],
                          {"p1_stored_contact": 0x2020})
         self.assertEqual(output["first_boost_disagreement"]["relative_frame"], 1)
+
+    def test_original_horizontal_onset_and_first_clock_tick_are_distinct(self):
+        original = [
+            row(0, x=9200),
+            row(190, x=9200),
+            row(204, x=9200),
+            row(205, x=9185),
+            dict(row(206, x=9169), timer_subtick_raw=1),
+            dict(row(207, x=9149), timer_subtick_raw=2),
+        ]
+        phase = report.observed_start_phase(original)
+        self.assertEqual(phase["first_p1_x_change_interval"], [204, 205])
+        self.assertEqual(phase["first_nonzero_timer_interval"], [205, 206])
+        self.assertEqual(phase["initial_active_frame"], 0)
+        self.assertIn("NOT first vertical motion", phase["qualifier"])
+        reference = original
+        native = [dict(x) for x in original]
+        native[4]["timer_subtick_raw"] = 0
+        native[4]["p1_x"] = 9169  # same movement despite delayed timer
+        parity = report.paired_event_diagnostics(reference, native)
+        self.assertIsNone(parity["first_progression_state_disagreement"])
+        self.assertIsNone(parity["first_stored_contact_disagreement"])
+        self.assertEqual(parity["first_stopwatch_disagreement"]["relative_frame"], 206)
+        self.assertEqual(
+            parity["first_stopwatch_disagreement"]["fields"], ["timer_subtick_raw"]
+        )
+        self.assertEqual(
+            parity["reference_start_phase"]["first_nonzero_timer_interval"], [205, 206]
+        )
+        self.assertEqual(
+            parity["native_start_phase"]["first_nonzero_timer_interval"], [206, 207]
+        )
+
+    def test_start_phase_denies_non_byte_clock_and_nonchronological_frames(self):
+        with self.assertRaisesRegex(report.EventEvidenceError, "empty"):
+            report.observed_start_phase([])
+        bad = dict(row(0), timer_subtick_raw=256)
+        with self.assertRaisesRegex(report.EventEvidenceError, "byte range"):
+            report.observed_start_phase([bad])
+        with self.assertRaisesRegex(report.EventEvidenceError, "chronological"):
+            report.observed_start_phase([row(1), row(1)])
+        exit_row = row(0, active=0)
+        self.assertIsNone(report.observed_start_phase([exit_row])["initial_active_frame"])
 
     def test_invalid_samples_and_contact_words_rejected(self):
         with self.assertRaisesRegex(report.EventEvidenceError, "empty"):

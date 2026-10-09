@@ -141,6 +141,8 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
             self.assertEqual(row["p1_stored_contact"], 0x2024)
             self.assertEqual(row["p1_next_checkpoint"], 3)
             self.assertEqual(row["p1_laps_remaining"], 1)
+            self.assertEqual(row["timer_minutes_raw"], 0)
+            self.assertEqual(row["timer_subtick_raw"], 0)
             buf[0x00CE] = 2
             path.write_bytes(buf)
             with self.assertRaisesRegex(probe.SceneReplayError, "wrong track"):

@@ -38,6 +38,30 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
         )
         self.assertEqual(len(window["relative_input_segments"]), 116)
 
+    def test_runtime_rejects_spoofed_original_smv_with_same_uid(self):
+        import json
+        import extract_historical_smv_scene_window as archive
+        source, member = archive.read_movie(archive.ARCHIVE)
+        meta = json.loads(archive.METADATA.read_text(encoding="utf-8"))
+        self.assertEqual(member, "100% run.smv")
+        verified = probe.verified_archived_scene_input(source, meta)
+        self.assertEqual(verified["movie_frame_range"], [3190, 5000])
+        self.assertEqual(verified["frames"], 1811)
+        # An attacker or accidental local file edit can keep original
+        # header UID/ROM CRC/sample count while changing guest controls.
+        edited = bytearray(source)
+        offset = meta["controller_data_offset"] + 2 * 3190
+        edited[offset] ^= 0x10
+        with self.assertRaisesRegex(probe.SceneReplayError, "differs from pinned"):
+            probe.verified_archived_scene_input(bytes(edited), meta)
+        # A mutation past the source prefix affects only archival frame
+        # 5000, beyond the final observed +1800 checkpoint; the declared
+        # integrity guarantee is intentionally not overstated.
+        outside = bytearray(source)
+        outside[meta["controller_data_offset"] + 2 * 5000] ^= 0x10
+        last = probe.verified_archived_scene_input(bytes(outside), meta)
+        self.assertEqual(last["frames"], 1811)
+
     def test_exact_event_rebasing_includes_phase_hypothesis(self):
         source = segment_report()
         self.assertEqual(probe.movie_events(source, 1200, 0), [

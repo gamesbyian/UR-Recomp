@@ -149,3 +149,26 @@ gameplay defect: scene phase, SRAM identity and input origin must first
 be adjudicated. ROM-free regression tests cover identical early exits,
 wrong resident course bytes and the authorized cursor exception.
 
+
+## Original 2014 controller-byte provenance gate (2026-10-09)
+
+A valid-looking SMV UID, NTSC flag, sample count and ROM CRC can survive
+modification of its *controller bytes*. That would let both guest engines
+faithfully reproduce a **different** sequence while a report mislabeled it
+as preserved expert play. The full paired runner now rejects this false
+archival claim **before starting either emulator** by comparing the exact
+raw input bytes for source frames **3190..4999** against the independently
+pinned SHA-256
+`e77f10e4d652dfb2ed9afcf4c252e3e9f14e551a30edbbaa2a69ec50996f90b6`.
+The existing 1,811-sample archive window remains available for report/input
+chronology; its final sample at original frame 5000 lies **after** the
+last compared guest checkpoint (+1800, source frame 4990). That final
+unused byte is not silently described as pinned source evidence.
+
+Unit tests mutate an otherwise valid SMV's controller byte while leaving
+its header intact and prove the paired runner refuses it. The exact
+original archive requirement is independent of `--require-original-sram`:
+the latter controls how closely the fresh-run initial conditions match
+the historic 2014 movie, while the SHA controls whether the source
+**input intervention** is actually authentic.
+

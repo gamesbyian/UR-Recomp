@@ -28,6 +28,8 @@ from probe_runtime_course_payload import is_fully_loaded_course
 ROOT = Path(__file__).resolve().parents[1]
 ORIGINAL_MOVIE_START = 3190
 ORIGINAL_WINDOW_FRAMES = 1811  # 3190..5000, both endpoints included.
+PINNED_INPUT_FRAMES = 1810  # 3190..4999; includes every observed guest input frame.
+PINNED_INPUT_SHA256 = "e77f10e4d652dfb2ed9afcf4c252e3e9f14e551a30edbbaa2a69ec50996f90b6"
 # Movie-frame 3400/3800 (+210/+610 relative to the 3190 scene
 # anchor) have the nearest *sampled* original Zoom Zoo rider positions
 # to ROM candidate 0x24 cells: 91 and 54 world-X units respectively.
@@ -45,6 +47,27 @@ CHECKPOINTS = (*entry.SAMPLES, *EXTRA_SAMPLES)
 
 class SceneReplayError(ValueError):
     pass
+
+
+def verified_archived_scene_input(data: bytes, metadata: dict) -> dict:
+    """Reject modified 2014 controller samples even with a copied valid UID.
+
+    The 1,810-source-frame SHA covers original frames 3190..4999; this
+    includes the last compared checkpoint at +1800. The returned 1,811
+    sample window retains existing archival chronology/report compatibility.
+    The extra final input sample 5000 is after the last compared checkpoint
+    and is not evidence of state parity at that frame.
+    """
+    prefix = movie.window(
+        data, metadata, ORIGINAL_MOVIE_START, PINNED_INPUT_FRAMES
+    )
+    actual = prefix["raw_controller_window_sha256"]
+    if actual != PINNED_INPUT_SHA256:
+        raise SceneReplayError(
+            "archived Zoo controller input differs from pinned 2014 SMV "
+            f"window: expected {PINNED_INPUT_SHA256}, got {actual}"
+        )
+    return movie.window(data, metadata, ORIGINAL_MOVIE_START, ORIGINAL_WINDOW_FRAMES)
 
 
 def replay_script() -> str:
@@ -193,7 +216,7 @@ def main() -> int:
         json.loads(anchor.REPLAY.read_text(encoding="utf-8"))
     )
     source, _ = movie.read_movie(movie.ARCHIVE)
-    window_report = movie.window(source, meta, ORIGINAL_MOVIE_START, ORIGINAL_WINDOW_FRAMES)
+    window_report = verified_archived_scene_input(source, meta)
     source_sram_equal = sha256_file(args.sram) == meta.get("emitted_sram_sha256")
     if args.require_original_sram and not source_sram_equal:
         ap.error("supplied SRAM differs from recorded movie's original 8 KiB SRAM")
@@ -235,6 +258,7 @@ def main() -> int:
         "native_executable_sha256": sha256_file(args.native),
         "run_sram_sha256": sha256_file(args.sram),
         "movie_embedded_sram_8k_matches_run": source_sram_equal,
+        "pinned_original_input_1810_sha256": PINNED_INPUT_SHA256,
         "archived_input_window_sha256": window_report["raw_controller_window_sha256"],
         "archived_frame_range": window_report["movie_frame_range"],
         "scene_input_phase_hypothesis": args.phase,

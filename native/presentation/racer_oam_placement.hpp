@@ -193,6 +193,14 @@ constexpr bool racer_hd_full_pair_preserves_split_objs(
     if (obsel != 0x83 || (oamaddh & 0x80) != 0 ||
         p1_top.slot != 98 || p2_top.slot != 99 ||
         p1_bottom.slot != 97 || p2_bottom.slot != 96 ||
+        // The OAM range is destructive: without racer tile provenance a
+        // stale composition word or alternate scene could remove unrelated
+        // OBJ before the HD host tries to substitute. The same bank/tile
+        // family is already mandatory for diagnostic P1-only admission.
+        (p1_top.tile != 0x00 && p1_top.tile != 0x08) ||
+        (p1_bottom.tile != 0x00 && p1_bottom.tile != 0x08) ||
+        (p2_top.tile != 0x80 && p2_top.tile != 0x88) ||
+        (p2_bottom.tile != 0x80 && p2_bottom.tile != 0x88) ||
         (p1_top.attr & 0x30) != (p2_top.attr & 0x30) ||
         (p1_bottom.attr & 0x30) != (p2_bottom.attr & 0x30)) {
         return false;

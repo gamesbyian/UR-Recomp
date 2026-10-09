@@ -378,6 +378,29 @@ int main() {
     assert(!racer_hd_full_pair_preserves_split_objs(
         full_p1_top, full_p2_top, full_p1_bottom, full_p2_bottom,
         0x00, 0x00));  // Other OBJ size/alias modes unproven.
+    // Correct shape and priority do not authorize destructive OBJ removal
+    // when a slot's tile bank no longer belongs to its racer. Keep the
+    // inactive small OAM aliases and original graphical object unchanged.
+    full_p1_top.tile = 0x09;
+    assert(!pair_safe());
+    full_p1_top.tile = 0x08;
+    assert(pair_safe());
+    full_p1_bottom.tile = 0x80;
+    assert(!pair_safe());
+    full_p1_bottom.tile = 0x00;
+    assert(pair_safe());
+    full_p2_top.tile = 0x00;
+    assert(!pair_safe());
+    full_p2_top.tile = 0x80;
+    assert(pair_safe());
+    full_p2_bottom.tile = 0x89;
+    assert(!pair_safe());
+    full_p2_bottom.tile = 0x88;
+    assert(pair_safe());
+    full_p1_top.tile = 0x00;
+    full_p2_top.tile = 0x88;
+    assert(pair_safe());
+
     full_p1_top.x_signed = -1;
     assert(!pair_safe());  // Malformed active-large split placement.
     return 0;

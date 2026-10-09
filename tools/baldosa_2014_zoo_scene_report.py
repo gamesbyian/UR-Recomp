@@ -103,10 +103,14 @@ def main() -> int:
     p.add_argument("--original", type=Path, required=True)
     p.add_argument("--native", type=Path, required=True)
     p.add_argument("--source-report", type=Path, required=True)
-    p.add_argument("--out", type=Path, required=True)\n    p.add_argument("--calibration-report", type=Path)
+    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--calibration-report", type=Path)
     args = p.parse_args()
     meta = json.loads(args.source_report.read_text(encoding="utf-8"))
-    r = analyze(args.original, args.native, meta)\n    if args.calibration_report:\n        r["calibrated_movie_input"] = json.loads(\n            args.calibration_report.read_text(encoding="utf-8"))
+    r = analyze(args.original, args.native, meta)
+    if args.calibration_report:
+        r["calibrated_movie_input"] = json.loads(
+            args.calibration_report.read_text(encoding="utf-8"))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(r, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: r[key] for key in (
@@ -114,7 +118,8 @@ def main() -> int:
         "original_reached_stable_circuit_result_state",
         "baldosa_reached_stable_circuit_result_state",
         "paired_result_state_candidate",
-        "first_semantic_difference",\n        "raw_wram_exact_matched_count",
+        "first_semantic_difference",
+        "raw_wram_exact_matched_count",
         "complete_event_qa_credit")}))
     return 0 if r["original_and_baldosa_entered_zoo"] else 1
 

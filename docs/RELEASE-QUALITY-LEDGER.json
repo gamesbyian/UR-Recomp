@@ -54,14 +54,15 @@
       "status": "in_progress",
       "candidate_commit": null,
       "evidence_refs": [
-        "docs/COMPLETED-RUN-RECORDS.md"
+        "docs/COMPLETED-RUN-RECORDS.md",
+        "docs/QA02-STAGED-WRITE-DURABILITY.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Review and integrate #993 match pair no-replace/close-time disk fault and #996 profile exact-state CAS. Obtain exact packaged Windows dual-process crash/upgrade/storage-fault J-02/J-07/J-08 witness plus `.srm`+profile, run/ghost/fixture receipt and catalog recovery.",
+      "next_action": "Finish #996 exact-profile CAS and its stacked #1003 roster/conditional-delete integration; verify #1009 active tournament CAS. Run a pinned packaged Windows two-instance J-02/J-07/J-08 across genuine .srm/profile, run/ghost/match/fixture/pending crash windows, disk faults, interrupted upgrades and power-loss restoration.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -73,9 +74,12 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/991",
         "https://github.com/gamesbyian/UR-Recomp/pull/993",
         "https://github.com/gamesbyian/UR-Recomp/pull/995",
-        "https://github.com/gamesbyian/UR-Recomp/pull/996"
+        "https://github.com/gamesbyian/UR-Recomp/pull/996",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1003",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1005",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1009"
       ],
-      "remaining_release_risk": "Merged #991 isolated host/profile/catalog staging and #995 bounded corrupt catalog load/pre-save recovery read. Proposed #993 atomically claims match/run pairs without replacement and checks sidecar close-time disk errors; its process/crash regression passed focused Linux multiplayer tests. Proposed #996 compares exact profile state under OS lock, including authorized conditional rollback; fresh-process race tests await acceptance. Earlier #982/#984/#985 tournament protections are local to their stores. No power-loss fsync guarantee, cross-file `.srm`+profile/run/ghost/receipt transaction, concurrent catalog/session lost-update arbitration, interrupted upgrade witness or packaged Windows two-process L4 proof. QA-02 remains P0 in_progress."
+      "remaining_release_risk": "Merged #991 host/private staging, #993 no-replace run+match pair and sidecar disk-close checks, #995 bounded corrupt catalog loading, and #1005 staged file-content fsync/FlushFileBuffers. Earlier #982/#984/#985 tournament receipt/launch fixes are store-local. Pending #996 profile exact-state CAS, stacked #1003 catalog roster CAS plus conditional deletion, and #1009 active-session CAS. Focused Linux checks do not establish power-loss or Windows dual-game L4; no atomic commit across .srm+profile+catalog or run+ghost+match+fixture+launch, no complete interrupted upgrade restore, and no accepted packaged Windows J-02/J-07/J-08 witness. Directory sync after published commit is best-effort under current bool API. P0 remains in_progress."
     },
     {
       "id": "QA-03",

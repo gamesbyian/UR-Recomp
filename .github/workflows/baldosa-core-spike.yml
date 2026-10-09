@@ -140,6 +140,39 @@ jobs:
             exit 1
           fi
 
+      - name: Attach UR-Recomp's actual racer-state reader to Baldosa
+        if: always()
+        shell: bash
+        env:
+          SDL_AUDIODRIVER: dummy
+          PIXELS: "0"
+          KEEP_WRAM: "0"
+          TMO: "45"
+        run: |
+          set -euo pipefail
+          test -x baldosa/build/UniracersSNESRecomp
+          test -s "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt"
+          python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          export DISPLAY=:99
+          export BIN="$RUNNER_TEMP/baldosa-x11-exec"
+          # Earlier route step owns Xvfb; all steps share the same job process space.
+          test -x "$BIN"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge"
+          grep -q 'UR_BALDOSA_GUEST_SNAPSHOT frame=' \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/log.txt"
+          # The observer must not change guest WRAM on ANY of the route's frames.
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/fd/crc.txt"
+          echo "PASS: UR-Recomp racer guest-state adapter linked and 2P WRAM CRC is identical frame-by-frame" >> "$GITHUB_STEP_SUMMARY"
+          tail -n 8 "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_bridge/log.txt"
+
       - name: Summarize executable evidence
         if: always()
         shell: bash

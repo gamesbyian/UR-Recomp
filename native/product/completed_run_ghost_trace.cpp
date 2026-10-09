@@ -1,5 +1,6 @@
 #include "completed_run_ghost_trace.hpp"
 #include "local_tournament_atomic_replace.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 
 #include <atomic>
 #include <chrono>
@@ -398,6 +399,38 @@ bool save_completed_run_ghost_trace_file(
     if (ec) {
         set_detail(detail, "cannot inspect ghost trace destination");
         return false;
+    }
+
+    // Ghost traces are replaceable only within a schema this build knows.
+    // A downgraded client must not erase a newer canonical trace simply
+    // because it cannot decode its schema. Hold the same persistent OS
+    // pathname mutex across inspection and publication to fence cooperating
+    // clients against a check/replace race.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) {
+        set_detail(detail, "cannot lock ghost trace destination");
+        return false;
+    }
+    ec.clear();
+    const bool exists_after_lock = fs::exists(final_path, ec);
+    if (ec) {
+        set_detail(detail, "cannot recheck ghost trace destination");
+        return false;
+    }
+    if (exists_after_lock) {
+        if (!fs::is_regular_file(final_path, ec) || ec) {
+            set_detail(detail, "ghost trace destination is not a regular file");
+            return false;
+        }
+        const auto incumbent = load_completed_run_ghost_trace_file(path);
+        if (incumbent.status ==
+            CompletedRunGhostTraceLoadStatus::UnsupportedVersion) {
+            set_detail(detail, "refusing to replace future ghost trace schema");
+            return false;
+        }
+        // A same-version trace remains replaceable for genuine repairs.
+        // Invalid old traces are not allowed to acquire result authority;
+        // only the new validated checksum-bound trace can become visible.
     }
 
     // Never expose a half-written .urghost to a second game process. Keep

@@ -167,6 +167,23 @@ remains intrinsically uninformative.
 | 4722 | 11852, 1073 | 3→0 | 0 | 3 | `0F20` (200) → `0F20` (200) |
 | 4911 | 8961, 1568 | 0→1 | 0→1 | **3→2** | `0306` (195) → `2304` (194) |
 
+At the first observed lap-counter decrement, the original timer bytes
+`0E0F/0E13/0E17/0E1B/0E1F` read `0/0/0/2/1`,
+approximately **0.2 seconds** elapsed. At the second decrement they
+read `0/2/5/2/4`, approximately **25.2 seconds**. Thus the first
+`4→3` is an initial start-line crossing shortly after the start,
+not evidence of a completed 25-second lap; the 1,503 guest frames
+between the two observed decrements provide the stronger bounded
+original circuit traversal. Intermediate checkpoint changes have
+their raw stopwatch bytes retained in the fixture for timing or
+region-cadence comparisons.
+
+The Snes9x trace records **low WRAM 7E writes only**. It does not
+dump or verify the full resident `7F:0000` course decompression
+buffer. ROM-static resource-0x24 slot membership is a separate
+evidence source, and same-frame original live C000/handler execution
+remains to be observed before attributing geometry causally.
+
 The Snes9x trace records the **direct writes** to `0EF1`
 (laps), `1199` (checkpoint), and `119D` (finish gate) in
 those same frames. The second observed lap decrement is **1,503

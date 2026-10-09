@@ -32,6 +32,7 @@ LOW_WRAM = {
     0x0E0F, 0x0E13, 0x0E17, 0x0E1B, 0x0E1F,  # original timer digits
 }
 PROGRESS_ADDRESSES = {0x0EF1, 0x1199, 0x119D}
+EVENT_WRITE_ADDRESSES = PROGRESS_ADDRESSES | {0x0E95}
 EVENT_FRAMES = (3408, 3794, 4031, 4722, 4911)
 TARGETS = frozenset({3190, 3394, 3395, 3396, *EVENT_FRAMES,
                      *(f - 1 for f in EVENT_FRAMES)})
@@ -67,9 +68,11 @@ def reconstruct(lines, targets: frozenset[int] = TARGETS) -> dict:
     state: dict[int, int] = {}
     snapshots: dict[int, dict] = {}
     writes: dict[int, list[dict]] = {}
+    within_frame_event_writes: dict[int, list[dict]] = {}
     digest = hashlib.sha256()
     frame = None
     count = 0
+    write_in_frame = 0
 
     def finish_frame(previous: int, next_frame: int) -> None:
         # Capture frames that have no writes as settled WRAM state too.
@@ -87,12 +90,20 @@ def reconstruct(lines, targets: frozenset[int] = TARGETS) -> dict:
             raise TraceWitnessError("Snes9x WRAM frames are not monotonic")
         if frame is not None and current != frame:
             finish_frame(frame, current)
+            write_in_frame = 0
         frame = current
         count += 1
         address = int(rec["adr"], 16)
         before, after = int(rec["old"], 16), int(rec["val"], 16)
         if address in LOW_WRAM:
             state[address] = after
+        if current in EVENT_FRAMES and address in EVENT_WRITE_ADDRESSES:
+            within_frame_event_writes.setdefault(current, []).append({
+                "zero_based_write_index_in_frame": write_in_frame,
+                "wram_offset_hex": f"{address:04X}",
+                "old": before, "new": after,
+            })
+        write_in_frame += 1
         if (current in targets and address in PROGRESS_ADDRESSES
                 and before != after):
             writes.setdefault(current, []).append({
@@ -110,6 +121,7 @@ def reconstruct(lines, targets: frozenset[int] = TARGETS) -> dict:
         "last_written_frame": frame,
         "samples": snapshots,
         "direct_progress_writes": writes,
+        "within_frame_event_write_sequence": within_frame_event_writes,
     }
 
 
@@ -179,6 +191,8 @@ def verify(extracted: dict, witness: dict) -> dict:
             raise TraceWitnessError(f"original timer at {f} changed")
         if extracted["direct_progress_writes"].get(f, []) != row["observed_original_progress_writes"]:
             raise TraceWitnessError(f"original direct WRAM progress write order at {f} changed")
+        if extracted["within_frame_event_write_sequence"].get(f, []) != row["original_lowwram_write_sequence"]:
+            raise TraceWitnessError(f"original P1-contact/progression within-frame write order at {f} changed")
         audited.append(f)
     return {
         "qualified_original_write_trace": True,

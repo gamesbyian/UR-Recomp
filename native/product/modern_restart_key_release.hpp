@@ -23,8 +23,13 @@ constexpr ModernRestartKeyFilterResult modern_restart_key_filter(
     bool physical_return_held,
     std::uint32_t inputs) noexcept {
     if (!state.awaiting_return_release) return {state, inputs};
-    if (!physical_return_held) return {{false}, inputs};
-    return {state, inputs & ~std::uint32_t{0x1000u}};
+    // After SDL reports key-up, the framework's mapped word can still
+    // contain the old Start level. Require both physical release AND a
+    // sampled zero Start bit before permitting a subsequent new press.
+    constexpr std::uint32_t kStart = 0x1000u;
+    if (!physical_return_held && !(inputs & kStart))
+        return {{false}, inputs};
+    return {state, inputs & ~kStart};
 }
 
 }  // namespace ur::product

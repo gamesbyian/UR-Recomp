@@ -416,12 +416,19 @@ LocalTournamentCoordinatorStatus commit_local_tournament_capture(
                 encode_local_tournament_pending_fixture(pending)) {
             return Status::EvidenceRejected;
         }
-        if (commit_saved_local_tournament_fixture(
-                receipts_directory(session),
-                session.paths.multiplayer_runs_directory,
-                already_published_run_path, session.definition.instance_id,
-                live_capture_attempt_id, session.launch, session.results) !=
-            LocalTournamentResultLinkStatus::Committed) {
+        const auto receipt_status = commit_saved_local_tournament_fixture(
+            receipts_directory(session),
+            session.paths.multiplayer_runs_directory,
+            already_published_run_path, session.definition.instance_id,
+            live_capture_attempt_id, session.launch, session.results);
+        if (receipt_status == LocalTournamentResultLinkStatus::IoError) {
+            // C16: write-path I/O failure is recoverable without inventing
+            // standings. Keep the live lease and exact pending attempt for a
+            // deliberate retry once storage is available; retain the saved
+            // ordinary Records pair untouched.
+            return Status::StorageFailed;
+        }
+        if (receipt_status != LocalTournamentResultLinkStatus::Committed) {
             return Status::EvidenceRejected;
         }
     }

@@ -2,6 +2,7 @@
 // Every invocation is an independent OS process; no global game state is
 // carried across launch. Only canonical files on disk authorize standings.
 #include "local_tournament_session_coordinator.hpp"
+#include "local_tournament_launch_path_lock.hpp"
 #include "local_multiplayer_match_binding.hpp"
 #include "multiplayer_match_record.hpp"
 #include "completed_run_store.hpp"
@@ -443,6 +444,74 @@ int main(int argc, char** argv) {
                 history.completed[0].definition.instance_id == kInstance,
                 "QA03 predecessor remains in Records after event replacement");
         std::puts("QA03_REPLACED_WITH_COMPLETED_HISTORY_PRESERVED");
+        return 0;
+    }
+
+    if (action == "c16-receipt-storage-owner") {
+        std::error_code ec;
+        fs::create_directories(layout.multiplayer_runs_directory, ec);
+        require(!ec, "C16 records directory");
+        fs::create_directories(root / "barrier", ec);
+        require(!ec, "C16 process barrier");
+        const auto created = create_local_tournament_coordinator(
+            layout, kInstance, {"alpha", "beta", "gamma"}, catalog(),
+            {"course:01", "course:04"});
+        require(created.usable(), "C16 real tournament created");
+        auto session = *created.session;
+        arm_first(session, kAttemptOld);
+        const auto saved = publish_real_pair(session, 0x080);
+        require(fs::exists(saved) && fs::exists(saved + ".urmatch"),
+                "C16 legitimate run/match pair exists before failure");
+        const auto receipts =
+            root / "local-tournaments" / kInstance / "fixtures";
+        const auto offline =
+            root / "local-tournaments" / kInstance / "fixtures-offline";
+        fs::rename(receipts, offline, ec);
+        require(!ec, "C16 simulate receipt storage disappearance");
+        const auto failed = commit_local_tournament_capture(
+            session, kAttemptOld, saved);
+        require(failed == Status::StorageFailed &&
+                session.launch.pending.has_value() &&
+                session.live_fixture_lock &&
+                session.live_fixture_lock->acquired() &&
+                !session.results.results.at(0),
+                "C16 IO failure retains exact live attempt without phantom credit");
+        require(!fs::exists(receipts / "fixture-0.urfixture"),
+                "C16 cannot publish fixture receipt while directory absent");
+        signal(root / "barrier" / "receipt-offline");
+        await_signal(root / "barrier" / "outage-observed");
+        ec.clear();
+        fs::rename(offline, receipts, ec);
+        require(!ec, "C16 storage returns without replacing event");
+        require(commit_local_tournament_capture(
+                    session, kAttemptOld, saved) == Status::Committed &&
+                session.results.results.at(0),
+                "C16 retry of same exact pending attempt credits legitimate run");
+        require(fs::exists(receipts / "fixture-0.urfixture"),
+                "C16 exactly one immutable result after recovery");
+        require(commit_local_tournament_capture(
+                    session, kAttemptOld, saved) == Status::InvalidRequest,
+                "C16 cannot duplicate already committed award");
+        std::puts("QA02_C16_STORAGE_RECOVERED_ONCE");
+        return 0;
+    }
+    if (action == "c16-outage-reader") {
+        await_signal(root / "barrier" / "receipt-offline");
+        const auto reopened = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(reopened.status == Status::EvidenceRejected &&
+                !reopened.usable(),
+                "C16 fresh reader rejects missing receipt authority");
+        std::size_t runs = 0, matches = 0;
+        for (const auto& entry : fs::directory_iterator(
+                 layout.multiplayer_runs_directory)) {
+            if (entry.path().extension() == ".urrun") ++runs;
+            if (entry.path().extension() == ".urmatch") ++matches;
+        }
+        require(runs == 1 && matches == 1,
+                "C16 outage did not discard ordinary saved Records");
+        signal(root / "barrier" / "outage-observed");
+        std::puts("QA02_C16_FAIL_CLOSED_WHILE_OFFLINE");
         return 0;
     }
     if (action == "kill-c09") {

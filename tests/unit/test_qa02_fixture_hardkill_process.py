@@ -389,6 +389,62 @@ class FixtureHardkillProcessTests(unittest.TestCase):
             )
             resume("qa03-replace-completed")
 
+
+            # C16: a fixture owner loses the receipts filesystem path only
+            # AFTER publishing a valid ordinary 2P run/match pair. Another
+            # process must fail closed while the receipt root is missing.
+            # Once restored, the still-live owner can retry the exact token,
+            # claim one receipt and retain the prior Records pair untouched.
+            c16_root = root / "c16-receipt-root-loss"
+            owner_c16 = subprocess.Popen(
+                [str(exe), "c16-receipt-storage-owner", str(c16_root)],
+                cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            observer_c16 = None
+            try:
+                barrier = c16_root / "barrier" / "receipt-offline"
+                deadline = time.monotonic() + 12
+                while not barrier.exists():
+                    self.assertIsNone(owner_c16.poll(),
+                                      "C16 owner failed before fault barrier")
+                    self.assertLess(time.monotonic(), deadline,
+                                    "C16 owner never reached receipt outage")
+                    time.sleep(0.01)
+                observer_c16 = subprocess.Popen(
+                    [str(exe), "c16-outage-reader", str(c16_root)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                observer_out, observer_err = observer_c16.communicate(
+                    timeout=20
+                )
+                self.assertEqual(observer_c16.returncode, 0, observer_err)
+                self.assertIn(
+                    b"QA02_C16_FAIL_CLOSED_WHILE_OFFLINE", observer_out
+                )
+                owner_out, owner_err = owner_c16.communicate(timeout=20)
+                self.assertEqual(owner_c16.returncode, 0, owner_err)
+                self.assertIn(b"QA02_C16_STORAGE_RECOVERED_ONCE", owner_out)
+            finally:
+                for child in (observer_c16, owner_c16):
+                    if child and child.poll() is None:
+                        child.kill()
+                        child.communicate(timeout=5)
+            c16_records = c16_root / "multiplayer-runs"
+            c16_receipts = (
+                c16_root / "local-tournaments" / instance / "fixtures"
+            )
+            self.assertEqual(len(list(c16_records.glob("*.urrun"))), 1)
+            self.assertEqual(len(list(c16_records.glob("*.urrun.urmatch"))), 1)
+            self.assertEqual(len(list(c16_receipts.glob("*.urfixture"))), 1)
+            c16_reopen = subprocess.run(
+                [str(exe), "verify-c15", str(c16_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(c16_reopen.returncode, 0, c16_reopen.stderr)
+            self.assertIn(
+                b"QA02_C15_SINGLE_RECEIPT_SINGLE_AWARD", c16_reopen.stdout,
+            )
+
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))
             self.assertEqual(len(pair_before), 1)

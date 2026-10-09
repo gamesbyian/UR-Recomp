@@ -1,0 +1,137 @@
+name: Baldosa Zoo original Snes9x route discriminator
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/baldosa-zoo-snes9x-oracle.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: baldosa-zoo-snes9x-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-zoo-script:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    steps:
+      - name: Check out UR-Recomp original-emulator toolchain
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out exact pinned Baldosa script and snesref grammar
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Verify same USA ROM and imported route source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          cmp baldosa/tests/routes/zoomzoo_1p.txt \
+              reference/imported/reverse-engineering/baldosa-uniracers-recomp/tests/routes/zoomzoo_1p.txt
+
+      - name: Build pinned Snes9x original-emulator oracle
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+                -B "$RUNNER_TEMP/snesref-zoo" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/snesref-zoo" -j2
+          test -x "$RUNNER_TEMP/snesref-zoo/snesref"
+          test -s .tools/src/snes9x-libretro/libretro/snes9x_libretro.so
+
+      - name: Replay the exact Baldosa drive in original Snes9x
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/baldosa_zoo_progress_probe.py \
+            --source baldosa/tests/routes/zoomzoo_1p.txt \
+            --out "$RUNNER_TEMP/zoo-native-drive-with-observation.txt"
+          # Ema's original-emulator wrapper drops only the host-specific
+          # turbo directive. No controller, wait or conditional gate changes.
+          grep -v '^turbo' "$RUNNER_TEMP/zoo-native-drive-with-observation.txt" \
+            > "$RUNNER_TEMP/zoo-snes9x.script"
+          mkdir -p "$RUNNER_TEMP/zoo-snes9x-dumps"
+          set +e
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SCRIPT="$RUNNER_TEMP/zoo-snes9x.script" \
+          SNESREF_DUMP_DIR="$RUNNER_TEMP/zoo-snes9x-dumps" \
+            timeout 120 "$RUNNER_TEMP/snesref-zoo/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$RUNNER_TEMP/zoo-snes9x.log" 2>&1
+          rc=$?
+          set -e
+          echo "$rc" > "$RUNNER_TEMP/zoo-snes9x.exit"
+          echo "Snes9x exact-script exit: $rc"
+          tail -n 25 "$RUNNER_TEMP/zoo-snes9x.log"
+
+      - name: Retain raw USA course progression, not a false result
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          import hashlib
+          import json
+          import os
+          from tools.baldosa_core_spike_report import zoom_zoo_progression
+
+          root = Path(os.environ["RUNNER_TEMP"])
+          source = Path("baldosa/tests/routes/zoomzoo_1p.txt")
+          route = root / "zoo-snes9x.script"
+          core = Path(".tools/src/snes9x-libretro/libretro/snes9x_libretro.so")
+          progress = zoom_zoo_progression(root / "zoo-snes9x-dumps")
+          report = {
+              "schema_version": 1,
+              "backend": "original-Snes9x-libretro-through-pinned-Baldosa-snesref",
+              "baldosa_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+              "baldosa_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+              "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+              "original_core_sha256": hashlib.sha256(core.read_bytes()).hexdigest(),
+              "upstream_script_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
+              "original_emulator_route_sha256": hashlib.sha256(route.read_bytes()).hexdigest(),
+              "route_exit_code": int((root / "zoo-snes9x.exit").read_text()),
+              "zoom_zoo_progression": progress,
+              "paired_original_native_terminal_result_admitted": False,
+              "qa01_45_course_credit": 0,
+              "meaning": "Original execution of EXACT Baldosa route inputs, independent of Baldosa AOT. Sparse checks only. F60C is menu NMI, not settled result.",
+          }
+          path = root / "zoo-snes9x-original-report.json"
+          path.write_text(json.dumps(report, indent=2) + "\n")
+          print(json.dumps(report, indent=2))
+          if not progress["complete_samples"] or not progress["samples"][0]["active_zoo"]:
+              raise SystemExit("Original Snes9x route did not yield all four valid Zoom Zoo checkpoints")
+          if report["route_exit_code"] != 0:
+              raise SystemExit("Original Snes9x route did not quit successfully")
+          PY
+
+      - name: Upload original-emulator guest evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-zoom-zoo-independent-original-snes9x
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/zoo-snes9x-original-report.json
+            ${{ runner.temp }}/zoo-snes9x.exit
+            ${{ runner.temp }}/zoo-snes9x.log
+            ${{ runner.temp }}/zoo-snes9x.script
+            ${{ runner.temp }}/zoo-snes9x-dumps/*.wram.bin

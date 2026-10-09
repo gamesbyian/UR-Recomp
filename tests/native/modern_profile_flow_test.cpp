@@ -284,5 +284,14 @@ int main(int argc, char** argv) {
         oversized << std::string(1024u * 1024u, 'X');
     }
     assert(!load_host_profile_catalog_file(oversized_path));
+    // A crashed upgrade/corrupt root may expose a huge sparse catalog. The
+    // write-side malformed-catalog guard must reject it WITHOUT streaming
+    // the whole file into memory or changing its bytes.
+    std::filesystem::resize_file(oversized_path, 32u * 1024u * 1024u);
+    const auto huge_before = std::filesystem::file_size(oversized_path);
+    assert(!save_host_profile_catalog_file(
+        oversized_path, {{"gamma", {"MIKE", 0}}}));
+    assert(std::filesystem::file_size(oversized_path) == huge_before);
+    assert(!load_host_profile_catalog_file(oversized_path));
     return 0;
 }

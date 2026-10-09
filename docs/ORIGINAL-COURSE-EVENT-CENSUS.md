@@ -188,7 +188,19 @@ The Snes9x trace records the **direct writes** to `0EF1`
 (laps), `1199` (checkpoint), and `119D` (finish gate) in
 those same frames. The second observed lap decrement is **1,503
 original frames** after the first; intervening checkpoint order
-is **1→2→3→0→1**. Although the P1 X at the second decrement happens
+is **1→2→3→0→1**.
+
+**Distinct original lap-semantic counterexample:** checkpoint **3→0**
+at frame **4722** does **not** decrement laps (`3` remains `3`)
+or set the finish gate (`0` remains `0`). Only **189 original guest
+frames later**, at frame **4911**, does checkpoint **0→1** accompany
+a gate `0→1` and lap `3→2`. A reconstructed circuit that awards
+a lap on checkpoint-index wrap is therefore inconsistent with this
+original Zoom Zoo sequence. The direct event-write regression
+`test_checkpoint_wrap_is_not_a_lap_decrement_in_the_original_game`
+now pins that distinction. It is an original-game semantic invariant
+for this observed course sequence, not yet evidence that the native
+guest violates it. Although the P1 X at the second decrement happens
 to equal the optimizer's unused `8961`, that coincidence does not
 retroactively identify the recorded historical X as a spawn or
 authoritative finish plane.

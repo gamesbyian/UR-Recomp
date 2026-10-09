@@ -71,6 +71,14 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
         self.assertIn("dump race-plus-0064", script.replace("race-plus-064", "race-plus-0064"))
         self.assertIn("dump race-plus-0210", script)
         self.assertIn("dump race-plus-1800", script)
+        self.assertIn("dump race-plus-0190", script)
+        self.assertIn("dump race-plus-0230", script)
+        self.assertIn("dump race-plus-0590", script)
+        self.assertIn("dump race-plus-0630", script)
+        self.assertEqual(script.count("dump race-plus-"), len(probe.CHECKPOINTS) - 1)
+        self.assertEqual(probe.DENSE_CONTACT_WINDOWS, ((190, 230), (590, 630)))
+        for start, end in probe.DENSE_CONTACT_WINDOWS:
+            self.assertTrue(all(frame in probe.CHECKPOINTS for frame in range(start, end + 1)))
         self.assertEqual(script.count("quit"), 1)
         self.assertNotIn("poke ", script)
         self.assertEqual(tuple(sorted(probe.CHECKPOINTS)), probe.CHECKPOINTS)
@@ -165,7 +173,8 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
         ]
         self.assertIsNone(probe.compare(rows, [dict(x) for x in rows]))
         modified = [dict(x) for x in rows]
-        modified[9]["p1_next_checkpoint"] = 2
+        target_index = probe.CHECKPOINTS.index(210)
+        modified[target_index]["p1_next_checkpoint"] = 2
         diff = probe.compare(rows, modified)
         self.assertEqual(diff["relative_frame"], 210)
         self.assertEqual(diff["fields"], ["p1_next_checkpoint"])
@@ -173,7 +182,7 @@ class ZoomZooSceneRelativeProbeTests(unittest.TestCase):
         self.assertEqual(diff["native"]["p1_next_checkpoint"], 2)
         with self.assertRaisesRegex(probe.SceneReplayError, "incomplete"):
             probe.compare(rows[:-1], rows)
-        modified[9]["relative_frame"] += 1
+        modified[target_index]["relative_frame"] += 1
         with self.assertRaisesRegex(probe.SceneReplayError, "alignment"):
             probe.compare(rows, modified)
 

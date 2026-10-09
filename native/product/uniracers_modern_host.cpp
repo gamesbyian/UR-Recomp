@@ -38,6 +38,7 @@ extern "C" {
 #include "modern_results_navigation.hpp"
 #include "modern_tour_continue.hpp"
 #include "modern_host_input_release_latch.hpp"
+#include "modern_restart_key_release.hpp"
 #include "modern_tournament_p2_guest_input.hpp"
 #include "modern_main_menu_strip.hpp"
 #include "next_event_derivation.hpp"
@@ -195,6 +196,11 @@ bool g_profile_panel_acceptance_confirm_pending;
 std::string g_profile_panel_acceptance_input_path;
 bool g_suppress_human_input_once;
 ur::product::ModernHostInputReleaseLatch g_human_input_release_latch;
+// Restart confirmation is host-owned even when the frozen guest has never
+// sampled Return. The physical key-up, not a guessed guest-frame delay,
+// releases this additional default Return -> SNES Start barrier.
+ur::product::ModernRestartKeyRelease g_restart_return_release;
+unsigned g_restart_input_probe_remaining = 0;
 unsigned g_fast_repeat_acceptance_frames;
 bool g_fast_repeat_acceptance_fired;
 bool g_ghost_target_acceptance_fired;
@@ -7696,7 +7702,24 @@ extern "C" int ur_uniracers_modern_system_key_down(
         return handled ? 1 : 0;
     }
     if (paused() && (key == SDLK_RETURN || key == SDLK_KP_ENTER)) {
-        return activate_pause_selection() ? 1 : 0;
+        const bool restarting =
+            ur_modern_pause_menu_selected(
+                &g_pause_menu,
+                ur_modern_session_restart_available(g_session)) ==
+            UR_MODERN_PAUSE_RESTART;
+        // The pause itself freezes guest sampling. Arm before the restore
+        // and unpause so the next human word cannot reinterpret Enter as a
+        // fresh guest Start, even if the first restored sample is delayed.
+        if (restarting) {
+            g_restart_return_release.awaiting_return_release = true;
+            g_restart_input_probe_remaining = 12;
+        }
+        const bool handled = activate_pause_selection();
+        if (restarting && !handled) {
+            g_restart_return_release = {};
+            g_restart_input_probe_remaining = 0;
+        }
+        return handled ? 1 : 0;
     }
     if (modern_mode() && key == SDLK_r && (mod & KMOD_CTRL) &&
         restart_surface()) {
@@ -8397,6 +8420,17 @@ extern "C" uint32_t ur_uniracers_modern_filter_second_player_input(
 extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     g_last_human_input_word = inputs;
     ++g_human_input_observations;
+    const std::uint32_t raw_word = inputs;
+    // This physical SDL state advances even while a host Pause menu freezes
+    // guest frames. Never infer Return's release from the first zero sampled
+    // guest word: the queued, resumed Start edge could arrive later.
+    const auto* keys = SDL_GetKeyboardState(nullptr);
+    const bool return_held = keys &&
+        (keys[SDL_SCANCODE_RETURN] || keys[SDL_SCANCODE_KP_ENTER]);
+    const auto restart_filtered = ur::product::modern_restart_key_filter(
+        g_restart_return_release, return_held, inputs);
+    g_restart_return_release = restart_filtered.state;
+    inputs = restart_filtered.inputs;
     // This seam sees the final HUMAN P1 word after both keyboard and gamepad
     // mapping but before guest dispatch. Host-owned input must not also reach
     // the stock game underneath. The latch covers the closing edge, where the
@@ -8410,8 +8444,24 @@ extern "C" uint32_t ur_uniracers_modern_filter_player_input(uint32_t inputs) {
     const auto filtered = ur::product::modern_host_input_filter(
         g_human_input_release_latch, host_owned, inputs);
     g_human_input_release_latch = filtered.latch;
+    inputs = host_owned ? 0u : filtered.inputs;
+    if (g_restart_input_probe_remaining != 0) {
+        --g_restart_input_probe_remaining;
+        if (std::getenv("UR_PRODUCT_DIAGNOSTICS")) {
+            std::fprintf(
+                stderr,
+                "UR_RESTART_INPUT raw=%04X guest=%04X return_held=%d "
+                "release_waiting=%d host_owned=%d remaining=%u\n",
+                static_cast<unsigned>(raw_word),
+                static_cast<unsigned>(inputs),
+                return_held ? 1 : 0,
+                g_restart_return_release.awaiting_return_release ? 1 : 0,
+                host_owned ? 1 : 0,
+                g_restart_input_probe_remaining);
+            std::fflush(stderr);
+        }
+    }
     if (host_owned) return 0u;
-    inputs = filtered.inputs;
 
     // L/R have no ordinary settled-main action, so removing only those two
     // bits makes the stock Left+A+L+R erase-all gesture impossible in Modern

@@ -256,11 +256,24 @@ bool pristine_unregistered_profile_creation_root(const std::string& root_path) {
     for (; it != fs::directory_iterator{}; it.increment(ec)) {
         if (ec) return false;
         const auto name = it->path().filename();
-        if (name != "host-profile.txt" &&
-            name != "host-profile.txt.urmutex") return false;
-        if (it->symlink_status(ec).type() != fs::file_type::regular ||
+        if (name == "host-profile.txt" ||
+            name == "host-profile.txt.urmutex") {
+            if (it->symlink_status(ec).type() != fs::file_type::regular ||
+                ec) return false;
+            if (name == "host-profile.txt") has_profile = true;
+            continue;
+        }
+        // A process killed *after* canonical rename, but before removal of
+        // its private reservation, leaves an EMPTY staging directory. The
+        // profile mutex is held by the caller while it verifies the complete
+        // pristine state and publishes the roster. Retain this forensic
+        // directory rather than deleting or adopting any unfinished payload.
+        const std::string stage_name = name.string();
+        if (stage_name.rfind(".pending-urprofile-", 0) != 0 ||
+            it->symlink_status(ec).type() != fs::file_type::directory ||
             ec) return false;
-        if (name == "host-profile.txt") has_profile = true;
+        const bool empty = fs::is_empty(it->path(), ec);
+        if (ec || !empty) return false;
     }
     return !ec && has_profile;
 }

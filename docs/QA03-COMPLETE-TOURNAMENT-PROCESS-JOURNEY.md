@@ -1,6 +1,6 @@
 # QA-03: Complete saved tournament journeys across fresh processes
 
-Status: **native process-test candidate in PR #1054**, pending CI and merge.
+Status: **native production-store process acceptance merged in #1054** (commit `61feb486`), green scoped unit, local-multiplayer contracts and native build/boot smoke.
 QA-03 remains **P0 / L4 in progress**. This is complete backend-persistence
 coverage for two named event schedules, **not** a claim that the game UI drove
 all guest races, that two physical controllers participated, or that a packaged
@@ -69,7 +69,7 @@ replacement can proceed. A second independent-process test forces a
 replacement attempt between the original owner's fixture arm and receipt,
 then asserts Busy, original active identity and a credited original owner
 after completion. Both sides use the existing production stores and process
-test tool. This extends the same cooperative-new-build, local-filesystem
+test tool; exact-head tests passed before #1054 merged. This extends the same cooperative-new-build, local-filesystem
 boundary as #1052; old clients and Windows packaged GUI need separate tests.
 
 ## Remaining P0 release cuts

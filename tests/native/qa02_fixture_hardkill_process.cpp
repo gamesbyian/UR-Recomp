@@ -266,6 +266,30 @@ int main(int argc, char** argv) {
         std::puts("QA03_CANCELLED_WITHOUT_CREDIT");
         return 0;
     }
+
+    if (action == "qa03-kill-midseries") {
+        const auto restored = restore_local_tournament_coordinator(
+            layout, catalog());
+        require(restored.usable(), "QA03 midseries owner starts intact");
+        auto session = *restored.session;
+        const auto next = local_tournament_next_unplayed_fixture(session);
+        require(next && *next == 1 && session.results.results.at(0),
+                "QA03 durable fixture zero survives before owner death");
+        const auto& fixture = session.results.fixtures.at(*next);
+        const std::string abandoned_attempt(32, 'e');
+        require(arm_local_tournament_fixture(
+                    session, *next, abandoned_attempt,
+                    session.results.entrants.at(fixture.player1),
+                    session.results.entrants.at(fixture.player2)) ==
+                    Status::Armed, "QA03 midseries owner takes exact lease");
+        const auto saved = publish_real_pair(
+            session, 0x700, nullptr, *next);
+        require(fs::exists(saved) && fs::exists(saved + ".urmatch"),
+                "QA03 midseries saved pair survives owner hard exit");
+        // Kill *before* the fixture receipt. The already credited first
+        // fixture must remain legitimate, but this pair stays Records-only.
+        std::_Exit(82);
+    }
     if (action == "qa03-credit-next") {
         const auto restored = restore_local_tournament_coordinator(
             layout, catalog());
@@ -302,8 +326,11 @@ int main(int argc, char** argv) {
         return 0;
     }
     if (action == "qa03-verify-duel" ||
-        action == "qa03-verify-round-robin") {
+        action == "qa03-verify-round-robin" ||
+        action == "qa03-verify-round-robin-interrupted") {
         const bool duel = action == "qa03-verify-duel";
+        const bool interrupted =
+            action == "qa03-verify-round-robin-interrupted";
         const std::size_t expected = duel ? 3 : 6;
         const auto restored = restore_local_tournament_coordinator(
             layout, catalog());
@@ -338,8 +365,11 @@ int main(int argc, char** argv) {
             if (entry.path().extension() == ".urrun") ++runs;
             if (entry.path().extension() == ".urmatch") ++matches;
         }
-        require(runs == expected && matches == expected,
-                "QA03 exact Records run+match count across processes");
+        // C14 crash intentionally leaves one additional uncredited but
+        // valid Records pair. It cannot become a phantom fixture receipt.
+        const std::size_t expected_pairs = expected + (interrupted ? 1u : 0u);
+        require(runs == expected_pairs && matches == expected_pairs,
+                "QA03 exact Records pairs include retained uncredited crash run");
         const auto& fixture = restored.session->results.fixtures.at(0);
         auto stale = *restored.session;
         require(arm_local_tournament_fixture(

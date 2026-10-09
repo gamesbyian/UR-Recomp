@@ -97,7 +97,7 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
              "unobserved guest frame"),
             ([gate(3, "armed", "full-pair"), present(3, "hd", "full-pair"),
               present(3, "original", "unsupported-output")],
-             "mixed HD and Original"),
+             "stock OBJ may have been removed"),
             ([gate(3, "armed", "unknown"), present(3, "hd", "full-pair")],
              "invalid armed capture mode"),
             ([gate(3, "armed", "full-pair"), present(3, "hd", "unknown")],

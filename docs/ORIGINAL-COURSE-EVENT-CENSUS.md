@@ -35,8 +35,10 @@ partial observations** and **133/135 unverified**, as encoded in
   transition, but does not capture the instruction-time dispatcher value
   or demonstrate original/native all-event/result parity.
 - **USA Jumpover (course 20), partial:** six bounded input-only
-  original/native stunt landing-reward thresholds match, but the
-  timed-stunt course result and all score transitions are not observed.
+  original/native stunt landing-reward thresholds match **on a circuit B
+  course**, but no complete circuit lap/finish/result or 45-second stunt
+  event is established. All nine timed-stunt identities remain untested
+  end-to-end.
 
 Every Europe-retail and PAL-prototype case remains unverified at L4.
 No paired-ROM payload CRC, native unit test, static course-cell match,
@@ -58,19 +60,21 @@ reviewers still admit each candidate and exact trace.
 
 ## Non-Dragster counterexample priorities
 
-1. **Zoom Zoo, USA circuit A (02):** independent historical start X
+1. **Zoom Zoo, USA circuit A (02):** historical hand-entered start X
    `8961` disagrees with `header.spawn_or_landmark_a[0] * 16`
    (`575 * 16 = 9200`). Treat this as a *static interpretation
    discrepancy*, not a proven wrong spawn. First correlate the live course
    load and guest start state with historical position, then collect a
    full lap/checkpoint/gate/result sequence. Test reverse approaches,
    repeated finish-plane contact and lap wraparound.
-2. **Jumps, USA timed stunt (13):** the external optimizer uses start X
-   `0` but the header candidate is `262 * 16`. The header has two
-   distinct spawn/landmark tuples and the stunt family deliberately has
-   no ordinary `0x24` resource. First confirm correct runtime track,
-   timer, scoring and two player spawn anchors; never test an ordinary
-   race finish contract against a timed stunt.
+2. **Jumps, USA timed stunt (13):** the external optimizer hardcodes
+   start X `0`, versus header candidate `262 * 16`. Its startX constant
+   is never consumed by that script, so the zero is an **unqualified
+   historical lead**, not demonstrated incorrect spawn geometry. The
+   header has two distinct coordinate tuples and the stunt family
+   deliberately has no ordinary `0x24` resource. Confirm runtime track,
+   timer, scoring and two-player spawn before claiming any mismatch.
+   Do not apply an ordinary lap/finish contract to a timed stunt.
 3. **Regional course deltas:** Europe-retail course streams 4, 16, 20,
    26, 27, 35 and 36 differ from USA. The PAL prototype's 45 unpacked
    streams match USA but its live contact register operands relocate.

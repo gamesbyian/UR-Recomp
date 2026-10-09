@@ -1,6 +1,5 @@
 // Standalone, dependency-free product authority regression.
-// g++ -std=c++17 -Wall -Wextra -Werror -pedantic -I native/product \
-//   tests/native/baldosa_execution_backend_test.cpp -o /tmp/baldosa-backend-test
+// Build as C++17 with -Wall -Wextra -Werror -pedantic and native/product include.
 #include "baldosa_execution_backend.hpp"
 
 #include <cassert>

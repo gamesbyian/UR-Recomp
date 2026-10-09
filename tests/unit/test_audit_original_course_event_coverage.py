@@ -29,9 +29,9 @@ class OriginalCourseCensusTests(unittest.TestCase):
             "stunt_cases": 27,
             "family_cases_per_region": 9,
         })
-        self.assertEqual(report["status_counts"], {"partial": 2, "unverified": 133})
+        self.assertEqual(report["status_counts"], {"partial": 3, "unverified": 132})
         self.assertEqual(report["primary_release_rom"], "usa-retail")
-        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 2, "unverified": 43})
+        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 3, "unverified": 42})
         for variant in audit.COMPARISON_ROMS[1:]:
             self.assertEqual(report["by_rom"][variant], {"unverified": 45})
         self.assertEqual(len(report["entries"]), len(set(
@@ -45,7 +45,7 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(
             [r["course_id"] for r in report["entries"]
              if r["status"] == "partial"],
-            ["course:01", "course:20"],
+            ["course:01", "course:02", "course:20"],
         )
 
     def test_historical_optimizer_start_x_is_never_promoted_to_runtime_spawn(self):

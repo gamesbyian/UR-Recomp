@@ -10,6 +10,13 @@
     },
     {
       "rom": "usa-retail",
+      "course_id": "course:02",
+      "status": "partial",
+      "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
+      "coverage_note": "Independent original Snes9x 2014 full WRAM write trace proves actual Zoom Zoo header-aligned entry at frame 3190, four-state checkpoint sequence with transitions at 3408/3794/4031/4722/4911 and two P1 lap decrements 4->3->2; original only, no complete circuit result or paired native parity."
+    },
+    {
+      "rom": "usa-retail",
       "course_id": "course:20",
       "status": "partial",
       "evidence_ref": "analysis/generated/stunt-boundary-probe.json",

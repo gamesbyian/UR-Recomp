@@ -1,0 +1,431 @@
+{
+  "schema_version": 1,
+  "evidence_class": "independent original Snes9x live WRAM write-trace, not paired native parity",
+  "provenance": {
+    "repository": "gamesbyian/UR-Recomp",
+    "workflow_run_id": 37184022134,
+    "artifact_id": 11296685866,
+    "artifact_name": "dessyreqt-4250-first-race-replay",
+    "archive_member": "_temp/dessyreqt-first-race-trace.jsonl",
+    "source_sha256": "5fc0e88c89d2dc35b945a2c1f37f522fe8ba3090ea64a0efe50e1748b39f93ab",
+    "raw_trace_write_records": 669690,
+    "original_movie": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "reference_core": "pinned-snes9x",
+    "note": "First 5000 original movie frames, WRAM fill 0; per-frame values reconstructed after processing all f=frame write records."
+  },
+  "course": {
+    "id": "course:02",
+    "name": "Zoom Zoo",
+    "event_kind": "circuit-a",
+    "track_id": 1
+  },
+  "initial_active_frame": {
+    "movie_frame": 3190,
+    "menu": 0,
+    "in_race": 1,
+    "track_id": 1,
+    "p1_world_xy": [
+      9200,
+      1489
+    ],
+    "p2_world_xy": [
+      9200,
+      1489
+    ],
+    "header_A_world_xy": [
+      9200,
+      1488
+    ],
+    "header_B_world_xy": [
+      9200,
+      1488
+    ],
+    "historical_unused_optimizer_start_x": 8961,
+    "p1_next_checkpoint": 0,
+    "p1_finish_gate": 0,
+    "p1_laps_remaining": 4,
+    "timer_raw_digits": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "observed_progression": [
+    {
+      "transition_frame": 3408,
+      "prior_postframe": 3407,
+      "p1_world_xy_before": [
+        8962,
+        1568
+      ],
+      "p1_world_xy_after": [
+        8943,
+        1568
+      ],
+      "progress_before": {
+        "checkpoint": 0,
+        "finish_gate": 0,
+        "laps_remaining": 4
+      },
+      "progress_after": {
+        "checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 3
+      },
+      "p1_stored_contact_before_hex": "2304",
+      "p1_stored_contact_after_hex": "2308",
+      "prior_contact_c000_slot_candidate": 194,
+      "new_postframe_contact_slot": 196,
+      "controller_mask_at_transition": "0040",
+      "observed_original_progress_writes": [
+        {
+          "wram_offset_hex": "0EF1",
+          "old": 4,
+          "new": 3
+        },
+        {
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        0,
+        0,
+        2,
+        1
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 88,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 8
+        },
+        {
+          "zero_based_write_index_in_frame": 91,
+          "wram_offset_hex": "0EF1",
+          "old": 4,
+          "new": 3
+        },
+        {
+          "zero_based_write_index_in_frame": 107,
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "zero_based_write_index_in_frame": 108,
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
+      ]
+    },
+    {
+      "transition_frame": 3794,
+      "prior_postframe": 3793,
+      "p1_world_xy_before": [
+        8462,
+        2906
+      ],
+      "p1_world_xy_after": [
+        8478,
+        2907
+      ],
+      "progress_before": {
+        "checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 3
+      },
+      "progress_after": {
+        "checkpoint": 2,
+        "finish_gate": 1,
+        "laps_remaining": 3
+      },
+      "p1_stored_contact_before_hex": "2704",
+      "p1_stored_contact_after_hex": "0706",
+      "prior_contact_c000_slot_candidate": 194,
+      "new_postframe_contact_slot": 195,
+      "controller_mask_at_transition": "0080",
+      "observed_original_progress_writes": [
+        {
+          "wram_offset_hex": "1199",
+          "old": 1,
+          "new": 2
+        }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        0,
+        6,
+        6,
+        3
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 171,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 6
+        },
+        {
+          "zero_based_write_index_in_frame": 211,
+          "wram_offset_hex": "1199",
+          "old": 1,
+          "new": 2
+        }
+      ]
+    },
+    {
+      "transition_frame": 4031,
+      "prior_postframe": 4030,
+      "p1_world_xy_before": [
+        11915,
+        3568
+      ],
+      "p1_world_xy_after": [
+        11931,
+        3568
+      ],
+      "progress_before": {
+        "checkpoint": 2,
+        "finish_gate": 1,
+        "laps_remaining": 3
+      },
+      "progress_after": {
+        "checkpoint": 3,
+        "finish_gate": 0,
+        "laps_remaining": 3
+      },
+      "p1_stored_contact_before_hex": "2B04",
+      "p1_stored_contact_after_hex": "0B06",
+      "prior_contact_c000_slot_candidate": 194,
+      "new_postframe_contact_slot": 195,
+      "controller_mask_at_transition": "0080",
+      "observed_original_progress_writes": [
+        {
+          "wram_offset_hex": "1199",
+          "old": 2,
+          "new": 3
+        },
+        {
+          "wram_offset_hex": "119D",
+          "old": 1,
+          "new": 0
+        }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        1,
+        0,
+        6,
+        0
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 88,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 6
+        },
+        {
+          "zero_based_write_index_in_frame": 117,
+          "wram_offset_hex": "1199",
+          "old": 2,
+          "new": 3
+        },
+        {
+          "zero_based_write_index_in_frame": 118,
+          "wram_offset_hex": "119D",
+          "old": 1,
+          "new": 0
+        }
+      ]
+    },
+    {
+      "transition_frame": 4722,
+      "prior_postframe": 4721,
+      "p1_world_xy_before": [
+        11867,
+        1082
+      ],
+      "p1_world_xy_after": [
+        11852,
+        1073
+      ],
+      "progress_before": {
+        "checkpoint": 3,
+        "finish_gate": 0,
+        "laps_remaining": 3
+      },
+      "progress_after": {
+        "checkpoint": 0,
+        "finish_gate": 0,
+        "laps_remaining": 3
+      },
+      "p1_stored_contact_before_hex": "0F20",
+      "p1_stored_contact_after_hex": "0F20",
+      "prior_contact_c000_slot_candidate": 200,
+      "new_postframe_contact_slot": 200,
+      "controller_mask_at_transition": "0041",
+      "observed_original_progress_writes": [
+        {
+          "wram_offset_hex": "1199",
+          "old": 3,
+          "new": 0
+        }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        2,
+        2,
+        1,
+        1
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 187,
+          "wram_offset_hex": "1199",
+          "old": 3,
+          "new": 0
+        }
+      ]
+    },
+    {
+      "transition_frame": 4911,
+      "prior_postframe": 4910,
+      "p1_world_xy_before": [
+        8976,
+        1568
+      ],
+      "p1_world_xy_after": [
+        8961,
+        1568
+      ],
+      "progress_before": {
+        "checkpoint": 0,
+        "finish_gate": 0,
+        "laps_remaining": 3
+      },
+      "progress_after": {
+        "checkpoint": 1,
+        "finish_gate": 1,
+        "laps_remaining": 2
+      },
+      "p1_stored_contact_before_hex": "0306",
+      "p1_stored_contact_after_hex": "2304",
+      "prior_contact_c000_slot_candidate": 195,
+      "new_postframe_contact_slot": 194,
+      "controller_mask_at_transition": "0040",
+      "observed_original_progress_writes": [
+        {
+          "wram_offset_hex": "0EF1",
+          "old": 3,
+          "new": 2
+        },
+        {
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
+      ],
+      "original_timer_raw_digits": [
+        0,
+        2,
+        5,
+        2,
+        4
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 107,
+          "wram_offset_hex": "0E95",
+          "old": 6,
+          "new": 4
+        },
+        {
+          "zero_based_write_index_in_frame": 113,
+          "wram_offset_hex": "0EF1",
+          "old": 3,
+          "new": 2
+        },
+        {
+          "zero_based_write_index_in_frame": 141,
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "zero_based_write_index_in_frame": 142,
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
+      ]
+    }
+  ],
+  "observed_original_up_to_frame": 5000,
+  "circuit_result_reached": false,
+  "native_parity_compared": false,
+  "interpretation_limits": [
+    "Actual Snes9x original run demonstrates two P1 lap decrements but not completed four-lap circuit or terminal result.",
+    "Event-frame prior stored P1 contact is an input candidate for the next USA course-object dispatch; end-of-frame contact after the event is sampled later. No instruction-time PC captured.",
+    "The temporary 0F09 shared collision word at frame end is not a permanent P1 record; the per-player stored 0E95 was tracked.",
+    "Original initial racer X=9200 matches both header A/B.x*16, but identical header pairs cannot resolve player slot assignment. Y=1489 at first active frame is 1 world unit below header 1488.",
+    "The historical magicnumber.lua startX=8961 is not the original first active X; the original P1 reaches X=8961 during the second observed lap-counter decrement.",
+    "This is original-only course semantics, not a demonstrated native discrepancy or a full QA-01 accepted completion.",
+    "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read.",
+    "The historic original JSONL instrumented low WRAM 7E and does NOT record/verify the complete live 7F course buffer. C000 slot-family attribution is independently ROM-static; instruction-time active 7F/C000 mapping remains an additional verifier.",
+    "The original stopwatch bytes at the first lap decrement decode to about 0.2 seconds and at the second to about 25.2 seconds. Thus 4->3 occurs just after the starting gate and must not be counted as an already-completed 25-second full circuit.",
+    "Original 7E write chronology at 3408,3794,4031,4911 observes a low-byte write to persisted P1 contact 0E95 before the first direct progress-field mutation of that original guest frame. This is in-frame WRAM ordering, not proof of CPU PC order or which sampled contact was consumed by the handler. The earlier blanket previous-postframe contact-as-next-dispatch assertion remains unproved under this reference trace."
+  ],
+  "original_race_start_phase": {
+    "race_active_frame": 3190,
+    "last_observed_zero_x_displacement_frame": 3394,
+    "first_p1_x_displacement_frame": 3395,
+    "first_p1_moving_x": 9185,
+    "first_p1_signed_vx": -488,
+    "first_p1_boost_nonzero": 384,
+    "first_stopwatch_nonzero_frame": 3396,
+    "stopwatch_at_first_motion": [
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "stopwatch_at_first_timer_tick": [
+      0,
+      0,
+      0,
+      0,
+      1
+    ],
+    "race_active_to_first_motion_guest_frames": 205,
+    "race_active_to_timer_tick_guest_frames": 206,
+    "phase_limit": "At frame3190 the active race has vertical movement/velocity immediately afterward; frame3395 is first P1 world-X coordinate displacement, NOT first physical motion. At frame3396 original stopwatch first increments. The first unchanged-X frame3394 has P1 Y=1563, first X-displaced frame3395 has Y=1562.",
+    "last_unchanged_p1_x_position_at_3394": [
+      9200,
+      1563
+    ],
+    "first_x_displaced_p1_position_at_3395": [
+      9185,
+      1562
+    ]
+  }
+}

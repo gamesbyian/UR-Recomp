@@ -19,13 +19,13 @@
     "family_cases_per_region": 9
   },
   "status_counts": {
-    "partial": 2,
-    "unverified": 133
+    "partial": 3,
+    "unverified": 132
   },
   "by_rom": {
     "usa-retail": {
-      "partial": 2,
-      "unverified": 43
+      "partial": 3,
+      "unverified": 42
     },
     "europe-retail": {
       "unverified": 45
@@ -40,7 +40,8 @@
       "unverified": 26
     },
     "circuit-a": {
-      "unverified": 27
+      "partial": 1,
+      "unverified": 26
     },
     "stunt": {
       "unverified": 27
@@ -124,9 +125,9 @@
         "finish",
         "result"
       ],
-      "status": "unverified",
-      "evidence_ref": null,
-      "coverage_note": null
+      "status": "partial",
+      "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
+      "coverage_note": "Independent original Snes9x 2014 full WRAM write trace proves actual Zoom Zoo header-aligned entry at frame 3190, four-state checkpoint sequence with transitions at 3408/3794/4031/4722/4911 and two P1 lap decrements 4->3->2; original only, no complete circuit result or paired native parity."
     },
     {
       "rom": "usa-retail",
@@ -2765,6 +2766,7 @@
   "limits": [
     "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
     "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
+    "Original-only Zoom Zoo shows two lap decrements and checkpoint order, but no paired native execution or terminal circuit result.",
     "Input-only Jumpover CIRCUIT-B maneuver rewards are partial; no circuit result or 45-second stunt event was certified.",
     "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
     "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",

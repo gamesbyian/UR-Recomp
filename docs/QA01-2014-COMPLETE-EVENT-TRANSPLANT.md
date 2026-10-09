@@ -100,6 +100,24 @@ independently booted reference (rider/opponent, SRAM/menu/context),
 then bounded -1/0/+1 controller latch phase trials. Never attribute
 a phase mismatch to guest physics by default.
 
+### Source-state equivalence as the first likely blocker
+
+The original Zoom Zoo/Bowl movie advanced through earlier Crawler events
+before each start, whereas a fresh scripted Crawler selection may skip
+those earlier in-tour outcomes and mutate opponent, retained course state,
+RNG phase, score context or other guest values. Identical 8 KiB
+embedded SRAM is necessary but **does not recreate the earlier
+in-session history**. The new producer independently replays the 2014
+original a second time to dump its exact course-loaded entry state, and
+compares rider IDs, positions, live lap/checkpoint/finish state and raw
+clock to both fresh guests. The report retains each mismatch under
+original_source_vs_fresh_entry; even a matched terminal PPU screen is
+**not promotable** while original-source baseline equivalence is
+unresolved. A one-frame snapshot discrepancy may be phase rather
+than gameplay causality. If this gate blocks Zoo/Bowl, preserve the
+earlier original course outcomes by replaying the preceding stock
+tour sequence with authentic input, then independently recalibrate.
+
 First admit one completed Circuit, one scored 45-second Stunt and
 one non-Dragster Race. Then scale input producers to the USA 45-row
 census and keep complete/partial/blocked/unverified distinct.

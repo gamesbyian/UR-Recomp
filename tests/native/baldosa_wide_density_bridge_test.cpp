@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <initializer_list>
 #include <vector>
 
 namespace {
@@ -14,6 +15,7 @@ int g_scale = 1;
 int g_last_margin = -1;
 int g_calls = 0;
 bool g_calibrated = false;
+bool g_force_uncalibrated = false;
 }
 
 extern "C" void ur_ws_margins_prepare_frame(int enabled, int extra) {
@@ -21,7 +23,7 @@ extern "C" void ur_ws_margins_prepare_frame(int enabled, int extra) {
     g_calibrated = enabled != 0;
 }
 extern "C" int ur_ws_margins_calibrated(void) {
-    return g_calibrated ? 1 : 0;
+    return g_calibrated && !g_force_uncalibrated ? 1 : 0;
 }
 extern "C" void ur_baldosa_hd_begin_sim_frame(unsigned) {}
 extern "C" int ur_baldosa_hd_presentation_scale(void) { return g_scale; }
@@ -89,9 +91,10 @@ int main() {
         check_frame(scale, width);
     }
     // Calibration failure must restore source width, never fabricate margins.
-    g_calibrated = false;
+    g_force_uncalibrated = true;
     ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
-    assert(width == 342); // adapter attempts and independently recalibrates
+    assert(width == 256 && height == 224);
+    g_force_uncalibrated = false;
     ur_baldosa_ws24_begin_sim_frame(1799);
     ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
     assert(width == 256 && height == 224 && g_last_margin == 0);

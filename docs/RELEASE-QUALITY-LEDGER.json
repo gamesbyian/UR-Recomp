@@ -67,7 +67,7 @@
         "J-07",
         "J-08"
       ],
-      "next_action": "Integrate #1033 run/match byte durability and #1035 optional ghost data durability only after their refreshed CI succeeds; then execute C04/C09/C10/C14/C15 fault cuts in independent processes, verify exact Windows ZIP/hash, two-instance J-02/J-07/J-08, out-of-space and physical power-fault recovery.",
+      "next_action": "Integrate pending #1033 (.urrun/.urmatch durability), #1035 (.urghost durability), and #1038 (create-only immutable tournament archive) only after exact PR checks pass; then execute independent-process C04/C09/C10/C11/C14/C15 and Windows two-instance J-02/J-07/J-08 fault cuts with pinned ZIP/hash, disk-full, upgrade and power-loss witnesses.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -91,7 +91,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1030",
         "https://github.com/gamesbyian/UR-Recomp/pull/1032"
       ],
-      "remaining_release_risk": "Merged through #1027 pristine unregistered profile claim and #1030 post-rename/pre-cleanup empty-stage orphan recovery; #1032 now flushes immutable fixture receipt bytes before public no-replace. #1033 proposes OS data flush for .urrun and .urmatch before public claims; #1035 proposes .urghost flush before atomic replacement. Both remain under CI and are not accepted evidence yet. Existing profile/catalog/global-state and tournament-active CAS, rollback, private staging, and prepublish data flush corrections remain store-local. No atomic group commit or journal across framework save.srm, host-profile, roster/global selector, .urrun/.urmatch/.urghost, fixture receipt and pending launch. Progressed/ambiguous orphan racer and inert tournament archives lack automatic recovery. Postpublish directory durability and real controller power-loss behavior remain uncertain. No exact packaged Windows two-instance/disk-full/power-interruption L4 witness. QA-02 stays P0 in_progress."
+      "remaining_release_risk": "Merged through #1027 pristine unregistered profile claim and #1030 post-rename/pre-cleanup empty-stage orphan recovery; #1032 now flushes immutable fixture receipt bytes before public no-replace. #1033 proposes OS data flush for .urrun and .urmatch before public claims; #1035 proposes .urghost flush before atomic replacement. Both remain under CI and are not accepted evidence yet. Existing profile/catalog/global-state and tournament-active CAS, rollback, private staging, and prepublish data flush corrections remain store-local. No atomic group commit or journal across framework save.srm, host-profile, roster/global selector, .urrun/.urmatch/.urghost, fixture receipt and pending launch. Progressed/ambiguous orphan racer and inert tournament archives lack automatic recovery. Postpublish directory durability and real controller power-loss behavior remain uncertain. No exact packaged Windows two-instance/disk-full/power-interruption L4 witness. QA-02 stays P0 in_progress. #1038 proposes preventing deliberately colliding new tournament creators from replacing an immutable session archive after a raced instance-directory preflight; CI is pending and restored-historical archive migration still has separate publication boundaries."
     },
     {
       "id": "QA-03",

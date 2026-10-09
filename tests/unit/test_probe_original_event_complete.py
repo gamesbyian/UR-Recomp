@@ -134,6 +134,20 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "incomplete"):
             target.entry_diagnostics(source, {"p1_x": 9200}, source)
 
+    def test_cpu_time_or_score_cannot_stand_in_for_mike_p1(self):
+        self.assertFalse(target.archived_p1_positive_result(
+            ["MIKE", "NO TIME", "BRONSEN", "0:21.54"], False))
+        self.assertFalse(target.archived_p1_positive_result(
+            ["BRONSEN", ": 1200", "MIKE", ": 0"], True))
+        self.assertTrue(target.archived_p1_positive_result(
+            ["MIKE", ": 764", "QUALIFY", ": 68"], True))
+        self.assertTrue(target.archived_p1_positive_result(
+            ["MIKE", "1:16.46", "0:25.10"], False))
+        cpu_win = capture(0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"])
+        result = target.diagnose(cpu_win, capture(
+            0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"]), 0x99, False)
+        self.assertFalse(result["paired_event_candidate"])
+
     def test_stunt_idle_zero_score_cannot_pass_scored_result(self):
         ref = capture(0x18, ["BOWL", "MIKE", ": 0"])
         nat = capture(0x18, ["BOWL", "MIKE", ": 0"])

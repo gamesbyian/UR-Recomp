@@ -121,19 +121,19 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 )
                 out_old, err_old = old.communicate(timeout=20)
                 self.assertEqual(old.returncode, 0, err_old)
-                self.assertIn(b"QA02_OLD_ATTEMPT_REJECTED", out_old)
+                self.assertIn(b"QA02_LIVE_OWNER_COMMITTED", out_old)
                 out_new, err_new = new.communicate(timeout=20)
                 self.assertEqual(new.returncode, 0, err_new)
-                self.assertIn(b"QA02_NEW_ATTEMPT_COMMITTED", out_new)
+                self.assertIn(b"QA02_BUSY_AND_STALE_RETRY_REJECTED", out_new)
             finally:
                 for child in (old, new):
                     if child and child.poll() is None:
                         child.kill()
                         child.communicate(timeout=5)
             overlap_records = overlap / "multiplayer-runs"
-            self.assertEqual(len(list(overlap_records.glob("*.urrun"))), 2)
+            self.assertEqual(len(list(overlap_records.glob("*.urrun"))), 1)
             self.assertEqual(
-                len(list(overlap_records.glob("*.urrun.urmatch"))), 2)
+                len(list(overlap_records.glob("*.urrun.urmatch"))), 1)
             overlap_receipts = list(
                 (overlap / "local-tournaments").glob(
                     "*/fixtures/fixture-0.urfixture"))
@@ -148,6 +148,40 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 b"QA02_C15_SINGLE_RECEIPT_SINGLE_AWARD",
                 restored_overlap.stdout,
             )
+
+            # A dead owner must release its *OS handle*, not rely on
+            # timeout/pid cleanup. An explicit new attempt uses fresh token,
+            # leaves the old saved run as ordinary Records, and credits only
+            # the new real fixture result.
+            dead_root = root / "dead-fixture-owner"
+            died = subprocess.run(
+                [str(exe), "owner-crash", str(dead_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(died.returncode, 81, died.stderr)
+            self.assertTrue((
+                dead_root / "local-tournaments" / instance /
+                "pending.urlaunch").exists())
+            self.assertEqual(
+                len(list((dead_root / "multiplayer-runs").glob("*.urrun"))),
+                1,
+            )
+            retired = subprocess.run(
+                [str(exe), "retry-owner-crash", str(dead_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(retired.returncode, 0, retired.stderr)
+            self.assertIn(b"QA02_CRASH_RELEASED_AND_RETRIED", retired.stdout)
+            self.assertEqual(
+                len(list((dead_root / "multiplayer-runs").glob("*.urrun"))),
+                2,
+            )
+            verified_dead = subprocess.run(
+                [str(exe), "verify-c15", str(dead_root)], cwd=ROOT,
+                capture_output=True, timeout=20,
+            )
+            self.assertEqual(verified_dead.returncode, 0,
+                             verified_dead.stderr)
 
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))

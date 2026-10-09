@@ -167,3 +167,44 @@ could retry against the same stale roster forever; an eligible lock-only root
 alone would not make the operation retryable. A malformed/unavailable roster
 is never synthesized or saved. The UI remains explicitly failure-reporting;
 the user initiates the next retry.
+
+## Explicit recovery of an exact pristine orphan (2026-10-09)
+
+A process may die after publishing a brand-new `host-profile.txt` but before
+the catalogue row, leaving a complete initial SRAM mirror that ordinary
+profile selection cannot discover. When the player explicitly uses Create
+with the **same name and racer preset**, the host computes the expected
+initial clean `HostProfileState` from the canonical clean stock SRAM and
+accepts recovery only if all of these hold:
+
+- The existing profile root is a real directory, not a symlink.
+- Its only entries are a regular `host-profile.txt` and optional regular
+  `host-profile.txt.urmutex`. Existing `save.srm`, staging directories,
+  ghost/run data, symlinks or unknown entries force refusal.
+- While holding that profile's persistent OS-handle mutex, the decoded
+  complete on-disk profile equals the exact freshly computed initial
+  state, including identity, generation, stock SRAM bytes, continuation,
+  ghost preference and Recent Course.
+- The profile lock remains held while the authoritative catalog
+  expected-roster CAS attempts to publish this single new entry.
+
+On success the original profile bytes are not rewritten and the existing
+activation route takes over. On catalogue contention or I/O failure the
+initial profile is **preserved**, the in-memory tentative row is undone,
+and the latest readable authoritative roster is reloaded for a later
+explicit attempt. This prevents a losing registrar from removing a
+second process's already-authorized profile when both were registering
+the exact same initial bytes.
+
+The native process fixture covers exact-state match and rejection of
+foreign snapshots, pre-existing `save.srm` and interrupted staging.
+The production source contract checks the cross-file lock lifetime and
+preservation of the first-phase profile on catalogue failure.
+
+**Nonclaims:** This does not recover an older progressed, renamed or
+corrupt unlisted profile, nor an orphan root still containing crash debris
+from a kill between rename and staging cleanup. It is not an automatic
+boot-time adoption mechanism and does not make the initial profile and
+catalogue row a single power-loss-durable commit. Fail-closed diagnostic
+and separate salvage policy remain required for those cases. QA-02 stays
+P0 until exact packaged Windows L4 fault acceptance.

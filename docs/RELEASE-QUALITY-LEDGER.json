@@ -57,14 +57,15 @@
         "docs/COMPLETED-RUN-RECORDS.md",
         "docs/QA02-STAGED-WRITE-DURABILITY.md",
         "docs/QA02-PROFILE-CAS.md",
-        "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md"
+        "docs/QA02-TOURNAMENT-ACTIVE-PERSISTENCE.md",
+        "docs/QA02-GLOBAL-HOST-STATE-CAS.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Review #1016 live profile mirror/framework SRAM second-phase compensation on refreshed main; then reproduce and close profile-create orphan, active-profile switch write-failure and tournament archive/pending/receipt crash windows. Capture exact ZIP/hash Windows two-instance J-02/J-07/J-08 disk-full, sudden-kill, upgrade and power-loss recovery evidence.",
+      "next_action": "Integrate and verify #1018 safe profile-creation retry and #1019 active-profile selection SRAM failure compensation. Then design actual orphan-profile/event recovery, group-commit crash oracle and fault-injection acceptance for framework .srm/profile/catalog/global selector and run/ghost/match/fixture/pending artifacts. Record immutable Windows ZIP/hash, fresh-process J-02/J-07/J-08 and independent power-loss evidence.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -80,9 +81,12 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1003",
         "https://github.com/gamesbyian/UR-Recomp/pull/1005",
         "https://github.com/gamesbyian/UR-Recomp/pull/1009",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1016"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1016",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1017",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1018",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1019"
       ],
-      "remaining_release_risk": "Merged #982/#984/#985 store-local receipt, staging and checkpoint locks; #991 safe host staging; #993 no-replace multiplayer run+match pair; #995 bounded catalog reads; #996 exact-profile CAS; #1003 catalog roster CAS and conditional profile deletion; #1005 staged data flush; #1009 active tournament pointer CAS. #1016 corrects ordinary live snapshot's ignored second-phase SRAM failure with conditional compensation, subject to PR CI and merge. No atomic group commit for framework .srm, profile, catalog, run, ghost, match, receipt, active tournament and pending launch. Orphan profiles/events, active-switch SRAM write failure, and directory-sync-uncertain states lack complete restoration contract. No exact packaged Windows two-process or power-fault L4 witness; QA-02 stays P0 in_progress."
+      "remaining_release_risk": "Merged #982/#984/#985, #991, #993, #995, #996, #1003, #1005, #1009, #1016 and #1017: guarded host staging, no-replace run/match pair, bounded catalog recovery, exact profile/catalog/active-tournament/global selector CAS, staged data flush and second-phase profile snapshot compensation. #1018 guarded lock-only creation retry and #1019 active-profile selection/SRAM compensating rollback are pending verification and integration. No crash-safe group atomicity for framework .srm, profile, global selector, catalog, run, ghost, match, fixture, active tournament or pending launch. Actual orphan profiles/events, interrupted rename, committed-but-directory-sync-uncertain states and partially written framework SRAM lack complete deterministic recovery. No exact packaged Windows two-instance or storage-fault L4 witness; QA-02 remains P0 in_progress."
     },
     {
       "id": "QA-03",

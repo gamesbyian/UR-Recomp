@@ -28,6 +28,10 @@ class NativePauseIntegrationTest(unittest.TestCase):
             "static bool g_netplay_session;\n"
             + spike.GLOBAL +
             spike.EVENT +
+            spike.KEY_EVENT +
+            "}\n" +
+            spike.PAD_EVENT +
+            "}\n" +
             "static void HandleCommand(unsigned j) {\n" +
             spike.LEGACY_COMMAND +
             "}\n" +
@@ -45,6 +49,8 @@ class NativePauseIntegrationTest(unittest.TestCase):
         self.assertEqual(head.count(spike.MARK), 1)
         self.assertIn("filter_human_frame_inputs", head)
         self.assertIn("void (*product_tick)(void);", head)
+        self.assertIn("product_system_key", head)
+        self.assertIn("product_system_gamepad", head)
         self.assertIn("snesrecomp_desktop_product_set_paused", head)
         self.assertEqual(spike.patch_host_header(head), head)
 
@@ -57,12 +63,21 @@ class NativePauseIntegrationTest(unittest.TestCase):
         self.assertIn("if (g_paused && !g_product_pause_owned) return 0", host)
         self.assertIn("if (!g_product_pause_owned) return 0", host)
         self.assertIn("if (game->product_tick) game->product_tick();", host)
+        self.assertIn("g_game->product_system_key(keyCode, pressed ? 1 : 0)", host)
+        self.assertIn("g_game->product_system_gamepad(gi->index, button, pressed ? 1 : 0)", host)
+        self.assertLess(host.index("g_game->product_system_key(keyCode"),
+                        host.index("FindCmdForSdlKey(keyCode"))
+        self.assertLess(host.index("g_game->product_system_gamepad(gi->index"),
+                        host.index("gi->last_cmd[button] = FindCmdForGamepadButton")
+                        if "FindCmdForGamepadButton" in host else len(host))
         self.assertLess(host.index("game->product_tick"), host.index("if (g_paused && !g_savestate_menu_hotkey)"))
         self.assertEqual(spike.patch_host_source(host), host)
 
         game = spike.patch_game_main(self.main)
         self.assertIn("ur_baldosa_product_after_run_frame", game)
         self.assertIn("ur_baldosa_product_host_tick", game)
+        self.assertIn(".product_system_key", game)
+        self.assertIn(".product_system_gamepad", game)
         self.assertEqual(spike.patch_game_main(game), game)
 
     def test_guard_rejects_unknown_host_without_mutation(self):
@@ -70,6 +85,10 @@ class NativePauseIntegrationTest(unittest.TestCase):
             spike.patch_host_header(self.header.replace(spike.REQUIRED, "UNKNOWN"))
         with self.assertRaisesRegex(ValueError, "SDL event"):
             spike.patch_host_source(self.host.replace(spike.EVENT, ""))
+        with self.assertRaisesRegex(ValueError, "SDL event"):
+            spike.patch_host_source(self.host.replace(spike.KEY_EVENT, ""))
+        with self.assertRaisesRegex(ValueError, "SDL event"):
+            spike.patch_host_source(self.host.replace(spike.PAD_EVENT, ""))
         with self.assertRaisesRegex(ValueError, "native human-input"):
             spike.patch_game_main(self.main.replace(spike.REQUIRED, "UNKNOWN"))
 

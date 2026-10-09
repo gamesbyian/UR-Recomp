@@ -14,6 +14,12 @@
 #include <cstring>
 
 #include "modern_session_c_api.h"
+#include "baldosa_physical_pause_input.hpp"
+
+extern "C" {
+#include "desktop/config.h"
+#include "desktop/sdl_compat.h"
+}
 
 extern "C" {
 #include "host_main.h"
@@ -28,12 +34,28 @@ namespace {
 bool g_smoke_initialized;
 bool g_smoke_enabled;
 UrModernSession* g_modern_session;
+bool g_native_live_race;
+ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
+ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
+
+// Deliberately opt-in while the native Baldosa executable lacks the visible
+// established Modern pause/root surfaces. Authentic remains untouched.
+bool physical_modern_enabled() {
+    static const bool enabled = [] {
+        const char* opt = std::getenv("UR_BALDOSA_MODERN_INPUT");
+        const char* mode = std::getenv("UR_EXECUTION_MODE");
+        return opt && std::strcmp(opt, "1") == 0 &&
+               !(mode && std::strcmp(mode, "authentic") == 0);
+    }();
+    return enabled;
+}
 
 bool acknowledged_guest_pause(void*, int paused) {
     return ur_baldosa_product_set_paused(paused) != 0;
 }
 
 void create_modern_session() {
+    if (g_modern_session) return;
     // Reuse Modern's real command/phase policy even in the existing bounded
     // 2P native guest pause witness. This is not a new menu or second host.
     const UrModernNativeSessionHooks hooks{
@@ -86,10 +108,51 @@ void require(bool ok, const char* why) {
 }
 } // namespace
 
+// Called from the ORIGINAL Baldosa SDL keyboard/gamepad processing after the
+// host's physical mapping, not from a script/debug controller word. Only P1
+// Escape/Start while actually racing belongs to this narrow Modern pause
+// bridge; all ordinary profile/stock/menu controls retain guest authority.
+extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
+    if (!physical_modern_enabled() || smoke_enabled() ||
+        key != SDLK_ESCAPE) return 0;
+    if (pressed && g_native_live_race && !g_modern_session)
+        create_modern_session();
+    const bool used = g_keyboard_pause.on_button(
+        pressed, g_native_live_race, g_modern_session);
+    if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT key=escape action=%d paused=%d\\n",
+                     static_cast<int>(g_keyboard_pause.last_result()),
+                     ur_modern_session_is_paused(g_modern_session));
+    }
+    return used ? 1 : 0;
+}
+
+extern "C" int ur_baldosa_product_system_gamepad(
+    int player, int button, int pressed) {
+    if (!physical_modern_enabled() || smoke_enabled() ||
+        player != 0 || button != kGamepadBtn_Start) return 0;
+    if (pressed && g_native_live_race && !g_modern_session)
+        create_modern_session();
+    const bool used = g_p1_gamepad_pause.on_button(
+        pressed, g_native_live_race, g_modern_session);
+    if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT pad=p1_start action=%d paused=%d\\n",
+                     static_cast<int>(g_p1_gamepad_pause.last_result()),
+                     ur_modern_session_is_paused(g_modern_session));
+    }
+    return used ? 1 : 0;
+}
+
 extern "C" void ur_baldosa_product_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     // Existing verified two-seat guest observer remains intact.
     ur_baldosa_guest_snapshot_after_run_frame(stats);
+    if (stats) {
+        g_native_live_race = g_ram[0x0313] == 0x01;
+        if (g_modern_session)
+            ur_modern_session_observe_race_active(
+                g_modern_session, g_native_live_race ? 1 : 0);
+    }
     if (!smoke_enabled()) return;
     require(stats != nullptr, "missing_frame_statistics");
 

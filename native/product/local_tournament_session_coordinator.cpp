@@ -153,12 +153,27 @@ LocalTournamentCoordinatorResult restore_local_tournament_coordinator(
     const auto archived = load_local_tournament_session_definition(
         immutable_path, authoritative_catalog);
     if (archived.status == LocalTournamentSessionFileStatus::Missing) {
-        // Upgrade existing active sessions created before per-instance
-        // archives without altering guest state or crediting any result.
-        if (save_local_tournament_session_definition(
-                immutable_path, next.definition) !=
-            LocalTournamentSessionFileStatus::Saved) {
-            return error(Status::StorageFailed, "cannot migrate active session archive");
+        // Upgrade old active sessions without replacing an archive written
+        // by a second restorer (or a conflicting creator). The archive must
+        // be reserved create-only under its durable per-path mutex.
+        const auto migrated = save_local_tournament_session_definition_if_current(
+            immutable_path, std::nullopt, next.definition);
+        if (migrated != LocalTournamentSessionFileStatus::Saved) {
+            // Another process may have completed the SAME migration. Reopen
+            // and verify the exact canonical definition; never erase an
+            // incompatible/malformed archive or claim a fabricated result.
+            if (migrated != LocalTournamentSessionFileStatus::Conflict) {
+                return error(Status::StorageFailed,
+                             "cannot migrate active session archive");
+            }
+            const auto winner = load_historical_local_tournament_session_definition(
+                immutable_path);
+            if (!winner.loaded() ||
+                encode_local_tournament_session_definition(*winner.session) !=
+                    encode_local_tournament_session_definition(next.definition)) {
+                return error(Status::EvidenceRejected,
+                             "concurrent archive migration changed instance plan");
+            }
         }
     } else if (!archived.loaded() ||
                encode_local_tournament_session_definition(*archived.session) !=

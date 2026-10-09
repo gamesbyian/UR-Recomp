@@ -1,3 +1,5 @@
+> **2026-10-09 implementation note:** One integrated Baldosa/Modern candidate must keep **logical world width, 4× source raster density, 7:6 original PAR, graphics representation and physical output resolution** independent. Merged +24 world and 1024×896 internal presentation are scoped component results. Open #1082 targets actual 342×224 logical 16:9; source-visible HUD/OBJ and physical 3840×2160 output on Windows are still separate QA decisions. Current delivery ownership: [WORK-QUEUE.md](WORK-QUEUE.md).
+
 # Display and Presentation Policy
 
 Last updated: 2026-10-03

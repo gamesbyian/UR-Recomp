@@ -1,86 +1,36 @@
-> **2026-10-09 current-main correction, after #1083:** The two equal greenfield spikes proposed below have been overtaken by real merged Baldosa bridge and presentation work. **Read [the repository-wide first-party code/asset reuse audit](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) first.** Baldosa is now the leading integration path, with merged guest, human-input, native pause, 4x HD+Original fallback, real +24 world and Windows PE compilation gates. Continue from these reusable implementations; retain selective old-core upgrade only if a specific Baldosa compatibility blocker warrants it. This banner changes priority, **not** the genuine full player-journey/45-course acceptance standards.
+# Baldosa core migration: current implementation runbook
 
-# Baldosa-first remaster-core migration decision
+**Status (2026-10-09, after merged #1085): Baldosa-first is the leading, already experimentally working execution migration path.** The old *two equal greenfield spikes* decision has been overtaken by native build and bridge results; preserve it for provenance in [archive/BALDOSA-MIGRATION-INITIAL-COMPETITION-20261009.md](archive/BALDOSA-MIGRATION-INITIAL-COMPETITION-20261009.md). **This is a runbook, not an independent backlog.** Current owners/priorities are [WORK-QUEUE.md](WORK-QUEUE.md), the authoritative source/asset reuse map is [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), and independent acceptance is [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json).
 
-**Decision proposal, 2026-10-09.** Owner goal: an otherwise gameplay-faithful Uniracers with **true 4K-capable presentation, actual widescreen world visibility, modern menus, controller-first accessibility, customization, profiles, records, ghosts, replay, and multiplayer**. A standalone faithful recomp is an enabling core, **not the differentiated product**.
+## Decision and what has actually worked
 
-## Executable decision, not open-ended research
+Use the pinned Ema Guillén AOT title/guest under our existing modern product/presentation architecture where measured compatibility allows it. The previous patched SNESRecomp remains the **currently available executable and rollback** until the Baldosa Windows player candidate proves equivalent gameplay, correct first-party Modern authority and preserved user data. Only a *demonstrated cost/correctness blocker* reopens selectively transplanting individual Ema improvements into the old core. Do not fund a second full general recompilation path.
 
-**Default hypothesis: start from Ema Guillén's playable AOT core and re-host our product/presentation layers** rather than continuing to rebuild 65816 execution. **Challenge it with a bounded competing path: transplant Ema's critical framework improvements into our existing core.** Choose the path providing a repeatably playable, correct Windows x64 vertical slice with the least migration complexity and remaining maintenance burden. The prior hours committed to either implementation have zero decision weight.
+Exact source: `baldosa/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101`, `baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709`. Current USA ROM SHA256 `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478`. Reuse existing fork and 85 imported maintained inputs; generated code and two submodules need no new copy inside the product source.
 
-Immutable inputs:
-- Baldosa game repo `baldosa/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101`; full existing fork `gamesbyian/uniracers-recomp`; our intake `reference/imported/reverse-engineering/baldosa-uniracers-recomp/` (85 hand-maintained files, checked byte-exact).
-- Ema framework `baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709` and `recomp-ui@7e884a227accea91ddb378671bd49aaeeea13371`; exact 86-commit upstream framework ancestry index in `analysis/data/baldosa-framework-delta-20261009.json`.
-- Existing UR-Recomp framework `cd5875cbdaf19f5e324272b1f8051d671fce9215`, its repository-owned staged archive, Cargo closure, **dozens** of project-owned ordered host/runtime patch artifacts catalogued in `tools/toolchain-entries/snesrecomp.json`. Do not assume those patches apply cleanly to Ema's fork or can all be removed.
-- Only targeted USA ROM digest `859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478` is compatible. Never compare with a silently different PAL/prototype build.
-- Read `docs/SEMANTIC-SUFFICIENCY.md`, `docs/QA-BOUNDED-RELEASE-CAMPAIGN.md`, `docs/ORIGINAL-COURSE-EVENT-CENSUS.md`, `docs/MODERN-FRONTEND-SHIPPING-STATUS.md`, `docs/SNESRECOMP-ISLAND-SCOPE.md`, `docs/BALDOSA-FRAMEWORK-DELTA-20261009.md` before claiming a pass. Data and tests under `analysis/` and `tests/` are not implicitly new evidence.
+**Merged experimental capability:** intact AOT guest builds; untouched 1P Dragster and 2P split smoke; read-only UR guest snapshot with 2,473/2,473 identical WRAM CRC frames; actual native moving rider frames; true 4× 1024×896 HD and identical nearest-Original fallback; calibrated +24 both-view world margins; human mapped P1/P2 input filter; real native host-owned pause/SDL event pump; Windows x64 native build and later 2P/pause verification. See [BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md](BALDOSA-NATIVE-EXECUTION-EXPERIMENT-20261009.md) and each merged PR for exact proof, revisions and limitations. These are **components**, not the final Modern frontend, 4K output, or event-complete product.
 
-## Initial hard gate: prove Ema's binary, untouched
+**Not yet certified on a unified shipping candidate:** a working controller-only five-destination Modern root on Baldosa; durable profiles/SRAM/`.urrun`/`.urghost` end-to-end; complete original/native Circuit/Race/Stunt results; HD P1/P2 source-visible renderer without phantom sprites, genuine fully extended 16:9 world/HUD/OBJ, physical 3840×2160 output, the packaged Windows journey and all applicable QA gates. The course ledger remains 0/45 as of the checkpoint.
 
-Run the fork as Ema actually ships it, with exact pinned submodules and owned-USA-ROM input, clean process and controller settings. First do his own nine supplied routes against his stated reference oracle and examine **unmasked** differences separately. Then require a live two-player split-screen race, a full non-Dragster race, a complete multi-lap circuit, a scored Stunt, and terminal result screens. Record event identity, inputs, frame bounds, final scoreboard and guest state, PPU/OAM and sound. Since their routes primarily assert masked checkpoints rather than our accepted terminal-result protocol, **none of these are credited as passed before running**.
+## Minimum correct adapter: reuse, don't rewrite
 
-If this untouched baseline fails to build/run or only passes under substantial framework repair, stop the wholesale-swap premise and favor selective transplantation for that defect. Preserve exact failure traces and the original repository state.
+- **Guest and time/state:** `native/product/baldosa_execution_backend.hpp`, `tools/baldosa_guest_adapter_spike.py`, `tools/baldosa_guest_snapshot_probe.cpp` provide the read-only boundary. Extend only stable actual WRAM/PPU/time/result fields, not arbitrary guest writes. Never infer result from elapsed frames or script exit.
+- **Lifecycle and controller:** `tools/baldosa_product_execution_spike.py` owns *human-only* word filtering. `tools/baldosa_product_pause_spike.py` and the merged #1081/#1085 native hooks own acknowledged pause and guest freeze. Map them to current Modern `modern_session_c_api.h`, session runtime and host policies; prohibit double-consuming mapped keys, leaked held Start and host focus changes after failed pause.
+- **Presentation:** `native/presentation/racer_hd_presenter.*` contains existing approved procedural authored art and guarded source selection; `tools/baldosa_hd_host_spike.py` and `tools/baldosa_native_racer_presentation.cpp` already link it. `native/product/presentation_density_compositor.*` preserves 4× fallback; `native/title/uniracers_ws_margins.*` is the first-party calibrated course world provider. Widened rendering and full physical output are independent axes. Never create a new renderer/world cache to incorporate these.
+- **Modern product and storage:** Keep typed profile catalog, stock SRAM selection, progression, records/ghost/replay, tournament/match/receipt stores and the Windows appdata-root migration unchanged. Extend narrow event input/result adapters, not file formats or a second profile directory. Reboot/reset guest ownership only with a proven backend acknowledgement and a fresh-process no-data-loss witness.
+- **QA oracle:** Use historical independent original Snes9x/Dessyreqt and verified guest trajectories plus existing input-fixture translations. A route that exits, a matched 2,473-frame CRC, or source-only settled result is **not** a complete original/native course pass.
 
-## Competing spike A: Ema-first host
+## Four acceptance checkpoints (one candidate, shared QA)
 
-Use a separate worktree/branch built from the **existing full Baldosa fork**, not `src/gen/` in the UR-Recomp source tree. Produce a Windows x64 title executable capable of:
-1. Running the unmodified AOT guest with host hooks only and exporting **the minimum authoritative per-frame contract**: CPU/WRAM/SRAM, actual OAM/VRAM/CGRAM/palette state, PPU/window/HDMA state, audio clock and per-seat input. Record snapshots on native 256x224 logical geometry, including horizontal world offsets; do not fake HD via screenshots.
-2. Passing a **stable frame-boundary and process-restart test**, with no invented result state. Separate true guest frame, renderer frame and simulation controller ownership. All product actions (pause/reset/restart/quit/profile selection/records) need explicit host-vs-guest authority and input release.
-3. Rendering one authentic stock 1P race and **a correct 2P split** through the existing UR-Recomp renderer interface or a narrow adapter to it. Implement the same OAM high-table evidence gate as QA-08. Preserve the option to fall back to stock original sprites.
-4. Displaying a **real +24 native logical extension** (or smallest already verified host-owned widening configuration) without changing gameplay geometry/checkpoint semantics. Then exercise one 4K output mode: 4K alone is just output resolution; *true* widescreen requires preserved world visibility and correct 7:6 original pixel-aspect accounting.
-5. Round-trip one existing modern profile, one completed `.urrun` plus `.urghost`, and one records/result action across a **fresh process**, with byte-for-byte compatibility or an explicit versioned migration. Never overwrite a player's save just to bootstrap a spike.
+1. **Host lifecycle:** Real Windows core starts 1P/2P from Modern controller-first root; native pause/resume/restart/return/quit with controlled guest input and correct audio. Use open #1056's Modern work and current #1086's actual-live-race pause proof; reconcile owners rather than copying their host.
+2. **Authentic results and persistence:** One legitimate non-Dragster Race, Circuit and scored Stunt original/Baldosa terminal result with independent oracle and correct guest timer; then write/read existing profile, run, match and ghost artifacts on a fresh Windows process. Reuse #1079 historical Zoo scene and #1058 fixture receipt recovery.
+3. **Presentation:** Real source-derived P1/P2 visual frames, stock fallback and actual widened world with correct 7:6 PAR/HUD. Reuse #1045 source footprint QA and #1082 342×224/+48 experiment. Prove full host physical 4K output separately; 1024×896 at 4× is not that.
+4. **Product candidate:** Build existing portable ZIP with unchanged user-data-root policy, exercise the **same player journey** from first launch through settled result → Records/replay/ghost → Repeat or quit; compare original/native, graphics, controller/audio and data invariants on the exact artifact. QA independently records it by gate. Windows build-only CI does not discharge runtime/hardware tests.
 
-**First adapter design** should live on our side of a C ABI boundary, leaving Baldosa's `src/gen` and analyzer cfg untouched. Avoid building a new renderer, save store, profile model or frontend. Do not integrate the entire external `recomp-ui` at this stage: our Modern frontend is product-specific and already substantially implemented. Evaluate launcher components selectively only if they replace an existing UI seam with fewer regressions.
+Stop if an engineering spike cannot reach the stated single seam without rewriting most of the Modern host; record the specific mismatch, rollback and cost comparison, then consider only the smallest compatible selective framework fix. A failed quick experiment is not permission to skip a P0 integrity defect or weaken acceptance.
 
-## Competing spike B: keep UR-Recomp core and take Ema's execution
+## PR/revision hygiene
 
-Starting from **latest** UR-Recomp main in a separate isolated branch, apply the minimum compatible framework changes, in dependency order, using exact upstream commits, not a fork-head merge:
-1. Test and opt-in `g_hdma_oamdata_at_10c` plus the title-level enablement, measuring actual original/native sprite high-table and scanline-0/112 behavior. Keep the change disabled by default until validated.
-2. Bring clock-driven HVBJOY (`96b7e9f5`) together with its beam-frame ownership dependency, then `paced_bus` (`b7b4318f`) only if source/recompiler/runner integration builds repeatably. These are timing semantics changes, not presentation tweaks.
-3. Native guest continuation/handoff (`5882addc`) and pinned M/X variant/landing support (`ce196a45`) behind an explicit feature switch; prove no return-stack corruption, silent interpreter fallback or timing regression.
-4. Trial the real `$00:0199` HLE MVN/RTL trampoline from `src/gen_stubs.c` with exact 8/16-bit index mode and cycles, only if interpreted work is measurable and significant. No synthetic behavior or fabricated completion.
-5. Regenerate from the **verified USA ROM** and run the same shared vertical-slice input, terminal-result, OAM and host-product tests as spike A.
+All currently live PR numbers are **dated examples**. Refresh GitHub before assigning: at this snapshot #1086 owns actual in-race native pause; #1082 342×224 world; #1079 Zoo transplant; #1056 Modern root/restart input; #1045 rider OBJ ownership; #1058 fixture receipt. Their source/CI/contract work has distinct owners. Earlier #1068/#1072/#1074/#1076/#1078/#1080/#1081/#1083/#1085 are merged experimental milestones. Neither repeat their probes nor port the full 35-patch old framework chain blindly.
 
-First map changes against `tools/toolchain-entries/snesrecomp.json` and the offline staged-source machinery. The existing Modern host hooks, widescreen/OAM/presentation modifications, P2 input handling and `source-gamepad` integration have a real conflict surface. Preserve their ownership; don't assume `git apply` success proves behavioral compatibility.
-
-## Same acceptance scorecard for both spikes
-
-| Gate | Minimum witness | Admission |
-| --- | --- | --- |
-| Startup and usability | Clean Windows launch, ordinary controller, no developer shortcuts, visible root, race, return to Records and quit | Required |
-| Fidelity | Real USA-ROM full non-Dragster Race, multi-lap Circuit and scored 45-second Stunt against authentic oracle input/result | Required for core parity; keep 0/45 until independently checked |
-| 2P | Two physical/logical seats with independently governed input, uncorrupted P1/P2 OAM/HDMA, leg/result, pause/restart | Required |
-| Presentation | Correct authentic 4:3/7:6 baseline; real +24 horizontal world extension, non-cropped 16:9, coherent Original/HD fallback; native 4K output | Required for differentiation |
-| Persistence | Existing profile/save/progression and `.urrun`/`.urghost` open across fresh processes; no loss or ghost/result fabrication | Required |
-| Measurement | Record build reproducibility, clean CI time, frame pace/latency, interpreter share, rendering fallback, diff and outstanding defects | Required |
-| Maintenance | Enumerate needed framework patches, local code deltas, extra owners and source-closure obligations; preserve provenance | Selection criterion |
-
-No single small test can substitute for these player outcomes. Use **one reusable route/evidence runner** for both spikes; do not fund a third universal framework or count masked WRAM parity as game completion.
-
-## Stage gates and stop rules
-
-- **Gate 0, approximately 8–12 productive agent hours:** make upstream title executable independently, compile the existing application from clean source, record available runtime baselines and gap list; no code migration until both baselines are reproducible. Hard-fail missing ROM/runtime/prerequisites as blockers, not false successes.
-- **Gate 1, up to 20 productive agent hours per spike:** complete native host + stock/2P/real widened display + at least one product hook. If spike A requires replacing our entire host stack or loses controller authority, stop A and evaluate B. If B's patched framework needs rewrites across most existing toolchain patches, stop B and evaluate A. **40 hours maximum for the initial competition**, not an estimate for product completion.
-- **Gate 2, 8–12 hours:** run common acceptance and maintenance/cost comparison. Select A or B by correct player-visible results first, engineering cost second, performance third. If both fail, keep proven main, isolate and fix the cheapest named blocker. No unbounded dual-track work.
-- **After selection:** deliver **one** player-facing vertical slice before pursuing full 45-course breadth, speculative microarchitecture or independent alternate launchers. Slice: Modern root → racer/profile selection → stock/HD 16:9 race → real result → replay/Records → repeat or quit. Count every released feature against the existing QA ledger.
-
-These are **engineering-effort ceilings/decision checkpoints**, not wall-clock promises or guaranteed completion costs. A demonstrable new P0 player-data corruption or gameplay correctness issue is an explicit scope exception with its own tracked fix.
-
-## Replace/retain/delete rules
-
-| Existing work | Action after selection |
-| --- | --- |
-| Hand-translated machine-code semantics, duplicate cfg and incomplete execution tracing | **Replace** with proven upstream versions if parity and regeneration show no regressions; retain our PAL/prototype homolog notes as independent comparison oracle |
-| Our SNESRecomp fork/staged archive and patch list | **Replace as an isolated whole or selectively upgrade**, whichever passes Gate 2. Never leave two runtime sources of truth in the shipping product |
-| Original ROM/route provenance, 45-course census, Snes9x acceptance and QA release ledger | **Retain** independent proof gates; avoid treating upstream self-comparisons as proof of our integration |
-| Modern 5-destination UI, input focus policies, profile chooser, native controller glyphs | **Keep and adapt** via host ABI, not rewritten against Ema's generic launcher |
-| HD art assets, source-visible sprite gating, OAM/PPU bridge, real widened viewport | **Keep and adapt**: these are product-defining; remove renderer plumbing only when replaced with visibly correct test parity |
-| Records, tour/progression, replay, ghost and tournament storage/transaction invariants | **Keep**, preserve live data compatibility and fault tests; adapt guest-state boundaries, not storage authority |
-| Platform prototypes (Switch/macOS/Browser), web lockstep | **Defer** until the selected Windows vertical slice ships; source captured with provenance |
-| Redundant investigation and broad QA duplicating passed high-confidence evidence | **Stop/de-scope explicitly**, linked to replacement evidence; never simply erase facts, proofs or known red defects |
-
-## Immediate ownership / operational instructions
-
-Assign one agent to spike A and a separate agent to spike B, with **one** integration/evidence owner for the shared route and scoring harness; each stays in its own branch, no changes to production `main` until Gate 2. Coordinate with QA-01/07, QA-08, QA-02/03 and QA-05/09 so their current work is either reused or deliberately paused, not overwritten. Use PRs for source changes, merge bounded validated improvements, update `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md` and the authoritative QA ledger **only with real results**.
-
-First useful deliverable is a **side-by-side playable evidence report**, not another documentation-only framework transplant. Every transplant gets an upstream SHA, local patch, affected symbols/components, rollback command, regression fixtures and measurable before/after.
+Prefer one compiled native guest and a few reusable origin-to-result/2P/render/Windows acceptance surfaces to separate expensive workflow copies. The governing documentation policy is [docs/README.md](README.md), [CI-WORKFLOW-BEST-PRACTICES.md](CI-WORKFLOW-BEST-PRACTICES.md) and [VALIDATION.md](VALIDATION.md).

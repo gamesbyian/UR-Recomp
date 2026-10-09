@@ -1,3 +1,5 @@
+> **Implementation scope (2026-10-09):** This file defines desired UI/interaction behavior, not shipping status. Integrate the existing typed root, profiles/records, controller semantics and pause design with Baldosa native lifecycle and independent QA-05/09 first. Defer Racer Studio material masks and speculative navigation redesigns until the ordinary Windows controller-only first-launch→event→result→Records→quit route works. Live ownership: [WORK-QUEUE.md](WORK-QUEUE.md); evidence: [MODERN-FRONTEND-SHIPPING-STATUS.md](MODERN-FRONTEND-SHIPPING-STATUS.md).
+
 # Modern frontend master design specification
 
 ## Racer Studio: independently editable colours and materials (2026-10-08)

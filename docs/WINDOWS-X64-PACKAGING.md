@@ -1,6 +1,6 @@
 # Windows x64 Portable Packaging
 
-Status: portable consumer-package lifecycle and release-facing startup diagnostics are implemented with focused package/unit contracts. Per repository CI policy, full assembled-package Windows acceptance is the final-`main` regression and therefore runs after integration rather than duplicating PR validation. Windows x64 is the primary reference deliverable; installer/signing/uninstall work remains deferred.
+Status: **existing product's** portable ZIP lifecycle and startup diagnostics implemented with focused package/unit contracts. **Baldosa 2026-10-09** Windows build and live 2P/pause verification (#1083/#1085) do **not** yet prove this exact Modern ZIP, user-data root, profile/replay migration or packaged controller/audio/4K acceptance. Reuse the existing packager with new executable only after these checks. Per repository CI policy, full assembled-package Windows acceptance is the final-`main` regression and therefore runs after integration rather than duplicating PR validation. Windows x64 is the primary reference deliverable; installer/signing/uninstall work remains deferred.
 
 ## Shipping format for the current milestone
 

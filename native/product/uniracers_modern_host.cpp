@@ -1830,29 +1830,61 @@ bool activate_profile_id(const std::string& profile_id) {
         product_diagnostic("UR_PROFILE_SELECT REJECTED_UNFORMATTED_SNAPSHOT");
         return false;
     }
+    // Do not publish a new *global* active-profile pointer until the
+    // framework SRAM preconditions have been checked. Keep the old live
+    // bytes for a compensating restore if the second artifact fails.
+    if (!g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        product_diagnostic("UR_PROFILE_SELECT REJECTED_SRAM_CONTEXT");
+        return false;
+    }
     if (!persist_live_profile_snapshot()) return false;
 
-    auto product = g_product_state;
+    std::array<std::uint8_t, ur::product::kStockSramBytes> previous_sram{};
+    std::memcpy(previous_sram.data(), g_sram, previous_sram.size());
+    const auto previous_product = g_product_state;
+    auto product = previous_product;
     product.active_profile_id = profile_id;
     if (!persist_product_state(product)) return false;
     g_product_state = product;
     apply_profile_save_root();
-    if (!g_profile_state || !g_profile_state->racer_identity ||
-        !g_profile_state->stock_sram || !g_sram ||
-        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
-        return false;
-    }
 
+    // The global selector was committed first. Its rollback must be an
+    // exact-state CAS, never a blind write that overwrites another window.
+    const auto rollback_selection = [&]() {
+        if (!persist_product_state(previous_product)) {
+            product_diagnostic("UR_PROFILE_SELECT ROLLBACK_CONFLICT_OR_IO");
+            return false;
+        }
+        g_product_state = previous_product;
+        apply_profile_save_root();
+        std::memcpy(g_sram, previous_sram.data(), previous_sram.size());
+        const bool restored = RtlTryWriteSram();
+        product_diagnostic(
+            restored ? "UR_PROFILE_SELECT ROLLED_BACK"
+                     : "UR_PROFILE_SELECT ROLLBACK_SRAM_WRITE_FAILED");
+        return false;
+    };
+
+    if (!g_profile_state || !g_profile_state->racer_identity ||
+        !g_profile_state->stock_sram) {
+        product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");
+        return rollback_selection();
+    }
     if (ur::product::restore_stock_sram_from_profile(
             ur::product::ExecutionMode::Modern,
             *g_profile_state,
             g_sram,
             static_cast<std::size_t>(g_sram_size)) !=
         ur::product::HostProfileTransferStatus::Applied) {
-        return false;
+        product_diagnostic("UR_PROFILE_SELECT TARGET_RESTORE_FAILED");
+        return rollback_selection();
     }
     g_sram[0x0748] = g_profile_state->racer_identity->rider_index;
-    (void)RtlTryWriteSram();
+    if (!RtlTryWriteSram()) {
+        product_diagnostic("UR_PROFILE_SELECT TARGET_SRAM_WRITE_FAILED");
+        return rollback_selection();
+    }
     product_diagnostic("UR_PROFILE_SELECT APPLIED");
     return true;
 }

@@ -68,14 +68,16 @@
         "docs/QA02-FIXTURE-LIVE-ATTEMPT-FENCE.md",
         "docs/QA02-GHOST-FUTURE-SCHEMA.md",
         "docs/QA02-FIXTURE-HARDKILL-C14-C15.md",
-        "docs/QA02-COORDINATOR-C12-PROCESS-RACE.md"
+        "docs/QA02-COORDINATOR-C12-PROCESS-RACE.md",
+        "docs/QA02-SUPERSEDED-FIXTURE-PROCESS-RACE.md",
+        "docs/QA02-FIXTURE-OWNERSHIP-LEASE-PROPOSAL.md"
       ],
       "journeys": [
         "J-02",
         "J-07",
         "J-08"
       ],
-      "next_action": "Execute exact pinned Windows portable ZIP/hash J-02/J-07/J-08 with two *game* processes sharing one real user-data root; validate forced crash C04 profile selector vs framework SRAM, process-kill C09/C12/C14/C15 at full game seam, disk-full/read-only/upgrade-downgrade restores, and physical power-loss metadata durability. Preserve one-to-one witness pointers; do not promote P0 without L4.",
+      "next_action": "Finish #1052 native/Windows-oriented CI for fail-fast OS live-fixture lease, current archive/receipt check and process-kill recovery; only integrate after full green. Then exercise two actual packaged Windows game instances same user root, crash while racing, deliberate rearm, file/OS hard kill, disk-full/upgrade faults and hash-pinned J-02/J-07/J-08 L4. Complete C04 profile selector/framework SRAM crash restore.",
       "waiver_reason": null,
       "required_layer": "L4",
       "witnesses": [],
@@ -105,9 +107,11 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/1042",
         "https://github.com/gamesbyian/UR-Recomp/pull/1044",
         "https://github.com/gamesbyian/UR-Recomp/pull/1046",
-        "https://github.com/gamesbyian/UR-Recomp/pull/1048"
+        "https://github.com/gamesbyian/UR-Recomp/pull/1048",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1050",
+        "https://github.com/gamesbyian/UR-Recomp/pull/1052"
       ],
-      "remaining_release_risk": "Merged green #1044 future valid ghost schema preservation; #1046 actual independent OS-process _Exit cuts C09 (.urmatch claimed before public .urrun), C14 (valid saved pair before receipt), C15 (receipt before pending retire), with fresh reexec exact credit/ghost/PB/receipt corruption checks; #1048 five rounds of competing full coordinator create C12 with exactly one active winner and fresh restore. Earlier #982-#1042 profile/catalog/global CAS, host mirror SRAM compensations, C01 pristine orphan recovery, immutable tournament archive create/migrate, staged record sync, and on-disk pending fence remain store/native-accepted only. No group commit across framework save.srm, profile, global selector, run/match/ghost, fixture receipt and pending. C04 and C08 full-game crash cuts remain unexecuted. Partially progressed orphan and inert archive salvage, directory-sync committed-uncertain states and noncooperating game processes remain risks. No exact candidate Windows two-instance J-02/J-07/J-08, disk-full, upgrade/rollback or power-off L4 witness. QA-02 P0 in_progress."
+      "remaining_release_risk": "Merged green #1050 reproduced in two live native processes an overwritten in-flight fixture attempt: stale old owner rightly loses irreversible receipt credit but loses its intended tournament progress. #1052 proposes dedicated crash-released, nonblocking OS live-lease retained in coordinator from arm through commit/cancel, with active archive and receipt-state revalidation, Busy status/notice, two live-process test and external OS hard-kill restart. #1052 remains under fresh CI and is NOT accepted until merge. #1044/1046/1048 and earlier QA02 narrowed store/process durability, archive, C09/C12/C14/C15 acceptance merged. No committed group transaction across framework save.srm, profile/roster/global selection, run/match/ghost, fixture receipt/pending; no exact Windows package two-instance/disk fault/upgrade/power-loss L4 witness. Future lease needs incompatible older-client and stale-retry UX assessment. QA02 P0 in_progress."
     },
     {
       "id": "QA-03",

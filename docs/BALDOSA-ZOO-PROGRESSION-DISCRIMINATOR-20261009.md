@@ -19,3 +19,21 @@ This small diagnostic uses the **existing route runner and experiment workflow**
 - The 2014 movie's independent original-only original result at frame 8353 (MIKE 1:16.46, best lap 0:25.10) is an **oracle for that movie input**, not an expected time under this separate Baldosa script. The same movie also shows `3→0` checkpoint wrap without lap decrement at 4722 and subsequent `0→1` with `3→2` lap at 4911. Preserve that semantic distinction in later comparisons.
 
 A legitimate first Circuit acceptance requires matching *completed* original/native settled results under identical source input, independently established course identity and complete lap/checkpoint progression. Race and 45-second Stunt each need analogous end-to-end witnesses; no evidence here upgrades those event families.
+
+
+## Executed original-emulator discriminator (2026-10-09)
+
+PR #1075 **merged**, native AOT workflow [37994315986](https://github.com/gamesbyian/UR-Recomp/actions/runs/37994315986) green. It produced exactly **9,784 frames**, the same final guest WRAM CRC `0x92632636` as the earlier bounded native run, even with two added diagnostic dumps. PR #1077 **merged**, original pinned Snes9x libretro workflow [37995000742](https://github.com/gamesbyian/UR-Recomp/actions/runs/37995000742) green, independently executing the same input with the Baldosa-pinned `snesref`, same USA ROM and original upstream route; only the host-only `turbo` line was removed. Its green confirmation rerun is [37995217647](https://github.com/gamesbyian/UR-Recomp/actions/runs/37995217647).
+
+**4/4 independent original/native sampled guest states agree, all 48/48 named scalar-or-vector field groups match, and zero sampled guest-state differences were observed.** The compared groups include course and active flags, NMI handler, menu scratch, P1 world XY, stored contact, next checkpoint, finish gate, laps remaining, and all five raw stopwatch digits.
+
+| Input phase | Native AND original P1 XY | Native AND original checkpoint / finish gate / laps |
+| --- | --- | --- |
+| GO tick | `9200,1563` | `0 / 0 / 4` |
+| after 300 left frames | `6226,2158` | `1 / 1 / 3` |
+| before final 6000 left frames | `6158,2153` | `1 / 1 / 3` |
+| after final 6000 left frames | `6217,2155` | `1 / 1 / 3` |
+
+This is **strong evidence the existing Zoom Zoo route itself does not complete the Circuit on authoritative original Snes9x**, irrespective of Baldosa's native AOT correctness. The inputs achieve the initial 4→3 lap decrement and 0→1 checkpoint/gate advancement but stay in the same approximate geometry for thousands of left-held frames. Original Snes9x and Baldosa both remain in `8610` gameplay after driving. The full run's **every-frame original/native fidelity is not measured**: the 9,784 native per-frame WRAM CRCs have not been matched to original Snes9x; only four readouts were compared. Sparse equal endpoints cannot exclude transient differences. No complete Circuit result is admitted.
+
+The archived *different-input* Dessyreqt 2014 movie did authentically reach a settled Zoo result at original movie frame 8353, MIKE total 1:16.46 and best lap 0:25.10. PR #1079 therefore attempts to transplant that exact source-movie controller scene after each engine independently reaches active Zoo, under the same embedded 8 KiB SRAM. This next scene is an experiment, not an assumed completed result. Raw PPU result text and aligned native/original times must still agree before QA-01 can award any of 45 USA complete-course credits.

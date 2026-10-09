@@ -82,3 +82,71 @@ These are **engineering-effort ceilings/decision checkpoints**, not wall-clock p
 Assign one agent to spike A and a separate agent to spike B, with **one** integration/evidence owner for the shared route and scoring harness; each stays in its own branch, no changes to production `main` until Gate 2. Coordinate with QA-01/07, QA-08, QA-02/03 and QA-05/09 so their current work is either reused or deliberately paused, not overwritten. Use PRs for source changes, merge bounded validated improvements, update `docs/PROJECT-PLAN.md`, `docs/WORK-QUEUE.md` and the authoritative QA ledger **only with real results**.
 
 First useful deliverable is a **side-by-side playable evidence report**, not another documentation-only framework transplant. Every transplant gets an upstream SHA, local patch, affected symbols/components, rollback command, regression fixtures and measurable before/after.
+
+
+## October 9 executable checkpoint: the native host route
+
+**Control results and repository state.** Merged #1068's pinned full Baldosa
+AOT core and true UR racer-state observer into `main` after green CI
+[37988668056](https://github.com/gamesbyian/UR-Recomp/actions/runs/37988668056).
+The independent 1P observer witness on now-superseded #1069 retained
+5,447/5,447 WRAM CRC identity; #1068 reported 2,473/2,473 2P CRC
+identity. All are *guest-sequence* evidence, not completed-event
+original/emulator parity: official USA playable-course release gate **0/45**.
+
+**First Path A integration.** #1072 links our actual
+`native/presentation/racer_hd_presenter.cpp` and
+`racer_oam_placement.cpp` into Ema's host without touching its guest,
+ROM or shipping data stores. CI [37990222738](https://github.com/gamesbyian/UR-Recomp/actions/runs/37990222738)
+built, linked and ran native 2P with 2,473 identical guest-frame CRCs.
+At f1808, f1856 and f1952 its source-derived full-pair gate and
+`draw_frame` callback fired; however a post-hoc inspection of the
+uploaded log showed **zero opaque and painted source-OBJ pixels** for
+both split-screen viewports. This is a **negative visual integration
+witness**, not a moving Remastered-rider pass. The initial sampling
+report also missed all three callbacks by triggering only at multiples
+of 60 instead of actual presented frame numbers.
+
+**Narrow diagnosis and repair:** the tested default Baldosa configuration
+reported `new_renderer=0`. The existing UR overlay capture is emitted
+by the modern PPU span renderer, not that default legacy renderer.
+#1072 now enables `NewRenderer=1` only on its disposable HD candidate
+route, leaves upstream controls unmodified, and requires *same-frame*
+nonzero source opaque/painted pixel counts in both viewports, at least
+two distinct real presented rasters, and 2,473/2,473 identical guest
+CRCs. A run that draws only changing stock frames must fail. This
+specific renderer-policy fix is still experimental until fresh CI passes.
+
+**True-density Path A extension:** draft #1073 carries only the single
+manifest-SHA256-verified
+`tools/patches/snesrecomp-presentation-scale.patch` into Ema's
+disposable SNESRecomp host and wires the existing title compositor's
+`presentation_scale` callback. Its proposed additional 4× run must
+produce actual **1024×896** full-density output from the *same*
+source-derived rider assets, distinct frames, visible per-viewport
+source OBJ, and unchanged original 2P guest CRCs. This is **4×
+256×224**, not genuine 16:9, independent 4K monitor/Windows acceptance,
+or a 45-course result. The 1× gate must pass first.
+
+**Bounded Path B comparison:** #1070's ordered source-portability
+experiment found that **18 of the 35** UR title-host framework patches
+apply to Ema's pinned framework and **17 conflict/lack anchors**.
+Ema's OAM-address/HDMA pin is already present in Path A; actual 2P
+full-pair sprite admission uses historically mapped P1/P2 slots 98/99
+(top) and 97/96 (bottom), but the first run had *zero painted pixels*.
+No single-patch *old-UR-native binary* OAM-pinning behavior comparison
+has passed, so do not claim Path B sprite correctness. On actual
+integration cost, Path A currently offers a markedly narrower execution
+surface than a 35-patch rebase. Treat it as the **preferred experiment**
+only: keep the shipped UR core untouched until source-visible rasters,
+controls, persistence and Windows product journeys pass.
+
+**Remaining product gates:** original-emulator non-Dragster Race,
+multi-lap Circuit and timed Stunt completions; genuine widescreen +24
+materialization; Modern root and controller-owned pause/restart; existing
+profiles/SRAM/replay/ghost/Records over separate processes; clean
+Windows x64 binary and real output checks. Zoom Zoo #1071 reached the
+end of the unmodified driving sequence at frame 9,784 but stayed in
+gameplay (NMI handler `$8610` rather than terminal `$F60C`), so the
+bounded script is specifically *nonterminal* and earns no course QA
+credit. The required original Snes9x counterfactual remains open.

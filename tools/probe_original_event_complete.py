@@ -258,6 +258,7 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     p = subprocess.run([str(args.snesref), str(args.core), str(args.rom)],
                        env=env, cwd=scan, capture_output=True, text=True,
                        timeout=900)
+    (scan / "source-scan.log").write_text(p.stdout + p.stderr)
     if p.returncode:
         raise CompleteEventError("source-original replay failed: " + (p.stdout + p.stderr)[-1200:])
     states = trace.frame_states((scan / "trace.jsonl").read_text().splitlines())
@@ -277,6 +278,7 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     rerun = subprocess.run([str(args.snesref), str(args.core), str(args.rom)],
                            env=anchor_env, cwd=scan, capture_output=True,
                            text=True, timeout=900)
+    (scan / "source-entry.log").write_text(rerun.stdout + rerun.stderr)
     if rerun.returncode:
         raise CompleteEventError("original entry capture failed: " + (
             rerun.stdout + rerun.stderr)[-1200:])
@@ -335,7 +337,9 @@ def main(argv: list[str] | None = None) -> int:
     script = calibration / "entry.script"
     script.write_text(stock_crawler_script(stream) + "quit\n")
     rl = engine.run_reference(calibration, args, script, [])
+    (calibration / "reference.log").write_text(rl)
     nl = engine.run_native(calibration, args, script, [], 0)
+    (calibration / "native.log").write_text(nl)
     rf, nf = engine.race_entry_frame(rl), engine.race_entry_frame(nl)
     if rf is None or nf is None:
         raise CompleteEventError("could not calibrate both stock Crawler race entries")
@@ -352,7 +356,9 @@ def main(argv: list[str] | None = None) -> int:
     events = [(rf + part["start"], part["duration"], int(part["mask"], 16))
               for part in source_window["relative_input_segments"]]
     rl = engine.run_reference(replay, args, script, events)
+    (replay / "reference.log").write_text(rl)
     nl = engine.run_native(replay, args, script, events, nf - rf)
+    (replay / "native.log").write_text(nl)
     if engine.race_entry_frame(rl) != rf or engine.race_entry_frame(nl) != nf:
         raise CompleteEventError("race entry changed after scene-relative transplant")
     if "dump result-stable" not in rl or "dump result-stable" not in nl:

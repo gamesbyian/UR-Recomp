@@ -149,6 +149,55 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                 restored_overlap.stdout,
             )
 
+
+            # An explicit event replacement in game B cannot invalidate a
+            # legitimate event A still owns through a live race. Both are
+            # genuinely independent processes with a shared tournament root.
+            replace_root = root / "live-replacement-race"
+            created = subprocess.run(
+                [str(exe), "seed-overlap", str(replace_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(created.returncode, 0, created.stderr)
+            replacement_owner = subprocess.Popen(
+                [str(exe), "owner-wait-replace", str(replace_root)],
+                cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            replacement_rival = None
+            try:
+                deadline = time.monotonic() + 10
+                while not (replace_root / "barrier" / "owner-armed").exists():
+                    self.assertIsNone(replacement_owner.poll())
+                    self.assertLess(time.monotonic(), deadline)
+                    time.sleep(0.01)
+                replacement_rival = subprocess.Popen(
+                    [str(exe), "attempt-replace-live", str(replace_root)],
+                    cwd=ROOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                )
+                contender_out, contender_err = replacement_rival.communicate(
+                    timeout=20
+                )
+                self.assertEqual(
+                    replacement_rival.returncode, 0, contender_err
+                )
+                self.assertIn(b"QA02_LIVE_REPLACEMENT_BUSY", contender_out)
+                owner_out, owner_err = replacement_owner.communicate(timeout=20)
+                self.assertEqual(replacement_owner.returncode, 0, owner_err)
+                self.assertIn(
+                    b"QA02_OWNER_SURVIVED_REPLACEMENT", owner_out
+                )
+            finally:
+                for child in (replacement_rival, replacement_owner):
+                    if child and child.poll() is None:
+                        child.kill()
+                        child.communicate(timeout=5)
+            replacement_verified = subprocess.run(
+                [str(exe), "verify-c15", str(replace_root)],
+                cwd=ROOT, capture_output=True, timeout=20,
+            )
+            self.assertEqual(replacement_verified.returncode, 0,
+                             replacement_verified.stderr)
+
             # A dead owner must release its *OS handle*, not rely on
             # timeout/pid cleanup. An explicit new attempt uses fresh token,
             # leaves the old saved run as ordinary Records, and credits only

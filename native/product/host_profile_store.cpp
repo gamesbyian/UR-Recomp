@@ -183,7 +183,7 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
     if (expected_current) {
         if (current.status == HostProfileLoadStatus::IoError)
             return HostProfileSaveStatus::IoError;
-        if (!current.loaded() || *current.state != *expected_current)
+        if (!current.loaded() || !(*current.state == *expected_current))
             return HostProfileSaveStatus::Conflict;
     } else {
         if (current.status == HostProfileLoadStatus::IoError)

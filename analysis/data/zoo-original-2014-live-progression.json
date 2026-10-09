@@ -103,6 +103,32 @@
         0,
         2,
         1
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 88,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 8
+        },
+        {
+          "zero_based_write_index_in_frame": 91,
+          "wram_offset_hex": "0EF1",
+          "old": 4,
+          "new": 3
+        },
+        {
+          "zero_based_write_index_in_frame": 107,
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "zero_based_write_index_in_frame": 108,
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
       ]
     },
     {
@@ -144,6 +170,20 @@
         6,
         6,
         3
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 171,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 6
+        },
+        {
+          "zero_based_write_index_in_frame": 211,
+          "wram_offset_hex": "1199",
+          "old": 1,
+          "new": 2
+        }
       ]
     },
     {
@@ -190,6 +230,26 @@
         0,
         6,
         0
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 88,
+          "wram_offset_hex": "0E95",
+          "old": 4,
+          "new": 6
+        },
+        {
+          "zero_based_write_index_in_frame": 117,
+          "wram_offset_hex": "1199",
+          "old": 2,
+          "new": 3
+        },
+        {
+          "zero_based_write_index_in_frame": 118,
+          "wram_offset_hex": "119D",
+          "old": 1,
+          "new": 0
+        }
       ]
     },
     {
@@ -231,6 +291,14 @@
         2,
         1,
         1
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 187,
+          "wram_offset_hex": "1199",
+          "old": 3,
+          "new": 0
+        }
       ]
     },
     {
@@ -282,6 +350,32 @@
         5,
         2,
         4
+      ],
+      "original_lowwram_write_sequence": [
+        {
+          "zero_based_write_index_in_frame": 107,
+          "wram_offset_hex": "0E95",
+          "old": 6,
+          "new": 4
+        },
+        {
+          "zero_based_write_index_in_frame": 113,
+          "wram_offset_hex": "0EF1",
+          "old": 3,
+          "new": 2
+        },
+        {
+          "zero_based_write_index_in_frame": 141,
+          "wram_offset_hex": "1199",
+          "old": 0,
+          "new": 1
+        },
+        {
+          "zero_based_write_index_in_frame": 142,
+          "wram_offset_hex": "119D",
+          "old": 0,
+          "new": 1
+        }
       ]
     }
   ],
@@ -297,7 +391,8 @@
     "This is original-only course semantics, not a demonstrated native discrepancy or a full QA-01 accepted completion.",
     "Original timer raw fields are [minutes, tens-of-seconds, seconds, tenths, subtick] at 0E0F,0E13,0E17,0E1B,0E1F; at first crossing 0.2 seconds and second crossing 25.2 seconds. Treat these as raw original emulator bytes, not an unproven event handler clock read.",
     "The historic original JSONL instrumented low WRAM 7E and does NOT record/verify the complete live 7F course buffer. C000 slot-family attribution is independently ROM-static; instruction-time active 7F/C000 mapping remains an additional verifier.",
-    "The original stopwatch bytes at the first lap decrement decode to about 0.2 seconds and at the second to about 25.2 seconds. Thus 4->3 occurs just after the starting gate and must not be counted as an already-completed 25-second full circuit."
+    "The original stopwatch bytes at the first lap decrement decode to about 0.2 seconds and at the second to about 25.2 seconds. Thus 4->3 occurs just after the starting gate and must not be counted as an already-completed 25-second full circuit.",
+    "Original 7E write chronology at 3408,3794,4031,4911 observes a low-byte write to persisted P1 contact 0E95 before the first direct progress-field mutation of that original guest frame. This is in-frame WRAM ordering, not proof of CPU PC order or which sampled contact was consumed by the handler. The earlier blanket previous-postframe contact-as-next-dispatch assertion remains unproved under this reference trace."
   ],
   "original_race_start_phase": {
     "race_active_frame": 3190,

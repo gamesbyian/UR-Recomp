@@ -264,6 +264,26 @@ actual scoring/timeout handling agrees. The scene-window tool is an
 input extraction seam only; **no full timed Stunt acceptance row is
 promoted** until that paired run has executed and retained its outcome.
 
+## Event-specific mismatch diagnostics without motion masking
+
+The 2014 Zoom Zoo paired replay now captures both a raw first field
+difference **and** `event_state_diagnostics` that compare progression,
+persisted contact and boost as separate channels. An entry-phase or
+movement discrepancy may occur before a later *different*
+checkpoint/gate/lap state, which must not be hidden or misclassified.
+Every original/native progression change interval retains both
+postframe contact words and the exact guest-frame spacing. Only
+consecutive frames support a one-frame interval; sparse matches do
+not prove the absence of transient progress between them.
+
+The event-state extractor does not reinterpret contact as a same-frame
+trigger: the original USA dispatch invokes the course handler **before**
+the later contact sampler. It retains the prior contact word as a
+candidate input and requires instruction-PC evidence before asserting
+a specific cell caused a checkpoint or finish. The raw and event
+results are different observations, not competing verdicts.
+No new full-event pass is admitted merely by running this tool.
+
 ## Frame-2903 causal exclusion
 
 The native artifact `analysis/data/dragster-finish-contact-transition.json`

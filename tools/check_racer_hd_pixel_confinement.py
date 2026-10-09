@@ -75,6 +75,7 @@ def audit(
     frame: int,
     *,
     second_original: bytes | None = None,
+    capture_only: bool = False,
 ) -> dict:
     sw, sh, stock = parse_ppm(original)
     if (sw, sh) != (256, 224):
@@ -124,10 +125,16 @@ def audit(
         "bottom_changed_pixels": bottom,
         "outside_live_oam_pixel_samples": outside,
         "original_controls_pixel_exact": second_original is not None,
-        "ok": bool(changed and top and bottom and not outside),
+        "diagnostic_capture_only": capture_only,
+        "viewports_with_visible_changes": [
+            name for name, count in (("top", top), ("bottom", bottom)) if count
+        ],
+        "ok": bool(changed and not outside and (capture_only or (top and bottom))),
         "claim_scope": (
             "original raster remains bit-exact outside 64x64 split OBJ footprints; "
-            "does not prove internal sprite-vs-foreground occlusion or temporal quality"
+            "capture-only can only prove removal of visible source pixels, not "
+            "an entirely occluded racer; neither mode establishes internal "
+            "sprite-vs-foreground priority or temporal quality"
         ),
     }
 
@@ -140,12 +147,15 @@ def main() -> int:
     ap.add_argument("--hd-log", required=True, type=Path)
     ap.add_argument("--frame", type=int, required=True)
     ap.add_argument("--json-out", type=Path)
+    ap.add_argument("--capture-only", action="store_true",
+                    help="PPU stock removal proof; allow wholly occluded viewport")
     args = ap.parse_args()
     result = audit(
         args.original.read_bytes(),
         args.hd.read_bytes(),
         args.hd_log.read_text(encoding="utf-8", errors="replace"),
         args.frame,
+        capture_only=args.capture_only,
         second_original=(
             args.original_control.read_bytes() if args.original_control else None
         ),

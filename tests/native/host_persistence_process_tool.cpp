@@ -203,6 +203,26 @@ int main(int argc, char** argv) {
                 HostProductSaveStatus::Saved) return 9;
             std::_Exit(83); // power-off boundary: global pointer committed
         }
+        if (action == "c04-contended-selector") {
+            if (*old.state->active_profile_id != "racer-1" ||
+                !saved_sram(b_sram, 9)) return 9;
+            // A different process legitimately selects racer-3 after we
+            // staged racer-2 SRAM. Our stale CAS cannot rewind its pointer.
+            auto competitor = *old.state;
+            competitor.active_profile_id = "racer-3";
+            if (save_host_product_state_file_if_current(
+                    host_path, *old.state, competitor) !=
+                HostProductSaveStatus::Saved) return 9;
+            auto stale = *old.state;
+            stale.active_profile_id = "racer-2";
+            return save_host_product_state_file_if_current(
+                    host_path, *old.state, stale) ==
+                    HostProductSaveStatus::Conflict ? 0 : 9;
+        }
+        if (action == "c04-verify-contended") {
+            return *old.state->active_profile_id == "racer-3" &&
+                saved_sram(b_sram, 9) ? 0 : 9;
+        }
         if (action == "c04-verify-postcommit") {
             return *old.state->active_profile_id == "racer-2" &&
                 saved_sram(b_sram, 9) ? 0 : 9;

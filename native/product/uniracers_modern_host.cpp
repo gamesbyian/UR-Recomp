@@ -1847,31 +1847,35 @@ bool activate_profile_id(const std::string& profile_id) {
     const auto previous_product = g_product_state;
     auto product = previous_product;
     product.active_profile_id = profile_id;
-    if (!persist_product_state(product)) return false;
+
+    // C04 crash boundary: the canonical active selector must be the LAST
+    // publication. Temporarily choose the target framework save root only in
+    // this process, then restore its exact authoritative profile SRAM and
+    // require the framework write BEFORE the global selector CAS. A hard kill
+    // before that CAS leaves the old selector + old SRAM intact; a kill after
+    // it observes the already-written target SRAM. Do not publish a global
+    // identity that points at an uncommitted framework save.
     g_product_state = product;
     apply_profile_save_root();
 
-    // The global selector was committed first. Its rollback must be an
-    // exact-state CAS, never a blind write that overwrites another window.
-    const auto rollback_selection = [&]() {
-        if (!persist_product_state(previous_product)) {
-            product_diagnostic("UR_PROFILE_SELECT ROLLBACK_CONFLICT_OR_IO");
-            return false;
-        }
+    // The selector on disk is still previous_product. Failures restore the
+    // in-process root and SRAM; no compensating global CAS is appropriate.
+    // An intervening independent selector writer must remain untouched.
+    const auto restore_previous = [&]() {
         g_product_state = previous_product;
         apply_profile_save_root();
         std::memcpy(g_sram, previous_sram.data(), previous_sram.size());
         const bool restored = RtlTryWriteSram();
         product_diagnostic(
-            restored ? "UR_PROFILE_SELECT ROLLED_BACK"
-                     : "UR_PROFILE_SELECT ROLLBACK_SRAM_WRITE_FAILED");
+            restored ? "UR_PROFILE_SELECT RESTORED_PRECOMMIT"
+                     : "UR_PROFILE_SELECT RESTORE_SRAM_WRITE_FAILED");
         return false;
     };
 
     if (!g_profile_state || !g_profile_state->racer_identity ||
         !g_profile_state->stock_sram) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_STATE_MISSING");
-        return rollback_selection();
+        return restore_previous();
     }
     if (ur::product::restore_stock_sram_from_profile(
             ur::product::ExecutionMode::Modern,
@@ -1880,12 +1884,19 @@ bool activate_profile_id(const std::string& profile_id) {
             static_cast<std::size_t>(g_sram_size)) !=
         ur::product::HostProfileTransferStatus::Applied) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_RESTORE_FAILED");
-        return rollback_selection();
+        return restore_previous();
     }
     g_sram[0x0748] = g_profile_state->racer_identity->rider_index;
     if (!RtlTryWriteSram()) {
         product_diagnostic("UR_PROFILE_SELECT TARGET_SRAM_WRITE_FAILED");
-        return rollback_selection();
+        return restore_previous();
+    }
+    // This is the only identity publication. A stale concurrent host-state
+    // writer makes CAS fail without undoing their selection or claiming ours
+    // applied. The target SRAM is already valid if the next attempt retries.
+    if (!persist_product_state(product)) {
+        product_diagnostic("UR_PROFILE_SELECT SELECTOR_COMMIT_FAILED");
+        return restore_previous();
     }
     product_diagnostic("UR_PROFILE_SELECT APPLIED");
     return true;

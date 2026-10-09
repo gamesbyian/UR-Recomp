@@ -57,7 +57,8 @@ inline std::optional<std::filesystem::path> reserve_tournament_staging(
 inline bool write_host_replace_staged(
     const std::string& final_name,
     std::string_view data,
-    std::string_view staging_family) {
+    std::string_view staging_family,
+    void (*after_staging_for_test)() = nullptr) {
     namespace fs = std::filesystem;
     if (final_name.empty() || data.empty()) return false;
     const fs::path final_path(final_name);
@@ -81,6 +82,9 @@ inline bool write_host_replace_staged(
         cleanup();
         return false;
     }
+    // An optional test callback models immediate process death after close
+    // and before the atomic visibility transition. Production never supplies it.
+    if (after_staging_for_test) after_staging_for_test();
 #if defined(_WIN32)
     const bool published = MoveFileExW(
         tmp.c_str(), final_path.c_str(),

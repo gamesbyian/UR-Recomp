@@ -292,6 +292,54 @@ class FixtureHardkillProcessTests(unittest.TestCase):
                     "replacing active event preserves immutable receipts",
                 )
 
+
+            # Recover a 3-player event AFTER its first credited fixture.
+            # The second owner's process dies after real run+match publication
+            # but before receipt claim. The first result must survive while
+            # the orphan pair remains ordinary Records, not tournament points.
+            interrupted = root / "qa03-midseries-c14"
+
+            def resume(action, expected=0):
+                result = subprocess.run(
+                    [str(exe), action, str(interrupted)],
+                    cwd=ROOT, capture_output=True, timeout=20,
+                )
+                self.assertEqual(
+                    result.returncode, expected,
+                    (action, result.stdout.decode(errors="replace"),
+                     result.stderr.decode(errors="replace")),
+                )
+                return result
+
+            resume("qa03-create-round-robin")
+            self.assertIn(
+                b"QA03_CREDITED_FIXTURE 0",
+                resume("qa03-credit-next").stdout,
+            )
+            resume("qa03-kill-midseries", 82)
+            int_records = interrupted / "multiplayer-runs"
+            int_receipts = interrupted / "local-tournaments" / instance / "fixtures"
+            self.assertEqual(len(list(int_records.glob("*.urrun"))), 2)
+            self.assertEqual(
+                len(list(int_receipts.glob("fixture-*.urfixture"))), 1,
+                "a saved run without receipt never awards the second leg",
+            )
+            for index in range(1, 6):
+                self.assertIn(
+                    f"QA03_CREDITED_FIXTURE {index}".encode(),
+                    resume("qa03-credit-next").stdout,
+                )
+            self.assertIn(
+                b"QA03_COMPLETED_RESTORED_STANDINGS_HISTORY_RECORDS",
+                resume("qa03-verify-round-robin-interrupted").stdout,
+            )
+            self.assertEqual(len(list(int_records.glob("*.urrun"))), 7)
+            self.assertEqual(
+                len(list(int_receipts.glob("fixture-*.urfixture"))), 6,
+                "all six fixtures have one immutable receipt after takeover",
+            )
+            resume("qa03-replace-completed")
+
             call("kill-c14", 77)
             pair_before = list(records.glob("*.urrun"))
             self.assertEqual(len(pair_before), 1)

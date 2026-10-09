@@ -63,7 +63,7 @@
         "https://github.com/gamesbyian/UR-Recomp/pull/991",
         "https://github.com/gamesbyian/UR-Recomp/pull/993"
       ],
-      "remaining_release_risk": "Source-confirmed mutable profile/catalog/host .tmp clobber and POSIX multiplayer run/match rename-replacement are addressed in proposed PRs #991/#993 with new process/crash tests; their L2 outcomes are NOT YET VERIFIED. Previous #982/#984/#985 protections remain store-local. Outstanding: stale SRAM generation overwrites, catalog/session lost updates, independent run/ghost/receipt transaction recovery, upgrade and power-loss fsync, exact packaged Windows dual-process L4 evidence. QA-02 P0 remains in_progress."
+      "remaining_release_risk": "Source-confirmed mutable profile/catalog/host .tmp clobber is addressed by merged #991 with successful focused Linux tooling/unit acceptance. POSIX multiplayer run/match rename-replacement and sidecar close-failure are addressed in pending #993 with process/crash/disk-full tests. #993 latest head verification and packaged L4 remain open. Previous #982/#984/#985 protections remain store-local. Outstanding: stale SRAM generation overwrites, catalog/session lost updates, independent run/ghost/receipt transaction recovery, upgrade and power-loss fsync, exact packaged Windows dual-process L4 evidence. QA-02 P0 remains in_progress."
     },
     {
       "id": "QA-03",

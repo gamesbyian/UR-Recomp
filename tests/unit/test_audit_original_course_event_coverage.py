@@ -22,16 +22,22 @@ class OriginalCourseCensusTests(unittest.TestCase):
         report = audit.build_census(self.catalog, self.evidence)
         self.assertEqual(report["denominators"], {
             "courses_per_rom": 45,
-            "required_region_course_cases": 135,
+            "primary_release_cases": 45,
+            "regional_comparison_cases": 90,
+            "tracked_region_course_cases": 135,
             "race_circuit_cases": 108,
             "stunt_cases": 27,
             "family_cases_per_region": 9,
         })
         self.assertEqual(report["status_counts"], {"partial": 2, "unverified": 133})
+        self.assertEqual(report["primary_release_rom"], "usa-retail")
+        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 2, "unverified": 43})
+        for variant in audit.COMPARISON_ROMS[1:]:
+            self.assertEqual(report["by_rom"][variant], {"unverified": 45})
         self.assertEqual(len(report["entries"]), len(set(
             (r["rom"], r["course_id"]) for r in report["entries"]
         )))
-        for region in audit.RELEASE_ROMS:
+        for region in audit.COMPARISON_ROMS:
             entries = [r for r in report["entries"] if r["rom"] == region]
             self.assertEqual(len(entries), 45)
             for kind in audit.SLOT_KINDS:

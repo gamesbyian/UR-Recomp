@@ -45,6 +45,19 @@ def analyze(original_dir: Path, native_dir: Path, metadata: dict) -> dict:
                 different.append({
                     "sample": sample, "field": key,
                     "original": reference[key], "baldosa": candidate[key]})
+    full_wram = {}
+    for sample in SAMPLES:
+        o = (original_dir / f"{sample}.wram.bin").read_bytes()
+        n = (native_dir / f"{sample}.wram.bin").read_bytes()
+        mismatched = [i for i, (a, b) in enumerate(zip(o, n)) if a != b]
+        full_wram[sample] = {
+            "guest_wram_bytes_compared": len(o),
+            "original_wram_sha256": hashlib.sha256(o).hexdigest(),
+            "baldosa_wram_sha256": hashlib.sha256(n).hexdigest(),
+            "exact_match": not mismatched,
+            "differing_byte_count": len(mismatched),
+            "first_byte_offsets": [f"0x{i:05X}" for i in mismatched[:16]],
+        }
     initial_good = all(
         rows["scene-entered"]["race_flag"] == 1 and
         rows["scene-entered"]["track_id"] == 1
@@ -71,6 +84,9 @@ def analyze(original_dir: Path, native_dir: Path, metadata: dict) -> dict:
                                           len(observations["original"][SAMPLES[0]]),
         "first_semantic_difference": different[0] if different else None,
         "all_sampled_differences": different,
+        "raw_whole_wram_snapshots": full_wram,
+        "raw_wram_exact_matched_count": sum(r["exact_match"]
+                                            for r in full_wram.values()),
         "observations": observations,
         "complete_event_qa_credit": 0,
         "limitation": (
@@ -87,10 +103,10 @@ def main() -> int:
     p.add_argument("--original", type=Path, required=True)
     p.add_argument("--native", type=Path, required=True)
     p.add_argument("--source-report", type=Path, required=True)
-    p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--out", type=Path, required=True)\n    p.add_argument("--calibration-report", type=Path)
     args = p.parse_args()
     meta = json.loads(args.source_report.read_text(encoding="utf-8"))
-    r = analyze(args.original, args.native, meta)
+    r = analyze(args.original, args.native, meta)\n    if args.calibration_report:\n        r["calibrated_movie_input"] = json.loads(\n            args.calibration_report.read_text(encoding="utf-8"))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(r, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: r[key] for key in (
@@ -98,7 +114,7 @@ def main() -> int:
         "original_reached_stable_circuit_result_state",
         "baldosa_reached_stable_circuit_result_state",
         "paired_result_state_candidate",
-        "first_semantic_difference",
+        "first_semantic_difference",\n        "raw_wram_exact_matched_count",
         "complete_event_qa_credit")}))
     return 0 if r["original_and_baldosa_entered_zoo"] else 1
 

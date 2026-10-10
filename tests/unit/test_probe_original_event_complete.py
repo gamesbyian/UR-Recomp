@@ -83,6 +83,26 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(states, 1, 0xBC)
 
+    def test_bowl_source_course_switch_does_not_require_race_flag_deassert(self):
+        states = source_states(8620, 11985, 2, 0x18, tally=True)
+        # Prior Crawler course remains active through the new track-ID
+        # transition: 7E:0313 stays asserted while 7E:00CE becomes Bowl.
+        for f in range(8600, 8620):
+            states[f]["in_race"] = 1
+            states[f]["track"] = 1
+        entry = target.source_event(states, 2, 0x18)
+        self.assertEqual(entry["original_entry_frame"], 8620)
+        self.assertEqual(entry["original_result_frame"], 11985)
+        self.assertLess(entry["source_stunt_tally_frame"], 11985)
+        self.assertEqual(target.source_event_diagnostic(
+            states, 2, 0x18)["complete_event_qa_credit"], 0)
+        # A one-frame track-ID scratch write must not count as entry.
+        isolated = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(8620, 8627):
+            isolated[f]["track"] = 1
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(isolated, 2, 0x18)
+
     def test_stunt_tally_must_be_stable_and_track_matched(self):
         states = source_states(8620, 11985, 2, 0x18)
         states[11800]["menu"] = 0x2F

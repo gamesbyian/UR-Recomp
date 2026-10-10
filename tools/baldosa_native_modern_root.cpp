@@ -153,6 +153,29 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     return drawn ? 1 : 0;
 }
 
+// CI-only genuine SDL event-pump route. This is NOT controller hardware QA.
+// It proves the native host dispatches the five-way root's existing menu
+// contract and Play releases the original guest input without fake guest state.
+extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
+    const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
+    if (!g_visible || !opt || std::strcmp(opt, "1") != 0) return;
+    int key = 0;
+    if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
+    else if (frame == 63 || frame == 67) key = SDLK_RETURN;
+    else if (frame >= 64 && frame <= 66) key = SDLK_UP;
+    if (!key) return;
+    SDL_Event event{};
+    event.type = SDL_KEYDOWN;
+#if SNESRECOMP_SDL3
+    event.key.key = key;
+#else
+    event.key.keysym.sym = key;
+#endif
+    if (SDL_PushEvent(&event) != 1) std::abort();
+    event.type = SDL_KEYUP;
+    if (SDL_PushEvent(&event) != 1) std::abort();
+}
+
 extern "C" unsigned ur_baldosa_modern_root_paint_count(void) {
     return g_paint_count;
 }

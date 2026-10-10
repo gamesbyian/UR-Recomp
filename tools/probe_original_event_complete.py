@@ -332,9 +332,69 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     return event
 
 
+def run_pinned_baldosa(work: Path, args, script: Path,
+                       events: list[tuple[int, int, int]], shift: int) -> str:
+    """QA-only pinned Baldosa host transport; never alter source controller masks.
+
+    Uses the same ephemeral UR_QA_SCENE_INPUT_FILE shim already used by the
+    successful Zoo original/native transplant, not the old host-only
+    SNESRECOMP_INPUT_FILE env knob from the legacy execution path.
+    """
+    input_file = work / "pinned-baldosa.input"
+    lines = [
+        f"{start + shift}:{duration}:{mask:03x}"
+        for start, duration, mask in events if mask
+    ]
+    if not lines or any(start + shift < 0 or duration < 1 or
+                        not 0 < mask <= 0x0FFF for start, duration, mask in events if mask):
+        raise CompleteEventError("invalid non-empty bounded source controller stream")
+    input_file.write_text("\\n".join(lines) + "\\n", encoding="ascii")
+    output = work / "native"
+    output.mkdir(exist_ok=True)
+    config = args.native.parent / "config.ini"
+    if not config.is_file():
+        config.write_text("[Sound]\\nEnableAudio = 0\\n", encoding="utf-8")
+    save_root = args.native.parent / "saves"
+    backup = save_root.with_name("saves.qa01-bowl-recovery")
+    if backup.exists():
+        raise CompleteEventError(f"prior native SRAM backup not cleared: {backup}")
+    if save_root.exists():
+        save_root.rename(backup)
+    try:
+        save_root.mkdir()
+        shutil.copyfile(args.sram, save_root / "save.srm")
+        env = dict(
+            os.environ,
+            SDL_AUDIODRIVER="dummy",
+            SNESRECOMP_FRAMEDUMP_PIXELS="0",
+            SNESRECOMP_DUMP_DIR=str(output),
+            SNESRECOMP_ROM=str(args.rom),
+            UR_QA_SCENE_INPUT_FILE=str(input_file),
+        )
+        proc = subprocess.run(
+            ["xvfb-run", "-a", str(args.native),
+             "--no-launcher", "--config", str(config),
+             "--script", str(script), str(args.rom)],
+            cwd=work, env=env, capture_output=True, text=True, timeout=900,
+        )
+        return proc.stdout + proc.stderr
+    finally:
+        shutil.rmtree(save_root, ignore_errors=True)
+        if backup.exists():
+            backup.rename(save_root)
+
+
+def replay_native(work: Path, args, script: Path,
+                  events: list[tuple[int, int, int]], shift: int) -> str:
+    if args.native_backend == "pinned-baldosa":
+        return run_pinned_baldosa(work, args, script, events, shift)
+    return engine.run_native(work, args, script, events, shift)
+
+
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--case", choices=tuple(CASES), required=True)
+    ap.add_argument("--native-backend", choices=("legacy", "pinned-baldosa"), default="legacy")
     ap.add_argument("--snesref", type=Path, required=True)
     ap.add_argument("--core", type=Path, required=True)
     ap.add_argument("--native", type=Path, required=True)
@@ -383,7 +443,7 @@ def main(argv: list[str] | None = None) -> int:
     script.write_text(stock_crawler_script(stream) + "quit\n")
     rl = engine.run_reference(calibration, args, script, [])
     (calibration / "reference.log").write_text(rl)
-    nl = engine.run_native(calibration, args, script, [], 0)
+    nl = replay_native(calibration, args, script, [], 0)
     (calibration / "native.log").write_text(nl)
     rf, nf = engine.race_entry_frame(rl), engine.race_entry_frame(nl)
     if rf is None or nf is None:
@@ -402,7 +462,7 @@ def main(argv: list[str] | None = None) -> int:
               for part in source_window["relative_input_segments"]]
     rl = engine.run_reference(replay, args, script, events)
     (replay / "reference.log").write_text(rl)
-    nl = engine.run_native(replay, args, script, events, nf - rf)
+    nl = replay_native(replay, args, script, events, nf - rf)
     (replay / "native.log").write_text(nl)
     if engine.race_entry_frame(rl) != rf or engine.race_entry_frame(nl) != nf:
         raise CompleteEventError("race entry changed after scene-relative transplant")
@@ -436,7 +496,7 @@ def main(argv: list[str] | None = None) -> int:
         "original_source_event": original_event,
         "original_source_vs_fresh_entry": baseline,
         "original_movie_window_sha256": source_window["raw_controller_window_sha256"],
-        "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf,
+        "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf, "native_backend": args.native_backend,
         "relative_sample_frames": frames, "comparison": comparison,
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

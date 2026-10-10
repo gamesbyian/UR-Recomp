@@ -1687,6 +1687,25 @@ jobs:
             exit 1
           fi
           echo "UR_RACER_HD_P1_NATIVE_ACCEPTANCE PASS approved_p1=1 stock_p2_exact=1 guest_state_unchanged=1"
+          # The diagnostic may fall back from a fully selected but
+          # geometrically overlapping P1/P2 pair to P1-only stock-P2
+          # preservation. Every accepted attempt must retain the same
+          # per-frame native P2 exact-underlay oracle above.
+          python3 - "$LOG" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+          selected = sorted(set(map(int, re.findall(
+              r"^UR_RACER_HD_P1_OVERLAP_RECOVERY frame=(\\d+) "
+              r"source_pair_overlap=1 capture_slots=97-98 stock_p2=1$", log, re.M))))
+          for frame in selected:
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=gate "
+                      "status=armed reason=p1-only") in log, frame
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=present "
+                      "status=hd reason=p1-only") in log, frame
+          print("UR_RACER_HD_P1_OVERLAP_EXPERIMENT PASS "
+                f"admitted_overlap_frames={len(selected)} "
+                "stock_p2_native_oracle=enabled")
+          PY
           # Same long input fixture as the 2,641-frame reference census:
           # report actual native draws and partial stock-P2 substitutions.
           python3 tools/measure_racer_hd_live_draws.py \

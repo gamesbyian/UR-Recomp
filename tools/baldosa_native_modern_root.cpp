@@ -294,6 +294,21 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
     const char* reopen_test = std::getenv("UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE");
+    // Test-only trace of actual guest transitions. This is intentionally
+    // passive: never type an input or modify a guest menu/state byte.
+    if (reopen_test && std::strcmp(reopen_test, "1") == 0 &&
+        g_stock_handed_off && !g_visible) {
+        static unsigned last_menu = 0x100u;
+        const unsigned menu = g_ram[0x009f];
+        if (menu != last_menu || frame % 180u == 0u) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT source_menu frame=%u menu=%02x "
+                "cursor=%02x race=%02x\n",
+                frame, menu, static_cast<unsigned>(g_ram[0x009b]),
+                static_cast<unsigned>(g_ram[0x0313]));
+            last_menu = menu;
+        }
+    }
     if (reopen_test && std::strcmp(reopen_test, "1") == 0 &&
         g_stock_handed_off && !g_visible && !g_reentry_smoke_queued &&
         g_stock_target == -1 && g_ram[0x009f] == 0xd7u &&

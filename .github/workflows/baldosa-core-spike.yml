@@ -219,6 +219,11 @@ jobs:
           UR_RACER_HD: "1"
           UR_RACER_HD_CENSUS: "1"
           UR_BALDOSA_HD: "1"
+          # Archival P1/P2 authored-art acceptance intentionally predates the
+          # production overlap guard. Only sealed --script route dumps plus
+          # both explicit flags can bypass it. Production is checked below.
+          UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE: "1"
+          UR_BALDOSA_HD_SOURCE_ART_FIXTURE: "1"
         run: |
           set -euo pipefail
           # Layer on the already-proven read-only observer. Existing UR
@@ -240,6 +245,8 @@ jobs:
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd"
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt"
+          grep -F 'UR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 warning=overlap-guard-bypassed-for-art-reference-only' \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/log.txt"
           python3 tools/baldosa_hd_presentation_report.py \
             --baseline "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
             --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt" \
@@ -270,6 +277,37 @@ jobs:
             --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/original_4x_fallback.json"
           echo "PASS: real stable-density 4x Original fallback with no split-view subpixel drift" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "PASS: archival 1x/4x source-art captures use explicit sealed fixture bypass only, with original guest CRC preserved" >> "$GITHUB_STEP_SUMMARY"
+
+          # Independent production-safe path, same exact guest/script and
+          # host binary. A failing full-pair overlapping source must retain
+          # stock; this route may still draw disjoint safe HD when available.
+          # It must NEVER inherit either archival unsafe opt-in.
+          env -u UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE \
+              -u UR_BALDOSA_HD_SOURCE_ART_FIXTURE \
+              UR_BALDOSA_HD_DENSITY=1 \
+              UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-hd-safe-captures" \
+              bash baldosa/tools/run_route.sh \
+              baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe/fd/crc.txt"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+          assert "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE" not in log
+          gates = re.findall(
+              r"^UR_RACER_HD_CENSUS frame=(\d+) phase=gate status=original "
+              r"reason=overlapping-source-obj$", log, re.M)
+          assert gates, "production route must exercise refused overlapping racer OAM"
+          for frame in gates:
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=present "
+                      "status=original reason=not-armed") in log, frame
+          print(f"UR_BALDOSA_PRODUCTION_OVERLAP_GUARD PASS refused={len(gates)} "
+                "guest_crc_identical=1 unsafe_bypass=0")
+          PY
+          echo "PASS: ordinary Baldosa 2P source-overlap fallback preserves guest and refuses unsafe removal" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture calibrated +24 split-screen world pixels without guest writes
         shell: bash
@@ -480,6 +518,7 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt
             ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
             ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam

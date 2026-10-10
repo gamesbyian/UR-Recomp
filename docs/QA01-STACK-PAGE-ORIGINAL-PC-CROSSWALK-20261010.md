@@ -2,6 +2,23 @@
 
 **Observed evidence and scope (2026-10-10).** This note retains an already-executed original Snes9x opcode-scope observation and relates it to independently executed original/native Race/Stunt memory differences. **It does not claim an original/native complete-event pass, an instruction-semantic proof or a player-facing bug.** Primary release census remains **0/45** USA complete pairs.
 
+## Executed native raw-writer replay: original and native NMI PHA stack mechanics match
+
+An additional **zero-emulator-rebuild** artifact recovery has closed native instruction attribution beyond the earlier generated-function name. [Run 38095592659](https://github.com/gamesbyian/UR-Recomp/actions/runs/38095592659) (green) downloaded the **unchanged, SHA-256-attested** native WRAM writer log from actual paired original/native Switcher run 38090897908, source artifact **11684141556**, and extracted its exact 15-row context around the single native `I_NMI_M1X1`-scoped `7E:01DD` write. Compact recovered artifact **11685473365** (ZIP SHA-256 `a46985a3ec6ba6015df7d7c3749ee21680687ced3bad0e9818b15d43a2ed6936`) and full byte/register context are pinned in [the machine witness](../analysis/data/switcher-native-nmi-01dd-exact-pha-source-20261010.json).
+
+| Native NMI-handler push in exact captured order | Native stack address | Actual written byte/word | Original native register evidence |
+| --- | --- | --- | --- |
+| `PHB` | `01E5` | `80` | DB=`80` |
+| `PHD` | `01E3` | `0000` | D=`0000` |
+| `PHX` | `01E1` | `1400` | X=`1400` |
+| `PHY` | `01DF` | `87D8` | Y=`87D8` |
+| **`PHA` 16-bit** | **`01DD`** | **`4004`** | **A=`4004`, M=0, S=`01DD` at write** |
+| `PHA` 8-bit after `SEP` | `01DC` | `00` | M=1 |
+
+This **exact ordered source-visible writer sequence** matches the **actual pinned native generated** `I_NMI_M1X1` prologue in `gamesbyian/uniracers-recomp@10b864b9`, `src/gen/bank00_part00_v2.c`, including `cpu_write16_paced(cpu, 0x00, cpu->S, cpu->A)` and the native `CPU_STACK_OP_PHA` marker. The native raw writer event is a true **16-bit accumulator push**, not just an ambiguous NMI handler scope: it writes the full 16-bit `A=4004` to exactly `01DD` at `S=01DD` with M=0; the written word does **not** equal native X, Y, or D. From the generated two SP decrements, the native PHA enters with **S=`01DE`**, writes at `01DD`, exits with **S=`01DC`**. The separately observed original Snes9x `PHA 00:858E` also enters/exits **`01DE→01DC`**.
+
+**What has converged:** both guests execute the same **16-bit PHA** in original `I_NMI` (original bank `00:858E`, native source `80:858E`), with the **same effective stack address and SP decrement**. **What remains different:** original captured `7E:01DD` changes **`08→42`** at original `ICPU.Frame 5780`; native writes **`4004`** (low byte **04**) at native `snes_frame_counter 5781`. Those are **separate sampling clocks** and do not yet establish comparable pre-PHA accumulator state at the same NMI/beam instant. The stack mechanics appear faithful but accumulator value/phase and stack consumer liveness remain open, as does the strict real original/native result onset **+4704/+4702 FAIL**. No release credit, guest-input edit or parity relaxation.
+
 ## Executed original *fresh* result-window 01DD writer and NMI-entry discriminator
 
 The prior original-only trace around the **archived source movie result 17030** found zero changed-byte opcode scopes for `7E:01DD`, but that was a different timeline from the paired **fresh stock Switcher result at host 5783**. The actual follow-up [original/native replay 38094600828](https://github.com/gamesbyian/UR-Recomp/actions/runs/38094600828) (green) used unchanged source movie, original Snes9x and pinned Baldosa. Its disposable original Snes9x CPU observer watched only `7E:01DD` over original **`ICPU.Frame` 5778–5782**, recording ordinary instruction changes **and separately NMI-entry stack prologues**. Full provenance, log/ZIP SHA-256 and captured source values are in [the immutable machine witness](../analysis/data/switcher-original-fresh-01dd-nmi-writer-20261010.json), artifact **11684893524**, ZIP SHA-256 `a95aba4c9118c80efb5ab1fcafbed996a1ee440e9280560bb076029479034e84`.

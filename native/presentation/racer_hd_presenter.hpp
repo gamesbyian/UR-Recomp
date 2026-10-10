@@ -3000,7 +3000,16 @@ constexpr std::uint32_t sample_racer_hd_presented_pixel(
     return sample_racer_hd_asset(registration, sx, sy, placement.hflip, placement.vflip);
 }
 
-// Host callbacks. They are inert unless UR_RACER_HD is enabled.
+// Host-owned graphics selection. The request is sampled at begin_sim_frame,
+// never in the middle of a potentially destructive PPU OBJ capture. Until a
+// host requests a mode, UR_RACER_HD retains its legacy startup behavior.
+// Remastered is a request, not a promise: unsupported states fall back to
+// exact Original under the existing fail-closed admission guards.
+enum class RacerHdGraphicsMode : std::uint8_t { Original = 0, Remastered = 1 };
+void racer_hd_request_graphics_mode(RacerHdGraphicsMode mode) noexcept;
+RacerHdGraphicsMode racer_hd_requested_graphics_mode() noexcept;
+
+// Host callbacks. They are inert unless Remastered is requested.
 void racer_hd_prepare_frame(
     int drawable_w,
     int drawable_h,

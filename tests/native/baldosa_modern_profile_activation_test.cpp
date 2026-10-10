@@ -145,6 +145,11 @@ int main() {
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);
     assert(!fs::exists("saves/save.srm"));
 
+    // Real native guest has already loaded its selected SRAM before the
+    // after-frame publisher runs. This isolated fixture must model that
+    // existing precondition explicitly.
+    g_sram = initialized.data();
+    g_sram_size = static_cast<int>(initialized.size());
     // Synthetic fixture tests the profile authorization/publisher only;
     // this does NOT stand in for a live guest-finished Windows event.
     BaldosaSettledResult witnessed{};

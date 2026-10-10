@@ -46,8 +46,10 @@ jobs:
           submodules: recursive
           persist-credentials: false
 
-      - name: Guard guest CRC and pause-witness extraction
-        run: python tests/unit/test_baldosa_windows_native_pause_route.py
+      - name: Guard guest CRC, pause witness and Modern mutable-root stage
+        run: |
+          python tests/unit/test_baldosa_windows_native_pause_route.py
+          python tests/unit/test_baldosa_modern_user_data_spike.py
 
       - name: Verify immutable native source pins
         run: |

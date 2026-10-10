@@ -383,8 +383,26 @@ def main() -> int:
         exe, rom, script, root, pause=False, video=args.video,
         timeout=args.timeout, profile_fixture=fixture,
         profile_seed=sram_seed)
-    if len(named_crc) != args.expected_frames:
-        raise ValueError("Actual named-profile guest run did not reach expected frame count")
+    # A genuine saved 8-KiB cartridge has persisted menu/demo state. That
+    # changes the script's first 'until' duration by one observed frame on
+    # the pinned Windows route (2472 rather than clean-SRAM 2473). Require
+    # the actual game's FINAL checkpoint, not an identical clean boot frame
+    # count for deliberately different initial SRAM.
+    named_frames = len(named_crc)
+    if named_frames not in (args.expected_frames - 1, args.expected_frames):
+        raise ValueError(
+            f"Named-profile guest frame count outside independently observed "
+            f"one-frame saved-SRAM window: {named_frames} vs {args.expected_frames}")
+    if not re.search(
+        rf"^script f={named_frames} dump t480 ok$",
+        named_log, re.MULTILINE
+    ) or not re.search(
+        rf"^script f={named_frames} quit$",
+        named_log, re.MULTILINE
+    ):
+        raise ValueError(
+            "Named-profile guest did not reach the script's terminal t480 "
+            "checkpoint and clean native-script quit")
     named_proof = verify_named_profile_boot(named_log, sram_seed)
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,

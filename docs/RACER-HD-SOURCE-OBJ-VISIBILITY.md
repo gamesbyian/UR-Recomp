@@ -282,3 +282,33 @@ The source-absent frame-1139 false-positive is a measurement error, not
 license to admit new sprite substitutions. Existing release policy and
 the 0/441 safe moving-race callback observation are unaffected. At this
 writing, CI validation of the new actual-pixel witness is pending.
+
+## Opt-in P1-only fallback when selected racer rectangles overlap (experimental)
+
+The default production path still rejects a 256-wide full-pair HD capture
+when either viewport's two large source rectangles intersect. The existing
+**opt-in** `UR_RACER_HD_P1_ONLY=1` diagnostic already permits a more
+restricted P1 capture when P2 has no approved authored registration. It
+selectively removes **only OAM slots 97/98** (P1) while rendering original P2
+slots 96/99 through the PPU. The separate strict P1-only split geometry gate
+rejects a potentially visible P1 small copy, rotated sprite priority,
+incompatible OBJ tile/priority, or overlapping *bottom* P2-front coverage.
+Native `UR_RACER_HD_P1_NATIVE_TEST=1` verifies the untouched P2 bottom
+rectangle against the same guest frame's PPU raster rather than comparing
+nonaligned process screenshots.
+
+The new bounded experiment extends this opt-in partial path to frames where
+**P2 also has an authored asset but the original full-pair capture was
+rejected for overlap**. It never enables this behavior without
+`UR_RACER_HD_P1_ONLY=1`. It must use the P1 top and P1 bottom instances
+regardless of P2's registration; drawing a P2 authored sprite while selectively
+removing P1 OAM would corrupt the scene. When the strict independent P1-only
+stock-P2 occlusion test rejects, the full Original frame remains intact.
+
+An `UR_RACER_HD_P1_OVERLAP_RECOVERY` diagnostic and the existing native P2
+same-frame ROI oracle will determine if this actually recovers safe changed HD
+pixels in the long two-player route. A positive admission counter **alone**
+will not authorize default production exposure. We still need real source
+emission and original foreground/BG priority evidence for the P1-only overlay,
+especially overlapping *top* P2 and 342-wide output. No QA-08 release gate
+is promoted by the experimental setting.

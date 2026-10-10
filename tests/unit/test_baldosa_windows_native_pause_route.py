@@ -57,5 +57,56 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_pause_log(valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=wrong\n")
 
 
+    def test_delayed_restart_requires_real_elapsed_guest_frames(self):
+        valid = (
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=1800 sram_equal=1 wram_equal=1\n"
+            "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=1800 request_guest=1952 paused=1 sram_equal=1 wram_rewound=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n"
+        )
+        self.assertEqual(
+            probe.check_delayed_restart_log(valid, expected_request_frame=1952),
+            {"anchor_guest": 1800, "request_guest": 1952},
+        )
+        for bad in (
+            valid.replace("wram_rewound=1", "wram_rewound=0"),
+            valid.replace("sram_equal=1 wram_rewound", "sram_equal=0 wram_rewound"),
+            valid.replace("anchor_guest=1800", "anchor_guest=1949"),
+            valid.replace("request_guest=1952 paused=1", "request_guest=1953 paused=1"),
+            valid.replace(" paused=1 sram_equal=1 wram_rewound=1", " paused=0 sram_equal=1 wram_rewound=1"),
+            valid.replace("UR_BALDOSA_NATIVE_RESTART DELAYED", "UR_BALDOSA_NATIVE_RESTART DUMMY"),
+            valid + "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=1800 request_guest=1952 paused=1 sram_equal=1 wram_rewound=1\n",
+        ):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    probe.check_delayed_restart_log(bad, expected_request_frame=1952)
+        with self.assertRaisesRegex(ValueError, "violation"):
+            probe.check_delayed_restart_log(
+                valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
+                expected_request_frame=1952)
+
+    def test_delayed_restart_preserves_pre_pause_original_but_rewinds_later(self):
+        original = [str(i) for i in range(15)]
+        delayed = original[:]
+        delayed[10:] = original[:5]
+        self.assertEqual(
+            probe.check_delayed_restart_guest_frames(
+                original, delayed, paused_at=10), 11)
+        with self.assertRaisesRegex(ValueError, "pre-Restart"):
+            probe.check_delayed_restart_guest_frames(
+                original, ["wrong"] + original[1:10] + delayed[10:],
+                paused_at=10)
+        with self.assertRaisesRegex(ValueError, "never diverged"):
+            probe.check_delayed_restart_guest_frames(
+                original, original[:], paused_at=10)
+        with self.assertRaisesRegex(ValueError, "guest-frame count"):
+            probe.check_delayed_restart_guest_frames(
+                original, original[:-1], paused_at=10)
+        with self.assertRaisesRegex(ValueError, "no post-resume"):
+            probe.check_delayed_restart_guest_frames(
+                original, delayed, paused_at=15)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -77,8 +77,11 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
             staged_host = pending[2][2]
             self.assertEqual(staged_host.count("RtlWriteSram()"), 1)
-            self.assertIn("ur_baldosa_modern_profile_after_native_save()", staged_host)
-            self.assertIn("if (RtlWriteSram())", staged_host)
+            self.assertIn("ur_baldosa_modern_profile_before_native_save()", staged_host)
+            self.assertIn("ur_baldosa_modern_profile_finish_native_save(native_saved)", staged_host)
+            self.assertIn("int native_saved = RtlWriteSram();", staged_host)
+            self.assertLess(staged_host.index("if (ur_baldosa_modern_profile_before_native_save())"), staged_host.index("RtlWriteSram();"))
+            self.assertLess(staged_host.index("RtlWriteSram();"), staged_host.index("ur_baldosa_modern_profile_finish_native_save(native_saved)"))
             self.assertEqual(probe.patch_framework_save(staged_host), staged_host)
             self.assertEqual(framework.read_text(), original_shutdown)
             with self.assertRaisesRegex(ValueError, "shutdown boundary"):

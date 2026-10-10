@@ -79,6 +79,16 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
     const std::optional<HostProfileState>& expected_current,
     const HostProfileState& next);
 
+// Explicitly lock-owning callers (notably native SRAM shutdown) must hold
+// the SAME persistent host-profile.txt.urmutex across their raw SRAM write
+// and the typed CAS, then use this form to avoid recursively relocking.
+// Never call without ownership; the ordinary API above locks itself.
+HostProfileSaveStatus save_host_profile_state_file_if_current_under_lock(
+    ExecutionMode mode,
+    const std::string& path,
+    const std::optional<HostProfileState>& expected_current,
+    const HostProfileState& next);
+
 // Retire a profile file only while it still matches the exact snapshot this
 // process created. Prevents catalog-create failure cleanup from deleting an
 // unrelated process's subsequent valid state.

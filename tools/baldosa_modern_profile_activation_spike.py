@@ -67,9 +67,22 @@ def patch_cmake(source: str, root: Path) -> str:
         if not path.is_file():
             raise ValueError(f"Missing established Modern product component: {path}")
     args = " ".join(f'"{p.as_posix()}"' for p in selected)
+    fixture = (root / "tools/baldosa_modern_profile_native_fixture.cpp").resolve()
+    if not fixture.is_file():
+        raise ValueError(f"Missing real Modern profile fixture builder: {fixture}")
+    fixture_args = " ".join(f'"{p.as_posix()}"' for p in (
+        fixture,
+        product / "output_resolution_policy.cpp",
+        product / "host_product_state.cpp",
+        *(product / s for s in SOURCES),
+    ))
     return source.rstrip() + (
         "\n\n# " + MARK + ": typed read-only Modern state and profile SRAM root\n"
-        "target_sources(UniracersSNESRecomp PRIVATE " + args + ")\n")
+        "target_sources(UniracersSNESRecomp PRIVATE " + args + ")\n"
+        # Test-only executable, not part of the shipping game target. Uses
+        # the SAME Modern product codecs as the real Windows frontend.
+        "add_executable(ur-baldosa-modern-profile-fixture " + fixture_args + ")\n"
+        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n")
 
 
 def plan(game: Path, root: Path):

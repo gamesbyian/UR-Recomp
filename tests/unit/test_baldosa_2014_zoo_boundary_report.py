@@ -39,6 +39,8 @@ class FixedZooBoundaryTest(unittest.TestCase):
                     w[0x00CE] = 1
                     w[0x0313] = 1 if frame < 5163 else 0x3D
                     w[0x009F] = 0 if frame < 5163 else 0xBC
+                    if frame >= 5154 and label == "native":
+                        w[0x00C6] = 1  # Diagnostic host phase marker only.
                     if frame >= 5163 and label == "native" and frame >= 5171:
                         w[0x0E95:0x0E97] = (10240).to_bytes(2, "little")
                     (folder / f"boundary-{frame:05d}.wram.bin").write_bytes(w)
@@ -51,6 +53,10 @@ class FixedZooBoundaryTest(unittest.TestCase):
                              {"original": 5163, "native": 5163})
             self.assertTrue(result["same_fixed_frame_result_onset"])
             self.assertTrue(result["final_ppu_equal"])
+            self.assertEqual(result["first_transient_dp_phase_disagreement"][
+                "relative_frame"], 5154)
+            self.assertEqual(result["observations"]["5154"]["p2_progression"][
+                "native"]["laps"], 0)
             self.assertEqual(result["first_named_field_disagreement"]["relative_frame"],
                              5171)
             self.assertEqual(result["first_named_field_disagreement"]["field"],

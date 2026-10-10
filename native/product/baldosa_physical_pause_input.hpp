@@ -11,7 +11,9 @@ namespace ur::product {
 class BaldosaPhysicalPauseInput {
 public:
     bool on_button(int pressed, bool guest_racing,
-                   UrModernSession* session) noexcept {
+                   UrModernSession* session,
+                   UrModernSessionKey command =
+                       UR_MODERN_SESSION_KEY_ESCAPE) noexcept {
         if (!pressed) {
             const bool consumed = held_by_host_;
             held_by_host_ = false;
@@ -22,8 +24,7 @@ public:
             (!guest_racing && !ur_modern_session_is_paused(session)))
             return false;
         held_by_host_ = true;
-        last_result_ = ur_modern_session_handle_key(
-            session, UR_MODERN_SESSION_KEY_ESCAPE);
+        last_result_ = ur_modern_session_handle_key(session, command);
         return true;
     }
 

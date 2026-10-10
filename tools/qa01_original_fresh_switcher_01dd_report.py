@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter, defaultdict
 import json
+import re
 from pathlib import Path
 
 import qa01_native_switcher_stack_report as native
@@ -24,6 +25,13 @@ ROM_SHA256 = native.EXPECTED_ROM_SHA
 MOVIE_SHA256 = native.EXPECTED_MOVIE_SHA
 MAX_WRITES = 50000
 SAMPLE_LIMIT = 12
+NMI = re.compile(
+    r"^QASTACKNMI f=(\d+) v=(\d+) pc=([0-9A-F]{6}) "
+    r"sp0=([0-9A-F]{4}) sp1=([0-9A-F]{4}) "
+    r"addr=01DD old=([0-9A-F]{2}) new=([0-9A-F]{2})$",
+    re.MULTILINE,
+)
+
 
 
 def verify_original_native_pair(paired: dict) -> dict:
@@ -87,7 +95,41 @@ def summarize_original(log: str, *, first: int = FIRST, last: int = LAST) -> dic
                 "old_byte":old,"new_byte":new,
                 "push_opcode_and_stack_address_compatible":aligned,
             })
+    nmi_entries=[]
+    for m in NMI.finditer(log):
+        frame,v,pc,nsp0,nsp1,old,new=m.groups()
+        frame=int(frame)
+        v=int(v)
+        if frame < first or frame > last or not 0 <= v < 263:
+            raise ValueError("original CPU NMI stack event escaped observed fresh result window")
+        pre,post=int(nsp0,16),int(nsp1,16)
+        pushed_width=(pre-post)&0xFFFF
+        covers=(
+            pushed_width in (3,4)
+            and TARGET in {((pre-d)&0xFFFF) for d in range(pushed_width)}
+        )
+        nmi_entries.append({
+            "original_cpu_frame":frame,"ppu_vcounter":v,
+            "pre_nmi_guest_pc":f"{pc[:2]}:{pc[2:]}",
+            "stack_pointer_before":nsp0,"stack_pointer_after":nsp1,
+            "stack_push_width_compatible":pushed_width in (3,4),
+            "nmi_stack_push_range_covers_01dd":covers,
+            "old_byte":old,"new_byte":new,
+            "01dd_changed_during_nmi_entry":old!=new,
+        })
+    if not nmi_entries:
+        raise ValueError("original NMI entry was not observed; normal opcode scopes alone are incomplete")
+    if [e["original_cpu_frame"] for e in nmi_entries] != sorted(
+            e["original_cpu_frame"] for e in nmi_entries):
+        raise ValueError("original NMI entry events were not chronological")
     return {
+        "original_nmi_entry_events":nmi_entries,
+        "original_nmi_entry_event_count":len(nmi_entries),
+        "original_nmi_stack_range_covered_01dd":any(
+            e["nmi_stack_push_range_covers_01dd"] for e in nmi_entries),
+        "original_nmi_entry_changed_01dd":any(
+            e["01dd_changed_during_nmi_entry"] for e in nmi_entries),
+        "original_nmi_changed_byte_events_are_distinct_from_opcode_scopes":True,
         "schema": SCHEMA,
         "read_only_original_snes9x_wram_target": "7E:01DD",
         "original_cpu_frame_observation_window": [first,last],
@@ -100,7 +142,8 @@ def summarize_original(log: str, *, first: int = FIRST, last: int = LAST) -> dic
         "original_changed_byte_scopes_by_pc":dict(sorted(counts_by_pc.items())),
         "original_changed_byte_scopes_by_opcode":dict(sorted(counts_by_opcode.items())),
         "first_bounded_original_opcode_scope_examples":samples,
-        "zero_changes_is_bounded_negative_not_never_writes":total==0,
+        "zero_opcode_changes_is_bounded_negative_not_never_writes":total==0,
+        "NMI_entry_is_separately_observed_even_if_opcode_scope_count_zero":True,
         "source_reference_guest_fresh_host_phase_not_exact_ppu_cpu_boundary":True,
         "complete_event_release_credit":0,
         "interpretation": (
@@ -127,6 +170,9 @@ def main() -> int:
     print("QA01_ORIGINAL_FRESH_01DD="+json.dumps({
         "gate_frame":observed["cpu_gate_first_observed_frame"],
         "total_changed_byte_scopes":observed["total_original_changed_byte_opcode_scopes"],
+        "nmi_entry_events":observed["original_nmi_entry_events"],
+        "nmi_01dd_pushed_range":observed["original_nmi_stack_range_covered_01dd"],
+        "nmi_01dd_byte_changed":observed["original_nmi_entry_changed_01dd"],
         "by_original_pc":observed["original_changed_byte_scopes_by_pc"],
         "by_original_cpu_frame":observed["original_changed_byte_scopes_by_cpu_frame"],
         "by_opcode":observed["original_changed_byte_scopes_by_opcode"],

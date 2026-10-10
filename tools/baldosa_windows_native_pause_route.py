@@ -158,7 +158,7 @@ def verify_named_profile_boot_bytes(
         raise ValueError("No unique first-frame named Modern guest SRAM witness")
     expected_root = (
         f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile_id} "
-        f"root=saves/profile-{profile_id}\\n")
+        f"root=saves/profile-{profile_id}\n")
     if expected_root not in log:
         raise ValueError("Native guest did not activate the expected isolated profile root")
     if len(raw) != 8192 or proof[0].lower() != fnv32(raw):

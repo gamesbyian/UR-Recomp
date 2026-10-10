@@ -1,6 +1,6 @@
 # Baldosa core migration: current implementation runbook
 
-**Status (2026-10-09, after reconciliation of all six previously open PRs, including QA-08 #1045): Baldosa-first is the leading, already experimentally working execution migration path.** The old *two equal greenfield spikes* decision has been overtaken by native build and bridge results; preserve it for provenance in [archive/BALDOSA-MIGRATION-INITIAL-COMPETITION-20261009.md](archive/BALDOSA-MIGRATION-INITIAL-COMPETITION-20261009.md). **This is a runbook, not an independent backlog.** Current owners/priorities are [WORK-QUEUE.md](WORK-QUEUE.md), the authoritative source/asset reuse map is [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md), and independent acceptance is [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json).
+**Status (2026-10-09): Baldosa-first is the verified leading native execution path, not yet an accepted Windows product.** The superseded dual-spike comparison is archived in [the migration history](archive/BALDOSA-MIGRATION-INITIAL-COMPETITION-20261009.md). This is a runbook, not another backlog. [WORK-QUEUE.md](WORK-QUEUE.md) owns current work; [the source/asset reuse audit](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) owns integration seams; [the release ledger](RELEASE-QUALITY-LEDGER.json) owns acceptance.
 
 ## Decision and what has actually worked
 

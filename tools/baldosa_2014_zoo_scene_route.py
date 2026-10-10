@@ -26,6 +26,9 @@ BEFORE_RESULT = 4700
 # Original 2014 WRAM-transition neighborhoods; a diagnostic capture is frame-neutral.
 # These are hypotheses for the fresh boot, not assumed proof of lap crossings.
 PROGRESS_FRAMES = (218, 604, 841, 1532, 1721)
+# Fixed guest-relative frames spanning source-original onset +5163.
+# No menu polling permitted in this distinct independent boundary run.
+BOUNDARY_FRAMES = tuple(range(5158, 5176))
 GO_GATE = "until 0E1F != 00\n"
 START_GATE = "until16 0053 == 8610\n"
 
@@ -66,6 +69,24 @@ def render_replay(prefix: str) -> str:
     return "".join(parts)
 
 
+def render_fixed_boundary(prefix: str) -> str:
+    """Sample both guest states on matching scene-relative frames.
+
+    Deliberately excludes result-menu until polling: observed native/reference
+    result-onset logs disagree by one frame, and this experiment must
+    independently decide whether script polling created it.
+    """
+    if not prefix.endswith("dump scene-entered\n"):
+        raise ValueError("missing genuine scene anchor")
+    parts = [prefix, f"wait {BOUNDARY_FRAMES[0]}\n"]
+    for index, frame in enumerate(BOUNDARY_FRAMES):
+        if index:
+            parts.append("wait 1\n")
+        parts.append(f"dump boundary-{frame:05d}\n")
+    parts.append("quit\n")
+    return "".join(parts)
+
+
 def verified_window(meta: Path) -> dict:
     source, _ = movie.read_movie(movie.ARCHIVE)
     metadata = json.loads(meta.read_text(encoding="utf-8"))
@@ -76,12 +97,14 @@ def verified_window(meta: Path) -> dict:
 
 
 def generate(meta: Path, upstream: Path, out: Path, calibration: Path,
-             report_path: Path) -> dict:
+             report_path: Path, boundary_out: Path | None = None) -> dict:
     full = verified_window(meta)
     prefix = source_menu_prefix(upstream.read_text(encoding="utf-8"))
     route = render_replay(prefix)
     cal = render_calibration(prefix)
-    for path, content in ((out, route), (calibration, cal)):
+    fixed_boundary = render_fixed_boundary(prefix)
+    for path, content in ((out, route), (calibration, cal)) + (
+            ((boundary_out, fixed_boundary),) if boundary_out else ()):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding="utf-8")
     report = {
@@ -94,6 +117,8 @@ def generate(meta: Path, upstream: Path, out: Path, calibration: Path,
         "raw_prefix_1810_sha256": INPUT_SHA_1810,
         "replay_script_sha256": hashlib.sha256(route.encode()).hexdigest(),
         "calibration_script_sha256": hashlib.sha256(cal.encode()).hexdigest(),
+        "fixed_boundary_script_sha256": hashlib.sha256(fixed_boundary.encode()).hexdigest(),
+        "fixed_boundary_scene_relative_frames": [BOUNDARY_FRAMES[0], BOUNDARY_FRAMES[-1]],
         "source_run_count": len(full["relative_input_segments"]),
         "requires_direct_frame_inputs": True,
         "native_scene_input_is_disposable_qa_only": True,
@@ -110,10 +135,12 @@ def main() -> int:
     ap.add_argument("--upstream", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--calibration-out", type=Path, required=True)
+    ap.add_argument("--boundary-out", type=Path)
     ap.add_argument("--report", type=Path, required=True)
     args = ap.parse_args()
     print(json.dumps(generate(
-        args.meta, args.upstream, args.out, args.calibration_out, args.report)))
+        args.meta, args.upstream, args.out, args.calibration_out, args.report,
+        args.boundary_out)))
     return 0
 
 

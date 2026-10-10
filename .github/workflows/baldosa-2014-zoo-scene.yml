@@ -8,10 +8,12 @@ on:
       - "tools/baldosa_2014_zoo_calibrated_input.py"
       - "tools/baldosa_qa_dense_scene_input_patch.py"
       - "tools/baldosa_2014_zoo_scene_report.py"
+      - "tools/baldosa_2014_zoo_boundary_report.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
       - "tests/unit/test_baldosa_2014_zoo_scene_report.py"
+      - "tests/unit/test_baldosa_2014_zoo_boundary_report.py"
   workflow_dispatch:
 
 permissions:
@@ -67,6 +69,7 @@ jobs:
             --upstream baldosa/tests/routes/zoomzoo_1p.txt \
             --out "$ROOT/replay.txt" \
             --calibration-out "$ROOT/calibration.txt" \
+            --boundary-out "$ROOT/boundary.txt" \
             --report "$ROOT/input-provenance.json"
           python3 tools/extract_smv_input.py \
             reference/imported/tas-bots/dessyreqt-4250-submission.smv \
@@ -75,6 +78,7 @@ jobs:
             --json-out "$ROOT/movie-metadata.json"
           grep -v '^turbo' "$ROOT/calibration.txt" > "$ROOT/original-calibration.txt"
           grep -v '^turbo' "$ROOT/replay.txt" > "$ROOT/original-replay.txt"
+          grep -v '^turbo' "$ROOT/boundary.txt" > "$ROOT/original-boundary.txt"
 
       - name: Build authoritative original Snes9x and pinned Baldosa snesref wrapper
         shell: bash
@@ -264,6 +268,32 @@ jobs:
           PY
           cat "$ROOT/phase-discriminator.json" >> "$GITHUB_STEP_SUMMARY"
 
+          # Independent FIXED scene-relative observation. Neither host sees
+          # a result-menu 'until' here, eliminating script polling as the
+          # explanation unless both frame dumps show equal true transition.
+          mkdir -p "$ROOT/original-boundary"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$ROOT/movie.srm" \
+          SNESREF_INPUT_FILE="$ROOT/original-input.txt" \
+          SNESREF_SCRIPT="$ROOT/original-boundary.txt" \
+          SNESREF_DUMP_DIR="$ROOT/original-boundary" \
+            timeout 130 "$RUNNER_TEMP/zoo-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$ROOT/original-boundary.log" 2>&1
+          test -s "$ROOT/original-boundary/boundary-05163.wram.bin"
+          export UR_QA_SCENE_INPUT_FILE="$ROOT/native-input.txt"
+          bash baldosa/tools/run_route.sh "$ROOT/boundary.txt" "$ROOT/native-boundary"
+          test -s "$ROOT/native-boundary/dump/boundary-05163.wram.bin"
+          python3 tools/baldosa_2014_zoo_boundary_report.py \
+            --original "$ROOT/original-boundary" \
+            --native "$ROOT/native-boundary/dump" \
+            --original-log "$ROOT/original-boundary.log" \
+            --native-log "$ROOT/native-boundary/log.txt" \
+            --out "$ROOT/fixed-boundary-report.json"
+          cat "$ROOT/fixed-boundary-report.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Fixed-frame contact and result-onset differences are diagnostic, not automatic course acceptance." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
         if: always()
         uses: actions/upload-artifact@v4
@@ -276,6 +306,17 @@ jobs:
             ${{ runner.temp }}/zoo-scene/input-phase-report.json
             ${{ runner.temp }}/zoo-scene/paired-result.json
             ${{ runner.temp }}/zoo-scene/phase-discriminator.json
+            ${{ runner.temp }}/zoo-scene/fixed-boundary-report.json
+            ${{ runner.temp }}/zoo-scene/original-boundary.log
+            ${{ runner.temp }}/zoo-scene/native-boundary/log.txt
+            ${{ runner.temp }}/zoo-scene/original-boundary/*.wram.bin
+            ${{ runner.temp }}/zoo-scene/original-boundary/*.regs.json
+            ${{ runner.temp }}/zoo-scene/original-boundary/*.vram.bin
+            ${{ runner.temp }}/zoo-scene/original-boundary/*.cgram.bin
+            ${{ runner.temp }}/zoo-scene/native-boundary/dump/*.wram.bin
+            ${{ runner.temp }}/zoo-scene/native-boundary/dump/*.regs.json
+            ${{ runner.temp }}/zoo-scene/native-boundary/dump/*.vram.bin
+            ${{ runner.temp }}/zoo-scene/native-boundary/dump/*.cgram.bin
             ${{ runner.temp }}/zoo-scene/input-phase-*.json
             ${{ runner.temp }}/zoo-scene/paired-result-phase-*.json
             ${{ runner.temp }}/zoo-scene/paired-result-phase-*.failure.txt

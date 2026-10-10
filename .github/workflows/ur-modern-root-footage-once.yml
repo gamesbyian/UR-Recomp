@@ -17,7 +17,7 @@ jobs:
       GH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       USA_ROM_SHA256: 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
       SDL_AUDIODRIVER: dummy
-      TMO: "180"
+      TMO: "240"
       PIXELS: "0"
       KEEP_WRAM: "0"
       UR_BALDOSA_MODERN_ROOT: "1"
@@ -57,7 +57,9 @@ jobs:
           from pathlib import Path
           src=Path("baldosa/tests/routes/race_1p.txt").read_text()
           assert src.count("turbo on\n")==1
-          Path("/tmp/ur-modern-menu-route.txt").write_text(src.replace("turbo on\n","turbo off\n",1))
+          assert src.count("until16 0053 == 8610") == 1
+          front=src.split("until16 0053 == 8610",1)[0]
+          Path("/tmp/ur-modern-menu-route.txt").write_text(front.replace("turbo on\n","turbo off\n",1)+"dump media_menu_end\nquit\n")
           PY
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
           cmake --build baldosa/build --target UniracersSNESRecomp -j 3

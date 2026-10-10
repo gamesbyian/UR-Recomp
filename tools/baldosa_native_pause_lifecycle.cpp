@@ -50,6 +50,8 @@ bool g_pause_navigation_keys[3]{};
 bool g_pause_navigation_pad[4]{};
 bool g_pause_panel_logged;
 unsigned g_pause_panel_paints;
+bool g_pause_panel_nav_smoke;
+bool g_pause_panel_nav_verified;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_restart;
@@ -198,6 +200,8 @@ bool smoke_enabled() {
             g_require_race = require && std::strcmp(require, "1") == 0;
             const char* physical = std::getenv("UR_BALDOSA_PHYSICAL_PAUSE_SMOKE");
             g_physical_smoke = physical && std::strcmp(physical, "1") == 0;
+            const char* nav = std::getenv("UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE");
+            g_pause_panel_nav_smoke = nav && std::strcmp(nav, "1") == 0;
             const char* delayed = std::getenv("UR_BALDOSA_DELAYED_RESTART_SMOKE");
             g_delayed_restart_enabled =
                 delayed && std::strcmp(delayed, "1") == 0;
@@ -502,6 +506,23 @@ extern "C" void ur_baldosa_product_host_tick(void) {
                 "guest_wram_advanced_during_pause");
     }
     ++g_frozen_ticks;
+    if (g_physical_smoke && g_pause_panel_nav_smoke) {
+        // Test-only queued physical SDL key edges: Down then Up must
+        // navigate the existing Modern model while the original guest stays
+        // frozen. Never feed them into the guest controller word.
+        if (g_frozen_ticks == 2) queue_key_edge(SDLK_DOWN);
+        if (g_frozen_ticks == 4) queue_key_edge(SDLK_UP);
+        if (g_frozen_ticks >= 6 && !g_pause_panel_nav_verified) {
+            require(g_native_pause_menu.selected == UR_MODERN_PAUSE_RESUME &&
+                    g_pause_panel_paints >= 4,
+                    "native_paused_panel_navigation_or_paint_failed");
+            g_pause_panel_nav_verified = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PAUSE_MENU NAV=1 down_up=1 "
+                "selected=0 guest_steps=0\n");
+            std::fflush(stderr);
+        }
+    }
     if (g_delayed_restart_enabled && g_frozen_ticks == 8)
         queue_restart_edge(); // SDL processes this BEFORE the next host tick
     if (g_frozen_ticks == 24) {

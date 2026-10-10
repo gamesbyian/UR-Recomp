@@ -1,0 +1,117 @@
+name: QA-01 one-shot original Switcher stack artifact postprocess
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-original-stack-artifact-postprocess-one-shot.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  stack-report:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download original executed scope artifact and validate ZIP digest
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/11683670622/zip" \
+            -o "$RUNNER_TEMP/qa01-switcher-original-38088102870.zip"
+          echo "9f3f8020ea12f58b9094e0fbfe00d6161d9c6812dbf49837c91c7e5a57c29e95  $RUNNER_TEMP/qa01-switcher-original-38088102870.zip" | sha256sum --check --status
+          unzip -Z1 "$RUNNER_TEMP/qa01-switcher-original-38088102870.zip"
+
+      - name: Analyze archived actual original opcode scopes without emulator replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/qa01-switcher-original-38088102870.zip" "$RUNNER_TEMP/qa01-switcher-scope-recovered.json" <<'PY'
+          import json
+          import re
+          import sys
+          from collections import Counter, defaultdict
+          from pathlib import Path
+          from zipfile import ZipFile
+          sys.path.insert(0, str(Path.cwd() / "tools"))
+          import report_qa01_switcher_stack_trace as q
+
+          archive, output = map(Path, sys.argv[1:])
+          with ZipFile(archive) as z:
+              names = z.namelist()
+              def one(suffix):
+                  hits = [name for name in names if name.endswith(suffix)]
+                  if len(hits) != 1:
+                      raise ValueError(f"required unique original archive member {suffix}: {hits}")
+                  return hits[0]
+              source = json.loads(z.read(one("qa01-switcher/source-switcher-result.json")))
+              log = z.read(one("qa01-switcher-stack/source-switcher/source/source-scan.log")).decode("utf-8")
+          assert source["schema"] == "UR-QA01-ORIGINAL-SWITCHER-SOURCE-QUALIFICATION/1"
+          assert source["status"] == "source_event_and_entry_verified"
+          assert source["original_source_horizon_frames"] == 22000
+          assert source["release_complete_event_credit"] == 0
+          assert source["source_result"]["original_entry_frame"] == 12327
+          assert source["source_result"]["original_result_frame"] == 17030
+          assert source["rom_sha256"] == "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
+          assert source["source_event_diagnostic"]["original_source_horizon_observed_from_guest_dump"] is True
+          report = q.parse_trace(log, source["source_result"]["original_result_frame"])
+          assert report["complete_event_release_credit"] == 0
+          assert report["event_count"] > 5000
+          pairs = defaultdict(Counter)
+          opcodes = defaultdict(Counter)
+          for match in q.WRITE.finditer(log):
+              f,v,pc,op,sp0,sp1,addr,old,new = match.groups()
+              key = "7E:" + addr
+              pairs[key][pc[:2] + ":" + pc[2:]] += 1
+              opcodes[key][op] += 1
+          assert sum(sum(hist.values()) for hist in pairs.values()) == report["event_count"]
+          assert {addr:sum(hist.values()) for addr,hist in pairs.items()} == report["address_counts"]
+          data = {
+              "schema": "UR-QA01-SWITCHER-ORIGINAL-STACK-ARCHIVE-RECOVERY/1",
+              "source_workflow_run_id": 38088102870,
+              "source_job_id": 114318754390,
+              "source_artifact_id": 11683670622,
+              "source_artifact_zip_sha256": "9f3f8020ea12f58b9094e0fbfe00d6161d9c6812dbf49837c91c7e5a57c29e95",
+              "original_movie_rom_sram_source": {k:source[k] for k in ("rom_sha256","archived_movie_sha256","source_sram_sha256","original_core_sha256")},
+              "original_movie_result_host_frame": 17030,
+              "previous_failed_job_provenance_note": "The original first run reached q.parse_trace AFTER q.verify_replay; exact 128 KiB source-entry/horizon snapshots and source-event diagnostic equality had passed. Initial parser cap 5000 rejected high-volume scoped writes. This postprocessor only summarizes that preserved original log.",
+              "original_scope_count": report["event_count"],
+              "counts_by_address": report["address_counts"],
+              "counts_by_cpu_frame": report["cpu_frame_counts"],
+              "sp_opcode_address_consistent_counts": report["stack_pointer_address_compatible_counts"],
+              "by_address_original_cpu_pc_counts": {addr:dict(sorted(hist.items())) for addr,hist in sorted(pairs.items())},
+              "by_address_original_opcodes": {addr:dict(sorted(hist.items())) for addr,hist in sorted(opcodes.items())},
+              "per_address_first_and_last_examples": report["opcode_scope_events"],
+              "sample_policy": report["sample_policy"],
+              "scope_constraints": "Original Snes9x opcode pre/post byte scopes. PC/opcode/SP compatibility is not proof of actual physical writer, read consumer, native guest timing or game impact.",
+              "complete_event_release_credit": 0,
+          }
+          output.write_text(json.dumps(data, indent=2, sort_keys=True)+"\n")
+          compact = {
+              "original_scope_count": data["original_scope_count"],
+              "counts_by_address": data["counts_by_address"],
+              "sp_consistent": data["sp_opcode_address_consistent_counts"],
+              "top_pcs_by_address": {addr:hist.most_common(8) for addr,hist in sorted(pairs.items())},
+              "opcodes_by_address": data["by_address_original_opcodes"],
+              "selected_examples": data["per_address_first_and_last_examples"][:18],
+              "complete_event_release_credit": 0,
+          }
+          print("QA01_SOURCE_STACK_RECOVERED=" + json.dumps(compact, sort_keys=True))
+          PY
+          echo "Original-only opcode scope recovery from verified immutable artifact; no ROM/movie/guest-memory dumps in output. USA QA-01 0/45." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain only compact original opcode-scope summary
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-original-stack-archive-recovered-20261010
+          path: ${{ runner.temp }}/qa01-switcher-scope-recovered.json
+          retention-days: 7
+          if-no-files-found: warn

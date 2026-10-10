@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "kind": "derived-native-source-qa08-not-unmodified-artifact",
+  "provenance": {
+    "repository": "gamesbyian/UR-Recomp",
+    "merged_pr": 1231,
+    "workflow_run_id": 38091207834,
+    "artifact_id": 11684526840,
+    "original_zip_reports": [
+      "baldosa-evidence/ws342_live_1p_late_source.json",
+      "baldosa-evidence/ws342_live_1p_density_parity.json",
+      "baldosa-evidence/ws342_live_1p_semantic_worklist.json"
+    ],
+    "source_guest_route": "baldosa/tests/routes/race_1p.txt"
+  },
+  "original_pixel_parity": {
+    "logical_dimensions": [
+      342,
+      224
+    ],
+    "original_4x_dimensions": [
+      1368,
+      896
+    ],
+    "aligned_guest_frames": [
+      1536,
+      1552,
+      1568,
+      1584,
+      1600,
+      1616,
+      2208
+    ],
+    "independent_source_exact_pairs": 7,
+    "full_independent_guest_crc_frames": 5447,
+    "post_countdown_guest_frame": 2208,
+    "previous_countdown_frame": 1616,
+    "changed_original_logical_pixels": 55580,
+    "margin_nontrivial_pixel_counts": {
+      "top_left": 2853,
+      "top_right": 2011,
+      "bottom_left": 2410,
+      "bottom_right": 1678
+    },
+    "source_rgba_sha256": "8e81014ae6b7285b8d4a79985cc6ba146b309e913fc0e7e3cb8800730f3f0f05",
+    "density_4x_rgba_sha256": "b8257c7f94a4b97b343626f773be912b8967a9a1849ef3574fd8d755ef3bab7a"
+  },
+  "source_p1_semantic_census": {
+    "race_script_milestone": 1720,
+    "trace_guest_frames": 3451,
+    "post_milestone_guest_frames": 3430,
+    "missing_authored_asset_samples": 3355,
+    "authored_but_unregistered_samples": 17,
+    "selected_authored_samples": 58,
+    "top_missing_exact_compositions": [
+      {
+        "state": "0A4B:0A4B:0000:0000:0100",
+        "samples": 1234
+      },
+      {
+        "state": "0A4B:0A4B:0000:0000:0000",
+        "samples": 287
+      },
+      {
+        "state": "08D5:08D5:0000:0000:0000",
+        "samples": 282
+      },
+      {
+        "state": "0855:0855:0000:0000:0000",
+        "samples": 275
+      },
+      {
+        "state": "0895:0895:0000:0000:0000",
+        "samples": 272
+      }
+    ]
+  },
+  "temporal_reanalysis": {
+    "method": "read_only_source_trace_consecutive_semantic_runs",
+    "motion_rich_window": [
+      1721,
+      3399
+    ],
+    "motion_rich_guest_frames": 1679,
+    "motion_rich_missing_asset_frames": 1604,
+    "motion_rich_unregistered_art_frames": 17,
+    "motion_rich_selected_art_frames": 58,
+    "motion_rich_three_pose_counts": {
+      "08D5": 526,
+      "0895": 515,
+      "0855": 511
+    },
+    "motion_rich_three_pose_total": 1552,
+    "transition_window": [
+      3400,
+      3638
+    ],
+    "transition_guest_frames": 239,
+    "held_semantic": "0A4B",
+    "held_window": [
+      3639,
+      5150
+    ],
+    "held_guest_frames": 1512,
+    "held_gate_segments": [
+      {
+        "gate": "0000",
+        "window": [
+          3639,
+          3916
+        ],
+        "frames": 278
+      },
+      {
+        "gate": "0100",
+        "window": [
+          3917,
+          5150
+        ],
+        "frames": 1234
+      }
+    ],
+    "interpretation": "Late held semantic frequency is not reliable evidence of a missing visible racing animation."
+  },
+  "nonrelease_guards": {
+    "authored_342_wide_HD_accepted": false,
+    "source_OBJ_alpha_visibility_proven": false,
+    "original_final_BG_priority_proven": false,
+    "completed_original_emulator_event_accepted": false,
+    "windows_beta_approved": false
+  },
+  "limitations": "This is a derived, bounded machine-readable archival index, not the raw image/CRC source. Authenticate against the original GitHub Actions artifact while retained. Frame cadence is guest simulation, not physical presentation; even motion-rich semantic IDs are not proven source-visible P1 sprites."
+}

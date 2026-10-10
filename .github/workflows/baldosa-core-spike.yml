@@ -604,6 +604,14 @@ jobs:
           # not merely to equal-sized nearest blocks or identical WRAM CRCs.
           export UR_BALDOSA_HD_DENSITY=4
           export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-4x"
+          # Non-destructive isolated Original OBJ for actual native 1P
+          # semantic 0895 at the already accepted post-countdown frame2208.
+          # Reuse THIS existing independent 4x guest run; no extra AOT
+          # process or source-OBJ removal.
+          export UR_RACER_HD_WIDE_SOURCE_SLOT=97
+          export UR_RACER_HD_WIDE_SOURCE_FRAME=2208
+          export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-slot97"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR" "$UR_RACER_HD_WIDE_SOURCE_DIR"
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x"
@@ -615,6 +623,17 @@ jobs:
             --min-shared 2 \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_density_parity.json"
           echo "PASS: same-frame native 1P 342-wide 1x/4x Original pixels and stock guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          test -s "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot97-frame002208.pam"
+          python3 tools/check_baldosa_oneplayer_0895_source_obj.py \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/fd/crc.txt" \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-x "$RUNNER_TEMP/baldosa-ws342-live-1p-4x" \
+            --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot97-frame002208.pam" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_0895_source_obj.json"
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_FRAME UR_RACER_HD_WIDE_SOURCE_DIR
+          echo "OBSERVED: isolated real P1 slot97 source alpha at live 1P semantic0895 frame2208; 7 whole native Original source/4x pairs unchanged" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/check_baldosa_late_1p_original.py \
             --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
             --one-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
@@ -1259,6 +1278,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_late_source.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_0895_source_obj.json
+            ${{ runner.temp }}/baldosa-ws342-live-1p-slot97/ur-baldosa-ws342-obj-slot97-frame*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_semantic_worklist.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json

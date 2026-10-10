@@ -47,7 +47,10 @@ inline bool render_modern_root_overlay(
     const ModernRootOverlayView& view) {
     // No partial drawing on an invalid layout or absent host primitives.
     if (!paint.valid() || !pixels || stride <= 0 || surface_height <= 0 ||
-        scale <= 0 || panel_w <= 40 || rect.width <= 0 || rect.height <= 0)
+        scale <= 0 || panel_w <= 40 || rect.width <= 0 || rect.height <= 0 ||
+        rect.x < 0 || rect.y < 0 || rect.x > stride ||
+        rect.y > surface_height || rect.width > stride - rect.x ||
+        rect.height > surface_height - rect.y)
         return false;
 
     const int x = rect.x;

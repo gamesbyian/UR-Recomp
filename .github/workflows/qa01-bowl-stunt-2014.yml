@@ -6,6 +6,8 @@ on:
     paths:
       - ".github/workflows/qa01-bowl-stunt-2014.yml"
       - "tools/probe_original_event_complete.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_probe_original_event_complete.py"
 
 permissions:

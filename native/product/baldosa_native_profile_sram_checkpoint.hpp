@@ -18,6 +18,7 @@
 #include "host_profile_store.hpp"
 #include "local_tournament_launch_path_lock.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 #include <cstdint>

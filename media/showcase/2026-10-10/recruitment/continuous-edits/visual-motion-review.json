@@ -1,0 +1,36 @@
+{
+  "status": "five_distinct_real_lossless_source_frames",
+  "source_dimensions": [
+    960,
+    540
+  ],
+  "source_ordinals": [
+    0,
+    150,
+    300,
+    450,
+    599
+  ],
+  "guest_frames": [
+    2100,
+    2250,
+    2400,
+    2550,
+    2699
+  ],
+  "changed_pixels_between_sampled_moments": [
+    224535,
+    278192,
+    274871,
+    281193
+  ],
+  "sampling": "Real decoded FFV1 frames only; no temporal interpolation",
+  "source_mkv_sha256": "1e327be73d137b5b298b042cc666709c94a7f89036a4a83142bd29eceea8d468",
+  "source_png_sha256": {
+    "source-ordinal-000.png": "9a7d764f88eeb00d7b6ff829ccee96509a7e9988d75cc78138939044307319fe",
+    "source-ordinal-150.png": "b57fbe2748b95f80649044eafb5d610f0b69a623f0e426b308488aa5f1aad087",
+    "source-ordinal-300.png": "d1a4116c5090c8e59cca58bdd2a7fea3a37570b552db020d527cbb3d89a8ce8f",
+    "source-ordinal-450.png": "8b41b0ee7d62cbaf09cc312abd15a5df3db63a7a86760e729fb5dec0026c07ee",
+    "source-ordinal-599.png": "8f0200bfa9844fdac9a5a75a3b5527c01534a6bb0fb40bb32f3e373dea83c22b"
+  }
+}

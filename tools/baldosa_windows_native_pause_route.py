@@ -116,6 +116,8 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         raise RuntimeError(f"{name}: game wrote no native keybinds into Modern user root")
     if profile_fixture:
         verify_named_profile_boot(log, profile_seed)
+        verify_native_profile_checkpoint(
+            profile_fixture, user_root, "native-ci-rider", log, timeout)
         if (user_root / "saves/save.srm").exists():
             raise RuntimeError(f"{name}: named guest wrote unrelated default-profile SRAM")
         if not (user_root / "saves/profile-native-ci-rider/save.srm").is_file():
@@ -125,6 +127,31 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
     if any((output / "saves").iterdir()):
         raise RuntimeError(f"{name}: guest created package/cwd-local saves")
     return frame_crcs(framedump), log
+
+
+
+def verify_native_profile_checkpoint(
+    fixture: Path, root: Path, profile_id: str, log: str, timeout: int,
+) -> None:
+    """Native shutdown first, original Modern typed store read-back second."""
+    line = (
+        f"UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile={profile_id} "
+    )
+    matches = re.findall(
+        rf"(?m)^{re.escape(line)}status=(committed|unchanged)$", log)
+    if len(matches) != 1:
+        raise ValueError("No unique acknowledged native post-save profile publication")
+    process = subprocess.run(
+        [str(fixture), str(root), profile_id, "--verify-native-save"],
+        capture_output=True, text=True, timeout=timeout,
+    )
+    if process.returncode != 0 or (
+        f"UR_BALDOSA_NATIVE_PROFILE VERIFIED profile={profile_id} sram=8192 "
+        not in process.stdout
+    ):
+        raise ValueError(
+            "Native disk SRAM and existing Modern typed profile store diverged: "
+            f"{process.returncode} {process.stdout} {process.stderr}")
 
 
 PROFILE_BOOT_SRAM = re.compile(
@@ -173,7 +200,7 @@ def verify_named_profile_boot(log: str, seed: Path) -> dict[str, str]:
 
 def run_existing_named_profile_fresh_process(
     exe: Path, rom: Path, script: Path, root: Path, *,
-    video: str, timeout: int, clean_frames: int,
+    video: str, timeout: int, clean_frames: int, fixture: Path,
 ) -> dict[str, str | int]:
     """Boot the same previously-played Modern profile in a SECOND native process.
 
@@ -235,7 +262,11 @@ def run_existing_named_profile_fresh_process(
     proof = verify_named_profile_boot_bytes(log, saved)
     frames = check_named_profile_guest_terminal(
         frame_crcs(framedump), log, clean_frames=clean_frames)
-    for path, original in zip((state, product, catalog), metadata_before):
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-rider", log, timeout)
+    # Profile metadata may now advance by exactly the authentic typed SRAM
+    # checkpoint; the global selector and catalog remain unchanged.
+    for path, original in zip((product, catalog), metadata_before[1:]):
         if path.read_bytes() != original:
             raise ValueError(
                 f"Native guest unexpectedly changed host-owned Modern state: {path.name}")
@@ -315,6 +346,8 @@ def run_second_named_profile_isolation(
             f"{outcome.returncode} {log[-3000:]}")
     proof = verify_named_profile_boot_bytes(
         log, source, profile_id="native-ci-second")
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-second", log, timeout)
     frames = frame_crcs(framedump)
     if not frames or not re.search(r"^script f=\d+ quit$", log, re.M):
         raise ValueError("Second named profile never executed real guest frames")
@@ -591,7 +624,7 @@ def main() -> int:
     named_proof = verify_named_profile_boot(named_log, sram_seed)
     fresh_process_proof = run_existing_named_profile_fresh_process(
         exe, rom, script, root, video=args.video, timeout=args.timeout,
-        clean_frames=args.expected_frames)
+        clean_frames=args.expected_frames, fixture=fixture)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)

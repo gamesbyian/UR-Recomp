@@ -126,12 +126,18 @@ int wide_source_probe_slot() noexcept {
 void dump_wide_obj_source() noexcept {
     if (!g_wide_probe_armed || g_wide_probe_dumped) return;
     const char* requested = std::getenv("UR_RACER_HD_WIDE_SOURCE_FRAME");
+    const char* additional = std::getenv("UR_RACER_HD_WIDE_SOURCE_EXTRA_FRAME");
     const char* directory = std::getenv("UR_RACER_HD_WIDE_SOURCE_DIR");
     if (!requested || !*requested || !directory || !*directory) return;
-    char* end = nullptr;
-    const unsigned long target = std::strtoul(requested, &end, 10);
-    if (end == requested || *end != '\0' || target != g_sim_frame) return;
-    g_wide_probe_dumped = true;  // one exact source-frame capture per process
+    const auto matches_frame = [](const char* value, unsigned frame) noexcept {
+        if (!value || !*value) return false;
+        char* end = nullptr;
+        const unsigned long target = std::strtoul(value, &end, 10);
+        return end != value && *end == '\0' && target == frame;
+    };
+    if (!matches_frame(requested, g_sim_frame) &&
+        !matches_frame(additional, g_sim_frame)) return;
+    g_wide_probe_dumped = true;  // at most one dump per matching guest frame
 
     char path[1024];
     const int n = std::snprintf(path, sizeof(path),

@@ -20,6 +20,29 @@ PPU. The current \`UR_BALDOSA_WS342_LATE_CAPTURE_AFTER\` knob can capture
 exactly one extra authentic late PPU frame per such process, without
 changing guest behavior or adding *any* new emulator run.
 
+## First native execution: later race captured, trace needs correction
+
+The first live native AOT run `38090776774` retained genuine 1P
+**342×224 Original PPU guest frame 2208**, screenshot source SHA256
+`8e81014ae6b7285b8d4a79985cc6ba146b309e913fc0e7e3cb8800730f3f0f05`.
+Direct inspection confirms a **live 1P race**, two visible unicycles,
+the running clock (0:08:1), full course track and the title-owned
+"BIGGER BOOSTS" race message. There is no giant countdown numeral.
+The same real guest process retained the six older early frames, giving
+seven source captures total. No source or guest execution defect has
+been demonstrated by that observation.
+
+The strict new semantic worklist stopped the AOT workflow before its
+second independent 4× source run: it incorrectly required the pre-race
+frontend selector 0x3C in the 1700..5150 active race window. The guest
+leaves that transient selector once the race begins. The revised
+read-only recorder gates on its explicit single 1P diagnostic opt-in,
+bounded guest window and normal native admission census, and the
+analyzer separately requires exactly the genuine scripted race
+milestone, terminal and all 5,447 original/native CRCs to match.
+**No 1×/4× cross-density visual acceptance or ranked art state
+worklist is claimed until this corrected native head passes.**
+
 ## The proposed acceptance
 
 Set \`UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200\` for the existing 1P

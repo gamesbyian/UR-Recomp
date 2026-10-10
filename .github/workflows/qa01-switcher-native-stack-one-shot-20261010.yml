@@ -1,0 +1,143 @@
+name: QA-01 original/native Switcher bounded stack writer ONE-SHOT
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-switcher-native-stack-one-shot-20261010.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-switcher-native-stack-one-shot-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compare-native-writers:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - name: Check out pinned original and native comparison harness
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out independently pinned Baldosa native game/framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Confirm actual canonical 2014 input, ROM and source revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_native_switcher_stack_trace.py'
+          python3 -m unittest discover -s tests/unit -p 'test_probe_original_event_complete.py'
+
+      - name: Build pristine original and disposable frame-logged native
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-switcher-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-switcher-snesref" -j2
+          # Existing verified QA-only source-input transport is unchanged.
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          # Only constrain *diagnostic WRAM emission* before the cap.
+          # Never change guest opcodes, input, ROM, SRAM or scheduler.
+          python3 tools/qa01_native_switcher_stack_gate.py \
+            baldosa/snesrecomp/runner/src/cpu_state.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+          test -x "$RUNNER_TEMP/qa01-switcher-snesref/snesref"
+
+      - name: Execute genuine original and native Switcher Race B through result
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-switcher-native"
+          mkdir -p "$ROOT"
+          # These labels are native snes_frame_counter PRE-RUN values.
+          # Compare to actual independently observed original/native host
+          # 5782 result staging; do NOT relabel as original ICPU.Frame.
+          export UR_QA_NATIVE_STACK_FIRST=5775
+          export UR_QA_NATIVE_STACK_LAST=5790
+          export SNESRECOMP_WLOG_ADDR="01DC:01F3:$ROOT/native-wram-writes.log"
+          export SNESRECOMP_WLOG_STATE=1
+          export SNESRECOMP_WLOG_ADDR_CAP=500000
+          set +e
+          python3 tools/probe_original_event_complete.py \
+            --case switcher \
+            --native-backend pinned-baldosa \
+            --switcher-same-host-penultimate \
+            --switcher-same-host-full-memory-offsets \
+            --snesref "$RUNNER_TEMP/qa01-switcher-snesref/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work-dir "$ROOT" \
+            --json-out "$ROOT/switcher-paired-report.json" \
+            > "$ROOT/probe.log" 2>&1
+          rc=$?
+          set -e
+          echo "Original/native strict result-frame gate code=$rc (1 is expected from existing +4704/+4702 relative mismatch)" >> "$GITHUB_STEP_SUMMARY"
+          tail -n 35 "$ROOT/probe.log"
+          test -s "$ROOT/switcher-paired-report.json"
+          test -s "$ROOT/native-wram-writes.log"
+          # The independent comparator remains strict RED. A passing QA
+          # job means authentic bounded SOURCE DIAGNOSTIC, not course parity.
+          python3 tools/qa01_native_switcher_stack_report.py \
+            --wlog "$ROOT/native-wram-writes.log" \
+            --paired-report "$ROOT/switcher-paired-report.json" \
+            --out "$ROOT/native-stack-summary.json"
+          test "$rc" -eq 1
+          python3 - "$ROOT/native-stack-summary.json" <<'PY'
+          import json,sys
+          x=json.load(open(sys.argv[1], encoding="utf-8"))
+          assert x["native_guest_wram_write_attempts"] > 0
+          assert x["complete_event_release_credit"] == 0
+          assert x["independent_original_native_evidence"]["original_native_result_relative_frame_parity"] is False
+          print("QA01_NATIVE_STACK_SUMMARY=" + json.dumps({
+              "count": x["native_guest_wram_write_attempts"],
+              "by_address": x["counts_by_address"],
+              "by_native_frame": x["counts_by_native_host_frame"],
+              "by_aot_scope": x["counts_by_address_generated_or_interpreter_scope"],
+              "sp_seen": x["counts_by_address_sp_seen_at_write"],
+              "examples": x["first_five_observed_writes_per_address"],
+              "complete_event_release_credit": 0,
+          },sort_keys=True))
+          PY
+          echo "Original/native Switcher authentic Race B still 0/45. Native scope and SP observations are not native guest opcode-PC parity." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload bounded original/native stack source evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-switcher-native-stack-one-shot-20261010
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-switcher-native/native-stack-summary.json
+            ${{ runner.temp }}/qa01-switcher-native/native-wram-writes.log
+            ${{ runner.temp }}/qa01-switcher-native/probe.log

@@ -25,6 +25,18 @@ bool enabled() noexcept {
     return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
+// Read-only witness of the earliest source-positive 1P game frames.
+// Ordinary 2P source/HD capture behavior remains 1800..2450. In the real
+// 1P route the only actual authored pixel deltas occurred at 1728/1744;
+// extending the diagnostic capture window is explicitly opt-in and may
+// never loosen the independent original OBJ admission guard.
+bool authored_capture_window(unsigned frame) noexcept {
+    if (frame >= 1800 && frame <= 2450) return true;
+    const char* early = std::getenv("UR_BALDOSA_HD_EARLY_1P_CAPTURE");
+    return frame >= 1700 && frame < 1800 &&
+        early && early[0] == '1' && early[1] == '\0';
+}
+
 int density() noexcept {
     if (!enabled()) return 1;
     const char* value = std::getenv("UR_BALDOSA_HD_DENSITY");
@@ -206,7 +218,7 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     // Turbo presentation is asynchronous to guest frame cadence: accepted
     // HD frames occurred at 1808, 1856 and 1952 in the first native run.
     // Sample actual successful draw callbacks, not arbitrary frame moduli.
-    if (g_frame >= 1800 && g_frame <= 2450
+    if (authored_capture_window(g_frame)
         && g_last_captured_frame != g_frame && g_captured < 9) {
         const int scale = ur::presentation::racer_hd_presentation_scale();
         const std::size_t top_changed = authored_difference_count(
@@ -220,6 +232,23 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
             top_changed, bottom_changed);
         const bool saved = save_presented_pam(
             dst, pitch, frame_w * scale, frame_h * scale, g_frame);
+        // For the separately admitted 1P early-frame diagnostic, retain
+        // the REAL post-RemoveFromGame PPU underlay before host-authored
+        // pixels. Never call this stock Original: its selected OBJ have
+        // already been removed inside the native PPU on this guest frame.
+        // This read-only source pairs with the actual native 4x screenshot
+        // for spatial/HUD/nonlocal pixel verification. No new renderer.
+        const char* early = std::getenv("UR_BALDOSA_HD_EARLY_1P_CAPTURE");
+        if (early && std::strcmp(early, "1") == 0 &&
+            g_frame >= 1700 && g_frame < 1800) {
+            const bool saved_underlay = save_presented_pam(
+                field, static_cast<std::size_t>(frame_w) * 4u,
+                frame_w, frame_h, g_frame, "ur-baldosa-hd-postcapture-underlay");
+            std::fprintf(stderr,
+                "UR_BALDOSA_HD_PPU_UNDERLAY frame=%u saved=%u "
+                "logical=%dx%d type=post-obj-removal\n",
+                g_frame, saved_underlay ? 1u : 0u, frame_w, frame_h);
+        }
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_COMPOSE frame=%u racer_present=1 "
             "logical=%dx%d source_art=ur hd_capture=%u raster=%dx%d density=%d\n",

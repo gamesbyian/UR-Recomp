@@ -195,6 +195,31 @@ int main() {
     g_scale = 4;
     check_frame(g_scale, width);
 
+    // A pre-race guest frame without ANY host prepare still establishes
+    // the next active race's authoritative 2P scene. This specifically
+    // catches sparse/turbo desktop callbacks missing 0x3D entirely.
+    g_ram[0x0313] = 0x00;
+    g_ram[0x009F] = 0xD7;
+    ur_baldosa_ws24_begin_sim_frame(4010);
+    g_ram[0x009F] = 0x3D;
+    ur_baldosa_ws24_begin_sim_frame(4011); // no prepare at all
+    g_ram[0x0313] = 0x01;
+    g_ram[0x009F] = 0x00;
+    ur_baldosa_ws24_begin_sim_frame(4012);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 342 && height == 224 && g_last_margin == 48);
+    g_scale = 4;
+    check_frame(g_scale, width);
+    // Unknown active state after settled frontend cannot inherit 2P.
+    g_ram[0x0313] = 0x00;
+    g_ram[0x009F] = 0xD7;
+    ur_baldosa_ws24_begin_sim_frame(4013);
+    g_ram[0x0313] = 0x01;
+    g_ram[0x009F] = 0x00;
+    ur_baldosa_ws24_begin_sim_frame(4014);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && height == 224);
+
     // Invalid prepare must revoke the previous frame's 342-wide admission.
     ur_baldosa_ws24_prepare_frame(0, 0, nullptr, &height);
     assert(ur_baldosa_ws24_draw_frame(

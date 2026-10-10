@@ -122,6 +122,7 @@ jobs:
             ${{ runner.temp }}/qa01-bowl/attempt.log
             ${{ runner.temp }}/qa01-bowl/bowl-report.json
             ${{ runner.temp }}/qa01-bowl/bowl/source/source-scan.log
+            ${{ runner.temp }}/qa01-bowl/bowl/source/source-event-diagnostic.json
             ${{ runner.temp }}/qa01-bowl/bowl/source/source-entry.log
             ${{ runner.temp }}/qa01-bowl/bowl/calibration/reference.log
             ${{ runner.temp }}/qa01-bowl/bowl/calibration/native.log

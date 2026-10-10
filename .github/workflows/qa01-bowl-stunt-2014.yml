@@ -83,6 +83,7 @@ jobs:
             --case bowl \
             --native-backend pinned-baldosa \
             --observe-one-frame-stunt-lead \
+            --bowl-tally-phase \
             --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
@@ -109,6 +110,7 @@ jobs:
             "one_frame_stunt_phase_observed":d.get("comparison",{}).get("bounded_stunt_one_frame_phase_observed",False),
             "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
             "terminal_frames_guest_relative":d.get("comparison",{}).get("terminal_result_guest_frame"),
+            "tally_anchored_guest_phase":d.get("tally_anchored_guest_phase"),
             "p1_scored_stunt":d.get("comparison",{}).get("stunt_positive_score_visible"),
             "official_admitted_usa_events":0
           },indent=2))

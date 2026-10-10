@@ -1,4 +1,4 @@
-name: QA-01 original 2014 Bowl scored Stunt native candidate
+name: QA-01 experiment original Switcher exact restored course boundary
 
 on:
   workflow_dispatch:
@@ -18,7 +18,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  original-native-bowl-stunt:
+  original-native-switcher-race-b:
     runs-on: ubuntu-22.04
     timeout-minutes: 50
     steps:
@@ -60,8 +60,8 @@ jobs:
             libdbus-1-dev xvfb
           python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
           cmake -S baldosa/snesrecomp/tools/snesref \
-            -B "$RUNNER_TEMP/bowl-snesref" -DCMAKE_BUILD_TYPE=Release
-          cmake --build "$RUNNER_TEMP/bowl-snesref" -j2
+            -B "$RUNNER_TEMP/switcher-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/switcher-snesref" -j2
           # QA-only input-file transport already validated in the Zoo route.
           # Absolutely no guest code, original ROM, SRAM or gameplay edit.
           python3 tools/baldosa_qa_dense_scene_input_patch.py \
@@ -71,32 +71,31 @@ jobs:
             -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
           cmake --build baldosa/build --target UniracersSNESRecomp -j3
           test -x baldosa/build/UniracersSNESRecomp
-          test -x "$RUNNER_TEMP/bowl-snesref/snesref"
+          test -x "$RUNNER_TEMP/switcher-snesref/snesref"
 
-      - name: Independent source-original Bowl score then paired stock-entry native replay
+      - name: Independent source-original Switcher Race B then paired stock-entry native replay
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p "$RUNNER_TEMP/qa01-bowl"
+          mkdir -p "$RUNNER_TEMP/qa01-switcher"
           set +e
           python3 tools/probe_original_event_complete.py \
-            --case bowl \
+            --case switcher \
             --native-backend pinned-baldosa \
-            --observe-one-frame-stunt-lead \
-            --bowl-tally-phase \
-            --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
+            --source-horizon 22000 \
+            --snesref "$RUNNER_TEMP/switcher-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
-            --work-dir "$RUNNER_TEMP/qa01-bowl" \
-            --json-out "$RUNNER_TEMP/qa01-bowl/bowl-report.json" \
-            > "$RUNNER_TEMP/qa01-bowl/attempt.log" 2>&1
+            --work-dir "$RUNNER_TEMP/qa01-switcher" \
+            --json-out "$RUNNER_TEMP/qa01-switcher/switcher-report.json" \
+            > "$RUNNER_TEMP/qa01-switcher/attempt.log" 2>&1
           rc=$?
           set -e
-          echo "Producer exit code: $rc (0 means verified diagnostic OR full-event candidate, never release QA admission)"
-          tail -n 130 "$RUNNER_TEMP/qa01-bowl/attempt.log"
-          if [ -s "$RUNNER_TEMP/qa01-bowl/bowl-report.json" ]; then
-            python3 - "$RUNNER_TEMP/qa01-bowl/bowl-report.json" <<'PY'
+          echo "Producer exit code: $rc (0 means a comparator candidate only; failure or mismatch remains evidence, never release QA admission)"
+          tail -n 130 "$RUNNER_TEMP/qa01-switcher/attempt.log"
+          if [ -s "$RUNNER_TEMP/qa01-switcher/switcher-report.json" ]; then
+            python3 - "$RUNNER_TEMP/qa01-switcher/switcher-report.json" <<'PY'
           import json,sys
           d=json.load(open(sys.argv[1]))
           print(json.dumps({
@@ -105,34 +104,33 @@ jobs:
             "source":{k:v for k,v in d.get("original_source_event",{}).items() if k!="original_source_entry"},
             "entry_equivalent":d.get("comparison",{}).get("fresh_guest_entry_equivalent"),
             "first_disagreement":d.get("comparison",{}).get("first_sample_disagreement"),
-            "settled_stunt_score_text_equal":d.get("comparison",{}).get("rendered_result_and_score_text_matched"),
+            "settled_race_time_text_equal":d.get("comparison",{}).get("rendered_result_and_score_text_matched"),
             "full_event_frame_parity_candidate":d.get("comparison",{}).get("paired_event_candidate",False),
-            "one_frame_stunt_phase_observed":d.get("comparison",{}).get("bounded_stunt_one_frame_phase_observed",False),
-            "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
+                        "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
             "terminal_frames_guest_relative":d.get("comparison",{}).get("terminal_result_guest_frame"),
             "tally_anchored_guest_phase":d.get("tally_anchored_guest_phase"),
-            "p1_scored_stunt":d.get("comparison",{}).get("stunt_positive_score_visible"),
+            "p1_timed_result":d.get("comparison",{}).get("timed_race_or_circuit_result_visible"),
             "official_admitted_usa_events":0
           },indent=2))
           PY
           fi
           exit "$rc"
 
-      - name: Retain bounded Bowl diagnostic logs and non-ROM metadata only
+      - name: Retain bounded Switcher diagnostic logs and non-ROM metadata only
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: qa01-bowl-scored-stunt-diagnostics
+          name: qa01-switcher-original-return-boundary-diagnostics
           retention-days: 7
           if-no-files-found: warn
           path: |
-            ${{ runner.temp }}/qa01-bowl/attempt.log
-            ${{ runner.temp }}/qa01-bowl/bowl-report.json
-            ${{ runner.temp }}/qa01-bowl/bowl/source/source-scan.log
-            ${{ runner.temp }}/qa01-bowl/bowl/source/source-event-diagnostic.json
-            ${{ runner.temp }}/qa01-bowl/bowl/source/source-entry.log
-            ${{ runner.temp }}/qa01-bowl/bowl/calibration/reference.log
-            ${{ runner.temp }}/qa01-bowl/bowl/calibration/native.log
-            ${{ runner.temp }}/qa01-bowl/bowl/replay/reference.log
-            ${{ runner.temp }}/qa01-bowl/bowl/replay/native.log
-            ${{ runner.temp }}/qa01-bowl/bowl/original-movie-meta.json
+            ${{ runner.temp }}/qa01-switcher/attempt.log
+            ${{ runner.temp }}/qa01-switcher/switcher-report.json
+            ${{ runner.temp }}/qa01-switcher/switcher/source/source-scan.log
+            ${{ runner.temp }}/qa01-switcher/switcher/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-switcher/switcher/source/source-entry.log
+            ${{ runner.temp }}/qa01-switcher/switcher/calibration/reference.log
+            ${{ runner.temp }}/qa01-switcher/switcher/calibration/native.log
+            ${{ runner.temp }}/qa01-switcher/switcher/replay/reference.log
+            ${{ runner.temp }}/qa01-switcher/switcher/replay/native.log
+            ${{ runner.temp }}/qa01-switcher/switcher/original-movie-meta.json

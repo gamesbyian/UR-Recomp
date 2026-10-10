@@ -367,6 +367,66 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
     return "\n".join(lines) + "\n"
 
 
+def switcher_penultimate_reference_script(base: str, source_duration: int,
+                                           frames: list[int]) -> str:
+    """Read-only reference-side extra dump, never move recorded controller input.
+
+    The archived Switcher source completes after 4703 active guest-relative
+    frames. The prior paired comparison independently observed reference
+    onset +4704 and Baldosa onset +4702, same actual host 5783. Adding a
+    reference-only source-relative +4703 dump pairs with native +4701 on
+    absolute host 5782. The normal symmetric sample set is untouched.
+    """
+    if source_duration != 4703 or not frames or frames[-1] != source_duration - 2:
+        raise CompleteEventError("same-host Switcher probe requires observed 2014 pre-result source window")
+    marker = f"dump scene-{source_duration - 2:05d}\n"
+    if base.count(marker) != 1:
+        raise CompleteEventError("missing unique native penultimate Switcher dump")
+    return base.replace(marker, marker + "wait 2\ndump source-host-minus-one\n")
+
+
+def observe_switcher_same_host_penultimate(reference_dir: Path, native_dir: Path,
+                                           reference_log: str, native_log: str,
+                                           source_duration: int,
+                                           reference_entry: int, native_entry: int,
+                                           decoded: bytes) -> dict:
+    """Observe the SAME absolute host frame, not a fabricated relative match."""
+    if source_duration != 4703:
+        raise CompleteEventError("unverified Switcher 2014 source duration")
+    ref_rel, nat_rel = source_duration, source_duration - 2
+    original_host = observed_dump_frame(reference_log, "source-host-minus-one")
+    native_host = observed_dump_frame(native_log, f"scene-{nat_rel:05d}")
+    ref_result = observed_dump_frame(reference_log, "result-onset")
+    nat_result = observed_dump_frame(native_log, "result-onset")
+    if (original_host != native_host
+            or original_host != reference_entry + ref_rel
+            or native_host != native_entry + nat_rel
+            or original_host + 1 != ref_result
+            or native_host + 1 != nat_result):
+        raise CompleteEventError("Switcher penultimate captures are not identical genuine pre-result host frames")
+    reference = load_switcher_transition_state(
+        reference_dir / "source-host-minus-one.wram.bin", decoded)
+    native = load_switcher_transition_state(
+        native_dir / f"scene-{nat_rel:05d}.wram.bin", decoded)
+    diffs = sorted(k for k in reference if reference[k] != native.get(k))
+    return {
+        "schema": "UR-QA01-SWITCHER-PENULTIMATE-SAME-HOST/1",
+        "original_absolute_host": original_host,
+        "native_absolute_host": native_host,
+        "result_absolute_host": ref_result,
+        "reference_guest_relative_frame": ref_rel,
+        "native_guest_relative_frame": nat_rel,
+        "observed_original_guest_fields": reference,
+        "observed_native_guest_fields": native,
+        "disagreeing_observed_fields": diffs,
+        "same_host_named_guest_fields_equal": not diffs,
+        "guest_memory_bytes_read_per_engine": 0x20000,
+        "original_movie_input_modified": False,
+        "release_complete_event_credit": 0,
+        "limitation": "Named WRAM parity at one real same-host frame does not prove identical CPU PC/NMI phase or 45-course acceptance.",
+    }
+
+
 def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
                              reference_log: str, native_log: str) -> dict:
     """Only compare matching post-0x2F script-host frames.
@@ -830,6 +890,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--case", choices=tuple(CASES), required=True)
     ap.add_argument("--native-backend", choices=("legacy", "pinned-baldosa"), default="legacy")
+    ap.add_argument("--switcher-same-host-penultimate", action="store_true",
+                    help="optional read-only original +4703 / native +4701 same-host 5782 guest observation; no admission")
     ap.add_argument("--bowl-tally-phase", action="store_true",
                     help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
@@ -900,9 +962,17 @@ def main(argv: list[str] | None = None) -> int:
         raise CompleteEventError("Bowl tally phase tracing only applies to verified Bowl source")
     script.write_text(replay_script(stream, menu, frames, kind == "stunt",
                                    tally_phase=args.bowl_tally_phase))
+    reference_script = script
+    if args.switcher_same_host_penultimate:
+        if args.case != "switcher" or args.native_backend != "pinned-baldosa":
+            raise CompleteEventError("only pinned Baldosa Switcher source permits same-host penultimate diagnostic")
+        reference_script = replay / "switcher-reference-penultimate.script"
+        reference_script.write_text(switcher_penultimate_reference_script(
+            script.read_text(), original_event["source_active_frames_to_result"],
+            frames))
     events = [(rf + part["start"], part["duration"], int(part["mask"], 16))
               for part in source_window["relative_input_segments"]]
-    rl = engine.run_reference(replay, args, script, events)
+    rl = engine.run_reference(replay, args, reference_script, events)
     (replay / "reference.log").write_text(rl)
     nl = replay_native(replay, args, script, events, nf - rf)
     (replay / "native.log").write_text(nl)
@@ -945,6 +1015,10 @@ def main(argv: list[str] | None = None) -> int:
     phase = (observe_bowl_tally_phase(
         replay / "ref", replay / "native", rl, nl)
         if args.bowl_tally_phase else None)
+    switcher_same_host = (observe_switcher_same_host_penultimate(
+        replay / "ref", replay / "native", rl, nl,
+        original_event["source_active_frames_to_result"], rf, nf, decoded)
+        if args.switcher_same_host_penultimate else None)
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,
@@ -957,6 +1031,8 @@ def main(argv: list[str] | None = None) -> int:
         "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf, "native_backend": args.native_backend,
         "relative_sample_frames": frames, "comparison": comparison,
         "tally_anchored_guest_phase": phase,
+        "switcher_same_host_penultimate": switcher_same_host,
+        "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"
     }

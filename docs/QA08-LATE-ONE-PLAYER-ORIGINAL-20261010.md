@@ -1,7 +1,6 @@
 # QA-08: actual later 1P Original widescreen source frames
 
-**Status:** candidate, no native result yet. This is an Original
-source-world visual observation, not admission of authored 342-wide HD.
+**Status: accepted native Original 1P late-race source/density parity and read-only WRAM semantic worklist.** Merged #1231, exact AOT `38091207834`, artifact `11684526840`. **Authored wide HD remains unapproved.**
 
 ## Why another frame matters
 
@@ -40,8 +39,59 @@ read-only recorder gates on its explicit single 1P diagnostic opt-in,
 bounded guest window and normal native admission census, and the
 analyzer separately requires exactly the genuine scripted race
 milestone, terminal and all 5,447 original/native CRCs to match.
-**No 1×/4× cross-density visual acceptance or ranked art state
-worklist is claimed until this corrected native head passes.**
+That first attempt was repaired by the later accepted native run; its first failure is retained as diagnostic history, not a present blocker.
+
+## Final native acceptance and measured artwork priorities
+
+The corrected AOT run `38091207834` **passed**. Its independent
+source/4× images at exactly seven guest frames (1536, 1552, 1568,
+1584, 1600, 1616 and **2208**) all agree at **every logical RGBA
+pixel**, and every 4×4 expanded pixel block is identical to its
+independent actual 1× source. The entire **5,447-frame original
+guest CRC sequence** is unchanged in both runs. Post-countdown 2208
+is genuinely moving 1P Original gameplay: 55,580 logical pixels differ
+from countdown 1616, and all four expanded margin bands have actual
+source variation (top-left 2853, top-right 2011, bottom-left 2410,
+bottom-right 1678). Its native Original source SHA256 is
+`8e81014ae6b7285b8d4a79985cc6ba146b309e913fc0e7e3cb8800730f3f0f05`,
+with independently generated 1368×896 4× SHA256
+`b8257c7f94a4b97b343626f773be912b8967a9a1849ef3574fd8d755ef3bab7a`.
+
+The read-only census covered **3,430 actual post-milestone 1P
+guest frames** after script milestone 1720, with **3,355
+missing authored asset samples**, **17 existing authored assets
+whose runtime composition does not match registration**, and **58
+registered/selected authored states**. These classifications sum
+to 3,430, but they are **source semantic selections, not rasterized
+HD witnesses**. Source slot/background visibility has *not* yet
+been tested for the missing states.
+
+| Exact missing semantic/composition state | Guest-frame samples |
+| --- | ---: |
+| `0A4B:0A4B:0000:0000:0100` | **1,234** |
+| `0A4B:0A4B:0000:0000:0000` | 287 |
+| `08D5:08D5:0000:0000:0000` | 282 |
+| `0855:0855:0000:0000:0000` | 275 |
+| `0895:0895:0000:0000:0000` | 272 |
+
+The first two `0A4B` fingerprints cover **1,521** of 3,355
+missing-art sample frames (approximately 45.3%). Existing approved
+pose IDs `01B9` and `0539` with companion `0C24` are
+among the smaller 17 authored-but-unregistered observations.
+Do **not** simply paint 0A4B: first resolve whether it
+corresponds to a displayed/occluded player OBJ or an off-screen
+semantic state. The current priority is a **read-only guest
+source-OAM geometry/source-emission visibility census** for the
+highest-frequency states, followed by source-derived approved 4×
+art where the evidence supports it.
+
+All accepted witnesses and negative release claims are retained in
+`ws342_live_1p_late_source.json`,
+`ws342_live_1p_density_parity.json`, and
+`ws342_live_1p_semantic_worklist.json` in artifact `11684526840`.
+This accepts bounded 1P Original widescreen/density authenticity,
+not 342-wide authored racer replacement, full race outcome parity
+or integrated Windows graphics UX.
 
 ## The proposed acceptance
 

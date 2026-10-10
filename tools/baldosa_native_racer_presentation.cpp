@@ -232,6 +232,23 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
             top_changed, bottom_changed);
         const bool saved = save_presented_pam(
             dst, pitch, frame_w * scale, frame_h * scale, g_frame);
+        // For the separately admitted 1P early-frame diagnostic, retain
+        // the REAL post-RemoveFromGame PPU underlay before host-authored
+        // pixels. Never call this stock Original: its selected OBJ have
+        // already been removed inside the native PPU on this guest frame.
+        // This read-only source pairs with the actual native 4x screenshot
+        // for spatial/HUD/nonlocal pixel verification. No new renderer.
+        const char* early = std::getenv("UR_BALDOSA_HD_EARLY_1P_CAPTURE");
+        if (early && std::strcmp(early, "1") == 0 &&
+            g_frame >= 1700 && g_frame < 1800) {
+            const bool saved_underlay = save_presented_pam(
+                field, static_cast<std::size_t>(frame_w) * 4u,
+                frame_w, frame_h, g_frame, "ur-baldosa-hd-postcapture-underlay");
+            std::fprintf(stderr,
+                "UR_BALDOSA_HD_PPU_UNDERLAY frame=%u saved=%u "
+                "logical=%dx%d type=post-obj-removal\\n",
+                g_frame, saved_underlay ? 1u : 0u, frame_w, frame_h);
+        }
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_COMPOSE frame=%u racer_present=1 "
             "logical=%dx%d source_art=ur hd_capture=%u raster=%dx%d density=%d\n",

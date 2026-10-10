@@ -195,7 +195,7 @@ def build_census(catalog: dict, source: dict) -> dict:
             "The 45 valid RNC streams and checkpoint resource incidence are STATIC coverage only.",
             "A native-only Dragster checkpoint transition is partial; instruction-time causality is unresolved.",
             "Independently paired original/native Zoom Zoo Circuit matches course/laps/contact and settled PPU result, but retains an unresolved one-scene-frame native result/restore phase lead; no accepted complete-course witness.",
-            "Original-only archived Bowl proves settled scored Stunt result; no paired original/native timed Stunt is certified.",
+            "Independently paired original/native Bowl scored 45s Stunt has 28 matched active semantic samples and identical PPU MIKE 764 result, but relative terminal onset differs by one frame; no accepted complete Stunt event.",
             "Input-only Jumpover CIRCUIT-B rewards are partial; no paired Circuit result or scored 45-second Stunt outcome was certified.",
             "Neither PAL register homology nor identical prototype streams proves PAL runtime parity.",
             "Historical optimizer startX constants are never read by magicnumber.lua; zero does not prove a runtime spawn.",

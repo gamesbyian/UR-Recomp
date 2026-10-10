@@ -90,6 +90,40 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 4, "unverified": 41})
         self.assertIn("paired original/native Zoom Zoo", report["limits"][2])
 
+    def test_bowl_scored_original_native_candidate_remains_partial(self):
+        witness = next(row for row in self.evidence["observations"]
+                       if row["rom"] == "usa-retail"
+                       and row["course_id"] == "course:03")
+        self.assertEqual(witness["status"], "partial")
+        self.assertEqual(witness["evidence_ref"],
+                         "analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json")
+        self.assertIn("28 sampled", witness["coverage_note"])
+        self.assertIn("+3365 versus native +3364", witness["coverage_note"])
+        report = audit.build_census(self.catalog, self.evidence)
+        self.assertEqual(report["by_rom"]["usa-retail"],
+                         {"partial": 4, "unverified": 41})
+        self.assertEqual(report["status_counts"],
+                         {"partial": 4, "unverified": 131})
+        self.assertIn("paired original/native Bowl", report["limits"][3])
+        # Source witness is part of main once PR #1119 lands. Only the
+        # actual scored result, tested guest agreement and *negative*
+        # complete-event status may support a census entry.
+        evidence = json.loads(
+            (ROOT / witness["evidence_ref"]).read_text(encoding="utf-8"))
+        self.assertEqual(evidence["schema"],
+                         "UR-QA01-2014-BOWL-SCORED-STUNT-PAIRED-WITNESS/1")
+        self.assertEqual(evidence["paired_fresh_guest"]["course_id"], "course:03")
+        self.assertEqual(evidence["paired_fresh_guest"]["event_kind"], "stunt")
+        self.assertEqual(evidence["original_movie_source"]["score"], 764)
+        self.assertEqual(evidence["paired_fresh_guest"]["full_route_semantic_samples"], 28)
+        self.assertTrue(evidence["paired_fresh_guest"]["stable_ppu_score_rows_exactly_equal"])
+        self.assertTrue(evidence["paired_fresh_guest"]["full_route_all_semantic_samples_equal"])
+        self.assertEqual(evidence["paired_fresh_guest"]["reference_terminal_relative"], 3365)
+        self.assertEqual(evidence["paired_fresh_guest"]["native_terminal_relative"], 3364)
+        self.assertFalse(evidence["comparison"]["paired_full_event_candidate"])
+        self.assertEqual(evidence["release"]["qualified_complete_usa_courses"], 0)
+
+
     def test_dragster_native_only_evidence_does_not_pass_full_course(self):
         report = audit.build_census(self.catalog, self.evidence)
         row = report["entries"][0]

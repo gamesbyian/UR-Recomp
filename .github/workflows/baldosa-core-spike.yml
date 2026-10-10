@@ -686,6 +686,38 @@ jobs:
               --slot "$slot" --min-shared 4 \
               --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_${slot}_frame1888.json"
           done
+
+          # Diagnostic final-composite attribution, NEVER HD admission.
+          # Compare the exact original 342x224 PPU frame with a second
+          # native process that removes only slot 98 on guest frame 1856.
+          # The source-alpha plane comes from the independent slot-98
+          # read-only process immediately above. All three CRC streams
+          # must be identical, including the removed-slot process.
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_DIR
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_SLOT=98
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=1856
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-slot98"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98/fd/crc.txt"
+          python3 tools/check_baldosa_wide_slot_final_visibility.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --source "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot98-frame001856.pam" \
+            --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-001856.pam" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --source-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_98/fd/crc.txt" \
+            --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98/fd/crc.txt" \
+            --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98/log.txt" \
+            --slot 98 --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_slot98_final_visibility_1856.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "PASS: actual native PPU slot98 final-visible contributions from 3 isolated same-frame processes, guest CRC unchanged" >> "$GITHUB_STEP_SUMMARY"
+
           python3 - <<'PY'
           import json
           import os
@@ -860,6 +892,9 @@ jobs:
             ${{ runner.temp }}/baldosa-ws342-live-1p-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1872.json

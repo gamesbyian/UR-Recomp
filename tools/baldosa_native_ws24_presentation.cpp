@@ -129,6 +129,34 @@ extern "C" void ur_baldosa_ws24_prepare_frame(
                 frame_number, admit ? 1 : 0, *width, *height);
     }
 }
+// A native desktop viewport hook, not an assertion of physical 4K output.
+// Accept both logical and exact density-scaled callback dimensions.
+extern "C" int ur_baldosa_ws24_original_viewport(
+    int input_width, int input_height, int drawable_width, int drawable_height,
+    int* out_x, int* out_y, int* out_width, int* out_height) {
+    if (!full_view_enabled() || !out_x || !out_y || !out_width || !out_height)
+        return 0;
+    const int logical_width = prepared_wide ? 342 : 256;
+    const int scale = ur_baldosa_hd_presentation_scale();
+    if (scale < 1 || scale > 4 ||
+        !((input_width == logical_width && input_height == 224) ||
+          (input_width == logical_width * scale &&
+           input_height == 224 * scale)))
+        return 0;
+    const auto plan = ur::product::resolve_16x9_output_composition(
+        ur::product::HostGraphicsRepresentation::Original,
+        prepared_wide ? ur::product::HostSceneComposition::WorldExpand
+                      : ur::product::HostSceneComposition::FixedCenter);
+    const auto viewport = ur::product::resolve_output_viewport(
+        plan, drawable_width, drawable_height);
+    if (viewport.width <= 0 || viewport.height <= 0) return 0;
+    *out_x = viewport.x;
+    *out_y = viewport.y;
+    *out_width = viewport.width;
+    *out_height = viewport.height;
+    return 1;
+}
+
 extern "C" void ur_baldosa_ws24_begin_sim_frame(unsigned frame) {
     frame_number = frame;
     ur_baldosa_hd_begin_sim_frame(frame);

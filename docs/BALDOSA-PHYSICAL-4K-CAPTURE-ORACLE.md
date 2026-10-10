@@ -61,3 +61,19 @@ checker; a green unit test gives **zero actual 4K host acceptance**.
   logical, 4× density and physical screenshots and call this checker.
   Do not add another source renderer or replace existing output viewport
   or display-resolution ownership.
+
+## Baldosa desktop viewport binding (still awaiting physical witness)
+
+The native Baldosa 342-wide adapter now assigns the desktop host's
+`compute_viewport` callback to the *existing* first-party Original-mode
+7:6 pixel-aspect policy. Its source dimensions are checked against either
+logical or exact 1x–4x density output. A calibrated 342x224 scene maps
+to [0,0,3840,2160] in a 3840x2160 drawable using the existing 512/513
+fit; a complete 256x224 Original scene remains centered at
+[480,0,2880,2160] with matte side margins. Unsupported +24 experiments,
+invalid geometry or a stale wide admission leave host viewport unchanged.
+A compiled native bridge test checks these coordinates and density cases.
+
+This is a real host integration hook, **not** a real 4K screenshot or
+native display acceptance. The independent physical drawable capture
+and unchanged guest/PPU semantics remain required.

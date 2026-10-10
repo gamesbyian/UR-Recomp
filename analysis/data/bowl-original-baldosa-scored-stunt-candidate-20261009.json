@@ -1,0 +1,70 @@
+{
+  "schema": "UR-QA01-2014-BOWL-SCORED-STUNT-PAIRED-WITNESS/1",
+  "source_ci": {
+    "run_id": 38021981513,
+    "artifact_id": 11658009292,
+    "artifact_zip_sha256": "f9978cfcb60358bd006429dca923188cb5f34f48fb838fdcfcb1a4ec8f74e33f"
+  },
+  "identities": {
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "archived_smv_container_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_movie_window_sha256": "3203460164bed51506ceeb8bc241d81c88e8bea73c9e8f320a164e37020d376c",
+    "embedded_source_sram_8192_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "reference_core_sha256": "36d0784783a081900720e64fcae182089c99538522b147079f21fcc7aac71ff5",
+    "pinned_native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8"
+  },
+  "original_movie_source": {
+    "active_event_entry_frame": 8620,
+    "original_tally_frame": 11915,
+    "original_score_screen_frame": 11985,
+    "active_scene_frames_to_result": 3365,
+    "staging_course_zero_frames_inclusive": [
+      11867,
+      11900
+    ],
+    "score_name": "MIKE",
+    "score": 764
+  },
+  "paired_fresh_guest": {
+    "course_id": "course:03",
+    "event_kind": "stunt",
+    "reference_entry_script_host_frame": 984,
+    "native_entry_script_host_frame": 985,
+    "calibrated_host_input_shift": 1,
+    "reference_and_native_paired_tally_host_frame": 4279,
+    "reference_and_native_paired_terminal_host_frame": 4349,
+    "reference_and_native_paired_stable_result_host_frame": 4355,
+    "reference_terminal_relative": 3365,
+    "native_terminal_relative": 3364,
+    "full_route_semantic_samples": 28,
+    "full_route_all_semantic_samples_equal": true,
+    "original_source_entry_equals_both_fresh_entry_signature": true,
+    "independent_new_guest_entry_signature_match": true,
+    "stable_guest_result_semantic_fields_equal": true,
+    "stable_ppu_score_rows_exactly_equal": true,
+    "stunt_tally_ppu_rows_exactly_equal": true,
+    "original_display_text": [
+      "BOWL",
+      "MEGA: 0  - 64  -  0  -  0  -",
+      "MIKE",
+      ":  764",
+      "QUALIFY   :   68"
+    ],
+    "qualifier_label_score": 68,
+    "positive_p1_scored_result": true
+  },
+  "comparison": {
+    "paired_full_event_candidate": false,
+    "source_event_qualifies": true,
+    "host_absolute_result_onset_equal": true,
+    "scene_relative_onset_one_frame_native_lead": true,
+    "source_tally_real": true,
+    "reason_full_candidate_false": "Original +3365 vs native +3364 scene-relative terminal onset differs. End-to-end causal host/NMI/instruction sampling still unproven.",
+    "no_claim_that_terminal_guest_frame_matches": true
+  },
+  "release": {
+    "qualified_complete_usa_courses": 0,
+    "denominator": 45,
+    "required_next": "Independently phase-calibrated guest-instruction/NMI/VBlank and source/native boundary repeat; confirm 45s Stunt result-scoring semantics and accepted original/native terminal phase before ledger admission."
+  }
+}

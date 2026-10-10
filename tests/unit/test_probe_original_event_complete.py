@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import sys
+import tempfile
+import types
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -79,6 +82,54 @@ class CompleteEventProducerTests(unittest.TestCase):
         states[8353]["menu"] = 0xBC
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(states, 1, 0xBC)
+
+    def test_bowl_source_course_switch_does_not_require_race_flag_deassert(self):
+        states = source_states(8620, 11985, 2, 0x18, tally=True)
+        # Prior Crawler course remains active through the new track-ID
+        # transition: 7E:0313 stays asserted while 7E:00CE becomes Bowl.
+        states[8619]["in_race"] = 1
+        states[8619]["track"] = 1
+        entry = target.source_event(states, 2, 0x18)
+        self.assertEqual(entry["original_entry_frame"], 8620)
+        self.assertEqual(entry["original_result_frame"], 11985)
+        self.assertLess(entry["source_stunt_tally_frame"], 11985)
+        self.assertEqual(target.source_event_diagnostic(
+            states, 2, 0x18)["complete_event_qa_credit"], 0)
+        # A one-frame track-ID scratch write must not count as entry.
+        isolated = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(8621, 11985):
+            isolated[f]["track"] = 1
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(isolated, 2, 0x18)
+
+    def test_original_bowl_zero_track_prelude_requires_reentry_and_real_tally(self):
+        states = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(11867, 11901):
+            states[f]["track"] = 0
+        event = target.source_event(states, 2, 0x18)
+        self.assertEqual(event["original_entry_frame"], 8620)
+        self.assertEqual(event["original_result_frame"], 11985)
+        foreign = target.sustained_foreign_active_runs(states, 8620, 11985, 2)
+        self.assertEqual(foreign, [{"start": 11867, "end": 11900, "track": 0}])
+        self.assertTrue(target.proven_stunt_tally_prelude(
+            states, 2, event["source_stunt_tally_frame"], foreign[0]))
+        # Reassertion of the original active track before tally is essential.
+        broken = {f: dict(row) for f, row in states.items()}
+        broken[11902]["track"] = 3
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
+        # A 34-frame other-course excursion cannot use Bowl's exception.
+        broken = {f: dict(row) for f, row in states.items()}
+        for f in range(11867, 11901):
+            broken[f]["track"] = 3
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
+        # Move the 34-frame zero-track interval far away from the tally.
+        broken = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(10800, 10834):
+            broken[f]["track"] = 0
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
 
     def test_stunt_tally_must_be_stable_and_track_matched(self):
         states = source_states(8620, 11985, 2, 0x18)
@@ -174,7 +225,16 @@ class CompleteEventProducerTests(unittest.TestCase):
 
     def test_source_result_on_different_course_cannot_finish_event(self):
         source = source_states(3190, 8353, 1, 0xBC)
+        # A one-frame foreign course-ID scratch store must not invent a
+        # competing complete race. A sustained foreign active course must.
         source[4500]["track"] = 3
+        self.assertEqual(target.source_event(source, 1, 0xBC)["original_result_frame"], 8353)
+        for f in range(4500, 4508):
+            source[f]["track"] = 3
+        self.assertEqual(
+            target.sustained_foreign_active_runs(source, 3190, 8353, 1),
+            [{"start": 4500, "end": 4507, "track": 3}],
+        )
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source, 1, 0xBC)
 
@@ -218,6 +278,49 @@ class CompleteEventProducerTests(unittest.TestCase):
             0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"]), 0x99, False)
         self.assertFalse(result["paired_event_candidate"])
 
+    def test_bowl_one_frame_phase_observation_does_not_pass_full_event(self):
+        import copy
+        original = capture(0x18, ["BOWL", "MIKE", ": 764"])
+        native = copy.deepcopy(original)
+        compare = target.diagnose(original, native, 0x18, True)
+        self.assertTrue(compare["paired_event_candidate"])
+        compare.update(
+            paired_event_candidate=False,
+            terminal_result_guest_frame={
+                "reference_relative": 3365, "native_relative": 3364},
+            terminal_result_frame_matched=False,
+            original_source_entry_equivalent=True,
+            fresh_guest_entry_equivalent=True,
+        )
+        event = {"original_result_frame": 11985,
+                 "source_stunt_tally_frame": 11915}
+        self.assertTrue(target.bounded_stunt_result_phase_witness(compare, event))
+        self.assertFalse(compare["paired_event_candidate"],
+                         "a diagnostic phase gap is not a complete event pass")
+        for field, invalid in (
+            ("rendered_result_and_score_text_matched", False),
+            ("intermediate_result_text_matched", False),
+            ("stunt_positive_score_visible", False),
+            ("timed_race_or_circuit_result_visible", False),
+            ("both_reached_terminal_menu", False),
+            ("fresh_guest_entry_equivalent", False),
+            ("original_source_entry_equivalent", False),
+            ("first_sample_disagreement", {"relative_frame": 120}),
+            ("terminal_result_frame_matched", True),
+        ):
+            bad = dict(compare, **{field: invalid})
+            self.assertFalse(target.bounded_stunt_result_phase_witness(bad, event),
+                             field)
+        for native_frame in (3363, 3365, 3366):
+            bad = dict(compare, terminal_result_guest_frame={
+                "reference_relative": 3365, "native_relative": native_frame})
+            self.assertFalse(target.bounded_stunt_result_phase_witness(bad, event))
+        for wrong in (
+            {"original_result_frame": 11985, "source_stunt_tally_frame": None},
+            {"original_result_frame": 11915, "source_stunt_tally_frame": 11915},
+        ):
+            self.assertFalse(target.bounded_stunt_result_phase_witness(compare, wrong))
+
     def test_stunt_idle_zero_score_cannot_pass_scored_result(self):
         ref = capture(0x18, ["BOWL", "MIKE", ": 0"])
         nat = capture(0x18, ["BOWL", "MIKE", ": 0"])
@@ -234,6 +337,50 @@ class CompleteEventProducerTests(unittest.TestCase):
         self.assertGreater(len(frames), len(target.INITIAL_FRAMES))
         with self.assertRaisesRegex(target.CompleteEventError, "too short"):
             target.sample_frames("bowl", 200)
+
+
+    def test_pinned_baldosa_uses_dense_scene_input_only_after_calibration(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            build = root / "baldosa-build"
+            build.mkdir()
+            executable = build / "UniracersSNESRecomp"
+            executable.write_text("placeholder")
+            rom = root / "Uniracers_USA.sfc"
+            rom.write_bytes(b"fixture")
+            sram = root / "movie.srm"
+            sram.write_bytes(b"S" * 8192)
+            script = root / "route.script"
+            script.write_text("dump race-entered\nquit\n")
+            args = types.SimpleNamespace(
+                native=executable, rom=rom, sram=sram,
+                native_backend="pinned-baldosa",
+            )
+            invocations = []
+
+            def fake_run(command, *, env, cwd, capture_output, text, timeout):
+                invocations.append((command, env.copy(), cwd))
+                self.assertTrue((build / "saves" / "save.srm").exists())
+                return types.SimpleNamespace(stdout="script f=123 dump race-entered ok\n",
+                                             stderr="")
+            with mock.patch.object(target.subprocess, "run", side_effect=fake_run):
+                result = target.replay_native(root, args, script, [], 0)
+                self.assertIn("script f=123", result)
+                self.assertNotIn("UR_QA_SCENE_INPUT_FILE", invocations[-1][1])
+                self.assertFalse((root / "pinned-baldosa.input").exists())
+                result = target.replay_native(root, args, script,
+                                              [(1600, 2, 0x80), (1603, 1, 0x10)], 6)
+                self.assertIn("script f=123", result)
+                self.assertEqual((root / "pinned-baldosa.input").read_text(),
+                                 "1606:2:080\n1609:1:010\n")
+                self.assertEqual(invocations[-1][1]["UR_QA_SCENE_INPUT_FILE"],
+                                 str(root / "pinned-baldosa.input"))
+                self.assertIn("--no-launcher", invocations[-1][0])
+                self.assertIn("--config", invocations[-1][0])
+                self.assertFalse((build / "saves").exists())
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid"):
+                target.replay_native(root, args, script,
+                                     [(10, 1, 0x1000)], 0)
 
 
 if __name__ == "__main__":

@@ -72,6 +72,53 @@ class SourceOverlapTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "342x224"):
             analyze(original[:20], layers, 1856)
 
+    def test_second_moving_frame_is_independent_read_only_evidence(self):
+        original, layers = scene()
+        # On a later moving frame a previously overlapping rider can leave
+        # the bottom OBJ source plane entirely. That is valid observation,
+        # not a license to fabricate or replace a second rider.
+        layers = dict(layers)
+        layers[96] = bytes(WIDTH * HEIGHT * 4)
+        layers[97] = bytes(WIDTH * HEIGHT * 4)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            slots = root / "slots"
+            reports = root / "reports"
+            slots.mkdir()
+            reports.mkdir()
+            main = root / "source.pam"
+            main.write_bytes(HEADER + original)
+            for slot, pixels in layers.items():
+                (slots / (
+                    f"ur-baldosa-ws342-obj-slot{slot}-frame001872.pam"
+                )).write_bytes(HEADER + pixels)
+                report = {
+                    "status": "passed",
+                    "source": {
+                        "slot": slot,
+                        "guest_frame": 1872,
+                        "source_sha256": hashlib.sha256(pixels).hexdigest(),
+                    },
+                    "source_frame_main_raster_sha256":
+                        hashlib.sha256(original).hexdigest(),
+                }
+                (reports / f"ws342_obj_slot_{slot}_frame1872.json").write_text(
+                    json.dumps(report))
+            witness = assess(main, slots, reports, 1872)
+            self.assertEqual(witness["status"], "unproven")
+            self.assertEqual(witness["per_slot"]["96"]["source_opaque"], 0)
+            self.assertEqual(witness["per_slot"]["97"]["source_opaque"], 0)
+            self.assertEqual(witness["guest_frame"], 1872)
+            # The comparison still rejects incoherent independent native
+            # processes even when a later frame lacks both overlapping pairs.
+            mismatch = json.loads(
+                (reports / "ws342_obj_slot_98_frame1872.json").read_text())
+            mismatch["source_frame_main_raster_sha256"] = "0" * 64
+            (reports / "ws342_obj_slot_98_frame1872.json").write_text(
+                json.dumps(mismatch))
+            with self.assertRaisesRegex(ValueError, "Different guest main"):
+                assess(main, slots, reports, 1872)
+
     def test_full_native_slot_provenance_and_changed_frame(self):
         original, layers = scene()
         with tempfile.TemporaryDirectory() as tmp:

@@ -319,7 +319,7 @@ extern "C" int ur_baldosa_product_pause_draw(
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     if (!ur::product::render_native_modern_pause_overlay(
             paint, reinterpret_cast<std::uint32_t*>(pixels),
-            static_cast<int>(pitch / 4), height, g_native_pause_menu,
+            static_cast<int>(pitch / 4), width, height, g_native_pause_menu,
             ur_modern_session_restart_available(g_modern_session) != 0))
         return 0;
     ++g_pause_panel_paints;

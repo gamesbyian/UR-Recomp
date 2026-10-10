@@ -15,6 +15,7 @@ on:
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_modern_profile_activation.cpp"
+      - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "native/product/modern_session_c_api.*"
@@ -91,7 +92,9 @@ jobs:
           cmake -S baldosa -B baldosa/build-ur-win -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_ENABLE_TRACE=OFF
           cmake --build baldosa/build-ur-win --target UniracersSNESRecomp -j 3
+          cmake --build baldosa/build-ur-win --target ur-baldosa-modern-profile-fixture -j 3
           test -s baldosa/build-ur-win/UniracersSNESRecomp.exe
+          test -s baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe
 
       - name: Admit only a real Windows x64 PE32+ executable
         run: |
@@ -122,8 +125,9 @@ jobs:
             --rom "reference/roms/retail/Uniracers_USA.sfc" \
             --script "baldosa/tests/routes/race_2p_split.txt" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
-            --video windows --expected-frames 2473 --timeout 95
-          echo "PASS: Win32 native two-player guest, SDL Escape/Restart/R host edges through Modern's immutable rollback anchor, WRAM rewound to first-race frame with SRAM preserved, same-frame pause/resume 2,473 CRC parity. Synthetic SDL only; full event/physical controller/packaged product unverified." >> "$GITHUB_STEP_SUMMARY"
+            --video windows --expected-frames 2473 --timeout 95 \
+            --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
+          echo "PASS: Win32 native two-player + delayed Restart; authentic existing Modern profile file/roster seeded by shipping codecs, 8192-byte SRAM compared before first guest frame, corruption rejects before boot without mutating save. Synthetic SDL only; physical hardware, packaged Modern root and finished events unverified." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()
@@ -136,3 +140,5 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/corrupt_named_profile/log.txt

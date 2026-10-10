@@ -104,7 +104,7 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
     if (!global_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;
     const auto global = load_host_product_state_file(global_path.string());
-    if (!global.loaded() || *global.state != request.expected_global)
+    if (!global.loaded() || !(*global.state == request.expected_global))
         return BaldosaSramCheckpointStatus::SelectionConflict;
 
     const auto catalog = load_host_profile_catalog_file(catalog_path.string());
@@ -114,7 +114,7 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
 
     const auto state = load_host_profile_state_file(
         ExecutionMode::Modern, profile_path.string(), id);
-    if (!state.loaded() || *state.state != request.expected_profile)
+    if (!state.loaded() || !(*state.state == request.expected_profile))
         return BaldosaSramCheckpointStatus::ProfileConflict;
 
     // Framework save acknowledgment is NOT inferred from a filename, from

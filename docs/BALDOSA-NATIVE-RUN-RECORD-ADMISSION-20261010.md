@@ -17,7 +17,7 @@ result against selected-profile/participant authority and canonical
 CompletedRunRecord, returning only an in-memory candidate. Nothing mints
 medals, ghosts, tournament results, or a durable run yet.
 
-## Profile-locked native 1P publication candidate (PR #1253)
+## Merged profile-locked native 1P publication (#1253)
 
 This change wires the source-settled P1 Race result at the actual Baldosa
 post-frame boundary to the existing `assemble_baldosa_native_run_record`

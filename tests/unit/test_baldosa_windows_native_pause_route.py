@@ -55,7 +55,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=3\n"
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"
+            "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=0\n"
@@ -81,6 +82,38 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, "reentry"):
                     probe.verify_native_modern_root_reentry_log(bad)
 
+    def test_real_named_profile_records_must_be_read_only_and_ordered(self):
+        tokens = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider root=saves/profile-native-ci-rider",
+            "UR_BALDOSA_MODERN_ROOT opened=1",
+            "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
+            "UR_BALDOSA_MODERN_ROOT selected=3",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=1",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
+            "UR_BALDOSA_MODERN_ROOT selected=0",
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        )
+        good = "\n".join(tokens) + "\n"
+        self.assertIsNone(probe.verify_native_named_records_root_log(good))
+        for bad in (
+            good.replace("validated=1", "validated=0"),
+            good.replace("unavailable=1", "unavailable=0"),
+            good.replace("profile=selected", "profile=none"),
+            good.replace("records_closed=1", "records_closed=0"),
+            good.replace("stock_entered players=1", "stock_entered players=2"),
+            good.replace("renderer=shared", "renderer=other"),
+            good + good,
+            good + "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout\n",
+            good + "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\n",
+        ):
+            with self.subTest(trace=bad[-110:]):
+                with self.assertRaises(ValueError):
+                    probe.verify_native_named_records_root_log(bad)
+        with self.assertRaisesRegex(ValueError, "out of order"):
+            probe.verify_native_named_records_root_log(
+                "\n".join((*tokens[:-2], tokens[-1], tokens[-2])) + "\n")
+
     def test_real_sdl_shared_root_requires_stock_menu_observation(self):
         baseline = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
@@ -88,7 +121,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=3\n"
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"
+            "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=0\n"
@@ -99,7 +133,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         for bad in (
             baseline.replace(" painted=1", " painted=0"),
             baseline.replace(" renderer=shared", " renderer=fake"),
-            baseline.replace(" route=3 unavailable=1", " route=3 launched=1"),
+            baseline.replace(" records_opened=1 profile=none", " records_opened=0 profile=none"),
             baseline.replace(" stock_entered players=1 menu=3c",
                              " stock_entered players=1 menu=d7"),
             baseline.replace(" stock_entered players=1 menu=3c",
@@ -115,11 +149,11 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "out of order"):
             probe.verify_native_modern_root_log(
                 baseline.replace(
-                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n",
+                    "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n",
                     "").replace(
                     "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n",
                     "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
-                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"))
+                    "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"))
         two_player = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
             "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"

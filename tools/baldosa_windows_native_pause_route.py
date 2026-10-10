@@ -592,7 +592,8 @@ def verify_native_modern_root_log(log: str, players: int = 1) -> None:
     if players == 1:
         stages.extend([
             "UR_BALDOSA_MODERN_ROOT selected=3",
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
             "UR_BALDOSA_MODERN_ROOT selected=0",
         ])
     else:
@@ -611,6 +612,108 @@ def verify_native_modern_root_log(log: str, players: int = 1) -> None:
         raise ValueError("Native Modern root SDL/stock journey out of order")
     if "UR_BALDOSA_MODERN_ROOT stock_rejected=" in log:
         raise ValueError("Native Modern stock route aborted")
+
+
+def verify_native_named_records_root_log(log: str) -> None:
+    """Read-only REAL Windows Records on the selected named profile."""
+    stages = (
+        "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider",
+        "UR_BALDOSA_MODERN_ROOT opened=1",
+        "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
+        "UR_BALDOSA_MODERN_ROOT selected=3",
+        "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=1 unavailable=1",
+        "UR_BALDOSA_MODERN_ROOT records_closed=1",
+        "UR_BALDOSA_MODERN_ROOT selected=0",
+        "UR_BALDOSA_MODERN_ROOT stock_requested players=1",
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+    )
+    positions = []
+    for token in stages:
+        if log.count(token) != 1:
+            raise ValueError(f"Native named Records marker missing/duplicate: {token}")
+        positions.append(log.index(token))
+    if positions != sorted(positions):
+        raise ValueError("Native named Records lifecycle out of order")
+    if ("UR_BALDOSA_MODERN_ROOT route=3 unavailable=1" in log or
+        "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none" in log or
+        "UR_BALDOSA_MODERN_ROOT stock_rejected=" in log or
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected" in log):
+        raise ValueError("Native named Records used an unverified route")
+
+
+def run_native_named_records_root(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Real named Modern profile opens canonical archives then enters stock 1P.
+
+    A separate test-only fixture writes valid/malformed historical artifacts
+    via the SHIPPING .urrun codec. Never pretend those were guest-completed.
+    """
+    output = root / "native_named_readonly_records"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Existing Named Racer With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)], cwd=output,
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    created = subprocess.run(
+        [str(fixture), str(user_root), "native-ci-rider",
+         "--seed-readonly-records"], cwd=output,
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    if "valid=1 unavailable=1 scope=read_only" not in created.stdout:
+        raise ValueError("Historical archive fixture did not use canonical writer")
+    archive = user_root / "runs" / "native-ci-rider"
+    original = {path.name: path.read_bytes() for path in archive.iterdir()}
+    if set(original) != {"0001.urrun", "0002.urrun"}:
+        raise ValueError("Unexpected seeded Records fixture namespace")
+    script = output / "root_records.txt"
+    script.write_text("turbo on\nwait 1800\nquit\n", encoding="ascii")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_ROOT": "1",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    process = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=output, env=env, capture_output=True, text=True,
+        timeout=timeout, errors="replace",
+    )
+    log = process.stdout + "\n" + process.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if process.returncode:
+        raise RuntimeError(
+            f"Named Records Windows guest rc={process.returncode}: {log[-2500:]}")
+    verify_native_named_records_root_log(log)
+    verify_named_profile_boot_bytes(log, seed.read_bytes())
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-rider", log, timeout)
+    observed = {path.name: path.read_bytes() for path in archive.iterdir()}
+    if observed != original:
+        raise ValueError("Opening native Records minted/altered an .urrun artifact")
+    if (user_root / "saves/save.srm").exists() or (output / "saves").exists():
+        raise ValueError("Native named Records leaked into the default save root")
+    return {
+        "selected_named_profile_sram_authorized": True,
+        "canonical_valid_archives_read_on_real_windows": 1,
+        "malformed_archives_reported_unavailable": 1,
+        "no_run_created_by_record_view_or_script_quit": True,
+        "existing_profile_checkpoint_verified": True,
+        "real_stock_one_player_after_records": True,
+        "backend_replay_compatibility_asserted": False,
+    }
 
 
 def run_native_modern_root_smoke(
@@ -1302,6 +1405,9 @@ def main() -> int:
         exe, rom, root, video=args.video, timeout=args.timeout, players=1)
     root_p2_proof = run_native_modern_root_smoke(
         exe, rom, root, video=args.video, timeout=args.timeout, players=2)
+    named_records_proof = run_native_named_records_root(
+        exe, rom, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     reentry_proof = run_native_modern_root_reentry(
         exe, rom, root, video=args.video, timeout=args.timeout)
     race_p1_proof = run_native_modern_race_entry(
@@ -1316,6 +1422,7 @@ def main() -> int:
         "modern_root_race_entry_p2": race_p2_proof,
         "native_modern_root_p1": root_p1_proof,
         "native_modern_root_p2": root_p2_proof,
+        "native_named_readonly_records": named_records_proof,
         "classification": "windows_native_pause_and_named_profile_smoke_only",
         "rom_sha256": rom_hash,
         "exe_sha256": sha256(exe),

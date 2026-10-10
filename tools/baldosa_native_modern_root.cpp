@@ -7,6 +7,7 @@
  */
 #include "modern_root_overlay_presenter.hpp"
 #include "modern_root_physical_edges.hpp"
+#include "baldosa_native_records_summary.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 
@@ -18,6 +19,7 @@ void ur_baldosa_product_set_host_focus(int);
 int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
 void ur_baldosa_product_cancel_stock_menu_input(void);
 extern std::uint8_t g_ram[0x20000];
+const char* ur_baldosa_modern_profile_records_directory(void);
 }
 
 #include <cstddef>
@@ -35,12 +37,16 @@ using ur::product::ModernRootOverlayView;
 using ur::product::HostOverlayRect;
 constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
-    (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer));
+    (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
+    (1u << static_cast<unsigned>(ModernRootDestination::Records));
 ModernRootMenu g_menu{};
 ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
+bool g_records_open = false;
+std::string g_records_status;
+std::string g_records_recent;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
 int g_stock_target = -1;
@@ -80,6 +86,7 @@ bool reopen_on_observed_stock_main() {
     g_menu = ur::product::modern_root_menu_reset();
     g_visible = true;
     g_confirm_quit = false;
+    g_records_open = false;
     g_stock_handed_off = false;
     g_handed_off_players = 0;
     g_handed_off_saw_race = false;
@@ -89,8 +96,51 @@ bool reopen_on_observed_stock_main() {
         "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
     return true;
 }
+void open_records_archive() {
+    g_records_open = true;
+    const char* directory = ur_baldosa_modern_profile_records_directory();
+    if (!directory || !*directory) {
+        g_records_status = "NO ACTIVE NAMED RACER";
+        g_records_recent = "CREATE OR SELECT A RACER";
+        std::fprintf(stderr,
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n");
+        return;
+    }
+    const auto result =
+        ur::product::inspect_baldosa_native_records_archive(directory);
+    if (!result.directory_available) {
+        g_records_status = "RECORDS DIRECTORY INVALID";
+        g_records_recent = "NOTHING WAS LOADED";
+    } else {
+        g_records_status =
+            "VALID " + std::to_string(result.validated_archives) +
+            "  UNAVAILABLE " + std::to_string(result.unavailable_artifacts);
+        if (result.validated_archives == 0) {
+            g_records_recent = "NO STORED RUNS YET";
+        } else {
+            const auto hundredths =
+                (result.recent_ticks60 * 100u + 30u) / 60u;
+            char timing[24]{};
+            std::snprintf(timing, sizeof(timing), "%02llu:%02llu.%02llu",
+                static_cast<unsigned long long>(hundredths / 6000u),
+                static_cast<unsigned long long>((hundredths / 100u) % 60u),
+                static_cast<unsigned long long>(hundredths % 100u));
+            g_records_recent =
+                "LAST: " + result.recent_course + " " + timing;
+        }
+    }
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=selected validated=%zu unavailable=%zu\n",
+        result.validated_archives, result.unavailable_artifacts);
+}
+
 void choose() {
     if (g_stock_target != -1) return;
+    if (g_records_open) {
+        g_records_open = false;
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT records_closed=1\n");
+        return;
+    }
     if (g_confirm_quit) {
         SDL_Event quit{};
         quit.type = SDL_QUIT;
@@ -100,9 +150,13 @@ void choose() {
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
     const auto index = ur::product::modern_root_destination_index(selected);
+    if (selected == ModernRootDestination::Records) {
+        open_records_archive();
+        return;
+    }
     if ((kNativeRootAvailable & (1u << index)) == 0) {
-        // Practice/Records/Options need the original Modern route admission.
-        // Do not invent a second UI/Records or alternate save namespace.
+        // Practice and Options still require original Modern route admission.
+        // Never invent guest course selection or an alternate storage root.
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT route=%zu unavailable=1\n", index);
         return;
@@ -116,13 +170,18 @@ void choose() {
         g_stock_target + 1);
 }
 void navigate(int delta) {
-    if (g_confirm_quit || g_stock_target != -1) return;
+    if (g_confirm_quit || g_records_open || g_stock_target != -1) return;
     g_menu = ur::product::modern_root_menu_move(g_menu, delta);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT selected=%zu\n",
         ur::product::modern_root_destination_index(
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_records_open) {
+        g_records_open = false;
+        std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT records_closed=1\n");
+        return;
+    }
     if (g_stock_target != -1) {
         stock_route_abort("cancelled");
         return;
@@ -141,6 +200,7 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_menu = ur::product::modern_root_menu_reset();
     g_navigation_edges.reset();
     g_confirm_quit = false;
+    g_records_open = false;
     g_visible = true;
     g_render_reported = false;
     g_paint_count = 0;
@@ -224,7 +284,8 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     const ModernRootOverlayView view{
         g_menu, false, g_racer_name,
-        false, g_confirm_quit, kNativeRootAvailable, false};
+        false, g_confirm_quit, kNativeRootAvailable, false,
+        g_records_open, g_records_status, g_records_recent};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,
@@ -371,15 +432,16 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0)) return;
     int key = 0;
-    // In mode 1 test Records rejection then return to Play.
-    // In mode 2 test actual 2P stock entry from the shared root.
+    // In mode 1 open and close the actual read-only Records archive,
+    // then enter 1P. Mode 2 proves the actual stock 2P handoff.
     if (std::strcmp(opt, "2") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
         else if (frame == 64) key = SDLK_RETURN;
     } else {
         if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
-        else if (frame == 63 || frame == 67) key = SDLK_RETURN;
-        else if (frame >= 64 && frame <= 66) key = SDLK_UP;
+        else if (frame == 63 || frame == 68) key = SDLK_RETURN;
+        else if (frame == 64) key = SDLK_ESCAPE;
+        else if (frame >= 65 && frame <= 67) key = SDLK_UP;
     }
     if (!key) return;
     SDL_Event event{};

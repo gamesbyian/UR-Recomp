@@ -8,6 +8,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "host_profile_runtime.hpp"
+#include "completed_run_record.hpp"
 
 #include <algorithm>
 #include <array>
@@ -137,10 +138,65 @@ static int verify_native_checkpoint(const std::filesystem::path& root,
     return 0;
 }
 
+// A QA-only archive fixture: saved with the existing canonical .urrun
+// writer, unrelated to any game event completed by the current process.
+// Read-only Records must display it but never treat it as Baldosa-compatible
+// replay, a personal best, a win, or freshly published guest output.
+static int seed_readonly_records_archive(
+    const std::filesystem::path& root, const std::string& id) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    if (!root.is_absolute() || !is_safe_profile_storage_id(id)) return 61;
+    const auto roster =
+        load_host_profile_catalog_file((root / "profiles-v1.txt").string());
+    const auto selected = load_host_product_state_file(
+        (root / "host-state-v1.txt").string());
+    const auto target = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::optional<std::string>(id));
+    if (!roster || !selected.loaded() ||
+        selected.state->active_profile_id != id || !target.isolated())
+        return 62;
+    const auto state = load_host_profile_state_file(
+        ExecutionMode::Modern,
+        (root / target.save_root / "host-profile.txt").string(), id);
+    if (!state.loaded() ||
+        !profile_catalog_authorizes_state(*roster, *state.state))
+        return 63;
+    const auto dir = root / "runs" / id;
+    std::error_code ec;
+    if (fs::exists(dir, ec) || ec || !fs::create_directories(dir, ec) || ec)
+        return 64;
+    CompletedRunRecord archived{};
+    archived.provenance = {
+        "uniracers",
+        "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+        "fixture-historical-backend",
+        "course:01",
+        "race-1p",
+    };
+    archived.elapsed_ticks60 = 930;
+    archived.frame_count = 1600;
+    if (!save_completed_run_record_file(
+            (dir / "0001.urrun").string(), archived))
+        return 65;
+    {
+        std::ofstream malformed(dir / "0002.urrun", std::ios::binary);
+        malformed << "QA-corrupt-not-a-run\n";
+        if (!malformed) return 66;
+    }
+    std::printf(
+        "UR_BALDOSA_RECORDS_FIXTURE profile=%s valid=1 unavailable=1 scope=read_only\n",
+        id.c_str());
+    return 0;
+}
+
+
 int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kProfile = "native-ci-rider";
+    if (argc == 4 && std::strcmp(argv[3], "--seed-readonly-records") == 0)
+        return seed_readonly_records_archive(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--verify-native-save") == 0)
         return verify_native_checkpoint(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)

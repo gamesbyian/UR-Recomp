@@ -65,7 +65,10 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
                 "/* synthetic shared Modern root consumer */\n")
             (root / "tools/baldosa_modern_profile_native_fixture.cpp").write_text(
                 "/* synthetic fixture */\n")
-            for name in probe.SOURCES:
+            for name in (*probe.SOURCES,
+                         "baldosa_native_records_summary.cpp",
+                         "completed_run_store.cpp",
+                         "completed_run_record.cpp"):
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
             self.assertEqual(len(pending), 3)

@@ -1,0 +1,58 @@
+{
+  "schema": "UR-QA01-TWO-EVENT-RESULT-PHASE/1",
+  "source_type": "independently booted source-original Snes9x and pinned native Baldosa; same USA retail ROM and source-anchored SRAM",
+  "measurements": [
+    {
+      "name": "Zoom Zoo",
+      "course": "course:02",
+      "kind": "circuit-a",
+      "run": 38018081196,
+      "artifact": 11656564258,
+      "original_entry": 1604,
+      "native_entry": 1606,
+      "original_terminal": 6767,
+      "native_terminal": 6768,
+      "original_relative": 5163,
+      "native_relative": 5162,
+      "source": "fixed-boundary-report.json; original.log; native/log.txt",
+      "limitations": "Original/native checkpoint and PPU times agree; original 83:988A and native Sram_RestoreDirectPage_FastRom writer trace have non-equivalent instruction precision.",
+      "derived": {
+        "native_minus_original_entry_host_frames": 2,
+        "native_minus_original_terminal_host_frames": 1,
+        "native_minus_original_terminal_scene_relative_frames": -1,
+        "result_host_shift_minus_entry_host_shift": -1
+      }
+    },
+    {
+      "name": "Bowl",
+      "course": "course:03",
+      "kind": "timed-stunt",
+      "run": 38021981513,
+      "artifact": 11658009292,
+      "original_entry": 984,
+      "native_entry": 985,
+      "original_terminal": 4349,
+      "native_terminal": 4349,
+      "original_relative": 3365,
+      "native_relative": 3364,
+      "source": "bowl-report.json; bowl/replay/reference.log; bowl/replay/native.log",
+      "limitations": "28/28 source-scene active snapshots and all result PPU rows match; exact 45-second scoring frame-phase and guest instruction timing not adjudicated.",
+      "derived": {
+        "native_minus_original_entry_host_frames": 1,
+        "native_minus_original_terminal_host_frames": 0,
+        "native_minus_original_terminal_scene_relative_frames": -1,
+        "result_host_shift_minus_entry_host_shift": -1
+      }
+    }
+  ],
+  "conclusion": "Two independent event families exhibit native scene-relative result onset one frame earlier. Their absolute host frame offsets differ, but for both event pairs terminal shift minus entry shift equals -1. The observation alone cannot resolve a host-calibrated scene entry boundary from CPU/NMI/VBlank guest execution timing.",
+  "explicit_non_conclusions": [
+    "Not evidence of native physics/scoring failure",
+    "Not proof guest executes one instruction or one simulated frame early",
+    "Not proof one universal controller input rebase (Zoo +/-1 fails real lap progression)",
+    "Not a release-accepted USA course"
+  ],
+  "release_usa_accepted_courses": 0,
+  "release_usa_denominator": 45,
+  "next": "Capture same guest PC and frame/scanline at calibrated course entry and original/native terminal writer in Bowl and Zoo; do not modify host or physics on scene-relative samples alone."
+}

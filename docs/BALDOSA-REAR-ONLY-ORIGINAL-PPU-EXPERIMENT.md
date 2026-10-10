@@ -32,7 +32,7 @@ This tool adds no native route or graphics-mode option. It is ready
 for a separately authorized guest-frame witness once the currently
 running paired 98/99 experiment is accepted.
 
-## Real native rear-99 execution candidate
+## Real native rear-99 execution: accepted bounded observation
 
 The same existing pinned Baldosa AOT job now runs the actual original
 2P guest route independently with **only OAM slot 99** removed by the
@@ -50,5 +50,32 @@ authentic slot-99 emitted source footprint. Either outcome must be
 correlated with independently verified front-only and paired
 deletions before inferring relative priority.
 
-The native run is not yet accepted, and no guest graphics or source
-priority in production is altered by this experiment.
+The dedicated AOT native run **38081157287** (artifact **11679874808**),
+merged through #1204, completed successfully. The full 2,473-frame
+stock/rear-source/rear-removed guest CRC streams are identical.
+Independent native reports establish:
+
+- Slot-99 emitted Original PPU pixels: **319**. Rear-only deletion
+  changed **162** final-colour pixels, all **top** band, **0** outside
+  the rear source and **0** in the bottom viewport.
+- Slot-98/front source **321**, source union **483**, source overlap
+  **157**. Front deletion changed **307** pixels, rear deletion
+  **162**, paired deletion **483**, with **0** nonlocal violations.
+- Exactly **14** identical-RGB front/rear overlap pixels are unchanged
+  by either single deletion yet change after both deletions. This is
+  direct pair-level redundant-colour causality.
+- Native stock PPU raster SHA256:
+  `0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9`.
+  Independently removed rear raster SHA256:
+  `a98bed9a8041161e06e3bfb4dde43411f533cdf7c5a7f87e365e557e18267813`.
+  Rear emitted source SHA256:
+  `658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f`.
+
+The full report names are
+`baldosa-evidence/ws342_rear99_removal_1856.json` and
+`baldosa-evidence/ws342_six_plane_causal_1856.json`.
+This confirms **bounded original final-colour influence**, including
+real rear visibility. It still does **not** prove unique ownership
+of the 14 same-colour overlap pixels, BG/window ordering, automatic
+HD replacement safety or a player-ready 4K Remastered presentation.
+No guest graphics or source priority in production was altered.

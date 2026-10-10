@@ -456,6 +456,11 @@ def check_pause_log(log: str) -> dict[str, str]:
         r"present_count=(\d+) no_guest_steps=1", log)
     if len(freeze) != 1 or int(freeze[0][1]) < 23:
         raise ValueError("Native paused raster was not presented across frozen pumps")
+    panel = re.findall(
+        r"UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=(\d+)x(\d+) "
+        r"renderer=shared guest_steps=0", log)
+    if len(panel) != 1 or int(panel[0][0]) < 320 or int(panel[0][1]) < 320:
+        raise ValueError("Native pause shared panel did not visibly paint the frozen raster")
     if "FAIL=" in log:
         raise ValueError("Native pause code detected a guest-state violation")
     return found

@@ -1,6 +1,6 @@
 # QA-08: distinguish same-colour overlapping source using a two-slot PPU counterfactual
 
-Status: **diagnostic mechanism, no live paired execution accepted yet**.
+Status: **actual native pair-removal acceptance passed at guest frame 1856**. This is observational evidence, not HD replacement permission.
 
 The original native 342-wide screenshot at frame 1856 revealed fourteen
 pixels where front slot 98 and rear slot 99 emitted identical RGB.
@@ -87,3 +87,53 @@ were invisible to the earlier slot-98-only counterfactual.
 **Do not claim pair attribution, a solution to the 14-pixel ambiguity,
 or any release permission until the native full-process report passes.**
 The pair result identifies only the union of the two source slots.
+
+## Verified real native paired-rider result, October 10
+
+Merged [PR #1185](https://github.com/gamesbyian/UR-Recomp/pull/1185),
+commit `62e48c9946379e8d8c54c21492214b5e5d1ce4ec`, passed all
+Baldosa AOT and tooling checks. Its AOT
+[run 38077924397](https://github.com/gamesbyian/UR-Recomp/actions/runs/38077924397)
+retained native artifact **11679444298**, including separately executed
+stock, slot-98 read-only source, slot-99 read-only source and pair-deleted
+native PPU framebuffer. The corresponding JSON file is
+`baldosa-evidence/ws342_pair98_99_final_visibility_1856.json`.
+
+| Guest frame 1856, upper viewport | Measured pixels |
+|---|---:|
+| Original slot-98 emitted | 321 |
+| Original slot-99 emitted | 319 |
+| Both source masks overlap | 157 |
+| Union of source masks | **483** |
+| Changed after deleting slot 98 alone | 307 |
+| Changed after deleting **both** slots 98–99 | **483** |
+| Changed outside union of source masks | **0** |
+
+The native report verifies all **four independently executed complete
+guest CRC streams are identical**, the exact paired PPU removal marker
+was armed and the 342×224 Original source/controller frame names match.
+All 483 final changes occurred in the **top** split view and none in the
+bottom. This is a genuine native PPU experiment, not a generated overlay.
+
+The prior single-slot source comparison identified **14 positions** at
+which both slots emitted identical RGB and deletion of front slot 98
+changed no final colour. With the native pair removal, **all fourteen**
+of those positions now change colour, demonstrating the **pair-level
+causal influence** hidden from a single colour-difference mask.
+In fact every observed pixel in the union changed when both racers
+were removed.
+
+The pair report includes authentic SHA256 RGBA digests:
+
+- Stock PPU: `0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9`
+- Slot 98 source: `5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5`
+- Slot 99 source: `658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f`
+- Original PPU without both: `440b0fd56c4fcdad4b9d5c64bf85738876eb61e7fcdcc867074943df49a9df3d`
+
+**Still blocked:** exact individual winner identity, other frames and
+positions, all BG/window/screen colour math, safe authored HD rider
+replacement and complete-event fidelity. Do not translate pair-level
+colour causality into destructive 342-wide HD sprite admission.
+The next direct control is the independent rear-only slot-99 removal
+in PR #1197, followed by the authenticated six-plane classification
+in PR #1198.

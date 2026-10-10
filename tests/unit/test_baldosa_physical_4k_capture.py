@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from tools.check_baldosa_physical_4k_capture import (
-    OUT_W, OUT_H, assess, nearest_index,
+    OUT_W, OUT_H, assess, nearest_index, sdl_software_nearest_index,
 )
 
 
@@ -46,8 +46,10 @@ def physical_four_k(source: bytes, width: int) -> bytes:
     viewport_width = 3840 if width == 342 else 2880
     x_offset = 0 if width == 342 else 480
     bars = b"\x00\x00\x00\xff" * x_offset
-    mapped = [min(width - 1, (2 * x + 1) * width //
-                  (2 * viewport_width)) for x in range(viewport_width)]
+    mapped = [
+        sdl_software_nearest_index(x, viewport_width, width * 4) // 4
+        for x in range(viewport_width)
+    ]
     cached_rows = []
     for sy in range(224):
         row = source[sy * width * 4:(sy + 1) * width * 4]
@@ -55,7 +57,9 @@ def physical_four_k(source: bytes, width: int) -> bytes:
             bars + b"".join(row[x * 4:x * 4 + 4] for x in mapped) + bars
         )
     return b"".join(
-        cached_rows[min(223, (2 * y + 1) * 224 // (2 * OUT_H))]
+        cached_rows[
+            sdl_software_nearest_index(y, OUT_H, 224 * 4) // 4
+        ]
         for y in range(OUT_H)
     )
 
@@ -64,6 +68,13 @@ class PhysicalFourKParityTests(unittest.TestCase):
     def test_native_full_world_with_real_4k_sized_source_oracle(self):
         self.assertEqual(nearest_index(0, OUT_H, 224), 0)
         self.assertEqual(nearest_index(OUT_H - 1, OUT_H, 224), 223)
+        # Actual SDL software uses 16.16 steps from its 1368x896
+        # texture. At one known boundary, ideal logical sampling
+        # selects source 103 while real SDL selects source 102.
+        self.assertEqual(nearest_index(1156, OUT_W, 342), 103)
+        self.assertEqual(
+            sdl_software_nearest_index(1156, OUT_W, 342 * 4) // 4, 102
+        )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             w = 342

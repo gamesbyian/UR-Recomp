@@ -53,7 +53,9 @@ def launcher() -> bytes:
         'if ($d -ieq $p -or $d.StartsWith($p + \'\\\', [StringComparison]::OrdinalIgnoreCase)) { exit 3 }; '
         'if ((Get-FileHash -LiteralPath $env:UR_BALDOSA_ROM -Algorithm SHA256).Hash '
         f'-ine \'{USA_SHA256}\') {{ exit 2 }}"',
-        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-PREFLIGHT: Invalid USA ROM, nonabsolute user root, or package-local user data. 1>&2 & exit /b 3)',
+        'if errorlevel 3 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root. 1>&2 & exit /b 3)',
+        'if errorlevel 2 (echo UR-BALDOSA-STARTUP-ROM-INVALID: USA ROM SHA-256 mismatch. 1>&2 & exit /b 2)',
+        'if errorlevel 1 (echo UR-BALDOSA-STARTUP-PREFLIGHT: Windows PowerShell verification failed. 1>&2 & exit /b 3)',
         'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" mkdir "%UR_RECOMP_USER_DATA_ROOT%" 2>nul',
         'if not exist "%UR_RECOMP_USER_DATA_ROOT%\\" (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Could not create a writable user folder. 1>&2 & exit /b 3)',
         'set "SNESRECOMP_USER_DATA_DIR=%UR_RECOMP_USER_DATA_ROOT%"',

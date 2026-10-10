@@ -103,7 +103,10 @@ class BaldosaNativeWindowsCandidateTest(unittest.TestCase):
         self.assertIn("UR_BALDOSA_MODERN_INPUT=1", script)
         self.assertIn("UR_RECOMP_USER_DATA_ROOT", script)
         self.assertIn("APPDATA", script)
-        self.assertIn("package-local user data", script)
+        self.assertIn("package-local user-data root", script)
+        self.assertIn("UR-BALDOSA-STARTUP-ROM-INVALID", script)
+        self.assertIn("if errorlevel 3", script)
+        self.assertIn("if errorlevel 2", script)
         self.assertNotIn("powershell.exe -ExecutionPolicy Bypass", script)
         self.assertNotIn("certutil -addstore", script)
 

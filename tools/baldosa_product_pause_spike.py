@@ -172,9 +172,10 @@ def patch_game_cmake(source: str, root: Path) -> str:
         raise ValueError("Stage the native human-input object first")
     path = (root / "tools/baldosa_native_pause_lifecycle.cpp").resolve()
     authority = (root / "tools/baldosa_native_product_pause_authority.cpp").resolve()
+    native_root = (root / "tools/baldosa_native_modern_root.cpp").resolve()
     modern_root = (root / "native/product").resolve()
     modern_sources = [modern_root / name for name in MODERN_SESSION_SOURCES]
-    for candidate in (path, authority, *modern_sources):
+    for candidate in (path, authority, native_root, *modern_sources):
         if not candidate.is_file():
             raise ValueError(f"Missing project-owned native pause implementation: {candidate}")
     modern_args = " ".join(f'"{file.as_posix()}"' for file in modern_sources)
@@ -182,7 +183,7 @@ def patch_game_cmake(source: str, root: Path) -> str:
         "\n\n# " + MARK + ": same AOT host, real Modern acknowledged pause API\n"
         + f'target_include_directories(UniracersSNESRecomp PRIVATE "{modern_root.as_posix()}")\n'
         + f'target_sources(UniracersSNESRecomp PRIVATE '
-          f'"{path.as_posix()}" "{authority.as_posix()}" {modern_args})\n'
+          f'"{path.as_posix()}" "{authority.as_posix()}" "{native_root.as_posix()}" {modern_args})\n'
     )
 
 

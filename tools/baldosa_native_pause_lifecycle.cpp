@@ -29,6 +29,9 @@ extern std::uint8_t g_ram[0x20000];
 void ur_baldosa_product_guest_restarted(void);
 int ur_baldosa_product_set_paused(int paused);
 int snesrecomp_desktop_product_is_paused(void);
+int ur_baldosa_modern_root_key(int key, int pressed);
+int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
+void ur_baldosa_modern_root_after_run_frame(unsigned frame);
 void ur_baldosa_guest_snapshot_after_run_frame(
     const SnesDesktopHostFrameStats* stats);
 }
@@ -177,6 +180,7 @@ void require(bool ok, const char* why) {
 // Escape/Start while actually racing belongs to this narrow Modern pause
 // bridge; all ordinary profile/stock/menu controls retain guest authority.
 extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
+    if (ur_baldosa_modern_root_key(key, pressed)) return 1;
     if (!physical_modern_enabled() ||
         (smoke_enabled() && !g_physical_smoke)) return 0;
     if (key == SDLK_r) {
@@ -209,6 +213,7 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_product_system_gamepad(
     int player, int button, int pressed) {
+    if (ur_baldosa_modern_root_gamepad(player, button, pressed)) return 1;
     if (!physical_modern_enabled() ||
         (smoke_enabled() && !g_physical_smoke) ||
         player != 0 || button != kGamepadBtn_Start) return 0;
@@ -228,6 +233,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     // Existing verified two-seat guest observer remains intact.
     ur_baldosa_guest_snapshot_after_run_frame(stats);
+    if (stats) ur_baldosa_modern_root_after_run_frame(stats->frame);
     // A rollback can rewind the guest's own snes_frame_counter, which the
     // stock framedump uses as its filename. A deterministic replay can
     // overwrite earlier frame_NNN.json files with their identical CRCs.

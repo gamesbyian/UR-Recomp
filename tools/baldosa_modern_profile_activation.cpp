@@ -15,6 +15,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 
 #include <cstdio>
 #include <cstdint>
@@ -139,6 +140,8 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     g_native_user_root = native_root;
     g_launch_global = *global.state;
     g_launch_profile = *profile.state;
+    ur_baldosa_modern_root_set_racer_name(
+        g_launch_profile->racer_identity->name.c_str());
     std::fprintf(stderr,
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=%s root=%s\n",
         id->c_str(), RtlSaveRoot());

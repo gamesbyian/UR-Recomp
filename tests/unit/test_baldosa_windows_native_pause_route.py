@@ -12,6 +12,44 @@ import baldosa_windows_native_pause_route as probe
 
 
 class NativeWindowsPauseProbeTests(unittest.TestCase):
+    def test_real_sdl_shared_root_requires_visible_paint_and_guest_handoff(self):
+        valid = (
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"
+            "UR_BALDOSA_MODERN_ROOT selected=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=2\n"
+            "UR_BALDOSA_MODERN_ROOT selected=3\n"
+            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=2\n"
+            "UR_BALDOSA_MODERN_ROOT selected=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=0\n"
+            "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n"
+        )
+        self.assertIsNone(probe.verify_native_modern_root_log(valid))
+        for bad in (
+            valid.replace(" painted=1", " painted=0"),
+            valid.replace(" renderer=shared", " renderer=shadow"),
+            valid.replace(" route=3 unavailable=1", " route=3 launched=1"),
+            valid.replace(" play_guest_title=1", " play_guest_title=0"),
+            valid.replace("selected=3", "selected=4"),
+            valid.replace("opened=1", "opened=0"),
+            valid + valid,
+            valid.replace("UR_BALDOSA_MODERN_ROOT selected=0\n", ""),
+            valid.replace(
+                "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n", ""),
+        ):
+            with self.subTest(bad=bad[-120:]):
+                with self.assertRaisesRegex(ValueError, "native|Native"):
+                    probe.verify_native_modern_root_log(bad)
+        with self.assertRaisesRegex(ValueError, "order"):
+            probe.verify_native_modern_root_log(
+                valid.replace(
+                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n",
+                    "").replace(
+                    "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n",
+                    "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n"
+                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"))
+
     def test_reads_authoritative_framedump_crc_in_numeric_order(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

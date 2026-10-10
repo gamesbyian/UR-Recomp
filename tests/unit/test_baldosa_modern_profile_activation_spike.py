@@ -23,6 +23,13 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
         self.assertIn(".after_config", patched)
         self.assertIn(".before_run_frame", patched)
         self.assertIn("ur_baldosa_modern_profile_before_run_frame", patched)
+        self.assertIn(".draw_frame          = &ur_baldosa_modern_root_draw_frame", patched)
+        self.assertIn("ur_baldosa_modern_root_after_config();", patched)
+        with self.assertRaisesRegex(ValueError, "compositor"):
+            probe.patch_main(main.replace(
+                probe.MAIN_PAUSE,
+                "    .draw_frame = &another_native_compositor,\n" +
+                probe.MAIN_PAUSE))
         self.assertIn("exit(7);", patched)
         self.assertIn(probe.MAIN_PAUSE, patched)
         with self.assertRaisesRegex(ValueError, "pause seam"):
@@ -54,12 +61,15 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             bridge = root / "tools/baldosa_modern_profile_activation.cpp"
             bridge.parent.mkdir(parents=True)
             bridge.write_text("/* synthetic unit bridge */\n")
+            (root / "tools/baldosa_native_modern_root.cpp").write_text(
+                "/* synthetic shared Modern root consumer */\n")
             (root / "tools/baldosa_modern_profile_native_fixture.cpp").write_text(
                 "/* synthetic fixture */\n")
             for name in probe.SOURCES:
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
             self.assertEqual(len(pending), 3)
+            self.assertNotIn("baldosa_native_modern_root.cpp", pending[1][2])
             self.assertIn("host_profile_store.cpp", pending[1][2])
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])

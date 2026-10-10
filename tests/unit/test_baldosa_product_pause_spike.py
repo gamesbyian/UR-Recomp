@@ -14,6 +14,8 @@ class NativePauseIntegrationTest(unittest.TestCase):
     def stage_modern_sources(root):
         modern = root / "native/product"
         modern.mkdir(parents=True)
+        (root / "tools/baldosa_native_modern_root.cpp").write_text(
+            "// shared root consumer")
         for name in spike.MODERN_SESSION_SOURCES:
             (modern / name).write_text("// Modern session build fixture")
 
@@ -104,6 +106,7 @@ class NativePauseIntegrationTest(unittest.TestCase):
             self.assertTrue(result.startswith(initial))
             self.assertEqual(result.count(spike.MARK), 1)
             self.assertIn("baldosa_native_pause_lifecycle.cpp", result)
+            self.assertIn("baldosa_native_modern_root.cpp", result)
             self.assertIn("baldosa_native_product_pause_authority.cpp", result)
             self.assertIn("modern_session_c_api.cpp", result)
             self.assertIn("modern_session_runtime.cpp", result)

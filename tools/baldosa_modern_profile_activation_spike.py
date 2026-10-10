@@ -35,16 +35,25 @@ def patch_main(source: str) -> str:
         raise ValueError("Pinned native Modern pause seam must already be staged")
     if source.count(MAIN_HOST) != 1 or source.count(MAIN_PAUSE) != 1:
         raise ValueError("Pinned host descriptor changed; no profile wiring")
+    # This route owns only the stock-density Modern root presenter. A native
+    # HD compositor has its own draw callback and must be composed separately,
+    # not overwritten in this baseline Windows product build.
+    if ".draw_frame" in source:
+        raise ValueError("Pinned descriptor already owns a native compositor")
     source = source.replace(
         MAIN_HOST,
         "/* " + MARK + ": existing Modern active profile, before guest SRAM. */\n"
         "extern int ur_baldosa_modern_try_activate_profile(void);\n"
         "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
+        "extern void ur_baldosa_modern_root_after_config(void);\n"
+        "extern int ur_baldosa_modern_root_draw_frame(\n"
+        "    uint8_t*, size_t, const uint8_t*, int, int, double);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"
         "        fprintf(stderr, \"UR-STARTUP-SAVE-ROOT: selected Modern profile rejected\\n\");\n"
         "        exit(7);\n"
         "    }\n"
+        "    ur_baldosa_modern_root_after_config();\n"
         "}\n" + MAIN_HOST,
         1)
     # Title main.c already includes stdio? Include both here for exit/fprintf,
@@ -54,6 +63,7 @@ def patch_main(source: str) -> str:
         MAIN_PAUSE,
         "    .after_config        = &ur_baldosa_modern_profile_after_config,\n"
         "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
+        "    .draw_frame          = &ur_baldosa_modern_root_draw_frame,\n"
         + MAIN_PAUSE, 1)
 
 

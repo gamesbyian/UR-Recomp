@@ -592,7 +592,8 @@ def verify_native_modern_root_log(log: str, players: int = 1) -> None:
     if players == 1:
         stages.extend([
             "UR_BALDOSA_MODERN_ROOT selected=3",
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1",
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0",
+            "UR_BALDOSA_MODERN_ROOT records_closed=1",
             "UR_BALDOSA_MODERN_ROOT selected=0",
         ])
     else:

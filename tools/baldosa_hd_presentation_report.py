@@ -15,6 +15,15 @@ PAINT = re.compile(
 SOURCE_PIXELS = re.compile(r"UR_RACER_HD_SOURCE_OBJ frame=(\d+) top_opaque=(\d+) bottom_opaque=(\d+) top_painted=(\d+) bottom_painted=(\d+)")
 
 
+# This explicit warning is emitted only by the intentionally unsafe script
+# fixture, never by ordinary production overlap admission. A successful
+# authored-art screenshot from that fixture cannot be release HD coverage.
+UNSAFE_OVERLAP_FIXTURE = (
+    "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 "
+    "warning=overlap-guard-bypassed-for-art-reference-only"
+)
+
+
 def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: int = 1) -> dict:
     if density not in (1, 4):
         raise ValueError("Only verified 1x and 4x presentation scales are supported")
@@ -22,6 +31,7 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
     base_frames = left.splitlines()
     own_frames = right.splitlines()
     native_log = log.read_text(encoding="utf-8", errors="replace")
+    archival_overlap_bypass = UNSAFE_OVERLAP_FIXTURE in native_log
     records = [tuple(map(int, m.groups())) for m in COMPOSE.finditer(native_log)]
     pixel_records = [
         tuple(map(int, m.groups())) for m in SOURCE_PIXELS.finditer(native_log)
@@ -74,6 +84,21 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
     return {
         "schema_version": 1,
         "status": "passed" if passed else "unproven",
+        # Preserve the historical physical-raster/art acceptance while making
+        # its *unsafe fixture provenance* visible to consumers. Rejected
+        # production frames cannot borrow a known-bypassed HD art proof.
+        "source_art_admission": (
+            "archival-unsafe-overlap-fixture" if archival_overlap_bypass
+            else "no-unsafe-overlap-bypass-observed"
+        ),
+        "unsafe_overlap_bypass_observed": archival_overlap_bypass,
+        "archival_unsafe_art_acceptance": archival_overlap_bypass and passed,
+        "normal_guard_4x_authored_art_observed": (
+            density == 4 and passed and not archival_overlap_bypass
+        ),
+        # This limited report never certifies the whole Modern Windows
+        # graphics path, BG/window priority, 342-world riders or 4K output.
+        "production_graphics_release_qa_credit": 0,
         "native_title": "Baldosa AOT with UR racer asset/PPU compositor callbacks",
         "baseline_frame_count": len(base_frames),
         "candidate_frame_count": len(own_frames),
@@ -92,7 +117,13 @@ def assess(baseline: Path, candidate: Path, log: Path, captures: Path, density: 
         "widescreen_or_4k_proved": False,
         "real_4x_authored_raster_proved": density == 4 and passed,
         "original_native_completed_event_qa_credit": 0,
-        "limits": "Native 1x/4x raster only; physical stock-vs-authored delta is required in both halves; exact animation and occlusion remain subject to visual oracle review. No widescreen, 4K, Windows, or completed-event gate."
+        "limits": (
+            "Native 1x/4x raster only; an opt-in archival overlap bypass "
+            "is not shipping HD coverage. Physical stock-vs-authored delta "
+            "is required in both halves; exact animation and occlusion "
+            "remain subject to visual oracle review. No widescreen, 4K, "
+            "Windows, graphics release admission or completed-event gate."
+        )
     }
 
 

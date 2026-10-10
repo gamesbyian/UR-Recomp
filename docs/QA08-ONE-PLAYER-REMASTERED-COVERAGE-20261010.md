@@ -30,6 +30,35 @@ asset *poses*: \`p1-selection-or-art\` combines unregistered states with
 unavailable artwork. The existing code returns at the geometry gate before
 checking art, so 2,117 is not a count of eligible authored sprites either.
 
+## First native trial and controlled correction
+
+The initial AOT run `38088295593` executed the full 1P guest without
+changing any of its **5,447** baseline CRC values. The native host
+reported **four** post-script-entry P1-only HD presents
+(1728, 1744, 1808, 1840). Specifically:
+
+- At **1728 and 1744**, the actual host emitted authored pixels
+  (`UR_RACER_HD_PIXEL_CHANGE ... changed_from_underlay=1`),
+  each with one source-visible rider instance. These are promising,
+  *not yet retained visual images*.
+- At **1808 and 1840**, the host returned HD but
+  `source_instances=0 changed_from_underlay=0` and retained
+  1024×896 PAMs showing no independently proved authored pixels.
+- The first strict 1P checker incorrectly treated pre-race pixel
+  telemetry as a post-entry admission, ending the AOT workflow with a
+  source-checker `ValueError` despite valid native guest execution.
+  No graphical defect or new guest divergence was established by this
+  checker error.
+
+The revised checker now scopes all host pixels to the actual
+post-script-entry interval. A new **explicit, read-only** diagnostic
+`UR_BALDOSA_HD_EARLY_1P_CAPTURE=1` expands only this isolated
+1P screenshot window from 1800 back to 1700; the ordinary 2P
+capture window, first-party OBJ source guards and shipping graphics
+mode are unchanged. Its purpose is to retain actual original/HD
+raster evidence at **1728/1744**. Neither the initial red workflow
+nor an HD-presented log by itself is beta/admission credit.
+
 ## Experiment
 
 The native job has already compiled the Baldosa guest and first-party

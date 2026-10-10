@@ -48,6 +48,10 @@ bool live_scene_enabled() noexcept {
 bool racing_window() noexcept {
     if (!probe_enabled()) return false;
     if (live_scene_enabled()) {
+        // A new settled frontend retires the prior event's mode latch.
+        // Never widen an unrelated active state using a past race's mode.
+        if (g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7)
+            ur::product::reset_widescreen_scene_state(&live_scene);
         // Share the existing Modern title's read-only guest classification.
         // $7E:0313 is active racing, $7E:009F the pre-race 1P/2P/VS latch.
         // Unrecognized scenes stay fixed-center, independent of frame count.
@@ -99,6 +103,9 @@ bool dump_pam(const std::uint8_t* data, std::size_t pitch,
 
 extern "C" void ur_baldosa_ws24_prepare_frame(
     int, int, int* width, int* height) {
+    // Failed/incomplete frame preparation must never leave last frame's
+    // wide admission active for a later host callback.
+    prepared_wide = false;
     if (!width || !height) return;
     const bool try_margin = racing_window();
     // Calibrate exclusively against existing guest WRAM+PPU VRAM. All

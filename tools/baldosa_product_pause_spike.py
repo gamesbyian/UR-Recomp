@@ -23,6 +23,8 @@ MODERN_SESSION_SOURCES = (
     "race_restart_lifecycle.cpp",
     "modern_session_runtime.cpp",
     "modern_session_c_api.cpp",
+    "modern_pause_menu.cpp",
+    "modern_pause_input.cpp",
 )
 REQUIRED = "UR_BALDOSA_PRODUCT_INPUT_SEAM"
 
@@ -55,6 +57,8 @@ def patch_host_header(source: str) -> str:
         HEADER +
         "  /* " + MARK + ": tick while paused, after SDL events, before guest. */\n"
         "  void (*product_tick)(void);\n"
+        "  /* Paint into the already frozen host raster, no guest execution. */\n"
+        "  int (*product_pause_draw)(uint8_t*, size_t, int, int);\n"
         "  /* Optional Modern physical edge dispatch before guest mapping. */\n"
         "  int (*product_system_key)(int key, int pressed);\n"
         "  int (*product_system_gamepad)(int player, int button, int pressed);\n")
@@ -146,6 +150,16 @@ def patch_host_source(source: str) -> str:
           "    gi->last_cmd[button] = 0;\n"
           "    return;\n"
           "  }\n")
+    # Reuse the pinned framework's existing frozen renderer. The Modern
+    # panel is applied after its frozen source raster and before its OSD.
+    frozen_end = "  ComposeOsd(pixel_buffer, pitch, draw_w, draw_h, draw_w >= 512 ? 1 : 2);\\n"
+    if source.count(frozen_end) != 1:
+        raise ValueError("Pinned frozen-frame compositor moved")
+    source = source.replace(frozen_end,
+        "  /* " + MARK + ": host Modern pause is ONLY a frozen raster overlay. */\\n"
+        "  if (g_product_pause_owned && g_game->product_pause_draw)\\n"
+        "    g_game->product_pause_draw(pixel_buffer, (size_t)pitch, draw_w, draw_h);\\n"
+        + frozen_end, 1)
     return (source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
                   .replace(LEGACY_COMMAND, commands, 1)
                   .replace(PAUSE_GATE, gate, 1)
@@ -163,12 +177,15 @@ def patch_game_main(source: str) -> str:
         "extern void ur_baldosa_product_after_run_frame("
         "const SnesDesktopHostFrameStats *stats);\n"
         "extern void ur_baldosa_product_host_tick(void);\n"
+        "extern int ur_baldosa_product_pause_draw(uint8_t *pixels,\n"
+        "    size_t pitch, int width, int height);\n"
         "extern int ur_baldosa_product_system_key(int key, int pressed);\n"
         "extern int ur_baldosa_product_system_gamepad("
         "int player, int button, int pressed);\n")
     host = (
         "    .after_run_frame     = &ur_baldosa_product_after_run_frame,\n"
         "    .product_tick        = &ur_baldosa_product_host_tick,\n"
+        "    .product_pause_draw  = &ur_baldosa_product_pause_draw,\n"
         "    .product_system_key  = &ur_baldosa_product_system_key,\n"
         "    .product_system_gamepad = &ur_baldosa_product_system_gamepad,\n")
     return source.replace(HOST, decl + HOST, 1).replace(STAT, host, 1)

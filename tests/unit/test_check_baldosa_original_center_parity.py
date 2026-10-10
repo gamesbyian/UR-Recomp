@@ -70,7 +70,7 @@ class BaldosaOriginalCenterParityTests(unittest.TestCase):
                   "tools/baldosa_native_racer_presentation.cpp").read_text()
         workflow = (Path(__file__).resolve().parents[2] /
                     ".github/workflows/baldosa-core-spike.yml").read_text()
-        self.assertIn('matches("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME", g_frame)', source)
+        self.assertIn('std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME")', source)
         self.assertIn('export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME=1856', workflow)
         self.assertIn('check_baldosa_original_center_parity.py', workflow)
         self.assertIn("ws342_original_center_parity_1856.json", workflow)

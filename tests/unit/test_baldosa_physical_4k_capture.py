@@ -103,6 +103,36 @@ class PhysicalFourKParityTests(unittest.TestCase):
                                         "not an exact native 4x"):
                 assess(one, four, physical, 1872)
 
+    def test_native_source_zero_alpha_becomes_opaque_only_at_sdl_output(self):
+        # Actual stock Baldosa PPU pixels use 0x00RRGGBB, whereas its
+        # SDL presenter explicitly forces the output texture opaque.
+        # Exact logical 1x -> 4x identity must still include the zero byte.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            w = 342
+            src = bytearray(source_raster(w))
+            src[3::4] = bytes(len(src) // 4)
+            src = bytes(src)
+            dense = internal_four_x(src, w)
+            # The displayed SDL canvas has alpha=255 for every texel,
+            # without changing any of the original source RGB channels.
+            opaque = bytearray(physical_four_k(src, w))
+            opaque[3::4] = bytes([255]) * (len(opaque) // 4)
+            one = root / "source-001856.pam"
+            four = root / "density-001856.pam"
+            physical = root / "physical-001856.pam"
+            one.write_bytes(pam(w, 224, src))
+            four.write_bytes(pam(w * 4, 896, dense))
+            physical.write_bytes(pam(OUT_W, OUT_H, opaque))
+            result = assess(one, four, physical, 1856)
+            self.assertEqual(result["status"], "exact-native-capture-pixel-parity")
+            self.assertEqual(result["opaque_sdl_drawable_alpha_expected"], 255)
+            # A zero-alpha *screen* pixel must not be silently accepted.
+            opaque[3] = 0
+            physical.write_bytes(pam(OUT_W, OUT_H, opaque))
+            with self.assertRaisesRegex(ValueError, "physical 4K mismatch"):
+                assess(one, four, physical, 1856)
+
     def test_fixed_original_is_centered_with_7_to_6_par(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)

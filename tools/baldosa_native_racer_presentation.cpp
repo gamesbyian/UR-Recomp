@@ -18,6 +18,7 @@ unsigned g_captured = 0;
 unsigned g_last_captured_frame = 0;
 unsigned g_fallback_captured = 0;
 unsigned g_last_fallback_frame = 0;
+unsigned g_original_source_saved_frame = 0;
 
 bool enabled() noexcept {
     const char* value = std::getenv("UR_BALDOSA_HD");
@@ -68,6 +69,29 @@ bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
     if (!ok) std::remove(path);
     return ok;
 }
+// Diagnostic-only source witness for the *fixed* 256x224 Original
+// presentation. The existing HD fallback capture contains the 4x host
+// texture, but QA-08 physical 4K acceptance must get the native 1x source
+// from a separate actual full guest process rather than downsampling it.
+void capture_fixed_original_source(const std::uint8_t* field,
+                                   int width, int height) noexcept {
+    const char* requested =
+        std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME");
+    if (!requested || !*requested || !field ||
+        width != 256 || height != 224 ||
+        g_original_source_saved_frame == g_frame) return;
+    char* end = nullptr;
+    const unsigned long frame = std::strtoul(requested, &end, 10);
+    if (end == requested || *end != '\0' || frame != g_frame) return;
+    const bool saved = save_presented_pam(
+        field, static_cast<std::size_t>(width) * 4u,
+        width, height, g_frame, "ur-baldosa-original-source");
+    std::fprintf(stderr,
+        "UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=%u "
+        "logical=256x224 saved=%d source=native-original-ppu\n",
+        g_frame, saved ? 1 : 0);
+    if (saved) g_original_source_saved_frame = g_frame;
+}
 // Compare the actual composited raster to the nearest-scaled logical stock
 // field *after* the title's source-derived draw callback. Both split views
 // must contain genuine authored pixels, rather than merely changing stock
@@ -117,6 +141,9 @@ extern "C" void ur_baldosa_hd_begin_sim_frame(unsigned number) {
 extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     const std::uint8_t* field, int frame_w, int frame_h, double alpha) {
     if (!enabled()) return 0;
+    // A read-only fixed Original 1x source. No authoring, interpolation,
+    // PPU removal, guest write or test-only unsafe overlap admission.
+    capture_fixed_original_source(field, frame_w, frame_h);
     const int handled = ur::presentation::racer_hd_draw_frame(
         dst, pitch, field, frame_w, frame_h, alpha);
     if (!handled) {

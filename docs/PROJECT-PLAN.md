@@ -4,6 +4,12 @@
 
 **This file owns durable product intent and system boundaries, not live PR status.** For current work and active owners, use [WORK-QUEUE.md](WORK-QUEUE.md); for source/asset reuse and measured Baldosa bridge, [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md); for candidate quality, [QA-BOUNDED-RELEASE-CAMPAIGN.md](QA-BOUNDED-RELEASE-CAMPAIGN.md), [QA-PLAYER-JOURNEYS.md](QA-PLAYER-JOURNEYS.md) and the **sole release gate authority** [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json). The complete earlier phase history and detail are preserved, unchanged, in [archive/PROJECT-PLAN-THROUGH-20261009.md](archive/PROJECT-PLAN-THROUGH-20261009.md). Do not execute its old linear phases as today's schedule.
 
+## Enduring project charter
+
+This project has **two coequal long-term deliverables**: a faithful, approachable and extensible Uniracers remaster, and the **definitive independently reproducible technical reference** for the original game. The second includes mechanical coverage, source-backed semantic explanations, reproducible observations, data and art reconstruction, architectural clarity, and discoverable uncertainties. Read [DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md](DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md) for the acceptance contract and technical-atlas entry format.
+
+**Scheduling distinction:** Full archaeological/technical-reference completeness is an enduring goal, but does not automatically block the integrated Windows alpha, regular feature development or appropriately scoped private playtests. Correctness and data-integrity defects remain hard blockers at their relevant release stage. Maintain one authoritative original guest and shared evidence, not competing simulators. Distinguish a played build, independently accepted course and release candidate in every status claim.
+
 ## What we are building
 
 **Uniracers itself, freed from cartridge-era presentation and administration.** The original ROM-driven game remains authoritative for physics, track contact and collision, stunts/landing/tricks, boosts, AI, RNG, timing, race rules, opponents and progression mechanics. Authentic mode preserves stock visual, audio, game and interaction behavior as a playable comparator.

@@ -1,6 +1,14 @@
 # UR-Recomp: active work queue
 
-**Current as of 2026-10-09:** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
+**Reconciled 2026-10-10 (see live GitHub for newer merges):** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
+
+## October 10 verified handoff and decision policy
+
+- **Merged:** #1191 real fixed Original 256-wide physical 3840×2160 viewport/matte acceptance; #1185 real paired Original OAM 98/99 deletion with 483/483 final-colour differences inside source union; #1198 overlap counterfactual correlation; #1199 evidence report; #1193 opt-in same-host Switcher raw-memory offset comparison; #1194 visible navigable frozen-frame Modern pause panel (only Resume/Restart actionable); #1200 bounded legacy/Baldosa causal analysis.
+- **QA-01 diagnostic:** exact original/native host 5782 retained in [QA01-SWITCHER-5782-RAW-MEMORY-EVIDENCE-20261010.md](QA01-SWITCHER-5782-RAW-MEMORY-EVIDENCE-20261010.md): 8 WRAM addresses differ, 0 VRAM/CGRAM; strict terminal comparator still fails, official 0/45. The experimental #1195 workflow is **never to be merged**, even though its expected-red run produced useful evidence.
+- **Outstanding at this checkpoint:** #1197 rear-only PPU experiment lacks verified head-run evidence; do not merge blindly. Full Baldosa Modern controller-first root to race/result/Records/quit and associated durable record authority remains the player-impacting critical path. An observed pause panel is **not** proof that disabled pause destinations work. Validate all new head CI and exact native Windows candidate before acceptance.
+- **Dual enduring deliverable:** a playable remaster **and** the definitive, independent, evidence-backed Uniracers technical reference ([charter](DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md)). Archive every recoverable understanding; do not convert exhaustive archaeology into an unbounded prerequisite for feature development.
+- **Resume regular development** once a reproducible Baldosa Windows internal alpha demonstrates authentic 1P/2P, coherent controller-first Modern ownership, pause/restart, one actual result and records/profiles across fresh process, and stable Original/widescreen without known P0 integrity/correctness defects. Full 45-course/QA-01..12 certification and technical-atlas completeness proceed alongside feature work under independent release gates. Preserve old runtime as rollback.
 
 ## Baldosa native Modern checkpoint (2026-10-09)
 

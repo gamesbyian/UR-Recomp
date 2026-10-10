@@ -198,7 +198,11 @@ class CompleteEventProducerTests(unittest.TestCase):
             frames = target.sample_frames(case, 5163)
             self.assertIn(0, frames)
             self.assertIn(64, frames)
-            self.assertLess(max(frames), 5163 - 200)
+            if case == "switcher":
+                self.assertEqual(max(frames), 5163 - 5)
+                self.assertIn(5163 - 39, frames)
+            else:
+                self.assertLess(max(frames), 5163 - 200)
             replay = target.replay_script(slot, menu, frames, kind == "stunt")
             self.assertIn(f"until 009F == {menu:02X} 9000", replay)
             self.assertEqual(replay.count("dump result-stable"), 1)
@@ -209,6 +213,71 @@ class CompleteEventProducerTests(unittest.TestCase):
             2, 0xBC, target.sample_frames("zoom-zoo", 5163), False))
         with self.assertRaisesRegex(target.CompleteEventError, "only"):
             target.stock_crawler_script(1)
+
+    def test_switcher_terminal_phase_samples_are_source_anchored_and_bounded(self):
+        source_duration = 4703  # actually observed 2014 original Switcher
+        frames = target.sample_frames("switcher", source_duration)
+        lead = target.SWITCHER_TERMINAL_SOURCE_LEADS
+        self.assertEqual(max(frames), 4698)
+        self.assertIn(4664, frames)  # first genuine original track-0 prelude
+        self.assertIn(4698, frames)  # first restored track-3 source sample
+        self.assertEqual(
+            [f for f in frames if f > 2400],
+            sorted(source_duration - n for n in lead))
+        self.assertLess(max(frames), 4702)  # last sample pre-native result
+        script = target.replay_script(4, 0x99, frames, False)
+        self.assertIn("dump scene-04664", script)
+        self.assertIn("dump scene-04698", script)
+        self.assertLess(script.index("dump scene-04698"),
+                        script.index("until 009F == 99 9000"))
+        self.assertNotIn("poke ", script)
+        self.assertLess(max(target.sample_frames("zoom-zoo", 5163)), 5000)
+        self.assertLess(max(target.sample_frames("bowl", 3365)), 3000)
+
+    def test_switcher_terminal_wram_admits_only_original_course_zero_transient(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "scene-04664.wram.bin"
+            with self.assertRaisesRegex(target.CompleteEventError, "missing"):
+                target.load_switcher_transition_state(path, b"decoder")
+            w = bytearray(0x20000)
+            path.write_bytes(w[:-1])
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid complete"):
+                target.load_switcher_transition_state(path, b"decoder")
+            # Source-authentic temporary ID zero is a diagnostic only,
+            # not an independently verified active guest loaded-course
+            # or another Race result.
+            w[0x00CE] = 0
+            w[0x0313] = 1
+            path.write_bytes(w)
+            observed = target.load_switcher_transition_state(path, b"decoder")
+            self.assertEqual(observed["observed_course_track"], 0)
+            self.assertTrue(observed["source_terminal_phase_diagnostic_only"])
+            self.assertEqual(observed["in_race"], 1)
+            for expected in (3, 0):
+                w[0x00CE] = expected
+                path.write_bytes(w)
+                self.assertEqual(
+                    target.load_switcher_transition_state(
+                        path, b"decoder")["observed_course_track"], expected)
+            for foreign in (1, 2, 4, 255):
+                w[0x00CE] = foreign
+                path.write_bytes(w)
+                with self.assertRaisesRegex(target.CompleteEventError, "foreign course"):
+                    target.load_switcher_transition_state(path, b"decoder")
+
+    def test_switcher_terminal_sample_disagreement_blocks_candidate(self):
+        ref = capture(0x99, ["SWITCHER", "MIKE", "1:08.81"])
+        nat = capture(0x99, ["SWITCHER", "MIKE", "1:08.81"])
+        row = {"relative_frame": 4664, "in_race": 1,
+               "source_terminal_phase_diagnostic_only": True}
+        ref["samples"].append(dict(row, observed_course_track=0))
+        nat["samples"].append(dict(row, observed_course_track=3))
+        compared = target.diagnose(ref, nat, 0x99, False)
+        self.assertEqual(compared["first_sample_disagreement"]["relative_frame"], 4664)
+        self.assertEqual(compared["first_sample_disagreement"]["fields"],
+                         ["observed_course_track"])
+        self.assertTrue(compared["rendered_result_and_score_text_matched"])
+        self.assertFalse(compared["paired_event_candidate"])
 
     def test_result_parity_requires_score_text_and_all_guest_samples(self):
         ref = capture()

@@ -72,9 +72,9 @@ inline bool baldosa_sram_file_matches_exact(
            std::equal(bytes.begin(), bytes.end(), expected);
 }
 
-// Check original selected-profile authority. Caller MUST hold BOTH the
-// host-state-v1.txt selector lock and selected host-profile.txt lock here.
-// Neither file can change between this preflight and raw SRAM publication.
+// Check original selected-profile authority. Caller MUST hold the existing
+// selector, roster and profile OS locks, in that order, before this preflight.
+// These three typed authorities cannot change before raw SRAM publication.
 inline bool baldosa_sram_checkpoint_request_valid(
     const BaldosaSramCheckpoint& request) {
     const auto& id = request.expected_profile.profile_id;
@@ -117,9 +117,9 @@ baldosa_sram_checkpoint_preflight_under_lock(
     return std::nullopt;
 }
 
-// Native host holds BOTH canonical OS locks, acquired selector-first and
-// profile-second, from before the real cartridge write through publication.
-// Never recursively acquire either lock here.
+// Native host holds all three canonical OS locks, selector then roster then
+// profile, from before the cartridge write through typed publication.
+// Never recursively acquire a held lock here.
 inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram_under_lock(
     const BaldosaSramCheckpoint& request) {
     namespace fs = std::filesystem;
@@ -180,6 +180,11 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
         return BaldosaSramCheckpointStatus::InvalidContext;
     const std::filesystem::path profile_path =
         request.user_root / decision.save_root / "host-profile.txt";
+    const std::filesystem::path catalog_path =
+        request.user_root / "profiles-v1.txt";
+    TournamentLaunchPathLock catalog_lock(catalog_path.string(), true);
+    if (!catalog_lock.acquired())
+        return BaldosaSramCheckpointStatus::IoError;
     TournamentLaunchPathLock profile_lock(profile_path.string(), true);
     if (!profile_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;

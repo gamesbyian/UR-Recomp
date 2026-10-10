@@ -19,6 +19,8 @@ on:
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/check_windows_portable_binary.py"
+      - "tools/assemble_baldosa_windows_candidate.py"
+      - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "native/product/modern_session_c_api.*"
       - "native/product/modern_session_runtime.*"
       - "native/product/session_runtime_adapter.*"
@@ -54,6 +56,7 @@ jobs:
 
       - name: Guard guest CRC, pause witness and Modern mutable-root stage
         run: |
+          python tests/unit/test_assemble_baldosa_windows_candidate.py
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
           python tests/unit/test_baldosa_modern_profile_activation_spike.py
@@ -155,6 +158,29 @@ jobs:
             --video windows --expected-frames 2473 --timeout 95 \
             --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
           echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Assemble verified ROM-free Baldosa Modern Windows candidate
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/baldosa-native-romless"
+          python tools/assemble_baldosa_windows_candidate.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --out "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --revision "$GITHUB_SHA"
+          cd "$RUNNER_TEMP/baldosa-native-romless"
+          sha256sum UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip > UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+          test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
+          echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-modern-windows-x64-romless-candidate
+          if-no-files-found: error
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip
+            ${{ runner.temp }}/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

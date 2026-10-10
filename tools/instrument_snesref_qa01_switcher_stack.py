@@ -18,12 +18,14 @@ STAMP = "UR-QA01 SWITCHER STACK OPCODE SCOPE"
 TARGETS = (0x01DD, 0x01E6, 0x01E7, 0x01EF, 0x01F0, 0x01F1, 0x01F2, 0x01F3)
 
 
-def patch(source: str) -> str:
+def patch(source: str, *, targets: tuple[int, ...] = TARGETS) -> str:
     if STAMP in source:
         raise ValueError("Switcher stack opcode probe already installed")
     if source.count(MARKER) != 1:
         raise ValueError("pinned Snes9x opcode dispatch marker missing or ambiguous")
-    addresses = ", ".join(f"0x{addr:04X}" for addr in TARGETS)
+    if not targets or len(set(targets)) != len(targets) or any(addr not in TARGETS for addr in targets):
+        raise ValueError("original opcode observer target must be a unique approved stack address")
+    addresses = ", ".join(f"0x{addr:04X}" for addr in targets)
     instrumented = f"""\t\t\t/* {STAMP}: original-only, read-only, bounded. */
 \t\t\tstatic const uint16 ur_qa_stack_addr[] = {{{addresses}}};
 \t\t\tstatic const unsigned ur_qa_stack_first = []() -> unsigned {{
@@ -77,8 +79,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("source", type=Path,
                         help="disposable .tools/src/snes9x-libretro/cpuexec.cpp")
+    parser.add_argument("--single-address", type=lambda x: int(x, 0),
+                        help="read-only observe one already-approved Switcher stack address")
     args = parser.parse_args()
-    args.source.write_text(patch(args.source.read_text(encoding="utf-8")),
+    targets = (args.single_address,) if args.single_address is not None else TARGETS
+    args.source.write_text(patch(args.source.read_text(encoding="utf-8"), targets=targets),
                            encoding="utf-8")
     return 0
 

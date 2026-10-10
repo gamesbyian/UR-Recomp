@@ -61,6 +61,10 @@ jobs:
           PY
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
           cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          test -x baldosa/build/UniracersSNESRecomp
+          if [ ! -f baldosa/build/config.ini ]; then
+            printf '%s\\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
+          fi
           sha256sum baldosa/build/UniracersSNESRecomp > "$RUNNER_TEMP/native-binary-sha256.txt"
       - name: Record exact existing Modern root navigation and compare guest CRCs
         run: |

@@ -92,7 +92,7 @@ def summarize_original(log: str, *, first: int = FIRST, last: int = LAST) -> dic
         "read_only_original_snes9x_wram_target": "7E:01DD",
         "original_cpu_frame_observation_window": [first,last],
         "cpu_gate_first_observed_frame":start,
-        "cpu_gate_pc":f"{pc[:2]}:{pc[2:]}" if total == 0 else gate[0].group(3)[:2]+":"+gate[0].group(3)[2:],
+        "cpu_gate_pc":gate[0].group(3)[:2]+":"+gate[0].group(3)[2:],
         "cpu_gate_initial_stack_pointer":sp,
         "total_original_changed_byte_opcode_scopes":total,
         "original_push_opcode_sp_address_compatible_scope_count":sp_aligned,

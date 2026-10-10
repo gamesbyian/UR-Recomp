@@ -152,13 +152,13 @@ def patch_host_source(source: str) -> str:
           "  }\n")
     # Reuse the pinned framework's existing frozen renderer. The Modern
     # panel is applied after its frozen source raster and before its OSD.
-    frozen_end = "  ComposeOsd(pixel_buffer, pitch, draw_w, draw_h, draw_w >= 512 ? 1 : 2);\\n"
+    frozen_end = "  ComposeOsd(pixel_buffer, pitch, draw_w, draw_h, draw_w >= 512 ? 1 : 2);\n"
     if source.count(frozen_end) != 1:
         raise ValueError("Pinned frozen-frame compositor moved")
     source = source.replace(frozen_end,
-        "  /* " + MARK + ": host Modern pause is ONLY a frozen raster overlay. */\\n"
-        "  if (g_product_pause_owned && g_game->product_pause_draw)\\n"
-        "    g_game->product_pause_draw(pixel_buffer, (size_t)pitch, draw_w, draw_h);\\n"
+        "  /* " + MARK + ": host Modern pause is ONLY a frozen raster overlay. */\n"
+        "  if (g_product_pause_owned && g_game->product_pause_draw)\n"
+        "    g_game->product_pause_draw(pixel_buffer, (size_t)pitch, draw_w, draw_h);\n"
         + frozen_end, 1)
     return (source.replace(GLOBAL, extra, 1).replace(EVENT, loop, 1)
                   .replace(LEGACY_COMMAND, commands, 1)

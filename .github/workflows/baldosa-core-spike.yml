@@ -566,6 +566,51 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_vs_density_parity.json"
           echo "PASS: real VS scene at 342x224, independently matched guest CRC and exact same-frame Original 1x/4x pixels" >> "$GITHUB_STEP_SUMMARY"
 
+          # Ordinary two-player gameplay is not equivalent to VS.
+          # Verify genuine pre-race 0x3D, both independently scrolled halves
+          # and every guest CRC against the already-executed 2P baseline.
+          # Only two new guest processes: the stock baseline exists above.
+          export UR_BALDOSA_WS342=1 UR_BALDOSA_WS24=0
+          export UR_BALDOSA_WS342_LIVE=1 UR_BALDOSA_HD=1
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-2p"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_ur_ws342_live"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_ur_ws342_live/fd/crc.txt"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/race_2p_ur_ws342_live/log.txt" \
+            "$UR_BALDOSA_WS342_CAPTURE_DIR" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          captures = sorted(pathlib.Path(sys.argv[2]).glob("ur-baldosa-ws342-*.pam"))
+          modes = re.findall(
+              r"^UR_BALDOSA_WS342_LIVE_MODE frame=(\d+) mode=(\d+) "
+              r"guest_race=([0-9A-F]+) frontend=([0-9A-F]+)$", log, re.M)
+          assert any(int(mode) == 2 and int(frontend, 16) == 0x3D
+                     and int(active, 16) != 1
+                     for _, mode, active, frontend in modes), (
+                         "real ordinary-2P mode never latched", modes)
+          assert len(captures) >= 2, (
+              "no complete 342-column ordinary-2P native output", captures)
+          print("UR_BALDOSA_WS342_LIVE_2P guest_2p_mode=1 "
+                f"wide_source_captures={len(captures)}")
+          PY
+
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-2p-4x"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_ur_ws342_live_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_ur_ws342_live_4x/fd/crc.txt"
+          python3 tools/check_baldosa_wide_density_parity.py \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-live-2p" \
+            --four-x "$RUNNER_TEMP/baldosa-ws342-live-2p-4x" \
+            --min-shared 2 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_2p_density_parity.json"
+          echo "PASS: actual ordinary-2P split race 342-wide, guest CRC unchanged, same-frame stock 1x/4x exact" >> "$GITHUB_STEP_SUMMARY"
+
           # The archival three-frame 2P source-route comparison below must
           # still run with its original explicitly bounded scene policy.
           unset UR_BALDOSA_WS342_LIVE
@@ -802,6 +847,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_2p_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live_4x/log.txt
+            ${{ runner.temp }}/baldosa-ws342-live-2p/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-2p-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-ws342-live-vs/ur-baldosa-ws342-*.pam

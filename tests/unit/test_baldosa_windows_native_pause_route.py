@@ -195,6 +195,36 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_pause_log(valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=wrong\n")
 
 
+    def test_paused_native_quit_requires_real_sdl_menu_and_typed_checkpoint(self):
+        valid = (
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=512x448 renderer=shared guest_steps=0\n"
+            "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n"
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=committed\n"
+        )
+        self.assertIsNone(probe.verify_native_pause_quit_log(valid))
+        for bad in (
+            valid.replace(" live_race=1", " live_race=0"),
+            valid.replace("QUIT_QUEUED=1", "QUIT_QUEUED=0"),
+            valid.replace("paused=1 guest_steps=0", "paused=0 guest_steps=0"),
+            valid.replace("status=committed", "status=selection_conflict"),
+            valid + "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952\n",
+            valid + "UR_BALDOSA_NATIVE_PAUSE RESUMED guest=1953\n",
+            valid + "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_REJECTED=event_queue\n",
+            valid + "script f=2473 quit\n",
+            valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=changed_ram\n",
+            valid + "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n",
+            valid.replace(
+                "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n", ""
+            ).replace(
+                "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT",
+                "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT",
+            ) + "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n",
+        ):
+            with self.subTest(bad=bad[-110:]):
+                with self.assertRaises(ValueError):
+                    probe.verify_native_pause_quit_log(bad)
+
     def test_delayed_restart_requires_real_elapsed_guest_frames(self):
         valid = (
             "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"

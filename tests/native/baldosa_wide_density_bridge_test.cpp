@@ -10,6 +10,11 @@
 #include <initializer_list>
 #include <vector>
 
+extern "C" {
+// Production scene classification reads original guest WRAM, never edits it.
+std::uint8_t g_ram[0x20000] = {};
+}
+
 namespace {
 int g_scale = 1;
 int g_last_margin = -1;
@@ -104,5 +109,69 @@ int main() {
     assert(width == 256 && height == 224 && g_last_margin == 0);
     g_scale = 4;
     check_frame(g_scale, width);
+
+    // Separate real-game lifecycle gating: no magic frame range and no
+    // width expansion during setup/results, even after the first race.
+    assert(setenv("UR_BALDOSA_WS342_LIVE", "1", 1) == 0);
+    g_ram[0x0313] = 0x01; // Active, but no pre-race mode recognized.
+    g_ram[0x009F] = 0x00;
+    ur_baldosa_ws24_begin_sim_frame(3000);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && height == 224 && g_last_margin == 0);
+
+    g_ram[0x0313] = 0x00;
+    g_ram[0x009F] = 0x3C; // Title-owned 1P pre-race latch.
+    ur_baldosa_ws24_begin_sim_frame(3001);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && g_last_margin == 0);
+    g_ram[0x0313] = 0x01;
+    g_ram[0x009F] = 0x00; // Incidental active-race frontend scratch.
+    ur_baldosa_ws24_begin_sim_frame(3002);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 342 && height == 224 && g_last_margin == 48);
+    for (int scale : {1, 2, 3, 4}) {
+        g_scale = scale;
+        check_frame(scale, width);
+    }
+
+    g_ram[0x0313] = 0x00;
+    g_ram[0x009F] = 0xF9; // Terminal/results view stays centered.
+    ur_baldosa_ws24_begin_sim_frame(3003);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && height == 224 && g_last_margin == 0);
+
+    // Returning to settled frontend must retire the old 1P mode.
+    g_ram[0x009F] = 0xD7;
+    ur_baldosa_ws24_begin_sim_frame(3004);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256);
+    g_ram[0x0313] = 0x01;
+    g_ram[0x009F] = 0x00; // No fresh mode selection: remain Original.
+    ur_baldosa_ws24_begin_sim_frame(3005);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && g_last_margin == 0);
+
+    g_ram[0x0313] = 0x00;
+    g_ram[0x009F] = 0x3E; // VS pre-race.
+    ur_baldosa_ws24_begin_sim_frame(3006);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256);
+    g_ram[0x0313] = 0x01;
+    g_ram[0x009F] = 0x00;
+    g_force_uncalibrated = true; // No guessed course pixels on failure.
+    ur_baldosa_ws24_begin_sim_frame(3007);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 256 && height == 224);
+    g_force_uncalibrated = false;
+    ur_baldosa_ws24_begin_sim_frame(3008);
+    ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
+    assert(width == 342 && height == 224);
+    g_scale = 4;
+    check_frame(g_scale, width);
+
+    // Invalid prepare must revoke the previous frame's 342-wide admission.
+    ur_baldosa_ws24_prepare_frame(0, 0, nullptr, &height);
+    assert(ur_baldosa_ws24_draw_frame(
+        nullptr, 0, nullptr, 342, 224, 0.0) == 0);
     return 0;
 }

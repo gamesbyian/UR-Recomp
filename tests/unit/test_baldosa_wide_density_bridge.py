@@ -19,6 +19,7 @@ class BaldosaWideDensityBridgeTest(unittest.TestCase):
                     str(ROOT / "tests/native/baldosa_wide_density_bridge_test.cpp"),
                     str(ROOT / "tools/baldosa_native_ws24_presentation.cpp"),
                     str(ROOT / "native/product/presentation_density_compositor.cpp"),
+                    str(ROOT / "native/product/widescreen_output_composition.cpp"),
                     "-o", str(target),
                 ],
                 check=True,

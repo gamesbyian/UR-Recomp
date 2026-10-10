@@ -56,7 +56,8 @@ class WorldMarginProbeTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             for name in ("tools/baldosa_native_ws24_presentation.cpp",
-                         "native/title/uniracers_ws_margins.c"):
+                         "native/title/uniracers_ws_margins.c",
+                         "native/product/widescreen_output_composition.cpp"):
                 file = root / name
                 file.parent.mkdir(parents=True, exist_ok=True)
                 file.write_text("/* fixture */\n")
@@ -65,6 +66,8 @@ class WorldMarginProbeTests(unittest.TestCase):
             out = adapter.patch_cmake("# UR_BALDOSA_NATIVE_RACER_PRESENTATION\n", root)
             self.assertEqual(adapter.patch_cmake(out, root), out)
             self.assertIn("uniracers_ws_margins.c", out)
+            self.assertIn("widescreen_output_composition.cpp", out)
+            self.assertIn('target_include_directories(UniracersSNESRecomp PRIVATE', out)
 
     def test_two_split_views_require_real_24_pixel_world_margins(self):
         with tempfile.TemporaryDirectory() as td:

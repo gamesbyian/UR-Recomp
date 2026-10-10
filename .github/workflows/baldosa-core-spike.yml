@@ -718,6 +718,38 @@ jobs:
           unset UR_RACER_HD_WIDE_REMOVE_FRAME
           echo "PASS: actual native PPU slot98 final-visible contributions from 3 isolated same-frame processes, guest CRC unchanged" >> "$GITHUB_STEP_SUMMARY"
 
+          # Two more independent PPU counterfactuals, reusing the exact
+          # native per-slot source planes captured by the same job. Slot 96
+          # is the opposite split rider at frame 1856; slot 98 at 1872 is
+          # independent moving-world evidence. Each modifies only ONE
+          # diagnostic guest frame and must preserve all 2473 guest CRCs.
+          for sample in 96:1856 98:1872; do
+            IFS=: read -r visible_slot visible_frame <<< "$sample"
+            printf -v six_digit_frame '%06d' "$visible_frame"
+            export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+            export UR_RACER_HD_WIDE_REMOVE_SLOT="$visible_slot"
+            export UR_RACER_HD_WIDE_REMOVE_FRAME="$visible_frame"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-slot${visible_slot}-frame${visible_frame}"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame${visible_frame}"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame${visible_frame}/fd/crc.txt"
+            python3 tools/check_baldosa_wide_slot_final_visibility.py \
+              --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-${six_digit_frame}.pam" \
+              --source "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot${visible_slot}-frame${six_digit_frame}.pam" \
+              --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-${six_digit_frame}.pam" \
+              --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+              --source-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_${visible_slot}/fd/crc.txt" \
+              --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame${visible_frame}/fd/crc.txt" \
+              --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame${visible_frame}/log.txt" \
+              --slot "$visible_slot" --frame "$visible_frame" \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_slot${visible_slot}_final_visibility_${visible_frame}.json"
+          done
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "PASS: P1/P2 split and moving-time native PPU final-visible source attribution, unchanged complete guest CRC" >> "$GITHUB_STEP_SUMMARY"
+
           python3 - <<'PY'
           import json
           import os
@@ -893,6 +925,12 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_slot96_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1872.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot96_frame1856/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98_frame1872/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame1856/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame1872/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json

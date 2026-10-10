@@ -20,6 +20,12 @@ CENSUS = re.compile(
     r"status=([a-z][a-z0-9-]*) reason=([a-z][a-z0-9-]*)$"
 )
 
+
+PIXEL_CHANGE = re.compile(
+    r"^UR_RACER_HD_PIXEL_CHANGE frame=(\d+) source_instances=([0-4]) "
+    r"changed_from_underlay=([01])$"
+)
+
 ALLOWED = {
     "gate": {"original", "armed"},
     "present": {"original", "hd"},
@@ -50,7 +56,17 @@ def analyze(
 ) -> dict:
     gates: dict[int, tuple[str, str]] = {}
     presents: dict[int, list[tuple[str, str]]] = {}
+    pixel_changes: dict[int, list[tuple[int, bool]]] = {}
     for lineno, line in enumerate(log.splitlines(), 1):
+        if "UR_RACER_HD_PIXEL_CHANGE" in line:
+            pixels = PIXEL_CHANGE.fullmatch(line)
+            if pixels is None:
+                raise ValueError(f"malformed pixel-change line {lineno}")
+            frame, sources, changed = map(int, pixels.groups())
+            if sources == 0 and changed != 0:
+                raise ValueError(f"source-absent frame {frame} reports authored pixel changes")
+            pixel_changes.setdefault(frame, []).append((sources, bool(changed)))
+            continue
         if "UR_RACER_HD_CENSUS" not in line:
             continue
         match = CENSUS.search(line)
@@ -84,6 +100,7 @@ def analyze(
             )
         gates = {f: v for f, v in gates.items() if f in expected}
         presents = {f: v for f, v in presents.items() if f in expected}
+        pixel_changes = {f: v for f, v in pixel_changes.items() if f in expected}
     if not gates:
         raise ValueError("no native Racer HD per-frame gate observations")
     if not presents:
@@ -122,6 +139,22 @@ def analyze(
 
     hd_frames = sorted(f for f, status in presented_classes.items() if status == "hd")
     original_frames = sorted(f for f, status in presented_classes.items() if status == "original")
+    # Historical logs may lack pixel witnesses. New runs with any witness
+    # must emit exactly one per accepted HD callback in the scoped window.
+    if pixel_changes:
+        if set(pixel_changes) != set(hd_frames):
+            raise ValueError("pixel-change witness missing or on non-HD frames")
+        for frame, witnesses in pixel_changes.items():
+            if len(witnesses) != len(presents[frame]):
+                raise ValueError(f"pixel-change witness count differs from HD presents at frame {frame}")
+    changed_frames = sorted(
+        f for f, visits in pixel_changes.items()
+        if any(changed for _, changed in visits)
+    )
+    source_visible_frames = sorted(
+        f for f, visits in pixel_changes.items()
+        if any(sources > 0 for sources, _ in visits)
+    )
     consecutive = [
         (a, b)
         for a, b in zip(sorted(presented_classes), sorted(presented_classes)[1:])
@@ -151,6 +184,13 @@ def analyze(
             "host_present_calls": sum(map(len, presents.values())),
             "hd_present_calls": hd_present_calls,
             "hd_drawn_guest_frames": len(hd_frames),
+            "hd_pixel_change_witness_guest_frames": len(pixel_changes),
+            "hd_with_source_footprint_guest_frames": len(source_visible_frames),
+            "hd_with_actual_changed_pixels_guest_frames": len(changed_frames),
+            "hd_without_actual_changed_pixels_guest_frames": (
+                len(pixel_changes) - len(changed_frames)
+            ),
+            "hd_actual_changed_guest_frame_ids": changed_frames,
             "original_presented_guest_frames": len(original_frames),
             "hd_presented_fraction": len(hd_frames) / denom,
             "stock_fallback_fraction": len(original_frames) / denom,
@@ -179,6 +219,7 @@ def analyze(
         },
         "limitations": [
             "Counts host draw callback returns, not proof of correct pixels or background priority.",
+            "Optional host-vs-post-capture-underlay witness proves a raster change, not original-frame fidelity, sprite ownership or physical GPU output.",
             "Does not treat absent host presentation as a stock frame or join across frame gaps.",
             "P1-only diagnostic draws count as one HD player-frame; Original P2 remains stock.",
             "Current presenter only accepts fixed 256x224 geometry; widescreen is expected to fall back.",

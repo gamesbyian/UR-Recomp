@@ -17,7 +17,73 @@ def present(frame, status, reason):
     )
 
 
+def pixel_change(frame, sources, changed):
+    return (
+        f"UR_RACER_HD_PIXEL_CHANGE frame={frame} "
+        f"source_instances={sources} changed_from_underlay={changed}"
+    )
+
+
 class RacerHdLiveDrawCensusTests(unittest.TestCase):
+    def test_native_hd_callback_is_not_necessarily_a_visible_pixel_change(self):
+        log = "\n".join([
+            gate(1139, "armed", "full-pair"),
+            pixel_change(1139, 0, 0),
+            present(1139, "hd", "full-pair"),
+            gate(1140, "original", "overlapping-source-obj"),
+            present(1140, "original", "not-armed"),
+            gate(1141, "armed", "p1-only"),
+            pixel_change(1141, 1, 1),
+            present(1141, "hd", "p1-only"),
+            gate(1142, "armed", "full-pair"),
+            pixel_change(1142, 2, 0),
+            present(1142, "hd", "full-pair"),
+        ])
+        result = analyze(log)["measurement"]
+        self.assertEqual(result["hd_drawn_guest_frames"], 3)
+        self.assertEqual(result["hd_pixel_change_witness_guest_frames"], 3)
+        self.assertEqual(result["hd_with_source_footprint_guest_frames"], 2)
+        self.assertEqual(result["hd_with_actual_changed_pixels_guest_frames"], 1)
+        self.assertEqual(result["hd_without_actual_changed_pixels_guest_frames"], 2)
+        self.assertEqual(result["hd_actual_changed_guest_frame_ids"], [1141])
+        result = analyze(log, from_frame=1140, to_frame=1142)["measurement"]
+        self.assertEqual(result["hd_with_actual_changed_pixels_guest_frames"], 1)
+        self.assertEqual(result["hd_pixel_change_witness_guest_frames"], 2)
+        # A guest frame may be presented twice. Count its changed-output
+        # outcome once, but require one witness per actual render call.
+        repeated = analyze("\n".join([
+            gate(90, "armed", "p1-only"),
+            pixel_change(90, 1, 0),
+            present(90, "hd", "p1-only"),
+            pixel_change(90, 1, 1),
+            present(90, "hd", "p1-only"),
+        ]))["measurement"]
+        self.assertEqual(repeated["hd_pixel_change_witness_guest_frames"], 1)
+        self.assertEqual(repeated["hd_with_actual_changed_pixels_guest_frames"], 1)
+
+    def test_pixel_change_witness_fails_closed(self):
+        bad = [
+            ([gate(1, "armed", "full-pair"), pixel_change(1, 0, 1),
+              present(1, "hd", "full-pair")], "source-absent"),
+            ([gate(1, "armed", "full-pair"), pixel_change(1, 1, 1),
+              pixel_change(1, 1, 1), present(1, "hd", "full-pair")],
+             "pixel-change witness count"),
+            ([gate(1, "armed", "full-pair"),
+              "UR_RACER_HD_PIXEL_CHANGE frame=1 source_instances=5 changed_from_underlay=1",
+              present(1, "hd", "full-pair")], "malformed pixel-change"),
+            ([gate(1, "original", "disabled"), pixel_change(1, 1, 1),
+              present(1, "original", "not-armed")],
+             "pixel-change witness missing or on non-HD"),
+            ([gate(1, "armed", "full-pair"), pixel_change(1, 1, 1),
+              present(1, "hd", "full-pair"),
+              gate(2, "armed", "full-pair"), present(2, "hd", "full-pair")],
+             "pixel-change witness missing or on non-HD"),
+        ]
+        for lines, reason in bad:
+            with self.subTest(reason=reason):
+                with self.assertRaisesRegex(ValueError, reason):
+                    analyze("\n".join(lines))
+
     def test_actual_present_outcomes_and_temporal_edges(self):
         log = "\n".join([
             gate(10, "original", "p1-selection-or-art"),

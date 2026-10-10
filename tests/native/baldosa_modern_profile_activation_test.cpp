@@ -117,6 +117,24 @@ int main() {
     assert(root == "saves");
     assert(save_host_profile_catalog_file(
         "profiles-v1.txt", {{"rider-1", *identity}}));
+    // A full-length but mismatched raw image is not permission to boot a
+    // different snapshot from the typed selected Modern profile.
+    {
+        auto wrong = initialized;
+        wrong[0x30] ^= 0x55u;
+        std::ofstream raw("saves/profile-rider-1/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        raw.write(reinterpret_cast<const char*>(wrong.data()), wrong.size());
+        assert(raw.good());
+    }
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    {
+        std::ofstream raw("saves/profile-rider-1/save.srm",
+                          std::ios::binary | std::ios::trunc);
+        raw.write(reinterpret_cast<const char*>(initialized.data()),
+                  initialized.size());
+        assert(raw.good());
+    }
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
     assert(selected_racer == identity->name);
@@ -180,6 +198,24 @@ int main() {
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         *profile) == HostProfileSaveStatus::Saved);
+
+    // A second process (or filesystem manipulation) changed the raw save
+    // without publishing a matching typed profile. Reject before overwriting.
+    {
+        auto wrong = initialized;
+        wrong[0x31] ^= 0x6au;
+        std::ofstream raw(selected_raw, std::ios::binary | std::ios::trunc);
+        raw.write(reinterpret_cast<const char*>(wrong.data()), wrong.size());
+        assert(raw.good());
+    }
+    assert(ur_baldosa_modern_profile_before_native_save() == 0);
+    {
+        std::ofstream raw(selected_raw, std::ios::binary | std::ios::trunc);
+        raw.write(reinterpret_cast<const char*>(initialized.data()),
+                  initialized.size());
+        assert(raw.good());
+    }
+    assert_raw_unchanged();
 
     // Failed upstream SRAM I/O must also release the selector lease.
     assert(ur_baldosa_modern_profile_before_native_save() == 1);

@@ -41,7 +41,11 @@ def validate_paired_guest_report(obj: dict) -> dict:
             or obj["native_entry"] != 1081
             or obj["comparison"]["terminal_result_guest_frame"]
                != {"reference_relative": 4704, "native_relative": 4702}
-            or obj["comparison"]["terminal_result_frame_matched"] is not False):
+            or obj["comparison"]["terminal_result_frame_matched"] is not False
+            or obj["comparison"]["both_reached_terminal_menu"] is not True
+            or obj["comparison"]["rendered_result_and_score_text_matched"] is not True
+            or obj["comparison"]["timed_race_or_circuit_result_visible"] is not True
+            or obj["comparison"]["result_outside_active_race_in_both_guests"] is not True):
         raise ValueError("native trace has no pinned genuine independent Switcher result")
     if (pair["schema"] != "UR-QA01-SWITCHER-PENULTIMATE-SAME-HOST/1"
             or pair["original_absolute_host"] != 5782

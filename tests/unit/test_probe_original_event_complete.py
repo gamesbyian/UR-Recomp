@@ -98,7 +98,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             states, 2, 0x18)["complete_event_qa_credit"], 0)
         # A one-frame track-ID scratch write must not count as entry.
         isolated = source_states(8620, 11985, 2, 0x18, tally=True)
-        for f in range(8620, 8627):
+        for f in range(8621, 11985):
             isolated[f]["track"] = 1
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(isolated, 2, 0x18)

@@ -174,6 +174,18 @@ jobs:
           export DISPLAY=:99
           export BIN="$RUNNER_TEMP/ur-baldosa-x11"
           export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          # Compare APPEND-ONLY host-frame WRAM before/after Restart. The
+          # existing guest-indexed framedumps can overwrite earlier identical
+          # frames following a true snes_frame_counter rollback.
+          export UR_BALDOSA_RESTART_FRAME_TRACE=1
+          export UR_BALDOSA_PAUSE_SMOKE=0
+          export UR_BALDOSA_MODERN_INPUT=0
+          export UR_BALDOSA_PHYSICAL_PAUSE_SMOKE=0
+          export UR_BALDOSA_RESTART_SAME_FRAME_SMOKE=0
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline"
+          cmp "$RUNNER_TEMP/ur-baldosa-input/original/fd/crc.txt" \
+              "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline/fd/crc.txt"
           export UR_BALDOSA_PAUSE_SMOKE=1
           export UR_BALDOSA_MODERN_INPUT=1
           export UR_BALDOSA_PHYSICAL_PAUSE_SMOKE=1
@@ -196,3 +208,43 @@ jobs:
               "$RUNNER_TEMP/ur-baldosa-input/paused_resume/fd/crc.txt"
           echo "PASS: real Baldosa guest same-boundary rollback via unchanged Modern Restart anchor with byte-identical SRAM/WRAM, 24 native SDL pause polls and exact original 2P frame CRCs; synthetic SDL input, not hardware or multi-frame Retry acceptance" >> "$GITHUB_STEP_SUMMARY"
           grep 'UR_BALDOSA_NATIVE_PAUSE ' "$log"
+          # Delayed RESTART: real SDL 'R' while Modern owns an active pause.
+          # Unlike the same-frame no-op, this intentionally rewinds actual
+          # progressed guest WRAM, so CRCs MUST diverge only after resume.
+          export UR_BALDOSA_DELAYED_RESTART_SMOKE=1
+          export UR_BALDOSA_RESTART_SAME_FRAME_SMOKE=0
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/ur-baldosa-input/delayed_restart"
+          delayed_log="$RUNNER_TEMP/ur-baldosa-input/delayed_restart/log.txt"
+          grep -Eq 'UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=[0-9]+ request_guest=1952 paused=1 sram_equal=1 wram_rewound=1' "$delayed_log"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24' "$delayed_log"
+          if grep -q 'UR_BALDOSA_NATIVE_PAUSE FAIL=' "$delayed_log"; then
+            echo "::error::Delayed native Restart rejected guest/host state"
+            exit 1
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          from tools.baldosa_windows_native_pause_route import (
+              check_delayed_restart_host_trace,
+          )
+          root = Path(os.environ["RUNNER_TEMP"]) / "ur-baldosa-input"
+          # Guest-indexed filenames are NOT monotonic through a rollback.
+          # Retain guest CRC counts, but judge the rewind on full WRAM sampled
+          # against the *host* clock, which rollback does not rewind.
+          original = (root / "original/fd/crc.txt").read_text().splitlines()
+          delayed = (root / "delayed_restart/fd/crc.txt").read_text().splitlines()
+          assert len(original) == len(delayed) == 2473, (
+              "Unexpected guest frame count after delayed Restart",
+              len(original), len(delayed))
+          baseline_log = (root / "native_host_baseline/log.txt").read_text()
+          delayed_log = (root / "delayed_restart/log.txt").read_text()
+          proof = check_delayed_restart_host_trace(baseline_log, delayed_log)
+          print("UR_BALDOSA_NATIVE_RESTART HOST_TRACE "
+                f"first_divergent_host={proof['first_divergent_host_frame']} "
+                f"original_guest={proof['original_guest_counter_after_resume']} "
+                f"rewound_guest={proof['restarted_guest_counter_after_resume']} "
+                f"host_samples={proof['host_sample_count']}")
+          PY
+          echo "PASS: pinned Baldosa AOT accepts SDL R from native Modern pause after 12+ guest frames, rewinds WRAM to genuine race anchor with SRAM preserved and host owned; append-only host-timeline WRAM proves post-resume divergence independent of rewindable guest dump filenames; no event completion credit" >> "$GITHUB_STEP_SUMMARY"
+          grep 'UR_BALDOSA_NATIVE_RESTART ' "$delayed_log"

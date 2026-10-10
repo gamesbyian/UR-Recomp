@@ -57,5 +57,82 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_pause_log(valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=wrong\n")
 
 
+    def test_delayed_restart_requires_real_elapsed_guest_frames(self):
+        valid = (
+            "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=1800 sram_equal=1 wram_equal=1\n"
+            "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=1800 request_guest=1952 paused=1 sram_equal=1 wram_rewound=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24 physical_sdl=1\n"
+            "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n"
+        )
+        self.assertEqual(
+            probe.check_delayed_restart_log(valid, expected_request_frame=1952),
+            {"anchor_guest": 1800, "request_guest": 1952},
+        )
+        for bad in (
+            valid.replace("wram_rewound=1", "wram_rewound=0"),
+            valid.replace("sram_equal=1 wram_rewound", "sram_equal=0 wram_rewound"),
+            valid.replace("anchor_guest=1800", "anchor_guest=1949"),
+            valid.replace("request_guest=1952 paused=1", "request_guest=1953 paused=1"),
+            valid.replace(" paused=1 sram_equal=1 wram_rewound=1", " paused=0 sram_equal=1 wram_rewound=1"),
+            valid.replace("UR_BALDOSA_NATIVE_RESTART DELAYED", "UR_BALDOSA_NATIVE_RESTART DUMMY"),
+            valid + "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=1800 request_guest=1952 paused=1 sram_equal=1 wram_rewound=1\n",
+        ):
+            with self.subTest(bad=bad):
+                with self.assertRaises(ValueError):
+                    probe.check_delayed_restart_log(bad, expected_request_frame=1952)
+        with self.assertRaisesRegex(ValueError, "violation"):
+            probe.check_delayed_restart_log(
+                valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
+                expected_request_frame=1952)
+
+    def test_host_frame_wram_detects_guest_rewind_even_when_guest_dump_names_repeat(self):
+        def trace(offset_after_restart=0):
+            result = []
+            for frame in range(probe.HOST_TRACE_START, probe.HOST_TRACE_END + 1):
+                rollback = frame > probe.HOST_RESTART_FRAME and offset_after_restart
+                guest = frame - (34 if rollback else 0)
+                fingerprint = ((frame + (offset_after_restart if rollback else 0)) * 41) & 0xffffffff
+                result.append(
+                    f"UR_BALDOSA_HOST_FRAME_CRC host={frame} guest={guest} "
+                    f"hash={fingerprint:08x}"
+                )
+            return "\n".join(result) + "\n"
+
+        baseline = trace()
+        restarted = trace(7)
+        receipt = probe.check_delayed_restart_host_trace(baseline, restarted)
+        self.assertEqual(
+            receipt["first_divergent_host_frame"],
+            probe.HOST_RESTART_FRAME + 1)
+        self.assertEqual(
+            receipt["host_sample_count"],
+            probe.HOST_TRACE_END - probe.HOST_TRACE_START + 1)
+        self.assertLess(
+            receipt["restarted_guest_counter_after_resume"],
+            receipt["original_guest_counter_after_resume"])
+
+        # Guest-indexed file CRCs may be overwritten by guest timeline rewind.
+        # Identical file contents are NOT a negative control for host-relative
+        # WRAM divergence. Only the real immutable host-frame stream is.
+        with self.assertRaisesRegex(ValueError, "did not change"):
+            probe.check_delayed_restart_host_trace(baseline, baseline)
+        with self.assertRaisesRegex(ValueError, "before physical R"):
+            bad = restarted.replace(
+                f"host={probe.HOST_RESTART_FRAME} guest={probe.HOST_RESTART_FRAME}",
+                f"host={probe.HOST_RESTART_FRAME} guest=1")
+            probe.check_delayed_restart_host_trace(baseline, bad)
+        with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
+            probe.check_delayed_restart_host_trace(
+                baseline, restarted.splitlines()[1:] and
+                "\n".join(restarted.splitlines()[1:]) + "\n")
+        with self.assertRaisesRegex(ValueError, "Duplicate host-frame"):
+            line = restarted.splitlines()[0]
+            probe.check_delayed_restart_host_trace(
+                baseline, restarted + line + "\n")
+        with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
+            probe.check_delayed_restart_host_trace(baseline, "")
+
+
 if __name__ == "__main__":
     unittest.main()

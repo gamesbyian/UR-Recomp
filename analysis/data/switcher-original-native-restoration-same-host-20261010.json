@@ -1,0 +1,101 @@
+{
+  "schema": "UR-QA01-SWITCHER-ORIGINAL-NATIVE-RESTORATION/1",
+  "provenance": {
+    "original_native_run_id": 38073881560,
+    "original_native_job_id": 114276701802,
+    "original_native_artifact_id": 11678416824,
+    "artifact_zip_sha256": "a6e40d7fc26e89ebced6e46e243eb6582d1edea7b77f6ed21b9cb1e78a3510af",
+    "contained_switcher_report_sha256": "d8ea314f560b6bbec0548d5b65bb171ccac08975f73f02a65084634d1e7b60f3",
+    "one_shot_pr_number": 1175,
+    "one_shot_pr_closed_unmerged": true,
+    "usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "movie_unpacked_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_window_sha256": "6b4df10995e1383f4323d66e3d9af92a42833085041bd26944b9be570211d65d",
+    "native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "source_original_horizon_attested_host": 22000
+  },
+  "observed": {
+    "course_id": "course:04",
+    "name": "Switcher",
+    "original_guest_entry_host": 1079,
+    "native_guest_entry_host": 1081,
+    "original_relative_result_onset": 4704,
+    "native_relative_result_onset": 4702,
+    "original_result_host": 5783,
+    "native_result_host": 5783,
+    "original_native_settled_result_text_equal": true,
+    "player_one": "MIKE",
+    "player_one_time": "1:08.81",
+    "actual_observed_guest_relative_samples": 46,
+    "first_transition": {
+      "name": "start of temporary course-id 0 menu handoff",
+      "reference_last_pre_stage_relative": 4664,
+      "reference_first_stage_relative": 4665,
+      "reference_first_stage_host": 5744,
+      "native_last_pre_stage_relative": 4663,
+      "native_first_stage_relative": 4664,
+      "native_first_stage_host": 5745,
+      "reference_stage_menu": 132,
+      "reference_stage_track": 0,
+      "native_stage_menu": 132,
+      "native_stage_track": 0,
+      "note": "Original begins the menu/track transient exactly one absolute host frame before native."
+    },
+    "restore_transition": {
+      "name": "restore Switcher track3 menu0x16 from temporary track0/menu0x84",
+      "reference_last_stage_relative": 4698,
+      "reference_first_restored_relative": 4699,
+      "native_last_stage_relative": 4696,
+      "native_first_restored_relative": 4697,
+      "reference_first_restored_host": 5778,
+      "native_first_restored_host": 5778,
+      "restored_course_track": 3,
+      "restored_menu": 22,
+      "restored_in_race": 1,
+      "reference_native_same_absolute_host_frames_with_all_sampled_fields_identical": [
+        5778,
+        5779,
+        5780
+      ],
+      "cross_guest_same_host_pairs": [
+        {
+          "host": 5778,
+          "original_relative": 4699,
+          "native_relative": 4697
+        },
+        {
+          "host": 5779,
+          "original_relative": 4700,
+          "native_relative": 4698
+        },
+        {
+          "host": 5780,
+          "original_relative": 4701,
+          "native_relative": 4699
+        }
+      ]
+    },
+    "final_boundary": {
+      "relative_frame": 4701,
+      "reference_in_race": 1,
+      "native_in_race": 0,
+      "reference_host_frame": 5780,
+      "native_host_frame": 5782,
+      "reference_p1_x": 63162,
+      "native_p1_x": 19456,
+      "reference_p1_y": 873,
+      "native_p1_y": 19456,
+      "description": "In-race and position differences at equal guest-relative +4701 compare DIFFERENT host frames; same-host reference +4703 is not in this probe. Does not establish a physics instruction defect."
+    },
+    "non_gameplay_oracle": "New terminal guest phase samples only. 46 sparse paired relative frames are not full continuous event parity; no instructions, NMI owner, all-frame physics or actual post-result progression independently proven."
+  },
+  "acceptance": {
+    "guest_relative_terminal_matched": false,
+    "absolute_host_terminal_matched": true,
+    "release_usa_courses_accepted": 0,
+    "total_usa_courses": 45,
+    "do_not_shift_source_input": true
+  },
+  "next": "Use a separate non-admission asymmetric SAME-HOST source/native guest snapshot at host 5782 (original relative+4703 versus native+4701), with unmodified source inputs and independent output files, to classify when each guest leaves race. Preserve existing strict symmetric guest-relative acceptance comparator unchanged."
+}

@@ -1,8 +1,6 @@
 # QA-08: independent native 1P authored Remastered gameplay admission
 
-**Status:** bounded candidate; no native acceptance until CI actually runs the
-candidate. 1P Remastered may never be inferred from the earlier 2P overlap
-tests, or from a correct 4× Original screenshot.
+**Status: bounded native source-visible fixed-width 1P authored rendering accepted.** Merged #1228 exact AOT run `38089648874` (artifact `11683487886`) and independent no-new-guest pixel-locality checker #1245. This is **not** sustained in-race Remastered art, wide 342-column HD, P2 foreground priority or Windows beta approval.
 
 ## Measured starting evidence
 
@@ -41,8 +39,8 @@ reported **four** post-script-entry P1-only HD presents
   (`UR_RACER_HD_PIXEL_CHANGE ... changed_from_underlay=1`),
   each with one source-visible rider instance. The pinned native PPU
   logged `top_opaque=0` and **bottom_opaque=315 / 316**. These
-  are promising *bottom-only* source-positive compositions, not yet
-  retained HD images. A top-only checker would falsely miss them.
+  were initially promising *bottom-only* source-positive compositions, and
+  their retained HD images were subsequently accepted by #1228. A top-only checker would falsely miss them.
 - At **1808 and 1840**, the host returned HD but
   `source_instances=0 changed_from_underlay=0` and retained
   1024×896 PAMs showing no independently proved authored pixels.
@@ -63,7 +61,7 @@ independent stock route. Their original images are stored as
 `...-001744.pam`. The first classifier returned
 `guarded-1p-real-art-unproven` despite a source-positive bottom
 viewport because it erroneously required a **top-band** authored
-pixel; the next run fixes that narrower evidence bug.
+pixel. The later accepted run #1228 fixed this evidence-only bug.
 
 **Actual visual review:** both frame1728 and frame1744 still display
 the huge light-purple original countdown **0** overlay, alongside
@@ -92,6 +90,45 @@ capture window, first-party OBJ source guards and shipping graphics
 mode are unchanged. Its purpose is to retain actual original/HD
 raster evidence at **1728/1744**. Neither the initial red workflow
 nor an HD-presented log by itself is beta/admission credit.
+
+## Final accepted 1P measurement and strict locality
+
+Merged **#1228** reached the exact source-safe positive state:
+`guarded-1p-real-art-observed` with **5,447 / 5,447** independent
+guest CRCs identical, original 1P script race entry **1720** and end
+**5447**. There were **3,727 scoped race guest frames** but only
+**233 actual desktop-present calls**. The guest safely armed P1-only
+HD in **58** frames, and **four** HD host presentations occurred:
+1728, 1744, 1808 and 1840. Exactly the first two retained images
+showed genuine changed authored pixels; 1808/1840 were source-absent.
+
+| Genuine native authored sample | Original source bottom opacity | Actual P1 bottom changed pixels | Top changed |
+| --- | ---: | ---: | ---: |
+| Guest frame 1728, semantic 0439 | 315 | **3,422** | **0** |
+| Guest frame 1744, semantic 01B9 | 316 | **3,526** | **0** |
+
+The accepted source-PPU post-OBJ-removal versus actual 1024×896
+host image comparison preserves all **source-empty top pixels**
+exactly. Its native PPU post-removal underlay hashes and full 4×
+source hashes are retained in `guarded_1p_hd_source_band_parity.json`
+(artifact `11683487886`).
+
+Merged **#1245** adds an independently tested whole-raster *source
+OAM footprint* oracle: every changed authored pixel must remain in
+the source-derived P1 slot97/98 64×64 signed-X/wrapped-Y rectangle,
+never merely the correct screen half. The independently examined
+native changed-pixel bounding box was **X448..523, Y448..531**
+for both real frames, entirely inside original P1 bottom slot97
+at **X96, Y96**. The tests explicitly reject phantom top pixels
+and out-of-slot bottom edits. No new native build was needed for
+this read-only checker.
+
+**The visual limitation is unchanged:** these are countdown-obscured
+early-race samples, not visually established HD racing. The only
+accepted live post-countdown 342-wide 1P frame is Original fallback;
+the source/4× cross-density proof and runtime semantic art-gap ranking
+are separate #1231 work in progress. The existing conservative
+source-and-occlusion gates remain mandatory.
 
 ## Experiment
 

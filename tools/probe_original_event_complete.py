@@ -75,6 +75,49 @@ def stock_crawler_script(slot: int) -> str:
     return "\n".join(lines) + "\n"
 
 
+def source_event_diagnostic(states: dict[int, dict],
+                            track: int, result_menu: int) -> dict:
+    """Report bounded original source state evidence without widening admission.
+
+    Original 7E:00CE is mutable menu/track state and 7E:0313 is reused in
+    non-race result states; a failed detection must show the true source
+    values before modifying any course-result qualifier.
+    """
+    keys = sorted(states)
+    active_frames = [f for f in keys
+                     if states[f]["track"] == track and states[f]["in_race"] == 1]
+    stages = result_probe.result_runs(states)
+    anchors = set()
+    for row in stages:
+        if row["menu"] in (result_menu, 0x2F):
+            anchors.update((row["start"] - 1, row["start"],
+                            row["start"] + 1, row["end"]))
+    anchors.update(f for f in (11914, 11915, 11979, 11984, 11985, 11997)
+                   if f in states)
+    return {
+        "schema": "UR-QA01-SOURCE-RESULT-PROBE/1",
+        "source_trace_frames": [keys[0], keys[-1]] if keys else [],
+        "wanted_course_track": track,
+        "wanted_result_menu": result_menu,
+        "active_track_frames": len(active_frames),
+        "active_track_first_last": [active_frames[0], active_frames[-1]]
+            if active_frames else [],
+        "stable_original_results": [
+            {**row, "track_at_start": states[row["start"]]["track"],
+             "race_flag_at_start": states[row["start"]]["in_race"]}
+            for row in stages if row["menu"] in (result_menu, 0x2F)
+        ][:16],
+        "sampled_state_at_source_result_neighbors": {
+            str(f): states[f] for f in sorted(anchors) if f in states
+        },
+        "provenance_guardrail": (
+            "Source-only trace diagnostic; no inferred event identity, "
+            "native comparison, result-scoring credit or course admission."
+        ),
+        "complete_event_qa_credit": 0,
+    }
+
+
 def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     """Detect source-original course entry and terminal result, never infer
     either from an approximate movie timestamp."""
@@ -308,6 +351,11 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
         raise CompleteEventError("source-original replay failed: " + (p.stdout + p.stderr)[-1200:])
     states = trace.frame_states((scan / "trace.jsonl").read_text().splitlines())
     stream, track, menu, _ = CASES[args.case]
+    diagnostic = source_event_diagnostic(states, track, menu)
+    (scan / "source-event-diagnostic.json").write_text(
+        json.dumps(diagnostic, indent=2) + "\n", encoding="utf-8")
+    print("ORIGINAL_SOURCE_EVENT_DIAGNOSTIC="
+          + json.dumps(diagnostic, sort_keys=True), flush=True)
     event = source_event(states, track, menu)
     if args.case == "zoom-zoo" and event["original_entry_frame"] != 3190:
         raise CompleteEventError("2014 Zoom Zoo entry disagrees with pinned original 3190")

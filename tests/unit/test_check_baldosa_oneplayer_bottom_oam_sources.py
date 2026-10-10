@@ -42,7 +42,7 @@ class OnePlayerBottomOriginalSourcesTests(unittest.TestCase):
                 assess(stock, one, four, root, root,
                        root / "slot96.pam", root / "slot97.pam",
                        root / "one.log", root / "four.log", frame=2224)
-            with self.assertRaisesRegex(ValueError, "source guest-frame"):
+            with self.assertRaisesRegex(ValueError, "Missing real native"):
                 assess(stock, one, four, root, root,
                        root / "slot96.pam", root / "slot97.pam",
                        root / "one.log", root / "four.log")

@@ -1,0 +1,130 @@
+{
+  "schema": "UR-QA01-SWITCHER-SOURCE-NATIVE-TERMINAL-HANDOFF/1",
+  "provenance": {
+    "original_native_run_id": 38072910224,
+    "artifact_id": 11678085612,
+    "artifact_zip_sha256": "8f61dd5bbbddfc11db6a962d27364d6667fb8532b8c2bdce5a688decb05d317e",
+    "result_json_sha256": "ca6fd7e2a943f606650dec770d44be85e057a8315c3549491a2f922ece150eeb",
+    "workflow_pr": 1171,
+    "workflow_pr_closed_unmerged": true,
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_movie_window_sha256": "6b4df10995e1383f4323d66e3d9af92a42833085041bd26944b9be570211d65d",
+    "original_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "snes9x_core_sha256": "904dc393d2b4c00384d6e0a692198f0befaeff7bdd49e40e0e373f2c3f0a5602",
+    "native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8"
+  },
+  "actual_run": {
+    "course": "Switcher",
+    "course_id": "course:04",
+    "result_text": [
+      "SWITCHER",
+      "COMPLETE",
+      "PLAYER     TIME",
+      "MIKE",
+      "1:08.81",
+      "SOMEONE",
+      "NO TIME",
+      "SOMEONE",
+      "NO TIME",
+      "SOMEONE",
+      "NO TIME"
+    ],
+    "original_movie_source_entry": 12327,
+    "original_movie_source_result": 17030,
+    "first_guest_reference_entry_host": 1079,
+    "first_guest_native_entry_host": 1081,
+    "source_original_result_relative": 4704,
+    "native_result_relative": 4702,
+    "original_result_host": 5783,
+    "native_result_host": 5783,
+    "stable_host_frame": 5789,
+    "original_native_guest_entry_states_equivalent": true,
+    "original_native_result_guest_state_equivalent": true,
+    "sampled_guest_frames_per_engine": 43,
+    "terminal_samples_relative": [
+      4623,
+      4653,
+      4661,
+      4663,
+      4664,
+      4665,
+      4666,
+      4673,
+      4683,
+      4693,
+      4694,
+      4695,
+      4696,
+      4697,
+      4698
+    ]
+  },
+  "source_relative_terminal_states": {
+    "legend": "menu values integer 0x00=0, 0x84=132, 0x16=22; track 0/3; the guest-relative frame is added to each engine's independently observed host entry",
+    "paired_identical_at": [
+      4623,
+      4653,
+      4661,
+      4663,
+      4665,
+      4666,
+      4673,
+      4683,
+      4693,
+      4694,
+      4695,
+      4696
+    ],
+    "differing": [
+      {
+        "relative_frame": 4664,
+        "reference_menu": 0,
+        "reference_track": 3,
+        "native_menu": 132,
+        "native_track": 0,
+        "original_host_frame": 5743,
+        "native_host_frame": 5745,
+        "other_semantic_sample_fields_equal": true
+      },
+      {
+        "relative_frame": 4697,
+        "reference_menu": 132,
+        "reference_track": 0,
+        "native_menu": 22,
+        "native_track": 3,
+        "original_host_frame": 5776,
+        "native_host_frame": 5778,
+        "other_semantic_sample_fields_equal": true
+      },
+      {
+        "relative_frame": 4698,
+        "reference_menu": 132,
+        "reference_track": 0,
+        "native_menu": 22,
+        "native_track": 3,
+        "original_host_frame": 5777,
+        "native_host_frame": 5779,
+        "other_semantic_sample_fields_equal": true
+      }
+    ],
+    "original_reference_first_observed_course0_relative": 4665,
+    "native_first_observed_course0_relative": 4664,
+    "original_reference_first_observed_course0_host": 5744,
+    "native_first_observed_course0_host": 5745,
+    "native_restored_course3_relative_by": 4697,
+    "native_restored_course3_host_by": 5778,
+    "original_reference_course0_still_observed_relative": 4698,
+    "original_reference_course0_still_observed_host": 5777,
+    "original_reference_restore_exact_frame": "not yet sampled",
+    "all_observed_non_menu_track_fields_identical_at_43_paired_relative_frames": true
+  },
+  "strict_acceptance": {
+    "original_native_terminal_guest_relative_matched": false,
+    "original_native_terminal_host_absolute_matched": true,
+    "official_usa_accepted_courses": 0,
+    "denominator": 45,
+    "release_credit": 0
+  },
+  "next": "Observe reference and Baldosa near-terminal relative frames +4699,+4700,+4701 without changing source inputs, race state or native guest. Those are before first native +4702 result and may show whether the original restores track 3 at the same absolute host 5778 as Baldosa."
+}

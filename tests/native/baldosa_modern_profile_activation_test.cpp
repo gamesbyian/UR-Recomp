@@ -27,6 +27,11 @@ int g_sram_size = 0;
 
 namespace {
 std::string root = "saves";
+std::string selected_racer;
+}
+
+extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
+    selected_racer = name ? name : "";
 }
 
 extern "C" void RtlSetSaveRoot(const char* value) {
@@ -111,6 +116,7 @@ int main() {
         "profiles-v1.txt", {{"rider-1", *identity}}));
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
+    assert(selected_racer == identity->name);
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);
     assert(!fs::exists("saves/save.srm"));
 

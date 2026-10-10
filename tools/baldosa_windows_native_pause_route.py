@@ -49,8 +49,12 @@ def frame_crcs(folder: Path) -> list[str]:
 
 
 def run_route(exe: Path, rom: Path, script: Path, root: Path,
-              *, pause: bool, video: str, timeout: int) -> tuple[list[str], str]:
-    name = "with_pause" if pause else "baseline"
+              *, pause: bool, video: str, timeout: int,
+              delayed_restart: bool = False) -> tuple[list[str], str]:
+    if delayed_restart and not pause:
+        raise ValueError("Delayed native Restart requires an acknowledged host pause")
+    name = ("with_delayed_restart" if delayed_restart else
+            ("with_pause" if pause else "baseline"))
     output = root / name
     # Never remove an earlier result (or a directory outside our owned root).
     output.mkdir(parents=True, exist_ok=False)
@@ -70,6 +74,7 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         "UR_BALDOSA_MODERN_INPUT": "1" if pause else "0",
         "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "1" if pause else "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "1" if delayed_restart else "0",
         "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
         "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
     })
@@ -108,6 +113,46 @@ def check_pause_log(log: str) -> dict[str, str]:
     return found
 
 
+DELAYED_RESTART = re.compile(
+    r"^UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=(\d+) "
+    r"request_guest=(\d+) paused=1 sram_equal=1 wram_rewound=1$",
+    re.MULTILINE,
+)
+
+
+def check_delayed_restart_log(log: str, *, expected_request_frame: int) -> dict[str, int]:
+    # One real SDL-keyboard Restart after actual guest progression, while
+    # paused. Do not confuse this with the already-accepted same-frame roundtrip.
+    matches = DELAYED_RESTART.findall(log)
+    if len(matches) != 1:
+        raise ValueError("Missing unique live delayed native Restart witness")
+    anchor, request = (int(v) for v in matches[0])
+    if anchor < 1 or anchor + 12 >= request or request != expected_request_frame:
+        raise ValueError("Delayed native Restart lacked actual guest progression")
+    if "UR_BALDOSA_NATIVE_PAUSE FAIL=" in log:
+        raise ValueError("Native delayed Restart detected an execution violation")
+    check_pause_log(log)
+    return {"anchor_guest": anchor, "request_guest": request}
+
+
+def check_delayed_restart_guest_frames(
+    original: list[str], delayed: list[str], *, paused_at: int
+) -> int:
+    if not original or len(original) != len(delayed):
+        raise ValueError("Delayed Restart changed original guest-frame count")
+    if len(original) <= paused_at or paused_at <= 0:
+        raise ValueError("Delayed Restart has no post-resume guest frames")
+    if original[:paused_at] != delayed[:paused_at]:
+        first = next(i + 1 for i in range(paused_at)
+                     if original[i] != delayed[i])
+        raise ValueError(f"Delayed Restart corrupted pre-Restart guest frame {first}")
+    first = next((i + 1 for i in range(paused_at, len(original))
+                  if original[i] != delayed[i]), None)
+    if first is None:
+        raise ValueError("Delayed Restart never diverged from forward-only guest")
+    return first
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -141,6 +186,14 @@ def main() -> int:
         raise ValueError(f"Native guest drift at frame {mismatch + 1}: "
                          f"{original[mismatch]} vs {candidate[mismatch]}")
     proof = check_pause_log(log)
+    delayed, delayed_log = run_route(
+        exe, rom, script, root, pause=True, delayed_restart=True,
+        video=args.video, timeout=args.timeout)
+    if len(delayed) != args.expected_frames:
+        raise ValueError(f"Delayed Restart route frames={len(delayed)} expected={args.expected_frames}")
+    delayed_proof = check_delayed_restart_log(delayed_log, expected_request_frame=1952)
+    first_divergent = check_delayed_restart_guest_frames(
+        original, delayed, paused_at=1952)
     result = {
         "classification": "windows_native_pause_smoke_only",
         "rom_sha256": rom_hash,
@@ -153,6 +206,9 @@ def main() -> int:
         "modern_lifecycle_abi_exercised": True,
         "physical_sdl_event_pump_exercised": True,
         "native_same_boundary_restart_restored": True,
+        "native_delayed_guest_restart_restored": True,
+        "native_delayed_restart": delayed_proof,
+        "delayed_first_divergent_original_guest_frame": first_divergent,
         "native_multi_frame_replay_restart_proven": False,
         "physical_keyboard_hardware_tested": False,
         "physical_gamepad_hardware_tested": False,
@@ -163,7 +219,7 @@ def main() -> int:
     (root / "report.json").write_text(json.dumps(result, indent=2) + "\n",
                                        encoding="utf-8")
     print(f"PASS: Win32 Baldosa native execution, {len(original)} per-frame WRAM CRCs; "
-          "actual guest pause across 24 SDL polls, identical after resume")
+          "same-frame native pause CRC identical; delayed SDL R rewinds actual guest while frozen")
     return 0
 
 

@@ -1,5 +1,7 @@
 """Fail-closed contracts for disposable +24 world-shadow Baldosa presenter."""
 import importlib.util
+import shutil
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -70,6 +72,53 @@ class WorldMarginProbeTests(unittest.TestCase):
             self.assertIn("uniracers_ws_margins.c", out)
             self.assertIn("widescreen_output_composition.cpp", out)
             self.assertIn('target_include_directories(UniracersSNESRecomp PRIVATE', out)
+
+    def test_real_native_late_capture_selection_is_bounded_and_optional(self):
+        compiler = shutil.which("c++") or shutil.which("g++")
+        if not compiler:
+            self.skipTest("C++ compiler unavailable")
+        body = (ROOT / "tools/baldosa_native_ws24_presentation.cpp").read_text()
+        self.assertEqual(body.count("bool late_capture_due() noexcept {"), 1)
+        function = ("bool late_capture_due() noexcept {" +
+                    body.split("bool late_capture_due() noexcept {", 1)[1]
+                    .split("// The pre-race mode", 1)[0])
+        source = r"""
+#include <cassert>
+#include <cstdlib>
+#include <cstring>
+#include <initializer_list>
+unsigned frame_number = 0;
+bool late_capture_saved = false;
+bool wide = false;
+bool full_view_enabled() noexcept { return wide; }
+""" + function + r"""
+int main() {
+    assert(!late_capture_due());  // opt-in absent
+    setenv("UR_BALDOSA_WS342_LATE_CAPTURE_AFTER", "2200", 1);
+    frame_number = 2200;
+    assert(!late_capture_due());  // not a widened view
+    wide = true;
+    assert(late_capture_due());
+    frame_number = 2199;
+    assert(!late_capture_due());
+    frame_number = 2210;
+    assert(late_capture_due());
+    late_capture_saved = true;
+    assert(!late_capture_due());  // only one new frame
+    late_capture_saved = false;
+    for (const char* value : {"", "-1", "0", "1999", "2401", "2200x"}) {
+        setenv("UR_BALDOSA_WS342_LATE_CAPTURE_AFTER", value, 1);
+        assert(!late_capture_due());
+    }
+}
+"""
+        with tempfile.TemporaryDirectory() as td:
+            cpp = Path(td) / "late.cpp"
+            exe = Path(td) / "late"
+            cpp.write_text(source)
+            subprocess.run([compiler, "-std=c++17", str(cpp), "-o", str(exe)],
+                           check=True, capture_output=True, text=True)
+            subprocess.run([str(exe)], check=True, capture_output=True, text=True)
 
     def test_two_split_views_require_real_24_pixel_world_margins(self):
         with tempfile.TemporaryDirectory() as td:

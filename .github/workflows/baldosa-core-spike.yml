@@ -414,6 +414,9 @@ jobs:
           # side. This is a 342x224 logical raster, NOT a tested 4K viewport.
           export UR_BALDOSA_WS342=1
           export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-captures"
+          # One later authentic native PPU frame from this SAME guest run;
+          # the ordinary first-six-frame evidence remains unchanged.
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
@@ -427,6 +430,19 @@ jobs:
             --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_presentation.json"
           echo "PASS: 342x224 logical native PPU with both split-world +43 margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          # QA-08 extended native Original visual witness. Validate a
+          # seventh, later source-world frame and retain full raw pixels.
+          # Late guest-frame count alone is NOT a post-countdown classifier.
+          python3 tools/check_baldosa_late_original_world.py \
+            --captures "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --after "$UR_BALDOSA_WS342_LATE_CAPTURE_AFTER" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_late_original_world.json"
+          echo "OBSERVED: later real 2P source-wide PPU image differs from early native frames; actual race phase awaits visual review" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+
 
           # QA-08 live 1P acceptance candidate, reusing THIS build and the
           # independently executed stock 1P baseline from the same job.
@@ -1089,6 +1105,7 @@ jobs:
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_late_original_world.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame1856.json

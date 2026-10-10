@@ -26,6 +26,7 @@ namespace {
 unsigned frame_number = 0;
 unsigned last_capture = 0;
 unsigned capture_count = 0;
+bool late_capture_saved = false;
 // The guest owns the scene state; the host only observes it.
 ur::product::HostWidescreenSceneState live_scene{};
 // Calibration and geometry are frozen for the prepared presentation.
@@ -44,6 +45,19 @@ int wide_width() noexcept { return 256 + 2 * visible_margin(); }
 bool live_scene_enabled() noexcept {
     const char* v = std::getenv("UR_BALDOSA_WS342_LIVE");
     return full_view_enabled() && v && std::strcmp(v, "1") == 0;
+}
+bool late_capture_due() noexcept {
+    // Optional diagnostics only. Preserve the six previously registered
+    // early captures and admit ONE later native frame from that same guest.
+    // Do not treat elapsed frames as a release-proof gameplay classifier.
+    if (!full_view_enabled() || late_capture_saved) return false;
+    const char* value = std::getenv("UR_BALDOSA_WS342_LATE_CAPTURE_AFTER");
+    if (!value || !*value || value[0] == '-') return false;
+    char* end = nullptr;
+    const unsigned long threshold = std::strtoul(value, &end, 10);
+    return end != value && *end == '\0' &&
+        threshold >= 2000 && threshold <= 2400 &&
+        frame_number >= threshold;
 }
 // The pre-race mode must be observed at GUEST cadence, not only on sparse
 // desktop prepares. Turbo routes can skip every host draw during selection.
@@ -214,7 +228,8 @@ extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
                         field + static_cast<std::size_t>(y) * width * 4u,
                         static_cast<std::size_t>(width) * 4u);
     }
-    if (capture_count < 6 && frame_number != last_capture) {
+    const bool late_due = late_capture_due();
+    if ((capture_count < 6 || late_due) && frame_number != last_capture) {
         const bool saved = dump_pam(dst, pitch, width * scale, height * scale, frame_number);
         std::fprintf(stderr,
             full_view_enabled()
@@ -225,7 +240,14 @@ extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
             frame_number, width, height, pitch, saved ? 1 : 0,
             scale, width * scale, height * scale);
         last_capture = frame_number;
-        if (saved) ++capture_count;
+        if (saved && capture_count < 6) ++capture_count;
+        if (saved && late_due) {
+            late_capture_saved = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_WS342_LATE_PRESENT frame=%u saved=1 "
+                "logical=%dx%d density=%d source=native-original-ppu\n",
+                frame_number, width, height, scale);
+        }
     }
     return 1;
 }

@@ -1,6 +1,8 @@
 # Contributor recruitment teaser (October 10, 2026)
 
-This subdirectory contains a short **source-capture-backed recruitment video**, a social-vertical edit, a thumbnail, and the original late native screenshot. These are **development communications**, not a Windows beta demonstration.
+This subdirectory contains both the **original sampled-frame recruitment teasers** documented below and the **new verified continuous-gameplay recruitment campaign**. All are development communications, not a Windows beta demonstration.
+
+**Latest videos:** [41-second 1080p continuous-gameplay-led trailer](continuous-edits/ur-recomp-recruitment-continuous-20261010.mp4) · [21-second vertical short](continuous-edits/ur-recomp-recruitment-continuous-vertical-20261010.mp4) · [10-second clean 600-frame native 2P race](continuous/ur-native-2p-clean-600f.mp4). Read the [source capture evidence](continuous/README.md) and [edited-source provenance](continuous-edits/README.md). The original teaser files listed next remain as honest historical sampled-frame media.
 
 ## Deliverables
 - `ur-recomp-recruitment-teaser-20261010.mp4` — 34 seconds, 1280×720, H.264/AAC, original editorial synth score, invite for contributors.
@@ -29,7 +31,7 @@ python3 tools/showcase/build_recruitment_teaser.py \
 
 `recruitment-provenance.json` records all four media output SHA-256 hashes. FFmpeg encoding bytes may vary across versions. The source frames' identity and central-pixel equality checks fail closed.
 
-## Next shot list
+## Future shot list (beyond the accepted 600-frame recording)
 
 A genuinely broader external recruitment trailer should be captured on **one nominated, independently validated Windows candidate** with a contiguous input-to-video recording: launch → Modern root → profile/racer selection → event → 1P and P2 split-screen movement through several course sections → pause/restart → result/Records persistence across fresh process → Original/Remastered world comparison. Show graphical QA defects honestly, and reserve evidence labels for confirmed frames. Obtain rights review before broad commercial-facing asset redistribution.
 

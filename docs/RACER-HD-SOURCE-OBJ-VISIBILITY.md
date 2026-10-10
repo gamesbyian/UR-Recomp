@@ -154,3 +154,40 @@ A per-footprint hit does not identify which OAM slot emitted it;
 ambiguous overlaps and BG/window/other-OBJ priority still require
 a PPU-visible ownership/depth seam or a conservative pre-capture
 admission policy before L4 can pass.
+
+## Measured two-rider same-viewport ambiguity at 342 columns
+
+The independent native CI artifact for merged #1097 (`38005764119`, source
+frame **1856**) contains the genuine 342×224 final Original frame and
+individually isolated PPU OBJ source for slots 96–99. It establishes an
+important counterexample to admitting two painted riders from a shared
+per-viewport or per-rectangle alpha count:
+
+| Source owner | Top source alpha | Bottom source alpha | RGB matching final Original | Notes |
+| --- | ---: | ---: | ---: | --- |
+| Slot 98 (front top) | 321 | 0 | 321 / 321 | Stock top winning P1 at this source frame |
+| Slot 99 (rear top) | 319 | 0 | 176 / 319 | 143 source samples differ from final composite |
+| Slot 96 (front bottom) | 0 | 319 | 319 / 319 | Stock bottom winning P2 at this source frame |
+| Slot 97 (rear bottom) | 0 | 321 | 175 / 321 | 146 source samples differ from final composite |
+
+The two top-slot alpha footprints overlap at **157** logical pixels;
+the bottom pair overlaps at another **157**. Across all four source planes,
+there are 1,280 emitted alpha samples but only **966 distinct logical source
+pixel coordinates**. The 143 and 146 differing rear-slot samples are strong
+witnesses that painting each opaque source plane wholesale over the finished
+frame would overpaint the original compositing result. Additionally, three
+non-overlapping bottom slot-97 source samples differ from the main image,
+consistent with further priority/occlusion or other unresolved presentation
+processing. Do not assign those pixels a specific cause without a deeper
+PPU-layer proof. Matching RGB can also be a coincidental palette match and
+is not in itself an unambiguous pixel-ownership identifier.
+
+The exact source-frame and full-raster hashes are retained in the #1097 CI
+artifact and per-slot reports. The dedicated overlap analyzer added here
+computes these counts directly from **all actual four PNG-free P7 planes**,
+validates each isolated-slot report against the main PPU frame digest and
+refuses the acceptance witness when the observed front-slot raster colors
+diverge or overlapping rear-source pixels cease to be distinguishable. This
+is a **non-destructive observation** for QA-08, never a grant to activate
+`RemoveFromGame` at 342 columns. The real title's BG/window foreground
+and source-visible HD pixel placement are still unverified.

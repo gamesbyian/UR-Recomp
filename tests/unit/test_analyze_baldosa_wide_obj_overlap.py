@@ -227,6 +227,7 @@ class SourceOverlapTests(unittest.TestCase):
         # The source at 13 is still emitted, but the lower rear source has
         # *exactly the same colour*. Native stock-vs-removal sees no change.
         set_pixel(rear, 13, 40, (100, 10, 10))
+        set_pixel(removed, 13, 40, (100, 10, 10))
         set_pixel(removed, 14, 40, (9, 9, 9))
         finding = analyze_removal_counterfactual(
             bytes(stock), bytes(removed), bytes(front), bytes(rear),

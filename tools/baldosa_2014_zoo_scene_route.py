@@ -28,7 +28,10 @@ BEFORE_RESULT = 4700
 PROGRESS_FRAMES = (218, 604, 841, 1532, 1721)
 # Fixed guest-relative frames spanning source-original onset +5163.
 # No menu polling permitted in this distinct independent boundary run.
-BOUNDARY_FRAMES = tuple(range(5158, 5176))
+# Narrow prelude bisection. The existing seven active guest samples match in
+# course/contact/time. At +5158 the native DP C6/C8 scratch is already one
+# step ahead; establish when this emerges before the actual result transition.
+BOUNDARY_FRAMES = (4700, 4800, 5000, 5100, 5130, 5145, 5154, 5156, 5157) + tuple(range(5158, 5176))
 GO_GATE = "until 0E1F != 00\n"
 START_GATE = "until16 0053 == 8610\n"
 
@@ -81,7 +84,7 @@ def render_fixed_boundary(prefix: str) -> str:
     parts = [prefix, f"wait {BOUNDARY_FRAMES[0]}\n"]
     for index, frame in enumerate(BOUNDARY_FRAMES):
         if index:
-            parts.append("wait 1\n")
+            parts.append(f"wait {frame - BOUNDARY_FRAMES[index - 1]}\n")
         parts.append(f"dump boundary-{frame:05d}\n")
     parts.append("quit\n")
     return "".join(parts)

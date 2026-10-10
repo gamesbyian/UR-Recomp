@@ -42,6 +42,9 @@ struct ModernRootOverlayView {
     // may narrow advertised capabilities without replacing its menu model.
     std::uint8_t available_destinations = 0x1fu;
     bool racer_shortcuts_available = true;
+    bool read_only_records_open = false;
+    std::string_view records_status{};
+    std::string_view records_recent{};
 };
 
 inline bool render_modern_root_overlay(
@@ -171,6 +174,37 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             qx + 8 * scale, qy + 37 * scale,
             "A/ENTER YES   B/ESC NO", 0xFFFFFFFFu, scale);
+    }
+    if (view.read_only_records_open) {
+        // One existing Modern root painter, with the archive as a modal
+        // read-only child. The established host's non-native UI is unchanged.
+        const int bx = x + 12 * scale, by = y + 43 * scale;
+        const int bw = (panel_w - 24) * scale, bh = 137 * scale;
+        paint.fill_rect(pixels, stride, surface_height,
+                        bx, by, bw, bh, palette.background);
+        paint.stroke_rect(pixels, stride, surface_height,
+                          bx, by, bw, bh, palette.title_yellow);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 9 * scale,
+                        "STORED RUNS", palette.title_yellow, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 38 * scale,
+                        fit_modern_overlay_text(
+                            view.records_status, modern_overlay_text_cells(
+                                panel_w - 42)).c_str(),
+                        0xFFFFFFFFu, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 60 * scale,
+                        fit_modern_overlay_text(
+                            view.records_recent, modern_overlay_text_cells(
+                                panel_w - 42)).c_str(),
+                        palette.secondary_grey, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 85 * scale,
+                        "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 114 * scale,
+                        "A/ENTER  B/ESC BACK", 0xFFFFFFFFu, scale);
     }
     return true;
 }

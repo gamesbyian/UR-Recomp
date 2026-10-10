@@ -699,7 +699,7 @@ jobs:
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x"
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/fd/crc.txt"
-          grep -q '^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=400 logical=256x224 saved=1 source=native-original-ppu$' \
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=${UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME} logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
           test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-000400.pam"
           unset UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME

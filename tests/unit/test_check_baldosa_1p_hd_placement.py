@@ -41,6 +41,8 @@ class OnePlayerHdPlacementTests(unittest.TestCase):
                 "status=hd reason=p1-only\n"
                 "UR_RACER_HD_SOURCE_OBJ frame=1728 top_opaque=0 "
                 "bottom_opaque=315 top_painted=0 bottom_painted=1\n"
+                "UR_RACER_HD_P1_ONLY frame=1728 slots=97-98 p2_stock=1 "
+                "bottom_nonoverlap=1\\n"
                 "UR_RACER_HD_DRAW PASS frame=1728 semantic=0439 "
                 "viewport=top slot=98 x=97 y=112 hflip=1 vflip=0 "
                 "density=4 output_scale=4 guest_state_unchanged=1\n"

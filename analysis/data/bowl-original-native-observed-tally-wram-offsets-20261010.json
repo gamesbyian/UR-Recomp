@@ -1,0 +1,502 @@
+{
+  "schema": "UR-QA01-BOWL-SOURCED-OFFSET-CAPTURE/1",
+  "provenance": {
+    "workflow_run_id": 38025090532,
+    "workflow_job_id": 114134137913,
+    "artifact_id": 11659973901,
+    "artifact_zip_sha256": "5fc790a32137576f6b2d796f9fbfb68d417c910a11b0e51a83c1950f0d53d62b",
+    "original_count_witness_file": "analysis/data/bowl-tally-full-guest-same-host-eight-frame-20261009.json",
+    "producer": "tools/probe_original_event_complete.py",
+    "original_guest": "pinned Snes9x-libretro",
+    "native_guest": "pinned Baldosa",
+    "source": "Source-observed GitHub Actions job log summary; timestamp prefixes removed only; no guest memory byte values included"
+  },
+  "tally_anchored_guest_phase": {
+    "schema": "UR-QA01-BOWL-TALLY-ANCHORED-PHASE/1",
+    "reference_and_native_tally_host_frame": 4279,
+    "reference_and_native_result_host_frame": 4349,
+    "clock_anchor": "observed stable original/native PPU 0x2F tally, not course entry",
+    "whole_guest_memory_bytes_per_capture": 197120,
+    "same_host_frame_samples": [
+      {
+        "offset_from_actual_tally_host_frame": 54,
+        "absolute_host_frame": 4333,
+        "different_guest_bytes": {
+          "wram": 6,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x001DB",
+              "0x001DD",
+              "0x001DF",
+              "0x001E0",
+              "0x001E1",
+              "0x001E3"
+            ],
+            "total": 6,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 47,
+        "native_menu": 47,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 60,
+        "absolute_host_frame": 4339,
+        "different_guest_bytes": {
+          "wram": 6,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x001E3",
+              "0x001E8",
+              "0x001E9",
+              "0x001EA",
+              "0x001EB",
+              "0x001EC"
+            ],
+            "total": 6,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 47,
+        "native_menu": 47,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 64,
+        "absolute_host_frame": 4343,
+        "different_guest_bytes": {
+          "wram": 50,
+          "vram": 2,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x00073",
+              "0x00089",
+              "0x0008B",
+              "0x00187",
+              "0x00188",
+              "0x00189",
+              "0x0018A",
+              "0x0018B",
+              "0x0018C",
+              "0x0018D",
+              "0x0018E",
+              "0x00191",
+              "0x00192",
+              "0x00193",
+              "0x001D8",
+              "0x001DA",
+              "0x001DB",
+              "0x001DC",
+              "0x001DD",
+              "0x001DF",
+              "0x001E3",
+              "0x001E4",
+              "0x001E6",
+              "0x001E7",
+              "0x001E8",
+              "0x001E9",
+              "0x001EA",
+              "0x001EB",
+              "0x001EC",
+              "0x001ED",
+              "0x001EE",
+              "0x001EF",
+              "0x001F0",
+              "0x00B82",
+              "0x00B86",
+              "0x00B90",
+              "0x00B94",
+              "0x00B98",
+              "0x00B9C",
+              "0x00BA2",
+              "0x00BA6",
+              "0x00BAA",
+              "0x00BAE",
+              "0x00BB2",
+              "0x00BB6",
+              "0x00BBA",
+              "0x00BBE",
+              "0x00BC2",
+              "0x00BC6",
+              "0x00BCA"
+            ],
+            "total": 50,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [
+              "0x0245C",
+              "0x0249C"
+            ],
+            "total": 2,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 47,
+        "native_menu": 47,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 65,
+        "absolute_host_frame": 4344,
+        "different_guest_bytes": {
+          "wram": 14,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x001D8",
+              "0x001DA",
+              "0x001DC",
+              "0x001DD",
+              "0x001DE",
+              "0x001E0",
+              "0x001E1",
+              "0x001E2",
+              "0x001E3",
+              "0x001E6",
+              "0x001E7",
+              "0x001E8",
+              "0x001E9",
+              "0x001EA"
+            ],
+            "total": 14,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 216,
+        "native_menu": 216,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 66,
+        "absolute_host_frame": 4345,
+        "different_guest_bytes": {
+          "wram": 6,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x001D8",
+              "0x001DA",
+              "0x001DD",
+              "0x001DF",
+              "0x001E2",
+              "0x001EE"
+            ],
+            "total": 6,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 216,
+        "native_menu": 216,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 67,
+        "absolute_host_frame": 4346,
+        "different_guest_bytes": {
+          "wram": 6,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x001D8",
+              "0x001DA",
+              "0x001DD",
+              "0x001DF",
+              "0x001E2",
+              "0x001EE"
+            ],
+            "total": 6,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 216,
+        "native_menu": 216,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 68,
+        "absolute_host_frame": 4347,
+        "different_guest_bytes": {
+          "wram": 22,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x00072",
+              "0x00073",
+              "0x001D8",
+              "0x001DA",
+              "0x001DD",
+              "0x001DE",
+              "0x001DF",
+              "0x001E0",
+              "0x001E1",
+              "0x001E2",
+              "0x001E3",
+              "0x001E4",
+              "0x001E5",
+              "0x001E6",
+              "0x001E7",
+              "0x001E8",
+              "0x001E9",
+              "0x001EA",
+              "0x001EB",
+              "0x001EC",
+              "0x001ED",
+              "0x001F0"
+            ],
+            "total": 22,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 216,
+        "native_menu": 216,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      },
+      {
+        "offset_from_actual_tally_host_frame": 69,
+        "absolute_host_frame": 4348,
+        "different_guest_bytes": {
+          "wram": 16,
+          "vram": 0,
+          "cgram": 0
+        },
+        "differing_byte_offsets_by_memory_class": {
+          "wram": {
+            "addresses": [
+              "0x00072",
+              "0x001D8",
+              "0x001DA",
+              "0x001DF",
+              "0x001E0",
+              "0x001E1",
+              "0x001E2",
+              "0x001E3",
+              "0x001E5",
+              "0x001E8",
+              "0x001E9",
+              "0x001EA",
+              "0x001EC",
+              "0x001ED",
+              "0x001EE",
+              "0x001F3"
+            ],
+            "total": 16,
+            "truncated": false
+          },
+          "vram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          },
+          "cgram": {
+            "addresses": [],
+            "total": 0,
+            "truncated": false
+          }
+        },
+        "original_menu": 216,
+        "native_menu": 216,
+        "original_track": 2,
+        "native_track": 2,
+        "original_race_flag": 60,
+        "native_race_flag": 60
+      }
+    ],
+    "all_samples_exact_guest_bytes": false,
+    "persistent_differing_wram_offsets": [],
+    "offset_profile_cap_per_memory_class": 128,
+    "retains_raw_guest_memory": false,
+    "release_complete_event_credit": 0,
+    "limitation": "Equal host frame and guest-byte proximity do not prove CPU PC/NMI/VBlank/scanline equivalence; never rebase game inputs."
+  },
+  "derived": {
+    "wram_unique_offset_count": 57,
+    "persistent_all_eight_wram_addresses": [],
+    "shared_among_two_six_byte_frames_4333_4339": [
+      "0x001E3"
+    ],
+    "identical_six_byte_frame_pair_4345_4346": true,
+    "unlabelled_low_wram_01d8_to_01f3": [
+      "0x001D8",
+      "0x001DA",
+      "0x001DB",
+      "0x001DC",
+      "0x001DD",
+      "0x001DE",
+      "0x001DF",
+      "0x001E0",
+      "0x001E1",
+      "0x001E2",
+      "0x001E3",
+      "0x001E4",
+      "0x001E5",
+      "0x001E6",
+      "0x001E7",
+      "0x001E8",
+      "0x001E9",
+      "0x001EA",
+      "0x001EB",
+      "0x001EC",
+      "0x001ED",
+      "0x001EE",
+      "0x001EF",
+      "0x001F0",
+      "0x001F3"
+    ],
+    "menu_animation_0187_to_0193": [
+      "0x00187",
+      "0x00188",
+      "0x00189",
+      "0x0018A",
+      "0x0018B",
+      "0x0018C",
+      "0x0018D",
+      "0x0018E",
+      "0x00191",
+      "0x00192",
+      "0x00193"
+    ],
+    "oam_0b82_to_0bca": [
+      "0x00B82",
+      "0x00B86",
+      "0x00B90",
+      "0x00B94",
+      "0x00B98",
+      "0x00B9C",
+      "0x00BA2",
+      "0x00BA6",
+      "0x00BAA",
+      "0x00BAE",
+      "0x00BB2",
+      "0x00BB6",
+      "0x00BBA",
+      "0x00BBE",
+      "0x00BC2",
+      "0x00BC6",
+      "0x00BCA"
+    ],
+    "input_held_0072_0073": [
+      "0x00072",
+      "0x00073"
+    ],
+    "menu_timers_0089_008b": [
+      "0x00089",
+      "0x0008B"
+    ],
+    "vram_difference_at_4343": [
+      "0x0245C",
+      "0x0249C"
+    ]
+  },
+  "release_complete_event_credit": 0
+}

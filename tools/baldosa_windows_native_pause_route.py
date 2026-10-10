@@ -141,15 +141,26 @@ def fnv32(data: bytes) -> str:
     return f"{h:08x}"
 
 
-def verify_named_profile_boot_bytes(log: str, raw: bytes) -> dict[str, str]:
+def verify_named_profile_boot_bytes(
+    log: str, raw: bytes, profile_id: str = "native-ci-rider",
+) -> dict[str, str]:
     # The title's stock before_run_frame callback fires AFTER RtlReadSram
     # but before the first actual RtlRunFrame. Compare the entire 8192 bytes
     # using an independent hash of the real previous native guest's SRAM.
-    proof = PROFILE_BOOT_SRAM.findall(log)
+    if profile_id not in ("native-ci-rider", "native-ci-second"):
+        raise ValueError("Unknown named native QA profile")
+    pattern = re.compile(
+        rf"^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+        rf"profile={re.escape(profile_id)} bytes=8192 fnv=([0-9a-fA-F]{{8}})$",
+        re.MULTILINE)
+    proof = pattern.findall(log)
     if len(proof) != 1:
         raise ValueError("No unique first-frame named Modern guest SRAM witness")
-    if "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider root=" not in log:
-        raise ValueError("No acknowledged native active-profile root selection")
+    expected_root = (
+        f"UR_BALDOSA_NATIVE_PROFILE APPLIED profile={profile_id} "
+        f"root=saves/profile-{profile_id}\\n")
+    if expected_root not in log:
+        raise ValueError("Native guest did not activate the expected isolated profile root")
     if len(raw) != 8192 or proof[0].lower() != fnv32(raw):
         raise ValueError("Native guest did not load exactly the selected profile's SRAM")
     return {"bytes": len(raw), "fnv32": proof[0].lower()}
@@ -235,6 +246,92 @@ def run_existing_named_profile_fresh_process(
     return {"loaded_8192_byte_save_from_previous_process": True,
             "initial_native_sram_fnv32": proof["fnv32"],
             "second_process_guest_frames": frames}
+
+
+
+def run_second_named_profile_isolation(
+    exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
+    *, video: str, timeout: int,
+) -> dict[str, str | int]:
+    """Switch to another real typed Modern profile and boot the SAME AOT.
+
+    One player must not inherit the other's SRAM just because the title
+    keeps one global ROM, original game menu, and compiled native executable.
+    This exercises the exact system-root + active-selector authority; no
+    parallel UI or alternate profile serialization is introduced.
+    """
+    user_root = root / "with_named_profile/Modern Player Data With Spaces"
+    first_root = user_root / "saves/profile-native-ci-rider"
+    first_sram = first_root / "save.srm"
+    first_metadata = first_root / "host-profile.txt"
+    prior_sram = first_sram.read_bytes()
+    prior_metadata = first_metadata.read_bytes()
+    if len(prior_sram) != 8192:
+        raise ValueError("First named profile has invalid durable SRAM length")
+    output = root / "different_named_profile"
+    output.mkdir(parents=True, exist_ok=False)
+    fixture_process = subprocess.run(
+        [str(fixture), str(user_root), str(seed), "--add-second"],
+        cwd=output, timeout=timeout, capture_output=True, text=True,
+        errors="replace")
+    if fixture_process.returncode:
+        raise RuntimeError(
+            f"Existing typed Modern second-profile fixture rejected: "
+            f"{fixture_process.returncode} {fixture_process.stderr[-2000:]}")
+    second_root = user_root / "saves/profile-native-ci-second"
+    second_sram = second_root / "save.srm"
+    source = second_sram.read_bytes()
+    if len(source) != 8192 or source == prior_sram:
+        raise ValueError("Second named Modern profile lacks independent SRAM")
+    script = output / "bounded_second_profile.txt"
+    script.write_text("turbo on\nwait 4\nquit\n", encoding="ascii")
+    framedump = output / "fd"
+    framedump.mkdir()
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+        "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
+        "SNESRECOMP_DUMP_DIR": str(output),
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "0",
+        "UR_BALDOSA_MODERN_INPUT": "0",
+    })
+    outcome = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), "--framedump", str(framedump),
+         str(rom)],
+        cwd=output, env=env, timeout=timeout, capture_output=True,
+        text=True, errors="replace")
+    log = outcome.stdout + "\n" + outcome.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if outcome.returncode:
+        raise RuntimeError(
+            f"Second named real native guest rejected: "
+            f"{outcome.returncode} {log[-3000:]}")
+    proof = verify_named_profile_boot_bytes(
+        log, source, profile_id="native-ci-second")
+    frames = frame_crcs(framedump)
+    if not frames or not re.search(r"^script f=\d+ quit$", log, re.M):
+        raise ValueError("Second named profile never executed real guest frames")
+    if first_sram.read_bytes() != prior_sram or (
+        first_metadata.read_bytes() != prior_metadata
+    ):
+        raise ValueError("Second native guest changed first Modern profile")
+    if (user_root / "saves/save.srm").exists():
+        raise ValueError("Second profile leaked into anonymous default save")
+    if len(second_sram.read_bytes()) != 8192:
+        raise ValueError("Second native guest corrupted its own SRAM length")
+    return {
+        "second_profile_loaded_exact_8192_bytes": True,
+        "second_profile_boot_fnv32": proof["fnv32"],
+        "first_profile_unchanged": True,
+        "guest_frames": len(frames),
+    }
 
 
 def assert_corrupt_named_profile_rejected(
@@ -495,6 +592,9 @@ def main() -> int:
     fresh_process_proof = run_existing_named_profile_fresh_process(
         exe, rom, script, root, video=args.video, timeout=args.timeout,
         clean_frames=args.expected_frames)
+    two_profiles_proof = run_second_named_profile_isolation(
+        exe, rom, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -511,6 +611,7 @@ def main() -> int:
         "native_modern_user_data_root_isolation": True,
         "native_real_named_modern_profile_boot": named_proof,
         "native_existing_modern_profile_fresh_process": fresh_process_proof,
+        "native_two_named_profile_isolation": two_profiles_proof,
         "native_corrupt_selected_profile_fails_closed": True,
         "native_invalid_explicit_root_fails_closed": True,
         "physical_sdl_event_pump_exercised": True,

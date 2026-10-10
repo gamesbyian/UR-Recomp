@@ -469,6 +469,40 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     g_wide_probe_slot = -1;
     g_sim_frame = number;
 
+    // Optional provenance-only authoring census. The pinned 1P guest route
+    // exposes many real race states before the HD geometry gate, but the
+    // ordinary gate otherwise records only a broad "selection-or-art"
+    // fallback. Report exact source words to select *new* art families.
+    // No raster, admission, OAM, guest or Modern host property is changed.
+    const char* trace = std::getenv("UR_RACER_HD_1P_STATE_TRACE");
+    // The guest's temporary 0x3C frontend selector exists during
+    // pre-race but changes before actual running 1P gameplay. That
+    // selector must NOT gate the in-race art worklist: the surrounding
+    // exact USA native 1P route, guest-frame window, normal gate census
+    // and full original guest CRC sequence authenticate this witness.
+    if (hd_census_enabled() && trace && trace[0] == '1' &&
+        trace[1] == '\0' && number >= 1700 && number <= 5150) {
+        const auto source = read_racer_guest_snapshot(g_ram, 0x20000);
+        if (source) {
+            const SelectionResult selected = select_racer_presentation_from_wram(
+                GraphicsPack::Remastered, g_ram, 0x20000, 1);
+            std::fprintf(stderr,
+                "UR_RACER_HD_1P_STATE frame=%u semantic=%04X "
+                "primary=%04X companion=%04X selector=%04X gate=%04X "
+                "registered=%u art=%u selected=%u fallback=%u\n",
+                number,
+                static_cast<unsigned>(source->p1_semantic_frame_id),
+                static_cast<unsigned>(source->composition.p1_primary),
+                static_cast<unsigned>(source->composition.p1_companion),
+                static_cast<unsigned>(source->composition.p1_selector),
+                static_cast<unsigned>(source->composition.p1_companion_gate_word),
+                selected.registration ? 1u : 0u,
+                racer_hd_asset_available(source->p1_semantic_frame_id) ? 1u : 0u,
+                static_cast<unsigned>(selected.selected_pack),
+                static_cast<unsigned>(selected.fallback_reason));
+        }
+    }
+
     if (!g_frame_graphics_enabled || g_ppu == nullptr) {
         hd_census_gate("original", !g_frame_graphics_enabled ? "disabled" : "no-ppu");
         return;

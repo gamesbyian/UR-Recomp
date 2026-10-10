@@ -505,6 +505,10 @@ jobs:
           # essential. Any inability to widen is reported as a blocker,
           # not promoted into positive QA acceptance or rerouted to HD art.
           export UR_BALDOSA_WS342_LIVE=1
+          # Reuse the SAME real 1P source and later density 4x runs;
+          # preserve all six early/countdown captures, add one after 2200.
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_RACER_HD_1P_STATE_TRACE=1
           export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p"
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
@@ -575,6 +579,15 @@ jobs:
                 f"wide_preps={len(prep)} wide_presents={len(present)} captures={len(seen)}")
           PY
           echo "MEASURED: native live 1P candidate, exact baseline guest CRC and explicit source-wide admission (no unverified release credit)" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/check_baldosa_1p_art_state_worklist.py \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_semantic_worklist.json"
+          unset UR_RACER_HD_1P_STATE_TRACE
+          echo "OBSERVED: authentic P1 semantic composition/frame frequency worklist; no guessed authored-rider registration" >> "$GITHUB_STEP_SUMMARY"
+
+
 
           # A second *independent* process renders the identical live 1P
           # event at true 4x output density, still with Original OBJ source.
@@ -593,6 +606,20 @@ jobs:
             --min-shared 2 \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_density_parity.json"
           echo "PASS: same-frame native 1P 342-wide 1x/4x Original pixels and stock guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/check_baldosa_late_1p_original.py \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --one-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --four-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/fd/crc.txt" \
+            --one-log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
+            --four-log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt" \
+            --one-dir "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-dir "$RUNNER_TEMP/baldosa-ws342-live-1p-4x" \
+            --after "$UR_BALDOSA_WS342_LATE_CAPTURE_AFTER" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_late_source.json"
+          unset UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+          echo "OBSERVED: actual later native 1P Original source-world 1x/4x matches 7 independent full-frame samples; Remastered admission withheld" >> "$GITHUB_STEP_SUMMARY"
+
+
 
           # QA-08 VS gameplay: compare three independent executions of
           # Baldosa's shipped VS route, not a synthetically latched guest.
@@ -1222,6 +1249,8 @@ jobs:
             ${{ runner.temp }}/ur-baldosa-output-002208.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_late_source.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_semantic_worklist.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_2p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live/log.txt

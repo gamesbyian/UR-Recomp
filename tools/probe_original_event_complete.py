@@ -96,7 +96,7 @@ def source_event_diagnostic(states: dict[int, dict],
     target_result = next((
         row["start"] for row in stages
         if first_active is not None and row["start"] > first_active
-        and row["menu"] == result_menu
+        and row["menu"] == result_menu and row["in_race"] != 1
         and states[row["start"]]["track"] == track
     ), None)
     diagnostic_stop = (target_result if target_result is not None
@@ -206,6 +206,37 @@ def proven_stunt_tally_prelude(states: dict[int, dict], track: int,
     )
 
 
+def proven_switcher_race_result_prelude(
+        states: dict[int, dict], track: int,
+        result_frame: int, foreign: dict) -> bool:
+    """Only the source-observed Switcher Race B handoff, NOT a foreign event.
+
+    The pinned 2014 original source switches transiently to course ID 0
+    for exactly 34 active frames just before the track-3 Race B result,
+    returns to track 3 for four active frames, leaves active racing for
+    one frame, then shows the settled 0x99 result for >=8 frames.
+    This narrow original-only source classifier NEVER changes game state,
+    input or native admission, and cannot rescue an earlier foreign race.
+    """
+    return bool(
+        track == 3
+        and foreign.get("track") == 0
+        and foreign.get("start") == result_frame - 39
+        and foreign.get("end") == result_frame - 6
+        and states.get(foreign["start"] - 1, {}).get("track") == track
+        and states.get(foreign["start"] - 1, {}).get("in_race") == 1
+        and all(states.get(f, {}).get("track") == track
+                and states.get(f, {}).get("in_race") == 1
+                for f in range(result_frame - 5, result_frame - 1))
+        and states.get(result_frame - 1, {}).get("track") == track
+        and states.get(result_frame - 1, {}).get("in_race") != 1
+        and all(states.get(f, {}).get("track") == track
+                and states.get(f, {}).get("menu") == 0x99
+                and states.get(f, {}).get("in_race") != 1
+                for f in range(result_frame, result_frame + 8))
+    )
+
+
 def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     """Detect source-original course entry and terminal result, never infer
     either from an approximate movie timestamp."""
@@ -258,15 +289,22 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
         # 00CE=0 stage immediately before the authentic 0x2F tally. This
         # must never allow a foreign active Race/Circuit, an earlier
         # excursion, or a missing return to the same scored stunt.
-        if foreign and not (
-            result_menu == 0x18 and tally is not None
+        stunt_prelude = bool(
+            result_menu == 0x18 and tally is not None and foreign
             and all(proven_stunt_tally_prelude(states, track, tally, run)
-                    for run in foreign)
-        ):
+                    for run in foreign))
+        race_prelude = bool(
+            result_menu == 0x99 and track == 3 and len(foreign) == 1
+            and proven_switcher_race_result_prelude(states, track, stop, foreign[0]))
+        if foreign and not (stunt_prelude or race_prelude):
             continue
         return {"original_entry_frame": start, "original_result_frame": stop,
                 "source_stunt_tally_frame": tally,
-                "source_active_frames_to_result": stop - start}
+                "source_active_frames_to_result": stop - start,
+                "original_only_transient_handoff": (
+                    "switcher_34_frame_track0_terminal_prelude"
+                    if race_prelude else
+                    "bowl_stunt_tally_prelude" if stunt_prelude else None)}
     raise CompleteEventError("source movie never demonstrated this course/result pair")
 
 

@@ -6,12 +6,16 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "quick_practice_route.hpp"
+#include "quick_practice_input_mask.hpp"
 
 extern "C" {
 #include "desktop/config.h"
 #include "desktop/sdl_compat.h"
 #include "snes_overlay_draw.h"
 void ur_baldosa_product_set_host_focus(int);
+int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
+extern std::uint8_t g_ram[0x20000];
 }
 
 #include <cstddef>
@@ -33,6 +37,21 @@ bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_render_reported = false;
 unsigned g_paint_count = 0;
+int g_stock_target = -1;
+std::uint16_t g_stock_settle = 0;
+std::uint32_t g_stock_budget = 0;
+std::uint8_t g_stock_previous_cursor = 0;
+bool g_stock_waiting_cursor = false;
+bool g_stock_waiting_transition = false;
+
+void stock_route_abort(const char* reason) {
+    std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_rejected=%s\n", reason);
+    g_stock_target = -1;
+    g_stock_waiting_transition = false;
+    g_stock_waiting_cursor = false;
+    // Root remains visible and owns human inputs. Never dismiss on a
+    // guessed stock surface or synthesize a completed event.
+}
 
 bool configured() {
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT");
@@ -50,25 +69,34 @@ void choose() {
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
     const auto index = ur::product::modern_root_destination_index(selected);
-    if (selected != ModernRootDestination::Play) {
-        // The original Modern route's profile/Records/Options authorities are
-        // not yet available in this native process. Do not invent facades.
+    if (selected != ModernRootDestination::Play &&
+        selected != ModernRootDestination::Multiplayer) {
+        // Practice/Records/Options need the original Modern route admission.
+        // Do not invent a second UI/Records or alternate save namespace.
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT route=%zu unavailable=1\n", index);
         return;
     }
-    g_visible = false;
-    ur_baldosa_product_set_host_focus(0);
-    std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n");
+    g_stock_target = selected == ModernRootDestination::Play ? 0 : 1;
+    g_stock_settle = 0;
+    g_stock_budget = ur::product::kQuickPracticeLaunchMaxObservations;
+    g_stock_waiting_cursor = false;
+    g_stock_waiting_transition = false;
+    std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_requested players=%d\n",
+        g_stock_target + 1);
 }
 void navigate(int delta) {
-    if (g_confirm_quit) return;
+    if (g_confirm_quit || g_stock_target != -1) return;
     g_menu = ur::product::modern_root_menu_move(g_menu, delta);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT selected=%zu\n",
         ur::product::modern_root_destination_index(
             ur::product::modern_root_menu_selected(g_menu)));
 }
 void back() {
+    if (g_stock_target != -1) {
+        stock_route_abort("cancelled");
+        return;
+    }
     if (g_confirm_quit) g_confirm_quit = false;
     else g_confirm_quit = true;
 }
@@ -85,6 +113,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_visible = true;
     g_render_reported = false;
     g_paint_count = 0;
+    g_stock_target = -1;
+    g_stock_budget = 0;
     ur_baldosa_product_set_host_focus(1);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
@@ -161,13 +191,85 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
 // CI-only genuine SDL event-pump route. This is NOT controller hardware QA.
 // It proves the native host dispatches the five-way root's existing menu
 // contract and Play releases the original guest input without fake guest state.
+// Advance exclusively from the native guest's actual post-frame WRAM.
+// Buttons travel on the existing host-only input filter, not RAM writes,
+// fake menu flags, scripted debug inputs, or a competing emulator loop.
+extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
+    if (g_stock_target == -1) return;
+    if (g_stock_budget-- == 0) {
+        stock_route_abort("timeout");
+        return;
+    }
+    const std::uint8_t menu = g_ram[0x009f];
+    const std::uint8_t expected =
+        g_stock_target == 0 ? 0x3cu : 0x3du;
+    if (g_stock_waiting_transition) {
+        if (menu == expected) {
+            const int players = g_stock_target + 1;
+            g_stock_target = -1;
+            g_visible = false;
+            ur_baldosa_product_set_host_focus(0);
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT stock_entered players=%d menu=%02x\n",
+                players, static_cast<unsigned>(menu));
+        } else if (menu != 0xd7u) {
+            stock_route_abort("unexpected_transition");
+        }
+        return;
+    }
+    if (menu != 0xd7u) {
+        g_stock_settle = 0;
+        g_stock_waiting_cursor = false;
+        return;
+    }
+    const std::uint8_t cursor = g_ram[0x009b];
+    if (g_stock_waiting_cursor) {
+        if (cursor == g_stock_previous_cursor) return;
+        g_stock_waiting_cursor = false;
+        g_stock_settle = 0;
+    }
+    if (++g_stock_settle < ur::product::kQuickPracticeMenuSettleObservations)
+        return;
+    if (cursor > 4u) {
+        stock_route_abort("invalid_stock_cursor");
+        return;
+    }
+    const auto desired = g_stock_target == 0
+        ? ur::product::stock_main_menu_one_player_input(cursor)
+        : (cursor < 1 ? ur::product::QuickPracticeMenuInput::Down
+           : cursor > 1 ? ur::product::QuickPracticeMenuInput::Up
+           : ur::product::QuickPracticeMenuInput::Accept);
+    const auto mask = ur::product::quick_practice_runner_mask(
+        ur::product::launch_input_from_menu_input(desired));
+    if (!ur_baldosa_product_queue_stock_menu_input(mask)) {
+        stock_route_abort("stock_input_rejected");
+        return;
+    }
+    g_stock_settle = 0;
+    if (desired == ur::product::QuickPracticeMenuInput::Accept) {
+        g_stock_waiting_transition = true;
+    } else {
+        g_stock_previous_cursor = cursor;
+        g_stock_waiting_cursor = true;
+    }
+}
+
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
+    ur_baldosa_modern_root_stock_observe_guest();
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
-    if (!g_visible || !opt || std::strcmp(opt, "1") != 0) return;
+    if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
+                             std::strcmp(opt, "2") != 0)) return;
     int key = 0;
-    if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
-    else if (frame == 63 || frame == 67) key = SDLK_RETURN;
-    else if (frame >= 64 && frame <= 66) key = SDLK_UP;
+    // In mode 1 test Records rejection then return to Play.
+    // In mode 2 test actual 2P stock entry from the shared root.
+    if (std::strcmp(opt, "2") == 0) {
+        if (frame == 60 || frame == 62) key = SDLK_DOWN;
+        else if (frame == 64) key = SDLK_RETURN;
+    } else {
+        if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
+        else if (frame == 63 || frame == 67) key = SDLK_RETURN;
+        else if (frame >= 64 && frame <= 66) key = SDLK_UP;
+    }
     if (!key) return;
     SDL_Event event{};
     event.type = SDL_KEYDOWN;

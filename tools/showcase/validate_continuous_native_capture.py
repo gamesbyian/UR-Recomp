@@ -106,7 +106,9 @@ def main() -> None:
     p.add_argument("--count", type=int, required=True)
     p.add_argument("--rom-sha256", required=True)
     p.add_argument("--git-sha", required=True)
-    p.add_argument("--route", required=True)\n    p.add_argument("--min-start", type=int, default=1990)\n    p.add_argument("--logical-width", type=int, choices=(256, 342), default=342)
+    p.add_argument("--route", required=True)
+    p.add_argument("--min-start", type=int, default=1990)
+    p.add_argument("--logical-width", type=int, choices=(256, 342), default=342)
     a = p.parse_args()
     print(json.dumps(validate(a.master, a.frames, a.log, a.control_crc,
                               a.recorded_crc, a.count, a.out,

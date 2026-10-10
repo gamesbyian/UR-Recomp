@@ -39,7 +39,9 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
     def test_modern_root_reentry_requires_real_ordered_stock_return(self):
         script = probe.native_modern_root_reentry_script()
         self.assertIn("press b 2", script)
-        self.assertIn("until 009F == D7", script)
+        self.assertIn("wait 540", script)
+        self.assertIn("dump after_back", script)
+        self.assertNotIn("until 009F", script)
         self.assertNotIn("reset", script)
         self.assertEqual(script.splitlines()[-1], "quit")
         trace = (

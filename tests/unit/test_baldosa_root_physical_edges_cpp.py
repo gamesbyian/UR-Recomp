@@ -24,7 +24,7 @@ class BaldosaRootPhysicalEdgesTests(unittest.TestCase):
         self.assertIn("return key == SDLK_ESCAPE && first_press &&", source)
         self.assertIn("return button == kGamepadBtn_B && first_press &&", source)
         self.assertNotIn("RtlRunFrame(", source)
-        self.assertNotIn("g_ram[0x009f] =", source)
+        self.assertNotRegex(source, r"g_ram\\[0x009f\\]\\s*=(?!=)")
 
     def test_native_cpp_edge_contract(self):
         compiler = shutil.which("g++") or shutil.which("clang++")

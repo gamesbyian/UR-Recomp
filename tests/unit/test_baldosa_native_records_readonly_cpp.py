@@ -45,7 +45,7 @@ class BaldosaNativeRecordsTests(unittest.TestCase):
         self.assertIn("UR_BALDOSA_MODERN_ROOT records_opened=1", root)
         self.assertNotIn("append_completed_run_record(", root)
         self.assertNotIn("RtlRunFrame(", root)
-        self.assertNotIn("g_ram[0x009f] =", root)
+        self.assertNotRegex(root, r"g_ram\[0x009f\]\s*=(?!=)")
         stage = (ROOT / "tools/baldosa_modern_profile_activation_spike.py"
                  ).read_text(encoding="utf-8")
         for name in ("completed_run_store.cpp", "completed_run_record.cpp",

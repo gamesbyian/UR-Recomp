@@ -315,7 +315,7 @@ jobs:
           # Only change the disposable original Snes9x core AFTER its full
           # 1P result/memory parity proof. Baldosa and the USA game ROM stay
           # untouched. Repeat the same reference route and compare dumps.
-          python3 tools/instrument_snesref_zoo_menu_writes.py \\
+          python3 tools/instrument_snesref_zoo_menu_writes.py \
             .tools/src/snes9x-libretro/cpuexec.cpp
           make -C .tools/src/snes9x-libretro/libretro -j2
           ORIGINAL_ENTRY="$(python3 -c 'import sys; sys.path.insert(0, "tools"); from baldosa_2014_zoo_calibrated_input import guest_scene_entry; print(guest_scene_entry(open(sys.argv[1]).read()))' "$ROOT/original-calibration.log")"
@@ -323,24 +323,24 @@ jobs:
           export UR_QA_ZOO_TRACE_LAST="$((ORIGINAL_ENTRY + 5165))"
           echo "Scoped original guest CPU writer trace: absolute ${UR_QA_ZOO_TRACE_FIRST}..${UR_QA_ZOO_TRACE_LAST}"
           mkdir -p "$ROOT/original-pc"
-          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \\
-          SNESREF_SRAM_IN="$ROOT/movie.srm" \\
-          SNESREF_INPUT_FILE="$ROOT/original-input.txt" \\
-          SNESREF_SCRIPT="$ROOT/original-boundary.txt" \\
-          SNESREF_DUMP_DIR="$ROOT/original-pc" \\
-            timeout 130 "$RUNNER_TEMP/zoo-snesref/snesref" \\
-              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \\
-              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \\
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$ROOT/movie.srm" \
+          SNESREF_INPUT_FILE="$ROOT/original-input.txt" \
+          SNESREF_SCRIPT="$ROOT/original-boundary.txt" \
+          SNESREF_DUMP_DIR="$ROOT/original-pc" \
+            timeout 130 "$RUNNER_TEMP/zoo-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
               > "$ROOT/original-pc.log" 2>&1
           grep -m 2 'ZOOPCWRITE f=' "$ROOT/original-pc.log"
           for frame in 05155 05156 05157 05158 05163 05175; do
-            cmp "$ROOT/original-boundary/boundary-${frame}.wram.bin" \\
+            cmp "$ROOT/original-boundary/boundary-${frame}.wram.bin" \
                 "$ROOT/original-pc/boundary-${frame}.wram.bin"
           done
-          python3 tools/baldosa_zoo_opcode_writer_report.py \\
-            --log "$ROOT/original-pc.log" \\
-            --original "$ROOT/original-boundary" \\
-            --scene-entry-frame "$ORIGINAL_ENTRY" \\
+          python3 tools/baldosa_zoo_opcode_writer_report.py \
+            --log "$ROOT/original-pc.log" \
+            --original "$ROOT/original-boundary" \
+            --scene-entry-frame "$ORIGINAL_ENTRY" \
             --out "$ROOT/original-menu-opcode-writers.json"
           cat "$ROOT/original-menu-opcode-writers.json" >> "$GITHUB_STEP_SUMMARY"
           echo "Captured original opcode scopes are causal leads, NOT an independently proven native CPU fault or a completed-course admission." >> "$GITHUB_STEP_SUMMARY"

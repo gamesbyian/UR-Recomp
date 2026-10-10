@@ -12,8 +12,8 @@
       "rom": "usa-retail",
       "course_id": "course:02",
       "status": "partial",
-      "evidence_ref": "analysis/data/zoo-original-2014-live-progression.json",
-      "coverage_note": "Independent original 2014 Snes9x trace proves Zoom Zoo entry at frame 3190, checkpoint/lap transitions at 3408/3794/4031/4722/4911 (P1 4->3->2), and archived original Circuit result menu BC at 8353 with MIKE total 1:16.46/best lap 0:25.10. Original-only source; no independently synchronized fresh native circuit and terminal comparison."
+      "evidence_ref": "analysis/data/zoo-original-baldosa-completed-circuit-candidate.json",
+      "coverage_note": "Independent pinned original Snes9x and Baldosa guests replayed the unchanged original 2014 movie scene: both complete Zoom Zoo with matching P1/P2 laps, sampled checkpoints/contact/time, actual settled PPU times and best laps (MIKE 1:16.46 / 0:25.10; BRONSEN 1:20.07 / 0:26.45). Further paired fixed-frame traces and source-visible original/native Sram_RestoreDirectPage writers show the native guest's menu/result prelude is observed one scene-relative host frame earlier (+5157 native vs +5158 original; result 0xBC +5162 vs +5163), while native +5156 equals original +5157 across 192.5 KiB WRAM/VRAM/CGRAM. Original/native instruction-time NMI/host phase causality and complete-course independently reviewed gate not established. Still PARTIAL, not an accepted release course."
     },
     {
       "rom": "usa-retail",

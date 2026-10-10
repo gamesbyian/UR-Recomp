@@ -120,14 +120,16 @@ int main() {
         (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
         (1u << static_cast<unsigned>(ModernRootDestination::Records));
     view.read_only_records_open = true;
-    view.records_status = "SAVED: 2  UNAVAILABLE: 1";
-    view.records_recent = "LATEST: course:02 00:15.50";
+    view.records_status = "VALID 2  UNAVAILABLE 1";
+    view.records_recent = "LAST: course:02 00:15.50";
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));
     assert(count("SOON") == 2); // Practice and Options only
     assert(contains("STORED RUNS"));
-    assert(contains("SAVED: 2  UNAVAILABLE: 1"));
-    assert(contains("LATEST: course:02 00:15.50"));
+    assert(contains(fit_modern_overlay_text(
+        view.records_status, modern_overlay_text_cells(240 - 42))));
+    assert(contains(fit_modern_overlay_text(
+        view.records_recent, modern_overlay_text_cells(240 - 42))));
     assert(contains("READ ONLY - NO REPLAY"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();

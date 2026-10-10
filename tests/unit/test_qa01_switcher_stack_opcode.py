@@ -16,8 +16,8 @@ import report_qa01_switcher_stack_trace as report
 def fixture_log():
     return (
         "QASTACKBEGIN f=17014 v=230 pc=80D32A sp=01F3\n"
-        "QASTACKWRITE f=17015 v=230 pc=80D32A op=48 sp0=01DE "
-        "sp1=01DD addr=01DD old=00 new=8F\n"
+        "QASTACKWRITE f=17015 v=230 pc=80D32A op=48 sp0=01DD "
+        "sp1=01DC addr=01DD old=00 new=8F\n"
         "QASTACKWRITE f=17016 v=231 pc=83988A op=8D sp0=01DD "
         "sp1=01DD addr=01E6 old=08 new=09\n"
     )
@@ -49,12 +49,26 @@ class SwitcherOpcodeStackTests(unittest.TestCase):
         self.assertEqual(d["event_count"], 2)
         self.assertEqual(d["observed_cpu_gate"]["pc"], "80:D32A")
         self.assertEqual(d["observed_cpu_gate"]["sp"], "01F3")
-        self.assertEqual(d["opcode_scope_events"][0]["sp_after"], "01DD")
+        self.assertEqual(d["opcode_scope_events"][0]["sp_after"], "01DC")
         self.assertTrue(d["opcode_scope_events"][0]["push_opcode_candidate"])
+        self.assertTrue(d["opcode_scope_events"][0]["stack_pointer_address_compatible"])
         self.assertFalse(d["opcode_scope_events"][1]["push_opcode_candidate"])
+        self.assertFalse(d["opcode_scope_events"][1]["stack_pointer_address_compatible"])
         self.assertIn("7E:01F1", d["untouched_targets"])
         self.assertEqual(d["complete_event_release_credit"], 0)
         self.assertTrue(d["cpu_stack_hypothesis_only"])
+
+    def test_push_opcode_alone_does_not_prove_address_was_stack_written(self):
+        self.assertTrue(report.stack_push_compatible(0x48, 0x01DD, 0x01DC, 0x01DD))
+        self.assertFalse(report.stack_push_compatible(0x48, 0x01DE, 0x01DD, 0x01DD))
+        self.assertTrue(report.stack_push_compatible(0xF4, 0x01E7, 0x01E5, 0x01E6))
+        self.assertFalse(report.stack_push_compatible(0xF4, 0x01E7, 0x01E5, 0x01E4))
+        self.assertFalse(report.stack_push_compatible(0x8D, 0x01DD, 0x01DC, 0x01DD))
+        inconsistent = fixture_log().replace("op=48 sp0=01DD sp1=01DC",
+                                              "op=48 sp0=01DE sp1=01DD")
+        event = report.parse_trace(inconsistent, 17030)["opcode_scope_events"][0]
+        self.assertTrue(event["push_opcode_candidate"])
+        self.assertFalse(event["stack_pointer_address_compatible"])
 
     def test_zero_target_changes_is_valid_negative_if_gate_executed(self):
         d = report.parse_trace(fixture_log().split("QASTACKWRITE")[0], 17030)

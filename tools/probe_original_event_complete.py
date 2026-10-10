@@ -348,12 +348,12 @@ def run_pinned_baldosa(work: Path, args, script: Path,
     if not lines or any(start + shift < 0 or duration < 1 or
                         not 0 < mask <= 0x0FFF for start, duration, mask in events if mask):
         raise CompleteEventError("invalid non-empty bounded source controller stream")
-    input_file.write_text("\\n".join(lines) + "\\n", encoding="ascii")
+    input_file.write_text("\n".join(lines) + "\n", encoding="ascii")
     output = work / "native"
     output.mkdir(exist_ok=True)
     config = args.native.parent / "config.ini"
     if not config.is_file():
-        config.write_text("[Sound]\\nEnableAudio = 0\\n", encoding="utf-8")
+        config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     save_root = args.native.parent / "saves"
     backup = save_root.with_name("saves.qa01-bowl-recovery")
     if backup.exists():

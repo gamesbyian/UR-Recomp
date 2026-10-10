@@ -99,6 +99,10 @@ bool restore_native_guest_preserving_sram(const void* bytes, std::size_t size) {
 }
 
 void reconcile_after_native_restart() {
+    // A source-authenticated Restart begins a NEW attempt. Previous course,
+    // official line-write, result and mapped input timeline are revoked.
+    // Pause/resume without Restart does not reset this observer.
+    g_native_result_observer.reset();
     // This is the existing Modern host's post-restore audio reconciliation
     // and the already merged two-seat human input release latch. A paused
     // Restart never gives a held physical Start back to the guest.

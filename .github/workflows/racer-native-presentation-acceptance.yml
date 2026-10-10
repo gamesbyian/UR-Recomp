@@ -277,8 +277,14 @@ jobs:
 
           run_route Original-A "$ORIGINAL_A_LOG" "$ORIGINAL_A_DUMPS" "$ORIGINAL_A_SHOT"
           run_route Original-B "$ORIGINAL_B_LOG" "$ORIGINAL_B_DUMPS" "$ORIGINAL_B_SHOT"
+
+          # Historical art approval exercises previously accepted 4x authored
+          # output, including overlapping source rectangles. This intentionally
+          # unsafe, scripted/diagnostic-only mode is *not* a shipping gate;
+          # the independent guarded route above is the production authority.
           run_route HD "$HD_LOG" "$HD_DUMPS" "$HD_SHOT" \
             UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 \
+            UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE=1 \
             UR_RACER_HD_OBJ_LAYER_PAM="$RUNNER_TEMP/racer-hd-legacy-obj-1220.pam" \
             UR_RACER_HD_OBJ_LAYER_FRAME=1220
 
@@ -297,7 +303,9 @@ jobs:
           PY
 
           run_route Original-OBJ-only "$OBJ_ONLY_LOG" "$OBJ_ONLY_DUMPS" "$OBJ_ONLY_SHOT" SNESRECOMP_LAYER_MASK=0x10
-          run_route Capture-Only "$CAPTURE_LOG" "$CAPTURE_DUMPS" "$CAPTURE_SHOT" UR_RACER_HD=1 UR_RACER_HD_CAPTURE_ONLY=1
+          run_route Capture-Only "$CAPTURE_LOG" "$CAPTURE_DUMPS" "$CAPTURE_SHOT" \
+            UR_RACER_HD=1 UR_RACER_HD_CAPTURE_ONLY=1 UR_RACER_HD_CENSUS=1 \
+            UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE=1
 
           # The two extra processes advance slightly differently: on the
           # retained native reference, OBJ-only matches stock frame 1220
@@ -1488,6 +1496,48 @@ jobs:
           )
           PY
 
+          # Evaluate the shipping overlap gate AFTER archival authored-art
+          # acceptance. Keeping the historical Original-A/B/HD ordering
+          # avoids perturbing a legacy fixture whose host input startup
+          # already has a documented ±1 native frame phase variance.
+          # Actual production policy: overlapping source rectangles must keep
+          # the complete stock frame, with no destructive RemoveFromGame OBJ
+          # capture and no HD overpaint. This separate native route must not
+          # opt into the archival unsafe-art fixture below.
+          GUARDED_LOG="$RUNNER_TEMP/racer-hd-guarded.log"
+          GUARDED_SHOT="$RUNNER_TEMP/racer-hd-guarded-1220.ppm"
+          GUARDED_DUMPS="$RUNNER_TEMP/racer-hd-guarded-dumps"
+          mkdir -p "$GUARDED_DUMPS"
+          run_route Guarded-HD "$GUARDED_LOG" "$GUARDED_DUMPS" "$GUARDED_SHOT" \
+            UR_RACER_HD=1 UR_RACER_HD_CENSUS=1
+          python3 - "$ORIGINAL_A_SHOT" "$ORIGINAL_B_SHOT" "$GUARDED_SHOT" \
+            "$ORIGINAL_A_LOG" "$ORIGINAL_B_LOG" "$GUARDED_LOG" \
+            "$ORIGINAL_A_DUMPS/two-player-race-1220.wram.bin" \
+            "$ORIGINAL_B_DUMPS/two-player-race-1220.wram.bin" \
+            "$GUARDED_DUMPS/two-player-race-1220.wram.bin" <<'PY'
+          import pathlib, re, sys
+          a, b, guarded = [pathlib.Path(p).read_bytes() for p in sys.argv[1:4]]
+          assert a == b == guarded, "guarded frame 1220 differs from stock pixel raster"
+          logs = [pathlib.Path(p).read_text(encoding="utf-8") for p in sys.argv[4:7]]
+          traces = [
+              re.findall(r"^UR_RACER_PRESENTATION_TRACE frame=1220 (.+)$", s, re.M)
+              for s in logs
+          ]
+          assert all(len(t) == 1 for t in traces) and traces[0] == traces[1] == traces[2], traces
+          native = logs[2]
+          assert "UR_RACER_HD_CENSUS frame=1220 phase=gate status=original reason=overlapping-source-obj" in native
+          assert "UR_RACER_HD_CENSUS frame=1220 phase=present status=original reason=not-armed" in native
+          assert "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE" not in native
+          assert "phase=present status=hd" in native, "disjoint frames should remain eligible"
+          wram_a, wram_b, wram_g = [pathlib.Path(p).read_bytes() for p in sys.argv[7:10]]
+          assert len(wram_a) == len(wram_b) == len(wram_g)
+          drift = [i for i in range(len(wram_a)) if wram_a[i] == wram_b[i] and wram_g[i] != wram_a[i]]
+          assert not drift, ("guarded guest WRAM drift outside variable stock bytes", drift[:20])
+          print("UR_RACER_HD_PRODUCTION_OVERLAP_GUARD PASS stock_pixels_exact=1 source_overlap_refused=1 "
+                f"guest_stable=1 hd_eligible_frames={native.count('phase=present status=hd')}")
+          PY
+
+
       - name: Prove widened Racer HD fallback preserves the original OBJ raster
         shell: bash
         run: |
@@ -1731,6 +1781,8 @@ jobs:
             ${{ runner.temp }}/racer-original-a-1220.ppm
             ${{ runner.temp }}/racer-original-b-1220.ppm
             ${{ runner.temp }}/racer-hd-1220.ppm
+            ${{ runner.temp }}/racer-hd-guarded.log
+            ${{ runner.temp }}/racer-hd-guarded-1220.ppm
             ${{ runner.temp }}/racer-hd-legacy-obj-1220.pam
             ${{ runner.temp }}/racer-original-obj-only.log
             ${{ runner.temp }}/racer-original-obj-only-1220.ppm

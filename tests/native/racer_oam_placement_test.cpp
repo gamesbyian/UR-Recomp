@@ -483,5 +483,45 @@ int main() {
 
     full_p1_top.x_signed = -1;
     assert(!pair_safe());  // Malformed active-large split placement.
+
+    // The independent Baldosa 342-wide four-slot PPU source-plane witness
+    // demonstrates that an opaque shared rectangle does not prove each
+    // rider actually contributed final pixels. Suppress full-pair authored
+    // HD before any destructive OBJ capture while two active rectangles
+    // can overlap on visible scanlines in the *same* split viewport.
+    RacerOamPlacement a = *p1_top;
+    RacerOamPlacement b = *p2_top;
+    a.x_signed = 104;
+    b.x_signed = 105;
+    a.y_raw_8bit = 40;
+    b.y_raw_8bit = 44;
+    assert(racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Top));
+    assert(!racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Bottom));
+    b.x_signed = 168;  // Touching pixel-edge is not overlap.
+    assert(!racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Top));
+    b.x_signed = 167;  // One shared screen column.
+    assert(racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Top));
+    b.x_signed = 105;
+    a.y_raw_8bit = 250;  // Hardware modulo-256 wraps 250..255 to 0..57.
+    b.y_raw_8bit = 1;
+    assert(racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Top));
+    b.y_raw_8bit = 100;
+    assert(!racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Top));
+    a.y_raw_8bit = 112;
+    b.y_raw_8bit = 175;
+    assert(racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Bottom));  // Exact one-row intersection.
+    b.y_raw_8bit = 176;
+    assert(!racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Bottom));
+    a.large = false;
+    assert(racer_active_source_footprints_overlap(
+        a, b, RacerViewport::Bottom));  // Unsupported shape fails closed.
     return 0;
 }

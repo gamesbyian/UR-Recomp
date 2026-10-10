@@ -4,6 +4,7 @@
 #include <cstring>
 #include <cstdint>
 #include <initializer_list>
+#include <algorithm>
 #include <optional>
 
 namespace ur::presentation {
@@ -198,6 +199,40 @@ constexpr bool racer_p1_only_no_stock_p2_occlusion(
             p2_row < p2_bottom.height_pixels) return false;
     }
     return true;
+}
+
+// An isolated OBJ source plane gives per-viewport alpha, but not per-OAM-slot
+// attribution when both live riders occupy overlapping source rectangles.
+// If only one slot actually emitted pixels, the other rider's footprint can
+// still test opaque because it contains its neighbour's pixels. Fail closed
+// BEFORE destructive RemoveFromGame when the two active source footprints
+// overlap in a visible scanline. SNES sprite Y uses 256-line wrapping, and
+// each half is clipped independently to the title's scanline-112 split.
+// This is a conservative replacement admission check: Original stock sprites
+// remain visible until true per-slot source/final-BG ownership is available.
+constexpr bool racer_active_source_footprints_overlap(
+    const RacerOamPlacement& a,
+    const RacerOamPlacement& b,
+    RacerViewport viewport
+) noexcept {
+    if (!a.large || !b.large ||
+        a.width_pixels != 64 || a.height_pixels != 64 ||
+        b.width_pixels != 64 || b.height_pixels != 64) return true;
+    const int left = std::max(
+        0, std::max(static_cast<int>(a.x_signed),
+                    static_cast<int>(b.x_signed)));
+    const int right = std::min(
+        256, std::min(static_cast<int>(a.x_signed) + 64,
+                      static_cast<int>(b.x_signed) + 64));
+    if (left >= right) return false;
+    const int first = viewport == RacerViewport::Top ? 0 : 112;
+    const int end = viewport == RacerViewport::Top ? 112 : 224;
+    for (int y = first; y < end; ++y) {
+        const int ay = (y - a.y_raw_8bit) & 0xFF;
+        const int by = (y - b.y_raw_8bit) & 0xFF;
+        if (ay < 64 && by < 64) return true;
+    }
+    return false;
 }
 
 // Full-pair Remastered capture removes all four split OAM slots, including

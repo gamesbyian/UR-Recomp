@@ -502,6 +502,29 @@ jobs:
           )
           PY
           echo "PASS: exact frame-1872 source-OBJ slot provenance across same four source-wide native guest processes" >> "$GITHUB_STEP_SUMMARY"
+          # Reuse the pure QA-08 temporal model: capture evidence from the
+          # two independently checked source frames already produced above.
+          # Changes in slot overlap/RGB are observations, not permission to
+          # remove sprites in production. No fifth route or renderer.
+          python3 tools/compare_baldosa_wide_obj_frames.py \
+            --before "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json" \
+            --after "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1856_1872.json"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1856_1872.json" <<'PY'
+          import json, pathlib, sys
+          data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert data["status"] == "observed-not-admitted", data
+          assert data["frames"] == [1856, 1872], data
+          assert data["safe_to_destructively_replace_original_obj"] is False, data
+          assert data["source_pair_overlap_deltas"]["98-99"]["before"] > 0, data
+          assert data["source_pair_overlap_deltas"]["96-97"]["before"] > 0, data
+          for slot in ("96", "97", "98", "99"):
+              assert slot in data["slot_source_deltas"], slot
+          print("UR_BALDOSA_WIDE_TEMPORAL_CONTRACT PASS "
+                f"frames={data['frames']} "
+                "source_provenance=4slots-per-frame safe_hd_admission=0")
+          PY
+          echo "PASS: independently checked 342-wide moving source temporal deltas retained with conservative HD admission=0" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -544,6 +567,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1872.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_temporal_1856_1872.json
             ${{ runner.temp }}/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot*.pam
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam

@@ -19,8 +19,8 @@
       "rom": "usa-retail",
       "course_id": "course:03",
       "status": "partial",
-      "evidence_ref": "analysis/generated/result-screens-probe.json",
-      "coverage_note": "Source-pinned archived 2014 original Snes9x Bowl 45-second Stunt reaches tally menu 2F at frame 11915 and settled 18 at 11985 with MIKE score 764; independently proven original-only full source event, without fresh reference/native event-relative parity or accepted USA release-complete witness."
+      "evidence_ref": "analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json",
+      "coverage_note": "Independent original Snes9x and native Baldosa replay of the exact original 2014 Bowl 45s scored-Stunt controller scene from the original embedded SRAM: source original starts movie frame 8620 and reaches tally menu 2F at 11915, result 18 at 11985. Fresh original/native entries have matching signatures; all 28 sampled active original/native semantic states agree; actual PPU tally and stable result text exactly match MIKE 764 (qualifier 68). The result arrives at original scene-relative +3365 versus native +3364 despite both host scripts observing result absolute frame 4349. No instruction/NMI-phase causality or full frame parity adjudicated; release complete-event acceptance remains PARTIAL 0/45."
     },
     {
       "rom": "usa-retail",

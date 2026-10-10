@@ -1,0 +1,25 @@
+{
+  "audio": "Existing deterministic original editorial score; no game soundtrack",
+  "editorial": "The leading 600 frames are the complete continuous native clip without interpolation. Following scenes reuse an existing explicitly sampled-frame October 10 development teaser; its cadence conversion is editorial, never gameplay evidence.",
+  "originals": {
+    "horizontal_editorial_teaser_sha256": "42f3c4c728c1b20bc470f010ff75c3eeff2702c5484bd460a8ce3095c414268d",
+    "vertical_editorial_teaser_sha256": "e320f542b793df55c355e49cb467ebaf7310e172b627c511957eb7063443b616"
+  },
+  "outputs": {
+    "ur-recomp-recruitment-continuous-20261010.mp4": {
+      "bytes": 6553080,
+      "sha256": "7a884d27b5a5b61900915aa7bb898303c603a7ac454c9b2ee633bda9f7dec8e9"
+    },
+    "ur-recomp-recruitment-continuous-vertical-20261010.mp4": {
+      "bytes": 2422558,
+      "sha256": "2e7a2209614fcc67667f350d662599776cff5498911ad956aff5552f2e0178ec"
+    }
+  },
+  "schema": "UR-CONTINUOUS-RECRUITMENT-EDIT/1",
+  "source_guest_frames": [
+    2100,
+    2699
+  ],
+  "source_provenance_sha256": "2c14161830eb282033ff3294b63a8a4d3cce65c35b64d895d0f1ab67db5e9d86",
+  "source_video_sha256": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130"
+}

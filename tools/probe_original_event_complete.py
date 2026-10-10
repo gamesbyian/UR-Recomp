@@ -122,9 +122,20 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     """Detect source-original course entry and terminal result, never infer
     either from an approximate movie timestamp."""
     frames = sorted(states)
-    entries = [f for f in frames if states[f]["track"] == track
-               and states[f]["in_race"] == 1
-               and (f == frames[0] or states.get(f - 1, {}).get("in_race") != 1)]
+    # Across back-to-back Crawler courses the in-race flag can remain 1.
+    # Demand an observed transition INTO this course, and a sustained
+    # active state across the next eight frames, not merely an in-race edge
+    # (nor a single transient course-id scratch write).
+    entries = [
+        f for f in frames
+        if states[f]["track"] == track and states[f]["in_race"] == 1
+        and (f == frames[0]
+             or states.get(f - 1, {}).get("in_race") != 1
+             or states.get(f - 1, {}).get("track") != track)
+        and all(states.get(f + j, {}).get("track") == track
+                and states.get(f + j, {}).get("in_race") == 1
+                for j in range(8))
+    ]
     # DP $9F is reused as scratch. A single occurrence of 99/BC/18
     # mid-race is not a legitimate result. Reuse the already validated
     # stock result-screen analyzer and its >=8-frame stable-menu rule.

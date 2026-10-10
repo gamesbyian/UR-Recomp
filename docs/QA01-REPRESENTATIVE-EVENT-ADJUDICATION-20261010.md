@@ -12,9 +12,19 @@
 
 The three results are **not three admitted course passes**. The official ledger remains **0/45** USA independent completed-event admissions (four partial, 41 unverified in the current census). Correct visible output at a single time does not establish all-frame equivalence, and guest-relative terminal disparity cannot be silently ignored.
 
-## Smallest next discriminator: Switcher host 5782 → 5783
+## Pre-result restoration chronology: earlier and cheaper discriminator
 
-The completed opt-in independent original/native observation at **the same absolute host frame 5782**, immediately before **both** genuine MIKE 1:08.81 results, found identical VRAM (65,536 bytes) and CGRAM (512 bytes), equal values for 21 sampled named state fields, and **eight** differing bytes in the entire 131,072-byte WRAM. Their WRAM offsets are:
+The preserved `analysis/data/switcher-original-baldosa-terminal-handoff-20261010.json` supplies **43 independently entry-relative paired snapshots** and exact host-coordinate conversions. Its measured menu/track conflicts are **at relative +4664** (original 3/0x00; native 0/0x84), **+4697** and **+4698** (original 0/0x84; native 3/0x16). Other sampled semantic fields agree at all 43 paired-relative snapshots; these are *menu/course restoration* observations, not demonstrated physics divergence.
+
+In absolute host coordinates, original entry is **1079** and native entry **1081**. At **native relative +4697 = absolute host 5778**, the course has already restored ID 3; original was still observing course 0 at **original relative +4698 = absolute host 5777**. The original restore frame has **not** been sampled. The narrowest follow-up is therefore **original relative +4699,+4700,+4701 = host 5778,5779,5780**, compared to Baldosa's corresponding **relative +4697,+4698,+4699** on those **same host frames**. Use the existing host-frame sampler and run both the entry-relative and absolute-host views. This directly tests whether the apparent two-frame relative lead converges on the **same host-frame restore**. It does not itself resolve guest CPU scheduling, source instruction call timing, or justify shifting inputs.
+
+The older paired snapshot report samples 43 relative frames, not a continuous 43-frame sequence. No assertion about the **earliest possible** disagreement between snapshots is warranted. Also, the preserved source event's original course-0 prelude is 34 frames; course ID 0 in that window is not itself a proof of the wrong track.
+
+The prior same-host frame-5782 eight-offset experiment remains necessary **only if** the earlier restoration boundary test cannot classify the discrepancy or if an original-visible result/progression consumer is implicated. Prefer original code write/read observations around the first relevant restoration before expensive all-memory and whole-movie replays.
+
+## Follow-on discriminator: Switcher host 5782 → 5783
+
+After the restoration window above has been classified, the completed opt-in independent original/native observation at **the same absolute host frame 5782**, immediately before **both** genuine MIKE 1:08.81 results, found identical VRAM (65,536 bytes) and CGRAM (512 bytes), equal values for 21 sampled named state fields, and **eight** differing bytes in the entire 131,072-byte WRAM. Their WRAM offsets are:
 
 `001DD 001E6 001E7 001EF 001F0 001F1 001F2 001F3`.
 

@@ -86,26 +86,52 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
                 expected_request_frame=1952)
 
-    def test_delayed_restart_preserves_pre_pause_original_but_rewinds_later(self):
-        original = [str(i) for i in range(15)]
-        delayed = original[:]
-        delayed[10:] = original[:5]
+    def test_host_frame_wram_detects_guest_rewind_even_when_guest_dump_names_repeat(self):
+        def trace(offset_after_restart=0):
+            result = []
+            for frame in range(probe.HOST_TRACE_START, probe.HOST_TRACE_END + 1):
+                rollback = frame > probe.HOST_RESTART_FRAME and offset_after_restart
+                guest = frame - (34 if rollback else 0)
+                fingerprint = ((frame + (offset_after_restart if rollback else 0)) * 41) & 0xffffffff
+                result.append(
+                    f"UR_BALDOSA_HOST_FRAME_CRC host={frame} guest={guest} "
+                    f"hash={fingerprint:08x}"
+                )
+            return "\\n".join(result) + "\\n"
+
+        baseline = trace()
+        restarted = trace(7)
+        receipt = probe.check_delayed_restart_host_trace(baseline, restarted)
         self.assertEqual(
-            probe.check_delayed_restart_guest_frames(
-                original, delayed, paused_at=10), 11)
-        with self.assertRaisesRegex(ValueError, "pre-Restart"):
-            probe.check_delayed_restart_guest_frames(
-                original, ["wrong"] + original[1:10] + delayed[10:],
-                paused_at=10)
-        with self.assertRaisesRegex(ValueError, "never diverged"):
-            probe.check_delayed_restart_guest_frames(
-                original, original[:], paused_at=10)
-        with self.assertRaisesRegex(ValueError, "guest-frame count"):
-            probe.check_delayed_restart_guest_frames(
-                original, original[:-1], paused_at=10)
-        with self.assertRaisesRegex(ValueError, "no post-resume"):
-            probe.check_delayed_restart_guest_frames(
-                original, delayed, paused_at=15)
+            receipt["first_divergent_host_frame"],
+            probe.HOST_RESTART_FRAME + 1)
+        self.assertEqual(
+            receipt["host_sample_count"],
+            probe.HOST_TRACE_END - probe.HOST_TRACE_START + 1)
+        self.assertLess(
+            receipt["restarted_guest_counter_after_resume"],
+            receipt["original_guest_counter_after_resume"])
+
+        # Guest-indexed file CRCs may be overwritten by guest timeline rewind.
+        # Identical file contents are NOT a negative control for host-relative
+        # WRAM divergence. Only the real immutable host-frame stream is.
+        with self.assertRaisesRegex(ValueError, "did not change"):
+            probe.check_delayed_restart_host_trace(baseline, baseline)
+        with self.assertRaisesRegex(ValueError, "before physical R"):
+            bad = restarted.replace(
+                f"host={probe.HOST_RESTART_FRAME} guest={probe.HOST_RESTART_FRAME}",
+                f"host={probe.HOST_RESTART_FRAME} guest=1")
+            probe.check_delayed_restart_host_trace(baseline, bad)
+        with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
+            probe.check_delayed_restart_host_trace(
+                baseline, restarted.splitlines()[1:] and
+                "\\n".join(restarted.splitlines()[1:]) + "\\n")
+        with self.assertRaisesRegex(ValueError, "Duplicate host-frame"):
+            line = restarted.splitlines()[0]
+            probe.check_delayed_restart_host_trace(
+                baseline, restarted + line + "\\n")
+        with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
+            probe.check_delayed_restart_host_trace(baseline, "")
 
 
 if __name__ == "__main__":

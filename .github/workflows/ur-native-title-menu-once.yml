@@ -86,8 +86,8 @@ jobs:
           python3 - <<'PY'
           from pathlib import Path
           route = Path("baldosa/tests/routes/race_1p.txt").read_text()
-          assert route.count("turbo on\\n") == 1
-          candidate = route.replace("turbo on\\n", "turbo off\\n", 1)
+          assert route.count("turbo on\n") == 1
+          candidate = route.replace("turbo on\n", "turbo off\n", 1)
           assert candidate.count("press start 2") >= 4
           Path("/tmp/media-native-title-1p.txt").write_text(candidate)
           PY

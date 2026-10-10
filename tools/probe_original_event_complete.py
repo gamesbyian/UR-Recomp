@@ -663,6 +663,7 @@ def bounded_stunt_result_phase_witness(comparison: dict,
             source_event["source_stunt_tally_frame"]
         and comparison.get("first_sample_disagreement") is None
         and comparison.get("both_reached_terminal_menu") is True
+        and comparison.get("result_outside_active_race_in_both_guests") is True
         and comparison.get("rendered_result_and_score_text_matched") is True
         and comparison.get("intermediate_result_text_matched") is True
         and comparison.get("stunt_positive_score_visible") is True

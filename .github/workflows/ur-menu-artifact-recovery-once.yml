@@ -46,7 +46,7 @@ jobs:
               items=list(root.rglob(name))
               assert len(items)==1,(name,items)
               return items[0]
-          manifest=get("native-title-menu-provenance.json")
+          manifest=root/"native-media-recorded/native-title-menu-provenance.json"
           data=json.loads(manifest.read_text())
           assert data["status"]=="verified_consecutive_host_presentations"
           assert data["guest_frame_start"]==30 and data["guest_frame_end"]==929

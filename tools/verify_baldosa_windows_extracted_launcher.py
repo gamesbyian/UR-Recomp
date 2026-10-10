@@ -95,7 +95,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     installed_rom.write_bytes(b"not a valid original ROM")
     wrong = invoke_launcher(launcher, env, args, timeout)
     require(wrong.returncode != 0 and
-            "UR-BALDOSA-STARTUP-PREFLIGHT" in wrong.stderr,
+            "UR-BALDOSA-STARTUP-ROM-INVALID" in wrong.stderr,
             "wrong ROM did not fail the actual PowerShell SHA-256 gate")
     require(not user_root.exists(), "wrong ROM created user state")
 
@@ -106,7 +106,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         bad_env = {**env, "UR_RECOMP_USER_DATA_ROOT": root}
         bad = invoke_launcher(launcher, bad_env, args, timeout)
         require(bad.returncode != 0 and
-                "UR-BALDOSA-STARTUP-PREFLIGHT" in bad.stderr,
+                "UR-BALDOSA-STARTUP-SAVE-ROOT" in bad.stderr,
                 "unsafe data root was accepted by actual CMD launcher")
     require(not (installed / "Injected Save Root").exists(),
             "package-local user state was created")

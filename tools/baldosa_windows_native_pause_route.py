@@ -141,7 +141,7 @@ def fnv32(data: bytes) -> str:
     return f"{h:08x}"
 
 
-def verify_named_profile_boot(log: str, seed: Path) -> dict[str, str]:
+def verify_named_profile_boot_bytes(log: str, raw: bytes) -> dict[str, str]:
     # The title's stock before_run_frame callback fires AFTER RtlReadSram
     # but before the first actual RtlRunFrame. Compare the entire 8192 bytes
     # using an independent hash of the real previous native guest's SRAM.
@@ -150,10 +150,91 @@ def verify_named_profile_boot(log: str, seed: Path) -> dict[str, str]:
         raise ValueError("No unique first-frame named Modern guest SRAM witness")
     if "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider root=" not in log:
         raise ValueError("No acknowledged native active-profile root selection")
-    raw = seed.read_bytes()
     if len(raw) != 8192 or proof[0].lower() != fnv32(raw):
         raise ValueError("Native guest did not load exactly the selected profile's SRAM")
     return {"bytes": len(raw), "fnv32": proof[0].lower()}
+
+
+
+def verify_named_profile_boot(log: str, seed: Path) -> dict[str, str]:
+    return verify_named_profile_boot_bytes(log, seed.read_bytes())
+
+
+def run_existing_named_profile_fresh_process(
+    exe: Path, rom: Path, script: Path, root: Path, *,
+    video: str, timeout: int, clean_frames: int,
+) -> dict[str, str | int]:
+    """Boot the same previously-played Modern profile in a SECOND native process.
+
+    No fixture rerun, no reseeding, no duplicate state or copy to a new root.
+    Original guest SRAM writes after the first process are the second
+    process's only save authority. A fresh boot must read exactly those bytes
+    and not create a default/anonymous save.
+    """
+    previous = root / "with_named_profile"
+    user_root = previous / "Modern Player Data With Spaces"
+    sram = user_root / "saves/profile-native-ci-rider/save.srm"
+    state = user_root / "saves/profile-native-ci-rider/host-profile.txt"
+    product = user_root / "host-state-v1.txt"
+    catalog = user_root / "profiles-v1.txt"
+    # Snapshot durable material before new process can modify it. In
+    # particular, comparing against sram.read_bytes() *after* the run would
+    # hide accidental writes before the boot-check callback.
+    saved = sram.read_bytes()
+    if len(saved) != 8192:
+        raise ValueError("Durable named-profile SRAM is not a complete 8-KiB image")
+    metadata_before = [p.read_bytes() for p in (state, product, catalog)]
+    output = root / "named_profile_fresh_relaunch"
+    output.mkdir(parents=True, exist_ok=False)
+    framedump = output / "fd"
+    framedump.mkdir()
+    (output / "dump").mkdir()
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+        "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
+        "SNESRECOMP_DUMP_DIR": str(output / "dump"),
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        # No synthetic host Restart or seeded first-run environment.
+        "UR_BALDOSA_PAUSE_SMOKE": "0",
+        "UR_BALDOSA_MODERN_INPUT": "0",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_FRAME_TRACE": "0",
+    })
+    outcome = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), "--framedump", str(framedump),
+         str(rom)],
+        cwd=output, env=env, timeout=timeout, capture_output=True,
+        text=True, errors="replace",
+    )
+    log = outcome.stdout + "\n" + outcome.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if outcome.returncode:
+        raise RuntimeError(
+            f"Fresh native Modern profile process failed {outcome.returncode}: "
+            f"{log[-3000:]}")
+    proof = verify_named_profile_boot_bytes(log, saved)
+    frames = check_named_profile_guest_terminal(
+        frame_crcs(framedump), log, clean_frames=clean_frames)
+    for path, original in zip((state, product, catalog), metadata_before):
+        if path.read_bytes() != original:
+            raise ValueError(
+                f"Native guest unexpectedly changed host-owned Modern state: {path.name}")
+    if (user_root / "saves/save.srm").exists():
+        raise ValueError("Fresh named Modern process created anonymous save")
+    if len(sram.read_bytes()) != 8192:
+        raise ValueError("Fresh native process damaged selected named profile SRAM")
+    return {"loaded_8192_byte_save_from_previous_process": True,
+            "initial_native_sram_fnv32": proof["fnv32"],
+            "second_process_guest_frames": frames}
 
 
 def assert_corrupt_named_profile_rejected(
@@ -411,6 +492,9 @@ def main() -> int:
     named_frames = check_named_profile_guest_terminal(
         named_crc, named_log, clean_frames=args.expected_frames)
     named_proof = verify_named_profile_boot(named_log, sram_seed)
+    fresh_process_proof = run_existing_named_profile_fresh_process(
+        exe, rom, script, root, video=args.video, timeout=args.timeout,
+        clean_frames=args.expected_frames)
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -426,6 +510,7 @@ def main() -> int:
         "modern_lifecycle_abi_exercised": True,
         "native_modern_user_data_root_isolation": True,
         "native_real_named_modern_profile_boot": named_proof,
+        "native_existing_modern_profile_fresh_process": fresh_process_proof,
         "native_corrupt_selected_profile_fails_closed": True,
         "native_invalid_explicit_root_fails_closed": True,
         "physical_sdl_event_pump_exercised": True,
@@ -448,7 +533,7 @@ def main() -> int:
                                        encoding="utf-8")
     print(f"PASS: Win32 Baldosa native execution, {len(original)} per-frame WRAM CRCs; "
           "same-frame native pause CRC identical; delayed SDL R rewinds actual guest while frozen; "
-          "real named Modern profile SRAM loaded before first guest frame")
+          "named Modern SRAM boot and same-profile second-process boot preserved")
     return 0
 
 

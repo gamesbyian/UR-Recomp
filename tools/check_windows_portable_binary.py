@@ -15,13 +15,18 @@ from pathlib import Path
 
 
 # Only system DLLs available in supported stock Windows 10/11 installations.
+# d2d1.dll (Direct2D) and dwrite.dll (DirectWrite) are Windows inbox graphics
+# libraries, not VC/SDL redistributables. Microsoft minimum client OS
+# documentation: learn.microsoft.com/windows/win32/api/d2d1_1/
+# nf-d2d1_1-d2d1createdevice and learn.microsoft.com/windows/win32/api/
+# dwrite/nf-dwrite-dwritecreatefactory. Do not wildcard graphics DLL imports.
 # Do not whitelist VC redistributables, OpenMP, SDL, Clang/MinGW libraries or
 # developer-machine PATH dependencies, even if CI happens to provide them.
 WINDOWS_INBOX_DLLS = frozenset(
     """
     advapi32 amsi avrt bcrypt cabinet cfgmgr32 comctl32 comdlg32 crypt32
-    cryptnet cryptui d3d9 d3d11 d3d12 dbghelp dcomp dinput8 dnsapi
-    dsound dwmapi dxgi dxguid gdi32 hid imm32 iphlpapi kernel32
+    cryptnet cryptui d2d1 d3d9 d3d11 d3d12 dbghelp dcomp dinput8 dnsapi
+    dsound dwrite dwmapi dxgi dxguid gdi32 hid imm32 iphlpapi kernel32
     ksuser mf mfcore mfplat mfreadwrite mmdevapi mpr msacm32
     msctf msi msimg32 ncrypt netapi32 normaliz ntdll ole32 oleacc
     oleaut32 opengl32 powrprof propsys psapi rasapi32 rpcrt4

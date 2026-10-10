@@ -18,6 +18,7 @@ on:
       - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
+      - "tools/check_windows_portable_binary.py"
       - "native/product/modern_session_c_api.*"
       - "native/product/modern_session_runtime.*"
       - "native/product/session_runtime_adapter.*"
@@ -114,6 +115,32 @@ jobs:
           PY
           echo "PASS: pinned Baldosa AOT Windows x64 with existing UR guest/input/native-pause hooks links and produces PE32+" >> "$GITHUB_STEP_SUMMARY"
           echo "NOT TESTED: Modern frontend, runtime interaction, package, per-profile SRAM, Records, replay, ghosts, or complete event." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify Baldosa Windows PE needs only clean-machine system DLLs
+        run: |
+          set -euo pipefail
+          # Reuse the SAME verifier as the existing shipping portable ZIP.
+          # Windows runners may supply VC/MinGW/SDL DLLs via PATH that the
+          # extracted consumer ZIP will not contain.
+          EXE_WIN="$(cygpath -w "$GITHUB_WORKSPACE/baldosa/build-ur-win/UniracersSNESRecomp.exe")"
+          export EXE_WIN
+          powershell.exe -NoProfile -Command '
+            $vswhere = Join-Path ${env:ProgramFiles(x86)} "Microsoft Visual Studio\Installer\vswhere.exe"
+            $vs = & $vswhere -latest -property installationPath
+            if (-not $vs) { throw "Visual Studio installation not found" }
+            $toolsRoot = Join-Path $vs "VC\Tools\MSVC"
+            $tools = Get-ChildItem -LiteralPath $toolsRoot -Directory |
+              Sort-Object Name -Descending | Select-Object -First 1
+            if (-not $tools) { throw "MSVC tools directory not found" }
+            $dumpbin = Join-Path $tools.FullName "bin\Hostx64\x64\dumpbin.exe"
+            if (-not (Test-Path -LiteralPath $dumpbin)) { throw "dumpbin.exe not found" }
+            & $dumpbin /dependents $env:EXE_WIN
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          ' | tee "$RUNNER_TEMP/baldosa-native-pe-dependencies.log"
+          python tools/check_windows_portable_binary.py \
+            --exe "baldosa/build-ur-win/UniracersSNESRecomp.exe" \
+            --dependencies "$RUNNER_TEMP/baldosa-native-pe-dependencies.log"
+          echo "PASS: native AOT game imports only stock Windows inbox DLLs; no unsupplied compiler/SDL runtime needed" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Execute actual Win32 two-player guest and native pause/resume
         env:

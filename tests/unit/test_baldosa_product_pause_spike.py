@@ -40,6 +40,7 @@ class NativePauseIntegrationTest(unittest.TestCase):
             spike.PAUSE_GATE +
             "    if (g_paused && !g_savestate_menu_hotkey) {\n"
             "      HostSleepMs(16);\n      continue;\n    }\n"
+            "  ComposeOsd(pixel_buffer, pitch, draw_w, draw_h, draw_w >= 512 ? 1 : 2);\n"
         )
         self.main = (
             "/* UR_BALDOSA_PRODUCT_INPUT_SEAM */\n"
@@ -57,9 +58,13 @@ class NativePauseIntegrationTest(unittest.TestCase):
         self.assertEqual(spike.patch_host_header(head), head)
 
         host = spike.patch_host_source(self.host)
-        self.assertEqual(host.count(spike.MARK), 4)
+        self.assertEqual(host.count(spike.MARK), 5)
         self.assertIn("if (g_product_pause_owned) {", host)
         self.assertIn("PresentFrozenWithOverlay();", host)
+        self.assertIn("g_game->product_pause_draw(pixel_buffer", host)
+        self.assertIn("int (*product_pause_draw)(uint8_t*, size_t, int, int);", head)
+        self.assertLess(host.index("g_game->product_pause_draw(pixel_buffer"),
+                        host.index("ComposeOsd(pixel_buffer, pitch, draw_w, draw_h"))
         self.assertIn("++g_product_pause_presentations;", host)
         self.assertIn("unsigned snesrecomp_desktop_product_pause_presentations", head)
         self.assertLess(host.index("PresentFrozenWithOverlay();"),
@@ -86,6 +91,7 @@ class NativePauseIntegrationTest(unittest.TestCase):
         self.assertIn("ur_baldosa_product_after_run_frame", game)
         self.assertIn("ur_baldosa_product_host_tick", game)
         self.assertIn(".product_system_key", game)
+        self.assertIn(".product_pause_draw", game)
         self.assertIn(".product_system_gamepad", game)
         self.assertEqual(spike.patch_game_main(game), game)
 

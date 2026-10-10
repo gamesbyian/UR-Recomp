@@ -26,7 +26,7 @@ class BaldosaModernUserDataRootTests(unittest.TestCase):
         self.assertIn("if (dir[0] != '/') return 0", result)
         self.assertIn("if (!drive && !unc) return 0", result)
         self.assertIn("%s%s.snesrecomp_write_probe", result)
-        self.assertNotIn("%s.snesrecomp_write_probe", result)
+        self.assertNotIn('"%s.snesrecomp_write_probe",', result)
         with self.assertRaisesRegex(ValueError, "diverged"):
             port.patch_host_paths(host.replace(port.HOST_PROBE, ""))
 

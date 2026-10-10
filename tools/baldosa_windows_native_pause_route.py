@@ -75,6 +75,7 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_DELAYED_RESTART_SMOKE": "1" if delayed_restart else "0",
+        "UR_BALDOSA_RESTART_FRAME_TRACE": "1" if (not pause or delayed_restart) else "0",
         "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
         "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
     })
@@ -135,22 +136,62 @@ def check_delayed_restart_log(log: str, *, expected_request_frame: int) -> dict[
     return {"anchor_guest": anchor, "request_guest": request}
 
 
-def check_delayed_restart_guest_frames(
-    original: list[str], delayed: list[str], *, paused_at: int
-) -> int:
-    if not original or len(original) != len(delayed):
-        raise ValueError("Delayed Restart changed original guest-frame count")
-    if len(original) <= paused_at or paused_at <= 0:
-        raise ValueError("Delayed Restart has no post-resume guest frames")
-    if original[:paused_at] != delayed[:paused_at]:
-        first = next(i + 1 for i in range(paused_at)
-                     if original[i] != delayed[i])
-        raise ValueError(f"Delayed Restart corrupted pre-Restart guest frame {first}")
-    first = next((i + 1 for i in range(paused_at, len(original))
-                  if original[i] != delayed[i]), None)
+HOST_FRAME_CRC = re.compile(
+    r"^UR_BALDOSA_HOST_FRAME_CRC host=(\\d+) guest=(\\d+) hash=([0-9a-fA-F]{8})$",
+    re.MULTILINE,
+)
+HOST_TRACE_START = 1948
+HOST_TRACE_END = 1970
+HOST_RESTART_FRAME = 1952
+
+
+def parse_host_wram_trace(log: str) -> dict[int, tuple[int, str]]:
+    """Append-only real simulation-frame evidence, independent of guest dump filenames.
+
+    Baldosa's original framedumper names files by snes_frame_counter. A native
+    rollback may rebase that counter and overwrite earlier identical guest
+    frames. The WRAM CRC in such files is valid for its *guest* frame, but
+    cannot prove or disprove a *host*-relative Restart. The title callback
+    records monotonic SnesDesktopHostFrameStats.frame here instead.
+    """
+    found = {}
+    for host, guest, digest in HOST_FRAME_CRC.findall(log):
+        host_frame = int(host)
+        if host_frame in found:
+            raise ValueError(f"Duplicate host-frame WRAM trace {host_frame}")
+        found[host_frame] = int(guest), digest.lower()
+    needed = set(range(HOST_TRACE_START, HOST_TRACE_END + 1))
+    if set(found) != needed:
+        raise ValueError(f"Missing/out-of-window actual host-frame WRAM samples: "
+                         f"missing={sorted(needed - set(found))} "
+                         f"extra={sorted(set(found) - needed)}")
+    return found
+
+
+def check_delayed_restart_host_trace(
+    baseline_log: str, delayed_log: str
+) -> dict[str, int]:
+    baseline = parse_host_wram_trace(baseline_log)
+    delayed = parse_host_wram_trace(delayed_log)
+    for frame in range(HOST_TRACE_START, HOST_RESTART_FRAME + 1):
+        if baseline[frame] != delayed[frame]:
+            raise ValueError(
+                f"Native Restart changed guest state before physical R at host {frame}")
+    first = next(
+        (frame for frame in range(HOST_RESTART_FRAME + 1, HOST_TRACE_END + 1)
+         if baseline[frame][1] != delayed[frame][1]), None)
     if first is None:
-        raise ValueError("Delayed Restart never diverged from forward-only guest")
-    return first
+        raise ValueError(
+            "Native Restart did not change any actual post-resume host-frame WRAM")
+    # A restored guest-frame counter corroborates the causal rewind, but
+    # only the full guest WRAM witness is mandatory. Never use filename
+    # positions to infer whether a guest actually advanced after Restart.
+    return {
+        "first_divergent_host_frame": first,
+        "original_guest_counter_after_resume": baseline[first][0],
+        "restarted_guest_counter_after_resume": delayed[first][0],
+        "host_sample_count": len(baseline),
+    }
 
 
 def main() -> int:
@@ -192,8 +233,9 @@ def main() -> int:
     if len(delayed) != args.expected_frames:
         raise ValueError(f"Delayed Restart route frames={len(delayed)} expected={args.expected_frames}")
     delayed_proof = check_delayed_restart_log(delayed_log, expected_request_frame=1952)
-    first_divergent = check_delayed_restart_guest_frames(
-        original, delayed, paused_at=1952)
+    host_trace_proof = check_delayed_restart_host_trace(
+        (root / "baseline/log.txt").read_text(encoding="utf-8"),
+        delayed_log)
     result = {
         "classification": "windows_native_pause_smoke_only",
         "rom_sha256": rom_hash,
@@ -208,7 +250,11 @@ def main() -> int:
         "native_same_boundary_restart_restored": True,
         "native_delayed_guest_restart_restored": True,
         "native_delayed_restart": delayed_proof,
-        "delayed_first_divergent_original_guest_frame": first_divergent,
+        "native_delayed_host_frame_wram_evidence": host_trace_proof,
+        "native_guest_indexed_dump_note": (
+            "guest snapshot frame filenames can be overwritten by a real rewind; "
+            "proof uses append-only host frame + full WRAM instead"
+        ),
         "native_multi_frame_replay_restart_proven": False,
         "physical_keyboard_hardware_tested": False,
         "physical_gamepad_hardware_tested": False,

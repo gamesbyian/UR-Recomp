@@ -369,6 +369,29 @@ jobs:
           PY
           echo "PASS: Baldosa native 2P guest-vs-host sparse presentations separately accounted; original racer guard unchanged" >> "$GITHUB_STEP_SUMMARY"
 
+          # Guarded P1-only coverage candidate: EXISTING renderer and same
+          # 2,473-frame 2P scripted event. No unsafe overlap/fixture flags;
+          # original stock P2 stays in the frame. This is strictly visual
+          # diagnosis, not permission to ship mixed-density P1/P2.
+          mkdir -p "$RUNNER_TEMP/baldosa-guarded-p1-captures"
+          env -u UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE \
+              -u UR_BALDOSA_HD_SOURCE_ART_FIXTURE \
+              UR_RACER_HD_P1_ONLY=1 UR_BALDOSA_HD_DENSITY=4 \
+              UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-guarded-p1-captures" \
+              bash baldosa/tools/run_route.sh \
+              baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_guarded_p1"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_guarded_p1/fd/crc.txt"
+          python3 tools/check_baldosa_guarded_p1_coverage.py \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --trial-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_guarded_p1/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_guarded_p1/log.txt" \
+            --captures "$RUNNER_TEMP/baldosa-guarded-p1-captures" \
+            --out "$RUNNER_TEMP/baldosa-evidence/guarded_p1_4x_coverage.json"
+          echo "OBSERVED: guarded 4x native P1-only coverage, no unsafe overlap fixture; all product HD release gates withheld" >> "$GITHUB_STEP_SUMMARY"
+
+
       - name: Capture calibrated +24 split-screen world pixels without guest writes
         shell: bash
         env:
@@ -1099,6 +1122,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt
             ${{ runner.temp }}/baldosa-evidence/safe_hd_guest_vs_host_census.json
+            ${{ runner.temp }}/baldosa-evidence/guarded_p1_4x_coverage.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_guarded_p1/log.txt
+            ${{ runner.temp }}/baldosa-guarded-p1-captures/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-evidence/safe_hd_guest_vs_host_census.txt
             ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
             ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json

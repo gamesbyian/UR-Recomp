@@ -1,9 +1,13 @@
-/* Disposable Baldosa +24 / 342-column 16:9 world presentation probes.
+/* Baldosa +24 / 342-column Original-world presentation bridge.
  * No guest writes. Native 342x224 is still NOT 4K output.
+ * The historical bounded 1800..2450 experiment remains the default.
+ * Explicit UR_BALDOSA_WS342_LIVE=1 uses the established Modern race
+ * scene classifier to enable calibrated 1P/2P/VS world expansion.
  * Source of margin tiles: native/title/uniracers_ws_margins.c (live $7F
  * course table => calibrated ws_shadow). This does not widen gameplay.
  */
 #include "uniracers_ws_margins.h"
+#include "widescreen_output_composition.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
@@ -11,6 +15,7 @@
 #include <cstring>
 
 extern "C" {
+extern std::uint8_t g_ram[0x20000];
 void ur_baldosa_hd_begin_sim_frame(unsigned);
 int ur_baldosa_hd_presentation_scale(void);
 int ur_baldosa_hd_draw_frame(std::uint8_t*, std::size_t,
@@ -21,6 +26,10 @@ namespace {
 unsigned frame_number = 0;
 unsigned last_capture = 0;
 unsigned capture_count = 0;
+// The guest owns the scene state; the host only observes it.
+ur::product::HostWidescreenSceneState live_scene{};
+// Calibration and geometry are frozen for the prepared presentation.
+bool prepared_wide = false;
 bool full_view_enabled() noexcept {
     const char* v = std::getenv("UR_BALDOSA_WS342");
     return v && std::strcmp(v, "1") == 0;
@@ -32,10 +41,22 @@ bool probe_enabled() noexcept {
 int visible_margin() noexcept { return full_view_enabled() ? 43 : 24; }
 int backing_margin() noexcept { return full_view_enabled() ? 48 : 24; }
 int wide_width() noexcept { return 256 + 2 * visible_margin(); }
+bool live_scene_enabled() noexcept {
+    const char* v = std::getenv("UR_BALDOSA_WS342_LIVE");
+    return full_view_enabled() && v && std::strcmp(v, "1") == 0;
+}
 bool racing_window() noexcept {
-    // Bounded two-player proof only. This is deliberately NOT a gameplay
-    // state classifier and must never be enabled as a shipping scene policy.
-    return probe_enabled() && frame_number >= 1800 && frame_number <= 2450;
+    if (!probe_enabled()) return false;
+    if (live_scene_enabled()) {
+        // Share the existing Modern title's read-only guest classification.
+        // $7E:0313 is active racing, $7E:009F the pre-race 1P/2P/VS latch.
+        // Unrecognized scenes stay fixed-center, independent of frame count.
+        return ur::product::observe_widescreen_scene(
+            &live_scene, g_ram[0x0313], g_ram[0x009F]) ==
+            ur::product::HostSceneComposition::WorldExpand;
+    }
+    // Retain the reproducible historical 2P comparison unchanged.
+    return frame_number >= 1800 && frame_number <= 2450;
 }
 bool dump_pam(const std::uint8_t* data, std::size_t pitch,
               int w, int h, unsigned frame) noexcept {
@@ -84,7 +105,8 @@ extern "C" void ur_baldosa_ws24_prepare_frame(
     // newly exposed BG cells are provided by the verified live course model.
     ur_ws_margins_prepare_frame(
         try_margin ? 1 : 0, try_margin ? backing_margin() : 0);
-    const bool admit = try_margin && ur_ws_margins_calibrated();
+    prepared_wide = try_margin && ur_ws_margins_calibrated();
+    const bool admit = prepared_wide;
     *width = admit ? wide_width() : 256;
     *height = 224;
     if (try_margin && frame_number % 60 == 0) {
@@ -107,7 +129,7 @@ extern "C" void ur_baldosa_ws24_begin_sim_frame(unsigned frame) {
 extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,
     std::size_t pitch, const std::uint8_t* field,
     int width, int height, double alpha) {
-    if (!racing_window() || !ur_ws_margins_calibrated() ||
+    if (!prepared_wide || !ur_ws_margins_calibrated() ||
         width != wide_width() || height != 224)
         return ur_baldosa_hd_draw_frame(dst, pitch, field, width, height, alpha);
 

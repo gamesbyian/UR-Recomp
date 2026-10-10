@@ -75,14 +75,21 @@ bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
 // from a separate actual full guest process rather than downsampling it.
 void capture_fixed_original_source(const std::uint8_t* field,
                                    int width, int height) noexcept {
-    const char* requested =
-        std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME");
-    if (!requested || !*requested || !field ||
-        width != 256 || height != 224 ||
+    if (!field || width != 256 || height != 224 ||
         g_original_source_saved_frame == g_frame) return;
-    char* end = nullptr;
-    const unsigned long frame = std::strtoul(requested, &end, 10);
-    if (end == requested || *end != '\0' || frame != g_frame) return;
+    // Preserve the independent fixed-frame 4K witness (400) and allow a
+    // second fixed 1x source from that SAME native run at a moving-race frame.
+    // Both keys are read-only capture controls; malformed inputs fail closed.
+    const auto matches = [](const char* key, unsigned frame) noexcept {
+        const char* value = std::getenv(key);
+        if (!value || !*value || value[0] == '-') return false;
+        char* end = nullptr;
+        const unsigned long parsed = std::strtoul(value, &end, 10);
+        return end != value && *end == '\0' && parsed == frame;
+    };
+    if (!matches("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME", g_frame) &&
+        !matches("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME", g_frame))
+        return;
     const bool saved = save_presented_pam(
         field, static_cast<std::size_t>(width) * 4u,
         width, height, g_frame, "ur-baldosa-original-source");

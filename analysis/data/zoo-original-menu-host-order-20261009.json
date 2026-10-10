@@ -1,0 +1,119 @@
+{
+  "schema": "UR-QA01-ZOO-ORIGINAL-PC-HOST-ORDER/1",
+  "date": "2026-10-09",
+  "upstream": {
+    "repo": "gamesbyian/UR-Recomp",
+    "source_pr": "https://github.com/gamesbyian/UR-Recomp/pull/1109",
+    "independent_original_native_workflow_run": 38011250306,
+    "artifact_id": 11653695829,
+    "artifact_url": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38011250306/artifacts/11653695829",
+    "artifact_zip_sha256": "7ce6e1ed08150c45ca4ce3cf7b60d26b71c335f42e00ff6e13d236930567bedc",
+    "original_pc_log_sha256": "6c08e49597081723357a228aec1ce54e186001da25b74536b5f386795cb6ffc0",
+    "original_pc_writer_report_sha256": "23bd0bd5c8ab6c06ac1cf71e152949c4721aa3ddec7a5b82ba1f3a247302fc1b",
+    "reference_original_scene_entry_frame": 1604,
+    "native_baldosa_scene_entry_frame": 1606,
+    "reference_source": "pinned original Snes9x 1.63 libretro core and original 2014 input; original core rebuilt only for read-only opcode-trace run after independent pristine comparison"
+  },
+  "original_guest_observation": {
+    "boundary_original_5155_wram_sha256": "7272e4f1a1c6c6b28b5be0aa41053bbf8e81f578dcb9d26d87b433d24ec07c5c",
+    "boundary_original_5156_wram_sha256": "06ea98ac074e97077386e581bb25607b9c49eee68ff6239637100386074c33f6",
+    "boundary_original_5157_wram_sha256": "c54dd21c4ad7a9093b84a6e177739bb50c03b58780c888be983687897f4a2ce2",
+    "changed_wram_bytes_5156_to_5157": 69,
+    "changed_addresses_accounted_for_by_original_pc_trace": 69,
+    "source_visible_instruction_scope_count": 69,
+    "scoped_owning_log_events": 2893,
+    "most_common_scope_note": "82:B1F2/82:B1F9 repeatedly toggle WRAM 7E:01F1 within an emulated frame; this high-frequency diagnostic is not the menu state handoff"
+  },
+  "ordered_original_trace_events": [
+    {
+      "trace_host_log_line_index_zero_based": 5972,
+      "event": "script_dump",
+      "script_frame": 6760,
+      "relative_frame": 5156,
+      "menu_hex": "84",
+      "track_id": 0,
+      "stage": "before_sprite_stage_writes"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6035,
+      "event": "cpu_pre_post_change",
+      "icpu_frame": 6759,
+      "v_counter": 230,
+      "pc": "80:D32A",
+      "wram": "7E:0187",
+      "old_hex": "07",
+      "new_hex": "00"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6036,
+      "event": "cpu_pre_post_change",
+      "icpu_frame": 6759,
+      "v_counter": 230,
+      "pc": "80:D332",
+      "wram": "7E:008B",
+      "old_hex": "00",
+      "new_hex": "01"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6041,
+      "event": "cpu_pre_post_change",
+      "icpu_frame": 6759,
+      "v_counter": 231,
+      "pc": "80:D348",
+      "wram": "7E:0B90",
+      "old_hex": "01",
+      "new_hex": "12"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6059,
+      "event": "script_dump",
+      "script_frame": 6761,
+      "relative_frame": 5157,
+      "menu_hex": "84",
+      "track_id": 0,
+      "stage": "after_sprite_stage_writes_before_menu_transition"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6073,
+      "event": "cpu_pre_post_change",
+      "icpu_frame": 6760,
+      "v_counter": 240,
+      "pc": "83:988A",
+      "wram": "7E:009F",
+      "old_hex": "84",
+      "new_hex": "16"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6074,
+      "event": "cpu_pre_post_change",
+      "icpu_frame": 6760,
+      "v_counter": 243,
+      "pc": "83:988A",
+      "wram": "7E:00CE",
+      "old_hex": "00",
+      "new_hex": "01"
+    },
+    {
+      "trace_host_log_line_index_zero_based": 6096,
+      "event": "script_dump",
+      "script_frame": 6762,
+      "relative_frame": 5158,
+      "menu_hex": "16",
+      "track_id": 1,
+      "stage": "post_menu_transition"
+    }
+  ],
+  "source_context": {
+    "original_host": "baldosa/snesrecomp@075fbe4/tools/snesref/frontend.cpp uses script_tick() before p_retro_run(); g_frame++ after run; dump is zero-frame script command",
+    "native_host": "baldosa/snesrecomp@075fbe4/runner/src/desktop/host_main.c calls TickScript() directly before RtlRunFrame(); g_present_frame increments afterward",
+    "caution": "The Snes9x opcode ICPU.Frame values 6759/6760 accompany host-script f6760/f6761 windows. Numerical values are NOT interchangeable frame counters; retained chronological log order proves writes between successive zero-frame script dumps.",
+    "imported_unvetted_symbol_context": "80:D2B0 Oam_ResetMenuSprites (near observed 80:D32A/D332/D348) and 7E:008B,7E:0187 menu animation counters; symbols from pinned Baldosa decomp are leads only"
+  },
+  "conclusion": {
+    "observed": "The original writes sprite stage, then advances menu 0x84→0x16 and track 0→1 at measured guest CPU PCs, while the same-source native guest displays an exact adjacent-frame bulk-memory state one host script tick earlier.",
+    "unknown": "Whether Baldosa executes a different number of guest VBlank/CPU update phases per host frame or Snes9x exposes an extra lagged buffer; no native guest CPU-PC/NMI chronology captured at this handoff.",
+    "next_decisive_experiment": "With one matched fresh process and source-visible instrumentation on both runtimes, compare per-host frame guest PC/NMI/VBlank and before/after menu-stage write order at +5155..+5158; never patch input offsets or guest rules to force frame-label equality.",
+    "complete_event_qa_credit": 0,
+    "denominator_usa": 45
+  }
+}

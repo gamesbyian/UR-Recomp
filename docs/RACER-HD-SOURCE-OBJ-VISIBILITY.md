@@ -315,3 +315,31 @@ destructive `RemoveFromGame`. Two-frame evidence cannot certify every
 moving scene, HD at 342 logical columns, or 4K physical output. This work
 adds source-fidelity discrimination without a fifth native guest execution
 per frame or another presentation architecture.
+
+## Archival Baldosa art CI versus production fallback (2026-10-10)
+
+The pinned Baldosa AOT native CI's original HD 1×/4× compositing reports
+predate the merged #1104 overlap guard. After that safety correction, the
+ordinary 2P guest still executes **2,473/2,473 identical WRAM CRC frames**,
+but the older report correctly becomes `unproven`: it observes **zero**
+destructively admitted source-art captures and therefore no invented two-racer
+authored pixels. This is not permission to weaken the safety guard or to
+count a script's successful exit as a replacement.
+
+To preserve both independent contracts, archival full-pair art comparison
+now requires **all** of `UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE=1`,
+`UR_RACER_HD_CENSUS=1`, `UR_BALDOSA_HD_SOURCE_ART_FIXTURE=1`, and an
+actual sealed Baldosa native framedump/script process with
+`UR_BALDOSA_HD=1` and `SNESRECOMP_DUMP_DIR`. It emits the existing
+explicit `UR_RACER_HD_UNSAFE_LEGACY_FIXTURE` warning and remains **unsafe
+for ordinary gameplay**. The old desktop input-script route remains
+independently supported. The default program never sets these fixtures.
+
+The same native CI step additionally executes the **same pinned 2P input
+route** with both unsafe fixture flags *unset*, asserts all 2,473 guest
+WRAM CRCs still match original Baldosa, requires actual
+`overlapping-source-obj` refusals, and verifies those exact frames are
+presented as Original rather than arming destructive capture. Authored
+art approval from unsafe fixtures and production-safe graphical coverage
+remain separate evidence. No 342-wide authored racer admission, complete
+event fidelity, physical 4K output or QA-08 shipping gate is claimed.

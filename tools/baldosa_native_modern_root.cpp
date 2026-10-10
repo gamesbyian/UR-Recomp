@@ -32,6 +32,9 @@ using ur::product::ModernRootMenu;
 using ur::product::ModernRootOverlayPainter;
 using ur::product::ModernRootOverlayView;
 using ur::product::HostOverlayRect;
+constexpr std::uint8_t kNativeRootAvailable =
+    (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
+    (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer));
 ModernRootMenu g_menu{};
 std::string g_racer_name = "CREATE A RACER WITH X";
 bool g_visible = false;
@@ -91,8 +94,7 @@ void choose() {
     }
     const auto selected = ur::product::modern_root_menu_selected(g_menu);
     const auto index = ur::product::modern_root_destination_index(selected);
-    if (selected != ModernRootDestination::Play &&
-        selected != ModernRootDestination::Multiplayer) {
+    if ((kNativeRootAvailable & (1u << index)) == 0) {
         // Practice/Records/Options need the original Modern route admission.
         // Do not invent a second UI/Records or alternate save namespace.
         std::fprintf(stderr,
@@ -202,7 +204,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     const ModernRootOverlayView view{
         g_menu, false, g_racer_name,
-        false, g_confirm_quit};
+        false, g_confirm_quit, kNativeRootAvailable};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,

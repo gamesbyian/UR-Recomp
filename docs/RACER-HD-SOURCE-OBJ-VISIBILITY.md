@@ -258,14 +258,14 @@ This explains why the one supposed safe HD frame in the 1,620-frame route
 was **not evidence of one changed HD sprite**.
 
 The existing presenter now records
-`UR_RACER_HD_PIXEL_CHANGE frame=N source_instances=S changed_from_stock=B`
+`UR_RACER_HD_PIXEL_CHANGE frame=N source_instances=S changed_from_underlay=B`
 on each diagnostic HD presentation. This compares the **final authored host
-buffer** against the exact same original PPU field at the current
-1×–4× scale, over the existing active racer rectangles after all
+buffer** against the same frame's incoming PPU **post-capture underlay** at
+the current 1×–4× scale, over the existing active racer rectangles after all
 overlapping draw writes. `S` reports source-alpha-positive
 *footprints*, not verified OAM ownership. `B` is one only if at least
-one final output pixel differs from its corresponding Original source
-pixel. It is an actual changed-output witness, **not** proof of correct
+one final host output pixel differs from its corresponding capture-only
+underlay pixel. It is an actual changed-output witness, **not** proof of correct
 visibility, depth, real 4K display or complete authored artwork.
 
 `measure_racer_hd_live_draws.py` retains its historical

@@ -264,8 +264,17 @@ def sample_frames(case: str, source_duration: int) -> list[int]:
                   | {f for f in extra if f <= cap})
 
 
+# The archived Bowl run observes a 70-frame absolute host gap from the
+# genuine original/native scored tally to the stable result onset. Keep all
+# diagnostic captures strictly before that result boundary.
+BOWL_TALLY_PHASE_OFFSETS = (54, 60, 64, 65, 66, 67, 68, 69)
+BOWL_TALLY_MEMORY_SIZES = {"wram": 0x20000, "vram": 0x10000, "cgram": 512}
+
+
 def replay_script(slot: int, result_menu: int, frames: list[int],
-                  stunt: bool) -> str:
+                  stunt: bool, tally_phase: bool = False) -> str:
+    if tally_phase and (not stunt or slot != 3 or result_menu != 0x18):
+        raise CompleteEventError("only proven source-original scored Bowl tally supports phase samples")
     lines = stock_crawler_script(slot).rstrip().splitlines()
     last = 0
     for f in frames[1:]:
@@ -273,9 +282,76 @@ def replay_script(slot: int, result_menu: int, frames: list[int],
         last = f
     if stunt:
         lines += ["until 009F == 2F 9000", "dump result-tally"]
+        if tally_phase:
+            previous = 0
+            for offset in BOWL_TALLY_PHASE_OFFSETS:
+                if offset <= previous or offset >= 70:
+                    raise CompleteEventError("Bowl tally phase observation violates pre-result window")
+                lines += [f"wait {offset - previous}",
+                          f"dump tally-plus-{offset:02d}"]
+                previous = offset
     lines += [f"until 009F == {result_menu:02X} 9000",
               "dump result-onset", "wait 6", "dump result-stable", "quit"]
     return "\n".join(lines) + "\n"
+
+
+def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
+                             reference_log: str, native_log: str) -> dict:
+    """Only compare matching post-0x2F script-host frames.
+
+    This is a read-only *second* clock anchor. Preserve unknown guest
+    instruction/NMI/scanline and keep full 45-course release credit at zero.
+    """
+    tally_ref = observed_dump_frame(reference_log, "result-tally")
+    tally_nat = observed_dump_frame(native_log, "result-tally")
+    if tally_ref != tally_nat:
+        raise CompleteEventError("Bowl original/native result-tally host-frame anchors disagree")
+    terminal_ref = observed_dump_frame(reference_log, "result-onset")
+    terminal_nat = observed_dump_frame(native_log, "result-onset")
+    if terminal_ref != terminal_nat or terminal_ref - tally_ref != 70:
+        raise CompleteEventError("Bowl actual tally-to-result host boundary differs from pinned 70-frame witness")
+    rows = []
+    for offset in BOWL_TALLY_PHASE_OFFSETS:
+        tag = f"tally-plus-{offset:02d}"
+        rframe = observed_dump_frame(reference_log, tag)
+        nframe = observed_dump_frame(native_log, tag)
+        if rframe != nframe or rframe - tally_ref != offset:
+            raise CompleteEventError(f"misaligned Bowl tally-relative dump {tag}")
+        fields = {}
+        wram = {}
+        for kind, size in BOWL_TALLY_MEMORY_SIZES.items():
+            paths = [directory / f"{tag}.{kind}.bin"
+                     for directory in (reference_dir, native_dir)]
+            if not all(p.is_file() for p in paths):
+                raise CompleteEventError(f"missing original/native full guest {kind} for {tag}")
+            a, b = [p.read_bytes() for p in paths]
+            if len(a) != size or len(b) != size:
+                raise CompleteEventError(f"incorrect complete {kind} size for {tag}")
+            fields[kind] = sum(x != y for x, y in zip(a, b))
+            if kind == "wram":
+                wram = {
+                    "original_menu": a[0x009F], "native_menu": b[0x009F],
+                    "original_track": a[0x00CE], "native_track": b[0x00CE],
+                    "original_race_flag": a[0x0313], "native_race_flag": b[0x0313],
+                }
+        rows.append({"offset_from_actual_tally_host_frame": offset,
+                     "absolute_host_frame": rframe,
+                     "different_guest_bytes": fields, **wram})
+    return {
+        "schema": "UR-QA01-BOWL-TALLY-ANCHORED-PHASE/1",
+        "reference_and_native_tally_host_frame": tally_ref,
+        "reference_and_native_result_host_frame": terminal_ref,
+        "clock_anchor": "observed stable original/native PPU 0x2F tally, not course entry",
+        "whole_guest_memory_bytes_per_capture": sum(BOWL_TALLY_MEMORY_SIZES.values()),
+        "same_host_frame_samples": rows,
+        "all_samples_exact_guest_bytes": all(
+            sum(row["different_guest_bytes"].values()) == 0 for row in rows),
+        "release_complete_event_credit": 0,
+        "limitation": (
+            "Equal host frame and guest-byte proximity do not prove CPU "
+            "PC/NMI/VBlank/scanline equivalence; never rebase game inputs."
+        ),
+    }
 
 
 def load_state(path: Path, decoded: bytes, track: int, active: bool) -> dict:
@@ -575,6 +651,8 @@ def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--case", choices=tuple(CASES), required=True)
     ap.add_argument("--native-backend", choices=("legacy", "pinned-baldosa"), default="legacy")
+    ap.add_argument("--bowl-tally-phase", action="store_true",
+                    help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
                     help="report a verified narrow Stunt phase gap as diagnostic CI success; never admit a course")
     ap.add_argument("--snesref", type=Path, required=True)
@@ -639,7 +717,10 @@ def main(argv: list[str] | None = None) -> int:
     replay = work / "replay"
     replay.mkdir()
     script = replay / "complete.script"
-    script.write_text(replay_script(stream, menu, frames, kind == "stunt"))
+    if args.bowl_tally_phase and args.case != "bowl":
+        raise CompleteEventError("Bowl tally phase tracing only applies to verified Bowl source")
+    script.write_text(replay_script(stream, menu, frames, kind == "stunt",
+                                   tally_phase=args.bowl_tally_phase))
     events = [(rf + part["start"], part["duration"], int(part["mask"], 16))
               for part in source_window["relative_input_segments"]]
     rl = engine.run_reference(replay, args, script, events)
@@ -676,6 +757,9 @@ def main(argv: list[str] | None = None) -> int:
     # parity gate*. This separate read-only classification lets the CI
     # produce an inspectable positive diagnostic without laundering the
     # observed mismatch into a release-quality pass.
+    phase = (observe_bowl_tally_phase(
+        replay / "ref", replay / "native", rl, nl)
+        if args.bowl_tally_phase else None)
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,
@@ -687,6 +771,7 @@ def main(argv: list[str] | None = None) -> int:
         "original_movie_window_sha256": source_window["raw_controller_window_sha256"],
         "reference_entry": rf, "native_entry": nf, "native_frame_shift": nf-rf, "native_backend": args.native_backend,
         "relative_sample_frames": frames, "comparison": comparison,
+        "tally_anchored_guest_phase": phase,
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"
     }

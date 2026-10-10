@@ -24,8 +24,8 @@ except ModuleNotFoundError:
 
 OAM = re.compile(
     r"^UR_RACER_HD_1P_OAM frame=(\d+) source_ready=([01]) "
-    r"top_x=(-?\d+) top_y=(\d+) top_tile=([0-9A-F]{2}) top_geom=([01]) "
-    r"bottom_x=(-?\d+) bottom_y=(\d+) bottom_tile=([0-9A-F]{2}) bottom_geom=([01]) "
+    r"top_x=(-?\d+) top_y=(\d+) top_tile=([0-9A-F]{2}) top_large=([01]) top_geom=([01]) "
+    r"bottom_x=(-?\d+) bottom_y=(\d+) bottom_tile=([0-9A-F]{2}) bottom_large=([01]) bottom_geom=([01]) "
     r"obsel=([0-9A-F]{2}) rotation=([01]) source_bank=([01]) front_safe=([01])$"
 )
 
@@ -54,15 +54,15 @@ def parse_oam(lines: list[str]) -> dict[int, dict]:
         if frame in out or not 1700 <= frame <= 5150:
             raise ValueError("duplicate or outside-window guest P1 OAM observation")
         ready = vals[1] == "1"
-        tx, ty, tt, tg = int(vals[2]), int(vals[3]), int(vals[4], 16), vals[5] == "1"
-        bx, by, bt, bg = int(vals[6]), int(vals[7]), int(vals[8], 16), vals[9] == "1"
-        obsel, rot, bank, safe = int(vals[10], 16), vals[11] == "1", vals[12] == "1", vals[13] == "1"
+        tx, ty, tt, tlarge, tg = int(vals[2]), int(vals[3]), int(vals[4], 16), vals[5] == "1", vals[6] == "1"
+        bx, by, bt, blarge, bg = int(vals[7]), int(vals[8]), int(vals[9], 16), vals[10] == "1", vals[11] == "1"
+        obsel, rot, bank, safe = int(vals[12], 16), vals[13] == "1", vals[14] == "1", vals[15] == "1"
         if not ready and (tg or bg or bank or safe):
             raise ValueError("unbound source OAM cannot prove racer visibility")
         if ready and (not (-256 <= tx <= 255 and -256 <= bx <= 255) or
                       not (0 <= ty <= 255 and 0 <= by <= 255)):
             raise ValueError("invalid original SNES nine-bit signed X/Y bounds")
-        if ready and (tg != bounds(tx, ty, True) or bg != bounds(bx, by, False)):
+        if ready and (tg != (tlarge and bounds(tx, ty, True)) or\n                      bg != (blarge and bounds(bx, by, False))):
             raise ValueError("native original P1 OAM reported impossible on-screen geometry")
         if bank and (not ready or obsel != 0x83 or
                      tt not in (0, 8) or bt not in (0, 8)):
@@ -73,7 +73,7 @@ def parse_oam(lines: list[str]) -> dict[int, dict]:
             "source_ready": ready, "top_x": tx, "top_y": ty,
             "bottom_x": bx, "bottom_y": by,
             "top_tile": f"{tt:02X}", "bottom_tile": f"{bt:02X}",
-            "top_source_geometry": tg, "bottom_source_geometry": bg,
+            "top_large_64": tlarge, "bottom_large_64": blarge,\n            "top_source_geometry": tg, "bottom_source_geometry": bg,
             "source_bank": bank, "obsel": f"{obsel:02X}",
             "priority_rotated": rot, "conservative_front_safe": safe,
         }

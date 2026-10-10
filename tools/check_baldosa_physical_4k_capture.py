@@ -89,7 +89,15 @@ def _verify_physical(logical: bytes, screen: bytes, width: int) -> None:
         sy = nearest_index(y, OUT_H, HEIGHT)
         if sy != y_last:
             row = logical[sy * width * 4:(sy + 1) * width * 4]
-            projected = b"".join(row[sx * 4:(sx + 1) * 4] for sx in xmap)
+            # The PPU logical/4x Original fields carry ARGB 0x00RRGGBB:
+            # their alpha byte is zero, not meaningful pixel opacity.
+            # The pinned SDL host explicitly marks its presentation texture
+            # OPAQUE before compositing, so real SDL_RenderReadPixels returns
+            # alpha=255 for every displayed texel. Preserve exact RGB while
+            # comparing the actual host's *opaque* drawable contract.
+            projected = b"".join(
+                row[sx * 4:sx * 4 + 3] + b"\xff" for sx in xmap
+            )
             expected_row = matte * output_x + projected + (
                 matte * (OUT_W - output_x - output_width))
             y_last = sy
@@ -136,6 +144,8 @@ def assess(source: Path, density_4x: Path, captured_4k: Path,
         "output_viewport": [output_x, 0, output_width, OUT_H],
         "full_height_224_rows_preserved": True,
         "native_density_and_output_distinct": True,
+        "opaque_sdl_drawable_alpha_expected": 255,
+        "original_ppu_alpha_is_not_output_opacity": True,
         "rgba_source_sha256": hashlib.sha256(src).hexdigest(),
         "rgba_density_sha256": hashlib.sha256(scaled).hexdigest(),
         "rgba_capture_sha256": hashlib.sha256(physical).hexdigest(),

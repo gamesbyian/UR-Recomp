@@ -87,9 +87,8 @@ class CompleteEventProducerTests(unittest.TestCase):
         states = source_states(8620, 11985, 2, 0x18, tally=True)
         # Prior Crawler course remains active through the new track-ID
         # transition: 7E:0313 stays asserted while 7E:00CE becomes Bowl.
-        for f in range(8600, 8620):
-            states[f]["in_race"] = 1
-            states[f]["track"] = 1
+        states[8619]["in_race"] = 1
+        states[8619]["track"] = 1
         entry = target.source_event(states, 2, 0x18)
         self.assertEqual(entry["original_entry_frame"], 8620)
         self.assertEqual(entry["original_result_frame"], 11985)

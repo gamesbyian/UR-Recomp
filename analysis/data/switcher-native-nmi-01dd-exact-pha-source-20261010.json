@@ -1,0 +1,150 @@
+{
+  "schema": "UR-QA01-NATIVE-SWITCHER-NMI-01DD-EXACT-PHA-WRITER/1",
+  "observation_date": "2026-10-10",
+  "raw_source": {
+    "original_native_execution_run_id": 38090897908,
+    "original_native_execution_job_id": 114326935017,
+    "original_native_trace_artifact_id": 11684141556,
+    "original_native_artifact_zip_sha256": "9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9",
+    "immutable_artifact_recovery_run_id": 38095592659,
+    "immutable_artifact_recovery_job_id": 114340708426,
+    "recovered_compact_artifact_id": 11685473365,
+    "recovered_compact_artifact_zip_sha256": "a46985a3ec6ba6015df7d7c3749ee21680687ced3bad0e9818b15d43a2ed6936",
+    "temporary_postprocess_pr_never_merge": 1267,
+    "native_game_commit": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "native_generated_file": "src/gen/bank00_part00_v2.c",
+    "native_function": "I_NMI_M1X1",
+    "original_fresh_source_run_id": 38094600828,
+    "original_fresh_source_artifact_id": 11684893524,
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442"
+  },
+  "native_01dd_actual_logged_word_write": {
+    "bus_bank": "00",
+    "byte_at_7e01dd": "04",
+    "byte_offset_within_write": 0,
+    "is_word_write_at_logged_stack_pointer": true,
+    "native_frame": 5781,
+    "native_generated_scope": "I_NMI_M1X1",
+    "raw_log_ordinal": 15083,
+    "raw_write_base_address": "01DD",
+    "raw_written_word": "4004",
+    "registers_at_write": {
+      "A": "4004",
+      "D": "0",
+      "DB": "80",
+      "IPC": "0",
+      "M": "0",
+      "S": "1DD",
+      "X": "1400",
+      "Xf": "0",
+      "Y": "87D8"
+    },
+    "word_width": 2,
+    "written_word_equals_accumulator": true,
+    "written_word_equals_direct_page": false,
+    "written_word_equals_x": false,
+    "written_word_equals_y": false
+  },
+  "native_immediate_sequence": [
+    {
+      "instruction": "PHB",
+      "native_written_addr": "01E5",
+      "native_value": "80",
+      "native_generated_scope": "I_NMI_M1X1"
+    },
+    {
+      "instruction": "PHD",
+      "native_written_addr": "01E3",
+      "native_value": "0000",
+      "native_generated_scope": "I_NMI_M1X1"
+    },
+    {
+      "instruction": "PHX",
+      "native_written_addr": "01E1",
+      "native_value": "1400",
+      "native_generated_scope": "I_NMI_M1X1"
+    },
+    {
+      "instruction": "PHY",
+      "native_written_addr": "01DF",
+      "native_value": "87D8",
+      "native_generated_scope": "I_NMI_M1X1"
+    },
+    {
+      "instruction": "PHA 16-bit",
+      "native_written_addr": "01DD",
+      "native_value": "4004",
+      "native_cpu_accumulator": "4004",
+      "native_cpu_sp_at_write": "01DD",
+      "native_m_flag_at_write": 0,
+      "native_generated_scope": "I_NMI_M1X1"
+    },
+    {
+      "instruction": "PHA 8-bit, after SEP",
+      "native_written_addr": "01DC",
+      "native_value": "00",
+      "native_generated_scope": "I_NMI_M1X1"
+    }
+  ],
+  "actual_raw_wram_log_lines_around_write": [
+    "f5781   00:01E8=80 w1 (none) A=4004 X=1400 Y=87D8 S=01E8 D=0000 DB=80 M=1 Xf=1 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01E7=77 w1 (none) A=4004 X=1400 Y=87D8 S=01E7 D=0000 DB=80 M=1 Xf=1 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01E6=37 w1 (none) A=4004 X=1400 Y=87D8 S=01E6 D=0000 DB=80 M=1 Xf=1 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01E5=80 w1 I_NMI_M1X1 A=4004 X=1400 Y=87D8 S=01E5 D=0000 DB=80 M=1 Xf=1 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01E3=0000 w2 I_NMI_M1X1 A=4004 X=1400 Y=87D8 S=01E3 D=0000 DB=80 M=1 Xf=1 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01E1=1400 w2 I_NMI_M1X1 A=4004 X=1400 Y=87D8 S=01E1 D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01DF=87D8 w2 I_NMI_M1X1 A=4004 X=1400 Y=87D8 S=01DF D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01DD=4004 w2 I_NMI_M1X1 A=4004 X=1400 Y=87D8 S=01DD D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01DC=00 w1 I_NMI_M1X1 A=4000 X=1400 Y=87D8 S=01DC D=0000 DB=80 M=1 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01F1=FA w1 WaitVBlank_FAD6_M1X0 A=40C1 X=1400 Y=87D8 S=01F1 D=0000 DB=80 M=1 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01F0=DD w1 WaitVBlank_FAD6_M1X0 A=40C1 X=1400 Y=87D8 S=01F0 D=0000 DB=80 M=1 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01EF=A5 w1 Menu_UpdateCursor_M1X0 A=40C1 X=1400 Y=87D8 S=01EF D=0000 DB=80 M=1 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01F3=04 w1 Index_TrackX2_FastRom_M0X0 A=1B06 X=0A00 Y=0000 S=01F3 D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01F3=0000 w2 Util_SortTable8Ascending_M0X0 A=EA62 X=0006 Y=0000 S=01F3 D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2",
+    "f5781   00:01F2=85 w1 Util_SortTable8Ascending_M0X0 A=EA62 X=0006 Y=0000 S=01F2 D=0000 DB=80 M=0 Xf=0 IPC=000000 p34=000000 p38=0000 p3C=0000 p3E=0000 p42=00 p46=00 p4A=00 p4E=00 p52=00 p53=0C p54=80F6 p56=3B p57=E2"
+  ],
+  "register_consistency": {
+    "word_width": 2,
+    "word_write_base_equals_stack_pointer": true,
+    "written_word_equals_accumulator": true,
+    "written_word_does_not_equal_x": true,
+    "written_word_does_not_equal_y": true,
+    "written_word_does_not_equal_direct_page": true,
+    "native_accumulator_hex": "4004",
+    "native_x_hex": "1400",
+    "native_y_hex": "87D8",
+    "native_d_hex": "0000",
+    "native_m_flag": 0,
+    "native_x_flag": 0,
+    "observed_stack_pointer_hex": "01DD",
+    "observed_byte_at_7e01dd": "04",
+    "native_cpu_frame_counter": 5781
+  },
+  "cross_original_source": {
+    "original_original_cpu_frame": 5780,
+    "original_cpu_pc": "00:858E",
+    "original_fastrom_mirror_pc": "80:858E",
+    "original_NMI_vector_symbol": "80:8588 I_NMI",
+    "original_opcode": "48",
+    "original_mnemonic": "PHA",
+    "original_sp_before": "01DE",
+    "original_sp_after": "01DC",
+    "original_7e01dd_byte_before": "08",
+    "original_7e01dd_byte_after": "42",
+    "original_automatic_NMI_entry_pushes_not_01dd": 5,
+    "original_and_native_NMI_handler_16bit_PHA_instruction_category_matches": true,
+    "native_original_accumulator_low_byte_equal": false,
+    "guest_relative_result_frame_parity_failed": true,
+    "original_result_guest_relative_frame": 4704,
+    "native_result_guest_relative_frame": 4702,
+    "result_absolute_host_frame_both": 5783
+  },
+  "adjudication": {
+    "proven": "The independently executed native raw WRAM logger records the exact sequence PHB, PHD, PHX, PHY, 16-bit PHA, 8-bit PHA within the generated I_NMI handler. At native snes_frame_counter 5781, a 16-bit word write to stack address 01DD is exactly accumulator A=4004, M=0, SP=01DD, with 7E:01DD low byte 04. The pinned native generated source has the exact PHA word push at this position. Independently executed original Snes9x in the real fresh Switcher result runs PHA at 00:858E (I_NMI +6) at ICPU.Frame 5780, SP 01DE->01DC, 7E:01DD 08->42. Both are NMI-handler PHA, not automatic hardware NMI entry.",
+    "not_proven": "Why the original 01DD value 42 and native 04 differ at separately observed CPU/frame labels, whether exact pre-PHA accumulator states would match under aligned instruction and NMI timestamps, whether the stack byte is consumed after the push, and the still failed original/native +4704/+4702 guest-relative terminal-frame parity.",
+    "next": "Inspect CPU accumulator and 16-bit M state on ORIGINAL PHA 00:858E and native I_NMI PHA at the same validated beam/NMI phase, determine whether discrepancy represents harmless stale transient stack or real incorrectly scheduled guest execution, then trace original/native read/pop consumers. Preserve original controller inputs and all strict QA gate rules.",
+    "release_complete_event_credit": 0,
+    "official_usa_events": 45
+  }
+}

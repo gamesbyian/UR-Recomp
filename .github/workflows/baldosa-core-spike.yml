@@ -140,6 +140,16 @@ jobs:
               exit 3
             fi
             python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
+            if [ "${UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME:-}" != "" ]; then
+              python3 - "$config" <<'PY'
+          from pathlib import Path
+          import sys
+          path = Path(sys.argv[1])
+          path.write_text(path.read_text() +
+              "\n[Graphics]\nWindowSize = 3840x2160\n"
+              "OutputMethod = SDL-Software\nLinearFiltering = 0\nFullscreen = 0\n")
+          PY
+            fi
           fi
           exec "$BALDOSA_REAL_BIN" "$@"
           SH
@@ -375,6 +385,8 @@ jobs:
           set -euo pipefail
           python3 tools/baldosa_ws24_framework_split_patch.py \
             --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          python3 tools/baldosa_sdl_physical_4k_capture_spike.py \
+            --framework baldosa/snesrecomp
           python3 tools/baldosa_ws24_host_spike.py \
             --game baldosa --ur-root "$GITHUB_WORKSPACE"
           cmake -S baldosa -B baldosa/build -G Ninja \
@@ -644,6 +656,268 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_density_parity.json"
           echo "PASS: aligned 1x vs 4x 342-column native full-frame pixel identity, not just internally uniform 4x blocks" >> "$GITHUB_STEP_SUMMARY"
 
+          # Real 3840x2160 SDL output, independently sampled after viewport
+          # composition. Every routine route is unchanged without both flags.
+          Xvfb :100 -screen 0 3840x2160x24 -ac > "$RUNNER_TEMP/baldosa-xvfb-4k.log" 2>&1 &
+          for _attempt in 1 2 3 4 5; do
+            xdpyinfo -display :100 > /dev/null 2>&1 && break
+            sleep 1
+          done
+          xdpyinfo -display :100 > /dev/null
+          export UR_BALDOSA_HD=1 UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342=1
+          unset UR_BALDOSA_WS342_LIVE
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME=1856
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE="$RUNNER_TEMP/ur-baldosa-output-001856.pam"
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-4k-source-extra"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          DISPLAY=:100 bash baldosa/tools/run_route.sh \
+            baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k/fd/crc.txt"
+          test -s "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE"
+          grep -q '^UR_BALDOSA_PHYSICAL_4K_CAPTURE frame=1856 output=3840x2160 source=SDL_RenderReadPixels status=saved
+          # and removal explicitly OFF. Full stock frames must be identical.
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_RACER_HD_WIDE_SOURCE_FRAME=1856
+          # Frame 1872 is already captured as Original in these same
+          # four guest processes; collect isolated OAM source at both.
+          export UR_RACER_HD_WIDE_SOURCE_EXTRA_FRAME=1872
+          # The already-produced third fixed-density stock capture is 1888.
+          # Read-only third snapshot from the *same* four guest executions.
+          export UR_RACER_HD_WIDE_SOURCE_LAST_FRAME=1888
+          export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-obj-slots"
+          mkdir -p "$UR_RACER_HD_WIDE_SOURCE_DIR"
+          for slot in 96 97 98 99; do
+            export UR_RACER_HD_WIDE_SOURCE_SLOT="$slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-source-slot-$slot"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/fd/crc.txt"
+            python3 tools/check_baldosa_wide_single_slot_source.py \
+              --original-dir "$RUNNER_TEMP/baldosa-ws342-captures" \
+              --probe-dir "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+              --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame001856.pam" \
+              --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
+              --slot "$slot" --min-shared 4 \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_$slot.json"
+            python3 tools/check_baldosa_wide_single_slot_source.py \
+              --original-dir "$RUNNER_TEMP/baldosa-ws342-captures" \
+              --probe-dir "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+              --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame001872.pam" \
+              --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
+              --slot "$slot" --min-shared 4 \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_${slot}_frame1872.json"
+            python3 tools/check_baldosa_wide_single_slot_source.py \
+              --original-dir "$RUNNER_TEMP/baldosa-ws342-captures" \
+              --probe-dir "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+              --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame001888.pam" \
+              --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
+              --slot "$slot" --min-shared 4 \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_${slot}_frame1888.json"
+          done
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          root = Path(os.environ["RUNNER_TEMP"]) / "baldosa-evidence"
+          records = [
+              json.loads((root / f"ws342_obj_slot_{s}.json").read_text())
+              for s in range(96, 100)
+          ]
+          assert [r["source"]["slot"] for r in records] == [96, 97, 98, 99]
+          assert all(r["status"] == "passed" for r in records)
+          opaque = sum(
+              r["source"]["top_opaque_source_pixels"] +
+              r["source"]["bottom_opaque_source_pixels"]
+              for r in records
+          )
+          assert opaque > 0, "No source OBJ emitted by any racer slot"
+          print(f"PASS: four single-slot source planes, stock unchanged; pixels={opaque}")
+          PY
+          echo "PASS: single-slot wide OBJ source and exact stock 342-wide raster invariance" >> "$GITHUB_STEP_SUMMARY"
+          # Measure the real split-screen overlap and compare each isolated
+          # PPU source sample with the final Original PPU main-frame RGB.
+          # Do not treat color equality as proof of final semantic ownership.
+          python3 tools/analyze_baldosa_wide_obj_overlap.py \
+            --main-pam "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --slot-dir "$RUNNER_TEMP/baldosa-ws342-obj-slots" \
+            --reports "$RUNNER_TEMP/baldosa-evidence" \
+            --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json"
+          echo "PASS: exact original PPU overlap, source-priority RGB witness in top and bottom race views" >> "$GITHUB_STEP_SUMMARY"
+          # Frame 1872 is an independent moving-OBJ observation. The same
+          # dual-overlap color pattern is not an assertion for later frames.
+          python3 tools/analyze_baldosa_wide_obj_overlap.py \
+            --main-pam "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001872.pam" \
+            --slot-dir "$RUNNER_TEMP/baldosa-ws342-obj-slots" \
+            --reports "$RUNNER_TEMP/baldosa-evidence" \
+            --frame 1872 --record-only \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json" \
+            "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json" <<'PY'
+          import json, pathlib, sys
+          first, next_frame = [
+              json.loads(pathlib.Path(name).read_text(encoding="utf-8"))
+              for name in sys.argv[1:]
+          ]
+          assert first["guest_frame"] == 1856 and first["status"] == "passed", first
+          assert next_frame["guest_frame"] == 1872
+          assert first["stock_ppu_sha256"] != next_frame["stock_ppu_sha256"], (
+              "No independent moving 342-wide source frame"
+          )
+          print(
+              "UR_BALDOSA_WIDE_MOVING_SOURCE PASS "
+              f"reference=1856 moving=1872 "
+              f"second_status={next_frame['status']} "
+              f"second_top_overlap={next_frame['source_overlap_pairs']['98-99']} "
+              f"second_bottom_overlap={next_frame['source_overlap_pairs']['96-97']} "
+              f"second_source={next_frame['source_alpha_total_across_slots']}"
+          )
+          PY
+          echo "PASS: exact frame-1872 source-OBJ slot provenance across same four source-wide native guest processes" >> "$GITHUB_STEP_SUMMARY"
+          # Reuse the pure QA-08 temporal model: capture evidence from the
+          # two independently checked source frames already produced above.
+          # Changes in slot overlap/RGB are observations, not permission to
+          # remove sprites in production. No fifth route or renderer.
+          python3 tools/compare_baldosa_wide_obj_frames.py \
+            --before "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json" \
+            --after "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1856_1872.json"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1856_1872.json" <<'PY'
+          import json, pathlib, sys
+          data = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+          assert data["status"] == "observed-not-admitted", data
+          assert data["frames"] == [1856, 1872], data
+          assert data["safe_to_destructively_replace_original_obj"] is False, data
+          assert data["source_pair_overlap_deltas"]["98-99"]["before"] > 0, data
+          assert data["source_pair_overlap_deltas"]["96-97"]["before"] > 0, data
+          for slot in ("96", "97", "98", "99"):
+              assert slot in data["slot_source_deltas"], slot
+          print("UR_BALDOSA_WIDE_TEMPORAL_CONTRACT PASS "
+                f"frames={data['frames']} "
+                "source_provenance=4slots-per-frame safe_hd_admission=0")
+          PY
+          echo "PASS: independently checked 342-wide moving source temporal deltas retained with conservative HD admission=0" >> "$GITHUB_STEP_SUMMARY"
+          # Third temporally distinct 342-wide original source frame.
+          # Preserve the exact 1888 per-slot reports and take the next
+          # independent step through the already-approved read-only model.
+          python3 tools/analyze_baldosa_wide_obj_overlap.py \
+            --main-pam "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001888.pam" \
+            --slot-dir "$RUNNER_TEMP/baldosa-ws342-obj-slots" \
+            --reports "$RUNNER_TEMP/baldosa-evidence" \
+            --frame 1888 --record-only \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1888.json"
+          python3 tools/compare_baldosa_wide_obj_frames.py \
+            --before "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json" \
+            --after "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1888.json" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1872_1888.json"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1856_1872.json" \
+            "$RUNNER_TEMP/baldosa-evidence/ws342_obj_temporal_1872_1888.json" <<'PY'
+          import json, pathlib, sys
+          first, second = [
+              json.loads(pathlib.Path(name).read_text(encoding="utf-8"))
+              for name in sys.argv[1:]
+          ]
+          assert first["status"] == second["status"] == "observed-not-admitted"
+          assert first["frames"] == [1856, 1872] and second["frames"] == [1872, 1888]
+          assert first["safe_to_destructively_replace_original_obj"] is False
+          assert second["safe_to_destructively_replace_original_obj"] is False
+          for slot in ("96", "97", "98", "99"):
+              assert slot in first["slot_source_deltas"]
+              assert slot in second["slot_source_deltas"]
+          print("UR_BALDOSA_WIDE_THREE_FRAME_SOURCE PASS "
+                "frames=1856:1872:1888 all_four_source_slots=1 "
+                f"first_overlap_delta={first['source_multi_slot_delta']} "
+                f"second_overlap_delta={second['source_multi_slot_delta']} "
+                "safe_hd_admission=0")
+          PY
+          echo "PASS: three moving source frames, exact main-frame hashes and original guest CRCs; no destructive HD capture" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Summarize executable evidence
+        if: always()
+        shell: bash
+        run: |
+          {
+            echo '## Baldosa pinned executable experiment'
+            echo ''
+            echo '- AOT game: `10b864b9d14a7b7416dd909eb7b054c88faef101`'
+            echo '- SNESRecomp: `075fbe4c8e0d97b0013be541795c39cb644a9709`'
+            echo '- Compatibility: SDL2 desktop fallback. No modifications to either upstream revision.'
+            echo '- ROM: exact USA SHA256; each route has isolated SRAM.'
+            echo '- **Route exit codes are only smoke evidence**, not full original/native game-result parity.'
+            echo ''
+            for name in race_1p race_2p_split zoomzoo_progress; do
+              p="$RUNNER_TEMP/baldosa-evidence/$name.exit"
+              if test -f "$p"; then echo "- $name: exit $(cat "$p")"
+              else echo "- $name: not executed"; fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload machine-readable route observations (no ROM or SRAM)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: baldosa-native-spike-evidence
+          if-no-files-found: ignore
+          retention-days: 7
+          path: |
+            ${{ runner.temp }}/baldosa-evidence/report.json
+            ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt
+            ${{ runner.temp }}/baldosa-evidence/safe_hd_guest_vs_host_census.json
+            ${{ runner.temp }}/baldosa-evidence/safe_hd_guest_vs_host_census.txt
+            ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
+            ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
+            ${{ runner.temp }}/baldosa-evidence/ws24_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_2p_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live_4x/log.txt
+            ${{ runner.temp }}/baldosa-ws342-live-2p/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-2p-4x/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live_4x/log.txt
+            ${{ runner.temp }}/baldosa-ws342-live-vs/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-vs-4x/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-4x/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1872.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1888.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_temporal_1872_1888.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_temporal_1856_1872.json
+            ${{ runner.temp }}/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot*.pam
+            ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam
+            ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-frame-*.pam
+            ${{ runner.temp }}/baldosa-hd-captures/ur-baldosa-frame-*.pam
+            ${{ runner.temp }}/baldosa-evidence/*.exit
+            ${{ runner.temp }}/baldosa-evidence/*/log.txt
+ \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt"
+          python3 tools/check_baldosa_physical_4k_capture.py \
+            --source "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --density-4x "$RUNNER_TEMP/baldosa-ws342-captures-4x/ur-baldosa-ws342-001856.pam" \
+            --physical-4k "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE" \
+            --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_physical_4k_frame1856.json"
+          echo "PASS: real SDL 3840x2160 completed drawable exact against 342 Original 1x/4x source" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME
+
           # Isolate each genuine OBJ hardware slot with pinned PPU extraction
           # and removal explicitly OFF. Full stock frames must be identical.
           export UR_BALDOSA_HD_DENSITY=1
@@ -844,6 +1118,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame1856.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt
+            ${{ runner.temp }}/ur-baldosa-output-001856.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json

@@ -85,6 +85,11 @@ def changed_pixels(source: bytes, output: bytes,
 
 def assess(captures: Path, log_path: Path, coverage_path: Path) -> dict:
     txt = log_path.read_text(encoding="utf-8", errors="replace")
+    # The pinned native first-party P1_ONLY diagnostic prints a *literal*
+    # backslash-n immediately before its first DRAW PASS. It does NOT print
+    # an actual line break there. Accept precisely that known split while
+    # preserving every field, rather than silently dropping top slot 98.
+    txt = txt.replace(r"\nUR_RACER_HD_DRAW PASS ", "\nUR_RACER_HD_DRAW PASS ")
     frames = [int(f) for f in MARK.findall(txt)]
     if not frames or len(frames) != len(set(frames)):
         raise ValueError("missing or duplicate real native underlay witnesses")

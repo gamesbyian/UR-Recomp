@@ -7,7 +7,7 @@ permissions:
   contents: write
 concurrency:
   group: ur-modern-root-media-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
   capture:
     if: github.event.pull_request.head.ref == 'media/native-modern-root-footage-20261010'

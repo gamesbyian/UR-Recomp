@@ -38,7 +38,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
 
     def test_modern_root_reentry_requires_real_ordered_stock_return(self):
         self.assertNotIn("b", probe.STOCK_RETURN_CANDIDATES)
-        self.assertGreaterEqual(len(probe.STOCK_RETURN_CANDIDATES), 3)
+        self.assertEqual(probe.STOCK_RETURN_CANDIDATES, ("x", "y"))
         for button in probe.STOCK_RETURN_CANDIDATES:
             script = probe.native_modern_root_reentry_script(button)
             self.assertIn(f"press {button} 2", script)

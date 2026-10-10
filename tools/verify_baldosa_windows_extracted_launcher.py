@@ -31,13 +31,12 @@ def invoke_launcher(launcher: Path, env: dict[str, str], extra: list[str],
                     timeout: int) -> subprocess.CompletedProcess[str]:
     # One path: use the same CMD entrypoint a user double-clicks. Supplying
     # arguments tests real forwarding rather than bypassing the launcher.
-    # CMD's /S /C rule removes exactly the outermost quote pair.
-    # The *inner* pair must remain around the extracted .cmd pathname.
-    # Passing the launcher as a separate argv after /C causes CMD to
-    # misidentify the command boundary when later arguments are quoted.
-    command = f'""{launcher}" {subprocess.list2cmdline(extra)}"'
+    # 'call' is a command token *before* the quoted batch pathname.
+    # This avoids CMD's /C outer-quote removal rules entirely, while
+    # preserving normal quoted arguments and the actual .cmd execution path.
+    # Unlike /S /C ""path" args", this cannot be mistaken for a UNC path.
     return subprocess.run(
-        ["cmd.exe", "/d", "/s", "/c", command],
+        ["cmd.exe", "/d", "/c", "call", str(launcher), *extra],
         cwd=launcher.parent, env=env, capture_output=True, text=True,
         errors="replace", timeout=timeout,
     )

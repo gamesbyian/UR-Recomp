@@ -76,17 +76,37 @@ def _verify_four_x(logical: bytes, four_x: bytes, width: int) -> None:
                 )
 
 
+def sdl_software_nearest_index(position: int, target_extent: int,
+                               texture_extent: int) -> int:
+    """SDL2 software renderer's 16.16 nearest-copy fixed-point stepping.
+
+    This is the observed, pinned SDL2 software implementation's sampling
+    contract for the *native 4x texture*, not ideal mathematical sampling
+    directly from the 1x title field. In the genuine 3840x2160 capture, all
+    pixels outside the turbo OSD matched this mapping exactly.
+    """
+    step = (texture_extent << 16) // target_extent
+    return min((position * step + step // 2) >> 16, texture_extent - 1)
+
+
 def _verify_physical(logical: bytes, screen: bytes, width: int) -> None:
     output_width, output_x = SOURCE_SIZES[width]
     matte = b"\x00\x00\x00\xff"
-    xmap = [nearest_index(x, output_width, width)
-            for x in range(output_width)]
+    # The validated native renderer uploads *fourfold* texture pixels to
+    # the SDL2 software renderer. Its actual 16.16 fixed-point scaling of
+    # that buffer differs from an ideal 1x center-of-texel projection on
+    # sparse column/row boundaries, despite the exact 4x nearest source.
+    xmap = [
+        sdl_software_nearest_index(x, output_width, width * FOUR_X) // FOUR_X
+        for x in range(output_width)
+    ]
     # Cache one source row at a time; the physical 3840x2160 buffer stays
     # original-capture-owned and is never synthesized or silently accepted.
     y_last = -1
     expected_row = b""
     for y in range(OUT_H):
-        sy = nearest_index(y, OUT_H, HEIGHT)
+        sy = (sdl_software_nearest_index(
+            y, OUT_H, HEIGHT * FOUR_X) // FOUR_X)
         if sy != y_last:
             row = logical[sy * width * 4:(sy + 1) * width * 4]
             # The PPU logical/4x Original fields carry ARGB 0x00RRGGBB:
@@ -145,6 +165,7 @@ def assess(source: Path, density_4x: Path, captured_4k: Path,
         "full_height_224_rows_preserved": True,
         "native_density_and_output_distinct": True,
         "opaque_sdl_drawable_alpha_expected": 255,
+        "sdl2_software_nearest_fixed_point_bits": 16,
         "original_ppu_alpha_is_not_output_opacity": True,
         "rgba_source_sha256": hashlib.sha256(src).hexdigest(),
         "rgba_density_sha256": hashlib.sha256(scaled).hexdigest(),

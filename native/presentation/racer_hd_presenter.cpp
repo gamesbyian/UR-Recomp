@@ -475,9 +475,13 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     // fallback. Report exact source words to select *new* art families.
     // No raster, admission, OAM, guest or Modern host property is changed.
     const char* trace = std::getenv("UR_RACER_HD_1P_STATE_TRACE");
+    // The guest's temporary 0x3C frontend selector exists during
+    // pre-race but changes before actual running 1P gameplay. That
+    // selector must NOT gate the in-race art worklist: the surrounding
+    // exact USA native 1P route, guest-frame window, normal gate census
+    // and full original guest CRC sequence authenticate this witness.
     if (hd_census_enabled() && trace && trace[0] == '1' &&
-        trace[1] == '\0' && number >= 1700 && number <= 5150 &&
-        g_ram[0x009F] == 0x3Cu) {
+        trace[1] == '\0' && number >= 1700 && number <= 5150) {
         const auto source = read_racer_guest_snapshot(g_ram, 0x20000);
         if (source) {
             const SelectionResult selected = select_racer_presentation_from_wram(

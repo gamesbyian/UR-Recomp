@@ -31,8 +31,13 @@ def invoke_launcher(launcher: Path, env: dict[str, str], extra: list[str],
                     timeout: int) -> subprocess.CompletedProcess[str]:
     # One path: use the same CMD entrypoint a user double-clicks. Supplying
     # arguments tests real forwarding rather than bypassing the launcher.
+    # CMD's /S /C rule removes exactly the outermost quote pair.
+    # The *inner* pair must remain around the extracted .cmd pathname.
+    # Passing the launcher as a separate argv after /C causes CMD to
+    # misidentify the command boundary when later arguments are quoted.
+    command = f'""{launcher}" {subprocess.list2cmdline(extra)}"'
     return subprocess.run(
-        ["cmd.exe", "/d", "/c", str(launcher), *extra],
+        ["cmd.exe", "/d", "/s", "/c", command],
         cwd=launcher.parent, env=env, capture_output=True, text=True,
         errors="replace", timeout=timeout,
     )
@@ -80,8 +85,11 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
     # A double-click with missing ROM must reject before touching user state.
     missing = invoke_launcher(launcher, env, args, timeout)
     require(missing.returncode != 0 and
-            "UR-BALDOSA-STARTUP-ROM-MISSING" in missing.stderr,
-            "missing ROM did not fail via actual CMD entrypoint")
+            "UR-BALDOSA-STARTUP-ROM-MISSING" in
+            (missing.stdout + missing.stderr),
+            f"missing ROM did not fail via actual CMD entrypoint: "
+            f"rc={missing.returncode} stdout={missing.stdout[-1200:]!r} "
+            f"stderr={missing.stderr[-1200:]!r}")
     require(not user_root.exists(), "missing ROM created user state")
 
     installed_rom = installed / ROM

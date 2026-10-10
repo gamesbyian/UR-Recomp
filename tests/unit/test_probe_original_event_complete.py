@@ -35,7 +35,8 @@ def capture(menu=0xBC, text=None):
                 {"relative_frame": 218, "p1_x": 40, "p1_laps": 3},
                 {"relative_frame": 1721, "p1_x": 80, "p1_laps": 2},
             ],
-            "result": {"menu": menu}, "onset": {"menu": menu},
+            "result": {"menu": menu, "in_race": 0x3D, "p1_laps": 0},
+            "onset": {"menu": menu, "in_race": 0x3D, "p1_laps": 0},
             "result_text": {"final": text, "onset": text}}
 
 
@@ -215,6 +216,46 @@ class CompleteEventProducerTests(unittest.TestCase):
         self.assertFalse(result["circuit_multiple_lap_decrements_sampled"])
         self.assertFalse(result["paired_event_candidate"])
 
+    def test_result_screen_does_not_substitute_for_terminal_guest_lifecycle(self):
+        import copy
+        original, native = capture(), capture()
+        trusted = target.diagnose(original, native, 0xBC, False)
+        self.assertTrue(trusted["paired_event_candidate"])
+        self.assertTrue(trusted["result_outside_active_race_in_both_guests"])
+        self.assertTrue(trusted["circuit_zero_remaining_laps_at_onset_and_stable"])
+        # An identical printed result and two observed lap decreases can
+        # still coexist with an active guest or unfinished final lap.
+        for side in ("original", "native"):
+            for stage in ("onset", "result"):
+                for value in (1, None, True):
+                    pair = {"original": copy.deepcopy(original),
+                            "native": copy.deepcopy(native)}
+                    pair[side][stage]["in_race"] = value
+                    observed = target.diagnose(pair["original"], pair["native"],
+                                               0xBC, False)
+                    self.assertTrue(observed["both_reached_terminal_menu"])
+                    self.assertTrue(observed["rendered_result_and_score_text_matched"])
+                    self.assertFalse(observed["result_outside_active_race_in_both_guests"])
+                    self.assertFalse(observed["paired_event_candidate"])
+                for value in (1, 2, None, True):
+                    pair = {"original": copy.deepcopy(original),
+                            "native": copy.deepcopy(native)}
+                    pair[side][stage]["p1_laps"] = value
+                    observed = target.diagnose(pair["original"], pair["native"],
+                                               0xBC, False)
+                    self.assertTrue(observed["circuit_multiple_lap_decrements_sampled"])
+                    self.assertFalse(
+                        observed["circuit_zero_remaining_laps_at_onset_and_stable"])
+                    self.assertFalse(observed["paired_event_candidate"])
+        # Bowl's real 0x3C result state and a scored Stunt's lap counter
+        # are distinct from a Circuit's zero-laps completion contract.
+        bowl = capture(0x18, ["BOWL", "MIKE", ": 764"])
+        bowl["result"].update(in_race=0x3C, p1_laps=45)
+        bowl["onset"].update(in_race=0x3C, p1_laps=45)
+        observed = target.diagnose(bowl, copy.deepcopy(bowl), 0x18, True)
+        self.assertTrue(observed["paired_event_candidate"])
+        self.assertTrue(observed["result_outside_active_race_in_both_guests"])
+
     def test_result_menu_with_no_player_finish_time_is_not_a_race(self):
         reference = capture(0x99, ["SWITCHER", "MIKE", "NO TIME"])
         native = capture(0x99, ["SWITCHER", "MIKE", "NO TIME"])
@@ -273,6 +314,12 @@ class CompleteEventProducerTests(unittest.TestCase):
             ["MIKE", ": 764", "QUALIFY", ": 68"], True))
         self.assertTrue(target.archived_p1_positive_result(
             ["MIKE", "1:16.46", "0:25.10"], False))
+        self.assertFalse(target.archived_p1_positive_result(
+            ["MIKE", "0:00.00", "BRONSEN", "0:21.54"], False))
+        self.assertFalse(target.archived_p1_positive_result(
+            ["MIKE", "000:00.00"], False))
+        self.assertTrue(target.archived_p1_positive_result(
+            ["MIKE", "0:00.01"], False))
         cpu_win = capture(0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"])
         result = target.diagnose(cpu_win, capture(
             0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"]), 0x99, False)
@@ -303,6 +350,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             ("stunt_positive_score_visible", False),
             ("timed_race_or_circuit_result_visible", False),
             ("both_reached_terminal_menu", False),
+            ("result_outside_active_race_in_both_guests", False),
             ("fresh_guest_entry_equivalent", False),
             ("original_source_entry_equivalent", False),
             ("first_sample_disagreement", {"relative_frame": 120}),

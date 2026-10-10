@@ -109,8 +109,8 @@ void open_records_archive() {
         g_records_recent = "NOTHING WAS LOADED";
     } else {
         g_records_status =
-            "SAVED: " + std::to_string(result.validated_archives) +
-            "  UNAVAILABLE: " + std::to_string(result.unavailable_artifacts);
+            "VALID " + std::to_string(result.validated_archives) +
+            "  UNAVAILABLE " + std::to_string(result.unavailable_artifacts);
         if (result.validated_archives == 0) {
             g_records_recent = "NO STORED RUNS YET";
         } else {
@@ -122,7 +122,7 @@ void open_records_archive() {
                 static_cast<unsigned long long>((hundredths / 100u) % 60u),
                 static_cast<unsigned long long>(hundredths % 100u));
             g_records_recent =
-                "LATEST: " + result.recent_course + " " + timing;
+                "LAST: " + result.recent_course + " " + timing;
         }
     }
     std::fprintf(stderr,

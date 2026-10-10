@@ -47,3 +47,21 @@ must not be faked or tolerated.
 Until that native run succeeds, only the live **342-wide world 4K**
 output is accepted. Fixed 256-wide output and Windows physical 4K
 are explicitly separate pending gates.
+
+## Native fixed-width three-process QA run added
+
+The existing Baldosa AOT workflow now separately executes an
+unmodified native 256×224 source at guest frame **400**, compares
+the full guest CRC stream with its earlier genuine 1024×896 Original
+4× fallback, and captures a third real 3840×2160 SDL surface from
+a fresh process on the already-established virtual 4K display.
+The same all-pixel physical oracle checks the entire 2880×2160
+active viewport plus both opaque-black 480-pixel side mattes.
+
+No capture is synthesized from another input, and any difference
+in source, 4× fallback, guest state, physical pixel or matte must
+fail CI. The original 342-wide physical acceptance remains intact.
+
+**The new fixed-width path remains pending until its native AOT run
+passes.** It does not establish Windows physical output or physical
+monitor scanout.

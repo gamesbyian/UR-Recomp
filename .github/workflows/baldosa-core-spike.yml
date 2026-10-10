@@ -687,6 +687,48 @@ jobs:
           echo "PASS: genuine SDL 3840x2160 output all-pixel Original 7:6 source/4x parity" >> "$GITHUB_STEP_SUMMARY"
           unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME
 
+          # Independent Original 256x224 1x source, 1024x896 4x guest
+          # and 3840x2160 real SDL output, not widened-world acceptance.
+          export UR_BALDOSA_WS342=0 UR_BALDOSA_WS24=0
+          unset UR_BALDOSA_WS342_LIVE UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME=400
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-fixed-source"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/fd/crc.txt"
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=${UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME} logical=256x224 saved=1 source=native-original-ppu$" \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
+          test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-000400.pam"
+          unset UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME
+
+          # The independent 4x Original fallback from the preceding step.
+          test -s "$RUNNER_TEMP/baldosa-hd-captures-4x/ur-baldosa-fallback-000400.pam"
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME=400
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE="$RUNNER_TEMP/ur-baldosa-output-000400.pam"
+          export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-fixed-4k-host"
+          mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
+          DISPLAY=:100 TMO=240 bash baldosa/tools/run_route.sh \
+            baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_physical_4k"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_physical_4k/fd/crc.txt"
+          test -s "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE"
+          grep -q "^UR_BALDOSA_PHYSICAL_4K_CAPTURE frame=${UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME} output=3840x2160 source=SDL_RenderReadPixels status=saved$" \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_physical_4k/log.txt"
+          python3 tools/check_baldosa_physical_4k_capture.py \
+            --source "$RUNNER_TEMP/baldosa-fixed-source/ur-baldosa-original-source-000400.pam" \
+            --density-4x "$RUNNER_TEMP/baldosa-hd-captures-4x/ur-baldosa-fallback-000400.pam" \
+            --physical-4k "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE" \
+            --frame 400 \
+            --out "$RUNNER_TEMP/baldosa-evidence/fixed_original_physical_4k_frame400.json"
+          echo "PASS: native centered fixed 256-wide Original at real 4K, matte pixels and guest CRC exact" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME
+          export UR_BALDOSA_WS342=1 UR_BALDOSA_WS24=1
+
           # Isolate each genuine OBJ hardware slot with pinned PPU extraction
           # and removal explicitly OFF. Full stock frames must be identical.
           export UR_BALDOSA_HD_DENSITY=1
@@ -984,6 +1026,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame1856.json
+            ${{ runner.temp }}/baldosa-evidence/fixed_original_physical_4k_frame400.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_physical_4k/log.txt
+            ${{ runner.temp }}/baldosa-fixed-source/ur-baldosa-original-source-000400.pam
+            ${{ runner.temp }}/ur-baldosa-output-000400.pam
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt
             ${{ runner.temp }}/ur-baldosa-output-001856.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json

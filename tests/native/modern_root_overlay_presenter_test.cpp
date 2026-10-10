@@ -60,7 +60,10 @@ int main() {
     painted.clear();
     view.europe = true;
     view.racer_name = "CUSTOM RACER";
-    view.menu = modern_root_menu_move(view.menu,3);
+    // Navigation deliberately moves one destination per input event, even
+    // when the signed delta has magnitude greater than one.
+    for (int i = 0; i < 3; ++i)
+        view.menu = modern_root_menu_move(view.menu, 1);
     view.tour_continue_available = true;
     view.quit_confirm = true;
     assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,

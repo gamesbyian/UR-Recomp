@@ -126,11 +126,13 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                                   side_effect=subprocess_fake),
                 mock.patch.object(probe, "frame_crcs",
                                   return_value=["0x1"] * 2472),
+                mock.patch.object(probe, "verify_native_profile_checkpoint"),
             ):
                 receipt = probe.run_existing_named_profile_fresh_process(
                     Path("real-baldosa.exe"), Path("retail.sfc"),
                     Path("2p-route.txt"), root, video="windows",
-                    timeout=20, clean_frames=2473)
+                    timeout=20, clean_frames=2473,
+                    fixture=Path("native-typed-fixture.exe"))
             self.assertTrue(
                 receipt["loaded_8192_byte_save_from_previous_process"])
             self.assertEqual(
@@ -146,6 +148,39 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             ):
                 self.assertEqual(
                     (folder / name).read_bytes(), ("preserve-" + name).encode())
+
+    def test_native_checkpoint_requires_acknowledgment_and_typed_readback(self):
+        import subprocess
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            fixture = Path("real-fixture.exe")
+            ok = ("UR_BALDOSA_NATIVE_PROFILE CHECKPOINT "
+                  "profile=native-ci-rider status=committed\n")
+            expected = (
+                "UR_BALDOSA_NATIVE_PROFILE VERIFIED "
+                "profile=native-ci-rider sram=8192 generation=1\n")
+            with mock.patch.object(probe.subprocess, "run",
+                                   return_value=subprocess.CompletedProcess(
+                                       [], 0, expected, "")) as execute:
+                probe.verify_native_profile_checkpoint(
+                    fixture, root, "native-ci-rider", ok, 20)
+                self.assertEqual(
+                    execute.call_args.args[0][-1], "--verify-native-save")
+                for invalid in (
+                    "", ok + ok,
+                    ok.replace("committed", "profile_conflict"),
+                    ok.replace("committed", "native_save_unverified"),
+                    ok.replace("committed", "io_error"),
+                ):
+                    with self.assertRaisesRegex(ValueError, "acknowledged"):
+                        probe.verify_native_profile_checkpoint(
+                            fixture, root, "native-ci-rider", invalid, 20)
+            with mock.patch.object(probe.subprocess, "run",
+                                   return_value=subprocess.CompletedProcess(
+                                       [], 46, "", "SRAM mismatch")):
+                with self.assertRaisesRegex(ValueError, "diverged"):
+                    probe.verify_native_profile_checkpoint(
+                        fixture, root, "native-ci-rider", ok, 20)
 
     def test_second_named_modern_profile_admits_only_own_guest_sram(self):
         source = bytes(i % 251 for i in range(8192))

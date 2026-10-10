@@ -793,6 +793,38 @@ jobs:
           unset UR_RACER_HD_WIDE_REMOVE_FRAME
           echo "PASS: P1/P2 split and moving-time native PPU final-visible source attribution, unchanged complete guest CRC" >> "$GITHUB_STEP_SUMMARY"
 
+          # Actual native same-frame paired OBJ priority counterfactual:
+          # remove BOTH overlapping upper rider OAM slots for one frame.
+          # The stock raster and individual source planes already came
+          # from three other independent full guest executions above.
+          # Do not enable any authored HD sprite paint/removal here.
+          unset UR_RACER_HD_WIDE_REMOVE_SLOT UR_RACER_HD_WIDE_SOURCE_SLOT
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_PAIR=98-99
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=1856
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-pair98-99"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99/fd/crc.txt"
+          python3 tools/check_baldosa_wide_pair_final_visibility.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --first-source "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot98-frame001856.pam" \
+            --second-source "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot99-frame001856.pam" \
+            --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-001856.pam" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --first-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_98/fd/crc.txt" \
+            --second-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_99/fd/crc.txt" \
+            --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99/fd/crc.txt" \
+            --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99/log.txt" \
+            --first-slot 98 --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_pair98_99_final_visibility_1856.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_PAIR
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "PASS: real native slot98-99 final PPU source-union counterfactual; full guest CRC parity; no HD permission" >> "$GITHUB_STEP_SUMMARY"
+
           python3 - <<'PY'
           import json
           import os
@@ -971,6 +1003,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_pair98_99_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair98_99/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-pair98-99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_slot96_final_visibility_1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1872.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot96_frame1856/log.txt

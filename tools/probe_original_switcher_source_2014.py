@@ -34,9 +34,16 @@ def inspect_original(args: argparse.Namespace) -> dict:
         raise ValueError("not canonical USA original ROM")
     src, _ = movie.read_movie(args.movie)
     meta = json.loads(args.movie_meta.read_text(encoding="utf-8"))
-    movie.window(src, meta, 3190, 1810)  # replay metadata and embedded ROM identity
     if type(meta.get("sample_count")) is not int or args.source_horizon > meta["sample_count"]:
         raise ValueError("original source horizon exceeds verified movie sample count")
+    # The original source is pinned at Zoo frame 3190. For a deeper 48k/96k
+    # scan, validate *every* later controller sample using the same strict
+    # reset-marker/reserved-bit/ROM/UID oracle used by the 1810-frame scene.
+    # A hidden reset in an extended horizon must never become an apparently
+    # continuous qualified Race B input source.
+    for first in range(3190, args.source_horizon, movie.LIMIT):
+        movie.window(src, meta, first,
+                     min(movie.LIMIT, args.source_horizon - first))
     out = args.work_dir / "source-switcher"
     if out.exists():
         raise ValueError("source output exists: use a fresh workspace")

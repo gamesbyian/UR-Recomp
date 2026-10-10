@@ -350,6 +350,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             ("stunt_positive_score_visible", False),
             ("timed_race_or_circuit_result_visible", False),
             ("both_reached_terminal_menu", False),
+            ("result_outside_active_race_in_both_guests", False),
             ("fresh_guest_entry_equivalent", False),
             ("original_source_entry_equivalent", False),
             ("first_sample_disagreement", {"relative_frame": 120}),

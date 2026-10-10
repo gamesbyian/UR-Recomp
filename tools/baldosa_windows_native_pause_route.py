@@ -175,7 +175,7 @@ def assert_corrupt_named_profile_rejected(
         "malformed selected profile; keep all SRAM untouched",
         encoding="utf-8")
     config = output / "config.ini"
-    config.write_text("[Sound]\\nEnableAudio = 0\\n", encoding="utf-8")
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     env = os.environ.copy()
     env.update({
         "SNESRECOMP_USER_DATA_DIR": str(user_root),
@@ -188,7 +188,7 @@ def assert_corrupt_named_profile_rejected(
         "--script", str(script), str(rom),
     ], cwd=output, env=env, capture_output=True, text=True,
        timeout=timeout, errors="replace")
-    log = outcome.stdout + "\\n" + outcome.stderr
+    log = outcome.stdout + "\n" + outcome.stderr
     (output / "log.txt").write_text(log, encoding="utf-8")
     if (outcome.returncode != 7 or
         "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="

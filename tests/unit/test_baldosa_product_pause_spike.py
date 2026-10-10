@@ -59,6 +59,13 @@ class NativePauseIntegrationTest(unittest.TestCase):
         host = spike.patch_host_source(self.host)
         self.assertEqual(host.count(spike.MARK), 4)
         self.assertIn("if (g_product_pause_owned) {", host)
+        self.assertIn("PresentFrozenWithOverlay();", host)
+        self.assertIn("++g_product_pause_presentations;", host)
+        self.assertIn("unsigned snesrecomp_desktop_product_pause_presentations", head)
+        self.assertLess(host.index("PresentFrozenWithOverlay();"),
+                        host.index("if (g_paused && !g_savestate_menu_hotkey"))
+        self.assertNotIn("RtlRunFrame(", host)
+        self.assertNotIn("draw_ppu_frame(", host)
         self.assertIn("default: return;", host)
         self.assertIn("g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;", host)
         self.assertIn("if (g_netplay_session) return 0", host)

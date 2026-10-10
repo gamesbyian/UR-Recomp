@@ -451,6 +451,11 @@ def check_pause_log(log: str) -> dict[str, str]:
         raise ValueError("Native guest rollback did not preserve WRAM and SRAM at its anchor")
     if "frozen_pumps=24" not in found["RELEASED"] or "frozen_pumps=24" not in found["RESUMED"]:
         raise ValueError(f"Guest hold too short: {found}")
+    freeze = re.findall(
+        r"UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=(\d+) "
+        r"present_count=(\d+) no_guest_steps=1", log)
+    if len(freeze) != 1 or int(freeze[0][1]) < 23:
+        raise ValueError("Native paused raster was not presented across frozen pumps")
     if "FAIL=" in log:
         raise ValueError("Native pause code detected a guest-state violation")
     return found

@@ -63,6 +63,7 @@ def patch_host_header(source: str) -> str:
         " * No cross-thread invocation; offline only. Query is for acknowledgement. */\n"
         "int snesrecomp_desktop_product_set_paused(int paused);\n"
         "int snesrecomp_desktop_product_is_paused(void);\n"
+        "unsigned snesrecomp_desktop_product_pause_presentations(void);\n"
         + PUBLIC)
     return source.replace(HEADER, addition, 1).replace(PUBLIC, public, 1)
 
@@ -80,6 +81,10 @@ def patch_host_source(source: str) -> str:
         GLOBAL +
         "/* " + MARK + ": only Modern's own pause may be cleared by Modern. */\n"
         "static bool g_product_pause_owned;\n"
+        "static unsigned g_product_pause_presentations;\n"
+        "unsigned snesrecomp_desktop_product_pause_presentations(void) {\n"
+        "  return g_product_pause_presentations;\n"
+        "}\n"
         "int snesrecomp_desktop_product_set_paused(int wanted) {\n"
         "  if (g_netplay_session) return 0;\n"
         "  if (wanted) {\n"
@@ -119,6 +124,10 @@ def patch_host_source(source: str) -> str:
         "    /* " + MARK + ": never open stock overlays during product pause. */\n"
         "    if (g_product_pause_owned) {\n"
         "      g_savestate_menu_hotkey = g_rewind_hotkey = g_open_launcher_hotkey = 0;\n"
+        "      /* Present exactly the LAST captured frame using the existing\n"
+        "       * frozen overlay compositor, never draw_ppu_frame or RtlRunFrame. */\n"
+        "      PresentFrozenWithOverlay();\n"
+        "      ++g_product_pause_presentations;\n"
         "      snes_host_clock_reset(&video_clock, MonotonicSeconds(),\n"
         "          g_simulation_hz, presentation_hz);\n"
         "      HostSleepMs(16);\n"

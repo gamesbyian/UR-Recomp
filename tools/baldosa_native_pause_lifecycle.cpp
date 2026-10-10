@@ -29,6 +29,7 @@ extern std::uint8_t g_ram[0x20000];
 void ur_baldosa_product_guest_restarted(void);
 int ur_baldosa_product_set_paused(int paused);
 int snesrecomp_desktop_product_is_paused(void);
+unsigned snesrecomp_desktop_product_pause_presentations(void);
 int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
 void ur_baldosa_modern_root_after_run_frame(unsigned frame);
@@ -406,6 +407,17 @@ extern "C" void ur_baldosa_product_host_tick(void) {
     if (g_delayed_restart_enabled && g_frozen_ticks == 8)
         queue_restart_edge(); // SDL processes this BEFORE the next host tick
     if (g_frozen_ticks == 24) {
+        // The host's real frozen compositor must keep the window visibly
+        // alive during the entire native-pause interval. Presentations run
+        // without a guest frame and without executing draw_ppu_frame().
+        const unsigned frozen_presentations =
+            snesrecomp_desktop_product_pause_presentations();
+        require(frozen_presentations >= 23u,
+                "native_pause_did_not_present_frozen_raster");
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=%u present_count=%u "
+            "no_guest_steps=1\n", g_guest_frame, frozen_presentations);
+        std::fflush(stderr);
         if (g_physical_smoke) {
             // A second physical SDL edge, not a direct lifecycle call, resumes.
             // If the host fails to dispatch it, the guest remains frozen and

@@ -1,73 +1,35 @@
-# Continuous native footage candidate (capture lane)
+# Continuous native gameplay capture: accepted first 600-frame witness
 
-This is an **unexecuted recording implementation**, not accepted gameplay footage.
-Issue [#1223](https://github.com/gamesbyian/UR-Recomp/issues/1223) remains open until an actual bounded native recording has been produced, inspected, validated and merged.
+The initial capture described in the earlier handoff **succeeded** in [native CI run 38089655141](https://github.com/gamesbyian/UR-Recomp/actions/runs/38089655141), which passed and committed a clean MP4, lossless-source poster and exact provenance to [the permanent recording directory](continuous/README.md).
 
-## Native recording
+- **600 genuinely consecutive native host-presented guest frames**, from frame 2100 through 2699 inclusive, following the scripted GO at frame 1989.
+- Two-player native Original source-backed 342×224 logical widescreen; real SDL drawable **960×540**; clean delivery **1920×1080** nearest-neighbor 2×. Not real physical 4K.
+- One input-equivalent recording-off run and one recording-on run produced byte-identical complete guest WRAM CRC sequences. The lossless FFV1 stream independently decoded to exactly 600 frames and had complete, exact, unique chronological frame IDs; no synthetic frames or interpolation.
+- Original lossless master and full CI diagnostics remain in temporary GitHub artifact 11683697184. Clean MP4 and machine-readable manifest are committed under `continuous/`.
+- Pinned upstream game, framework, ROM and built executable identities, video hashes, exact scripts and route SHA are retained in `continuous/native-continuous-provenance.json`.
 
-The minimal disposable-SDL2 hook in
-`tools/showcase/stage_continuous_native_capture.py` attaches immediately
-before the pinned native SDL host's `SDL_RenderPresent`. It reads the actual
-drawable with `SDL_RenderReadPixels`, pipes BGRA pixels directly to FFmpeg's
-lossless FFV1 encoder, and records an ordinal/guest-frame index. This is a
-host drawable, **not** the 342×224 logical raster or guaranteed 4K output.
-The actual drawable dimensions are recorded. The hook refuses an unexpected
-SDL host source anchor.
+## Reproduce it
 
-Stage only in a temporary upstream Baldosa checkout *after* the existing
-Original 342-wide renderer preparation:
+The media-specific route generator `tools/showcase/extend_native_2p_route.py` takes the pinned upstream `race_2p_split.txt`, preserving all character, menu, gate and input events through GO, switching **turbo off** and extending rightward travel. This deliberately reduces skipped native host presentations. Use the same established Baldosa Original-wide native build from the existing QA-08 workflow. Stage **only into its disposable framework checkout**:
 
 ```sh
 python3 tools/showcase/stage_continuous_native_capture.py --framework baldosa/snesrecomp
-# Rebuild the same pinned native Baldosa host already used by QA-08.
-# Execute its existing race_2p_split route with identical inputs twice:
-# (1) no recording; (2) enable the following in the host process:
-export UR_NATIVE_VIDEO_START=2208
+# rebuild exactly the existing native guest + SDL host
+# execute the SAME extended route twice:
+#   once without UR_NATIVE_VIDEO_* environment variables,
+#   once with the explicit variables below
+export UR_NATIVE_VIDEO_START=2100
 export UR_NATIVE_VIDEO_COUNT=600
 export UR_NATIVE_VIDEO_OUTPUT=ur-continuous-native-lossless.mkv
-# Run the proven route from the same working directory using the existing route wrapper.
-# Save the host stderr and BOTH complete fd/crc.txt traces.
 ```
 
-The start and length above are *targets*, not evidence of a successful
-600-frame capture. Route `race_2p_split` previously ran 2,473 guest frames
-and reached GO at guest frame 1989, so 2208..2807 needs a longer run.
-**Extend only a verified existing deterministic route with unchanged
-inputs** or select a different already-pinned post-GO route whose actual
-runtime encompasses the target. Do not extrapolate from a 2,473-frame
-test. A successful stdout log is insufficient: use the strict validator.
+The `run_route.sh` wrapper works in its output directory, so FFV1 and the `.frames.tsv` index appear in the recording-on route directory. Then run `tools/showcase/validate_continuous_native_capture.py` against the exact MKV/index/native log, full capture-off and capture-on `fd/crc.txt` files, input route identity, ROM and Git SHAs, as done in the accepted one-shot run.
 
-```sh
-python3 tools/showcase/validate_continuous_native_capture.py \
-  --master ur-continuous-native-lossless.mkv \
-  --frames ur-continuous-native-lossless.mkv.frames.tsv \
-  --log captured-host-stderr.log \
-  --control-crc disabled/fd/crc.txt \
-  --recorded-crc enabled/fd/crc.txt \
-  --count 600 --rom-sha256 <verified-USA-ROM-SHA256> \
-  --git-sha <full-repository-commit> --route <pinned-deterministic-route> \
-  --out native-continuous-provenance.json
-```
+Actual capture callback: pinned SDL2 `SdlRenderer_EndDraw` between texture presentation composition and `SDL_RenderPresent`, using `SDL_RenderReadPixels`. It records actual drawable pixels, not synthetic reprojected fields. FFmpeg reads a raw BGRA stream and encodes FFV1 losslessly. The host recorder stops after 600 frames and fails closed on discontinuity; the separate validator checks FFprobe's fully decoded count and CRC equality.
 
-The validator requires every recorded host-presentation identifier to be
-consecutive, exactly the specified number of **decoded** FFV1 frames,
-consistent SDL drawable dimensions, completed FFmpeg exit status, and
-byte-identical full guest WRAM CRC traces against capture-disabled execution.
-The stream is labeled a nominal 60-fps encoding; no assertion of exact 60-Hz
-guest/display synchronization follows without measuring the host cadence.
+## Remaining media work
 
-**Before public release**, independently verify ROM SHA and native
-build pin, record CI run/artifact identifiers, inspect first/middle/last
-frames, prove visually active course/racers/HUD, note any defective sprites,
-and produce a nearest-neighbor/unmodified clean MP4 from the certified
-lossless recording. No current artifact satisfies this requirement.
-
-Known risk: writing 4K BGRA into FFV1 every presentation is expensive.
-Prefer native 1280×720 or 1920×1080 physical drawable for an initial
-bounded recording while preserving authentic 342-wide guest presentation.
-Do not equate a smaller physical drawable with physical 4K evidence.
-This observer may reveal missing host presentations; it deliberately does
-not fill them, and its temporal cost must be measured.
-
-The existing recruitment teaser remains clearly labeled as sampled
-frames until a real continuous capture has passed the gate.
+- Inspect multiple points along the actual sequence, flag OBJ/HUD visual defects, and select the most compelling honest interval, without changing gameplay.
+- Produce validated horizontal and vertical recruitment edits. The existing October 10 teasers remain accurately labeled **sampled original frames** and are valid editorial material, not additional continuous gameplay.
+- Retire the temporary one-shot workflow after recording; it is not part of the long-term CI matrix.
+- Pursue a separate actual 3840×2160 continuous host recording only after the bounded 960×540 success, explicitly attributing both physical readback and logical 342×224 world.

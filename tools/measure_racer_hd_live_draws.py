@@ -165,8 +165,23 @@ def analyze(
     runs = episode_lengths(hd_frames)
     original_runs = episode_lengths(original_frames)
     armed = {f for f, (status, _) in gates.items() if status == "armed"}
+    # Separate unpresented *guest* decisions from a real host callback
+    # that painted Original following destructive HD admission. The latter
+    # is rejected above. Baldosa can simulate dozens of guest frames between
+    # desktop draws, so "capture armed but not presented" alone is not proof
+    # that an HD sprite was lost from an actual rendered frame.
+    armed_without_host_present = sorted(armed.difference(presented_classes))
     undrawn_armed = sorted(armed.difference(hd_frames))
     nonpresented = sorted(set(gates).difference(presented_classes))
+    overlap_refused = {
+        f for f, (status, reason) in gates.items()
+        if status == "original" and reason == "overlapping-source-obj"
+    }
+    overlap_with_host_present = sorted(overlap_refused.intersection(presented_classes))
+    overlap_without_host_present = sorted(overlap_refused.difference(presented_classes))
+    overlap_stock_present_calls = sum(
+        len(presents[f]) for f in overlap_with_host_present
+    )
     denom = len(presented_classes)
     return {
         "schema_version": 1,
@@ -181,7 +196,18 @@ def analyze(
             "guest_frames_observed": len(gates),
             "guest_frames_with_host_presents": denom,
             "guest_frames_without_host_presents": len(nonpresented),
+            "guest_frames_with_host_presents_fraction": denom / len(gates),
             "host_present_calls": sum(map(len, presents.values())),
+            "armed_without_host_present_guest_frames": len(armed_without_host_present),
+            "armed_without_host_present_guest_frame_ids": armed_without_host_present,
+            # Any armed guest with an actual host present must have rendered
+            # HD, else the early destructive source-OBJ removal is unsafe.
+            "armed_with_hd_host_present_guest_frames": len(armed.intersection(hd_frames)),
+            "armed_with_original_host_present_guest_frames": 0,
+            "overlap_refused_guest_frames": len(overlap_refused),
+            "overlap_refused_with_host_present_guest_frames": len(overlap_with_host_present),
+            "overlap_refused_without_host_present_guest_frames": len(overlap_without_host_present),
+            "overlap_refused_stock_host_present_calls": overlap_stock_present_calls,
             "hd_present_calls": hd_present_calls,
             "hd_drawn_guest_frames": len(hd_frames),
             "hd_pixel_change_witness_guest_frames": len(pixel_changes),
@@ -221,6 +247,7 @@ def analyze(
             "Counts host draw callback returns, not proof of correct pixels or background priority.",
             "Optional host-vs-post-capture-underlay witness proves a raster change, not original-frame fidelity, sprite ownership or physical GPU output.",
             "Does not treat absent host presentation as a stock frame or join across frame gaps.",
+            "A guest with HD armed but no desktop present is unobserved output, not a failed HD render. Armed guest with observed Original host output is rejected.",
             "P1-only diagnostic draws count as one HD player-frame; Original P2 remains stock.",
             "Current presenter only accepts fixed 256x224 geometry; widescreen is expected to fall back.",
         ],

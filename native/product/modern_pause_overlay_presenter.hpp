@@ -39,9 +39,8 @@ inline bool render_native_modern_pause_overlay(
         const char* label;
         bool wired;
     };
-    // Retain the established Modern pause-menu ordering. Unimplemented
-    // routes must be visibly disabled rather than quietly pretending to
-    // enter a Records, Options or Exit frontend that is not yet linked.
+    // Keep existing Modern ordering. Baldosa's SDL shutdown now owns Quit;
+    // unconnected Records, Options and Exit remain explicitly disabled.
     constexpr Row rows[] = {
         {UR_MODERN_PAUSE_RESUME, "RESUME", true},
         {UR_MODERN_PAUSE_RESTART, "RESTART RACE", true},
@@ -50,7 +49,7 @@ inline bool render_native_modern_pause_overlay(
         {UR_MODERN_PAUSE_RUN_DATA, "RUN DATA", false},
         {UR_MODERN_PAUSE_RECORDS, "RECORDS", false},
         {UR_MODERN_PAUSE_EXIT_FRONTEND, "EXIT TO FRONTEND", false},
-        {UR_MODERN_PAUSE_QUIT, "QUIT DESKTOP", false},
+        {UR_MODERN_PAUSE_QUIT, "QUIT DESKTOP", true},
     };
     const auto selected = ur_modern_pause_menu_selected(
         &menu, restart_available ? 1 : 0);

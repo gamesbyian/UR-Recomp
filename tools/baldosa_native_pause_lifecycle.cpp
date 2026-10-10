@@ -51,6 +51,8 @@ bool g_pause_navigation_pad[4]{};
 bool g_pause_panel_logged;
 unsigned g_pause_panel_paints;
 bool g_pause_panel_nav_smoke;
+bool g_pause_quit_smoke;
+bool g_native_quit_queued;
 bool g_pause_panel_nav_verified;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
@@ -112,6 +114,28 @@ bool pause_navigation_edge(int pressed, bool& holding,
         return false;
     if (holding) return true;
     holding = true;
+    if (action == UR_MODERN_PAUSE_ACTIVATE &&
+        ur_modern_pause_menu_selected(
+            &g_native_pause_menu,
+            ur_modern_session_restart_available(g_modern_session)) ==
+            UR_MODERN_PAUSE_QUIT) {
+        // Delegate to Baldosa's already-owned SDL shutdown/event loop. The
+        // guest remains frozen until the host processes SDL_QUIT and runs its
+        // normal SRAM/profile checkpoint path. No synthetic event result.
+        if (g_native_quit_queued) return true;
+        SDL_Event quit{};
+        quit.type = SDL_QUIT;
+        if (SDL_PushEvent(&quit) != 1) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_REJECTED=event_queue\n");
+            return true;  // keep host focus and the acknowledged pause
+        }
+        g_native_quit_queued = true;
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n");
+        std::fflush(stderr);
+        return true;
+    }
     const auto result = ur_modern_pause_handle_action(
         g_modern_session, &g_native_pause_menu, action);
     std::fprintf(stderr,
@@ -202,9 +226,18 @@ bool smoke_enabled() {
             g_physical_smoke = physical && std::strcmp(physical, "1") == 0;
             const char* nav = std::getenv("UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE");
             g_pause_panel_nav_smoke = nav && std::strcmp(nav, "1") == 0;
+            const char* quit = std::getenv("UR_BALDOSA_PAUSE_QUIT_SMOKE");
+            g_pause_quit_smoke = quit && std::strcmp(quit, "1") == 0;
             const char* delayed = std::getenv("UR_BALDOSA_DELAYED_RESTART_SMOKE");
             g_delayed_restart_enabled =
                 delayed && std::strcmp(delayed, "1") == 0;
+            if (g_pause_quit_smoke &&
+                (!g_physical_smoke || g_pause_panel_nav_smoke ||
+                 g_delayed_restart_enabled)) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_PAUSE FAIL=quit_smoke_requires_exclusive_physical_route\n");
+                std::abort();
+            }
         }
         g_smoke_initialized = true;
     }
@@ -506,6 +539,17 @@ extern "C" void ur_baldosa_product_host_tick(void) {
                 "guest_wram_advanced_during_pause");
     }
     ++g_frozen_ticks;
+    if (g_physical_smoke && g_pause_quit_smoke) {
+        // Native CI requests the actual paused menu destination with SDL
+        // keyboard edges: Up wraps Resume -> Quit, Enter commits. The
+        // event loop, not this probe, decides when to close the process.
+        if (g_frozen_ticks == 2) queue_key_edge(SDLK_UP);
+        if (g_frozen_ticks == 4) {
+            require(g_native_pause_menu.selected == UR_MODERN_PAUSE_QUIT,
+                    "native_quit_not_selected_by_physical_edge");
+            queue_key_edge(SDLK_RETURN);
+        }
+    }
     if (g_physical_smoke && g_pause_panel_nav_smoke) {
         // Test-only queued physical SDL key edges: Down then Up must
         // navigate the existing Modern model while the original guest stays

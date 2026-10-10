@@ -914,6 +914,111 @@ def run_native_modern_race_entry(
     }
 
 
+def verify_native_pause_quit_log(log: str) -> None:
+    """Confirm a physical paused-menu Quit without inventing an event result."""
+    stages = (
+        "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1",
+        "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1",
+        "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0",
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider status=",
+    )
+    positions = []
+    for marker in stages:
+        if log.count(marker) != 1:
+            raise ValueError(f"Native paused Quit missing/duplicate {marker}")
+        positions.append(log.index(marker))
+    if positions != sorted(positions):
+        raise ValueError("Native paused Quit stages out of order")
+    if ("UR_BALDOSA_NATIVE_PAUSE FAIL=" in log or
+        "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_REJECTED=" in log or
+        "UR_BALDOSA_NATIVE_PAUSE RELEASED " in log or
+        "UR_BALDOSA_NATIVE_PAUSE RESUMED " in log or
+        re.search(r"^script f=\d+ quit$", log, re.MULTILINE)):
+        raise ValueError("Native paused Quit was bypassed or guest resumed")
+    if not re.search(
+        r"^UR_BALDOSA_NATIVE_PROFILE CHECKPOINT "
+        r"profile=native-ci-rider status=(committed|unchanged)$",
+        log, re.MULTILINE,
+    ):
+        raise ValueError("Native paused Quit did not commit the typed Modern profile")
+
+
+def run_native_pause_quit(
+    exe: Path, rom: Path, script: Path, root: Path, fixture: Path,
+    seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Quit an actual in-race 2P native guest from the frozen Modern menu.
+
+    Uses the already established SDL pump and profile fixture. The shutdown
+    must save into the named Modern root and publish through the same typed
+    checkpoint as normal process exit; it must not reach script quit.
+    """
+    output = root / "native_modern_pause_quit"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Modern Quit Profile Root With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        cwd=output, timeout=timeout, capture_output=True, text=True,
+        check=True,
+    )
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    try:
+        completed = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(script), str(rom)],
+            cwd=output, env=env, capture_output=True,
+            text=True, errors="replace", timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("Real native pause Quit did not close the host") from exc
+    log = completed.stdout + "\n" + completed.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if completed.returncode:
+        raise RuntimeError(
+            f"Native pause Quit shutdown failed rc={completed.returncode}: "
+            f"{log[-2500:]}"
+        )
+    verify_native_pause_quit_log(log)
+    verify_named_profile_boot(log, seed)
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-rider", log, timeout)
+    save = user_root / "saves/profile-native-ci-rider/save.srm"
+    if not save.is_file() or save.stat().st_size != 8192:
+        raise ValueError("Native paused Quit lost the selected profile's 8KiB SRAM")
+    if ((user_root / "saves/save.srm").exists() or
+        (output / "saves").exists()):
+        raise ValueError("Native paused Quit leaked into a competing SRAM root")
+    return {
+        "authentic_live_guest_pause_frame": 1952,
+        "physical_sdl_menu_navigation": True,
+        "quit_via_existing_sdl_shutdown": True,
+        "native_guest_remained_paused_until_quit": True,
+        "named_profile_checkpoint_verified_after_shutdown": True,
+        "selected_profile_sram_bytes": save.stat().st_size,
+        "event_success_synthesized": False,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -974,6 +1079,9 @@ def main() -> int:
     fresh_process_proof = run_existing_named_profile_fresh_process(
         exe, rom, script, root, video=args.video, timeout=args.timeout,
         clean_frames=args.expected_frames, fixture=fixture)
+    pause_quit_proof = run_native_pause_quit(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     two_profiles_proof = run_second_named_profile_isolation(
         exe, rom, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -992,6 +1100,7 @@ def main() -> int:
         exe, rom, root, players=2, video=args.video, timeout=args.timeout)
     result = {
         "modern_root_source_menu_reentry": reentry_proof,
+        "native_modern_paused_quit": pause_quit_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,
         "native_modern_root_p1": root_p1_proof,

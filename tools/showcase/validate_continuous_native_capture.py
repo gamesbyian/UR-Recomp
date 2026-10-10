@@ -35,7 +35,7 @@ def probe(path: Path) -> dict:
 
 def validate(master: Path, frames: Path, log: Path, control: Path,
              recorded: Path, expected: int, output: Path,
-             rom_sha: str, git_sha: str, route: str) -> dict:
+             rom_sha: str, git_sha: str, route: str,\n             min_start: int = 1990, logical_width: int = 342) -> dict:
     if not (600 <= expected <= 1200):
         raise ValueError("Expected count outside accepted capture window")
     raw = frames.read_text().splitlines()
@@ -46,7 +46,7 @@ def validate(master: Path, frames: Path, log: Path, control: Path,
         raise ValueError("Incomplete/invalid sidecar")
     parsed = [tuple(map(int, row)) for row in rows]
     start = parsed[0][1]
-    if start < 1990:
+    if start < min_start:
         raise ValueError("Capture begins before expected post-GO window")
     sizes = {(w, h) for _, _, w, h in parsed}
     if len(sizes) != 1:
@@ -85,7 +85,7 @@ def validate(master: Path, frames: Path, log: Path, control: Path,
         "guest_frame_end": start + expected - 1,
         "consecutive_host_presentations": expected,
         "dimensions": {"actual_sdl_drawable": [width, height],
-                       "logical_wide_source": [342, 224]},
+                       "logical_source": [logical_width, 224]},
         "master": {"codec": "ffv1", "fps_nominal": "60/1",
                    "sha256": sha(master)},
         "control_guest_crc_sha256": sha(control),
@@ -105,11 +105,11 @@ def main() -> None:
     p.add_argument("--count", type=int, required=True)
     p.add_argument("--rom-sha256", required=True)
     p.add_argument("--git-sha", required=True)
-    p.add_argument("--route", required=True)
+    p.add_argument("--route", required=True)\n    p.add_argument("--min-start", type=int, default=1990)\n    p.add_argument("--logical-width", type=int, choices=(256, 342), default=342)
     a = p.parse_args()
     print(json.dumps(validate(a.master, a.frames, a.log, a.control_crc,
                               a.recorded_crc, a.count, a.out,
-                              a.rom_sha256, a.git_sha, a.route), indent=2))
+                              a.rom_sha256, a.git_sha, a.route, a.min_start, a.logical_width), indent=2))
 
 
 if __name__ == "__main__":

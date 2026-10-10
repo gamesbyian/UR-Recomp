@@ -12,8 +12,8 @@ import baldosa_windows_native_pause_route as probe
 
 
 class NativeWindowsPauseProbeTests(unittest.TestCase):
-    def test_real_sdl_shared_root_requires_visible_paint_and_guest_handoff(self):
-        valid = (
+    def test_real_sdl_shared_root_requires_stock_menu_observation(self):
+        baseline = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
             "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
@@ -23,32 +23,47 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=0\n"
-            "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n"
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1\n"
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
         )
-        self.assertIsNone(probe.verify_native_modern_root_log(valid))
+        self.assertIsNone(probe.verify_native_modern_root_log(baseline))
         for bad in (
-            valid.replace(" painted=1", " painted=0"),
-            valid.replace(" renderer=shared", " renderer=shadow"),
-            valid.replace(" route=3 unavailable=1", " route=3 launched=1"),
-            valid.replace(" play_guest_title=1", " play_guest_title=0"),
-            valid.replace("selected=3", "selected=4"),
-            valid.replace("opened=1", "opened=0"),
-            valid + valid,
-            valid.replace("UR_BALDOSA_MODERN_ROOT selected=0\n", ""),
-            valid.replace(
-                "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n", ""),
+            baseline.replace(" painted=1", " painted=0"),
+            baseline.replace(" renderer=shared", " renderer=fake"),
+            baseline.replace(" route=3 unavailable=1", " route=3 launched=1"),
+            baseline.replace(" stock_entered players=1 menu=3c",
+                             " stock_entered players=1 menu=d7"),
+            baseline.replace(" stock_entered players=1 menu=3c",
+                             " stock_entered players=2 menu=3d"),
+            baseline.replace("opened=1", "opened=0"),
+            baseline + baseline,
+            baseline.replace("UR_BALDOSA_MODERN_ROOT selected=0\n", ""),
+            baseline + "UR_BALDOSA_MODERN_ROOT stock_rejected=timeout\n",
         ):
             with self.subTest(bad=bad[-120:]):
-                with self.assertRaisesRegex(ValueError, "native|Native"):
+                with self.assertRaisesRegex(ValueError, "Native"):
                     probe.verify_native_modern_root_log(bad)
-        with self.assertRaisesRegex(ValueError, "order"):
+        with self.assertRaisesRegex(ValueError, "out of order"):
             probe.verify_native_modern_root_log(
-                valid.replace(
+                baseline.replace(
                     "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n",
                     "").replace(
-                    "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n",
-                    "UR_BALDOSA_MODERN_ROOT play_guest_title=1\n"
+                    "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n",
+                    "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
                     "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"))
+        two_player = (
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"
+            "UR_BALDOSA_MODERN_ROOT selected=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=2\n"
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=2\n"
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=2 menu=3d\n"
+        )
+        self.assertIsNone(probe.verify_native_modern_root_log(two_player, 2))
+        with self.assertRaisesRegex(ValueError, "missing/duplicate"):
+            probe.verify_native_modern_root_log(two_player, 1)
+        with self.assertRaisesRegex(ValueError, "Unsupported"):
+            probe.verify_native_modern_root_log(two_player, 3)
 
     def test_reads_authoritative_framedump_crc_in_numeric_order(self):
         with tempfile.TemporaryDirectory() as directory:

@@ -105,11 +105,11 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 (folder / name).write_bytes(("preserve-" + name).encode())
             log = (
                 "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
-                "root=saves/profile-native-ci-rider\\n"
+                "root=saves/profile-native-ci-rider\n"
                 "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
-                f"bytes=8192 fnv={probe.fnv32(before)}\\n"
-                "script f=2472 dump t480 ok\\n"
-                "script f=2472 quit\\n"
+                f"bytes=8192 fnv={probe.fnv32(before)}\n"
+                "script f=2472 dump t480 ok\n"
+                "script f=2472 quit\n"
             )
             def subprocess_fake(cmd, **kw):
                 self.assertEqual(
@@ -121,10 +121,12 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 # hash must reflect PRE-RUN bytes, not the modified file.
                 (selected / "save.srm").write_bytes(bytes([19]) * 8192)
                 return subprocess.CompletedProcess(cmd, 0, log, "")
-            with mock.patch.object(probe.subprocess, "run",
-                                   side_effect=subprocess_fake), \\
-                 mock.patch.object(probe, "frame_crcs",
-                                   return_value=["0x1"] * 2472):
+            with (
+                mock.patch.object(probe.subprocess, "run",
+                                  side_effect=subprocess_fake),
+                mock.patch.object(probe, "frame_crcs",
+                                  return_value=["0x1"] * 2472),
+            ):
                 receipt = probe.run_existing_named_profile_fresh_process(
                     Path("real-baldosa.exe"), Path("retail.sfc"),
                     Path("2p-route.txt"), root, video="windows",

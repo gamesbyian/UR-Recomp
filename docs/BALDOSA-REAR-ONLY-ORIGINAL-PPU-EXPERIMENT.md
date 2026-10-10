@@ -31,3 +31,24 @@ import failure.
 This tool adds no native route or graphics-mode option. It is ready
 for a separately authorized guest-frame witness once the currently
 running paired 98/99 experiment is accepted.
+
+## Real native rear-99 execution candidate
+
+The same existing pinned Baldosa AOT job now runs the actual original
+2P guest route independently with **only OAM slot 99** removed by the
+one-frame native PPU counterfactual at guest frame **1856**. It checks
+the complete stock/rear-source/rear-removed guest CRC streams, a unique
+native slot-99 deletion marker, exact stock and source PPU rasters, and
+every affected pixel in the final native 342×224 image. The result,
+native log and full image are retained in the existing CI artifact.
+
+A zero-change result would be **valid evidence that deleting the rear
+changed no output colours in this exact frame**, rather than grounds
+for claiming all rear pixels are occluded or safe for authored HD
+replacement. A nonzero final change must remain entirely inside the
+authentic slot-99 emitted source footprint. Either outcome must be
+correlated with independently verified front-only and paired
+deletions before inferring relative priority.
+
+The native run is not yet accepted, and no guest graphics or source
+priority in production is altered by this experiment.

@@ -127,6 +127,48 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
             "unsupported-geometry": 1,
         })
 
+    def test_sparse_baldosa_guest_and_host_frame_denominators(self):
+        # The PPU can take a destructive source-OBJ decision on a guest
+        # frame even if the SDL host never requests presentation there.
+        # No host present is missing evidence, not a black/missing rider.
+        events = [gate(frame, "original", "overlapping-source-obj")
+                  for frame in range(1850, 1924)]
+        events += [
+            present(1856, "original", "not-armed"),
+            present(1872, "original", "not-armed"),
+            present(1900, "original", "not-armed"),
+            gate(1924, "armed", "full-pair"),  # guest not presented
+            gate(1925, "armed", "full-pair"),
+            pixel_change(1925, 1, 1),
+            present(1925, "hd", "full-pair"),
+            present(1925, "hd", "full-pair"),
+        ]
+        m = analyze("\n".join(events))["measurement"]
+        self.assertEqual(m["guest_frames_observed"], 76)
+        self.assertEqual(m["guest_frames_with_host_presents"], 4)
+        self.assertEqual(m["guest_frames_without_host_presents"], 72)
+        self.assertEqual(m["host_present_calls"], 5)
+        self.assertEqual(m["guest_frames_with_host_presents_fraction"], 4 / 76)
+        self.assertEqual(m["armed_without_host_present_guest_frames"], 1)
+        self.assertEqual(m["armed_without_host_present_guest_frame_ids"], [1924])
+        self.assertEqual(m["armed_without_hd_draw_guest_frame_ids"], [1924])
+        self.assertEqual(m["armed_with_hd_host_present_guest_frames"], 1)
+        self.assertEqual(m["armed_with_original_host_present_guest_frames"], 0)
+        self.assertEqual(m["overlap_refused_guest_frames"], 74)
+        self.assertEqual(m["overlap_refused_with_host_present_guest_frames"], 3)
+        self.assertEqual(m["overlap_refused_without_host_present_guest_frames"], 71)
+        self.assertEqual(m["overlap_refused_stock_host_present_calls"], 3)
+        self.assertEqual(m["hd_with_actual_changed_pixels_guest_frames"], 1)
+        self.assertEqual(m["hd_present_calls"], 2)
+        self.assertEqual(m["consecutive_presented_guest_frame_pairs"], 0)
+        self.assertEqual(m["draw_mode_switches"], 0)
+        # Do not transform guest-level original fallbacks into invented
+        # 74 actual stock host presentations.
+        with self.assertRaisesRegex(ValueError, "stock OBJ may have been removed"):
+            analyze("\n".join(events + [
+                present(1924, "original", "unsupported-output"),
+            ]))
+
     def test_armed_but_declined_output_is_a_possible_missing_racer(self):
         with self.assertRaisesRegex(ValueError, "stock OBJ may have been removed"):
             analyze("\n".join([

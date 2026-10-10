@@ -1,0 +1,608 @@
+{
+  "schema": "UR-QA01-SWITCHER-PAIRED-NATIVE-STACK-SOURCE-TRACE/1",
+  "date": "2026-10-10",
+  "reproducibility": {
+    "actual_one_shot_workflow_run": 38090897908,
+    "actual_one_shot_job": 114326935017,
+    "artifact_id": 11684141556,
+    "artifact_name": "qa01-switcher-native-stack-one-shot-20261010",
+    "artifact_zip_sha256": "9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9",
+    "experimental_pr": 1244,
+    "experimental_workflow_policy": "never merge to production main",
+    "original_snes9x_source": "pristine canonical original Snes9x as used by tools/probe_original_event_complete.py",
+    "native_game_pin": "gamesbyian/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "native_framework_pin": "baldosa/snesrecomp@075fbe4c8e0d97b0013be541795c39cb644a9709",
+    "canonical_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "input_unchanged": true,
+    "native_diagnostic_patch": "tools/qa01_native_switcher_stack_gate.py applied only to disposable framework cpu_state.c logging hook",
+    "strict_original_native_comparison": "tools/probe_original_event_complete.py; still returns 1 for independently entry-relative onset mismatch, diagnostic execution passes only because verified narrow source evidence was captured"
+  },
+  "independent_original_native": {
+    "course_id": "course:04",
+    "original_source_entry_movie_host": 12327,
+    "original_source_result_movie_host": 17030,
+    "original_guest_result_relative_frame": 4704,
+    "native_guest_result_relative_frame": 4702,
+    "first_sample_disagreement": {
+      "fields": [
+        "menu",
+        "observed_course_track"
+      ],
+      "native": {
+        "menu": 132,
+        "observed_course_track": 0
+      },
+      "reference": {
+        "menu": 0,
+        "observed_course_track": 3
+      },
+      "relative_frame": 4664
+    },
+    "fresh_guest_entry_equivalent": true,
+    "original_source_entry_equivalent": true,
+    "actual_original_native_same_host_frame": 5782,
+    "same_host_full_wram_vram_cgram_check_status": "validator required exactly eight differing 128KiB WRAM offsets at 5782, no VRAM/CGRAM differences, genuine same-host original/native menu/track equality",
+    "native_result_host_frame": 5783,
+    "reference_result_host_frame": 5783,
+    "authentic_rendered_result_text_matched": true,
+    "original_native_terminal_menu_both_true": true,
+    "real_positive_timed_race_result_both_true": true,
+    "both_guests_outside_active_race": true,
+    "strict_guest_relative_result_frame_matched": false,
+    "release_event_credit": 0
+  },
+  "actual_native_stack_writer_window": {
+    "snes_frame_counter_start": 5775,
+    "snes_frame_counter_end": 5790,
+    "logged_native_writer_frames": {
+      "5775": 2954,
+      "5776": 2614,
+      "5777": 2451,
+      "5778": 2587,
+      "5779": 2738,
+      "5780": 1708,
+      "5781": 1387,
+      "5782": 1485,
+      "5783": 848,
+      "5784": 2715,
+      "5785": 2710,
+      "5786": 2712,
+      "5787": 2712,
+      "5788": 2712
+    },
+    "total_guest_wram_write_attempts": 32333,
+    "counts_by_wram_address": {
+      "7E:01DD": 1,
+      "7E:01E6": 11,
+      "7E:01E7": 146,
+      "7E:01EF": 5390,
+      "7E:01F0": 5383,
+      "7E:01F1": 8378,
+      "7E:01F2": 8007,
+      "7E:01F3": 5017
+    },
+    "counts_by_generated_function_or_interpreter_scope": {
+      "7E:01DD": {
+        "I_NMI_M1X1": 1
+      },
+      "7E:01E6": {
+        "(none)": 1,
+        "I_NMI_M1X1": 3,
+        "Text_FormatRaceTime_FastRom_M0X0": 7
+      },
+      "7E:01E7": {
+        "(none)": 1,
+        "I_NMI_M1X0": 3,
+        "I_NMI_M1X1": 3,
+        "Res_LoadToCgram_M1X0": 132,
+        "Text_FormatRaceTime_FastRom_M0X0": 7
+      },
+      "7E:01EF": {
+        "DrawText_M0X0": 5,
+        "DrawText_M1X0": 4,
+        "I_NMI_M1X0": 7,
+        "Index_PlayerBest_FastRom_M0X0": 1,
+        "Index_TrackX2_FastRom_M0X0": 3,
+        "Index_Track_FastRom_M0X0": 3,
+        "Menu_UpdateCursor_M1X0": 1,
+        "Results_LoadRowPalette_M0X0": 4,
+        "Snd_SendQueuedCommand_M1X0": 4830,
+        "Sram_CopyPlayerName_M0X0": 4,
+        "Text_CmdPrintTime_M0X0": 4,
+        "Text_ConvertBufferCase_M0X0": 1,
+        "Text_CopyTrackName_M0X0": 1,
+        "Util_SortTable8Ascending_M0X0": 16,
+        "WaitVBlank_FastRom_M1X0": 506
+      },
+      "7E:01F0": {
+        "I_NMI_M1X0": 7,
+        "Results_LoadRowPalette_M0X0": 4,
+        "Results_RowP1_M0X0": 1,
+        "Results_RowRecord1_M0X0": 2,
+        "Results_RowRecord2_M0X0": 2,
+        "Results_RowRecord3_M0X0": 2,
+        "Snd_SendQueuedCommand_M1X0": 4830,
+        "Sram_CopyPlayerName_M0X0": 4,
+        "Text_CmdPlayerNameVar_M0X0": 3,
+        "Text_CmdPrintTime_M0X0": 8,
+        "Text_CmdRomNameVar_M0X0": 1,
+        "Text_ConvertBufferCase_M0X0": 1,
+        "Text_CopyTrackName_M0X0": 1,
+        "Text_DrawLoop_C3ED_M1X0": 1,
+        "Text_GetCharClass_M1X0": 8,
+        "Util_SortTable8Ascending_M0X0": 1,
+        "WaitVBlank_FAD6_M1X0": 1,
+        "WaitVBlank_FastRom_M1X0": 506
+      },
+      "7E:01F1": {
+        "I_NMI_M1X0": 7,
+        "Oam_InitCursorSprites_M1X0": 1,
+        "Res_LoadToCgram_M1X0": 218,
+        "Res_LoadToVram_B1F2_M1X0": 2774,
+        "Res_LoadToVram_B1F5_M1X0": 1,
+        "Results_RowP1_M0X0": 2,
+        "Results_RowRecord1_M0X0": 3,
+        "Results_RowRecord2_M0X0": 3,
+        "Results_RowRecord3_M0X0": 3,
+        "Snd_SendQueuedCommand_M1X0": 4830,
+        "Sram_CopyPlayerName_M0X0": 4,
+        "Sram_UpdateChecksums_FastRom_M0X0": 1,
+        "Text_CmdPlayerNameVar_M0X0": 3,
+        "Text_CmdPrintTime_M0X0": 8,
+        "Text_CmdRomNameVar_M0X0": 1,
+        "Text_ConvertBufferCase_M0X0": 1,
+        "Text_CopyTrackName_M0X0": 1,
+        "Text_DrawLoop_C3ED_M1X0": 1,
+        "Text_GetCharClass_M1X0": 8,
+        "Util_SortTable8Ascending_M0X0": 1,
+        "WaitVBlank_FAD6_M1X0": 1,
+        "WaitVBlank_FastRom_M1X0": 506
+      },
+      "7E:01F2": {
+        "(none)": 3,
+        "I_NMI_M1X0": 4,
+        "Menu_AnimateSprites_FastRom_M1X0": 8,
+        "Oam_InitCursorSprites_M1X0": 1,
+        "Res_LoadToCgram_M1X0": 321,
+        "Res_LoadToVram_B1F2_M1X0": 2774,
+        "Res_LoadToVram_B1F5_M1X0": 1,
+        "Results_RowP1_M0X0": 2,
+        "Results_RowRecord1_M0X0": 3,
+        "Results_RowRecord2_M0X0": 3,
+        "Results_RowRecord3_M0X0": 3,
+        "Snd_SendQueuedCommand_M1X0": 4830,
+        "Sram_UpdateChecksumsLong_FastRom_M0X0": 1,
+        "Text_CmdCenterLine_C4CB_M1X0": 8,
+        "Text_CmdPlayerNameVar_M0X0": 11,
+        "Text_CmdPrintTime_M0X0": 4,
+        "Text_CmdRomNameVar_M0X0": 4,
+        "Text_DrawLoop_C3ED_M1X0": 1,
+        "Text_DrawLoop_C3F7_M1X0": 15,
+        "Text_DrawLoop_C40D_M1X0": 8,
+        "Util_SortTable8Ascending_M0X0": 1,
+        "WaitVBlankLong_FastRom_M1X0": 1
+      },
+      "7E:01F3": {
+        "(none)": 7,
+        "Index_TrackX2_FastRom_M0X0": 1,
+        "Menu_AnimateSprites_FastRom_M1X0": 8,
+        "Menu_UpdateCursor_M1X0": 4,
+        "Oam_InitCursorSpritesLong_M1X0": 1,
+        "Res_LoadToCgram_M1X0": 107,
+        "Results_ShowRaceTable_CF48_M1X0": 5,
+        "Snd_SendQueuedCommand_M1X0": 3327,
+        "Sram_UpdateChecksumsLong_FastRom_M0X0": 1,
+        "Text_CmdCenterLine_C4CB_M1X0": 8,
+        "Text_CmdPlayerNameVar_M0X0": 11,
+        "Text_CmdPrintTime_M0X0": 4,
+        "Text_CmdRomNameVar_M0X0": 4,
+        "Text_DrawLoop_C3ED_M1X0": 1,
+        "Text_DrawLoop_C3F7_M1X0": 15,
+        "Text_DrawLoop_C40D_M1X0": 8,
+        "Util_SortTable8Ascending_M0X0": 1,
+        "WaitVBlankLong_FastRom_M1X0": 1,
+        "WaitVBlank_M1X0": 1503
+      }
+    },
+    "stack_pointer_seen_at_write_by_address": {
+      "7E:01DD": {
+        "01DD": 1
+      },
+      "7E:01E6": {
+        "01E6": 11
+      },
+      "7E:01E7": {
+        "01E6": 7,
+        "01E7": 139
+      },
+      "7E:01EF": {
+        "01EE": 1540,
+        "01EF": 3850
+      },
+      "7E:01F0": {
+        "01EF": 3339,
+        "01F0": 2044
+      },
+      "7E:01F1": {
+        "01F0": 1517,
+        "01F1": 6861
+      },
+      "7E:01F2": {
+        "01F1": 3328,
+        "01F2": 4679
+      },
+      "7E:01F3": {
+        "01F2": 45,
+        "01F3": 4972
+      }
+    },
+    "first_five_actual_write_attempts_per_address": {
+      "7E:01DD": [
+        {
+          "native_cpu_sp": "01DD",
+          "native_frame": 5781,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "I_NMI_M1X1",
+          "native_wa": "7E:01DD",
+          "word_width": 2,
+          "written_byte": "04"
+        }
+      ],
+      "7E:01E6": [
+        {
+          "native_cpu_sp": "01E6",
+          "native_frame": 5781,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "(none)",
+          "native_wa": "7E:01E6",
+          "word_width": 1,
+          "written_byte": "37"
+        },
+        {
+          "native_cpu_sp": "01E6",
+          "native_frame": 5782,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Text_FormatRaceTime_FastRom_M0X0",
+          "native_wa": "7E:01E6",
+          "word_width": 2,
+          "written_byte": "E1"
+        },
+        {
+          "native_cpu_sp": "01E6",
+          "native_frame": 5782,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Text_FormatRaceTime_FastRom_M0X0",
+          "native_wa": "7E:01E6",
+          "word_width": 2,
+          "written_byte": "71"
+        },
+        {
+          "native_cpu_sp": "01E6",
+          "native_frame": 5782,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Text_FormatRaceTime_FastRom_M0X0",
+          "native_wa": "7E:01E6",
+          "word_width": 2,
+          "written_byte": "71"
+        },
+        {
+          "native_cpu_sp": "01E6",
+          "native_frame": 5782,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Text_FormatRaceTime_FastRom_M0X0",
+          "native_wa": "7E:01E6",
+          "word_width": 2,
+          "written_byte": "51"
+        }
+      ],
+      "7E:01E7": [
+        {
+          "native_cpu_sp": "01E7",
+          "native_frame": 5778,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "I_NMI_M1X0",
+          "native_wa": "7E:01E7",
+          "word_width": 2,
+          "written_byte": "00"
+        },
+        {
+          "native_cpu_sp": "01E7",
+          "native_frame": 5779,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "I_NMI_M1X0",
+          "native_wa": "7E:01E7",
+          "word_width": 2,
+          "written_byte": "00"
+        },
+        {
+          "native_cpu_sp": "01E7",
+          "native_frame": 5780,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "I_NMI_M1X0",
+          "native_wa": "7E:01E7",
+          "word_width": 2,
+          "written_byte": "00"
+        },
+        {
+          "native_cpu_sp": "01E7",
+          "native_frame": 5781,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "(none)",
+          "native_wa": "7E:01E7",
+          "word_width": 1,
+          "written_byte": "77"
+        },
+        {
+          "native_cpu_sp": "01E7",
+          "native_frame": 5782,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToCgram_M1X0",
+          "native_wa": "7E:01E7",
+          "word_width": 1,
+          "written_byte": "8D"
+        }
+      ],
+      "7E:01EF": [
+        {
+          "native_cpu_sp": "01EE",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01EF",
+          "word_width": 2,
+          "written_byte": "FF"
+        },
+        {
+          "native_cpu_sp": "01EE",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01EF",
+          "word_width": 2,
+          "written_byte": "FF"
+        },
+        {
+          "native_cpu_sp": "01EE",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01EF",
+          "word_width": 2,
+          "written_byte": "FF"
+        },
+        {
+          "native_cpu_sp": "01EE",
+          "native_frame": 5777,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01EF",
+          "word_width": 2,
+          "written_byte": "FF"
+        },
+        {
+          "native_cpu_sp": "01EE",
+          "native_frame": 5777,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01EF",
+          "word_width": 2,
+          "written_byte": "FF"
+        }
+      ],
+      "7E:01F0": [
+        {
+          "native_cpu_sp": "01F0",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01F0",
+          "word_width": 2,
+          "written_byte": "20"
+        },
+        {
+          "native_cpu_sp": "01F0",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01F0",
+          "word_width": 2,
+          "written_byte": "20"
+        },
+        {
+          "native_cpu_sp": "01F0",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01F0",
+          "word_width": 2,
+          "written_byte": "20"
+        },
+        {
+          "native_cpu_sp": "01F0",
+          "native_frame": 5777,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01F0",
+          "word_width": 2,
+          "written_byte": "80"
+        },
+        {
+          "native_cpu_sp": "01F0",
+          "native_frame": 5777,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Snd_SendQueuedCommand_M1X0",
+          "native_wa": "7E:01F0",
+          "word_width": 2,
+          "written_byte": "80"
+        }
+      ],
+      "7E:01F1": [
+        {
+          "native_cpu_sp": "01F1",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F5_M1X0",
+          "native_wa": "7E:01F1",
+          "word_width": 1,
+          "written_byte": "FB"
+        },
+        {
+          "native_cpu_sp": "01F1",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F1",
+          "word_width": 1,
+          "written_byte": "F4"
+        },
+        {
+          "native_cpu_sp": "01F1",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F1",
+          "word_width": 1,
+          "written_byte": "FB"
+        },
+        {
+          "native_cpu_sp": "01F1",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F1",
+          "word_width": 1,
+          "written_byte": "F4"
+        },
+        {
+          "native_cpu_sp": "01F1",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F1",
+          "word_width": 1,
+          "written_byte": "FB"
+        }
+      ],
+      "7E:01F2": [
+        {
+          "native_cpu_sp": "01F2",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F5_M1X0",
+          "native_wa": "7E:01F2",
+          "word_width": 1,
+          "written_byte": "B1"
+        },
+        {
+          "native_cpu_sp": "01F2",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F2",
+          "word_width": 1,
+          "written_byte": "B1"
+        },
+        {
+          "native_cpu_sp": "01F2",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F2",
+          "word_width": 1,
+          "written_byte": "B1"
+        },
+        {
+          "native_cpu_sp": "01F2",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F2",
+          "word_width": 1,
+          "written_byte": "B1"
+        },
+        {
+          "native_cpu_sp": "01F2",
+          "native_frame": 5775,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Res_LoadToVram_B1F2_M1X0",
+          "native_wa": "7E:01F2",
+          "word_width": 1,
+          "written_byte": "B1"
+        }
+      ],
+      "7E:01F3": [
+        {
+          "native_cpu_sp": "01F3",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Oam_InitCursorSpritesLong_M1X0",
+          "native_wa": "7E:01F3",
+          "word_width": 1,
+          "written_byte": "F8"
+        },
+        {
+          "native_cpu_sp": "01F3",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "WaitVBlank_M1X0",
+          "native_wa": "7E:01F3",
+          "word_width": 1,
+          "written_byte": "CC"
+        },
+        {
+          "native_cpu_sp": "01F3",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "WaitVBlank_M1X0",
+          "native_wa": "7E:01F3",
+          "word_width": 1,
+          "written_byte": "D5"
+        },
+        {
+          "native_cpu_sp": "01F3",
+          "native_frame": 5776,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "WaitVBlank_M1X0",
+          "native_wa": "7E:01F3",
+          "word_width": 1,
+          "written_byte": "D5"
+        },
+        {
+          "native_cpu_sp": "01F3",
+          "native_frame": 5777,
+          "native_interpreter_pc_scope": "000000",
+          "native_scope": "Menu_UpdateCursor_M1X0",
+          "native_wa": "7E:01F3",
+          "word_width": 1,
+          "written_byte": "A5"
+        }
+      ]
+    },
+    "standout_observations": [
+      "Native WLOG logs 7E:01DD once in native pre-run frame 5781 under I_NMI_M1X1 (word-width 2); this offset had no changed-byte original opcode scope in the separate 20-original-CPU-frame archived-source result window.",
+      "Native 7E:01F1 samples include return-address low-byte values FB and F4 at S=01F1, under generated Res_LoadToVram_B1F2_M1X0 / Res_LoadToVram_B1F5_M1X0 scopes; original independently shows JSR PC 82:B1F2/B1F9 pushing F4/FB, S 01F2 to 01F0.",
+      "Native log identifies 7 Text_FormatRaceTime_FastRom_M0X0 writes at 7E:01E6 during frame 5782.",
+      "Native Snd_SendQueuedCommand_M1X0 dominates many of the 01EF..01F3 stack addresses during the boundary; generated scope is not exact opcode writer attribution."
+    ]
+  },
+  "contrast_to_separate_original_source": {
+    "original_executed_workflow_run_id": 38088102870,
+    "original_writer_changed_byte_scope_events": 13709,
+    "original_changed_byte_01f1_events": 13204,
+    "original_jsr_return_low_pc_B1F2_count": 6469,
+    "original_jsr_return_low_pc_B1F9_count": 6470,
+    "caution": "Original archived-source run is bounded at source movie result frame 17030 (different timeline), whereas current native data are WRITE ATTEMPTS in fresh stock course replay 5775..5790. Do not compare counts as if identical windows or changed-byte semantics."
+  },
+  "confidence_limits": {
+    "native_generated_function_scope_not_exact_instruction_pc": true,
+    "native_interpreter_pc_scope_mostly_uninformative": "actual sampled native IPC=000000; cannot assert exact PC parity",
+    "logged_native_stack_pointer_may_precede_post_write_decrement": true,
+    "original_guest_instruction_cpu_frame_not_equivalent_to_host_script_frame": true,
+    "exact_source_original_native_5782_stack_pointer_pair_not_captured": true,
+    "stack_page_differences_not_proven_unused_or_ignored": true,
+    "complete_event_release_credit": 0,
+    "total_usa_events": 45,
+    "future_discriminator": "Inspect 7E:01DD original NMI write/consumer at same original/native host 5781 and native Text_FormatRaceTime / result read liveness before any parity waiver or game-rule change"
+  }
+}

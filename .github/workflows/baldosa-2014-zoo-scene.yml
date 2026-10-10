@@ -10,12 +10,15 @@ on:
       - "tools/baldosa_2014_zoo_scene_report.py"
       - "tools/baldosa_2014_zoo_boundary_report.py"
       - "tools/baldosa_2014_zoo_phase_equivalence.py"
+      - "tools/instrument_snesref_zoo_menu_writes.py"
+      - "tools/baldosa_zoo_opcode_writer_report.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
       - "tests/unit/test_baldosa_2014_zoo_scene_report.py"
       - "tests/unit/test_baldosa_2014_zoo_boundary_report.py"
       - "tests/unit/test_baldosa_2014_zoo_phase_equivalence.py"
+      - "tests/unit/test_baldosa_zoo_opcode_writer_report.py"
   workflow_dispatch:
 
 permissions:
@@ -303,6 +306,45 @@ jobs:
           # compact adjacent-phase finding prominently in job summary.
           echo "Fixed-frame contact and result-onset differences are diagnostic, not automatic course acceptance." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Trace precise original-menu writer opcode PCs in a disposable reference rebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/zoo-scene"
+          # The pinned uninstrumented comparison above must succeed first.
+          # Only change the disposable original Snes9x core AFTER its full
+          # 1P result/memory parity proof. Baldosa and the USA game ROM stay
+          # untouched. Repeat the same reference route and compare dumps.
+          python3 tools/instrument_snesref_zoo_menu_writes.py \
+            .tools/src/snes9x-libretro/cpuexec.cpp
+          make -C .tools/src/snes9x-libretro/libretro -j2
+          ORIGINAL_ENTRY="$(python3 -c 'import sys; sys.path.insert(0, "tools"); from baldosa_2014_zoo_calibrated_input import guest_scene_entry; print(guest_scene_entry(open(sys.argv[1]).read()))' "$ROOT/original-calibration.log")"
+          export UR_QA_ZOO_TRACE_FIRST="$((ORIGINAL_ENTRY + 5152))"
+          export UR_QA_ZOO_TRACE_LAST="$((ORIGINAL_ENTRY + 5165))"
+          echo "Scoped original guest CPU writer trace: absolute ${UR_QA_ZOO_TRACE_FIRST}..${UR_QA_ZOO_TRACE_LAST}"
+          mkdir -p "$ROOT/original-pc"
+          SNESREF_HEADLESS=1 SNESREF_FAST=1 SNESREF_WRAM_FILL=0 \
+          SNESREF_SRAM_IN="$ROOT/movie.srm" \
+          SNESREF_INPUT_FILE="$ROOT/original-input.txt" \
+          SNESREF_SCRIPT="$ROOT/original-boundary.txt" \
+          SNESREF_DUMP_DIR="$ROOT/original-pc" \
+            timeout 130 "$RUNNER_TEMP/zoo-snesref/snesref" \
+              "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+              "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+              > "$ROOT/original-pc.log" 2>&1
+          grep -m 2 'ZOOPCWRITE f=' "$ROOT/original-pc.log"
+          for frame in 05155 05156 05157 05158 05163 05175; do
+            cmp "$ROOT/original-boundary/boundary-${frame}.wram.bin" \
+                "$ROOT/original-pc/boundary-${frame}.wram.bin"
+          done
+          python3 tools/baldosa_zoo_opcode_writer_report.py \
+            --log "$ROOT/original-pc.log" \
+            --original "$ROOT/original-boundary" \
+            --scene-entry-frame "$ORIGINAL_ENTRY" \
+            --out "$ROOT/original-menu-opcode-writers.json"
+          cat "$ROOT/original-menu-opcode-writers.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Captured original opcode scopes are causal leads, NOT an independently proven native CPU fault or a completed-course admission." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
         if: always()
         uses: actions/upload-artifact@v4
@@ -317,6 +359,8 @@ jobs:
             ${{ runner.temp }}/zoo-scene/phase-discriminator.json
             ${{ runner.temp }}/zoo-scene/fixed-boundary-report.json
             ${{ runner.temp }}/zoo-scene/adjacent-memory-phase-report.json
+            ${{ runner.temp }}/zoo-scene/original-menu-opcode-writers.json
+            ${{ runner.temp }}/zoo-scene/original-pc.log
             ${{ runner.temp }}/zoo-scene/original-boundary.log
             ${{ runner.temp }}/zoo-scene/native-boundary/log.txt
             ${{ runner.temp }}/zoo-scene/original-boundary/*.wram.bin

@@ -54,3 +54,49 @@ No claim is made that all 2,473 frames reached a window, that guest 2P
 WRAM CRC identity establishes full original-emulator race parity, or that
 the sparse presenter delivers safe 342-wide Remastered racer sprites,
 correct BG/window priority or a physical 3840×2160 output.
+
+## Consolidated live-renderer integration gate (October 10)
+
+The source of truth is `native/presentation/racer_hd_presenter.cpp`.
+`racer_hd_begin_sim_frame()` explicitly refuses destructive source capture
+unless `racer_hd_can_capture_frame_geometry()` accepts the scene, and
+`racer_hd_draw_frame()` currently accepts **256×224** only. At genuine
+**342×224**, the registered per-slot 96–99 OAM extraction is strictly
+read-only, uses `RemoveFromGame=0`, and leaves the stock Original raster
+untouched. The positive six-frame stock/4× widened captures therefore
+**cannot** be credited as widened HD substitution.
+
+PR #1144 (merged as `e9338cd`) extends the existing four OAM-slot
+native processes to independently verify moving frames **1856, 1872,
+1888**. Both temporal intervals are `observed-not-admitted` and set
+`safe_to_destructively_replace_original_obj=false`. Source-only OBJ
+alpha is upstream of the final BG/window composite; neither alpha nor
+a footprint hit determines which rider should cover a given pixel.
+
+**Integration decision:** preserve the first-party 342-wide world
+materializer, stock raster, 4× presenter and Modern output composition.
+Do not remove the 256-wide destructive-admission restriction merely to
+make Remastered appear in widened scenes. The smallest legitimate new
+renderer path must first establish a final-composite, per-slot
+source-visible mask or equivalent proven paint ownership for both P1/P2,
+including negative X, Y wrap, split seam, foreground overlap and the
+case of a source-empty rider. If attribution fails for either affected
+rider, retain the entire Original frame before removing any guest OBJ.
+Reuse the three-frame/four-slot native evidence as an inexpensive
+regression gate, and use the existing 2,473-frame route once for a
+complete live validation rather than rerunning it for each hypothesis.
+
+Acceptance must report **separately**: (1) unchanged guest WRAM CRC and
+controller progression, (2) independently verified PPU/OAM source
+emission and final visibility, (3) visible authored HD substitution only
+on authorized riders and exact Original fallback otherwise, (4) correct
+course-derived extra-world pixels at 342×224, and (5) actual final
+drawable geometry and 7:6 PAR. Framebuffer density at 1368×896 does
+not count as physical 3840×2160 evidence. The latter requires a
+separately captured real SDL/desktop drawable, as specified by
+`BALDOSA-PHYSICAL-4K-CAPTURE-ORACLE.md`.
+
+Product integration should consume an existing presenter/output hook,
+with presentation mode selected externally. Never transfer Modern
+navigation, profile state, replay/ghost authority, event progression,
+or guest result decoding into this renderer.

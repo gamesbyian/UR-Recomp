@@ -56,18 +56,16 @@ def analyze(
 ) -> dict:
     gates: dict[int, tuple[str, str]] = {}
     presents: dict[int, list[tuple[str, str]]] = {}
-    pixel_changes: dict[int, tuple[int, bool]] = {}
+    pixel_changes: dict[int, list[tuple[int, bool]]] = {}
     for lineno, line in enumerate(log.splitlines(), 1):
         if "UR_RACER_HD_PIXEL_CHANGE" in line:
             pixels = PIXEL_CHANGE.fullmatch(line)
             if pixels is None:
                 raise ValueError(f"malformed pixel-change line {lineno}")
             frame, sources, changed = map(int, pixels.groups())
-            if frame in pixel_changes:
-                raise ValueError(f"duplicate pixel-change frame {frame}")
             if sources == 0 and changed != 0:
                 raise ValueError(f"source-absent frame {frame} reports authored pixel changes")
-            pixel_changes[frame] = (sources, bool(changed))
+            pixel_changes.setdefault(frame, []).append((sources, bool(changed)))
             continue
         if "UR_RACER_HD_CENSUS" not in line:
             continue
@@ -143,13 +141,19 @@ def analyze(
     original_frames = sorted(f for f, status in presented_classes.items() if status == "original")
     # Historical logs may lack pixel witnesses. New runs with any witness
     # must emit exactly one per accepted HD callback in the scoped window.
-    if pixel_changes and set(pixel_changes) != set(hd_frames):
-        raise ValueError("pixel-change witness missing or on non-HD frames")
+    if pixel_changes:
+        if set(pixel_changes) != set(hd_frames):
+            raise ValueError("pixel-change witness missing or on non-HD frames")
+        for frame, witnesses in pixel_changes.items():
+            if len(witnesses) != len(presents[frame]):
+                raise ValueError(f"pixel-change witness count differs from HD presents at frame {frame}")
     changed_frames = sorted(
-        f for f, (_, changed) in pixel_changes.items() if changed
+        f for f, visits in pixel_changes.items()
+        if any(changed for _, changed in visits)
     )
     source_visible_frames = sorted(
-        f for f, (sources, _) in pixel_changes.items() if sources > 0
+        f for f, visits in pixel_changes.items()
+        if any(sources > 0 for sources, _ in visits)
     )
     consecutive = [
         (a, b)

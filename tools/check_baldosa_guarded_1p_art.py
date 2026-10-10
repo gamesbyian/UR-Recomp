@@ -54,16 +54,22 @@ def assess(base_crc: Path, candidate_crc: Path, candidate_log: Path,
     if m["guest_frames_observed"] != end - start:
         raise ValueError("incomplete actual 1P candidate guest gates")
     hd_frames = set(m["hd_guest_frames"])
+    # Preserve absolute source provenance, but this accepted measurement
+    # deliberately begins AFTER the authentic race-script entry. The same
+    # native guest can have legitimate HD menu/countdown callbacks before
+    # the scoped race window; never mistake those for race HD or a defect.
     delta = {
         int(f): (int(s), v == "1")
         for f, s, v in HD_PIXEL_CHANGE.findall(log)
+        if start < int(f) <= end
     }
     paints = {
         int(f): tuple(map(int, (w, h, pitch, top, bottom)))
         for f, w, h, pitch, top, bottom in PAINT.findall(log)
+        if start < int(f) <= end
     }
     if not set(delta) <= hd_frames or not set(paints) <= hd_frames:
-        raise ValueError("HD pixel change without native host admission")
+        raise ValueError("post-entry HD pixel change without native host admission")
     # Source 1P is in top viewport; default 2P fallback must not borrow
     # arbitrary bottom differences as evidence of actual P1 Remastered.
     real_p1 = sorted(f for f in hd_frames if f in paints

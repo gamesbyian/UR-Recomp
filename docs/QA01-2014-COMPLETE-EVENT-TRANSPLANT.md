@@ -65,6 +65,14 @@ The externally imported symbol list places 80:D32A–D348 in the `Oam_ResetMenuS
 
 **Next QA-01 discriminator:** instrument both runtimes around the now-narrow +5155..+5158 transition to record *actual* source-visible instruction sequence, NMI/VBlank phase and postframe sampling boundary, using the unchanged input and independently calibrated scene entries. Preserve reference provenance and a fresh paired rerun. Continue separately toward the first scored Bowl Stunt and non-Dragster Race. **No USA course is admitted: 0/45.**
 
+## Native writer chronology discriminator (QA-only; pending independent CI)
+
+The original-only CPU opcode probe proves that Snes9x's guest scope `83:988A` advances menu `7E:009F` **0x84→0x16** and track `7E:00CE` **0→1** between original scene-relative +5157 and +5158. Native Baldosa completes those guest-memory changes one source-calibrated *host* frame earlier, with identical native +5156/original +5157 192.5-KiB guest bulk memory. This evidence does **not** tell whether Baldosa executes source guest operations early or merely exposes them at a different sampling boundary.
+
+The next minimum experiment uses the pinned framework's **existing** environment-gated `SNESRECOMP_WLOG_ADDR` WRAM writer helper on the very same native +5155..+5158 boundary replay that already proves the paired original/native result. It logs the narrow address interval `7E:008B..00CE`, records native `snes_frame_counter` *pre-run* frame labels and native AOT/interpreter writer scope (where available), then compares them with both runtimes' fresh zero-frame script dumps. The scope logger alone does not expose an authoritative native guest PC or NMI/VBlank ordering. It is possible for direct game memory copies or host/DMA writes to bypass the helper; an absent trace is therefore `no_target_cpu_helper_write_observed`, **not** a claim that the game skipped its write. The captured WRAM states are checked independently and fail closed on a shifted scene-entry anchor.
+
+This is a **read-only runtime diagnostic**. It does not modify a Baldosa source file, guest rule, scheduler, game input, front end or old execution path; it uses the already pinned native build and original+native fixed-frame test, not another rebuild. Capture the full WRAM helper log as ephemeral CI evidence, only compact writer observations in the machine-readable report. Once validated, compare the writer *sequence* and relative frames to the original `80:D32A/D332/D348` and `83:988A` trace, and then decide whether an exact native guest PC/NMI trace is justified. **0/45 USA courses remain accepted** until truly independent complete-event adjudication.
+
 ## Why these three targets
 
 The pinned 2014 input movie already produced **actual original Snes9x

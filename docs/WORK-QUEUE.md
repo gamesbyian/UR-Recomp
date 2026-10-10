@@ -53,17 +53,15 @@ Preserved old queue, phase progress and individual investigation notes: [archive
 4. **Produce the first player-facing vertical slice** before broad parallel course/asset/secondary-platform expansion: launch → profile/racer → authentic race → legitimate result → Records/replay/ghost → retry or quit, in real 16:9 with coherent stable density and optional Original.
 5. **Promote only accepted evidence.** The release ledger stays unchanged until specific candidate-bound independent proof meets its gate. Log honest negative outcomes and rerun invalidated assertions after merges.
 
-## Three ready independent lanes for fresh agents
+## Three active exclusive lanes
 
-**All three begin from latest `main` and current CI.** These are scoped agent handoffs, not a second queue or permission to create three recompilation frameworks. Reuse one pinned native candidate and the existing exact-guest, emulator, input and raster tests. A lane finishes by merging a functional change or producing a decisive failure trace with a named owner.
+Use the [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) for the current three-agent handoff. Every lane starts from fresh main/CI, reuses the existing candidate, and must produce executable evidence; do not create parallel routers, simulators, or repeated AOT builds.
 
-**Lane A, Baldosa → Modern Windows gameplay/product (P0):** Own `native/product/baldosa_execution_backend.hpp`, existing `tools/baldosa_*product*` guest/input/pause stages, and the narrow `modern_session_c_api.h` boundary. **Reuse** the merged #1056 five-destination root, existing profiles/SRAM/Records/ghosts/tournament stores, and #1086 live-race pause without rewriting their state machines. Deliver a genuine controller-only cold start → profile/racer → live 1P/2P → acknowledged pause/restart/quit → actual result → Records/Repeat route, including physical held-Start release and audible native resume. Validate one exact Windows packaged candidate. Avoid owner changes in `native/presentation/` or the original-event oracle.
+- **A, product / Windows:** Own Baldosa execution, `modern_session_c_api.h`, host input/pause, frontend, profiles/SRAM, results/records and packaging. Accept a controller-first real race through results, records and fresh-process persistence. Preserve existing Modern state machines.
+- **B, graphics / QA-08/10:** Own source-accurate racer presentation, 342-wide world, Original fallback, 4x HD, HUD/PAR and physical 4K evidence. Never alter guest gameplay.
+- **C, gameplay / QA-01/07:** Own original/native event oracle and complete-event race, circuit, stunt, scoring and progression comparisons. Never promote a bounded checksum to a certified event.
 
-**Lane B, complete original/Baldosa event fidelity QA-01/07 (P0):** Own `tools/baldosa_2014_zoo_*`, current Snes9x/Baldosa result comparator, `docs/ORIGINAL-COURSE-EVENT-CENSUS.md` and corresponding test/fixtures. #1079 found both guests enter a **stable** Zoo result but disagree at `p1_stored_contact` (0 vs 10240), with a two-frame scene-entry difference. First discriminate latch phase/scene initialization from real guest behavior, then check authentic PPU result time/text, final laps/score and correct original course identity. Close one real Race/Circuit/Stunt independent pair **before** expanding 45-course coverage. No new universal harness.
-
-**Lane C, HD/widening compositor and QA-08/10 (P0):** Own existing `native/presentation/` source-OBJ/pose renderer, `native/title/uniracers_ws_margins.*` and `tools/baldosa_ws24_*`/4× host presentation probes. Begin with merged #1082 **342×224 actual-world 1× evidence** and merged #1045 per-instance Original-OBJ footprint guard; further full moving 2P/VS/original-overlap admission is still missing. Join true extra world visibility with stable 4× authored HD / Original fallback, ensure P1/P2 source-visible sprites, clean split line/HUD/7:6 PAR and correctly mapped actual 3840×2160 host output. Preserve guest 2P CRC. No new renderer, source extraction pipeline or simulation writes.
-
-**Following joint candidate:** QA-02/03/11 can use actual Lane A raced run/match/ghost artifacts and Lane B authentic results to validate package/fresh-process C16/storage crash boundaries, multi-leg results and tournament records. This follow-up does **not** reopen the already-merged in-process lease/receipt fix. An independent release-QA integrator owns the final exact Windows ZIP/hash and gate-specific hardware checks, not duplicated per-agent CI matrix jobs.
+Independent QA reuses their *same exact Windows candidate* for player journeys, durable records and hardware-specific gates. The old backend remains rollback until Baldosa is accepted.
 
 ## Stop / defer
 

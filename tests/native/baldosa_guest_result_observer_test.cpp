@@ -50,10 +50,12 @@ int main() {
 
     // Authoritative per-racer line snapshot on the frame laps reach zero,
     // with the *same-frame* shared sub-tick. Guest time 0:12.3 + 2/60.
-    write16(ram, 0x0E17, 12);
+    write16(ram, 0x0E13, 1); // tens-of-seconds digit
+    write16(ram, 0x0E17, 2);
     write16(ram, 0x0E1B, 3);
     write16(ram, 0x0E1F, 2);
-    write16(ram, 0x0E41, 12);
+    write16(ram, 0x0E3D, 1); // saved finish tens-of-seconds
+    write16(ram, 0x0E41, 2);
     write16(ram, 0x0E45, 3);
     write16(ram, 0x0E35, 5);
     write16(ram, 0x0EF1, 0);

@@ -12,6 +12,7 @@ std::optional<CompletedRunRecord> assemble_baldosa_native_run_record(
     const BaldosaRunRecordAuthority& authority) {
     if (!authority.selected_named_profile_verified ||
         observed.course_index < 1 || observed.course_index > 45 ||
+        observed.first_race_host_frame == 0 ||
         observed.first_race_host_frame >= observed.observed_result_host_frame ||
         observed.captured_input_frames == 0 ||
         observed.captured_input_frames !=

@@ -158,7 +158,7 @@
   "adjudication": {
     "confirmed": "The original fresh-stock-result emulator actually executes 0x48 PHA at original bank:PC 00:858E with SP 01DE to 01DC and a 7E:01DD byte change 08 to 42 at ICPU.Frame 5780. Five separately captured original hardware NMI-entry pushes each move SP by 4 but neither cover nor change 01DD. Previous native same-event source capture logs one I_NMI_M1X1-scoped word write attempt of byte 04 at native frame 5781.",
     "not_confirmed": "Exact shared original/native instruction boundary, equivalence or order of PHA vs generated NMI-handling scope; whether all original/native eight residual stack bytes are dead at each read; no exact CPU/PPU/NMI phase parity; no fully admitted original/native USA course.",
-    "next": "Investigate the original I_NMI routine PHA at 00:858E and the native generated I_NMI_M1X1 instruction/scope, compare accumulator/register M mode, stack S and NMI/PPU/host frame phase at the true fresh result boundary, and trace pop/consumer liveness. Both original and native point to NMI handler owner, not necessarily the same instruction or stack value.",
+    "next": "Identify native codegen NMI PHA opcode-local write at the same real event and compare A/M/X, stack S and source CPU-vs-host/NMI phase with original 00:858E. Independently trace original/native stack pop/read consumer liveness and strict +4704/+4702 result timing; do not alter controller masks or release gate.",
     "input_retiming_or_guest_patch_not_permitted": true,
     "qa_release_course_credit": 0,
     "official_usa_event_denominator": 45
@@ -174,5 +174,22 @@
     "native_generated_function_scope": "I_NMI_M1X1",
     "conclusion": "Original observed PHA at original 00:858E lies six bytes inside the original I_NMI vector routine at mirror 80:8588, and the native single 01DD write is attributed to a generated I_NMI_M1X1 scope. This establishes a shared high-level original function owner candidate, NOT exact same host/CPU phase, same PHA instruction, identical pushed value or consumer liveness.",
     "remaining_difference": "Original byte 08->42 at original ICPU.Frame 5780; native write attempt value 04 at native pre-run frame 5781; clocks/phase not proven equivalent."
+  },
+  "native_generated_opcode_counterpart": {
+    "repository": "gamesbyian/uniracers-recomp",
+    "pinned_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "file": "src/gen/bank00_part00_v2.c",
+    "generated_function": "I_NMI_M1X1",
+    "generated_entry_pc": "0x008588",
+    "generated_block_label": "L_8588_M1X1",
+    "opcode_family": "PHA 16-bit",
+    "emitted_stack_sequence": [
+      "uint16 _old_s = cpu->S",
+      "cpu->S = (uint16)(cpu->S - 1)",
+      "cpu_write16_paced(cpu, 0x00, cpu->S, cpu->A)",
+      "cpu->S = (uint16)(cpu->S - 1)",
+      "cpu_trace_stack_op(cpu, 0, CPU_STACK_OP_PHA, _old_s, -2)"
+    ],
+    "qualification": "The exact expected native code-generation counterpart for original I_NMI +6 16-bit PHA exists and is a 2-byte A-to-stack push. The native WLOG sample is labeled only by generated function scope and SP/word width; without opcode-local trace it is not yet proven that this exact generated statement caused the logged native 01DD byte 04."
   }
 }

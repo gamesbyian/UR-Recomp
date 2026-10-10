@@ -75,3 +75,27 @@ author consider a production per-pixel 342-wide replacement compositor.
 Even an exact counterfactual is necessary evidence, not sufficient
 proof of correct Remastered art geometry, contact pose, colour math,
 all other sprite depth, physical 4K or original-emulator parity.
+
+## Executable native PPU final-pixel witness (new CI path)
+
+The existing **pinned Baldosa AOT native workflow** now collects a
+diagnostic-only, real 342-wide **slot 98 / guest frame 1856** counterfactual
+from a fourth isolated full 2P guest process, using the already-present
+untouched stock and read-only slot-98 PPU source files. The exact three
+full guest CRC streams must match; a single diagnostic PPU native
+`RemoveFromGame` operation is permitted only when its exact guest-frame,
+slot, capture-directory and `counterfactual` opt-in match.
+
+The strict `check_baldosa_wide_slot_final_visibility.py` oracle requires
+the real unmodified stock PAM, original source-only PAM and independently
+rendered removed-slot PAM, plus matching complete native guest CRC streams,
+a unique authorized native log marker and **positive final-raster difference
+entirely confined to source-emitted slot-98 alpha pixels**. A zero-change
+frame or one unexplained pixel fails rather than reporting success.
+The report retains exact hashes, source emission counts and genuinely
+final-contributed visible counts in each split view and world margin.
+
+This test is the first live, non-synthetic final-pixel attribution,
+**not permission** to enable source removal or HD compositing in
+production. Any mismatch is a high-priority PPU priority/attribution
+blocker to investigate, never something to silence or bypass.

@@ -86,6 +86,33 @@ int main() {
     assert(contains("CONTINUE READY"));
 
     painted.clear();
+    // Native Baldosa exposes only Play and Multiplayer until the underlying
+    // Modern routes are wired. The shared ship renderer remains unchanged.
+    view.europe = false;
+    view.quit_confirm = false;
+    view.racer_shortcuts_available = false;
+    view.available_destinations =
+        (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
+        (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer));
+    for (int i = 0; i < 3; ++i)
+        view.menu = modern_root_menu_move(view.menu, 1);
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("> RECORDS"));
+    assert(count("SOON") == 3);
+    assert(contains("NOT YET AVAILABLE"));
+    assert(contains("RACER SETUP NOT YET LINKED"));
+    assert(!contains("X/F2 RACERS   F1 HELP"));
+    painted.clear();
+    view.available_destinations = 0x1fu;
+    view.racer_shortcuts_available = true;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(count("SOON") == 0);
+    assert(contains("RUNS AND BEST TIMES"));
+    assert(contains("X/F2 RACERS   F1 HELP"));
+
+    painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,pixels,256,224,0,240,

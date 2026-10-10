@@ -38,6 +38,10 @@ struct ModernRootOverlayView {
     std::string_view racer_name = "CREATE A RACER WITH X";
     bool tour_continue_available = false;
     bool quit_confirm = false;
+    // Existing Modern host retains all routes by default; a native guest
+    // may narrow advertised capabilities without replacing its menu model.
+    std::uint8_t available_destinations = 0x1fu;
+    bool racer_shortcuts_available = true;
 };
 
 inline bool render_modern_root_overlay(
@@ -83,6 +87,7 @@ inline bool render_modern_root_overlay(
         const auto destination = modern_root_destination_from_index(i);
         const bool selected =
             destination == modern_root_menu_selected(view.menu);
+        const bool available = (view.available_destinations & (1u << i)) != 0;
         const int row_y = y + (kRootFirstRow +
             static_cast<int>(i) * kRootRowStride) * scale;
         if (selected) {
@@ -98,7 +103,12 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             x + 9 * scale, row_y,
             label.c_str(),
+            !available ? palette.secondary_grey :
             selected ? palette.shadow_black : 0xFFFFFFFFu, scale);
+        if (!available)
+            paint.draw_text(pixels, stride, surface_height,
+                x + (list_w - 43) * scale, row_y,
+                "SOON", palette.secondary_grey, scale);
     }
     constexpr const char* kDetails[] = {
         "TOUR AND CONTINUE",
@@ -119,7 +129,8 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             x + 193 * scale, y + 85 * scale,
             fit_modern_overlay_text(
-                kDetails[selected_index],
+                (view.available_destinations & (1u << selected_index))
+                    ? kDetails[selected_index] : "NOT YET AVAILABLE",
                 modern_overlay_text_cells(panel_w - 193)
             ).c_str(), 0xFFFFFFFFu, scale);
         if (selected_index == 0 && view.tour_continue_available) {
@@ -131,7 +142,8 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
             x + 8 * scale, y + 165 * scale,
             fit_modern_overlay_text(
-                kDetails[selected_index],
+                (view.available_destinations & (1u << selected_index))
+                    ? kDetails[selected_index] : "NOT YET AVAILABLE",
                 modern_overlay_text_cells(panel_w)).c_str(),
             palette.title_yellow, scale);
     }
@@ -143,7 +155,9 @@ inline bool render_modern_root_overlay(
         0xFFFFFFFFu, scale);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 193 * scale,
-        "X/F2 RACERS   F1 HELP", palette.cursor_blue, scale);
+        view.racer_shortcuts_available
+            ? "X/F2 RACERS   F1 HELP"
+            : "RACER SETUP NOT YET LINKED", palette.cursor_blue, scale);
     if (view.quit_confirm) {
         const int qx = x + 12 * scale, qy = y + 65 * scale;
         const int qw = (panel_w - 24) * scale;

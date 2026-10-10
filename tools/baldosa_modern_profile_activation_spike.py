@@ -82,7 +82,8 @@ def patch_cmake(source: str, root: Path) -> str:
         # Test-only executable, not part of the shipping game target. Uses
         # the SAME Modern product codecs as the real Windows frontend.
         "add_executable(ur-baldosa-modern-profile-fixture " + fixture_args + ")\n"
-        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n")
+        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n'
+    )
 
 
 def plan(game: Path, root: Path):

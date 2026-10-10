@@ -1,0 +1,32 @@
+{
+  "footage": "Discrete authentic native frames, selected from CI; video edits are holds and cuts, not gameplay frame interpolation",
+  "guest_crc_matching_frames": 2473,
+  "guest_frame_2208_ppu_sha256": "f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a",
+  "late_full_ppu_changed_pixels": 53360,
+  "music": "Synthetic original editorial audio, not source-game soundtrack",
+  "original_centre_match_1856": true,
+  "outputs": {
+    "native-late-source-frame-2208.png": {
+      "bytes": 8942,
+      "sha256": "eef59f57aae6728a4e96388f38681dab4c6d2c6c076bc69644b492450e77116e"
+    },
+    "ur-recomp-recruitment-poster-20261010.png": {
+      "bytes": 45675,
+      "sha256": "fd1fa617c356298f5eec82b899491933fde11793a65da08e84ecb3e0dce84f8f"
+    },
+    "ur-recomp-recruitment-short-vertical-20261010.mp4": {
+      "bytes": 430289,
+      "sha256": "e320f542b793df55c355e49cb467ebaf7310e172b627c511957eb7063443b616"
+    },
+    "ur-recomp-recruitment-teaser-20261010.mp4": {
+      "bytes": 920979,
+      "sha256": "42f3c4c728c1b20bc470f010ff75c3eeff2702c5484bd460a8ce3095c414268d"
+    }
+  },
+  "schema": "UR-RECRUITMENT-TEASER/1",
+  "script": "tools/showcase/build_recruitment_teaser.py",
+  "source_artifact_id": 11681865494,
+  "source_run": 38083974528,
+  "source_zip_sha256": "d3146b4d28e247530985826a7d2b321de8359b611c2b379a966397f6192381ad",
+  "status": "Development footage only; no release or L4/L5 QA gate implied"
+}

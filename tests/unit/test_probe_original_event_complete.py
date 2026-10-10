@@ -2,7 +2,10 @@
 from __future__ import annotations
 
 import sys
+import tempfile
+import types
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -234,6 +237,50 @@ class CompleteEventProducerTests(unittest.TestCase):
         self.assertGreater(len(frames), len(target.INITIAL_FRAMES))
         with self.assertRaisesRegex(target.CompleteEventError, "too short"):
             target.sample_frames("bowl", 200)
+
+
+    def test_pinned_baldosa_uses_dense_scene_input_only_after_calibration(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            build = root / "baldosa-build"
+            build.mkdir()
+            executable = build / "UniracersSNESRecomp"
+            executable.write_text("placeholder")
+            rom = root / "Uniracers_USA.sfc"
+            rom.write_bytes(b"fixture")
+            sram = root / "movie.srm"
+            sram.write_bytes(b"S" * 8192)
+            script = root / "route.script"
+            script.write_text("dump race-entered\\nquit\\n")
+            args = types.SimpleNamespace(
+                native=executable, rom=rom, sram=sram,
+                native_backend="pinned-baldosa",
+            )
+            invocations = []
+
+            def fake_run(command, *, env, cwd, capture_output, text, timeout):
+                invocations.append((command, env.copy(), cwd))
+                self.assertTrue((build / "saves" / "save.srm").exists())
+                return types.SimpleNamespace(stdout="script f=123 dump race-entered ok\\n",
+                                             stderr="")
+            with mock.patch.object(target.subprocess, "run", side_effect=fake_run):
+                result = target.replay_native(root, args, script, [], 0)
+                self.assertIn("script f=123", result)
+                self.assertNotIn("UR_QA_SCENE_INPUT_FILE", invocations[-1][1])
+                self.assertFalse((root / "pinned-baldosa.input").exists())
+                result = target.replay_native(root, args, script,
+                                              [(1600, 2, 0x80), (1603, 1, 0x10)], 6)
+                self.assertIn("script f=123", result)
+                self.assertEqual((root / "pinned-baldosa.input").read_text(),
+                                 "1606:2:080\\n1609:1:010\\n")
+                self.assertEqual(invocations[-1][1]["UR_QA_SCENE_INPUT_FILE"],
+                                 str(root / "pinned-baldosa.input"))
+                self.assertIn("--no-launcher", invocations[-1][0])
+                self.assertIn("--config", invocations[-1][0])
+                self.assertFalse((build / "saves").exists())
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid"):
+                target.replay_native(root, args, script,
+                                     [(10, 1, 0x1000)], 0)
 
 
 if __name__ == "__main__":

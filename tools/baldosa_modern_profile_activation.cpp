@@ -15,6 +15,8 @@
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_run_record_admission.hpp"
+#include "completed_run_store.hpp"
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 
 #include <cstdio>
@@ -26,6 +28,8 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 #include <memory>
 #include <string>
 #include <string_view>
+#include <utility>
+#include <system_error>
 
 extern "C" void RtlSetSaveRoot(const char*);
 extern "C" const char* RtlSaveRoot(void);
@@ -39,6 +43,8 @@ std::string g_verified_native_profile_id;
 std::filesystem::path g_native_user_root;
 std::optional<ur::product::HostProductState> g_launch_global;
 std::optional<ur::product::HostProfileState> g_launch_profile;
+std::optional<std::pair<std::uint64_t, std::uint64_t>>
+    g_last_published_one_player_event;
 // Shutdown-scoped owners of the existing selector, catalog, profile locks.
 // Never hold them across gameplay or reacquire them inside the typed CAS.
 std::unique_ptr<ur::product::TournamentLaunchPathLock>
@@ -163,6 +169,91 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 // Read-only native Modern root adapter: expose only the verified profile's
 // canonical archive directory. Never infer identity from a display name or
 // enumerate a different root. Records inspection has NO write authority.
+// Source-authenticated P1 result -> existing immutable Records writer.
+// A synthetic result, default save, stale selector or lost profile must not
+// acquire a write capability. Guest result and input sampling remain elsewhere.
+extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
+    const ur::product::BaldosaSettledResult* result) {
+    namespace fs = std::filesystem;
+    if (!result || !activated() || g_verified_native_profile_id.empty() ||
+        !g_launch_global || !g_launch_profile || g_native_user_root.empty() ||
+        !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
+        return 0;
+    if (result->kind !=
+        ur::product::BaldosaSettledResultKind::TimedOnePlayerRace)
+        return 0;
+    const auto event = std::make_pair(
+        result->first_race_host_frame, result->observed_result_host_frame);
+    if (g_last_published_one_player_event == event) return 0;
+    const auto run = ur::product::assemble_baldosa_native_run_record(
+        *result, {true, false});
+    if (!run || g_verified_native_profile_id != g_launch_profile->profile_id ||
+        !ur::product::is_safe_profile_storage_id(g_verified_native_profile_id))
+        return 0;
+
+    const auto selected_root = ur::product::resolve_host_profile_save_root(
+        ur::product::ExecutionMode::Modern, g_verified_native_profile_id);
+    if (!selected_root.isolated()) return 0;
+    const fs::path profile_root = g_native_user_root / selected_root.save_root;
+    const fs::path profile_path = profile_root / "host-profile.txt";
+    ur::product::TournamentLaunchPathLock selector(
+        (g_native_user_root / "host-state-v1.txt").string(), true);
+    if (!selector.acquired()) return 0;
+    ur::product::TournamentLaunchPathLock roster(
+        (g_native_user_root / "profiles-v1.txt").string(), true);
+    if (!roster.acquired()) return 0;
+    ur::product::TournamentLaunchPathLock profile(profile_path.string(), true);
+    if (!profile.acquired()) return 0;
+
+    // Recheck all three typed sources while their existing nonblocking OS
+    // leases remain owned across immutable run publication.
+    const ur::product::BaldosaSramCheckpoint selected{
+        g_native_user_root, *g_launch_global, *g_launch_profile,
+        g_sram, static_cast<std::size_t>(g_sram_size)};
+    if (ur::product::baldosa_sram_checkpoint_preflight_under_lock(selected))
+        return 0;
+    if (!ur::product::baldosa_sram_file_matches_exact(
+            profile_root / "save.srm",
+            g_launch_profile->stock_sram->data(),
+            ur::product::kStockSramBytes))
+        return 0;
+
+    // Refuse preexisting symlinked Records roots or profile directories.
+    // This is an explicit no-follow preflight atop the canonical append
+    // writer; it does not claim race-free path opening against malicious
+    // directory replacements by an uncooperating process.
+    const fs::path parent = g_native_user_root / "runs";
+    const fs::path directory = parent / g_verified_native_profile_id;
+    const auto safe_directory = [](const fs::path& candidate) {
+        std::error_code ec;
+        if (!fs::exists(candidate, ec)) return !ec;
+        return !ec && !fs::is_symlink(candidate, ec) && !ec &&
+               fs::is_directory(candidate, ec) && !ec;
+    };
+    if (!safe_directory(parent) || !safe_directory(directory)) return 0;
+
+    std::string path, detail;
+    if (!ur::product::append_completed_run_record(
+            directory.string(), *run, &path, &detail)) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_RUN PUBLISH_REJECTED reason=%s\n",
+            detail.c_str());
+        std::fflush(stderr);
+        return 0;
+    }
+    g_last_published_one_player_event = event;
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_RUN CAPTURED=1 mode=race-1p "
+        "profile=%s course=%s input_frames=%llu inputs=%zu path=%s\n",
+        g_verified_native_profile_id.c_str(),
+        run->provenance.course_id.c_str(),
+        static_cast<unsigned long long>(run->frame_count),
+        run->inputs.size(), path.c_str());
+    std::fflush(stderr);
+    return 1;
+}
+
 extern "C" const char* ur_baldosa_modern_profile_records_directory(void) {
     static std::string path;
     if (!activated() || g_verified_native_profile_id.empty() ||

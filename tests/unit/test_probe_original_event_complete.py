@@ -196,7 +196,16 @@ class CompleteEventProducerTests(unittest.TestCase):
 
     def test_source_result_on_different_course_cannot_finish_event(self):
         source = source_states(3190, 8353, 1, 0xBC)
+        # A one-frame foreign course-ID scratch store must not invent a
+        # competing complete race. A sustained foreign active course must.
         source[4500]["track"] = 3
+        self.assertEqual(target.source_event(source, 1, 0xBC)["original_result_frame"], 8353)
+        for f in range(4500, 4508):
+            source[f]["track"] = 3
+        self.assertEqual(
+            target.sustained_foreign_active_runs(source, 3190, 8353, 1),
+            [{"start": 4500, "end": 4507, "track": 3}],
+        )
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source, 1, 0xBC)
 

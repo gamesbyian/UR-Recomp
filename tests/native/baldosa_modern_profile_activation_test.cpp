@@ -4,7 +4,9 @@
 #include "host_product_state.hpp"
 #include "host_profile_store.hpp"
 #include "host_profile_runtime.hpp"
+#include "host_profile_catalog.hpp"
 
+#include <array>
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
@@ -76,13 +78,37 @@ int main() {
     // read-only selector. We must not create a blank 8 KiB save here.
     assert(ur_baldosa_modern_try_activate_profile() == 0);
     assert(root == "saves");
+    std::array<std::uint8_t, kStockSramBytes> initialized{};
+    initialized.fill(0x31u);
     {
         std::ofstream save("saves/profile-rider-1/save.srm", std::ios::binary);
-        std::vector<char> initialized(kStockSramBytes, static_cast<char>(0x31));
-        save.write(initialized.data(), initialized.size());
+        save.write(reinterpret_cast<const char*>(initialized.data()),
+                   initialized.size());
         assert(save.good());
     }
 
+    // An identity-less named file is not an authorized Modern player, even
+    // when a valid 8 KiB native SRAM happens to exist beside it.
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    assert(root == "saves");
+
+    const auto identity = make_legacy_racer_identity(0);
+    assert(identity.has_value());
+    profile->racer_identity = *identity;
+    assert(capture_stock_sram_for_profile(
+        ExecutionMode::Modern, *profile, initialized.data(),
+        initialized.size()) == HostProfileTransferStatus::Applied);
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern,
+        "saves/profile-rider-1/host-profile.txt",
+        *profile) == HostProfileSaveStatus::Saved);
+
+    // Even complete metadata remains untrusted until registered in the
+    // original Modern catalog. Do not infer roster membership from filename.
+    assert(ur_baldosa_modern_try_activate_profile() == 0);
+    assert(root == "saves");
+    assert(save_host_profile_catalog_file(
+        "profiles-v1.txt", {{"rider-1", *identity}}));
     assert(ur_baldosa_modern_try_activate_profile() == 1);
     assert(root == "saves/profile-rider-1");
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);

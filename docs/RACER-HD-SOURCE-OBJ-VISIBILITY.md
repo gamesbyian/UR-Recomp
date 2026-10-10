@@ -244,3 +244,41 @@ coverage should improve the measurement without weakening the pixel/guest
 safety oracle. Closing this gap requires a real per-slot source/depth
 discriminator or a separately accepted partial replacement seam, never
 the unsafe forensic bypass.
+
+## HD callback versus actual changed host pixels (2026-10-10)
+
+**A counted HD callback is not necessarily a drawn HD racer.** The exact
+production guarded script from green native run `38009190914` recorded
+`hd/full-pair` at guest frame **1139**, before the moving race began. The
+original PPU source-footprint diagnostic at that very frame reported
+`alpha0=0 alpha1=0 alpha2=0 alpha3=0`. The presenter therefore skipped
+all four authored drawing calls. It returned the already-scaled Original
+frame, yet the old callback-only census credited one HD-presented frame.
+This explains why the one supposed safe HD frame in the 1,620-frame route
+was **not evidence of one changed HD sprite**.
+
+The existing presenter now records
+`UR_RACER_HD_PIXEL_CHANGE frame=N source_instances=S changed_from_stock=B`
+on each diagnostic HD presentation. This compares the **final authored host
+buffer** against the exact same original PPU field at the current
+1×–4× scale, over the existing active racer rectangles after all
+overlapping draw writes. `S` reports source-alpha-positive
+*footprints*, not verified OAM ownership. `B` is one only if at least
+one final output pixel differs from its corresponding Original source
+pixel. It is an actual changed-output witness, **not** proof of correct
+visibility, depth, real 4K display or complete authored artwork.
+
+`measure_racer_hd_live_draws.py` retains its historical
+`hd_drawn_guest_frames` callback counter for backwards comparison, and
+now separately reports `hd_with_source_footprint_guest_frames` and
+`hd_with_actual_changed_pixels_guest_frames`. New native-run reports
+must include exactly one pixel-change record per HD present, including
+repeated host presents for a single guest frame. Mixed missing/stale
+witnesses, claimed changed pixels when no source footprint exists and
+witnesses on Original fallback are rejected. Legacy logs without these
+new records remain analyzable, but cannot establish changed-pixel counts.
+
+The source-absent frame-1139 false-positive is a measurement error, not
+license to admit new sprite substitutions. Existing release policy and
+the 0/441 safe moving-race callback observation are unaffected. At this
+writing, CI validation of the new actual-pixel witness is pending.

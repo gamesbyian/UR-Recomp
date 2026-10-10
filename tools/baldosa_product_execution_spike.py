@@ -23,6 +23,12 @@ HEADER_ANCHOR = "  uint32_t (*filter_frame_inputs)(uint32_t word, unsigned frame
 SCRIPT_ANCHOR = "    inputs |= TickScript();\n"
 WORD_ANCHOR = ("      uint32 word = inputs | GetActiveControllers() "
                "| debug_server_get_controller_active_mask();\n")
+FRAME_STATS_ANCHOR = (
+    "  int audio_output_rate;     /* device rate, 0 when audio is disabled */\n")
+NATIVE_RUNAHEAD_ANCHOR = "    bool runahead_captured = false;\n"
+GUEST_FRAME_STATS_ANCHOR = "        .guest_seconds = now - guest_start,\n"
+NATIVE_FILTER_ANCHOR = (
+    "        word = game->filter_frame_inputs(word, filtered_frames++);\n")
 
 
 def patch_main(source: str) -> str:
@@ -45,24 +51,32 @@ def patch_main(source: str) -> str:
 def patch_framework_header(source: str) -> str:
     if MARK in source:
         return source
-    if source.count(HEADER_ANCHOR) != 1:
-        raise ValueError("Pinned Baldosa host descriptor not recognized")
+    if source.count(HEADER_ANCHOR) != 1 or source.count(FRAME_STATS_ANCHOR) != 1:
+        raise ValueError("Pinned Baldosa host descriptor/frame stats not recognized")
     addition = (HEADER_ANCHOR +
         "  /* " + MARK + ": mapped HUMAN input only, before scripts/debug;\n"
         "   * optional; absence retains the exact upstream input behavior. */\n"
         "  uint32_t (*filter_human_frame_inputs)(uint32_t word, unsigned frame);\n")
-    return source.replace(HEADER_ANCHOR, addition, 1)
+    stats = (FRAME_STATS_ANCHOR +
+        "  /* " + MARK + ": actual mapped guest word for completed frame;\n"
+        "   * not a second execution loop or replay input generator. */\n"
+        "  uint32_t resolved_controller_word;\n")
+    return source.replace(HEADER_ANCHOR, addition, 1).replace(
+        FRAME_STATS_ANCHOR, stats, 1)
 
 
 def patch_framework_source(source: str) -> str:
     if MARK in source:
         return source
-    if source.count(SCRIPT_ANCHOR) != 1 or source.count(WORD_ANCHOR) != 1:
-        raise ValueError("Pinned Baldosa input merge boundaries not recognized")
-    # Called at the same point where GetActiveControllers was already sampled,
-    # after modal checks, before TickScript and any debug inputs. Calling the
-    # original whole-frame filter for this would swallow scripted/debug input
-    # and disable run-ahead: neither is acceptable.
+    required = (
+        SCRIPT_ANCHOR, WORD_ANCHOR, NATIVE_RUNAHEAD_ANCHOR,
+        GUEST_FRAME_STATS_ANCHOR, NATIVE_FILTER_ANCHOR,
+    )
+    if any(source.count(anchor) != 1 for anchor in required):
+        raise ValueError("Pinned Baldosa input merge/frame ownership boundaries not recognized")
+
+    # Existing mapped-human-only filter remains before script/debug, and the
+    # existing RtlRunFrame/optional run-ahead path is never replaced.
     start = (
         "    /* " + MARK + ": one mapped human-only sample. */\n"
         "    inputs |= GetActiveControllers();\n"
@@ -70,9 +84,24 @@ def patch_framework_source(source: str) -> str:
         "      inputs = game->filter_human_frame_inputs(inputs, frameCtr);\n"
         + SCRIPT_ANCHOR)
     source = source.replace(SCRIPT_ANCHOR, start, 1)
-    return source.replace(
+    source = source.replace(
+        NATIVE_RUNAHEAD_ANCHOR,
+        "    /* " + MARK + ": source-visible input for this completed guest frame. */\n"
+        "    uint32 resolved_guest_word = 0;\n" + NATIVE_RUNAHEAD_ANCHOR,
+        1)
+    source = source.replace(
         WORD_ANCHOR,
-        "      uint32 word = inputs | debug_server_get_controller_active_mask();\n",
+        "      uint32 word = inputs | debug_server_get_controller_active_mask();\n"
+        "      resolved_guest_word = word;\n",
+        1)
+    source = source.replace(
+        NATIVE_FILTER_ANCHOR,
+        NATIVE_FILTER_ANCHOR + "        resolved_guest_word = word;\n",
+        1)
+    return source.replace(
+        GUEST_FRAME_STATS_ANCHOR,
+        GUEST_FRAME_STATS_ANCHOR +
+        "        .resolved_controller_word = resolved_guest_word,\n",
         1)
 
 

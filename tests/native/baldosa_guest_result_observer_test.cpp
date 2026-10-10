@@ -25,10 +25,20 @@ int main() {
     std::array<std::uint8_t, 0x20000> ram{};
     std::array<std::uint8_t, 8192> sram{};
     BaldosaGuestResultObserver observer{};
-    const auto poll = [&](unsigned players, std::uint64_t frame) {
+    const auto poll = [&](unsigned players, std::uint64_t frame,
+                          std::uint32_t word = 0) {
         return observer.observe(players, ram.data(), ram.size(),
-                                sram.data(), sram.size(), frame);
+                                sram.data(), sram.size(), frame, word);
     };
+
+    // Canonical decoded USA Race course:01, source course signature.
+    // mode=0, A=(68,50), B=(68,50), dimensions=(256,4).
+    write16(ram, 0x10000u + 0x03u, 68);
+    write16(ram, 0x10000u + 0x05u, 50);
+    write16(ram, 0x10000u + 0x07u, 68);
+    write16(ram, 0x10000u + 0x09u, 50);
+    ram[0x10000u + 0x0Du] = 0;  // decoded 256
+    ram[0x10000u + 0x0Eu] = 4;
 
     // A results-looking guest without a witnessed real race is not a run.
     ram[0x009f] = 0x99;
@@ -46,7 +56,7 @@ int main() {
     // Back to the race. This must NOT replace the original entry stamp.
     ram[0x0313] = 1;
     ram[0x009f] = 0x16;
-    assert(!poll(1, 12));
+    assert(!poll(1, 12, 0x0015u));
 
     // Authoritative per-racer line snapshot on the frame laps reach zero,
     // with the *same-frame* shared sub-tick. Guest time 0:12.3 + 2/60.
@@ -59,7 +69,7 @@ int main() {
     write16(ram, 0x0E45, 3);
     write16(ram, 0x0E35, 5);
     write16(ram, 0x0EF1, 0);
-    assert(!poll(1, 13));
+    assert(!poll(1, 13, 0x0015u));
     // No settled result merely because a finish line was crossed.
     ram[0x0313] = 0;
     ram[0x009f] = 0x84;
@@ -70,7 +80,14 @@ int main() {
     assert(p1->first_race_host_frame == 10);
     assert(p1->observed_result_host_frame == 15);
     assert(p1->p1_finish_ticks60 == 740u);
+    assert(p1->course_index == 1);
     assert(!p1->two_player);
+    assert(p1->captured_input_frames == 5);
+    assert(p1->mapped_inputs.size() == 1);
+    assert(p1->mapped_inputs[0].start_frame == 1);
+    assert(p1->mapped_inputs[0].duration == 2);
+    assert(p1->mapped_inputs[0].p1_mask == 0x0015u);
+    assert(p1->mapped_inputs[0].p2_mask == 0);
     assert(!poll(1, 16)); // same result must never emit twice
 
     // A guest that stopped without a new start can't emit another result.
@@ -87,20 +104,26 @@ int main() {
     ram[0x009f] = 0xf9;
     ram[0x017d] = 0; // Mike
     ram[0x017f] = 1; // Andrew
-    assert(!poll(2, 31)); // 0/0 SRAM is transient, not a draw.
+    assert(!poll(2, 31, 0x010002u)); // 0/0 SRAM is transient, not a draw.
     write_sram16(sram, 0x0618, 874);
     write_sram16(sram, 0x061a, 913);
-    const auto two = poll(2, 32);
+    const auto two = poll(2, 32, 0x010002u);
     assert(two && two->kind ==
         BaldosaSettledResultKind::OrdinaryTwoPlayerRace);
     assert(two->first_race_host_frame == 30);
     assert(two->observed_result_host_frame == 32);
     assert(two->p1_finish_ticks60 == 0);
+    assert(two->course_index == 1);
     assert(two->two_player);
     assert(two->two_player->player1_hundredths == 874);
     assert(two->two_player->player2_hundredths == 913);
     assert(two->two_player->outcome ==
         ur::title::OrdinaryTwoPlayerRaceOutcome::Player1Win);
+    assert(two->captured_input_frames == 2);
+    assert(two->mapped_inputs.size() == 1);
+    assert(two->mapped_inputs[0].duration == 2);
+    assert(two->mapped_inputs[0].p1_mask == 2);
+    assert(two->mapped_inputs[0].p2_mask == 0x10u);
     assert(!poll(2, 33));
 
     // Missing host ownership, short guest memory and stock menu alone are
@@ -128,5 +151,25 @@ int main() {
     ram[0x0313] = 1;
     assert(!poll(2, 44));
     assert(!poll(0, 45)); // frontend reentry revokes prior authority
+    // Source-identified course:02 is a Circuit, not a Race. Even valid
+    // 0x99/0xF9 plus SRAM time is not ordinary Race evidence there.
+    write16(ram, 0x10000u + 0x03u, 575);
+    write16(ram, 0x10000u + 0x05u, 93);
+    write16(ram, 0x10000u + 0x07u, 575);
+    write16(ram, 0x10000u + 0x09u, 93);
+    ram[0x10000u + 0x0Du] = 64;
+    ram[0x10000u + 0x0Eu] = 16;
+    ram[0x0313] = 1;
+    assert(!poll(2, 46));
+    ram[0x0313] = 0;
+    ram[0x009f] = 0xf9;
+    assert(!poll(2, 47));
+    // Now an invalid decoded-course header likewise fails closed.
+    observer.reset();
+    ram[0x10000u + 0x0Du] = 99;
+    ram[0x0313] = 1;
+    assert(!poll(2, 48));
+    ram[0x0313] = 0;
+    assert(!poll(2, 49));
     std::puts("PASS: source-backed Baldosa native result bridge rejects stale/partial outcomes");
 }

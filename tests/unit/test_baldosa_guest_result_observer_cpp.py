@@ -21,8 +21,10 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
             sources = [
                 ROOT / "tests/native/baldosa_guest_result_observer_test.cpp",
                 PRODUCT / "baldosa_guest_result_observer.cpp",
+                PRODUCT / "completed_run_record.cpp",
                 TITLE / "uniracers_run_data.cpp",
                 TITLE / "uniracers_two_player_result.cpp",
+                TITLE / "uniracers_course_identity.cpp",
             ]
             compile_run = subprocess.run(
                 [compiler, "-std=c++17", "-O1", "-Wall", "-Wextra",
@@ -47,6 +49,12 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
         observer = (PRODUCT / "baldosa_guest_result_observer.cpp").read_text()
         staging = (ROOT / "tools/baldosa_product_pause_spike.py").read_text()
         self.assertIn("g_native_result_observer.observe(", source)
+        self.assertIn(
+            "g_native_result_observer.reset();",
+            source[source.index("void reconcile_after_native_restart() {"):
+                   source.index("// One physical, edge-triggered",
+                                source.index("void reconcile_after_native_restart() {"))]
+        )
         self.assertIn("ur_baldosa_modern_root_guest_players()", source)
         self.assertIn("published=0", source)
         self.assertIn("g_handed_off_players = static_cast<unsigned>(players);", root)

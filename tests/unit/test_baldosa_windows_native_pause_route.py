@@ -225,6 +225,21 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     probe.verify_native_pause_quit_log(bad)
 
+    def test_paused_quit_relaunch_rejects_truncated_sram_before_launch(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            user_root = root / "Player Data"
+            profile = user_root / "saves/profile-native-ci-rider"
+            profile.mkdir(parents=True)
+            (profile / "save.srm").write_bytes(bytes(2048))
+            with mock.patch.object(probe.subprocess, "run") as launched:
+                with self.assertRaisesRegex(ValueError, "full selected SRAM image"):
+                    probe.verify_paused_quit_fresh_relaunch(
+                        root / "game.exe", root / "game.sfc", root, user_root,
+                        root / "profile-fixture.exe", video="windows", timeout=30)
+                launched.assert_not_called()
+            self.assertFalse((root / "after_native_pause_quit_relaunch").exists())
+
     def test_delayed_restart_requires_real_elapsed_guest_frames(self):
         valid = (
             "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"

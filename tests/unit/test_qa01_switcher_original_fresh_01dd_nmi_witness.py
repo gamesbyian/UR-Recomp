@@ -83,6 +83,22 @@ class OriginalFresh01DDOriginalNmiWitnessTests(unittest.TestCase):
                 self.assertFalse(row["01dd_changed_during_nmi_entry"])
                 self.assertEqual(row["old_byte"],row["new_byte"])
 
+    def test_original_pha_site_is_inside_original_nmi_vector_function(self):
+        c=self.e["source_symbol_owner_crosswalk"]
+        self.assertEqual(c["symbol_name"],"I_NMI")
+        self.assertEqual(c["symbol_fastrom_mirror_address"],"80:8588")
+        self.assertEqual(c["original_live_cpu_instruction_pc"],"00:858E")
+        self.assertEqual(c["original_fastrom_mirror_pc"],"80:858E")
+        self.assertEqual(c["offset_bytes_after_symbol_entry"],6)
+        self.assertEqual(int(c["original_fastrom_mirror_pc"].split(":")[1],16)
+                         -int(c["symbol_fastrom_mirror_address"].split(":")[1],16),6)
+        self.assertEqual(c["native_generated_function_scope"],"I_NMI_M1X1")
+        self.assertEqual(c["source"],
+                         "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt")
+        self.assertEqual(self.e["executed_fresh_original_cpu"]
+                         ["one_actual_original_pha_observation"]["pc"],
+                         c["original_live_cpu_instruction_pc"])
+
     def test_native_01dd_same_game_source_but_not_equivalent_instruction_clock(self):
         e=self.e["independent_native_guest"]
         native=self.n["actual_native_stack_writer_window"]

@@ -39,8 +39,10 @@ reported **four** post-script-entry P1-only HD presents
 
 - At **1728 and 1744**, the actual host emitted authored pixels
   (`UR_RACER_HD_PIXEL_CHANGE ... changed_from_underlay=1`),
-  each with one source-visible rider instance. These are promising,
-  *not yet retained visual images*.
+  each with one source-visible rider instance. The pinned native PPU
+  logged `top_opaque=0` and **bottom_opaque=315 / 316**. These
+  are promising *bottom-only* source-positive compositions, not yet
+  retained HD images. A top-only checker would falsely miss them.
 - At **1808 and 1840**, the host returned HD but
   `source_instances=0 changed_from_underlay=0` and retained
   1024×896 PAMs showing no independently proved authored pixels.
@@ -50,8 +52,10 @@ reported **four** post-script-entry P1-only HD presents
   No graphical defect or new guest divergence was established by this
   checker error.
 
-The revised checker now scopes all host pixels to the actual
-post-script-entry interval. A new **explicit, read-only** diagnostic
+The revised checker scopes all host pixels to the actual
+post-script-entry interval and accepts actual changed HD pixels in
+**either** host band, as long as the source footprint is nonempty,
+the native 1024×896 screenshot exists and the guest CRC is identical. A new **explicit, read-only** diagnostic
 `UR_BALDOSA_HD_EARLY_1P_CAPTURE=1` expands only this isolated
 1P screenshot window from 1800 back to 1700; the ordinary 2P
 capture window, first-party OBJ source guards and shipping graphics

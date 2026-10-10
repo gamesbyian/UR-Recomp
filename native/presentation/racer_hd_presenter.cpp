@@ -726,12 +726,12 @@ int racer_hd_draw_frame(
                         instance.viewport, dy, scale)) continue;
                 const auto* rendered = reinterpret_cast<const std::uint32_t*>(
                     dst + static_cast<std::size_t>(dy) * pitch);
-                const auto* stock = reinterpret_cast<const std::uint32_t*>(
+                const auto* underlay = reinterpret_cast<const std::uint32_t*>(
                     field + static_cast<std::size_t>(dy / scale) *
                                 kBaseWidth * 4);
                 for (int dx = std::max(left, 0);
                      dx < std::min(right, kBaseWidth * scale); ++dx) {
-                    if (rendered[dx] != stock[dx / scale]) {
+                    if (rendered[dx] != underlay[dx / scale]) {
                         changed_from_underlay = true;
                         break;
                     }

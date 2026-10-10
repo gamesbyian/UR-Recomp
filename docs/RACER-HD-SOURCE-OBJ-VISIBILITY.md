@@ -191,3 +191,56 @@ diverge or overlapping rear-source pixels cease to be distinguishable. This
 is a **non-destructive observation** for QA-08, never a grant to activate
 `RemoveFromGame` at 342 columns. The real title's BG/window foreground
 and source-visible HD pixel placement are still unverified.
+
+## 256-wide production overlap gate and actual moving-HD coverage (2026-10-10)
+
+Merged **#1104** addresses the concrete same-viewport slot ambiguity measured
+above. When both authored racers have selected registrations, the shipping
+256×224 presenter now checks the **visible 64×64 active source rectangles**
+before arming destructive PPU `RemoveFromGame`. Any intersection in either
+scanline-112 split viewport (including Y modulo-256 wrap) chooses the complete
+Original stock raster. Nonoverlapping pairs retain the existing HD eligibility
+checks. This conservative rectangle test intentionally trades away HD coverage
+where individual OAM-source ownership and BG/window depth are unresolved; it
+does **not** prove that even a disjoint source plane is fully front-visible.
+It does not enable authored sprites at 342 logical columns.
+
+Native acceptance run
+[`38009190914`](https://github.com/gamesbyian/UR-Recomp/actions/runs/38009190914)
+was green on the exact #1104 head before merge. An independent Original-A/B
+and **default guarded-HD** run at source frame 1220 yielded byte-identical
+256×224 stock screenshots, matching composition words, and no new guest WRAM
+differences outside independently observed stock-run variability. The guarded
+native script executed **1,620 frames** and recorded **102**
+`overlapping-source-obj` fallback gates, with **one** HD-presented guest frame,
+**frame 1139**, which is **before** the chosen moving-race window.
+
+In the actual moving 2P interval, **1180–1620 inclusive (441 guest frames)**,
+the default guarded route presented **0/441 HD frames** and **441/441 Original
+frames**. Its fallback reasons were 87 overlapping-source refusals,
+342 missing P1 selection/art, and 12 unavailable P2 pair selections. By
+contrast, the intentionally unsafe archival authored-art route reports
+**87/441 HD-presented** calls, with the existing frame-1220 source witness
+showing **top OBJ alpha 372, bottom alpha 0**. Its HD callback count was never
+a proof of two independently source-visible racers. The separately validated
+P1-only diagnostic route can render real P1 HD while keeping P2 stock, but
+does not authorize turning that experimental option into default Remastered.
+
+**Release interpretation:** The current stock fallback is faithful and the
+overlap-specific phantom/draw-over defect is contained on these tested
+frames, but **shipping Remastered has zero demonstrated moving-race coverage
+in this fixture**. The archival HD success counter must never be used as the
+shipping numerator. It is legitimate to expose Original/Upscaled with an
+explicit Remastered limitation, not to claim a working 4K HD two-racer race.
+No QA-08 L4/physical-output gate is promoted by this evidence.
+
+The native acceptance workflow now reuses
+`tools/measure_racer_hd_live_draws.py` on the **default guarded** host log,
+retains the production `racer-hd-production-safe-window.json` and asserts
+full 441-frame presence, no armed-but-unpresented captures, and Original
+presentation for every overlap-refused frame. It deliberately does **not**
+assert that the HD count remains zero; successfully increasing *safe* HD
+coverage should improve the measurement without weakening the pixel/guest
+safety oracle. Closing this gap requires a real per-slot source/depth
+discriminator or a separately accepted partial replacement seam, never
+the unsafe forensic bypass.

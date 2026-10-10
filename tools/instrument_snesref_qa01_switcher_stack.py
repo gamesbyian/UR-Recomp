@@ -89,8 +89,8 @@ def patch(source: str, *, targets: tuple[int, ...] = TARGETS, watch_nmi: bool = 
 \t\t\t\t\tconst char *s = getenv("UR_QA_STACK_LAST");
 \t\t\t\t\treturn s ? (unsigned)strtoul(s, nullptr, 10) : 0u;
 \t\t\t\t}}();
-\t\t\t\tconst bool ur_qa_nmi_gate = (unsigned)ICPU.Frame >= ur_qa_nmi_first &&
-\t\t\t\t\t(unsigned)ICPU.Frame <= ur_qa_nmi_last;
+\t\t\t\tconst unsigned ur_qa_nmi_frame0 = (unsigned)ICPU.Frame;\n\\t\\t\\t\\tconst unsigned ur_qa_nmi_v0 = (unsigned)CPU.V_Counter;\n\\t\\t\\t\\tconst bool ur_qa_nmi_gate = ur_qa_nmi_frame0 >= ur_qa_nmi_first &&
+\t\t\t\t\tur_qa_nmi_frame0 <= ur_qa_nmi_last;
 \t\t\t\tconst uint16 ur_qa_nmi_sp0 = Registers.S.W;
 \t\t\t\tconst uint32 ur_qa_nmi_pc0 = ((uint32)Registers.PB << 16) | Registers.PCw;
 \t\t\t\tconst uint8 ur_qa_nmi_old = ur_qa_nmi_gate ? Memory.RAM[0x01DD] : 0;
@@ -98,7 +98,7 @@ def patch(source: str, *, targets: tuple[int, ...] = TARGETS, watch_nmi: bool = 
 \t\t\t\tif (ur_qa_nmi_gate)
 \t\t\t\t\tfprintf(stderr,
 \t\t\t\t\t\t"QASTACKNMI f=%u v=%u pc=%06X sp0=%04X sp1=%04X addr=01DD old=%02X new=%02X\\n",
-\t\t\t\t\t\t(unsigned)ICPU.Frame, (unsigned)CPU.V_Counter,
+\t\t\t\t\t\tur_qa_nmi_frame0, ur_qa_nmi_v0,
 \t\t\t\t\t\t(unsigned)ur_qa_nmi_pc0, (unsigned)ur_qa_nmi_sp0,
 \t\t\t\t\t\t(unsigned)Registers.S.W,
 \t\t\t\t\t\t(unsigned)ur_qa_nmi_old, (unsigned)Memory.RAM[0x01DD]);

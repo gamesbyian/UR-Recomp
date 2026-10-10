@@ -97,6 +97,36 @@ class NativeRacerHostTest(unittest.TestCase):
             self.assertEqual(hi["status"], "passed")
             self.assertEqual(hi["composed_raster_dimensions"], [1024, 896])
             self.assertTrue(hi["real_4x_authored_raster_proved"])
+            self.assertEqual(
+                hi["source_art_admission"],
+                "no-unsafe-overlap-bypass-observed",
+            )
+            self.assertFalse(hi["unsafe_overlap_bypass_observed"])
+            self.assertFalse(hi["archival_unsafe_art_acceptance"])
+            self.assertTrue(hi["normal_guard_4x_authored_art_observed"])
+            self.assertEqual(hi["production_graphics_release_qa_credit"], 0)
+
+            # The same exact captured 4x source-art pixels can be admitted by
+            # the explicitly unsafe historical overlap fixture. Keep that
+            # *archival* test passing without claiming guarded production HD.
+            clean_log = log.read_text()
+            log.write_text(
+                clean_log
+                + "\nUR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 "
+                + "warning=overlap-guard-bypassed-for-art-reference-only\n"
+            )
+            archival = report.assess(base, candidate, log, captures, density=4)
+            self.assertEqual(archival["status"], "passed")
+            self.assertTrue(archival["real_4x_authored_raster_proved"])
+            self.assertTrue(archival["unsafe_overlap_bypass_observed"])
+            self.assertTrue(archival["archival_unsafe_art_acceptance"])
+            self.assertEqual(
+                archival["source_art_admission"],
+                "archival-unsafe-overlap-fixture",
+            )
+            self.assertFalse(archival["normal_guard_4x_authored_art_observed"])
+            self.assertEqual(archival["production_graphics_release_qa_credit"], 0)
+            log.write_text(clean_log)
 
             self.assertEqual(hi["visible_source_obj_frame_count"], 2)
             self.assertEqual(hi["captured_source_obj_spatial_frames"], 2)

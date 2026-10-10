@@ -64,6 +64,22 @@ bool configured() {
     return opt && std::strcmp(opt, "1") == 0 &&
         !(mode && std::strcmp(mode, "authentic") == 0);
 }
+bool reopen_on_observed_stock_main() {
+    // This is the only frontend reentry authority. Keyboard Escape and
+    // P1 physical gamepad B share exactly the same guest-state admission.
+    if (!configured() || g_visible || !g_stock_handed_off ||
+        g_stock_target != -1 || g_ram[0x009f] != 0xd7u ||
+        g_ram[0x0313] == 0x01u) return false;
+    g_menu = ur::product::modern_root_menu_reset();
+    g_visible = true;
+    g_confirm_quit = false;
+    g_stock_handed_off = false;
+    g_reentry_needs_paint = true;
+    ur_baldosa_product_set_host_focus(1);
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
+    return true;
+}
 void choose() {
     if (g_stock_target != -1) return;
     if (g_confirm_quit) {
@@ -129,26 +145,9 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
-    if (!g_visible) {
-        // The shared root returns only from a real original stock MAIN
-        // menu, after a previously observed route handoff. Never steal
-        // Escape from racer selection, race, results or a transition.
-        // No guest reset, guest memory write or SRAM mutation is involved.
-        if (configured() && key == SDLK_ESCAPE && pressed &&
-            g_stock_handed_off && g_stock_target == -1 &&
-            g_ram[0x009f] == 0xd7u && g_ram[0x0313] != 0x01u) {
-            g_menu = ur::product::modern_root_menu_reset();
-            g_visible = true;
-            g_confirm_quit = false;
-            g_stock_handed_off = false;
-            g_reentry_needs_paint = true;
-            ur_baldosa_product_set_host_focus(1);
-            std::fprintf(stderr,
-                "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
-            return 1;
-        }
-        return 0;
-    }
+    if (!g_visible)
+        return key == SDLK_ESCAPE && pressed &&
+               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
     switch (key) {
     case SDLK_UP: action = -1; break;
@@ -166,7 +165,10 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
-    if (!g_visible || player != 0) return 0;
+    if (player != 0) return 0;
+    if (!g_visible)
+        return button == kGamepadBtn_B && pressed &&
+               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
     switch (button) {
     case kGamepadBtn_DpadUp: action = -1; break;

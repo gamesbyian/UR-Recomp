@@ -49,7 +49,8 @@ class NativeStackGuardTests(unittest.TestCase):
                          ["7E:01F1"]["Res_LoadToVram"], 1)
         self.assertEqual(result["first_five_observed_writes_per_address"]
                          ["7E:01DD"][0]["native_cpu_sp"], "01EF")
-        self.assertTrue(result["no_direct_guest_wram_values_or_complete_memory_dumps"])
+        self.assertTrue(result["retains_example_written_bytes"])
+        self.assertFalse(result["retains_complete_guest_memory_dumps"])
         self.assertEqual(result["complete_event_release_credit"], 0)
 
     def test_wrong_memory_frame_context_and_empty_logs_rejected(self):
@@ -87,6 +88,10 @@ class NativeStackGuardTests(unittest.TestCase):
                     "reference_relative": 4704, "native_relative": 4702,
                 },
                 "terminal_result_frame_matched": False,
+                "both_reached_terminal_menu": True,
+                "rendered_result_and_score_text_matched": True,
+                "timed_race_or_circuit_result_visible": True,
+                "result_outside_active_race_in_both_guests": True,
             },
             "switcher_same_host_penultimate": {
                 "schema": "UR-QA01-SWITCHER-PENULTIMATE-SAME-HOST/1",
@@ -121,6 +126,9 @@ class NativeStackGuardTests(unittest.TestCase):
             lambda x: x.update(original_movie_sha256="different"),
             lambda x: x["switcher_same_host_penultimate"]
                 .update(same_host_named_guest_fields_equal=False),
+            lambda x: x["comparison"].update(rendered_result_and_score_text_matched=False),
+            lambda x: x["comparison"].update(both_reached_terminal_menu=False),
+            lambda x: x["comparison"].update(timed_race_or_circuit_result_visible=False),
         ]:
             altered = copy.deepcopy(pair)
             tamper(altered)

@@ -41,7 +41,11 @@ def validate_paired_guest_report(obj: dict) -> dict:
             or obj["native_entry"] != 1081
             or obj["comparison"]["terminal_result_guest_frame"]
                != {"reference_relative": 4704, "native_relative": 4702}
-            or obj["comparison"]["terminal_result_frame_matched"] is not False):
+            or obj["comparison"]["terminal_result_frame_matched"] is not False
+            or obj["comparison"]["both_reached_terminal_menu"] is not True
+            or obj["comparison"]["rendered_result_and_score_text_matched"] is not True
+            or obj["comparison"]["timed_race_or_circuit_result_visible"] is not True
+            or obj["comparison"]["result_outside_active_race_in_both_guests"] is not True):
         raise ValueError("native trace has no pinned genuine independent Switcher result")
     if (pair["schema"] != "UR-QA01-SWITCHER-PENULTIMATE-SAME-HOST/1"
             or pair["original_absolute_host"] != 5782
@@ -73,7 +77,7 @@ def summarize(log_lines, *, first: int = MIN_FRAME, last: int = MAX_FRAME) -> di
         raise ValueError("bad native host-frame gate")
     counts, by_frame, by_scope, by_sp = (Counter(), Counter(), defaultdict(Counter), defaultdict(Counter))
     samples = {f"7E:{a:04X}": deque(maxlen=EXAMPLE_LIMIT) for a in TARGETS}
-    observed_total, malformed, last_frame = 0, 0, first
+    observed_total, last_frame = 0, first
     for line in log_lines:
         if not line.strip():
             continue
@@ -132,7 +136,8 @@ def summarize(log_lines, *, first: int = MIN_FRAME, last: int = MAX_FRAME) -> di
             k: dict(sorted(v.items())) for k, v in sorted(by_sp.items())},
         "first_five_observed_writes_per_address": {
             k: list(v) for k, v in sorted(samples.items()) if v},
-        "no_direct_guest_wram_values_or_complete_memory_dumps": True,
+        "retains_example_written_bytes": True,
+        "retains_complete_guest_memory_dumps": False,
         "scope_limits": (
             "Native WRAM write attempts, not original changed-byte events; native "
             "AOT function scope and IPC are not original instruction PC equivalence. "

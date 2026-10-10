@@ -1,0 +1,9 @@
+# QA-01: finite original 2014 source eligibility for Switcher Race B
+
+This work runs the **archived original 2014 SNES movie in pinned original Snes9x**, without building or invoking Baldosa. The actual 2014 source is already proven to finish the first Crawler Race (Dragster), Circuit (Zoom Zoo), and 45-second scored Stunt (Bowl). It does **not** follow automatically that a genuine Switcher Race B result appears in an independently selected bounded movie window.
+
+`tools/probe_original_switcher_source_2014.py` reuses the existing original movie/RNC/SRAM/original event detector, the canonical stream 4 (track ID 3), and the source-only settled Race result `0x99` rule. The 22,000-original-frame horizon is explicit. When an observed, stable source result and new sustained active course entry are present, retain the original entry frame, exact course identity, result onset and original course-entry snapshot. If the source does not establish this pair within the horizon, record **not qualified within horizon** with the original diagnostic, not a conclusion that the game cannot complete Switcher, nor a license to synthesize game input or infer a native fault.
+
+The narrow workflow `.github/workflows/qa01-switcher-original-2014.yml` builds *only* the original reference core, unlike the separate full original/native scored Bowl experiment in #1119. It uses the pinned Baldosa project's existing Snes9x runner, not a new emulator or gameplay backend. No guest memory writes or controller shifts are allowed.
+
+**Admission rule:** This result is original-only evidence, not native Switcher progress. Regardless of a green check or qualified original source, **USA completed course acceptance remains 0/45**. If a qualifying Switcher original result emerges, separately calibrate a fresh stock Switcher entry under original and Baldosa and compare contact/checkpoint/finish/result and PPU times before entering the release ledger.

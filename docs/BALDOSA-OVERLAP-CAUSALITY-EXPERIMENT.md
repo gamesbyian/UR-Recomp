@@ -39,3 +39,35 @@ complete image digests and `winner_identity_proven=false`,
 The offline tool is ready to consume the first real paired native
 capture from PR #1185. It cannot invent that capture or elevate the
 existing single-slot evidence into a release decision.
+
+## Authenticated front, rear and paired intervention cross-check
+
+After the rear-only diagnostic produces a real native capture, the
+existing overlap analyser can take **two optional additional inputs**
+(`--rear-removed` and `--rear-report`) and correlate six
+independent Original 342×224 PPU planes: stock, front source, rear
+source, front-deleted, rear-deleted and pair-deleted.
+
+It validates the new rear report's exact guest frame/slot and CRC
+attestation, read-only source/stock and native removal image digests,
+and its positive **or zero** observed changed-pixel count before
+classifying colour-causal signatures. It also cross-checks existing
+front-only and pair-removal native reports rather than reinterpreting
+a synthetic colour match as source provenance.
+
+The supported classes distinguish front-only colour effects,
+rear-only effects, both single removals changing colour, neither
+single removal changing colour while paired removal does, and
+unchanged colour even after paired removal. The identical-source-RGB
+subset of pair-only changes is recorded separately with bounded real
+pixel coordinates.
+
+All three removal footprints are checked against their respective
+source alpha masks. Even when every observed pixel is explained,
+`unique_original_ppu_winner_proven=false` and
+`release_hd_admission=false`; these interventions establish
+colour causality, not hidden winner/depth or correct replacement art.
+
+The analyzer is ready for, but makes **no claim** about, the actual
+rear-99 native route from PR #1197 until that route passes and
+supplies its signed-off original PPU evidence.

@@ -75,6 +75,21 @@ bool hd_census_enabled() noexcept {
     return enabled;
 }
 
+// Preserve the historical authored-art fixture as an explicitly unsafe,
+// scripted forensic comparison. Shipping execution must never gain permission
+// to remove overlapping racer OBJ merely because both OAM placements exist.
+// Require both a diagnostic census and a host-controlled input fixture to
+// avoid treating this environment knob as a player graphics option.
+bool unsafe_legacy_overlap_fixture_enabled() noexcept {
+    static const bool enabled = [] {
+        const char* opt = std::getenv("UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE");
+        const char* input = std::getenv("SNESRECOMP_INPUT_FILE");
+        return hd_census_enabled() && input != nullptr && *input != '\0' &&
+               opt != nullptr && opt[0] == '1' && opt[1] == '\0';
+    }();
+    return enabled;
+}
+
 void hd_census_gate(const char* status, const char* reason) noexcept {
     if (!hd_census_enabled()) return;
     std::fprintf(
@@ -482,13 +497,23 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     // separate slot planes also show rear OBJ samples obscured by front OBJ
     // or BG/window pixels at source frame 1856. Fail before arming any
     // destructive capture; Original owns the complete ambiguous frame.
-    if (p2_ready &&
+    const bool source_overlap = p2_ready &&
         (racer_active_source_footprints_overlap(
              *p1_top, *p2_top, RacerViewport::Top) ||
          racer_active_source_footprints_overlap(
-             *p1_bottom, *p2_bottom, RacerViewport::Bottom))) {
+             *p1_bottom, *p2_bottom, RacerViewport::Bottom));
+    if (source_overlap && !unsafe_legacy_overlap_fixture_enabled()) {
         hd_census_gate("original", "overlapping-source-obj");
         return;
+    }
+    if (source_overlap) {
+        static bool warned = false;
+        if (!warned) {
+            std::fprintf(stderr,
+                "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 "
+                "warning=overlap-guard-bypassed-for-art-reference-only\\n");
+            warned = true;
+        }
     }
     // Stock bottom P2 slot 96 paints in front of P1 97. The flattened
     // framebuffer has no reusable P2 depth plane, so an isolated host P1

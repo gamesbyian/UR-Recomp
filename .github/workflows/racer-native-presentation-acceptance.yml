@@ -1843,6 +1843,59 @@ jobs:
           )
           PY
 
+      - name: Discriminate P1-only overlap recovery on the 441-frame overlapping race
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/racer-presentation-acceptance/UniracersSNESRecomp"
+          EXE="$ROOT/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          INPUT="$GITHUB_WORKSPACE/tests/input/two-player-first-race.input"
+          SCRIPT="$GITHUB_WORKSPACE/tests/input/two-player-first-race-observe.script"
+          LOG="$RUNNER_TEMP/racer-hd-p1-overlap-discriminator.log"
+          set +e
+          env UR_RACER_HD=1 UR_RACER_HD_CENSUS=1 \
+            UR_RACER_HD_P1_ONLY=1 UR_RACER_HD_P1_NATIVE_TEST=1 \
+            SNESRECOMP_INPUT_FILE="$INPUT" SDL_AUDIODRIVER=dummy \
+            timeout 180s xvfb-run -a "$EXE" "$ROM" --script "$SCRIPT" >"$LOG" 2>&1
+          status=$?
+          set -e
+          if [ "$status" -ne 0 ]; then
+            tail -n 100 "$LOG"
+            echo "::error::P1-only overlapping-race discriminator failed status=$status"
+            exit "$status"
+          fi
+          if grep -F 'UR_RACER_HD_P1_NATIVE FAIL' "$LOG"; then
+            echo "::error::P1-only experimental overlap changed stock P2 pixels"
+            exit 1
+          fi
+          python3 tools/measure_racer_hd_live_draws.py "$LOG" \
+            --from-frame 1180 --to-frame 1620 \
+            --json-out "$RUNNER_TEMP/racer-hd-p1-overlap-discriminator.json" \
+            > "$RUNNER_TEMP/racer-hd-p1-overlap-discriminator.txt"
+          python3 - "$LOG" "$RUNNER_TEMP/racer-hd-p1-overlap-discriminator.json" <<'PY'
+          import json, pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+          m = json.loads(pathlib.Path(sys.argv[2]).read_text(encoding="utf-8"))["measurement"]
+          selected = sorted({int(x) for x in re.findall(
+              r"^UR_RACER_HD_P1_OVERLAP_RECOVERY frame=(\d+) "
+              r"source_pair_overlap=1 capture_slots=97-98 stock_p2=1$", log, re.M
+          ) if 1180 <= int(x) <= 1620})
+          assert m["guest_frames_observed"] == 441 and m["guest_frames_with_host_presents"] == 441, m
+          assert m["armed_without_hd_draw_guest_frames"] == 0, m
+          assert m["hd_pixel_change_witness_guest_frames"] == m["hd_drawn_guest_frames"], m
+          for frame in selected:
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=gate "
+                      "status=armed reason=p1-only") in log, frame
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=present "
+                      "status=hd reason=p1-only") in log, frame
+          print("UR_RACER_HD_P1_OVERLAP_RACE_DISCRIMINATOR PASS "
+                f"admitted_overlap_frames={len(selected)} "
+                f"hd_callbacks={m['hd_drawn_guest_frames']}/441 "
+                f"actual_changed_output={m['hd_with_actual_changed_pixels_guest_frames']}/441 "
+                "stock_p2_oracle=enabled")
+          PY
+
       - name: Upload compact acceptance log
         if: always()
         uses: actions/upload-artifact@v4
@@ -1889,6 +1942,9 @@ jobs:
             ${{ runner.temp }}/racer-wide-parity.json
             ${{ runner.temp }}/racer-wide-parity.txt
             ${{ runner.temp }}/racer-hd-p1-only-native.log
+            ${{ runner.temp }}/racer-hd-p1-overlap-discriminator.log
+            ${{ runner.temp }}/racer-hd-p1-overlap-discriminator.json
+            ${{ runner.temp }}/racer-hd-p1-overlap-discriminator.txt
             ${{ runner.temp }}/racer-hd-p1-only-live-race-window.json
             ${{ runner.temp }}/racer-hd-p1-only-live-race-window.txt
             ${{ runner.temp }}/racer-hd-one-player-scene.log

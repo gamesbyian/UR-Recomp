@@ -35,7 +35,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
     def test_pause_needs_all_three_real_witnesses(self):
         valid = ("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24 physical_sdl=1\n"
-                 "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n")
+                 "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n"
+                 "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=1900 sram_equal=1 wram_equal=1\n")
         self.assertEqual(set(probe.check_pause_log(valid)),
                          {"ARMED", "RELEASED", "RESUMED"})
         with self.assertRaisesRegex(ValueError, "live gameplay"):
@@ -44,6 +45,10 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_pause_log(valid.replace("modern_session=1", "modern_session=0"))
         with self.assertRaisesRegex(ValueError, "physical SDL key edges"):
             probe.check_pause_log(valid.replace("physical_sdl=1", "physical_sdl=0"))
+        with self.assertRaisesRegex(ValueError, "Native guest rollback"):
+            probe.check_pause_log(valid.replace("wram_equal=1", "wram_equal=0"))
+        with self.assertRaisesRegex(ValueError, "Native guest rollback"):
+            probe.check_pause_log(valid.replace("sram_equal=1", "sram_equal=0"))
         with self.assertRaisesRegex(ValueError, "Missing"):
             probe.check_pause_log(valid.replace(" RESUMED ", " MISSING "))
         with self.assertRaisesRegex(ValueError, "too short"):

@@ -1,0 +1,49 @@
+{
+  "ci_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38089655141",
+  "consecutive_host_presentations": 600,
+  "control_guest_crc_sha256": "cfbdc874fea24dead879b8eb83b63376c8be1ad432ba8f2a1f99cfdb887d9b68",
+  "delivery_output": {
+    "height": 1080,
+    "source_drawable": [
+      960,
+      540
+    ],
+    "upscale": "nearest-neighbour 2x",
+    "width": 1920
+  },
+  "dimensions": {
+    "actual_sdl_drawable": [
+      960,
+      540
+    ],
+    "logical_wide_source": [
+      342,
+      224
+    ]
+  },
+  "dropped_or_skipped_host_frame_ids": 0,
+  "git_commit": "4748ae337f38d801039260ca6ed849fd2ca1d7a3",
+  "guest_frame_end": 2699,
+  "guest_frame_start": 2100,
+  "host_log_sha256": "6614fa4b658e17f0020a161ee1c5717c6bca650b569f79f83ecaae3f71ccc2d7",
+  "index_sha256": "1d5fa5ad44b747c098a1dc6d73f226834d82ce07330e5931b0554b1bcfb04d38",
+  "input_route_sha256": "bcc610fcd8db75b9c740785c0d55f9d6659ef081e7095ef94f141bc7801b606e",
+  "master": {
+    "codec": "ffv1",
+    "fps_nominal": "60/1",
+    "sha256": "1e327be73d137b5b298b042cc666709c94a7f89036a4a83142bd29eceea8d468"
+  },
+  "native_executable_sha256": "04a0656e3c0f84c3ec6f0b0c263c386bc21971bce712f57aba38499fad0252f9",
+  "native_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "native_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "presentation_mode": "2P, stock Original wide host, 342x224 logical",
+  "published_sha256": {
+    "ur-native-2p-clean-600f.mp4": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130",
+    "ur-native-2p-poster-source.png": "d1a4116c5090c8e59cca58bdd2a7fea3a37570b552db020d527cbb3d89a8ce8f"
+  },
+  "recorded_guest_crc_sha256": "cfbdc874fea24dead879b8eb83b63376c8be1ad432ba8f2a1f99cfdb887d9b68",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "route": "media-race-2p-extended",
+  "status": "verified_consecutive_host_presentations",
+  "warning": "60-fps encoded cadence describes consecutive host presentations, not independently certified 60-Hz guest timing"
+}

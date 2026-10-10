@@ -126,10 +126,14 @@ int main() {
                                       old_view,view));
     assert(count("SOON") == 2); // Practice and Options only
     assert(contains("STORED RUNS"));
-    assert(contains(fit_modern_overlay_text(
-        view.records_status, modern_overlay_text_cells(240 - 42))));
-    assert(contains(fit_modern_overlay_text(
-        view.records_recent, modern_overlay_text_cells(240 - 42))));
+    assert(modern_overlay_text_cells(240 - 30) >=
+           view.records_status.size());
+    assert(modern_overlay_text_cells(240 - 30) >=
+           view.records_recent.size());
+    // Exact full text, not a truncated/budgeted prefix. The hundredths
+    // must remain visible in the original 256x224 narrow presentation.
+    assert(contains("VALID 2  UNAVAILABLE 1"));
+    assert(contains("LAST: course:02 00:15.50"));
     assert(contains("READ ONLY - NO REPLAY"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();

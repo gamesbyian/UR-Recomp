@@ -1,5 +1,9 @@
 """Causal overlap diagnostics never infer a unique painter from identical RGB."""
 import hashlib
+import os
+from pathlib import Path
+import subprocess
+import sys
 import unittest
 
 from tools.check_baldosa_wide_overlap_causality import (
@@ -68,6 +72,18 @@ class NativeOverlapCausalityTests(unittest.TestCase):
             "second_source_sha256": sha(r), "counterfactual_sha256": sha(nop),
         }
         return single, pair
+
+    def test_direct_native_cli_starts_without_repo_pythonpath(self):
+        root = Path(__file__).resolve().parents[2]
+        env = os.environ.copy()
+        env.pop("PYTHONPATH", None)
+        result = subprocess.run(
+            [sys.executable,
+             str(root / "tools/check_baldosa_wide_overlap_causality.py"),
+             "--help"],
+            env=env, cwd=root, capture_output=True, text=True, timeout=20)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("--front-slot", result.stdout)
 
     def test_equal_rgb_redundancy_is_causal_union_not_owner(self):
         s, f, r, nof, nop = self.d

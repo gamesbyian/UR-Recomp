@@ -133,9 +133,10 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     std::error_code ec;
     const std::filesystem::path sram_path =
         decision.save_root + "/save.srm";
-    if (!std::filesystem::is_regular_file(sram_path, ec) || ec ||
-        std::filesystem::file_size(sram_path, ec) !=
-            ur::product::kStockSramBytes || ec)
+    if (std::filesystem::is_symlink(sram_path, ec) || ec ||
+        !ur::product::baldosa_sram_file_matches_exact(
+            sram_path, profile.state->stock_sram->data(),
+            ur::product::kStockSramBytes))
         return reject("selected_profile_sram_not_initialized");
 
     RtlSetSaveRoot(decision.save_root.c_str());
@@ -232,6 +233,16 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         std::fflush(stderr);
         return 0;
     }
+    // The selected profile's raw 8-KiB disk image must still agree with its
+    // launch-time typed baseline BEFORE the original RtlWriteSram overwrites
+    // it. Neither an external raw writer nor a swapped symlink is trusted.
+    // This is deliberately a pre-write check; post-write compares guest SRAM.
+    const auto sram_path = g_native_user_root /
+        profile_root.save_root / "save.srm";
+    if (!ur::product::baldosa_sram_file_matches_exact(
+            sram_path, g_launch_profile->stock_sram->data(),
+            ur::product::kStockSramBytes))
+        return reject("save_baseline_mismatch");
     g_native_shutdown_selector_lock = std::move(candidate);
     g_native_shutdown_profile_lock = std::move(profile_candidate);
     return 1;

@@ -160,6 +160,19 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
 }
 
 
+// Read-only native Modern root adapter: expose only the verified profile's
+// canonical archive directory. Never infer identity from a display name or
+// enumerate a different root. Records inspection has NO write authority.
+extern "C" const char* ur_baldosa_modern_profile_records_directory(void) {
+    static std::string path;
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty()) return nullptr;
+    path = (g_native_user_root / "runs" /
+            g_verified_native_profile_id).string();
+    return path.c_str();
+}
+
+
 /* Called through the original game's optional title before_run_frame hook.
  * At this point the native host has called RtlReadSram from the selected
  * profile root, but has not run the first guest simulation frame yet.

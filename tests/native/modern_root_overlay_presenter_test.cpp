@@ -38,7 +38,7 @@ int main() {
     std::uint32_t pixels[64]{};
     constexpr ModernRootOverlayPainter painter{&fill,&stroke,&text};
     constexpr HostOverlayRect old_view{8,10,240,204};
-    constexpr HostOverlayRect wide_view{80,20,356*4,204*4};
+    constexpr HostOverlayRect wide_view{56,20,356*4,204*4};
     ModernRootOverlayView view{};
 
     // Exactly five source-derived destinations with the old labels, cursor,
@@ -63,7 +63,7 @@ int main() {
     view.menu = modern_root_menu_move(view.menu,3);
     view.tour_continue_available = true;
     view.quit_confirm = true;
-    assert(render_modern_root_overlay(painter,pixels,1368,896,4,356,
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
                                       wide_view,view));
     assert(contains("UNIRALLY"));
     assert(contains("RACER: CUSTOM RACER"));
@@ -76,7 +76,7 @@ int main() {
 
     painted.clear();
     view.menu = modern_root_menu_reset();
-    assert(render_modern_root_overlay(painter,pixels,1368,896,4,356,
+    assert(render_modern_root_overlay(painter,pixels,1536,896,4,356,
                                       wide_view,view));
     assert(contains("CONTINUE READY"));
 
@@ -87,6 +87,9 @@ int main() {
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,nullptr,256,224,1,240,
                                        old_view,view));
+    const HostOverlayRect out_of_bounds{30,10,240,204};
+    assert(!render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                       out_of_bounds,view));
     assert(painted.empty()); // rejection never partially draws an overlay
     std::puts("PASS: one shared Modern root artwork presenter, five routes, old+wide views");
 }

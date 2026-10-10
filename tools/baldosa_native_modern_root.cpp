@@ -213,9 +213,10 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT stock_entered players=%d menu=%02x\n",
                 players, static_cast<unsigned>(menu));
-        } else if (menu != 0xd7u) {
-            stock_route_abort("unexpected_transition");
         }
+        // A menu transition can pass through intermediary guest phases.
+        // Only the exact expected settled 1P/2P surface authorizes handoff;
+        // the bounded frame budget rejects any route that never arrives.
         return;
     }
     if (menu != 0xd7u) {

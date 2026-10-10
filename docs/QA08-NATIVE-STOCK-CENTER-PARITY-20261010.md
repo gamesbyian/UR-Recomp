@@ -48,4 +48,3 @@ With exact centre parity established for this 2P frame, prioritize independent
 wide-edge OBJ source visibility, later HUD/camera transitions and authored Remastered
 racer coverage. The merged #1211 follow-up captures actual post-GO 2P source-wide
 racing at frame 2208; neither test grants 342-wide HD source substitution.
-then independently review moving original/remastered rider coverage.

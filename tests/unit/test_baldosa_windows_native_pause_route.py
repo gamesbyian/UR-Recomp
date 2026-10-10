@@ -97,7 +97,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                     f"UR_BALDOSA_HOST_FRAME_CRC host={frame} guest={guest} "
                     f"hash={fingerprint:08x}"
                 )
-            return "\\n".join(result) + "\\n"
+            return "\n".join(result) + "\n"
 
         baseline = trace()
         restarted = trace(7)
@@ -125,11 +125,11 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
             probe.check_delayed_restart_host_trace(
                 baseline, restarted.splitlines()[1:] and
-                "\\n".join(restarted.splitlines()[1:]) + "\\n")
+                "\n".join(restarted.splitlines()[1:]) + "\n")
         with self.assertRaisesRegex(ValueError, "Duplicate host-frame"):
             line = restarted.splitlines()[0]
             probe.check_delayed_restart_host_trace(
-                baseline, restarted + line + "\\n")
+                baseline, restarted + line + "\n")
         with self.assertRaisesRegex(ValueError, "Missing/out-of-window"):
             probe.check_delayed_restart_host_trace(baseline, "")
 

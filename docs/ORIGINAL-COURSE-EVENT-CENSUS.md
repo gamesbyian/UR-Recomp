@@ -75,12 +75,21 @@ partial observations**, **41/45 unverified**. Across all three builds,
   **Still partial, 0/45 complete.**
   Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
   Original terminal evidence: `analysis/generated/result-screens-probe.json`.
-- **USA Bowl (course 03), partial:** the archived original 2014 Snes9x
-  movie reaches a legitimate scored 45-second Stunt result. The source
-  reports tally `0x2F` at frame **11915** and settled result `0x18` at
-  **11985**, with MIKE score **764**. This is an authentic **original-only
-  source completion**, not an independently matched fresh native Stunt
-  run. Provenance: `analysis/generated/result-screens-probe.json`.
+- **USA Bowl (course 03), partial:** the 2014 original Snes9x source
+  reaches authentic scored 45-second Stunt tally `0x2F` at source frame
+  **11915**, then result `0x18` at **11985**. The later independently
+  booted Snes9x and pinned Baldosa guests replay the same scene-relative
+  movie controller stream from the embedded source SRAM. Their **28/28
+  sampled active-gameplay semantic states** and complete decoded PPU
+  tally/settled-result text match, including **MIKE 764** and qualifying
+  score **68**. Both hosts observe result at absolute script frame **4349**;
+  scene-relative result is **+3365 original vs +3364 native** because
+  fresh entry frames differ by one. This is a strong completed scored-Stunt
+  **candidate**, not an admitted course. The result phase/clock and full
+  instructional comparison still require independent adjudication.
+  [Executed paired witness](../analysis/data/bowl-original-baldosa-scored-stunt-candidate-20261009.json)
+  (CI [38021981513](https://github.com/gamesbyian/UR-Recomp/actions/runs/38021981513)).
+  **Official credit: 0/45.**
 - **USA Jumpover (course 20), partial:** six bounded input-only
   original/native stunt landing-reward thresholds match **on a circuit B
   course**, but no complete circuit lap/finish/result or 45-second stunt

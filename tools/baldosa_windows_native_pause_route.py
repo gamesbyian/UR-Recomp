@@ -565,39 +565,55 @@ def assert_invalid_mutable_root_fails_closed(
         raise ValueError("Rejected native user root mutated package/cwd state")
 
 
-def verify_native_modern_root_log(log: str) -> None:
-    """One original renderer and physical SDL host event path, no fake routes."""
-    stages = (
+def verify_native_modern_root_log(log: str, players: int = 1) -> None:
+    """Real shared root to acknowledged stock 1P/2P menu, not a guest guess."""
+    if players not in (1, 2):
+        raise ValueError("Unsupported native stock player count")
+    stages = [
         "UR_BALDOSA_MODERN_ROOT opened=1",
         "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
-        "UR_BALDOSA_MODERN_ROOT selected=3",
-        "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1",
-        "UR_BALDOSA_MODERN_ROOT selected=0",
-        "UR_BALDOSA_MODERN_ROOT play_guest_title=1",
-    )
+    ]
+    if players == 1:
+        stages.extend([
+            "UR_BALDOSA_MODERN_ROOT selected=3",
+            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1",
+            "UR_BALDOSA_MODERN_ROOT selected=0",
+        ])
+    else:
+        stages.append("UR_BALDOSA_MODERN_ROOT selected=2")
+    stages.extend([
+        f"UR_BALDOSA_MODERN_ROOT stock_requested players={players}",
+        "UR_BALDOSA_MODERN_ROOT stock_entered "
+        f"players={players} menu={0x3c if players == 1 else 0x3d:02x}",
+    ])
     positions = []
     for marker in stages:
         if log.count(marker) != 1:
-            raise ValueError(f"Native Modern root missing/duplicate real event: {marker}")
+            raise ValueError(f"Native Modern stock route missing/duplicate: {marker}")
         positions.append(log.index(marker))
     if positions != sorted(positions):
-        raise ValueError("Native Modern root SDL/paint sequence is out of order")
+        raise ValueError("Native Modern root SDL/stock journey out of order")
+    if "UR_BALDOSA_MODERN_ROOT stock_rejected=" in log:
+        raise ValueError("Native Modern stock route aborted")
 
 
 def run_native_modern_root_smoke(
     exe: Path, rom: Path, root: Path, *, video: str, timeout: int,
+    players: int = 1,
 ) -> dict[str, bool]:
-    """Real Win32 native host, common painter, SDL keys, guest handoff.
+    """Windows host SDL root → original stock menu, exact source-observed 1P/2P.
 
-    The original guest still owns its title/menu after Play. No claims for
-    direct event launch, Records, result publication or controller hardware.
+    One guest executable, one input filter, the already authored Modern root.
+    No forced WRAM states, fabricated race/result, or separate frontend owner.
     """
-    output = root / "native_modern_root"
+    if players not in (1, 2):
+        raise ValueError("Unsupported native stock player count")
+    output = root / f"native_modern_root_{players}p"
     output.mkdir(parents=True, exist_ok=False)
     user_root = output / "Modern Root Player Data"
     user_root.mkdir()
     script = output / "root_window.txt"
-    script.write_text("wait 150\nquit\n", encoding="ascii")
+    script.write_text("turbo on\nwait 1800\nquit\n", encoding="ascii")
     config = output / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
     env = os.environ.copy()
@@ -605,8 +621,9 @@ def run_native_modern_root_smoke(
         "SNESRECOMP_USER_DATA_DIR": str(user_root),
         "UR_EXECUTION_MODE": "modern",
         "UR_BALDOSA_MODERN_ROOT": "1",
-        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": str(players),
         "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+        "UR_BALDOSA_MODERN_INPUT": "1",
         "SDL_VIDEODRIVER": video,
         "SDL_AUDIODRIVER": "dummy",
     })
@@ -619,8 +636,9 @@ def run_native_modern_root_smoke(
     (output / "log.txt").write_text(log, encoding="utf-8")
     if run.returncode:
         raise RuntimeError(
-            f"Native root Windows process rejected: {run.returncode} {log[-3500:]}")
-    verify_native_modern_root_log(log)
+            f"Native {players}P root Windows process rejected: "
+            f"{run.returncode} {log[-3500:]}")
+    verify_native_modern_root_log(log, players)
     saved = user_root / "saves/save.srm"
     if not saved.is_file() or len(saved.read_bytes()) != 8192:
         raise ValueError("Original guest did not save under the same Modern root")
@@ -628,10 +646,12 @@ def run_native_modern_root_smoke(
         raise ValueError("Root handoff wrote package/cwd-local guest saves")
     return {
         "shared_modern_root_visible": True,
-        "real_sdl_navigation_to_records": True,
-        "unimplemented_route_rejected": True,
-        "play_restored_original_guest_controls": True,
+        "real_sdl_root_navigation": True,
+        "stock_guest_menu_observed": True,
+        "native_guest_player_count": players,
+        "no_guest_state_writes": True,
     }
+
 
 
 def main() -> int:
@@ -700,10 +720,13 @@ def main() -> int:
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
-    root_proof = run_native_modern_root_smoke(
-        exe, rom, root, video=args.video, timeout=args.timeout)
+    root_p1_proof = run_native_modern_root_smoke(
+        exe, rom, root, video=args.video, timeout=args.timeout, players=1)
+    root_p2_proof = run_native_modern_root_smoke(
+        exe, rom, root, video=args.video, timeout=args.timeout, players=2)
     result = {
-        "native_modern_root": root_proof,
+        "native_modern_root_p1": root_p1_proof,
+        "native_modern_root_p2": root_p2_proof,
         "classification": "windows_native_pause_and_named_profile_smoke_only",
         "rom_sha256": rom_hash,
         "exe_sha256": sha256(exe),

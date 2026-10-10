@@ -246,7 +246,7 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
                 frame_w, frame_h, g_frame, "ur-baldosa-hd-postcapture-underlay");
             std::fprintf(stderr,
                 "UR_BALDOSA_HD_PPU_UNDERLAY frame=%u saved=%u "
-                "logical=%dx%d type=post-obj-removal\\n",
+                "logical=%dx%d type=post-obj-removal\n",
                 g_frame, saved_underlay ? 1u : 0u, frame_w, frame_h);
         }
         std::fprintf(stderr,

@@ -22,7 +22,22 @@
     "changed_addresses_accounted_for_by_original_pc_trace": 69,
     "source_visible_instruction_scope_count": 69,
     "scoped_owning_log_events": 2893,
-    "most_common_scope_note": "82:B1F2/82:B1F9 repeatedly toggle WRAM 7E:01F1 within an emulated frame; this high-frequency diagnostic is not the menu state handoff"
+    "most_common_scope_note": "82:B1F2/82:B1F9 repeatedly toggle WRAM 7E:01F1 within an emulated frame; this high-frequency diagnostic is not the menu state handoff",
+    "independently_logged_reversible_low_wram_01f1": {
+      "source_workflow_run_id": 38011250306,
+      "source_job_id": 114091531165,
+      "source": "executed original Snes9x opcode-scope observer stdout; two actual ZOOPCWRITE lines",
+      "guest_cpu_frame": 6756,
+      "ppu_v_counter": 0,
+      "snes_wram": "7E:01F1",
+      "chronological_scope_writes": [
+        {"pc": "82:B1F2", "old": "FB", "new": "F4"},
+        {"pc": "82:B1F9", "old": "F4", "new": "FB"}
+      ],
+      "within_same_cpu_frame_returns_to_initial_byte": true,
+      "interpretation": "Synchronous original CPU opcode-scope write and restore in the sampled event; not proof of a stack opcode or no read consumer; not original Switcher attribution",
+      "complete_event_release_credit": 0
+    }
   },
   "ordered_original_trace_events": [
     {

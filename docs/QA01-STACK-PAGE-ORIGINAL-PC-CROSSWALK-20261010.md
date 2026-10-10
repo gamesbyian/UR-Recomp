@@ -12,6 +12,17 @@
 
 The pinned imported original symbol catalogue [`decomp/symbols.txt`](../reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt) labels **`82:B1D8 Res_LoadToVram`**, with `82:B1F2` and `82:B1F9` lying at offsets **+$1A** and **+$21** inside the named routine region, before the next label `82:B241 Res_RleRunToVram`. The catalogue describes `Res_LoadToVram` as a VRAM resource loader, with compressed resources going through `sub_81BB89`. This is **named source proximity, not a demonstrated dynamic call stack** for Switcher or proof that a resource loader is the original owner of its observed result discrepancy.
 
+### Executed original byte chronology (higher-confidence detail)
+
+The original Snes9x CI job **114091531165** in [run 38011250306](https://github.com/gamesbyian/UR-Recomp/actions/runs/38011250306) logged these two ordered opcode-scope changes at **ICPU.Frame 6756, PPU V-counter 0** (unaltered original Zoom Zoo controller stream):
+
+| Original CPU scope | Address | Previous byte | Next byte |
+| --- | --- | --- | --- |
+| `82:B1F2` | `7E:01F1` | `FB` | `F4` |
+| `82:B1F9` | `7E:01F1` | `F4` | `FB` |
+
+The original byte is **restored in the same observed CPU frame**. The [machine evidence record](../analysis/data/zoo-original-menu-host-order-20261009.json) now retains this reversible sequence. This is direct original opcode-scope evidence of a *transient* byte value; it does **not** establish that the instruction is a push or pop, prove the byte was never read between stores, identify its Switcher writer, or waive any guest-relative comparison. It is consistent with temporary working data in the named resource-loader neighborhood, but no causal claim about the latest Switcher result or progression follows.
+
 ## Stack hypothesis, original implementation, and falsification
 
 All eight actual Switcher differing offsets, `7E:01DD,01E6,01E7,01EF,01F0,01F1,01F2,01F3`, lie in the 65C816 conventional **`$0100..$01FF` stack page**. The pinned original Snes9x implementation in [`cpuops.cpp`](../third_party/src/snes9x-libretro/cpuops.cpp) has `PushB` write via `S9xSetByte(b, Registers.S.W--)` and `PushW` via `S9xSetWord(w, Registers.S.W - 1, ...)`, followed by a two-byte SP decrement. The pinned RAM label catalogue does **not** name the eight byte addresses, and its `sSavedDirectPage` SRAM mirror covers only `$0000..$019D`. That makes **transient stack residue a high-information hypothesis**, but regular RAM or interrupt-related code can also touch this page. Original CPU stack pointer and M/X/E mode still require measurement.

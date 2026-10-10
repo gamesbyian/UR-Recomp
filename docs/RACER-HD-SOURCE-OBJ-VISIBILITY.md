@@ -343,3 +343,31 @@ presented as Original rather than arming destructive capture. Authored
 art approval from unsafe fixtures and production-safe graphical coverage
 remain separate evidence. No 342-wide authored racer admission, complete
 event fidelity, physical 4K output or QA-08 shipping gate is claimed.
+
+## Shared-source front/rear RGB classification
+
+Two moving 342-wide PPU source frames now prove overlap grows, but frame 1872
+no longer meets the historical strict front-source-equals-final-Original
+colour witness. The real per-frame analyst additionally records
+`split_pair_final_color_witness` in each source-overlap JSON for the correct
+split bands: top OAM 98/99 and bottom OAM 96/97. At every pixel where **both**
+corresponding original racer OBJ source planes emit alpha, the final
+Original raster may match **front alone, rear alone, both, or neither**.
+
+The four categories partition observed shared-source pixels exactly
+and retain at most eight exact `[x,y]` examples per category, permitting
+targeted frame-based PPU investigation without huge diagnostic images.
+An additional counter records where other independent OAM source slots
+also emit, so a multi-source collision is not mistaken for clean
+two-racer depth evidence. **Rear-alone** is an RGB-equivalence candidate,
+not a proven priority inversion; **neither** could indicate opaque
+foreground, colour maths, windowing, unrelated sprites or palette effects.
+**Both** is intrinsically owner-ambiguous even when the final pixel
+matches. The output is read-only and inherits the separately verified
+per-slot source-frame provenance.
+
+This additional evidence can discriminate which native PPU source pixels
+deserve more specific foreground/priority experiments, without adding
+an independent renderer, changing guest state or allowing 342-wide HD
+sprite removal. The release gate remains **fail closed** until pixel
+ownership and final compositing can be established.

@@ -58,6 +58,28 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
         f"{a}-{b}": 0 for index, a in enumerate(SLOTS)
         for b in SLOTS[index + 1:]
     }
+    # For each split band, compare the two genuine overlapping source OBJ
+    # colours to the already composed Original RGB. A rear-only match is an
+    # observational priority/foreground candidate, never a proven winner.
+    # Multi-sprite contamination is counted separately rather than silently
+    # interpreted as a clean two-racer witness.
+    split_pair_color = {
+        name: {
+            "front_slot": front, "rear_slot": rear,
+            "shared_source_pixels": 0,
+            "front_only_matches_original": 0,
+            "rear_only_matches_original": 0,
+            "both_match_original": 0,
+            "neither_matches_original": 0,
+            "additional_obj_source_present": 0,
+            # Bound examples to make later BG/window/priority investigation
+            # reproducible without dumping full screenshots into JSON.
+            "example_xy": {
+                "front_only": [], "rear_only": [], "both": [], "neither": [],
+            },
+        }
+        for name, front, rear in (("top", 98, 99), ("bottom", 96, 97))
+    }
     multi_source_pixels = 0
     union_source_pixels = 0
     # RGB equality is only an observational comparison; an unrelated
@@ -72,6 +94,29 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
             multi_source_pixels += 1
         y = (offset // 4) // WIDTH
         final_rgb = main[offset:offset + 3]
+        witness = split_pair_color["top" if y < 112 else "bottom"]
+        front, rear = witness["front_slot"], witness["rear_slot"]
+        if front in present and rear in present:
+            witness["shared_source_pixels"] += 1
+            if len(present) > 2:
+                witness["additional_obj_source_present"] += 1
+            front_match = source[front][offset:offset + 3] == final_rgb
+            rear_match = source[rear][offset:offset + 3] == final_rgb
+            if front_match and rear_match:
+                kind = "both"
+                witness["both_match_original"] += 1
+            elif front_match:
+                kind = "front_only"
+                witness["front_only_matches_original"] += 1
+            elif rear_match:
+                kind = "rear_only"
+                witness["rear_only_matches_original"] += 1
+            else:
+                kind = "neither"
+                witness["neither_matches_original"] += 1
+            examples = witness["example_xy"][kind]
+            if len(examples) < 8:
+                examples.append([(offset // 4) % WIDTH, y])
         for index, slot in enumerate(present):
             item = counts[slot]
             item["source_opaque"] += 1
@@ -114,6 +159,9 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
         "source_alpha_union_pixels": union_source_pixels,
         "source_alpha_multi_slot_pixels": multi_source_pixels,
         "source_overlap_pairs": overlap_pairs,
+        # No equality class proves final ownership; 'neither' may be
+        # foreground/window occlusion, colour math or PPU processing.
+        "split_pair_final_color_witness": split_pair_color,
         "expected_front_source_color_witness": {
             "top_oam_98_vs_99": front_top["main_rgb_differs_source"] == 0,
             "bottom_oam_96_vs_97": front_bottom["main_rgb_differs_source"] == 0,

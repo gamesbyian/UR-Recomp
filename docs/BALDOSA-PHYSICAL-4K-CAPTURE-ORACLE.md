@@ -77,3 +77,83 @@ A compiled native bridge test checks these coordinates and density cases.
 This is a real host integration hook, **not** a real 4K screenshot or
 native display acceptance. The independent physical drawable capture
 and unchanged guest/PPU semantics remain required.
+
+## Real native SDL 4K output execution candidate
+
+The pinned Baldosa AOT acceptance now stages the separately merged,
+opt-in SDL2 renderer readback for its **disposable** framework checkout
+before the normal 342-wide world/4× host rebuild. Routine baseline,
+1P, 2P, VS and per-slot PPU jobs do not request a physical capture.
+
+After first recording original guest-frame **1856** at genuine native
+342×224 (1×) and 1368×896 (4×) in two independent processes, it starts
+a separate Xvfb **3840×2160** display and an isolated Baldosa configuration
+with `WindowSize=3840x2160`, `OutputMethod=SDL-Software`,
+`LinearFiltering=0`, and `Fullscreen=0`. The same unchanged native
+2P route renders the real SDL drawable, with exactly one full-frame
+`SDL_RenderReadPixels` readback before `SDL_RenderPresent`.
+The explicit frame/file arguments are `1856` and
+`ur-baldosa-output-001856.pam`.
+
+The workflow requires the complete stock guest CRC sequence, an
+authenticated 3840×2160 SDL readback log, and pixel-exact verification
+by `check_baldosa_physical_4k_capture.py` against the independent
+same-guest-frame source and 4× captures. The full physical RGBA file,
+native log and machine-readable report are retained as CI artifacts.
+
+**This is an acceptance *attempt*, not an established 4K result.**
+A wrong output drawable, missing actual readback, one mismatched RGBA
+pixel, time-bound failure or source divergence must fail CI. Any failure
+is a real output integration finding to investigate, never a reason to
+substitute a synthetically resized image or declare physical scanout.
+
+## Physical SDL alpha normalization, not colour tolerance
+
+The first actual **3840×2160 SDL readback** in native run
+[38074405401](https://github.com/gamesbyian/UR-Recomp/actions/runs/38074405401)
+successfully produced its full-size PAM and preserved the original guest
+CRC stream. The first strict comparison revealed a specific output-domain
+difference at screen pixel `(0,0)`: the source PPU wrote
+`RGB=84a5a5 alpha=00`, while SDL's explicitly OPAQUE presentation
+texture correctly returned `RGB=84a5a5 alpha=ff`. The older checker
+incorrectly equated the PPU's unused alpha byte with final SDL
+pixel opacity.
+
+The physical oracle now requires an **opaque 255 alpha for every
+displayed pixel**, while continuing to compare **every RGB pixel
+exactly** against independent 1× and 4× original source frames.
+The logical-vs-4× source-pixel check retains its original strict RGBA
+identity, including the zero-alpha PPU source. No colour tolerance,
+rescaling or synthetic 4K source generation is introduced. Unit
+regression reproduces the observed zero-alpha source/full-opacity
+display case and rejects an improperly transparent output pixel.
+
+This is a test correction, not a completed physical QA pass:
+the updated native renderer must still pass the *full* 4K framebuffer
+oracle on an independent run.
+
+## Exact SDL2 software sampling and diagnostic OSD exclusion
+
+A complete offline examination of the **actual failed first-run**
+4K artifact (`11677683656`) isolated the next two mismatches
+*after* normalizing SDL's opaque alpha:
+
+- **17,048** colour differences from the oracle's ideal floating-point
+  1× center-of-texel mapping instead matched the real SDL2 software
+  raster's **16.16 fixed-point nearest stepping** from the 1368×896
+  fourfold presentation texture. That precise mapping agreed across
+  every pixel outside the on-screen OSD; no arbitrary tolerance is used
+- **3,567** changed pixels formed a native turbo/FPS OSD rectangle
+  at `x=6..128`, `y=5..33` on the completed 4K SDL surface.
+  The new disposable host patch suppresses the title-independent
+  OSD **only when the explicit source-to-physical capture frame and
+  filename both match**, and calls `snes_osd_present_done()`.
+  All other frames preserve ordinary OSD behaviour
+
+The 4K oracle now calculates the exact host's 16.16 fixed-step
+nearest sampling from the validated *actual 4× native texture* and
+continues to enforce pixel-exact RGB and opaque-alpha output on
+**every one of 8,294,400 physical pixels**. It never ignores the
+OSD rectangle, nor grants colour tolerance or source-art admission.
+The native follow-up must pass the complete strict oracle before
+physical 4K output is credited.

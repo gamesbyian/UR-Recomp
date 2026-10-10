@@ -140,6 +140,16 @@ jobs:
               exit 3
             fi
             python3 "$GITHUB_WORKSPACE/tools/baldosa_hd_enable_renderer.py" --config "$config"
+            if [ "${UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME:-}" != "" ]; then
+              python3 - "$config" <<'PY'
+          from pathlib import Path
+          import sys
+          path = Path(sys.argv[1])
+          path.write_text(path.read_text() +
+              "\n[Graphics]\nWindowSize = 3840x2160\n"
+              "OutputMethod = SDL-Software\nLinearFiltering = 0\nFullscreen = 0\n")
+          PY
+            fi
           fi
           exec "$BALDOSA_REAL_BIN" "$@"
           SH
@@ -375,6 +385,8 @@ jobs:
           set -euo pipefail
           python3 tools/baldosa_ws24_framework_split_patch.py \
             --root "$GITHUB_WORKSPACE" --framework baldosa/snesrecomp
+          python3 tools/baldosa_sdl_physical_4k_capture_spike.py \
+            --framework baldosa/snesrecomp
           python3 tools/baldosa_ws24_host_spike.py \
             --game baldosa --ur-root "$GITHUB_WORKSPACE"
           cmake -S baldosa -B baldosa/build -G Ninja \
@@ -644,6 +656,37 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_density_parity.json"
           echo "PASS: aligned 1x vs 4x 342-column native full-frame pixel identity, not just internally uniform 4x blocks" >> "$GITHUB_STEP_SUMMARY"
 
+          # Independent native 3840x2160 output, AFTER SDL viewport composition.
+          Xvfb :100 -screen 0 3840x2160x24 -ac > "$RUNNER_TEMP/baldosa-xvfb-4k.log" 2>&1 &
+          for _attempt in 1 2 3 4 5; do
+            xdpyinfo -display :100 > /dev/null 2>&1 && break
+            sleep 1
+          done
+          xdpyinfo -display :100 > /dev/null
+          export UR_BALDOSA_HD=1 UR_BALDOSA_HD_DENSITY=4 UR_BALDOSA_WS342=1
+          unset UR_BALDOSA_WS342_LIVE
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME=1856
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE="$RUNNER_TEMP/ur-baldosa-output-001856.pam"
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-4k-source-extra"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          # Only this full-frame software-4K run gets a longer wall bound.
+          DISPLAY=:100 TMO=240 bash baldosa/tools/run_route.sh \
+            baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k/fd/crc.txt"
+          test -s "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE"
+          grep -q "^UR_BALDOSA_PHYSICAL_4K_CAPTURE frame=${UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME} output=3840x2160 source=SDL_RenderReadPixels status=saved$" \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt"
+          python3 tools/check_baldosa_physical_4k_capture.py \
+            --source "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --density-4x "$RUNNER_TEMP/baldosa-ws342-captures-4x/ur-baldosa-ws342-001856.pam" \
+            --physical-4k "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE" \
+            --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_physical_4k_frame1856.json"
+          echo "PASS: genuine SDL 3840x2160 output all-pixel Original 7:6 source/4x parity" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME
+
           # Isolate each genuine OBJ hardware slot with pinned PPU extraction
           # and removal explicitly OFF. Full stock frames must be identical.
           export UR_BALDOSA_HD_DENSITY=1
@@ -908,6 +951,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame1856.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt
+            ${{ runner.temp }}/ur-baldosa-output-001856.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json

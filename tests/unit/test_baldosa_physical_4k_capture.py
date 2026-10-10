@@ -6,7 +6,7 @@ import tempfile
 import unittest
 
 from tools.check_baldosa_physical_4k_capture import (
-    OUT_W, OUT_H, assess, nearest_index,
+    OUT_W, OUT_H, assess, nearest_index, sdl_software_nearest_index,
 )
 
 
@@ -46,8 +46,10 @@ def physical_four_k(source: bytes, width: int) -> bytes:
     viewport_width = 3840 if width == 342 else 2880
     x_offset = 0 if width == 342 else 480
     bars = b"\x00\x00\x00\xff" * x_offset
-    mapped = [min(width - 1, (2 * x + 1) * width //
-                  (2 * viewport_width)) for x in range(viewport_width)]
+    mapped = [
+        sdl_software_nearest_index(x, viewport_width, width * 4) // 4
+        for x in range(viewport_width)
+    ]
     cached_rows = []
     for sy in range(224):
         row = source[sy * width * 4:(sy + 1) * width * 4]
@@ -55,7 +57,9 @@ def physical_four_k(source: bytes, width: int) -> bytes:
             bars + b"".join(row[x * 4:x * 4 + 4] for x in mapped) + bars
         )
     return b"".join(
-        cached_rows[min(223, (2 * y + 1) * 224 // (2 * OUT_H))]
+        cached_rows[
+            sdl_software_nearest_index(y, OUT_H, 224 * 4) // 4
+        ]
         for y in range(OUT_H)
     )
 
@@ -64,6 +68,13 @@ class PhysicalFourKParityTests(unittest.TestCase):
     def test_native_full_world_with_real_4k_sized_source_oracle(self):
         self.assertEqual(nearest_index(0, OUT_H, 224), 0)
         self.assertEqual(nearest_index(OUT_H - 1, OUT_H, 224), 223)
+        # Actual SDL software uses 16.16 steps from its 1368x896
+        # texture. At one known boundary, ideal logical sampling
+        # selects source 103 while real SDL selects source 102.
+        self.assertEqual(nearest_index(1156, OUT_W, 342), 103)
+        self.assertEqual(
+            sdl_software_nearest_index(1156, OUT_W, 342 * 4) // 4, 102
+        )
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             w = 342
@@ -102,6 +113,36 @@ class PhysicalFourKParityTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError,
                                         "not an exact native 4x"):
                 assess(one, four, physical, 1872)
+
+    def test_native_source_zero_alpha_becomes_opaque_only_at_sdl_output(self):
+        # Actual stock Baldosa PPU pixels use 0x00RRGGBB, whereas its
+        # SDL presenter explicitly forces the output texture opaque.
+        # Exact logical 1x -> 4x identity must still include the zero byte.
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            w = 342
+            src = bytearray(source_raster(w))
+            src[3::4] = bytes(len(src) // 4)
+            src = bytes(src)
+            dense = internal_four_x(src, w)
+            # The displayed SDL canvas has alpha=255 for every texel,
+            # without changing any of the original source RGB channels.
+            opaque = bytearray(physical_four_k(src, w))
+            opaque[3::4] = bytes([255]) * (len(opaque) // 4)
+            one = root / "source-001856.pam"
+            four = root / "density-001856.pam"
+            physical = root / "physical-001856.pam"
+            one.write_bytes(pam(w, 224, src))
+            four.write_bytes(pam(w * 4, 896, dense))
+            physical.write_bytes(pam(OUT_W, OUT_H, opaque))
+            result = assess(one, four, physical, 1856)
+            self.assertEqual(result["status"], "exact-native-capture-pixel-parity")
+            self.assertEqual(result["opaque_sdl_drawable_alpha_expected"], 255)
+            # A zero-alpha *screen* pixel must not be silently accepted.
+            opaque[3] = 0
+            physical.write_bytes(pam(OUT_W, OUT_H, opaque))
+            with self.assertRaisesRegex(ValueError, "physical 4K mismatch"):
+                assess(one, four, physical, 1856)
 
     def test_fixed_original_is_centered_with_7_to_6_par(self):
         with tempfile.TemporaryDirectory() as tmp:

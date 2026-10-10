@@ -6,6 +6,7 @@
  * launch, Records callbacks, or route completeness for other destinations.
  */
 #include "modern_root_overlay_presenter.hpp"
+#include "modern_root_physical_edges.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
 
@@ -36,6 +37,7 @@ constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer));
 ModernRootMenu g_menu{};
+ur::product::ModernRootPhysicalEdges g_navigation_edges{};
 std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
@@ -133,6 +135,7 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
 extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
     g_menu = ur::product::modern_root_menu_reset();
+    g_navigation_edges.reset();
     g_confirm_quit = false;
     g_visible = true;
     g_render_reported = false;
@@ -147,18 +150,24 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
-    if (!g_visible)
-        return key == SDLK_ESCAPE && pressed &&
-               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
+    std::size_t physical = 0;
     switch (key) {
-    case SDLK_UP: action = -1; break;
-    case SDLK_DOWN: action = 1; break;
-    case SDLK_RETURN: action = 2; break;
-    case SDLK_ESCAPE: action = 3; break;
+    case SDLK_UP: physical = 0; action = -1; break;
+    case SDLK_DOWN: physical = 1; action = 1; break;
+    case SDLK_RETURN: physical = 2; action = 2; break;
+    case SDLK_ESCAPE: physical = 3; action = 3; break;
     default: return 0;
     }
-    if (!pressed) return 1;
+    // Continue tracking release after a stock-game handoff. An Escape held
+    // while the stock guest returned to main must not reopen the host root
+    // on SDL key-repeat; a new physical press is required.
+    const bool first_press =
+        g_navigation_edges.keyboard(physical, pressed != 0);
+    if (!g_visible)
+        return key == SDLK_ESCAPE && first_press &&
+               reopen_on_observed_stock_main() ? 1 : 0;
+    if (!first_press) return 1;
     if (action == 2) choose();
     else if (action == 3) back();
     else navigate(action);
@@ -168,19 +177,24 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
     if (player != 0) return 0;
-    if (!g_visible)
-        return button == kGamepadBtn_B && pressed &&
-               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
+    std::size_t physical = 0;
     switch (button) {
-    case kGamepadBtn_DpadUp: action = -1; break;
-    case kGamepadBtn_DpadDown: action = 1; break;
-    case kGamepadBtn_A:
-    case kGamepadBtn_Start: action = 2; break;
-    case kGamepadBtn_B: action = 3; break;
+    case kGamepadBtn_DpadUp: physical = 0; action = -1; break;
+    case kGamepadBtn_DpadDown: physical = 1; action = 1; break;
+    case kGamepadBtn_A: physical = 2; action = 2; break;
+    case kGamepadBtn_Start: physical = 3; action = 2; break;
+    case kGamepadBtn_B: physical = 4; action = 3; break;
     default: return 0;
     }
-    if (!pressed) return 1;
+    // A and Start keep separate physical latches while sharing Confirm.
+    // P2 never owns this root. These latches do not alter the guest word.
+    const bool first_press =
+        g_navigation_edges.p1_gamepad(physical, pressed != 0);
+    if (!g_visible)
+        return button == kGamepadBtn_B && first_press &&
+               reopen_on_observed_stock_main() ? 1 : 0;
+    if (!first_press) return 1;
     if (action == 2) choose();
     else if (action == 3) back();
     else navigate(action);
@@ -350,6 +364,10 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     event.key.keysym.sym = key;
 #endif
     if (SDL_PushEvent(&event) != 1) std::abort();
+    if (key == SDLK_DOWN && frame == 60) {
+        // An SDL keyboard auto-repeat must not skip a Modern destination.
+        if (SDL_PushEvent(&event) != 1) std::abort();
+    }
     event.type = SDL_KEYUP;
     if (SDL_PushEvent(&event) != 1) std::abort();
 }

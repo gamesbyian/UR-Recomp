@@ -416,6 +416,73 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_presentation.json"
           echo "PASS: 342x224 logical native PPU with both split-world +43 margins, unchanged guest CRC" >> "$GITHUB_STEP_SUMMARY"
 
+          # QA-08 live 1P acceptance candidate, reusing THIS build and the
+          # independently executed stock 1P baseline from the same job.
+          # Do not rely on the scripted 1800..2450 frame interval. A turbo
+          # pre-race can skip host prepares, so guest-frame mode sampling is
+          # essential. Any inability to widen is reported as a blocker,
+          # not promoted into positive QA acceptance or rerouted to HD art.
+          export UR_BALDOSA_WS342_LIVE=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
+            "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p.json" <<'PY'
+          import hashlib, json, pathlib, re, sys
+          original, log_file, captures, report_file = map(pathlib.Path, sys.argv[1:])
+          guest_crcs = original.read_text(encoding="utf-8").splitlines()
+          log = log_file.read_text(encoding="utf-8", errors="replace")
+          modes = [
+              (int(frame), int(mode), int(active, 16), int(frontend, 16))
+              for frame, mode, active, frontend in re.findall(
+                  r"^UR_BALDOSA_WS342_LIVE_MODE frame=(\d+) mode=(\d+) "
+                  r"guest_race=([0-9A-F]+) frontend=([0-9A-F]+)$", log, re.M)
+          ]
+          prep = re.findall(
+              r"^UR_BALDOSA_WS342_PREP frame=(\d+) calibrated=(\d+) "
+              r"logical=(\d+)x224 backing=48 visible=43$", log, re.M)
+          present = re.findall(
+              r"^UR_BALDOSA_WS342_PRESENT frame=(\d+) width=342 height=224 "
+              r"pitch=(\d+) calibrated=1 saved=([01])", log, re.M)
+          names = sorted(captures.glob("ur-baldosa-ws342-*.pam"))
+          headers = (b"P7\nWIDTH 342\nHEIGHT 224\nDEPTH 4\nMAXVAL 255\n"
+                     b"TUPLTYPE RGB_ALPHA\nENDHDR\n")
+          seen = []
+          for path in names:
+              assert re.fullmatch(r"ur-baldosa-ws342-\d{6}\.pam", path.name), path
+              raw = path.read_bytes()
+              assert raw.startswith(headers) and len(raw) == len(headers) + 342 * 224 * 4, path
+              seen.append({"name": path.name, "sha256": hashlib.sha256(raw).hexdigest()})
+          assert len(guest_crcs) > 0, "no original 1P guest frames"
+          assert any(mode == 1 and active != 1 and frontend == 0x3C
+                     for _, mode, active, frontend in modes), (
+                         "no observed genuine pre-race 1P guest mode", modes)
+          report = {
+              "schema_version": 1,
+              "guest_crc_equal_to_stock": True,
+              "guest_frames": len(guest_crcs),
+              "pre_race_mode_samples": modes,
+              "wide_preparations": len(prep),
+              "calibrated_wide_preparations": sum(p[1] == "1" for p in prep),
+              "wide_presents": len(present),
+              "wide_captures": seen,
+              "status": "observed-live-widening" if seen else "blocked-no-live-1p-widening",
+              "release_1p_world_acceptance": False,
+              "physical_4k_acceptance": False,
+          }
+          report_file.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+          print("UR_BALDOSA_WS342_LIVE_1P " + report["status"] +
+                f" guest={len(guest_crcs)} modes={modes} " +
+                f"wide_preps={len(prep)} wide_presents={len(present)} captures={len(seen)}")
+          PY
+          echo "MEASURED: native live 1P candidate, exact baseline guest CRC and explicit source-wide admission (no unverified release credit)" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_WS342_LIVE
+
           # Reuse the *same* wide guest/world materializer and the *same*
           # first-party HD/Original compositor at density 4. Stock OBJ stays
           # source-owned in this geometry pending per-slot wide admission.
@@ -645,6 +712,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1872.json

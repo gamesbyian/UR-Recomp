@@ -45,18 +45,29 @@ bool live_scene_enabled() noexcept {
     const char* v = std::getenv("UR_BALDOSA_WS342_LIVE");
     return full_view_enabled() && v && std::strcmp(v, "1") == 0;
 }
+// The pre-race mode must be observed at GUEST cadence, not only on sparse
+// desktop prepares. Turbo routes can skip every host draw during selection.
+// Sampling again at prepare uses the most recent authoritative guest state;
+// neither sampler writes to SNES memory or changes the calibrated world.
+ur::product::HostSceneComposition sample_live_scene() noexcept {
+    if (g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7)
+        ur::product::reset_widescreen_scene_state(&live_scene);
+    const auto previous = live_scene.race_mode;
+    const auto scene = ur::product::observe_widescreen_scene(
+        &live_scene, g_ram[0x0313], g_ram[0x009F]);
+    if (previous != live_scene.race_mode) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_WS342_LIVE_MODE frame=%u mode=%u guest_race=%02X frontend=%02X\n",
+            frame_number, static_cast<unsigned>(live_scene.race_mode),
+            static_cast<unsigned>(g_ram[0x0313]),
+            static_cast<unsigned>(g_ram[0x009F]));
+    }
+    return scene;
+}
 bool racing_window() noexcept {
     if (!probe_enabled()) return false;
     if (live_scene_enabled()) {
-        // A new settled frontend retires the prior event's mode latch.
-        // Never widen an unrelated active state using a past race's mode.
-        if (g_ram[0x0313] != 0x01 && g_ram[0x009F] == 0xD7)
-            ur::product::reset_widescreen_scene_state(&live_scene);
-        // Share the existing Modern title's read-only guest classification.
-        // $7E:0313 is active racing, $7E:009F the pre-race 1P/2P/VS latch.
-        // Unrecognized scenes stay fixed-center, independent of frame count.
-        return ur::product::observe_widescreen_scene(
-            &live_scene, g_ram[0x0313], g_ram[0x009F]) ==
+        return sample_live_scene() ==
             ur::product::HostSceneComposition::WorldExpand;
     }
     // Retain the reproducible historical 2P comparison unchanged.
@@ -159,6 +170,9 @@ extern "C" int ur_baldosa_ws24_original_viewport(
 
 extern "C" void ur_baldosa_ws24_begin_sim_frame(unsigned frame) {
     frame_number = frame;
+    // Observe even if this guest frame never reaches the desktop presenter.
+    // Otherwise a skipped pre-race host callback loses 1P/2P/VS identity.
+    if (live_scene_enabled()) (void)sample_live_scene();
     ur_baldosa_hd_begin_sim_frame(frame);
 }
 extern "C" int ur_baldosa_ws24_draw_frame(std::uint8_t* dst,

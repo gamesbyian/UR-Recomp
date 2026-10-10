@@ -230,7 +230,8 @@ extern "C" void ur_baldosa_product_after_run_frame(
         // It must leave guest WRAM, persistent SRAM and all future 2P frame
         // CRCs unchanged; the user-facing, multi-frame Retry still needs QA.
         if (!g_restart_same_frame_checked && g_native_live_race &&
-            std::getenv("UR_BALDOSA_RESTART_SAME_FRAME_SMOKE")) {
+            std::getenv("UR_BALDOSA_RESTART_SAME_FRAME_SMOKE") &&
+            std::strcmp(std::getenv("UR_BALDOSA_RESTART_SAME_FRAME_SMOKE"), "1") == 0) {
             g_restart_same_frame_checked = true;
             require(g_modern_session &&
                     ur_modern_session_restart_available(g_modern_session),

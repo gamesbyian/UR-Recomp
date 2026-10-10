@@ -4,6 +4,10 @@
 
 This is a short-horizon coordination document, **not** another active queue. [WORK-QUEUE.md](WORK-QUEUE.md) owns daily assignments; [PROJECT-PLAN.md](PROJECT-PLAN.md) and [DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md](DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md) own the enduring product and reference ambition; [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json) alone awards independent QA gate passes.
 
+**Product checkpoint, 2026-10-10:** merged #1203 demonstrates the actual ROMless CMD launcher rejecting wrong ROMs and unsafe save roots with distinct diagnostics. Merged #1208 demonstrates a real 2P guest race paused via SDL, menu Quit through the existing SDL event loop, normal named-profile SRAM checkpoint and no fabricated result. #1209 merged the shared Modern root's unavailable-destination affordances and removed unwired racer shortcuts after exact-head CI. These are genuine component advances, **not** acceptance of a full Modern Windows player journey.
+
+**Next authoritative product handoff:** the old Modern host already uses CompletedRunCapture to record actual mapped-frame input and splits, source-derived course identity, P1 line-crossing ticks and settled results; it owns .urrun/.urghost/.urmatch publication. The native Baldosa adapter must bind these **same** models to guest-authored observations, preserve the canonical named profile and 8-KiB SRAM root, and mint a distinct backend compatibility ID until cross-backend replay equivalence is proven. No record, tournament credit or victory may be published on a requested exit, clock timeout or incomplete result. Acceptance is one genuine P1 result and one local P2 result plus Records and fresh-process reload on one exact Windows candidate. The old backend remains rollback.
+
 ## User-visible beta bar
 
 - One actual pinned portable Windows build: controller-first Modern root, profile/racer, 1P and local 2P race, proper original results, contextual navigation, pause/resume/restart/exit, persistent SRAM and host records after full process restart, no fake-success routes.

@@ -943,6 +943,78 @@ def verify_native_pause_quit_log(log: str) -> None:
         raise ValueError("Native paused Quit did not commit the typed Modern profile")
 
 
+def verify_paused_quit_fresh_relaunch(
+    exe: Path, rom: Path, root: Path, user_root: Path, fixture: Path,
+    *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Fresh native process must load the exact SRAM left by paused Quit.
+
+    The same selected Modern root, catalog and typed state are reused.
+    No reseed, profile switch, alternate save directory or synthetic event.
+    """
+    selected_save = user_root / "saves/profile-native-ci-rider/save.srm"
+    saved = selected_save.read_bytes()
+    if len(saved) != 8192:
+        raise ValueError("Paused Quit did not leave a full selected SRAM image")
+    selector = user_root / "host-state-v1.txt"
+    catalog = user_root / "profiles-v1.txt"
+    before = (selector.read_bytes(), catalog.read_bytes())
+    output = root / "after_native_pause_quit_relaunch"
+    output.mkdir(parents=True, exist_ok=False)
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    script = output / "bounded-relaunch.txt"
+    script.write_text("turbo on\nwait 4\nquit\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "0",
+        "UR_BALDOSA_MODERN_ROOT": "0",
+        "UR_BALDOSA_PAUSE_SMOKE": "0",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "0",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    try:
+        process = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(script), str(rom)],
+            cwd=output, env=env, capture_output=True, text=True,
+            errors="replace", timeout=timeout,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError("Fresh process did not reload paused-Quit SRAM") from exc
+    log = process.stdout + "\n" + process.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if process.returncode:
+        raise RuntimeError(
+            f"Fresh native process rejected paused-Quit profile "
+            f"rc={process.returncode}: {log[-2300:]}"
+        )
+    proof = verify_named_profile_boot_bytes(log, saved)
+    verify_native_profile_checkpoint(
+        fixture, user_root, "native-ci-rider", log, timeout)
+    if (selector.read_bytes(), catalog.read_bytes()) != before:
+        raise ValueError("Fresh paused-Quit relaunch changed Modern selector/catalog")
+    if (user_root / "saves/save.srm").exists() or (output / "saves").exists():
+        raise ValueError("Fresh paused-Quit process leaked into another save root")
+    if len(selected_save.read_bytes()) != 8192:
+        raise ValueError("Fresh paused-Quit process damaged named profile SRAM")
+    if list(user_root.rglob("*.urrun")):
+        raise ValueError("Interrupted native race manufactured a finished run")
+    return {
+        "new_native_process_launched": True,
+        "exact_previous_process_8192_byte_sram_loaded": True,
+        "reloaded_fnv32": proof["fnv32"],
+        "canonical_catalog_and_selector_unchanged": True,
+        "no_default_profile_save": True,
+        "no_fabricated_completed_run": True,
+    }
+
+
 def run_native_pause_quit(
     exe: Path, rom: Path, script: Path, root: Path, fixture: Path,
     seed: Path, *, video: str, timeout: int,
@@ -1008,7 +1080,11 @@ def run_native_pause_quit(
     if ((user_root / "saves/save.srm").exists() or
         (output / "saves").exists()):
         raise ValueError("Native paused Quit leaked into a competing SRAM root")
+    fresh = verify_paused_quit_fresh_relaunch(
+        exe, rom, output, user_root, fixture,
+        video=video, timeout=timeout)
     return {
+        "fresh_relaunch_of_quit_profile": fresh,
         "authentic_live_guest_pause_frame": 1952,
         "physical_sdl_menu_navigation": True,
         "quit_via_existing_sdl_shutdown": True,

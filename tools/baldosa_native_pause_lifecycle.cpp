@@ -31,6 +31,7 @@ int ur_baldosa_product_set_paused(int paused);
 int snesrecomp_desktop_product_is_paused(void);
 int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
+void ur_baldosa_modern_root_after_run_frame(unsigned frame);
 void ur_baldosa_guest_snapshot_after_run_frame(
     const SnesDesktopHostFrameStats* stats);
 }
@@ -232,6 +233,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     // Existing verified two-seat guest observer remains intact.
     ur_baldosa_guest_snapshot_after_run_frame(stats);
+    if (stats) ur_baldosa_modern_root_after_run_frame(stats->frame);
     // A rollback can rewind the guest's own snes_frame_counter, which the
     // stock framedump uses as its filename. A deterministic replay can
     // overwrite earlier frame_NNN.json files with their identical CRCs.

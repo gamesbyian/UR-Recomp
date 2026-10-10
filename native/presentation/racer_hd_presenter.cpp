@@ -442,7 +442,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
     const bool p2_ready = p2.uses_replacement() &&
         p2.registration != nullptr &&
         racer_hd_asset_available(p2.registration->semantic_frame_id);
-    const bool p1_only = !p2_ready && p1_only_capture_enabled();
+    bool p1_only = !p2_ready && p1_only_capture_enabled();
     if (!p2_ready && !p1_only) {
         hd_census_gate("original", "p2-pair-gate");
         return;
@@ -503,8 +503,16 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
          racer_active_source_footprints_overlap(
              *p1_bottom, *p2_bottom, RacerViewport::Bottom));
     if (source_overlap && !unsafe_legacy_overlap_fixture_enabled()) {
-        hd_census_gate("original", "overlapping-source-obj");
-        return;
+        // The opt-in P1-only diagnostic can replace only OAM slots 97/98
+        // while leaving original P2 slots 96/99 in the PPU. Its separate
+        // stock-P2 geometry/priority gate below still owns admission.
+        // Never enable this path in the ordinary production full-pair mode.
+        if (p1_only_capture_enabled()) {
+            p1_only = true;
+        } else {
+            hd_census_gate("original", "overlapping-source-obj");
+            return;
+        }
     }
     if (source_overlap) {
         static bool warned = false;
@@ -534,6 +542,12 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
             *p1_top, *p1_bottom, *p2_top, *p2_bottom)) {
         hd_census_gate("original", "p1-only-occlusion");
         return;
+    }
+    if (p1_only && p2_ready && source_overlap && hd_census_enabled()) {
+        std::fprintf(stderr,
+            "UR_RACER_HD_P1_OVERLAP_RECOVERY frame=%u "
+            "source_pair_overlap=1 capture_slots=97-98 stock_p2=1\n",
+            number);
     }
 
     const std::uint64_t before = guest_state_digest();
@@ -572,15 +586,20 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         return;
     }
 
+    // The mixed mode must retain precisely P1 top and P1 bottom even
+    // when P2 happens to have a selectable authored frame. A previous
+    // p2_ready-based slot choice would accidentally draw the stock P2
+    // registration into the P1-only two-instance path.
+    const bool draw_both_racers = p2_ready && !p1_only;
     g_instances = {{
         {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Top, *p1_top},
-        {p2_ready ? p2.registration->semantic_frame_id : p1.registration->semantic_frame_id,
-         p2_ready ? p2.registration : p1.registration,
-         p2_ready ? RacerViewport::Top : RacerViewport::Bottom,
-         p2_ready ? *p2_top : *p1_bottom},
+        {draw_both_racers ? p2.registration->semantic_frame_id : p1.registration->semantic_frame_id,
+         draw_both_racers ? p2.registration : p1.registration,
+         draw_both_racers ? RacerViewport::Top : RacerViewport::Bottom,
+         draw_both_racers ? *p2_top : *p1_bottom},
         {p1.registration->semantic_frame_id, p1.registration, RacerViewport::Bottom, *p1_bottom},
-        {p2_ready ? p2.registration->semantic_frame_id : std::uint16_t{0},
-         p2_ready ? p2.registration : nullptr,
+        {draw_both_racers ? p2.registration->semantic_frame_id : std::uint16_t{0},
+         draw_both_racers ? p2.registration : nullptr,
          RacerViewport::Bottom, *p2_bottom},
     }};
     g_instance_count = p1_only ? 2 : g_instances.size();

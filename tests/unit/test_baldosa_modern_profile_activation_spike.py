@@ -68,7 +68,8 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             for name in (*probe.SOURCES,
                          "baldosa_native_records_summary.cpp",
                          "completed_run_store.cpp",
-                         "completed_run_record.cpp"):
+                         "completed_run_record.cpp",
+                         "baldosa_native_run_record_admission.cpp"):
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
             self.assertEqual(len(pending), 3)
@@ -76,6 +77,7 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertIn("host_profile_store.cpp", pending[1][2])
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])
+            self.assertIn("baldosa_native_run_record_admission.cpp", pending[1][2])
             self.assertIn("after_config", pending[0][2])
             self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
             staged_host = pending[2][2]

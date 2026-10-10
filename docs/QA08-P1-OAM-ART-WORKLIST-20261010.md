@@ -1,8 +1,6 @@
 # QA-08: source OAM on-screen eligibility for missing 1P authored art
 
-**Status: native candidate, not yet accepted.** This is read-only PPU/OAM
-geometry research. It does not grant Remastered art, OAM erasure or
-Windows-release permission.
+**Status: accepted bounded native read-only OAM geometry census.** Merged #1255; exact AOT run `38094430121`, artifact `11684953572`, all five CI workflows successful. This establishes candidate screen geometry and conservative original P1/P2 source guards, **not source OBJ alpha, final BG/window priority, HD sprite erasure, or Windows beta admission**.
 
 ## Measured starting point
 
@@ -51,6 +49,60 @@ A high-frequency pose with no source OAM on-screen becomes a
 sprite. A high-frequency source-geometry candidate becomes a
 **priority for original-PPU isolated-OBJ alpha and final-composite
 review**, not automatic HD authorization.
+
+## Exact native outcome: first useful artwork shortlist
+
+The independent native PPU and source WRAM census matched **all
+5,447 guest CRC frames** and exactly **3,430 post-milestone source
+states**. Source OAM geometry and the original tile/OBSEL bank
+classified the 3,355 missing-art observations:
+
+| Source-registered classification | Guest observations |
+| --- | ---: |
+| Missing authored asset with plausible on-screen original racer OAM | **1,844** |
+| Missing authored asset with absent/non-racer screen OAM | **1,511** |
+| Existing authored asset but unmatched runtime composition; eligible OAM | 17 |
+| Existing authored selected pose; eligible OAM | 58 |
+
+The decisive source observation is `0A4B`, previously the
+largest raw missing-art semantic:
+
+| Semantic | Eligible source-OAM / total observations |
+| --- | ---: |
+| `08D5` | **526 / 526** |
+| `0895` | **515 / 515** |
+| `0855` | **511 / 511** |
+| `0A4B` | **10 / 1,521** |
+
+Original P1 screen bank/geometry is still valid at native frame
+**3639**, but **3640** changes from the active large-racer
+`OBSEL=83` / tile `00` into a non-racer
+small-sprite `OBSEL=00` scene. Later `0A4B`
+is held while the actual PPU uses `OBSEL=63`,
+top slot98 tile `E6/EA` and bottom slot97 tile
+`CE/C8`. A source semantic left unchanged in WRAM
+is **not** proof that the original rider should still be drawn.
+This is a genuine source-based eligibility distinction, not a
+guess based on animation timing.
+
+The art-authoring priority is therefore the rapidly cycling
+`08D5 / 0855 / 0895` family, with its exact
+observed companion compositions; these three IDs account for
+**1,552 eligible moving-race guest observations**. They are
+*plausible original OAM screen candidates*, not yet
+isolated opaque source pixels. The next narrow experiment
+[#1264](https://github.com/gamesbyian/UR-Recomp/pull/1264)
+targets the already accepted native 1P guest frame **2208**
+(`0895`) and the original **slot97** pre-BG/window
+isolated-OBJ plane using the *existing 4× guest process*.
+Only a source-plane and final-composite ownership review may
+authorize corresponding authored 4× artwork/replacement.
+
+The exact per-frame geometry worklist and confidence limitations
+are in `ws342_live_1p_oam_visibility_worklist.json` in
+artifact `11684953572`. Preserve these derived findings
+for the technical reference, but retain the original full
+native artifact as the strongest source while available.
 
 ## Hard evidentiary limits
 

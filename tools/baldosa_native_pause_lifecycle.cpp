@@ -113,7 +113,7 @@ bool pause_navigation_edge(int pressed, bool& holding,
     const auto result = ur_modern_pause_handle_action(
         g_modern_session, &g_native_pause_menu, action);
     std::fprintf(stderr,
-        "UR_BALDOSA_NATIVE_PAUSE_MENU action=%d selected=%d result=%d paused=%d\\n",
+        "UR_BALDOSA_NATIVE_PAUSE_MENU action=%d selected=%d result=%d paused=%d\n",
         static_cast<int>(action),
         g_native_pause_menu.selected, static_cast<int>(result),
         ur_modern_session_is_paused(g_modern_session));
@@ -322,7 +322,7 @@ extern "C" int ur_baldosa_product_pause_draw(
     if (!g_pause_panel_logged) {
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=%dx%d "
-            "renderer=shared guest_steps=0\\n", width, height);
+            "renderer=shared guest_steps=0\n", width, height);
         g_pause_panel_logged = true;
     }
     return 1;

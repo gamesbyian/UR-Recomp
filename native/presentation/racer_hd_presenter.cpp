@@ -84,8 +84,20 @@ bool unsafe_legacy_overlap_fixture_enabled() noexcept {
     static const bool enabled = [] {
         const char* opt = std::getenv("UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE");
         const char* input = std::getenv("SNESRECOMP_INPUT_FILE");
-        return hd_census_enabled() && input != nullptr && *input != '\0' &&
-               opt != nullptr && opt[0] == '1' && opt[1] == '\0';
+        // The pinned Baldosa --script native guest uses a separately
+        // sealed route (SNESRECOMP_DUMP_DIR), not the historical desktop
+        // SNESRECOMP_INPUT_FILE player-input fixture. Require its own
+        // explicit, *additional* opt-in for archival source-art tests.
+        const char* baldosa_test = std::getenv("UR_BALDOSA_HD_SOURCE_ART_FIXTURE");
+        const char* baldosa_host = std::getenv("UR_BALDOSA_HD");
+        const char* baldosa_route = std::getenv("SNESRECOMP_DUMP_DIR");
+        const bool pinned_baldosa_fixture =
+            baldosa_test && baldosa_test[0] == '1' && baldosa_test[1] == '\0' &&
+            baldosa_host && baldosa_host[0] == '1' && baldosa_host[1] == '\0' &&
+            baldosa_route && *baldosa_route;
+        return hd_census_enabled() && opt && opt[0] == '1' &&
+               opt[1] == '\0' &&
+               ((input && *input) || pinned_baldosa_fixture);
     }();
     return enabled;
 }

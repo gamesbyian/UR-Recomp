@@ -654,6 +654,122 @@ def run_native_modern_root_smoke(
 
 
 
+def native_modern_race_entry_script(players: int) -> str:
+    """One source-owned stock race route AFTER the host chose 1P or 2P.
+
+    Presses only stock controls downstream of the established Modern root,
+    with the same 200-frame menu settling intervals as the pinned original
+    race_1p/race_2p scripts. The script may never select the main menu itself.
+    The original guest's NMI handler and GO ticker are mandatory barriers.
+    """
+    if players == 1:
+        steps = [
+            "press start 2",  # racer
+            "wait 200",
+            "press start 2",  # tour
+            "wait 200",
+            "press start 2",  # track
+            "wait 200",
+            "press start 2",  # now playing
+        ]
+    elif players == 2:
+        steps = [
+            "press start 2",  # P1 racer
+            "wait 200",
+            "press p2:down 2",
+            "wait 30",
+            "press p2:start 2",  # P2 racer
+            "wait 200",
+            "press start 2",  # tour
+            "wait 200",
+            "press start 2",  # track
+            "wait 200",
+            "press start 2",  # now playing
+        ]
+    else:
+        raise ValueError("Modern race entry must use one or two players")
+    return "\n".join([
+        "turbo on",
+        "until16 0053 == F60C",
+        "wait 900",  # root's real handoff must finish, not assumed at launch
+        *steps,
+        "until16 0053 == 8610",
+        "until 0E1F != 00",
+        "dump go",
+        "quit",
+        "",
+    ])
+
+
+def run_native_modern_race_entry(
+    exe: Path, rom: Path, root: Path, *, players: int, video: str,
+    timeout: int,
+) -> dict[str, object]:
+    """Execute Modern root → source stock picker → original GO in real Win32.
+
+    The product integrates navigation only. Completion, results and course
+    fidelity remain owned by the independent gameplay QA lane.
+    """
+    output = root / f"modern_to_live_race_{players}p"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Modern Race Entry User Data With Spaces"
+    user_root.mkdir()
+    script = output / "original-stock-route.txt"
+    script.write_text(native_modern_race_entry_script(players),
+                      encoding="ascii")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    framedump = output / "guest-frame-dumps"
+    framedump.mkdir()
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_ROOT": "1",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": str(players),
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+        "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
+    })
+    try:
+        run = subprocess.run(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(script), "--framedump", str(framedump), str(rom)],
+            cwd=output, env=env, capture_output=True, text=True,
+            timeout=timeout, errors="replace")
+    except subprocess.TimeoutExpired as exc:
+        raise RuntimeError(
+            f"Modern {players}P root never reached source GO barrier") from exc
+    log = run.stdout + "\n" + run.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if run.returncode:
+        raise RuntimeError(
+            f"Modern {players}P root to original race failed "
+            f"rc={run.returncode}: {log[-4500:]}")
+    verify_native_modern_root_log(log, players)
+    # A successful until16 NMI==8610 plus GO ticker is the original game's
+    # own evidence that the launch reached a running guest race.
+    crcs = frame_crcs(framedump)
+    if len(crcs) < 900:
+        raise ValueError("Modern stock journey produced too few real guest frames")
+    saved = user_root / "saves" / "save.srm"
+    if not saved.is_file() or saved.stat().st_size != 8192:
+        raise ValueError("Modern guest race entry lost canonical SRAM root")
+    if (output / "saves").exists():
+        raise ValueError("Modern race journey leaked SRAM beside executable")
+    return {
+        "players": players,
+        "native_root_handoff_observed": True,
+        "original_race_nmi_barrier_passed": True,
+        "original_go_ticker_barrier_passed": True,
+        "actual_guest_frames": len(crcs),
+        "profile_sram_isolated_from_executable": True,
+        "complete_event_outcome_claimed": False,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -724,7 +840,13 @@ def main() -> int:
         exe, rom, root, video=args.video, timeout=args.timeout, players=1)
     root_p2_proof = run_native_modern_root_smoke(
         exe, rom, root, video=args.video, timeout=args.timeout, players=2)
+    race_p1_proof = run_native_modern_race_entry(
+        exe, rom, root, players=1, video=args.video, timeout=args.timeout)
+    race_p2_proof = run_native_modern_race_entry(
+        exe, rom, root, players=2, video=args.video, timeout=args.timeout)
     result = {
+        "modern_root_race_entry_p1": race_p1_proof,
+        "modern_root_race_entry_p2": race_p2_proof,
         "native_modern_root_p1": root_p1_proof,
         "native_modern_root_p2": root_p2_proof,
         "classification": "windows_native_pause_and_named_profile_smoke_only",

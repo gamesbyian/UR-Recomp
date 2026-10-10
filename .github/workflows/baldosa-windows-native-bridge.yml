@@ -203,6 +203,8 @@ jobs:
           path: |
             ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_1p/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/modern_to_live_race_2p/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt

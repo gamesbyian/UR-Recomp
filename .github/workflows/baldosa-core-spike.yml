@@ -434,6 +434,7 @@ jobs:
             "$UR_BALDOSA_WS342_CAPTURE_DIR" \
             "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p.json" <<'PY'
           import hashlib, json, pathlib, re, sys
+          from tools.baldosa_ws24_presentation_report import edge_differences
           original, log_file, captures, report_file = map(pathlib.Path, sys.argv[1:])
           guest_crcs = original.read_text(encoding="utf-8").splitlines()
           log = log_file.read_text(encoding="utf-8", errors="replace")
@@ -457,7 +458,13 @@ jobs:
               assert re.fullmatch(r"ur-baldosa-ws342-\d{6}\.pam", path.name), path
               raw = path.read_bytes()
               assert raw.startswith(headers) and len(raw) == len(headers) + 342 * 224 * 4, path
-              seen.append({"name": path.name, "sha256": hashlib.sha256(raw).hexdigest()})
+              margins = edge_differences(raw[len(headers):], width=342, extra=43)
+              seen.append({
+                  "name": path.name,
+                  "sha256": hashlib.sha256(raw).hexdigest(),
+                  "four_margin_differences": margins,
+                  "four_margins_nontrivial": all(v > 32 for v in margins.values()),
+              })
           assert len(guest_crcs) > 0, "no original 1P guest frames"
           assert any(mode == 1 and active != 1 and frontend == 0x3C
                      for _, mode, active, frontend in modes), (
@@ -471,7 +478,12 @@ jobs:
               "calibrated_wide_preparations": sum(p[1] == "1" for p in prep),
               "wide_presents": len(present),
               "wide_captures": seen,
-              "status": "observed-live-widening" if seen else "blocked-no-live-1p-widening",
+              "distinct_wide_images": len({x["sha256"] for x in seen}),
+              "nontrivial_four_margin_images": sum(x["four_margins_nontrivial"] for x in seen),
+              "status": ("observed-live-moving-world" if
+                         len({x["sha256"] for x in seen}) >= 2 and
+                         sum(x["four_margins_nontrivial"] for x in seen) >= 2
+                         else "blocked-no-verified-moving-world"),
               "release_1p_world_acceptance": False,
               "physical_4k_acceptance": False,
           }
@@ -481,6 +493,27 @@ jobs:
                 f"wide_preps={len(prep)} wide_presents={len(present)} captures={len(seen)}")
           PY
           echo "MEASURED: native live 1P candidate, exact baseline guest CRC and explicit source-wide admission (no unverified release credit)" >> "$GITHUB_STEP_SUMMARY"
+
+          # A second *independent* process renders the identical live 1P
+          # event at true 4x output density, still with Original OBJ source.
+          # Pixel evidence must be anchored to matching guest frame numbers,
+          # not merely to equal-sized nearest blocks or identical WRAM CRCs.
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-4x"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/fd/crc.txt"
+          python3 tools/check_baldosa_wide_density_parity.py \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-x "$RUNNER_TEMP/baldosa-ws342-live-1p-4x" \
+            --min-shared 2 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_density_parity.json"
+          echo "PASS: same-frame native 1P 342-wide 1x/4x Original pixels and stock guest CRC" >> "$GITHUB_STEP_SUMMARY"
+
+          # The archival three-frame 2P source-route comparison below must
+          # still run with its original explicitly bounded scene policy.
           unset UR_BALDOSA_WS342_LIVE
 
           # Reuse the *same* wide guest/world materializer and the *same*
@@ -713,6 +746,10 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
+            ${{ runner.temp }}/baldosa-ws342-live-1p/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-1p-4x/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json

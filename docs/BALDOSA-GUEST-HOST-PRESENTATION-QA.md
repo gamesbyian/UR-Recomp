@@ -160,3 +160,30 @@ latch or a screenshot: moving 1P world pixels, per-rider source/foreground
 priority, Original-vs-HD parity and physical 4K output remain independent
 requirements. The preexisting 2P 1×/4× and per-slot experiments remain
 unchanged, and the live 1P flag is explicitly cleared before they resume.
+
+## Native live 1P evidence and 4× cross-process parity (October 10)
+
+Baldosa AOT workflow run
+[38035461017](https://github.com/gamesbyian/UR-Recomp/actions/runs/38035461017)
+reported `UR_BALDOSA_WS342_LIVE_1P observed-live-widening`, **5,447**
+guest frames with exact stock-route WRAM CRC identity, a real pre-race
+1P mode witness, **46** wide frame preparations, **6** native
+342×224 desktop presents, and **6** saved complete original-density
+PAM rasters. This settles whether the live 1P scene classifier can
+produce real widened world pixels; it does **not** settle source-pixel
+movement, 4× parity or any HD/depth question.
+
+The same existing pinned AOT workflow now obtains an **independent**
+live 1P **4×** route, preserving the same guest CRC and demanding
+same-guest-frame all-pixel nearest identity via the preexisting 342-wide
+density parity oracle. The original 1× source report also records
+per-half/side margin differences and distinct captured images; a static
+menu frame cannot masquerade as moving-world evidence. If shared
+physical presentation frames are unavailable, the exact-pair oracle
+fails rather than inventing host renders. The production-safe source
+OBJ guard and existing bounded 2P observations remain unchanged.
+
+Passing this evidence proves native logical source/density consistency
+at the original pixels, not actual SDL 3840×2160 device capture,
+independent original-emulator visual parity, authored widened HD
+admission, or correct source-visible BG/OBJ priority.

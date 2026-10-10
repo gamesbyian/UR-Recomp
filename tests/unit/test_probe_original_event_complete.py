@@ -53,6 +53,35 @@ class CompleteEventProducerTests(unittest.TestCase):
             target.observed_dump_frame(log + "script f=8354 dump result-onset\n",
                                        "result-onset")
 
+    def test_original_source_horizon_requires_actual_guest_end_dump(self):
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "source-horizon.wram.bin"
+            valid_log = "script f=48000 dump source-horizon ok\\n"
+            # A trace of changed bytes might have last changed at 21000;
+            # only this separately executed original guest host marker can
+            # prove the requested finite horizon was really reached.
+            with self.assertRaisesRegex(target.CompleteEventError, "missing or invalid"):
+                target.attest_original_source_horizon(valid_log, 48000, path)
+            path.write_bytes(bytes(0x20000 - 1))
+            with self.assertRaisesRegex(target.CompleteEventError, "missing or invalid"):
+                target.attest_original_source_horizon(valid_log, 48000, path)
+            path.write_bytes(bytes(0x20000))
+            observed = target.attest_original_source_horizon(valid_log, 48000, path)
+            self.assertEqual(observed, {
+                "original_source_horizon_host_frame": 48000,
+                "original_source_horizon_wram_bytes": 0x20000,
+                "original_source_horizon_observed_from_guest_dump": True,
+            })
+            with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
+                target.attest_original_source_horizon("", 48000, path)
+            with self.assertRaisesRegex(target.CompleteEventError, "exactly one"):
+                target.attest_original_source_horizon(valid_log * 2, 48000, path)
+            with self.assertRaisesRegex(target.CompleteEventError, "not reached"):
+                target.attest_original_source_horizon(
+                    "script f=22000 dump source-horizon ok\\n", 48000, path)
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid requested"):
+                target.attest_original_source_horizon(valid_log, True, path)
+
     def test_source_anchors_come_from_real_state_change_not_guess(self):
         event = target.source_event(source_states(3190, 8353, 1, 0xBC),
                                     1, 0xBC)

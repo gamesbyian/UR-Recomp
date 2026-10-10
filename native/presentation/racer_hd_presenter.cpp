@@ -514,7 +514,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
             return;
         }
     }
-    if (source_overlap) {
+    if (source_overlap && !p1_only) {
         static bool warned = false;
         if (!warned) {
             std::fprintf(stderr,

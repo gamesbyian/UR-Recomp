@@ -187,3 +187,30 @@ Passing this evidence proves native logical source/density consistency
 at the original pixels, not actual SDL 3840×2160 device capture,
 independent original-emulator visual parity, authored widened HD
 admission, or correct source-visible BG/OBJ priority.
+
+## Native VS live-world execution and cross-density acceptance
+
+The independently observed live 1P run at
+[38054120133](https://github.com/gamesbyian/UR-Recomp/actions/runs/38054120133)
+reported 5,447 guest frames, real 1P mode, 46 wide preparations,
+6 source-wide captures with moving-world evidence, and **6/6 exact
+same-guest-frame 1×/4× pixel matches**. That is live native scene evidence,
+not a claim of authored HD replacement or complete result parity.
+
+The next bounded QA-08 lane runs Baldosa's **actual upstream VS script**
+(`baldosa/tests/routes/vs.txt`) three times using the same compiled
+native host: a 256-wide, HD-disabled stock control, a live 342-wide
+Original 1× candidate, and a live 342-wide Original 4× candidate.
+Both candidates must match the stock route's entire frame-by-frame
+WRAM CRC stream. The 1× native log must observe guest VS selection
+(`$009F=0x3E`), and the two wide candidate processes must contribute
+at least two same-guest-frame full-raster images with exact all-pixel
+1×/4× parity and changing content. Sparse host presents cannot be
+manufactured; a missing witness fails this acceptance.
+
+This integrates the established scene classifier and calibrated world
+extension into another genuine moving game mode without modifying
+the guest, ROM, profile ownership, HD OBJ priority rules, or the
+existing 2P evidence. Passing still would not prove terminal VS results,
+per-rider HD occlusion, independent original-emulator screenshot parity,
+or actual physical 4K output.

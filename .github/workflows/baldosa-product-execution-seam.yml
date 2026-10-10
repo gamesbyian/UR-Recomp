@@ -10,6 +10,10 @@ on:
       - "tools/baldosa_product_execution_spike.py"
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
+      - "tools/baldosa_modern_profile_activation_spike.py"
+      - "tools/baldosa_modern_profile_activation.cpp"
+      - "tests/native/baldosa_modern_profile_activation_test.cpp"
+      - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tools/baldosa_native_product_pause_authority.cpp"
       - "tests/unit/test_baldosa_product_pause_spike.py"
@@ -46,6 +50,22 @@ jobs:
           set -euo pipefail
           python3 tests/unit/test_baldosa_product_execution_spike.py
           python3 tests/unit/test_baldosa_product_pause_spike.py
+          python3 tests/unit/test_baldosa_modern_profile_activation_spike.py
+          # Reuse the real Modern codec and store, not dummy profile formats.
+          g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
+            -I native/product \
+            tests/native/baldosa_modern_profile_activation_test.cpp \
+            tools/baldosa_modern_profile_activation.cpp \
+            native/product/output_resolution_policy.cpp \
+            native/product/host_product_state.cpp \
+            native/product/host_product_store.cpp \
+            native/product/host_profile_runtime.cpp \
+            native/product/host_profile_state.cpp \
+            native/product/host_profile_store.cpp \
+            native/product/host_profile_catalog.cpp \
+            native/product/modern_racer_identity.cpp \
+            -o "$RUNNER_TEMP/baldosa-modern-profile-root-test"
+          "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
             -I native/product \
             -c tools/baldosa_native_product_execution.cpp \
@@ -172,6 +192,8 @@ jobs:
           # Stage only in the disposable pinned Baldosa native checkout.
           python tools/baldosa_modern_user_data_spike.py --game baldosa
           python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF

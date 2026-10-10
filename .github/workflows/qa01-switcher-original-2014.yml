@@ -13,6 +13,11 @@ on:
           - "48000"
           - "96000"
         default: "48000"
+      stack_writer_probe:
+        description: "Opt-in original-only Switcher stack opcode scope (requires horizon 22000)"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -24,7 +29,7 @@ concurrency:
 jobs:
   source-original-switcher:
     runs-on: ubuntu-22.04
-    timeout-minutes: 25
+    timeout-minutes: 45  # optional original-only traced replay rebuilds and rescans
     steps:
       - name: Check out USA source and archived historical 2014 movie
         uses: actions/checkout@v4
@@ -40,6 +45,11 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          if [ "${{ inputs.stack_writer_probe }}" = "true" ] &&
+             [ "${{ inputs.source_horizon }}" != "22000" ]; then
+            echo "stack_writer_probe requires source_horizon=22000; reject before source build/scan" >&2
+            exit 2
+          fi
           python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
           python3 -m unittest discover -s tests/unit -p test_probe_original_switcher_source_2014.py
           test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
@@ -73,6 +83,50 @@ jobs:
           echo "Original source only, 0/45 native release credit." >> "$GITHUB_STEP_SUMMARY"
           echo "Horizon: ${{ inputs.source_horizon }} original movie frames; an unqualified source is not a gameplay defect." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Trace original Switcher stack-page opcode scopes (opt-in only)
+        if: ${{ inputs.stack_writer_probe }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "${{ inputs.source_horizon }}" = "22000" || {
+            echo "Bounded stack writer probe requires independently qualified original 22000-frame horizon" >&2
+            exit 2
+          }
+          BASE="$RUNNER_TEMP/qa01-switcher"
+          TRACE="$RUNNER_TEMP/qa01-switcher-stack"
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          RESULT="$(python3 - "$BASE/source-switcher-result.json" <<'PY'
+          import json,sys
+          a=json.load(open(sys.argv[1],encoding="utf-8"))
+          assert a["status"] == "source_event_and_entry_verified"
+          assert a["release_complete_event_credit"] == 0
+          assert a["original_source_horizon_frames"] == 22000
+          n=a["source_result"]["original_result_frame"]
+          assert type(n) is int and 100 < n < 22000
+          print(n)
+          PY
+          )"
+          # This source frame is independently observed, not invented.
+          # Snes9x ICPU.Frame and host script f are intentionally NOT equated.
+          export UR_QA_STACK_FIRST="$((RESULT - 16))"
+          export UR_QA_STACK_LAST="$((RESULT + 3))"
+          python3 tools/instrument_snesref_qa01_switcher_stack.py "$SRC/cpuexec.cpp"
+          make -C "$SRC/libretro" -j2
+          python3 tools/probe_original_switcher_source_2014.py \
+            --snesref "$RUNNER_TEMP/qa01-switcher-snesref/snesref" \
+            --core "$SRC/libretro/snes9x_libretro.so" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work-dir "$TRACE" \
+            --report "$TRACE/source-switcher-result.json" \
+            --source-horizon 22000
+          python3 tools/report_qa01_switcher_stack_trace.py \
+            --original-report "$BASE/source-switcher-result.json" \
+            --instrumented-report "$TRACE/source-switcher-result.json" \
+            --opcode-log "$TRACE/source-switcher/source/source-scan.log" \
+            --out "$TRACE/switcher-original-stack-scopes.json"
+          cat "$TRACE/switcher-original-stack-scopes.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Original opcode-scope observations, not proven stack writes, native parity or QA-01 admission." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain original-only source diagnostic and no copyrighted movie bytes
         if: always()
         uses: actions/upload-artifact@v4
@@ -85,3 +139,5 @@ jobs:
             ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-event-diagnostic.json
             ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-scan.log
             ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-entry.log
+            ${{ runner.temp }}/qa01-switcher-stack/switcher-original-stack-scopes.json
+            ${{ runner.temp }}/qa01-switcher-stack/source-switcher/source/source-scan.log

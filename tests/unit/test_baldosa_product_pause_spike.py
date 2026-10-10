@@ -18,6 +18,12 @@ class NativePauseIntegrationTest(unittest.TestCase):
             "// shared root consumer")
         for name in spike.MODERN_SESSION_SOURCES:
             (modern / name).write_text("// Modern session build fixture")
+        (modern / spike.NATIVE_RESULT_BRIDGE_SOURCE).write_text(
+            "// genuine native result bridge build fixture")
+        title = root / "native/title"
+        title.mkdir(parents=True)
+        for name in spike.NATIVE_TITLE_RESULT_SOURCES:
+            (title / name).write_text("// title-owned result observer fixture")
 
     def setUp(self):
         self.header = (
@@ -123,6 +129,9 @@ class NativePauseIntegrationTest(unittest.TestCase):
             self.assertIn("baldosa_native_product_pause_authority.cpp", result)
             self.assertIn("modern_session_c_api.cpp", result)
             self.assertIn("modern_session_runtime.cpp", result)
+            self.assertIn("baldosa_guest_result_observer.cpp", result)
+            self.assertIn("uniracers_run_data.cpp", result)
+            self.assertIn("uniracers_two_player_result.cpp", result)
             self.assertIn("target_include_directories(UniracersSNESRecomp PRIVATE", result)
             self.assertEqual(spike.patch_game_cmake(result, root), result)
             with self.assertRaisesRegex(ValueError, "native human-input"):

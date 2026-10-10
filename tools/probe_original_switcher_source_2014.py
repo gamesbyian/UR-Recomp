@@ -65,6 +65,10 @@ def inspect_original(args: argparse.Namespace) -> dict:
         status = "source_event_and_entry_verified"
         diagnostic = json.loads(
             (out / "source" / "source-event-diagnostic.json").read_text())
+        if (diagnostic.get("original_source_horizon_host_frame") != args.source_horizon
+                or diagnostic.get("original_source_horizon_observed_from_guest_dump") is not True
+                or diagnostic.get("original_source_horizon_wram_bytes") != 0x20000):
+            raise ValueError("unattested original source scan horizon")
         source_result = {k:v for k,v in found.items()
                          if k != "original_source_entry"}
     except event.CompleteEventError as exc:
@@ -85,7 +89,10 @@ def inspect_original(args: argparse.Namespace) -> dict:
                 or not isinstance(frames, list) or len(frames) != 2
                 or any(type(f) is not int for f in frames)
                 or not 0 <= frames[0] < frames[1] <= args.source_horizon
-                or diagnostic.get("complete_event_qa_credit") != 0):
+                or diagnostic.get("complete_event_qa_credit") != 0
+                or diagnostic.get("original_source_horizon_host_frame") != args.source_horizon
+                or diagnostic.get("original_source_horizon_observed_from_guest_dump") is not True
+                or diagnostic.get("original_source_horizon_wram_bytes") != 0x20000):
             raise ValueError("invalid or incomplete original source diagnostic") from exc
         status = "source_event_not_qualified_within_bounded_horizon"
         source_result = {"reason": str(exc)}

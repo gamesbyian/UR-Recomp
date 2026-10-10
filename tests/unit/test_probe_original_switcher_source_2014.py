@@ -59,7 +59,10 @@ class OriginalSwitcherSourceTest(unittest.TestCase):
                         "active_track_frames": 0,
                         "source_event_candidate_entries": [],
                         "stable_original_results": [],
-                        "complete_event_qa_credit": 0
+                        "complete_event_qa_credit": 0,
+                        "original_source_horizon_host_frame": ns.source_horizon,
+                        "original_source_horizon_wram_bytes": 0x20000,
+                        "original_source_horizon_observed_from_guest_dump": True
                     }))
                 raise CompleteEventError("source movie never demonstrated this course/result pair")
             with mock.patch.object(probe.event,"sha",return_value=probe.event.entry.USA_ROM_SHA256), \
@@ -75,6 +78,50 @@ class OriginalSwitcherSourceTest(unittest.TestCase):
             self.assertEqual(result["source_event_diagnostic"]["wanted_result_menu"],0x99)
             self.assertEqual(json.loads(args.report.read_text())["release_complete_event_credit"],0)
 
+
+    def test_without_end_of_scan_guest_attestation_even_exact_absence_is_invalid(self):
+        from probe_original_event_complete import CompleteEventError
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            for name in ("rom", "movie", "meta", "ref", "core"):
+                (root/name).write_bytes(b"test")
+            (root/"meta").write_text(json.dumps({"sample_count": 100000}))
+            args = SimpleNamespace(
+                work_dir=root/"work", source_horizon=48000,
+                rom=root/"rom", movie=root/"movie", movie_meta=root/"meta",
+                snesref=root/"ref", core=root/"core", report=root/"out.json")
+            def fake_extract(cmd, **kw):
+                work = root/"work"/"source-switcher"
+                (work/"movie.input").write_text("dummy")
+                (work/"anchored.srm").write_bytes(b"a" * 8192)
+                return SimpleNamespace(returncode=0)
+            diag = {
+                "schema": "UR-QA01-SOURCE-RESULT-PROBE/1",
+                "wanted_course_track": 3,
+                "wanted_result_menu": 0x99,
+                "source_trace_frames": [0, 47999],
+                "complete_event_qa_credit": 0,
+            }
+            def negative_scan(ns, out, sram, movieinput, decoded):
+                source = out / "source"
+                source.mkdir()
+                (source/"source-event-diagnostic.json").write_text(
+                    json.dumps(diag))
+                raise CompleteEventError(probe.NONQUALIFICATION)
+            with mock.patch.object(probe.event, "sha",
+                                   return_value=probe.event.entry.USA_ROM_SHA256), \
+                 mock.patch.object(probe.movie, "read_movie",
+                                   return_value=(b"synthetic", None)), \
+                 mock.patch.object(probe.movie, "window", return_value={}), \
+                 mock.patch.object(probe.subprocess, "run",
+                                   side_effect=fake_extract), \
+                 mock.patch.object(probe.rnc, "find_streams",
+                                   return_value=list(enumerate([b"x"]*45))), \
+                 mock.patch.object(probe, "unpack_method1", return_value=b"ABC"), \
+                 mock.patch.object(probe.event, "scan_source", side_effect=negative_scan):
+                with self.assertRaisesRegex(ValueError, "invalid or incomplete"):
+                    probe.inspect_original(args)
+            self.assertFalse(args.report.exists())
 
     def test_source_core_failure_cannot_be_disguised_as_negative_movie_evidence(self):
         # Only the exact qualifying-source absence is a benign diagnostic.

@@ -162,7 +162,9 @@ HostProfileSaveStatus save_host_profile_state_file(
     return HostProfileSaveStatus::Saved;
 }
 
-HostProfileSaveStatus save_host_profile_state_file_if_current(
+// Caller already owns host-profile.txt.urmutex (and may also hold the
+// selector lease). Never reacquire the profile lock on this path.
+HostProfileSaveStatus save_host_profile_state_file_if_current_under_lock(
     ExecutionMode mode,
     const std::string& path,
     const std::optional<HostProfileState>& expected_current,
@@ -174,11 +176,6 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
         return HostProfileSaveStatus::Rejected;
     }
 
-    // The lock must cover both the comparison and the publication. A read
-    // followed by a separate unlocked write is vulnerable to the same
-    // two-process lost-update race as the previous .tmp implementation.
-    TournamentLaunchPathLock lock(path);
-    if (!lock.acquired()) return HostProfileSaveStatus::IoError;
     const auto current =
         load_host_profile_state_file(mode, path, next.profile_id);
     if (expected_current) {
@@ -193,6 +190,19 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
             return HostProfileSaveStatus::Conflict;
     }
     return save_host_profile_state_file(mode, path, next);
+}
+
+HostProfileSaveStatus save_host_profile_state_file_if_current(
+    ExecutionMode mode,
+    const std::string& path,
+    const std::optional<HostProfileState>& expected_current,
+    const HostProfileState& next) {
+    if (path.empty()) return HostProfileSaveStatus::Rejected;
+    // The same persistent lock used by all existing profile CAS writers.
+    TournamentLaunchPathLock lock(path);
+    if (!lock.acquired()) return HostProfileSaveStatus::IoError;
+    return save_host_profile_state_file_if_current_under_lock(
+        mode, path, expected_current, next);
 }
 
 HostProfileSaveStatus remove_host_profile_state_file_if_current(

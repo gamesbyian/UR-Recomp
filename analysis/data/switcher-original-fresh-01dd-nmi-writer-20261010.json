@@ -1,0 +1,195 @@
+{
+  "schema": "UR-QA01-SWITCHER-ORIGINAL-FRESH-01DD-NMI-PC/1",
+  "capture_date": "2026-10-10",
+  "source": {
+    "execution_run_id": 38094600828,
+    "execution_job_id": 114337813101,
+    "artifact_id": 11684893524,
+    "artifact_name": "qa01-original-fresh-switcher-01dd-one-shot-20261010",
+    "artifact_zip_sha256": "a95aba4c9118c80efb5ab1fcafbed996a1ee440e9280560bb076029479034e84",
+    "temporary_never_merge_pr": 1256,
+    "original_cpu_instrumentation_merged_pr": 1254,
+    "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "unchanged_archived_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "original_archived_movie_course_entry_frame": 12327,
+    "original_archived_movie_course_result_frame": 17030,
+    "independent_fresh_original_guest_entry_host_frame": 1079,
+    "independent_fresh_native_guest_entry_host_frame": 1081,
+    "original_native_penultimate_same_host_frame": 5782,
+    "original_native_result_same_host_frame": 5783,
+    "original_native_remaining_wram_different_byte_count": 8,
+    "original_native_vram_cgram_different_byte_count": 0,
+    "actual_original_native_settled_positive_timed_ppu_result_equal": true,
+    "strict_guest_relative_original_result_frame": 4704,
+    "strict_guest_relative_native_result_frame": 4702,
+    "guest_relative_frame_parity_failed": true,
+    "complete_event_release_credit": 0
+  },
+  "executed_fresh_original_cpu": {
+    "observed_window_cpu_frames": [
+      5778,
+      5782
+    ],
+    "original_cpu_gate_first_observed_frame": 5778,
+    "normal_opcode_scope_count_for_7e01dd": 1,
+    "changed_byte_opcode_by_cpu_frame": {
+      "5780": 1
+    },
+    "changed_byte_opcode_by_pc": {
+      "00:858E": 1
+    },
+    "changed_byte_opcode_by_opcode": {
+      "48": 1
+    },
+    "original_normal_opcode_byte_changes": [
+      {
+        "new_byte": "42",
+        "old_byte": "08",
+        "opcode": "48",
+        "original_cpu_frame": 5780,
+        "original_opcode_pc": "00:858E",
+        "ppu_vcounter": 225,
+        "push_opcode_and_stack_address_compatible": true,
+        "stack_pointer_after": "01DC",
+        "stack_pointer_before": "01DE"
+      }
+    ],
+    "original_nmi_entry_observed_count": 5,
+    "original_nmi_entries": [
+      {
+        "01dd_changed_during_nmi_entry": false,
+        "new_byte": "08",
+        "nmi_stack_push_range_covers_01dd": false,
+        "old_byte": "08",
+        "original_cpu_frame": 5778,
+        "ppu_vcounter": 225,
+        "pre_nmi_guest_pc": "82:8046",
+        "stack_pointer_after": "01E9",
+        "stack_pointer_before": "01ED",
+        "stack_push_width_compatible": true
+      },
+      {
+        "01dd_changed_during_nmi_entry": false,
+        "new_byte": "08",
+        "nmi_stack_push_range_covers_01dd": false,
+        "old_byte": "08",
+        "original_cpu_frame": 5779,
+        "ppu_vcounter": 225,
+        "pre_nmi_guest_pc": "80:FAD6",
+        "stack_pointer_after": "01F1",
+        "stack_pointer_before": "01F5",
+        "stack_push_width_compatible": true
+      },
+      {
+        "01dd_changed_during_nmi_entry": false,
+        "new_byte": "08",
+        "nmi_stack_push_range_covers_01dd": false,
+        "old_byte": "08",
+        "original_cpu_frame": 5780,
+        "ppu_vcounter": 225,
+        "pre_nmi_guest_pc": "82:803A",
+        "stack_pointer_after": "01E5",
+        "stack_pointer_before": "01E9",
+        "stack_push_width_compatible": true
+      },
+      {
+        "01dd_changed_during_nmi_entry": false,
+        "new_byte": "42",
+        "nmi_stack_push_range_covers_01dd": false,
+        "old_byte": "42",
+        "original_cpu_frame": 5781,
+        "ppu_vcounter": 225,
+        "pre_nmi_guest_pc": "82:8036",
+        "stack_pointer_after": "01EE",
+        "stack_pointer_before": "01F2",
+        "stack_push_width_compatible": true
+      },
+      {
+        "01dd_changed_during_nmi_entry": false,
+        "new_byte": "42",
+        "nmi_stack_push_range_covers_01dd": false,
+        "old_byte": "42",
+        "original_cpu_frame": 5782,
+        "ppu_vcounter": 225,
+        "pre_nmi_guest_pc": "82:807A",
+        "stack_pointer_after": "01EC",
+        "stack_pointer_before": "01F0",
+        "stack_push_width_compatible": true
+      }
+    ],
+    "nmi_entry_never_pushed_to_7e01dd": true,
+    "nmi_entry_never_changed_7e01dd": true,
+    "one_actual_original_pha_observation": {
+      "pc": "00:858E",
+      "opcode": "48",
+      "mnemonic": "PHA",
+      "cpu_frame": 5780,
+      "ppu_v_counter": 225,
+      "stack_pointer_before": "01DE",
+      "stack_pointer_after": "01DC",
+      "stack_word_push_width_inferred_from_sp_decrement": 2,
+      "wram_7e01dd_before": "08",
+      "wram_7e01dd_after": "42",
+      "notes": "Original changed-byte CPU opcode scope; 16-bit accumulator push inferred from the 2-byte SP decrement. Direct read consumers not yet proven."
+    }
+  },
+  "independent_native_guest": {
+    "execution_run_id": 38090897908,
+    "artifact_id": 11684141556,
+    "wram_7e01dd_write_attempts_in_native_result_window": 1,
+    "native_7e01dd_writer_samples": [
+      {
+        "native_cpu_sp": "01DD",
+        "native_frame": 5781,
+        "native_interpreter_pc_scope": "000000",
+        "native_scope": "I_NMI_M1X1",
+        "native_wa": "7E:01DD",
+        "word_width": 2,
+        "written_byte": "04"
+      }
+    ],
+    "native_guest_logged_frame": 5781,
+    "scope": "I_NMI_M1X1",
+    "native_logged_stack_pointer": "01DD",
+    "native_word_width": 2,
+    "native_written_low_byte": "04",
+    "interpretation_limit": "This native WLOG row is a WRITE ATTEMPT attributed to an AOT function scope, not a hardware NMI-entry primitive or exact guest opcode PC. Native snes_frame_counter and original Snes9x ICPU.Frame must not be equated by numerical proximity."
+  },
+  "adjudication": {
+    "confirmed": "The original fresh-stock-result emulator actually executes 0x48 PHA at original bank:PC 00:858E with SP 01DE to 01DC and a 7E:01DD byte change 08 to 42 at ICPU.Frame 5780. Five separately captured original hardware NMI-entry pushes each move SP by 4 but neither cover nor change 01DD. Previous native same-event source capture logs one I_NMI_M1X1-scoped word write attempt of byte 04 at native frame 5781.",
+    "not_confirmed": "Exact shared original/native instruction boundary, equivalence or order of PHA vs generated NMI-handling scope; whether all original/native eight residual stack bytes are dead at each read; no exact CPU/PPU/NMI phase parity; no fully admitted original/native USA course.",
+    "next": "Identify native codegen NMI PHA opcode-local write at the same real event and compare A/M/X, stack S and source CPU-vs-host/NMI phase with original 00:858E. Independently trace original/native stack pop/read consumer liveness and strict +4704/+4702 result timing; do not alter controller masks or release gate.",
+    "input_retiming_or_guest_patch_not_permitted": true,
+    "qa_release_course_credit": 0,
+    "official_usa_event_denominator": 45
+  },
+  "source_symbol_owner_crosswalk": {
+    "source": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt",
+    "symbol_fastrom_mirror_address": "80:8588",
+    "symbol_name": "I_NMI",
+    "symbol_description": "native NMI vector: saves state, JML [$0053] to the current NMI handler",
+    "original_live_cpu_instruction_pc": "00:858E",
+    "original_fastrom_mirror_pc": "80:858E",
+    "offset_bytes_after_symbol_entry": 6,
+    "native_generated_function_scope": "I_NMI_M1X1",
+    "conclusion": "Original observed PHA at original 00:858E lies six bytes inside the original I_NMI vector routine at mirror 80:8588, and the native single 01DD write is attributed to a generated I_NMI_M1X1 scope. This establishes a shared high-level original function owner candidate, NOT exact same host/CPU phase, same PHA instruction, identical pushed value or consumer liveness.",
+    "remaining_difference": "Original byte 08->42 at original ICPU.Frame 5780; native write attempt value 04 at native pre-run frame 5781; clocks/phase not proven equivalent."
+  },
+  "native_generated_opcode_counterpart": {
+    "repository": "gamesbyian/uniracers-recomp",
+    "pinned_commit": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+    "file": "src/gen/bank00_part00_v2.c",
+    "generated_function": "I_NMI_M1X1",
+    "generated_entry_pc": "0x008588",
+    "generated_block_label": "L_8588_M1X1",
+    "opcode_family": "PHA 16-bit",
+    "emitted_stack_sequence": [
+      "uint16 _old_s = cpu->S",
+      "cpu->S = (uint16)(cpu->S - 1)",
+      "cpu_write16_paced(cpu, 0x00, cpu->S, cpu->A)",
+      "cpu->S = (uint16)(cpu->S - 1)",
+      "cpu_trace_stack_op(cpu, 0, CPU_STACK_OP_PHA, _old_s, -2)"
+    ],
+    "qualification": "The exact expected native code-generation counterpart for original I_NMI +6 16-bit PHA exists and is a 2-byte A-to-stack push. The native WLOG sample is labeled only by generated function scope and SP/word width; without opcode-local trace it is not yet proven that this exact generated statement caused the logged native 01DD byte 04."
+  }
+}

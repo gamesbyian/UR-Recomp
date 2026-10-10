@@ -21,8 +21,10 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
             sources = [
                 ROOT / "tests/native/baldosa_guest_result_observer_test.cpp",
                 PRODUCT / "baldosa_guest_result_observer.cpp",
+                PRODUCT / "completed_run_record.cpp",
                 TITLE / "uniracers_run_data.cpp",
                 TITLE / "uniracers_two_player_result.cpp",
+                TITLE / "uniracers_course_identity.cpp",
             ]
             compile_run = subprocess.run(
                 [compiler, "-std=c++17", "-O1", "-Wall", "-Wextra",

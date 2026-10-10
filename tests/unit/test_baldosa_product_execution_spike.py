@@ -32,24 +32,35 @@ class ProductSeamTests(unittest.TestCase):
         self.assertEqual(staged.count(".filter_human_frame_inputs"), 1)
 
     def test_framework_filters_human_only_and_keeps_script_debug(self):
-        header = ("typedef struct SnesDesktopHostGame {\n" +
+        header = ("typedef struct SnesDesktopHostFrameStats {\n" +
+                  spike.FRAME_STATS_ANCHOR +
+                  "} SnesDesktopHostFrameStats;\n" +
+                  "typedef struct SnesDesktopHostGame {\n" +
                   spike.HEADER_ANCHOR + "} SnesDesktopHostGame;\n")
         header_staged = spike.patch_framework_header(header)
         self.assertIn("filter_human_frame_inputs", header_staged)
+        self.assertIn("uint32_t resolved_controller_word;", header_staged)
         self.assertEqual(spike.patch_framework_header(header_staged), header_staged)
         source = (
             "uint32 inputs = human | (g_gamepad[1].axis_buttons << 12);\n"
             + spike.SCRIPT_ANCHOR +
             "    inputs |= debug_server_get_controller_inputs();\n"
-            + spike.WORD_ANCHOR +
-            "        RtlRunFrame(word);\n")
+            + spike.NATIVE_RUNAHEAD_ANCHOR +
+            spike.WORD_ANCHOR +
+            spike.NATIVE_FILTER_ANCHOR +
+            "        RtlRunFrame(word);\n" +
+            spike.GUEST_FRAME_STATS_ANCHOR)
         staged = spike.patch_framework_source(source)
         self.assertEqual(spike.patch_framework_source(staged), staged)
         self.assertLess(staged.index("filter_human_frame_inputs"),
                         staged.index("TickScript()"))
         self.assertIn("inputs |= debug_server_get_controller_inputs()", staged)
         self.assertIn("uint32 word = inputs | debug_server_get_controller_active_mask()", staged)
-        self.assertNotIn("word = game->filter_frame_inputs", staged)
+        self.assertIn("resolved_guest_word = word;", staged)
+        self.assertIn(".resolved_controller_word = resolved_guest_word,", staged)
+        self.assertLess(staged.index("inputs |= TickScript()"),
+                        staged.index("resolved_guest_word = word;"))
+        self.assertIn("word = game->filter_frame_inputs", staged)
         with self.assertRaisesRegex(ValueError, "input merge"):
             spike.patch_framework_source("unrecognized host.c")
 

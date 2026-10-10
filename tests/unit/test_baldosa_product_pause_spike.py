@@ -20,6 +20,8 @@ class NativePauseIntegrationTest(unittest.TestCase):
             (modern / name).write_text("// Modern session build fixture")
         (modern / spike.NATIVE_RESULT_BRIDGE_SOURCE).write_text(
             "// genuine native result bridge build fixture")
+        (modern / spike.NATIVE_RESULT_RECORDER_SOURCE).write_text(
+            "// canonical run recorder build fixture")
         title = root / "native/title"
         title.mkdir(parents=True)
         for name in spike.NATIVE_TITLE_RESULT_SOURCES:
@@ -130,8 +132,10 @@ class NativePauseIntegrationTest(unittest.TestCase):
             self.assertIn("modern_session_c_api.cpp", result)
             self.assertIn("modern_session_runtime.cpp", result)
             self.assertIn("baldosa_guest_result_observer.cpp", result)
+            self.assertIn("completed_run_record.cpp", result)
             self.assertIn("uniracers_run_data.cpp", result)
             self.assertIn("uniracers_two_player_result.cpp", result)
+            self.assertIn("uniracers_course_identity.cpp", result)
             self.assertIn("target_include_directories(UniracersSNESRecomp PRIVATE", result)
             self.assertEqual(spike.patch_game_cmake(result, root), result)
             with self.assertRaisesRegex(ValueError, "native human-input"):

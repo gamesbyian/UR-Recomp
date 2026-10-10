@@ -395,26 +395,29 @@ extern "C" void ur_baldosa_product_after_run_frame(
             ur_baldosa_modern_root_guest_players(),
             g_ram, sizeof(g_ram), g_sram,
             g_sram_size > 0 ? static_cast<std::size_t>(g_sram_size) : 0u,
-            stats->frame);
+            stats->frame, stats->resolved_controller_word);
         if (terminal) {
             if (terminal->kind ==
                 ur::product::BaldosaSettledResultKind::TimedOnePlayerRace) {
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
                     "race_host=%llu result_host=%llu finish_ticks60=%llu "
-                    "published=0\n",
+                    "input_frames=%llu input_runs=%zu published=0\n",
                     static_cast<unsigned long long>(
                         terminal->first_race_host_frame),
                     static_cast<unsigned long long>(
                         terminal->observed_result_host_frame),
                     static_cast<unsigned long long>(
-                        terminal->p1_finish_ticks60));
+                        terminal->p1_finish_ticks60),
+                    static_cast<unsigned long long>(
+                        terminal->captured_input_frames),
+                    terminal->mapped_inputs.size());
             } else if (terminal->two_player) {
                 const auto& result = *terminal->two_player;
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
                     "race_host=%llu result_host=%llu riders=%u,%u "
-                    "hundredths=%u,%u winner=%u published=0\n",
+                    "hundredths=%u,%u winner=%u input_frames=%llu input_runs=%zu published=0\n",
                     static_cast<unsigned long long>(
                         terminal->first_race_host_frame),
                     static_cast<unsigned long long>(
@@ -423,7 +426,10 @@ extern "C" void ur_baldosa_product_after_run_frame(
                     static_cast<unsigned>(result.player2_rider),
                     static_cast<unsigned>(result.player1_hundredths),
                     static_cast<unsigned>(result.player2_hundredths),
-                    static_cast<unsigned>(result.outcome));
+                    static_cast<unsigned>(result.outcome),
+                    static_cast<unsigned long long>(
+                        terminal->captured_input_frames),
+                    terminal->mapped_inputs.size());
             }
             std::fflush(stderr);
         }

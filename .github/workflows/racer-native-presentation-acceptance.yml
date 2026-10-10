@@ -350,6 +350,8 @@ jobs:
           assert m["guest_frames_with_host_presents"] >= 100, m
           assert m["hd_drawn_guest_frames"] > 0, m
           assert m["original_presented_guest_frames"] > 0, m
+          assert m["hd_pixel_change_witness_guest_frames"] == m["hd_drawn_guest_frames"], m
+          assert m["hd_with_actual_changed_pixels_guest_frames"] > 0, m
           assert m["capture_armed_guest_frames"] >= m["hd_drawn_guest_frames"], m
           assert m["hd_run_count"] > 0, m
           assert m["player_frame_denominator"] == 2 * m["guest_frames_with_host_presents"], m
@@ -1553,6 +1555,8 @@ jobs:
           assert m["guest_frames_without_host_presents"] == 0, m
           assert m["armed_without_hd_draw_guest_frames"] == 0, m
           assert m["capture_armed_guest_frames"] == m["hd_drawn_guest_frames"], m
+          assert m["hd_pixel_change_witness_guest_frames"] == m["hd_drawn_guest_frames"], m
+          assert m["hd_with_actual_changed_pixels_guest_frames"] <= m["hd_drawn_guest_frames"], m
           reasons = m["gate_fallback_reasons"]
           overlaps = sorted({
               int(x) for x in re.findall(
@@ -1567,11 +1571,32 @@ jobs:
           assert "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE" not in log
           print(
               "UR_RACER_HD_PRODUCTION_RACE_CENSUS PASS "
-              f"hd={m['hd_drawn_guest_frames']}/441 "
+              f"hd_callbacks={m['hd_drawn_guest_frames']}/441 "
+              f"changed_output={m['hd_with_actual_changed_pixels_guest_frames']}/441 "
               f"stock={m['original_presented_guest_frames']} "
               f"overlap_refused={len(overlaps)} "
               f"capture_armed={m['capture_armed_guest_frames']}"
           )
+          PY
+
+          # A successful HD callback can also mean that the PPU emitted zero
+          # racer pixels and the authored compositor changed nothing. Verify
+          # the native source-frame pixel witness over the *entire* fixture,
+          # not just the race where this guard currently yields zero HD.
+          python3 tools/measure_racer_hd_live_draws.py \
+            "$GUARDED_LOG" \
+            --json-out "$RUNNER_TEMP/racer-hd-production-full-pixel-change.json" \
+            > "$RUNNER_TEMP/racer-hd-production-full-pixel-change.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-production-full-pixel-change.json" <<'PY'
+          import json, pathlib, sys
+          m = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))["measurement"]
+          assert m["hd_pixel_change_witness_guest_frames"] == m["hd_drawn_guest_frames"], m
+          assert m["hd_without_actual_changed_pixels_guest_frames"] <= m["hd_drawn_guest_frames"], m
+          print("UR_RACER_HD_REAL_PIXEL_CHANGE PASS "
+                f"hd_callbacks={m['hd_drawn_guest_frames']} "
+                f"source_hits={m['hd_with_source_footprint_guest_frames']} "
+                f"changed_output={m['hd_with_actual_changed_pixels_guest_frames']} "
+                f"unchanged_callbacks={m['hd_without_actual_changed_pixels_guest_frames']}")
           PY
 
 
@@ -1821,6 +1846,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-guarded.log
             ${{ runner.temp }}/racer-hd-guarded-1220.ppm
             ${{ runner.temp }}/racer-hd-production-safe-window.json
+            ${{ runner.temp }}/racer-hd-production-full-pixel-change.json
+            ${{ runner.temp }}/racer-hd-production-full-pixel-change.txt
             ${{ runner.temp }}/racer-hd-production-safe-window.txt
             ${{ runner.temp }}/racer-hd-legacy-obj-1220.pam
             ${{ runner.temp }}/racer-original-obj-only.log

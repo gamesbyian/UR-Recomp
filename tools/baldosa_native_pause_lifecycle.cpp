@@ -228,6 +228,24 @@ extern "C" void ur_baldosa_product_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     // Existing verified two-seat guest observer remains intact.
     ur_baldosa_guest_snapshot_after_run_frame(stats);
+    // A rollback can rewind the guest's own snes_frame_counter, which the
+    // stock framedump uses as its filename. A deterministic replay can
+    // overwrite earlier frame_NNN.json files with their identical CRCs.
+    // Record a separate APPEND-ONLY host-frame witness, measured after each
+    // genuine RtlRunFrame, to distinguish a real rewind from frame filenames.
+    const char* host_trace = std::getenv("UR_BALDOSA_RESTART_FRAME_TRACE");
+    if (stats && host_trace && std::strcmp(host_trace, "1") == 0 &&
+        stats->frame >= 1948 && stats->frame <= 1970) {
+        std::uint32_t hash = 2166136261u; // full 128 KiB WRAM, FNV-1a
+        for (const std::uint8_t byte : g_ram) {
+            hash ^= byte;
+            hash *= 16777619u;
+        }
+        std::fprintf(stderr,
+            "UR_BALDOSA_HOST_FRAME_CRC host=%u guest=%d hash=%08x\n",
+            stats->frame, snes_frame_counter, static_cast<unsigned>(hash));
+        std::fflush(stderr);
+    }
     if (stats) {
         g_native_live_race = g_ram[0x0313] == 0x01;
         // Create at the FIRST observed authentic racing frame, not at the

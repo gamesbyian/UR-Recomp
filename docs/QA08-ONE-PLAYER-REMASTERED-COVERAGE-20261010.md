@@ -52,6 +52,36 @@ reported **four** post-script-entry P1-only HD presents
   No graphical defect or new guest divergence was established by this
   checker error.
 
+## First genuine native 4× source captures, inspected
+
+The follow-up exact-head run `38088866579` passed native, unit, Modern
+and hygiene acceptance (artifact `11683931484`). It retained real
+**1024×896** guest-frame 1728 and 1744 P1-only HD candidate PAMs,
+with unchanged full **5,447-frame** native guest CRC against the
+independent stock route. Their original images are stored as
+`baldosa-guarded-1p-4x/ur-baldosa-frame-001728.pam` and
+`...-001744.pam`. The first classifier returned
+`guarded-1p-real-art-unproven` despite a source-positive bottom
+viewport because it erroneously required a **top-band** authored
+pixel; the next run fixes that narrower evidence bug.
+
+**Actual visual review:** both frame1728 and frame1744 still display
+the huge light-purple original countdown **0** overlay, alongside
+wheeled riders and the checkered starting track. The race milestone
+at guest1720 therefore does **not** prove unobstructed sustained racing.
+Do **not** classify these images as polished Remastered gameplay or
+original-vs-Remastered source depth parity. The nearest-composed Original
+and the underlying countdown overlay remain visually dominant.
+Even the corrected 1P authored pixel evidence remains a *bounded
+early-race* experiment, not a default product mode.
+
+The new diagnostic also retains each actual source-PPU underlay
+**after original OBJ removal** and compares it pixel-for-pixel to
+the authentic native 4× authored image. A source-empty split region
+must remain identical to the underlay. This proves local host
+composition, but cannot reconstruct an independent untouched
+Original framebuffer or prove BG/window occlusion fidelity.
+
 The revised checker scopes all host pixels to the actual
 post-script-entry interval and accepts actual changed HD pixels in
 **either** host band, as long as the source footprint is nonempty,

@@ -17,9 +17,16 @@ import hashlib
 import json
 from pathlib import Path
 
-from tools.check_baldosa_wide_slot_final_visibility import (
-    WIDTH, HEIGHT, read_pam,
-)
+# Called both as a package module by unit tests and by its direct path
+# in pinned native CI: python3 tools/check_baldosa_wide_overlap_causality.py.
+if __package__:
+    from tools.check_baldosa_wide_slot_final_visibility import (
+        WIDTH, HEIGHT, read_pam,
+    )
+else:
+    from check_baldosa_wide_slot_final_visibility import (
+        WIDTH, HEIGHT, read_pam,
+    )
 
 
 def _sha(value: bytes) -> str:

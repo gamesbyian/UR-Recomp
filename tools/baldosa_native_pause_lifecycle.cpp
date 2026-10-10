@@ -16,10 +16,13 @@
 
 #include "modern_session_c_api.h"
 #include "baldosa_physical_pause_input.hpp"
+#include "modern_pause_input.h"
+#include "modern_pause_overlay_presenter.hpp"
 
 extern "C" {
 #include "desktop/config.h"
 #include "desktop/sdl_compat.h"
+#include "snes_overlay_draw.h"
 }
 
 extern "C" {
@@ -42,6 +45,11 @@ bool g_smoke_initialized;
 bool g_smoke_enabled;
 UrModernSession* g_modern_session;
 bool g_native_live_race;
+UrModernPauseMenu g_native_pause_menu{};
+bool g_pause_navigation_keys[3]{};
+bool g_pause_navigation_pad[4]{};
+bool g_pause_panel_logged;
+unsigned g_pause_panel_paints;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_restart;
@@ -86,6 +94,37 @@ void reconcile_after_native_restart() {
     ur_baldosa_product_guest_restarted();
     RtlAudioSetFastForward(true);
     RtlAudioSetFastForward(false);
+}
+
+// One physical, edge-triggered menu navigation gesture. The guest owns
+// every key outside an acknowledged native pause, including its key-up.
+bool pause_navigation_edge(int pressed, bool& holding,
+                           UrModernPauseAction action) {
+    if (!pressed) {
+        if (!holding) return false;
+        holding = false;
+        return true;
+    }
+    if (!g_modern_session ||
+        !ur_modern_session_is_paused(g_modern_session))
+        return false;
+    if (holding) return true;
+    holding = true;
+    const auto result = ur_modern_pause_handle_action(
+        g_modern_session, &g_native_pause_menu, action);
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_PAUSE_MENU action=%d selected=%d result=%d paused=%d\\n",
+        static_cast<int>(action),
+        g_native_pause_menu.selected, static_cast<int>(result),
+        ur_modern_session_is_paused(g_modern_session));
+    return true;
+}
+
+void reset_native_pause_menu_on_open() {
+    if (g_modern_session && ur_modern_session_is_paused(g_modern_session)) {
+        ur_modern_pause_menu_reset(&g_native_pause_menu);
+        g_pause_panel_logged = false;
+    }
 }
 
 void create_modern_session() {
@@ -184,6 +223,18 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
     if (ur_baldosa_modern_root_key(key, pressed)) return 1;
     if (!physical_modern_enabled() ||
         (smoke_enabled() && !g_physical_smoke)) return 0;
+    int nav = -1;
+    switch (key) {
+    case SDLK_UP: nav = 0; break;
+    case SDLK_DOWN: nav = 1; break;
+    case SDLK_RETURN: nav = 2; break;
+    default: break;
+    }
+    if (nav >= 0 && pause_navigation_edge(
+            pressed, g_pause_navigation_keys[nav],
+            nav == 0 ? UR_MODERN_PAUSE_PREVIOUS :
+            nav == 1 ? UR_MODERN_PAUSE_NEXT :
+                       UR_MODERN_PAUSE_ACTIVATE)) return 1;
     if (key == SDLK_r) {
         // R is a Modern Restart command only inside an acknowledged host
         // pause. Normal stock racing and menu navigation retain the key.
@@ -204,6 +255,9 @@ extern "C" int ur_baldosa_product_system_key(int key, int pressed) {
         create_modern_session();
     const bool used = g_keyboard_pause.on_button(
         pressed, g_native_live_race, g_modern_session);
+    if (used && pressed &&
+        g_keyboard_pause.last_result() == UR_MODERN_SESSION_APPLIED)
+        reset_native_pause_menu_on_open();
     if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
         std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT key=escape action=%d paused=%d\n",
                      static_cast<int>(g_keyboard_pause.last_result()),
@@ -216,18 +270,62 @@ extern "C" int ur_baldosa_product_system_gamepad(
     int player, int button, int pressed) {
     if (ur_baldosa_modern_root_gamepad(player, button, pressed)) return 1;
     if (!physical_modern_enabled() ||
-        (smoke_enabled() && !g_physical_smoke) ||
-        player != 0 || button != kGamepadBtn_Start) return 0;
+        (smoke_enabled() && !g_physical_smoke) || player != 0) return 0;
+    int nav = -1;
+    switch (button) {
+    case kGamepadBtn_DpadUp: nav = 0; break;
+    case kGamepadBtn_DpadDown: nav = 1; break;
+    case kGamepadBtn_A: nav = 2; break;
+    case kGamepadBtn_B: nav = 3; break;
+    default: break;
+    }
+    if (nav >= 0 && pause_navigation_edge(
+            pressed, g_pause_navigation_pad[nav],
+            nav == 0 ? UR_MODERN_PAUSE_PREVIOUS :
+            nav == 1 ? UR_MODERN_PAUSE_NEXT :
+            nav == 2 ? UR_MODERN_PAUSE_ACTIVATE :
+                       UR_MODERN_PAUSE_CANCEL)) return 1;
+    if (button != kGamepadBtn_Start) return 0;
     if (pressed && g_native_live_race && !g_modern_session)
         create_modern_session();
     const bool used = g_p1_gamepad_pause.on_button(
         pressed, g_native_live_race, g_modern_session);
+    if (used && pressed &&
+        g_p1_gamepad_pause.last_result() == UR_MODERN_SESSION_APPLIED)
+        reset_native_pause_menu_on_open();
     if (used && pressed && std::getenv("UR_BALDOSA_MODERN_INPUT_DIAGNOSTICS")) {
         std::fprintf(stderr, "UR_BALDOSA_MODERN_INPUT pad=p1_start action=%d paused=%d\n",
                      static_cast<int>(g_p1_gamepad_pause.last_result()),
                      ur_modern_session_is_paused(g_modern_session));
     }
     return used ? 1 : 0;
+}
+
+// Called solely by Baldosa's ORIGINAL frozen-frame renderer after it copies
+// the last raster. This operates on host pixels; no guest draw/step or SRAM.
+extern "C" int ur_baldosa_product_pause_draw(
+    std::uint8_t* pixels, std::size_t pitch, int width, int height) {
+    if (!physical_modern_enabled() || !g_modern_session ||
+        !ur_modern_session_is_paused(g_modern_session) ||
+        !pixels || width <= 0 || height <= 0 ||
+        pitch < static_cast<std::size_t>(width) * 4 ||
+        pitch % 4 != 0)
+        return 0;
+    const ur::product::ModernRootOverlayPainter paint{
+        &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
+    if (!ur::product::render_native_modern_pause_overlay(
+            paint, reinterpret_cast<std::uint32_t*>(pixels),
+            static_cast<int>(pitch / 4), height, g_native_pause_menu,
+            ur_modern_session_restart_available(g_modern_session) != 0))
+        return 0;
+    ++g_pause_panel_paints;
+    if (!g_pause_panel_logged) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=%dx%d "
+            "renderer=shared guest_steps=0\\n", width, height);
+        g_pause_panel_logged = true;
+    }
+    return 1;
 }
 
 extern "C" void ur_baldosa_product_after_run_frame(

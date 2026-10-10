@@ -70,7 +70,7 @@ class OriginalNativeEventOffsetCrosscheck(unittest.TestCase):
         self.assertFalse(state["original_movie_input_modified"])
         self.assertEqual(self.switcher_witness["scope_limits"]["release_complete_event_credit"], 0)
 
-    def test_synthetic_restoration_work_is_not_requested_again(self):
+    def test_completed_restoration_is_not_requested_again(self):
         observed = self.restore["observed"]
         restoration = observed["restore_transition"]
         self.assertEqual(restoration["reference_first_restored_host"], 5778)

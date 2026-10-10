@@ -219,7 +219,7 @@ def analyze(
         },
         "limitations": [
             "Counts host draw callback returns, not proof of correct pixels or background priority.",
-            "Optional host-vs-Original pixel witness proves a raster change, not correct sprite ownership or physical GPU output.",
+            "Optional host-vs-post-capture-underlay witness proves a raster change, not original-frame fidelity, sprite ownership or physical GPU output.",
             "Does not treat absent host presentation as a stock frame or join across frame gaps.",
             "P1-only diagnostic draws count as one HD player-frame; Original P2 remains stock.",
             "Current presenter only accepts fixed 256x224 geometry; widescreen is expected to fall back.",

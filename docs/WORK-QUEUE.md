@@ -1,6 +1,6 @@
 # UR-Recomp: active work queue
 
-**Current as of 2026-10-09 (six-PR merge and CI reconciliation checkpoint after #1045):** **Baldosa incorporation and the remaining adversarial QA are one coordinated shipping programme.** Work on a single faithful, genuinely modern, playable Windows x64 candidate. This document alone orders *live* work; do not infer today's assignment from historical PR numbers, tool inventories or the length of an old research plan. Refresh `main` and GitHub PR states on entry because merges are frequent. **Release gate status lives only in [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json).**
+**Current as of 2026-10-09:** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
 
 ## Baldosa native Modern checkpoint (2026-10-09)
 

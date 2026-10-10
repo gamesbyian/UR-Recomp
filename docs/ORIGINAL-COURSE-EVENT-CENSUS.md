@@ -61,8 +61,18 @@ partial observations**, **41/45 unverified**. Across all three builds,
   4722, 4911**. P1 laps remaining drops **4→3** and later **3→2**;
   the separate archived Snes9x result-screen proof reaches a settled
   Circuit result (`0xBC`) at movie frame **8353**, MIKE total 1:16.46
-  and best lap 0:25.10. Both are **original-only** observations, not
-  a paired native gameplay/result parity acceptance.
+  and best lap 0:25.10. These were originally separate **original-only** observations, but
+  the later independently booted original/native 2014 scene transplant in
+  merged #1091 and source-phase refinements through #1114 now demonstrate
+  matching completed Zoom Zoo lap/checkpoint/contact samples and actual
+  settled Circuit PPU times. The native menu 0x84→0x16 transition and final
+  result 0xBC occur one independently measured scene-relative frame before
+  original; original CPU scope 83:988A and native generated function
+  Sram_RestoreDirectPage_FastRom both write the same restored menu/track
+  fields. This is a paired **candidate**, not independent complete-event
+  acceptance. The precise remaining causal uncertainty and artifact identifiers
+  live in [the source-owner crosswalk](../analysis/data/zoo-original-native-sram-restore-source-owner-20261009.json).
+  **Still partial, 0/45 complete.**
   Reduced write provenance: `analysis/data/zoo-original-2014-live-progression.json`.
   Original terminal evidence: `analysis/generated/result-screens-probe.json`.
 - **USA Bowl (course 03), partial:** the archived original 2014 Snes9x

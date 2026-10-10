@@ -76,6 +76,20 @@ class OriginalCourseCensusTests(unittest.TestCase):
         self.assertTrue(all(not row["runtime_spawn_proven"]
                             for row in by_name.values()))
 
+    def test_zoo_independent_native_candidate_still_cannot_be_promoted(self):
+        source = next(row for row in self.evidence["observations"]
+                      if row["rom"] == "usa-retail" and row["course_id"] == "course:02")
+        self.assertEqual(source["status"], "partial")
+        self.assertEqual(source["evidence_ref"],
+                         "analysis/data/zoo-original-baldosa-completed-circuit-candidate.json")
+        self.assertIn("Sram_RestoreDirectPage", source["coverage_note"])
+        report = audit.build_census(self.catalog, self.evidence)
+        row = next(x for x in report["entries"]
+                   if x["rom"] == "usa-retail" and x["course_id"] == "course:02")
+        self.assertEqual(row["status"], "partial")
+        self.assertEqual(report["by_rom"]["usa-retail"], {"partial": 4, "unverified": 41})
+        self.assertIn("paired original/native Zoom Zoo", report["limits"][2])
+
     def test_dragster_native_only_evidence_does_not_pass_full_course(self):
         report = audit.build_census(self.catalog, self.evidence)
         row = report["entries"][0]

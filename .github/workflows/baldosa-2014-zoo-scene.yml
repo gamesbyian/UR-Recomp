@@ -12,6 +12,7 @@ on:
       - "tools/baldosa_2014_zoo_phase_equivalence.py"
       - "tools/instrument_snesref_zoo_menu_writes.py"
       - "tools/baldosa_zoo_opcode_writer_report.py"
+      - "tools/baldosa_zoo_native_write_chronology.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
@@ -19,6 +20,7 @@ on:
       - "tests/unit/test_baldosa_2014_zoo_boundary_report.py"
       - "tests/unit/test_baldosa_2014_zoo_phase_equivalence.py"
       - "tests/unit/test_baldosa_zoo_opcode_writer_report.py"
+      - "tests/unit/test_baldosa_zoo_native_write_chronology.py"
   workflow_dispatch:
 
 permissions:
@@ -288,7 +290,14 @@ jobs:
               > "$ROOT/original-boundary.log" 2>&1
           test -s "$ROOT/original-boundary/boundary-05163.wram.bin"
           export UR_QA_SCENE_INPUT_FILE="$ROOT/native-input.txt"
+          # Capture native guest writer/helper scopes only in the existing
+          # one-run pinned Baldosa boundary replay (no new recompilation).
+          # The framework logger has no CPU-PC promise for native AOT scopes.
+          export SNESRECOMP_WLOG_ADDR="008B:00CE:$ROOT/native-menu-writes.log"
+          export SNESRECOMP_WLOG_ADDR_CAP=100000
           bash baldosa/tools/run_route.sh "$ROOT/boundary.txt" "$ROOT/native-boundary"
+          unset SNESRECOMP_WLOG_ADDR SNESRECOMP_WLOG_ADDR_CAP
+          test -s "$ROOT/native-menu-writes.log"
           test -s "$ROOT/native-boundary/dump/boundary-05163.wram.bin"
           python3 tools/baldosa_2014_zoo_boundary_report.py \
             --original "$ROOT/original-boundary" \
@@ -301,7 +310,16 @@ jobs:
             --native "$ROOT/native-boundary/dump" \
             --boundary-report "$ROOT/fixed-boundary-report.json" \
             --out "$ROOT/adjacent-memory-phase-report.json"
+          NATIVE_ENTRY="$(python3 -c 'import sys; sys.path.insert(0, "tools"); from baldosa_2014_zoo_calibrated_input import guest_scene_entry; print(guest_scene_entry(open(sys.argv[1]).read()))' "$ROOT/native-calibration/log.txt")"
+          python3 tools/baldosa_zoo_native_write_chronology.py \
+            --native-writes "$ROOT/native-menu-writes.log" \
+            --native-host-log "$ROOT/native-boundary/log.txt" \
+            --native "$ROOT/native-boundary/dump" \
+            --original "$ROOT/original-boundary" \
+            --native-scene-entry "$NATIVE_ENTRY" \
+            --out "$ROOT/native-menu-writer-report.json"
           cat "$ROOT/adjacent-memory-phase-report.json" >> "$GITHUB_STEP_SUMMARY"
+          cat "$ROOT/native-menu-writer-report.json" >> "$GITHUB_STEP_SUMMARY"
           # Keep large fixed-boundary raw rows in the artifact; show the
           # compact adjacent-phase finding prominently in job summary.
           echo "Fixed-frame contact and result-onset differences are diagnostic, not automatic course acceptance." >> "$GITHUB_STEP_SUMMARY"
@@ -360,6 +378,8 @@ jobs:
             ${{ runner.temp }}/zoo-scene/fixed-boundary-report.json
             ${{ runner.temp }}/zoo-scene/adjacent-memory-phase-report.json
             ${{ runner.temp }}/zoo-scene/original-menu-opcode-writers.json
+            ${{ runner.temp }}/zoo-scene/native-menu-writer-report.json
+            ${{ runner.temp }}/zoo-scene/native-menu-writes.log
             ${{ runner.temp }}/zoo-scene/original-pc.log
             ${{ runner.temp }}/zoo-scene/original-boundary.log
             ${{ runner.temp }}/zoo-scene/native-boundary/log.txt

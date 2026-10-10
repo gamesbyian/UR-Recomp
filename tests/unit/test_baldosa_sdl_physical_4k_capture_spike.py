@@ -32,6 +32,25 @@ class RealSdlPhysicalCapturePatchTests(unittest.TestCase):
         self.assertNotIn(OSD_ANCHOR, candidate)
         self.assertIn("const char *ur4k_file", OSD_REPLACEMENT)
 
+    def test_dual_real_output_capture_uses_independent_one_shot_frames(self):
+        candidate = patch_host(self.base())
+        self.assertIn('UR_BALDOSA_PHYSICAL_4K_CAPTURE_EXTRA_FRAME', candidate)
+        self.assertIn('UR_BALDOSA_PHYSICAL_4K_CAPTURE_EXTRA_FILE', candidate)
+        self.assertIn("static int done[2] = {0, 0};", candidate)
+        self.assertIn("for (int capture = 0; capture < 2; ++capture)", candidate)
+        self.assertIn("if (done[capture]) continue;", candidate)
+        self.assertIn("done[capture] = 1;", candidate)
+        self.assertIn("for (int ur4k_i = 0; ur4k_i < 2; ++ur4k_i)", candidate)
+        self.assertEqual(candidate.count("UrBaldosaReadActual4kDrawable();"), 1)
+        self.assertEqual(candidate.count(MARK), 1)
+        self.assertIn("ur4k_target >= 2000 && ur4k_target <= 2450", candidate)
+        self.assertIn("target < 2000 || target > 2450", candidate)
+        self.assertIn("strcmp(path, getenv(path_keys[0])", candidate)
+        self.assertIn("target != g_present_frame", candidate)
+        self.assertIn("ur4k_target == g_present_frame", candidate)
+        self.assertLess(candidate.index("UrBaldosaReadActual4kDrawable();"),
+                        candidate.index("SDL_RenderPresent(g_renderer);"))
+
     def test_no_source_renderer_or_texture_dump_substitution(self):
         c = patch_host(self.base())
         self.assertIn("snesrecomp_sdl_get_render_output_size(g_renderer", c)

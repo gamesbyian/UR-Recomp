@@ -74,6 +74,10 @@ class BaldosaOriginalCenterParityTests(unittest.TestCase):
         self.assertIn('export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME=1856', workflow)
         self.assertIn('check_baldosa_original_center_parity.py', workflow)
         self.assertIn("ws342_original_center_parity_1856.json", workflow)
+        self.assertIn('std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME")', source)
+        self.assertIn('export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME=2208', workflow)
+        self.assertIn("ws342_original_center_parity_2208.json", workflow)
+        self.assertIn("ur-baldosa-original-source-002208.pam", workflow)
 
 
 if __name__ == "__main__":

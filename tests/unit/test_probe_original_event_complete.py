@@ -393,6 +393,26 @@ class CompleteEventProducerTests(unittest.TestCase):
                              "different_guest_bytes"]["wram"], 1)
             self.assertEqual(observed["same_host_frame_samples"][-1][
                              "native_menu"], 0x18)
+            self.assertEqual(observed["same_host_frame_samples"][-1][
+                             "differing_byte_offsets_by_memory_class"]["wram"],
+                             {"addresses": ["0x0009F"], "total": 1,
+                              "truncated": False})
+            self.assertEqual(observed["persistent_differing_wram_offsets"], [])
+            self.assertFalse(observed["retains_raw_guest_memory"])
+            self.assertEqual(observed["offset_profile_cap_per_memory_class"], 128)
+            # >128 differential addresses do not expand artifacts without
+            # bound or fabricate a complete persistent-address intersection.
+            changed = bytearray(0x20000)
+            changed[:129] = bytes([1]) * 129
+            (native / "tally-plus-69.wram.bin").write_bytes(changed)
+            overflow = target.observe_bowl_tally_phase(
+                original, native, logs, logs)
+            last = overflow["same_host_frame_samples"][-1][
+                "differing_byte_offsets_by_memory_class"]["wram"]
+            self.assertEqual(last["total"], 129)
+            self.assertEqual(len(last["addresses"]), 128)
+            self.assertTrue(last["truncated"])
+            self.assertEqual(overflow["persistent_differing_wram_offsets"], None)
             broken = logs.replace("script f=4349 dump result-onset",
                                   "script f=4350 dump result-onset")
             with self.assertRaisesRegex(target.CompleteEventError,

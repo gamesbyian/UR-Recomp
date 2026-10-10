@@ -151,8 +151,8 @@ void choose() {
         return;
     }
     if ((kNativeRootAvailable & (1u << index)) == 0) {
-        // Practice/Records/Options need the original Modern route admission.
-        // Do not invent a second UI/Records or alternate save namespace.
+        // Practice and Options still require original Modern route admission.
+        // Never invent guest course selection or an alternate storage root.
         std::fprintf(stderr,
             "UR_BALDOSA_MODERN_ROOT route=%zu unavailable=1\n", index);
         return;
@@ -406,15 +406,16 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0)) return;
     int key = 0;
-    // In mode 1 test Records rejection then return to Play.
-    // In mode 2 test actual 2P stock entry from the shared root.
+    // In mode 1 open and close the actual read-only Records archive,
+    // then enter 1P. Mode 2 proves the actual stock 2P handoff.
     if (std::strcmp(opt, "2") == 0) {
         if (frame == 60 || frame == 62) key = SDLK_DOWN;
         else if (frame == 64) key = SDLK_RETURN;
     } else {
         if (frame >= 60 && frame <= 62) key = SDLK_DOWN;
-        else if (frame == 63 || frame == 67) key = SDLK_RETURN;
-        else if (frame >= 64 && frame <= 66) key = SDLK_UP;
+        else if (frame == 63 || frame == 68) key = SDLK_RETURN;
+        else if (frame == 64) key = SDLK_ESCAPE;
+        else if (frame >= 65 && frame <= 67) key = SDLK_UP;
     }
     if (!key) return;
     SDL_Event event{};

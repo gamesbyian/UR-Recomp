@@ -12,6 +12,8 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <filesystem>
+#include <string>
 #include <vector>
 
 #include "modern_session_c_api.h"
@@ -53,6 +55,8 @@ unsigned g_pause_panel_paints;
 bool g_pause_panel_nav_smoke;
 bool g_pause_quit_smoke;
 bool g_native_quit_queued;
+bool g_pause_quit_key_queued;
+std::string g_pause_quit_conflict_gate;
 bool g_pause_panel_nav_verified;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
@@ -228,6 +232,14 @@ bool smoke_enabled() {
             g_pause_panel_nav_smoke = nav && std::strcmp(nav, "1") == 0;
             const char* quit = std::getenv("UR_BALDOSA_PAUSE_QUIT_SMOKE");
             g_pause_quit_smoke = quit && std::strcmp(quit, "1") == 0;
+            const char* gate = std::getenv(
+                "UR_BALDOSA_PAUSE_QUIT_CONFLICT_GATE");
+            g_pause_quit_conflict_gate = gate && *gate ? gate : "";
+            if (!g_pause_quit_conflict_gate.empty() && !g_pause_quit_smoke) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_PAUSE FAIL=quit_gate_without_quit_smoke\n");
+                std::abort();
+            }
             const char* delayed = std::getenv("UR_BALDOSA_DELAYED_RESTART_SMOKE");
             g_delayed_restart_enabled =
                 delayed && std::strcmp(delayed, "1") == 0;
@@ -544,11 +556,16 @@ extern "C" void ur_baldosa_product_host_tick(void) {
         // keyboard edges: Up wraps Resume -> Quit, Enter commits. The
         // event loop, not this probe, decides when to close the process.
         if (g_frozen_ticks == 2) queue_key_edge(SDLK_UP);
-        if (g_frozen_ticks == 4) {
+        if (g_frozen_ticks >= 4 && !g_pause_quit_key_queued &&
+            (g_pause_quit_conflict_gate.empty() ||
+             std::filesystem::is_regular_file(g_pause_quit_conflict_gate))) {
             require(g_native_pause_menu.selected == UR_MODERN_PAUSE_QUIT,
                     "native_quit_not_selected_by_physical_edge");
+            g_pause_quit_key_queued = true;
             queue_key_edge(SDLK_RETURN);
         }
+        if (g_frozen_ticks > 12000u && !g_pause_quit_key_queued)
+            require(false, "native_quit_conflict_gate_timeout");
     }
     if (g_physical_smoke && g_pause_panel_nav_smoke) {
         // Test-only queued physical SDL key edges: Down then Up must
@@ -573,7 +590,7 @@ extern "C" void ur_baldosa_product_host_tick(void) {
     }
     if (g_delayed_restart_enabled && g_frozen_ticks == 8)
         queue_restart_edge(); // SDL processes this BEFORE the next host tick
-    if (g_frozen_ticks == 24) {
+    if (g_frozen_ticks == 24 && !g_pause_quit_smoke) {
         // The host's real frozen compositor must keep the window visibly
         // alive during the entire native-pause interval. Presentations run
         // without a guest frame and without executing draw_ppu_frame().

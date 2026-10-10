@@ -47,6 +47,7 @@ def analyze(original_dir: Path, native_dir: Path, original_log: str,
               "native": logged_boundary_frames(native_log)}
     observations = {}
     different = []
+    phase_scratch_differences = []
     for frame in scene.BOUNDARY_FRAMES:
         label = f"boundary-{frame:05d}"
         files = (original_dir / f"{label}.wram.bin",
@@ -61,8 +62,27 @@ def analyze(original_dir: Path, native_dir: Path, original_log: str,
                                   "baldosa": rows[1][key]})
         original = files[0].read_bytes()
         native = files[1].read_bytes()
+        # These are diagnostic transient DP bytes, NOT authoritative event
+        # counters. Compare their phase WITHOUT hiding gameplay differences.
+        scratch = {
+            "original": {"dp_c6": original[0x00C6],
+                         "dp_c8": original[0x00C8]},
+            "native": {"dp_c6": native[0x00C6],
+                       "dp_c8": native[0x00C8]},
+        }
+        if scratch["original"] != scratch["native"]:
+            phase_scratch_differences.append({
+                "relative_frame": frame, **scratch})
+        p2_progression = {
+            label: {"laps": int.from_bytes(w[0x0EF3:0x0EF5], "little"),
+                    "checkpoint": int.from_bytes(w[0x119B:0x119D], "little"),
+                    "finish_gate": int.from_bytes(w[0x119F:0x11A1], "little")}
+            for label, w in (("original", original), ("native", native))
+        }
         observations[str(frame)] = {
             "original": rows[0], "native": rows[1],
+            "raw_phase_scratch": scratch,
+            "p2_progression": p2_progression,
             "whole_wram_differing_bytes":
                 sum(a != b for a, b in zip(original, native)),
             "original_wram_sha256": hashlib.sha256(original).hexdigest(),
@@ -93,6 +113,9 @@ def analyze(original_dir: Path, native_dir: Path, original_log: str,
             first_result["original"] is not None and
             first_result["original"] == first_result["native"]),
         "first_named_field_disagreement": different[0] if different else None,
+        "first_transient_dp_phase_disagreement": (
+            phase_scratch_differences[0] if phase_scratch_differences else None),
+        "transient_dp_phase_disagreements": phase_scratch_differences,
         "all_named_field_differences": different,
         "p1_contact_cleared_in_both_at_frames": cleared,
         "final_result_ppu_text": labels,
@@ -123,7 +146,8 @@ def main() -> int:
     args.out.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({key: result[key] for key in (
         "first_fixed_frame_result_menu", "same_fixed_frame_result_onset",
-        "first_named_field_disagreement", "final_ppu_equal",
+        "first_named_field_disagreement",
+        "first_transient_dp_phase_disagreement", "final_ppu_equal",
         "complete_event_qa_credit")}))
     return 0
 

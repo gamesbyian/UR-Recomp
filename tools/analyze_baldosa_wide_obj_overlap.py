@@ -72,6 +72,11 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
             "both_match_original": 0,
             "neither_matches_original": 0,
             "additional_obj_source_present": 0,
+            # Bound examples to make later BG/window/priority investigation
+            # reproducible without dumping full screenshots into JSON.
+            "example_xy": {
+                "front_only": [], "rear_only": [], "both": [], "neither": [],
+            },
         }
         for name, front, rear in (("top", 98, 99), ("bottom", 96, 97))
     }
@@ -98,13 +103,20 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
             front_match = source[front][offset:offset + 3] == final_rgb
             rear_match = source[rear][offset:offset + 3] == final_rgb
             if front_match and rear_match:
+                kind = "both"
                 witness["both_match_original"] += 1
             elif front_match:
+                kind = "front_only"
                 witness["front_only_matches_original"] += 1
             elif rear_match:
+                kind = "rear_only"
                 witness["rear_only_matches_original"] += 1
             else:
+                kind = "neither"
                 witness["neither_matches_original"] += 1
+            examples = witness["example_xy"][kind]
+            if len(examples) < 8:
+                examples.append([(offset // 4) % WIDTH, y])
         for index, slot in enumerate(present):
             item = counts[slot]
             item["source_opaque"] += 1

@@ -1,0 +1,139 @@
+name: QA-01 original fresh-host Switcher 01DD opcode ONE-SHOT
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-original-fresh-switcher-01dd-one-shot-20261010.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-original-fresh-01dd-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  original-01dd-opcodes:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 55
+    steps:
+      - name: Check out pinned original and native comparison harness
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check out independently pinned Baldosa native game/framework
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+
+      - name: Confirm actual canonical 2014 input, ROM and source revisions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          python3 -m unittest discover -s tests/unit -p 'test_qa01_native_switcher_stack_trace.py'
+          python3 -m unittest discover -s tests/unit -p 'test_probe_original_event_complete.py'
+
+      - name: Build disposable original read-only opcode probe and stock native
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-switcher-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-switcher-snesref" -j2
+          # Existing verified QA-only source-input transport is unchanged.
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          # Read-only original CPU opcode pre/post-byte observation in a
+          # disposable libretro source checkout, never a guest opcode change.
+          python3 tools/instrument_snesref_qa01_switcher_stack.py \
+            --single-address 0x01DD \
+            "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/cpuexec.cpp"
+          make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j2
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+          test -x "$RUNNER_TEMP/qa01-switcher-snesref/snesref"
+
+      - name: Replay true original/native Switcher Race B and extract fresh original 01DD PC scope
+        shell: bash
+        run: |
+          set -euo pipefail
+          ROOT="$RUNNER_TEMP/qa01-switcher-original-01dd"
+          mkdir -p "$ROOT"
+          # CPU ICpu.Frame is NOT assumed identical to the separate native
+          # writer ring's snes_frame_counter. Report both clocks explicitly.
+          export UR_QA_STACK_FIRST=5778
+          export UR_QA_STACK_LAST=5782
+          set +e
+          python3 tools/probe_original_event_complete.py \
+            --case switcher \
+            --native-backend pinned-baldosa \
+            --switcher-same-host-penultimate \
+            --switcher-same-host-full-memory-offsets \
+            --snesref "$RUNNER_TEMP/qa01-switcher-snesref/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work-dir "$ROOT" \
+            --json-out "$ROOT/switcher-paired-report.json" \
+            > "$ROOT/probe.log" 2>&1
+          rc=$?
+          set -e
+          tail -n 20 "$ROOT/probe.log"
+          test "$rc" -eq 1 || {
+            echo "Strict full original/native guest-relative parity changed; do not silently admit" >&2
+            exit 2
+          }
+          test -s "$ROOT/switcher-paired-report.json"
+          test -s "$ROOT/switcher/replay/reference.log"
+          python3 tools/qa01_original_fresh_switcher_01dd_report.py \
+            --original-log "$ROOT/switcher/replay/reference.log" \
+            --paired-report "$ROOT/switcher-paired-report.json" \
+            --out "$ROOT/original-fresh-01dd.json"
+          python3 - "$ROOT/original-fresh-01dd.json" <<'PY'
+          import json,sys
+          j=json.load(open(sys.argv[1],encoding="utf-8"))
+          assert j["read_only_original_snes9x_wram_target"] == "7E:01DD"
+          assert j["original_cpu_frame_observation_window"] == [5778,5782]
+          assert j["complete_event_release_credit"] == 0
+          assert j["independently_authenticated_original_native_pair"]["original_native_result_relative_frame_parity"] is False
+          print("Original fresh 01DD bounded CPU scope count:",
+                j["total_original_changed_byte_opcode_scopes"])
+          print("Original PC histogram:",j["original_changed_byte_scopes_by_pc"])
+          print("Original changed-byte scopes per frame:",j["original_changed_byte_scopes_by_cpu_frame"])
+          print("Original scoped byte examples:",j["first_bounded_original_opcode_scope_examples"])
+          print("A zero is a bounded negative only, NOT no stores and NOT an original/native success")
+          PY
+          echo "Authentic original/native Switcher +4704/+4702 guest-relative mismatch persists; original-only 01DD scope is research, USA 0/45." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload bounded original fresh result 01DD writer scope evidence only
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-original-fresh-switcher-01dd-one-shot-20261010
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-switcher-original-01dd/original-fresh-01dd.json
+            ${{ runner.temp }}/qa01-switcher-original-01dd/probe.log
+            ${{ runner.temp }}/qa01-switcher-original-01dd/switcher/replay/reference.log

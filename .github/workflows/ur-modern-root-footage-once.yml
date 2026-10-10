@@ -1,0 +1,152 @@
+name: UR Modern Root Actual SDL Footage ONE-SHOT
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: [".github/workflows/ur-modern-root-footage-once.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: ur-modern-root-media-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  capture:
+    if: github.event.pull_request.head.ref == 'media/native-modern-root-footage-20261010'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 35
+    env:
+      GH_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+      USA_ROM_SHA256: 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478
+      SDL_AUDIODRIVER: dummy
+      TMO: "180"
+      PIXELS: "0"
+      KEEP_WRAM: "0"
+      UR_BALDOSA_MODERN_ROOT: "1"
+      UR_BALDOSA_MODERN_ROOT_KEY_SMOKE: "1"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Verify actual ROM and pinned guest
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$GH_HEAD_SHA"
+          printf '%s  %s\n' "$USA_ROM_SHA256" "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" | sha256sum -c -
+      - uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Install pinned SDL2 build/FFmpeg dependencies
+        run: |
+          set -euo pipefail
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y --no-install-recommends ninja-build pkg-config libsdl2-dev libgl-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxss-dev libwayland-dev libxkbcommon-dev libegl-dev libgles-dev libdrm-dev libgbm-dev libasound2-dev libpulse-dev libudev-dev libdbus-1-dev xvfb x11-utils ffmpeg
+      - name: Stage established Modern frontend in disposable native build
+        run: |
+          set -euo pipefail
+          python3 tools/baldosa_guest_adapter_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_product_execution_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/baldosa_modern_user_data_spike.py --game baldosa
+          python3 tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python3 tools/showcase/stage_native_menu_capture.py --framework baldosa/snesrecomp
+          python3 - <<'PY'
+          from pathlib import Path
+          src=Path("baldosa/tests/routes/race_1p.txt").read_text()
+          assert src.count("turbo on\n")==1
+          Path("/tmp/ur-modern-menu-route.txt").write_text(src.replace("turbo on\n","turbo off\n",1))
+          PY
+          cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          sha256sum baldosa/build/UniracersSNESRecomp > "$RUNNER_TEMP/native-binary-sha256.txt"
+      - name: Record exact existing Modern root navigation and compare guest CRCs
+        run: |
+          set -euo pipefail
+          Xvfb :99 -screen 0 960x540x24 -ac > "$RUNNER_TEMP/xvfb.log" 2>&1 &
+          export DISPLAY=:99 SDL_VIDEODRIVER=x11
+          export SNESRECOMP_ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
+          cat > "$RUNNER_TEMP/media-modern-wrapper" <<'SH'
+          #!/usr/bin/env bash
+          set -euo pipefail
+          args=("$@")
+          config=""
+          for ((i=0;i+1<${#args[@]};i++)); do
+            if [ "${args[i]}" = "--config" ]; then config="${args[i+1]}"; break; fi
+          done
+          test -n "$config"
+          cat >> "$config" <<'CFG'
+          [Graphics]
+          WindowSize = 960x540
+          OutputMethod = SDL-Software
+          LinearFiltering = 0
+          Fullscreen = 0
+          CFG
+          exec "$BALDOSA_REAL_BIN" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/media-modern-wrapper"
+          export BIN="$RUNNER_TEMP/media-modern-wrapper"
+          bash baldosa/tools/run_route.sh /tmp/ur-modern-menu-route.txt "$RUNNER_TEMP/modern-control"
+          UR_NATIVE_VIDEO_START=1 UR_NATIVE_VIDEO_COUNT=600 UR_NATIVE_VIDEO_OUTPUT=ur-modern-root-lossless.mkv \
+            bash baldosa/tools/run_route.sh /tmp/ur-modern-menu-route.txt "$RUNNER_TEMP/modern-recorded"
+          cmp "$RUNNER_TEMP/modern-control/fd/crc.txt" "$RUNNER_TEMP/modern-recorded/fd/crc.txt"
+      - name: Validate actual host pixels and root navigation
+        run: |
+          set -euo pipefail
+          REC="$RUNNER_TEMP/modern-recorded"
+          python3 tools/showcase/validate_continuous_native_capture.py \
+            --master "$REC/ur-modern-root-lossless.mkv" --frames "$REC/ur-modern-root-lossless.mkv.frames.tsv" \
+            --log "$REC/log.txt" --control-crc "$RUNNER_TEMP/modern-control/fd/crc.txt" \
+            --recorded-crc "$REC/fd/crc.txt" --count 600 --min-start 1 --logical-width 256 \
+            --rom-sha256 "$USA_ROM_SHA256" --git-sha "$GH_HEAD_SHA" --route modern-root-key-smoke-1 \
+            --out "$REC/native-modern-root-provenance.json"
+          grep -q 'UR_BALDOSA_MODERN_ROOT opened=1' "$REC/log.txt"
+          grep -q 'UR_BALDOSA_MODERN_ROOT painted=1' "$REC/log.txt"
+          grep -q 'UR_BALDOSA_MODERN_ROOT records_opened=1' "$REC/log.txt"
+          grep -q 'UR_BALDOSA_MODERN_ROOT stock_requested players=1' "$REC/log.txt"
+          mkdir -p "$RUNNER_TEMP/media-publish"
+          ffmpeg -nostdin -hide_banner -loglevel error -y -i "$REC/ur-modern-root-lossless.mkv" -vf scale=1920:1080:flags=neighbor -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart "$RUNNER_TEMP/media-publish/ur-modern-root-600f.mp4"
+          for n in 0 60 65 75 300 599; do
+            ffmpeg -nostdin -hide_banner -loglevel error -y -i "$REC/ur-modern-root-lossless.mkv" -vf "select=eq(n\\,$n)" -vsync vfr -frames:v 1 "$RUNNER_TEMP/media-publish/frame-$(printf '%03d' "$n").png"
+          done
+          cp "$REC/native-modern-root-provenance.json" "$RUNNER_TEMP/media-publish/"
+          cp "$RUNNER_TEMP/native-binary-sha256.txt" "$RUNNER_TEMP/media-publish/"
+          python3 - "$RUNNER_TEMP/media-publish" <<'PY'
+          import json,pathlib,hashlib,sys
+          p=pathlib.Path(sys.argv[1]);m=p/"native-modern-root-provenance.json"
+          x=json.loads(m.read_text())
+          x["native_game_pin"]="10b864b9d14a7b7416dd909eb7b054c88faef101"
+          x["native_framework_pin"]="075fbe4c8e0d97b0013be541795c39cb644a9709"
+          x["executable_sha256"]=(p/"native-binary-sha256.txt").read_text().split()[0]
+          x["presentation"]="actual Modern root, stock source, SDL 960x540, delivery 1920x1080; not expanded title artwork"
+          x["ci_run"]="https://github.com/gamesbyian/UR-Recomp/actions/runs/"+str(__import__("os").environ["GITHUB_RUN_ID"])
+          x["output_sha256"]={f.name:hashlib.sha256(f.read_bytes()).hexdigest() for f in p.glob("*.mp4")}
+          m.write_text(json.dumps(x,indent=2,sort_keys=True)+"\n")
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ur-modern-native-source-${{ github.run_id }}
+          retention-days: 14
+          path: |
+            ${{ runner.temp }}/modern-recorded/ur-modern-root-lossless.mkv
+            ${{ runner.temp }}/modern-recorded/ur-modern-root-lossless.mkv.frames.tsv
+            ${{ runner.temp }}/modern-recorded/log.txt
+            ${{ runner.temp }}/modern-control/log.txt
+            ${{ runner.temp }}/media-publish/
+      - name: Commit only validated actual video and original source frames
+        if: success()
+        run: |
+          set -euo pipefail
+          dest=media/showcase/2026-10-10/recruitment/modern-root
+          mkdir -p "$dest"
+          cp "$RUNNER_TEMP/media-publish/"* "$dest/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$dest"
+          git diff --cached --check
+          git commit -m "media: publish authentic Modern-root menu-navigation video"
+          git push origin HEAD:refs/heads/media/native-modern-root-footage-20261010

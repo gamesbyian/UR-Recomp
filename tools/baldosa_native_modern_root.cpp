@@ -15,6 +15,7 @@ extern "C" {
 #include "snes_overlay_draw.h"
 void ur_baldosa_product_set_host_focus(int);
 int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask);
+void ur_baldosa_product_cancel_stock_menu_input(void);
 extern std::uint8_t g_ram[0x20000];
 }
 
@@ -45,6 +46,7 @@ bool g_stock_waiting_cursor = false;
 bool g_stock_waiting_transition = false;
 
 void stock_route_abort(const char* reason) {
+    ur_baldosa_product_cancel_stock_menu_input();
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT stock_rejected=%s\n", reason);
     g_stock_target = -1;
     g_stock_waiting_transition = false;

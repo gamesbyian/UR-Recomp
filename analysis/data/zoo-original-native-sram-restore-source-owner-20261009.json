@@ -1,0 +1,87 @@
+{
+  "schema": "UR-QA01-ZOO-SRAM-RESTORE-SOURCE-OWNER/1",
+  "source_original": {
+    "run_id": 38011250306,
+    "artifact_id": 11653695829,
+    "trace": "original-pc.log",
+    "source_entry_host_frame": 1604,
+    "original_host_observation_before": {
+      "relative_frame": 5157,
+      "script_frame": 6761,
+      "menu": 132,
+      "track_id": 0
+    },
+    "guest_cpu_writer": {
+      "pc": "83:988A",
+      "v_counters": [
+        240,
+        243
+      ],
+      "icpu_frame": 6760,
+      "stores": [
+        {
+          "address": "7E:009F",
+          "old_hex": "84",
+          "new_hex": "16"
+        },
+        {
+          "address": "7E:00CE",
+          "old_hex": "00",
+          "new_hex": "01"
+        }
+      ]
+    },
+    "original_host_observation_after": {
+      "relative_frame": 5158,
+      "script_frame": 6762,
+      "menu": 22,
+      "track_id": 1
+    },
+    "imported_symbol_owner": "Sram_RestoreDirectPage at 83:987D; instruction PC 83:988A lies within this function, from pinned Baldosa 10b864b9 decomp/symbols.txt"
+  },
+  "source_native": {
+    "run_id": 38018081196,
+    "artifact_id": 11656564258,
+    "source_entry_host_frame": 1606,
+    "native_host_observation_before": {
+      "relative_frame": 5156,
+      "script_frame": 6762,
+      "menu": 132,
+      "track_id": 0
+    },
+    "guest_writer": {
+      "host_pre_run_frame": 6762,
+      "relative_pre_run_frame": 5156,
+      "scope": "Sram_RestoreDirectPage_FastRom_M1X0",
+      "stores": [
+        {
+          "start": "80:009E",
+          "width": 2,
+          "address": "7E:009F",
+          "value_hex": "16"
+        },
+        {
+          "start": "80:00CE",
+          "width": 2,
+          "address": "7E:00CE",
+          "value_hex": "01"
+        }
+      ]
+    },
+    "native_host_observation_after": {
+      "relative_frame": 5157,
+      "script_frame": 6763,
+      "menu": 22,
+      "track_id": 1
+    },
+    "native_write_log_sha256": "8a7475fff0ba28ce2754d1b5eabbe96fc7a6eb040f45caaab9b7477561960f36"
+  },
+  "cross_execution": {
+    "observed_effect": "The original and native both run source-identifiable Sram_RestoreDirectPage to update the same two guest fields; in the independently entry-relative host dump streams, Baldosa observes them one frame sooner.",
+    "bulk_memory_equality": "native +5156 equals original +5157 across 128 KiB WRAM, 64 KiB VRAM, and 512 B CGRAM",
+    "limit": "Original opcode PC and native generated-function scope are not equivalent precision; no native guest instruction/NMI/PPU scanline timestamp has yet been captured. The CPU frame, host script frame and scene-relative labels must not be conflated. No proof that the AOT implementation is wrong or that physics/scoring diverged.",
+    "next": "Trace calling path into original 83:987D and native Sram_RestoreDirectPage_FastRom at adjacent guest frames and distinguish a real earlier call from host-frame sampling/NMI phase. Do not alter inputs or guest rules.",
+    "complete_event_qa_credit": 0,
+    "denominator": 45
+  }
+}

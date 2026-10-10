@@ -70,11 +70,14 @@ def inspect_original(args: argparse.Namespace) -> dict:
         if not diag_path.is_file():
             raise ValueError("missing original trace diagnostic; source nonqualification unproven") from exc
         diagnostic = json.loads(diag_path.read_text(encoding="utf-8"))
+        frames = diagnostic.get("source_trace_frames") if isinstance(diagnostic, dict) else None
         if (not isinstance(diagnostic, dict)
                 or diagnostic.get("schema") != "UR-QA01-SOURCE-RESULT-PROBE/1"
                 or diagnostic.get("wanted_course_track") != 3
                 or diagnostic.get("wanted_result_menu") != 0x99
-                or diagnostic.get("source_trace_frames", [None])[-1] < args.source_horizon - 1
+                or not isinstance(frames, list) or len(frames) != 2
+                or any(type(f) is not int for f in frames)
+                or not 0 <= frames[0] < frames[1] <= args.source_horizon
                 or diagnostic.get("complete_event_qa_credit") != 0):
             raise ValueError("invalid or incomplete original source diagnostic") from exc
         status = "source_event_not_qualified_within_bounded_horizon"

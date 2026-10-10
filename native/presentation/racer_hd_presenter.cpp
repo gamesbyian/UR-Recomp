@@ -144,6 +144,34 @@ int wide_source_probe_slot() noexcept {
     return static_cast<int>(slot);
 }
 
+// Explicitly diagnostic-only counterfactual final-composite attribution.
+// Arming RemoveFromGame for exactly one OAM slot and one guest frame lets
+// an independently executed stock-vs-removal capture identify which pixels
+// the slot actually contributed AFTER native PPU BG/OBJ priority. It is
+// NEVER a path to shipping widescreen HD, does not mutate guest WRAM, and
+// requires four independent opt-in controls. The optional source-only
+// experiment is deliberately mutually exclusive.
+int wide_removal_probe_slot(unsigned frame) noexcept {
+    const char* authorization =
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC");
+    if (!authorization || std::strcmp(authorization, "counterfactual") != 0 ||
+        wide_source_probe_slot() >= 0) return -1;
+    const char* raw_slot = std::getenv("UR_RACER_HD_WIDE_REMOVE_SLOT");
+    const char* raw_frame = std::getenv("UR_RACER_HD_WIDE_REMOVE_FRAME");
+    const char* captures = std::getenv("UR_BALDOSA_WS342_CAPTURE_DIR");
+    if (!raw_slot || !*raw_slot || !raw_frame || !*raw_frame ||
+        !captures || !*captures) return -1;
+    char* end = nullptr;
+    const long slot = std::strtol(raw_slot, &end, 10);
+    if (end == raw_slot || *end != '\0' || slot < 96 || slot > 99)
+        return -1;
+    end = nullptr;
+    const unsigned long requested = std::strtoul(raw_frame, &end, 10);
+    if (end == raw_frame || *end != '\0' || requested != frame)
+        return -1;
+    return static_cast<int>(slot);
+}
+
 void dump_wide_obj_source() noexcept {
     if (!g_wide_probe_armed || g_wide_probe_dumped) return;
     const char* requested = std::getenv("UR_RACER_HD_WIDE_SOURCE_FRAME");
@@ -425,7 +453,9 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
             snesrecomp_desktop_frame_height())) {
         if (snesrecomp_desktop_frame_width() == kWideProbeWidth &&
             snesrecomp_desktop_frame_height() == kBaseHeight) {
-            const int slot = wide_source_probe_slot();
+            const int removal_slot = wide_removal_probe_slot(number);
+            const int slot = removal_slot >= 0
+                ? removal_slot : wide_source_probe_slot();
             if (slot >= 0) {
                 const std::uint64_t before = guest_state_digest();
                 std::memset(g_wide_obj_overlay.data(), 0,
@@ -438,13 +468,24 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
                     kWideProbeWidth * 4);
                 const bool captured = bound && PpuSetOverlayCapture(
                     g_ppu, kPpuOverlaySource_Obj, -kWideProbeHalfMargin,
-                    0, kWideProbeWidth, kBaseHeight, 0 /* no removal */);
+                    0, kWideProbeWidth, kBaseHeight,
+                    removal_slot >= 0
+                        ? kPpuOverlayFlag_RemoveFromGame : 0);
                 const bool ranged = captured && PpuSetOverlayOamRange(
                     g_ppu, static_cast<std::uint8_t>(slot), 1);
                 const bool unchanged = before == guest_state_digest();
                 if (ranged && unchanged) {
-                    g_wide_probe_armed = true;
-                    g_wide_probe_slot = slot;
+                    if (removal_slot >= 0) {
+                        // One guest frame only. The native PPU computes
+                        // the actual counterfactual final composite.
+                        std::fprintf(stderr,
+                            "UR_RACER_HD_WIDE_REMOVE_SLOT "
+                            "frame=%u slot=%d status=armed guest_unchanged=1\n",
+                            number, slot);
+                    } else {
+                        g_wide_probe_armed = true;
+                        g_wide_probe_slot = slot;
+                    }
                 } else {
                     PpuClearOverlayCaptures(g_ppu);
                     std::fprintf(stderr,
@@ -454,8 +495,10 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
                 }
             }
         }
-        // Read-only overlay never authorizes RemoveFromGame, new art or a
-        // change to the actual stock PPU output in widened scenes.
+        // Production and source-only probes never authorize OBJ removal
+        // or authored HD here. The separately authorized single-frame,
+        // single-slot counterfactual is a native diagnostic ONLY; it has
+        // no host HD paint path and never unlocks the 342-wide gate.
         hd_census_gate("original", "unsupported-geometry");
         return;
     }

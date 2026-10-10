@@ -69,7 +69,7 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
             self.assertEqual(len(pending), 3)
-            self.assertIn("baldosa_native_modern_root.cpp", pending[1][2])
+            self.assertNotIn("baldosa_native_modern_root.cpp", pending[1][2])
             self.assertIn("host_profile_store.cpp", pending[1][2])
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])

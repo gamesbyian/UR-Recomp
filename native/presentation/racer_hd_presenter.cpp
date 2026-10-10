@@ -152,6 +152,8 @@ int wide_source_probe_slot() noexcept {
 // requires four independent opt-in controls. The optional source-only
 // experiment is deliberately mutually exclusive.
 int wide_removal_probe_slot(unsigned frame) noexcept {
+    // Mutually exclusive with the separate contiguous two-slot experiment.
+    if (std::getenv("UR_RACER_HD_WIDE_REMOVE_PAIR") != nullptr) return -1;
     const char* authorization =
         std::getenv("UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC");
     if (!authorization || std::strcmp(authorization, "counterfactual") != 0 ||
@@ -170,6 +172,38 @@ int wide_removal_probe_slot(unsigned frame) noexcept {
     if (end == raw_frame || *end != '\0' || requested != frame)
         return -1;
     return static_cast<int>(slot);
+}
+
+// A single native PPU counterfactual can remove the contiguous overlapping
+// OAM pair, **not** arbitrary slots. It is opt-in and shares the exact guest
+// frame / capture-directory restrictions with the single-slot experiment.
+// The stock gameplay/HD renderer never enters this path.
+int wide_removal_probe_pair(unsigned frame) noexcept {
+    const char* authorization =
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC");
+    const char* selection =
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_PAIR");
+    const char* conflicting_single =
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_SLOT");
+    const char* raw_frame =
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_FRAME");
+    const char* directory =
+        std::getenv("UR_BALDOSA_WS342_CAPTURE_DIR");
+    if (!authorization || std::strcmp(authorization, "counterfactual") != 0 ||
+        !selection || conflicting_single != nullptr ||
+        wide_source_probe_slot() >= 0 ||
+        !raw_frame || !*raw_frame || !directory || !*directory)
+        return -1;
+    // Only the actually overlapping P1/P2 2-slot OAM contiguous pairs
+    // established by the split-source capture are admissible.
+    const int first = std::strcmp(selection, "96-97") == 0 ? 96 :
+                      std::strcmp(selection, "98-99") == 0 ? 98 : -1;
+    if (first < 0) return -1;
+    char* end = nullptr;
+    const unsigned long requested = std::strtoul(raw_frame, &end, 10);
+    if (end == raw_frame || *end != '\0' || requested != frame)
+        return -1;
+    return first;
 }
 
 void dump_wide_obj_source() noexcept {
@@ -454,8 +488,10 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         if (snesrecomp_desktop_frame_width() == kWideProbeWidth &&
             snesrecomp_desktop_frame_height() == kBaseHeight) {
             const int removal_slot = wide_removal_probe_slot(number);
-            const int slot = removal_slot >= 0
-                ? removal_slot : wide_source_probe_slot();
+            const int removal_pair = removal_slot < 0
+                ? wide_removal_probe_pair(number) : -1;
+            const int slot = removal_slot >= 0 ? removal_slot :
+                removal_pair >= 0 ? removal_pair : wide_source_probe_slot();
             if (slot >= 0) {
                 const std::uint64_t before = guest_state_digest();
                 std::memset(g_wide_obj_overlay.data(), 0,
@@ -469,13 +505,21 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
                 const bool captured = bound && PpuSetOverlayCapture(
                     g_ppu, kPpuOverlaySource_Obj, -kWideProbeHalfMargin,
                     0, kWideProbeWidth, kBaseHeight,
-                    removal_slot >= 0
+                    removal_slot >= 0 || removal_pair >= 0
                         ? kPpuOverlayFlag_RemoveFromGame : 0);
                 const bool ranged = captured && PpuSetOverlayOamRange(
-                    g_ppu, static_cast<std::uint8_t>(slot), 1);
+                    g_ppu, static_cast<std::uint8_t>(slot),
+                    static_cast<std::uint8_t>(removal_pair >= 0 ? 2 : 1));
                 const bool unchanged = before == guest_state_digest();
                 if (ranged && unchanged) {
-                    if (removal_slot >= 0) {
+                    if (removal_pair >= 0) {
+                        // Two precisely contiguous OAM source slots on
+                        // ONE guest frame, never host HD image removal.
+                        std::fprintf(stderr,
+                            "UR_RACER_HD_WIDE_REMOVE_PAIR "
+                            "frame=%u slots=%d-%d status=armed guest_unchanged=1\n",
+                            number, slot, slot + 1);
+                    } else if (removal_slot >= 0) {
                         // One guest frame only. The native PPU computes
                         // the actual counterfactual final composite.
                         std::fprintf(stderr,

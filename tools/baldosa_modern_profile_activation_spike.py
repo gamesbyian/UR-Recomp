@@ -109,6 +109,7 @@ def patch_cmake(source: str, root: Path) -> str:
         product / "baldosa_native_records_summary.cpp",
         product / "completed_run_store.cpp",
         product / "completed_run_record.cpp",
+        product / "baldosa_native_run_record_admission.cpp",
     )
     selected = [bridge, *(product / s for s in SOURCES), *records_sources]
     for path in selected:

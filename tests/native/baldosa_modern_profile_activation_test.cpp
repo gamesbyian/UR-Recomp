@@ -6,6 +6,8 @@
 #include "host_profile_runtime.hpp"
 #include "host_profile_catalog.hpp"
 #include "baldosa_native_profile_sram_checkpoint.hpp"
+#include "baldosa_native_run_record_admission.hpp"
+#include "completed_run_store.hpp"
 
 #include <array>
 #include <cassert>
@@ -19,6 +21,8 @@
 
 extern "C" int ur_baldosa_modern_try_activate_profile(void);
 extern "C" int ur_baldosa_modern_profile_before_native_save(void);
+extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
+    const ur::product::BaldosaSettledResult*);
 extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
@@ -141,6 +145,60 @@ int main() {
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);
     assert(!fs::exists("saves/save.srm"));
 
+    // Real native guest has already loaded its selected SRAM before the
+    // after-frame publisher runs. This isolated fixture must model that
+    // existing precondition explicitly.
+    g_sram = initialized.data();
+    g_sram_size = static_cast<int>(initialized.size());
+    // Synthetic fixture tests the profile authorization/publisher only;
+    // this does NOT stand in for a live guest-finished Windows event.
+    BaldosaSettledResult witnessed{};
+    witnessed.kind = BaldosaSettledResultKind::TimedOnePlayerRace;
+    witnessed.first_race_host_frame = 100;
+    witnessed.observed_result_host_frame = 104;
+    witnessed.p1_finish_ticks60 = 740;
+    witnessed.course_index = 1;
+    witnessed.captured_input_frames = 4;
+    witnessed.mapped_inputs = {{0, 2, 0x10u, 0}, {3, 1, 0x20u, 0}};
+    const fs::path run_root = dir / "runs/rider-1";
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(nullptr));
+    assert(ur_baldosa_modern_publish_settled_one_player_run(&witnessed) == 1);
+    auto recorded = load_valid_run_records(run_root.string());
+    assert(recorded.size() == 1);
+    assert(recorded[0].record.provenance.course_id == "course:01");
+    assert(recorded[0].record.provenance.mode == "race-1p");
+    assert(recorded[0].record.provenance.build_compat_id ==
+           kBaldosaNativeRunCompatId);
+    assert(recorded[0].record.elapsed_ticks60 == 740);
+    assert(recorded[0].record.frame_count == 4);
+    assert(recorded[0].record.inputs.size() == 2);
+    // A duplicated post-result poll must not mint a second .urrun.
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&witnessed));
+    assert(load_valid_run_records(run_root.string()).size() == 1);
+    auto bad_result = witnessed;
+    bad_result.kind = BaldosaSettledResultKind::OrdinaryTwoPlayerRace;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    bad_result = witnessed;
+    bad_result.course_index = 2; // Circuit cannot mint 1P Race
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+
+    // An untrusted symlinked run directory may not redirect the append to
+    // another user's path, even if the typed selector still matches.
+    const fs::path foreign = dir / "foreign-runs";
+    fs::create_directories(foreign);
+    const auto original_run = run_root;
+    fs::rename(original_run, dir / "moved-runs");
+    fs::create_directory_symlink(foreign, original_run);
+    bad_result = witnessed;
+    bad_result.first_race_host_frame = 200;
+    bad_result.observed_result_host_frame = 204;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(fs::is_empty(foreign));
+    fs::remove(original_run);
+    fs::rename(dir / "moved-runs", original_run);
+
+
+
     // The original framework write MUST be preceded by a compatible typed
     // selection check under the canonical OS lock, retained until CAS.
     g_sram = initialized.data();
@@ -184,6 +242,11 @@ int main() {
     different_selector.active_profile_id.reset();
     assert(save_host_product_state_file(global_path, different_selector) ==
            HostProductSaveStatus::Saved);
+    bad_result = witnessed;
+    bad_result.first_race_host_frame = 300;
+    bad_result.observed_result_host_frame = 304;
+    assert(!ur_baldosa_modern_publish_settled_one_player_run(&bad_result));
+    assert(load_valid_run_records(run_root.string()).size() == 1);
     assert(ur_baldosa_modern_profile_before_native_save() == 0);
     assert(fs::file_size("saves/profile-rider-1/save.srm") ==
            original_raw_size);

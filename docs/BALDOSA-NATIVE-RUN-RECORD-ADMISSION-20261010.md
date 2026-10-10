@@ -17,6 +17,32 @@ result against selected-profile/participant authority and canonical
 CompletedRunRecord, returning only an in-memory candidate. Nothing mints
 medals, ghosts, tournament results, or a durable run yet.
 
+## Profile-locked native 1P publication candidate (PR #1253)
+
+This change wires the source-settled P1 Race result at the actual Baldosa
+post-frame boundary to the existing `assemble_baldosa_native_run_record`
+and `append_completed_run_record` implementations. No substitute Records
+codec or write format is introduced. Publication requires a named Modern
+catalog-backed profile, the unchanged original typed selector/profile,
+the matching on-disk 8-KiB SRAM launch baseline, the established three
+nonblocking selector/roster/profile OS locks, a genuine source-identified
+ordinary USA Race, official P1 finish, and the exact resolved controller
+frame trace. Duplicate result polls, default anonymous saves, changed
+selectors and symlinked existing Records paths are rejected. The published
+file has a **Baldosa-specific** compatibility ID; old SNESRecomp replay
+or PB equivalence is not established.
+
+The native unit fixture intentionally *constructs* a result to exercise
+the store and profile authority without running a course. That fixture is
+not a gameplay fidelity witness. **Outstanding P0:** demonstrate an actual
+uninterrupted Windows 1P event finishing from Modern Play, published
+`.urrun`, and a clean fresh-process Records + SRAM readback. Ordinary 2P
+result observation remains read-only: local participant binding, exact
+stock rider identities and paired `.urmatch` publication are not wired.
+Neither case changes original QA-01 acceptance or awards medals/trophies.
+The symlink check is preflight, not a race-free directory-handle defense
+against an adversarial process ignoring profile locks.
+
 ## Required next integration and proof
 
 1. Snapshot source-confirmed named Modern catalog/profile authorization at

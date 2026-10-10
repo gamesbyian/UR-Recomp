@@ -106,9 +106,11 @@ class SourceOverlapTests(unittest.TestCase):
             (reports / "ws342_obj_slot_99.json").write_text(json.dumps(corrupted))
             with self.assertRaisesRegex(ValueError, "provenance"):
                 assess(main_file, directory, reports, 1856)
+            corrupted["source"]["guest_frame"] = 1856
+            (reports / "ws342_obj_slot_99.json").write_text(json.dumps(corrupted))
+            main_file.write_bytes(HEADER + original[:-1])
             with self.assertRaisesRegex(ValueError, "P7"):
-                (main_file.write_bytes(HEADER + original[:-1]),
-                 assess(main_file, directory, reports, 1856))
+                assess(main_file, directory, reports, 1856)
 
 
 if __name__ == "__main__":

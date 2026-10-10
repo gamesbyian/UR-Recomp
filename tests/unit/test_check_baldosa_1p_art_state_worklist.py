@@ -61,7 +61,11 @@ class OnePlayerSemanticWorklistTests(unittest.TestCase):
         self.assertIn('std::getenv("UR_RACER_HD_1P_STATE_TRACE")', source)
         self.assertIn("read_racer_guest_snapshot(g_ram, 0x20000)", source)
         self.assertIn("number >= 1700 && number <= 5150", source)
-        self.assertIn('g_ram[0x009F] == 0x3Cu', source)
+        # Frontend 0x3C is a temporary pre-race selector; the running 1P
+        # game changes it. The actual native 1P scripted route and
+        # independently matched CRC prove the race-state provenance.
+        self.assertNotIn('&& g_ram[0x009F] == 0x3Cu', source)
+        self.assertIn('trace[1] == \'\\0\' && number >= 1700', source)
         self.assertEqual(source.count("UR_RACER_HD_1P_STATE frame=%u"), 1)
 
 

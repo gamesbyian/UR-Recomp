@@ -400,6 +400,7 @@ jobs:
           env -u UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE \
               -u UR_BALDOSA_HD_SOURCE_ART_FIXTURE \
               UR_RACER_HD_P1_ONLY=1 UR_BALDOSA_HD_DENSITY=4 \
+              UR_BALDOSA_HD_EARLY_1P_CAPTURE=1 \
               UR_BALDOSA_WS342=0 UR_BALDOSA_WS24=0 \
               UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-guarded-1p-4x" \
               TMO=90 bash baldosa/tools/run_route.sh \

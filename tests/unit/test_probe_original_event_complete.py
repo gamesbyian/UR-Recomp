@@ -279,6 +279,39 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source, 1, 0xBC)
 
+    def test_switcher_diagnostic_scans_full_horizon_not_earlier_dragster_result(self):
+        # Synthetic later Switcher Race B: the 2014 movie already contained
+        # Dragster 0x99 long before this selected track-3 event. A foreign
+        # active course after frame 11985 must not disappear from reports.
+        states = source_states(18000, 25000, 3, 0x99)
+        for frame in range(18900, 18910):
+            states[frame] = {"track": 0, "in_race": 0, "menu": 0x99}
+        for frame in range(22000, 22011):
+            states[frame] = {"track": 0, "in_race": 1, "menu": 0x16}
+        diag = target.source_event_diagnostic(states, 3, 0x99)
+        self.assertEqual(diag["source_intervening_foreign_active_window"],
+                         [18000, 25000])
+        self.assertTrue(diag["source_intervening_foreign_active_window_end_exclusive"])
+        self.assertEqual(diag["source_intervening_foreign_active_raw_frame_count"], 11)
+        self.assertEqual(diag["source_intervening_foreign_active_runs_8_frames"], [
+            {"start": 22000, "end": 22010, "track": 0}])
+        self.assertEqual(diag["complete_event_qa_credit"], 0)
+        # With no independently qualified target result, bounded evidence
+        # must cover the *actual last scanned source frame*, not 11985.
+        for frame in range(25000, 25016):
+            states[frame]["menu"] = 0x16
+        diag = target.source_event_diagnostic(states, 3, 0x99)
+        self.assertEqual(diag["source_intervening_foreign_active_window"],
+                         [18000, 25016])
+        self.assertEqual(diag["source_intervening_foreign_active_raw_frame_count"], 11)
+        # Original's 0x99 result before the target event cannot truncate
+        # even when present near the start of the complete movie scan.
+        for frame in range(17500, 17510):
+            states[frame] = {"track": 0, "in_race": 0, "menu": 0x99}
+        diag = target.source_event_diagnostic(states, 3, 0x99)
+        self.assertEqual(diag["source_intervening_foreign_active_window"],
+                         [18000, 25016])
+
     def test_original_source_entry_must_match_both_fresh_guests(self):
         source = {
             "p1_rider": 0, "p2_rider": 17,

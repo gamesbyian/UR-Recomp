@@ -87,6 +87,20 @@ def source_event_diagnostic(states: dict[int, dict],
     active_frames = [f for f in keys
                      if states[f]["track"] == track and states[f]["in_race"] == 1]
     stages = result_probe.result_runs(states)
+    # The archived movie contains an earlier Dragster 0x99 Race result,
+    # BEFORE the later Switcher track-3 event. Never stop the Switcher
+    # diagnostic at the first unrelated course's matching result menu.
+    # In the absence of a same-course result, inspect the complete finite
+    # source trace, not Bowl's historical frame-11985 endpoint.
+    first_active = active_frames[0] if active_frames else None
+    target_result = next((
+        row["start"] for row in stages
+        if first_active is not None and row["start"] > first_active
+        and row["menu"] == result_menu
+        and states[row["start"]]["track"] == track
+    ), None)
+    diagnostic_stop = (target_result if target_result is not None
+                       else keys[-1] + 1 if keys else 0)
     anchors = set()
     for row in stages:
         if row["menu"] in (result_menu, 0x2F):
@@ -111,18 +125,19 @@ def source_event_diagnostic(states: dict[int, dict],
                     and states.get(f + j, {}).get("in_race") == 1
                     for j in range(8))
         ][:12],
+        "source_intervening_foreign_active_window": (
+            [first_active, diagnostic_stop] if first_active is not None else []
+        ),
+        "source_intervening_foreign_active_window_end_exclusive": True,
         "source_intervening_foreign_active_runs_8_frames": (
-            sustained_foreign_active_runs(states,
-                                          active_frames[0] if active_frames else 0,
-                                          min((row["start"] for row in stages
-                                               if row["menu"] == result_menu),
-                                              default=keys[-1] if keys else 0),
-                                          track)
-            if keys else []
+            sustained_foreign_active_runs(
+                states, first_active, diagnostic_stop, track)
+            if first_active is not None else []
         ),
         "source_intervening_foreign_active_raw_frame_count": (
             sum(1 for f in keys
-                if active_frames and active_frames[0] <= f <= 11985
+                if first_active is not None
+                and first_active <= f < diagnostic_stop
                 and states[f]["in_race"] == 1
                 and states[f]["track"] != track)
         ),

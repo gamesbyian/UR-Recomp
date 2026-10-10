@@ -60,7 +60,6 @@ jobs:
           frames=[line.split("\t") for line in index.read_text().splitlines()[1:]]
           assert len(frames)==900
           assert all(int(row[0])==i and int(row[1])==30+i for i,row in enumerate(frames))
-          log=get("log.txt")
           # Multiple logs were uploaded; require exact native recording completion.
           logs=[p for p in root.rglob("log.txt") if "native-media-recorded" in str(p)]
           assert len(logs)==1,logs

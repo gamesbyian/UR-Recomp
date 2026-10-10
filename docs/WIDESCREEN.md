@@ -4,6 +4,8 @@
 
 **QA-08 accepted Native Original evidence (2026-10-10):** Merged #1210 validated the entire 256×224 Original centre inside an independently executed 342×224 PPU at guest frame 1856: **0/57,344 source-centre pixels differ**, including both 2P bands; full guest CRC parity, native run `38083079741` ([full evidence](QA08-NATIVE-STOCK-CENTER-PARITY-20261010.md)). Merged #1211 captured post-GO guest frame **2208** with active dual racers, dynamic race HUD and visibly expanded track, **53,360** pixels changed since the pre-GO frame 1888; native run `38083974528` ([full evidence](QA08-LATE-NATIVE-WIDE-ORIGINAL-VISUALS-20261010.md)). The 4× Original density, native 3840×2160 output and bounded OBJ source investigations remain separately accepted. **No authored 342-wide Remastered racer or overall visual beta readiness is certified.**
 
+ **Further accepted post-GO 4K proof:** Merged #1221, native run `38085717011`, read real **3840×2160 SDL pixels** at racing guest frame 2208; all **8,294,400** drawable pixels match the independent 342×224 logical source via 1368×896 native Original density. Independently fixed/wide centre at 2208 again has **0/57,344** changed pixels across both HUD/split bands; see [post-GO physical 4K QA](QA08-REAL-4K-POST-GO-20261010.md). This is Original-only graphical verification, not authorized wide Remastered art or a shipping Windows UI path.
+
 The canonical end-to-end project strategy is `docs/PROJECT-PLAN.md`. This document owns the **Widescreen** feature specifically: implementation notes for expanding the logical horizontal view beyond the original 4:3 presentation.
 
 ## Principle

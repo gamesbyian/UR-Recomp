@@ -133,4 +133,30 @@ settled frontend `$7E:009F=0xD7` is reached outside racing, and clears
 prepared-wide admission at the start of every frame preparation, including
 invalid-call failure. These safety controls prevent a stale prior event or
 failed prepare from requesting guessed widened pixels on a later callback.
-\n## Native live 1P observation (new validation route)\n\nThe 342-wide Baldosa host now samples the established Modern race-mode latch\non **every guest-frame callback** as well as during present preparation.\nScripted turbo guests can skip the entire pre-race desktop scene, so an\nobserver tied solely to `prepare_frame()` can miss real 1P/2P/VS selection\nand incorrectly stay 256-wide for the subsequent event. The scene classifier\nis still the one first-party implementation; the extra observation performs\nno WRAM or PPU writes. The compiled bridge regression simulates a real\npre-race `0x3D` guest frame without a desktop preparation, then requires\nthe subsequent active 2P frame to widen. A settled frontend still resets\nthe latch.\n\nThe **existing Baldosa AOT native job**, with no additional AOT build, also\nruns its already-imported genuine `race_1p` route once under the explicit\n`UR_BALDOSA_WS342_LIVE=1` opt-in. It compares the complete native guest\nCRC sequence to the independent original 1P run already in that job and\nretains the pre-race mode sample, native preparation/present evidence, and\nany genuine 342×224 captures. It distinguishes a real widening witness\nfrom a calibrated-source or sparse-host-presentation blocker.\n\nThis diagnostic never awards release acceptance merely for a valid mode\nlatch or a screenshot: moving 1P world pixels, per-rider source/foreground\npriority, Original-vs-HD parity and physical 4K output remain independent\nrequirements. The preexisting 2P 1×/4× and per-slot experiments remain\nunchanged, and the live 1P flag is explicitly cleared before they resume.\n
+
+## Native live 1P observation (new validation route)
+
+The 342-wide Baldosa host now samples the established Modern race-mode latch
+on **every guest-frame callback** as well as during present preparation.
+Scripted turbo guests can skip the entire pre-race desktop scene, so an
+observer tied solely to `prepare_frame()` can miss real 1P/2P/VS selection
+and incorrectly stay 256-wide for the subsequent event. The scene classifier
+is still the one first-party implementation; the extra observation performs
+no WRAM or PPU writes. The compiled bridge regression simulates a real
+pre-race `0x3D` guest frame without a desktop preparation, then requires
+the subsequent active 2P frame to widen. A settled frontend still resets
+the latch.
+
+The **existing Baldosa AOT native job**, with no additional AOT build, also
+runs its already-imported genuine `race_1p` route once under the explicit
+`UR_BALDOSA_WS342_LIVE=1` opt-in. It compares the complete native guest
+CRC sequence to the independent original 1P run already in that job and
+retains the pre-race mode sample, native preparation/present evidence, and
+any genuine 342×224 captures. It distinguishes a real widening witness
+from a calibrated-source or sparse-host-presentation blocker.
+
+This diagnostic never awards release acceptance merely for a valid mode
+latch or a screenshot: moving 1P world pixels, per-rider source/foreground
+priority, Original-vs-HD parity and physical 4K output remain independent
+requirements. The preexisting 2P 1×/4× and per-slot experiments remain
+unchanged, and the live 1P flag is explicitly cleared before they resume.

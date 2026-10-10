@@ -74,7 +74,8 @@ def parse_oam(lines: list[str]) -> dict[int, dict]:
             "source_ready": ready, "top_x": tx, "top_y": ty,
             "bottom_x": bx, "bottom_y": by,
             "top_tile": f"{tt:02X}", "bottom_tile": f"{bt:02X}",
-            "top_large_64": tlarge, "bottom_large_64": blarge,\n            "top_source_geometry": tg, "bottom_source_geometry": bg,
+            "top_large_64": tlarge, "bottom_large_64": blarge,
+            "top_source_geometry": tg, "bottom_source_geometry": bg,
             "source_bank": bank, "obsel": f"{obsel:02X}",
             "priority_rotated": rot, "conservative_front_safe": safe,
         }

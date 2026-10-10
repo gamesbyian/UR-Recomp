@@ -399,6 +399,16 @@ jobs:
           print(f"PASS: four single-slot source planes, stock unchanged; pixels={opaque}")
           PY
           echo "PASS: single-slot wide OBJ source and exact stock 342-wide raster invariance" >> "$GITHUB_STEP_SUMMARY"
+          # Measure the real split-screen overlap and compare each isolated
+          # PPU source sample with the final Original PPU main-frame RGB.
+          # Do not treat color equality as proof of final semantic ownership.
+          python3 tools/analyze_baldosa_wide_obj_overlap.py \
+            --main-pam "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --slot-dir "$RUNNER_TEMP/baldosa-ws342-obj-slots" \
+            --reports "$RUNNER_TEMP/baldosa-evidence" \
+            --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json"
+          echo "PASS: exact original PPU overlap, source-priority RGB witness in top and bottom race views" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -438,6 +448,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_4x_presentation.json
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
             ${{ runner.temp }}/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot*.pam
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam

@@ -318,6 +318,7 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
         if rframe != nframe or rframe - tally_ref != offset:
             raise CompleteEventError(f"misaligned Bowl tally-relative dump {tag}")
         fields = {}
+        offsets = {}
         wram = {}
         for kind, size in BOWL_TALLY_MEMORY_SIZES.items():
             paths = [directory / f"{tag}.{kind}.bin"
@@ -327,7 +328,15 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
             a, b = [p.read_bytes() for p in paths]
             if len(a) != size or len(b) != size:
                 raise CompleteEventError(f"incorrect complete {kind} size for {tag}")
-            fields[kind] = sum(x != y for x, y in zip(a, b))
+            unequal_offsets = [i for i, (x, y) in enumerate(zip(a, b)) if x != y]
+            fields[kind] = len(unequal_offsets)
+            # Preserve ONLY offsets, never original or native memory bytes;
+            # capped to avoid unbounded reports if guests diverge badly.
+            offsets[kind] = {
+                "addresses": [f"0x{i:05X}" for i in unequal_offsets[:128]],
+                "total": len(unequal_offsets),
+                "truncated": len(unequal_offsets) > 128,
+            }
             if kind == "wram":
                 wram = {
                     "original_menu": a[0x009F], "native_menu": b[0x009F],
@@ -336,7 +345,9 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
                 }
         rows.append({"offset_from_actual_tally_host_frame": offset,
                      "absolute_host_frame": rframe,
-                     "different_guest_bytes": fields, **wram})
+                     "different_guest_bytes": fields,
+                     "differing_byte_offsets_by_memory_class": offsets,
+                     **wram})
     return {
         "schema": "UR-QA01-BOWL-TALLY-ANCHORED-PHASE/1",
         "reference_and_native_tally_host_frame": tally_ref,
@@ -346,6 +357,15 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
         "same_host_frame_samples": rows,
         "all_samples_exact_guest_bytes": all(
             sum(row["different_guest_bytes"].values()) == 0 for row in rows),
+        "persistent_differing_wram_offsets": (
+            sorted(set.intersection(*(set(
+                row["differing_byte_offsets_by_memory_class"]["wram"]["addresses"])
+                for row in rows)))
+            if not any(row["differing_byte_offsets_by_memory_class"]["wram"]["truncated"]
+                       for row in rows) else None
+        ),
+        "offset_profile_cap_per_memory_class": 128,
+        "retains_raw_guest_memory": False,
         "release_complete_event_credit": 0,
         "limitation": (
             "Equal host frame and guest-byte proximity do not prove CPU "

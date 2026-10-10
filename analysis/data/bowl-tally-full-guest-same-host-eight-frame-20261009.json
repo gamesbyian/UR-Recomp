@@ -1,0 +1,147 @@
+{
+  "schema": "UR-QA01-BOWL-TALLY-SOURCE-PHASE-WITNESS/1",
+  "source": {
+    "run_id": 38024468581,
+    "artifact_id": 11659683037,
+    "zip_sha256": "3f8fdebfaaaeb1b4456de6a07565a5a88e2d12b298b7aec04a4d7821d248b967",
+    "original_core_sha256": "b901d1dedfe33603e382aaefa4f07c506b5e94ce0432ba2cd6b7ae0bf714c345",
+    "native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8",
+    "movie_window_sha256": "3203460164bed51506ceeb8bc241d81c88e8bea73c9e8f320a164e37020d376c"
+  },
+  "scored_stunt": {
+    "course_id": "course:03",
+    "player": "MIKE",
+    "score": 764,
+    "source_tally_host_frame": 4279,
+    "source_result_host_frame": 4349,
+    "reference_entry": 984,
+    "native_entry": 985,
+    "reference_relative_result": 3365,
+    "native_relative_result": 3364,
+    "semantic_active_samples_matched": 28,
+    "complete_event_frame_parity": false
+  },
+  "phase_samples": [
+    {
+      "tally_offset": 54,
+      "host_frame": 4333,
+      "guest_different_bytes": {
+        "wram": 6,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 47,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 60,
+      "host_frame": 4339,
+      "guest_different_bytes": {
+        "wram": 6,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 47,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 64,
+      "host_frame": 4343,
+      "guest_different_bytes": {
+        "wram": 50,
+        "vram": 2,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 47,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 65,
+      "host_frame": 4344,
+      "guest_different_bytes": {
+        "wram": 14,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 216,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 66,
+      "host_frame": 4345,
+      "guest_different_bytes": {
+        "wram": 6,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 216,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 67,
+      "host_frame": 4346,
+      "guest_different_bytes": {
+        "wram": 6,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 216,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 68,
+      "host_frame": 4347,
+      "guest_different_bytes": {
+        "wram": 22,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 216,
+        "course": 2,
+        "race_flag": 60
+      }
+    },
+    {
+      "tally_offset": 69,
+      "host_frame": 4348,
+      "guest_different_bytes": {
+        "wram": 16,
+        "vram": 0,
+        "cgram": 0
+      },
+      "both_original_and_native": {
+        "menu": 216,
+        "course": 2,
+        "race_flag": 60
+      }
+    }
+  ],
+  "derived": {
+    "persistent_small_wram_mismatch": "6 WRAM bytes in 4 of 8 samples (tally+54,+60,+66,+67); precise addresses not retained in this artifact.",
+    "menu_handoff": "both show 0x2F through +64 at host 4343 and 0xD8 from +65 at host 4344; result-onset 0x18 independently matches host 4349",
+    "cgram_equal_in_all_eight": true,
+    "full_memory_equality_at_any_observed_frame": false,
+    "only_vram_mismatch": "2 bytes at host 4343; none in seven others"
+  },
+  "limitations": "Source reported full guest-memory byte difference counts but not addresses or raw dumps. Same host frame and same menu result progression do NOT determine guest CPU instruction/NMI/VBlank/scanline equivalence. New offset profiling required before attributing six persistent WRAM mismatches.",
+  "release_complete_usa_courses_credited": 0
+}

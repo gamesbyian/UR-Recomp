@@ -1,6 +1,8 @@
 # UR-Recomp: native-capture showcase (October 10, 2026)
 
-This folder contains **development progress reels**, not a representation of a complete Windows beta or uninterrupted gameplay capture. The short clips are assembled from original Baldosa guest/PPU raster captures collected by a GitHub Actions native execution test.
+The root-level videos in this folder are **historical sampled-frame development progress reels**, not uninterrupted footage or a complete Windows beta. Their images come from genuine Baldosa guest/PPU captures.
+
+**New accepted genuine continuous material:** [10-second 600-frame two-player Original widescreen gameplay](recruitment/continuous/ur-native-2p-clean-600f.mp4) · [41-second recruitment trailer](recruitment/continuous-edits/ur-recomp-recruitment-continuous-20261010.mp4) · [21-second vertical short](recruitment/continuous-edits/ur-recomp-recruitment-continuous-vertical-20261010.mp4). Native capture [reproduction and exact provenance](recruitment/continuous/README.md); multi-frame original-source motion [review](recruitment/continuous-edits/README.md). The new work is genuine 342×224 logical Original widened-world footage, recorded from a real 960×540 SDL drawable and delivered at nearest-neighbor 1080p. It is **not** continuous physical 4K or a certified Windows beta.
 
 ## Files
 
@@ -29,6 +31,6 @@ python3 tools/showcase/build_capture_reel.py \
   --outdir media/showcase/2026-10-10
 ```
 
-The upstream Actions artifact has limited retention. The resulting video, key native frame, poster and provenance are committed here so the demonstration remains inspectable after artifact expiry. A newer, uninterrupted gameplay trailer should be recorded from a tested complete player journey when the integrated Windows candidate passes that acceptance.
+The upstream Actions artifact has limited retention. The resulting video, key native frame, poster and provenance are committed here so the demonstration remains inspectable after artifact expiry. A newer **uninterrupted 600-frame 2P gameplay recording and recruitment trailer have now been completed** and are linked above. A future integrated Windows candidate should separately demonstrate a complete player journey, more varied courses, authentic continuous physical 4K output and final graphics modes only when validated.
 
 The film and helper are supplementary contributor communication; they do **not** change the [official release-quality ledger](../../../docs/RELEASE-QUALITY-LEDGER.json).

@@ -565,6 +565,75 @@ def assert_invalid_mutable_root_fails_closed(
         raise ValueError("Rejected native user root mutated package/cwd state")
 
 
+def verify_native_modern_root_log(log: str) -> None:
+    """One original renderer and physical SDL host event path, no fake routes."""
+    stages = (
+        "UR_BALDOSA_MODERN_ROOT opened=1",
+        "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared",
+        "UR_BALDOSA_MODERN_ROOT selected=3",
+        "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1",
+        "UR_BALDOSA_MODERN_ROOT selected=0",
+        "UR_BALDOSA_MODERN_ROOT play_guest_title=1",
+    )
+    positions = []
+    for marker in stages:
+        if log.count(marker) != 1:
+            raise ValueError(f"Native Modern root missing/duplicate real event: {marker}")
+        positions.append(log.index(marker))
+    if positions != sorted(positions):
+        raise ValueError("Native Modern root SDL/paint sequence is out of order")
+
+
+def run_native_modern_root_smoke(
+    exe: Path, rom: Path, root: Path, *, video: str, timeout: int,
+) -> dict[str, bool]:
+    """Real Win32 native host, common painter, SDL keys, guest handoff.
+
+    The original guest still owns its title/menu after Play. No claims for
+    direct event launch, Records, result publication or controller hardware.
+    """
+    output = root / "native_modern_root"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Modern Root Player Data"
+    user_root.mkdir()
+    script = output / "root_window.txt"
+    script.write_text("wait 150\nquit\n", encoding="ascii")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_ROOT": "1",
+        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    run = subprocess.run(
+        [str(exe), "--no-launcher", "--config", str(config),
+         "--script", str(script), str(rom)],
+        cwd=output, env=env, capture_output=True, text=True,
+        timeout=timeout, errors="replace")
+    log = run.stdout + "\n" + run.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if run.returncode:
+        raise RuntimeError(
+            f"Native root Windows process rejected: {run.returncode} {log[-3500:]}")
+    verify_native_modern_root_log(log)
+    saved = user_root / "saves/save.srm"
+    if not saved.is_file() or len(saved.read_bytes()) != 8192:
+        raise ValueError("Original guest did not save under the same Modern root")
+    if (output / "saves").exists():
+        raise ValueError("Root handoff wrote package/cwd-local guest saves")
+    return {
+        "shared_modern_root_visible": True,
+        "real_sdl_navigation_to_records": True,
+        "unimplemented_route_rejected": True,
+        "play_restored_original_guest_controls": True,
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -631,7 +700,10 @@ def main() -> int:
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
+    root_proof = run_native_modern_root_smoke(
+        exe, rom, root, video=args.video, timeout=args.timeout)
     result = {
+        "native_modern_root": root_proof,
         "classification": "windows_native_pause_and_named_profile_smoke_only",
         "rom_sha256": rom_hash,
         "exe_sha256": sha256(exe),

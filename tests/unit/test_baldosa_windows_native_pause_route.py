@@ -4,6 +4,8 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
+import subprocess
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "tools"))
 import baldosa_windows_native_pause_route as probe
@@ -85,6 +87,65 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_delayed_restart_log(
                 valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
                 expected_request_frame=1952)
+
+    def test_second_native_process_reads_original_named_save_and_does_not_reseed(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            user_root = (root / "with_named_profile" /
+                         "Modern Player Data With Spaces")
+            selected = user_root / "saves/profile-native-ci-rider"
+            selected.mkdir(parents=True)
+            before = bytes([17]) * 8192
+            (selected / "save.srm").write_bytes(before)
+            for name, folder in (
+                ("host-profile.txt", selected),
+                ("host-state-v1.txt", user_root),
+                ("profiles-v1.txt", user_root),
+            ):
+                (folder / name).write_bytes(("preserve-" + name).encode())
+            log = (
+                "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
+                "root=saves/profile-native-ci-rider\n"
+                "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
+                f"bytes=8192 fnv={probe.fnv32(before)}\n"
+                "script f=2472 dump t480 ok\n"
+                "script f=2472 quit\n"
+            )
+            def subprocess_fake(cmd, **kw):
+                self.assertEqual(
+                    kw["env"]["SNESRECOMP_USER_DATA_DIR"], str(user_root))
+                self.assertEqual(
+                    kw["env"]["UR_BALDOSA_MODERN_PROFILE_SELECT"], "1")
+                self.assertNotIn("fixture", " ".join(cmd))
+                # Native game legitimately updates SRAM on exit. The boot
+                # hash must reflect PRE-RUN bytes, not the modified file.
+                (selected / "save.srm").write_bytes(bytes([19]) * 8192)
+                return subprocess.CompletedProcess(cmd, 0, log, "")
+            with (
+                mock.patch.object(probe.subprocess, "run",
+                                  side_effect=subprocess_fake),
+                mock.patch.object(probe, "frame_crcs",
+                                  return_value=["0x1"] * 2472),
+            ):
+                receipt = probe.run_existing_named_profile_fresh_process(
+                    Path("real-baldosa.exe"), Path("retail.sfc"),
+                    Path("2p-route.txt"), root, video="windows",
+                    timeout=20, clean_frames=2473)
+            self.assertTrue(
+                receipt["loaded_8192_byte_save_from_previous_process"])
+            self.assertEqual(
+                receipt["initial_native_sram_fnv32"], probe.fnv32(before))
+            self.assertEqual(receipt["second_process_guest_frames"], 2472)
+            self.assertFalse((user_root / "saves/save.srm").exists())
+            self.assertEqual((selected / "save.srm").read_bytes(),
+                             bytes([19]) * 8192)
+            for name, folder in (
+                ("host-profile.txt", selected),
+                ("host-state-v1.txt", user_root),
+                ("profiles-v1.txt", user_root),
+            ):
+                self.assertEqual(
+                    (folder / name).read_bytes(), ("preserve-" + name).encode())
 
     def test_named_profile_terminal_must_reach_final_script_checkpoint(self):
         clean = 2473

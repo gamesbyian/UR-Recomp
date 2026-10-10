@@ -94,6 +94,7 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         "UR_BALDOSA_PAUSE_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_MODERN_INPUT": "1" if pause else "0",
         "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1" if pause else "0",
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "1" if pause else "0",
         "UR_BALDOSA_DELAYED_RESTART_SMOKE": "1" if delayed_restart else "0",
         "UR_BALDOSA_RESTART_FRAME_TRACE": "1" if (not pause or delayed_restart) else "0",
@@ -461,6 +462,10 @@ def check_pause_log(log: str) -> dict[str, str]:
         r"renderer=shared guest_steps=0", log)
     if len(panel) != 1 or int(panel[0][0]) < 320 or int(panel[0][1]) < 320:
         raise ValueError("Native pause shared panel did not visibly paint the frozen raster")
+    if log.count(
+        "UR_BALDOSA_NATIVE_PAUSE_MENU NAV=1 down_up=1 "
+        "selected=0 guest_steps=0") != 1:
+        raise ValueError("Native Modern menu did not navigate on physical SDL keys")
     if "FAIL=" in log:
         raise ValueError("Native pause code detected a guest-state violation")
     return found

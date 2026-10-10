@@ -106,3 +106,28 @@ A wrong output drawable, missing actual readback, one mismatched RGBA
 pixel, time-bound failure or source divergence must fail CI. Any failure
 is a real output integration finding to investigate, never a reason to
 substitute a synthetically resized image or declare physical scanout.
+
+## Physical SDL alpha normalization, not colour tolerance
+
+The first actual **3840×2160 SDL readback** in native run
+[38074405401](https://github.com/gamesbyian/UR-Recomp/actions/runs/38074405401)
+successfully produced its full-size PAM and preserved the original guest
+CRC stream. The first strict comparison revealed a specific output-domain
+difference at screen pixel `(0,0)`: the source PPU wrote
+`RGB=84a5a5 alpha=00`, while SDL's explicitly OPAQUE presentation
+texture correctly returned `RGB=84a5a5 alpha=ff`. The older checker
+incorrectly equated the PPU's unused alpha byte with final SDL
+pixel opacity.
+
+The physical oracle now requires an **opaque 255 alpha for every
+displayed pixel**, while continuing to compare **every RGB pixel
+exactly** against independent 1× and 4× original source frames.
+The logical-vs-4× source-pixel check retains its original strict RGBA
+identity, including the zero-alpha PPU source. No colour tolerance,
+rescaling or synthetic 4K source generation is introduced. Unit
+regression reproduces the observed zero-alpha source/full-opacity
+display case and rejects an improperly transparent output pixel.
+
+This is a test correction, not a completed physical QA pass:
+the updated native renderer must still pass the *full* 4K framebuffer
+oracle on an independent run.

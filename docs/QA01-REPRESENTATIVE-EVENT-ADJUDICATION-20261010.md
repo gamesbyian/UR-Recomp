@@ -32,6 +32,8 @@ The existing manual `qa01-switcher-original-2014.yml` workflow has one additiona
 
 **Decision:** if `7E:01DD` writes align with genuine push-family opcode and SP movement, prioritize checking the actual stack consumption/liveness at result transition, with `7E:01F1` a useful prior Bowl-not-observed control. If instead a non-stack original store, ISR or DMA is implicated, trace its smallest original caller/read-site; no global `+/-1` input correction. If **zero writes** are observed, that is bounded negative evidence for the scanned 20 CPU-frame window, not proof the bytes are unused; decide whether a *single* earlier bound is justified. In all cases an original-only opcode scope cannot certify native parity, P1 progression, or a Windows candidate, and release admission stays **0/45**.
 
+**Existing original CPU-scope cross-event lead:** original Zoom Zoo run 38011250306 already records `82:B1F2` and `82:B1F9` repeatedly changing `7E:01F1` within the routine neighborhood named `Res_LoadToVram`. The [preserved source-PC crosswalk](QA01-STACK-PAGE-ORIGINAL-PC-CROSSWALK-20261010.md) distinguishes those original Zoo observations from the unproved Switcher writer and records the bounded opt-in Switcher instrumentation. This does not close any original/native release gate.
+
 ## Follow-on discriminator: Switcher host 5782 → 5783
 
 After the restoration window above has been classified, the completed opt-in independent original/native observation at **the same absolute host frame 5782**, immediately before **both** genuine MIKE 1:08.81 results, found identical VRAM (65,536 bytes) and CGRAM (512 bytes), equal values for 21 sampled named state fields, and **eight** differing bytes in the entire 131,072-byte WRAM. Their WRAM offsets are:

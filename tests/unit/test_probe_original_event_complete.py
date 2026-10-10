@@ -239,6 +239,79 @@ class CompleteEventProducerTests(unittest.TestCase):
         self.assertLess(max(target.sample_frames("zoom-zoo", 5163)), 5000)
         self.assertLess(max(target.sample_frames("bowl", 3365)), 3000)
 
+    def test_switcher_true_same_host_script_never_rebases_controller_masks(self):
+        samples = target.sample_frames("switcher", 4703)
+        native_script = target.replay_script(4, 0x99, samples, False)
+        reference_script = target.switcher_penultimate_reference_script(
+            native_script, 4703, samples)
+        self.assertEqual(reference_script.count("dump source-host-minus-one"), 1)
+        self.assertIn("dump scene-04701\nwait 2\ndump source-host-minus-one\n",
+                      reference_script)
+        self.assertEqual(
+            reference_script.replace("wait 2\ndump source-host-minus-one\n", ""),
+            native_script)
+        self.assertLess(
+            reference_script.index("dump source-host-minus-one"),
+            reference_script.index("until 009F == 99 9000"))
+        for script in (reference_script, native_script):
+            self.assertNotIn("poke ", script)
+            self.assertEqual(script.count("press a 2"), native_script.count("press a 2"))
+            self.assertEqual(script.count("press down 2"), native_script.count("press down 2"))
+        with self.assertRaisesRegex(target.CompleteEventError, "observed 2014"):
+            target.switcher_penultimate_reference_script(native_script, 4702, samples)
+        with self.assertRaisesRegex(target.CompleteEventError, "unique native penultimate"):
+            target.switcher_penultimate_reference_script(
+                native_script.replace("dump scene-04701", "dump alternate"), 4703,
+                samples)
+
+    def test_switcher_true_same_host_guest_phase_is_independent_nonadmission(self):
+        with tempfile.TemporaryDirectory() as td:
+            ref_dir, nat_dir = Path(td) / "ref", Path(td) / "native"
+            ref_dir.mkdir()
+            nat_dir.mkdir()
+            w = bytearray(0x20000)
+            w[0x00CE] = 3   # restored true Switcher course ID
+            w[0x009F] = 0x16  # next result scene before 0x99
+            w[0x0313] = 0  # guest has exited the race
+            (ref_dir / "source-host-minus-one.wram.bin").write_bytes(w)
+            (nat_dir / "scene-04701.wram.bin").write_bytes(w)
+            rl = "script f=5782 dump source-host-minus-one ok\n" \
+                 "script f=5783 dump result-onset ok\n"
+            nl = "script f=5782 dump scene-04701 ok\n" \
+                 "script f=5783 dump result-onset ok\n"
+            obs = target.observe_switcher_same_host_penultimate(
+                ref_dir, nat_dir, rl, nl, 4703, 1079, 1081, b"decoder")
+            self.assertEqual(obs["original_absolute_host"], 5782)
+            self.assertEqual(obs["native_absolute_host"], 5782)
+            self.assertEqual(obs["result_absolute_host"], 5783)
+            self.assertEqual(obs["reference_guest_relative_frame"], 4703)
+            self.assertEqual(obs["native_guest_relative_frame"], 4701)
+            self.assertTrue(obs["same_host_named_guest_fields_equal"])
+            self.assertEqual(obs["disagreeing_observed_fields"], [])
+            self.assertEqual(obs["release_complete_event_credit"], 0)
+            self.assertFalse(obs["original_movie_input_modified"])
+            w[0x0313] = 1
+            (nat_dir / "scene-04701.wram.bin").write_bytes(w)
+            changed = target.observe_switcher_same_host_penultimate(
+                ref_dir, nat_dir, rl, nl, 4703, 1079, 1081, b"decoder")
+            self.assertFalse(changed["same_host_named_guest_fields_equal"])
+            self.assertEqual(changed["disagreeing_observed_fields"], ["in_race"])
+            self.assertEqual(changed["release_complete_event_credit"], 0)
+            with self.assertRaisesRegex(target.CompleteEventError, "identical genuine"):
+                target.observe_switcher_same_host_penultimate(
+                    ref_dir, nat_dir,
+                    rl.replace("f=5782", "f=5781"), nl,
+                    4703, 1079, 1081, b"decoder")
+            with self.assertRaisesRegex(target.CompleteEventError, "identical genuine"):
+                target.observe_switcher_same_host_penultimate(
+                    ref_dir, nat_dir, rl,
+                    nl.replace("f=5783", "f=5784"),
+                    4703, 1079, 1081, b"decoder")
+            (nat_dir / "scene-04701.wram.bin").write_bytes(w[:-1])
+            with self.assertRaisesRegex(target.CompleteEventError, "invalid complete"):
+                target.observe_switcher_same_host_penultimate(
+                    ref_dir, nat_dir, rl, nl, 4703, 1079, 1081, b"decoder")
+
     def test_switcher_terminal_wram_admits_only_original_course_zero_transient(self):
         with tempfile.TemporaryDirectory() as td:
             path = Path(td) / "scene-04664.wram.bin"

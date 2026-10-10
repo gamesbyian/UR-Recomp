@@ -53,8 +53,15 @@ def analyze(original_dir: Path, native_dir: Path, original_log: str,
         files = (original_dir / f"{label}.wram.bin",
                  native_dir / f"{label}.wram.bin")
         rows = (old.snapshot(files[0]), old.snapshot(files[1]))
-        if any(row["track_id"] != 1 for row in rows):
-            raise ValueError(f"wrong active USA Zoom Zoo track at {label}")
+        # Zoo legitimately passes through an interstitial menu before the
+        # results screen: track_id=0 while menu=0x84. Requiring track 1 at
+        # every prelude frame incorrectly rejects original Snes9x itself.
+        # Still fail closed on all other unrecognized scene/course states.
+        known_zoo_stages = {(1, 0x00), (0, 0x84), (1, 0x16), (1, 0xBC)}
+        if any((row["track_id"], row["menu"]) not in known_zoo_stages
+               for row in rows):
+            raise ValueError(f"unexpected Zoo course/transition state at {label}: "
+                             f"{[(row['track_id'], row['menu']) for row in rows]}")
         for key in rows[0]:
             if rows[0][key] != rows[1][key]:
                 different.append({"relative_frame": frame, "field": key,

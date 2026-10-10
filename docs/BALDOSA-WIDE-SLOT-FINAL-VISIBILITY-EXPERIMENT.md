@@ -99,3 +99,31 @@ This test is the first live, non-synthetic final-pixel attribution,
 **not permission** to enable source removal or HD compositing in
 production. Any mismatch is a high-priority PPU priority/attribution
 blocker to investigate, never something to silence or bypass.
+
+## First successful native result and cross-view/moving follow-up
+
+Native AOT run
+[38073654745](https://github.com/gamesbyian/UR-Recomp/actions/runs/38073654745)
+completed the initial slot-98/1856 counterfactual: **321** isolated
+source-alpha pixels, **307** changed Original final-PPU pixels, **zero**
+changes outside the emitted source alpha, and identical full guest CRC
+streams in stock/source/removal processes. The remaining 14 emitted
+pixels with no final output difference are **not automatically occluded**:
+the stock pixel may coincidentally match the revealed layer's RGBA.
+The observed difference is thus a **lower bound** on final pixel
+influence, not a perfect ownership mask to apply to authored HD.
+
+The same preexisting native workflow now records two independent
+counterfactuals: slot 96/frame 1856 in the opposite split view, and
+slot 98/frame 1872 in an independently moving racer/source frame.
+Both use the already-collected untouched stock and single-slot source
+planes from the identical guest input, require full CRC equality and
+perform an exact per-pixel comparison. The results are retained
+individually, not combined into guessed four-slot compositor
+authorization. A zero-effect source or any unexpected changed pixel
+fails closed.
+
+Until native post-priority per-pixel **ownership** can disambiguate
+same-colour substitutions, even these multi-frame findings do not
+authorize replacing/removing all source sprites or enabling 342-wide
+Remastered rendering.

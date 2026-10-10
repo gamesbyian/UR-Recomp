@@ -414,6 +414,11 @@ jobs:
             --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_guarded_hd/log.txt" \
             --captures "$RUNNER_TEMP/baldosa-guarded-1p-4x" \
             --out "$RUNNER_TEMP/baldosa-evidence/guarded_1p_hd_coverage.json"
+          python3 tools/check_baldosa_1p_hd_nonlocal_pixels.py \
+            --captures "$RUNNER_TEMP/baldosa-guarded-1p-4x" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_guarded_hd/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/guarded_1p_hd_source_band_parity.json"
+          echo "PASS: native fixed-1P authored source-positive 4x pixels preserve source-absent screen band, original source-removal underlay retained" >> "$GITHUB_STEP_SUMMARY"
           echo "OBSERVED: real independently CRC-matched native 1P authored-HD admission and pixel evidence, no 342-wide product gate claim" >> "$GITHUB_STEP_SUMMARY"
 
 
@@ -1186,6 +1191,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/safe_hd_guest_vs_host_census.json
             ${{ runner.temp }}/baldosa-evidence/guarded_p1_4x_coverage.json
             ${{ runner.temp }}/baldosa-evidence/guarded_1p_hd_coverage.json
+            ${{ runner.temp }}/baldosa-evidence/guarded_1p_hd_source_band_parity.json
+            ${{ runner.temp }}/baldosa-guarded-1p-4x/ur-baldosa-hd-postcapture-underlay-*.pam
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_guarded_hd/log.txt
             ${{ runner.temp }}/baldosa-guarded-1p-4x/ur-baldosa-frame-*.pam
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_guarded_p1/log.txt

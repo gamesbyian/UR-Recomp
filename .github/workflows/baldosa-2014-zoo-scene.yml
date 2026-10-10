@@ -13,6 +13,7 @@ on:
       - "tools/instrument_snesref_zoo_menu_writes.py"
       - "tools/baldosa_zoo_opcode_writer_report.py"
       - "tools/baldosa_zoo_native_write_chronology.py"
+      - "tools/baldosa_qa_native_writer_window_patch.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
@@ -121,6 +122,8 @@ jobs:
           # guest code, Modern UI, renderer or gameplay source.
           python3 tools/baldosa_qa_dense_scene_input_patch.py \
             --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          python3 tools/baldosa_qa_native_writer_window_patch.py \
+            --framework-cpu-state baldosa/snesrecomp/runner/src/cpu_state.c
           git -C baldosa/snesrecomp diff --check
           cmake -S baldosa -B baldosa/build -G Ninja \
             -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
@@ -293,10 +296,13 @@ jobs:
           # Capture native guest writer/helper scopes only in the existing
           # one-run pinned Baldosa boundary replay (no new recompilation).
           # The framework logger has no CPU-PC promise for native AOT scopes.
+          NATIVE_ENTRY="$(python3 -c 'import sys; sys.path.insert(0, "tools"); from baldosa_2014_zoo_calibrated_input import guest_scene_entry; print(guest_scene_entry(open(sys.argv[1]).read()))' "$ROOT/native-calibration/log.txt")"
           export SNESRECOMP_WLOG_ADDR="008B:00CE:$ROOT/native-menu-writes.log"
           export SNESRECOMP_WLOG_ADDR_CAP=100000
+          export UR_QA_ZOO_NATIVE_WRITE_FIRST="$((NATIVE_ENTRY + 5152))"
+          export UR_QA_ZOO_NATIVE_WRITE_LAST="$((NATIVE_ENTRY + 5165))"
           bash baldosa/tools/run_route.sh "$ROOT/boundary.txt" "$ROOT/native-boundary"
-          unset SNESRECOMP_WLOG_ADDR SNESRECOMP_WLOG_ADDR_CAP
+          unset SNESRECOMP_WLOG_ADDR SNESRECOMP_WLOG_ADDR_CAP UR_QA_ZOO_NATIVE_WRITE_FIRST UR_QA_ZOO_NATIVE_WRITE_LAST
           test -s "$ROOT/native-menu-writes.log"
           test -s "$ROOT/native-boundary/dump/boundary-05163.wram.bin"
           python3 tools/baldosa_2014_zoo_boundary_report.py \

@@ -5,6 +5,7 @@
 #include "host_profile_store.hpp"
 #include "host_profile_runtime.hpp"
 #include "host_profile_catalog.hpp"
+#include "baldosa_native_profile_sram_checkpoint.hpp"
 
 #include <array>
 #include <cassert>
@@ -17,6 +18,8 @@
 #include <unistd.h>
 
 extern "C" int ur_baldosa_modern_try_activate_profile(void);
+extern "C" int ur_baldosa_modern_profile_before_native_save(void);
+extern "C" int ur_baldosa_modern_profile_finish_native_save(int);
 
 /* Real pinned framework provides these. Keep the unit executable's tiny RTL
  * shim link-complete after adding the read-only first-frame SRAM witness. */
@@ -119,6 +122,56 @@ int main() {
     assert(selected_racer == identity->name);
     assert(fs::file_size("saves/profile-rider-1/save.srm") == kStockSramBytes);
     assert(!fs::exists("saves/save.srm"));
+
+    // The original framework write MUST be preceded by a compatible typed
+    // selection check under the canonical OS lock, retained until CAS.
+    g_sram = initialized.data();
+    g_sram_size = static_cast<int>(initialized.size());
+    const std::string global_path = (dir / "host-state-v1.txt").string();
+    assert(ur_baldosa_modern_profile_before_native_save() == 1);
+    {
+        TournamentLaunchPathLock competing(global_path, true);
+        assert(!competing.acquired());
+    }
+    assert(ur_baldosa_modern_profile_finish_native_save(1) == 1);
+    {
+        TournamentLaunchPathLock released(global_path, true);
+        assert(released.acquired());
+    }
+
+    // An external Modern instance can change selector/profile while this
+    // native process runs; shutdown must refuse BEFORE writing raw SRAM.
+    const auto original_raw_size =
+        fs::file_size("saves/profile-rider-1/save.srm");
+    HostProductState different_selector = state;
+    different_selector.active_profile_id.reset();
+    assert(save_host_product_state_file(global_path, different_selector) ==
+           HostProductSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_before_native_save() == 0);
+    assert(fs::file_size("saves/profile-rider-1/save.srm") ==
+           original_raw_size);
+    assert(save_host_product_state_file(global_path, state) ==
+           HostProductSaveStatus::Saved);
+
+    auto newer_profile = *profile;
+    newer_profile.recent_track = 7;
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
+        newer_profile) == HostProfileSaveStatus::Saved);
+    assert(ur_baldosa_modern_profile_before_native_save() == 0);
+    assert(fs::file_size("saves/profile-rider-1/save.srm") ==
+           original_raw_size);
+    assert(save_host_profile_state_file(
+        ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
+        *profile) == HostProfileSaveStatus::Saved);
+
+    // Failed upstream SRAM I/O must also release the selector lease.
+    assert(ur_baldosa_modern_profile_before_native_save() == 1);
+    assert(ur_baldosa_modern_profile_finish_native_save(0) == 0);
+    {
+        TournamentLaunchPathLock released(global_path, true);
+        assert(released.acquired());
+    }
 
     // An invalid loaded selector must NEVER downgrade to default saves.
     state.active_profile_id = "../other-player";

@@ -219,6 +219,11 @@ jobs:
           UR_RACER_HD: "1"
           UR_RACER_HD_CENSUS: "1"
           UR_BALDOSA_HD: "1"
+          # Archival P1/P2 authored-art acceptance intentionally predates the
+          # production overlap guard. Only sealed --script route dumps plus
+          # both explicit flags can bypass it. Production is checked below.
+          UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE: "1"
+          UR_BALDOSA_HD_SOURCE_ART_FIXTURE: "1"
         run: |
           set -euo pipefail
           # Layer on the already-proven read-only observer. Existing UR
@@ -240,6 +245,8 @@ jobs:
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd"
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt"
+          grep -F 'UR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 warning=overlap-guard-bypassed-for-art-reference-only' \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/log.txt"
           python3 tools/baldosa_hd_presentation_report.py \
             --baseline "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
             --candidate "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd/fd/crc.txt" \
@@ -270,6 +277,52 @@ jobs:
             --captures "$UR_BALDOSA_HD_CAPTURE_DIR" \
             --out "$RUNNER_TEMP/baldosa-evidence/original_4x_fallback.json"
           echo "PASS: real stable-density 4x Original fallback with no split-view subpixel drift" >> "$GITHUB_STEP_SUMMARY"
+
+          echo "PASS: archival 1x/4x source-art captures use explicit sealed fixture bypass only, with original guest CRC preserved" >> "$GITHUB_STEP_SUMMARY"
+
+          # Independent production-safe path, same exact guest/script and
+          # host binary. A failing full-pair overlapping source must retain
+          # stock; this route may still draw disjoint safe HD when available.
+          # It must NEVER inherit either archival unsafe opt-in.
+          env -u UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE \
+              -u UR_BALDOSA_HD_SOURCE_ART_FIXTURE \
+              UR_BALDOSA_HD_DENSITY=1 \
+              UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-hd-safe-captures" \
+              bash baldosa/tools/run_route.sh \
+              baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe/fd/crc.txt"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
+          assert "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE" not in log
+          gates = re.findall(
+              r"^UR_RACER_HD_CENSUS frame=(\d+) phase=gate status=original "
+              r"reason=overlapping-source-obj$", log, re.M)
+          assert gates, "production route must exercise refused overlapping racer OAM"
+          # A Baldosa scripted guest frame need not get a desktop present.
+          # Check every *actual* present for each refused frame, rather
+          # than inventing a host render on all 2,473 simulation frames.
+          presents = {}
+          for frame, status, reason in re.findall(
+              r"^UR_RACER_HD_CENSUS frame=(\d+) phase=present "
+              r"status=([a-z-]+) reason=([a-z-]+)$", log, re.M
+          ):
+              presents.setdefault(frame, []).append((status, reason))
+          overlap_presents = 0
+          for frame in gates:
+              for status, reason in presents.get(frame, []):
+                  assert (status, reason) == ("original", "not-armed"), (
+                      "overlap-refused guest frame produced non-stock output",
+                      frame, status, reason
+                  )
+                  overlap_presents += 1
+          print(f"UR_BALDOSA_PRODUCTION_OVERLAP_GUARD PASS refused_guest_frames={len(gates)} "
+                f"stock_host_presents={overlap_presents} "
+                "guest_crc_identical=1 unsafe_bypass=0")
+          PY
+          echo "PASS: ordinary Baldosa 2P source-overlap fallback preserves guest and refuses unsafe removal" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Capture calibrated +24 split-screen world pixels without guest writes
         shell: bash
@@ -361,6 +414,9 @@ jobs:
           # and removal explicitly OFF. Full stock frames must be identical.
           export UR_BALDOSA_HD_DENSITY=1
           export UR_RACER_HD_WIDE_SOURCE_FRAME=1856
+          # Frame 1872 is already captured as Original in these same
+          # four guest processes; collect isolated OAM source at both.
+          export UR_RACER_HD_WIDE_SOURCE_EXTRA_FRAME=1872
           export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-obj-slots"
           mkdir -p "$UR_RACER_HD_WIDE_SOURCE_DIR"
           for slot in 96 97 98 99; do
@@ -378,6 +434,13 @@ jobs:
               --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
               --slot "$slot" --min-shared 4 \
               --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_$slot.json"
+            python3 tools/check_baldosa_wide_single_slot_source.py \
+              --original-dir "$RUNNER_TEMP/baldosa-ws342-captures" \
+              --probe-dir "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+              --source-file "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot$slot-frame001872.pam" \
+              --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_$slot/log.txt" \
+              --slot "$slot" --min-shared 4 \
+              --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_slot_${slot}_frame1872.json"
           done
           python3 - <<'PY'
           import json
@@ -409,6 +472,36 @@ jobs:
             --frame 1856 \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json"
           echo "PASS: exact original PPU overlap, source-priority RGB witness in top and bottom race views" >> "$GITHUB_STEP_SUMMARY"
+          # Frame 1872 is an independent moving-OBJ observation. The same
+          # dual-overlap color pattern is not an assertion for later frames.
+          python3 tools/analyze_baldosa_wide_obj_overlap.py \
+            --main-pam "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001872.pam" \
+            --slot-dir "$RUNNER_TEMP/baldosa-ws342-obj-slots" \
+            --reports "$RUNNER_TEMP/baldosa-evidence" \
+            --frame 1872 --record-only \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json"
+          python3 - "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1856.json" \
+            "$RUNNER_TEMP/baldosa-evidence/ws342_obj_overlap_frame1872.json" <<'PY'
+          import json, pathlib, sys
+          first, next_frame = [
+              json.loads(pathlib.Path(name).read_text(encoding="utf-8"))
+              for name in sys.argv[1:]
+          ]
+          assert first["guest_frame"] == 1856 and first["status"] == "passed", first
+          assert next_frame["guest_frame"] == 1872
+          assert first["stock_ppu_sha256"] != next_frame["stock_ppu_sha256"], (
+              "No independent moving 342-wide source frame"
+          )
+          print(
+              "UR_BALDOSA_WIDE_MOVING_SOURCE PASS "
+              f"reference=1856 moving=1872 "
+              f"second_status={next_frame['status']} "
+              f"second_top_overlap={next_frame['source_overlap_pairs']['98-99']} "
+              f"second_bottom_overlap={next_frame['source_overlap_pairs']['96-97']} "
+              f"second_source={next_frame['source_alpha_total_across_slots']}"
+          )
+          PY
+          echo "PASS: exact frame-1872 source-OBJ slot provenance across same four source-wide native guest processes" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Summarize executable evidence
         if: always()
@@ -440,6 +533,7 @@ jobs:
           path: |
             ${{ runner.temp }}/baldosa-evidence/report.json
             ${{ runner.temp }}/baldosa-evidence/hd_presentation.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_hd_safe/log.txt
             ${{ runner.temp }}/baldosa-evidence/hd_presentation_4x.json
             ${{ runner.temp }}/baldosa-evidence/original_4x_fallback.json
             ${{ runner.temp }}/baldosa-hd-captures-4x/ur-baldosa-fallback-*.pam
@@ -449,6 +543,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_*.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_obj_overlap_frame1872.json
             ${{ runner.temp }}/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot*.pam
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam

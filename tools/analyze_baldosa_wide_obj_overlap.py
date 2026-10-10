@@ -140,7 +140,10 @@ def assess(
             f"ur-baldosa-ws342-obj-slot{slot}-frame{frame:06d}.pam")
         source[slot] = read_pam(path)
         evidence = json.loads(
-            (reports / f"ws342_obj_slot_{slot}.json").read_text(
+            (reports / (
+                f"ws342_obj_slot_{slot}.json" if frame == 1856
+                else f"ws342_obj_slot_{slot}_frame{frame}.json"
+            )).read_text(
                 encoding="utf-8")
         )
         meta = evidence["source"]
@@ -165,6 +168,9 @@ def main() -> int:
     p.add_argument("--slot-dir", type=Path, required=True)
     p.add_argument("--reports", type=Path, required=True)
     p.add_argument("--frame", type=int, default=1856)
+    p.add_argument("--record-only", action="store_true",
+                   help="Retain exact PPU/provenance observations even when "
+                        "this later frame lacks the historic dual-overlap witness")
     p.add_argument("--out", type=Path, required=True)
     a = p.parse_args()
     result = assess(a.main_pam, a.slot_dir, a.reports, a.frame)
@@ -178,7 +184,7 @@ def main() -> int:
         f"top={result['source_overlap_pairs']['98-99']} "
         f"bottom={result['source_overlap_pairs']['96-97']}"
     )
-    return 0 if result["status"] == "passed" else 1
+    return 0 if a.record_only or result["status"] == "passed" else 1
 
 
 if __name__ == "__main__":

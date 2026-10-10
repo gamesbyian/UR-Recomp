@@ -282,3 +282,64 @@ The source-absent frame-1139 false-positive is a measurement error, not
 license to admit new sprite substitutions. Existing release policy and
 the 0/441 safe moving-race callback observation are unaffected. At this
 writing, CI validation of the new actual-pixel witness is pending.
+
+## Negative P1-only overlap rescue and two-frame wide OAM source check (2026-10-10)
+
+[Experimental PR #1111](https://github.com/gamesbyian/UR-Recomp/pull/1111)
+was **closed without merge** after all its native CI checks passed but the
+desired overlap-recovery witness remained **0 frames**. The 441-frame 256-wide
+test yielded **12 actual changed host-output frames** when opting into the
+already-established *singleton* P1-only path, but **none** of the original
+87 overlapping full-pair refusals were newly admitted. A separate 2,641-frame
+P1-only route likewise admitted **zero** overlapping-pair rescues alongside
+902 already-existing P1-only partial captures. Therefore the experiment did
+not justify changing shipping selection/OBJ-capture policy. Original fallback
+and all per-instance source/priority guards remain in force.
+
+For the more informative next discriminator, the existing pinned 342-wide
+native route now isolates the *same four stock OAM slots 96–99* at **frame
+1872**, in addition to historical frame **1856**, using the four **already
+running** single-slot processes. Its existing stock screenshots already
+include both frames. For each slot/frame the independent reference/native
+full 342×224 rasters, guest CRC stream, exact PAM source alpha, source-frame
+hash and per-slot provenance must agree. The overlap analyzer then compares
+the resulting isolated hardware source emission against the same-frame
+original main raster, recording front/rear RGB matches, unequal pixels and
+split-viewport overlap. It preserves the stronger 1856 expected dual-overlap
+assertion; later frame 1872 is **observation-only**, since missing, changed or
+source-occluded racers must not be faked just to repeat the previous result.
+
+A source plane is generated *before* BG/window composition. Neither changed
+OAM alpha nor matching source/main RGB proves final ownership or authorizes
+destructive `RemoveFromGame`. Two-frame evidence cannot certify every
+moving scene, HD at 342 logical columns, or 4K physical output. This work
+adds source-fidelity discrimination without a fifth native guest execution
+per frame or another presentation architecture.
+
+## Archival Baldosa art CI versus production fallback (2026-10-10)
+
+The pinned Baldosa AOT native CI's original HD 1×/4× compositing reports
+predate the merged #1104 overlap guard. After that safety correction, the
+ordinary 2P guest still executes **2,473/2,473 identical WRAM CRC frames**,
+but the older report correctly becomes `unproven`: it observes **zero**
+destructively admitted source-art captures and therefore no invented two-racer
+authored pixels. This is not permission to weaken the safety guard or to
+count a script's successful exit as a replacement.
+
+To preserve both independent contracts, archival full-pair art comparison
+now requires **all** of `UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE=1`,
+`UR_RACER_HD_CENSUS=1`, `UR_BALDOSA_HD_SOURCE_ART_FIXTURE=1`, and an
+actual sealed Baldosa native framedump/script process with
+`UR_BALDOSA_HD=1` and `SNESRECOMP_DUMP_DIR`. It emits the existing
+explicit `UR_RACER_HD_UNSAFE_LEGACY_FIXTURE` warning and remains **unsafe
+for ordinary gameplay**. The old desktop input-script route remains
+independently supported. The default program never sets these fixtures.
+
+The same native CI step additionally executes the **same pinned 2P input
+route** with both unsafe fixture flags *unset*, asserts all 2,473 guest
+WRAM CRCs still match original Baldosa, requires actual
+`overlapping-source-obj` refusals, and verifies those exact frames are
+presented as Original rather than arming destructive capture. Authored
+art approval from unsafe fixtures and production-safe graphical coverage
+remain separate evidence. No 342-wide authored racer admission, complete
+event fidelity, physical 4K output or QA-08 shipping gate is claimed.

@@ -84,8 +84,20 @@ bool unsafe_legacy_overlap_fixture_enabled() noexcept {
     static const bool enabled = [] {
         const char* opt = std::getenv("UR_RACER_HD_UNSAFE_OVERLAP_FIXTURE");
         const char* input = std::getenv("SNESRECOMP_INPUT_FILE");
-        return hd_census_enabled() && input != nullptr && *input != '\0' &&
-               opt != nullptr && opt[0] == '1' && opt[1] == '\0';
+        // The pinned Baldosa --script native guest uses a separately
+        // sealed route (SNESRECOMP_DUMP_DIR), not the historical desktop
+        // SNESRECOMP_INPUT_FILE player-input fixture. Require its own
+        // explicit, *additional* opt-in for archival source-art tests.
+        const char* baldosa_test = std::getenv("UR_BALDOSA_HD_SOURCE_ART_FIXTURE");
+        const char* baldosa_host = std::getenv("UR_BALDOSA_HD");
+        const char* baldosa_route = std::getenv("SNESRECOMP_DUMP_DIR");
+        const bool pinned_baldosa_fixture =
+            baldosa_test && baldosa_test[0] == '1' && baldosa_test[1] == '\0' &&
+            baldosa_host && baldosa_host[0] == '1' && baldosa_host[1] == '\0' &&
+            baldosa_route && *baldosa_route;
+        return hd_census_enabled() && opt && opt[0] == '1' &&
+               opt[1] == '\0' &&
+               ((input && *input) || pinned_baldosa_fixture);
     }();
     return enabled;
 }
@@ -126,12 +138,18 @@ int wide_source_probe_slot() noexcept {
 void dump_wide_obj_source() noexcept {
     if (!g_wide_probe_armed || g_wide_probe_dumped) return;
     const char* requested = std::getenv("UR_RACER_HD_WIDE_SOURCE_FRAME");
+    const char* additional = std::getenv("UR_RACER_HD_WIDE_SOURCE_EXTRA_FRAME");
     const char* directory = std::getenv("UR_RACER_HD_WIDE_SOURCE_DIR");
     if (!requested || !*requested || !directory || !*directory) return;
-    char* end = nullptr;
-    const unsigned long target = std::strtoul(requested, &end, 10);
-    if (end == requested || *end != '\0' || target != g_sim_frame) return;
-    g_wide_probe_dumped = true;  // one exact source-frame capture per process
+    const auto matches_frame = [](const char* value, unsigned frame) noexcept {
+        if (!value || !*value) return false;
+        char* end = nullptr;
+        const unsigned long target = std::strtoul(value, &end, 10);
+        return end != value && *end == '\0' && target == frame;
+    };
+    if (!matches_frame(requested, g_sim_frame) &&
+        !matches_frame(additional, g_sim_frame)) return;
+    g_wide_probe_dumped = true;  // at most one dump per matching guest frame
 
     char path[1024];
     const int n = std::snprintf(path, sizeof(path),

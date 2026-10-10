@@ -21,7 +21,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 self.assertIn("until 0E1F != 00", script)
                 self.assertIn("dump go", script)
                 self.assertIn("wait 900", script)
-                self.assertTrue(script.endswith("quit\\n"))
+                self.assertEqual(script.splitlines()[-1], "quit")
+                self.assertTrue(script.endswith(chr(10)))
                 self.assertNotIn("press down 2", script)
                 self.assertNotIn("press p2:right", script)
                 # The original 1P picker has four post-main accepts;

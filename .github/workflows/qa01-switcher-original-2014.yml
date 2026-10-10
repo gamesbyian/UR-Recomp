@@ -1,0 +1,83 @@
+name: QA-01 original 2014 Switcher Race B source qualification
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-switcher-original-2014.yml"
+      - "tools/probe_original_switcher_source_2014.py"
+      - "tools/probe_original_event_complete.py"
+      - "tests/unit/test_probe_original_switcher_source_2014.py"
+      - "tools/bootstrap_toolchain.py"
+      - "tools/toolchain-entries/snes9x-libretro.json"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa01-switcher-source-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  source-original-switcher:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 25
+    steps:
+      - name: Check out USA source and archived historical 2014 movie
+        uses: actions/checkout@v4
+      - name: Check out pinned Snes9x reference runner
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Check ROM core and source metadata before replay
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          python3 -m unittest discover -s tests/unit -p test_probe_original_switcher_source_2014.py
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+
+      - name: Build only original Snes9x and snesref for bounded archive scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential cmake pkg-config libsdl2-dev
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+                -B "$RUNNER_TEMP/qa01-switcher-snesref" \
+                -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-switcher-snesref" -j2
+
+      - name: Scan the original movie for a real Switcher result and archive provenance
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/probe_original_switcher_source_2014.py \
+            --snesref "$RUNNER_TEMP/qa01-switcher-snesref/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work-dir "$RUNNER_TEMP/qa01-switcher" \
+            --report "$RUNNER_TEMP/qa01-switcher/source-switcher-result.json" \
+            --source-horizon 22000
+          cat "$RUNNER_TEMP/qa01-switcher/source-switcher-result.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Original source only, 0/45 native release credit." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain original-only source diagnostic and no copyrighted movie bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-switcher-original-source-2014
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-switcher/source-switcher-result.json
+            ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-event-diagnostic.json
+            ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-scan.log
+            ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-entry.log

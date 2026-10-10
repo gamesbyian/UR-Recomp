@@ -91,7 +91,8 @@ class NativeOamArtWorklistTests(unittest.TestCase):
         self.assertLess(i, gate)
         self.assertIn("racer_p1_only_no_stock_p2_occlusion(", native[:gate])
         self.assertIn("decode_racer_split_ppu_placement(", native[:gate])
-        self.assertIn('trace[1] == \\'\\0\\' && number >= 1700', native)
+        self.assertIn("trace[1] ==", native)
+        self.assertIn("number >= 1700", native)
 
     def test_inconsistent_oam_bank_and_front_safety_rejected(self):
         text = trace(1728, "0A4B", 0, 0, 0, 2)

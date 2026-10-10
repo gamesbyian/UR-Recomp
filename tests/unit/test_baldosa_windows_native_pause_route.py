@@ -159,12 +159,15 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
     def test_pause_needs_all_three_real_witnesses(self):
         valid = ("UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=512x448 renderer=shared guest_steps=0\n"
+                 "UR_BALDOSA_NATIVE_PAUSE_MENU NAV=1 down_up=1 selected=0 guest_steps=0\n"
                  "UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=1952 present_count=24 no_guest_steps=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE RELEASED guest=1952 frozen_pumps=24 physical_sdl=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24\n"
                  "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=1900 sram_equal=1 wram_equal=1\n")
         self.assertEqual(set(probe.check_pause_log(valid)),
                          {"ARMED", "RELEASED", "RESUMED"})
+        with self.assertRaisesRegex(ValueError, "navigate"):
+            probe.check_pause_log(valid.replace("NAV=1", "NAV=0"))
         with self.assertRaisesRegex(ValueError, "shared panel"):
             probe.check_pause_log(valid.replace("PANEL_RENDERED=1", "PANEL_RENDERED=0"))
         with self.assertRaisesRegex(ValueError, "shared panel"):
@@ -196,6 +199,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         valid = (
             "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 live_race=1 modern_session=1 physical_sdl=1\n"
                  "UR_BALDOSA_NATIVE_PAUSE PANEL_RENDERED=1 pixels=512x448 renderer=shared guest_steps=0\n"
+                 "UR_BALDOSA_NATIVE_PAUSE_MENU NAV=1 down_up=1 selected=0 guest_steps=0\n"
             "UR_BALDOSA_NATIVE_RESTART SAME_FRAME guest=1800 sram_equal=1 wram_equal=1\n"
             "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=1800 request_guest=1952 paused=1 sram_equal=1 wram_rewound=1\n"
             "UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=1952 present_count=24 no_guest_steps=1\n"

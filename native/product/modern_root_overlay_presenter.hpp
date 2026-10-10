@@ -41,6 +41,7 @@ struct ModernRootOverlayView {
     // Existing Modern host retains all routes by default; a native guest
     // may narrow advertised capabilities without replacing its menu model.
     std::uint8_t available_destinations = 0x1fu;
+    bool racer_shortcuts_available = true;
 };
 
 inline bool render_modern_root_overlay(
@@ -154,7 +155,9 @@ inline bool render_modern_root_overlay(
         0xFFFFFFFFu, scale);
     paint.draw_text(pixels, stride, surface_height,
         x + 8 * scale, y + 193 * scale,
-        "X/F2 RACERS   F1 HELP", palette.cursor_blue, scale);
+        view.racer_shortcuts_available
+            ? "X/F2 RACERS   F1 HELP"
+            : "RACER SETUP NOT YET LINKED", palette.cursor_blue, scale);
     if (view.quit_confirm) {
         const int qx = x + 12 * scale, qy = y + 65 * scale;
         const int qw = (panel_w - 24) * scale;

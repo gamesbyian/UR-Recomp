@@ -36,7 +36,7 @@ constexpr std::uint8_t kNativeRootAvailable =
     (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
     (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer));
 ModernRootMenu g_menu{};
-std::string g_racer_name = "CREATE A RACER WITH X";
+std::string g_racer_name = "STOCK RACER - NO PROFILE";
 bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_render_reported = false;
@@ -127,7 +127,7 @@ void back() {
 }  // namespace
 
 extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
-    g_racer_name = name && *name ? name : "CREATE A RACER WITH X";
+    g_racer_name = name && *name ? name : "STOCK RACER - NO PROFILE";
 }
 
 extern "C" void ur_baldosa_modern_root_after_config(void) {
@@ -204,7 +204,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     const ModernRootOverlayView view{
         g_menu, false, g_racer_name,
-        false, g_confirm_quit, kNativeRootAvailable};
+        false, g_confirm_quit, kNativeRootAvailable, false};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),
         static_cast<int>(pitch / 4), height, 1, 240,

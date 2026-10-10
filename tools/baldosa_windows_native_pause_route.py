@@ -200,6 +200,31 @@ def assert_corrupt_named_profile_rejected(
         raise ValueError("Rejected named profile unexpectedly mutated SRAM")
 
 
+
+def check_named_profile_guest_terminal(
+    framedump_crcs: list[str], log: str, *, clean_frames: int
+) -> int:
+    """Real saved SRAM can shift the menu until-loop by one guest frame.
+
+    This is not a tolerance for a missing scripted checkpoint. The native
+    route must explicitly report a valid t480 dump and quit at the last
+    actually rendered native guest frame, with no more than one prior-boot
+    frame difference from the otherwise untouched clean-SRAM baseline.
+    """
+    named_frames = len(framedump_crcs)
+    if named_frames not in (clean_frames - 1, clean_frames):
+        raise ValueError(
+            f"Named-profile guest frame count outside independently observed "
+            f"one-frame saved-SRAM window: {named_frames} vs {clean_frames}")
+    for event in ("dump t480 ok", "quit"):
+        if not re.search(
+            rf"^script f={named_frames} {re.escape(event)}$",
+            log, re.MULTILINE,
+        ):
+            raise ValueError(
+                f"Named-profile guest did not reach real terminal checkpoint: {event}")
+    return named_frames
+
 def check_pause_log(log: str) -> dict[str, str]:
     found = {kind: rest for kind, rest in PAUSE.findall(log)}
     if set(found) != {"ARMED", "RELEASED", "RESUMED"}:
@@ -383,26 +408,8 @@ def main() -> int:
         exe, rom, script, root, pause=False, video=args.video,
         timeout=args.timeout, profile_fixture=fixture,
         profile_seed=sram_seed)
-    # A genuine saved 8-KiB cartridge has persisted menu/demo state. That
-    # changes the script's first 'until' duration by one observed frame on
-    # the pinned Windows route (2472 rather than clean-SRAM 2473). Require
-    # the actual game's FINAL checkpoint, not an identical clean boot frame
-    # count for deliberately different initial SRAM.
-    named_frames = len(named_crc)
-    if named_frames not in (args.expected_frames - 1, args.expected_frames):
-        raise ValueError(
-            f"Named-profile guest frame count outside independently observed "
-            f"one-frame saved-SRAM window: {named_frames} vs {args.expected_frames}")
-    if not re.search(
-        rf"^script f={named_frames} dump t480 ok$",
-        named_log, re.MULTILINE
-    ) or not re.search(
-        rf"^script f={named_frames} quit$",
-        named_log, re.MULTILINE
-    ):
-        raise ValueError(
-            "Named-profile guest did not reach the script's terminal t480 "
-            "checkpoint and clean native-script quit")
+    named_frames = check_named_profile_guest_terminal(
+        named_crc, named_log, clean_frames=args.expected_frames)
     named_proof = verify_named_profile_boot(named_log, sram_seed)
     assert_corrupt_named_profile_rejected(
         exe, rom, script, root, fixture, sram_seed,

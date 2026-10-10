@@ -187,17 +187,20 @@ inline bool render_modern_root_overlay(
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 9 * scale,
                         "STORED RUNS", palette.title_yellow, scale);
+        // The 216-logical-pixel modal has a 9-pixel text inset on each
+        // side. At 8 logical pixels/glyph, 24 cells fit safely. A previous
+        // 22-cell limit silently truncated the last run's hundredths digit.
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 38 * scale,
                         fit_modern_overlay_text(
                             view.records_status, modern_overlay_text_cells(
-                                panel_w - 42)).c_str(),
+                                panel_w - 30)).c_str(),
                         0xFFFFFFFFu, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 60 * scale,
                         fit_modern_overlay_text(
                             view.records_recent, modern_overlay_text_cells(
-                                panel_w - 42)).c_str(),
+                                panel_w - 30)).c_str(),
                         palette.secondary_grey, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 85 * scale,

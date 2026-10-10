@@ -148,6 +148,12 @@ class SourceOverlapTests(unittest.TestCase):
         self.assertEqual(bottom["neither_matches_original"], 1)
         self.assertEqual(top["front_only_matches_original"], 0)
         self.assertEqual(bottom["front_only_matches_original"], 0)
+        self.assertEqual(top["example_xy"]["rear_only"], [[100, 40]])
+        self.assertEqual(bottom["example_xy"]["neither"], [[130, 150]])
+        self.assertEqual(
+            result["split_pair_final_color_witness"]["top"]["example_xy"]["front_only"],
+            [[100, 40]],
+        )
 
         # Identical front and rear source RGB cannot determine which OAM
         # source the final same-colour pixel came from.
@@ -159,6 +165,10 @@ class SourceOverlapTests(unittest.TestCase):
         self.assertEqual(
             same["split_pair_final_color_witness"]["top"]["both_match_original"],
             1,
+        )
+        self.assertEqual(
+            same["split_pair_final_color_witness"]["top"]["example_xy"]["both"],
+            [[100, 40]],
         )
 
     def test_full_native_slot_provenance_and_changed_frame(self):

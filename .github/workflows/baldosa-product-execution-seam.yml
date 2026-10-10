@@ -12,6 +12,7 @@ on:
       - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_modern_profile_activation.cpp"
+      - "tools/baldosa_modern_profile_native_fixture.cpp"
       - "tests/native/baldosa_modern_profile_activation_test.cpp"
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
@@ -198,6 +199,7 @@ jobs:
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF
           cmake --build baldosa/build --target UniracersSNESRecomp -j 3
+          cmake --build baldosa/build --target ur-baldosa-modern-profile-fixture -j 3
           export DISPLAY=:99
           export BIN="$RUNNER_TEMP/ur-baldosa-x11"
           export BALDOSA_REAL_BIN="$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp"
@@ -281,4 +283,54 @@ jobs:
                 f"host_samples={proof['host_sample_count']}")
           PY
           echo "PASS: pinned Baldosa AOT accepts SDL R from native Modern pause after 12+ guest frames, rewinds WRAM to genuine race anchor with SRAM preserved and host owned; append-only host-timeline WRAM proves post-resume divergence independent of rewindable guest dump filenames; no event completion credit" >> "$GITHUB_STEP_SUMMARY"
+          # Actual named Modern profile loaded by Baldosa's ORIGINAL native
+          # RtlReadSram(), not merely accepted by a unit-test callback.
+          # The fixture is generated using our exact Modern binary codecs.
+          profile_root="$RUNNER_TEMP/UR Baldosa Selected Modern Profile"
+          mkdir -p "$profile_root"
+          profile_seed="$RUNNER_TEMP/ur-baldosa-input/original/saves/save.srm"
+          test "$(wc -c < "$profile_seed")" -eq 8192
+          baldosa/build/ur-baldosa-modern-profile-fixture \
+            "$profile_root" "$profile_seed"
+          SNESRECOMP_USER_DATA_DIR="$profile_root" \
+          UR_BALDOSA_MODERN_PROFILE_SELECT=1 \
+          UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS=1 \
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/ur-baldosa-input/selected_named_profile"
+          profile_log="$RUNNER_TEMP/ur-baldosa-input/selected_named_profile/log.txt"
+          grep -q 'UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider root=saves/profile-native-ci-rider' "$profile_log"
+          python3 - <<'PY'
+          from pathlib import Path
+          import os, re
+          from tools.baldosa_windows_native_pause_route import fnv32
+          root = Path(os.environ["RUNNER_TEMP"])
+          seed = (root / "ur-baldosa-input/original/saves/save.srm").read_bytes()
+          log = (root / "ur-baldosa-input/selected_named_profile/log.txt").read_text()
+          hashes = re.findall(
+              r"^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
+              r"bytes=8192 fnv=([0-9a-fA-F]{8})$", log, re.M)
+          assert len(hashes) == 1 and hashes[0].lower() == fnv32(seed), (
+              "Actual pinned Baldosa guest loaded wrong named-profile SRAM", hashes)
+          assert not (root / "UR Baldosa Selected Modern Profile/saves/save.srm").exists()
+          native_save = (root / "UR Baldosa Selected Modern Profile/saves/"
+                         "profile-native-ci-rider/save.srm")
+          assert native_save.is_file() and native_save.stat().st_size == 8192
+          print(f"UR_BALDOSA_NATIVE_PROFILE SRAM_ADMITTED bytes=8192 fnv={hashes[0]}")
+          PY
+          # Fail BEFORE the guest executes if selected Modern profile is
+          # damaged. No fall-through to anonymous generic save ever.
+          printf '%s\n' 'malformed selected Modern profile' > \
+            "$profile_root/saves/profile-native-ci-rider/host-profile.txt"
+          set +e
+          SNESRECOMP_USER_DATA_DIR="$profile_root" \
+          UR_BALDOSA_MODERN_PROFILE_SELECT=1 \
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/ur-baldosa-input/rejected_named_profile"
+          result=$?
+          set -e
+          test "$result" -eq 7
+          grep -q 'UR_BALDOSA_NATIVE_PROFILE REJECTED reason=selected_profile_state_missing_or_invalid' \
+            "$RUNNER_TEMP/ur-baldosa-input/rejected_named_profile/log.txt"
+          test ! -f "$profile_root/saves/save.srm"
+          echo "PASS: original Linux Baldosa native runner selects saved Modern catalog-backed rider SRAM before 1st guest frame, checks all 8192 bytes and refuses invalid named state without wrong-profile fallback; not a Modern frontend integration proof" >> "$GITHUB_STEP_SUMMARY"
           grep 'UR_BALDOSA_NATIVE_RESTART ' "$delayed_log"

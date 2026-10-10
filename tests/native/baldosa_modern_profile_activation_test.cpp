@@ -16,6 +16,13 @@
 
 extern "C" int ur_baldosa_modern_try_activate_profile(void);
 
+/* Real pinned framework provides these. Keep the unit executable's tiny RTL
+ * shim link-complete after adding the read-only first-frame SRAM witness. */
+extern "C" {
+unsigned char* g_sram = nullptr;
+int g_sram_size = 0;
+}
+
 namespace {
 std::string root = "saves";
 }

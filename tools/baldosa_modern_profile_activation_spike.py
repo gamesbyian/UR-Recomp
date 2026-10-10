@@ -37,6 +37,7 @@ def patch_main(source: str) -> str:
         MAIN_HOST,
         "/* " + MARK + ": existing Modern active profile, before guest SRAM. */\n"
         "extern int ur_baldosa_modern_try_activate_profile(void);\n"
+        "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"
         "        fprintf(stderr, \"UR-STARTUP-SAVE-ROOT: selected Modern profile rejected\\n\");\n"
@@ -50,6 +51,7 @@ def patch_main(source: str) -> str:
     return source.replace(
         MAIN_PAUSE,
         "    .after_config        = &ur_baldosa_modern_profile_after_config,\n"
+        "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
         + MAIN_PAUSE, 1)
 
 
@@ -65,9 +67,30 @@ def patch_cmake(source: str, root: Path) -> str:
         if not path.is_file():
             raise ValueError(f"Missing established Modern product component: {path}")
     args = " ".join(f'"{p.as_posix()}"' for p in selected)
+    fixture = (root / "tools/baldosa_modern_profile_native_fixture.cpp").resolve()
+    if not fixture.is_file():
+        raise ValueError(f"Missing real Modern profile fixture builder: {fixture}")
+    fixture_args = " ".join(f'"{p.as_posix()}"' for p in (
+        fixture,
+        product / "output_resolution_policy.cpp",
+        product / "host_product_state.cpp",
+        *(product / s for s in SOURCES),
+    ))
     return source.rstrip() + (
         "\n\n# " + MARK + ": typed read-only Modern state and profile SRAM root\n"
-        "target_sources(UniracersSNESRecomp PRIVATE " + args + ")\n")
+        "target_sources(UniracersSNESRecomp PRIVATE " + args + ")\n"
+        # Test-only executable, not part of the shipping game target. Uses
+        # the SAME Modern product codecs as the real Windows frontend.
+        "add_executable(ur-baldosa-modern-profile-fixture " + fixture_args + ")\n"
+        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n'
+        # The supplied Windows clang pack can link a runnable title while a
+        # separate C++17 fixture resolves its STL runtime through DLLs that
+        # are absent on a clean CI runner (Windows exit 0xC0000135).
+        # Static-link the QA fixture's runtime; DO NOT change the game.
+        "if(WIN32)\n"
+        "  target_link_options(ur-baldosa-modern-profile-fixture PRIVATE -static)\n"
+        "endif()\n"
+    )
 
 
 def plan(game: Path, root: Path):

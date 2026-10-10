@@ -50,11 +50,18 @@ def frame_crcs(folder: Path) -> list[str]:
 
 def run_route(exe: Path, rom: Path, script: Path, root: Path,
               *, pause: bool, video: str, timeout: int,
-              delayed_restart: bool = False) -> tuple[list[str], str]:
+              delayed_restart: bool = False,
+              profile_fixture: Path | None = None,
+              profile_seed: Path | None = None) -> tuple[list[str], str]:
     if delayed_restart and not pause:
         raise ValueError("Delayed native Restart requires an acknowledged host pause")
-    name = ("with_delayed_restart" if delayed_restart else
-            ("with_pause" if pause else "baseline"))
+    if (profile_fixture is None) != (profile_seed is None):
+        raise ValueError("Real native Modern profile needs a typed fixture and seed SRAM")
+    if profile_fixture and pause:
+        raise ValueError("Use the unpaused guest for initial named-profile SRAM witness")
+    name = ("with_named_profile" if profile_fixture else
+            ("with_delayed_restart" if delayed_restart else
+             ("with_pause" if pause else "baseline")))
     output = root / name
     # Never remove an earlier result (or a directory outside our owned root).
     output.mkdir(parents=True, exist_ok=False)
@@ -62,6 +69,13 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
     (output / "dump").mkdir()
     user_root = output / "Modern Player Data With Spaces"
     user_root.mkdir()
+    if profile_fixture:
+        # Build an AUTHENTIC Modern state, profile and roster with existing
+        # shipping C++ serializers, never a shadow Python file format.
+        subprocess.run(
+            [str(profile_fixture), str(user_root), str(profile_seed)],
+            cwd=output, timeout=timeout, capture_output=True,
+            text=True, check=True)
     framedump = output / "fd"
     framedump.mkdir()
     config = output / "config.ini"
@@ -71,6 +85,8 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
         # Same explicit mutable root selected by our existing Windows
         # run-uniracers.cmd; no second profile/save directory is invented.
         "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1" if profile_fixture else "0",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1" if profile_fixture else "0",
         "SDL_VIDEODRIVER": video,
         "SDL_AUDIODRIVER": "dummy",
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
@@ -98,12 +114,116 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
                            f"log tail:\n{log[-5000:]}")
     if not (user_root / "keybinds.ini").is_file():
         raise RuntimeError(f"{name}: game wrote no native keybinds into Modern user root")
-    if not (user_root / "saves/save.srm").is_file():
+    if profile_fixture:
+        verify_named_profile_boot(log, profile_seed)
+        if (user_root / "saves/save.srm").exists():
+            raise RuntimeError(f"{name}: named guest wrote unrelated default-profile SRAM")
+        if not (user_root / "saves/profile-native-ci-rider/save.srm").is_file():
+            raise RuntimeError(f"{name}: named guest did not preserve selected-profile SRAM")
+    elif not (user_root / "saves/save.srm").is_file():
         raise RuntimeError(f"{name}: real guest SRAM not saved under Modern user root")
     if any((output / "saves").iterdir()):
         raise RuntimeError(f"{name}: guest created package/cwd-local saves")
     return frame_crcs(framedump), log
 
+
+PROFILE_BOOT_SRAM = re.compile(
+    r"^UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+    r"profile=native-ci-rider bytes=8192 fnv=([0-9a-fA-F]{8})$",
+    re.MULTILINE,
+)
+
+
+def fnv32(data: bytes) -> str:
+    h = 2166136261
+    for b in data:
+        h = ((h ^ b) * 16777619) & 0xffffffff
+    return f"{h:08x}"
+
+
+def verify_named_profile_boot(log: str, seed: Path) -> dict[str, str]:
+    # The title's stock before_run_frame callback fires AFTER RtlReadSram
+    # but before the first actual RtlRunFrame. Compare the entire 8192 bytes
+    # using an independent hash of the real previous native guest's SRAM.
+    proof = PROFILE_BOOT_SRAM.findall(log)
+    if len(proof) != 1:
+        raise ValueError("No unique first-frame named Modern guest SRAM witness")
+    if "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider root=" not in log:
+        raise ValueError("No acknowledged native active-profile root selection")
+    raw = seed.read_bytes()
+    if len(raw) != 8192 or proof[0].lower() != fnv32(raw):
+        raise ValueError("Native guest did not load exactly the selected profile's SRAM")
+    return {"bytes": len(raw), "fnv32": proof[0].lower()}
+
+
+def assert_corrupt_named_profile_rejected(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> None:
+    output = root / "corrupt_named_profile"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Modern Player Data With Spaces"
+    user_root.mkdir()
+    subprocess.run([str(fixture), str(user_root), str(seed)],
+                   cwd=output, capture_output=True, text=True,
+                   timeout=timeout, check=True)
+    profile_dir = user_root / "saves/profile-native-ci-rider"
+    saved_before = (profile_dir / "save.srm").read_bytes()
+    # A corrupt Modern profile must NEVER silently fall back to the stock
+    # generic save, even though a valid active profile ID was requested.
+    (profile_dir / "host-profile.txt").write_text(
+        "malformed selected profile; keep all SRAM untouched",
+        encoding="utf-8")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    outcome = subprocess.run([
+        str(exe), "--no-launcher", "--config", str(config),
+        "--script", str(script), str(rom),
+    ], cwd=output, env=env, capture_output=True, text=True,
+       timeout=timeout, errors="replace")
+    log = outcome.stdout + "\n" + outcome.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if (outcome.returncode != 7 or
+        "UR_BALDOSA_NATIVE_PROFILE REJECTED reason="
+        "selected_profile_state_missing_or_invalid" not in log):
+        raise ValueError(
+            "Corrupt selected Modern profile did not reject real guest boot")
+    if (profile_dir / "save.srm").read_bytes() != saved_before or (
+        user_root / "saves/save.srm").exists():
+        raise ValueError("Rejected named profile unexpectedly mutated SRAM")
+
+
+
+def check_named_profile_guest_terminal(
+    framedump_crcs: list[str], log: str, *, clean_frames: int
+) -> int:
+    """Real saved SRAM can shift the menu until-loop by one guest frame.
+
+    This is not a tolerance for a missing scripted checkpoint. The native
+    route must explicitly report a valid t480 dump and quit at the last
+    actually rendered native guest frame, with no more than one prior-boot
+    frame difference from the otherwise untouched clean-SRAM baseline.
+    """
+    named_frames = len(framedump_crcs)
+    if named_frames not in (clean_frames - 1, clean_frames):
+        raise ValueError(
+            f"Named-profile guest frame count outside independently observed "
+            f"one-frame saved-SRAM window: {named_frames} vs {clean_frames}")
+    for event in ("dump t480 ok", "quit"):
+        if not re.search(
+            rf"^script f={named_frames} {re.escape(event)}$",
+            log, re.MULTILINE,
+        ):
+            raise ValueError(
+                f"Named-profile guest did not reach real terminal checkpoint: {event}")
+    return named_frames
 
 def check_pause_log(log: str) -> dict[str, str]:
     found = {kind: rest for kind, rest in PAUSE.findall(log)}
@@ -242,10 +362,14 @@ def main() -> int:
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--expected-frames", type=int, default=2473)
     parser.add_argument("--video", default="windows")
+    parser.add_argument("--profile-fixture", type=Path, required=True)
     parser.add_argument("--timeout", type=int, default=95)
     args = parser.parse_args()
-    exe, rom, script, root = (p.resolve() for p in
-                              (args.exe, args.rom, args.script, args.out))
+    exe, rom, script, root, fixture = (p.resolve() for p in
+                                       (args.exe, args.rom, args.script,
+                                        args.out, args.profile_fixture))
+    if not fixture.is_file():
+        raise ValueError("Real existing Modern profile codec fixture is mandatory")
     if not exe.is_file() or not script.is_file():
         raise ValueError("Missing real Baldosa executable or supplied original route")
     rom_hash = sha256(rom)
@@ -278,8 +402,20 @@ def main() -> int:
     host_trace_proof = check_delayed_restart_host_trace(
         (root / "baseline/log.txt").read_text(encoding="utf-8"),
         delayed_log)
+    sram_seed = (root / "baseline/Modern Player Data With Spaces"
+                 / "saves/save.srm")
+    named_crc, named_log = run_route(
+        exe, rom, script, root, pause=False, video=args.video,
+        timeout=args.timeout, profile_fixture=fixture,
+        profile_seed=sram_seed)
+    named_frames = check_named_profile_guest_terminal(
+        named_crc, named_log, clean_frames=args.expected_frames)
+    named_proof = verify_named_profile_boot(named_log, sram_seed)
+    assert_corrupt_named_profile_rejected(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     result = {
-        "classification": "windows_native_pause_smoke_only",
+        "classification": "windows_native_pause_and_named_profile_smoke_only",
         "rom_sha256": rom_hash,
         "exe_sha256": sha256(exe),
         "script_sha256": sha256(script),
@@ -289,6 +425,8 @@ def main() -> int:
         "native_pause": proof,
         "modern_lifecycle_abi_exercised": True,
         "native_modern_user_data_root_isolation": True,
+        "native_real_named_modern_profile_boot": named_proof,
+        "native_corrupt_selected_profile_fails_closed": True,
         "native_invalid_explicit_root_fails_closed": True,
         "physical_sdl_event_pump_exercised": True,
         "native_same_boundary_restart_restored": True,
@@ -309,7 +447,8 @@ def main() -> int:
     (root / "report.json").write_text(json.dumps(result, indent=2) + "\n",
                                        encoding="utf-8")
     print(f"PASS: Win32 Baldosa native execution, {len(original)} per-frame WRAM CRCs; "
-          "same-frame native pause CRC identical; delayed SDL R rewinds actual guest while frozen")
+          "same-frame native pause CRC identical; delayed SDL R rewinds actual guest while frozen; "
+          "real named Modern profile SRAM loaded before first guest frame")
     return 0
 
 

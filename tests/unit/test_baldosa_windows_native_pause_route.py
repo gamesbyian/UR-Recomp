@@ -86,6 +86,59 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
                 expected_request_frame=1952)
 
+    def test_named_profile_terminal_must_reach_final_script_checkpoint(self):
+        clean = 2473
+        for frames in (2472, 2473):
+            log = (f"script f={frames} dump t480 ok\n"
+                   f"script f={frames} quit\n")
+            self.assertEqual(
+                probe.check_named_profile_guest_terminal(
+                    ["0x1"] * frames, log, clean_frames=clean), frames)
+            for corrupt in (
+                log.replace("dump t480 ok", "dump t240 ok"),
+                log.replace("quit", "wait"),
+                log.replace(f"f={frames} quit", f"f={frames - 1} quit"),
+            ):
+                with self.subTest(frames=frames, corrupt=corrupt):
+                    with self.assertRaisesRegex(ValueError, "terminal checkpoint"):
+                        probe.check_named_profile_guest_terminal(
+                            ["0x1"] * frames, corrupt, clean_frames=clean)
+        for frames in (2471, 2474, 0):
+            with self.subTest(frames=frames):
+                with self.assertRaisesRegex(ValueError, "frame count"):
+                    probe.check_named_profile_guest_terminal(
+                        ["0x1"] * frames, "", clean_frames=clean)
+
+    def test_real_named_modern_sram_boot_witness_is_unique_and_exact(self):
+        with tempfile.TemporaryDirectory() as directory:
+            seed = Path(directory) / "real_native_guest_save.srm"
+            data = bytes(i % 256 for i in range(8192))
+            seed.write_bytes(data)
+            fnv = probe.fnv32(data)
+            self.assertEqual(len(fnv), 8)
+            log = (
+                "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
+                "root=saves/profile-native-ci-rider\n"
+                f"UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM "
+                f"profile=native-ci-rider bytes=8192 fnv={fnv}\n"
+            )
+            self.assertEqual(
+                probe.verify_named_profile_boot(log, seed),
+                {"bytes": 8192, "fnv32": fnv})
+            for bad in (
+                log.replace(fnv, "ffffffff" if fnv != "ffffffff" else "00000000"),
+                log.replace("BOOT_SRAM", "BOOT_WRONG"),
+                log.replace("APPLIED", "REJECTED"),
+                log.replace("profile=native-ci-rider", "profile=other-rider"),
+                log + log,
+            ):
+                with self.subTest(log=bad[:80]):
+                    with self.assertRaises(ValueError):
+                        probe.verify_named_profile_boot(bad, seed)
+            seed.write_bytes(data[:-1])
+            with self.assertRaisesRegex(ValueError, "did not load"):
+                probe.verify_named_profile_boot(log, seed)
+
     def test_host_frame_wram_detects_guest_rewind_even_when_guest_dump_names_repeat(self):
         def trace(offset_after_restart=0):
             result = []

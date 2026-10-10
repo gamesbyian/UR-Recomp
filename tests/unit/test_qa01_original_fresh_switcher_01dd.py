@@ -11,10 +11,11 @@ import qa01_original_fresh_switcher_01dd_report as qa
 
 BEGIN="QASTACKBEGIN f=5778 v=240 pc=82B1F2 sp=01DE\n"
 WRITE="QASTACKWRITE f=5781 v=240 pc=82B1F2 op=20 sp0=01DE sp1=01DC addr=01DD old=00 new=F4\n"
+NMI="QASTACKNMI f=5781 v=240 pc=82D4E9 sp0=01DF sp1=01DB addr=01DD old=00 new=34\n"
 
 class FreshOriginal01DDTests(unittest.TestCase):
     def test_single_target_preserves_unchanged_default_and_unique_source_marker(self):
-        synthetic="prefix\n"+instrument.MARKER+"\nsuffix"
+        synthetic="prefix\n"+instrument.NMI_MARKER+"\n"+instrument.MARKER+"\nsuffix"
         p=instrument.patch(synthetic,targets=(0x01DD,))
         self.assertEqual(p.count("0x01DD"),1)
         self.assertNotIn("0x01E6",p)
@@ -22,6 +23,11 @@ class FreshOriginal01DDTests(unittest.TestCase):
         self.assertEqual(p.count("Registers.PCw++;"),1)
         self.assertIn("UR_QA_STACK_FIRST",p)
         self.assertIn("UR_QA_STACK_LAST",p)
+        pnmi=instrument.patch(synthetic, targets=(0x01DD,), watch_nmi=True)
+        self.assertIn(instrument.NMI_STAMP, pnmi)
+        self.assertEqual(pnmi.count("S9xOpcode_NMI();"),1)
+        self.assertIn("QASTACKNMI",pnmi)
+        self.assertIn("ur_qa_nmi_old",pnmi)
         q=instrument.patch(synthetic)
         self.assertIn("0x01E6",q)
         self.assertIn("0x01F3",q)
@@ -29,32 +35,41 @@ class FreshOriginal01DDTests(unittest.TestCase):
             with self.subTest(bad=bad):
                 with self.assertRaisesRegex(ValueError,"unique approved stack address"):
                     instrument.patch(synthetic,targets=bad)
+        with self.assertRaisesRegex(ValueError,"requires only vetted"):
+            instrument.patch(synthetic,watch_nmi=True)
+        with self.assertRaisesRegex(ValueError,"marker missing"):
+            instrument.patch(instrument.MARKER,targets=(0x01DD,),watch_nmi=True)
 
     def test_original_pc_sp_and_frame_event_do_not_claim_parity(self):
-        s=qa.summarize_original(BEGIN+WRITE)
+        s=qa.summarize_original(BEGIN+NMI+WRITE)
         self.assertEqual(s["schema"],qa.SCHEMA)
         self.assertEqual(s["total_original_changed_byte_opcode_scopes"],1)
         self.assertEqual(s["original_changed_byte_scopes_by_cpu_frame"],{5781:1})
         self.assertEqual(s["original_changed_byte_scopes_by_pc"],{"82:B1F2":1})
         self.assertEqual(s["original_changed_byte_scopes_by_opcode"],{"20":1})
         self.assertEqual(s["cpu_gate_pc"],"82:B1F2")
+        self.assertEqual(s["original_nmi_entry_event_count"],1)
+        self.assertTrue(s["original_nmi_stack_range_covered_01dd"])
+        self.assertTrue(s["original_nmi_entry_changed_01dd"])
         self.assertTrue(s["first_bounded_original_opcode_scope_examples"][0]
                         ["push_opcode_and_stack_address_compatible"])
         self.assertEqual(s["complete_event_release_credit"],0)
 
     def test_zero_changed_byte_is_valid_bounded_negative_with_real_gate(self):
-        s=qa.summarize_original(BEGIN)
+        s=qa.summarize_original(BEGIN+NMI)
         self.assertEqual(s["total_original_changed_byte_opcode_scopes"],0)
-        self.assertTrue(s["zero_changes_is_bounded_negative_not_never_writes"])
+        self.assertTrue(s["zero_opcode_changes_is_bounded_negative_not_never_writes"])
+        self.assertTrue(s["NMI_entry_is_separately_observed_even_if_opcode_scope_count_zero"])
         self.assertEqual(s["original_changed_byte_scopes_by_pc"],{})
 
     def test_strict_negative_wrong_frame_address_or_duplicate_gate(self):
         for trace in (
             "",
             BEGIN+BEGIN,
+            BEGIN, # normal opcode observer alone cannot cover NMI entry
             BEGIN.replace("f=5778","f=5000"),
             BEGIN.replace("v=240","v=270"),
-            BEGIN+WRITE.replace("addr=01DD","addr=01F1"),
+            BEGIN+NMI+WRITE.replace("addr=01DD","addr=01F1"),
             BEGIN+WRITE.replace("f=5781","f=5783"),
             BEGIN+WRITE.replace("old=00 new=F4","old=F4 new=F4"),
             BEGIN+WRITE.replace("f=5781","f=5777"),
@@ -65,7 +80,7 @@ class FreshOriginal01DDTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError,"safe limit"):
             from unittest.mock import patch
             with patch.object(qa,"MAX_WRITES",2):
-                qa.summarize_original(BEGIN+WRITE*3)
+                qa.summarize_original(BEGIN+NMI+WRITE*3)
 
 if __name__=="__main__":
     unittest.main()

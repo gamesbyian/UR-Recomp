@@ -278,6 +278,49 @@ class CompleteEventProducerTests(unittest.TestCase):
             0x99, ["MIKE", "NO TIME", "BRONSEN", "0:21.54"]), 0x99, False)
         self.assertFalse(result["paired_event_candidate"])
 
+    def test_bowl_one_frame_phase_observation_does_not_pass_full_event(self):
+        import copy
+        original = capture(0x18, ["BOWL", "MIKE", ": 764"])
+        native = copy.deepcopy(original)
+        compare = target.diagnose(original, native, 0x18, True)
+        self.assertTrue(compare["paired_event_candidate"])
+        compare.update(
+            paired_event_candidate=False,
+            terminal_result_guest_frame={
+                "reference_relative": 3365, "native_relative": 3364},
+            terminal_result_frame_matched=False,
+            original_source_entry_equivalent=True,
+            fresh_guest_entry_equivalent=True,
+        )
+        event = {"original_result_frame": 11985,
+                 "source_stunt_tally_frame": 11915}
+        self.assertTrue(target.bounded_stunt_result_phase_witness(compare, event))
+        self.assertFalse(compare["paired_event_candidate"],
+                         "a diagnostic phase gap is not a complete event pass")
+        for field, invalid in (
+            ("rendered_result_and_score_text_matched", False),
+            ("intermediate_result_text_matched", False),
+            ("stunt_positive_score_visible", False),
+            ("timed_race_or_circuit_result_visible", False),
+            ("both_reached_terminal_menu", False),
+            ("fresh_guest_entry_equivalent", False),
+            ("original_source_entry_equivalent", False),
+            ("first_sample_disagreement", {"relative_frame": 120}),
+            ("terminal_result_frame_matched", True),
+        ):
+            bad = dict(compare, **{field: invalid})
+            self.assertFalse(target.bounded_stunt_result_phase_witness(bad, event),
+                             field)
+        for native_frame in (3363, 3365, 3366):
+            bad = dict(compare, terminal_result_guest_frame={
+                "reference_relative": 3365, "native_relative": native_frame})
+            self.assertFalse(target.bounded_stunt_result_phase_witness(bad, event))
+        for wrong in (
+            {"original_result_frame": 11985, "source_stunt_tally_frame": None},
+            {"original_result_frame": 11915, "source_stunt_tally_frame": 11915},
+        ):
+            self.assertFalse(target.bounded_stunt_result_phase_witness(compare, wrong))
+
     def test_stunt_idle_zero_score_cannot_pass_scored_result(self):
         ref = capture(0x18, ["BOWL", "MIKE", ": 0"])
         nat = capture(0x18, ["BOWL", "MIKE", ": 0"])

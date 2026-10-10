@@ -9,11 +9,13 @@ on:
       - "tools/baldosa_qa_dense_scene_input_patch.py"
       - "tools/baldosa_2014_zoo_scene_report.py"
       - "tools/baldosa_2014_zoo_boundary_report.py"
+      - "tools/baldosa_2014_zoo_phase_equivalence.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"
       - "tests/unit/test_baldosa_2014_zoo_scene_route.py"
       - "tests/unit/test_baldosa_2014_zoo_scene_report.py"
       - "tests/unit/test_baldosa_2014_zoo_boundary_report.py"
+      - "tests/unit/test_baldosa_2014_zoo_phase_equivalence.py"
   workflow_dispatch:
 
 permissions:
@@ -291,7 +293,14 @@ jobs:
             --original-log "$ROOT/original-boundary.log" \
             --native-log "$ROOT/native-boundary/log.txt" \
             --out "$ROOT/fixed-boundary-report.json"
-          cat "$ROOT/fixed-boundary-report.json" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/baldosa_2014_zoo_phase_equivalence.py \
+            --original "$ROOT/original-boundary" \
+            --native "$ROOT/native-boundary/dump" \
+            --boundary-report "$ROOT/fixed-boundary-report.json" \
+            --out "$ROOT/adjacent-memory-phase-report.json"
+          cat "$ROOT/adjacent-memory-phase-report.json" >> "$GITHUB_STEP_SUMMARY"
+          # Keep large fixed-boundary raw rows in the artifact; show the
+          # compact adjacent-phase finding prominently in job summary.
           echo "Fixed-frame contact and result-onset differences are diagnostic, not automatic course acceptance." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain independent guest evidence but not copyrighted movie/SRAM
@@ -307,6 +316,7 @@ jobs:
             ${{ runner.temp }}/zoo-scene/paired-result.json
             ${{ runner.temp }}/zoo-scene/phase-discriminator.json
             ${{ runner.temp }}/zoo-scene/fixed-boundary-report.json
+            ${{ runner.temp }}/zoo-scene/adjacent-memory-phase-report.json
             ${{ runner.temp }}/zoo-scene/original-boundary.log
             ${{ runner.temp }}/zoo-scene/native-boundary/log.txt
             ${{ runner.temp }}/zoo-scene/original-boundary/*.wram.bin

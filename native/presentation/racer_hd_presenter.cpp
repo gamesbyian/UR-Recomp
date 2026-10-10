@@ -500,6 +500,70 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
                 racer_hd_asset_available(source->p1_semantic_frame_id) ? 1u : 0u,
                 static_cast<unsigned>(selected.selected_pack),
                 static_cast<unsigned>(selected.fallback_reason));
+
+            // READ-ONLY source OAM eligibility. A semantic WRAM state can
+            // persist long after its OBJ has left the display, so its guest
+            // frequency must never be mistaken for missing *visible* HD art.
+            // Decode the same PPU OAM slots used by the normal conservative
+            // source guard, BEFORE it can elect to remove any sprite.
+            const auto top = g_ppu ? decode_racer_split_ppu_placement(
+                g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Top)
+                : std::nullopt;
+            const auto bottom = g_ppu ? decode_racer_split_ppu_placement(
+                g_ppu->oam, 256, g_ppu->obsel, 1, RacerViewport::Bottom)
+                : std::nullopt;
+            const auto p2_top = g_ppu ? decode_racer_split_ppu_placement(
+                g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Top)
+                : std::nullopt;
+            const auto p2_bottom = g_ppu ? decode_racer_split_ppu_placement(
+                g_ppu->oam, 256, g_ppu->obsel, 2, RacerViewport::Bottom)
+                : std::nullopt;
+            const auto geometry = [](const std::optional<RacerOamPlacement>& oam,
+                                     RacerViewport viewport) noexcept {
+                if (!oam || !oam->large || oam->width_pixels != 64 ||
+                    oam->height_pixels != 64 ||
+                    oam->x_signed >= 256 || oam->x_signed + 64 <= 0)
+                    return false;
+                for (int y = viewport == RacerViewport::Top ? 0 : 112;
+                     y < (viewport == RacerViewport::Top ? 112 : 224); ++y) {
+                    if (((y - oam->y_raw_8bit) & 0xFF) < 64) return true;
+                }
+                return false;
+            };
+            const bool source_oam_ready =
+                top.has_value() && bottom.has_value() &&
+                p2_top.has_value() && p2_bottom.has_value();
+            const bool source_bank_ok = source_oam_ready &&
+                g_ppu->obsel == 0x83 &&
+                (top->tile == 0x00 || top->tile == 0x08) &&
+                (bottom->tile == 0x00 || bottom->tile == 0x08) &&
+                (p2_top->tile == 0x80 || p2_top->tile == 0x88) &&
+                (p2_bottom->tile == 0x80 || p2_bottom->tile == 0x88);
+            const bool front_safe = source_bank_ok &&
+                (g_ppu->oamaddh & 0x80) == 0 &&
+                racer_p1_only_no_stock_p2_occlusion(
+                    *top, *bottom, *p2_top, *p2_bottom);
+            std::fprintf(stderr,
+                "UR_RACER_HD_1P_OAM frame=%u source_ready=%u "
+                "top_x=%d top_y=%u top_tile=%02X top_large=%u top_geom=%u "
+                "bottom_x=%d bottom_y=%u bottom_tile=%02X bottom_large=%u bottom_geom=%u "
+                "obsel=%02X rotation=%u source_bank=%u front_safe=%u\n",
+                number, source_oam_ready ? 1u : 0u,
+                top ? static_cast<int>(top->x_signed) : -512,
+                top ? static_cast<unsigned>(top->y_raw_8bit) : 0u,
+                top ? static_cast<unsigned>(top->tile) : 0u,
+                top && top->large && top->width_pixels == 64 &&
+                    top->height_pixels == 64 ? 1u : 0u,
+                geometry(top, RacerViewport::Top) ? 1u : 0u,
+                bottom ? static_cast<int>(bottom->x_signed) : -512,
+                bottom ? static_cast<unsigned>(bottom->y_raw_8bit) : 0u,
+                bottom ? static_cast<unsigned>(bottom->tile) : 0u,
+                bottom && bottom->large && bottom->width_pixels == 64 &&
+                    bottom->height_pixels == 64 ? 1u : 0u,
+                geometry(bottom, RacerViewport::Bottom) ? 1u : 0u,
+                g_ppu ? static_cast<unsigned>(g_ppu->obsel) : 0u,
+                g_ppu && (g_ppu->oamaddh & 0x80) ? 1u : 0u,
+                source_bank_ok ? 1u : 0u, front_safe ? 1u : 0u);
         }
     }
 

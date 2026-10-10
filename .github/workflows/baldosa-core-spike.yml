@@ -584,6 +584,15 @@ jobs:
             --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
             --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_semantic_worklist.json"
+          # Distinguish high-frequency SEMANTIC identifiers that never
+          # intersect stock screen OAM from source-geometry candidates.
+          # This second analysis uses the exact same native 1P guest CRCs,
+          # same source-process stderr and existing read-only PPU OAM.
+          python3 tools/check_baldosa_1p_oam_art_visibility.py \
+            --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json"
           unset UR_RACER_HD_1P_STATE_TRACE
           echo "OBSERVED: authentic P1 semantic composition/frame frequency worklist; no guessed authored-rider registration" >> "$GITHUB_STEP_SUMMARY"
 
@@ -1251,6 +1260,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_late_source.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_semantic_worklist.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_2p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_ur_ws342_live/log.txt

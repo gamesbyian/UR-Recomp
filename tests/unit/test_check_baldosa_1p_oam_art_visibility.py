@@ -19,8 +19,8 @@ def trace(frame, semantic, registered, art, selected, fallback,
     )
     oam = (
         f"UR_RACER_HD_1P_OAM frame={frame} source_ready=1 "
-        f"top_x={tx} top_y={ty} top_tile=00 top_geom={top} "
-        f"bottom_x={bx} bottom_y={by} bottom_tile=00 bottom_geom={bottom} "
+        f"top_x={tx} top_y={ty} top_tile=00 top_large=1 top_geom={top} "
+        f"bottom_x={bx} bottom_y={by} bottom_tile=00 bottom_large=1 bottom_geom={bottom} "
         f"obsel={obsel} rotation=0 source_bank={bank} front_safe={safe}\n"
     )
     return gate + state + oam
@@ -68,8 +68,8 @@ class NativeOamArtWorklistTests(unittest.TestCase):
 
             # Impossible geometry cannot gain provisional green source credit.
             log.write_text(start + witness.replace(
-                "top_x=-80 top_y=200 top_tile=00 top_geom=0",
-                "top_x=-80 top_y=200 top_tile=00 top_geom=1", 1) + end)
+                "top_x=-80 top_y=200 top_tile=00 top_large=1 top_geom=0",
+                "top_x=-80 top_y=200 top_tile=00 top_large=1 top_geom=1", 1) + end)
             with self.assertRaisesRegex(ValueError, "impossible"):
                 assess(baseline, trial, log)
 

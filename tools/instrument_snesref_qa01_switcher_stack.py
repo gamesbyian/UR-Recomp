@@ -89,7 +89,7 @@ def patch(source: str, *, targets: tuple[int, ...] = TARGETS, watch_nmi: bool = 
 \t\t\t\t\tconst char *s = getenv("UR_QA_STACK_LAST");
 \t\t\t\t\treturn s ? (unsigned)strtoul(s, nullptr, 10) : 0u;
 \t\t\t\t}}();
-\t\t\t\tconst unsigned ur_qa_nmi_frame0 = (unsigned)ICPU.Frame;\n\\t\\t\\t\\tconst unsigned ur_qa_nmi_v0 = (unsigned)CPU.V_Counter;\n\\t\\t\\t\\tconst bool ur_qa_nmi_gate = ur_qa_nmi_frame0 >= ur_qa_nmi_first &&
+\t\t\t\tconst unsigned ur_qa_nmi_frame0 = (unsigned)ICPU.Frame;\n\t\t\t\tconst unsigned ur_qa_nmi_v0 = (unsigned)CPU.V_Counter;\n\t\t\t\tconst bool ur_qa_nmi_gate = ur_qa_nmi_frame0 >= ur_qa_nmi_first &&
 \t\t\t\t\tur_qa_nmi_frame0 <= ur_qa_nmi_last;
 \t\t\t\tconst uint16 ur_qa_nmi_sp0 = Registers.S.W;
 \t\t\t\tconst uint32 ur_qa_nmi_pc0 = ((uint32)Registers.PB << 16) | Registers.PCw;

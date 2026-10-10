@@ -666,9 +666,9 @@ def native_modern_root_reentry_script() -> str:
         "turbo on",
         "until16 0053 == F60C",
         "wait 900",
-        "press b 2",         # 1P racer picker back to stock menu
-        "until 009F == D7",  # original guest observes stock main screen
-        "wait 250",          # SDL Escape dispatch and newly painted root
+        "press b 2",         # test stock cancel; never assume it works
+        "wait 540",          # bounded diagnostic, no hung until
+        "dump after_back",
         "quit",
         "",
     ])
@@ -722,13 +722,27 @@ def run_native_modern_root_reentry(
             cwd=output, env=env, capture_output=True, text=True,
             timeout=timeout, errors="replace")
     except subprocess.TimeoutExpired as exc:
-        raise RuntimeError("Real native guest never returned to stock main") from exc
+        partial = (exc.stdout or b"")
+        partial_err = (exc.stderr or b"")
+        if isinstance(partial, bytes):
+            partial = partial.decode("utf-8", errors="replace")
+        if isinstance(partial_err, bytes):
+            partial_err = partial_err.decode("utf-8", errors="replace")
+        (output / "timeout-log.txt").write_text(
+            partial + "\n" + partial_err, encoding="utf-8")
+        raise RuntimeError(
+            "Bounded native root reentry guest timed out; "
+            f"tail={(partial + partial_err)[-3200:]}") from exc
     log = result.stdout + "\n" + result.stderr
     (output / "log.txt").write_text(log, encoding="utf-8")
     if result.returncode:
         raise RuntimeError(
             f"Modern root reentry guest rejected rc={result.returncode}: {log[-5000:]}")
-    verify_native_modern_root_reentry_log(log)
+    try:
+        verify_native_modern_root_reentry_log(log)
+    except ValueError as exc:
+        raise ValueError(
+            f"{exc}; guest observer tail={log[-3500:]}") from exc
     saved = user_root / "saves" / "save.srm"
     if not saved.is_file() or saved.stat().st_size != 8192:
         raise ValueError("Modern root reentry lost canonical 8KiB SRAM")

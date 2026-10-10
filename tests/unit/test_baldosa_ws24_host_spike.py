@@ -37,6 +37,8 @@ class WorldMarginProbeTests(unittest.TestCase):
         self.assertIn(".native_widescreen = 1", p)
         self.assertIn("&ur_baldosa_ws24_prepare_frame", p)
         self.assertIn("&ur_baldosa_ws24_draw_frame", p)
+        self.assertIn(".compute_viewport  = &ur_baldosa_ws24_compute_viewport", p)
+        self.assertIn("ur_baldosa_ws24_original_viewport(", p)
 
     def test_pinned_split_band_framework_patch_is_required(self):
         import hashlib

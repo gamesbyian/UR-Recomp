@@ -509,6 +509,13 @@ jobs:
           # preserve all six early/countdown captures, add one after 2200.
           export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
           export UR_RACER_HD_1P_STATE_TRACE=1
+          # The ORIGINAL 1x guest already runs here. Isolate the genuine
+          # bottom stock-P2 source slot96 while 4x independently collects
+          # empty P1 slot97. No third emulator process or any OBJ removal.
+          export UR_RACER_HD_WIDE_SOURCE_SLOT=96
+          export UR_RACER_HD_WIDE_SOURCE_FRAME=2208
+          export UR_RACER_HD_WIDE_SOURCE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p-slot96"
+          mkdir -p "$UR_RACER_HD_WIDE_SOURCE_DIR"
           export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-1p"
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_1p.txt \
@@ -594,6 +601,8 @@ jobs:
             --log "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json"
           unset UR_RACER_HD_1P_STATE_TRACE
+          test -s "$UR_RACER_HD_WIDE_SOURCE_DIR/ur-baldosa-ws342-obj-slot96-frame002208.pam"
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_FRAME UR_RACER_HD_WIDE_SOURCE_DIR
           echo "OBSERVED: authentic P1 semantic composition/frame frequency worklist; no guessed authored-rider registration" >> "$GITHUB_STEP_SUMMARY"
 
 
@@ -634,6 +643,18 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_0895_source_obj.json"
           unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_FRAME UR_RACER_HD_WIDE_SOURCE_DIR
           echo "OBSERVED: isolated real P1 slot97 source alpha at live 1P semantic0895 frame2208; 7 whole native Original source/4x pairs unchanged" >> "$GITHUB_STEP_SUMMARY"
+          python3 tools/check_baldosa_oneplayer_bottom_oam_sources.py \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+            --one-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
+            --four-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/fd/crc.txt" \
+            --one-dir "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-dir "$RUNNER_TEMP/baldosa-ws342-live-1p-4x" \
+            --source96 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot96/ur-baldosa-ws342-obj-slot96-frame002208.pam" \
+            --source97 "$RUNNER_TEMP/baldosa-ws342-live-1p-slot97/ur-baldosa-ws342-obj-slot97-frame002208.pam" \
+            --log96 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/log.txt" \
+            --log97 "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_bottom_slot96_97_source.json"
+          echo "OBSERVED: two real source PPU slot96/97 alpha planes, same 1P guest2208 and unchanged original 1x/4x CRC/raster" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/check_baldosa_late_1p_original.py \
             --baseline-crc "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
             --one-crc "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live/fd/crc.txt" \
@@ -1279,6 +1300,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_late_source.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_0895_source_obj.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_bottom_slot96_97_source.json
+            ${{ runner.temp }}/baldosa-ws342-live-1p-slot96/ur-baldosa-ws342-obj-slot96-frame*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-slot97/ur-baldosa-ws342-obj-slot97-frame*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_semantic_worklist.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json

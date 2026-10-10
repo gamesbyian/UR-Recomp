@@ -12,7 +12,6 @@ extern "C" {
 #include "desktop/sdl_compat.h"
 #include "snes_overlay_draw.h"
 void ur_baldosa_product_set_host_focus(int);
-const char* ur_baldosa_modern_active_racer_name(void);
 }
 
 #include <cstddef>
@@ -20,6 +19,7 @@ const char* ur_baldosa_modern_active_racer_name(void);
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <string>
 
 namespace {
 using ur::product::ModernRootDestination;
@@ -28,6 +28,7 @@ using ur::product::ModernRootOverlayPainter;
 using ur::product::ModernRootOverlayView;
 using ur::product::HostOverlayRect;
 ModernRootMenu g_menu{};
+std::string g_racer_name = "CREATE A RACER WITH X";
 bool g_visible = false;
 bool g_confirm_quit = false;
 bool g_render_reported = false;
@@ -72,6 +73,10 @@ void back() {
     else g_confirm_quit = true;
 }
 }  // namespace
+
+extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name) {
+    g_racer_name = name && *name ? name : "CREATE A RACER WITH X";
+}
 
 extern "C" void ur_baldosa_modern_root_after_config(void) {
     if (!configured()) return;
@@ -136,7 +141,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
     const ModernRootOverlayPainter painter{
         &snes_ovl_fill_rect, &snes_ovl_stroke_rect, &snes_ovl_draw_text};
     const ModernRootOverlayView view{
-        g_menu, false, ur_baldosa_modern_active_racer_name(),
+        g_menu, false, g_racer_name,
         false, g_confirm_quit};
     const bool drawn = ur::product::render_modern_root_overlay(
         painter, reinterpret_cast<std::uint32_t*>(dst),

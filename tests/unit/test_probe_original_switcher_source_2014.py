@@ -107,7 +107,7 @@ class OriginalSwitcherSourceTest(unittest.TestCase):
                                   return_value=list(enumerate([b"x"]*45))),
                 mock.patch.object(probe, "unpack_method1", return_value=b"ABC"),
             )
-            with patches[0], patches[1], patches[2], patches[3], patches[4], patches[5]:
+            with patches[0], patches[1], patches[2] as window_check, patches[3], patches[4], patches[5]:
                 for problem in (
                     "source-original replay failed: source core crashed",
                     "original entry capture failed: missing WRAM",
@@ -130,6 +130,14 @@ class OriginalSwitcherSourceTest(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "missing original trace diagnostic"):
                         probe.inspect_original(args)
                 self.assertFalse(args.report.exists())
+                # A 48k original scan must actually validate the entire
+                # post-Zoo source input, not merely its first 1810 frames.
+                self.assertIn(mock.call(b"synthetic", {"sample_count": 100000},
+                                        3190, 24000),
+                              window_check.call_args_list)
+                self.assertIn(mock.call(b"synthetic", {"sample_count": 100000},
+                                        27190, 20810),
+                              window_check.call_args_list)
 
 
 if __name__=="__main__":

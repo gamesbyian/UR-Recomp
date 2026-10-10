@@ -77,3 +77,32 @@ A compiled native bridge test checks these coordinates and density cases.
 This is a real host integration hook, **not** a real 4K screenshot or
 native display acceptance. The independent physical drawable capture
 and unchanged guest/PPU semantics remain required.
+
+## Real native SDL 4K output execution candidate
+
+The pinned Baldosa AOT acceptance now stages the separately merged,
+opt-in SDL2 renderer readback for its **disposable** framework checkout
+before the normal 342-wide world/4× host rebuild. Routine baseline,
+1P, 2P, VS and per-slot PPU jobs do not request a physical capture.
+
+After first recording original guest-frame **1856** at genuine native
+342×224 (1×) and 1368×896 (4×) in two independent processes, it starts
+a separate Xvfb **3840×2160** display and an isolated Baldosa configuration
+with `WindowSize=3840x2160`, `OutputMethod=SDL-Software`,
+`LinearFiltering=0`, and `Fullscreen=0`. The same unchanged native
+2P route renders the real SDL drawable, with exactly one full-frame
+`SDL_RenderReadPixels` readback before `SDL_RenderPresent`.
+The explicit frame/file arguments are `1856` and
+`ur-baldosa-output-001856.pam`.
+
+The workflow requires the complete stock guest CRC sequence, an
+authenticated 3840×2160 SDL readback log, and pixel-exact verification
+by `check_baldosa_physical_4k_capture.py` against the independent
+same-guest-frame source and 4× captures. The full physical RGBA file,
+native log and machine-readable report are retained as CI artifacts.
+
+**This is an acceptance *attempt*, not an established 4K result.**
+A wrong output drawable, missing actual readback, one mismatched RGBA
+pixel, time-bound failure or source divergence must fail CI. Any failure
+is a real output integration finding to investigate, never a reason to
+substitute a synthetically resized image or declare physical scanout.

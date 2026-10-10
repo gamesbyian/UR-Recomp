@@ -35,7 +35,8 @@ def probe(path: Path) -> dict:
 
 def validate(master: Path, frames: Path, log: Path, control: Path,
              recorded: Path, expected: int, output: Path,
-             rom_sha: str, git_sha: str, route: str,\n             min_start: int = 1990, logical_width: int = 342) -> dict:
+             rom_sha: str, git_sha: str, route: str,
+             min_start: int = 1990, logical_width: int = 342) -> dict:
     if not (600 <= expected <= 1200):
         raise ValueError("Expected count outside accepted capture window")
     raw = frames.read_text().splitlines()

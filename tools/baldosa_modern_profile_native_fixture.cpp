@@ -11,16 +11,100 @@
 
 #include <array>
 #include <cstdint>
+#include <cstring>
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
 
+/* Isolated QA-only selector transition. Never mint a second persistent
+ * profile grammar: use the established catalog, profile-state and global
+ * CAS writers with existing Modern format validation.
+ */
+static int add_second_named_profile(const std::filesystem::path& root,
+                                    const std::filesystem::path& seed) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    constexpr const char* kFirst = "native-ci-rider";
+    constexpr const char* kSecond = "native-ci-second";
+    std::error_code ec;
+    if (!fs::is_directory(root, ec) || ec ||
+        !fs::is_regular_file(seed, ec) || ec ||
+        fs::file_size(seed, ec) != kStockSramBytes || ec) return 21;
+    const auto global_path = (root / "host-state-v1.txt").string();
+    const auto roster_path = (root / "profiles-v1.txt").string();
+    const auto original = load_host_product_state_file(global_path);
+    auto roster = load_host_profile_catalog_file(roster_path);
+    if (!original.loaded() || original.state->active_profile_id != kFirst ||
+        !roster || roster->size() != 1 ||
+        (*roster)[0].profile_id != kFirst) return 22;
+    const auto first_root = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::string(kFirst));
+    const auto second_root = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::string(kSecond));
+    if (!first_root.isolated() || !second_root.isolated() ||
+        first_root.save_root == second_root.save_root) return 23;
+    const auto first_state = load_host_profile_state_file(
+        ExecutionMode::Modern,
+        (root / first_root.save_root / "host-profile.txt").string(), kFirst);
+    if (!first_state.loaded() ||
+        !profile_catalog_authorizes_state(*roster, *first_state.state))
+        return 24;
+    const auto second_dir = root / second_root.save_root;
+    if (fs::exists(second_dir, ec) || ec) return 25;
+
+    auto identity = make_legacy_racer_identity(1);
+    auto second = make_default_host_profile_state(kSecond);
+    if (!identity || !second) return 26;
+    std::array<std::uint8_t, kStockSramBytes> bytes{};
+    {
+        std::ifstream in(seed, std::ios::binary);
+        if (!in.read(reinterpret_cast<char*>(bytes.data()), bytes.size()))
+            return 27;
+    }
+    // A harmless, test-owned discriminator in a separate SRAM namespace.
+    // The actual native callback observes these bytes before the first
+    // guest frame; this does NOT assert a valid completed course result.
+    bytes[bytes.size() - 1] ^= 0x5Au;
+    second->racer_identity = *identity;
+    if (capture_stock_sram_for_profile(ExecutionMode::Modern, *second,
+        bytes.data(), bytes.size()) != HostProfileTransferStatus::Applied)
+        return 28;
+    if (!fs::create_directories(second_dir, ec) || ec) return 29;
+    if (save_host_profile_state_file(
+            ExecutionMode::Modern, (second_dir / "host-profile.txt").string(),
+            *second) != HostProfileSaveStatus::Saved) return 30;
+    {
+        std::ofstream out(second_dir / "save.srm", std::ios::binary);
+        if (!out.write(reinterpret_cast<const char*>(bytes.data()),
+                       bytes.size())) return 31;
+    }
+    const auto before_roster = *roster;
+    roster->push_back({kSecond, *identity});
+    if (save_host_profile_catalog_file_if_current(
+            roster_path, before_roster, *roster) !=
+            HostProfileCatalogSaveStatus::Saved) return 32;
+
+    auto next = *original.state;
+    next.active_profile_id = kSecond;
+    // This pointer is the last publication. If another process raced it,
+    // fail closed and leave a legitimate orphan for explicit QA teardown.
+    if (save_host_product_state_file_if_current(
+            global_path, *original.state, next) !=
+            HostProductSaveStatus::Saved) return 33;
+    std::fprintf(stdout,
+        "UR_BALDOSA_NATIVE_PROFILE_FIXTURE switched=%s sram=%zu distinct=1\n",
+        kSecond, bytes.size());
+    return 0;
+}
+
 int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kProfile = "native-ci-rider";
+    if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)
+        return add_second_named_profile(argv[1], argv[2]);
     if (argc != 3) return 2;
 
     const fs::path root(argv[1]);

@@ -147,6 +147,34 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 self.assertEqual(
                     (folder / name).read_bytes(), ("preserve-" + name).encode())
 
+    def test_second_named_modern_profile_admits_only_own_guest_sram(self):
+        source = bytes(i % 251 for i in range(8192))
+        second_hash = probe.fnv32(source)
+        a_log = (
+            "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=native-ci-rider "
+            "root=saves/profile-native-ci-rider\n"
+            "UR_BALDOSA_NATIVE_PROFILE BOOT_SRAM profile=native-ci-rider "
+            f"bytes=8192 fnv={second_hash}\n")
+        b_log = a_log.replace("native-ci-rider", "native-ci-second")
+        self.assertEqual(
+            probe.verify_named_profile_boot_bytes(
+                b_log, source, profile_id="native-ci-second"),
+            {"bytes": 8192, "fnv32": second_hash})
+        for corrupt in (
+            a_log,
+            b_log.replace("root=saves/profile-native-ci-second",
+                          "root=saves/profile-native-ci-rider"),
+            b_log.replace(second_hash, "00000000"),
+            b_log + b_log,
+        ):
+            with self.subTest(corrupt=corrupt[:90]):
+                with self.assertRaises(ValueError):
+                    probe.verify_named_profile_boot_bytes(
+                        corrupt, source, profile_id="native-ci-second")
+        with self.assertRaisesRegex(ValueError, "Unknown named"):
+            probe.verify_named_profile_boot_bytes(
+                b_log, source, profile_id="../escape")
+
     def test_named_profile_terminal_must_reach_final_script_checkpoint(self):
         clean = 2473
         for frames in (2472, 2473):

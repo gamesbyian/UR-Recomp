@@ -154,7 +154,7 @@ jobs:
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
             --video windows --expected-frames 2473 --timeout 95 \
             --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
-          echo "PASS: Win32 native two-player + delayed Restart; authentic existing Modern profile file/roster seeded by shipping codecs, 8192-byte SRAM compared before first guest frame, corruption rejects before boot without mutating save. Synthetic SDL only; physical hardware, packaged Modern root and finished events unverified." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles; second rider chooses own 8192-byte SRAM without modifying first rider; original pause/Restart, fresh-process SRAM, clean-machine DLL and invalid-profile gates retained. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()
@@ -169,3 +169,4 @@ jobs:
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_named_profile/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/corrupt_named_profile/log.txt
+            ${{ runner.temp }}/UR Baldosa Win32 Pause Route/different_named_profile/log.txt

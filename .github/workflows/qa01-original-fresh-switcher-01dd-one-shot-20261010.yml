@@ -64,7 +64,7 @@ jobs:
           # Read-only original CPU opcode pre/post-byte observation in a
           # disposable libretro source checkout, never a guest opcode change.
           python3 tools/instrument_snesref_qa01_switcher_stack.py \
-            --single-address 0x01DD \
+            --single-address 0x01DD --watch-nmi \
             "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/cpuexec.cpp"
           make -C "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro" -j2
           cmake -S baldosa -B baldosa/build -G Ninja \

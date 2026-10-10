@@ -512,6 +512,60 @@ jobs:
             --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_density_parity.json"
           echo "PASS: same-frame native 1P 342-wide 1x/4x Original pixels and stock guest CRC" >> "$GITHUB_STEP_SUMMARY"
 
+          # QA-08 VS gameplay: compare three independent executions of
+          # Baldosa's shipped VS route, not a synthetically latched guest.
+          # Control has *no* host widening nor HD; candidates use source
+          # Original at native 1x and 4x respectively. Any failure is a
+          # real missing acceptance witness, never an HD approval.
+          unset UR_BALDOSA_WS342_LIVE
+          export UR_BALDOSA_WS342=0
+          export UR_BALDOSA_HD=0 UR_BALDOSA_HD_DENSITY=1
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/vs.txt \
+            "$RUNNER_TEMP/baldosa-evidence/vs_stock"
+          test -s "$RUNNER_TEMP/baldosa-evidence/vs_stock/fd/crc.txt"
+
+          export UR_BALDOSA_WS342=1 UR_BALDOSA_HD=1
+          export UR_BALDOSA_WS342_LIVE=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-vs"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/vs.txt \
+            "$RUNNER_TEMP/baldosa-evidence/vs_ur_ws342_live"
+          cmp "$RUNNER_TEMP/baldosa-evidence/vs_stock/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/vs_ur_ws342_live/fd/crc.txt"
+          # Do not credit an incidental 2P/1P selection or a fixed-center
+          # scene: the guest itself must traverse VS pre-race mode 0x3E.
+          python3 - "$RUNNER_TEMP/baldosa-evidence/vs_ur_ws342_live/log.txt" \
+            "$UR_BALDOSA_WS342_CAPTURE_DIR" <<'PY'
+          import pathlib, re, sys
+          log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8", errors="replace")
+          captures = sorted(pathlib.Path(sys.argv[2]).glob("ur-baldosa-ws342-*.pam"))
+          matches = re.findall(
+              r"^UR_BALDOSA_WS342_LIVE_MODE frame=(\d+) mode=(\d+) "
+              r"guest_race=([0-9A-F]+) frontend=([0-9A-F]+)$", log, re.M)
+          assert any(int(mode) == 3 and int(frontend, 16) == 0x3E
+                     and int(active, 16) != 1
+                     for _, mode, active, frontend in matches), (
+                         "native VS mode latch missing", matches)
+          assert len(captures) >= 2, (
+              "native VS world was not actually presented/captured", captures)
+          print("UR_BALDOSA_WS342_LIVE_VS guest_vs_mode=1 "
+                f"wide_source_captures={len(captures)}")
+          PY
+
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-live-vs-4x"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/vs.txt \
+            "$RUNNER_TEMP/baldosa-evidence/vs_ur_ws342_live_4x"
+          cmp "$RUNNER_TEMP/baldosa-evidence/vs_stock/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/vs_ur_ws342_live_4x/fd/crc.txt"
+          python3 tools/check_baldosa_wide_density_parity.py \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-live-vs" \
+            --four-x "$RUNNER_TEMP/baldosa-ws342-live-vs-4x" \
+            --min-shared 2 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_vs_density_parity.json"
+          echo "PASS: real VS scene at 342x224, independently matched guest CRC and exact same-frame Original 1x/4x pixels" >> "$GITHUB_STEP_SUMMARY"
+
           # The archival three-frame 2P source-route comparison below must
           # still run with its original explicitly bounded scene policy.
           unset UR_BALDOSA_WS342_LIVE
@@ -747,6 +801,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p.json
             ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_vs_density_parity.json
+            ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live/log.txt
+            ${{ runner.temp }}/baldosa-evidence/vs_ur_ws342_live_4x/log.txt
+            ${{ runner.temp }}/baldosa-ws342-live-vs/ur-baldosa-ws342-*.pam
+            ${{ runner.temp }}/baldosa-ws342-live-vs-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-live-1p-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt

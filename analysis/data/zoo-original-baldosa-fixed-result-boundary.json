@@ -1,0 +1,116 @@
+{
+  "schema": "UR-QA01-ORIGINAL-BALDOSA-ZOO-RESULT-BOUNDARY/1",
+  "evidence_class": "independently reproduced complete Circuit result, but original/native guest transition timing differs; NOT release-admitted",
+  "source": {
+    "previous_merges": [
+      1091,
+      1093,
+      1098
+    ],
+    "workflow_run": 38005782923,
+    "artifact_id": 11650174888,
+    "artifact_zip_sha256": "d29054efe934c3226dfb99e5fe69e285eac9ad70cbd8bf64ab782f07ab05d5b1",
+    "original_engine": "Snes9x-libretro pinned original, fresh process, archived 2014 movie scene",
+    "native_engine": "pinned Baldosa AOT, fresh process, same exact source movie button masks and embedded SRAM",
+    "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "scene_entry_original_frame": 1604,
+    "scene_entry_native_frame": 1606,
+    "guest_relative_sample_range": [
+      5158,
+      5175
+    ],
+    "no_result_menu_until_polling_in_boundary_capture": true
+  },
+  "observed_original_native_event": {
+    "both_p1_and_p2_laps_remaining_at_relative_5158": [
+      0,
+      0
+    ],
+    "both_p1_and_p2_checkpoint_at_relative_5158": [
+      1,
+      1
+    ],
+    "both_p1_and_p2_finish_gate_at_relative_5158": [
+      1,
+      1
+    ],
+    "race_flag_leaves_active_relative_frame": {
+      "original": 5162,
+      "native": 5161
+    },
+    "result_menu_0xBC_first_observed_relative_frame": {
+      "original": 5163,
+      "native": 5162
+    },
+    "source_gameplay_state_equals_native_named_fields_at": [
+      5158,
+      5159,
+      5160,
+      5163,
+      5164,
+      5165,
+      5166,
+      5167,
+      5168,
+      5169,
+      5173,
+      5174,
+      5175
+    ],
+    "first_named_field_difference": {
+      "relative_frame": 5161,
+      "field": "race_flag",
+      "original": 1,
+      "native": 0
+    },
+    "p1_contact_at_relative_5170": {
+      "original": 0,
+      "native": 10240
+    },
+    "p2_contact_at_relative_5170": {
+      "original": 0,
+      "native": 512
+    },
+    "p1_contact_at_relative_5172": {
+      "original": 10240,
+      "native": 10240
+    },
+    "p2_contact_at_relative_5173": {
+      "original": 256,
+      "native": 256
+    },
+    "p1_p2_persisted_contacts_match_again_from_relative_frame": 5173,
+    "both_settled_original_native_result_ppu_text_identical": true,
+    "player_result": {
+      "MIKE_total": "1:16.46",
+      "MIKE_best_lap": "0:25.10",
+      "BRONSEN_total": "1:20.07",
+      "BRONSEN_best_lap": "0:26.45"
+    }
+  },
+  "timing_diagnostics": {
+    "original_dp_7e00c6_at_5158_5159_5160": [
+      1,
+      0,
+      31
+    ],
+    "native_dp_7e00c6_at_5158_5159_5160": [
+      0,
+      31,
+      30
+    ],
+    "original_dp_7e00c8_at_5158_5159_5160": [
+      3,
+      2,
+      1
+    ],
+    "native_dp_7e00c8_at_5158_5159_5160": [
+      2,
+      1,
+      0
+    ],
+    "interpretation": "A one-guest-frame transient phase lead is visible in native before the first race-flag transition. DP C6/C8 labels are raw scratch observations, not yet proven authoritative timers or execution defect owner. Whole controller origin +/-1 shifts have separately been ruled out as a benign fix: both fail actual Circuit completion."
+  },
+  "next_experiment": "Add fixed source-relative prelude samples +4700, +4800, +5000, +5100, +5130, +5145, +5154, +5156, +5157 using existing route to locate earliest raw scratch phase drift. If confined to final UI lifecycle, inspect transition scheduling/host frame convention before modifying a single gameplay instruction.",
+  "complete_event_qa_credit": 0
+}

@@ -48,13 +48,17 @@ Do not infer that these eight bytes are cosmetic, uninitialized, CPU scratch or 
 4. **One causal test, only if necessary:** capture immediately on both sides of the identified original and native instruction boundary using existing source/native observer hooks, with unchanged input. A controlled comparison of corresponding instruction lifecycle points is preferable to globally shifting frame labels.
 5. **Stop condition:** either demonstrate that the terminal offset is a measurement/host-boundary convention with independently equivalent original-defined event/result and subsequent transition, or locate the earliest original/native player-relevant state transition and show its causal writer. If the available probes cannot decide, log precisely which register/boundary is missing, leave course partial, and switch to the next family.
 
+### Executed original writer classification update, not a released-course pass
+
+An actual original Switcher result-window opcode trace has now resolved the dominant **stack-page writer class** for the original-only source: **13,709** changes across seven of the eight low-WRAM targets; all match CPU push-family opcodes with SP/address consistency. In particular original `JSR` scopes `82:B1F2` and `82:B1F9` account for **12,939** changes to `7E:01F1`, writing exactly their pushed return-address low bytes `F4`/`FB` with SP `01F2→01F0`. The eighth target `7E:01DD` was not written in the sampled original terminal window. See [the executed opcode-source crosswalk](QA01-STACK-PAGE-ORIGINAL-PC-CROSSWALK-20261010.md) and [per-address histogram/artifact provenance](../analysis/data/switcher-original-jsr-stack-opcode-scopes-20261010.json). The source writer *category* is no longer wholly unverified, but the original/native **same-host residual cause, consumer liveness, native PC/SP phase and guest-relative terminal acceptance remain unresolved**. Do not assert that all cross-guest differences are cosmetic or harmless.
+
 ### Eight-offset classification template
 
 | Offset group | Proven original writer (bank:PC) | Original readers and semantic consumer | Earliest differing phase | Impacts result/progression? | Confidence |
 | --- | --- | --- | --- | --- | --- |
-| 7E:01DD | unverified | unverified | no earlier-than-5782 proof | unknown | unclassified |
-| 7E:01E6–01E7 | unverified | unverified | no earlier-than-5782 proof | unknown | unclassified |
-| 7E:01EF–01F3 | unverified | unverified | no earlier-than-5782 proof | unknown | unclassified |
+| 7E:01DD | not observed in bounded original source result window | unverified | no earlier-than-5782 proof | unknown | unclassified for this window |
+| 7E:01E6–01E7 | observed original push-family/SP-compatible scopes; exact PCs in witness | unverified | source movie result window only | unknown | observed original scope, not full consumer attribution |
+| 7E:01EF–01F3 | observed original stack-compatible push scopes, including exact JSR return-byte mechanism for 01F1 | unverified | source movie result window only | unknown | strong 01F1 original instruction semantics; native cause open |
 
 **Addressing note:** these are linear WRAM offsets (SNES WRAM base `7E:0000`), not original source PC addresses. The table deliberately makes no speculative claims about field widths or meaning.
 

@@ -2,6 +2,27 @@
 
 **Observed evidence and scope (2026-10-10).** This note retains an already-executed original Snes9x opcode-scope observation and relates it to independently executed original/native Race/Stunt memory differences. **It does not claim an original/native complete-event pass, an instruction-semantic proof or a player-facing bug.** Primary release census remains **0/45** USA complete pairs.
 
+## Executed original Switcher stack result: 13,709 actual opcode scopes
+
+The source experiment has now **run**, not merely been designed. Original Snes9x [run 38088102870](https://github.com/gamesbyian/UR-Recomp/actions/runs/38088102870) independently qualified the real 2014 Switcher Race B result at **source movie host frame 17030**, then replayed the identical input through an instrumented disposable Snes9x core. The original/source event and exact 128-KiB source-entry/horizon WRAM equivalence validator passed before the initial reporter rejected more than 5,000 changes. The original raw log was preserved as artifact **11683670622** (ZIP SHA-256 `9f3f8020ea12f58b9094e0fbfe00d6161d9c6812dbf49837c91c7e5a57c29e95`). A corrected, exhaustive-count/96-sample maximum reporter passed three checks in merged #1232, then [run 38088688106](https://github.com/gamesbyian/UR-Recomp/actions/runs/38088688106) processed that **same hash-attested artifact without rerunning an emulator**. Compact recovered artifact **11684005205** is preserved in [machine-readable evidence](../analysis/data/switcher-original-jsr-stack-opcode-scopes-20261010.json).
+
+All **13,709** observed original opcode-scoped changed bytes across **seven** monitored stack-page addresses are compatible with the recorded push-family opcode, the stack-pointer decrement and the written address. The eighth, **`7E:01DD`**, did not change in this 20-original-CPU-frame result window; its earlier or other-event owner is **not** classified. These are **exact original-only observations**, not an executed native instruction schedule or full 45-event admission.
+
+| Target WRAM address | Original changed-byte opcode scopes | Push/SP/address compatible |
+| --- | ---: | ---: |
+| `7E:01DD` | 0 | n/a: unobserved |
+| `7E:01E6` | 11 | 11 |
+| `7E:01E7` | 141 | 141 |
+| `7E:01EF` | 57 | 57 |
+| `7E:01F0` | 44 | 44 |
+| `7E:01F1` | **13,204** | **13,204** |
+| `7E:01F2` | 188 | 188 |
+| `7E:01F3` | 64 | 64 |
+
+The decisive source-level subcase is **`7E:01F1`**. The original CPU performs opcode **`20` (`JSR`)** at `82:B1F2` (**6,469** observed changes) and `82:B1F9` (**6,470**). Both move original SP **`01F2→01F0`** and change `7E:01F1`. The pushed low return-address byte for a 3-byte `JSR` at `82:B1F2` is **`F4`** (`B1F4`), while at `82:B1F9` it is **`FB`** (`B1FB`). The actual archived original changes alternate exactly between those bytes, matching the instruction's stack-return semantics. These two source PCs account for **12,939 / 13,204**, about **98%**, of all observed `01F1` changes. Their presence in the independent original Zoo trace is no longer merely a source-neighborhood coincidence: these are repeatedly exercised original-game subroutine stack writes in two event families.
+
+**What remains open:** The eight *cross-guest* Switcher bytes were measured at **independently calibrated absolute host 5782**, whereas this original-only writer trace is from the **archived movie** near result movie host **17030**. Do not equate host/CPU counters or declare those eight original/native byte differences entirely harmless. Need a native same-event PC/SP or instruction-boundary comparison and a result/progression read-consumer test where appropriate. The strict source-relative terminal mismatch and official USA **0/45** complete admissions are unchanged.
+
 ## Three independent evidence classes, not one time-aligned trace
 
 | Family / genuine event | Source | Observation | Limits |
@@ -27,13 +48,13 @@ The original byte is **restored in the same observed CPU frame**. The [machine e
 
 All eight actual Switcher differing offsets, `7E:01DD,01E6,01E7,01EF,01F0,01F1,01F2,01F3`, lie in the 65C816 conventional **`$0100..$01FF` stack page**. The pinned original Snes9x implementation in [`cpuops.cpp`](../third_party/src/snes9x-libretro/cpuops.cpp) has `PushB` write via `S9xSetByte(b, Registers.S.W--)` and `PushW` via `S9xSetWord(w, Registers.S.W - 1, ...)`, followed by a two-byte SP decrement. The pinned RAM label catalogue does **not** name the eight byte addresses, and its `sSavedDirectPage` SRAM mirror covers only `$0000..$019D`. That makes **transient stack residue a high-information hypothesis**, but regular RAM or interrupt-related code can also touch this page. Original CPU stack pointer and M/X/E mode still require measurement.
 
-The already merged [opt-in Switcher original opcode diagnostic](../tools/instrument_snesref_qa01_switcher_stack.py) and [fail-closed report tool](../tools/report_qa01_switcher_stack_trace.py) now discriminate:
+The already executed [opt-in Switcher original opcode diagnostic](../tools/instrument_snesref_qa01_switcher_stack.py) and [fail-closed report tool](../tools/report_qa01_switcher_stack_trace.py) now discriminate:
 - Actual original opcode PC and opcode on changing the targeted bytes.
 - SP before/after plus whether the address is **consistent** with a candidate 1-, 2- or 3-byte push (not automatic instruction attribution).
 - Original 2014 event/input/ROM/SRAM and exact 128-KiB entry/horizon memory invariance after disposable emulator instrumentation.
 - Whether `01F1` under original Switcher is touched by the same source PC neighborhood as original Zoo, and whether the higher-frequency Bowl overlap address `01DD` behaves as push-consistent memory.
 
-Invoke the **existing manual** GitHub Actions workflow `qa01-switcher-original-2014.yml` using `source_horizon=22000` and `stack_writer_probe=true`. The probe starts from the **independently observed original archived source movie result frame** (previously 17030) and scans its bounded CPU window. The fresh original/native same-host **5782** pair is a **different replay timeline**; do not equate those clocks or call source-only opcode traces a native CPU scheduling verdict.
+Invoke the **existing manual** GitHub Actions workflow `qa01-switcher-original-2014.yml` using `source_horizon=22000` and `stack_writer_probe=true`. The probe starts from the **independently observed original archived source movie result frame** (17030) and scans its bounded CPU window; the actual recovered original result is recorded above. The fresh original/native same-host **5782** pair is a **different replay timeline**; do not equate those clocks or call source-only opcode traces a native CPU scheduling verdict.
 
 ### Explicit outcomes
 

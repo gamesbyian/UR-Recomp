@@ -21,6 +21,21 @@ extern void ur_baldosa_ws24_prepare_frame(int, int, int*, int*);
 extern void ur_baldosa_ws24_begin_sim_frame(unsigned);
 extern int ur_baldosa_ws24_draw_frame(uint8_t*, size_t,
     const uint8_t*, int, int, double);
+extern int ur_baldosa_ws24_original_viewport(
+    int, int, int, int, int*, int*, int*, int*);
+static void ur_baldosa_ws24_compute_viewport(
+    int frame_w, int frame_h, int drawable_w, int drawable_h,
+    SnesDisplayViewport* viewport) {
+    int x, y, width, height;
+    if (viewport && ur_baldosa_ws24_original_viewport(
+            frame_w, frame_h, drawable_w, drawable_h,
+            &x, &y, &width, &height)) {
+        viewport->x = x;
+        viewport->y = y;
+        viewport->width = width;
+        viewport->height = height;
+    }
+}
 """
 
 
@@ -37,7 +52,8 @@ def patch_main(source: str) -> str:
     source = source.replace(
         SLOT,
         SLOT + "    .native_widescreen = 1,\n"
-             + "    .prepare_frame     = &ur_baldosa_ws24_prepare_frame,\n",
+             + "    .prepare_frame     = &ur_baldosa_ws24_prepare_frame,\n"
+             + "    .compute_viewport  = &ur_baldosa_ws24_compute_viewport,\n",
         1)
     return source
 

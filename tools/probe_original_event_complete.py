@@ -570,11 +570,36 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
             "qualification": "candidate only; source/original and native complete-event evidence still requires independent review"}
 
 
+def attest_original_source_horizon(log: str, requested: int,
+                                   captured_wram: Path) -> dict:
+    """Prove the original reference guest reached the requested host boundary.
+
+    The changed-byte WRAM trace may end many frames earlier if the guest
+    wrote nothing observable. A successful process exit or nonempty trace
+    therefore does NOT attest the final scanned movie frame. Require a
+    unique source-owned script dump at the requested host frame and a
+    complete original 128-KiB WRAM capture (never retained as a fixture).
+    """
+    if type(requested) is not int or requested <= 0:
+        raise CompleteEventError("invalid requested original source horizon")
+    observed = observed_dump_frame(log, "source-horizon")
+    if observed != requested:
+        raise CompleteEventError(
+            f"original source horizon not reached: requested {requested}, observed {observed}")
+    if not captured_wram.is_file() or captured_wram.stat().st_size != 0x20000:
+        raise CompleteEventError(
+            "missing or invalid original source horizon WRAM capture")
+    return {"original_source_horizon_host_frame": observed,
+            "original_source_horizon_wram_bytes": 0x20000,
+            "original_source_horizon_observed_from_guest_dump": True}
+
+
 def scan_source(args, work: Path, sram: Path, source_input: Path,
                 decoded: bytes) -> dict:
     scan = work / "source"
     scan.mkdir(parents=True)
-    (scan / "scan.script").write_text(f"wait {args.source_horizon}\nquit\n")
+    (scan / "scan.script").write_text(
+        f"wait {args.source_horizon}\ndump source-horizon\nquit\n")
     env = dict(os.environ, SNESREF_HEADLESS="1", SNESREF_FAST="1",
                SNESREF_WRAM_FILL="0", SNESREF_SRAM_IN=str(sram),
                SNESREF_SCRIPT=str(scan / "scan.script"),
@@ -587,9 +612,13 @@ def scan_source(args, work: Path, sram: Path, source_input: Path,
     (scan / "source-scan.log").write_text(p.stdout + p.stderr)
     if p.returncode:
         raise CompleteEventError("source-original replay failed: " + (p.stdout + p.stderr)[-1200:])
+    horizon_attestation = attest_original_source_horizon(
+        p.stdout + p.stderr, args.source_horizon,
+        scan / "source-horizon.wram.bin")
     states = trace.frame_states((scan / "trace.jsonl").read_text().splitlines())
     stream, track, menu, _ = CASES[args.case]
     diagnostic = source_event_diagnostic(states, track, menu)
+    diagnostic.update(horizon_attestation)
     (scan / "source-event-diagnostic.json").write_text(
         json.dumps(diagnostic, indent=2) + "\n", encoding="utf-8")
     print("ORIGINAL_SOURCE_EVENT_DIAGNOSTIC="

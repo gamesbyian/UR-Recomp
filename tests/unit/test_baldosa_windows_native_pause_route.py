@@ -12,6 +12,29 @@ import baldosa_windows_native_pause_route as probe
 
 
 class NativeWindowsPauseProbeTests(unittest.TestCase):
+    def test_modern_1p_2p_source_scripts_reach_go_without_selecting_stock_root(self):
+        for players in (1, 2):
+            with self.subTest(players=players):
+                script = probe.native_modern_race_entry_script(players)
+                self.assertIn("until16 0053 == F60C", script)
+                self.assertIn("until16 0053 == 8610", script)
+                self.assertIn("until 0E1F != 00", script)
+                self.assertIn("dump go", script)
+                self.assertIn("wait 900", script)
+                self.assertTrue(script.endswith("quit\\n"))
+                self.assertNotIn("press down 2", script)
+                self.assertNotIn("press p2:right", script)
+                # The original 1P picker has four post-main accepts;
+                # 2P has P1+P2 rider confirmation and three more accepts.
+                self.assertEqual(
+                    script.count("press start 2"), 4)
+                self.assertEqual(
+                    script.count("press p2:start 2"), players - 1)
+        for players in (0, 3, -1):
+            with self.assertRaisesRegex(ValueError, "one or two"):
+                probe.native_modern_race_entry_script(players)
+
+
     def test_real_sdl_shared_root_requires_stock_menu_observation(self):
         baseline = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"

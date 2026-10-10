@@ -72,8 +72,9 @@ inline bool baldosa_sram_file_matches_exact(
            std::equal(bytes.begin(), bytes.end(), expected);
 }
 
-// Check only original selected-profile authority. Caller MUST hold the
-// existing host-state-v1.txt selector lock before calling this preflight.
+// Check original selected-profile authority. Caller MUST hold BOTH the
+// host-state-v1.txt selector lock and selected host-profile.txt lock here.
+// Neither file can change between this preflight and raw SRAM publication.
 inline bool baldosa_sram_checkpoint_request_valid(
     const BaldosaSramCheckpoint& request) {
     const auto& id = request.expected_profile.profile_id;
@@ -116,8 +117,9 @@ baldosa_sram_checkpoint_preflight_under_lock(
     return std::nullopt;
 }
 
-// Native host holds the SAME selector OS lock from before the real cartridge
-// write through typed publication. Never recursively acquire it here.
+// Native host holds BOTH canonical OS locks, acquired selector-first and
+// profile-second, from before the real cartridge write through publication.
+// Never recursively acquire either lock here.
 inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram_under_lock(
     const BaldosaSramCheckpoint& request) {
     namespace fs = std::filesystem;
@@ -150,7 +152,7 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram_under_
         HostProfileTransferStatus::Applied)
         return BaldosaSramCheckpointStatus::InvalidContext;
 
-    const auto outcome = save_host_profile_state_file_if_current(
+    const auto outcome = save_host_profile_state_file_if_current_under_lock(
         ExecutionMode::Modern, profile_path.string(),
         request.expected_profile, updated);
     if (outcome == HostProfileSaveStatus::Saved)
@@ -170,6 +172,16 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
         request.user_root / "host-state-v1.txt";
     TournamentLaunchPathLock global_lock(global_path.string(), true);
     if (!global_lock.acquired())
+        return BaldosaSramCheckpointStatus::IoError;
+    const auto decision = resolve_host_profile_save_root(
+        ExecutionMode::Modern,
+        std::optional<std::string>(request.expected_profile.profile_id));
+    if (!decision.isolated())
+        return BaldosaSramCheckpointStatus::InvalidContext;
+    const std::filesystem::path profile_path =
+        request.user_root / decision.save_root / "host-profile.txt";
+    TournamentLaunchPathLock profile_lock(profile_path.string(), true);
+    if (!profile_lock.acquired())
         return BaldosaSramCheckpointStatus::IoError;
     return checkpoint_baldosa_native_profile_sram_under_lock(request);
 }

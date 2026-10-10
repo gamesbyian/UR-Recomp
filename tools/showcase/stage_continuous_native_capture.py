@@ -65,7 +65,7 @@ static void UrContinuousNativeCapture(void) {
     snprintf(sidecar, sizeof(sidecar), "%s.frames.tsv", target);
     index = fopen(sidecar, "wb");
     if (!index) { failed = 1; return; }
-    fprintf(index, "ordinal\\tguest_frame\\twidth\\theight\n");
+    fprintf(index, "ordinal\tguest_frame\twidth\theight\n");
     snprintf(cmd, sizeof(cmd), "ffmpeg -nostdin -hide_banner -loglevel error "
              "-y -f rawvideo -pix_fmt bgra -s %dx%d -r 60 -i pipe:0 "
              "-an -c:v ffv1 -level 3 -slicecrc 1 '%s' ",
@@ -90,7 +90,7 @@ static void UrContinuousNativeCapture(void) {
   if (!failed && fwrite(buffer, 1, bytes, pipe) != bytes) failed = 1;
   free(buffer);
   if (!failed) {
-    fprintf(index, "%d\\t%lu\\t%d\\t%d\n", captured, frame, width, height);
+    fprintf(index, "%d\t%lu\t%d\t%d\n", captured, frame, width, height);
     previous = frame;
     ++captured;
   }

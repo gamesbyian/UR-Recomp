@@ -23,7 +23,7 @@ CENSUS = re.compile(
 
 PIXEL_CHANGE = re.compile(
     r"^UR_RACER_HD_PIXEL_CHANGE frame=(\d+) source_instances=([0-4]) "
-    r"changed_from_stock=([01])$"
+    r"changed_from_underlay=([01])$"
 )
 
 ALLOWED = {

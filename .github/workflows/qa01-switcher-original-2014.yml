@@ -2,14 +2,6 @@ name: QA-01 original 2014 Switcher Race B source qualification
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - ".github/workflows/qa01-switcher-original-2014.yml"
-      - "tools/probe_original_switcher_source_2014.py"
-      - "tools/probe_original_event_complete.py"
-      - "tests/unit/test_probe_original_switcher_source_2014.py"
-      - "tools/bootstrap_toolchain.py"
-      - "tools/toolchain-entries/snes9x-libretro.json"
 
 permissions:
   contents: read

@@ -1,7 +1,10 @@
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from tools.capture_modern_restart_audio import verify_restart_log, validate_restart_audio
+from tools.capture_modern_restart_audio import (
+    verify_restart_log, validate_restart_audio, read_stereo_after_native_exit,
+)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -77,6 +80,44 @@ class ModernRestartAudioTests(unittest.TestCase):
         verified = validate_restart_audio(report, self.LOG)
         self.assertTrue(verified["recovery_confirmed"])
         self.assertEqual(verified["restarted_final_one_second"], resumed)
+
+    def test_bounded_postexit_file_unlock_recovers_but_no_audio_failures_hide(self):
+        window = {"frames": 44100, "combined_rms": 320}
+        # The OS may release the playback file only after the process tree
+        # wrapper has terminated. This is a lock release, NOT a substituted
+        # audio sample or a retry of any failed guest/audio invariant.
+        with patch("tools.capture_modern_restart_audio.read_stereo_window",
+                   side_effect=[PermissionError("SDL file open"),
+                                PermissionError("SDL file open"), window]) as read:
+            with patch("tools.capture_modern_restart_audio.time.sleep") as sleep:
+                self.assertEqual(read_stereo_after_native_exit(
+                    Path("capture.raw"), 176400), window)
+                self.assertEqual(read.call_count, 3)
+                self.assertEqual(sleep.call_count, 2)
+
+        for failure in (FileNotFoundError("device file missing"),
+                        ValueError("PCM truncated"),
+                        RuntimeError("bad channel window")):
+            with self.subTest(failure=str(failure)):
+                with patch("tools.capture_modern_restart_audio.read_stereo_window",
+                           side_effect=failure) as read:
+                    with patch("tools.capture_modern_restart_audio.time.sleep") as sleep:
+                        with self.assertRaises(type(failure)):
+                            read_stereo_after_native_exit(Path("capture.raw"), 176400)
+                        self.assertEqual(read.call_count, 1)
+                        sleep.assert_not_called()
+
+        with patch("tools.capture_modern_restart_audio.read_stereo_window",
+                   side_effect=PermissionError("persistent device denial")) as read:
+            with patch("tools.capture_modern_restart_audio.time.sleep") as sleep:
+                with self.assertRaises(PermissionError):
+                    read_stereo_after_native_exit(
+                        Path("capture.raw"), 176400, unlock_timeout_seconds=0)
+                self.assertEqual(read.call_count, 1)
+                sleep.assert_not_called()
+        with self.assertRaises(ValueError):
+            read_stereo_after_native_exit(Path("capture.raw"), 176400,
+                                          unlock_timeout_seconds=6)
 
     def test_real_native_keyboard_and_postclose_device_path_are_used(self):
         source = (ROOT / "tools/capture_modern_restart_audio.py").read_text()

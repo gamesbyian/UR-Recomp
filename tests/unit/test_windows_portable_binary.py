@@ -45,6 +45,23 @@ class WindowsPortableBinaryTests(unittest.TestCase):
         self.assertIn("xinput1_4.dll", actual)
         self.assertEqual(len(actual), 7)
 
+    def test_accepts_windows_inbox_direct2d_and_directwrite_exactly(self):
+        # Actual pinned Baldosa AOT Windows import evidence in native CI
+        # run 38020240097. These API DLLs ship with Windows 10/11, unlike
+        # MinGW/VC/SDL toolchain runtimes. Keep exact names, no wildcard.
+        imports = binary.check_dependencies(dumpbin(
+            "KERNEL32.dll", "D2D1.dll", "DWRITE.dll",
+            delay=("DWrite.DLL",),
+        ))
+        self.assertEqual(
+            set(imports), {"kernel32.dll", "d2d1.dll", "dwrite.dll"})
+        for forbidden in ("d2d1custom.dll", "dwrite_core.dll",
+                          "DWriteCore.dll", "SDL3.dll"):
+            with self.subTest(forbidden=forbidden):
+                with self.assertRaises(ValueError):
+                    binary.check_dependencies(dumpbin(
+                        "kernel32.dll", forbidden))
+
     def test_accepts_observed_final_main_windows_imports(self):
         # Windows package run 37687593108, built via ClangCL/SDL3.
         # These are the actual 13 dumpbin dependencies, not a hypothetical set.

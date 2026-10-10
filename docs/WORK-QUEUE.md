@@ -2,17 +2,17 @@
 
 **Current as of 2026-10-09 (six-PR merge and CI reconciliation checkpoint after #1045):** **Baldosa incorporation and the remaining adversarial QA are one coordinated shipping programme.** Work on a single faithful, genuinely modern, playable Windows x64 candidate. This document alone orders *live* work; do not infer today's assignment from historical PR numbers, tool inventories or the length of an old research plan. Refresh `main` and GitHub PR states on entry because merges are frequent. **Release gate status lives only in [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json).**
 
-## Native Modern lifecycle / persistence checkpoint (2026-10-09 evening)
+## Baldosa native Modern checkpoint (2026-10-09)
 
-**Merged source-backed components, not one shipping Modern app:**
+**Components merged, not yet a unified Modern app:**
 
-- **#1090, #1095, #1099, #1100 and #1101:** Native Modern acknowledged session pause/input/snapshot contracts, with synthetic SDL guest freeze and per-frame parity. The release-grade Modern root does not yet run inside Baldosa.
-- **#1105:** Genuine SDL `R` delayed native Restart after the guest has advanced from race anchor frame 1783 to frame 1952; append-only host-frame WRAM observes real post-resume divergence at host frame 1953 while preserving SRAM. The game-owned frame index rewinds, so do not use guest-indexed dump filename uniqueness as a restart witness.
-- **#1108:** The pinned native Windows/Linux host consumes the existing `SNESRECOMP_USER_DATA_DIR` resolved by the already-shipping Modern portable launcher. Config, bindings and guest SRAM are isolated under that root; invalid explicit roots fail closed.
-- **#1113:** An **opt-in** native `after_config` callback reads the existing typed `host-state-v1.txt`, `host-profile.txt` and `profiles-v1.txt` through our original codecs and selects the existing per-profile SRAM root *before* upstream `RtlReadSram`. Missing/invalid named profiles reject. It does **not** create profiles, show the root UI or persist guest events.
-- **#1115 (check GitHub status, not assumed merged):** Strengthen that bounded proof with actual named-profile 8-KiB native guest boot witness and corrupted-profile rejection on Win32/Linux. Preserve the 2,473-frame 2P/Restart baseline and avoid a separate native executable bundle.
+- **#1090/#1095/#1099/#1100/#1101:** acknowledged native pause, input release, snapshot and CRC parity.
+- **#1105:** real SDL Restart rewinds the guest's frame 1952 to race anchor 1783, preserves SRAM and proves changed post-resume WRAM on an append-only host timeline. Guest-indexed frame filenames can be overwritten by a rewind.
+- **#1108:** Baldosa uses the existing portable Modern user-data root for config, bindings and SRAM; invalid explicit roots reject.
+- **#1113:** opt-in typed Modern state/profile/catalog selection before native `RtlReadSram`; invalid named profiles reject without creating a profile.
+- **#1115:** check current PR/CI before crediting its real-guest named-profile 8-KiB SRAM boot and invalid-profile tests.
 
-**Next actual code seam:** Route the existing visible five-destination Modern product host to Baldosa's real execution backend. Preserve single menu, input, pause/Restart authority, original player-data profile transactions, `.urrun/.urghost/.urmatch` and native persistence. Do not spend a second track recreating a Modern frontend or consider the opt-in profile bridge sufficient for shipping. The older patched executable remains the runnable Modern candidate and rollback. A correct native profile path is weaker than a genuine guest-boot witness, which is weaker again than fresh-process persisted progress after a real settled event. Gameplay/visual event oracle work remains independent, and **0/45 official USA courses** are yet admitted.
+**Next:** Connect the existing five-way visible Modern frontend and controller seats to Baldosa, preserving exactly one host-owned input, Restart, storage/records/ghost/tournament authority. Keep the older patched executable as rollback. Current profile boot proofs do **not** establish that frontend, a full persisted result or original-emulator event parity (**official 0/45**). Share the same native build and QA routes with graphics/gameplay agents.
 
 ## First read (fresh coding agent, five-minute route)
 

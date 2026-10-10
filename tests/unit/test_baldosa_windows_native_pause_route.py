@@ -36,6 +36,51 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 probe.native_modern_race_entry_script(players)
 
 
+    def test_modern_root_reentry_requires_real_ordered_stock_return(self):
+        self.assertNotIn("b", probe.STOCK_RETURN_CANDIDATES)
+        self.assertEqual(probe.STOCK_RETURN_CANDIDATES, ("x", "y"))
+        for button in probe.STOCK_RETURN_CANDIDATES:
+            script = probe.native_modern_root_reentry_script(button)
+            self.assertIn(f"press {button} 2", script)
+            self.assertIn("wait 360", script)
+            self.assertIn("dump after_candidate", script)
+            self.assertNotIn("until 009F", script)
+            self.assertNotIn("reset", script)
+            self.assertEqual(script.splitlines()[-1], "quit")
+        with self.assertRaisesRegex(ValueError, "Unsupported"):
+            probe.native_modern_root_reentry_script("b")
+        trace = (
+            "UR_BALDOSA_MODERN_ROOT opened=1\n"
+            "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"
+            "UR_BALDOSA_MODERN_ROOT selected=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=2\n"
+            "UR_BALDOSA_MODERN_ROOT selected=3\n"
+            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=2\n"
+            "UR_BALDOSA_MODERN_ROOT selected=1\n"
+            "UR_BALDOSA_MODERN_ROOT selected=0\n"
+            "UR_BALDOSA_MODERN_ROOT stock_requested players=1\n"
+            "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
+            "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n"
+            "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n"
+        )
+        self.assertIsNone(probe.verify_native_modern_root_reentry_log(trace))
+        for bad in (
+            trace.replace("reopened=1 menu=d7", "reopened=1 menu=3c"),
+            trace.replace("guest_writes=0", "guest_writes=1"),
+            trace.replace("reopened_painted=1", "reopened_painted=0"),
+            trace + "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n",
+            trace.replace(
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n",
+                "").replace(
+                "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n",
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n"
+                "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"),
+        ):
+            with self.subTest(bad=bad[-120:]):
+                with self.assertRaisesRegex(ValueError, "reentry"):
+                    probe.verify_native_modern_root_reentry_log(bad)
+
     def test_real_sdl_shared_root_requires_stock_menu_observation(self):
         baseline = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"

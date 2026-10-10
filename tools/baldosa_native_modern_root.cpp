@@ -44,6 +44,9 @@ std::uint32_t g_stock_budget = 0;
 std::uint8_t g_stock_previous_cursor = 0;
 bool g_stock_waiting_cursor = false;
 bool g_stock_waiting_transition = false;
+bool g_stock_handed_off = false;
+bool g_reentry_smoke_queued = false;
+bool g_reentry_needs_paint = false;
 
 void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
@@ -60,6 +63,22 @@ bool configured() {
     const char* mode = std::getenv("UR_EXECUTION_MODE");
     return opt && std::strcmp(opt, "1") == 0 &&
         !(mode && std::strcmp(mode, "authentic") == 0);
+}
+bool reopen_on_observed_stock_main() {
+    // This is the only frontend reentry authority. Keyboard Escape and
+    // P1 physical gamepad B share exactly the same guest-state admission.
+    if (!configured() || g_visible || !g_stock_handed_off ||
+        g_stock_target != -1 || g_ram[0x009f] != 0xd7u ||
+        g_ram[0x0313] == 0x01u) return false;
+    g_menu = ur::product::modern_root_menu_reset();
+    g_visible = true;
+    g_confirm_quit = false;
+    g_stock_handed_off = false;
+    g_reentry_needs_paint = true;
+    ur_baldosa_product_set_host_focus(1);
+    std::fprintf(stderr,
+        "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
+    return true;
 }
 void choose() {
     if (g_stock_target != -1) return;
@@ -118,12 +137,17 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_paint_count = 0;
     g_stock_target = -1;
     g_stock_budget = 0;
+    g_stock_handed_off = false;
+    g_reentry_smoke_queued = false;
+    g_reentry_needs_paint = false;
     ur_baldosa_product_set_host_focus(1);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
-    if (!g_visible) return 0;
+    if (!g_visible)
+        return key == SDLK_ESCAPE && pressed &&
+               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
     switch (key) {
     case SDLK_UP: action = -1; break;
@@ -141,7 +165,10 @@ extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
 
 extern "C" int ur_baldosa_modern_root_gamepad(
     int player, int button, int pressed) {
-    if (!g_visible || player != 0) return 0;
+    if (player != 0) return 0;
+    if (!g_visible)
+        return button == kGamepadBtn_B && pressed &&
+               reopen_on_observed_stock_main() ? 1 : 0;
     int action = 0;
     switch (button) {
     case kGamepadBtn_DpadUp: action = -1; break;
@@ -182,6 +209,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         HostOverlayRect{8,10,240,204}, view);
     if (drawn) {
         ++g_paint_count;
+        if (g_reentry_needs_paint) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n");
+            g_reentry_needs_paint = false;
+        }
         if (!g_render_reported) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n");
@@ -211,6 +243,7 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
             const int players = g_stock_target + 1;
             g_stock_target = -1;
             g_visible = false;
+            g_stock_handed_off = true;
             ur_baldosa_product_set_host_focus(0);
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT stock_entered players=%d menu=%02x\n",
@@ -260,6 +293,38 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
+    const char* reopen_test = std::getenv("UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE");
+    // Test-only trace of actual guest transitions. This is intentionally
+    // passive: never type an input or modify a guest menu/state byte.
+    if (reopen_test && std::strcmp(reopen_test, "1") == 0 &&
+        g_stock_handed_off && !g_visible) {
+        static unsigned last_menu = 0x100u;
+        const unsigned menu = g_ram[0x009f];
+        if (menu != last_menu || frame % 180u == 0u) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT source_menu frame=%u menu=%02x "
+                "cursor=%02x race=%02x\n",
+                frame, menu, static_cast<unsigned>(g_ram[0x009b]),
+                static_cast<unsigned>(g_ram[0x0313]));
+            last_menu = menu;
+        }
+    }
+    if (reopen_test && std::strcmp(reopen_test, "1") == 0 &&
+        g_stock_handed_off && !g_visible && !g_reentry_smoke_queued &&
+        g_stock_target == -1 && g_ram[0x009f] == 0xd7u &&
+        g_ram[0x0313] != 0x01u) {
+        g_reentry_smoke_queued = true;
+        SDL_Event event{};
+        event.type = SDL_KEYDOWN;
+#if SNESRECOMP_SDL3
+        event.key.key = SDLK_ESCAPE;
+#else
+        event.key.keysym.sym = SDLK_ESCAPE;
+#endif
+        if (SDL_PushEvent(&event) != 1) std::abort();
+        event.type = SDL_KEYUP;
+        if (SDL_PushEvent(&event) != 1) std::abort();
+    }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0)) return;

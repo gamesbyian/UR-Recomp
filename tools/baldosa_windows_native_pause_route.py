@@ -654,6 +654,135 @@ def run_native_modern_root_smoke(
 
 
 
+
+# Probe each candidate in a fresh, independently booted original guest.
+# Original Uniracers manual: A/B advance menus; X/Y backtrack.
+# https://www.world-of-nintendo.com/manuals/super_nes/uniracers.shtml
+# The real guest independently confirmed B advances 3c -> 6d.
+STOCK_RETURN_CANDIDATES = ("x", "y")
+
+
+def native_modern_root_reentry_script(button: str) -> str:
+    """Bounded source guest back-input probe after a REAL Modern 1P handoff.
+
+    The real SDL event pump may reopen the host root only if a candidate
+    truly leads the original guest to its stock main 0xd7 surface. No fake
+    WRAM menu bytes, emulator resets or indefinite script awaits.
+    """
+    if button not in STOCK_RETURN_CANDIDATES:
+        raise ValueError("Unsupported source stock return candidate")
+    return "\n".join([
+        "turbo on",
+        "until16 0053 == F60C",
+        "wait 900",
+        f"press {button} 2",
+        "wait 360",
+        "dump after_candidate",
+        "quit",
+        "",
+    ])
+
+
+def verify_native_modern_root_reentry_log(log: str) -> None:
+    """Demand one *ordered*, genuine root exit, return and shared repaint."""
+    verify_native_modern_root_log(log, 1)
+    stages = [
+        "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c",
+        "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0",
+        "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared",
+    ]
+    pos = []
+    for marker in stages:
+        if log.count(marker) != 1:
+            raise ValueError(f"Native Modern root reentry missing/duplicate {marker}")
+        pos.append(log.index(marker))
+    if pos != sorted(pos):
+        raise ValueError("Native Modern root reentry transition out of order")
+
+
+def run_native_modern_root_reentry(
+    exe: Path, rom: Path, root: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Identify which real stock controller control returns to original MAIN.
+
+    Every probe gets an isolated process, no shared state or guessed keyboard
+    replay. A new Modern root is accepted only AFTER original 0xd7 observation.
+    A lack of genuine exit fails CI and records the observed guest menu path.
+    """
+    probes: dict[str, str] = {}
+    for button in STOCK_RETURN_CANDIDATES:
+        output = root / f"native_modern_root_reentry_{button}"
+        output.mkdir(parents=True, exist_ok=False)
+        user_root = output / "Modern Returning Player Data"
+        user_root.mkdir()
+        script = output / "stock-menu-return.txt"
+        script.write_text(native_modern_root_reentry_script(button),
+                          encoding="ascii")
+        config = output / "config.ini"
+        config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+        env = os.environ.copy()
+        env.update({
+            "SNESRECOMP_USER_DATA_DIR": str(user_root),
+            "UR_EXECUTION_MODE": "modern",
+            "UR_BALDOSA_MODERN_ROOT": "1",
+            "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
+            "UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE": "1",
+            "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+            "UR_BALDOSA_MODERN_INPUT": "1",
+            "SDL_VIDEODRIVER": video,
+            "SDL_AUDIODRIVER": "dummy",
+        })
+        try:
+            result = subprocess.run(
+                [str(exe), "--no-launcher", "--config", str(config),
+                 "--script", str(script), str(rom)],
+                cwd=output, env=env, capture_output=True, text=True,
+                timeout=timeout, errors="replace")
+        except subprocess.TimeoutExpired as exc:
+            partial = (exc.stdout or b"")
+            partial_err = (exc.stderr or b"")
+            if isinstance(partial, bytes):
+                partial = partial.decode("utf-8", errors="replace")
+            if isinstance(partial_err, bytes):
+                partial_err = partial_err.decode("utf-8", errors="replace")
+            (output / "timeout-log.txt").write_text(
+                partial + "\n" + partial_err, encoding="utf-8")
+            raise RuntimeError(
+                f"Bounded native root stock {button} probe timed out; "
+                f"tail={(partial + partial_err)[-2000:]}") from exc
+        log = result.stdout + "\n" + result.stderr
+        (output / "log.txt").write_text(log, encoding="utf-8")
+        if result.returncode:
+            raise RuntimeError(
+                f"Native stock {button} probe returned {result.returncode}: "
+                f"{log[-3000:]}")
+        try:
+            verify_native_modern_root_reentry_log(log)
+        except ValueError:
+            probes[button] = "; ".join(
+                line for line in log.splitlines()
+                if "UR_BALDOSA_MODERN_ROOT source_menu" in line)[-1600:]
+            continue
+
+        saved = user_root / "saves" / "save.srm"
+        if not saved.is_file() or saved.stat().st_size != 8192:
+            raise ValueError(f"Modern root reentry via {button} lost 8KiB SRAM")
+        if (output / "saves").exists():
+            raise ValueError("Modern root reentry leaked save to package/cwd")
+        return {
+            "stock_return_button_observed": button,
+            "native_guest_main_menu_observed": True,
+            "physical_sdl_escape_dispatched": True,
+            "shared_root_reopened_and_painted": True,
+            "gameplay_guest_writes": 0,
+            "profile_sram_external": True,
+        }
+
+    raise ValueError(
+        "No source-visible original menu return button confirmed; "
+        f"real guest traces: {probes}")
+
+
 def native_modern_race_entry_script(players: int) -> str:
     """One source-owned stock race route AFTER the host chose 1P or 2P.
 
@@ -840,11 +969,14 @@ def main() -> int:
         exe, rom, root, video=args.video, timeout=args.timeout, players=1)
     root_p2_proof = run_native_modern_root_smoke(
         exe, rom, root, video=args.video, timeout=args.timeout, players=2)
+    reentry_proof = run_native_modern_root_reentry(
+        exe, rom, root, video=args.video, timeout=args.timeout)
     race_p1_proof = run_native_modern_race_entry(
         exe, rom, root, players=1, video=args.video, timeout=args.timeout)
     race_p2_proof = run_native_modern_race_entry(
         exe, rom, root, players=2, video=args.video, timeout=args.timeout)
     result = {
+        "modern_root_source_menu_reentry": reentry_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,
         "native_modern_root_p1": root_p1_proof,

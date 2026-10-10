@@ -75,6 +75,15 @@ class NativeNmiPhaSourceWitnessTests(unittest.TestCase):
         self.assertIn(" M=0 ",body[4])
         self.assertIn(" w2 ",body[4])
         self.assertEqual(self.d["register_consistency"]["observed_byte_at_7e01dd"],"04")
+        c=self.d["register_consistency"]
+        self.assertEqual(c["native_pha_sp_before_inferred_from_pinned_generated_code"],"01DE")
+        self.assertEqual(c["native_pha_sp_at_cpu_write_logged"],"01DD")
+        self.assertEqual(c["native_pha_sp_after_inferred_from_pinned_generated_code"],"01DC")
+        self.assertEqual(c["native_pha_sp_before_inferred_from_pinned_generated_code"],
+                         c["original_observed_pha_sp_before"])
+        self.assertEqual(c["native_pha_sp_after_inferred_from_pinned_generated_code"],
+                         c["original_observed_pha_sp_after"])
+
 
     def test_exact_original_pha_and_native_pha_source_owner_but_not_parity(self):
         x=self.d["cross_original_source"]

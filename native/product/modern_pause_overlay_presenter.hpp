@@ -14,13 +14,14 @@ namespace ur::product {
 
 inline bool render_native_modern_pause_overlay(
     const ModernRootOverlayPainter& paint, std::uint32_t* pixels,
-    int stride, int height, const UrModernPauseMenu& menu,
+    int stride, int width, int height, const UrModernPauseMenu& menu,
     bool restart_available) {
-    if (!paint.valid() || !pixels || stride < 320 || height < 320)
+    if (!paint.valid() || !pixels || width < 400 || stride < width ||
+        height < 424)
         return false;
-    const int panel_w = std::min(400, stride - 24);
+    const int panel_w = std::min(400, width - 24);
     const int panel_h = std::min(400, height - 24);
-    const int x = (stride - panel_w) / 2;
+    const int x = (width - panel_w) / 2;
     const int y = (height - panel_h) / 2;
     const auto& pal = kModernStockMenuPalette;
     paint.fill_rect(pixels, stride, height, x, y, panel_w, panel_h,

@@ -86,6 +86,29 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
                 valid + "UR_BALDOSA_NATIVE_PAUSE FAIL=bad_guest\n",
                 expected_request_frame=1952)
 
+    def test_named_profile_terminal_must_reach_final_script_checkpoint(self):
+        clean = 2473
+        for frames in (2472, 2473):
+            log = (f"script f={frames} dump t480 ok\n"
+                   f"script f={frames} quit\n")
+            self.assertEqual(
+                probe.check_named_profile_guest_terminal(
+                    ["0x1"] * frames, log, clean_frames=clean), frames)
+            for corrupt in (
+                log.replace("dump t480 ok", "dump t240 ok"),
+                log.replace("quit", "wait"),
+                log.replace(f"f={frames} quit", f"f={frames - 1} quit"),
+            ):
+                with self.subTest(frames=frames, corrupt=corrupt):
+                    with self.assertRaisesRegex(ValueError, "terminal checkpoint"):
+                        probe.check_named_profile_guest_terminal(
+                            ["0x1"] * frames, corrupt, clean_frames=clean)
+        for frames in (2471, 2474, 0):
+            with self.subTest(frames=frames):
+                with self.assertRaisesRegex(ValueError, "frame count"):
+                    probe.check_named_profile_guest_terminal(
+                        ["0x1"] * frames, "", clean_frames=clean)
+
     def test_real_named_modern_sram_boot_witness_is_unique_and_exact(self):
         with tempfile.TemporaryDirectory() as directory:
             seed = Path(directory) / "real_native_guest_save.srm"

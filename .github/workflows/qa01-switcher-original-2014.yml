@@ -1,7 +1,12 @@
 name: QA-01 original 2014 Switcher Race B source qualification
 
 on:
-  # Manual original-only replay; preserve no automatic per-PR core rebuild.
+  # TEMPORARY one-shot PR-path trigger for a single original-only 48k
+  # investigation. This change must NEVER be merged into main; close the
+  # experiment PR after capturing its independent original evidence.
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-switcher-original-2014.yml"
   workflow_dispatch:
     inputs:
       source_horizon:
@@ -68,10 +73,10 @@ jobs:
             --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
             --work-dir "$RUNNER_TEMP/qa01-switcher" \
             --report "$RUNNER_TEMP/qa01-switcher/source-switcher-result.json" \
-            --source-horizon "${{ inputs.source_horizon }}"
+            --source-horizon "${{ inputs.source_horizon || '48000' }}"
           cat "$RUNNER_TEMP/qa01-switcher/source-switcher-result.json" >> "$GITHUB_STEP_SUMMARY"
           echo "Original source only, 0/45 native release credit." >> "$GITHUB_STEP_SUMMARY"
-          echo "Horizon: ${{ inputs.source_horizon }} original movie frames; an unqualified source is not a gameplay defect." >> "$GITHUB_STEP_SUMMARY"
+          echo "Horizon: ${{ inputs.source_horizon || '48000' }} original movie frames; an unqualified source is not a gameplay defect." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain original-only source diagnostic and no copyrighted movie bytes
         if: always()

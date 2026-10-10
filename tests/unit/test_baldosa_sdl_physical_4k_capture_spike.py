@@ -4,13 +4,15 @@ from pathlib import Path
 import unittest
 
 from tools.baldosa_sdl_physical_4k_capture_spike import (
-    MARK, ANCHOR, IMPLEMENTATION, patch_host, stage
+    MARK, ANCHOR, IMPLEMENTATION, OSD_ANCHOR,
+    OSD_REPLACEMENT, patch_host, stage
 )
 
 
 class RealSdlPhysicalCapturePatchTests(unittest.TestCase):
     def base(self):
         return ("#include <stdint.h>\n"
+                + OSD_ANCHOR + "\n}\n"
                 "static void SdlRenderer_EndDraw(void) {\n"
                 + ANCHOR
                 + "}\n\nstatic void SdlRenderer_Reconfigure(void) {}\n")
@@ -25,6 +27,10 @@ class RealSdlPhysicalCapturePatchTests(unittest.TestCase):
         self.assertIn("w != 3840 || h != 2160", candidate)
         self.assertIn("target != g_present_frame", candidate)
         self.assertIn("TUPLTYPE RGB_ALPHA", candidate)
+        self.assertIn("ur4k_target == g_present_frame", candidate)
+        self.assertIn("snes_osd_present_done();", candidate)
+        self.assertNotIn(OSD_ANCHOR, candidate)
+        self.assertIn("const char *ur4k_file", OSD_REPLACEMENT)
 
     def test_no_source_renderer_or_texture_dump_substitution(self):
         c = patch_host(self.base())

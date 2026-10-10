@@ -39,10 +39,12 @@ std::string g_verified_native_profile_id;
 std::filesystem::path g_native_user_root;
 std::optional<ur::product::HostProductState> g_launch_global;
 std::optional<ur::product::HostProfileState> g_launch_profile;
-// Single shutdown-scoped owner of the canonical Modern selector OS lock.
-// Never hold it across gameplay. Never reacquire in the typed checkpoint.
+// Shutdown-scoped owners of the existing selector and profile OS locks.
+// Never hold them across gameplay or reacquire them inside the typed CAS.
 std::unique_ptr<ur::product::TournamentLaunchPathLock>
     g_native_shutdown_selector_lock;
+std::unique_ptr<ur::product::TournamentLaunchPathLock>
+    g_native_shutdown_profile_lock;
 
 int reject(const char* why) {
     std::fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=%s\n", why);
@@ -193,7 +195,8 @@ extern "C" void ur_baldosa_modern_profile_before_run_frame(void) {
 // happens when selection/profile/catalog authority has been lost.
 extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
     if (!activated() || g_verified_native_profile_id.empty()) return 1;
-    if (g_native_shutdown_selector_lock) return reject("save_lease_reentry");
+    if (g_native_shutdown_selector_lock || g_native_shutdown_profile_lock)
+        return reject("save_lease_reentry");
     if (!g_launch_global || !g_launch_profile ||
         g_native_user_root.empty() || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
@@ -203,6 +206,21 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         (g_native_user_root / "host-state-v1.txt").string(), true);
     if (!candidate->acquired())
         return reject("save_selector_lock_unavailable");
+    // The ordinary typed CAS writer has a different per-profile OS lock.
+    // Take it selector-first, then keep BOTH locks until the raw SRAM write
+    // and typed metadata CAS have finished, so a second writer cannot change
+    // profile bytes between preflight and raw publication.
+    const auto profile_root = ur::product::resolve_host_profile_save_root(
+        ur::product::ExecutionMode::Modern, g_verified_native_profile_id);
+    if (!profile_root.isolated())
+        return reject("save_profile_root_invalid");
+    const auto profile_path = g_native_user_root /
+        profile_root.save_root / "host-profile.txt";
+    auto profile_candidate =
+        std::make_unique<ur::product::TournamentLaunchPathLock>(
+            profile_path.string(), true);
+    if (!profile_candidate->acquired())
+        return reject("save_profile_lock_unavailable");
     const ur::product::BaldosaSramCheckpoint request{
         g_native_user_root, *g_launch_global, *g_launch_profile,
         g_sram, static_cast<std::size_t>(g_sram_size)};
@@ -215,6 +233,7 @@ extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
         return 0;
     }
     g_native_shutdown_selector_lock = std::move(candidate);
+    g_native_shutdown_profile_lock = std::move(profile_candidate);
     return 1;
 }
 
@@ -228,7 +247,9 @@ extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
     // Release on EVERY path, including native write failure. This local RAII
     // owner holds the selector lease through the typed CAS below.
     auto selector_guard = std::move(g_native_shutdown_selector_lock);
-    if (!selector_guard || !selector_guard->acquired()) {
+    auto profile_guard = std::move(g_native_shutdown_profile_lock);
+    if (!selector_guard || !selector_guard->acquired() ||
+        !profile_guard || !profile_guard->acquired()) {
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT status=missing_save_lease\n");
         return 0;

@@ -65,3 +65,25 @@ production overlap guard. If successful, repeat the bottom pair,
 later moving frames, and compare an isolated *rear-only* removal
 to distinguish exact winners. None of these diagnostics should
 be shipped as a graphics mode or exposed to Modern product options.
+
+## Pinned native 98/99 execution (strict acceptance attempt)
+
+The existing Baldosa AOT job now independently executes the 2P
+`race_2p_split` route with the diagnostic `98-99` pair removed only
+at guest frame **1856**. It reuses the existing real Original 342-wide
+unmodified stock PPU image and both separately extracted source-only
+OAM planes. All **four separately executed complete guest CRC streams**
+must be identical and the unique `REMOVE_PAIR` marker must be present.
+
+The exact 342×224 native pair-removed PPU capture is compared
+pixel by pixel with stock. Its changed-pixel footprint must remain
+inside the union of the front and rear emitted source alpha masks.
+The report, actual pair-removed PAM and native log are retained in
+the same existing Baldosa CI artifact, with no extra workflow and no
+production HD admission. The first accepted run should be used to
+investigate the **14 equal-colour front/rear overlap pixels** that
+were invisible to the earlier slot-98-only counterfactual.
+
+**Do not claim pair attribution, a solution to the 14-pixel ambiguity,
+or any release permission until the native full-process report passes.**
+The pair result identifies only the union of the two source slots.

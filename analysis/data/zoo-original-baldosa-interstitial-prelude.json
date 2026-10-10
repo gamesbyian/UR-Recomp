@@ -1,0 +1,138 @@
+{
+  "schema": "UR-QA01-ZOO-INTERSTITIAL-PRELUDE/1",
+  "date": "2026-10-09",
+  "source": "actual original Snes9x + pinned Baldosa guest dumps; no guest writes; identical 2014 original input with independently calibrated scene-entry frame",
+  "artifact": {
+    "workflow_run_id": 38007759861,
+    "artifact_id": 11652310930,
+    "zip_sha256": "77a64b679518aed844c83820a56eeb78d6d7dc4483090fc3e3a9e150cc8b96ab",
+    "job_conclusion": "failure",
+    "harness_failure": "report incorrectly required track_id=1 at +5130; both genuine original/native enter track_id=0 menu=0x84 interstitial"
+  },
+  "guest_scene_entry": {
+    "original": 1604,
+    "baldosa": 1606
+  },
+  "observed_fixed_frames": [
+    {
+      "relative_frame": 4700,
+      "original_stage": "race",
+      "baldosa_stage": "race",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 4
+    },
+    {
+      "relative_frame": 4800,
+      "original_stage": "race",
+      "baldosa_stage": "race",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 0
+    },
+    {
+      "relative_frame": 5000,
+      "original_stage": "race",
+      "baldosa_stage": "race",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 4
+    },
+    {
+      "relative_frame": 5100,
+      "original_stage": "race",
+      "baldosa_stage": "race",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 0
+    },
+    {
+      "relative_frame": 5130,
+      "original_stage": "track_0_menu_0x84",
+      "baldosa_stage": "track_0_menu_0x84",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 1
+    },
+    {
+      "relative_frame": 5145,
+      "original_stage": "track_0_menu_0x84",
+      "baldosa_stage": "track_0_menu_0x84",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 0
+    },
+    {
+      "relative_frame": 5154,
+      "original_stage": "track_0_menu_0x84",
+      "baldosa_stage": "track_0_menu_0x84",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 1
+    },
+    {
+      "relative_frame": 5156,
+      "original_stage": "track_0_menu_0x84",
+      "baldosa_stage": "track_0_menu_0x84",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 69
+    },
+    {
+      "relative_frame": 5157,
+      "original_stage": "track_0_menu_0x84",
+      "baldosa_stage": "track_1_menu_0x16",
+      "named_fields_equal": false,
+      "whole_wram_differing_bytes": 76
+    },
+    {
+      "relative_frame": 5158,
+      "original_stage": "track_1_menu_0x16",
+      "baldosa_stage": "track_1_menu_0x16",
+      "named_fields_equal": true,
+      "whole_wram_differing_bytes": 23
+    },
+    {
+      "relative_frame": 5161,
+      "original_stage": "track_1_menu_0x16_active",
+      "baldosa_stage": "track_1_menu_0x16_inactive",
+      "named_fields_equal": false,
+      "whole_wram_differing_bytes": 1576
+    },
+    {
+      "relative_frame": 5162,
+      "original_stage": "track_1_menu_0x16_inactive",
+      "baldosa_stage": "track_1_menu_0xBC_result",
+      "named_fields_equal": false,
+      "whole_wram_differing_bytes": 621
+    },
+    {
+      "relative_frame": 5163,
+      "original_stage": "track_1_menu_0xBC_result",
+      "baldosa_stage": "track_1_menu_0xBC_result",
+      "named_fields_equal": false,
+      "whole_wram_differing_bytes": 55
+    },
+    {
+      "relative_frame": 5173,
+      "original_stage": "track_1_menu_0xBC_result",
+      "baldosa_stage": "track_1_menu_0xBC_result",
+      "stored_contacts_equal": true
+    }
+  ],
+  "first_named_game_field_disagreement": {
+    "relative_frame": 5157,
+    "field": "menu",
+    "original": 132,
+    "baldosa": 22
+  },
+  "earliest_large_raw_wram_difference": {
+    "relative_frame": 5156,
+    "differing_bytes": 69,
+    "prior_5154_differing_bytes": 1,
+    "owner_unknown": true
+  },
+  "result_onset": {
+    "original": 5163,
+    "baldosa": 5162
+  },
+  "interpretation": "The one-frame native lead is already visible at the interstitial-to-result-prelude menu transition, before the active flag exits and Circuit result screen. Earliest raw scratch byte differences are not attributed to a specific game timer without a source-visible owning write.",
+  "course_admission": {
+    "complete_usa_pairs": 0,
+    "denominator": 45,
+    "qa_credit": 0
+  },
+  "follow_up": "Repeat with finer +5110..+5157 sparse/dense captures; then localize the owning guest menu transition / host VBlank boundary, without input rephasing or semantic patches."
+}

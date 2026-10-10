@@ -14,9 +14,17 @@ import hashlib
 import json
 from pathlib import Path
 
-from tools.check_baldosa_wide_slot_final_visibility import (
-    HEIGHT, WIDTH, read_pam,
-)
+# The script is both an importable unit-tested tool and a native CI CLI.
+# Executing "python3 tools/this_script.py" puts tools/ (not the repo root)
+# on sys.path. Never let that packaging detail invalidate native evidence.
+if __package__:
+    from tools.check_baldosa_wide_slot_final_visibility import (
+        HEIGHT, WIDTH, read_pam,
+    )
+else:
+    from check_baldosa_wide_slot_final_visibility import (
+        HEIGHT, WIDTH, read_pam,
+    )
 
 
 def assess_pair(stock_file: Path, first_source: Path, second_source: Path,

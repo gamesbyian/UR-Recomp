@@ -99,6 +99,22 @@ class OriginalFresh01DDOriginalNmiWitnessTests(unittest.TestCase):
                          ["one_actual_original_pha_observation"]["pc"],
                          c["original_live_cpu_instruction_pc"])
 
+    def test_pinned_native_generated_nmi_handler_contains_16bit_pha_counterpart(self):
+        x=self.e["native_generated_opcode_counterpart"]
+        self.assertEqual(x["pinned_commit"],
+                         "10b864b9d14a7b7416dd909eb7b054c88faef101")
+        self.assertEqual(x["file"],"src/gen/bank00_part00_v2.c")
+        self.assertEqual(x["generated_function"],"I_NMI_M1X1")
+        self.assertEqual(x["generated_entry_pc"],"0x008588")
+        self.assertEqual(x["generated_block_label"],"L_8588_M1X1")
+        self.assertEqual(x["opcode_family"],"PHA 16-bit")
+        self.assertIn("cpu_write16_paced(cpu, 0x00, cpu->S, cpu->A)",
+                      x["emitted_stack_sequence"])
+        self.assertIn("cpu_trace_stack_op(cpu, 0, CPU_STACK_OP_PHA, _old_s, -2)",
+                      x["emitted_stack_sequence"])
+        self.assertEqual(self.e["source_symbol_owner_crosswalk"]
+                         ["native_generated_function_scope"],x["generated_function"])
+
     def test_native_01dd_same_game_source_but_not_equivalent_instruction_clock(self):
         e=self.e["independent_native_guest"]
         native=self.n["actual_native_stack_writer_window"]

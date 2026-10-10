@@ -158,9 +158,21 @@
   "adjudication": {
     "confirmed": "The original fresh-stock-result emulator actually executes 0x48 PHA at original bank:PC 00:858E with SP 01DE to 01DC and a 7E:01DD byte change 08 to 42 at ICPU.Frame 5780. Five separately captured original hardware NMI-entry pushes each move SP by 4 but neither cover nor change 01DD. Previous native same-event source capture logs one I_NMI_M1X1-scoped word write attempt of byte 04 at native frame 5781.",
     "not_confirmed": "Exact shared original/native instruction boundary, equivalence or order of PHA vs generated NMI-handling scope; whether all original/native eight residual stack bytes are dead at each read; no exact CPU/PPU/NMI phase parity; no fully admitted original/native USA course.",
-    "next": "Identify original PHA 00:858E caller/context and its stack-word reader/pop, crosswalk the native I_NMI_M1X1-scoped word write to corresponding original CPU opcode in the same guest state, and compare stack liveness/next progression without changing source movie inputs.",
+    "next": "Investigate the original I_NMI routine PHA at 00:858E and the native generated I_NMI_M1X1 instruction/scope, compare accumulator/register M mode, stack S and NMI/PPU/host frame phase at the true fresh result boundary, and trace pop/consumer liveness. Both original and native point to NMI handler owner, not necessarily the same instruction or stack value.",
     "input_retiming_or_guest_patch_not_permitted": true,
     "qa_release_course_credit": 0,
     "official_usa_event_denominator": 45
+  },
+  "source_symbol_owner_crosswalk": {
+    "source": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/symbols.txt",
+    "symbol_fastrom_mirror_address": "80:8588",
+    "symbol_name": "I_NMI",
+    "symbol_description": "native NMI vector: saves state, JML [$0053] to the current NMI handler",
+    "original_live_cpu_instruction_pc": "00:858E",
+    "original_fastrom_mirror_pc": "80:858E",
+    "offset_bytes_after_symbol_entry": 6,
+    "native_generated_function_scope": "I_NMI_M1X1",
+    "conclusion": "Original observed PHA at original 00:858E lies six bytes inside the original I_NMI vector routine at mirror 80:8588, and the native single 01DD write is attributed to a generated I_NMI_M1X1 scope. This establishes a shared high-level original function owner candidate, NOT exact same host/CPU phase, same PHA instruction, identical pushed value or consumer liveness.",
+    "remaining_difference": "Original byte 08->42 at original ICPU.Frame 5780; native write attempt value 04 at native pre-run frame 5781; clocks/phase not proven equivalent."
   }
 }

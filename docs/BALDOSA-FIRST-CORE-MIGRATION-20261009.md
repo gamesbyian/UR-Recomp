@@ -14,6 +14,16 @@ Exact source: `baldosa/uniracers-recomp@10b864b9d14a7b7416dd909eb7b054c88faef101
 
 **Not yet certified on a unified shipping candidate:** a working controller-only five-destination Modern root on Baldosa; durable profiles/SRAM/`.urrun`/`.urghost` end-to-end; complete original/native Circuit/Race/Stunt results; HD P1/P2 source-visible renderer without phantom sprites, genuine fully extended 16:9 world/HUD/OBJ, physical 3840×2160 output, the packaged Windows journey and all applicable QA gates. The course ledger remains 0/45 as of the checkpoint.
 
+## New execution and storage integration evidence (2026-10-09 evening)
+
+The initial #1086 native live pause has advanced via **merged #1105**: a delayed physical SDL-dispatched Restart really rewinds the source guest from its observed live-race anchor, preserves native SRAM, holds pause through 24 host event-loop polls and changes the *append-only host-frame* WRAM timeline after resume, rather than merely returning success from a test API. The rewindable guest frame number can overwrite old `frame_NNN.json` dumps; those are not host-timeline proof.
+
+**Merged #1108** adapts the pinned native host to the existing packaged `SNESRECOMP_USER_DATA_DIR`. `config.ini`, `keybinds.ini` and `saves/save.srm` are relocated under the same Modern per-user root with a fail-closed invalid-path check, without a competing directory/format. **Merged #1113** links the *actual* Modern typed product-state/profile-store/catalog implementation into Baldosa's opt-in title `after_config` callback. The guest's normal `RtlReadSram` therefore sees the selected existing `saves/profile-<id>/save.srm` when the profile is valid, and startup rejects invalid named profiles. This remains a narrow pre-SRAM hook, not a player-visible native frontend, a first-time profile seeder, or complete-event persistence.
+
+**Pending verification:** PR #1115 is an end-to-end regression for a named, catalog-backed 8-KiB profile loaded by a **real** native Windows/Linux guest before its first simulation frame, plus corrupt-profile negative control. Its result must be checked live before upgrading any acceptance wording. Existing unit admission, Windows PE build, generic save-root isolation and native pause tests are already separate, narrower evidence.
+
+**Efficient dependency order:** (1) make the single visible Modern root own Baldosa launch/exit and controller seats; (2) carry the original host's durable profile SRAM/records/ghost/receipt transaction authority through actual native result and fresh-process replay; (3) qualify it with independent original-emulator event outcome plus the source-visible/widescreen rendering gates, on the *same exact* nominated package. Do not treat #1113/1115 as evidence that (1) or (2) is complete or create a second launcher/store to bypass their difficulty.
+
 ## Minimum correct adapter: reuse, don't rewrite
 
 - **Guest and time/state:** `native/product/baldosa_execution_backend.hpp`, `tools/baldosa_guest_adapter_spike.py`, `tools/baldosa_guest_snapshot_probe.cpp` provide the read-only boundary. Extend only stable actual WRAM/PPU/time/result fields, not arbitrary guest writes. Never infer result from elapsed frames or script exit.

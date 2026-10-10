@@ -2,6 +2,18 @@
 
 **Current as of 2026-10-09 (six-PR merge and CI reconciliation checkpoint after #1045):** **Baldosa incorporation and the remaining adversarial QA are one coordinated shipping programme.** Work on a single faithful, genuinely modern, playable Windows x64 candidate. This document alone orders *live* work; do not infer today's assignment from historical PR numbers, tool inventories or the length of an old research plan. Refresh `main` and GitHub PR states on entry because merges are frequent. **Release gate status lives only in [RELEASE-QUALITY-LEDGER.json](RELEASE-QUALITY-LEDGER.json).**
 
+## Baldosa native Modern checkpoint (2026-10-09)
+
+**Components merged, not yet a unified Modern app:**
+
+- **#1090/#1095/#1099/#1100/#1101:** acknowledged native pause, input release, snapshot and CRC parity.
+- **#1105:** real SDL Restart rewinds the guest's frame 1952 to race anchor 1783, preserves SRAM and proves changed post-resume WRAM on an append-only host timeline. Guest-indexed frame filenames can be overwritten by a rewind.
+- **#1108:** Baldosa uses the existing portable Modern user-data root for config, bindings and SRAM; invalid explicit roots reject.
+- **#1113:** opt-in typed Modern state/profile/catalog selection before native `RtlReadSram`; invalid named profiles reject without creating a profile.
+- **#1115:** check current PR/CI before crediting its real-guest named-profile 8-KiB SRAM boot and invalid-profile tests.
+
+**Next:** Connect the existing five-way visible Modern frontend and controller seats to Baldosa, preserving exactly one host-owned input, Restart, storage/records/ghost/tournament authority. Keep the older patched executable as rollback. Current profile boot proofs do **not** establish that frontend, a full persisted result or original-emulator event parity (**official 0/45**). Share the same native build and QA routes with graphics/gameplay agents.
+
 ## First read (fresh coding agent, five-minute route)
 
 1. [PROJECT-PLAN.md](PROJECT-PLAN.md) for what is being built, and [BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md](BALDOSA-UR-RECOMP-REUSE-AUDIT-20261009.md) for completed code/assets and exact integration seams.

@@ -54,7 +54,7 @@ jobs:
           python3 tests/unit/test_baldosa_modern_profile_activation_spike.py
           # Reuse the real Modern codec and store, not dummy profile formats.
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \
-            -I native/product \
+            -I native/product -I native/title \
             tests/native/baldosa_modern_profile_activation_test.cpp \
             tools/baldosa_modern_profile_activation.cpp \
             native/product/output_resolution_policy.cpp \
@@ -65,6 +65,9 @@ jobs:
             native/product/host_profile_store.cpp \
             native/product/host_profile_catalog.cpp \
             native/product/modern_racer_identity.cpp \
+            native/product/completed_run_record.cpp \
+            native/product/completed_run_store.cpp \
+            native/product/baldosa_native_run_record_admission.cpp \
             -o "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           "$RUNNER_TEMP/baldosa-modern-profile-root-test"
           g++ -std=c++17 -O2 -Wall -Wextra -Werror -pedantic \

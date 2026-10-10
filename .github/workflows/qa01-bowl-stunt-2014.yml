@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - ".github/workflows/qa01-switcher-stunt-2014.yml"
+      - ".github/workflows/qa01-bowl-stunt-2014.yml"
       - "tools/probe_original_event_complete.py"
       - "tools/bootstrap_toolchain.py"
       - "tools/toolchain-entries/snes9x-libretro.json"

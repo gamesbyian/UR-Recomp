@@ -511,7 +511,7 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         if (!warned) {
             std::fprintf(stderr,
                 "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE enabled=1 "
-                "warning=overlap-guard-bypassed-for-art-reference-only\\n");
+                "warning=overlap-guard-bypassed-for-art-reference-only\n");
             warned = true;
         }
     }

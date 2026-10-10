@@ -1695,7 +1695,7 @@ jobs:
           import pathlib, re, sys
           log = pathlib.Path(sys.argv[1]).read_text(encoding="utf-8")
           selected = sorted(set(map(int, re.findall(
-              r"^UR_RACER_HD_P1_OVERLAP_RECOVERY frame=(\\d+) "
+              r"^UR_RACER_HD_P1_OVERLAP_RECOVERY frame=(\d+) "
               r"source_pair_overlap=1 capture_slots=97-98 stock_p2=1$", log, re.M))))
           for frame in selected:
               assert (f"UR_RACER_HD_CENSUS frame={frame} phase=gate "

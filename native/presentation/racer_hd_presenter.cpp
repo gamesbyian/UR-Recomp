@@ -476,6 +476,20 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
         hd_census_gate("original", "full-pair-split-obj");
         return;
     }
+    // Per-rider footprint alpha cannot prove which slot actually emitted
+    // pixels when active 64px riders overlap. An emitted front rider could
+    // otherwise authorize a source-absent rear HD phantom. The pinned PPU's
+    // separate slot planes also show rear OBJ samples obscured by front OBJ
+    // or BG/window pixels at source frame 1856. Fail before arming any
+    // destructive capture; Original owns the complete ambiguous frame.
+    if (p2_ready &&
+        (racer_active_source_footprints_overlap(
+             *p1_top, *p2_top, RacerViewport::Top) ||
+         racer_active_source_footprints_overlap(
+             *p1_bottom, *p2_bottom, RacerViewport::Bottom))) {
+        hd_census_gate("original", "overlapping-source-obj");
+        return;
+    }
     // Stock bottom P2 slot 96 paints in front of P1 97. The flattened
     // framebuffer has no reusable P2 depth plane, so an isolated host P1
     // cannot be painted where its lower sprite rectangle intersects P2.

@@ -16,6 +16,8 @@ MAIN_HOST = "static const SnesDesktopHostGame kGameHost = {\n"
 MAIN_PAUSE = "    .after_run_frame     = &ur_baldosa_product_after_run_frame,\n"
 NATIVE_MARK = "UR_BALDOSA_NATIVE_PRODUCT_PAUSE"
 ROOT_MARK = "UR_BALDOSA_MODERN_USER_DATA_ROOT"
+SAVE_MARK = "UR_BALDOSA_MODERN_POST_SAVE"
+FRAMEWORK_SAVE = "  if (!g_netplay_session) RtlWriteSram();"
 SOURCES = (
     "host_product_store.cpp",
     "host_profile_runtime.cpp",
@@ -53,6 +55,33 @@ def patch_main(source: str) -> str:
         "    .after_config        = &ur_baldosa_modern_profile_after_config,\n"
         "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
         + MAIN_PAUSE, 1)
+
+
+def patch_framework_save(source: str) -> str:
+    """Link typed publication only after the pinned real SRAM write succeeds.
+
+    Pin the exact original shutdown statement. A framework change cannot
+    silently move publication to a speculative frame or unsuccessful write.
+    """
+    if SAVE_MARK in source:
+        return source
+    if source.count(FRAMEWORK_SAVE) != 1:
+        raise ValueError("Pinned framework SRAM shutdown boundary changed")
+    declaration = (
+        "/* " + SAVE_MARK + ": acknowledged native SRAM shutdown. */\n"
+        "extern int ur_baldosa_modern_profile_after_native_save(void);\n"
+    )
+    replacement = (
+        "  if (!g_netplay_session) {\n"
+        "    if (RtlWriteSram()) {\n"
+        "      if (!ur_baldosa_modern_profile_after_native_save())\n"
+        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
+        "    } else {\n"
+        '      fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE native_save_failed\\n");' "\n"
+        "    }\n"
+        "  }"
+    )
+    return declaration + source.replace(FRAMEWORK_SAVE, replacement, 1)
 
 
 def patch_cmake(source: str, root: Path) -> str:
@@ -97,6 +126,8 @@ def plan(game: Path, root: Path):
     files = (
         (game / "src/main.c", patch_main),
         (game / "CMakeLists.txt", lambda s: patch_cmake(s, root)),
+        (game / "snesrecomp/runner/src/desktop/host_main.c",
+         patch_framework_save),
     )
     pending = []
     for path, transform in files:

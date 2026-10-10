@@ -34,11 +34,16 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             game = root / "baldosa"
             source = game / "src/main.c"
             cmake = game / "CMakeLists.txt"
+            framework = game / "snesrecomp/runner/src/desktop/host_main.c"
+            framework.parent.mkdir(parents=True)
             source.parent.mkdir(parents=True)
             body = ("/* " + probe.NATIVE_MARK + " */\n"
                     + probe.MAIN_HOST + probe.MAIN_PAUSE + "};\n")
             source.write_text(body)
             cmake.write_text("# " + probe.NATIVE_MARK + "\n")
+            original_shutdown = ("static void shutdown(void) {\n"
+                                 + probe.FRAMEWORK_SAVE + "\n}\n")
+            framework.write_text(original_shutdown)
             with self.assertRaises(ValueError):
                 probe.plan(game, root)
             self.assertEqual(source.read_text(), body)
@@ -54,12 +59,23 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             for name in probe.SOURCES:
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
-            self.assertEqual(len(pending), 2)
+            self.assertEqual(len(pending), 3)
             self.assertIn("host_profile_store.cpp", pending[1][2])
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])
             self.assertIn("after_config", pending[0][2])
             self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
+            staged_host = pending[2][2]
+            self.assertEqual(staged_host.count("RtlWriteSram()"), 1)
+            self.assertIn("ur_baldosa_modern_profile_after_native_save()", staged_host)
+            self.assertIn("if (RtlWriteSram())", staged_host)
+            self.assertEqual(probe.patch_framework_save(staged_host), staged_host)
+            self.assertEqual(framework.read_text(), original_shutdown)
+            with self.assertRaisesRegex(ValueError, "shutdown boundary"):
+                probe.patch_framework_save(original_shutdown.replace(
+                    probe.FRAMEWORK_SAVE, "  RtlWriteSram();"))
+            with self.assertRaisesRegex(ValueError, "shutdown boundary"):
+                probe.patch_framework_save(original_shutdown + probe.FRAMEWORK_SAVE)
             with self.assertRaisesRegex(ValueError, "must already be staged"):
                 probe.patch_cmake("add_library(other INTERFACE)\n", root)
 

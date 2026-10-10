@@ -9,6 +9,7 @@
 #include "host_profile_catalog.hpp"
 #include "host_profile_runtime.hpp"
 
+#include <algorithm>
 #include <array>
 #include <cstdint>
 #include <cstring>
@@ -99,10 +100,49 @@ static int add_second_named_profile(const std::filesystem::path& root,
     return 0;
 }
 
+/* QA-only read-back through the original product stores. Establish that
+ * the complete native save was published to the very same Modern profile
+ * state, preserving the single existing persistence namespace.
+ */
+static int verify_native_checkpoint(const std::filesystem::path& root,
+                                    const std::string& id) {
+    namespace fs = std::filesystem;
+    using namespace ur::product;
+    if (!root.is_absolute() || !is_safe_profile_storage_id(id)) return 41;
+    const auto decision = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::optional<std::string>(id));
+    if (!decision.isolated()) return 42;
+    const auto profile = load_host_profile_state_file(
+        ExecutionMode::Modern,
+        (root / decision.save_root / "host-profile.txt").string(), id);
+    const auto catalog = load_host_profile_catalog_file(
+        (root / "profiles-v1.txt").string());
+    if (!profile.loaded() || !catalog ||
+        !profile_catalog_authorizes_state(*catalog, *profile.state) ||
+        !profile.state->stock_sram) return 43;
+    const auto native = root / decision.save_root / "save.srm";
+    std::error_code ec;
+    if (!fs::is_regular_file(native, ec) || ec ||
+        fs::file_size(native, ec) != kStockSramBytes || ec)
+        return 44;
+    std::array<std::uint8_t, kStockSramBytes> bytes{};
+    std::ifstream file(native, std::ios::binary);
+    if (!file.read(reinterpret_cast<char*>(bytes.data()), bytes.size()))
+        return 45;
+    if (bytes != *profile.state->stock_sram) return 46;
+    std::printf(
+        "UR_BALDOSA_NATIVE_PROFILE VERIFIED profile=%s sram=%zu generation=%llu\n",
+        id.c_str(), bytes.size(),
+        static_cast<unsigned long long>(profile.state->autosave_generation));
+    return 0;
+}
+
 int main(int argc, char** argv) {
     namespace fs = std::filesystem;
     using namespace ur::product;
     constexpr const char* kProfile = "native-ci-rider";
+    if (argc == 4 && std::strcmp(argv[3], "--verify-native-save") == 0)
+        return verify_native_checkpoint(argv[1], argv[2]);
     if (argc == 4 && std::strcmp(argv[3], "--add-second") == 0)
         return add_second_named_profile(argv[1], argv[2]);
     if (argc != 3) return 2;

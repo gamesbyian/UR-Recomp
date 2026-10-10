@@ -14,6 +14,7 @@
 #include "host_profile_runtime.hpp"
 #include "host_profile_store.hpp"
 #include "host_profile_catalog.hpp"
+#include "baldosa_native_profile_sram_checkpoint.hpp"
 
 #include <cstdio>
 #include <cstdint>
@@ -33,6 +34,9 @@ extern "C" int g_sram_size;
 namespace {
 
 std::string g_verified_native_profile_id;
+std::filesystem::path g_native_user_root;
+std::optional<ur::product::HostProductState> g_launch_global;
+std::optional<ur::product::HostProfileState> g_launch_profile;
 
 int reject(const char* why) {
     std::fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=%s\n", why);
@@ -61,7 +65,16 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     if (!user_root || !*user_root)
         return reject("modern_user_root_absent");
 
+    const std::filesystem::path native_root(user_root);
+    if (!native_root.is_absolute())
+        return reject("modern_user_root_not_absolute");
+
+    // The post-save writer uses the canonical selector in this exact root.
+    // An alternate selector pathname cannot authorize a native publication.
     const char* override_path = std::getenv("UR_HOST_STATE_PATH");
+    if (override_path && *override_path &&
+        std::string_view(override_path) != "host-state-v1.txt")
+        return reject("noncanonical_selector_override");
     const std::string state_path =
         override_path && *override_path ? override_path : "host-state-v1.txt";
     const auto global =
@@ -123,6 +136,9 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
         return reject("native_save_root_mismatch");
     RtlEnsureSaveDir();
     g_verified_native_profile_id = *id;
+    g_native_user_root = native_root;
+    g_launch_global = *global.state;
+    g_launch_profile = *profile.state;
     std::fprintf(stderr,
         "UR_BALDOSA_NATIVE_PROFILE APPLIED profile=%s root=%s\n",
         id->c_str(), RtlSaveRoot());
@@ -158,4 +174,59 @@ extern "C" void ur_baldosa_modern_profile_before_run_frame(void) {
         g_verified_native_profile_id.c_str(), g_sram_size,
         static_cast<unsigned>(hash));
     std::fflush(stderr);
+}
+
+
+// Invoked ONLY by the pinned native host immediately after a successful
+// RtlWriteSram(), not from a frame, a guest result guess, or a destructor.
+// The existing typed Modern CAS/selector lock remains the only publication
+// authority. This cannot manufacture Records, a run, or a progression medal.
+extern "C" int ur_baldosa_modern_profile_after_native_save(void) {
+    if (!activated() || g_verified_native_profile_id.empty()) return 1;
+    if (!g_launch_global || !g_launch_profile ||
+        g_native_user_root.empty() || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT status=invalid_context\n");
+        std::fflush(stderr);
+        return 0;
+    }
+    const ur::product::BaldosaSramCheckpoint request{
+        g_native_user_root, *g_launch_global, *g_launch_profile,
+        g_sram, static_cast<std::size_t>(g_sram_size)};
+    const auto result = ur::product::checkpoint_baldosa_native_profile_sram(
+        request);
+    const char* verdict = "rejected";
+    switch (result) {
+    case ur::product::BaldosaSramCheckpointStatus::Committed:
+        verdict = "committed";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::Unchanged:
+        verdict = "unchanged";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::InvalidContext:
+        verdict = "invalid_context";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::SelectionConflict:
+        verdict = "selection_conflict";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::UnauthorizedProfile:
+        verdict = "unauthorized_profile";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::NativeSaveUnverified:
+        verdict = "native_save_unverified";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::ProfileConflict:
+        verdict = "profile_conflict";
+        break;
+    case ur::product::BaldosaSramCheckpointStatus::IoError:
+        verdict = "io_error";
+        break;
+    }
+    std::fprintf(stderr,
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=%s status=%s\n",
+        g_verified_native_profile_id.c_str(), verdict);
+    std::fflush(stderr);
+    return result == ur::product::BaldosaSramCheckpointStatus::Committed ||
+           result == ur::product::BaldosaSramCheckpointStatus::Unchanged;
 }

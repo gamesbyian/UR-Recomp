@@ -154,7 +154,7 @@ jobs:
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
             --video windows --expected-frames 2473 --timeout 95 \
             --profile-fixture "baldosa/build-ur-win/ur-baldosa-modern-profile-fixture.exe"
-          echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles; second rider chooses own 8192-byte SRAM without modifying first rider; original pause/Restart, fresh-process SRAM, clean-machine DLL and invalid-profile gates retained. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 real native guest boot with two distinct catalog-backed Modern profiles, exact acknowledged native post-save typed SRAM publication/readback, per-rider isolation, pause/Restart, fresh-process reload, clean-machine DLL and invalid-profile gates. No completed event, physical hardware or unified frontend claim." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

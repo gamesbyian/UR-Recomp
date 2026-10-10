@@ -706,7 +706,7 @@ jobs:
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
           test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-000400.pam"
           test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-001856.pam"
-          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=1856 logical=256x224 saved=1 source=native-original-ppu$" \
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=${UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME} logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
           # Independently compare the real fixed Original source centre to
           # the same-guest-frame native wide Original PPU crop. Record ALL

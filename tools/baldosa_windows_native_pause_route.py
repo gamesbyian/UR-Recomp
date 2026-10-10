@@ -656,8 +656,10 @@ def run_native_modern_root_smoke(
 
 
 # Probe each candidate in a fresh, independently booted original guest.
-# B was observed to advance 3c -> 6d and cannot be treated as "Back".
-STOCK_RETURN_CANDIDATES = ("select", "x", "y", "l", "r", "a")
+# Original Uniracers manual: A/B advance menus; X/Y backtrack.
+# https://www.world-of-nintendo.com/manuals/super_nes/uniracers.shtml
+# The real guest independently confirmed B advances 3c -> 6d.
+STOCK_RETURN_CANDIDATES = ("x", "y")
 
 
 def native_modern_root_reentry_script(button: str) -> str:

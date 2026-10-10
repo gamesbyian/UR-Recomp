@@ -65,7 +65,7 @@ jobs:
           cmake --build baldosa/build --target UniracersSNESRecomp -j 3
           test -x baldosa/build/UniracersSNESRecomp
           if [ ! -f baldosa/build/config.ini ]; then
-            printf '%s\\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
+            printf '%s\n' '[Sound]' 'EnableAudio = 0' > baldosa/build/config.ini
           fi
           sha256sum baldosa/build/UniracersSNESRecomp > "$RUNNER_TEMP/native-binary-sha256.txt"
       - name: Record exact existing Modern root navigation and compare guest CRCs

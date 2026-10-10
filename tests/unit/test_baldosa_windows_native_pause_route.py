@@ -55,7 +55,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=3\n"
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"
+            "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=0\n"
@@ -88,7 +89,8 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=3\n"
-            "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"
+            "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"
+            "UR_BALDOSA_MODERN_ROOT records_closed=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=2\n"
             "UR_BALDOSA_MODERN_ROOT selected=1\n"
             "UR_BALDOSA_MODERN_ROOT selected=0\n"
@@ -99,7 +101,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         for bad in (
             baseline.replace(" painted=1", " painted=0"),
             baseline.replace(" renderer=shared", " renderer=fake"),
-            baseline.replace(" route=3 unavailable=1", " route=3 launched=1"),
+            baseline.replace(" records_opened=1 profile=none", " records_opened=0 profile=none"),
             baseline.replace(" stock_entered players=1 menu=3c",
                              " stock_entered players=1 menu=d7"),
             baseline.replace(" stock_entered players=1 menu=3c",
@@ -115,11 +117,11 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "out of order"):
             probe.verify_native_modern_root_log(
                 baseline.replace(
-                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n",
+                    "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n",
                     "").replace(
                     "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n",
                     "UR_BALDOSA_MODERN_ROOT stock_entered players=1 menu=3c\n"
-                    "UR_BALDOSA_MODERN_ROOT route=3 unavailable=1\n"))
+                    "UR_BALDOSA_MODERN_ROOT records_opened=1 profile=none validated=0 unavailable=0\n"))
         two_player = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
             "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"

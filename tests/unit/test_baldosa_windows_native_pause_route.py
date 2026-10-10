@@ -37,13 +37,18 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
 
 
     def test_modern_root_reentry_requires_real_ordered_stock_return(self):
-        script = probe.native_modern_root_reentry_script()
-        self.assertIn("press b 2", script)
-        self.assertIn("wait 540", script)
-        self.assertIn("dump after_back", script)
-        self.assertNotIn("until 009F", script)
-        self.assertNotIn("reset", script)
-        self.assertEqual(script.splitlines()[-1], "quit")
+        self.assertNotIn("b", probe.STOCK_RETURN_CANDIDATES)
+        self.assertGreaterEqual(len(probe.STOCK_RETURN_CANDIDATES), 3)
+        for button in probe.STOCK_RETURN_CANDIDATES:
+            script = probe.native_modern_root_reentry_script(button)
+            self.assertIn(f"press {button} 2", script)
+            self.assertIn("wait 360", script)
+            self.assertIn("dump after_candidate", script)
+            self.assertNotIn("until 009F", script)
+            self.assertNotIn("reset", script)
+            self.assertEqual(script.splitlines()[-1], "quit")
+        with self.assertRaisesRegex(ValueError, "Unsupported"):
+            probe.native_modern_root_reentry_script("b")
         trace = (
             "UR_BALDOSA_MODERN_ROOT opened=1\n"
             "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n"

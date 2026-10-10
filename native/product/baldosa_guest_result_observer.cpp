@@ -51,6 +51,9 @@ std::optional<BaldosaSettledResult> BaldosaGuestResultObserver::observe(
                 wram, wram_size, 0);
             return std::nullopt;
         }
+        // Circuit, Stunt and unidentified guest courses cannot publish an
+        // ordinary Race record; do not retain their unbounded input trace.
+        if (race_course_index_ == 0) return std::nullopt;
         resolved_inputs_.observe_input_frame(
             captured_input_frames_++,
             static_cast<std::uint16_t>(mapped_controller_word & 0x0fffu),

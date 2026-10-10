@@ -564,7 +564,10 @@ extern "C" void ur_baldosa_product_host_tick(void) {
             g_pause_quit_key_queued = true;
             queue_key_edge(SDLK_RETURN);
         }
-        if (g_frozen_ticks > 12000u && !g_pause_quit_key_queued)
+        // The Windows driver owns a wall-clock timeout; this generous
+        // tick bound guards accidentally unbounded frozen loops without
+        // racing a legitimate independent process under turbo playback.
+        if (g_frozen_ticks > 500000u && !g_pause_quit_key_queued)
             require(false, "native_quit_conflict_gate_timeout");
     }
     if (g_physical_smoke && g_pause_panel_nav_smoke) {

@@ -141,8 +141,16 @@ int main() {
 
     // An external Modern instance can change selector/profile while this
     // native process runs; shutdown must refuse BEFORE writing raw SRAM.
-    const auto original_raw_size =
-        fs::file_size("saves/profile-rider-1/save.srm");
+    const fs::path selected_raw = "saves/profile-rider-1/save.srm";
+    const auto original_raw_size = fs::file_size(selected_raw);
+    const auto assert_raw_unchanged = [&] {
+        std::array<std::uint8_t, kStockSramBytes> raw{};
+        std::ifstream in(selected_raw, std::ios::binary);
+        assert(in);
+        in.read(reinterpret_cast<char*>(raw.data()), raw.size());
+        assert(in.gcount() == static_cast<std::streamsize>(raw.size()));
+        assert(raw == initialized);
+    };
     HostProductState different_selector = state;
     different_selector.active_profile_id.reset();
     assert(save_host_product_state_file(global_path, different_selector) ==
@@ -150,6 +158,7 @@ int main() {
     assert(ur_baldosa_modern_profile_before_native_save() == 0);
     assert(fs::file_size("saves/profile-rider-1/save.srm") ==
            original_raw_size);
+    assert_raw_unchanged();
     assert(save_host_product_state_file(global_path, state) ==
            HostProductSaveStatus::Saved);
 
@@ -161,6 +170,7 @@ int main() {
     assert(ur_baldosa_modern_profile_before_native_save() == 0);
     assert(fs::file_size("saves/profile-rider-1/save.srm") ==
            original_raw_size);
+    assert_raw_unchanged();
     assert(save_host_profile_state_file(
         ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
         *profile) == HostProfileSaveStatus::Saved);
@@ -172,6 +182,28 @@ int main() {
         TournamentLaunchPathLock released(global_path, true);
         assert(released.acquired());
     }
+
+    // The successful path still delegates the actual guest bytes to the
+    // framework save, then publishes only the validated typed Modern CAS.
+    std::array<std::uint8_t, kStockSramBytes> advanced = initialized;
+    advanced[0x0748] ^= 0xC3u;
+    g_sram = advanced.data();
+    assert(ur_baldosa_modern_profile_before_native_save() == 1);
+    {
+        std::ofstream raw(selected_raw, std::ios::binary | std::ios::trunc);
+        assert(raw);
+        raw.write(reinterpret_cast<const char*>(advanced.data()),
+                  advanced.size());
+        assert(raw.good());
+    }
+    assert(ur_baldosa_modern_profile_finish_native_save(1) == 1);
+    const auto after_real_save = load_host_profile_state_file(
+        ExecutionMode::Modern, "saves/profile-rider-1/host-profile.txt",
+        "rider-1");
+    assert(after_real_save.loaded());
+    assert(after_real_save.state->stock_sram &&
+           *after_real_save.state->stock_sram == advanced);
+    assert(fs::file_size(selected_raw) == original_raw_size);
 
     // An invalid loaded selector must NEVER downgrade to default saves.
     state.active_profile_id = "../other-player";

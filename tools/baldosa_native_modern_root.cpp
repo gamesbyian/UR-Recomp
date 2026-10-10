@@ -60,6 +60,7 @@ bool configured() {
         !(mode && std::strcmp(mode, "authentic") == 0);
 }
 void choose() {
+    if (g_stock_target != -1) return;
     if (g_confirm_quit) {
         SDL_Event quit{};
         quit.type = SDL_QUIT;

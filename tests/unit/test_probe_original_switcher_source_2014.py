@@ -109,15 +109,15 @@ class OriginalSwitcherSourceTest(unittest.TestCase):
                     json.dumps(diag))
                 raise CompleteEventError(probe.NONQUALIFICATION)
             with mock.patch.object(probe.event, "sha",
-                                   return_value=probe.event.entry.USA_ROM_SHA256), \\
+                                   return_value=probe.event.entry.USA_ROM_SHA256), \
                  mock.patch.object(probe.movie, "read_movie",
-                                   return_value=(b"synthetic", None)), \\
-                 mock.patch.object(probe.movie, "window", return_value={}), \\
+                                   return_value=(b"synthetic", None)), \
+                 mock.patch.object(probe.movie, "window", return_value={}), \
                  mock.patch.object(probe.subprocess, "run",
-                                   side_effect=fake_extract), \\
+                                   side_effect=fake_extract), \
                  mock.patch.object(probe.rnc, "find_streams",
-                                   return_value=list(enumerate([b"x"]*45))), \\
-                 mock.patch.object(probe, "unpack_method1", return_value=b"ABC"), \\
+                                   return_value=list(enumerate([b"x"]*45))), \
+                 mock.patch.object(probe, "unpack_method1", return_value=b"ABC"), \
                  mock.patch.object(probe.event, "scan_source", side_effect=negative_scan):
                 with self.assertRaisesRegex(ValueError, "invalid or incomplete"):
                     probe.inspect_original(args)

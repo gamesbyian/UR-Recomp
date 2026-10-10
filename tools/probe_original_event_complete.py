@@ -450,8 +450,15 @@ def archived_p1_positive_result(lines: list[str], stunt: bool) -> bool:
             # immediately following token; scanning beyond it can consume
             # an opponent's time or the unrelated qualifying threshold.
             # Require the anchored source layout, never nearby numerals.
-            return i + 1 < len(lines) and bool(
-                re.fullmatch(pattern, lines[i + 1].strip()))
+            if i + 1 >= len(lines):
+                return False
+            value = lines[i + 1].strip()
+            if not re.fullmatch(pattern, value):
+                return False
+            # A syntactically valid 0:00.00 is still not a completed
+            # timed race. Prevent a zero-valued placeholder from being
+            # promoted solely because the PPU result has the right shape.
+            return stunt or any(c in "123456789" for c in value)
     return False
 
 
@@ -493,6 +500,25 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
     lap_evidence = result_menu != 0xBC or (
         laps_drop(ref_laps) >= 2 and laps_drop(nat_laps) >= 2
     )
+    # $0313 is reused after races (original Zoo result = 0x3D,
+    # scored Bowl = 0x3C). A copied menu byte or rendered text during
+    # active play is not an acknowledged terminal guest state.
+    terminal_guest_state = all(
+        type(capture[phase].get("in_race")) is int
+        and capture[phase]["in_race"] != 1
+        for capture in (original, native)
+        for phase in ("onset", "result")
+    )
+    # Circuit progression samples alone do not prove the final lap was
+    # credited. Original/native Zoo results have P1 remaining laps == 0
+    # at BOTH onset and stable result. Keep this gate Circuit-specific:
+    # Race and 45s Stunt have different counter semantics.
+    circuit_terminal_laps_zero = result_menu != 0xBC or all(
+        type(capture[phase].get("p1_laps")) is int
+        and capture[phase]["p1_laps"] == 0
+        for capture in (original, native)
+        for phase in ("onset", "result")
+    )
     return {"first_sample_disagreement": first,
             "both_reached_terminal_menu": complete,
             "rendered_result_and_score_text_matched": texts_match,
@@ -500,9 +526,12 @@ def diagnose(original: dict, native: dict, result_menu: int, stunt: bool) -> dic
             "stunt_positive_score_visible": scored,
             "timed_race_or_circuit_result_visible": timed_finish,
             "circuit_multiple_lap_decrements_sampled": lap_evidence,
-            "paired_event_candidate": bool(complete and texts_match and scored and
-                                           timed_finish and lap_evidence and
-                                           first is None),
+            "result_outside_active_race_in_both_guests": terminal_guest_state,
+            "circuit_zero_remaining_laps_at_onset_and_stable": circuit_terminal_laps_zero,
+            "paired_event_candidate": bool(
+                complete and texts_match and scored and timed_finish
+                and lap_evidence and terminal_guest_state
+                and circuit_terminal_laps_zero and first is None),
             "qualification": "candidate only; source/original and native complete-event evidence still requires independent review"}
 
 

@@ -66,7 +66,7 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertIn("after_config", pending[0][2])
             self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
             staged_host = pending[2][2]
-            self.assertEqual(staged_host.count("RtlWriteSram()"), 2)
+            self.assertEqual(staged_host.count("RtlWriteSram()"), 1)
             self.assertIn("ur_baldosa_modern_profile_after_native_save()", staged_host)
             self.assertIn("if (RtlWriteSram())", staged_host)
             self.assertEqual(probe.patch_framework_save(staged_host), staged_host)

@@ -214,3 +214,20 @@ the guest, ROM, profile ownership, HD OBJ priority rules, or the
 existing 2P evidence. Passing still would not prove terminal VS results,
 per-rider HD occlusion, independent original-emulator screenshot parity,
 or actual physical 4K output.
+
+## Native ordinary two-player guest-scene parity
+
+The live world gate now also runs the real `race_2p_split` script
+independently at 342×224 Original 1× and 4×, against the already-run
+original 256-wide 2P baseline. This is **not** the bounded
+1800..2450 comparison: the guest must actually select ordinary 2P
+(`$009F=0x3D`, distinct from VS 0x3E) before racing.
+Both native candidates must retain the full baseline guest CRC stream;
+the already-shipping all-pixel 1×/4× comparator requires at least two
+identically numbered presented frames with different source imagery.
+
+The existing 1P and VS live-world passes, bounded 2P (+43 margins)
+source-sprite extractions, and production-safe HD overlap gates remain
+unchanged. Still not certified: authored wide HD OBJ compositing or
+foreground priority, independent original-emulator complete-result
+fidelity, and physical 3840×2160 output.

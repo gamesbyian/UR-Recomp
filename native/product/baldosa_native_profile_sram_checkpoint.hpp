@@ -72,51 +72,64 @@ inline bool baldosa_sram_file_matches_exact(
            std::equal(bytes.begin(), bytes.end(), expected);
 }
 
-inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
+// Check only original selected-profile authority. Caller MUST hold the
+// existing host-state-v1.txt selector lock before calling this preflight.
+inline bool baldosa_sram_checkpoint_request_valid(
+    const BaldosaSramCheckpoint& request) {
+    const auto& id = request.expected_profile.profile_id;
+    return request.user_root.is_absolute() &&
+        is_safe_profile_storage_id(id) &&
+        request.expected_global.active_profile_id &&
+        *request.expected_global.active_profile_id == id &&
+        request.expected_profile.stock_sram &&
+        request.expected_profile.racer_identity &&
+        request.guest_sram &&
+        request.guest_sram_size == kStockSramBytes;
+}
+
+inline std::optional<BaldosaSramCheckpointStatus>
+baldosa_sram_checkpoint_preflight_under_lock(
     const BaldosaSramCheckpoint& request) {
     namespace fs = std::filesystem;
-    const auto& id = request.expected_profile.profile_id;
-    if (!request.user_root.is_absolute() ||
-        !is_safe_profile_storage_id(id) ||
-        !request.expected_global.active_profile_id ||
-        *request.expected_global.active_profile_id != id ||
-        !request.expected_profile.stock_sram ||
-        !request.expected_profile.racer_identity ||
-        !request.guest_sram ||
-        request.guest_sram_size != kStockSramBytes)
+    if (!baldosa_sram_checkpoint_request_valid(request))
         return BaldosaSramCheckpointStatus::InvalidContext;
-
+    const auto& id = request.expected_profile.profile_id;
     const auto decision = resolve_host_profile_save_root(
         ExecutionMode::Modern, std::optional<std::string>(id));
     if (!decision.isolated())
         return BaldosaSramCheckpointStatus::InvalidContext;
-
     const fs::path global_path = request.user_root / "host-state-v1.txt";
     const fs::path catalog_path = request.user_root / "profiles-v1.txt";
-    const fs::path profile_root = request.user_root / decision.save_root;
-    const fs::path profile_path = profile_root / "host-profile.txt";
-    const fs::path native_sram_path = profile_root / "save.srm";
-
-    // The same selector path lock used by the visible Modern host's CAS.
-    // Lock through the entire check and profile publication so a competing
-    // host cannot switch the global identity between our read and commit.
-    TournamentLaunchPathLock global_lock(global_path.string(), true);
-    if (!global_lock.acquired())
-        return BaldosaSramCheckpointStatus::IoError;
+    const fs::path profile_path =
+        request.user_root / decision.save_root / "host-profile.txt";
     const auto global = load_host_product_state_file(global_path.string());
     if (!global.loaded() || !(*global.state == request.expected_global))
         return BaldosaSramCheckpointStatus::SelectionConflict;
-
     const auto catalog = load_host_profile_catalog_file(catalog_path.string());
     if (!catalog ||
         !profile_catalog_authorizes_state(*catalog, request.expected_profile))
         return BaldosaSramCheckpointStatus::UnauthorizedProfile;
-
     const auto state = load_host_profile_state_file(
         ExecutionMode::Modern, profile_path.string(), id);
     if (!state.loaded() || !(*state.state == request.expected_profile))
         return BaldosaSramCheckpointStatus::ProfileConflict;
+    return std::nullopt;
+}
 
+// Native host holds the SAME selector OS lock from before the real cartridge
+// write through typed publication. Never recursively acquire it here.
+inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram_under_lock(
+    const BaldosaSramCheckpoint& request) {
+    namespace fs = std::filesystem;
+    if (const auto failure =
+            baldosa_sram_checkpoint_preflight_under_lock(request))
+        return *failure;
+    const auto& id = request.expected_profile.profile_id;
+    const auto decision = resolve_host_profile_save_root(
+        ExecutionMode::Modern, std::optional<std::string>(id));
+    const fs::path profile_root = request.user_root / decision.save_root;
+    const fs::path profile_path = profile_root / "host-profile.txt";
+    const fs::path native_sram_path = profile_root / "save.srm";
     // Framework save acknowledgment is NOT inferred from a filename, from
     // a zero return code, or from a guest timer. Every one of the persisted
     // 8192 guest-written bytes must match the actual SRAM passed by native
@@ -145,6 +158,20 @@ inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
     return outcome == HostProfileSaveStatus::Conflict
         ? BaldosaSramCheckpointStatus::ProfileConflict
         : BaldosaSramCheckpointStatus::IoError;
+}
+
+// Existing standalone post-save callers use the same validated path, with
+// this wrapper acquiring its own interprocess selector lock.
+inline BaldosaSramCheckpointStatus checkpoint_baldosa_native_profile_sram(
+    const BaldosaSramCheckpoint& request) {
+    if (!baldosa_sram_checkpoint_request_valid(request))
+        return BaldosaSramCheckpointStatus::InvalidContext;
+    const std::filesystem::path global_path =
+        request.user_root / "host-state-v1.txt";
+    TournamentLaunchPathLock global_lock(global_path.string(), true);
+    if (!global_lock.acquired())
+        return BaldosaSramCheckpointStatus::IoError;
+    return checkpoint_baldosa_native_profile_sram_under_lock(request);
 }
 
 }  // namespace ur::product

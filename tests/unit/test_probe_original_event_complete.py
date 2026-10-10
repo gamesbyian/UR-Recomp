@@ -102,6 +102,35 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(isolated, 2, 0x18)
 
+    def test_original_bowl_zero_track_prelude_requires_reentry_and_real_tally(self):
+        states = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(11867, 11901):
+            states[f]["track"] = 0
+        event = target.source_event(states, 2, 0x18)
+        self.assertEqual(event["original_entry_frame"], 8620)
+        self.assertEqual(event["original_result_frame"], 11985)
+        foreign = target.sustained_foreign_active_runs(states, 8620, 11985, 2)
+        self.assertEqual(foreign, [{"start": 11867, "end": 11900, "track": 0}])
+        self.assertTrue(target.proven_stunt_tally_prelude(
+            states, 2, event["source_stunt_tally_frame"], foreign[0]))
+        # Reassertion of the original active track before tally is essential.
+        broken = {f: dict(row) for f, row in states.items()}
+        broken[11902]["track"] = 3
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
+        # A 34-frame other-course excursion cannot use Bowl's exception.
+        broken = {f: dict(row) for f, row in states.items()}
+        for f in range(11867, 11901):
+            broken[f]["track"] = 3
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
+        # Move the 34-frame zero-track interval far away from the tally.
+        broken = source_states(8620, 11985, 2, 0x18, tally=True)
+        for f in range(10800, 10834):
+            broken[f]["track"] = 0
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(broken, 2, 0x18)
+
     def test_stunt_tally_must_be_stable_and_track_matched(self):
         states = source_states(8620, 11985, 2, 0x18)
         states[11800]["menu"] = 0x2F

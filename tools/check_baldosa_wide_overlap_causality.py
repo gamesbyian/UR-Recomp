@@ -183,6 +183,121 @@ def verify_native(stock: bytes, front: bytes, rear: bytes,
     return result
 
 
+def correlate_authenticated_rear(
+    stock: bytes, front: bytes, rear: bytes,
+    without_front: bytes, without_rear: bytes, without_pair: bytes,
+    front_report: dict, pair_report: dict, rear_report: dict,
+    *, frame: int, first_slot: int
+) -> dict:
+    """Six independently captured planes, three PPU interventions.
+
+    A single removal is an *intervention on final colour*, not a
+    per-pixel hardware ownership bit. The rear-only native witness may
+    legitimately contain zero changed colours even with nonempty alpha.
+    """
+    baseline = verify_native(
+        stock, front, rear, without_front, without_pair,
+        front_report, pair_report, frame=frame, first_slot=first_slot,
+    )
+    if len(without_rear) != WIDTH * HEIGHT * 4:
+        raise ValueError("rear-only native raster is not complete 342x224 RGBA")
+    if (rear_report.get("status") not in (
+            "observed-no-rear-color-change", "observed-rear-color-change") or
+        rear_report.get("guest_frame") != frame or
+        rear_report.get("rear_slot") != first_slot + 1 or
+        rear_report.get("guest_crc_equal_in_all_three_processes") is not True or
+        rear_report.get("native_rear_remove_exactly_armed") is not True or
+        rear_report.get("stock_sha256") != _sha(stock) or
+        rear_report.get("rear_source_sha256") != _sha(rear) or
+        rear_report.get("removed_sha256") != _sha(without_rear)):
+        raise ValueError("invalid independent real native rear-only provenance")
+
+    counts = {
+        "front_removal_changes": 0,
+        "rear_removal_changes": 0,
+        "paired_removal_changes": 0,
+        "front_only_causal_signature": 0,
+        "rear_only_causal_signature": 0,
+        "both_single_removals_changed": 0,
+        "neither_single_changes_but_pair_does": 0,
+        "neither_single_nor_pair_changes": 0,
+        "triple_nonlocal_source_violation": 0,
+        "overlap_equal_rgb_pair_only_causality": 0,
+    }
+    examples = {
+        "pair_only_equal_rgb": [],
+        "front_only_signature": [],
+        "rear_only_signature": [],
+    }
+    for off in range(0, len(stock), 4):
+        fa, ra = (front[off + 3] != 0, rear[off + 3] != 0)
+        base = stock[off:off + 4]
+        fc = base != without_front[off:off + 4]
+        rc = base != without_rear[off:off + 4]
+        bc = base != without_pair[off:off + 4]
+        counts["front_removal_changes"] += fc
+        counts["rear_removal_changes"] += rc
+        counts["paired_removal_changes"] += bc
+        if (fc and not fa) or (rc and not ra) or (bc and not (fa or ra)):
+            counts["triple_nonlocal_source_violation"] += 1
+        if fc and not rc and bc:
+            counts["front_only_causal_signature"] += 1
+            if len(examples["front_only_signature"]) < 12:
+                examples["front_only_signature"].append(
+                    [(off // 4) % WIDTH, (off // 4) // WIDTH])
+        if rc and not fc and bc:
+            counts["rear_only_causal_signature"] += 1
+            if len(examples["rear_only_signature"]) < 12:
+                examples["rear_only_signature"].append(
+                    [(off // 4) % WIDTH, (off // 4) // WIDTH])
+        counts["both_single_removals_changed"] += fc and rc
+        counts["neither_single_changes_but_pair_does"] += (
+            not fc and not rc and bc)
+        counts["neither_single_nor_pair_changes"] += (
+            (fa or ra) and not fc and not rc and not bc)
+        if (fa and ra and not fc and not rc and bc and
+            front[off:off + 3] == rear[off:off + 3] ==
+            base[:3]):
+            counts["overlap_equal_rgb_pair_only_causality"] += 1
+            if len(examples["pair_only_equal_rgb"]) < 12:
+                examples["pair_only_equal_rgb"].append(
+                    [(off // 4) % WIDTH, (off // 4) // WIDTH])
+
+    if (counts["rear_removal_changes"] !=
+            rear_report.get("rear_deletion_changed_pixels") or
+        counts["triple_nonlocal_source_violation"] != 0 or
+        counts["front_removal_changes"] !=
+            baseline["pixel_counts"]["changed_without_front"] or
+        counts["paired_removal_changes"] !=
+            baseline["pixel_counts"]["changed_without_pair"] or
+        counts["rear_removal_changes"] > 0 and
+            rear_report.get("status") != "observed-rear-color-change" or
+        counts["rear_removal_changes"] == 0 and
+            rear_report.get("status") != "observed-no-rear-color-change" or
+        rear_report.get("rear_deletion_changed_outside_source") != 0 or
+        rear_report.get("rear_source_emitted_pixels") !=
+            baseline["pixel_counts"]["rear_alpha"]):
+        raise ValueError("independent rear-only report disagrees with real pixels")
+
+    baseline["authenticated_three_interventions"] = {
+        "status": "observed",
+        "guest_frame": frame,
+        "rear_raster_sha256": _sha(without_rear),
+        "all_three_native_removal_reports_verified": True,
+        "pixel_counts": counts,
+        "bounded_xy_examples": examples,
+        "unique_original_ppu_winner_proven": False,
+        "release_hd_admission": False,
+        "limits": (
+            "Three native interventions classify observable final-colour "
+            "causality. They do not reveal same-RGB individual layer winner, "
+            "BG/window priority, alpha/color math, or a safe Remastered "
+            "sprite ownership mask."
+        ),
+    }
+    return baseline
+
+
 def main() -> int:
     p = argparse.ArgumentParser()
     for opt in ("stock", "front-source", "rear-source",
@@ -191,6 +306,10 @@ def main() -> int:
         p.add_argument("--" + opt, type=Path, required=True)
     p.add_argument("--front-slot", type=int, choices=(96, 98), required=True)
     p.add_argument("--frame", type=int, required=True)
+    p.add_argument("--rear-removed", type=Path,
+                   help="Optional independently executed rear-only native PPU PAM")
+    p.add_argument("--rear-report", type=Path,
+                   help="Authenticated rear-only native three-process report")
     a = p.parse_args()
     original = f"ur-baldosa-ws342-{a.frame:06d}.pam"
     if (a.stock.name != original or
@@ -211,6 +330,19 @@ def main() -> int:
         json.loads(a.single_report.read_text()),
         json.loads(a.pair_report.read_text()),
         frame=a.frame, first_slot=a.front_slot)
+    if (a.rear_removed is not None or a.rear_report is not None):
+        if not (a.rear_removed and a.rear_report):
+            p.error("rear-only correlation requires PAM and native report")
+        if a.rear_removed.name != original:
+            p.error("rear-only native PAM has mismatched guest-frame filename")
+        result = correlate_authenticated_rear(
+            stock, front, rear, front_removed,
+            read_pam(a.rear_removed), pair_removed,
+            json.loads(a.single_report.read_text()),
+            json.loads(a.pair_report.read_text()),
+            json.loads(a.rear_report.read_text()),
+            frame=a.frame, first_slot=a.front_slot,
+        )
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     c = result["pixel_counts"]

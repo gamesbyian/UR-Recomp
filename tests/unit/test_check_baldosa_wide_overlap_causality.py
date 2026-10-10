@@ -7,7 +7,7 @@ import sys
 import unittest
 
 from tools.check_baldosa_wide_overlap_causality import (
-    classify, verify_native,
+    classify, verify_native, correlate_authenticated_rear,
 )
 from tools.check_baldosa_wide_slot_final_visibility import WIDTH, HEIGHT
 
@@ -101,6 +101,82 @@ class NativeOverlapCausalityTests(unittest.TestCase):
         result = verify_native(s, f, r, nof, nop, *self.reports(),
                                frame=1856, first_slot=98)
         self.assertTrue(result["native_single_and_pair_reports_verified"])
+
+    def test_three_interventions_identify_redundant_colour_without_winner(self):
+        stock, front, rear, no_front, no_pair = self.d
+        no_rear = bytearray(stock)
+        # Rear-only source at (102,40) drives output. The front-only
+        # source at 100 is unchanged; at equal-colour overlap 101 either
+        # deletion alone has no RGB effect, but deleting both does.
+        pix(no_rear, 102, 40, 9, 10, 11, 0)
+        no_rear = bytes(no_rear)
+        single, pair = self.reports()
+        report = {
+            "status": "observed-rear-color-change",
+            "guest_frame": 1856, "rear_slot": 99,
+            "guest_crc_equal_in_all_three_processes": True,
+            "native_rear_remove_exactly_armed": True,
+            "stock_sha256": hashlib.sha256(stock).hexdigest(),
+            "rear_source_sha256": hashlib.sha256(rear).hexdigest(),
+            "removed_sha256": hashlib.sha256(no_rear).hexdigest(),
+            "rear_deletion_changed_pixels": 1,
+            "rear_deletion_changed_outside_source": 0,
+            "rear_source_emitted_pixels": 2,
+        }
+        result = correlate_authenticated_rear(
+            stock, front, rear, no_front, no_rear, no_pair,
+            single, pair, report, frame=1856, first_slot=98,
+        )
+        c = result["authenticated_three_interventions"]["pixel_counts"]
+        self.assertEqual(c["front_removal_changes"], 1)
+        self.assertEqual(c["rear_removal_changes"], 1)
+        self.assertEqual(c["paired_removal_changes"], 3)
+        self.assertEqual(c["neither_single_changes_but_pair_does"], 1)
+        self.assertEqual(c["overlap_equal_rgb_pair_only_causality"], 1)
+        self.assertEqual(c["front_only_causal_signature"], 1)
+        self.assertEqual(c["rear_only_causal_signature"], 1)
+        self.assertEqual(c["triple_nonlocal_source_violation"], 0)
+        self.assertEqual(
+            result["authenticated_three_interventions"]["bounded_xy_examples"]
+            ["pair_only_equal_rgb"], [[101, 40]])
+        self.assertFalse(
+            result["authenticated_three_interventions"]
+            ["unique_original_ppu_winner_proven"])
+        self.assertFalse(
+            result["authenticated_three_interventions"]["release_hd_admission"])
+        forged = {**report, "removed_sha256": "0" * 64}
+        with self.assertRaisesRegex(ValueError, "provenance"):
+            correlate_authenticated_rear(
+                stock, front, rear, no_front, no_rear, no_pair,
+                single, pair, forged, frame=1856, first_slot=98)
+        forged = {**report, "rear_deletion_changed_pixels": 0}
+        with self.assertRaisesRegex(ValueError, "disagrees"):
+            correlate_authenticated_rear(
+                stock, front, rear, no_front, no_rear, no_pair,
+                single, pair, forged, frame=1856, first_slot=98)
+
+    def test_rear_only_zero_delta_still_authenticates_without_hd_admission(self):
+        stock, front, rear, no_front, no_pair = self.d
+        single, pair = self.reports()
+        report = {
+            "status": "observed-no-rear-color-change",
+            "guest_frame": 1856, "rear_slot": 99,
+            "guest_crc_equal_in_all_three_processes": True,
+            "native_rear_remove_exactly_armed": True,
+            "stock_sha256": hashlib.sha256(stock).hexdigest(),
+            "rear_source_sha256": hashlib.sha256(rear).hexdigest(),
+            "removed_sha256": hashlib.sha256(stock).hexdigest(),
+            "rear_deletion_changed_pixels": 0,
+            "rear_deletion_changed_outside_source": 0,
+            "rear_source_emitted_pixels": 2,
+        }
+        found = correlate_authenticated_rear(
+            stock, front, rear, no_front, stock, no_pair,
+            single, pair, report, frame=1856, first_slot=98)
+        observed = found["authenticated_three_interventions"]
+        self.assertEqual(observed["pixel_counts"]["rear_removal_changes"], 0)
+        self.assertFalse(observed["unique_original_ppu_winner_proven"])
+        self.assertFalse(observed["release_hd_admission"])
 
     def test_unknown_owner_or_native_provenance_is_never_accepted(self):
         s, f, r, nof, nop = self.d

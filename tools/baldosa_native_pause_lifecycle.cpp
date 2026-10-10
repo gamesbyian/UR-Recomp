@@ -127,12 +127,12 @@ bool pause_navigation_edge(int pressed, bool& holding,
         quit.type = SDL_QUIT;
         if (SDL_PushEvent(&quit) != 1) {
             std::fprintf(stderr,
-                "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_REJECTED=event_queue\\n");
+                "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_REJECTED=event_queue\n");
             return true;  // keep host focus and the acknowledged pause
         }
         g_native_quit_queued = true;
         std::fprintf(stderr,
-            "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\\n");
+            "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0\n");
         std::fflush(stderr);
         return true;
     }
@@ -235,7 +235,7 @@ bool smoke_enabled() {
                 (!g_physical_smoke || g_pause_panel_nav_smoke ||
                  g_delayed_restart_enabled)) {
                 std::fprintf(stderr,
-                    "UR_BALDOSA_NATIVE_PAUSE FAIL=quit_smoke_requires_exclusive_physical_route\\n");
+                    "UR_BALDOSA_NATIVE_PAUSE FAIL=quit_smoke_requires_exclusive_physical_route\n");
                 std::abort();
             }
         }

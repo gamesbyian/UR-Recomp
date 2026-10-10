@@ -81,17 +81,25 @@ def assess(base_crc: Path, trial_crc: Path, log: Path,
             "pixel_changed_from_underlay": changes.get(frame, (0, 0))[1] == 1,
             "after_scripted_go": frame > started,
         })
+    # Logs without the actual native composited PAM cannot prove any
+    # presented authored pixel, however plausible the telemetry looks.
+    witnessed = sorted(
+        set(evidenced) & {
+            row["guest_frame"] for row in captured
+            if row["pixel_changed_from_underlay"] and row["after_scripted_go"]
+        }
+    )
     before = Counter(why for frame, status, why in gates
                      if frame > started and status == "original")
     return {
         "schema_version": 1,
-        "status": ("guarded-p1-host-art-observed" if evidenced
+        "status": ("guarded-p1-host-art-observed" if witnessed
                    else "guarded-p1-host-art-unproven"),
         "native_guest_frames_crc_equal": len(baseline),
         "scripted_go_guest_frame": started,
         "post_go_p1_armed_guest_frames": len(after_go_armed),
         "post_go_p1_hd_presented_guest_frames": len(after_go_presented),
-        "post_go_p1_host_pixel_change_witness_frames": evidenced,
+        "post_go_p1_host_pixel_change_witness_frames": witnessed,
         "post_go_original_fallback_reasons": dict(sorted(before.items())),
         "native_authored_4x_captures": captured,
         "unsafe_overlap_bypass_used": False,

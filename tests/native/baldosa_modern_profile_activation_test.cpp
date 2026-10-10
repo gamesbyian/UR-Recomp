@@ -148,18 +148,23 @@ int main() {
     const std::string global_path = (dir / "host-state-v1.txt").string();
     const std::string typed_profile_path =
         (dir / "saves/profile-rider-1/host-profile.txt").string();
+    const std::string catalog_path = (dir / "profiles-v1.txt").string();
     assert(ur_baldosa_modern_profile_before_native_save() == 1);
     {
         TournamentLaunchPathLock competing_global(global_path, true);
+        TournamentLaunchPathLock competing_catalog(catalog_path, true);
         TournamentLaunchPathLock competing_profile(typed_profile_path, true);
         assert(!competing_global.acquired());
+        assert(!competing_catalog.acquired());
         assert(!competing_profile.acquired());
     }
     assert(ur_baldosa_modern_profile_finish_native_save(1) == 1);
     {
         TournamentLaunchPathLock released_global(global_path, true);
+        TournamentLaunchPathLock released_catalog(catalog_path, true);
         TournamentLaunchPathLock released_profile(typed_profile_path, true);
         assert(released_global.acquired());
+        assert(released_catalog.acquired());
         assert(released_profile.acquired());
     }
 
@@ -222,8 +227,10 @@ int main() {
     assert(ur_baldosa_modern_profile_finish_native_save(0) == 0);
     {
         TournamentLaunchPathLock released_global(global_path, true);
+        TournamentLaunchPathLock released_catalog(catalog_path, true);
         TournamentLaunchPathLock released_profile(typed_profile_path, true);
         assert(released_global.acquired());
+        assert(released_catalog.acquired());
         assert(released_profile.acquired());
     }
 

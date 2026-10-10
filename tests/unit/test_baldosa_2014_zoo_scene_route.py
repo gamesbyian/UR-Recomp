@@ -37,7 +37,8 @@ class Baldosa2014ZooSceneTest(unittest.TestCase):
         self.assertNotIn("press left 6000", route)
         boundary = mod.render_fixed_boundary(prefix)
         self.assertNotIn("until 009F == BC", boundary)
-        self.assertIn("wait 5158\ndump boundary-05158\n", boundary)
+        self.assertIn("wait 4700\ndump boundary-04700\n", boundary)
+        self.assertIn("wait 1\ndump boundary-05158\n", boundary)
         self.assertIn("dump boundary-05175\nquit\n", boundary)
         self.assertEqual(boundary.count("dump boundary-"), len(mod.BOUNDARY_FRAMES))
         self.assertEqual([l for l in boundary.splitlines() if l.startswith("press ")],

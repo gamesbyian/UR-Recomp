@@ -308,6 +308,66 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(source, 1, 0xBC)
 
+    def test_source_original_switcher_observed_34_frame_result_handoff_only(self):
+        # The real pinned 2014 Snes9x trace at original frames 12327..17030
+        # has a 34-frame transient 7E:00CE=0 while still in race, then
+        # four active Switcher frames and a settled 0x99 result. Synthetic
+        # source-state fixtures reproduce that *observed original pattern*,
+        # not independent Baldosa completion or rendered race time.
+        states = source_states(12327, 17030, 3, 0x99)
+        for frame in range(16991, 17025):
+            states[frame] = {"track": 0, "in_race": 1, "menu": 0x16}
+        for frame in range(17025, 17029):
+            states[frame] = {"track": 3, "in_race": 1, "menu": 0x16}
+        states[16990]["in_race"] = 1
+        states[17029]["in_race"] = 0
+        states[17029]["track"] = 3
+        run = {"start": 16991, "end": 17024, "track": 0}
+        self.assertEqual(target.sustained_foreign_active_runs(
+            states, 12327, 17030, 3), [run])
+        self.assertTrue(target.proven_switcher_race_result_prelude(
+            states, 3, 17030, run))
+        accepted = target.source_event(states, 3, 0x99)
+        self.assertEqual(accepted["original_entry_frame"], 12327)
+        self.assertEqual(accepted["original_result_frame"], 17030)
+        self.assertEqual(accepted["source_active_frames_to_result"], 4703)
+        self.assertEqual(accepted["original_only_transient_handoff"],
+                         "switcher_34_frame_track0_terminal_prelude")
+        self.assertIsNone(accepted["source_stunt_tally_frame"])
+
+        # A real *other* course occurring before that narrow terminal
+        # stage is always disqualifying, as is a variant with bad return
+        # states, a fake active-gameplay result or a different track.
+        attempts = {}
+        earlier = {f: dict(s) for f, s in states.items()}
+        for frame in range(15400, 15430):
+            earlier[frame] = {"track": 0, "in_race": 1, "menu": 0x16}
+        attempts["earlier_other_course"] = earlier
+        no_return = {f: dict(s) for f, s in states.items()}
+        no_return[17028]["in_race"] = 0
+        attempts["no_four_frame_switcher_return"] = no_return
+        wrong_foreign = {f: dict(s) for f, s in states.items()}
+        for frame in range(16991, 17025):
+            wrong_foreign[frame]["track"] = 2
+        attempts["different_foreign_track"] = wrong_foreign
+        early_foreign = {f: dict(s) for f, s in states.items()}
+        early_foreign[16990]["track"] = 0
+        attempts["foreign_starts_too_early"] = early_foreign
+        active_fake = {f: dict(s) for f, s in states.items()}
+        for frame in range(17030, 17046):
+            active_fake[frame]["in_race"] = 1
+        attempts["result_while_active"] = active_fake
+        for label, broken in attempts.items():
+            with self.subTest(label=label):
+                with self.assertRaisesRegex(
+                        target.CompleteEventError, "never demonstrated"):
+                    target.source_event(broken, 3, 0x99)
+
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(states, 3, 0xBC)
+        with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
+            target.source_event(states, 2, 0x99)
+
     def test_switcher_diagnostic_scans_full_horizon_not_earlier_dragster_result(self):
         # Synthetic later Switcher Race B: the 2014 movie already contained
         # Dragster 0x99 long before this selected track-3 event. A foreign

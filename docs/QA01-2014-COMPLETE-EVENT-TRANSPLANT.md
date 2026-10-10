@@ -35,6 +35,18 @@ The corrected same-source test [run 38008660321](https://github.com/gamesbyian/U
 
 The raw +5156 differences include low WRAM offsets 0x008B, 0x0187 and 0x0B90. They are **not proof of the exact owning guest instruction**, and intermittent one-byte raw differences earlier in the session should not be relabeled as proven scheduling defects. The current lowest-risk next step is to identify the instruction/frame boundary writing the 69-byte staging group from +5155 to +5156, tracing original and Baldosa around the interstitial menu-to-result-prelude handoff. The [machine-readable witness](../analysis/data/zoo-original-baldosa-interstitial-prelude.json) retains both the failed first analyzer run and successful validated follow-up; full [raw guest artifact](https://github.com/gamesbyian/UR-Recomp/actions/runs/38008660321/artifacts/11652985802). **0/45 admitted USA course pairs** until a reviewed exact candidate/fresh repeat; no guest semantics modified.
 
+## Adjacent guest-frame memory equivalence (new bounded discriminator)
+
+A direct, independent comparison of the *same retained* green [fixed-frame raw artifact 11652985802](https://github.com/gamesbyian/UR-Recomp/actions/runs/38008660321/artifacts/11652985802) reveals a stronger and more precise fact than the same-relative-frame disagreement alone:
+
+- At +5155 the original Snes9x and Baldosa **128 KiB WRAM images are byte-identical**; VRAM differs in 29 bytes and CGRAM is identical.
+- At **native +5156 versus original +5157**, **all 128 KiB WRAM, 64 KiB VRAM and 512 B CGRAM are byte-identical**. This is a complete **192.5 KiB triple-memory equality** at a one-frame offset, not merely a matching menu flag or race time.
+- At native +5156 versus original +5156, 69 WRAM bytes differ, but **VRAM and CGRAM already match**. At native +5157 versus original +5158, only four WRAM bytes and eight CGRAM bytes differ while all VRAM matches. Subsequent result-menu and PPU text still agree at their respective one-frame-displaced onset.
+
+Thus Baldosa has reached *exactly the original guest's next-frame bulk memory state* at the menu handoff. This is highly diagnostic of a frame-boundary/update-phase issue; it does **not**, on its own, distinguish a short-lived legitimate intermediate original state, emulator scheduling, instruction order, controller input, CPU/PPU internal state or a genuine source-level timer discrepancy. It does **not** authorize shifting original controller inputs or modifying the guest's logic to look identical. The exact guest CPU registers, executed PC sequence, PPU scanline and audio timing remain unmeasured.
+
+`tools/baldosa_2014_zoo_phase_equivalence.py` now derives both same-frame and original-next-frame WRAM/VRAM/CGRAM SHA256 comparisons from the existing already-bounded guest dump paths. Its fail-closed branch-specific invariant asserts +5155 WRAM equality and +5156-native/+5157-original triple-memory equality, and **never promotes any course**. The original/native pinned CI job reuses its existing build and single execution; no new emulator build, extra runner or game-code modification was added. Next, if source-visible timing causality is still necessary, interrogate guest PC/CPU and NMI scheduling *at +5155 to +5157* rather than extrapolate from a raw WRAM address in isolation.
+
 ## Why these three targets
 
 The pinned 2014 input movie already produced **actual original Snes9x

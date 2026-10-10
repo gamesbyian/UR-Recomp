@@ -1,6 +1,6 @@
 # Native original title and menu navigation capture
 
-**Capture successful; final editorial/visual review pending.** This media-lane source is the actual pinned Baldosa Uniracers guest, rendered through its real SDL host, not an animated slideshow or a reconstructed title. The recording shows the stock 1994 title/menu presentation in a 16:9 physical output window; the original 256×224 game image is pillarboxed, rather than falsely extending the title artwork to 342 logical pixels.
+**Capture successful; source frames visually inspected.** This media-lane source is the actual pinned Baldosa Uniracers guest, rendered through its real SDL host, not an animated slideshow or a reconstructed title. The recording shows the stock 1994 title/menu presentation in a 16:9 physical output window; the original 256×224 game image is pillarboxed, rather than falsely extending the title artwork to 342 logical pixels.
 
 [Watch uninterrupted title/menu footage (15 seconds, 1080p)](ur-native-title-menu-900f.mp4)
 
@@ -14,7 +14,7 @@
 - Complete guest CRC streams are byte-identical across the capture-disabled and capture-enabled full route, SHA256 `3840aaf203972d63d93aaeb0e45a2c2bf64c840bd931afeb3201a28a883bd4d5`; 900 exact chronological presentation frame IDs and full 900-frame FFV1 decode passed.
 - Native successful execution [run 38091213101](https://github.com/gamesbyian/UR-Recomp/actions/runs/38091213101), original 14-day lossless CI artifact **11684691069**. Its publishing step stopped after validation because of a wrong route-hash lookup path; media-only artifact recovery [run 38091729776](https://github.com/gamesbyian/UR-Recomp/actions/runs/38091729776) independently checked the retained FFV1 source, index and MP4 counts and published the committed video, poster and provenance without replaying the guest.
 
-The original logo/title poster is unmodified genuine game imagery. No commercial original-game soundtrack is attached. This witness supports navigation/intro footage, not a completed Windows Modern frontend or an enhanced title art claim.
+Independent actual decoded frames from the committed MP4 are retained under [frames/](frames/) at ordinals 0, 300, 600, 750 and 899 (guest frames 30, 330, 630, 780 and 929). Visual inspection shows startup black at ordinal 0, the authentic title illustration at ordinal 300, **PICK YOUR UNI** at ordinal 600, and **PICK TOUR** with Crawler selected at ordinal 899. This confirms actual menu progression, not just a static title. The first blank video frames are authentic startup and can be trimmed for a later promotional edit without implying extra gameplay frames.\n\nThe original logo/title poster is unmodified genuine game imagery. No commercial original-game soundtrack is attached. This witness supports navigation/intro footage, not a completed Windows Modern frontend or an enhanced title art claim.
 
 ## Reproduction
 

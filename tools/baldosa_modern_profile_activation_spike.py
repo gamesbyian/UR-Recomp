@@ -78,17 +78,19 @@ def patch_framework_save(source: str) -> str:
     if source.count(FRAMEWORK_SAVE) != 1:
         raise ValueError("Pinned framework SRAM shutdown boundary changed")
     declaration = (
-        "/* " + SAVE_MARK + ": acknowledged native SRAM shutdown. */\n"
-        "extern int ur_baldosa_modern_profile_after_native_save(void);\n"
+        "/* " + SAVE_MARK + ": lock spans native write and typed publication. */\\n"
+        "extern int ur_baldosa_modern_profile_before_native_save(void);\\n"
+        "extern int ur_baldosa_modern_profile_finish_native_save(int);\\n"
     )
     replacement = (
-        "  if (!g_netplay_session) {\n"
-        "    if (RtlWriteSram()) {\n"
-        "      if (!ur_baldosa_modern_profile_after_native_save())\n"
-        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
-        "    } else {\n"
-        '      fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE native_save_failed\\n");' "\n"
-        "    }\n"
+        "  if (!g_netplay_session) {\\n"
+        "    if (ur_baldosa_modern_profile_before_native_save()) {\\n"
+        "      int native_saved = RtlWriteSram();\\n"
+        "      if (!ur_baldosa_modern_profile_finish_native_save(native_saved))\\n"
+        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\\\n");' "\\n"
+        "    } else {\\n"
+        '      fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed\\\\n");' "\\n"
+        "    }\\n"
         "  }"
     )
     return declaration + source.replace(FRAMEWORK_SAVE, replacement, 1)

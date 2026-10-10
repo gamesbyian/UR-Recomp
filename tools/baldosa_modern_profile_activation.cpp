@@ -94,15 +94,16 @@ extern "C" int ur_baldosa_modern_try_activate_profile(void) {
     if (!profile.loaded())
         return reject("selected_profile_state_missing_or_invalid");
 
-    // The original Modern host already treats identity-bearing profiles as
-    // authoritative ONLY when the catalog independently matches them.
-    if (profile.state->racer_identity) {
-        const auto roster = ur::product::load_host_profile_catalog_file(
-            "profiles-v1.txt");
-        if (!roster || !ur::product::profile_catalog_authorizes_state(
-                *roster, *profile.state))
-            return reject("selected_profile_catalog_mismatch");
-    }
+    // A named Modern profile is not a legacy anonymous SRAM slot.
+    // The existing visible Modern frontend ALWAYS requires a catalog
+    // membership backed by both a racer identity and a stock SRAM snapshot.
+    // A partially created, unregistered or identity-less file must not be
+    // launched as though it were an authorized active player.
+    const auto roster = ur::product::load_host_profile_catalog_file(
+        "profiles-v1.txt");
+    if (!roster || !ur::product::profile_catalog_authorizes_state(
+            *roster, *profile.state))
+        return reject("selected_profile_catalog_mismatch");
 
     // First-activation seeding and profile SRAM synchronization are NOT
     // exposed by this seam yet. Refuse to boot a fresh named profile from

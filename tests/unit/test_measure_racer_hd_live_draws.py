@@ -49,6 +49,17 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
         result = analyze(log, from_frame=1140, to_frame=1142)["measurement"]
         self.assertEqual(result["hd_with_actual_changed_pixels_guest_frames"], 1)
         self.assertEqual(result["hd_pixel_change_witness_guest_frames"], 2)
+        # A guest frame may be presented twice. Count its changed-output
+        # outcome once, but require one witness per actual render call.
+        repeated = analyze("\n".join([
+            gate(90, "armed", "p1-only"),
+            pixel_change(90, 1, 0),
+            present(90, "hd", "p1-only"),
+            pixel_change(90, 1, 1),
+            present(90, "hd", "p1-only"),
+        ]))["measurement"]
+        self.assertEqual(repeated["hd_pixel_change_witness_guest_frames"], 1)
+        self.assertEqual(repeated["hd_with_actual_changed_pixels_guest_frames"], 1)
 
     def test_pixel_change_witness_fails_closed(self):
         bad = [
@@ -56,7 +67,7 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
               present(1, "hd", "full-pair")], "source-absent"),
             ([gate(1, "armed", "full-pair"), pixel_change(1, 1, 1),
               pixel_change(1, 1, 1), present(1, "hd", "full-pair")],
-             "duplicate pixel-change"),
+             "pixel-change witness count"),
             ([gate(1, "armed", "full-pair"),
               "UR_RACER_HD_PIXEL_CHANGE frame=1 source_instances=5 changed_from_stock=1",
               present(1, "hd", "full-pair")], "malformed pixel-change"),

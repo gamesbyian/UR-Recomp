@@ -1,0 +1,613 @@
+{
+  "schema": "UR-QA01-SWITCHER-ORIGINAL-STACK-JSR-WITNESS/1",
+  "source": {
+    "original_execution_run_id": 38088102870,
+    "original_execution_job_id": 114318754390,
+    "original_artifact_id": 11683670622,
+    "original_artifact_zip_sha256": "9f3f8020ea12f58b9094e0fbfe00d6161d9c6812dbf49837c91c7e5a57c29e95",
+    "recovery_run_id": 38088688106,
+    "recovery_job_id": 114320466562,
+    "recovered_artifact_id": 11684005205,
+    "recovered_artifact_zip_sha256": "0da78a8e33cf15b9982260adab5e0b295869f7ecf5db2259b5de4cd99c42b7cc",
+    "original_source_event": "archived 2014 Snes9x USA Switcher Race B",
+    "original_source_result_movie_host_frame": 17030,
+    "reference_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "provenance_before_initial_failure": "Original 2014 source-event and full 128-KiB entry/horizon WRAM replay equivalence validation completed in 38088102870 before initial 5000-event report-cap exception. 38088688106 reprocessed exact hash-pinned archived trace with corrected bounded aggregation."
+  },
+  "observed": {
+    "original_bounded_opcode_scope_write_events": 13709,
+    "differing_switcher_wram_offsets_from_independent_same_host_comparison": [
+      "7E:01DD",
+      "7E:01E6",
+      "7E:01E7",
+      "7E:01EF",
+      "7E:01F0",
+      "7E:01F1",
+      "7E:01F2",
+      "7E:01F3"
+    ],
+    "unchanged_in_bounded_original_result_window": [
+      "7E:01DD"
+    ],
+    "target_address_change_counts": {
+      "7E:01E6": 11,
+      "7E:01E7": 141,
+      "7E:01EF": 57,
+      "7E:01F0": 44,
+      "7E:01F1": 13204,
+      "7E:01F2": 188,
+      "7E:01F3": 64
+    },
+    "push_opcode_sp_target_compatible_counts": {
+      "7E:01E6": 11,
+      "7E:01E7": 141,
+      "7E:01EF": 57,
+      "7E:01F0": 44,
+      "7E:01F1": 13204,
+      "7E:01F2": 188,
+      "7E:01F3": 64
+    },
+    "every_observed_change_sp_address_compatible": true,
+    "complete_original_opcode_histograms_per_address": {
+      "7E:01E6": {
+        "22": 1,
+        "48": 4,
+        "5A": 2,
+        "DA": 4
+      },
+      "7E:01E7": {
+        "20": 132,
+        "22": 1,
+        "48": 4,
+        "0B": 1,
+        "DA": 3
+      },
+      "7E:01EF": {
+        "22": 6,
+        "48": 22,
+        "08": 1,
+        "5A": 18,
+        "8B": 1,
+        "DA": 9
+      },
+      "7E:01F0": {
+        "20": 10,
+        "22": 12,
+        "48": 2,
+        "5A": 6,
+        "DA": 14
+      },
+      "7E:01F1": {
+        "20": 13171,
+        "22": 10,
+        "48": 2,
+        "08": 6,
+        "0B": 1,
+        "DA": 14
+      },
+      "7E:01F2": {
+        "20": 116,
+        "22": 4,
+        "48": 9,
+        "08": 11,
+        "8B": 1,
+        "DA": 47
+      },
+      "7E:01F3": {
+        "20": 15,
+        "22": 8,
+        "48": 11,
+        "62": 1,
+        "08": 18,
+        "0B": 1,
+        "5A": 1,
+        "8B": 2,
+        "DA": 7
+      }
+    },
+    "top_eight_original_cpu_pc_scopes_per_address": {
+      "7E:01E6": [
+        [
+          "00:858C",
+          4
+        ],
+        [
+          "00:858D",
+          2
+        ],
+        [
+          "83:8CAA",
+          1
+        ],
+        [
+          "83:8CE2",
+          1
+        ],
+        [
+          "83:8D06",
+          1
+        ],
+        [
+          "83:8CA2",
+          1
+        ],
+        [
+          "00:8593",
+          1
+        ]
+      ],
+      "7E:01E7": [
+        [
+          "82:B197",
+          64
+        ],
+        [
+          "82:B19D",
+          64
+        ],
+        [
+          "82:B18B",
+          4
+        ],
+        [
+          "00:858C",
+          3
+        ],
+        [
+          "00:8589",
+          1
+        ],
+        [
+          "83:8CAA",
+          1
+        ],
+        [
+          "83:8CE2",
+          1
+        ],
+        [
+          "83:8D06",
+          1
+        ]
+      ],
+      "7E:01EF": [
+        [
+          "82:8039",
+          9
+        ],
+        [
+          "80:C3AD",
+          9
+        ],
+        [
+          "80:F09C",
+          8
+        ],
+        [
+          "80:F0AA",
+          8
+        ],
+        [
+          "80:9B32",
+          4
+        ],
+        [
+          "80:C6B4",
+          4
+        ],
+        [
+          "83:9E3A",
+          3
+        ],
+        [
+          "80:D152",
+          3
+        ]
+      ],
+      "7E:01F0": [
+        [
+          "82:8039",
+          5
+        ],
+        [
+          "82:8038",
+          4
+        ],
+        [
+          "80:D152",
+          4
+        ],
+        [
+          "80:9B32",
+          4
+        ],
+        [
+          "80:C608",
+          4
+        ],
+        [
+          "80:C6B4",
+          4
+        ],
+        [
+          "80:C6BD",
+          4
+        ],
+        [
+          "00:858D",
+          1
+        ]
+      ],
+      "7E:01F1": [
+        [
+          "82:B1F9",
+          6470
+        ],
+        [
+          "82:B1F2",
+          6469
+        ],
+        [
+          "82:B197",
+          108
+        ],
+        [
+          "82:B19D",
+          108
+        ],
+        [
+          "82:8038",
+          11
+        ],
+        [
+          "80:9B2F",
+          4
+        ],
+        [
+          "80:C608",
+          4
+        ],
+        [
+          "80:C6B4",
+          4
+        ]
+      ],
+      "7E:01F2": [
+        [
+          "82:B197",
+          50
+        ],
+        [
+          "82:B19D",
+          48
+        ],
+        [
+          "80:C55B",
+          15
+        ],
+        [
+          "82:8035",
+          10
+        ],
+        [
+          "80:C40F",
+          8
+        ],
+        [
+          "83:9AAE",
+          8
+        ],
+        [
+          "82:B18B",
+          5
+        ],
+        [
+          "82:8038",
+          5
+        ]
+      ],
+      "7E:01F3": [
+        [
+          "82:8035",
+          13
+        ],
+        [
+          "80:FAC9",
+          4
+        ],
+        [
+          "80:FAD2",
+          4
+        ],
+        [
+          "80:FADF",
+          4
+        ],
+        [
+          "80:C5CD",
+          4
+        ],
+        [
+          "80:C5F2",
+          4
+        ],
+        [
+          "80:C604",
+          4
+        ],
+        [
+          "82:B185",
+          3
+        ]
+      ]
+    },
+    "raw_examples_from_bounded_sample": [
+      {
+        "icpu_frame": 17014,
+        "new": "FB",
+        "old": "F4",
+        "opcode": "20",
+        "original_pc": "82:B1F9",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "F4",
+        "old": "FB",
+        "opcode": "20",
+        "original_pc": "82:B1F2",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "FB",
+        "old": "F4",
+        "opcode": "20",
+        "original_pc": "82:B1F9",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "F4",
+        "old": "FB",
+        "opcode": "20",
+        "original_pc": "82:B1F2",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "FB",
+        "old": "F4",
+        "opcode": "20",
+        "original_pc": "82:B1F9",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "F4",
+        "old": "FB",
+        "opcode": "20",
+        "original_pc": "82:B1F2",
+        "ppu_vcounter": 1,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "FB",
+        "old": "F4",
+        "opcode": "20",
+        "original_pc": "82:B1F9",
+        "ppu_vcounter": 1,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17014,
+        "new": "F4",
+        "old": "FB",
+        "opcode": "20",
+        "original_pc": "82:B1F2",
+        "ppu_vcounter": 1,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F1"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "F8",
+        "old": "80",
+        "opcode": "20",
+        "original_pc": "83:99F6",
+        "ppu_vcounter": 227,
+        "push_opcode_candidate": true,
+        "sp_after": "01F2",
+        "sp_before": "01F4",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F3"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "00",
+        "old": "B1",
+        "opcode": "DA",
+        "original_pc": "83:99FA",
+        "ppu_vcounter": 227,
+        "push_opcode_candidate": true,
+        "sp_after": "01F0",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F2"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "CC",
+        "old": "F8",
+        "opcode": "22",
+        "original_pc": "80:FAC9",
+        "ppu_vcounter": 231,
+        "push_opcode_candidate": true,
+        "sp_after": "01F2",
+        "sp_before": "01F5",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F3"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "A5",
+        "old": "00",
+        "opcode": "08",
+        "original_pc": "82:8035",
+        "ppu_vcounter": 231,
+        "push_opcode_candidate": true,
+        "sp_after": "01F1",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F2"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "20",
+        "old": "05",
+        "opcode": "DA",
+        "original_pc": "82:8038",
+        "ppu_vcounter": 231,
+        "push_opcode_candidate": true,
+        "sp_after": "01EF",
+        "sp_before": "01F1",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F0"
+      },
+      {
+        "icpu_frame": 17022,
+        "new": "FF",
+        "old": "26",
+        "opcode": "5A",
+        "original_pc": "82:8039",
+        "ppu_vcounter": 231,
+        "push_opcode_candidate": true,
+        "sp_after": "01ED",
+        "sp_before": "01EF",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01EF"
+      },
+      {
+        "icpu_frame": 17023,
+        "new": "D5",
+        "old": "CC",
+        "opcode": "22",
+        "original_pc": "80:FAD2",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F2",
+        "sp_before": "01F5",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F3"
+      },
+      {
+        "icpu_frame": 17023,
+        "new": "25",
+        "old": "A5",
+        "opcode": "08",
+        "original_pc": "82:8035",
+        "ppu_vcounter": 0,
+        "push_opcode_candidate": true,
+        "sp_after": "01F1",
+        "sp_before": "01F2",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F2"
+      },
+      {
+        "icpu_frame": 17023,
+        "new": "A5",
+        "old": "D5",
+        "opcode": "08",
+        "original_pc": "80:FADF",
+        "ppu_vcounter": 225,
+        "push_opcode_candidate": true,
+        "sp_after": "01F2",
+        "sp_before": "01F3",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F3"
+      },
+      {
+        "icpu_frame": 17023,
+        "new": "00",
+        "old": "A5",
+        "opcode": "0B",
+        "original_pc": "00:8589",
+        "ppu_vcounter": 229,
+        "push_opcode_candidate": true,
+        "sp_after": "01F2",
+        "sp_before": "01F4",
+        "stack_pointer_address_compatible": true,
+        "wram_address": "7E:01F3"
+      }
+    ],
+    "dominant_01f1_jsr_source_pcs": [
+      {
+        "original_pc": "82:B1F2",
+        "original_opcode": "20",
+        "opcode_semantics": "JSR absolute, pushes 16-bit return address",
+        "observed_count": 6469,
+        "stack_pointer_before": "01F2",
+        "stack_pointer_after": "01F0",
+        "guest_wram_address": "7E:01F1",
+        "return_pc": "82:B1F4",
+        "observed_byte_after": "F4"
+      },
+      {
+        "original_pc": "82:B1F9",
+        "original_opcode": "20",
+        "opcode_semantics": "JSR absolute, pushes 16-bit return address",
+        "observed_count": 6470,
+        "stack_pointer_before": "01F2",
+        "stack_pointer_after": "01F0",
+        "guest_wram_address": "7E:01F1",
+        "return_pc": "82:B1FB",
+        "observed_byte_after": "FB"
+      }
+    ],
+    "dominant_jsr_share_of_01f1_changes": 0.9799303241441987
+  },
+  "adjudication": {
+    "proven": "Original Snes9x captures 13,709 bounded target-byte changes; observed opcode+SP/address movement is push-compatible for every observed change. Two dominant 01F1 JSR sites write the mathematically expected low bytes of their 16-bit return addresses.",
+    "not_proven": "The original/native eight-byte same-host difference is not fully explained; no writer was observed for 01DD in this 20-frame source window; no Baldosa instruction/stack-pointer trace or original result/progression read-consumer liveness adjudication is provided; original archived movie time differs from independently calibrated 5782 host timeline.",
+    "do_not_shift_input": true,
+    "complete_event_release_credit": 0,
+    "denominator_usa": 45
+  }
+}

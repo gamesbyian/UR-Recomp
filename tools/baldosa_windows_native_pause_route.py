@@ -58,14 +58,19 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
     output = root / name
     # Never remove an earlier result (or a directory outside our owned root).
     output.mkdir(parents=True, exist_ok=False)
-    (output / "saves").mkdir()
+    (output / "saves").mkdir()  # old cwd root must remain empty
     (output / "dump").mkdir()
+    user_root = output / "Modern Player Data With Spaces"
+    user_root.mkdir()
     framedump = output / "fd"
     framedump.mkdir()
     config = output / "config.ini"
     config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
     env = os.environ.copy()
     env.update({
+        # Same explicit mutable root selected by our existing Windows
+        # run-uniracers.cmd; no second profile/save directory is invented.
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
         "SDL_VIDEODRIVER": video,
         "SDL_AUDIODRIVER": "dummy",
         "SNESRECOMP_FRAMEDUMP_PIXELS": "0",
@@ -91,6 +96,12 @@ def run_route(exe: Path, rom: Path, script: Path, root: Path,
     if outcome.returncode != 0:
         raise RuntimeError(f"{name}: native guest returned {outcome.returncode}; "
                            f"log tail:\n{log[-5000:]}")
+    if not (user_root / "keybinds.ini").is_file():
+        raise RuntimeError(f"{name}: game wrote no native keybinds into Modern user root")
+    if not (user_root / "saves/save.srm").is_file():
+        raise RuntimeError(f"{name}: real guest SRAM not saved under Modern user root")
+    if any((output / "saves").iterdir()):
+        raise RuntimeError(f"{name}: guest created package/cwd-local saves")
     return frame_crcs(framedump), log
 
 
@@ -194,6 +205,35 @@ def check_delayed_restart_host_trace(
     }
 
 
+def assert_invalid_mutable_root_fails_closed(
+    exe: Path, rom: Path, script: Path, root: Path, *,
+    video: str, timeout: int,
+) -> None:
+    output = root / "invalid_native_root"
+    output.mkdir(parents=True, exist_ok=False)
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="utf-8")
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": "relative-root-MUST-FAIL",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    outcome = subprocess.run([
+        str(exe), "--no-launcher", "--config", str(config),
+        "--script", str(script), str(rom),
+    ], cwd=output, env=env, timeout=timeout,
+       capture_output=True, text=True, errors="replace")
+    log = outcome.stdout + "\n" + outcome.stderr
+    (output / "log.txt").write_text(log, encoding="utf-8")
+    if outcome.returncode == 0 or "UR-STARTUP-SAVE-ROOT:" not in log:
+        raise ValueError(
+            "Native Baldosa incorrectly fell back to local saves for an "
+            "invalid explicitly selected Modern data root")
+    if (output / "relative-root-MUST-FAIL").exists() or (output / "saves").exists():
+        raise ValueError("Rejected native user root mutated package/cwd state")
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--exe", type=Path, required=True)
@@ -214,6 +254,8 @@ def main() -> int:
     if args.expected_frames <= 0:
         raise ValueError("A real positive guest-frame count is mandatory")
     root.mkdir(parents=True, exist_ok=False)
+    assert_invalid_mutable_root_fails_closed(
+        exe, rom, script, root, video=args.video, timeout=args.timeout)
     original, _ = run_route(exe, rom, script, root, pause=False,
                             video=args.video, timeout=args.timeout)
     candidate, log = run_route(exe, rom, script, root, pause=True,
@@ -246,6 +288,8 @@ def main() -> int:
         "per_frame_wram_crc_identical": True,
         "native_pause": proof,
         "modern_lifecycle_abi_exercised": True,
+        "native_modern_user_data_root_isolation": True,
+        "native_invalid_explicit_root_fails_closed": True,
         "physical_sdl_event_pump_exercised": True,
         "native_same_boundary_restart_restored": True,
         "native_delayed_guest_restart_restored": True,

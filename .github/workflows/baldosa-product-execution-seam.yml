@@ -9,6 +9,7 @@ on:
       - "tools/baldosa_native_product_execution.cpp"
       - "tools/baldosa_product_execution_spike.py"
       - "tools/baldosa_product_pause_spike.py"
+      - "tools/baldosa_modern_user_data_spike.py"
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tools/baldosa_native_product_pause_authority.cpp"
       - "tests/unit/test_baldosa_product_pause_spike.py"
@@ -167,6 +168,10 @@ jobs:
           # additive SDL pump / pause authority; no second native graph.
           python3 tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python3 tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          # Existing Modern package root, not an alternate save backend.
+          # Stage only in the disposable pinned Baldosa native checkout.
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_user_data_spike.py --game baldosa
           cmake -S baldosa -B baldosa/build -G Ninja -DCMAKE_BUILD_TYPE=Release \
             -DSNESRECOMP_SDL_BACKEND=SDL2 -DSNESRECOMP_SDL3_FETCH=OFF \
             -DRECOMP_UI_SDL3=OFF
@@ -182,8 +187,15 @@ jobs:
           export UR_BALDOSA_MODERN_INPUT=0
           export UR_BALDOSA_PHYSICAL_PAUSE_SMOKE=0
           export UR_BALDOSA_RESTART_SAME_FRAME_SMOKE=0
-          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
-            "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline"
+          # The packaged launcher exports this same variable. Test with a
+          # real 2P guest, --config absolute and a path containing spaces.
+          mkdir -p "$RUNNER_TEMP/UR Baldosa Native Modern Data Root"
+          SNESRECOMP_USER_DATA_DIR="$RUNNER_TEMP/UR Baldosa Native Modern Data Root" \
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline"
+          test -s "$RUNNER_TEMP/UR Baldosa Native Modern Data Root/keybinds.ini"
+          test -s "$RUNNER_TEMP/UR Baldosa Native Modern Data Root/saves/save.srm"
+          test -z "$(find "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline/saves" -type f -print -quit)"
           cmp "$RUNNER_TEMP/ur-baldosa-input/original/fd/crc.txt" \
               "$RUNNER_TEMP/ur-baldosa-input/native_host_baseline/fd/crc.txt"
           export UR_BALDOSA_PAUSE_SMOKE=1

@@ -196,3 +196,35 @@ jobs:
               "$RUNNER_TEMP/ur-baldosa-input/paused_resume/fd/crc.txt"
           echo "PASS: real Baldosa guest same-boundary rollback via unchanged Modern Restart anchor with byte-identical SRAM/WRAM, 24 native SDL pause polls and exact original 2P frame CRCs; synthetic SDL input, not hardware or multi-frame Retry acceptance" >> "$GITHUB_STEP_SUMMARY"
           grep 'UR_BALDOSA_NATIVE_PAUSE ' "$log"
+          # Delayed RESTART: real SDL 'R' while Modern owns an active pause.
+          # Unlike the same-frame no-op, this intentionally rewinds actual
+          # progressed guest WRAM, so CRCs MUST diverge only after resume.
+          export UR_BALDOSA_DELAYED_RESTART_SMOKE=1
+          export UR_BALDOSA_RESTART_SAME_FRAME_SMOKE=0
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/ur-baldosa-input/delayed_restart"
+          delayed_log="$RUNNER_TEMP/ur-baldosa-input/delayed_restart/log.txt"
+          grep -Eq 'UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=[0-9]+ request_guest=1952 paused=1 sram_equal=1 wram_rewound=1' "$delayed_log"
+          grep -q 'UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=1952 new_guest=1953 frozen_pumps=24' "$delayed_log"
+          if grep -q 'UR_BALDOSA_NATIVE_PAUSE FAIL=' "$delayed_log"; then
+            echo "::error::Delayed native Restart rejected guest/host state"
+            exit 1
+          fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          root = Path(os.environ["RUNNER_TEMP"]) / "ur-baldosa-input"
+          original = (root / "original/fd/crc.txt").read_text().splitlines()
+          delayed = (root / "delayed_restart/fd/crc.txt").read_text().splitlines()
+          assert len(original) == len(delayed) == 2473, (
+              "Unexpected guest frame count after delayed Restart",
+              len(original), len(delayed))
+          assert original[:1952] == delayed[:1952], (
+              "Guest changed before physical Restart was dispatched")
+          assert any(a != b for a, b in zip(original[1952:], delayed[1952:])), (
+              "Guest never diverged from non-restarted source after delayed Restart")
+          print("UR_BALDOSA_NATIVE_RESTART POST_RESUME frames=2473 "
+                "pre_restart_identical=1952 guest_rewind_visible=1")
+          PY
+          echo "PASS: original Baldosa AOT guest accepted a real SDL keyboard R while paused after 12+ guest frames, rewound WRAM to the first-race anchor, preserved SRAM, kept pause, resumed at next host frame and diverged ONLY after Restart; no settled event credit" >> "$GITHUB_STEP_SUMMARY"
+          grep 'UR_BALDOSA_NATIVE_RESTART ' "$delayed_log"

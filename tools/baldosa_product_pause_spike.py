@@ -26,6 +26,12 @@ MODERN_SESSION_SOURCES = (
     "modern_pause_menu.cpp",
     "modern_pause_input.cpp",
 )
+# Original source-owned readers; never duplicate their result rules.
+NATIVE_TITLE_RESULT_SOURCES = (
+    "uniracers_run_data.cpp",
+    "uniracers_two_player_result.cpp",
+)
+NATIVE_RESULT_BRIDGE_SOURCE = "baldosa_guest_result_observer.cpp"
 REQUIRED = "UR_BALDOSA_PRODUCT_INPUT_SEAM"
 
 # The descriptor addition sits BELOW the existing input hook to preserve ABI

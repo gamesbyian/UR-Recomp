@@ -25,6 +25,18 @@ bool enabled() noexcept {
     return value != nullptr && std::strcmp(value, "1") == 0;
 }
 
+// Read-only witness of the earliest source-positive 1P game frames.
+// Ordinary 2P source/HD capture behavior remains 1800..2450. In the real
+// 1P route the only actual authored pixel deltas occurred at 1728/1744;
+// extending the diagnostic capture window is explicitly opt-in and may
+// never loosen the independent original OBJ admission guard.
+bool authored_capture_window(unsigned frame) noexcept {
+    if (frame >= 1800 && frame <= 2450) return true;
+    const char* early = std::getenv("UR_BALDOSA_HD_EARLY_1P_CAPTURE");
+    return frame >= 1700 && frame < 1800 &&
+        early && early[0] == '1' && early[1] == '\0';
+}
+
 int density() noexcept {
     if (!enabled()) return 1;
     const char* value = std::getenv("UR_BALDOSA_HD_DENSITY");
@@ -206,7 +218,7 @@ extern "C" int ur_baldosa_hd_draw_frame(std::uint8_t* dst, std::size_t pitch,
     // Turbo presentation is asynchronous to guest frame cadence: accepted
     // HD frames occurred at 1808, 1856 and 1952 in the first native run.
     // Sample actual successful draw callbacks, not arbitrary frame moduli.
-    if (g_frame >= 1800 && g_frame <= 2450
+    if (authored_capture_window(g_frame)
         && g_last_captured_frame != g_frame && g_captured < 9) {
         const int scale = ur::presentation::racer_hd_presentation_scale();
         const std::size_t top_changed = authored_difference_count(

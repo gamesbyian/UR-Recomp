@@ -669,7 +669,8 @@ jobs:
           export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE="$RUNNER_TEMP/ur-baldosa-output-001856.pam"
           export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-4k-source-extra"
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
-          DISPLAY=:100 bash baldosa/tools/run_route.sh \
+          # Only this full-frame software-4K run gets a longer wall bound.
+          DISPLAY=:100 TMO=240 bash baldosa/tools/run_route.sh \
             baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_physical_4k"
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \

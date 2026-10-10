@@ -23,6 +23,7 @@ extern "C" void ur_baldosa_modern_root_set_racer_name(const char* name);
 #include <cstring>
 #include <filesystem>
 #include <optional>
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -38,6 +39,10 @@ std::string g_verified_native_profile_id;
 std::filesystem::path g_native_user_root;
 std::optional<ur::product::HostProductState> g_launch_global;
 std::optional<ur::product::HostProfileState> g_launch_profile;
+// Single shutdown-scoped owner of the canonical Modern selector OS lock.
+// Never hold it across gameplay. Never reacquire in the typed checkpoint.
+std::unique_ptr<ur::product::TournamentLaunchPathLock>
+    g_native_shutdown_selector_lock;
 
 int reject(const char* why) {
     std::fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE REJECTED reason=%s\n", why);
@@ -180,12 +185,59 @@ extern "C" void ur_baldosa_modern_profile_before_run_frame(void) {
 }
 
 
+// Called by the pinned framework immediately BEFORE its real RtlWriteSram.
+// This eliminates the previous selector-change race where raw 8-KiB SRAM was
+// written before the Modern CAS checked which profile still owned the slot.
+// Successful preflight keeps the existing selector OS lock through the native
+// write and the one typed post-save publication. No save or metadata mutation
+// happens when selection/profile/catalog authority has been lost.
+extern "C" int ur_baldosa_modern_profile_before_native_save(void) {
+    if (!activated() || g_verified_native_profile_id.empty()) return 1;
+    if (g_native_shutdown_selector_lock) return reject("save_lease_reentry");
+    if (!g_launch_global || !g_launch_profile ||
+        g_native_user_root.empty() || !g_sram ||
+        g_sram_size != static_cast<int>(ur::product::kStockSramBytes))
+        return reject("save_preflight_missing_context");
+
+    auto candidate = std::make_unique<ur::product::TournamentLaunchPathLock>(
+        (g_native_user_root / "host-state-v1.txt").string(), true);
+    if (!candidate->acquired())
+        return reject("save_selector_lock_unavailable");
+    const ur::product::BaldosaSramCheckpoint request{
+        g_native_user_root, *g_launch_global, *g_launch_profile,
+        g_sram, static_cast<std::size_t>(g_sram_size)};
+    if (const auto error =
+            ur::product::baldosa_sram_checkpoint_preflight_under_lock(request)) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=%u\n",
+            static_cast<unsigned>(*error));
+        std::fflush(stderr);
+        return 0;
+    }
+    g_native_shutdown_selector_lock = std::move(candidate);
+    return 1;
+}
+
+
 // Invoked ONLY by the pinned native host immediately after a successful
 // RtlWriteSram(), not from a frame, a guest result guess, or a destructor.
 // The existing typed Modern CAS/selector lock remains the only publication
 // authority. This cannot manufacture Records, a run, or a progression medal.
-extern "C" int ur_baldosa_modern_profile_after_native_save(void) {
-    if (!activated() || g_verified_native_profile_id.empty()) return 1;
+extern "C" int ur_baldosa_modern_profile_finish_native_save(int saved) {
+    if (!activated() || g_verified_native_profile_id.empty()) return saved ? 1 : 0;
+    // Release on EVERY path, including native write failure. This local RAII
+    // owner holds the selector lease through the typed CAS below.
+    auto selector_guard = std::move(g_native_shutdown_selector_lock);
+    if (!selector_guard || !selector_guard->acquired()) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT status=missing_save_lease\n");
+        return 0;
+    }
+    if (!saved) {
+        std::fprintf(stderr,
+            "UR_BALDOSA_NATIVE_PROFILE native_save_failed\n");
+        return 0;
+    }
     if (!g_launch_global || !g_launch_profile ||
         g_native_user_root.empty() || !g_sram ||
         g_sram_size != static_cast<int>(ur::product::kStockSramBytes)) {
@@ -197,7 +249,7 @@ extern "C" int ur_baldosa_modern_profile_after_native_save(void) {
     const ur::product::BaldosaSramCheckpoint request{
         g_native_user_root, *g_launch_global, *g_launch_profile,
         g_sram, static_cast<std::size_t>(g_sram_size)};
-    const auto result = ur::product::checkpoint_baldosa_native_profile_sram(
+    const auto result = ur::product::checkpoint_baldosa_native_profile_sram_under_lock(
         request);
     const char* verdict = "rejected";
     switch (result) {

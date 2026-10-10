@@ -36,9 +36,10 @@ class FixedZooBoundaryTest(unittest.TestCase):
                 folder.mkdir()
                 for frame in BOUNDARY_FRAMES:
                     w = bytearray(0x20000)
-                    w[0x00CE] = 1
+                    w[0x00CE] = 0 if 5130 <= frame <= 5156 else 1
                     w[0x0313] = 1 if frame < 5163 else 0x3D
-                    w[0x009F] = 0 if frame < 5163 else 0xBC
+                    w[0x009F] = (0x84 if 5130 <= frame <= 5156 else
+                                 (0 if frame < 5163 else 0xBC))
                     if frame >= 5154 and label == "native":
                         w[0x00C6] = 1  # Diagnostic host phase marker only.
                     if frame >= 5163 and label == "native" and frame >= 5171:
@@ -55,6 +56,7 @@ class FixedZooBoundaryTest(unittest.TestCase):
             self.assertTrue(result["final_ppu_equal"])
             self.assertEqual(result["first_transient_dp_phase_disagreement"][
                 "relative_frame"], 5154)
+            self.assertEqual(result["observations"]["5130"]["original"]["track_id"], 0)
             self.assertEqual(result["observations"]["5154"]["p2_progression"][
                 "native"]["laps"], 0)
             self.assertEqual(result["first_named_field_disagreement"]["relative_frame"],
@@ -72,9 +74,11 @@ class FixedZooBoundaryTest(unittest.TestCase):
                 for frame in BOUNDARY_FRAMES:
                     onset = 5163 if label == "original" else 5162
                     w = bytearray(0x20000)
-                    w[0x00CE] = 1
+                    staging = 5130 <= frame <= (5157 if label == "original" else 5156)
+                    w[0x00CE] = 0 if staging else 1
                     w[0x0313] = 1 if frame < onset else 0x3D
-                    w[0x009F] = 0 if frame < onset else 0xBC
+                    w[0x009F] = 0x84 if staging else (0x16 if 5157 <= frame < onset else
+                                                      (0 if frame < onset else 0xBC))
                     (folder / f"boundary-{frame:05d}.wram.bin").write_bytes(w)
             with patch.object(boundary, "Dump", lambda folder, tag: (folder, tag)):
                 with patch.object(boundary, "screen_texts",
@@ -85,7 +89,8 @@ class FixedZooBoundaryTest(unittest.TestCase):
                              {"original": 5163, "native": 5162})
             self.assertFalse(result["same_fixed_frame_result_onset"])
             self.assertEqual(result["first_named_field_disagreement"]["relative_frame"],
-                             5162)
+                             5157)
+            self.assertEqual(result["first_named_field_disagreement"]["field"], "menu")
             self.assertEqual(result["complete_event_qa_credit"], 0)
 
 

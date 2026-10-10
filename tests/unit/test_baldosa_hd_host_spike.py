@@ -1,5 +1,7 @@
 """Unit contracts for the isolated Baldosa moving-racer host experiment."""
 import importlib.util
+import shutil
+import subprocess
 from pathlib import Path
 import tempfile
 import unittest
@@ -38,6 +40,66 @@ class NativeRacerHostTest(unittest.TestCase):
         self.assertIn("authored_difference_count(", adapter)
         self.assertIn("compose_nearest_density_frame(", adapter)
         self.assertIn("return density();", adapter)
+
+    def test_native_adapter_density_and_difference_measurement_at_2x_3x(self):
+        """Compile the actual adapter functions, not a Python reimplementation."""
+        compiler = shutil.which("c++") or shutil.which("g++")
+        if not compiler:
+            self.skipTest("C++ compiler unavailable")
+        source = (ROOT / "tools/baldosa_native_racer_presentation.cpp").read_text()
+        self.assertEqual(source.count("bool enabled() noexcept {"), 1)
+        self.assertEqual(source.count("std::size_t authored_difference_count("), 1)
+        policy = ("bool enabled() noexcept {" +
+                  source.split("bool enabled() noexcept {", 1)[1]
+                  .split("bool save_presented_pam(", 1)[0])
+        counter = ("std::size_t authored_difference_count(" +
+                   source.split("std::size_t authored_difference_count(", 1)[1]
+                   .split("} // namespace", 1)[0])
+        harness = r"""
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <vector>
+""" + policy + counter + r"""
+int main() {
+    setenv("UR_BALDOSA_HD", "0", 1);
+    setenv("UR_BALDOSA_HD_DENSITY", "4", 1);
+    assert(density() == 1);
+    setenv("UR_BALDOSA_HD", "1", 1);
+    for (int s = 1; s <= 4; ++s) {
+        char value[2] = { static_cast<char>('0' + s), 0 };
+        setenv("UR_BALDOSA_HD_DENSITY", value, 1);
+        assert(density() == s);
+    }
+    for (const char* invalid : {"", "0", "5", "-1", "2x", "04"}) {
+        setenv("UR_BALDOSA_HD_DENSITY", invalid, 1);
+        assert(density() == 1);
+    }
+    std::vector<std::uint8_t> source(256 * 224 * 4, 0);
+    for (int s : {2, 3}) {
+        const std::size_t pitch = 256u * s * 4u;
+        std::vector<std::uint8_t> output(pitch * 224u * s, 0);
+        output[0] = 10;
+        output[pitch * 112u * s] = 20;
+        assert(authored_difference_count(
+            output.data(), pitch, source.data(), 256, 224, s, false) == 1);
+        assert(authored_difference_count(
+            output.data(), pitch, source.data(), 256, 224, s, true) == 1);
+        assert(authored_difference_count(
+            output.data(), pitch, source.data(), 256, 224, 0, false) == 0);
+    }
+}
+"""
+        with tempfile.TemporaryDirectory() as td:
+            path = Path(td) / "native_density.cpp"
+            output = Path(td) / "native_density"
+            path.write_text(harness)
+            subprocess.run([compiler, "-std=c++17", "-O0", str(path), "-o",
+                            str(output)], check=True, capture_output=True, text=True)
+            subprocess.run([str(output)], check=True, capture_output=True, text=True)
 
     def test_only_first_party_presenter_is_linked(self):
         with tempfile.TemporaryDirectory() as td:

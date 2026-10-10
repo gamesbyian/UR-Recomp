@@ -28,7 +28,11 @@ bool enabled() noexcept {
 int density() noexcept {
     if (!enabled()) return 1;
     const char* value = std::getenv("UR_BALDOSA_HD_DENSITY");
-    return value != nullptr && std::strcmp(value, "4") == 0 ? 4 : 1;
+    // The existing first-party painter and fallback both admit 1x..4x.
+    // Reject malformed/unsupported settings instead of quietly resizing a
+    // dense host texture against a different compositor scale.
+    if (value == nullptr || value[0] == '\0' || value[1] != '\0') return 1;
+    return value[0] >= '1' && value[0] <= '4' ? value[0] - '0' : 1;
 }
 
 bool save_presented_pam(const std::uint8_t* argb, std::size_t pitch,
@@ -101,7 +105,7 @@ std::size_t authored_difference_count(
     const std::uint8_t* dst, std::size_t pitch, const std::uint8_t* field,
     int width, int height, int scale, bool bottom) noexcept {
     if (dst == nullptr || field == nullptr || width != 256 ||
-        height != 224 || (scale != 1 && scale != 4) ||
+        height != 224 || scale < 1 || scale > 4 ||
         pitch < static_cast<std::size_t>(width * scale) * 4)
         return 0;
     const int split = height * scale / 2;

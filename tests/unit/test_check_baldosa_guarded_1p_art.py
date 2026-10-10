@@ -23,6 +23,11 @@ class GuardedOnePlayerTests(unittest.TestCase):
             ]
             trace = (
                 "script f=100 until 00E1F ok after 300 frames\n"
+                # The real guest also displayed valid HD during the
+                # pre-race interval; only the post-entry scoped delta may
+                # authorize a *racing* source-positive conclusion.
+                "UR_RACER_HD_PIXEL_CHANGE frame=90 source_instances=2 changed_from_underlay=1\n"
+                "UR_BALDOSA_NATIVE_PAINT frame=90 raster=1024x896 pitch=4096 top_changed=18 bottom_changed=0\n"
                 + "".join(gate)
                 + "UR_RACER_HD_CENSUS frame=330 phase=present status=hd reason=p1-only\n"
                 "UR_RACER_HD_CENSUS frame=420 phase=present status=original reason=not-armed\n"

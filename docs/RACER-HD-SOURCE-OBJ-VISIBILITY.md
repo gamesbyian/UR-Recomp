@@ -354,7 +354,9 @@ split bands: top OAM 98/99 and bottom OAM 96/97. At every pixel where **both**
 corresponding original racer OBJ source planes emit alpha, the final
 Original raster may match **front alone, rear alone, both, or neither**.
 
-The four categories partition observed shared-source pixels exactly.
+The four categories partition observed shared-source pixels exactly
+and retain at most eight exact `[x,y]` examples per category, permitting
+targeted frame-based PPU investigation without huge diagnostic images.
 An additional counter records where other independent OAM source slots
 also emit, so a multi-source collision is not mistaken for clean
 two-racer depth evidence. **Rear-alone** is an RGB-equivalence candidate,

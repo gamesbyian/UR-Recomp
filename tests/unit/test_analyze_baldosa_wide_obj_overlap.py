@@ -119,6 +119,48 @@ class SourceOverlapTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Different guest main"):
                 assess(main, slots, reports, 1872)
 
+    def test_shared_source_winner_color_budget_never_implies_ownership(self):
+        original, layers = scene()
+        result = analyze(original, layers, 1856)
+        for band, front, rear in (("top", 98, 99), ("bottom", 96, 97)):
+            witness = result["split_pair_final_color_witness"][band]
+            self.assertEqual((witness["front_slot"], witness["rear_slot"]),
+                             (front, rear))
+            self.assertEqual(witness["shared_source_pixels"], 1)
+            self.assertEqual(witness["front_only_matches_original"], 1)
+            self.assertEqual(witness["rear_only_matches_original"], 0)
+            self.assertEqual(witness["both_match_original"], 0)
+            self.assertEqual(witness["neither_matches_original"], 0)
+            self.assertEqual(witness["additional_obj_source_present"], 0)
+
+        # The final upper pixel equals the rear isolated PPU RGB while the
+        # front source remains red. That is a candidate, not a proved
+        # source-order violation; another PPU effect can give that RGB.
+        # In the lower viewport a third, non-OBJ RGB value wins.
+        changed = bytearray(original)
+        set_pixel(changed, 100, 40, (0, 200, 0))
+        set_pixel(changed, 130, 150, (99, 100, 101))
+        alternative = analyze(bytes(changed), layers, 1872)
+        self.assertEqual(alternative["status"], "unproven")
+        top = alternative["split_pair_final_color_witness"]["top"]
+        bottom = alternative["split_pair_final_color_witness"]["bottom"]
+        self.assertEqual(top["rear_only_matches_original"], 1)
+        self.assertEqual(bottom["neither_matches_original"], 1)
+        self.assertEqual(top["front_only_matches_original"], 0)
+        self.assertEqual(bottom["front_only_matches_original"], 0)
+
+        # Identical front and rear source RGB cannot determine which OAM
+        # source the final same-colour pixel came from.
+        similar = dict(layers)
+        rear = bytearray(layers[99])
+        set_pixel(rear, 100, 40, (200, 0, 0))
+        similar[99] = bytes(rear)
+        same = analyze(original, similar, 1856)
+        self.assertEqual(
+            same["split_pair_final_color_witness"]["top"]["both_match_original"],
+            1,
+        )
+
     def test_full_native_slot_provenance_and_changed_frame(self):
         original, layers = scene()
         with tempfile.TemporaryDirectory() as tmp:

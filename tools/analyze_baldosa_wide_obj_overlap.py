@@ -178,6 +178,115 @@ def analyze(main: bytes, source: dict[int, bytes], frame: int) -> dict:
     }
 
 
+def analyze_removal_counterfactual(
+    stock: bytes, removed: bytes, front_source: bytes, rear_source: bytes,
+    frame: int, front_slot: int
+) -> dict:
+    """Classify *observed* final PPU effects of one isolated slot removal.
+
+    A same-colour rear sprite can remain visually identical when the
+    overlying slot is removed. Stock-vs-removed RGBA changes are a lower
+    bound on visible slot influence, not a complete winner/ownership mask.
+    Never authorize replacement from these observational categories.
+    """
+    if frame < 0 or front_slot not in (96, 98):
+        raise ValueError("Expected a known split front OAM slot (96 or 98)")
+    size = WIDTH * HEIGHT * 4
+    if any(len(x) != size for x in (stock, removed, front_source, rear_source)):
+        raise ValueError("Counterfactual rasters must be 342x224 RGBA")
+    rear_slot = front_slot + 1
+    emitted = changed = changed_outside = rear_revealed = other_revealed = 0
+    same_rear_colour = unexplained_unchanged = 0
+    examples = {"identical_rear_colour": [], "revealed_rear": [], "outside_source": []}
+    for off in range(0, size, 4):
+        front = front_source[off + 3] != 0
+        rear = rear_source[off + 3] != 0
+        differs = stock[off:off + 4] != removed[off:off + 4]
+        if not front:
+            if differs:
+                changed_outside += 1
+                if len(examples["outside_source"]) < 8:
+                    examples["outside_source"].append(
+                        [(off // 4) % WIDTH, (off // 4) // WIDTH])
+            continue
+        emitted += 1
+        x_y = [(off // 4) % WIDTH, (off // 4) // WIDTH]
+        if differs:
+            changed += 1
+            if rear and removed[off:off + 3] == rear_source[off:off + 3]:
+                rear_revealed += 1
+                if len(examples["revealed_rear"]) < 8:
+                    examples["revealed_rear"].append(x_y)
+            else:
+                other_revealed += 1
+        elif (rear and
+              front_source[off:off + 3] == rear_source[off:off + 3] ==
+              removed[off:off + 3]):
+            # The rear source *could* be the newly exposed owner; identical
+            # RGB prevents proving the front owner's contribution.
+            same_rear_colour += 1
+            if len(examples["identical_rear_colour"]) < 8:
+                examples["identical_rear_colour"].append(x_y)
+        else:
+            unexplained_unchanged += 1
+    status = ("consistent-observation"
+              if emitted and changed and changed_outside == 0 and
+              unexplained_unchanged == 0 else "unproven")
+    return {
+        "schema_version": 1,
+        "status": status,
+        "guest_frame": frame,
+        "front_slot": front_slot,
+        "rear_slot": rear_slot,
+        "front_source_alpha_pixels": emitted,
+        "counterfactual_changed_pixels": changed,
+        "counterfactual_changed_outside_front_alpha": changed_outside,
+        "changed_pixels_revealing_rear_rgb": rear_revealed,
+        "changed_pixels_revealing_other_rgb": other_revealed,
+        "unchanged_pixels_matching_identical_rear_rgb": same_rear_colour,
+        "other_unchanged_front_source_pixels": unexplained_unchanged,
+        "bounded_xy_examples": examples,
+        "release_hd_admission": False,
+        "limits": (
+            "A real per-slot PPU removal proves a lower bound on final "
+            "colour influence. Even identical front/rear RGB, missing "
+            "differences and source alpha do not prove final ownership; "
+            "foreground, colour math and exact z-order need further proof."
+        ),
+    }
+
+
+def attach_verified_removal(
+    original: dict, stock: bytes, removed: bytes, sources: dict[int, bytes],
+    native_report: dict, *, frame: int, front_slot: int
+) -> dict:
+    """Require native 3-process provenance before attaching extra analysis."""
+    rear_slot = front_slot + 1
+    if not (native_report.get("status") == "passed" and
+            native_report.get("guest_frame") == frame and
+            native_report.get("source_oam_slot") == front_slot and
+            native_report.get("guest_crc_equal_in_all_three_processes") is True and
+            native_report.get("single_slot_original_ppu_removal_armed") is True and
+            native_report.get("stock_sha256") == hashlib.sha256(stock).hexdigest() and
+            native_report.get("source_sha256") == hashlib.sha256(sources[front_slot]).hexdigest() and
+            native_report.get("counterfactual_sha256") == hashlib.sha256(removed).hexdigest() and
+            original["guest_frame"] == frame and
+            original["source_obj_sha256"][str(front_slot)] ==
+            hashlib.sha256(sources[front_slot]).hexdigest()):
+        raise ValueError("Native counterfactual/slot/base provenance mismatch")
+    detail = analyze_removal_counterfactual(
+        stock, removed, sources[front_slot], sources[rear_slot],
+        frame, front_slot)
+    if (detail["counterfactual_changed_pixels"] !=
+            native_report["native_ppu_final_contributed_pixels"] or
+        detail["counterfactual_changed_outside_front_alpha"] !=
+            native_report["native_ppu_changed_outside_emitted_source_alpha"] or
+        detail["front_source_alpha_pixels"] !=
+            native_report["source_emitted_alpha_pixels"]):
+        raise ValueError("Native report disagrees with independently recomputed pixels")
+    return detail
+
+
 def assess(
     main_path: Path, directory: Path, reports: Path, frame: int
 ) -> dict:
@@ -220,8 +329,29 @@ def main() -> int:
                    help="Retain exact PPU/provenance observations even when "
                         "this later frame lacks the historic dual-overlap witness")
     p.add_argument("--out", type=Path, required=True)
+    p.add_argument("--removed-pam", type=Path,
+                   help="Optional real same-frame single-front-slot PPU removal")
+    p.add_argument("--removed-report", type=Path,
+                   help="Required authenticated native three-process removal report")
+    p.add_argument("--removed-front-slot", type=int, choices=(96, 98))
     a = p.parse_args()
     result = assess(a.main_pam, a.slot_dir, a.reports, a.frame)
+    if a.removed_pam or a.removed_report or a.removed_front_slot is not None:
+        if not (a.removed_pam and a.removed_report and
+                a.removed_front_slot is not None):
+            p.error("Counterfactual needs removed PAM, report and front slot")
+        removed = read_pam(a.removed_pam)
+        front = a.removed_front_slot
+        source = {
+            slot: read_pam(a.slot_dir / (
+                f"ur-baldosa-ws342-obj-slot{slot}-frame{a.frame:06d}.pam"))
+            for slot in (front, front + 1)
+        }
+        # The default four-slot assessor verified all source provenance.
+        native_report = json.loads(a.removed_report.read_text(encoding="utf-8"))
+        result["verified_final_counterfactual"] = attach_verified_removal(
+            result, read_pam(a.main_pam), removed, source,
+            native_report, frame=a.frame, front_slot=front)
     a.out.parent.mkdir(parents=True, exist_ok=True)
     a.out.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n")
     print(

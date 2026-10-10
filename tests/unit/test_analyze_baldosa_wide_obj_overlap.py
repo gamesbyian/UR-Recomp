@@ -7,6 +7,7 @@ import unittest
 
 from tools.analyze_baldosa_wide_obj_overlap import (
     HEADER, HEIGHT, SLOTS, WIDTH, analyze, assess,
+    analyze_removal_counterfactual, attach_verified_removal,
 )
 
 
@@ -210,6 +211,86 @@ class SourceOverlapTests(unittest.TestCase):
             main_file.write_bytes(HEADER + original[:-1])
             with self.assertRaisesRegex(ValueError, "P7"):
                 assess(main_file, directory, reports, 1856)
+
+
+    def test_real_ppu_removal_separates_rear_reveal_from_colour_collision(self):
+        stock = bytearray(bytes((9, 9, 9, 255)) * (WIDTH * HEIGHT))
+        removed = bytearray(stock)
+        front = bytearray(WIDTH * HEIGHT * 4)
+        rear = bytearray(WIDTH * HEIGHT * 4)
+        for x in (11, 12, 13, 14):
+            set_pixel(stock, x, 40, (100, 10, 10))
+            set_pixel(front, x, 40, (100, 10, 10))
+        set_pixel(rear, 11, 40, (20, 200, 20))
+        set_pixel(removed, 11, 40, (20, 200, 20))
+        set_pixel(removed, 12, 40, (9, 9, 9))
+        # The source at 13 is still emitted, but the lower rear source has
+        # *exactly the same colour*. Native stock-vs-removal sees no change.
+        set_pixel(rear, 13, 40, (100, 10, 10))
+        set_pixel(removed, 13, 40, (100, 10, 10))
+        set_pixel(removed, 14, 40, (9, 9, 9))
+        finding = analyze_removal_counterfactual(
+            bytes(stock), bytes(removed), bytes(front), bytes(rear),
+            1856, 98)
+        self.assertEqual(finding["status"], "consistent-observation")
+        self.assertEqual(finding["front_source_alpha_pixels"], 4)
+        self.assertEqual(finding["counterfactual_changed_pixels"], 3)
+        self.assertEqual(finding["changed_pixels_revealing_rear_rgb"], 1)
+        self.assertEqual(finding["changed_pixels_revealing_other_rgb"], 2)
+        self.assertEqual(finding["unchanged_pixels_matching_identical_rear_rgb"], 1)
+        self.assertEqual(finding["counterfactual_changed_outside_front_alpha"], 0)
+        self.assertFalse(finding["release_hd_admission"])
+        self.assertEqual(finding["bounded_xy_examples"]["identical_rear_colour"],
+                         [[13, 40]])
+
+        original = {
+            "guest_frame": 1856,
+            "source_obj_sha256": {"98": hashlib.sha256(front).hexdigest()},
+        }
+        report = {
+            "status": "passed", "guest_frame": 1856,
+            "source_oam_slot": 98,
+            "guest_crc_equal_in_all_three_processes": True,
+            "single_slot_original_ppu_removal_armed": True,
+            "stock_sha256": hashlib.sha256(stock).hexdigest(),
+            "counterfactual_sha256": hashlib.sha256(removed).hexdigest(),
+            "source_sha256": hashlib.sha256(front).hexdigest(),
+            "native_ppu_final_contributed_pixels": 3,
+            "native_ppu_changed_outside_emitted_source_alpha": 0,
+            "source_emitted_alpha_pixels": 4,
+        }
+        authenticated = attach_verified_removal(
+            original, bytes(stock), bytes(removed),
+            {98: bytes(front), 99: bytes(rear)},
+            report, frame=1856, front_slot=98)
+        self.assertEqual(authenticated, finding)
+        stale = {**report, "guest_frame": 1872}
+        with self.assertRaisesRegex(ValueError, "provenance"):
+            attach_verified_removal(original, bytes(stock), bytes(removed),
+                                    {98: bytes(front), 99: bytes(rear)},
+                                    stale, frame=1856, front_slot=98)
+        changed_report = {**report, "native_ppu_final_contributed_pixels": 4}
+        with self.assertRaisesRegex(ValueError, "disagrees"):
+            attach_verified_removal(original, bytes(stock), bytes(removed),
+                                    {98: bytes(front), 99: bytes(rear)},
+                                    changed_report, frame=1856, front_slot=98)
+
+        # Changing even one pixel OUTSIDE this OAM source is not an
+        # attributable one-slot PPU counterfactual.
+        set_pixel(removed, 50, 40, (1, 2, 3))
+        outside = analyze_removal_counterfactual(
+            bytes(stock), bytes(removed), bytes(front), bytes(rear),
+            1856, 98)
+        self.assertEqual(outside["status"], "unproven")
+        self.assertEqual(outside["counterfactual_changed_outside_front_alpha"], 1)
+        with self.assertRaisesRegex(ValueError, "known split front"):
+            analyze_removal_counterfactual(
+                bytes(stock), bytes(removed), bytes(front), bytes(rear),
+                1856, 99)
+        with self.assertRaisesRegex(ValueError, "342x224"):
+            analyze_removal_counterfactual(
+                bytes(stock[:-4]), bytes(removed), bytes(front), bytes(rear),
+                1856, 98)
 
 
 if __name__ == "__main__":

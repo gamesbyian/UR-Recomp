@@ -21,6 +21,8 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
         self.assertEqual(probe.patch_main(patched), patched)
         self.assertIn("ur_baldosa_modern_profile_after_config", patched)
         self.assertIn(".after_config", patched)
+        self.assertIn(".before_run_frame", patched)
+        self.assertIn("ur_baldosa_modern_profile_before_run_frame", patched)
         self.assertIn("exit(7);", patched)
         self.assertIn(probe.MAIN_PAUSE, patched)
         with self.assertRaisesRegex(ValueError, "pause seam"):
@@ -47,6 +49,8 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             bridge = root / "tools/baldosa_modern_profile_activation.cpp"
             bridge.parent.mkdir(parents=True)
             bridge.write_text("/* synthetic unit bridge */\n")
+            (root / "tools/baldosa_modern_profile_native_fixture.cpp").write_text(
+                "/* synthetic fixture */\n")
             for name in probe.SOURCES:
                 (product / name).write_text("/* synthetic product */\n")
             pending = probe.plan(game, root)
@@ -55,6 +59,7 @@ class BaldosaModernProfileActivationStage(unittest.TestCase):
             self.assertIn("host_profile_catalog.cpp", pending[1][2])
             self.assertIn("host_product_store.cpp", pending[1][2])
             self.assertIn("after_config", pending[0][2])
+            self.assertIn("ur-baldosa-modern-profile-fixture", pending[1][2])
             with self.assertRaisesRegex(ValueError, "must already be staged"):
                 probe.patch_cmake("add_library(other INTERFACE)\n", root)
 

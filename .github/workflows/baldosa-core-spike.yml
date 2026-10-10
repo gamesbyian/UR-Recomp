@@ -911,6 +911,36 @@ jobs:
           PY
           echo "PASS: three moving source frames, exact main-frame hashes and original guest CRCs; no destructive HD capture" >> "$GITHUB_STEP_SUMMARY"
 
+          # Rear OAM source has a valid *zero-final-delta* outcome; unlike
+          # front removal, do not equate this with an empty sprite or
+          # admission to Remastered substitution. Genuine native process
+          # uses the existing one-slot counterfactual and stock guest CRC.
+          unset UR_RACER_HD_WIDE_REMOVE_PAIR UR_RACER_HD_WIDE_SOURCE_SLOT
+          unset UR_RACER_HD_WIDE_SOURCE_DIR
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_SLOT=99
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=1856
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-rear99"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/fd/crc.txt"
+          python3 tools/check_baldosa_wide_rear_removal.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --source "$RUNNER_TEMP/baldosa-ws342-obj-slots/ur-baldosa-ws342-obj-slot99-frame001856.pam" \
+            --removed "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-001856.pam" \
+            --stock-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --source-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_slot_99/fd/crc.txt" \
+            --removed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/fd/crc.txt" \
+            --removed-log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/log.txt" \
+            --rear-slot 99 --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_rear99_removal_1856.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME
+          echo "PASS: independent genuine native rear99 PPU deletion, stock CRC identical, changed pixels confined, zero delta allowed" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Summarize executable evidence
         if: always()
         shell: bash
@@ -971,6 +1001,9 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live_4x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_1p_ur_ws342_live/log.txt
             ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_rear99_removal_1856.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-rear99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_slot96_final_visibility_1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_slot98_final_visibility_1872.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot96_frame1856/log.txt

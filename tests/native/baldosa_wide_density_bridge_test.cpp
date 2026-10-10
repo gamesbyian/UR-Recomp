@@ -45,6 +45,8 @@ extern "C" int ur_baldosa_hd_draw_frame(
 }
 
 extern "C" void ur_baldosa_ws24_prepare_frame(int, int, int*, int*);
+extern "C" int ur_baldosa_ws24_original_viewport(
+    int, int, int, int, int*, int*, int*, int*);
 extern "C" void ur_baldosa_ws24_begin_sim_frame(unsigned);
 extern "C" int ur_baldosa_ws24_draw_frame(
     std::uint8_t*, std::size_t, const std::uint8_t*, int, int, double);
@@ -99,6 +101,20 @@ int main() {
         g_scale = scale;
         check_frame(scale, width);
     }
+    // Native desktop 4K geometry uses Original 7:6 PAR and the accepted
+    // 512/513 correction. Also verify density-scaled callback dimensions.
+    for (int scale : {1, 2, 3, 4}) {
+        g_scale = scale;
+        int x = -1, y = -1, w = -1, h = -1;
+        assert(ur_baldosa_ws24_original_viewport(
+            342 * scale, 224 * scale, 3840, 2160, &x, &y, &w, &h) == 1);
+        assert(x == 0 && y == 0 && w == 3840 && h == 2160);
+        assert(ur_baldosa_ws24_original_viewport(
+            342, 224, 1920, 1080, &x, &y, &w, &h) == 1);
+        assert(x == 0 && y == 0 && w == 1920 && h == 1080);
+        assert(ur_baldosa_ws24_original_viewport(
+            342 * scale + 1, 224 * scale, 3840, 2160, &x, &y, &w, &h) == 0);
+    }
     // Calibration failure must restore source width, never fabricate margins.
     g_force_uncalibrated = true;
     ur_baldosa_ws24_prepare_frame(0, 0, &width, &height);
@@ -110,6 +126,16 @@ int main() {
     g_scale = 4;
     check_frame(g_scale, width);
 
+    // Full-height Original 256x224, centered with matte on both sides.
+    {
+        int x = -1, y = -1, w = -1, h = -1;
+        assert(ur_baldosa_ws24_original_viewport(
+            256 * 4, 224 * 4, 3840, 2160, &x, &y, &w, &h) == 1);
+        assert(x == 480 && y == 0 && w == 2880 && h == 2160);
+        assert(ur_baldosa_ws24_original_viewport(
+            256 * 4, 224 * 4, 1280, 1024, &x, &y, &w, &h) == 1);
+        assert(x == 160 && y == 152 && w == 960 && h == 720);
+    }
     // Separate real-game lifecycle gating: no magic frame range and no
     // width expansion during setup/results, even after the first race.
     assert(setenv("UR_BALDOSA_WS342_LIVE", "1", 1) == 0);
@@ -173,5 +199,16 @@ int main() {
     ur_baldosa_ws24_prepare_frame(0, 0, nullptr, &height);
     assert(ur_baldosa_ws24_draw_frame(
         nullptr, 0, nullptr, 342, 224, 0.0) == 0);
+    // Failed prepare cannot reuse previous 342-wide viewport admission.
+    {
+        int x = 17, y = 19, w = 23, h = 29;
+        assert(ur_baldosa_ws24_original_viewport(
+            342 * 4, 224 * 4, 3840, 2160, &x, &y, &w, &h) == 0);
+        assert(x == 17 && y == 19 && w == 23 && h == 29);
+        assert(ur_baldosa_ws24_original_viewport(
+            256 * 4, 224 * 4, 0, 2160, &x, &y, &w, &h) == 0);
+        assert(ur_baldosa_ws24_original_viewport(
+            256 * 4, 224 * 4, 3840, 2160, nullptr, &y, &w, &h) == 0);
+    }
     return 0;
 }

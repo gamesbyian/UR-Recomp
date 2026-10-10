@@ -36,3 +36,21 @@ tool independently enables authored 342-wide riders or claims physical
 The actual merge/acceptance gate remains the separately validated native
 source-frame artifact in #1116. This helper can be merged and unit tested
 independently and does not add a new native CI job or duplicate renderer.
+
+## Native CI evidence integration
+
+With #1116 now merged, the same pinned Baldosa job runs the pure comparator
+**after** the individually source-validated original 1856 and 1872 PPU
+frames. It preserves `ws342_obj_temporal_1856_1872.json` in the existing
+`baldosa-native-spike-evidence` artifact, asserts all four independent
+OAM slots and the exact ordered two-frame provenance, and explicitly
+requires `safe_to_destructively_replace_original_obj=false`.
+
+The first genuine two-frame run observed 157 to 244 pre-composition
+overlapping source pixels in *each* split viewport, while total
+isolated OBJ emission increased from 1,280 to 1,310 pixels.
+At frame 1872, the older strict "front OBJ RGB always equals final
+raster" condition is **unproven**, even though every slot's isolated
+source and full Original frame retained exact native provenance.
+That is a reason to investigate BG/window/priority candidates,
+**not** to reinterpret source RGB equality as an ownership oracle.

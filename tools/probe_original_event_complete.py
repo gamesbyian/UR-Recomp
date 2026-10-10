@@ -345,10 +345,11 @@ def run_pinned_baldosa(work: Path, args, script: Path,
         f"{start + shift}:{duration}:{mask:03x}"
         for start, duration, mask in events if mask
     ]
-    if not lines or any(start + shift < 0 or duration < 1 or
-                        not 0 < mask <= 0x0FFF for start, duration, mask in events if mask):
-        raise CompleteEventError("invalid non-empty bounded source controller stream")
-    input_file.write_text("\n".join(lines) + "\n", encoding="ascii")
+    if any(start + shift < 0 or duration < 1 or
+           not 0 < mask <= 0x0FFF for start, duration, mask in events if mask):
+        raise CompleteEventError("invalid bounded source controller stream")
+    if lines:
+        input_file.write_text("\n".join(lines) + "\n", encoding="ascii")
     output = work / "native"
     output.mkdir(exist_ok=True)
     config = args.native.parent / "config.ini"
@@ -369,8 +370,11 @@ def run_pinned_baldosa(work: Path, args, script: Path,
             SNESRECOMP_FRAMEDUMP_PIXELS="0",
             SNESRECOMP_DUMP_DIR=str(output),
             SNESRECOMP_ROM=str(args.rom),
-            UR_QA_SCENE_INPUT_FILE=str(input_file),
         )
+        if lines:
+            env["UR_QA_SCENE_INPUT_FILE"] = str(input_file)
+        else:
+            env.pop("UR_QA_SCENE_INPUT_FILE", None)
         proc = subprocess.run(
             ["xvfb-run", "-a", str(args.native),
              "--no-launcher", "--config", str(config),

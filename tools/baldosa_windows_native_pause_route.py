@@ -137,7 +137,7 @@ def check_delayed_restart_log(log: str, *, expected_request_frame: int) -> dict[
 
 
 HOST_FRAME_CRC = re.compile(
-    r"^UR_BALDOSA_HOST_FRAME_CRC host=(\\d+) guest=(\\d+) hash=([0-9a-fA-F]{8})$",
+    r"^UR_BALDOSA_HOST_FRAME_CRC host=(\d+) guest=(\d+) hash=([0-9a-fA-F]{8})$",
     re.MULTILINE,
 )
 HOST_TRACE_START = 1948

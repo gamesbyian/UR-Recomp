@@ -58,28 +58,27 @@ def patch_main(source: str) -> str:
 
 
 def patch_framework_save(source: str) -> str:
-    """Call existing typed publisher only after acknowledged framework save.
+    """Link typed publication only after the pinned real SRAM write succeeds.
 
-    Patch exactly the pinned host shutdown statement; never invent a second
-    save path or call during a guest frame. Non-network failed native writes
-    have no publication callback. The typed helper itself validates all bytes.
+    Pin the exact original shutdown statement. A framework change cannot
+    silently move publication to a speculative frame or unsuccessful write.
     """
     if SAVE_MARK in source:
         return source
     if source.count(FRAMEWORK_SAVE) != 1:
         raise ValueError("Pinned framework SRAM shutdown boundary changed")
     declaration = (
-        "/* " + SAVE_MARK + ": after native RtlWriteSram success only. */\\n"
-        "extern int ur_baldosa_modern_profile_after_native_save(void);\\n"
+        "/* " + SAVE_MARK + ": acknowledged native SRAM shutdown. */\n"
+        "extern int ur_baldosa_modern_profile_after_native_save(void);\n"
     )
     replacement = (
-        "  if (!g_netplay_session) {\\n"
-        "    if (RtlWriteSram()) {\\n"
-        "      if (!ur_baldosa_modern_profile_after_native_save())\\n"
-        "        fprintf(stderr, \\"UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\\\n\\");\\n"
-        "    } else {\\n"
-        "      fprintf(stderr, \\"UR_BALDOSA_NATIVE_PROFILE native_save_failed\\\\n\\");\\n"
-        "    }\\n"
+        "  if (!g_netplay_session) {\n"
+        "    if (RtlWriteSram()) {\n"
+        "      if (!ur_baldosa_modern_profile_after_native_save())\n"
+        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
+        "    } else {\n"
+        '      fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE native_save_failed\\n");' "\n"
+        "    }\n"
         "  }"
     )
     return declaration + source.replace(FRAMEWORK_SAVE, replacement, 1)

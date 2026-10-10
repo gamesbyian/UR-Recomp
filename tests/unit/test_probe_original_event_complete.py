@@ -199,7 +199,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             self.assertIn(0, frames)
             self.assertIn(64, frames)
             if case == "switcher":
-                self.assertEqual(max(frames), 5163 - 5)
+                self.assertEqual(max(frames), 5163 - 2)
                 self.assertIn(5163 - 39, frames)
             else:
                 self.assertLess(max(frames), 5163 - 200)
@@ -218,9 +218,11 @@ class CompleteEventProducerTests(unittest.TestCase):
         source_duration = 4703  # actually observed 2014 original Switcher
         frames = target.sample_frames("switcher", source_duration)
         lead = target.SWITCHER_TERMINAL_SOURCE_LEADS
-        self.assertEqual(max(frames), 4698)
-        self.assertIn(4664, frames)  # first genuine original track-0 prelude
-        self.assertIn(4698, frames)  # first restored track-3 source sample
+        self.assertEqual(max(frames), 4701)
+        self.assertIn(4664, frames)  # first differing paired prelude frame
+        self.assertIn(4698, frames)  # original course 0 still observed
+        self.assertEqual([f for f in frames if 4699 <= f <= 4701],
+                         [4699, 4700, 4701])
         self.assertEqual(
             [f for f in frames if f > 2400],
             sorted(source_duration - n for n in lead))
@@ -228,7 +230,10 @@ class CompleteEventProducerTests(unittest.TestCase):
         script = target.replay_script(4, 0x99, frames, False)
         self.assertIn("dump scene-04664", script)
         self.assertIn("dump scene-04698", script)
-        self.assertLess(script.index("dump scene-04698"),
+        self.assertIn("dump scene-04699", script)
+        self.assertIn("dump scene-04700", script)
+        self.assertIn("dump scene-04701", script)
+        self.assertLess(script.index("dump scene-04701"),
                         script.index("until 009F == 99 9000"))
         self.assertNotIn("poke ", script)
         self.assertLess(max(target.sample_frames("zoom-zoo", 5163)), 5000)

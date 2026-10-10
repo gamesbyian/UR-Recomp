@@ -49,8 +49,12 @@ ZOO_PROGRESS_FRAMES = (217, 218, 219, 603, 604, 605, 840, 841, 842,
 # never observing the real +4702 Baldosa versus +4704 Snes9x result gap.
 # Keep the new samples BEFORE the earliest observed native result and
 # deliberately mark them non-admission phase diagnostics.
+# Paired original/native 43-sample result 38072910224 first diverges in
+# menu/track at +4664 and restores in native by +4697; reference still
+# reports track 0 at +4698. Sample the remaining unobserved reference
+# restoration boundary +4699..+4701, NEVER the +4702 native result.
 SWITCHER_TERMINAL_SOURCE_LEADS = (80, 50, 42, 40, 39, 38, 37,
-                                 30, 20, 10, 9, 8, 7, 6, 5)
+                                 30, 20, 10, 9, 8, 7, 6, 5, 4, 3, 2)
 
 
 class CompleteEventError(ValueError):
@@ -322,8 +326,8 @@ def sample_frames(case: str, source_duration: int) -> list[int]:
     if case == "switcher":
         # Derive relative host captures only from the independently
         # established original source's observed result boundary.
-        # Minimum 5-frame lead avoids turning this into a late
-        # post-result sampling workaround on Baldosa.
+        # Minimum 2-frame lead is strictly BEFORE Baldosa's earliest
+        # independently observed +4702 result; no result-time rebasing.
         extra = (source_duration - lead for lead in SWITCHER_TERMINAL_SOURCE_LEADS)
         return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
                       | {f for f in extra if f > cap and f > 0})

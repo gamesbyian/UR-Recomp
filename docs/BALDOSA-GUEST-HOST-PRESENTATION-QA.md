@@ -127,3 +127,9 @@ second scene classifier. This extends a real live presentation
 those require a follow-up native capture, guest CRC equality and exact
 Original raster oracles before enabling it by default. It does not
 authorize wide authored HD OBJ replacement or physical 4K acceptance.
+
+The opt-in live bridge additionally clears its 1P/2P/VS latch when the
+settled frontend `$7E:009F=0xD7` is reached outside racing, and clears
+prepared-wide admission at the start of every frame preparation, including
+invalid-call failure. These safety controls prevent a stale prior event or
+failed prepare from requesting guessed widened pixels on a later callback.

@@ -20,7 +20,7 @@ def present(frame, status, reason):
 def pixel_change(frame, sources, changed):
     return (
         f"UR_RACER_HD_PIXEL_CHANGE frame={frame} "
-        f"source_instances={sources} changed_from_stock={changed}"
+        f"source_instances={sources} changed_from_underlay={changed}"
     )
 
 
@@ -69,7 +69,7 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
               pixel_change(1, 1, 1), present(1, "hd", "full-pair")],
              "pixel-change witness count"),
             ([gate(1, "armed", "full-pair"),
-              "UR_RACER_HD_PIXEL_CHANGE frame=1 source_instances=5 changed_from_stock=1",
+              "UR_RACER_HD_PIXEL_CHANGE frame=1 source_instances=5 changed_from_underlay=1",
               present(1, "hd", "full-pair")], "malformed pixel-change"),
             ([gate(1, "original", "disabled"), pixel_change(1, 1, 1),
               present(1, "original", "not-armed")],

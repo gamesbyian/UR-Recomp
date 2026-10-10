@@ -73,7 +73,7 @@ def summarize(log_lines, *, first: int = MIN_FRAME, last: int = MAX_FRAME) -> di
         raise ValueError("bad native host-frame gate")
     counts, by_frame, by_scope, by_sp = (Counter(), Counter(), defaultdict(Counter), defaultdict(Counter))
     samples = {f"7E:{a:04X}": deque(maxlen=EXAMPLE_LIMIT) for a in TARGETS}
-    observed_total, malformed, last_frame = 0, 0, first
+    observed_total, last_frame = 0, first
     for line in log_lines:
         if not line.strip():
             continue
@@ -132,7 +132,8 @@ def summarize(log_lines, *, first: int = MIN_FRAME, last: int = MAX_FRAME) -> di
             k: dict(sorted(v.items())) for k, v in sorted(by_sp.items())},
         "first_five_observed_writes_per_address": {
             k: list(v) for k, v in sorted(samples.items()) if v},
-        "no_direct_guest_wram_values_or_complete_memory_dumps": True,
+        "retains_example_written_bytes": True,
+        "retains_complete_guest_memory_dumps": False,
         "scope_limits": (
             "Native WRAM write attempts, not original changed-byte events; native "
             "AOT function scope and IPC are not original instruction PC equivalence. "

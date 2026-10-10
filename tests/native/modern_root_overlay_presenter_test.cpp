@@ -72,7 +72,9 @@ int main() {
     assert(contains("RACER: CUSTOM RACER"));
     assert(contains("> RECORDS"));
     assert(contains("SELECTED"));
-    assert(contains("RUNS AND BEST TIMES"));
+    // The shared painter applies the existing cell budget to detail copy.
+    assert(contains(fit_modern_overlay_text(
+        "RUNS AND BEST TIMES", modern_overlay_text_cells(356 - 193))));
     assert(contains("QUIT TO DESKTOP?"));
     assert(contains("A/ENTER YES   B/ESC NO"));
     assert(!contains("CONTINUE READY")); // only on selected Play

@@ -26,7 +26,7 @@ def pixel_change(frame, sources, changed):
 
 class RacerHdLiveDrawCensusTests(unittest.TestCase):
     def test_native_hd_callback_is_not_necessarily_a_visible_pixel_change(self):
-        log = "\\n".join([
+        log = "\n".join([
             gate(1139, "armed", "full-pair"),
             pixel_change(1139, 0, 0),
             present(1139, "hd", "full-pair"),
@@ -71,7 +71,7 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
         for lines, reason in bad:
             with self.subTest(reason=reason):
                 with self.assertRaisesRegex(ValueError, reason):
-                    analyze("\\n".join(lines))
+                    analyze("\n".join(lines))
 
     def test_actual_present_outcomes_and_temporal_edges(self):
         log = "\n".join([

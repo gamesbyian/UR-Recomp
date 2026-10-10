@@ -1,0 +1,231 @@
+{
+  "schema": "UR-QA01-SWITCHER-ORIGINAL-RACE-B-HORIZON/1",
+  "source": {
+    "original_only_run_id": 38053986565,
+    "original_only_job_id": 114218598993,
+    "artifact_id": 11670742951,
+    "artifact_zip_sha256": "ee3a3a4748b751bb20a8f18f2ab80257b910fb21e41b3d146423f0d88afee37e",
+    "source_repository": "gamesbyian/UR-Recomp",
+    "source_pr": 1160,
+    "source_commit": "c377a04568c51d888a6ae371100f0c27e0ca7203",
+    "original_movie": "reference/imported/tas-bots/dessyreqt-4250-submission.smv",
+    "original_movie_unpacked_sha256": "736658a2b326009545ebd8f7521ced4879e06b642f744b2d908c5801777c358a",
+    "canonical_usa_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "scope": "original Snes9x only; native Baldosa not run"
+  },
+  "reported_status": "source_event_not_qualified_within_bounded_horizon",
+  "reported_reason": "source movie never demonstrated this course/result pair",
+  "observed_original_source": {
+    "active_track_first_last": [
+      12327,
+      17028
+    ],
+    "active_track_frames": 4668,
+    "complete_event_qa_credit": 0,
+    "original_source_horizon_host_frame": 48000,
+    "original_source_horizon_observed_from_guest_dump": true,
+    "original_source_horizon_wram_bytes": 131072,
+    "provenance_guardrail": "Source-only trace diagnostic; no inferred event identity, native comparison, result-scoring credit or course admission.",
+    "sampled_state_at_source_result_neighbors": {
+      "2873": {
+        "in_race": 0,
+        "menu": 22,
+        "tour_row": 0,
+        "track": 0
+      },
+      "2874": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      },
+      "2875": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      },
+      "2893": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      },
+      "11914": {
+        "in_race": 60,
+        "menu": 216,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11915": {
+        "in_race": 60,
+        "menu": 47,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11916": {
+        "in_race": 60,
+        "menu": 47,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11979": {
+        "in_race": 60,
+        "menu": 47,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11984": {
+        "in_race": 60,
+        "menu": 216,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11985": {
+        "in_race": 60,
+        "menu": 24,
+        "tour_row": 0,
+        "track": 2
+      },
+      "11997": {
+        "in_race": 0,
+        "menu": 24,
+        "tour_row": 0,
+        "track": 2
+      },
+      "17029": {
+        "in_race": 0,
+        "menu": 22,
+        "tour_row": 0,
+        "track": 3
+      },
+      "17030": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 3
+      },
+      "17031": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 3
+      },
+      "17087": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 3
+      },
+      "25343": {
+        "in_race": 0,
+        "menu": 22,
+        "tour_row": 0,
+        "track": 0
+      },
+      "25344": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      },
+      "25345": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      },
+      "25488": {
+        "in_race": 0,
+        "menu": 153,
+        "tour_row": 0,
+        "track": 0
+      }
+    },
+    "schema": "UR-QA01-SOURCE-RESULT-PROBE/1",
+    "source_event_candidate_entries": [
+      12327
+    ],
+    "source_intervening_foreign_active_raw_frame_count": 34,
+    "source_intervening_foreign_active_runs_8_frames": [
+      {
+        "end": 17024,
+        "start": 16991,
+        "track": 0
+      }
+    ],
+    "source_intervening_foreign_active_window": [
+      12327,
+      17030
+    ],
+    "source_intervening_foreign_active_window_end_exclusive": true,
+    "source_trace_frames": [
+      0,
+      48000
+    ],
+    "stable_original_results": [
+      {
+        "end": 2893,
+        "in_race": 0,
+        "menu": 153,
+        "next_menu": 246,
+        "race_flag_at_start": 0,
+        "start": 2874,
+        "state": "RESULT_RACE",
+        "track_at_start": 0
+      },
+      {
+        "end": 11979,
+        "in_race": 60,
+        "menu": 47,
+        "next_menu": 246,
+        "race_flag_at_start": 60,
+        "start": 11915,
+        "state": "RESULT_STUNT summing",
+        "track_at_start": 2
+      },
+      {
+        "end": 17087,
+        "in_race": 0,
+        "menu": 153,
+        "next_menu": 246,
+        "race_flag_at_start": 0,
+        "start": 17030,
+        "state": "RESULT_RACE",
+        "track_at_start": 3
+      },
+      {
+        "end": 25488,
+        "in_race": 0,
+        "menu": 153,
+        "next_menu": 246,
+        "race_flag_at_start": 0,
+        "start": 25344,
+        "state": "RESULT_RACE",
+        "track_at_start": 0
+      }
+    ],
+    "wanted_course_track": 3,
+    "wanted_result_menu": 153
+  },
+  "interpretation": {
+    "qualifying_source_entry": 12327,
+    "authentic_stable_result_menu": 153,
+    "authentic_result_menu_first_frame": 17030,
+    "original_result_stable_through": 17087,
+    "disqualifying_transient_course_run": {
+      "track": 0,
+      "start": 16991,
+      "end": 17024,
+      "frames": 34
+    },
+    "source_track_restored_before_result": true,
+    "unknown": "The original source result is observed but not yet an admissible independent source event because the general foreign-active-course guard rejected a 34-frame track-0 interval. No PPU time has yet been verified for this Switcher result."
+  },
+  "release": {
+    "complete_usa_course_acceptance_credit": 0,
+    "native_switcher_execution_done": false,
+    "original_switcher_verified_complete_event": false
+  }
+}

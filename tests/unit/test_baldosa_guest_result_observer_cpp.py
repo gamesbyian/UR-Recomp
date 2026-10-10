@@ -49,6 +49,12 @@ class BaldosaGuestResultObserverTests(unittest.TestCase):
         observer = (PRODUCT / "baldosa_guest_result_observer.cpp").read_text()
         staging = (ROOT / "tools/baldosa_product_pause_spike.py").read_text()
         self.assertIn("g_native_result_observer.observe(", source)
+        self.assertIn(
+            "g_native_result_observer.reset();",
+            source[source.index("void reconcile_after_native_restart() {"):
+                   source.index("// One physical, edge-triggered",
+                                source.index("void reconcile_after_native_restart() {"))]
+        )
         self.assertIn("ur_baldosa_modern_root_guest_players()", source)
         self.assertIn("published=0", source)
         self.assertIn("g_handed_off_players = static_cast<unsigned>(players);", root)

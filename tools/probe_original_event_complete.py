@@ -168,6 +168,29 @@ def sustained_foreign_active_runs(states: dict[int, dict], first: int,
     return runs
 
 
+def proven_stunt_tally_prelude(states: dict[int, dict], track: int,
+                               tally_frame: int, foreign: dict) -> bool:
+    """Original-only fixed result-prelude exception, NEVER native acceptance.
+
+    The 2014 Bowl source briefly routes track ID through zero while the
+    in-race byte remains 1, then resumes the original course before the
+    independently observed stable 0x2F tally. It is not a new course
+    entry, and only the last <=80 frames before the tally may qualify.
+    """
+    return (
+        foreign["track"] == 0
+        and foreign["start"] >= tally_frame - 80
+        and foreign["end"] <= tally_frame - 5
+        and states.get(foreign["start"] - 1, {}).get("track") == track
+        and all(states.get(f, {}).get("track") == track
+                and states.get(f, {}).get("in_race") == 1
+                for f in range(foreign["end"] + 1, foreign["end"] + 5))
+        and all(states.get(f, {}).get("menu") == 0x2F
+                and states.get(f, {}).get("track") == track
+                for f in range(tally_frame, tally_frame + 8))
+    )
+
+
 def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
     """Detect source-original course entry and terminal result, never infer
     either from an approximate movie timestamp."""
@@ -207,8 +230,6 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
         # Intervening active gameplay on *another* course makes this
         # candidate a later, unrelated result. Fade/transient menu values
         # alone cannot disqualify an otherwise legitimate result.
-        if sustained_foreign_active_runs(states, start, stop, track):
-            continue
         if stop - start < 250:
             raise CompleteEventError("implausibly short source event")
         tally = next((row["start"] for row in stable_results
@@ -217,6 +238,17 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
                       and states[row["start"]]["track"] == track), None)
         if result_menu == 0x18 and tally is None:
             raise CompleteEventError("Stunt result missing prior 0x2F tally")
+        foreign = sustained_foreign_active_runs(states, start, stop, track)
+        # The original observed Bowl source has a 34-frame transient
+        # 00CE=0 stage immediately before the authentic 0x2F tally. This
+        # must never allow a foreign active Race/Circuit, an earlier
+        # excursion, or a missing return to the same scored stunt.
+        if foreign and not (
+            result_menu == 0x18 and tally is not None
+            and all(proven_stunt_tally_prelude(states, track, tally, run)
+                    for run in foreign)
+        ):
+            continue
         return {"original_entry_frame": start, "original_result_frame": stop,
                 "source_stunt_tally_frame": tally,
                 "source_active_frames_to_result": stop - start}

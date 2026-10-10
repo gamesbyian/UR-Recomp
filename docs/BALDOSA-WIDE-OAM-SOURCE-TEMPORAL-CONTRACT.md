@@ -54,3 +54,23 @@ raster" condition is **unproven**, even though every slot's isolated
 source and full Original frame retained exact native provenance.
 That is a reason to investigate BG/window/priority candidates,
 **not** to reinterpret source RGB equality as an ownership oracle.
+
+## Third independent moving frame, without a fifth route
+
+The existing six Original/4× native snapshots include guest frame **1888**.
+The four same independently checked PPU OAM slot processes now also export
+that exact original source frame with `RemoveFromGame=0`; each is validated
+by the same byte-identical 342×224 stock-raster, source provenance and
+all-frame guest-CRC oracles used at 1856 and 1872. No extra native game
+process, new renderer or additional guest frame is needed.
+
+The existing single-frame source reporter records 1888 without falsely
+demanding the exact 1856 overlap pattern. The existing strict temporal
+comparator verifies 1872→1888 as a second **observed-not-admitted**
+interval. CI retains both 1856→1872 and 1872→1888 machine-readable
+comparisons and verifies frame continuity (1856, 1872, 1888), four
+independent hardware source slots and disabled destructive admission.
+
+This is a *three-point sampling of evolving OBJ source/foreground
+candidates*, not a full moving-event pixel owner map, interpolation proof,
+source-priority oracle or authorization for 342-wide authored HD riders.

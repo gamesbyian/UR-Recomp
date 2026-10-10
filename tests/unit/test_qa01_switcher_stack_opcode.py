@@ -5,6 +5,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -90,8 +91,39 @@ class SwitcherOpcodeStackTests(unittest.TestCase):
             with self.subTest(damaged=damaged[:40]):
                 with self.assertRaises(ValueError):
                     report.parse_trace(damaged, 17030)
-        with self.assertRaisesRegex(ValueError, "cap"):
-            report.parse_trace(fixture_log() + fixture_log().splitlines()[1].join(["\n"]*(report.LIMIT+2)), 17030)
+        # A controlled very small cap checks fail-closed behaviour without
+        # constructing a giant synthetic log in the unit suite.
+        repeated = fixture_log().splitlines(keepends=True)
+        with mock.patch.object(report, "LIMIT", 2):
+            with self.assertRaisesRegex(ValueError, "cap"):
+                report.parse_trace(repeated[0] + repeated[1] * 3, 17030)
+
+    def test_realistic_hot_byte_aggregates_exhaustively_without_huge_json(self):
+        src = fixture_log().splitlines(keepends=True)
+        log = src[0] + src[1] * 6001
+        observed = report.parse_trace(log, 17030)
+        self.assertEqual(observed["event_count"], 6001)
+        self.assertEqual(observed["address_counts"], {"7E:01DD": 6001})
+        self.assertEqual(observed["stack_pointer_address_compatible_counts"],
+                         {"7E:01DD": 6001})
+        self.assertEqual(len(observed["opcode_scope_events"]), 12)
+        self.assertFalse(observed["opcode_scope_events_complete"])
+        self.assertEqual(observed["cpu_frame_counts"], {17015: 6001})
+        self.assertEqual(observed["pc_counts"], {"80:D32A": 6001})
+        self.assertEqual(observed["sample_policy"]
+                         ["statistics_count_every_valid_original_observation"], True)
+        self.assertLess(len(json.dumps(observed)), 5000)
+        self.assertEqual(observed["complete_event_release_credit"], 0)
+
+    def test_rare_address_survives_hot_byte_sampling(self):
+        rows = fixture_log().splitlines(keepends=True)
+        observed = report.parse_trace(rows[0] + rows[1] * 6001 + rows[2], 17030)
+        self.assertEqual(observed["event_count"], 6002)
+        self.assertEqual(observed["address_counts"]["7E:01E6"], 1)
+        self.assertEqual(observed["opcode_scope_events"][-1]["wram_address"],
+                         "7E:01E6")
+        self.assertEqual(observed["opcode_scope_events"][-1]["original_pc"],
+                         "83:988A")
 
     def test_replay_validates_source_identity_and_exact_original_wram(self):
         with tempfile.TemporaryDirectory() as tmp:

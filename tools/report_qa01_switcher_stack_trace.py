@@ -9,7 +9,7 @@ emulator side effects and ordinary direct RAM stores remain possibilities.
 from __future__ import annotations
 
 import argparse
-from collections import Counter
+from collections import Counter, deque
 import hashlib
 import json
 from pathlib import Path
@@ -52,7 +52,9 @@ def stack_push_compatible(opcode: int, sp_before: int, sp_after: int,
         for width in PUSH_WIDTHS.get(opcode, ())
     )
 SCHEMA = "UR-QA01-SWITCHER-ORIGINAL-STACK-OPCODE-TRACE/1"
-LIMIT = 5000
+LIMIT = 1000000  # Exhaustive bounded counter, not number of retained raw events.
+SAMPLE_FIRST_PER_ADDRESS = 8
+SAMPLE_LAST_PER_ADDRESS = 4
 
 
 def file_hash(path: Path) -> str:
@@ -104,6 +106,12 @@ def verify_replay(baseline: Path, replay: Path) -> dict:
 
 
 def parse_trace(log: str, source_result_frame: int) -> dict:
+    """Count ALL bounded CPU-scope writes, retain only selected event examples.
+
+    One real original source run exceeded 5,000 writes in 20 CPU frames.
+    Reject malformed/out-of-window writes, but never truncate the statistics
+    or dump tens of thousands of raw register/byte values in the report.
+    """
     if type(source_result_frame) is not int or source_result_frame <= 20:
         raise ValueError("need independently observed original result frame")
     begins = list(BEGIN.finditer(log))
@@ -115,34 +123,59 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
         raise ValueError("instrumented CPU frame not aligned with original result")
     if not 0 <= int(vcounter) < 263:
         raise ValueError("invalid SNES PPU V-counter")
-    rows = []
-    matches = list(WRITE.finditer(log))
-    if len(matches) > LIMIT:
-        raise ValueError("bounded stack write trace exceeded cap")
-    for entry in matches:
+
+    by_pc, by_address, by_frame, compatible_by_address = (
+        Counter(), Counter(), Counter(), Counter()
+    )
+    first_samples = {f"7E:{addr:04X}": [] for addr in TARGETS}
+    last_samples = {f"7E:{addr:04X}": deque(maxlen=SAMPLE_LAST_PER_ADDRESS)
+                    for addr in TARGETS}
+    count = 0
+    last_frame = first
+    for entry in WRITE.finditer(log):
+        count += 1
+        if count > LIMIT:
+            raise ValueError("bounded stack write trace exceeded cap")
         f, v, pc, op, sp0, sp1, addr, old, new = entry.groups()
         frame, addr_num, opcode = int(f), int(addr, 16), int(op, 16)
         if (addr_num not in TARGETS or not first <= frame <= source_result_frame + 5
-                or not 0 <= int(v) < 263 or old == new):
-            raise ValueError("unrecognized opcode-scope WRAM difference")
-        rows.append({
+                or frame < last_frame or not 0 <= int(v) < 263 or old == new):
+            raise ValueError("unrecognized or out-of-order opcode-scope WRAM difference")
+        last_frame = frame
+        address = f"7E:{addr}"
+        pc_name = f"{pc[:2]}:{pc[2:]}"
+        compatible = stack_push_compatible(
+            opcode, int(sp0, 16), int(sp1, 16), addr_num)
+        by_pc[pc_name] += 1
+        by_address[address] += 1
+        by_frame[frame] += 1
+        if compatible:
+            compatible_by_address[address] += 1
+        sample = {
             "icpu_frame": frame,
             "ppu_vcounter": int(v),
-            "original_pc": f"{pc[:2]}:{pc[2:]}",
+            "original_pc": pc_name,
             "opcode": op,
             "sp_before": sp0,
             "sp_after": sp1,
-            "wram_address": f"7E:{addr}",
+            "wram_address": address,
             "old": old,
             "new": new,
             "push_opcode_candidate": opcode in PUSH_WIDTHS,
-            "stack_pointer_address_compatible": stack_push_compatible(
-                opcode, int(sp0, 16), int(sp1, 16), addr_num),
-        })
-    if [r["icpu_frame"] for r in rows] != sorted(r["icpu_frame"] for r in rows):
-        raise ValueError("original opcode observations not chronological")
-    by_pc = Counter(row["original_pc"] for row in rows)
-    by_address = Counter(row["wram_address"] for row in rows)
+            "stack_pointer_address_compatible": compatible,
+        }
+        item = (count, sample)
+        if len(first_samples[address]) < SAMPLE_FIRST_PER_ADDRESS:
+            first_samples[address].append(item)
+        last_samples[address].append(item)
+
+    # Across every address retain its earliest and latest writes, rather
+    # than letting the hottest byte monopolize the event-sampling budget.
+    chosen = {}
+    for address in sorted(first_samples):
+        for ordinal, sample in (*first_samples[address], *last_samples[address]):
+            chosen[ordinal] = sample
+    selected = [sample for _, sample in sorted(chosen.items())]
     return {
         "schema": SCHEMA,
         "original_source_result_host_frame": source_result_frame,
@@ -152,10 +185,21 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
             "pc": f"{begin_pc[:2]}:{begin_pc[2:]}",
             "sp": sp,
         },
-        "opcode_scope_events": rows,
-        "event_count": len(rows),
+        "opcode_scope_events": selected,
+        "opcode_scope_events_complete": len(selected) == count,
+        "sample_policy": {
+            "earliest_events_per_address": SAMPLE_FIRST_PER_ADDRESS,
+            "latest_events_per_address": SAMPLE_LAST_PER_ADDRESS,
+            "at_most_selected_events": len(TARGETS) * (
+                SAMPLE_FIRST_PER_ADDRESS + SAMPLE_LAST_PER_ADDRESS),
+            "statistics_count_every_valid_original_observation": True,
+        },
+        "event_count": count,
         "pc_counts": dict(sorted(by_pc.items())),
         "address_counts": dict(sorted(by_address.items())),
+        "cpu_frame_counts": dict(sorted(by_frame.items())),
+        "stack_pointer_address_compatible_counts": dict(
+            sorted(compatible_by_address.items())),
         "untouched_targets": [
             f"7E:{addr:04X}" for addr in sorted(TARGETS)
             if f"7E:{addr:04X}" not in by_address
@@ -166,12 +210,12 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
             "Addresses lie in the conventional 65816 stack page, but the exact "
             "guest original store and subsequent read/consumer semantics are "
             "NOT established merely by an opcode-scoped pre/post byte change. "
-            "SP-before/after, opcode and push-width/address consistency provide discriminators, NOT instruction attribution. No native "
-            "instruction/phase comparison was performed."
+            "Exhaustive counts and SP/opcode/address consistency provide "
+            "discriminators; the capped event examples are NOT a complete "
+            "chronology. No native instruction/phase comparison was performed."
         ),
         "complete_event_release_credit": 0,
     }
-
 
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])

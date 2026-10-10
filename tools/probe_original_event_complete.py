@@ -44,6 +44,13 @@ SOURCE_HORIZON = 22000
 INITIAL_FRAMES = (0, 1, 2, 4, 8, 16, 32, 64)
 ZOO_PROGRESS_FRAMES = (217, 218, 219, 603, 604, 605, 840, 841, 842,
                        1531, 1532, 1533, 1720, 1721, 1722)
+# Exact original Switcher source demonstrated a 34-frame course-ID=0
+# terminal prelude; the existing 28-sample paired route stopped at +2400,
+# never observing the real +4702 Baldosa versus +4704 Snes9x result gap.
+# Keep the new samples BEFORE the earliest observed native result and
+# deliberately mark them non-admission phase diagnostics.
+SWITCHER_TERMINAL_SOURCE_LEADS = (80, 50, 42, 40, 39, 38, 37,
+                                 30, 20, 10, 9, 8, 7, 6, 5)
 
 
 class CompleteEventError(ValueError):
@@ -312,6 +319,14 @@ def sample_frames(case: str, source_duration: int) -> list[int]:
     if source_duration <= 600:
         raise CompleteEventError("source event too short for bounded test")
     cap = min(2400, source_duration - 300)
+    if case == "switcher":
+        # Derive relative host captures only from the independently
+        # established original source's observed result boundary.
+        # Minimum 5-frame lead avoids turning this into a late
+        # post-result sampling workaround on Baldosa.
+        extra = (source_duration - lead for lead in SWITCHER_TERMINAL_SOURCE_LEADS)
+        return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
+                      | {f for f in extra if f > cap and f > 0})
     extra = ZOO_PROGRESS_FRAMES if case == "zoom-zoo" else ()
     return sorted(set(INITIAL_FRAMES) | set(range(120, cap + 1, 120))
                   | {f for f in extra if f <= cap})
@@ -450,13 +465,41 @@ def load_state(path: Path, decoded: bytes, track: int, active: bool) -> dict:
                                            0x0E1B, 0x0E1F)]}
 
 
+def load_switcher_transition_state(path: Path, decoded: bytes) -> dict:
+    """Diagnostic transitional guest state; never treat as active-course proof.
+
+    Original Switcher Race B writes temporary 7E:00CE=0 before restoring
+    track 3 near the result. Do not discard that evidence by forcing the
+    normal active-course ID/decoded payload contract on these captures.
+    Every frame still needs a full real 128-KiB guest dump.
+    """
+    if not path.is_file():
+        raise CompleteEventError(f"missing Switcher terminal guest frame {path}")
+    w = path.read_bytes()
+    if len(w) != 0x20000:
+        raise CompleteEventError("invalid complete Switcher terminal WRAM")
+    track = w[0x00CE]
+    if track not in (0, 3):
+        raise CompleteEventError("foreign course during Switcher terminal phase")
+    return {**load_state(path, decoded, track, False),
+            "observed_course_track": track,
+            "source_terminal_phase_diagnostic_only": True}
+
+
 def load_capture(directory: Path, frames: list[int], decoded: bytes,
-                 track: int, stunt: bool) -> dict:
+                 track: int, stunt: bool,
+                 switcher_terminal_from: int | None = None) -> dict:
     rows = []
     for f in frames:
         tag = "race-entered" if f == 0 else f"scene-{f:05d}"
-        rows.append({"relative_frame": f,
-                     **load_state(directory / f"{tag}.wram.bin", decoded, track, True)})
+        path = directory / f"{tag}.wram.bin"
+        if switcher_terminal_from is not None and f >= switcher_terminal_from:
+            if track != 3 or stunt:
+                raise CompleteEventError("terminal phase exception is Switcher-only")
+            state = load_switcher_transition_state(path, decoded)
+        else:
+            state = load_state(path, decoded, track, True)
+        rows.append({"relative_frame": f, **state})
     final = load_state(directory / "result-stable.wram.bin", decoded, track, False)
     onset = load_state(directory / "result-onset.wram.bin", decoded, track, False)
     # Screen text is decoded from ORIGINAL PPU memory (also emitted by native
@@ -863,8 +906,14 @@ def main(argv: list[str] | None = None) -> int:
         raise CompleteEventError("race entry changed after scene-relative transplant")
     if "dump result-stable" not in rl or "dump result-stable" not in nl:
         raise CompleteEventError("one engine failed to reach the stock terminal result")
-    reference = load_capture(replay / "ref", frames, decoded, track, kind == "stunt")
-    native = load_capture(replay / "native", frames, decoded, track, kind == "stunt")
+    switcher_terminal_from = (
+        original_event["source_active_frames_to_result"] -
+        max(SWITCHER_TERMINAL_SOURCE_LEADS)
+        if args.case == "switcher" else None)
+    reference = load_capture(replay / "ref", frames, decoded, track,
+                             kind == "stunt", switcher_terminal_from)
+    native = load_capture(replay / "native", frames, decoded, track,
+                          kind == "stunt", switcher_terminal_from)
     comparison = diagnose(reference, native, menu, kind == "stunt")
     comparison["original_source_entry_equivalent"] = baseline[
         "source_original_state_equivalent"]

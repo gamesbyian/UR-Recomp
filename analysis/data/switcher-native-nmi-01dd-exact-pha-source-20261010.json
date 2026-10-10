@@ -119,7 +119,13 @@
     "native_x_flag": 0,
     "observed_stack_pointer_hex": "01DD",
     "observed_byte_at_7e01dd": "04",
-    "native_cpu_frame_counter": 5781
+    "native_cpu_frame_counter": 5781,
+    "native_pha_sp_before_inferred_from_pinned_generated_code": "01DE",
+    "native_pha_sp_after_inferred_from_pinned_generated_code": "01DC",
+    "native_pha_sp_at_cpu_write_logged": "01DD",
+    "original_observed_pha_sp_before": "01DE",
+    "original_observed_pha_sp_after": "01DC",
+    "inference_note": "The generated PHA emits --S, cpu_write16_paced at S=01DD, --S: implies pre-PHA S=01DE and post-PHA S=01DC, matching original observed pre/post. Native logger sampled S=01DD at word store, not instruction entry/exit."
   },
   "cross_original_source": {
     "original_original_cpu_frame": 5780,
@@ -141,7 +147,7 @@
     "result_absolute_host_frame_both": 5783
   },
   "adjudication": {
-    "proven": "The independently executed native raw WRAM logger records the exact sequence PHB, PHD, PHX, PHY, 16-bit PHA, 8-bit PHA within the generated I_NMI handler. At native snes_frame_counter 5781, a 16-bit word write to stack address 01DD is exactly accumulator A=4004, M=0, SP=01DD, with 7E:01DD low byte 04. The pinned native generated source has the exact PHA word push at this position. Independently executed original Snes9x in the real fresh Switcher result runs PHA at 00:858E (I_NMI +6) at ICPU.Frame 5780, SP 01DE->01DC, 7E:01DD 08->42. Both are NMI-handler PHA, not automatic hardware NMI entry.",
+    "proven": "The independently executed native raw WRAM logger records the exact sequence PHB, PHD, PHX, PHY, 16-bit PHA, 8-bit PHA within the generated I_NMI handler. At native snes_frame_counter 5781, a 16-bit word write to stack address 01DD is exactly accumulator A=4004, M=0, SP=01DD, with 7E:01DD low byte 04. The pinned native generated source has the exact PHA word push at this position. Independently executed original Snes9x in the real fresh Switcher result runs PHA at 00:858E (I_NMI +6) at ICPU.Frame 5780, SP 01DE->01DC, 7E:01DD 08->42. Both are NMI-handler PHA, not automatic hardware NMI entry. The pinned native generated PHA pre/post stack-pointer values implied by the logged write at S=01DD are 01DE->01DC, identical to the independently observed original PHA pre/post SP.",
     "not_proven": "Why the original 01DD value 42 and native 04 differ at separately observed CPU/frame labels, whether exact pre-PHA accumulator states would match under aligned instruction and NMI timestamps, whether the stack byte is consumed after the push, and the still failed original/native +4704/+4702 guest-relative terminal-frame parity.",
     "next": "Inspect CPU accumulator and 16-bit M state on ORIGINAL PHA 00:858E and native I_NMI PHA at the same validated beam/NMI phase, determine whether discrepancy represents harmless stale transient stack or real incorrectly scheduled guest execution, then trace original/native read/pop consumers. Preserve original controller inputs and all strict QA gate rules.",
     "release_complete_event_credit": 0,

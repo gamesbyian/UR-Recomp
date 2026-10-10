@@ -42,6 +42,12 @@ ur::product::BaldosaPhysicalPauseInput g_keyboard_pause;
 ur::product::BaldosaPhysicalPauseInput g_p1_gamepad_pause;
 ur::product::BaldosaPhysicalPauseInput g_keyboard_restart;
 bool g_restart_same_frame_checked;
+bool g_delayed_restart_enabled;
+bool g_native_anchor_captured;
+bool g_delayed_restart_verified;
+unsigned g_native_anchor_frame;
+std::uint8_t g_native_anchor_ram[0x20000];
+std::vector<std::uint8_t> g_paused_persistent_bytes;
 
 // Deliberately opt-in while the native Baldosa executable lacks the visible
 // established Modern pause/root surfaces. Authentic remains untouched.
@@ -105,13 +111,13 @@ std::uint8_t g_frozen_ram[0x20000];
 
 // Use the real Baldosa SDL event pump in this explicit bounded acceptance.
 // Queued synthetic keys exercise host dispatch, NOT physical hardware QA.
-void queue_escape_edge() {
+void queue_key_edge(int key) {
     SDL_Event event{};
     event.type = SDL_KEYDOWN;
 #if SNESRECOMP_SDL3
-    event.key.key = SDLK_ESCAPE;
+    event.key.key = key;
 #else
-    event.key.keysym.sym = SDLK_ESCAPE;
+    event.key.keysym.sym = key;
 #endif
     if (SDL_PushEvent(&event) != 1) {
         std::fprintf(stderr, "UR_BALDOSA_NATIVE_PAUSE FAIL=keydown_not_queued\n");
@@ -123,6 +129,9 @@ void queue_escape_edge() {
         std::abort();
     }
 }
+
+void queue_escape_edge() { queue_key_edge(SDLK_ESCAPE); }
+void queue_restart_edge() { queue_key_edge(SDLK_r); }
 
 bool smoke_enabled() {
     if (!g_smoke_initialized) {
@@ -146,6 +155,9 @@ bool smoke_enabled() {
             g_require_race = require && std::strcmp(require, "1") == 0;
             const char* physical = std::getenv("UR_BALDOSA_PHYSICAL_PAUSE_SMOKE");
             g_physical_smoke = physical && std::strcmp(physical, "1") == 0;
+            const char* delayed = std::getenv("UR_BALDOSA_DELAYED_RESTART_SMOKE");
+            g_delayed_restart_enabled =
+                delayed && std::strcmp(delayed, "1") == 0;
         }
         g_smoke_initialized = true;
     }
@@ -226,6 +238,16 @@ extern "C" void ur_baldosa_product_after_run_frame(
             ur_modern_session_observe_race_active(
                 g_modern_session, g_native_live_race ? 1 : 0);
 
+        if (smoke_enabled() && g_delayed_restart_enabled &&
+            g_native_live_race && !g_native_anchor_captured) {
+            require(g_modern_session &&
+                        ur_modern_session_restart_available(g_modern_session),
+                    "delayed_restart_anchor_unavailable");
+            g_native_anchor_captured = true;
+            g_native_anchor_frame = stats->frame;
+            std::memcpy(g_native_anchor_ram, g_ram, sizeof(g_native_anchor_ram));
+        }
+
         // Explicit test-only, real same-boundary native rollback round trip.
         // It must leave guest WRAM, persistent SRAM and all future 2P frame
         // CRCs unchanged; the user-facing, multi-frame Retry still needs QA.
@@ -262,6 +284,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
         require(g_frozen_ticks >= 24, "insufficient_frozen_event_pumps");
         require(snesrecomp_desktop_product_is_paused() == 0,
                 "guest_not_resumed_after_event");
+        if (g_delayed_restart_enabled)
+            require(g_delayed_restart_verified,
+                    "delayed_restart_missing_acknowledgement");
         std::fprintf(stderr,
             "UR_BALDOSA_NATIVE_PAUSE RESUMED previous_guest=%u "
             "new_guest=%u frozen_pumps=%u\n",
@@ -281,6 +306,18 @@ extern "C" void ur_baldosa_product_after_run_frame(
         const bool live_race = g_ram[0x0313] == 0x01;
         if (g_require_race)
             require(live_race, "expected_live_race_state");
+        if (g_delayed_restart_enabled) {
+            require(g_physical_smoke, "delayed_restart_needs_sdl_input");
+            require(g_native_anchor_captured &&
+                        g_native_anchor_frame + 12 < stats->frame,
+                    "delayed_restart_insufficient_real_guest_frames");
+            require(std::memcmp(
+                        g_native_anchor_ram, g_ram, sizeof(g_native_anchor_ram)) != 0,
+                    "delayed_restart_guest_has_not_advanced");
+            require(g_sram && g_sram_size > 0, "delayed_restart_missing_sram");
+            g_paused_persistent_bytes.assign(
+                g_sram, g_sram + static_cast<std::size_t>(g_sram_size));
+        }
         g_armed = true;
         g_guest_frame = stats->frame;
         std::memcpy(g_frozen_ram, g_ram, sizeof(g_frozen_ram));
@@ -312,9 +349,38 @@ extern "C" void ur_baldosa_product_host_tick(void) {
                     ur_modern_session_is_paused(g_modern_session),
                 "physical_sdl_did_not_reach_modern_session");
     }
-    require(std::memcmp(g_ram, g_frozen_ram, sizeof(g_frozen_ram)) == 0,
-            "guest_wram_advanced_during_pause");
+    if (g_delayed_restart_enabled && g_frozen_ticks >= 8) {
+        // At the eighth frozen pump the host queued an actual SDL 'R'
+        // press/release; this is checked on the ninth pump after the SDL
+        // dispatcher has handled it. No guest frames run during Restart.
+        require(g_keyboard_restart.last_result() == UR_MODERN_SESSION_APPLIED &&
+                    !g_keyboard_restart.holding() &&
+                    ur_modern_session_is_paused(g_modern_session),
+                "delayed_restart_did_not_reach_modern_native_session");
+        require(std::memcmp(
+                    g_ram, g_native_anchor_ram, sizeof(g_native_anchor_ram)) == 0,
+                "delayed_restart_wram_did_not_rewind_to_race_anchor");
+        require(g_sram &&
+                    static_cast<std::size_t>(g_sram_size) ==
+                        g_paused_persistent_bytes.size() &&
+                    std::memcmp(g_sram, g_paused_persistent_bytes.data(),
+                                g_paused_persistent_bytes.size()) == 0,
+                "delayed_restart_did_not_preserve_persistent_sram");
+        if (!g_delayed_restart_verified) {
+            g_delayed_restart_verified = true;
+            std::fprintf(stderr,
+                "UR_BALDOSA_NATIVE_RESTART DELAYED anchor_guest=%u "
+                "request_guest=%u paused=1 sram_equal=1 wram_rewound=1\n",
+                g_native_anchor_frame, g_guest_frame);
+            std::fflush(stderr);
+        }
+    } else {
+        require(std::memcmp(g_ram, g_frozen_ram, sizeof(g_frozen_ram)) == 0,
+                "guest_wram_advanced_during_pause");
+    }
     ++g_frozen_ticks;
+    if (g_delayed_restart_enabled && g_frozen_ticks == 8)
+        queue_restart_edge(); // SDL processes this BEFORE the next host tick
     if (g_frozen_ticks == 24) {
         if (g_physical_smoke) {
             // A second physical SDL edge, not a direct lifecycle call, resumes.

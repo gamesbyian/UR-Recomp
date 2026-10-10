@@ -50,14 +50,17 @@ def patch_cmake(source: str, root: Path) -> str:
     files = (
         root / "tools/baldosa_native_ws24_presentation.cpp",
         root / "native/title/uniracers_ws_margins.c",
+        root / "native/product/widescreen_output_composition.cpp",
     )
     if any(not f.is_file() for f in files):
         raise ValueError("Missing repository-owned course/world materializer")
     inc = (root / "native/title").resolve().as_posix()
+    product_inc = (root / "native/product").resolve().as_posix()
     shim = files[0].resolve().as_posix()
     return source.rstrip() + (
         "\n\n# " + MARK + ": world course table => PPU shadow, never guest VRAM\n"
         + f'set_source_files_properties("{shim}" PROPERTIES INCLUDE_DIRECTORIES "{inc}")\n'
+        + f'target_include_directories(UniracersSNESRecomp PRIVATE "{product_inc}")\n'
         + "target_sources(UniracersSNESRecomp PRIVATE\n"
         + "".join(f'    "{f.resolve().as_posix()}"\n' for f in files)
         + ")\n"

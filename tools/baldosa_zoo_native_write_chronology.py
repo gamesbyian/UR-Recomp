@@ -44,7 +44,7 @@ def parse_writes(log: str, *, entry_frame: int) -> tuple[list[dict], dict]:
         if not m:
             continue
         parsed += 1
-        if parsed > MAX_OBSERVATIONS:
+        if parsed >= MAX_OBSERVATIONS:
             raise ValueError("native source write log reached observation limit; may be truncated")
         frame, bank, addr, val, width, scope = m.groups()
         frame = int(frame)

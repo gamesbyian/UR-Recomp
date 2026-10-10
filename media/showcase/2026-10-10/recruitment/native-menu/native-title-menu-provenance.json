@@ -1,0 +1,51 @@
+{
+  "ci_execution": "https://github.com/gamesbyian/UR-Recomp/actions/runs/38091213101",
+  "ci_source_artifact_id": 11684691069,
+  "consecutive_host_presentations": 900,
+  "control_guest_crc_sha256": "3840aaf203972d63d93aaeb0e45a2c2bf64c840bd931afeb3201a28a883bd4d5",
+  "delivery_output": {
+    "height": 1080,
+    "source_drawable": [
+      960,
+      540
+    ],
+    "upscale": "nearest-neighbour 2x",
+    "width": 1920
+  },
+  "dimensions": {
+    "actual_sdl_drawable": [
+      960,
+      540
+    ],
+    "logical_source": [
+      256,
+      224
+    ]
+  },
+  "dropped_or_skipped_host_frame_ids": 0,
+  "git_commit": "62cc576383ff362d586b4bd602c80b0536f9571d",
+  "guest_frame_end": 929,
+  "guest_frame_start": 30,
+  "host_log_sha256": "c577508cfe3011e4b1aefd3a993b54b3904502a5aa89c8f360301e2448264bbd",
+  "index_sha256": "514bcc557550b2ab940328ab6504bd8665f81a13083f0c689d7ef7ef840fe3be",
+  "input_route_description": "Pinned upstream 1P original menu route, single turbo-on to turbo-off change",
+  "input_route_sha256": "016d386e3bc3bc300fc566b5c383d243f0649aa8a51a34c36343b1b03c282bb1",
+  "master": {
+    "codec": "ffv1",
+    "fps_nominal": "60/1",
+    "sha256": "345dc41fd5f7a8917bdda5a7cc61701ae28e2c5556483260640a0a8544cbc387"
+  },
+  "native_executable_sha256": "ea8aef42b03328d313225c1248807a6cf705a51fd6420c905a0c60c277956bb6",
+  "native_framework_pin": "075fbe4c8e0d97b0013be541795c39cb644a9709",
+  "native_game_pin": "10b864b9d14a7b7416dd909eb7b054c88faef101",
+  "presentation_mode": "original fixed-width title/menu 256x224 in SDL 960x540 16:9 drawable; no invented wide-world title content",
+  "published_sha256": {
+    "ur-native-title-menu-900f.mp4": "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3",
+    "ur-native-title-menu-poster.png": "3aea1a59e1ca5bfefefd10359b49f6128e07d7e3bcd6cb452abe90362d269b1b"
+  },
+  "recorded_guest_crc_sha256": "3840aaf203972d63d93aaeb0e45a2c2bf64c840bd931afeb3201a28a883bd4d5",
+  "rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "route": "media-native-title-1p",
+  "status": "verified_consecutive_host_presentations",
+  "warning": "60-fps encoded cadence describes consecutive host presentations, not independently certified 60-Hz guest timing"
+}

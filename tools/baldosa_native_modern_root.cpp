@@ -44,6 +44,9 @@ std::uint32_t g_stock_budget = 0;
 std::uint8_t g_stock_previous_cursor = 0;
 bool g_stock_waiting_cursor = false;
 bool g_stock_waiting_transition = false;
+bool g_stock_handed_off = false;
+bool g_reentry_smoke_queued = false;
+bool g_reentry_needs_paint = false;
 
 void stock_route_abort(const char* reason) {
     ur_baldosa_product_cancel_stock_menu_input();
@@ -118,12 +121,34 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_paint_count = 0;
     g_stock_target = -1;
     g_stock_budget = 0;
+    g_stock_handed_off = false;
+    g_reentry_smoke_queued = false;
+    g_reentry_needs_paint = false;
     ur_baldosa_product_set_host_focus(1);
     std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT opened=1\n");
 }
 
 extern "C" int ur_baldosa_modern_root_key(int key, int pressed) {
-    if (!g_visible) return 0;
+    if (!g_visible) {
+        // The shared root returns only from a real original stock MAIN
+        // menu, after a previously observed route handoff. Never steal
+        // Escape from racer selection, race, results or a transition.
+        // No guest reset, guest memory write or SRAM mutation is involved.
+        if (configured() && key == SDLK_ESCAPE && pressed &&
+            g_stock_handed_off && g_stock_target == -1 &&
+            g_ram[0x009f] == 0xd7u && g_ram[0x0313] != 0x01u) {
+            g_menu = ur::product::modern_root_menu_reset();
+            g_visible = true;
+            g_confirm_quit = false;
+            g_stock_handed_off = false;
+            g_reentry_needs_paint = true;
+            ur_baldosa_product_set_host_focus(1);
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT reopened=1 menu=d7 guest_writes=0\n");
+            return 1;
+        }
+        return 0;
+    }
     int action = 0;
     switch (key) {
     case SDLK_UP: action = -1; break;
@@ -182,6 +207,11 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         HostOverlayRect{8,10,240,204}, view);
     if (drawn) {
         ++g_paint_count;
+        if (g_reentry_needs_paint) {
+            std::fprintf(stderr,
+                "UR_BALDOSA_MODERN_ROOT reopened_painted=1 renderer=shared\n");
+            g_reentry_needs_paint = false;
+        }
         if (!g_render_reported) {
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT painted=1 destinations=5 renderer=shared\n");
@@ -211,6 +241,7 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
             const int players = g_stock_target + 1;
             g_stock_target = -1;
             g_visible = false;
+            g_stock_handed_off = true;
             ur_baldosa_product_set_host_focus(0);
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT stock_entered players=%d menu=%02x\n",
@@ -260,6 +291,23 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
+    const char* reopen_test = std::getenv("UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE");
+    if (reopen_test && std::strcmp(reopen_test, "1") == 0 &&
+        g_stock_handed_off && !g_visible && !g_reentry_smoke_queued &&
+        g_stock_target == -1 && g_ram[0x009f] == 0xd7u &&
+        g_ram[0x0313] != 0x01u) {
+        g_reentry_smoke_queued = true;
+        SDL_Event event{};
+        event.type = SDL_KEYDOWN;
+#if SNESRECOMP_SDL3
+        event.key.key = SDLK_ESCAPE;
+#else
+        event.key.keysym.sym = SDLK_ESCAPE;
+#endif
+        if (SDL_PushEvent(&event) != 1) std::abort();
+        event.type = SDL_KEYUP;
+        if (SDL_PushEvent(&event) != 1) std::abort();
+    }
     const char* opt = std::getenv("UR_BALDOSA_MODERN_ROOT_KEY_SMOKE");
     if (!g_visible || !opt || (std::strcmp(opt, "1") != 0 &&
                              std::strcmp(opt, "2") != 0)) return;

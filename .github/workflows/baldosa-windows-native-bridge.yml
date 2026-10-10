@@ -20,6 +20,7 @@ on:
       - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "tools/check_windows_portable_binary.py"
       - "tools/assemble_baldosa_windows_candidate.py"
+      - "tools/verify_baldosa_windows_extracted_launcher.py"
       - "tests/unit/test_assemble_baldosa_windows_candidate.py"
       - "native/product/modern_session_c_api.*"
       - "native/product/modern_session_runtime.*"
@@ -172,6 +173,16 @@ jobs:
           test -s UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip.sha256
           echo "PASS: deterministic ROM-free Baldosa Windows candidate created from the same executable that passed native PE, clean-machine import and 1P/2P player-journey QA. Contains no ROM, SRAM or user state. Candidate only, not a completed remaster." >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Prove extracted CMD launcher, ROM gates and isolated user SRAM
+        run: |
+          set -euo pipefail
+          python tools/verify_baldosa_windows_extracted_launcher.py \
+            --zip "$RUNNER_TEMP/baldosa-native-romless/UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip" \
+            --rom "reference/roms/retail/Uniracers_USA.sfc" \
+            --out "$RUNNER_TEMP/Baldosa Native Extracted Launcher QA" \
+            --timeout 80
+          echo "PASS: actual ROM-free ZIP extracted on Windows; double-click CMD rejects missing/wrong ROM and package-local/relative saves, accepts valid personal ROM, opens shared Modern root and saves exact native SRAM outside extracted executable directory. No ROM or saved data uploaded." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Retain ROM-free Windows candidate only (no ROM or SRAM)
         uses: actions/upload-artifact@v4
         with:
@@ -190,6 +201,7 @@ jobs:
           if-no-files-found: warn
           retention-days: 7
           path: |
+            ${{ runner.temp }}/Baldosa Native Extracted Launcher QA/launcher-acceptance.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/report.json
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/baseline/log.txt
             ${{ runner.temp }}/UR Baldosa Win32 Pause Route/with_pause/log.txt

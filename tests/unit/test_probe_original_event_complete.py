@@ -363,7 +363,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             original, native = root / "orig", root / "native"
             original.mkdir()
             native.mkdir()
-            prefix = "script f=4279 dump result-tally ok\\n"
+            prefix = "script f=4279 dump result-tally ok\n"
             terms = []
             for offset in target.BOWL_TALLY_PHASE_OFFSETS:
                 tag = f"tally-plus-{offset:02d}"
@@ -372,8 +372,8 @@ class CompleteEventProducerTests(unittest.TestCase):
                     for directory in (original, native):
                         (directory / f"{tag}.{kind}.bin").write_bytes(
                             bytes(size))
-            logs = prefix + "\\n".join(terms) + (
-                "\\nscript f=4349 dump result-onset ok\\n")
+            logs = prefix + "\n".join(terms) + (
+                "\nscript f=4349 dump result-onset ok\n")
             observed = target.observe_bowl_tally_phase(
                 original, native, logs, logs)
             self.assertEqual(len(observed["same_host_frame_samples"]), 8)

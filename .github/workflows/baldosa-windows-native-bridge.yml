@@ -111,7 +111,7 @@ jobs:
             --script "baldosa/tests/routes/race_2p_split.txt" \
             --out "$RUNNER_TEMP/UR Baldosa Win32 Pause Route" \
             --video windows --expected-frames 2473 --timeout 95
-          echo "PASS: Win32 native two-player guest, synthetic SDL Escape down/up through Modern session with 24 frozen host polls and all 2,473 guest CRCs identical. Hardware keyboard/pad not tested." >> "$GITHUB_STEP_SUMMARY"
+          echo "PASS: Win32 native two-player guest, SDL Escape/Restart/R host edges through Modern's immutable rollback anchor, WRAM rewound to first-race frame with SRAM preserved, same-frame pause/resume 2,473 CRC parity. Synthetic SDL only; full event/physical controller/packaged product unverified." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Retain bounded Windows guest evidence (never ROM or saves)
         if: always()

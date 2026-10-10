@@ -1,8 +1,10 @@
 # UR-Recomp
 
-Private research and modern-port project for **Uniracers / Unirally** (SNES, 1994). The goal is **original gameplay, faithfully preserved, presented as a genuinely modern 4K-capable Widescreen game** with authored high-density art, a coherent controller-first frontend, profiles, records, replays/ghosts and local multiplayer. Authentic stock presentation remains available.
+Private technical reconstruction and modern-port project for **Uniracers / Unirally** (SNES, 1994). The goal is **original gameplay, faithfully preserved, presented as a genuinely modern 4K-capable Widescreen game** with authored high-density art, a coherent controller-first frontend, profiles, records, replays/ghosts and local multiplayer. Authentic stock presentation remains available.
 
-**Current priority (October 2026): incorporate Ema Guillén's Baldosa native recompilation and complete the remaining adversarial QA as one integrated effort.** The existing first-party Modern product, authored racer art, world-margin compositor, data formats and original-reference evidence are assets to **reuse**, not rewrite.
+**Current integration priority (October 2026): incorporate Ema Guillén's Baldosa native recompilation and complete the remaining adversarial QA as one integrated effort.** The existing first-party Modern product, authored racer art, world-margin compositor, data formats and original-reference evidence are assets to **reuse**, not rewrite.
+
+**Dual enduring goal:** deliver a faithful modern game **and** a definitive, independently reproducible technical reference for every recoverable aspect of Uniracers. Complete original understanding, evidence-backed behavior, lossless recoverable structures, clean interfaces and newcomer usability are permanent project objectives. Product alpha can progress before the entire technical reference or release QA finishes. See the [technical-reference charter](docs/DEFINITIVE-UNIRACERS-TECHNICAL-REFERENCE.md).
 
 ## Start here
 

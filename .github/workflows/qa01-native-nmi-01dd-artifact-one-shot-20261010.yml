@@ -1,0 +1,117 @@
+name: QA-01 native I_NMI 01DD writer-context ONE-SHOT
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/qa01-native-nmi-01dd-artifact-one-shot-20261010.yml"
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  source-native-writer:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch immutable executed native writer evidence, no emulator replay
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          curl --fail --silent --show-error --location --retry 3 \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/$GITHUB_REPOSITORY/actions/artifacts/11684141556/zip" \
+            -o "$RUNNER_TEMP/native-stack-original-run-38090897908.zip"
+          echo "9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9  $RUNNER_TEMP/native-stack-original-run-38090897908.zip" \
+            | sha256sum --check --status
+          unzip -Z1 "$RUNNER_TEMP/native-stack-original-run-38090897908.zip"
+
+      - name: Explain actual native I_NMI word writer 01DD from pinned original trace
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - "$RUNNER_TEMP/native-stack-original-run-38090897908.zip" \
+                    "$RUNNER_TEMP/qa01-native-nmi-01dd-exact-write.json" <<'PY'
+          import json,re,sys
+          from pathlib import Path
+          from zipfile import ZipFile
+          zpath,out=map(Path,sys.argv[1:])
+          with ZipFile(zpath) as z:
+              choices=[name for name in z.namelist() if name.endswith("native-wram-writes.log")]
+              if len(choices)!=1:
+                  raise ValueError(f"expected one original native raw WRAM log: {choices}")
+              lines=z.read(choices[0]).decode("utf-8").splitlines()
+          entry=re.compile(r"^f\s*(\d+)\s+([0-9A-Fa-f]{2}):([0-9A-Fa-f]{4})=([0-9A-Fa-f]{2,4})\s+w([12])\s+(.+)$")
+          cpu=re.compile(r"\b(A|X|Y|S|D|DB|M|Xf|IPC)=([0-9A-Fa-f]+)")
+          matches=[]
+          for i,line in enumerate(lines):
+              m=entry.fullmatch(line)
+              if m is None:
+                  continue
+              f,bank,off,word,width,rest=m.groups()
+              f,bank,off,word,width=int(f),int(bank,16),int(off,16),int(word,16),int(width)
+              if f!=5781 or not (off<=0x01DD<off+width):
+                  continue
+              scope=rest.split(" A=",1)[0]
+              if scope!="I_NMI_M1X1":
+                  continue
+              regs={k:int(v,16) for k,v in cpu.findall(rest)}
+              if not {"A","X","Y","S","D","DB","M","Xf","IPC"}<=regs.keys():
+                  raise ValueError("missing complete original native CPU register write context")
+              offset=0x01DD-off
+              byte=(word>>(8*offset))&0xFF
+              matches.append({
+                  "raw_log_ordinal":i,
+                  "native_frame":f,
+                  "bus_bank":f"{bank:02X}",
+                  "raw_write_base_address":f"{off:04X}",
+                  "word_width":width,
+                  "raw_written_word":f"{word:0{2*width}X}",
+                  "byte_at_7e01dd":f"{byte:02X}",
+                  "byte_offset_within_write":offset,
+                  "native_generated_scope":scope,
+                  "registers_at_write":{k:f"{v:X}" for k,v in regs.items()},
+                  "is_word_write_at_logged_stack_pointer":width==2 and off==regs["S"],
+                  "written_word_equals_accumulator":width==2 and word==regs["A"],
+                  "written_word_equals_x":width==2 and word==regs["X"],
+                  "written_word_equals_y":width==2 and word==regs["Y"],
+                  "written_word_equals_direct_page":width==2 and word==regs["D"],
+                  "context_window_raw_lines":lines[max(0,i-7):min(len(lines),i+8)],
+              })
+          if len(matches)!=1:
+              raise ValueError(f"expected exactly 1 attested native NMI-scoped 01DD write, got {len(matches)}")
+          m=matches[0]
+          if (m["byte_at_7e01dd"]!="04" or m["word_width"]!=2
+                  or m["registers_at_write"]["S"]!="1DD"):
+              raise ValueError("native original source writer diverges from executed prior witness")
+          result={
+              "schema":"UR-QA01-NATIVE-01DD-NMI-RAW-ARTIFACT-CONTEXT/1",
+              "original_execution_run_id":38090897908,
+              "original_execution_job_id":114326935017,
+              "original_artifact_id":11684141556,
+              "verified_original_artifact_zip_sha256":"9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9",
+              "exact_native_wram_write":m,
+              "meaning":"Native generated routine source scope and logged CPU register/stack writer, not proof of original/native same-frame instruction parity, dynamic guest reader liveness, or complete-event acceptance.",
+              "complete_event_release_credit":0,
+          }
+          out.write_text(json.dumps(result,sort_keys=True,indent=2)+"\n",encoding="utf-8")
+          print("QA01_NATIVE_NMI_01DD_RAW="+json.dumps({
+              "write":{k:v for k,v in m.items() if k!="context_window_raw_lines"},
+              "context":m["context_window_raw_lines"],
+              "release_complete_event_credit":0,
+          },sort_keys=True))
+          PY
+          echo "Native original-source log context only: original/native strict terminal +4704/+4702 still failed. USA 0/45." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Retain only compact source writer context
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-native-nmi-01dd-source-context
+          path: ${{ runner.temp }}/qa01-native-nmi-01dd-exact-write.json
+          retention-days: 7
+          if-no-files-found: warn

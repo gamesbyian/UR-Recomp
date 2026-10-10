@@ -1,5 +1,8 @@
 """Exact same-frame native PPU adjacent racer source removal contract."""
 from pathlib import Path
+import os
+import subprocess
+import sys
 import tempfile
 import unittest
 
@@ -54,6 +57,21 @@ class PairVisibilityTest(unittest.TestCase):
         return assess_pair(
             self.stock, self.front, self.rear, self.removed,
             *self.crcs, self.logs, first_slot=98, frame=1856)
+
+    def test_direct_python_cli_starts_without_repo_pythonpath(self):
+        # The Baldosa workflow invokes the script by path, which exposes
+        # tools/ as sys.path[0]. Import-as-package unit tests alone missed
+        # this failure in the first real paired native run.
+        root = Path(__file__).resolve().parents[2]
+        env = os.environ.copy()
+        env.pop("PYTHONPATH", None)
+        completed = subprocess.run(
+            [sys.executable,
+             str(root / "tools/check_baldosa_wide_pair_final_visibility.py"),
+             "--help"],
+            cwd=root, env=env, capture_output=True, text=True, timeout=20)
+        self.assertEqual(completed.returncode, 0, completed.stderr)
+        self.assertIn("--first-slot", completed.stdout)
 
     def test_positive_real_ppu_pair_effect_confined_to_source_union(self):
         out = self.result()

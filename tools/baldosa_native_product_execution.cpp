@@ -26,6 +26,10 @@ extern "C" int ur_baldosa_product_queue_stock_menu_input(std::uint16_t mask) {
     return 1;
 }
 
+extern "C" void ur_baldosa_product_cancel_stock_menu_input(void) {
+    g_pending_stock_menu_mask = 0;
+}
+
 extern "C" std::uint32_t ur_baldosa_product_filter_human_frame_inputs(
     std::uint32_t word, unsigned frame) {
     const std::uint32_t filtered = g_input.filter(word);

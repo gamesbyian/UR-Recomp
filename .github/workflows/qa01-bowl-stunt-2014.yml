@@ -82,6 +82,7 @@ jobs:
           python3 tools/probe_original_event_complete.py \
             --case bowl \
             --native-backend pinned-baldosa \
+            --observe-one-frame-stunt-lead \
             --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
@@ -91,7 +92,7 @@ jobs:
             > "$RUNNER_TEMP/qa01-bowl/attempt.log" 2>&1
           rc=$?
           set -e
-          echo "Producer exit code: $rc (0 means candidate only, never QA admission)"
+          echo "Producer exit code: $rc (0 means verified diagnostic OR full-event candidate, never release QA admission)"
           tail -n 130 "$RUNNER_TEMP/qa01-bowl/attempt.log"
           if [ -s "$RUNNER_TEMP/qa01-bowl/bowl-report.json" ]; then
             python3 - "$RUNNER_TEMP/qa01-bowl/bowl-report.json" <<'PY'
@@ -104,7 +105,11 @@ jobs:
             "entry_equivalent":d.get("comparison",{}).get("fresh_guest_entry_equivalent"),
             "first_disagreement":d.get("comparison",{}).get("first_sample_disagreement"),
             "settled_stunt_score_text_equal":d.get("comparison",{}).get("rendered_result_and_score_text_matched"),
-            "candidate_only":d.get("comparison",{}).get("paired_event_candidate",False),
+            "full_event_frame_parity_candidate":d.get("comparison",{}).get("paired_event_candidate",False),
+            "one_frame_stunt_phase_observed":d.get("comparison",{}).get("bounded_stunt_one_frame_phase_observed",False),
+            "diagnostic_success_not_admission":d.get("comparison",{}).get("diagnostic_exit_success_without_full_event_parity",False),
+            "terminal_frames_guest_relative":d.get("comparison",{}).get("terminal_result_guest_frame"),
+            "p1_scored_stunt":d.get("comparison",{}).get("stunt_positive_score_visible"),
             "official_admitted_usa_events":0
           },indent=2))
           PY

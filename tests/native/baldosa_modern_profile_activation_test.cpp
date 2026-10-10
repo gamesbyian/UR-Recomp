@@ -128,15 +128,21 @@ int main() {
     g_sram = initialized.data();
     g_sram_size = static_cast<int>(initialized.size());
     const std::string global_path = (dir / "host-state-v1.txt").string();
+    const std::string typed_profile_path =
+        (dir / "saves/profile-rider-1/host-profile.txt").string();
     assert(ur_baldosa_modern_profile_before_native_save() == 1);
     {
-        TournamentLaunchPathLock competing(global_path, true);
-        assert(!competing.acquired());
+        TournamentLaunchPathLock competing_global(global_path, true);
+        TournamentLaunchPathLock competing_profile(typed_profile_path, true);
+        assert(!competing_global.acquired());
+        assert(!competing_profile.acquired());
     }
     assert(ur_baldosa_modern_profile_finish_native_save(1) == 1);
     {
-        TournamentLaunchPathLock released(global_path, true);
-        assert(released.acquired());
+        TournamentLaunchPathLock released_global(global_path, true);
+        TournamentLaunchPathLock released_profile(typed_profile_path, true);
+        assert(released_global.acquired());
+        assert(released_profile.acquired());
     }
 
     // An external Modern instance can change selector/profile while this
@@ -179,8 +185,10 @@ int main() {
     assert(ur_baldosa_modern_profile_before_native_save() == 1);
     assert(ur_baldosa_modern_profile_finish_native_save(0) == 0);
     {
-        TournamentLaunchPathLock released(global_path, true);
-        assert(released.acquired());
+        TournamentLaunchPathLock released_global(global_path, true);
+        TournamentLaunchPathLock released_profile(typed_profile_path, true);
+        assert(released_global.acquired());
+        assert(released_profile.acquired());
     }
 
     // The successful path still delegates the actual guest bytes to the

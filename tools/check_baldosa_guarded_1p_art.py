@@ -70,12 +70,15 @@ def assess(base_crc: Path, candidate_crc: Path, candidate_log: Path,
     }
     if not set(delta) <= hd_frames or not set(paints) <= hd_frames:
         raise ValueError("post-entry HD pixel change without native host admission")
-    # Source 1P is in top viewport; default 2P fallback must not borrow
-    # arbitrary bottom differences as evidence of actual P1 Remastered.
+    # Actual native 1P at 1728/1744 emits only BOTTOM-viewport P1 OBJ
+    # (top_opaque=0, bottom_opaque=315/316). The first trial proved these
+    # still change host pixels. Require positive SOURCE and an actual changed
+    # PPU-derived underlay, allowing either authored P1-owned screen band.
+    # A bottom-only source is real; requiring top-only misclassifies it.
     real_p1 = sorted(f for f in hd_frames if f in paints
                      and paints[f][0:2] == (1024, 896)
                      and paints[f][2] >= 4096
-                     and paints[f][3] > 0
+                     and (paints[f][3] > 0 or paints[f][4] > 0)
                      and delta.get(f, (0, False))[0] > 0
                      and delta[f][1])
     images = []

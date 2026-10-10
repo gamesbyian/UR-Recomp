@@ -13,6 +13,10 @@ on:
       - "tools/baldosa_native_pause_lifecycle.cpp"
       - "tools/baldosa_product_pause_spike.py"
       - "tools/baldosa_modern_user_data_spike.py"
+      - "tools/baldosa_modern_profile_activation_spike.py"
+      - "tools/baldosa_modern_profile_activation.cpp"
+      - "tests/native/baldosa_modern_profile_activation_test.cpp"
+      - "tests/unit/test_baldosa_modern_profile_activation_spike.py"
       - "native/product/modern_session_c_api.*"
       - "native/product/modern_session_runtime.*"
       - "native/product/session_runtime_adapter.*"
@@ -50,6 +54,7 @@ jobs:
         run: |
           python tests/unit/test_baldosa_windows_native_pause_route.py
           python tests/unit/test_baldosa_modern_user_data_spike.py
+          python tests/unit/test_baldosa_modern_profile_activation_spike.py
 
       - name: Verify immutable native source pins
         run: |
@@ -67,6 +72,8 @@ jobs:
           python tools/baldosa_product_pause_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           python tools/baldosa_modern_user_data_spike.py --game baldosa
           python tools/baldosa_modern_user_data_spike.py --game baldosa
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
+          python tools/baldosa_modern_profile_activation_spike.py --game baldosa --ur-root "$GITHUB_WORKSPACE"
           # No second native core, ROM or alternate product frontend.
           test -s baldosa/src/main.c
           test -s baldosa/snesrecomp/runner/src/desktop/host_main.c

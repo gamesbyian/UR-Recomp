@@ -511,7 +511,11 @@ extern "C" void ur_baldosa_product_host_tick(void) {
         // navigate the existing Modern model while the original guest stays
         // frozen. Never feed them into the guest controller word.
         if (g_frozen_ticks == 2) queue_key_edge(SDLK_DOWN);
-        if (g_frozen_ticks == 4) queue_key_edge(SDLK_UP);
+        if (g_frozen_ticks == 4) {
+            require(g_native_pause_menu.selected == UR_MODERN_PAUSE_RESTART,
+                    "physical_down_did_not_select_restart");
+            queue_key_edge(SDLK_UP);
+        }
         if (g_frozen_ticks >= 6 && !g_pause_panel_nav_verified) {
             require(g_native_pause_menu.selected == UR_MODERN_PAUSE_RESUME &&
                     g_pause_panel_paints >= 4,

@@ -1,8 +1,10 @@
 # QA-08: later moving 2P Original native visual review
 
-**Status:** candidate, no accepted native run at this branch. Built to expose
-real racing imagery after the six already-approved early 342-wide captures,
-not to certify gameplay, HUD alignment, split-screen, or authored widescreen HD.
+**Status: accepted bounded native post-GO Original-world observation.** Merged
+#1211; native AOT run `38083974528`, artifact `11681865494` includes
+`ws342_late_original_world.json` and the unmodified source PAM frame 2208.
+It does not certify all-scene gameplay/HUD parity, source visibility for HD,
+or authored widescreen Remastered presentation.
 
 ## Why this observation is needed
 
@@ -38,6 +40,23 @@ begun, that a rider animation is correct, or that the direction arrow
 should be gone. **Human review of the retained actual native frame**
 must classify start/countdown/actual riding and any HUD/track/racer
 defects before beta-readiness credit is considered.
+
+## Actual frame 2208 visual and data finding
+
+The independent native run reached its scripted **GO** checkpoint at guest
+frame **1989** and saved genuine 342×224 split-screen racing source pixels
+at host-presented guest frame **2208**. This is 219 guest frames later, with
+both riders, a green/blue live track, a running **0:03:6** HUD and no large
+countdown overlay in the actual retained image. Compared against original
+frame 1888, **53,360/76,608** logical output pixels changed; all four
+new-world bands were nontrivial (top left **973**, top right **758**, bottom
+left **1,842**, bottom right **2,883** detected margin differences). The
+late native RGBA SHA256 is
+`f9ca59c19dc3e8d51c7ca1dbce25d5dc14e56ba36011128abbadee8cec0e7b4a`.
+Full independent guest CRC parity remains **2,473/2,473**. The frame is
+still **Original fallback at logical 342×224**, not evidence that authored
+racer art appears on a 4K physical display. This distinction matters for
+recruitment footage, beta decisions and new Remastered pose priorities.
 
 ## Next visual QA
 

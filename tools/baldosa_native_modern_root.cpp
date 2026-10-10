@@ -50,6 +50,8 @@ std::uint8_t g_stock_previous_cursor = 0;
 bool g_stock_waiting_cursor = false;
 bool g_stock_waiting_transition = false;
 bool g_stock_handed_off = false;
+unsigned g_handed_off_players = 0;
+bool g_handed_off_saw_race = false;
 bool g_reentry_smoke_queued = false;
 bool g_reentry_needs_paint = false;
 
@@ -79,6 +81,8 @@ bool reopen_on_observed_stock_main() {
     g_visible = true;
     g_confirm_quit = false;
     g_stock_handed_off = false;
+    g_handed_off_players = 0;
+    g_handed_off_saw_race = false;
     g_reentry_needs_paint = true;
     ur_baldosa_product_set_host_focus(1);
     std::fprintf(stderr,
@@ -143,6 +147,8 @@ extern "C" void ur_baldosa_modern_root_after_config(void) {
     g_stock_target = -1;
     g_stock_budget = 0;
     g_stock_handed_off = false;
+    g_handed_off_players = 0;
+    g_handed_off_saw_race = false;
     g_reentry_smoke_queued = false;
     g_reentry_needs_paint = false;
     ur_baldosa_product_set_host_focus(1);
@@ -260,6 +266,8 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
             g_stock_target = -1;
             g_visible = false;
             g_stock_handed_off = true;
+            g_handed_off_players = static_cast<unsigned>(players);
+            g_handed_off_saw_race = false;
             ur_baldosa_product_set_host_focus(0);
             std::fprintf(stderr,
                 "UR_BALDOSA_MODERN_ROOT stock_entered players=%d menu=%02x\n",
@@ -309,6 +317,24 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
+    // The original guest can return to stock setup and let a player change
+    // the mode without revisiting our root. Such a new session must NOT
+    // inherit the previous acknowledged 1P/2P result authority.
+    if (!g_visible && g_handed_off_players) {
+        const auto menu = g_ram[0x009fu];
+        if (g_ram[0x0313u] == 1u)
+            g_handed_off_saw_race = true;
+        const bool opposite_mode =
+            (g_handed_off_players == 1 && menu == 0x3du) ||
+            (g_handed_off_players == 2 && menu == 0x3cu);
+        const bool setup_after_race = g_handed_off_saw_race &&
+            (menu == 0x3cu || menu == 0x3du ||
+             menu == 0x6du || menu == 0xf6u);
+        if (menu == 0xd7u || opposite_mode || setup_after_race) {
+            g_handed_off_players = 0;
+            g_handed_off_saw_race = false;
+        }
+    }
     const char* reopen_test = std::getenv("UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE");
     // Test-only trace of actual guest transitions. This is intentionally
     // passive: never type an input or modify a guest menu/state byte.
@@ -370,6 +396,14 @@ extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     }
     event.type = SDL_KEYUP;
     if (SDL_PushEvent(&event) != 1) std::abort();
+}
+
+// Read-only handoff witnessed by the root after its exact expected stock
+// 0x3C/0x3D guest transition. A root preview or arbitrary native script has
+// no authority to classify guest results as player-owned.
+extern "C" unsigned ur_baldosa_modern_root_guest_players(void) {
+    return configured() && !g_visible && g_stock_handed_off
+        ? g_handed_off_players : 0u;
 }
 
 extern "C" unsigned ur_baldosa_modern_root_paint_count(void) {

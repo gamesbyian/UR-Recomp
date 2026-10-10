@@ -26,6 +26,12 @@ MODERN_SESSION_SOURCES = (
     "modern_pause_menu.cpp",
     "modern_pause_input.cpp",
 )
+# Original source-owned readers; never duplicate their result rules.
+NATIVE_TITLE_RESULT_SOURCES = (
+    "uniracers_run_data.cpp",
+    "uniracers_two_player_result.cpp",
+)
+NATIVE_RESULT_BRIDGE_SOURCE = "baldosa_guest_result_observer.cpp"
 REQUIRED = "UR_BALDOSA_PRODUCT_INPUT_SEAM"
 
 # The descriptor addition sits BELOW the existing input hook to preserve ABI
@@ -200,16 +206,23 @@ def patch_game_cmake(source: str, root: Path) -> str:
     authority = (root / "tools/baldosa_native_product_pause_authority.cpp").resolve()
     native_root = (root / "tools/baldosa_native_modern_root.cpp").resolve()
     modern_root = (root / "native/product").resolve()
+    title_root = (root / "native/title").resolve()
+    bridge = modern_root / NATIVE_RESULT_BRIDGE_SOURCE
     modern_sources = [modern_root / name for name in MODERN_SESSION_SOURCES]
-    for candidate in (path, authority, native_root, *modern_sources):
+    result_sources = [title_root / name for name in NATIVE_TITLE_RESULT_SOURCES]
+    for candidate in (
+        path, authority, native_root, bridge, *modern_sources, *result_sources
+    ):
         if not candidate.is_file():
             raise ValueError(f"Missing project-owned native pause implementation: {candidate}")
     modern_args = " ".join(f'"{file.as_posix()}"' for file in modern_sources)
+    result_args = " ".join(f'"{file.as_posix()}"' for file in result_sources)
     return source.rstrip() + (
         "\n\n# " + MARK + ": same AOT host, real Modern acknowledged pause API\n"
-        + f'target_include_directories(UniracersSNESRecomp PRIVATE "{modern_root.as_posix()}")\n'
+        + f'target_include_directories(UniracersSNESRecomp PRIVATE "{modern_root.as_posix()}" "{title_root.as_posix()}")\n'
         + f'target_sources(UniracersSNESRecomp PRIVATE '
-          f'"{path.as_posix()}" "{authority.as_posix()}" "{native_root.as_posix()}" {modern_args})\n'
+          f'"{path.as_posix()}" "{authority.as_posix()}" "{native_root.as_posix()}" '
+          f'"{bridge.as_posix()}" {result_args} {modern_args})\n'
     )
 
 

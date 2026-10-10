@@ -20,6 +20,7 @@
 #include "baldosa_physical_pause_input.hpp"
 #include "modern_pause_input.h"
 #include "modern_pause_overlay_presenter.hpp"
+#include "baldosa_guest_result_observer.hpp"
 
 extern "C" {
 #include "desktop/config.h"
@@ -38,12 +39,14 @@ unsigned snesrecomp_desktop_product_pause_presentations(void);
 int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
 void ur_baldosa_modern_root_after_run_frame(unsigned frame);
+unsigned ur_baldosa_modern_root_guest_players(void);
 void ur_baldosa_guest_snapshot_after_run_frame(
     const SnesDesktopHostFrameStats* stats);
 }
 
 namespace {
 bool g_smoke_initialized;
+ur::product::BaldosaGuestResultObserver g_native_result_observer;
 bool g_smoke_enabled;
 UrModernSession* g_modern_session;
 bool g_native_live_race;
@@ -381,7 +384,50 @@ extern "C" void ur_baldosa_product_after_run_frame(
     const SnesDesktopHostFrameStats* stats) {
     // Existing verified two-seat guest observer remains intact.
     ur_baldosa_guest_snapshot_after_run_frame(stats);
-    if (stats) ur_baldosa_modern_root_after_run_frame(stats->frame);
+    if (stats) {
+        ur_baldosa_modern_root_after_run_frame(stats->frame);
+        // Only the native root's source-confirmed stock handoff can arm
+        // outcomes. This observes the already executed guest frame and
+        // exact cartridge SRAM: no alternate timer, game-rule write or
+        // durability claim. The owning Modern record publisher must still
+        // provide provenance/inputs and a committed settlement separately.
+        const auto terminal = g_native_result_observer.observe(
+            ur_baldosa_modern_root_guest_players(),
+            g_ram, sizeof(g_ram), g_sram,
+            g_sram_size > 0 ? static_cast<std::size_t>(g_sram_size) : 0u,
+            stats->frame);
+        if (terminal) {
+            if (terminal->kind ==
+                ur::product::BaldosaSettledResultKind::TimedOnePlayerRace) {
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
+                    "race_host=%llu result_host=%llu finish_ticks60=%llu "
+                    "published=0\n",
+                    static_cast<unsigned long long>(
+                        terminal->first_race_host_frame),
+                    static_cast<unsigned long long>(
+                        terminal->observed_result_host_frame),
+                    static_cast<unsigned long long>(
+                        terminal->p1_finish_ticks60));
+            } else if (terminal->two_player) {
+                const auto& result = *terminal->two_player;
+                std::fprintf(stderr,
+                    "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
+                    "race_host=%llu result_host=%llu riders=%u,%u "
+                    "hundredths=%u,%u winner=%u published=0\n",
+                    static_cast<unsigned long long>(
+                        terminal->first_race_host_frame),
+                    static_cast<unsigned long long>(
+                        terminal->observed_result_host_frame),
+                    static_cast<unsigned>(result.player1_rider),
+                    static_cast<unsigned>(result.player2_rider),
+                    static_cast<unsigned>(result.player1_hundredths),
+                    static_cast<unsigned>(result.player2_hundredths),
+                    static_cast<unsigned>(result.outcome));
+            }
+            std::fflush(stderr);
+        }
+    }
     // A rollback can rewind the guest's own snes_frame_counter, which the
     // stock framedump uses as its filename. A deterministic replay can
     // overwrite earlier frame_NNN.json files with their identical CRCs.

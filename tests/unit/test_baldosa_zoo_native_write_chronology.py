@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "tools"))
 import baldosa_zoo_native_write_chronology as native
+import baldosa_qa_native_writer_window_patch as window_patch
 
 
 class NativeMenuChronologyTest(unittest.TestCase):
@@ -82,6 +83,24 @@ class NativeMenuChronologyTest(unittest.TestCase):
             p.write_bytes(p.read_bytes()[:-1])
             with self.assertRaisesRegex(ValueError, "128KiB"):
                 native.analyze("", host, bald, orig, native_scene_entry_frame=1606)
+
+
+class NativeWriterWindowPatchTest(unittest.TestCase):
+    def test_only_logger_observation_changes(self):
+        source = "static int elsewhere;\\n" + window_patch.MARKER + "\\n" + '    fprintf(stderr, "recorded");\\n}\\n'
+        # The gate is added before capacity accounting and the original
+        # logger body stays intact. This does not intercept guest stores.
+        output = window_patch.patch(source)
+        self.assertEqual(output.count(window_patch.STAMP), 1)
+        self.assertIn("UR_QA_ZOO_NATIVE_WRITE_FIRST", output)
+        self.assertIn("UR_QA_ZOO_NATIVE_WRITE_LAST", output)
+        self.assertLess(output.index("snes_frame_counter > ur_qa_zoo_last"),
+                        output.index("g_wlog_addr_n++"))
+        self.assertIn('fprintf(stderr, "recorded");', output)
+        with self.assertRaisesRegex(ValueError, "already installed"):
+            window_patch.patch(output)
+        with self.assertRaisesRegex(ValueError, "marker changed"):
+            window_patch.patch("unrelated")
 
 
 if __name__ == "__main__":

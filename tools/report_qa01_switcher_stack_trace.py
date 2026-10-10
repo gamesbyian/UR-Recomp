@@ -28,10 +28,29 @@ WRITE = re.compile(
 TARGETS = {0x01DD, 0x01E6, 0x01E7, 0x01EF, 0x01F0, 0x01F1, 0x01F2, 0x01F3}
 # Canonical 65816 opcodes that directly initiate stack pushes or subroutine
 # return-address pushes; classification is only a lead, never a writer proof.
-PUSH_OPCODES = {
-    0x08, 0x0B, 0x20, 0x22, 0x48, 0x4B, 0x5A, 0x62, 0x8B,
-    0xD4, 0xDA, 0xF4,
+# Candidate widths follow the documented 65816 push instructions;
+# PHA/PHX/PHY depend on active M/X width, which this trace does not sample.
+# These tests are consistency screens, never verified writer attribution.
+PUSH_WIDTHS = {
+    0x08: (1,), 0x0B: (2,), 0x20: (2,), 0x22: (3,),
+    0x48: (1, 2), 0x4B: (1,), 0x5A: (1, 2),
+    0x62: (2,), 0x8B: (1,), 0xD4: (2,),
+    0xDA: (1, 2), 0xF4: (2,), 0xFC: (2,),
 }
+
+
+def stack_push_compatible(opcode: int, sp_before: int, sp_after: int,
+                          address: int) -> bool:
+    """Possible CPU stack push, including 8/16-bit register-width variants.
+
+    A post-opcode byte delta can instead arise from a synchronous side
+    effect. This predicate cannot prove the writer instruction or intent.
+    """
+    return any(
+        sp_after == (sp_before - width) & 0xFFFF and
+        address in {((sp_before - n) & 0xFFFF) for n in range(width)}
+        for width in PUSH_WIDTHS.get(opcode, ())
+    )
 SCHEMA = "UR-QA01-SWITCHER-ORIGINAL-STACK-OPCODE-TRACE/1"
 LIMIT = 5000
 
@@ -116,7 +135,9 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
             "wram_address": f"7E:{addr}",
             "old": old,
             "new": new,
-            "push_opcode_candidate": opcode in PUSH_OPCODES,
+            "push_opcode_candidate": opcode in PUSH_WIDTHS,
+            "stack_pointer_address_compatible": stack_push_compatible(
+                opcode, int(sp0, 16), int(sp1, 16), addr_num),
         })
     if [r["icpu_frame"] for r in rows] != sorted(r["icpu_frame"] for r in rows):
         raise ValueError("original opcode observations not chronological")
@@ -145,7 +166,7 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
             "Addresses lie in the conventional 65816 stack page, but the exact "
             "guest original store and subsequent read/consumer semantics are "
             "NOT established merely by an opcode-scoped pre/post byte change. "
-            "SP-before/after and opcode provide discriminators. No native "
+            "SP-before/after, opcode and push-width/address consistency provide discriminators, NOT instruction attribution. No native "
             "instruction/phase comparison was performed."
         ),
         "complete_event_release_credit": 0,

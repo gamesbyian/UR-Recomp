@@ -123,7 +123,7 @@ class NativeWindowsPauseProbeTests(unittest.TestCase):
             probe.check_pause_log(valid.replace("present_count=24", "present_count=2"))
         with self.assertRaisesRegex(ValueError, "paused raster"):
             probe.check_pause_log(valid.replace(
-                "UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=1952 present_count=24 no_guest_steps=1\\n", ""))
+                "UR_BALDOSA_NATIVE_PAUSE FROZEN_PRESENT guest=1952 present_count=24 no_guest_steps=1\n", ""))
         with self.assertRaisesRegex(ValueError, "live gameplay"):
             probe.check_pause_log(valid.replace("live_race=1", "live_race=0"))
         with self.assertRaisesRegex(ValueError, "Modern session API"):

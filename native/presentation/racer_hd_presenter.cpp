@@ -700,14 +700,16 @@ int racer_hd_draw_frame(
     // The presenter can be armed when the historical PPU emitted no racer
     // pixels anywhere. A successful host callback alone cannot count as
     // visible HD: frame 1139 of the pinned native route is one example.
-    // Compare the finished authored output against the very same Original
-    // source framebuffer, restricted to rendered instance rectangles. This
+    // Compare the finished authored output against the same guest frame's
+    // incoming, post-OBJ-capture PPU underlay, restricted to source-positive
+    // racer rectangles. This proves the host changed presented pixels but
+    // is NOT a same-frame Original-vs-Remastered visual parity oracle. This
     // stays read-only, uses the existing 1x..4x physical buffer and does not
     // require an independent renderer or mutate the guest. Report a boolean
     // rather than summed samples because two source rectangles can overlap.
     if (hd_census_enabled()) {
         unsigned source_instances = 0;
-        bool changed_from_stock = false;
+        bool changed_from_underlay = false;
         for (std::size_t i = 0; i < g_instance_count; ++i) {
             if (footprint_opaque[i] == 0) continue;
             ++source_instances;
@@ -715,7 +717,7 @@ int racer_hd_draw_frame(
             const int left = static_cast<int>(instance.placement.x_signed) * scale;
             const int right = left + kRacerHdLogicalSize * scale;
             for (int row = 0;
-                 row < kRacerHdLogicalSize * scale && !changed_from_stock;
+                 row < kRacerHdLogicalSize * scale && !changed_from_underlay;
                  ++row) {
                 const int dy = racer_obj_wrapped_output_row(
                     instance.placement.y_raw_8bit, row, scale);
@@ -730,7 +732,7 @@ int racer_hd_draw_frame(
                 for (int dx = std::max(left, 0);
                      dx < std::min(right, kBaseWidth * scale); ++dx) {
                     if (rendered[dx] != stock[dx / scale]) {
-                        changed_from_stock = true;
+                        changed_from_underlay = true;
                         break;
                     }
                 }
@@ -738,8 +740,8 @@ int racer_hd_draw_frame(
         }
         std::fprintf(stderr,
             "UR_RACER_HD_PIXEL_CHANGE frame=%u source_instances=%u "
-            "changed_from_stock=%u\n",
-            g_sim_frame, source_instances, changed_from_stock ? 1u : 0u);
+            "changed_from_underlay=%u\n",
+            g_sim_frame, source_instances, changed_from_underlay ? 1u : 0u);
     }
 
     const RacerRegistration* p1_registration =

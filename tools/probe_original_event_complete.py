@@ -427,6 +427,54 @@ def observe_switcher_same_host_penultimate(reference_dir: Path, native_dir: Path
     }
 
 
+def observe_switcher_same_host_memory_offsets(reference_dir: Path,
+                                              native_dir: Path,
+                                              same_host: dict) -> dict:
+    """Read-only full-guest WRAM/VRAM/CGRAM difference *offsets*, never bytes.
+
+    Require the independently attested reference/native penultimate 5782
+    same-host witness first. No source input, guest-state or framebuffer
+    substitutions, and never turn a matching snapshot into admission.
+    """
+    if (same_host.get("schema") != "UR-QA01-SWITCHER-PENULTIMATE-SAME-HOST/1"
+            or same_host.get("original_absolute_host") != 5782
+            or same_host.get("native_absolute_host") != 5782
+            or same_host.get("result_absolute_host") != 5783
+            or same_host.get("reference_guest_relative_frame") != 4703
+            or same_host.get("native_guest_relative_frame") != 4701):
+        raise CompleteEventError("Switcher memory comparison requires attested same-host 5782 witness")
+    rows = {}
+    ref_tag, nat_tag = "source-host-minus-one", "scene-04701"
+    for kind, size in BOWL_TALLY_MEMORY_SIZES.items():
+        files = (reference_dir / f"{ref_tag}.{kind}.bin",
+                 native_dir / f"{nat_tag}.{kind}.bin")
+        if not all(p.is_file() for p in files):
+            raise CompleteEventError(f"missing actual full-guest Switcher same-host {kind}")
+        original, native = (p.read_bytes() for p in files)
+        if len(original) != size or len(native) != size:
+            raise CompleteEventError(f"invalid original/native Switcher same-host {kind} size")
+        different = [i for i, (a, b) in enumerate(zip(original, native)) if a != b]
+        rows[kind] = {
+            "observed_guest_bytes_per_engine": size,
+            "different_byte_count": len(different),
+            "different_byte_offsets": [f"0x{i:05X}" for i in different[:128]],
+            "offsets_truncated": len(different) > 128,
+            "exact_byte_match": not different,
+        }
+    return {
+        "schema": "UR-QA01-SWITCHER-5782-FULL-GUEST-OFFSETS/1",
+        "original_host_frame": 5782,
+        "native_host_frame": 5782,
+        "one_frame_before_both_guest_results": True,
+        "original_movie_input_modified": False,
+        "memory_classes": rows,
+        "all_197120_guest_bytes_equal": all(
+            row["exact_byte_match"] for row in rows.values()),
+        "release_complete_event_credit": 0,
+        "limitation": "Full 5782 WRAM/VRAM/CGRAM byte parity, if observed, cannot prove original/native CPU PC, NMI or all-frame course execution equivalence.",
+    }
+
+
 def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
                              reference_log: str, native_log: str) -> dict:
     """Only compare matching post-0x2F script-host frames.
@@ -892,6 +940,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--native-backend", choices=("legacy", "pinned-baldosa"), default="legacy")
     ap.add_argument("--switcher-same-host-penultimate", action="store_true",
                     help="optional read-only original +4703 / native +4701 same-host 5782 guest observation; no admission")
+    ap.add_argument("--switcher-same-host-full-memory-offsets", action="store_true",
+                    help="read-only original/native same-host 5782 WRAM/VRAM/CGRAM difference offsets; requires penultimate witness")
     ap.add_argument("--bowl-tally-phase", action="store_true",
                     help="retain 8 exact-host-frame WRAM/VRAM/CGRAM captures after real 0x2F Bowl tally")
     ap.add_argument("--observe-one-frame-stunt-lead", action="store_true",
@@ -911,6 +961,8 @@ def main(argv: list[str] | None = None) -> int:
         setattr(args, name, getattr(args, name).resolve())
     if sha(args.rom) != entry.USA_ROM_SHA256:
         ap.error("only canonical USA retail ROM is admitted")
+    if args.switcher_same_host_full_memory_offsets and not args.switcher_same_host_penultimate:
+        ap.error("Switcher full-memory offsets require --switcher-same-host-penultimate")
     if args.source_horizon < 12500 or args.source_horizon > 24000:
         ap.error("source horizon must be 12500..24000")
     streams = list(rnc.find_streams(args.rom.read_bytes()))
@@ -1019,6 +1071,9 @@ def main(argv: list[str] | None = None) -> int:
         replay / "ref", replay / "native", rl, nl,
         original_event["source_active_frames_to_result"], rf, nf, decoded)
         if args.switcher_same_host_penultimate else None)
+    switcher_same_host_memory = (observe_switcher_same_host_memory_offsets(
+        replay / "ref", replay / "native", switcher_same_host)
+        if args.switcher_same_host_full_memory_offsets else None)
     report = {
         "schema_version": 1, "admission": "investigative candidate; not a release-ledger pass",
         "course_id": f"course:{stream:02d}", "name": args.case, "family": kind,
@@ -1032,6 +1087,7 @@ def main(argv: list[str] | None = None) -> int:
         "relative_sample_frames": frames, "comparison": comparison,
         "tally_anchored_guest_phase": phase,
         "switcher_same_host_penultimate": switcher_same_host,
+        "switcher_same_host_full_memory_offsets": switcher_same_host_memory,
         "reference_script_sha256": sha(reference_script),
         "reference": reference, "native": native,
         "scope": "original archived scene inputs, fresh reference/native stock menu; event results text from guest PPU dumps; instruction-time contact causality unproven"

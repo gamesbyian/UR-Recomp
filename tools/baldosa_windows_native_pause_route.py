@@ -15,6 +15,7 @@ import os
 from pathlib import Path
 import re
 import subprocess
+import time
 
 USA_SHA256 = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 CRC = re.compile(r'"crc32_wram":\s*"(0x[0-9a-fA-F]+)"')
@@ -1015,6 +1016,136 @@ def verify_paused_quit_fresh_relaunch(
     }
 
 
+def run_native_pause_quit_selector_conflict(
+    exe: Path, rom: Path, script: Path, root: Path,
+    fixture: Path, seed: Path, *, video: str, timeout: int,
+) -> dict[str, object]:
+    """Two *real processes* force a selection change during native pause.
+
+    The source guest stays frozen until fixture B has independently selected
+    another registered Modern profile. Host A must then refuse RtlWriteSram
+    before touching first rider's 8KiB raw save. The handshake is a CI-only
+    file gate for the existing physical SDL Up/Enter pause menu journey.
+    """
+    output = root / "native_pause_quit_selector_race"
+    output.mkdir(parents=True, exist_ok=False)
+    user_root = output / "Two Process Profile Root With Spaces"
+    user_root.mkdir()
+    subprocess.run(
+        [str(fixture), str(user_root), str(seed)],
+        cwd=output, timeout=timeout, check=True,
+        capture_output=True, text=True,
+    )
+    save = user_root / "saves/profile-native-ci-rider/save.srm"
+    raw_before = save.read_bytes()
+    if len(raw_before) != 8192:
+        raise ValueError("Two-process fixture has no original 8192-byte SRAM")
+    config = output / "config.ini"
+    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+    gate = output / "external_writer_committed.ready"
+    log_path = output / "log.txt"
+    env = os.environ.copy()
+    env.update({
+        "SNESRECOMP_USER_DATA_DIR": str(user_root),
+        "UR_EXECUTION_MODE": "modern",
+        "UR_BALDOSA_MODERN_PROFILE_SELECT": "1",
+        "UR_BALDOSA_PROFILE_BOOT_SRAM_WITNESS": "1",
+        "UR_BALDOSA_MODERN_INPUT": "1",
+        "UR_BALDOSA_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_REQUIRE_RACE": "1",
+        "UR_BALDOSA_PAUSE_SMOKE_AT_FRAME": "1952",
+        "UR_BALDOSA_PHYSICAL_PAUSE_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_SMOKE": "1",
+        "UR_BALDOSA_PAUSE_QUIT_CONFLICT_GATE": str(gate),
+        "UR_BALDOSA_PAUSE_PANEL_NAV_SMOKE": "0",
+        "UR_BALDOSA_DELAYED_RESTART_SMOKE": "0",
+        "UR_BALDOSA_RESTART_SAME_FRAME_SMOKE": "0",
+        "SDL_VIDEODRIVER": video,
+        "SDL_AUDIODRIVER": "dummy",
+    })
+    armed = (
+        "UR_BALDOSA_NATIVE_PAUSE ARMED guest=1952 "
+        "live_race=1 modern_session=1 physical_sdl=1"
+    )
+    with log_path.open("wb") as sink:
+        process = subprocess.Popen(
+            [str(exe), "--no-launcher", "--config", str(config),
+             "--script", str(script), str(rom)],
+            cwd=output, env=env, stdout=sink, stderr=subprocess.STDOUT,
+        )
+        try:
+            deadline = time.monotonic() + timeout
+            while time.monotonic() < deadline:
+                log = log_path.read_text(encoding="utf-8", errors="replace")
+                if armed in log:
+                    break
+                if process.poll() is not None:
+                    raise ValueError(
+                        "Native guest exited before 2P pause: " + log[-1600:])
+                time.sleep(0.02)
+            else:
+                raise TimeoutError("Native guest never reached live 2P pause")
+
+            # True independent process B uses the shipping Modern state,
+            # catalog, profile and selector CAS codecs to switch authority.
+            changed = subprocess.run(
+                [str(fixture), str(user_root), str(seed), "--add-second"],
+                cwd=output, capture_output=True, text=True,
+                timeout=timeout, check=True,
+            )
+            if "switched=native-ci-second sram=8192 distinct=1" not in changed.stdout:
+                raise ValueError("Real competing Modern profile switch unverified")
+            gate.write_text("writer-B-committed\n", encoding="ascii")
+            process.wait(timeout=timeout)
+        except BaseException:
+            if process.poll() is None:
+                process.kill()
+                process.wait(timeout=timeout)
+            raise
+
+    log = log_path.read_text(encoding="utf-8", errors="replace")
+    if process.returncode != 0:
+        raise RuntimeError(
+            f"Native conflict exit failed rc={process.returncode}: {log[-2200:]}")
+    verify_named_profile_boot_bytes(log, raw_before)
+    if log.count(armed) != 1 or log.count(
+        "UR_BALDOSA_NATIVE_PAUSE_MENU QUIT_QUEUED=1 paused=1 guest_steps=0"
+    ) != 1:
+        raise ValueError("Native conflict did not complete real paused SDL Quit")
+    if (
+        "UR_BALDOSA_NATIVE_PROFILE PREFLIGHT_REJECTED status=3" not in log or
+        "UR_BALDOSA_NATIVE_PROFILE native_save_preflight_failed" not in log or
+        "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT profile=native-ci-rider" in log or
+        "UR_BALDOSA_NATIVE_PAUSE RELEASED " in log
+    ):
+        raise ValueError("Selection conflict did not reject BEFORE raw native save")
+    if save.read_bytes() != raw_before:
+        raise ValueError("Rejected native save overwrote old player's raw SRAM")
+    first_profile = user_root / "saves/profile-native-ci-rider/host-profile.txt"
+    if not first_profile.is_file() or not (user_root / "profiles-v1.txt").is_file():
+        raise ValueError("Conflict removed original typed profile or catalog")
+    for rider in ("native-ci-rider", "native-ci-second"):
+        verified = subprocess.run(
+            [str(fixture), str(user_root), rider, "--verify-native-save"],
+            cwd=output, capture_output=True, text=True, timeout=timeout,
+        )
+        if verified.returncode or (
+            f"UR_BALDOSA_NATIVE_PROFILE VERIFIED profile={rider} sram=8192"
+            not in verified.stdout
+        ):
+            raise ValueError(f"Independent profile {rider} was corrupted")
+    if list(user_root.rglob("*.urrun")) or (output / "saves").exists():
+        raise ValueError("Conflicted process invented run or alternate SRAM root")
+    return {
+        "separate_native_and_modern_writer_processes": True,
+        "authentic_paused_guest_frame": 1952,
+        "conflicting_selector_change_committed_before_physical_quit": True,
+        "raw_sram_8192_bytes_preserved_after_rejected_save": True,
+        "both_named_profiles_independently_verified": True,
+        "no_fake_completed_run": True,
+    }
+
+
 def run_native_pause_quit(
     exe: Path, rom: Path, script: Path, root: Path, fixture: Path,
     seed: Path, *, video: str, timeout: int,
@@ -1155,6 +1286,9 @@ def main() -> int:
     fresh_process_proof = run_existing_named_profile_fresh_process(
         exe, rom, script, root, video=args.video, timeout=args.timeout,
         clean_frames=args.expected_frames, fixture=fixture)
+    conflict_proof = run_native_pause_quit_selector_conflict(
+        exe, rom, script, root, fixture, sram_seed,
+        video=args.video, timeout=args.timeout)
     pause_quit_proof = run_native_pause_quit(
         exe, rom, script, root, fixture, sram_seed,
         video=args.video, timeout=args.timeout)
@@ -1177,6 +1311,7 @@ def main() -> int:
     result = {
         "modern_root_source_menu_reentry": reentry_proof,
         "native_modern_paused_quit": pause_quit_proof,
+        "native_paused_quit_selector_conflict": conflict_proof,
         "modern_root_race_entry_p1": race_p1_proof,
         "modern_root_race_entry_p2": race_p2_proof,
         "native_modern_root_p1": root_p1_proof,

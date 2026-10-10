@@ -37,6 +37,7 @@ def patch_main(source: str) -> str:
         MAIN_HOST,
         "/* " + MARK + ": existing Modern active profile, before guest SRAM. */\n"
         "extern int ur_baldosa_modern_try_activate_profile(void);\n"
+        "extern void ur_baldosa_modern_profile_before_run_frame(void);\n"
         "static void ur_baldosa_modern_profile_after_config(void) {\n"
         "    if (!ur_baldosa_modern_try_activate_profile()) {\n"
         "        fprintf(stderr, \"UR-STARTUP-SAVE-ROOT: selected Modern profile rejected\\n\");\n"
@@ -50,6 +51,7 @@ def patch_main(source: str) -> str:
     return source.replace(
         MAIN_PAUSE,
         "    .after_config        = &ur_baldosa_modern_profile_after_config,\n"
+        "    .before_run_frame    = &ur_baldosa_modern_profile_before_run_frame,\n"
         + MAIN_PAUSE, 1)
 
 

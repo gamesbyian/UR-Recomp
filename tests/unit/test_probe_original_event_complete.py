@@ -339,6 +339,70 @@ class CompleteEventProducerTests(unittest.TestCase):
             target.sample_frames("bowl", 200)
 
 
+    def test_opt_in_bowl_tally_script_stops_before_real_result_boundary(self):
+        samples = target.sample_frames("bowl", 3365)
+        classic = target.replay_script(3, 0x18, samples, True)
+        dense = target.replay_script(3, 0x18, samples, True,
+                                     tally_phase=True)
+        self.assertEqual(classic.count("dump tally-plus-"), 0)
+        self.assertEqual(dense.count("dump tally-plus-"), 8)
+        self.assertIn("until 009F == 2F 9000", dense)
+        self.assertLess(dense.index("dump result-tally"),
+                        dense.index("dump tally-plus-54"))
+        self.assertLess(dense.index("dump tally-plus-69"),
+                        dense.index("until 009F == 18 9000"))
+        self.assertNotIn("poke ", dense)
+        for slot, kind in ((2, False), (4, False), (3, False)):
+            with self.assertRaisesRegex(target.CompleteEventError, "only proven"):
+                target.replay_script(slot, 0x18, samples, kind,
+                                     tally_phase=True)
+
+    def test_tally_anchored_memory_observation_rejects_wrong_size_and_clock(self):
+        with tempfile.TemporaryDirectory() as rootdir:
+            root = Path(rootdir)
+            original, native = root / "orig", root / "native"
+            original.mkdir()
+            native.mkdir()
+            prefix = "script f=4279 dump result-tally ok\\n"
+            terms = []
+            for offset in target.BOWL_TALLY_PHASE_OFFSETS:
+                tag = f"tally-plus-{offset:02d}"
+                terms.append(f"script f={4279 + offset} dump {tag} ok")
+                for kind, size in target.BOWL_TALLY_MEMORY_SIZES.items():
+                    for directory in (original, native):
+                        (directory / f"{tag}.{kind}.bin").write_bytes(
+                            bytes(size))
+            logs = prefix + "\\n".join(terms) + (
+                "\\nscript f=4349 dump result-onset ok\\n")
+            observed = target.observe_bowl_tally_phase(
+                original, native, logs, logs)
+            self.assertEqual(len(observed["same_host_frame_samples"]), 8)
+            self.assertTrue(observed["all_samples_exact_guest_bytes"])
+            self.assertEqual(observed["release_complete_event_credit"], 0)
+            self.assertEqual(observed["reference_and_native_tally_host_frame"],
+                             4279)
+            self.assertEqual(observed["reference_and_native_result_host_frame"],
+                             4349)
+            changed = bytearray(0x20000)
+            changed[0x009F] = 0x18
+            (native / "tally-plus-69.wram.bin").write_bytes(changed)
+            observed = target.observe_bowl_tally_phase(
+                original, native, logs, logs)
+            self.assertFalse(observed["all_samples_exact_guest_bytes"])
+            self.assertEqual(observed["same_host_frame_samples"][-1][
+                             "different_guest_bytes"]["wram"], 1)
+            self.assertEqual(observed["same_host_frame_samples"][-1][
+                             "native_menu"], 0x18)
+            broken = logs.replace("script f=4349 dump result-onset",
+                                  "script f=4350 dump result-onset")
+            with self.assertRaisesRegex(target.CompleteEventError,
+                                        "tally-to-result host boundary"):
+                target.observe_bowl_tally_phase(original, native, logs, broken)
+            (native / "tally-plus-69.vram.bin").write_bytes(b"truncated")
+            with self.assertRaisesRegex(target.CompleteEventError,
+                                        "incorrect complete vram"):
+                target.observe_bowl_tally_phase(original, native, logs, logs)
+
     def test_pinned_baldosa_uses_dense_scene_input_only_after_calibration(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)

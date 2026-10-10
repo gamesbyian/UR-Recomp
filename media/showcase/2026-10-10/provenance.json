@@ -1,0 +1,61 @@
+{
+  "editorial_disclosure": "Not 60-fps uninterrupted gameplay; frames sampled every 16 native frames. Camera/slide transitions and captions are editorial. No interpolation of gameplay/physics. Not a physical 4K display acceptance.",
+  "encoding": {
+    "audio": "none",
+    "codec": "H.264 yuv420p",
+    "fps": 24,
+    "frames": 576,
+    "seconds": 24,
+    "size": [
+      1280,
+      720
+    ]
+  },
+  "outputs": {
+    "native-widescreen-source-frame-1856.png": {
+      "bytes": 9296,
+      "sha256": "4dd40af5c80aa670de15c474f02c89f8e9ac7b6f689e894e67da66f59a18e79c"
+    },
+    "ur-recomp-342px-comparison-20261010.mp4": {
+      "bytes": 128331,
+      "sha256": "57724f9cfcbd3c0e285cd26c723bd8969a616aa6d914df561cc055cda8cda02d"
+    },
+    "ur-recomp-capture-reel-20261010.mp4": {
+      "bytes": 309798,
+      "sha256": "cd43ba26861b31167a18c0696fbbc23a5ef143fd2056cbaf52969923a33d33f1"
+    },
+    "ur-recomp-capture-reel-poster.png": {
+      "bytes": 285481,
+      "sha256": "e7b993199989e5e33ac7019b95aefee251122c90542c282d6279f9f93002bf52"
+    }
+  },
+  "purpose": "Contributor-facing development evidence, not a demonstration of a finished Windows beta",
+  "source_action_run": 38083079741,
+  "source_artifact_id": 11681138053,
+  "source_artifact_name": "baldosa-native-spike-evidence",
+  "source_artifact_zip_sha256": "40a84fbc04e75b0892a55b44a03340198d8d49c9543a95db54720cf00a1bbb97",
+  "source_content": "Original 256x224, wide 342x224, 1P and 2P original guest frame captures from source PPU / compositor",
+  "source_repository": "gamesbyian/UR-Recomp",
+  "title": "UR-Recomp October 10 source-frame progress reel",
+  "verified": {
+    "frame_1856_exact_center_match": true,
+    "run_frames": {
+      "one_player": [
+        1536,
+        1552,
+        1568,
+        1584,
+        1600,
+        1616
+      ],
+      "two_player": [
+        1808,
+        1824,
+        1840,
+        1856,
+        1872,
+        1888
+      ]
+    }
+  }
+}

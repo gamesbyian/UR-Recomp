@@ -113,6 +113,31 @@ int main() {
     assert(contains("X/F2 RACERS   F1 HELP"));
 
     painted.clear();
+    // Native Records uses the SAME shared root painter and a read-only
+    // modal; old shipping host defaults to modal closed without new UI.
+    view.available_destinations =
+        (1u << static_cast<unsigned>(ModernRootDestination::Play)) |
+        (1u << static_cast<unsigned>(ModernRootDestination::Multiplayer)) |
+        (1u << static_cast<unsigned>(ModernRootDestination::Records));
+    view.read_only_records_open = true;
+    view.records_status = "SAVED: 2  UNAVAILABLE: 1";
+    view.records_recent = "LATEST: course:02 00:15.50";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(count("SOON") == 2); // Practice and Options only
+    assert(contains("STORED RUNS"));
+    assert(contains("SAVED: 2  UNAVAILABLE: 1"));
+    assert(contains("LATEST: course:02 00:15.50"));
+    assert(contains("READ ONLY - NO REPLAY"));
+    assert(contains("A/ENTER  B/ESC BACK"));
+    painted.clear();
+    view.read_only_records_open = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(!contains("STORED RUNS"));
+    assert(!contains("READ ONLY - NO REPLAY"));
+
+    painted.clear();
     assert(!render_modern_root_overlay({},pixels,256,224,1,240,
                                        old_view,view));
     assert(!render_modern_root_overlay(painter,pixels,256,224,0,240,

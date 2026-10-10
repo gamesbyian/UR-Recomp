@@ -32,6 +32,10 @@ jobs:
         with:
           python-version: '3.11'
       - run: python -m pip install 'Pillow==11.3.0'
+      - name: Install FFmpeg for this one-off renderer
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
       - name: Download pinned native image archive
         env:
           GH_TOKEN: ${{ github.token }}

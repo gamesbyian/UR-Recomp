@@ -1537,6 +1537,43 @@ jobs:
                 f"guest_stable=1 hd_eligible_frames={native.count('phase=present status=hd')}")
           PY
 
+          # Measure the *production-safe* native moving 2P race separately
+          # from the intentionally unsafe art-review route above. Do not
+          # credit that route's 87/441 historical callback frames to shipping
+          # Remastered coverage, nor credit a startup-only HD frame as race HD.
+          python3 tools/measure_racer_hd_live_draws.py \
+            "$GUARDED_LOG" --from-frame 1180 --to-frame 1620 \
+            --json-out "$RUNNER_TEMP/racer-hd-production-safe-window.json" \
+            > "$RUNNER_TEMP/racer-hd-production-safe-window.txt"
+          python3 - "$RUNNER_TEMP/racer-hd-production-safe-window.json" "$GUARDED_LOG" <<'PY'
+          import json, pathlib, re, sys
+          m = json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))["measurement"]
+          log = pathlib.Path(sys.argv[2]).read_text(encoding="utf-8")
+          assert m["guest_frames_observed"] == 441 and m["guest_frames_with_host_presents"] == 441, m
+          assert m["guest_frames_without_host_presents"] == 0, m
+          assert m["armed_without_hd_draw_guest_frames"] == 0, m
+          assert m["capture_armed_guest_frames"] == m["hd_drawn_guest_frames"], m
+          reasons = m["gate_fallback_reasons"]
+          overlaps = sorted({
+              int(x) for x in re.findall(
+                  r"^UR_RACER_HD_CENSUS frame=(\d+) phase=gate status=original "
+                  r"reason=overlapping-source-obj$", log, re.M
+              ) if 1180 <= int(x) <= 1620
+          })
+          assert overlaps and len(overlaps) == reasons.get("overlapping-source-obj"), (overlaps, reasons)
+          for frame in overlaps:
+              assert (f"UR_RACER_HD_CENSUS frame={frame} phase=present "
+                      "status=original reason=not-armed") in log, frame
+          assert "UR_RACER_HD_UNSAFE_LEGACY_FIXTURE" not in log
+          print(
+              "UR_RACER_HD_PRODUCTION_RACE_CENSUS PASS "
+              f"hd={m['hd_drawn_guest_frames']}/441 "
+              f"stock={m['original_presented_guest_frames']} "
+              f"overlap_refused={len(overlaps)} "
+              f"capture_armed={m['capture_armed_guest_frames']}"
+          )
+          PY
+
 
       - name: Prove widened Racer HD fallback preserves the original OBJ raster
         shell: bash
@@ -1783,6 +1820,8 @@ jobs:
             ${{ runner.temp }}/racer-hd-1220.ppm
             ${{ runner.temp }}/racer-hd-guarded.log
             ${{ runner.temp }}/racer-hd-guarded-1220.ppm
+            ${{ runner.temp }}/racer-hd-production-safe-window.json
+            ${{ runner.temp }}/racer-hd-production-safe-window.txt
             ${{ runner.temp }}/racer-hd-legacy-obj-1220.pam
             ${{ runner.temp }}/racer-original-obj-only.log
             ${{ runner.temp }}/racer-original-obj-only-1220.ppm

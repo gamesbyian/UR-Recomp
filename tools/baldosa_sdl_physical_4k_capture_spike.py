@@ -17,6 +17,25 @@ import argparse
 from pathlib import Path
 
 MARK = "UR_BALDOSA_REAL_SDL_OUTPUT_4K_CAPTURE"
+OSD_ANCHOR = """static void ComposeOsd(uint8 *dst, int pitch, int dst_w, int dst_h, int scale_div) {
+  const uint32_t *px = NULL;"""
+OSD_REPLACEMENT = """static void ComposeOsd(uint8 *dst, int pitch, int dst_w, int dst_h, int scale_div) {
+  /* QA-08: the one explicit physical source-to-drawable validation frame
+   * must contain ONLY the Original game picture. Suppress the turbo/FPS
+   * OSD on this exact frame, not by tolerating a rectangle in the oracle.
+   * Never change routine presentation or a missing/unmatched capture. */
+  const char *ur4k_file = getenv("UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE");
+  const char *ur4k_frame = getenv("UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME");
+  if (ur4k_file && *ur4k_file && ur4k_frame && *ur4k_frame) {
+    char *ur4k_end = NULL;
+    unsigned long ur4k_target = strtoul(ur4k_frame, &ur4k_end, 10);
+    if (ur4k_end != ur4k_frame && *ur4k_end == '\\0' &&
+        ur4k_target == g_present_frame) {
+      snes_osd_present_done();
+      return;
+    }
+  }
+  const uint32_t *px = NULL;"""
 ANCHOR = """  snesrecomp_sdl_render_texture(g_renderer, g_texture, &g_sdl_renderer_rect,
                                 &g_sdl_present_rect);
   SDL_RenderPresent(g_renderer);
@@ -101,13 +120,17 @@ def patch_host(source: str) -> str:
         if source.count(MARK) != 1:
             raise ValueError("Capture marker repeated in pinned host")
         return source
-    if source.count(ANCHOR) != 1:
-        raise ValueError("Pinned SDL renderer ABI drift: no unique present boundary")
+    if source.count(ANCHOR) != 1 or source.count(OSD_ANCHOR) != 1:
+        raise ValueError("Pinned SDL renderer/OSD ABI drift: no unique boundaries")
     first = source.index("static void SdlRenderer_EndDraw(void)")
     last = source.index("static void SdlRenderer_Reconfigure(void)", first)
     if not (first < source.index(ANCHOR) < last):
         raise ValueError("Native SDL present callback is not the one expected")
+    # One exact host OSD frame is suppressed in the already-created
+    # physical witness. All other SDL playback keeps its stock overlays.
+    source = source.replace(OSD_ANCHOR, OSD_REPLACEMENT, 1)
     # The helper must be declared above the function that calls it.
+    first = source.index("static void SdlRenderer_EndDraw(void)")
     source = source[:first] + IMPLEMENTATION + "\n" + source[first:]
     return source.replace(
         ANCHOR,

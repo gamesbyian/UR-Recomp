@@ -2,6 +2,16 @@
 
 Status: **existing product's** portable ZIP lifecycle and startup diagnostics implemented with focused package/unit contracts. **Baldosa 2026-10-09** Windows build and live 2P/pause verification (#1083/#1085) do **not** yet prove this exact Modern ZIP, user-data root, profile/replay migration or packaged controller/audio/4K acceptance. Reuse the existing packager with new executable only after these checks. Per repository CI policy, full assembled-package Windows acceptance is the final-`main` regression and therefore runs after integration rather than duplicating PR validation. Windows x64 is the primary reference deliverable; installer/signing/uninstall work remains deferred.
 
+## Baldosa native user-data and profile compatibility (2026-10-09 evening)
+
+**The existing Windows ZIP remains the only shipping package.** The standalone pinned Baldosa AOT PE32+ is a feasibility build, not the packaged Modern frontend or a second release archive.
+
+- Merged #1108 makes native Baldosa honor `SNESRECOMP_USER_DATA_DIR` from our existing `run-uniracers.cmd` root contract. The original 2P guest writes mutable config, bindings and SRAM under the selected external per-user location; invalid explicit root fails startup rather than falling back beside the executable.
+- Merged #1113 adds an opt-in callback that chooses a named existing Modern profile via the **same shipping** state/profile/catalog codecs before native `RtlReadSram`; malformed, missing or uninitialized named profile data is rejected, not treated as a new/default profile.
+- PR #1115 adds an independent real-guest *selected 8-KiB SRAM* boot witness and negative test. Check its CI/merge state before claiming this end-to-end property. The existing Modern UI still owns profile creation/activation, first-run seeding, original file schemas, run records and storage transactions. No full native frontend or Windows ZIP integration has yet been admitted.
+
+**Portability distinction:** The current packaged app is import-audited against a stock-Windows inbox-DLL allowlist. A separately built Baldosa PE may be a valid AMD64 executable and even run on the Windows CI image **without** passing that shipping import policy. Also audit native C++ QA fixture executable runtime dependencies separately: the clean Windows runner can report `0xC0000135` for a dynamically linked fixture despite the AOT game itself running. Do not confuse a C++ fixture's runtime/linker fix with production payload compatibility, and do not silently add another native runtime DLL to the canonical ZIP.
+
 ## Shipping format for the current milestone
 
 The first supported consumer package is a **portable extracted folder / ZIP**, not an installer.

@@ -86,6 +86,9 @@ void capture_fixed_original_source(const std::uint8_t* field,
     // Both keys are read-only capture controls; malformed inputs fail closed.
     const char* primary = std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME");
     const char* extra = std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME");
+    // Third independently source-visible witness for active split racing;
+    // the original 400 and 1856 captures still have separate exact selectors.
+    const char* live = std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_LATE_FRAME");
     const auto matches = [](const char* value, unsigned frame) noexcept {
         if (!value || !*value || value[0] == '-') return false;
         char* end = nullptr;
@@ -93,7 +96,9 @@ void capture_fixed_original_source(const std::uint8_t* field,
         return end != value && *end == '\0' && parsed == frame;
     };
     // Parsing rejects any requested frame != g_frame before capturing.
-    if (!matches(primary, g_frame) && !matches(extra, g_frame))
+    if (!matches(primary, g_frame) &&
+        !matches(extra, g_frame) &&
+        !matches(live, g_frame))
         return;
     const bool saved = save_presented_pam(
         field, static_cast<std::size_t>(width) * 4u,

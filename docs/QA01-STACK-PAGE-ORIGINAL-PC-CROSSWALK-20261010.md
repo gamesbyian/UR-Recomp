@@ -2,6 +2,27 @@
 
 **Observed evidence and scope (2026-10-10).** This note retains an already-executed original Snes9x opcode-scope observation and relates it to independently executed original/native Race/Stunt memory differences. **It does not claim an original/native complete-event pass, an instruction-semantic proof or a player-facing bug.** Primary release census remains **0/45** USA complete pairs.
 
+## Executed native original-result-boundary discriminator: 32,333 write attempts
+
+The follow-on original/native paired test has now **executed**, not merely been proposed. [Run 38090897908](https://github.com/gamesbyian/UR-Recomp/actions/runs/38090897908) (green, job 114326935017) used the pinned original Snes9x 2014 source, pinned Baldosa guest/framework and the actual fresh original/native Switcher Race B route. The sole native framework edit was a **disposable, read-only frame gate** around the pre-existing `SNESRECOMP_WLOG_ADDR` logger. Unaltered original movie/ROM/entry SRAM, original/native stock entries **1079/1081**, exact host **5782** WRAM differences **eight**, zero VRAM/CGRAM differences, genuine original/native **5783** terminal onset, identical rendered result text and an actual positive timed Race were re-observed; strict guest-relative terminal **+4704/+4702** remains failed. The [compact source-visible native witness](../analysis/data/switcher-native-stack-actual-writers-20261010.json) pins the full native writer histogram, original/native comparisons and artifact **11684141556** (ZIP SHA-256 `9b202ec36bfd60dc1cece9e0d2c9027275d669f8ab4100d349c69848f250eaf9`).
+
+The frame-gated native logger observed **32,333 WRAM write attempts** on the eight target addresses across actual native `snes_frame_counter` values **5775–5788**. It records generated-function scopes, CPU S at memory-write time and individual written-byte samples. **A write attempt is not the original Snes9x opcode observer's changed-byte event**, and the earlier original-only source near movie frame **17030** is not the same host-clock range. Do not equate event counts or infer instruction-PC parity from native AOT function names or `IPC=000000`.
+
+| WRAM offset | Native write attempts | High-information native writer scope |
+| --- | ---: | --- |
+| `7E:01DD` | **1** | **`I_NMI_M1X1` at native frame 5781**, logged S=`01DD` |
+| `7E:01E6` | 11 | **`Text_FormatRaceTime_FastRom_M0X0` (7)**, including frame 5782 |
+| `7E:01E7` | 146 | `Res_LoadToCgram_M1X0` (132) |
+| `7E:01EF` | 5,390 | `Snd_SendQueuedCommand_M1X0` (4,830) |
+| `7E:01F0` | 5,383 | `Snd_SendQueuedCommand_M1X0` (4,830) |
+| `7E:01F1` | 8,378 | `Snd_SendQueuedCommand_M1X0` (4,830); `Res_LoadToVram_B1F2_M1X0` (2,774) |
+| `7E:01F2` | 8,007 | `Snd_SendQueuedCommand_M1X0` (4,830); `Res_LoadToVram_B1F2_M1X0` (2,774) |
+| `7E:01F3` | 5,017 | `Snd_SendQueuedCommand_M1X0` (3,327); `WaitVBlank_M1X0` (1,503) |
+
+The native `01F1` sample records the *same actual return-byte values* `FB` and `F4`, from scopes `Res_LoadToVram_B1F5_M1X0` and `Res_LoadToVram_B1F2_M1X0` respectively, at logger-observed **S=`01F1`**. Original independent opcode PC scopes `82:B1F9/82:B1F2` actually pushed low return bytes `FB/F4` and moved **S=`01F2→01F0`**. This is a particularly strong original/native **stack-mechanism crosswalk**, though it cannot equate native AOT scope with exact PC, or equate an SP sampled during the low-byte store with an original pre/post-instruction SP.
+
+The `01DD` original-only *different timeline* 20-CPU-frame probe found **no changed byte**, whereas this native fresh-result trace captured one NMI-scoped *write attempt*. That is the best new discriminator; it is **not** proof of a native-only write or an incorrect NMI. The minimum next original-only experiment should capture actual `01DD` original stack/PC around the *matched fresh host 5781* (both guests, no original controller retime) and ask whether the differing byte is live to the next result/progression reader. **No native scheduler/gameplay change, parity waiver or 45-course release credit is authorized.**
+
 ## Executed original Switcher stack result: 13,709 actual opcode scopes
 
 The source experiment has now **run**, not merely been designed. Original Snes9x [run 38088102870](https://github.com/gamesbyian/UR-Recomp/actions/runs/38088102870) independently qualified the real 2014 Switcher Race B result at **source movie host frame 17030**, then replayed the identical input through an instrumented disposable Snes9x core. The original/source event and exact 128-KiB source-entry/horizon WRAM equivalence validator passed before the initial reporter rejected more than 5,000 changes. The original raw log was preserved as artifact **11683670622** (ZIP SHA-256 `9f3f8020ea12f58b9094e0fbfe00d6161d9c6812dbf49837c91c7e5a57c29e95`). A corrected, exhaustive-count/96-sample maximum reporter passed three checks in merged #1232, then [run 38088688106](https://github.com/gamesbyian/UR-Recomp/actions/runs/38088688106) processed that **same hash-attested artifact without rerunning an emulator**. Compact recovered artifact **11684005205** is preserved in [machine-readable evidence](../analysis/data/switcher-original-jsr-stack-opcode-scopes-20261010.json).

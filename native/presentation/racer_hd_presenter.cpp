@@ -545,17 +545,21 @@ void racer_hd_begin_sim_frame(unsigned number) noexcept {
                     *top, *bottom, *p2_top, *p2_bottom);
             std::fprintf(stderr,
                 "UR_RACER_HD_1P_OAM frame=%u source_ready=%u "
-                "top_x=%d top_y=%u top_tile=%02X top_geom=%u "
-                "bottom_x=%d bottom_y=%u bottom_tile=%02X bottom_geom=%u "
+                "top_x=%d top_y=%u top_tile=%02X top_large=%u top_geom=%u "
+                "bottom_x=%d bottom_y=%u bottom_tile=%02X bottom_large=%u bottom_geom=%u "
                 "obsel=%02X rotation=%u source_bank=%u front_safe=%u\n",
                 number, source_oam_ready ? 1u : 0u,
                 top ? static_cast<int>(top->x_signed) : -512,
                 top ? static_cast<unsigned>(top->y_raw_8bit) : 0u,
                 top ? static_cast<unsigned>(top->tile) : 0u,
+                top && top->large && top->width_pixels == 64 &&
+                    top->height_pixels == 64 ? 1u : 0u,
                 geometry(top, RacerViewport::Top) ? 1u : 0u,
                 bottom ? static_cast<int>(bottom->x_signed) : -512,
                 bottom ? static_cast<unsigned>(bottom->y_raw_8bit) : 0u,
                 bottom ? static_cast<unsigned>(bottom->tile) : 0u,
+                bottom && bottom->large && bottom->width_pixels == 64 &&
+                    bottom->height_pixels == 64 ? 1u : 0u,
                 geometry(bottom, RacerViewport::Bottom) ? 1u : 0u,
                 g_ppu ? static_cast<unsigned>(g_ppu->obsel) : 0u,
                 g_ppu && (g_ppu->oamaddh & 0x80) ? 1u : 0u,

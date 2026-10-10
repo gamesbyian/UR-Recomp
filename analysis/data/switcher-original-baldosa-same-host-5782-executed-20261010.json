@@ -1,0 +1,102 @@
+{
+  "schema": "UR-QA01-SWITCHER-ORIGINAL-NATIVE-SAME-HOST-5782/1",
+  "evidence_class": "executed paired original 2014 Snes9x and pinned Baldosa guest-state observation; research-only not gameplay or release admission",
+  "provenance": {
+    "workflow_run_id": 38076629158,
+    "workflow_job_id": 114284861533,
+    "one_shot_pr_number": 1182,
+    "one_shot_pr_closed_unmerged": true,
+    "artifact_id": 11679421807,
+    "artifact_zip_sha256": "0d7d6686b03658ebb1f2414aaa22e9a428d3670d43e3a6f6dae3c85f820b5193",
+    "original_report_name": "switcher-report.json",
+    "original_report_sha256": "cf69572ea1bc51e2a735f76d6cb87d6f61c57a4101ac893fa60794b1bfc2bb0d",
+    "canonical_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+    "original_movie_sha256": "06dce29e9d36997fc2a1fac4bab72180ab6c8096366cfcf05780c1b2dea4b442",
+    "source_movie_window_sha256": "6b4df10995e1383f4323d66e3d9af92a42833085041bd26944b9be570211d65d",
+    "source_sram_sha256": "a6af0ddf25ae5feafba301100938f5ef81137ee76dcdc483a04fb6e961347828",
+    "reference_core_sha256": "a9c41927e2805ee40f6b3487af6a606eda242b4210ec9cb063a08c95539e170c",
+    "native_executable_sha256": "439ac76fa8d90f141436dc25426e522561667cb3aa575d5c326a06afc6cb5ba8",
+    "reference_script_sha256": "8d6cdb4a9bbd915b8988f1f48548ad3437fc360b92fdec3cf65ec1adf18f8306",
+    "ordinary_native_input_script_sha256": "425c1d721fd668267189cb1c1295acdf9185bed8b73388a792fb346c9b119b8d",
+    "report_producer_exit_code": 1,
+    "workflow_conclusion": "failure",
+    "producer_exit_code_expected_due_to_strict_relative_frame_parity": true
+  },
+  "source_original": {
+    "entry_movie_host_frame": 12327,
+    "result_movie_host_frame": 17030,
+    "original_horizon_attested_host": 22000,
+    "original_only_track0_result_prelude": "switcher_34_frame_track0_terminal_prelude"
+  },
+  "independent_stock_entry": {
+    "reference_entry_absolute_host": 1079,
+    "native_entry_absolute_host": 1081,
+    "source_to_fresh_reference_entry_fields_equal": true,
+    "source_to_fresh_native_entry_fields_equal": true
+  },
+  "genuine_penultimate_host_capture": {
+    "reference_relative_frame": 4703,
+    "native_relative_frame": 4701,
+    "reference_absolute_host": 5782,
+    "native_absolute_host": 5782,
+    "original_and_native_next_result_absolute_host": 5783,
+    "guest_wram_bytes_read_per_engine": 131072,
+    "original_movie_input_modified": false,
+    "all_named_fields_equal": true,
+    "disagreeing_fields": [],
+    "equal_fields": {
+      "menu": 22,
+      "in_race": 0,
+      "observed_course_track": 3,
+      "p1_rider": 0,
+      "p2_rider": 17,
+      "p1_x": 19456,
+      "p1_y": 19456,
+      "p2_x": 19456,
+      "p2_y": 19456,
+      "p1_vx": 19456,
+      "p1_vy": 19456,
+      "p1_contact": 6690,
+      "p2_contact": 6690,
+      "p1_checkpoint": 1,
+      "p1_finish_gate": 1,
+      "p1_laps": 0,
+      "p2_laps": 0,
+      "boost": 8,
+      "stunt_queue_cursor": 2,
+      "clock_raw": [
+        1,
+        1,
+        2,
+        8,
+        1
+      ],
+      "source_terminal_phase_diagnostic_only": true
+    }
+  },
+  "original_and_native_result": {
+    "original_guest_relative_onset": 4704,
+    "native_guest_relative_onset": 4702,
+    "original_absolute_host_onset": 5783,
+    "native_absolute_host_onset": 5783,
+    "first_sampled_relative_field_difference_at": 4664,
+    "settled_ppu_text_equal": true,
+    "p1_name": "MIKE",
+    "p1_race_time": "1:08.81",
+    "both_guests_out_of_active_race_at_result": true,
+    "both_guests_zero_laps_at_result": true,
+    "ordinary_paired_relative_samples": 46
+  },
+  "scope_limits": {
+    "all_131072_guest_memory_bytes_identical": "not measured; only named fields were compared",
+    "cpu_pc_instruction_phase_parity": "not measured",
+    "nmi_ppu_dma_phase_parity": "not measured",
+    "continuous_4700_frame_physics_parity": "not measured",
+    "guest_relative_result_onset_equal": false,
+    "absolute_host_terminal_onset_equal": true,
+    "release_complete_event_credit": 0,
+    "official_usa_full_event_passes": 0,
+    "total_usa_events": 45
+  },
+  "next_discriminator": "When justified, reuse actual same-host 5782 capture to compare full WRAM/VRAM/CGRAM differing offsets and host/guest CPU PC/NMI phase. A matched terminal and 46 sparse snapshots are not authority to relax the original/native guest-relative gate or retime the original 2014 movie."
+}

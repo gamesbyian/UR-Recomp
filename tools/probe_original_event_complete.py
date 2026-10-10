@@ -357,10 +357,12 @@ def observe_bowl_tally_phase(reference_dir: Path, native_dir: Path,
         "same_host_frame_samples": rows,
         "all_samples_exact_guest_bytes": all(
             sum(row["different_guest_bytes"].values()) == 0 for row in rows),
-        "persistent_differing_wram_offsets": sorted(
-            set.intersection(*(set(
+        "persistent_differing_wram_offsets": (
+            sorted(set.intersection(*(set(
                 row["differing_byte_offsets_by_memory_class"]["wram"]["addresses"])
-                for row in rows))
+                for row in rows)))
+            if not any(row["differing_byte_offsets_by_memory_class"]["wram"]["truncated"]
+                       for row in rows) else None
         ),
         "offset_profile_cap_per_memory_class": 128,
         "retains_raw_guest_memory": False,

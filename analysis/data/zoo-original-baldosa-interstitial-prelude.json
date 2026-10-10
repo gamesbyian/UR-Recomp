@@ -134,5 +134,97 @@
     "denominator": 45,
     "qa_credit": 0
   },
-  "follow_up": "Repeat with finer +5110..+5157 sparse/dense captures; then localize the owning guest menu transition / host VBlank boundary, without input rephasing or semantic patches."
+  "follow_up": "Finer +5110..+5157 independent original/native replay completed successfully in run 38008660321: source-visible attribution now needed for the +5155-to-+5156 memory write and +5157 menu stage transition; retain no game-rule edits or one-frame input rebasing.",
+  "validated_follow_up": {
+    "workflow_run_id": 38008660321,
+    "artifact_id": 11652985802,
+    "zip_sha256": "2350e5dd8a8f18d0f6cdff987c11538830aef70897791ad192736e13f503c61a",
+    "job_conclusion": "success",
+    "harness_accepted_both_original_and_native_stages": true,
+    "verified_guest_scene_entries": {
+      "original": 1604,
+      "baldosa": 1606
+    },
+    "original_native_fixed_sampled_relative_frames": [
+      4700,
+      4800,
+      5000,
+      5100,
+      5110,
+      5120,
+      5130,
+      5140,
+      5145,
+      5150,
+      5152,
+      5153,
+      5154,
+      5155,
+      5156,
+      5157,
+      5158,
+      5159,
+      5160,
+      5161,
+      5162,
+      5163,
+      5164,
+      5165,
+      5166,
+      5167,
+      5168,
+      5169,
+      5170,
+      5171,
+      5172,
+      5173,
+      5174,
+      5175
+    ],
+    "identical_full_wram_relative_frames": [
+      5100,
+      5110,
+      5120,
+      5140,
+      5145,
+      5150,
+      5153,
+      5155
+    ],
+    "first_nonnegligible_boundary_difference": {
+      "relative_frame": 5156,
+      "differing_raw_wram_bytes": 69,
+      "preceding_plus_5155_entire_wram_equal": true,
+      "named_fields_still_equal": true,
+      "changed_addresses_example": [
+        "0x0008B",
+        "0x00187",
+        "0x00188",
+        "0x00B90",
+        "0x00C61"
+      ],
+      "status": "unattributed_stage_routine_or_frame_phase"
+    },
+    "first_named_field_disagreement": {
+      "relative_frame": 5157,
+      "field": "menu",
+      "original": 132,
+      "baldosa": 22,
+      "original_track_id": 0,
+      "native_track_id": 1
+    },
+    "first_transient_dp_phase_disagreement": {
+      "relative_frame": 5157,
+      "original_c6": 31,
+      "native_c6": 1,
+      "original_c8": 0,
+      "native_c8": 3
+    },
+    "result_menu_onset": {
+      "original": 5163,
+      "baldosa": 5162
+    },
+    "final_ppu_result_equal": true,
+    "complete_event_qa_credit": 0
+  }
 }

@@ -136,6 +136,12 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
                 and states.get(f + j, {}).get("in_race") == 1
                 for j in range(8))
     ]
+    # Only the first genuine sustained source entry is eligible. A one-frame
+    # foreign-track scratch write during an ongoing race must not conjure a
+    # second (later) start that discards earlier active-course evidence.
+    # Subsequent legitimate attempts need a separately calibrated source
+    # segment and cannot silently rescue a corrupted earlier event.
+    entries = entries[:1]
     # DP $9F is reused as scratch. A single occurrence of 99/BC/18
     # mid-race is not a legitimate result. Reuse the already validated
     # stock result-screen analyzer and its >=8-frame stable-menu rule.

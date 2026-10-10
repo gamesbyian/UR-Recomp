@@ -19,6 +19,14 @@ Native **phase 0** alone reproduced the complete Circuit and matching P1/P2 orig
 
 The release denominator remains **0/45 accepted USA courses**. This finding narrows a specific causal hypothesis and does not independently establish a newly accepted Race or Stunt.
 
+## Independently observed Zoom Zoo finish-state transition (2026-10-09)
+
+Merged #1098 / [CI 38005782923](https://github.com/gamesbyian/UR-Recomp/actions/runs/38005782923) removed the test harness result-menu `until` condition and measured **18 identical scene-relative frames +5158..+5175** across original Snes9x and Baldosa. The original game, ROM, embedded SRAM, full original controller scene and independent guest-relative race-entry calibration were retained. Native leaves active gameplay at **relative +5161**, original at **+5162**; native enters `0xBC` Circuit result at **+5162**, original at **+5163**. This is a reproduced **guest-state transition difference**, not only a one-frame diagnostic script polling offset. At +5158..+5160 the measured P1/P2 laps/checkpoint/finish/contact/race clock still agree, and **both racers have completed their laps**. Raw DP scratch bytes `0xC6/0xC8` are already one step ahead in native by +5158. Their owner/semantics remain undetermined and must not be labeled a gameplay timer from observation alone.
+
+The originally puzzling stored contact values also reconcile: at relative +5170 Baldosa has P1 `10240` / P2 `512` while original still has `0/0`. At +5172 original has P1 `10240` / P2 `512`; by **+5173** both original/native hold **P1 `10240`, P2 `256`**. Thus eight frames after two different result onsets is not a phase-equal post-result sample. Native and original both display the same full MIKE/BRONSEN total times and best laps. This leaves a **real one-frame result-lifecycle timing discrepancy**, not a demonstrated physics or scoring fault.
+
+Retained proof: [compact machine-readable witness](../analysis/data/zoo-original-baldosa-fixed-result-boundary.json), [raw guest WRAM and original/native PPU artifacts](https://github.com/gamesbyian/UR-Recomp/actions/runs/38005782923/artifacts/11650174888). The active bounded run was not awarded an official course pass: **0/45**. Current follow-up reuses the same pinned route and guest builds but samples selected guest-relative frames between +4700 and +5158 to discover *where* the timing phase first diverges, rather than shifting entire controller input (already rejected by #1093).
+
 ## Why these three targets
 
 The pinned 2014 input movie already produced **actual original Snes9x

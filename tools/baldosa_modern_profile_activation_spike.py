@@ -101,8 +101,7 @@ def patch_cmake(source: str, root: Path) -> str:
         raise ValueError("Pinned Modern native CMake hook must already be staged")
     bridge = (root / "tools/baldosa_modern_profile_activation.cpp").resolve()
     product = (root / "native/product").resolve()
-    native_root = (root / "tools/baldosa_native_modern_root.cpp").resolve()
-    selected = [bridge, native_root, *(product / s for s in SOURCES)]
+    selected = [bridge, *(product / s for s in SOURCES)]
     for path in selected:
         if not path.is_file():
             raise ValueError(f"Missing established Modern product component: {path}")

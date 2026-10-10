@@ -513,7 +513,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
 
 extern "C" void ur_baldosa_product_host_tick(void) {
     if (!smoke_enabled() || !g_armed || g_resumed ||
-        g_frozen_ticks >= 24) return;
+        (g_frozen_ticks >= 24 && !g_pause_quit_smoke)) return;
     require(snesrecomp_desktop_product_is_paused() != 0,
             "host_exited_pause_without_permission");
     if (g_physical_smoke) {

@@ -87,6 +87,9 @@ int main() {
     invalid.course_index = 46;
     assert(!assemble_baldosa_native_run_record(invalid, signed_p1));
     invalid = settled;
+    invalid.first_race_host_frame = 0; // host frames are one-based
+    assert(!assemble_baldosa_native_run_record(invalid, signed_p1));
+    invalid = settled;
     invalid.observed_result_host_frame = 103; // missing real guest sample
     assert(!assemble_baldosa_native_run_record(invalid, signed_p1));
     invalid = settled;

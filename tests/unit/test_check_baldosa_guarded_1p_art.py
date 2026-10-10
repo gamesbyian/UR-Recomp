@@ -32,7 +32,7 @@ class GuardedOnePlayerTests(unittest.TestCase):
                 + "UR_RACER_HD_CENSUS frame=330 phase=present status=hd reason=p1-only\n"
                 "UR_RACER_HD_CENSUS frame=420 phase=present status=original reason=not-armed\n"
                 "UR_RACER_HD_PIXEL_CHANGE frame=330 source_instances=2 changed_from_underlay=1\n"
-                "UR_BALDOSA_NATIVE_PAINT frame=330 raster=1024x896 pitch=4096 top_changed=44 bottom_changed=0\n"
+                "UR_BALDOSA_NATIVE_PAINT frame=330 raster=1024x896 pitch=4096 top_changed=0 bottom_changed=44\n"
                 "script f=501 dump end ok\n"
             )
             log.write_text(trace)

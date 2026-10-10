@@ -1,4 +1,4 @@
-name: QA-01 original 2014 Bowl scored Stunt native candidate
+name: QA-01 experimental original 2014 Switcher Race B paired native candidate
 
 on:
   workflow_dispatch:
@@ -73,17 +73,16 @@ jobs:
           test -x baldosa/build/UniracersSNESRecomp
           test -x "$RUNNER_TEMP/bowl-snesref/snesref"
 
-      - name: Independent source-original Bowl score then paired stock-entry native replay
+      - name: Independent source-original Switcher Race B then paired stock-entry native replay
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/qa01-bowl"
           set +e
           python3 tools/probe_original_event_complete.py \
-            --case bowl \
+            --case switcher \
             --native-backend pinned-baldosa \
-            --observe-one-frame-stunt-lead \
-            --bowl-tally-phase \
+            --source-horizon 22000 \
             --snesref "$RUNNER_TEMP/bowl-snesref/snesref" \
             --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
             --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \

@@ -251,7 +251,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             sram = root / "movie.srm"
             sram.write_bytes(b"S" * 8192)
             script = root / "route.script"
-            script.write_text("dump race-entered\\nquit\\n")
+            script.write_text("dump race-entered\nquit\n")
             args = types.SimpleNamespace(
                 native=executable, rom=rom, sram=sram,
                 native_backend="pinned-baldosa",
@@ -261,7 +261,7 @@ class CompleteEventProducerTests(unittest.TestCase):
             def fake_run(command, *, env, cwd, capture_output, text, timeout):
                 invocations.append((command, env.copy(), cwd))
                 self.assertTrue((build / "saves" / "save.srm").exists())
-                return types.SimpleNamespace(stdout="script f=123 dump race-entered ok\\n",
+                return types.SimpleNamespace(stdout="script f=123 dump race-entered ok\n",
                                              stderr="")
             with mock.patch.object(target.subprocess, "run", side_effect=fake_run):
                 result = target.replay_native(root, args, script, [], 0)
@@ -272,7 +272,7 @@ class CompleteEventProducerTests(unittest.TestCase):
                                               [(1600, 2, 0x80), (1603, 1, 0x10)], 6)
                 self.assertIn("script f=123", result)
                 self.assertEqual((root / "pinned-baldosa.input").read_text(),
-                                 "1606:2:080\\n1609:1:010\\n")
+                                 "1606:2:080\n1609:1:010\n")
                 self.assertEqual(invocations[-1][1]["UR_QA_SCENE_INPUT_FILE"],
                                  str(root / "pinned-baldosa.input"))
                 self.assertIn("--no-launcher", invocations[-1][0])

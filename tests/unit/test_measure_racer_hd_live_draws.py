@@ -141,6 +141,7 @@ class RacerHdLiveDrawCensusTests(unittest.TestCase):
             gate(1925, "armed", "full-pair"),
             pixel_change(1925, 1, 1),
             present(1925, "hd", "full-pair"),
+            pixel_change(1925, 1, 0),
             present(1925, "hd", "full-pair"),
         ]
         m = analyze("\n".join(events))["measurement"]

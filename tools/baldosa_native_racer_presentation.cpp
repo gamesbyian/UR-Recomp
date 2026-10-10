@@ -84,15 +84,16 @@ void capture_fixed_original_source(const std::uint8_t* field,
     // Preserve the independent fixed-frame 4K witness (400) and allow a
     // second fixed 1x source from that SAME native run at a moving-race frame.
     // Both keys are read-only capture controls; malformed inputs fail closed.
-    const auto matches = [](const char* key, unsigned frame) noexcept {
-        const char* value = std::getenv(key);
+    const char* primary = std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME");
+    const char* extra = std::getenv("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME");
+    const auto matches = [](const char* value, unsigned frame) noexcept {
         if (!value || !*value || value[0] == '-') return false;
         char* end = nullptr;
         const unsigned long parsed = std::strtoul(value, &end, 10);
         return end != value && *end == '\0' && parsed == frame;
     };
-    if (!matches("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME", g_frame) &&
-        !matches("UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME", g_frame))
+    // Parsing rejects any requested frame != g_frame before capturing.
+    if (!matches(primary, g_frame) && !matches(extra, g_frame))
         return;
     const bool saved = save_presented_pam(
         field, static_cast<std::size_t>(width) * 4u,

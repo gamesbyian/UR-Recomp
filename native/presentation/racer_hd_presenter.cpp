@@ -40,6 +40,10 @@ bool g_wide_probe_armed = false;
 bool g_wide_probe_dumped = false;
 int g_wide_probe_slot = -1;
 bool g_frame_active = false;
+// The host requests a mode for the NEXT guest frame. Never revoke an
+// already-armed destructive OBJ capture between simulation and presentation.
+int g_requested_graphics_mode = -1; // -1 retains the legacy environment default
+bool g_frame_graphics_enabled = false;
 int g_internal_render_scale = kRacerHdDensityScale;
 unsigned g_logged_state_transitions = 0;
 const RacerRegistration* g_last_logged_p1_registration = nullptr;
@@ -55,12 +59,17 @@ std::array<RacerDrawInstance, 4> g_instances{};
 std::size_t g_instance_count = 0;
 unsigned g_sim_frame = 0;
 
-bool env_enabled() noexcept {
+bool legacy_env_enabled() noexcept {
     static const bool enabled = [] {
         const char* v = std::getenv("UR_RACER_HD");
         return v != nullptr && v[0] != '\0' && !(v[0] == '0' && v[1] == '\0');
     }();
     return enabled;
+}
+
+bool graphics_requested_for_next_frame() noexcept {
+    if (g_requested_graphics_mode >= 0) return g_requested_graphics_mode == 1;
+    return legacy_env_enabled();
 }
 
 // Opt-in per-guest-frame and per-present diagnostics. A selector registration
@@ -377,19 +386,29 @@ int racer_hd_internal_render_scale() noexcept {
 }
 
 int racer_hd_presentation_scale() noexcept {
-    return env_enabled() && g_frame_active ? g_internal_render_scale : 1;
+    return g_frame_active ? g_internal_render_scale : 1;
+}
+
+void racer_hd_request_graphics_mode(RacerHdGraphicsMode mode) noexcept {
+    g_requested_graphics_mode = mode == RacerHdGraphicsMode::Remastered ? 1 : 0;
+}
+
+RacerHdGraphicsMode racer_hd_requested_graphics_mode() noexcept {
+    return graphics_requested_for_next_frame()
+        ? RacerHdGraphicsMode::Remastered : RacerHdGraphicsMode::Original;
 }
 
 void racer_hd_begin_sim_frame(unsigned number) noexcept {
     g_frame_active = false;
+    g_frame_graphics_enabled = graphics_requested_for_next_frame();
     g_instance_count = 0;
     g_wide_probe_armed = false;
     g_wide_probe_dumped = false;
     g_wide_probe_slot = -1;
     g_sim_frame = number;
 
-    if (!env_enabled() || g_ppu == nullptr) {
-        hd_census_gate("original", !env_enabled() ? "disabled" : "no-ppu");
+    if (!g_frame_graphics_enabled || g_ppu == nullptr) {
+        hd_census_gate("original", !g_frame_graphics_enabled ? "disabled" : "no-ppu");
         return;
     }
 
@@ -618,7 +637,7 @@ int racer_hd_draw_frame(
 ) noexcept {
     if (frame_w == kWideProbeWidth && frame_h == kBaseHeight)
         dump_wide_obj_source();
-    if (!env_enabled() || !g_frame_active || dst == nullptr || field == nullptr) {
+    if (!g_frame_active || dst == nullptr || field == nullptr) {
         hd_census_present("original", !g_frame_active ? "not-armed" : "unavailable-output");
         return 0;
     }

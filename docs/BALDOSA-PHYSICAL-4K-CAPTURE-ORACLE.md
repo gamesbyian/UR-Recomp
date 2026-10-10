@@ -131,3 +131,29 @@ display case and rejects an improperly transparent output pixel.
 This is a test correction, not a completed physical QA pass:
 the updated native renderer must still pass the *full* 4K framebuffer
 oracle on an independent run.
+
+## Exact SDL2 software sampling and diagnostic OSD exclusion
+
+A complete offline examination of the **actual failed first-run**
+4K artifact (`11677683656`) isolated the next two mismatches
+*after* normalizing SDL's opaque alpha:
+
+- **17,048** colour differences from the oracle's ideal floating-point
+  1× center-of-texel mapping instead matched the real SDL2 software
+  raster's **16.16 fixed-point nearest stepping** from the 1368×896
+  fourfold presentation texture. That precise mapping agreed across
+  every pixel outside the on-screen OSD; no arbitrary tolerance is used
+- **3,567** changed pixels formed a native turbo/FPS OSD rectangle
+  at `x=6..128`, `y=5..33` on the completed 4K SDL surface.
+  The new disposable host patch suppresses the title-independent
+  OSD **only when the explicit source-to-physical capture frame and
+  filename both match**, and calls `snes_osd_present_done()`.
+  All other frames preserve ordinary OSD behaviour
+
+The 4K oracle now calculates the exact host's 16.16 fixed-step
+nearest sampling from the validated *actual 4× native texture* and
+continues to enforce pixel-exact RGB and opaque-alpha output on
+**every one of 8,294,400 physical pixels**. It never ignores the
+OSD rectangle, nor grants colour tolerance or source-art admission.
+The native follow-up must pass the complete strict oracle before
+physical 4K output is credited.

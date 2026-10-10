@@ -12,15 +12,15 @@
 
 The three results are **not three admitted course passes**. The official ledger remains **0/45** USA independent completed-event admissions (four partial, 41 unverified in the current census). Correct visible output at a single time does not establish all-frame equivalence, and guest-relative terminal disparity cannot be silently ignored.
 
-## Pre-result restoration chronology: earlier and cheaper discriminator
+## Switcher restoration boundary: already executed, not a pending experiment
 
-The preserved `analysis/data/switcher-original-baldosa-terminal-handoff-20261010.json` supplies **43 independently entry-relative paired snapshots** and exact host-coordinate conversions. Its measured menu/track conflicts are **at relative +4664** (original 3/0x00; native 0/0x84), **+4697** and **+4698** (original 0/0x84; native 3/0x16). Other sampled semantic fields agree at all 43 paired-relative snapshots; these are *menu/course restoration* observations, not demonstrated physics divergence.
+**Important correction to the earlier plan:** the identical-host restoration experiment was already completed by one-shot PR #1175 / original-native run **38073881560**, and preserved in [the exact evidence record](../analysis/data/switcher-original-native-restoration-same-host-20261010.json). **Do not rerun +4699..+4701 merely to satisfy this document.**
 
-In absolute host coordinates, original entry is **1079** and native entry **1081**. At **native relative +4697 = absolute host 5778**, the course has already restored ID 3; original was still observing course 0 at **original relative +4698 = absolute host 5777**. The original restore frame has **not** been sampled. The narrowest follow-up is therefore **original relative +4699,+4700,+4701 = host 5778,5779,5780**, compared to Baldosa's corresponding **relative +4697,+4698,+4699** on those **same host frames**. Use the existing host-frame sampler and run both the entry-relative and absolute-host views. This directly tests whether the apparent two-frame relative lead converges on the **same host-frame restore**. It does not itself resolve guest CPU scheduling, source instruction call timing, or justify shifting inputs.
+Reference first enters temporary course 0/menu 0x84 at **host 5744** and native at **host 5745**. Despite the differing entry-relative transition labels, both original and Baldosa restore course 3/menu 0x16 at **the same absolute host 5778**. Three sampled same-absolute-host restoration frames **5778, 5779 and 5780** show all recorded named state fields equal. Both guests emit the Race B result at **host 5783**. This establishes a genuine same-host menu/track restoration match, not identical CPU timing, all-memory equality, or continuous event parity.
 
-The older paired snapshot report samples 43 relative frames, not a continuous 43-frame sequence. No assertion about the **earliest possible** disagreement between snapshots is warranted. Also, the preserved source event's original course-0 prelude is 34 frames; course ID 0 in that window is not itself a proof of the wrong track.
+The existing strict guest-relative comparator still observes entry at original **1079** / native **1081**, terminal +4704/+4702, and fails appropriately. The earlier paired report's relative-frame conflicts at +4664/+4697/+4698 compare differing **absolute** host frames. Do not infer a guest instruction defect from those sparse contrasts alone, but do not normalize them away without an independently validated frame-owner model.
 
-The prior same-host frame-5782 eight-offset experiment remains necessary **only if** the earlier restoration boundary test cannot classify the discrepancy or if an original-visible result/progression consumer is implicated. Prefer original code write/read observations around the first relevant restoration before expensive all-memory and whole-movie replays.
+**Disposition:** the three-frame host-5778 restoration investigation is closed by existing evidence. The remaining actionable source questions are (a) original/native instruction and hardware phase at the genuine host-frame result boundary and (b) whether their low-WRAM differences are read by result/progression-critical code. Either question should be pursued only with a bounded writer/consumer trace or demonstrated player impact.
 
 ## Follow-on discriminator: Switcher host 5782 → 5783
 
@@ -30,8 +30,8 @@ After the restoration window above has been classified, the completed opt-in ind
 
 Do not infer that these eight bytes are cosmetic, uninitialized, CPU scratch or player-impacting without proving their writers and read sites. Do **not** claim CPU/interrupt/host scheduler equivalence from this observation. The 197,120-byte combined state is **not** identical.
 
-1. **Use existing exact original/native movie and opt-in diagnostics.** Pin ROM, original emulator build, Baldosa commit/build, unchanged controller masks, guest entry and exact host frame. Do not create another broad workflow, rebase input or adjust thresholds.
-2. **Discriminate output from timing at fixed host frames 5781, 5782, 5783, 5784** using both guests on the same host-frame definition. Record before/after guest-frame boundary, PC/PB, NMI/VBlank/DMA or CPU scheduling phase (if existing probes expose them), result menu and original PPU text, input latch, guest game-mode and track. Different guest entry frames must remain explicit; report both host-relative and entry-relative coordinates.
+1. **Use existing exact original/native movie and opt-in diagnostics only if instruction-time evidence remains necessary.** Pin ROM, original emulator build, Baldosa commit/build, unchanged controller masks, guest entry and exact host frame. Do not create another broad workflow, rebase input or adjust thresholds.
+2. **If still needed, discriminate output from timing at fixed host frames 5781, 5782, 5783, 5784** using both guests on the same host-frame definition. Record before/after guest-frame boundary, PC/PB, NMI/VBlank/DMA or CPU scheduling phase (if existing probes expose them), result menu and original PPU text, input latch, guest game-mode and track. Different guest entry frames must remain explicit; report both host-relative and entry-relative coordinates.
 3. **Writer/read crosswalk for eight offsets.** For each byte, supply original bank:PC write(s), instruction-time call context and state/phase; determine whether any read controls physics, scoring, winner, persistence, display or progression. Group contiguous fields only after demonstrating actual instruction access width and semantics. Distinguish writes before host 5782, writes on host 5783, and differences due solely to boundary capture phase.
 4. **One causal test, only if necessary:** capture immediately on both sides of the identified original and native instruction boundary using existing source/native observer hooks, with unchanged input. A controlled comparison of corresponding instruction lifecycle points is preferable to globally shifting frame labels.
 5. **Stop condition:** either demonstrate that the terminal offset is a measurement/host-boundary convention with independently equivalent original-defined event/result and subsequent transition, or locate the earliest original/native player-relevant state transition and show its causal writer. If the available probes cannot decide, log precisely which register/boundary is missing, leave course partial, and switch to the next family.
@@ -45,6 +45,26 @@ Do not infer that these eight bytes are cosmetic, uninitialized, CPU scratch or 
 | 7E:01EF–01F3 | unverified | unverified | no earlier-than-5782 proof | unknown | unclassified |
 
 **Addressing note:** these are linear WRAM offsets (SNES WRAM base `7E:0000`), not original source PC addresses. The table deliberately makes no speculative claims about field widths or meaning.
+
+## Cross-event offset overlap: independent Bowl scored-Stunt observation
+
+The independently captured **Bowl** scored-Stunt eight-frame tally residue record is [`analysis/data/bowl-original-native-observed-tally-wram-offsets-20261010.json`](../analysis/data/bowl-original-native-observed-tally-wram-offsets-20261010.json), run **38025090532**. Its source original and native guests both reach authentic PPU score **MIKE 764** / qualifier **68**. Every Bowl sample reports a complete, non-truncated WRAM offset list (cap 128; maximum sample 50 differences).
+
+Comparing the eight **Switcher host-5782** WRAM-difference addresses against the union of Bowl's eight original/native snapshots produces this exact cross-event intersection:
+
+| Switcher offset | Also differed in Bowl, absolute host frames |
+| --- | --- |
+| `7E:01DD` | 4333, 4343, 4344, 4345, 4346, 4347 |
+| `7E:01E6` | 4343, 4344, 4347 |
+| `7E:01E7` | 4343, 4344, 4347 |
+| `7E:01EF` | 4343 |
+| `7E:01F0` | 4343, 4347 |
+| `7E:01F3` | 4348 |
+| `7E:01F1`, `7E:01F2` | **not observed** in Bowl's eight sampled frames |
+
+The **six-of-eight overlap** is an observed cross-event correspondence, not evidence of simultaneous equal phase, ongoing differences at every frame or a particular field purpose. All eight Switcher offsets fall in the *unlabelled* `7E:01D8..01F3` cluster of the pinned [imported RAM label catalogue](../reference/imported/reverse-engineering/baldosa-uniracers-recomp/decomp/ram.txt). No entry covers these addresses. A shared transient workspace is a **hypothesis**; writer PC, readers and consumer impact remain unproved. The Bowl offset-union contains 57 distinct WRAM addresses, 25 in this cluster. Its two early six-byte samples share only `7E:01E3`; there is no all-eight-frame persistent offset.
+
+**Bounded discriminating work:** trace *one* high-frequency intersection address (`7E:01DD`) to original PC/writer and reader at an event handoff. Include `7E:01F1` as a negative cross-event control. If the writer and reader are identified, expand to `01E6/01E7` only if they share an instruction access width or a result/progression consumer. Do not treat lack of a catalogue name as proof of an unused byte or suppress it from comparison.
 
 ## Admission protocol for one representative event per family
 

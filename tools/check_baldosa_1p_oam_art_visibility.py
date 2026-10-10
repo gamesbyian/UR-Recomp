@@ -62,7 +62,8 @@ def parse_oam(lines: list[str]) -> dict[int, dict]:
         if ready and (not (-256 <= tx <= 255 and -256 <= bx <= 255) or
                       not (0 <= ty <= 255 and 0 <= by <= 255)):
             raise ValueError("invalid original SNES nine-bit signed X/Y bounds")
-        if ready and (tg != (tlarge and bounds(tx, ty, True)) or\n                      bg != (blarge and bounds(bx, by, False))):
+        if ready and (tg != (tlarge and bounds(tx, ty, True)) or
+                      bg != (blarge and bounds(bx, by, False))):
             raise ValueError("native original P1 OAM reported impossible on-screen geometry")
         if bank and (not ready or obsel != 0x83 or
                      tt not in (0, 8) or bt not in (0, 8)):

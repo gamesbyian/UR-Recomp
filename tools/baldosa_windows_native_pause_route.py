@@ -655,20 +655,27 @@ def run_native_modern_root_smoke(
 
 
 
-def native_modern_root_reentry_script() -> str:
-    """Return from a real original racer picker to the original stock root.
+# Probe each candidate in a fresh, independently booted original guest.
+# B was observed to advance 3c -> 6d and cannot be treated as "Back".
+STOCK_RETURN_CANDIDATES = ("select", "x", "y", "l", "r", "a")
 
-    The test injects *physical* Escape only AFTER the guest independently
-    exposes the settled 0xd7 stock main menu. The guest's own B menu input
-    performs the return; no fabricated menu state or host reset is allowed.
+
+def native_modern_root_reentry_script(button: str) -> str:
+    """Bounded source guest back-input probe after a REAL Modern 1P handoff.
+
+    The real SDL event pump may reopen the host root only if a candidate
+    truly leads the original guest to its stock main 0xd7 surface. No fake
+    WRAM menu bytes, emulator resets or indefinite script awaits.
     """
+    if button not in STOCK_RETURN_CANDIDATES:
+        raise ValueError("Unsupported source stock return candidate")
     return "\n".join([
         "turbo on",
         "until16 0053 == F60C",
         "wait 900",
-        "press b 2",         # test stock cancel; never assume it works
-        "wait 540",          # bounded diagnostic, no hung until
-        "dump after_back",
+        f"press {button} 2",
+        "wait 360",
+        "dump after_candidate",
         "quit",
         "",
     ])
@@ -694,67 +701,84 @@ def verify_native_modern_root_reentry_log(log: str) -> None:
 def run_native_modern_root_reentry(
     exe: Path, rom: Path, root: Path, *, video: str, timeout: int,
 ) -> dict[str, object]:
-    """Test real SDL Escape from observed stock MAIN, not deep/racing guest."""
-    output = root / "native_modern_root_reentry"
-    output.mkdir(parents=True, exist_ok=False)
-    user_root = output / "Modern Returning Player Data"
-    user_root.mkdir()
-    script = output / "stock-menu-return.txt"
-    script.write_text(native_modern_root_reentry_script(), encoding="ascii")
-    config = output / "config.ini"
-    config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
-    env = os.environ.copy()
-    env.update({
-        "SNESRECOMP_USER_DATA_DIR": str(user_root),
-        "UR_EXECUTION_MODE": "modern",
-        "UR_BALDOSA_MODERN_ROOT": "1",
-        "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
-        "UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE": "1",
-        "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
-        "UR_BALDOSA_MODERN_INPUT": "1",
-        "SDL_VIDEODRIVER": video,
-        "SDL_AUDIODRIVER": "dummy",
-    })
-    try:
-        result = subprocess.run(
-            [str(exe), "--no-launcher", "--config", str(config),
-             "--script", str(script), str(rom)],
-            cwd=output, env=env, capture_output=True, text=True,
-            timeout=timeout, errors="replace")
-    except subprocess.TimeoutExpired as exc:
-        partial = (exc.stdout or b"")
-        partial_err = (exc.stderr or b"")
-        if isinstance(partial, bytes):
-            partial = partial.decode("utf-8", errors="replace")
-        if isinstance(partial_err, bytes):
-            partial_err = partial_err.decode("utf-8", errors="replace")
-        (output / "timeout-log.txt").write_text(
-            partial + "\n" + partial_err, encoding="utf-8")
-        raise RuntimeError(
-            "Bounded native root reentry guest timed out; "
-            f"tail={(partial + partial_err)[-3200:]}") from exc
-    log = result.stdout + "\n" + result.stderr
-    (output / "log.txt").write_text(log, encoding="utf-8")
-    if result.returncode:
-        raise RuntimeError(
-            f"Modern root reentry guest rejected rc={result.returncode}: {log[-5000:]}")
-    try:
-        verify_native_modern_root_reentry_log(log)
-    except ValueError as exc:
-        raise ValueError(
-            f"{exc}; guest observer tail={log[-3500:]}") from exc
-    saved = user_root / "saves" / "save.srm"
-    if not saved.is_file() or saved.stat().st_size != 8192:
-        raise ValueError("Modern root reentry lost canonical 8KiB SRAM")
-    if (output / "saves").exists():
-        raise ValueError("Modern root reentry leaked save to package/cwd")
-    return {
-        "native_guest_main_menu_observed": True,
-        "physical_sdl_escape_dispatched": True,
-        "shared_root_reopened_and_painted": True,
-        "gameplay_guest_writes": 0,
-        "profile_sram_external": True,
-    }
+    """Identify which real stock controller control returns to original MAIN.
+
+    Every probe gets an isolated process, no shared state or guessed keyboard
+    replay. A new Modern root is accepted only AFTER original 0xd7 observation.
+    A lack of genuine exit fails CI and records the observed guest menu path.
+    """
+    probes: dict[str, str] = {}
+    for button in STOCK_RETURN_CANDIDATES:
+        output = root / f"native_modern_root_reentry_{button}"
+        output.mkdir(parents=True, exist_ok=False)
+        user_root = output / "Modern Returning Player Data"
+        user_root.mkdir()
+        script = output / "stock-menu-return.txt"
+        script.write_text(native_modern_root_reentry_script(button),
+                          encoding="ascii")
+        config = output / "config.ini"
+        config.write_text("[Sound]\nEnableAudio = 0\n", encoding="ascii")
+        env = os.environ.copy()
+        env.update({
+            "SNESRECOMP_USER_DATA_DIR": str(user_root),
+            "UR_EXECUTION_MODE": "modern",
+            "UR_BALDOSA_MODERN_ROOT": "1",
+            "UR_BALDOSA_MODERN_ROOT_KEY_SMOKE": "1",
+            "UR_BALDOSA_MODERN_ROOT_REENTER_SMOKE": "1",
+            "UR_BALDOSA_MODERN_PROFILE_SELECT": "0",
+            "UR_BALDOSA_MODERN_INPUT": "1",
+            "SDL_VIDEODRIVER": video,
+            "SDL_AUDIODRIVER": "dummy",
+        })
+        try:
+            result = subprocess.run(
+                [str(exe), "--no-launcher", "--config", str(config),
+                 "--script", str(script), str(rom)],
+                cwd=output, env=env, capture_output=True, text=True,
+                timeout=timeout, errors="replace")
+        except subprocess.TimeoutExpired as exc:
+            partial = (exc.stdout or b"")
+            partial_err = (exc.stderr or b"")
+            if isinstance(partial, bytes):
+                partial = partial.decode("utf-8", errors="replace")
+            if isinstance(partial_err, bytes):
+                partial_err = partial_err.decode("utf-8", errors="replace")
+            (output / "timeout-log.txt").write_text(
+                partial + "\n" + partial_err, encoding="utf-8")
+            raise RuntimeError(
+                f"Bounded native root stock {button} probe timed out; "
+                f"tail={(partial + partial_err)[-2000:]}") from exc
+        log = result.stdout + "\n" + result.stderr
+        (output / "log.txt").write_text(log, encoding="utf-8")
+        if result.returncode:
+            raise RuntimeError(
+                f"Native stock {button} probe returned {result.returncode}: "
+                f"{log[-3000:]}")
+        try:
+            verify_native_modern_root_reentry_log(log)
+        except ValueError:
+            probes[button] = "; ".join(
+                line for line in log.splitlines()
+                if "UR_BALDOSA_MODERN_ROOT source_menu" in line)[-1600:]
+            continue
+
+        saved = user_root / "saves" / "save.srm"
+        if not saved.is_file() or saved.stat().st_size != 8192:
+            raise ValueError(f"Modern root reentry via {button} lost 8KiB SRAM")
+        if (output / "saves").exists():
+            raise ValueError("Modern root reentry leaked save to package/cwd")
+        return {
+            "stock_return_button_observed": button,
+            "native_guest_main_menu_observed": True,
+            "physical_sdl_escape_dispatched": True,
+            "shared_root_reopened_and_painted": True,
+            "gameplay_guest_writes": 0,
+            "profile_sram_external": True,
+        }
+
+    raise ValueError(
+        "No source-visible original menu return button confirmed; "
+        f"real guest traces: {probes}")
 
 
 def native_modern_race_entry_script(players: int) -> str:

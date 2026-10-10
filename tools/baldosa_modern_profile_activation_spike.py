@@ -103,7 +103,14 @@ def patch_cmake(source: str, root: Path) -> str:
         raise ValueError("Pinned Modern native CMake hook must already be staged")
     bridge = (root / "tools/baldosa_modern_profile_activation.cpp").resolve()
     product = (root / "native/product").resolve()
-    selected = [bridge, *(product / s for s in SOURCES)]
+    # Reuse the existing canonical .urrun decoder/store for the native
+    # read-only Records archive. No second codec, rankings or guest results.
+    records_sources = (
+        product / "baldosa_native_records_summary.cpp",
+        product / "completed_run_store.cpp",
+        product / "completed_run_record.cpp",
+    )
+    selected = [bridge, *(product / s for s in SOURCES), *records_sources]
     for path in selected:
         if not path.is_file():
             raise ValueError(f"Missing established Modern product component: {path}")

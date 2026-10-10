@@ -1,6 +1,6 @@
 # QA-08: independent native stock-centre parity in the 342-wide field
 
-**Status:** implementation candidate; no accepted native result until CI runs this exact head. This is strictly Original PPU evidence, not release approval or a replacement for moving-rider visual review.
+**Status: accepted bounded native Original PPU observation**, merged #1210. The exact native AOT run `38083079741` passed; artifact `11681138053` contains both independent raw PAMs, full CRC witnesses and `ws342_original_center_parity_1856.json`. This is not a release certificate or a replacement for moving-rider visual review.
 
 ## Question
 
@@ -23,6 +23,10 @@ behind a plausible full-frame screenshot.
 - `tools/check_baldosa_original_center_parity.py` examines **all 57,344 centre pixels**, preserving their full RGBA bytes. It emits exact stock and wide SHA256s, top/bottom changed-pixel counts, changed rows and the first twenty positional/RGBA differences.
 - Machine-readable report and both native PAMs are retained in the existing Baldosa artifact; the existing 4K host and wider-world checks remain unchanged.
 
+## Measured native result
+
+At guest frame **1856**, all **57,344 RGBA source-centre pixels** matched: **0 top-band differences, 0 bottom-band differences**. Independently executed fixed Original and widened Original guest CRC sequences agreed for all **2,473** guest frames. The fixed PPU pixel SHA256 and recovered centre SHA256 both equal `6b907da3f91cf81cd31dfa6a4f781a879942e6a63efee42ecbe4e9113d11f689`. The actual full-width 342×224 PPU SHA256 is `0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9`.
+
 ## Interpretation
 
 `center-exact` is a strong same-frame Original centre-parity observation,
@@ -40,7 +44,8 @@ small top-band/bottom-band changes or accept unequal guest CRCs.
 
 ## Next actionable graphical work
 
-After reading the native report, prioritize visible centre/split changes
-if found. If centre parity is exact, move to genuine wide-edge OBJ
-source-visibility and HUD-placement checks on actual 1P/2P transitions,
+With exact centre parity established for this 2P frame, prioritize independent
+wide-edge OBJ source visibility, later HUD/camera transitions and authored Remastered
+racer coverage. The merged #1211 follow-up captures actual post-GO 2P source-wide
+racing at frame 2208; neither test grants 342-wide HD source substitution.
 then independently review moving original/remastered rider coverage.

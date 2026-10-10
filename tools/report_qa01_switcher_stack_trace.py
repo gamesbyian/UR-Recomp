@@ -90,7 +90,7 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
     begins = list(BEGIN.finditer(log))
     if len(begins) != 1:
         raise ValueError(f"expected one instrumented CPU gate entry, found {len(begins)}")
-    first, vcounter, pc, sp = begins[0].groups()
+    first, vcounter, begin_pc, sp = begins[0].groups()
     first = int(first)
     if abs(first - (source_result_frame - 16)) > 2:
         raise ValueError("instrumented CPU frame not aligned with original result")
@@ -128,7 +128,7 @@ def parse_trace(log: str, source_result_frame: int) -> dict:
         "observed_cpu_gate": {
             "icpu_frame": first,
             "ppu_vcounter": int(vcounter),
-            "pc": f"{pc[:2]}:{pc[2:]}",
+            "pc": f"{begin_pc[:2]}:{begin_pc[2:]}",
             "sp": sp,
         },
         "opcode_scope_events": rows,

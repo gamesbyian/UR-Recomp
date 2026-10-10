@@ -100,3 +100,30 @@ Product integration should consume an existing presenter/output hook,
 with presentation mode selected externally. Never transfer Modern
 navigation, profile state, replay/ghost authority, event progression,
 or guest result decoding into this renderer.
+
+## Independent opt-in live-scene world expansion gate
+
+The Baldosa world bridge historically widened only guest frames
+1800..2450, which proves one scripted two-player interval but cannot
+serve general moving-gameplay presentation. With
+`UR_BALDOSA_WS342=1 UR_BALDOSA_WS342_LIVE=1`, the same existing Modern
+`observe_widescreen_scene()` rule now reads guest `$7E:0313` and
+`$7E:009F` and admits calibrated 342-wide course-derived pixels during
+recognized active 1P/2P/VS races **regardless of frame number**.
+Pre-race, results, unknown scene modes and failed calibration keep the
+unmodified 256-wide Original fallback. The recognized scene plus
+calibration decision is latched during `prepare_frame()`, not
+independently re-inferred during the host's later draw callback.
+Without `UR_BALDOSA_WS342_LIVE`, the old 1800..2450 bounded route
+and its existing acceptance oracles remain unchanged.
+
+The compiled production-bridge stub tests cover an unknown active
+state, 1P setup/race/results, VS setup/race, rejected calibration,
+all 1×..4× densities, the 342-wide edges and 112-line split.
+The import adapter links the already-owned
+`widescreen_output_composition.cpp` rather than implementing a
+second scene classifier. This extends a real live presentation
+**integration seam**, not proof of complete 1P/VS rendered routes:
+those require a follow-up native capture, guest CRC equality and exact
+Original raster oracles before enabling it by default. It does not
+authorize wide authored HD OBJ replacement or physical 4K acceptance.

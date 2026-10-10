@@ -87,6 +87,29 @@ def _press_key(hwnd: int, virtual_key: int, scan_code: int,
         raise RuntimeError("failed to send native Win32 keyup to packaged game")
 
 
+def read_stereo_after_native_exit(pcm: Path, end_bytes: int, *,
+                                  unlock_timeout_seconds: float = 3.0) -> dict:
+    """Allow only bounded Windows post-exit release of SDL's PCM file lock.
+
+    We call this exclusively AFTER _stop_entire_tree has terminated the
+    instrumented packaged game. Its process-tree wrapper may exit before the
+    OS releases the last SDL playback file handle. Never retry missing,
+    truncated, misaligned, silent or malformed audio: those remain hard QA
+    failures. Persistent PermissionError also fails after three seconds.
+    """
+    if not 0 <= unlock_timeout_seconds <= 5:
+        raise ValueError("invalid bounded SDL post-exit unlock timeout")
+    deadline = time.monotonic() + unlock_timeout_seconds
+    while True:
+        try:
+            return read_stereo_window(pcm, end_bytes)
+        except PermissionError:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise
+            time.sleep(min(0.10, remaining))
+
+
 def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
             deadline_seconds: float = 100,
             paused_hold_seconds: float = 4,
@@ -163,9 +186,11 @@ def capture(launcher: Path, script: Path, log: Path, pcm: Path, *,
         finally:
             _stop_entire_tree(proc)
 
-    # Windows SDL3 disk output remains exclusively locked until game exit.
-    paused = read_stereo_window(pcm, paused_boundary)
-    resumed = read_stereo_window(pcm, resumed_boundary)
+    # taskkill /T can complete before the last descendant SDL disk-device
+    # handle is released by Windows. Retry only that post-close file-lock
+    # window, never a failed audio measurement or guest event.
+    paused = read_stereo_after_native_exit(pcm, paused_boundary)
+    resumed = read_stereo_after_native_exit(pcm, resumed_boundary)
     log_content = log.read_text(encoding="utf-8", errors="replace")
     evidence = verify_restart_log(log_content)
     # Preserve bounded real PCM evidence even on failure. A sudden audio

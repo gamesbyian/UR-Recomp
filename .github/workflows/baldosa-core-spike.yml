@@ -518,7 +518,7 @@ jobs:
           # Original at native 1x and 4x respectively. Any failure is a
           # real missing acceptance witness, never an HD approval.
           unset UR_BALDOSA_WS342_LIVE
-          export UR_BALDOSA_WS342=0
+          export UR_BALDOSA_WS342=0 UR_BALDOSA_WS24=0
           export UR_BALDOSA_HD=0 UR_BALDOSA_HD_DENSITY=1
           bash baldosa/tools/run_route.sh baldosa/tests/routes/vs.txt \
             "$RUNNER_TEMP/baldosa-evidence/vs_stock"

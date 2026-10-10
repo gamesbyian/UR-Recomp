@@ -40,6 +40,8 @@ int ur_baldosa_modern_root_key(int key, int pressed);
 int ur_baldosa_modern_root_gamepad(int player, int button, int pressed);
 void ur_baldosa_modern_root_after_run_frame(unsigned frame);
 unsigned ur_baldosa_modern_root_guest_players(void);
+int ur_baldosa_modern_publish_settled_one_player_run(
+    const ur::product::BaldosaSettledResult* result);
 void ur_baldosa_guest_snapshot_after_run_frame(
     const SnesDesktopHostFrameStats* stats);
 }
@@ -403,10 +405,13 @@ extern "C" void ur_baldosa_product_after_run_frame(
         if (terminal) {
             if (terminal->kind ==
                 ur::product::BaldosaSettledResultKind::TimedOnePlayerRace) {
+                const int published =
+                    ur_baldosa_modern_publish_settled_one_player_run(
+                        &*terminal);
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-1p "
                     "race_host=%llu result_host=%llu finish_ticks60=%llu "
-                    "input_frames=%llu input_runs=%zu published=0\n",
+                    "input_frames=%llu input_runs=%zu published=%d\n",
                     static_cast<unsigned long long>(
                         terminal->first_race_host_frame),
                     static_cast<unsigned long long>(
@@ -415,7 +420,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
                         terminal->p1_finish_ticks60),
                     static_cast<unsigned long long>(
                         terminal->captured_input_frames),
-                    terminal->mapped_inputs.size());
+                    terminal->mapped_inputs.size(), published);
             } else if (terminal->two_player) {
                 const auto& result = *terminal->two_player;
                 std::fprintf(stderr,

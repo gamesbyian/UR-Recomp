@@ -95,7 +95,7 @@ jobs:
           mkdir -p "$out"
           for n in 0 150 300 450 599; do
             ffmpeg -nostdin -hide_banner -loglevel error -y -i "$master" \
-              -vf "select=eq(n\\,$n)" -fps_mode vfr -frames:v 1 \
+              -vf "select=eq(n\\,$n)" -vsync vfr -frames:v 1 \
               "$out/source-ordinal-$(printf '%03d' "$n").png"
           done
           python3 - "$master" "$out" <<'PY'
@@ -106,7 +106,7 @@ jobs:
           filt="select="+ "+".join(f"eq(n\\,{n})" for n in selected)
           stream=subprocess.run([
             "ffmpeg","-nostdin","-hide_banner","-loglevel","error",
-            "-i",str(master),"-vf",filt,"-fps_mode","vfr",
+            "-i",str(master),"-vf",filt,"-vsync","vfr",
             "-f","rawvideo","-pix_fmt","rgb24","pipe:1"
           ],check=True,capture_output=True).stdout
           step=w*h*3

@@ -66,7 +66,7 @@ class NativeStackGuardTests(unittest.TestCase):
             with self.subTest(bad=bad[:40]):
                 with self.assertRaises(ValueError):
                     report.summarize(bad.splitlines(keepends=True))
-        with self.assertRaisesRegex(ValueError, "out-of-order"):
+        with self.assertRaisesRegex(ValueError, "escaped the frame or memory scope"):
             report.summarize([good, good.replace("f5782", "f5779")])
         with self.assertRaisesRegex(ValueError, "budget exceeded"):
             old_limit = report.MAX_EVENTS

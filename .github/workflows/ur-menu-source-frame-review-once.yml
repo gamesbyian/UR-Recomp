@@ -1,0 +1,58 @@
+name: UR menu source-frame visual review ONE-SHOT
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: [".github/workflows/ur-menu-source-frame-review-once.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    if: github.event.pull_request.head.ref == 'media/native-title-menu-footage-20261010'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Extract authentic original title/menu moments from accepted MP4
+        run: |
+          set -euo pipefail
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y --no-install-recommends ffmpeg
+          base=media/showcase/2026-10-10/recruitment/native-menu
+          video="$base/ur-native-title-menu-900f.mp4"
+          python3 - "$video" "$base/native-title-menu-provenance.json" <<'PY'
+          import hashlib,json,pathlib,sys
+          mp4,manifest=map(pathlib.Path,sys.argv[1:])
+          x=json.loads(manifest.read_text())
+          assert x["consecutive_host_presentations"]==900
+          assert x["control_guest_crc_sha256"]==x["recorded_guest_crc_sha256"]
+          assert hashlib.sha256(mp4.read_bytes()).hexdigest()==x["published_sha256"][mp4.name]
+          PY
+          mkdir -p "$base/frames"
+          for n in 0 300 600 750 899; do
+            ffmpeg -nostdin -hide_banner -loglevel error -y -i "$video" \
+              -vf "select=eq(n\\,$n)" -vsync vfr -frames:v 1 \
+              "$base/frames/original-title-menu-ordinal-$(printf '%03d' "$n").png"
+          done
+          python3 - "$base" <<'PY'
+          import hashlib,json,pathlib,sys
+          root=pathlib.Path(sys.argv[1])
+          selected=[0,300,600,750,899]
+          files=sorted((root/"frames").glob("*.png"))
+          assert len(files)==len(selected)
+          result={"source":"genuine validated native-menu 900f MP4",
+                  "guest_frame_numbers":[n+30 for n in selected],
+                  "ordinals":selected,
+                  "images":{p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in files}}
+          (root/"frames/source-frame-review.json").write_text(json.dumps(result,indent=2)+"\n")
+          PY
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$base/frames"
+          git diff --cached --check
+          git commit -m "media: retain five independently decoded native title and menu frames"
+          git push origin HEAD:refs/heads/media/native-title-menu-footage-20261010

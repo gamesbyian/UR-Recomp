@@ -197,7 +197,13 @@ HostProfileSaveStatus save_host_profile_state_file_if_current(
     const std::string& path,
     const std::optional<HostProfileState>& expected_current,
     const HostProfileState& next) {
-    if (path.empty()) return HostProfileSaveStatus::Rejected;
+    // Preserve the old reject-before-I/O behavior for invalid input.
+    if (!policy_for(mode).host_profiles || path.empty() ||
+        encode_host_profile_state(next).empty() ||
+        (expected_current &&
+         expected_current->profile_id != next.profile_id)) {
+        return HostProfileSaveStatus::Rejected;
+    }
     // The same persistent lock used by all existing profile CAS writers.
     TournamentLaunchPathLock lock(path);
     if (!lock.acquired()) return HostProfileSaveStatus::IoError;

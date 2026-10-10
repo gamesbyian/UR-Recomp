@@ -693,6 +693,9 @@ jobs:
           unset UR_BALDOSA_WS342_LIVE UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC
           export UR_BALDOSA_HD_DENSITY=1
           export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME=400
+          # Capture the matching stock racing centre in this same fixed
+          # Original guest process, without paying for another AOT route.
+          export UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME=1856
           export UR_BALDOSA_HD_CAPTURE_DIR="$RUNNER_TEMP/baldosa-fixed-source"
           mkdir -p "$UR_BALDOSA_HD_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
@@ -702,7 +705,22 @@ jobs:
           grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=${UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME} logical=256x224 saved=1 source=native-original-ppu$" \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
           test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-000400.pam"
-          unset UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME
+          test -s "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-001856.pam"
+          grep -q "^UR_BALDOSA_FIXED_ORIGINAL_SOURCE frame=1856 logical=256x224 saved=1 source=native-original-ppu$" \
+            "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt"
+          # Independently compare the real fixed Original source centre to
+          # the same-guest-frame native wide Original PPU crop. Record ALL
+          # differences by split band and row; this is an observational
+          # report, never a guessed zero-delta HUD or HD admission claim.
+          python3 tools/check_baldosa_original_center_parity.py \
+            --fixed "$UR_BALDOSA_HD_CAPTURE_DIR/ur-baldosa-original-source-001856.pam" \
+            --wide "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-001856.pam" \
+            --fixed-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_fixed_source_1x/fd/crc.txt" \
+            --wide-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --frame 1856 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_original_center_parity_1856.json"
+          echo "OBSERVED: independent real native fixed/342-wide same-frame centre and HUD/split parity measured; differences require adjudication" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_FIXED_ORIGINAL_SOURCE_FRAME UR_BALDOSA_FIXED_ORIGINAL_SOURCE_EXTRA_FRAME
 
           # The independent 4x Original fallback from the preceding step.
           test -s "$RUNNER_TEMP/baldosa-hd-captures-4x/ur-baldosa-fallback-000400.pam"
@@ -1078,6 +1096,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_physical_4k/log.txt
             ${{ runner.temp }}/baldosa-fixed-source/ur-baldosa-original-source-000400.pam
+            ${{ runner.temp }}/baldosa-fixed-source/ur-baldosa-original-source-001856.pam
+            ${{ runner.temp }}/baldosa-evidence/ws342_original_center_parity_1856.json
             ${{ runner.temp }}/ur-baldosa-output-000400.pam
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_physical_4k/log.txt
             ${{ runner.temp }}/ur-baldosa-output-001856.pam

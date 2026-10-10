@@ -102,6 +102,30 @@ def source_event_diagnostic(states: dict[int, dict],
         "active_track_frames": len(active_frames),
         "active_track_first_last": [active_frames[0], active_frames[-1]]
             if active_frames else [],
+        "source_event_candidate_entries": [
+            f for f in keys if states[f]["track"] == track
+            and states[f]["in_race"] == 1
+            and (f == keys[0] or states.get(f - 1, {}).get("track") != track
+                 or states.get(f - 1, {}).get("in_race") != 1)
+            and all(states.get(f + j, {}).get("track") == track
+                    and states.get(f + j, {}).get("in_race") == 1
+                    for j in range(8))
+        ][:12],
+        "source_intervening_foreign_active_runs_8_frames": (
+            sustained_foreign_active_runs(states,
+                                          active_frames[0] if active_frames else 0,
+                                          min((row["start"] for row in stages
+                                               if row["menu"] == result_menu),
+                                              default=keys[-1] if keys else 0),
+                                          track)
+            if keys else []
+        ),
+        "source_intervening_foreign_active_raw_frame_count": (
+            sum(1 for f in keys
+                if active_frames and active_frames[0] <= f <= 11985
+                and states[f]["in_race"] == 1
+                and states[f]["track"] != track)
+        ),
         "stable_original_results": [
             {**row, "track_at_start": states[row["start"]]["track"],
              "race_flag_at_start": states[row["start"]]["in_race"]}
@@ -116,6 +140,32 @@ def source_event_diagnostic(states: dict[int, dict],
         ),
         "complete_event_qa_credit": 0,
     }
+
+
+def sustained_foreign_active_runs(states: dict[int, dict], first: int,
+                                  stop: int, track: int,
+                                  min_run: int = 8) -> list[dict]:
+    """Only a sustained active *other course* invalidates source event origin.
+
+    The low-WRAM track byte is writable menu scratch. A one-frame rewrite
+    cannot create an independent competing race. Qualify a competing guest
+    event only after >=8 uninterrupted active frames on another track.
+    """
+    runs = []
+    current = None
+    for frame in range(first, stop):
+        row = states.get(frame, {})
+        ident = row.get("track")
+        active = row.get("in_race") == 1 and type(ident) is int and ident != track
+        if active and current and current["track"] == ident:
+            current["end"] = frame
+        else:
+            if current and current["end"] - current["start"] + 1 >= min_run:
+                runs.append(current)
+            current = {"start": frame, "end": frame, "track": ident} if active else None
+    if current and current["end"] - current["start"] + 1 >= min_run:
+        runs.append(current)
+    return runs
 
 
 def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
@@ -157,8 +207,7 @@ def source_event(states: dict[int, dict], track: int, result_menu: int) -> dict:
         # Intervening active gameplay on *another* course makes this
         # candidate a later, unrelated result. Fade/transient menu values
         # alone cannot disqualify an otherwise legitimate result.
-        if any(states[f]["in_race"] == 1 and states[f]["track"] != track
-               for f in range(start, stop) if f in states):
+        if sustained_foreign_active_runs(states, start, stop, track):
             continue
         if stop - start < 250:
             raise CompleteEventError("implausibly short source event")

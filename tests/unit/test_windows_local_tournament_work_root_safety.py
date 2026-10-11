@@ -46,6 +46,33 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
                 self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
                 self.assertIn("non-existing work directory", proc.stderr)
 
+    def test_work_root_inside_immutable_package_is_refused(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "Extracted Package"
+            package.mkdir()
+            nested = package / "QA Output"
+            proc = subprocess.run(
+                ["bash", str(ROUTE), str(package), str(nested)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+            self.assertIn("cannot be inside the package", proc.stderr)
+            self.assertFalse(nested.exists())
+
+    def test_nonexistent_parent_fails_without_creating_tree(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            package = root / "package"
+            package.mkdir()
+            nested = root / "missing-parent" / "qa"
+            proc = subprocess.run(
+                ["bash", str(ROUTE), str(package), str(nested)],
+                capture_output=True, text=True, check=False,
+            )
+            self.assertEqual(proc.returncode, 2, proc.stdout + proc.stderr)
+            self.assertFalse(nested.parent.exists())
+
     def test_no_recursive_delete_in_package_route(self):
         text = ROUTE.read_text(encoding="utf-8")
         self.assertNotIn("rm -rf", text)

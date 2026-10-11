@@ -21,6 +21,19 @@ if [[ -z "$WORK" || -e "$WORK" || -L "$WORK" ]]; then
   echo "Windows tournament QA requires a new, non-existing work directory" >&2
   exit 2
 fi
+# Only an already-existing parent is admissible: canonicalize it before
+# touching anything, including junction/symlink ancestors. A work tree under
+# the extracted package would itself contaminate immutable package evidence.
+if [[ ! -d "$PACKAGE" || ! -d "$(dirname "$WORK")" ]]; then
+  echo "Windows tournament QA requires existing package and work parent directories" >&2
+  exit 2
+fi
+package_root="$(cd -P -- "$PACKAGE" && pwd -P)"
+work_parent="$(cd -P -- "$(dirname "$WORK")" && pwd -P)"
+if [[ "$work_parent" == "$package_root" || "$work_parent" == "$package_root/"* ]]; then
+  echo "Windows tournament QA work directory cannot be inside the package" >&2
+  exit 2
+fi
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 USER_DATA="$WORK/user data"
 LOG="$WORK/tournament.log"

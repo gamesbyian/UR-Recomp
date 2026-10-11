@@ -81,3 +81,13 @@ offered. A roster entry with missing/corrupt profile data is not an
 actionable opponent. This preflight only improves menu honesty; it
 never replaces the canonical result writer's subsequent locked
 authorization. A lone initialized player retains unbound stock 2P.
+
+## Source rider identity on the join panel
+
+The shared 2P join presenter shows the stock rider names (derived from the
+profile identity's original cartridge rider index) on a dedicated
+`STOCK: P1 / P2` line. After confirming their named profiles, the players
+must choose those corresponding original riders in the untouched guest
+selection screen. This is only guidance: the result's real original SRAM
+rider indices remain final authority and a mismatch still refuses Records
+publication, without manufacturing a win or changing the guest selection.

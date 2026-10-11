@@ -54,6 +54,8 @@ struct ModernRootOverlayView {
     bool two_seat_join_open = false;
     std::string_view join_p1_name{};
     std::string_view join_p2_name{};
+    std::string_view join_p1_stock{};
+    std::string_view join_p2_stock{};
     bool join_p1_confirmed = false;
     bool join_p2_confirmed = false;
 };
@@ -254,6 +256,12 @@ inline bool render_modern_root_overlay(
                         bx + 9 * scale, by + 63 * scale, p2.c_str(),
                         view.join_p2_confirmed
                             ? palette.title_yellow : 0xFFFFFFFFu, scale);
+        const std::string stock = fit_modern_overlay_text(
+            std::string("STOCK: ") + std::string(view.join_p1_stock) +
+            " / " + std::string(view.join_p2_stock), cells);
+        paint.draw_text(pixels, stride, surface_height,
+                        bx + 9 * scale, by + 83 * scale,
+                        stock.c_str(), palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 98 * scale,
                         "P1 A READY / B BACK", palette.secondary_grey, scale);

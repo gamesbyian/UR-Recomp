@@ -74,6 +74,9 @@ def verified_frame(root: Path, frame: int) -> dict:
             blue += original[i:i + 3] == bytes(COUNTDOWN_RGB)
         per_slot[str(slot)] = {
             "source_rgba_sha256": meta["source_sha256"],
+            "source_opaque_alpha_mask_sha256": hashlib.sha256(bytes(
+                int(source[at + 3] != 0)
+                for at in range(0, len(source), 4))).hexdigest(),
             "source_emitted_pixels": emitted,
             "source_rgb_matches_final_original": equal,
             "source_rgb_differs_final_original": emitted - equal,
@@ -135,6 +138,10 @@ def assess(root: Path) -> dict:
     if (frames["1856"]["full_original_blue_rgb_mask_sha256"] ==
             frames["1872"]["full_original_blue_rgb_mask_sha256"]):
         raise ValueError("pre-countdown and covered original blue masks incorrectly identical")
+    if any(frames["1872"]["per_slot"][str(slot)]["source_opaque_alpha_mask_sha256"] ==
+           frames["1888"]["per_slot"][str(slot)]["source_opaque_alpha_mask_sha256"]
+           for slot in (96, 97)):
+        raise ValueError("lower source OAM alpha is static, not independently changing behind the overlay")
     for frame in FRAMES:
         row = frames[str(frame)]
         lower = row["source_union_by_raster_band"]["lower"]

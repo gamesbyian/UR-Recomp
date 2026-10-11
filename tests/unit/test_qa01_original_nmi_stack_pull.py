@@ -32,6 +32,14 @@ PULL = (
 )
 
 
+# Synthetic RTI candidate, not an executed original NMI return address.
+RTI = (
+    "QANMIRTI f=5780 v0=225 v1=225 pc=0085A4 pb0=80 pb1=82 "
+    "sp0=01E0 sp1=01E4 a0=4042 a1=4042 pl0=05 pl1=00 "
+    "cyc0=1000 cyc1=1100 f1=5780\n"
+)
+
+
 class SwitcherNmiStackPullTests(unittest.TestCase):
     def test_patch_preserves_one_original_instruction_and_is_read_only(self):
         source = "head\n" + stack.NMI_MARKER + "\n" + stack.MARKER + "\ntail"
@@ -43,6 +51,8 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(patched.count("Registers.PCw++;"), 1)
         self.assertIn(patcher.STAMP, patched)
         self.assertIn("QANMIPULL f=", patched)
+        self.assertIn("QANMIRTI f=", patched)
+        self.assertIn("(Op == 0x40)", patched)
         self.assertIn("ur_qa_stack_gate", patched)
         self.assertIn("ur_qa_pull_sp0 + ur_qa_pull_width", patched)
         self.assertIn("case 0x68:", patched)
@@ -106,6 +116,34 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
                         short.replace("a1=4042", "a1=4004")):
             with self.assertRaises(ValueError):
                 report.summarize(ORIGINAL + invalid)
+
+    def test_synthetic_rti_roundtrip_is_phase_candidate_not_interrupt_proof(self):
+        result = report.summarize(ORIGINAL + PULL + RTI)
+        self.assertEqual(result["candidate_rti_scope_count"], 1)
+        row = result["candidate_rti_scopes"][0]
+        self.assertEqual(row["opcode_pc"], "00:85A4")
+        self.assertEqual(row["architectural_return_frame_bytes"], 4)
+        self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
+        self.assertTrue(row["same_frame_pha_accumulator_equals_rti_A"])
+        self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+
+    def test_rti_scope_rejects_malformed_or_impossible_return(self):
+        for invalid in (
+            RTI,
+            ORIGINAL + RTI.replace("sp1=01E4", "sp1=01E2"),
+            ORIGINAL + RTI.replace("sp1=01E4", "sp1=0200"),
+            ORIGINAL + RTI.replace("a1=4042", "a1=4004"),
+            ORIGINAL + RTI.replace("f=5780", "f=5760"),
+            ORIGINAL + RTI.replace("v1=225", "v1=300"),
+            ORIGINAL + RTI.replace("cyc1=1100", "cyc1=oops"),
+            ORIGINAL + RTI.replace("f1=5780", "f1=5779"),
+            ORIGINAL + RTI * (report.MAX_RTIS + 1),
+            ORIGINAL + RTI.replace("f=5780", "f=5781", 1) + RTI,
+        ):
+            with self.subTest(invalid=invalid[-110:]):
+                with self.assertRaises(ValueError):
+                    report.summarize(invalid)
 
     def test_malformed_or_forged_original_nmi_reads_fail_closed(self):
         for log in (

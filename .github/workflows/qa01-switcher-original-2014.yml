@@ -18,6 +18,11 @@ on:
         required: false
         type: boolean
         default: false
+      fresh_paired_nmi_probe:
+        description: "Opt-in fresh paired Switcher result with original NMI saved-A, pull and RTI witness"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -28,6 +33,7 @@ concurrency:
 
 jobs:
   source-original-switcher:
+    if: ${{ !inputs.fresh_paired_nmi_probe }}
     runs-on: ubuntu-22.04
     timeout-minutes: 45  # optional original-only traced replay rebuilds and rescans
     steps:
@@ -141,3 +147,118 @@ jobs:
             ${{ runner.temp }}/qa01-switcher/source-switcher/source/source-entry.log
             ${{ runner.temp }}/qa01-switcher-stack/switcher-original-stack-scopes.json
             ${{ runner.temp }}/qa01-switcher-stack/source-switcher/source/source-scan.log
+
+  fresh-paired-switcher-nmi:
+    # Reuse the existing source/movie producer and exact pinned native guest;
+    # the original-only branch above is skipped for this manual mode.
+    if: ${{ inputs.fresh_paired_nmi_probe }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 65
+    steps:
+      - name: Check out canonical USA source and original movie
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Check out pinned Baldosa and original snesref runner
+        uses: actions/checkout@v4
+        with:
+          repository: gamesbyian/uniracers-recomp
+          ref: 10b864b9d14a7b7416dd909eb7b054c88faef101
+          path: baldosa
+          submodules: recursive
+          persist-credentials: false
+      - name: Validate exact original source, native pin and focused regressions
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 tools/verify_rom.py reference/roms/retail/Uniracers_USA.sfc
+          test "$(git -C baldosa rev-parse HEAD)" = 10b864b9d14a7b7416dd909eb7b054c88faef101
+          test "$(git -C baldosa/snesrecomp rev-parse HEAD)" = 075fbe4c8e0d97b0013be541795c39cb644a9709
+          test -s reference/imported/tas-bots/dessyreqt-4250-submission.smv
+          python3 -m unittest discover -s tests/unit -p test_qa01_original_nmi_stack_pull.py
+          python3 -m unittest discover -s tests/unit -p test_probe_original_event_complete.py
+      - name: Build exactly one pinned native and one original guest
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 update
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build pkg-config build-essential cmake libsdl2-dev \
+            libgl-dev libx11-dev libxext-dev libxrandr-dev \
+            libxcursor-dev libxi-dev libxss-dev libwayland-dev \
+            libxkbcommon-dev libegl-dev libgles-dev libdrm-dev \
+            libgbm-dev libasound2-dev libpulse-dev libudev-dev \
+            libdbus-1-dev xvfb
+          python3 tools/bootstrap_toolchain.py --offline --tool snes9x-libretro --jobs 2
+          cmake -S baldosa/snesrecomp/tools/snesref \
+            -B "$RUNNER_TEMP/qa01-switcher-snesref" -DCMAKE_BUILD_TYPE=Release
+          cmake --build "$RUNNER_TEMP/qa01-switcher-snesref" -j2
+          python3 tools/baldosa_qa_dense_scene_input_patch.py \
+            --host baldosa/snesrecomp/runner/src/desktop/host_main.c
+          cmake -S baldosa -B baldosa/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release -DSNESRECOMP_SDL_BACKEND=SDL2 \
+            -DSNESRECOMP_SDL3_FETCH=OFF -DRECOMP_UI_SDL3=OFF
+          cmake --build baldosa/build --target UniracersSNESRecomp -j3
+          test -x baldosa/build/UniracersSNESRecomp
+      - name: Instrument only disposable original Snes9x opcode and interrupt scopes
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="$GITHUB_WORKSPACE/.tools/src/snes9x-libretro"
+          python3 tools/instrument_snesref_qa01_switcher_stack.py \
+            "$SRC/cpuexec.cpp" --single-address 0x01DD --watch-nmi
+          python3 tools/qa01_original_nmi_pha_accumulator_patch.py "$SRC/cpuexec.cpp"
+          python3 tools/qa01_original_nmi_stack_pull_patch.py "$SRC/cpuexec.cpp"
+          make -C "$SRC/libretro" -j2
+          test -s "$SRC/libretro/snes9x_libretro.so"
+          test -x "$RUNNER_TEMP/qa01-switcher-snesref/snesref"
+      - name: Existing fresh-paired Switcher source movie replay and exact result discriminator
+        shell: bash
+        env:
+          UR_QA_STACK_FIRST: "5778"
+          UR_QA_STACK_LAST: "5782"
+        run: |
+          set -euo pipefail
+          OUT="$RUNNER_TEMP/qa01-switcher-fresh"
+          mkdir -p "$OUT"
+          set +e
+          python3 tools/probe_original_event_complete.py \
+            --case switcher --native-backend pinned-baldosa \
+            --switcher-same-host-penultimate \
+            --switcher-same-host-full-memory-offsets \
+            --source-horizon 22000 \
+            --snesref "$RUNNER_TEMP/qa01-switcher-snesref/snesref" \
+            --core "$GITHUB_WORKSPACE/.tools/src/snes9x-libretro/libretro/snes9x_libretro.so" \
+            --native "$GITHUB_WORKSPACE/baldosa/build/UniracersSNESRecomp" \
+            --rom "$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc" \
+            --work-dir "$OUT" --json-out "$OUT/paired-switcher.json" \
+            > "$OUT/paired-attempt.log" 2>&1
+          rc=$?
+          set -e
+          tail -n 70 "$OUT/paired-attempt.log"
+          echo "Strict paired producer exit $rc; original/native phase has NOT been normalized." >> "$GITHUB_STEP_SUMMARY"
+          test "$rc" -eq 1
+          test -s "$OUT/paired-switcher.json"
+          test -s "$OUT/switcher/replay/reference.log"
+          python3 tools/qa01_original_nmi_stack_pull_report.py \
+            --original-log "$OUT/switcher/replay/reference.log" \
+            --paired-report "$OUT/paired-switcher.json" \
+            --out "$OUT/stack-pull-rti-report.json"
+          cat "$OUT/stack-pull-rti-report.json" >> "$GITHUB_STEP_SUMMARY"
+          echo "Original-side NMI/stack/RTI scope only. Zero full-event credit; USA 0/45." >> "$GITHUB_STEP_SUMMARY"
+      - name: Preserve original/native logs and provenance but not ROM or controller bytes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa01-switcher-fresh-paired-nmi
+          retention-days: 7
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/qa01-switcher-fresh/paired-attempt.log
+            ${{ runner.temp }}/qa01-switcher-fresh/paired-switcher.json
+            ${{ runner.temp }}/qa01-switcher-fresh/stack-pull-rti-report.json
+            ${{ runner.temp }}/qa01-switcher-fresh/switcher/source/source-scan.log
+            ${{ runner.temp }}/qa01-switcher-fresh/switcher/calibration/reference.log
+            ${{ runner.temp }}/qa01-switcher-fresh/switcher/calibration/native.log
+            ${{ runner.temp }}/qa01-switcher-fresh/switcher/replay/reference.log
+            ${{ runner.temp }}/qa01-switcher-fresh/switcher/replay/native.log

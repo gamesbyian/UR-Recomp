@@ -896,6 +896,44 @@ jobs:
           unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME
           unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_EXTRA_FILE UR_BALDOSA_PHYSICAL_4K_CAPTURE_EXTRA_FRAME
 
+          # QA-10 independent *live one-player widened* physical SDL
+          # 3840x2160 witness. The accepted Original 1P guest frame2208
+          # already exists at 342x224 and 1368x896 from independent runs.
+          # Reuse the compiled AOT and Xvfb, one additional physical
+          # screenshot guest route only; no new host harness or art gate.
+          export UR_BALDOSA_WS342=1 UR_BALDOSA_WS24=0
+          export UR_BALDOSA_WS342_LIVE=1
+          export UR_BALDOSA_HD_DENSITY=4
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-1p-live-physical-4k-source"
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME=2208
+          export UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE="$RUNNER_TEMP/ur-baldosa-output-live-1p-002208.pam"
+          mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+          DISPLAY=:100 TMO=240 bash baldosa/tools/run_route.sh \
+            baldosa/tests/routes/race_1p.txt \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_physical_4k"
+          cmp "$RUNNER_TEMP/baldosa-evidence/race_1p/fd/crc.txt" \
+              "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_physical_4k/fd/crc.txt"
+          test -s "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE"
+          grep -q "^UR_BALDOSA_PHYSICAL_4K_CAPTURE frame=${UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME} output=3840x2160 source=SDL_RenderReadPixels status=saved$" \
+            "$RUNNER_TEMP/baldosa-evidence/race_1p_ur_ws342_live_physical_4k/log.txt"
+          # Full Original 342-wide source identity in this actual 4K
+          # guest process must agree with previous 1x/4x 1P captures.
+          python3 tools/check_baldosa_wide_density_parity.py \
+            --one-x "$RUNNER_TEMP/baldosa-ws342-live-1p" \
+            --four-x "$UR_BALDOSA_WS342_CAPTURE_DIR" \
+            --min-shared 3 \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_physical_source_density_parity.json"
+          python3 tools/check_baldosa_physical_4k_capture.py \
+            --source "$RUNNER_TEMP/baldosa-ws342-live-1p/ur-baldosa-ws342-002208.pam" \
+            --density-4x "$RUNNER_TEMP/baldosa-ws342-live-1p-4x/ur-baldosa-ws342-002208.pam" \
+            --physical-4k "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE" \
+            --frame "$UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_live_1p_physical_4k_frame2208.json"
+          echo "PASS: actual live 1P Original at physical SDL 3840x2160, source 342-wide/4x full-pixel parity and untouched 1P guest CRC" >> "$GITHUB_STEP_SUMMARY"
+          unset UR_BALDOSA_PHYSICAL_4K_CAPTURE_FRAME UR_BALDOSA_PHYSICAL_4K_CAPTURE_FILE
+          unset UR_BALDOSA_WS342_LIVE UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+
           # Independent Original 256x224 1x source, 1024x896 4x guest
           # and 3840x2160 real SDL output, not widened-world acceptance.
           export UR_BALDOSA_WS342=0 UR_BALDOSA_WS24=0
@@ -1325,6 +1363,8 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame1856.json
             ${{ runner.temp }}/baldosa-evidence/ws342_physical_4k_frame2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_physical_4k_frame2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_live_1p_physical_source_density_parity.json
             ${{ runner.temp }}/baldosa-evidence/fixed_original_physical_4k_frame400.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_source_1x/log.txt
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_fixed_physical_4k/log.txt

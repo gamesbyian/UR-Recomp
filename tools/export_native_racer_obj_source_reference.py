@@ -53,23 +53,59 @@ def lossless_png(data: bytes, width: int, height: int) -> bytes:
 
 def make_reference(source_path: Path, report_path: Path,
                    slot: int = 97, frame: int = 2208) -> tuple[dict, bytes | None]:
-    if slot != 97 or frame != 2208:
-        raise ValueError("only the proven source 1P P1 slot97/frame2208 is in scope")
+    if slot not in (97, 98, 99) or frame != 2208:
+        raise ValueError("only genuine original source 1P OAM slots97..99/frame2208 are in scope")
     native = read_source(source_path, slot)
     if native["guest_frame"] != frame:
         raise ValueError("native source OBJ frame identity mismatch")
     proof = json.loads(report_path.read_text(encoding="utf-8"))
-    if proof.get("status") != "native-1p-source-obj-slot97-frame2208-verified" or (
-        proof.get("native_guest_crcs_identical") != 5447
-    ) or proof.get("independent_one_x_four_x_source_image_pairs") != 7 or (
-        proof.get("isolated_original_ppu_obj_slot") != slot
-    ) or proof.get("guest_frame") != frame or (
-        proof.get("no_remove_from_game") is not True
-    ) or proof.get("widescreen_hd_replacement_admitted") is not False or (
-        proof.get("actual_bg_window_final_winner_proven") is not False
-    ):
-        raise ValueError("native source OBJ provenance report does not authorize a reference")
-    proven_source = proof.get("source_obj_alpha", {})
+    if slot == 97:
+        # Preserve the accepted isolated source-empty bottom slot97 report
+        # contract. Never allow a top-slot pair report to forge this proof.
+        if proof.get("status") != "native-1p-source-obj-slot97-frame2208-verified" or (
+            proof.get("native_guest_crcs_identical") != 5447
+        ) or proof.get("independent_one_x_four_x_source_image_pairs") != 7 or (
+            proof.get("isolated_original_ppu_obj_slot") != slot
+        ) or proof.get("guest_frame") != frame or (
+            proof.get("no_remove_from_game") is not True
+        ) or proof.get("widescreen_hd_replacement_admitted") is not False or (
+            proof.get("actual_bg_window_final_winner_proven") is not False
+        ):
+            raise ValueError("native source OBJ provenance report does not authorize a reference")
+        proven_source = proof.get("source_obj_alpha", {})
+    else:
+        # The top slot98/99 planes are captured by separate REAL 1P
+        # guest processes. Require the five-way CRC and all full 342-wide
+        # Original source raster witnesses, and exact per-slot identity.
+        # The two per-slot records contain original PPU source RGBA,
+        # not guessed semantics or screen geometry. No final BG priority
+        # or authored HD admission is permitted by this report.
+        if proof.get("status") != "native-1p-paired-top-oam-source-truth" or (
+            proof.get("native_guest_frame") != frame
+        ) or proof.get("native_original_guest_crc_identical") != 5447 or (
+            proof.get("native_1x_and_4x_source_frames_identical") != 7
+        ) or proof.get("independent_original_guest_processes") != 5 or (
+            proof.get("no_sprite_removal_or_guest_mutation") is not True
+        ) or proof.get("source_slot_emission_accepted") is not True or (
+            proof.get("individual_final_bg_or_obj_priority_accepted") is not False
+        ) or proof.get("authored_hd_or_wide_replacement_accepted") is not False or (
+            proof.get("windows_beta_accepted") is not False
+        ):
+            raise ValueError("native TOP source OBJ provenance report does not authorize a reference")
+        records = proof.get("original_top_slot98_and_slot99_sources")
+        if not isinstance(records, list) or len(records) != 2 or (
+            [rec.get("original_oam_slot") for rec in records
+             if isinstance(rec, dict)] != [98, 99]
+        ) or any(
+            rec.get("original_1x_and_4x_remained_pixel_identical") is not True
+            for rec in records
+        ):
+            raise ValueError("original top source slot attribution is incomplete or forged")
+        selected = next(rec for rec in records if rec["original_oam_slot"] == slot)
+        proven_source = selected.get("native_source", {})
+        if selected.get("rgba_sha256") != native["source_sha256"]:
+            raise ValueError("native top isolated OBJ source digest is inconsistent")
+
     if not isinstance(proven_source, dict) or (
         proven_source.get("source_sha256") != native["source_sha256"]
     ) or proven_source.get("bbox") != native["bbox"] or (
@@ -140,9 +176,10 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--source-file", type=Path, required=True)
     p.add_argument("--validated-report", type=Path, required=True)
+    p.add_argument("--slot", type=int, choices=(97, 98, 99), default=97)
     p.add_argument("--output-prefix", type=Path, required=True)
     a = p.parse_args()
-    result, image = make_reference(a.source_file, a.validated_report)
+    result, image = make_reference(a.source_file, a.validated_report, slot=a.slot)
     dest = a.output_prefix
     dest.parent.mkdir(parents=True, exist_ok=True)
     dest.with_suffix(".json").write_text(

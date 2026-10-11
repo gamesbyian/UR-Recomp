@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "status": "accepted-authentic-native-original-4x-2p-countdown-causal-hidden-racers-preserved",
+  "exact_original_guest_frame": 1872,
+  "native_original_aot_run_id": 38118239801,
+  "native_original_artifact_id": 11694303573,
+  "artifact_native_workflow_conclusion": "success",
+  "original_2p_guest_frames_in_route": 2473,
+  "logical_source": [
+    342,
+    224
+  ],
+  "output_native_original_4x": [
+    1368,
+    896
+  ],
+  "original_stock_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+  "original_without_lower_pair_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+  "original_source96_sha256": "cf2bbaa6cd29d34d97bb1ce7c111c47cafb27a97f84f78f8cf08e7e8d00f4ce1",
+  "original_source97_sha256": "29366b09277478d4f73a1971a3fdbadd0f56720949551a9e95551ca3ce7a2ad8",
+  "source96_emitted_alpha_pixels": 330,
+  "source97_emitted_alpha_pixels": 325,
+  "source_union_logical_alpha_pixels": 411,
+  "all_source_union_coordinates_blue_original": true,
+  "source_union_original_4x_subpixels_compared": 6576,
+  "original_4x_source_union_unauthorized_overpaint_subpixels": 0,
+  "original_4x_all_raster_unauthorized_subpixels": 0,
+  "original_4x_rgba_sha256": "05382b590d71b8bbd25e90e1616a9bb8c7aad87a78ee4b3d101d4b2527e542ce",
+  "conclusion_scope": "Only source-backed Original 4x at exact native guest1872; not authored HD/Remastered or physical 4K approval",
+  "remastered_art_admitted": false,
+  "authenticated_four_native_2p_guest_crc_streams_equal": 2473,
+  "native_generated_pair_removal_report": "baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json",
+  "second_moving_frame_native_1888": {
+    "successful_native_exact_head_run_id": 38119117927,
+    "artifact_id": 11694649120,
+    "original_full_rgba_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+    "original_pair_removed_rgba_sha256": "7de0e805f07234d0b7b6c4c526eea79b5c6c523ff594c09ddc9970de238eede7",
+    "source96_sha256": "52bdf0ccaf557ee6bbb9e068e392aa08a708dc1db85b6f6095a9bbe62f1f45cf",
+    "source97_sha256": "4600999fee02ff708d04bd4b4debb22ca9a4e70aa53475422676d1de00e461a3",
+    "emitted_slot96": 322,
+    "emitted_slot97": 324,
+    "source_alpha_union": 409,
+    "native_full_ppu_rgba_delta": 0,
+    "original_4x_rgba_sha256": "b79ca244c5aaf122ac437059d06cb6e07e67dffefb45a63de3cf5d9e3d7b1d44",
+    "native_original_4x_physical_pixels": 1225728,
+    "native_original_4x_pixel_mismatches": 0,
+    "protected_original_4x_subpixels": 6544,
+    "protected_original_4x_overpaint_subpixels": 0,
+    "four_crc_streams_equal_each_2473": true,
+    "art_or_product_approval": false
+  },
+  "combined_two_native_frames": {
+    "source_backed_4x_subpixels_protected": 13120,
+    "changed_protected_4x_subpixels": 0,
+    "full_original_4x_output_pixels_compared": 2451456,
+    "full_original_4x_pixel_mismatches": 0
+  }
+}

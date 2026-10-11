@@ -86,7 +86,7 @@ class TopSourceReferenceTests(unittest.TestCase):
     def test_top_report_cannot_forge_old_bottom_native_proof(self):
         with tempfile.TemporaryDirectory() as td:
             top98, top99, report, proof = self.fixture(Path(td))
-            with self.assertRaisesRegex(ValueError, "provenance"):
+            with self.assertRaisesRegex(ValueError, "filename"):
                 make_reference(top98, report, slot=97)
             with self.assertRaisesRegex(ValueError, "in scope"):
                 make_reference(top98, report, slot=96)

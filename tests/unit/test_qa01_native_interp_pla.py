@@ -167,13 +167,13 @@ class NativeInterpreterPlaTests(unittest.TestCase):
         import qa01_native_stack_read_report as read_report
         arm = (
             "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
-            "A=4004 S=01DD scope=I_NMI_M1X1\\n"
+            "A=4004 S=01DD scope=I_NMI_M1X1\n"
         )
         raw = (
             "QANATIVEREAD f=5781 bank=00 addr=01DD width=1 value=0004 "
-            "A=0000 S=01DC M=1 scope=InterpPLA\\n"
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
             "QANATIVEREAD f=5781 bank=00 addr=01DE width=1 value=0040 "
-            "A=0000 S=01DC M=1 scope=InterpPLA\\n"
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
         )
         validated_read = read_report.summarize(arm + raw)
         data = report.summarize(PLA)

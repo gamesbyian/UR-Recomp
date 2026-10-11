@@ -63,6 +63,23 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertEqual(data["release_complete_event_credit"], 0)
         self.assertTrue(data["read_attempt_is_not_proven_original_pha_restore_or_scoring_consumer"])
         self.assertEqual(data["native_stack_read_attempts"][0]["read_value"], "4004")
+        self.assertTrue(data["native_stack_read_attempts"][0]
+                        ["observed_after_4004_writer_callback_started"])
+        self.assertEqual(data[
+            "same_native_frame_post_writer_callback_read_4004_candidate_count"], 1)
+        self.assertTrue(data["matched_word_read_is_stack_restore_candidate_not_proof"])
+
+    def test_read_before_writer_arm_is_not_classified_as_later_restore(self):
+        before = (
+            "QANATIVEREAD f=5780 bank=80 addr=01DD width=2 value=4004 "
+            "A=0000 S=01DC M=0 scope=EarlierRead\\n"
+        )
+        data = report.summarize(before + ARM)
+        self.assertEqual(data["native_bus_read_attempt_count"], 1)
+        self.assertFalse(data["native_stack_read_attempts"][0]
+                         ["observed_after_4004_writer_callback_started"])
+        self.assertEqual(data[
+            "same_native_frame_post_writer_callback_read_4004_candidate_count"], 0)
 
     def test_zero_rows_is_only_bounded_negative(self):
         data = report.summarize(ARM)

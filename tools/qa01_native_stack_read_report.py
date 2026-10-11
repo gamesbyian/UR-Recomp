@@ -68,10 +68,22 @@ def summarize(log: str) -> dict:
             "memory_width_flag_at_read": int(mode),
             "generated_or_interpreter_scope": scope,
             "target_stack_bytes_touched": touched,
+            # ARM is emitted inside the independently recovered 4004
+            # writer's WRAM callback, BEFORE the underlying store returns.
+            # This is source order, not guest architectural liveness.
+            "observed_after_4004_writer_callback_started": arm_count == 1,
             "register_s_does_not_prove_stack_instruction": True,
         })
     if arm_count != 1:
         raise ValueError("native read journal lacks unique actual 4004 NMI writer arming attestation")
+    post_writer_same_frame_word_4004 = [
+        x for x in result
+        if x["observed_after_4004_writer_callback_started"]
+        and x["native_snes_frame_counter"] == 5781
+        and x["word_start"] == "01DD"
+        and x["bus_read_width"] == 2
+        and x["read_value"] == "4004"
+    ]
     by_addr = {"7E:01DD": 0, "7E:01DE": 0}
     for row in result:
         for address in row["target_stack_bytes_touched"]:
@@ -83,6 +95,9 @@ def summarize(log: str) -> dict:
         "native_read_observer_armed_by_real_nmi_4004_writer": True,
         "native_bus_read_attempts_by_target": by_addr,
         "native_stack_read_attempts": result,
+        "same_native_frame_post_writer_callback_read_4004_candidate_count":
+            len(post_writer_same_frame_word_4004),
+        "matched_word_read_is_stack_restore_candidate_not_proof": True,
         "zero_count_is_bounded_native_negative_not_no_reader_ever": len(result) == 0,
         "read_attempt_is_not_proven_original_pha_restore_or_scoring_consumer": True,
         "native_cpu_frame_vs_source_snes9x_frame_unaligned": True,

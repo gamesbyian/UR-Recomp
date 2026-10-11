@@ -105,7 +105,7 @@ def main():
             cache[rid] = (sfile,afile,generator,sampler,sha(stock),canonical_id,approval)
         sfile,afile,generator,sampler,stock_sha,canonical_id,approval = cache[rid]
         frames.append({
-            "frame":row["frame"],"representation_id":canonical_id,
+            "frame":row["frame"],"player":a.player,"representation_id":canonical_id,
             "registered_representation_id":rid,
             "equivalence_proof":"same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
             "stock_png":str(sfile.relative_to(out)),"authored_png":str(afile.relative_to(out)),
@@ -119,7 +119,7 @@ def main():
         "source_rom_sha256":EXPECTED_ROM_SHA256,"registry_sha256":sha(registry_bytes),
         "source":str(REGISTRY.relative_to(ROOT))+"::motion_review_sequence",
         "window":[1205,1220],"player":a.player,"frames":frames}
-    dest=out/"inputs.json"
+    dest=out/f"inputs-{a.player}.json"
     dest.write_text(json.dumps(manifest,indent=2)+"\n")
     print("UR_ART_EXPORT PASS frames=%d unique=%d player=%s manifest=%s"%
         (len(frames),len(cache),a.player,dest))

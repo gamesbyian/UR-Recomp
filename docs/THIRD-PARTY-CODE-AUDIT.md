@@ -3,6 +3,15 @@
 Imported code is evidence and raw material. Project-owned tooling should be the
 best implementation for UR-Recomp's current needs, not a compatibility museum.
 
+For coherent modern upstream components with reproducible tests, follow
+[trusted upstream accelerated adoption](TRUSTED-UPSTREAM-ADOPTION.md): a
+licensed, pinned tool may become a qualified dependency at U2 through upstream
+suite and narrow project contract, without an unnecessary function-by-function
+rewrite. U1 permits bulk advisory research lookup. The detailed per-assumption
+independent scrutiny below continues to apply when an import determines
+original-game mechanics, source-visible PPU, save/result integrity or a release
+oracle. It also applies to legacy scripts with documented safety hazards.
+
 ## Operating rule
 
 Keep source provenance intact under `reference/imported/` when historical
@@ -22,7 +31,8 @@ For implementation decisions, prefer evidence in roughly this order:
 
 Agreement between multiple emulators is not automatically independent evidence if they share the same historical workaround.
 
-Before an imported executable/script/algorithm becomes infrastructure:
+For a high-risk imported executable/script/algorithm whose assumptions become
+original-game or persistence authority:
 
 1. inspect it for ordinary software defects and silent language/runtime traps;
 2. identify version-, emulator- and platform-specific assumptions;

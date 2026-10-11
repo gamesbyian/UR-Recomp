@@ -357,6 +357,49 @@ int main() {
     }
     assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
 
+    // Even a byte-identical off-root raw SRAM is not an authorized P2
+    // profile. Reject live and broken file symlinks BEFORE opening the
+    // canonical publisher leases, not merely after comparing their bytes.
+    const fs::path p2_raw = "saves/profile-rider-2/save.srm";
+    const fs::path p2_typed = "saves/profile-rider-2/host-profile.txt";
+    const fs::path parked_raw = dir / "parked-p2-raw.srm";
+    const fs::path parked_typed = dir / "parked-p2-typed.txt";
+    const fs::path foreign_raw = dir / "foreign-p2-raw.srm";
+    const fs::path foreign_typed = dir / "foreign-p2-typed.txt";
+    fs::copy_file(p2_raw, foreign_raw);
+    fs::copy_file(p2_typed, foreign_typed);
+    fs::rename(p2_raw, parked_raw);
+    fs::create_symlink(foreign_raw, p2_raw);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(fs::file_size(foreign_raw) == kStockSramBytes);
+    fs::remove(p2_raw);
+    fs::create_symlink(dir / "missing-p2-raw.srm", p2_raw);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-p2-raw.srm"));
+    fs::remove(p2_raw);
+    fs::rename(parked_raw, p2_raw);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+
+    fs::rename(p2_typed, parked_typed);
+    fs::create_symlink(foreign_typed, p2_typed);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    fs::remove(p2_typed);
+    fs::create_symlink(dir / "missing-p2-typed.txt", p2_typed);
+    assert(!ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(!ur_baldosa_modern_publish_settled_two_player_match(
+        &redirected_event, &p1, &p2));
+    assert(!fs::exists(dir / "missing-p2-typed.txt"));
+    fs::remove(p2_typed);
+    fs::rename(parked_typed, p2_typed);
+    assert(ur_baldosa_modern_profile_can_join_opponent(&p2));
+    assert(load_valid_multiplayer_matches(multiplayer_root.string()).size() == 1);
+
     // A substituted P2 profile directory may NOT be used even to create
     // an OS lockfile: redirecting the profile would escape the native
     // user's original Modern save namespace before post-lock validation.

@@ -212,8 +212,18 @@ extern "C" int ur_baldosa_modern_profile_can_join_opponent(
         const auto status = fs::symlink_status(value, ec);
         return !ec && fs::is_directory(status) && !fs::is_symlink(status);
     };
+    const auto is_real_file = [](const fs::path& value) {
+        std::error_code ec;
+        const auto status = fs::symlink_status(value, ec);
+        return !ec && fs::is_regular_file(status) &&
+            !fs::is_symlink(status);
+    };
+    // A candidate may not resolve typed state or raw SRAM via any live
+    // or dangling link outside its authorized isolated Modern directory.
     if (!is_real_directory(g_native_user_root / "saves") ||
-        !is_real_directory(root)) return 0;
+        !is_real_directory(root) ||
+        !is_real_file(root / "host-profile.txt") ||
+        !is_real_file(root / "save.srm")) return 0;
     const auto profile = load_host_profile_state_file(
         ExecutionMode::Modern, (root / "host-profile.txt").string(),
         entry->profile_id);
@@ -381,7 +391,9 @@ extern "C" int ur_baldosa_modern_publish_settled_two_player_match(
     };
     if (!real_directory(g_native_user_root / "saves") ||
         !real_directory(first_root) || !real_directory(second_root) ||
-        !real_file(first_state) || !real_file(second_state))
+        !real_file(first_state) || !real_file(second_state) ||
+        !real_file(first_root / "save.srm") ||
+        !real_file(second_root / "save.srm"))
         return 0;
     TournamentLaunchPathLock selector(
         (g_native_user_root / "host-state-v1.txt").string(), true);

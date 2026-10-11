@@ -65,6 +65,10 @@ class BaldosaNativeTwoPlayerPublicationTests(unittest.TestCase):
         self.assertIn("bind_local_multiplayer_match_context(", writer)
         self.assertIn("baldosa_sram_checkpoint_preflight_under_lock(", writer)
         self.assertIn("append_multiplayer_match_pair(", writer)
+        self.assertIn('!real_file(first_root / "save.srm")', writer)
+        self.assertIn('!real_file(second_root / "save.srm")', writer)
+        self.assertIn('!is_real_file(root / "host-profile.txt")', writer)
+        self.assertIn('!is_real_file(root / "save.srm")', writer)
         self.assertIn("g_last_published_two_player_event = event;", writer)
         self.assertNotIn("RtlWriteSram();", writer)
 

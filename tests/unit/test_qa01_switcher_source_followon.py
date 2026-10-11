@@ -81,6 +81,29 @@ class SwitcherSourceFollowOnTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             walk.summarize(states)
 
+    def test_stable_source_result_screen_blocks_transient_follow_on(self):
+        self.assertEqual(walk.RESULT_LAST_STABLE, 17087)
+        for field, value in (("menu", 0x16), ("track", 4), ("in_race", 1),
+                             ("in_race", 60), ("menu", True)):
+            states = source_states()
+            states[17078][field] = value
+            with self.subTest(field=field, value=value), self.assertRaisesRegex(
+                    ValueError, "stable result screen"):
+                walk.summarize(states)
+        result = walk.summarize(source_states())
+        self.assertTrue(result["original_result_screen_stability_fully_observed"])
+        self.assertEqual(result["original_2014_stable_result_screen_last_frame"], 17087)
+        self.assertTrue(result["next_active_candidate_must_follow_stable_result_screen"])
+
+    def test_source_trace_truncated_mid_result_is_inconclusive(self):
+        states = {f: row for f, row in source_states(next_length=0).items()
+                  if f <= 17050}
+        result = walk.summarize(states)
+        self.assertFalse(result["original_result_screen_stability_fully_observed"])
+        self.assertIsNone(result["first_original_source_post_result_active_candidate"])
+        self.assertFalse(result["bounded_source_only_negative_if_no_candidate"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+
     def test_switcher_rematch_is_not_misidentified_as_new_track(self):
         data = walk.summarize(source_states(next_track=3))
         self.assertTrue(data["first_original_source_post_result_active_candidate"]

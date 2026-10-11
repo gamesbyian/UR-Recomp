@@ -18,6 +18,8 @@ import qa01_original_fresh_switcher_01dd_report as paired_auth
 SCHEMA = "UR-QA01-SWITCHER-ORIGINAL-2014-POSTRESULT-WALK/1"
 ENTRY = 12327
 RESULT = 17030
+# Source-executed archive 11674751560: stable Race result until 17087.
+RESULT_LAST_STABLE = 17087
 HORIZON = 22000
 MIN_STABLE_ACTIVE = 8
 
@@ -85,6 +87,17 @@ def summarize(states: dict[int, dict]) -> dict:
             or result["in_race"] != 0):
         raise ValueError("original archive does not show Switcher Race B result at 17030")
     frames = sorted(f for f in states if f > RESULT)
+    # A changed-byte stream with no updates through the full result screen
+    # must remain INCONCLUSIVE rather than block independent NMI sampling.
+    stable_screen_attested = RESULT_LAST_STABLE in states
+    if stable_screen_attested:
+        for f in range(RESULT, RESULT_LAST_STABLE + 1):
+            row = states.get(f)
+            if (not isinstance(row, dict)
+                    or type(row.get("menu")) is not int or row["menu"] != 0x99
+                    or type(row.get("track")) is not int or row["track"] != 3
+                    or type(row.get("in_race")) is not int or row["in_race"] != 0):
+                raise ValueError("archived original 17030..17087 stable result screen altered")
     # This is a CHANGED-byte trace. The separately authenticated original
     # runner may have reached horizon 22000 with no further writes after
     # result 17030; no event rows after RESULT means *no visibility*, not
@@ -129,7 +142,7 @@ def summarize(states: dict[int, dict]) -> dict:
         # not a fabricated new race or an impossible original CPU state.
         if state not in (0, 1):
             nonbinary_race_state_frames += 1
-        active = state == 1
+        active = stable_screen_attested and state == 1 and f > RESULT_LAST_STABLE and menu != 0x99
         if active and streak_last == f - 1 and streak_track == track:
             streak_last = f
         else:
@@ -144,6 +157,9 @@ def summarize(states: dict[int, dict]) -> dict:
         "schema": SCHEMA,
         "original_2014_source_movie_entry_frame": ENTRY,
         "original_2014_source_movie_result_frame": RESULT,
+        "original_2014_stable_result_screen_last_frame": RESULT_LAST_STABLE,
+        "original_result_screen_stability_fully_observed": stable_screen_attested,
+        "next_active_candidate_must_follow_stable_result_screen": True,
         "last_decoded_original_source_frame": frames[-1] if frames else RESULT,
         "observed_post_result_frames": len(frames),
         "post_result_changed_byte_trace_inconclusive_if_empty": len(frames) == 0,
@@ -154,7 +170,8 @@ def summarize(states: dict[int, dict]) -> dict:
         "first_original_source_post_result_active_candidate": first,
         "post_result_candidate_count": len(candidates),
         "bounded_source_only_negative_if_no_candidate":
-            first is None and len(frames) >= MIN_STABLE_ACTIVE
+            first is None and stable_screen_attested
+            and frames[-1] - RESULT_LAST_STABLE >= MIN_STABLE_ACTIVE
             and nonbinary_race_state_frames == 0,
         "original_movie_path_is_not_fresh_original_or_native_path": True,
         "candidate_not_proof_of_tour_continuation_or_next_native_event": True,

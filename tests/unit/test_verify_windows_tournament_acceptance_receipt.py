@@ -24,6 +24,26 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
         p.write_bytes(b"fake canonical primary")
         q.write_bytes(b"fake canonical sidecar")
         f.write_bytes(b"fake fixture")
+        (work / "tournament.log").write_text(
+            "\n".join((
+                "UR_LOCAL_MULTIPLAYER SESSION_READY",
+                "UR_LOCAL_TOURNAMENT PANEL_OPENED page=setup",
+                "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1",
+                "UR_LOCAL_TOURNAMENT ARMED fixture=0 course=course:01",
+                "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED",
+                "UR_MULTIPLAYER_MATCH CAPTURED course=course:01 p1=join.alpha p2=join.bravo outcome=1",
+                "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+                "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=F9 text=CHAMPION: MIKE",
+            )) + "\n", encoding="utf-8",
+        )
+        (work / "reopen.log").write_text(
+            "\n".join((
+                "UR_LOCAL_TOURNAMENT SESSION_RESTORED",
+                "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0",
+                "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview",
+                "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0",
+            )) + "\n", encoding="utf-8",
+        )
         candidate = root / "windows-tournament-candidate.txt"
         candidate.write_text(
             "schema=ur-windows-qa-candidate/1\n"
@@ -69,6 +89,32 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                     with self.assertRaisesRegex(ValueError, "digest differs"):
                         verify(work, candidate, "a" * 40, "b" * 64)
                 target.write_bytes(before)
+
+    def test_missing_or_failed_launch_history_is_rejected_even_with_valid_hashes(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, p, q, f, report = self.make(Path(tmp))
+            create = work / "tournament.log"
+            reopen = work / "reopen.log"
+            create_original = create.read_text()
+            reopen_original = reopen.read_text()
+            create.write_text(create_original.replace(
+                "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+                "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED"))
+            with self.assertRaisesRegex(ValueError, "lacks required event|failed event"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            create.write_text(create_original)
+            reopen.write_text(reopen_original.replace(
+                "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0",
+                "UR_LOCAL_TOURNAMENT HISTORY completed=0 unavailable=1"))
+            with self.assertRaisesRegex(ValueError, "lacks required event"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            reopen.write_text(reopen_original + (
+                "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED\n"))
+            with self.assertRaisesRegex(ValueError, "failed event"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            reopen.unlink()
+            with self.assertRaisesRegex(ValueError, "missing, linked or oversized"):
+                verify(work, candidate, "a" * 40, "b" * 64)
 
     def test_symlinked_work_root_rejected_before_resolve(self):
         with tempfile.TemporaryDirectory() as tmp:

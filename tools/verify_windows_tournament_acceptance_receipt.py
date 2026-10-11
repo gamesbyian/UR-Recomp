@@ -29,6 +29,29 @@ RUN = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]*\.urrun\Z")
 RECEIPT = re.compile(r"fixture-0\.urfixture\Z")
 MAX_RECEIPT_BYTES = 4096
 MAX_FILE_BYTES = 64 * 1024 * 1024
+MAX_NATIVE_LOG_BYTES = 8 * 1024 * 1024
+EXPECTED_CREATE_MARKERS = (
+    "UR_LOCAL_MULTIPLAYER SESSION_READY",
+    "UR_LOCAL_TOURNAMENT PANEL_OPENED page=setup",
+    "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1",
+    "UR_LOCAL_TOURNAMENT ARMED fixture=0 course=course:01",
+    "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED",
+    "UR_MULTIPLAYER_MATCH CAPTURED",
+    "course=course:01 p1=join.alpha p2=join.bravo outcome=1",
+    "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+    "UR_LOCAL_TOURNAMENT RESULT_NOTICE screen=F9 text=CHAMPION: MIKE",
+)
+EXPECTED_REOPEN_MARKERS = (
+    "UR_LOCAL_TOURNAMENT SESSION_RESTORED",
+    "UR_LOCAL_TOURNAMENT HISTORY completed=1 unavailable=0",
+    "UR_LOCAL_TOURNAMENT PANEL_OPENED page=overview",
+    "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen step=2 armed=0",
+)
+FORBIDDEN_NATIVE_MARKERS = (
+    "UR_LOCAL_TOURNAMENT FIXTURE_COMMIT_REJECTED",
+    "UR_LOCAL_TOURNAMENT SESSION_RESTORE_REJECTED",
+    "UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE UNEXPECTED_PAGE",
+)
 
 
 def fields(path: Path, exact_keys: tuple[str, ...]) -> dict[str, str]:
@@ -53,6 +76,20 @@ def fields(path: Path, exact_keys: tuple[str, ...]) -> dict[str, str]:
     if any(not pair[1] or pair[1] != pair[1].strip() for pair in pairs):
         raise ValueError("receipt value missing or noncanonical")
     return dict(pairs)
+
+
+def check_native_log(path: Path, expected: tuple[str, ...]) -> None:
+    """Independently re-read bounded existing game logs; never print raw paths."""
+    if (not path.is_file() or path.is_symlink()
+            or path.stat().st_size > MAX_NATIVE_LOG_BYTES):
+        raise ValueError(f"missing, linked or oversized packaged QA log: {path.name}")
+    body = path.read_bytes().decode("utf-8", "replace")
+    for marker in expected:
+        if marker not in body:
+            raise ValueError(f"native QA log lacks required event: {marker}")
+    for forbidden in FORBIDDEN_NATIVE_MARKERS:
+        if forbidden in body:
+            raise ValueError(f"native QA log includes failed event: {forbidden}")
 
 
 def sha256(path: Path) -> str:
@@ -121,6 +158,11 @@ def verify(work: Path, candidate_path: Path,
                       (fixture, "receipt_sha256")):
         if not path.stat().st_size or sha256(path) != receipt[key]:
             raise ValueError(f"on-disk artifact digest differs from receipt: {path.name}")
+    # The producer asserted both launcher processes were successful, but a
+    # bounded second read must independently see the event route, actual
+    # stock-result notice and fresh process restore/history markers.
+    check_native_log(work / "tournament.log", EXPECTED_CREATE_MARKERS)
+    check_native_log(work / "reopen.log", EXPECTED_REOPEN_MARKERS)
     return {
         "source_commit": expected_source,
         "inner_zip_sha256": expected_zip,

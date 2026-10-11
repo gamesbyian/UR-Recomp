@@ -6,7 +6,7 @@
 
 **Short-horizon coordination:** [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) establishes a seven-day review target, no forced ship date, three non-overlapping agent lanes and player-visible beta criteria. Preserve full technical-reference ambition and independent release QA.
 
-**Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
+**2026-10-10 art-direction correction (graphics lane):** The existing procedural 4× racer art has failed owner review for character identity/proportions in recruitment footage. Treat `analysis/data/racer-hd-art-approval*.json` as historical technical/motion approvals, **not current aesthetic approval**. Next art task: official title/menu/box/promo reference contact sheet, measured saddle/wheel/fork model turnaround, two-pose repro and gameplay-scale A/B review per [HD racer reconstruction brief](HD-RACER-CHARACTER-RECONSTRUCTION.md); then explicit new human sign-off. Existing P0 gameplay/data QA remains top release priority; don't halt unrelated development, overwrite the old hashes, alter guest behavior or expose WIP as finished Remastered art.\n\n**Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
 ## October 10 verified handoff and decision policy
 

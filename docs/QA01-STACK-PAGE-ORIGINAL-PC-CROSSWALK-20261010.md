@@ -2,6 +2,22 @@
 
 **Observed evidence and scope (2026-10-10).** This note retains an already-executed original Snes9x opcode-scope observation and relates it to independently executed original/native Race/Stunt memory differences. **It does not claim an original/native complete-event pass, an instruction-semantic proof or a player-facing bug.** Primary release census remains **0/45** USA complete pairs.
 
+## Executed full original I_NMI PHA accumulator: five observed CPU frames
+
+The last unknown original register is now **measured directly**, not inferred from a single changed stack byte. [Genuine paired original/native replay 38097707477](https://github.com/gamesbyian/UR-Recomp/actions/runs/38097707477) completed green, job 114346974308, artifact **11686632783** (ZIP SHA-256 `c2bb347de619e4e17418a3645c2a678a6624794199fa5120ee7b5eb235472a19`). It used the unchanged archived 2014 Switcher movie and canonical US ROM, a disposable read-only original Snes9x observer at **`00:858E`** (original `I_NMI+6`), independently qualified source/stock original/native course entries, genuine same-host 5782 eight-WRAM-only comparison and positive MIKE `1:08.81` results at host 5783. The strict guest-relative result onset remains **original +4704 / native +4702, FAIL**. The [machine-readable five-frame actual register witness](../analysis/data/switcher-original-nmi-pha-full-accumulator-executed-20261010.json) pins each A/P/M/SP and actual low/high stack-byte result.
+
+| Original Snes9x `ICPU.Frame` at NMI `PHA 00:858E` | Full original A (16-bit M=0) | Original SP before→after | Relevant original stack result |
+| --- | --- | --- | --- |
+| **5778** | `4040` | `01E2→01E0` | `01DD` unchanged |
+| **5779** | **`4004`** | `01EA→01E8` | `01DD` unchanged |
+| **5780** | **`4042`** | **`01DE→01DC`** | **`01DD:08→42`, `01DE:00→40`** |
+| **5781** | `4042` | `01E7→01E5` | `01DD` unchanged |
+| **5782** | **`4004`** | `01E5→01E3` | `01DD` unchanged |
+
+All five real original `PHA` instruction scopes have **M=0**, P unchanged during the opcode and identical pre/post A, as the 65C816 requires. The exact original result-stack word at the live original `01DD` write is therefore **A=`4042`**, not just a low `42` inference; the original high byte **`40`** is captured directly at `01DE`.
+
+The previously recovered independent native `I_NMI_M1X1` `PHA` at native frame **5781** has **A=`4004`**, SP inferred `01DE→01DC`, and writes full word `4004` at `01DD–01DE`. Thus original and native agree on **routine, opcode, 16-bit width, full high accumulator byte `40`, effective stack address and two-byte SP decrement**, but **the low accumulator byte differs (`42` vs `04`) in the separately sampled executions**. Original itself executes the value `4004` in CPU frames **5779 and 5782**, with **other stack depths**. Neither proximity of frame numbers nor matching A at another original stack depth authorizes labeling those original/native samples same-cycle. The central follow-up is **paired exact NMI-entry/PPU-beam/guest-cycle alignment and the caller's accumulator state**, then the stack-pop/read consumer. Original gameplay outcome timing and official **0/45** admission remain unchanged. No corrective native gameplay scheduling change is established by this result.
+
 ## Executed native raw-writer replay: original and native NMI PHA stack mechanics match
 
 An additional **zero-emulator-rebuild** artifact recovery has closed native instruction attribution beyond the earlier generated-function name. [Run 38095592659](https://github.com/gamesbyian/UR-Recomp/actions/runs/38095592659) (green) downloaded the **unchanged, SHA-256-attested** native WRAM writer log from actual paired original/native Switcher run 38090897908, source artifact **11684141556**, and extracted its exact 15-row context around the single native `I_NMI_M1X1`-scoped `7E:01DD` write. Compact recovered artifact **11685473365** (ZIP SHA-256 `a46985a3ec6ba6015df7d7c3749ee21680687ced3bad0e9818b15d43a2ed6936`) and full byte/register context are pinned in [the machine witness](../analysis/data/switcher-native-nmi-01dd-exact-pha-source-20261010.json).

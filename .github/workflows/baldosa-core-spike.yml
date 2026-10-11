@@ -471,11 +471,24 @@ jobs:
           # One later authentic native PPU frame from this SAME guest run;
           # the ordinary first-six-frame evidence remains unchanged.
           export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          # One read-only original PPU colour-register raster journal.
+          # Pin only the existing stock 2P process, never the separately
+          # isolated source/diagnostic removal processes. The pinned PPU
+          # already records its register write journal during beam replay.
+          export UR_QA08_PPU_COLOUR_JOURNAL_FRAME=2208
           mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
           bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
             "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342"
+          unset UR_QA08_PPU_COLOUR_JOURNAL_FRAME
           cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
               "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt"
+          python3 tools/check_baldosa_2p_ppu_colour_journal.py \
+            --stock "$RUNNER_TEMP/baldosa-ws342-captures/ur-baldosa-ws342-002208.pam" \
+            --log "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/log.txt" \
+            --reference-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+            --candidate-crc "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342/fd/crc.txt" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_2p_original_colour_journal_2208.json"
+          echo "OBSERVED: original native PPU raster colour-register journal at verified post-GO guest; no owner/HD admission" >> "$GITHUB_STEP_SUMMARY"
           python3 tools/baldosa_ws24_presentation_report.py \
             --view ws342 \
             --base "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
@@ -1536,6 +1549,7 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_rear99/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-rear99/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-evidence/ws342_pair98_99_final_visibility_1856.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_2p_original_colour_journal_2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_pair96_97_countdown_causal_1872.json
             ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_pair96_97_frame1872/log.txt
             ${{ runner.temp }}/baldosa-ws342-counterfactual-pair96-97-frame1872/ur-baldosa-ws342-001872.pam

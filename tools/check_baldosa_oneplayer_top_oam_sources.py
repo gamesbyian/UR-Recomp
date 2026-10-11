@@ -56,13 +56,16 @@ def observed_rgb(original: bytes, isolated: bytes) -> dict:
 def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
            source_1x_dir: Path, source_4x_dir: Path,
            source98: Path, source99: Path, log98: Path, log99: Path,
+           probe98_dir: Path, probe99_dir: Path,
+           probe98_crc: Path, probe99_crc: Path,
            frame: int = 2208) -> dict:
     if frame != 2208:
         raise ValueError("only guest2208 authentic 1P 0895 is in scope")
     base, one, four = (p.read_bytes().splitlines()
                        for p in (stock_crc, original_1x_crc, original_4x_crc))
-    if len(base) != 5447 or base != one or base != four:
-        raise ValueError("independent three-way native P1 original guest CRC mismatch")
+    probes = (probe98_crc.read_bytes().splitlines(), probe99_crc.read_bytes().splitlines())
+    if len(base) != 5447 or any(stream != base for stream in (one, four, *probes)):
+        raise ValueError("independent five-way native P1 original guest CRC mismatch")
     first = capture_files(source_1x_dir, 1)
     density = capture_files(source_4x_dir, 4)
     if set(first) != set(density) or len(first) != 7 or frame not in first:
@@ -78,15 +81,18 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
             raise ValueError("independent 4x source contains changed/padded original pixels")
         recovered[guest] = logical
     records = []
-    for slot, path, log in (
-        (98, source98, log98),
-        (99, source99, log99),
+    for slot, path, log, probe_dir in (
+        (98, source98, log98, probe98_dir),
+        (99, source99, log99, probe99_dir),
     ):
         meta = read_source(path, slot)
         if meta["guest_frame"] != frame:
             raise ValueError("source OBJ slot belongs to wrong native guest frame")
         native_log = log.read_text(encoding="utf-8", errors="replace")
-        oracle = assess_source(first, recovered, meta, native_log, 7)
+        actual_probe = capture_files(probe_dir, 1)
+        if set(actual_probe) != set(first) or len(actual_probe) != 7:
+            raise ValueError("native top OAM probe is missing full Original scene frames")
+        oracle = assess_source(first, actual_probe, meta, native_log, 7)
         if oracle["status"] != "passed" or oracle["identical_complete_original_342_rasters"] != 7:
             raise ValueError("native isolated source OBJ changed genuine final Original")
         data = path.read_bytes()
@@ -113,6 +119,7 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
         "native_guest_frame": frame,
         "source_p1_semantic": "0895",
         "native_original_guest_crc_identical": 5447,
+        "independent_original_guest_processes": 5,
         "native_1x_and_4x_source_frames_identical": 7,
         "original_top_slot98_and_slot99_sources": records,
         "no_sprite_removal_or_guest_mutation": True,
@@ -132,12 +139,14 @@ def assess(stock_crc: Path, original_1x_crc: Path, original_4x_crc: Path,
 def main() -> None:
     p = argparse.ArgumentParser(description=__doc__)
     for opt in ("stock-crc", "one-crc", "four-crc", "one-dir",
-                "four-dir", "source98", "source99", "log98", "log99", "out"):
+                "four-dir", "source98", "source99", "log98", "log99",
+                "probe98-dir", "probe99-dir", "probe98-crc", "probe99-crc", "out"):
         p.add_argument("--" + opt, type=Path, required=True)
     a = p.parse_args()
     report = assess(a.stock_crc, a.one_crc, a.four_crc,
                     a.one_dir, a.four_dir, a.source98, a.source99,
-                    a.log98, a.log99)
+                    a.log98, a.log99, a.probe98_dir, a.probe99_dir,
+                    a.probe98_crc, a.probe99_crc)
     a.out.write_text(json.dumps(report, sort_keys=True, indent=2) + "\n")
     print("UR_BALDOSA_1P_TOP_SOURCE_98_99 "
           f"status={report['status']} "

@@ -1,0 +1,67 @@
+name: One-shot final visual polish on source-backed reveal
+on:
+  push:
+    branches: [media/definitive-reveal-comparison-20261010]
+    paths: [.github/workflows/one-shot-recruitment-reveal-v2-20261010.yml]
+permissions:
+  contents: write
+concurrency:
+  group: one-shot-recruitment-reveal-v2
+  cancel-in-progress: false
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: FFmpeg dependency
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg
+      - name: Render final HUD-safe matched-scale evidence
+        run: |
+          set -euo pipefail
+          root=media/showcase/2026-10-10/recruitment
+          python3 tools/showcase/build_definitive_reveal.py \
+            --race "$root/continuous/ur-native-2p-clean-600f.mp4" \
+            --manifest "$root/continuous/native-continuous-provenance.json" \
+            --outdir "$root/presentation-edits"
+      - name: Bounded evidence assertions and source verification
+        run: |
+          python3 - <<'PY'
+          import json,pathlib,subprocess,hashlib
+          root=pathlib.Path("media/showcase/2026-10-10/recruitment/presentation-edits")
+          x=json.loads((root/"presentation-provenance.json").read_text())
+          assert x["no_temporal_interpolation"] and not x["physical_4k_claim"]
+          assert not x["comparison"]["independent_original_capture"]
+          assert not x["comparison"]["independent_guest_wram_state_comparison"]
+          assert x["reveal"]["centre_original_columns"] == [43,298]
+          for role,frames in [("reveal",420),("comparison",300)]:
+            p=root/x[role]["file"]
+            assert hashlib.sha256(p.read_bytes()).hexdigest()==x[role]["sha256"]
+            s=json.loads(subprocess.check_output(["ffprobe","-v","error","-count_frames",
+              "-select_streams","v:0","-show_entries",
+              "stream=width,height,r_frame_rate,nb_read_frames","-of","json",str(p)]))["streams"][0]
+            assert (s["width"],s["height"],s["r_frame_rate"],int(s["nb_read_frames"])) == (1920,1080,"60/1",frames)
+            print(role,frames,x[role]["sha256"])
+          assert len(x["review_frame_sha256"])==6
+          for filename,sha in x["review_frame_sha256"].items():
+            assert hashlib.sha256((root/filename).read_bytes()).hexdigest()==sha
+          PY
+      - name: Upload media review witnesses
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: recruitment-final-polish-review
+          path: media/showcase/2026-10-10/recruitment/presentation-edits/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Publish revised sequences and retire one-shot job
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-10/recruitment/presentation-edits/
+          git rm -f .github/workflows/one-shot-recruitment-reveal-v2-20261010.yml
+          git commit -m "media: correct HUD-safe reveal and equal-scale comparison"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

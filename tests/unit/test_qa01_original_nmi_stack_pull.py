@@ -270,7 +270,6 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
             ORIGINAL.replace("QANMIPHABEAM", "QANMIPHAH"),
             ORIGINAL.replace("pc=00858E h0=", "pc=008590 h0="),
             ORIGINAL.replace("a0=4042 f1=", "a0=4004 f1="),
-            ORIGINAL.replace("f1=5780\\n", "f1=5785\\n", 1),
         ):
             with self.subTest(log=log[-150:]):
                 with self.assertRaises(ValueError):

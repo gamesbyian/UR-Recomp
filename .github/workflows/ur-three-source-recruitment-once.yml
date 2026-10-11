@@ -1,0 +1,63 @@
+name: UR three-source recruitment edit ONE-SHOT
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths: [".github/workflows/ur-three-source-recruitment-once.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  film:
+    if: github.event.pull_request.head.ref == 'media/three-source-recruitment-trailer-20261010'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Install FFmpeg and lightweight original-score dependencies
+        run: |
+          set -euo pipefail
+          sudo apt-get -qq update
+          sudo apt-get -qq install -y --no-install-recommends ffmpeg python3-pil
+      - name: Construct cut from three SHA-verified native recordings
+        run: |
+          set -euo pipefail
+          root=media/showcase/2026-10-10/recruitment
+          python3 tools/showcase/build_three_source_recruitment.py \
+            --title "$root/native-menu/ur-native-title-menu-900f.mp4" \
+            --title-manifest "$root/native-menu/native-title-menu-provenance.json" \
+            --modern "$root/modern-root/ur-modern-root-600f.mp4" \
+            --modern-manifest "$root/modern-root/native-modern-root-provenance.json" \
+            --race "$root/continuous/ur-native-2p-clean-600f.mp4" \
+            --race-manifest "$root/continuous/native-continuous-provenance.json" \
+            --outdir "$RUNNER_TEMP/finished"
+          ffprobe -v error -count_frames -select_streams v:0 -show_entries stream=width,height,nb_read_frames,r_frame_rate -of json "$RUNNER_TEMP/finished/ur-recomp-three-source-recruitment-30s-1080p.mp4"
+          for n in 180 420 720 1100 1490 1660; do
+            ffmpeg -nostdin -hide_banner -loglevel error -y \
+              -i "$RUNNER_TEMP/finished/ur-recomp-three-source-recruitment-30s-1080p.mp4" \
+              -vf "select=eq(n\\,$n)" -vsync vfr -frames:v 1 \
+              "$RUNNER_TEMP/finished/review-frame-$(printf '%04d' "$n").png"
+          done
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ur-three-source-film-${{ github.run_id }}
+          retention-days: 14
+          if-no-files-found: warn
+          path: ${{ runner.temp }}/finished/
+      - name: Commit reviewed-source edit, manifest and inspection frames
+        if: success()
+        run: |
+          set -euo pipefail
+          dest=media/showcase/2026-10-10/recruitment/three-source-film
+          mkdir -p "$dest"
+          cp "$RUNNER_TEMP/finished/"* "$dest/"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "$dest"
+          git diff --cached --check
+          git commit -m "media: publish 30s three-source genuine-gameplay recruitment trailer"
+          git push origin HEAD:refs/heads/media/three-source-recruitment-trailer-20261010

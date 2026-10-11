@@ -40,6 +40,11 @@ python3 tools/p2p/manual_invite_v0.py create \
   --acknowledge-address-disclosure
 ```
 
+Add `--link` to `create` to print a complete `ur-recomp://join/URP0....`
+link instead of the bare code. Both forms import with `inspect`; a real
+in-game URL handler is deliberately **not** registered by this prototype.
+No domain or hosted resolver is consulted in either case.
+
 The hex patterns, timestamps, and IANA documentation-prefix endpoints above are **fixed nonsecret test data**, not randomly generated authentication keys, live player addresses, or usable connectivity. A real candidate would need securely generated keys/nonces, actual consented reachable addresses, meaningful current timestamps, signature verification, and an authenticated transport. This CLI refuses to create a shareable code until the operator expressly acknowledges that IP and port information becomes visible to recipients.
 
 A recipient can paste the full `URP0.` text or `ur-recomp://join/URP0.` link into:

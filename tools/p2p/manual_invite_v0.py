@@ -213,6 +213,8 @@ def main() -> int:
     create.add_argument("--endpoint", action="append", required=True)
     create.add_argument("--recipient-key")
     create.add_argument("--reply-to")
+    create.add_argument("--link", action="store_true",
+                        help="Print ur-recomp://join/ code for sharing instead of bare code")
     create.add_argument("--acknowledge-address-disclosure", action="store_true",
                         help="Explicitly allow IP/port disclosure via copyable code")
     decode = sub.add_parser("inspect", help="Decode as UNTRUSTED contact only")
@@ -232,7 +234,8 @@ def main() -> int:
                 fields["recipient_key"] = args.recipient_key
             if args.reply_to:
                 fields["reply_to"] = args.reply_to
-            print(make_code(fields))
+            code = make_code(fields)
+            print(make_link(code) if args.link else code)
         else:
             # Default to current time: old contact information is not a
             # presently usable invitation. --at supports historical vectors.

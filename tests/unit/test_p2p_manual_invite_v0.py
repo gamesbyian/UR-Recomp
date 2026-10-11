@@ -191,8 +191,14 @@ class OfflinePeerInviteTests(unittest.TestCase):
         made = subprocess.run(command + ["--acknowledge-address-disclosure"],
                               text=True, capture_output=True)
         self.assertEqual(made.returncode, 0, made.stderr)
+        linked = subprocess.run(
+            command + ["--acknowledge-address-disclosure", "--link"],
+            text=True, capture_output=True)
+        self.assertEqual(linked.returncode, 0, linked.stderr)
+        self.assertEqual(linked.stdout.strip(),
+                         inv.make_link(made.stdout.strip()))
         inspected = subprocess.run(
-            [sys.executable, str(MODULE_PATH), "inspect", made.stdout.strip(),
+            [sys.executable, str(MODULE_PATH), "inspect", linked.stdout.strip(),
              "--at", "1700000001"], text=True, capture_output=True)
         self.assertEqual(inspected.returncode, 0, inspected.stderr)
         self.assertEqual(json.loads(inspected.stdout)["trust"],

@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "status": "authentic-native-original-2p-front98-rear99-final-counterfactual-observed",
+  "native_full_source_artifact_id": 11693865103,
+  "guest_frames": [
+    1856,
+    1872
+  ],
+  "independent_source_reports_verified_by_original_native_AOT": true,
+  "source_planes": [
+    "native-OAM-98-front",
+    "native-OAM-99-rear"
+  ],
+  "actual_ppu_intervention": "one native PPU process removes only original slot98 on each exact guest frame",
+  "per_frame": {
+    "1856": {
+      "front_only": 164,
+      "rear_only": 162,
+      "overlap_different_rgb": 143,
+      "overlap_equal_rgb": 14,
+      "emitted_front": 321,
+      "emitted_rear": 319,
+      "front_only_removal_final_deltas": 164,
+      "different_overlap_final_deltas": 143,
+      "equal_overlap_no_final_delta": 14,
+      "rear_revealed_exact_rgb": 143,
+      "stock_original_sha256": "0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9",
+      "source98_sha256": "5122c86a797710965bf17caf99677ca2cf738fbff852101a9469ff66750fc2c5",
+      "source99_sha256": "658b214071df7637abc308a0222e37cb15753b72c4ef42cf4c084311c031ec8f",
+      "removed98_final_sha256": "7a0bdd207419ecc04f5eb9d1be36f3471432b4cd20513f4bbe915958bbf682ea"
+    },
+    "1872": {
+      "front_only": 81,
+      "rear_only": 86,
+      "overlap_different_rgb": 207,
+      "overlap_equal_rgb": 37,
+      "emitted_front": 325,
+      "emitted_rear": 330,
+      "front_only_removal_final_deltas": 81,
+      "different_overlap_final_deltas": 207,
+      "equal_overlap_no_final_delta": 37,
+      "rear_revealed_exact_rgb": 207,
+      "stock_original_sha256": "bdc3b13d2129e7fd7a20f4cf00539fc2976ba1b028f76386a395e6fdef4e2f2b",
+      "source98_sha256": "c8c2741ff948b070a69b555f6634199b82bb41d1753a099f3516ab4f605f48ea",
+      "source99_sha256": "3d5322f0b226ea557960e9b2779ded06b0b57f7d6de977c348fd25d30998c0d5",
+      "removed98_final_sha256": "731bccd8e6c73a7737367eb596f6bd1b20f4bb0e54e0de2f8e3f1fe8e9f29e83"
+    }
+  },
+  "combined": {
+    "front_only_reveals_underlying": 245,
+    "overlap_diff_reveals_exact_rear_rgb": 350,
+    "overlap_same_rgb_no_final_change": 51,
+    "rear_only_never_changes_under_front_removal": 248,
+    "total_observed_front_single_removal_final_changes": 595,
+    "changed_outside_front_source": 0,
+    "source_priority_partition_violations": 0
+  },
+  "source_color_equality_proves_unique_layer_winner": false,
+  "true_bg_window_color_math_and_all_frames_verified": false,
+  "hd_renderer_replacement_or_original_source_removal_admitted": false,
+  "limits": "Two exact native moving 2P frames only. Removing original upper front OAM slot98 changes every source-unique and different-colour overlap position, revealing precisely slot99 RGB in overlap. Same-colour overlap remains output-identical. No general BG/window priority/authoritative original-emulator parity or HD replacement approval."
+}

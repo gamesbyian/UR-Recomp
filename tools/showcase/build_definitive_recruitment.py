@@ -17,7 +17,7 @@ from build_three_source_recruitment import verify as verify_native
 
 TOTAL_SECONDS = 58
 REEL = [
-    ("title", 4, "native Original title, guest frames 330..569, source ordinals 300..539"),
+    ("title", 4, "Original title art ordinals 270..359 then real checkerboard menu ordinals 420..569; deliberate editorial cut across source black transition"),
     ("modern", 10, "independent genuine Modern navigation and stock handoff, frames 1..600"),
     ("reveal", 7, "same-capture Original centre uncovered into 342-wide world"),
     ("comparison", 4, "two views of one wide capture, NOT two native runs"),
@@ -140,7 +140,9 @@ def build(args):
     for n,(role,duration,description) in enumerate(REEL):
         idx=source_index[role]
         if role=="title":
-            filt=f"[{idx}:v]trim=start_frame=300:end_frame=540,setpts=PTS-STARTPTS"
+            filt=("[0:v]trim=start_frame=270:end_frame=360,setpts=PTS-STARTPTS[originaltitle];"
+                  "[0:v]trim=start_frame=420:end_frame=570,setpts=PTS-STARTPTS[originalmenu];"
+                  "[originaltitle][originalmenu]concat=n=2:v=1:a=0")
         elif role=="cta":
             filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         else:
@@ -181,7 +183,12 @@ def build(args):
             f"format=yuv420p[{out}]"
         )
     graph_v=";".join([
-      mobile(0,5,2,"GENUINE ORIGINAL TITLE","m0"),
+      "[0:v]trim=start_frame=270:end_frame=360,setpts=PTS-STARTPTS[verticaltitle]",
+      "[0:v]trim=start_frame=420:end_frame=450,setpts=PTS-STARTPTS[verticalmenu]",
+      "[verticaltitle][verticalmenu]concat=n=2:v=1:a=0,"
+      "scale=1080:608:flags=neighbor,pad=1080:1920:0:656:0x091421,"
+      "drawtext=text='GENUINE ORIGINAL TITLE AND MENU':fontsize=40:fontcolor=white:"
+      "x=(w-text_w)/2:y=360,format=yuv420p[m0]",
       mobile(1,0,4,"REAL MODERN FRONTEND","m1"),
       mobile(2,1,6,"43 EXTRA WORLD COLUMNS PER SIDE","m2"),
       mobile(7,2,5,"UNINTERRUPTED TWO-PLAYER RACING","m3"),
@@ -220,6 +227,12 @@ def build(args):
       "film_duration_seconds":58,
       "fps":"60/1",
       "editorial_splices_not_continuous_title_to_race":True,
+      "original_title_internal_edit": {
+          "purpose":"skip proven black transition between authentic title and menu",
+          "horizontal_source_ordinals":[[270,359],[420,569]],
+          "vertical_source_ordinals":[[270,359],[420,449]],
+          "faked_gameplay_frames":False,
+      },
       "technical_art_segments_are_editorial_not_in_game_graphics":True,
       "original_widescreen_verified_2p_native_capture":True,
       "remastered_widescreen_claim":False,

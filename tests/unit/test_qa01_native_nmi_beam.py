@@ -40,8 +40,8 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "already"):
             beam_patch.patch(instrumented)
         with self.assertRaisesRegex(ValueError, "ambiguous"):
-            beam_patch.patch(patched.replace("    fputc('\\n', g_wlog_addr_fp);",
-                                                "    fputc('\\n', g_wlog_addr_fp);" * 2))
+            beam_patch.patch(patched.replace(beam_patch.MARKER,
+                                                beam_patch.MARKER * 2))
 
     def test_true_shape_never_certifies_cpu_phase_or_full_course(self):
         data = report.summarize(WRITER)

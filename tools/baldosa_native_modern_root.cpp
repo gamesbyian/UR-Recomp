@@ -10,6 +10,7 @@
 #include "baldosa_native_records_summary.hpp"
 #include "baldosa_native_multiplayer_records_summary.hpp"
 #include "baldosa_native_run_save_feedback.hpp"
+#include "uniracers_two_player_result.hpp"
 #include "baldosa_native_two_seat_join.hpp"
 #include "quick_practice_route.hpp"
 #include "quick_practice_input_mask.hpp"
@@ -583,12 +584,17 @@ extern "C" void ur_baldosa_modern_root_stock_observe_guest(void) {
 
 extern "C" void ur_baldosa_modern_root_after_run_frame(unsigned frame) {
     ur_baldosa_modern_root_stock_observe_guest();
-    // Feedback never survives a new guest attempt, stock menu transition
-    // or loss of the original 1P Modern root handoff.
+    // A genuine 1P/2P terminal result may show the SAME existing Modern
+    // acknowledgement strip. It is revoked on any new race, setup screen,
+    // lost source handoff, or mode change. No guest result is fabricated.
+    const bool stock_result_still_visible =
+        (g_handed_off_players == 1u && g_ram[0x009fu] == 0x99u) ||
+        (g_handed_off_players == 2u &&
+         g_ram[0x009fu] == ur::title::kOrdinaryTwoPlayerRaceResultMenu);
     if (g_run_save_feedback !=
             ur::product::BaldosaNativeRunSaveFeedback::None &&
-        (g_visible || !g_stock_handed_off || g_handed_off_players != 1u ||
-         g_ram[0x0313u] == 0x01u || g_ram[0x009fu] != 0x99u))
+        (g_visible || !g_stock_handed_off ||
+         g_ram[0x0313u] == 0x01u || !stock_result_still_visible))
         g_run_save_feedback = ur::product::BaldosaNativeRunSaveFeedback::None;
     // The original guest can return to stock setup and let a player change
     // the mode without revisiting our root. Such a new session must NOT

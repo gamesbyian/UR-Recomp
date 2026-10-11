@@ -1,0 +1,26 @@
+{
+  "format": "UNTRUSTED_OFFLINE_URP0",
+  "schema_version": 0,
+  "checksum_hex": "1d5ad590813e31a861ad3306",
+  "payload": {
+    "v": 0,
+    "peer_key": "0101010101010101010101010101010101010101010101010101010101010101",
+    "nonce": "02020202020202020202020202020202",
+    "valid_from": 1700000000,
+    "valid_until": 1700000600,
+    "sim_sha256": "0303030303030303030303030303030303030303030303030303030303030303",
+    "endpoints": [
+      {
+        "ip": "192.0.2.10",
+        "port": 7777,
+        "transport": "udp"
+      },
+      {
+        "ip": "2001:db8::7",
+        "port": 7778,
+        "transport": "udp"
+      }
+    ]
+  },
+  "code": "URP0.eyJlbmRwb2ludHMiOlt7ImlwIjoiMTkyLjAuMi4xMCIsInBvcnQiOjc3NzcsInRyYW5zcG9ydCI6InVkcCJ9LHsiaXAiOiIyMDAxOmRiODo6NyIsInBvcnQiOjc3NzgsInRyYW5zcG9ydCI6InVkcCJ9XSwibm9uY2UiOiIwMjAyMDIwMjAyMDIwMjAyMDIwMjAyMDIwMjAyMDIwMiIsInBlZXJfa2V5IjoiMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMTAxMDEwMSIsInNpbV9zaGEyNTYiOiIwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzMDMwMzAzIiwidiI6MCwidmFsaWRfZnJvbSI6MTcwMDAwMDAwMCwidmFsaWRfdW50aWwiOjE3MDAwMDA2MDB9.HVrVkIE-MahhrTMG"
+}

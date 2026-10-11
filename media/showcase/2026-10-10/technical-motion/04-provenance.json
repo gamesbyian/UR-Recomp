@@ -1,0 +1,38 @@
+{
+  "clip": "04-machine-code-to-native.mp4",
+  "sha256": "ca59e2d4aaf2ee4d0e3bc2999603bb9f6c2fed8a7b56389ef16d643029c390a3",
+  "bytes": 1295238,
+  "fps": 30,
+  "frames": 270,
+  "seconds": 9,
+  "size": [
+    1920,
+    1080
+  ],
+  "mapping": {
+    "source_address": "80:8881",
+    "symbol": "MainLoop",
+    "source": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml",
+    "generated_code_inventory": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json",
+    "real_host_c": "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.c"
+  },
+  "input_video": {
+    "path": "media/showcase/2026-10-10/recruitment/continuous/ur-native-2p-clean-600f.mp4",
+    "sha256": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130",
+    "original_guest_frame_range": [
+      2100,
+      2699
+    ],
+    "original_fps": 60,
+    "output_fps": 30,
+    "selection": "integer decimation, no interpolated gameplay"
+  },
+  "source_sha256": {
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/recomp/symbols.toml": "dddcfa7564c681648f336fe5206cd63483004c80464ac9dc0bf4d1404e738cd7",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/game_rtl.c": "3c6877ea0d09cfa8f49afa7862dad2ceac7f785bc82a0138b6f5cb96b56e1ce8",
+    "reference/imported/reverse-engineering/baldosa-uniracers-recomp/src/gen/.snesrecomp-cache.json": "15aa390da419054d7c86602876ed05fd1daa2b9dadc36b5afb311d18350d9c3a"
+  },
+  "source_commit": "a57bd96c52dd6f04c8bb2adf05c89a38dc645ae5",
+  "limits": "Source 65816 instructions are described from named disassembly/documentation, not invented hex. Native C example is actual host integration, not alleged same-function generated C. The checked generated-code output inventory proves named output artifacts, not a line-by-line instruction-to-C correspondence. Gameplay comes from a genuine previously validated native capture, not this script executing the game.",
+  "decoded_frame_100_sha256": "2907ecf19f3326d4f2b7818833655a255d35830ec75410fbbc07da5c75d0839f"
+}\n

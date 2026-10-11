@@ -1052,6 +1052,37 @@ jobs:
           PY
           echo "PASS: four independent source-only original 2P post-GO OAM slot captures at guest2208; seven full Original frames and native guest CRC unchanged; no HD art" >> "$GITHUB_STEP_SUMMARY"
 
+          # QA-08: two independently rerun diagnostic front-slot PPU
+          # deletions at real post-GO 2P guest2208, upper front98 and
+          # lower front96. This discriminates causal final pixel changes
+          # under the on-screen text; the source-positive planes are
+          # already captured/validated by FOUR source-only runs above.
+          # A full Original stock frame already exists. No game writes,
+          # no host HD painting and no extra AOT executable compilation.
+          unset UR_RACER_HD_WIDE_SOURCE_SLOT UR_RACER_HD_WIDE_SOURCE_DIR
+          unset UR_RACER_HD_WIDE_REMOVE_PAIR
+          export UR_BALDOSA_HD_DENSITY=1
+          export UR_BALDOSA_WS342_LATE_CAPTURE_AFTER=2200
+          export UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC=counterfactual
+          export UR_RACER_HD_WIDE_REMOVE_FRAME=2208
+          for visible_slot in 98 96; do
+            export UR_RACER_HD_WIDE_REMOVE_SLOT="$visible_slot"
+            export UR_BALDOSA_WS342_CAPTURE_DIR="$RUNNER_TEMP/baldosa-ws342-counterfactual-slot${visible_slot}-frame2208"
+            mkdir -p "$UR_BALDOSA_WS342_CAPTURE_DIR"
+            bash baldosa/tools/run_route.sh baldosa/tests/routes/race_2p_split.txt \
+              "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame2208"
+            cmp "$RUNNER_TEMP/baldosa-evidence/race_2p_split/fd/crc.txt" \
+                "$RUNNER_TEMP/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot${visible_slot}_frame2208/fd/crc.txt"
+            test -s "$UR_BALDOSA_WS342_CAPTURE_DIR/ur-baldosa-ws342-002208.pam"
+          done
+          python3 tools/check_baldosa_2p_postgo_front_text_causality.py \
+            --native-root "$RUNNER_TEMP" \
+            --out "$RUNNER_TEMP/baldosa-evidence/ws342_postgo_front_text_causal_2208.json"
+          unset UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC UR_RACER_HD_WIDE_REMOVE_SLOT
+          unset UR_RACER_HD_WIDE_REMOVE_FRAME UR_BALDOSA_WS342_LATE_CAPTURE_AFTER
+          echo "PASS: original native 2P post-GO front98+front96 independent PPU removals, four-guest CRC/source per front, bounded HUD RGB overlap, no HD admission" >> "$GITHUB_STEP_SUMMARY"
+
+
           # Diagnostic final-composite attribution, NEVER HD admission.
           # Compare the exact original 342x224 PPU frame with a second
           # native process that removes only slot 98 on guest frame 1856.
@@ -1431,6 +1462,11 @@ jobs:
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_97_frame2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_98_frame2208.json
             ${{ runner.temp }}/baldosa-evidence/ws342_obj_slot_99_frame2208.json
+            ${{ runner.temp }}/baldosa-evidence/ws342_postgo_front_text_causal_2208.json
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot98_frame2208/log.txt
+            ${{ runner.temp }}/baldosa-evidence/race_2p_split_ur_ws342_counterfactual_slot96_frame2208/log.txt
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot98-frame2208/ur-baldosa-ws342-002208.pam
+            ${{ runner.temp }}/baldosa-ws342-counterfactual-slot96-frame2208/ur-baldosa-ws342-002208.pam
             ${{ runner.temp }}/baldosa-ws342-captures-4x/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws342-captures/ur-baldosa-ws342-*.pam
             ${{ runner.temp }}/baldosa-ws24-captures/ur-baldosa-ws24-*.pam

@@ -176,3 +176,31 @@ original PPU priority layers, lighting math or a safe replacement
 palette. The owner-disapproved procedural HD shapes stay vetoed.
 Preserve the original palette families as a reviewer reference, not a
 new default shader or shipping art authority.
+
+
+## Six real moving 2P source envelopes: constant bottom scanline
+
+The same already retained native 2P source artifact, with independent
+slot98/99 PPU source planes at moving guest1856,1872,1888, yields a
+useful **projected bottom-of-silhouette registration constraint**:
+both source riders end precisely at **absolute original top-raster
+y=78** in all six captures, and their separately verified copies in
+split lower OAM slots97/96 end at **y=191**, exactly +113 rows below.
+During the three frames their original source silhouettes change
+markedly, across **18–23 source pixels width, 35–37 pixels height**,
+and 319–330 opaque source pixels, while their upper silhouette begins
+at y42–44. The project can use this sampled invariant to *test*
+proposed image registration and vertical pose anchoring instead of
+assuming a rigid top-edge/middle-of-bbox offset.
+
+The source-hash-anchored six-frame numeric measurement is in
+[`analysis/data/qa08-original-2p-three-pose-projected-source-envelope.json`](../analysis/data/qa08-original-2p-three-pose-projected-source-envelope.json).
+**The lowest visible sprite pixel is not automatically the physics
+ground-contact point, wheel hub, collision pivot or original 3D
+model origin.** Confirm actual guest/world collision anchors
+separately before assigning that name to raster y78/191. Likewise,
+the exact repeated OAM-viewport shift is screen-source copying, not
+a claim about 3D camera geometry. Observe the established **7:6
+pixel-aspect correction** when comparing these raw source-pixel
+envelopes against any artist or Blender render. No artistic approval
+is granted by the geometric measurement.

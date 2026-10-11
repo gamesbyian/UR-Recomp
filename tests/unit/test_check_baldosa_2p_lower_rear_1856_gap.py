@@ -2,7 +2,8 @@
 import unittest
 
 from tools.check_baldosa_2p_lower_rear_1856_gap import (
-    classify, EXPECTED_MASKED_REAR_ONLY, WIDTH, HEIGHT
+    classify, verify_upper_original_rear_source_mirrors,
+    EXPECTED_MASKED_REAR_ONLY, WIDTH, HEIGHT
 )
 
 
@@ -126,6 +127,31 @@ class Original2PLowerRearExceptionTest(unittest.TestCase):
         out = self.measure()
         self.assertEqual(out["counts"]["rear_only_original_rgb_differs"], 0)
         self.assertEqual(out["rear_only_source_hidden_by_stock_rgb"], [])
+
+    def test_upper_mirror_colour_corroborates_lower_source_but_not_final(self):
+        lower = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        self.assertEqual(len(lower), 1)
+        x, y = lower[0]["xy"]
+        upper_at = 4 * ((y - 113) * WIDTH + x)
+        # Real PPU mirror: original top resolves rear source,
+        # while the original lower output retained different blue.
+        self.stock[upper_at:upper_at + 3] = bytes((74, 74, 74))
+        mirrors = verify_upper_original_rear_source_mirrors(
+            self.stock, lower)
+        self.assertEqual(mirrors[0]["upper_mirror_xy"], [188, 43])
+        self.assertEqual(mirrors[0]["upper_stock_original_rgb"], [74, 74, 74])
+        self.assertEqual(mirrors[0]["lower_stock_original_rgb"], [57, 57, 255])
+
+    def test_upper_mirror_wrong_colour_rejects_source_identity_claim(self):
+        lower = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        with self.assertRaisesRegex(ValueError, "does not corroborate"):
+            verify_upper_original_rear_source_mirrors(self.stock, lower)
+
+    def test_malformed_upper_mirror_coordinate_is_rejected(self):
+        lower = self.measure()["rear_only_source_hidden_by_stock_rgb"]
+        lower[0]["xy"][1] = 100
+        with self.assertRaisesRegex(ValueError, "cannot have top mirror"):
+            verify_upper_original_rear_source_mirrors(self.stock, lower)
 
     def test_real_native_witness_names_all_three_exact_coordinates(self):
         self.assertEqual(

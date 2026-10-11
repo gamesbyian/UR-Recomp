@@ -113,6 +113,61 @@ class CompleteEventProducerTests(unittest.TestCase):
         with self.assertRaisesRegex(target.CompleteEventError, "never demonstrated"):
             target.source_event(states, 1, 0xBC)
 
+    def test_zoo_source_original_circuit_terminal_handoff_is_frame_exact(self):
+        # CI run 38169094991 independently observed the original 2014
+        # Zoom Zoo course ID=0 prelude at 8314..8347, followed by the
+        # same source course restored for 4 active frames before 0xBC.
+        base = source_states(3190, 8353, 1, 0xBC)
+        for f in range(8314, 8348):
+            base[f]["track"] = 0
+            base[f]["in_race"] = 1
+        for f in range(8348, 8352):
+            base[f]["track"] = 1
+            base[f]["in_race"] = 1
+        base[8352]["track"] = 1
+        base[8352]["in_race"] = 0
+        foreign = target.sustained_foreign_active_runs(base, 3190, 8353, 1)
+        self.assertEqual(foreign, [{"start": 8314, "end": 8347, "track": 0}])
+        self.assertTrue(target.proven_zoo_circuit_result_prelude(
+            base, 1, 8353, foreign[0]))
+        event = target.source_event(base, 1, 0xBC)
+        self.assertEqual(event["original_entry_frame"], 3190)
+        self.assertEqual(event["original_result_frame"], 8353)
+        self.assertEqual(event["source_active_frames_to_result"], 5163)
+        self.assertEqual(event["original_only_transient_handoff"],
+                         "zoo_34_frame_track0_terminal_prelude")
+        # No non-source Circuit ID may qualify, no earlier/later excursion,
+        # no phantom second race, and no partial/stale result screen.
+        cases = []
+        foreign_course = {f: dict(row) for f, row in base.items()}
+        for f in range(8314, 8348):
+            foreign_course[f]["track"] = 2
+        cases.append(foreign_course)
+        early = {f: dict(row) for f, row in base.items()}
+        early[8313]["track"] = 0
+        cases.append(early)
+        late = {f: dict(row) for f, row in base.items()}
+        late[8348]["track"] = 0
+        cases.append(late)
+        wrong_return = {f: dict(row) for f, row in base.items()}
+        wrong_return[8350]["track"] = 2
+        cases.append(wrong_return)
+        wrong_exit = {f: dict(row) for f, row in base.items()}
+        wrong_exit[8352]["in_race"] = 1
+        cases.append(wrong_exit)
+        unrelated_earlier_race = {f: dict(row) for f, row in base.items()}
+        for f in range(5000, 5020):
+            unrelated_earlier_race[f]["track"] = 2
+            unrelated_earlier_race[f]["in_race"] = 1
+        cases.append(unrelated_earlier_race)
+        missing_stable_result = {f: dict(row) for f, row in base.items()}
+        missing_stable_result[8355]["menu"] = 0x16
+        cases.append(missing_stable_result)
+        for i, bad in enumerate(cases):
+            with self.subTest(case=i), self.assertRaisesRegex(
+                    target.CompleteEventError, "never demonstrated"):
+                target.source_event(bad, 1, 0xBC)
+
     def test_bowl_source_course_switch_does_not_require_race_flag_deassert(self):
         states = source_states(8620, 11985, 2, 0x18, tally=True)
         # Prior Crawler course remains active through the new track-ID

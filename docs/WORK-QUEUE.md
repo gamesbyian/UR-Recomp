@@ -2,11 +2,11 @@
 
 **Reconciled 2026-10-11 00:39 UTC (recheck live GitHub for later work):** Baldosa integration and adversarial QA share one playable Windows x64 candidate. This queue owns live work; the [release ledger](RELEASE-QUALITY-LEDGER.json) alone owns gate status. Refresh `main` and PRs before assigning lanes.
 
-**Latest reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md). #1276/#1287 merged; active media #1251 remains independently owned. Recheck integrated-head QA before promotion.
+**Latest reconciliation:** [October 10–11 handoff](INTEGRATION-RECONCILIATION-20261010.md). #1276/#1287 merged. Recheck live PRs and integrated-head QA before promotion.
 
 **Short-horizon coordination:** [Windows beta quality campaign](WINDOWS-BETA-QUALITY-CAMPAIGN-20261010.md) establishes a seven-day review target, no forced ship date, three non-overlapping agent lanes and player-visible beta criteria. Preserve full technical-reference ambition and independent release QA.
 
-**Task-selection reuse check:** For a nontrivial P0 task, run `python3 tools/select_three_project_reuse.py --lane <lane> --include-conditional` before building a new script, parser, renderer, controller layer or fixture. It consults verified UR/Baldosa/Malmazuke source paths, concrete reuse actions and qualification/stop criteria. A conditional upstream pilot is permitted *within* its owning P0 task if it materially accelerates the actual gate; it is not a new independent queue or excuse to delay the Windows vertical slice. The earlier handoff's #1251 media PR reference is historical; the live open-PR list was empty immediately after #1297 merged.
+**Before substantial work:** use the three-project reuse preflight in `AGENTS.md`; this does not create a new priority queue.
 
 ## October 10 verified handoff and decision policy
 

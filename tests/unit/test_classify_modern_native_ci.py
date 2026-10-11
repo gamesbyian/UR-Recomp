@@ -90,14 +90,25 @@ class ModernNativeCiClassifierTests(unittest.TestCase):
         selected = set()
         for manifest in MANIFESTS.values():
             selected.update(classifier.load_patterns(manifest))
-        selected.update({
-            ".github/ci/modern-native-*.txt",
-            "tools/classify_modern_native_ci.py",
-        })
         self.assertEqual(set(workflow_pr_paths(WORKFLOWS / "modern-native-heavy-router.yml")), selected)
         self.assertFalse(any(pattern in selected for pattern in (
             "tools/**", "tests/**", "native/**", "analysis/**", "reference/**",
         )))
+
+    def test_suite_manifest_change_is_tested_and_classifier_change_selects_all(self):
+        for suite in MANIFESTS:
+            path = f".github/ci/modern-native-{suite}-paths.txt"
+            matched = classifier.classify_paths([path])
+            self.assertTrue(matched[suite], path)
+        self.assertEqual(classifier.classify_paths(
+            ["tools/classify_modern_native_ci.py"]
+        ), {"shared": True, "onboarding": True, "ui": True})
+
+    def test_pairwise_selection_shares_canonical_build(self):
+        router = (WORKFLOWS / "modern-native-heavy-router.yml").read_text()
+        self.assertIn("outputs.shared == 'true' && needs.classify.outputs.onboarding == 'true'", router)
+        self.assertIn("outputs.shared == 'true' && needs.classify.outputs.ui == 'true'", router)
+        self.assertIn("outputs.onboarding == 'true' && needs.classify.outputs.ui == 'true'", router)
 
     def test_unrelated_docs_do_not_select_heavy_suites(self):
         self.assertEqual(

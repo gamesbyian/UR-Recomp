@@ -1,0 +1,130 @@
+name: QA-02 native 2P seeded gameplay endurance
+
+# Manual research workload only. Reuses the existing shared Modern native
+# build and authoritative ordinary 2P controller+observation grammar.
+# Does not claim Baldosa original/native course parity or physical Windows QA.
+on:
+  workflow_dispatch:
+    inputs:
+      wall_minutes_per_shard:
+        description: "Actual active trial-run budget per Linux shard (never padded)"
+        type: choice
+        required: true
+        default: "15"
+        options: ["15", "60", "120"]
+      base_seed:
+        description: "Deterministic unique 2P control-stream seed"
+        required: true
+        default: "20261011"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: qa02-native-2p-seeded-endurance-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  native-candidate:
+    # The original workflow builds once and validates its own shared candidate.
+    # No second toolchain, emulator, frontend or CMake implementation here.
+    uses: ./.github/workflows/modern-shared-native-acceptance.yml
+    with:
+      canonical_candidate: false
+
+  stress:
+    needs: native-candidate
+    runs-on: ubuntu-22.04
+    timeout-minutes: 145
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        shard: [0, 1]
+    steps:
+      - name: Checkout exact source and original controller fixtures
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install real SDL headless-window provider
+        shell: bash
+        run: |
+          set -euo pipefail
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 update
+          sudo apt-get -o Acquire::Retries=3 -o Acquire::http::Timeout=30 install -y --no-install-recommends xvfb
+      - name: Retrieve one shared source-built and already accepted native candidate
+        uses: actions/download-artifact@v4
+        with:
+          name: shared-modern-native-candidate
+          path: ${{ runner.temp }}/qa02-native-artifact
+      - name: Unpack authoritative native candidate in existing shared location
+        shell: bash
+        run: |
+          set -euo pipefail
+          tar -xzf "$RUNNER_TEMP/qa02-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
+          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          python3 -m unittest discover -s tests/unit -p test_qa02_native_2p_seeded_endurance.py
+      - name: Exercise hundreds of distinct native 2P input trajectories and ablations
+        shell: bash
+        env:
+          MINUTES: ${{ inputs.wall_minutes_per_shard }}
+          BASE_SEED: ${{ inputs.base_seed }}
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -euo pipefail
+          [[ "$BASE_SEED" =~ ^[0-9]{1,8}$ ]] || { echo "Invalid bounded seed"; exit 2; }
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          ROM="$GITHUB_WORKSPACE/reference/roms/retail/Uniracers_USA.sfc"
+          python3 tools/qa02_native_2p_seeded_endurance.py run \
+            --exe "$EXE" --rom "$ROM" --source-sha "$GITHUB_SHA" \
+            --shard "$SHARD" --base-seed "$BASE_SEED" \
+            --minutes "$MINUTES" --max-cases 3000 --timeout 120 \
+            --work "$RUNNER_TEMP/2p-seeded-private-work" \
+            --out "$RUNNER_TEMP/2p-seeded-receipt/result.json"
+          python3 -c 'import json,sys; d=json.load(open(sys.argv[1])); print("### Native 2P endurance shard "+str(d["shard"])+"\n\n"+str(d["passed_cases"])+" distinct seeded dual-pad scripts. "+str(d["total_real_native_processes"])+" real native guest processes.\n\nActual elapsed seconds: "+str(d["elapsed_seconds"])+"; stopped: "+d["stop_reason"]+". No release credit.")' "$RUNNER_TEMP/2p-seeded-receipt/result.json" >> "$GITHUB_STEP_SUMMARY"
+      - name: Retain only compact source- and candidate-bound receipts, not ROM/WRAM
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-2p-endurance-${{ matrix.shard }}
+          path: ${{ runner.temp }}/2p-seeded-receipt/result.json
+          if-no-files-found: warn
+          retention-days: 14
+
+  aggregate:
+    needs: [native-candidate, stress]
+    if: ${{ always() && needs.native-candidate.result == 'success' }}
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Collect each shard's real observed population
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: native-2p-endurance-[0-1]
+          path: ${{ runner.temp }}/native-2p-results
+          merge-multiple: false
+      - name: Fail closed on invalid binary, falsified input effects or missing shard
+        env:
+          MINUTES: ${{ inputs.wall_minutes_per_shard }}
+          BASE_SEED: ${{ inputs.base_seed }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/native-2p-results"
+          python3 tools/qa02_native_2p_seeded_endurance.py aggregate \
+            --source-sha "$GITHUB_SHA" --minutes "$MINUTES" \
+            --base-seed "$BASE_SEED" --max-cases 3000 \
+            --results "$RUNNER_TEMP/native-2p-results" \
+            --out "$RUNNER_TEMP/native-2p-aggregate/result.json" \
+            --summary "$GITHUB_STEP_SUMMARY"
+      - name: Always retain final observed-versus-requested evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-2p-endurance-aggregate
+          path: ${{ runner.temp }}/native-2p-aggregate/result.json
+          retention-days: 14
+          if-no-files-found: warn

@@ -85,7 +85,15 @@ def patch_framework_save(source: str) -> str:
     replacement = (
         "  if (!g_netplay_session) {\n"
         "    if (ur_baldosa_modern_profile_before_native_save()) {\n"
-        "      int native_saved = RtlWriteSram();\n      /* CI-only: reproduce process death AFTER the original raw SRAM\n       * write but BEFORE the typed Modern checkpoint. The existing\n       * selector/profile OS locks are still held by this process. */\n      const char* qa_crash = getenv(\"UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE\");\n      if (native_saved && qa_crash && qa_crash[0] == '1' && qa_crash[1] == 0) {\n        fprintf(stderr, \"UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0\\n\");\n        fflush(stderr);\n        _Exit(86);\n      }\n"
+        "      int native_saved = RtlWriteSram();\n"
+        # Opt-in deterministic power-loss boundary. Production never asks
+        # for it; no synthetic SRAM, guest results or second save writer.
+        "      const char* qa_crash = getenv(\"UR_BALDOSA_QA_CRASH_AFTER_NATIVE_SRAM_WRITE\");\n"
+        "      if (native_saved && qa_crash && qa_crash[0] == '1' && qa_crash[1] == 0) {\n"
+        '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE QA_CRASH_AFTER_RAW_WRITE exit=86 typed_checkpoint=0\\n");' "\n"
+        "        fflush(stderr);\n"
+        "        _Exit(86);\n"
+        "      }\n"
         "      if (!ur_baldosa_modern_profile_finish_native_save(native_saved))\n"
         '        fprintf(stderr, "UR_BALDOSA_NATIVE_PROFILE CHECKPOINT rejected\\n");' "\n"
         "    } else {\n"

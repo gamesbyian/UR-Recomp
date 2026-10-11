@@ -110,7 +110,7 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         self.paint(self.sources[97], 113, 190, (0, 0, 0, 0))
         self.flush()
         record = assess(self.root)["source_paired_upper_to_lower"]["98->97"]
-        self.assertEqual(record["different_alpha_registered_coordinates"], 1)
+        self.assertEqual(record["different_alpha_after_registration"], 1)
         self.assertFalse(record["exact_rgba_split_alias_observed"])
 
     def test_unpaired_upper_last_row_must_not_silently_pass_as_alias(self):

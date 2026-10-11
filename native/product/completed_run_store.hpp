@@ -48,9 +48,10 @@ bool append_completed_run_record(
     std::string* stored_path = nullptr,
     std::string* detail = nullptr);
 
-/* Inspect every .urrun artifact in filename order without granting invalid
- * artifacts record authority. Callers may surface health/status information
- * while statistics/replay continue to consume only loaded records. */
+/* Inspect every direct .urrun entry in filename order without granting
+ * invalid or symlinked artifacts record authority. Live/dangling .urrun
+ * aliases are reported as unavailable instead of followed or hidden.
+ * Callers may surface health/status while replay uses loaded records only. */
 std::vector<InspectedRunRecordArtifact> inspect_completed_run_record_artifacts(
     const std::string& directory);
 

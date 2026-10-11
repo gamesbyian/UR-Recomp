@@ -87,8 +87,16 @@ def check_native_log(path: Path, expected: tuple[str, ...]) -> None:
             or path.stat().st_size > MAX_NATIVE_LOG_BYTES):
         raise ValueError(f"missing, linked or oversized packaged QA log: {path.name}")
     body = path.read_bytes().decode("utf-8", "replace")
+    lines = body.splitlines()
     for marker in expected:
-        if marker not in body:
+        # The course/result clause is embedded in the *match captured*
+        # diagnostic, never independently authoritative in another line.
+        if marker.startswith("course="):
+            matches = (line for line in lines
+                       if line.startswith("UR_MULTIPLAYER_MATCH CAPTURED"))
+            if not any(marker in line for line in matches):
+                raise ValueError(f"native QA log lacks captured match clause: {marker}")
+        elif not any(line.startswith(marker) for line in lines):
             raise ValueError(f"native QA log lacks required event: {marker}")
     for forbidden in FORBIDDEN_NATIVE_MARKERS:
         if forbidden in body:
@@ -109,12 +117,16 @@ def check_native_log(path: Path, expected: tuple[str, ...]) -> None:
             "UR_MULTIPLAYER_MATCH CAPTURED",
             "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
         )
-        positions = [body.find(marker) for marker in sequence]
+        positions = [next(i for i, line in enumerate(lines)
+                          if line.startswith(marker)) for marker in sequence]
         if positions != sorted(positions) or len(set(positions)) != len(sequence):
             raise ValueError("native QA log has impossible tournament event order")
     elif path.name == "reopen.log":
-        if (body.find("UR_LOCAL_TOURNAMENT SESSION_RESTORED") >=
-                body.find("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen")):
+        restored = next(i for i, line in enumerate(lines)
+                        if line.startswith("UR_LOCAL_TOURNAMENT SESSION_RESTORED"))
+        completed = next(i for i, line in enumerate(lines)
+                         if line.startswith("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen"))
+        if restored >= completed:
             raise ValueError("native QA log reports reopen completed before restore")
 
 

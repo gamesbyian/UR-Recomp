@@ -327,6 +327,45 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing, linked or oversized"):
                 verify(work, candidate, "a" * 40, "b" * 64)
 
+    def test_rehashed_spoofed_script_marker_is_not_guest_event(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, receipt_path = self.make(Path(tmp))
+            log = work / "tournament.log"
+            original_log = log.read_text(encoding="utf-8")
+            original_receipt = receipt_path.read_text(encoding="ascii")
+            spoofed = original_log.replace(
+                "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+                "script f=180 echo UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+            )
+            log.write_text(spoofed, encoding="utf-8")
+            receipt_path.write_text(
+                original_receipt.replace(
+                    digest(original_log.encode()), digest(spoofed.encode())),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "lacks required event"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+
+    def test_rehashed_detached_course_clause_cannot_validate_wrong_match(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, receipt_path = self.make(Path(tmp))
+            log = work / "tournament.log"
+            original_log = log.read_text(encoding="utf-8")
+            original_receipt = receipt_path.read_text(encoding="ascii")
+            spoofed = original_log.replace(
+                "UR_MULTIPLAYER_MATCH CAPTURED course=course:01 p1=join.alpha p2=join.bravo outcome=1",
+                "UR_MULTIPLAYER_MATCH CAPTURED course=course:02 p1=join.alpha p2=join.bravo outcome=1"
+                "\nscript f=180 echo course=course:01 p1=join.alpha p2=join.bravo outcome=1",
+            )
+            log.write_text(spoofed, encoding="utf-8")
+            receipt_path.write_text(
+                original_receipt.replace(
+                    digest(original_log.encode()), digest(spoofed.encode())),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "lacks captured match clause"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+
     def test_rehashed_out_of_order_native_tournament_transition_is_rejected(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, run, match, fixture, receipt_path = self.make(Path(tmp))

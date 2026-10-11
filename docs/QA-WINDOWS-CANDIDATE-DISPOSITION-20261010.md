@@ -182,3 +182,7 @@ The independent Windows tournament receipt checker now inspects the existing v1 
 ## Event order, not just markers and hashes
 
 The packaged tournament readback now checks a deliberately narrow causal sequence in the actual create-process transcript: tournament creation, fixture arm, guest capture tag, saved original multiplayer match, then durable fixture commit. It likewise requires the fresh-process restore marker to precede the terminal reopen acknowledgment. These checks do **not** assume the exact UI event/History ordering, which may vary as screens render. Negative tests preserve every marker and recompute the **external transcript SHA-256 receipt** after reordering lines; an impossible event history still fails. This does not elevate the readback to gameplay-oracle or physical Windows authority.
+
+## Native diagnostics must actually originate from the event line
+
+The read-only Windows tournament consumer no longer treats arbitrary substrings in host/script output as proof that the original game emitted a required diagnostic: each expected event must begin its own `UR_` line. The `course:01`/participant/winner clause must occur on that **same** `UR_MULTIPLAYER_MATCH CAPTURED` line, not an unrelated script comment. Event chronology uses these anchored lines. Negative units recompute transcript SHA-256 receipts while injecting a fake scripted success line or moving the valid course clause off the match line. The producer remains the existing packaged game, and no L4/L5 certification is inferred.

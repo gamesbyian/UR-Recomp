@@ -23,13 +23,13 @@ Do not store tester names, handles, email addresses, private messages, IP addres
 
 Each report must bind to:
 
-- exact source/build revision;
+- full 40-character lowercase Git source commit SHA, not a branch name, tag, or abbreviated revision;
 - SHA-256 of the tested distribution artifact;
 - region, execution mode, logical view and graphics mode;
 - broad tester-experience class;
 - one bounded finding.
 
-The canonical example is `analysis/data/playtest-report-example.json`. Validate a report with:
+The canonical example is `analysis/data/playtest-report-example.json` (its repeated-`a` source SHA and example digest are synthetic placeholders, **not a tested build**). Validation checks evidence shape; independent QA still must match the report SHA and inner distribution ZIP digest to an approved actual artifact before admitting it into a release gate. Validate a report with:
 
 ```bash
 python tools/validate_playtest_report.py path/to/report.json

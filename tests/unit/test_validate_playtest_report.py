@@ -33,6 +33,18 @@ class PlaytestReportValidationTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "unknown fields: email"):
             module.validate_report(report)
 
+    def test_revision_must_be_exact_lowercase_source_commit(self):
+        for invalid in ("main", "latest", "abc1234", "A" * 40,
+                        "0" * 39, "f" * 41):
+            with self.subTest(revision=invalid):
+                report = self.load_example()
+                report["build_revision"] = invalid
+                with self.assertRaisesRegex(ValueError, "complete lowercase 40-hex"):
+                    module.validate_report(report)
+        report = self.load_example()
+        report["build_revision"] = "a" * 40
+        self.assertIs(module.validate_report(report), report)
+
     def test_build_artifact_digest_is_strict_lowercase_sha256(self):
         report = self.load_example()
         report["artifact_sha256"] = "A" * 64

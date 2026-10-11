@@ -100,8 +100,7 @@
       "id": "dma-entry-provenance",
       "activation": "on_blocker",
       "lanes": [
-        "racer-hd",
-        "release-qa"
+        "racer-hd"
       ],
       "payoff": "Build on existing UR PPU direct-write/DMA lineage and reuse Malmazuke port chronology only for a concrete missing link.",
       "trigger": "Live 2P source attribution needs a missing original DMA latch/register write or completion observation.",

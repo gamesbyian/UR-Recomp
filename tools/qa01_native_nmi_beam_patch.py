@@ -34,9 +34,10 @@ def patch(source: str) -> str:
         strcmp(g_last_recomp_func, "I_NMI_M1X1") == 0) {
         fprintf(g_wlog_addr_fp,
                 " QAbeam_v=%u QAbeam_h=%u QAbeam_master=%llu"
-                " QAcpu_master=%llu",
+                " QAcpu_block_start=%llu QAcpu_master=%llu",
                 (unsigned)g_snes->vPos, (unsigned)g_snes->hPos,
                 (unsigned long long)g_snes->beamMasterLast,
+                (unsigned long long)g_cpu.coprocessor_master_cycles,
                 (unsigned long long)g_cpu.master_cycles);
     }
 """

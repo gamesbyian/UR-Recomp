@@ -456,7 +456,8 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
                 (seat == 0 ? "P1 " : "P2 ") +
                 ur::product::fit_modern_overlay_text(
                     selected->identity.name, 13) +
-                (g_two_seat_join.confirmed(seat) ? " READY" : " CHOOSE");
+                (g_two_seat_join.confirmed(seat) ? " READY" :
+                 seat == 0 ? " ACTIVE" : " CHOOSE");
             painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
                 static_cast<int>(pitch / 4), height, x+10,
                 y+37+static_cast<int>(seat)*26,label.c_str(),
@@ -465,7 +466,7 @@ extern "C" int ur_baldosa_modern_root_draw_frame(
         }
         painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, x+10,y+100,
-            "EACH PAD: UP/DOWN, A",
+            "P1 A READY  P2 UP/DOWN A",
             pal.secondary_grey,1);
         painter.draw_text(reinterpret_cast<std::uint32_t*>(dst),
             static_cast<int>(pitch / 4), height, x+10,y+114,

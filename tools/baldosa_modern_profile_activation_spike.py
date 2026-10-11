@@ -154,7 +154,7 @@ def patch_cmake(source: str, root: Path) -> str:
         # Test-only executable, not part of the shipping game target. Uses
         # the SAME Modern product codecs as the real Windows frontend.
         "add_executable(ur-baldosa-modern-profile-fixture " + fixture_args + ")\n"
-        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n'
+        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}" "{(root / "native/title").resolve().as_posix()}")\n'
         # The supplied Windows clang pack can link a runnable title while a
         # separate C++17 fixture resolves its STL runtime through DLLs that
         # are absent on a clean CI runner (Windows exit 0xC0000135).

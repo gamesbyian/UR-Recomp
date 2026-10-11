@@ -1,0 +1,116 @@
+name: One-shot evidence-locked definitive recruitment film render
+on:
+  push:
+    branches: [media/definitive-trailer-assembly-20261010]
+    paths: [.github/workflows/one-shot-definitive-film-encode.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-recruitment-final-render-once
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Install media dependencies, no native builds
+        run: |
+          set -euo pipefail
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+          ffmpeg -hide_banner -version | head -n 1
+          python3 - <<'PY'
+          import PIL; print('Pillow',PIL.__version__)
+          PY
+      - name: Retrieve exact reviewed technical movie by immutable Git commit
+        run: |
+          set -euo pipefail
+          git fetch --no-tags --depth=1 origin d97a479552ba442bd76c2ef9b0707428564d69d8
+          mkdir -p /tmp/ur-recruitment-source
+          git show d97a479552ba442bd76c2ef9b0707428564d69d8:media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4 > /tmp/ur-recruitment-source/technical.mp4
+          echo 'c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d  /tmp/ur-recruitment-source/technical.mp4' | sha256sum -c -
+      - name: Author 58 second master, 20 second portrait and authentic poster
+        run: |
+          set -euo pipefail
+          root=media/showcase/2026-10-10/recruitment
+          art=media/showcase/art-reconstruction/2026-10-10
+          python3 tools/showcase/build_definitive_recruitment.py \
+            --title "$root/native-menu/ur-native-title-menu-900f.mp4" \
+            --title-manifest "$root/native-menu/native-title-menu-provenance.json" \
+            --modern "$root/modern-root/ur-modern-root-600f.mp4" \
+            --modern-manifest "$root/modern-root/native-modern-root-provenance.json" \
+            --race "$root/continuous/ur-native-2p-clean-600f.mp4" \
+            --race-manifest "$root/continuous/native-continuous-provenance.json" \
+            --reveal "$root/presentation-edits/authentic-widescreen-reveal-7s.mp4" \
+            --comparison "$root/presentation-edits/same-capture-centre-vs-wide-5s.mp4" \
+            --presentation-manifest "$root/presentation-edits/presentation-provenance.json" \
+            --technical "/tmp/ur-recruitment-source/technical.mp4" \
+            --art "$art/01-original-4x-remastered.mp4" \
+            --archaeology "$art/02-animation-archaeology.mp4" \
+            --editorial-approval "$root/final-approval/approval.json" \
+            --outdir "$root/definitive-film"
+      - name: Decoded output audits and permanent visual witnesses
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib,json,subprocess
+          from pathlib import Path
+          root=Path('media/showcase/2026-10-10/recruitment/definitive-film')
+          src=json.loads((root/'definitive-trailer-provenance.json').read_text())
+          assert src['film_duration_seconds']==58
+          assert src['editorial_splices_not_continuous_title_to_race']
+          assert not src['remastered_widescreen_claim'] and not src['finished_beta_claim'] and not src['continuous_4k_claim']
+          assert sum(x['frame_count'] for x in src['timeline'])==3480
+          assert len(src['timeline'])==9
+          shots={
+            'ur-recomp-definitive-recruitment-58s-1080p.mp4':((1920,1080),3480,[90,510,1020,1390,1860,2160,2530,3000,3420]),
+            'ur-recomp-recruitment-vertical-20s-1080x1920.mp4':((1080,1920),1200,[90,420,690,990,1160])
+          }
+          evid={}
+          sha=lambda p:hashlib.sha256(p.read_bytes()).hexdigest()
+          for filename,(size,frames,ordinals) in shots.items():
+              video=root/filename
+              assert sha(video)==src['output_sha256'][filename]
+              v=json.loads(subprocess.check_output(['ffprobe','-v','error',
+                 '-count_frames','-select_streams','v:0','-show_entries',
+                 'stream=width,height,r_frame_rate,nb_read_frames','-of','json',
+                 str(video)]))['streams'][0]
+              assert (v['width'],v['height'],v['r_frame_rate'],int(v['nb_read_frames']))==(*size,'60/1',frames),(filename,v)
+              for ordinal in ordinals:
+                  name=filename.removesuffix('.mp4')+f'-frame-{ordinal:04d}.png'
+                  target=root/name
+                  subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y',
+                      '-i',str(video),'-vf',f'select=eq(n\\,{ordinal})',
+                      '-vsync','vfr','-frames:v','1',str(target)],check=True)
+                  assert target.stat().st_size>10000
+                  evid[name]=sha(target)
+          poster=root/'ur-recomp-recruitment-final-poster.png'
+          assert sha(poster)==src['output_sha256'][poster.name]
+          (root/'render-review-provenance.json').write_text(json.dumps({
+              'schema':'UR-RECRUITMENT-INDEPENDENT-DECODED-OUTPUT-WITNESSES/1',
+              'review_images_sha256':evid,
+              'source_manifest_sha256':sha(root/'definitive-trailer-provenance.json'),
+              'status':'source_checked_pending_independent_final_screening',
+              'media_only':True},sort_keys=True,indent=2)+'\n')
+          print('RENDER_AND_SOURCE_VALIDATION_PASS',len(evid),'review frames')
+          PY
+      - name: Retain exact output review artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-definitive-recruitment-media-review
+          path: media/showcase/2026-10-10/recruitment/definitive-film/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Commit unmerged review candidate, retire temporary encoding workflow
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add media/showcase/2026-10-10/recruitment/definitive-film/
+          git rm -f .github/workflows/one-shot-definitive-film-encode.yml
+          git commit -m "media: generate independently auditable 58s master, 20s short, poster; retire one-shot"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

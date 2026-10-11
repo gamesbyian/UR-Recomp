@@ -98,6 +98,21 @@ class PackagedTournamentWorkRootSafetyTests(unittest.TestCase):
         self.assertNotIn("& '${PACKAGE_WIN}", text)
         self.assertNotIn("--script '${SCRIPT_WIN}", text)
 
+    def test_reopened_receipt_is_hash_bound_and_labels_unpinned_manual_runs(self):
+        text = ROUTE.read_text(encoding="utf-8")
+        for field in ("schema=ur-windows-tournament-artifacts/1",
+                      "source_commit=%s", "inner_zip_sha256=%s",
+                      "run_file=%s", "run_sha256=%s",
+                      "match_file=%s", "match_sha256=%s",
+                      "receipt_file=%s", "receipt_sha256=%s",
+                      "fresh_process_reopen=passed"):
+            self.assertIn(field, text)
+        self.assertIn("${QA_APPROVED_SHA:-unbound}", text)
+        self.assertIn("${QA_APPROVED_ZIP_SHA256:-unbound}", text)
+        self.assertIn('"$WORK/tournament-artifacts.log"', text)
+        self.assertGreater(text.index("fresh_process_reopen=passed"),
+                           text.index('test "$(sha256sum "${receipts[0]}"'))
+
     def test_no_recursive_delete_in_package_route(self):
         text = ROUTE.read_text(encoding="utf-8")
         self.assertNotIn("rm -rf", text)

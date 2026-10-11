@@ -40,3 +40,7 @@ The expert playtest report schema also now requires `build_revision` to be a com
 ## Reused gate waivers must be artifact-specific
 
 An independently reviewed `waived` status now needs the gate's `candidate_commit` equal to the nominated release source SHA **and** `waiver_zip_sha256` equal to the nominated **inner portable release ZIP** digest, alongside a nonempty rationale, named reviewer and timezone-aware approval instant. A previously approved waiver must be reviewed again when the source or ZIP changes; the validator rejects silent carryover. This is a QA bookkeeping constraint, not automatic authorization to waive representative original-game parity. Malformed JSON status values must emit validation errors even under a requested beta decision, rather than crashing the CLI.
+
+## Compact immutable artifact receipt
+
+After the reopened Windows process restores the finished event and verifies byte-identical `.urrun`, matching `.urmatch`, and single `.urfixture`, the existing tournament acceptance script writes `tournament-artifacts.log` beside its run logs. The file contains `schema=ur-windows-tournament-artifacts/1`, source/inner ZIP hashes (or explicit `unbound` when run outside the approved manual workflow), only immutable artifact basenames and three SHA-256 digests, and `fresh_process_reopen=passed`. The existing manual workflow uploads `*.log` as before. A receipt is an independently reviewable **bounded output**, not automatic acceptance of 3+ entrants, second/third legs, real pads, or physical L5 audio and presentation.

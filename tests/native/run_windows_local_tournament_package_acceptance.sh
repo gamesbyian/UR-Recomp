@@ -126,4 +126,12 @@ test "$(find "$USER_DATA/local-tournaments" -type f -name 'fixture-0.urfixture' 
 test "$(sha256sum "${runs[0]}" | cut -d ' ' -f 1)" = "$run_hash"
 test "$(sha256sum "${matches[0]}" | cut -d ' ' -f 1)" = "$match_hash"
 test "$(sha256sum "${receipts[0]}" | cut -d ' ' -f 1)" = "$receipt_hash"
+# Preserve a compact, non-ROM receipt beside existing logs. A developer
+# running the route outside the approved Windows workflow gets explicit
+# unpinned provenance, not an accidental candidate-bound certification.
+printf 'schema=ur-windows-tournament-artifacts/1\nsource_commit=%s\ninner_zip_sha256=%s\nrun_file=%s\nrun_sha256=%s\nmatch_file=%s\nmatch_sha256=%s\nreceipt_file=%s\nreceipt_sha256=%s\nfresh_process_reopen=passed\n' \
+  "${QA_APPROVED_SHA:-unbound}" "${QA_APPROVED_ZIP_SHA256:-unbound}" \
+  "${runs[0]##*/}" "$run_hash" "${matches[0]##*/}" "$match_hash" \
+  "${receipts[0]##*/}" "$receipt_hash" \
+  > "$WORK/tournament-artifacts.log"
 echo "UR_WINDOWS_LOCAL_TOURNAMENT_PACKAGE_ACCEPTANCE=packaged_launcher minted_event stock_2p_receipt relaunch_restore_history immutable_pair_and_receipt"

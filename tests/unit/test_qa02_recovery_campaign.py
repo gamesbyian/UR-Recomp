@@ -134,6 +134,9 @@ class RecoveryCohortContractTests(unittest.TestCase):
     def test_manual_only_workflow_and_read_only_release_boundaries(self):
         wf = (ROOT / ".github/workflows/qa02-recovery-cohort.yml").read_text()
         self.assertIn("workflow_dispatch:", wf)
+        self.assertNotIn(chr(92) + "${{", wf)
+        self.assertIn("group: qa02-process-recovery-cohort-${{ github.ref }}", wf)
+        self.assertIn("binary_sha256: ${{ steps.digest.outputs.binary_sha256 }}", wf)
         self.assertNotIn("\n  push:", wf)
         self.assertNotIn("\n  pull_request:", wf)
         self.assertNotIn("schedule:", wf)

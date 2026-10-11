@@ -63,12 +63,26 @@ int main() {
     wrong.provenance.mode = "race-1p";
     assert(save_completed_run_record_file(
         (directory / "003-not-2p.urrun").string(), wrong));
+    // An otherwise valid sidecar with a damaged integrity checksum must
+    // remain unavailable, not silently count as another result.
+    const auto corrupted = directory / "004-damaged-match.urrun";
+    assert(save_completed_run_record_file(corrupted.string(), run));
+    assert(save_multiplayer_match_record_for_run(
+        corrupted.string(), run, *pair));
+    {
+        const auto sidecar = multiplayer_match_record_path_for_run(
+            corrupted.string());
+        std::ofstream overwrite(sidecar, std::ios::binary | std::ios::trunc);
+        assert(overwrite);
+        overwrite << "UR-MULTIPLAYER-MATCH/1\\ncorrupt\\n";
+    }
+
     const auto view =
         inspect_baldosa_native_two_player_records_archive(
             directory.string(), "ALPHA");
     assert(view.directory_available);
     assert(view.validated_pairs == 1);
-    assert(view.unavailable_pairs == 2);
+    assert(view.unavailable_pairs == 3);
     assert(view.selected_profile_matches == 1);
     assert(view.wins == 1 && view.losses == 0 && view.draws == 0);
 

@@ -693,6 +693,21 @@ def run_native_named_records_root(
     original = {path.name: path.read_bytes() for path in archive.iterdir()}
     if set(original) != {"0001.urrun", "0002.urrun"}:
         raise ValueError("Unexpected seeded Records fixture namespace")
+    paired_seed = subprocess.run(
+        [str(fixture), str(user_root), "native-ci-rider",
+         "--seed-readonly-2p"], cwd=output,
+        capture_output=True, text=True, timeout=timeout, check=True,
+    )
+    if ("paired=1 unavailable=1 "
+            "scope=read_only_historical_not_played") not in paired_seed.stdout:
+        raise ValueError("Historical 2P fixture did not use canonical paired codecs")
+    match_archive = user_root / "multiplayer-runs"
+    original_pairs = {path.name: path.read_bytes()
+                      for path in match_archive.iterdir()}
+    if set(original_pairs) != {
+            "0001-match.urrun", "0001-match.urrun.urmatch",
+            "0002-incomplete.urrun"}:
+        raise ValueError("Unexpected historical 2P fixture artifact set")
     script = output / "root_records.txt"
     script.write_text("turbo on\nwait 1800\nquit\n", encoding="ascii")
     config = output / "config.ini"
@@ -723,22 +738,30 @@ def run_native_named_records_root(
     verify_native_named_records_root_log(log)
     verify_native_records_page_handoff(log)
     if log.count(
-        "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=0 "
-        "unavailable=0 selected=0"
+        "UR_BALDOSA_MODERN_ROOT matches_readonly=1 paired=1 "
+        "unavailable=1 selected=1"
     ) != 1:
-        raise ValueError("Native named profile did not inspect the real empty 2P archive")
+        raise ValueError("Native named profile did not load the bound historical 2P pair")
     verify_named_profile_boot_bytes(log, seed.read_bytes())
     verify_native_profile_checkpoint(
         fixture, user_root, "native-ci-rider", log, timeout)
     observed = {path.name: path.read_bytes() for path in archive.iterdir()}
     if observed != original:
         raise ValueError("Opening native Records minted/altered an .urrun artifact")
+    observed_pairs = {path.name: path.read_bytes()
+                      for path in match_archive.iterdir()}
+    if observed_pairs != original_pairs:
+        raise ValueError("Native 2P Records modified or minted a match artifact")
     if (user_root / "saves/save.srm").exists() or (output / "saves").exists():
         raise ValueError("Native named Records leaked into the default save root")
     return {
         "selected_named_profile_sram_authorized": True,
         "canonical_valid_archives_read_on_real_windows": 1,
         "canonical_2p_archive_readonly_tabs_checked": True,
+        "historical_2p_pairs_read": 1,
+        "incomplete_2p_pairs_reported_unavailable": 1,
+        "2p_archive_unchanged_after_guest": True,
+        "actual_native_2p_match_published": False,
         "malformed_archives_reported_unavailable": 1,
         "no_run_created_by_record_view_or_script_quit": True,
         "existing_profile_checkpoint_verified": True,

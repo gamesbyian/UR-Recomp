@@ -87,3 +87,18 @@ Restart, timeout or exhaustion, the pending result is discarded without
 writing a match or awarding a win. Failure/success is logged as
 `UR_BALDOSA_NATIVE_MATCH SAVE_PENDING / SAVE_RETRY / SAVE_ABANDONED`.
 No 2P save badge is claimed until a separate explicit UI acceptance.
+
+## 2P player-visible Records save acknowledgement
+
+The already-shipping native one-player result save strip is reused on the
+**original stock 2P result surface** (0xF9), without adding a separate
+renderer or modifying guest memory. A true canonical run+sidecar append
+causes `RECORD SAVED`. A transient denied pair append with a valid pending
+source-bound retry shows `RECORD SAVE PENDING`, and a missing profile,
+wrong original rider, exhausted retry or other refusal shows
+`RECORD NOT SAVED`. These labels describe storage acknowledgement,
+**not** medals, lap times, rankings or release acceptance.
+
+The strip is cleared on any source menu change, restarted race, failed
+root handoff, new setup or return to the Modern root. A retried 2P match
+cannot display success unless the paired writer acknowledges its commit.

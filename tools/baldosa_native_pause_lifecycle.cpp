@@ -479,6 +479,7 @@ extern "C" void ur_baldosa_product_after_run_frame(
                 profiles_still_bound ? &current_p1 : nullptr,
                 profiles_still_bound ? &current_p2 : nullptr);
             if (!g_pending_two_player_match.pending()) {
+                ur_baldosa_modern_root_set_run_save_feedback(0);
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_MATCH SAVE_ABANDONED=1 "
                     "reason=changed_source_or_profiles\n");
@@ -488,6 +489,9 @@ extern "C" void ur_baldosa_product_after_run_frame(
                         &retry->result, &retry->player1, &retry->player2);
                 const auto outcome = g_pending_two_player_match.after_retry(
                     saved == 1, stats->frame);
+                ur_baldosa_modern_root_set_run_save_feedback(
+                    outcome == ur::product::BaldosaRunRetryOutcome::Saved ? 2u :
+                    outcome == ur::product::BaldosaRunRetryOutcome::Pending ? 1u : 3u);
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_MATCH SAVE_RETRY status=%s "
                     "host_frame=%llu\n",
@@ -555,6 +559,12 @@ extern "C" void ur_baldosa_product_after_run_frame(
                             "retry_while_original_result_visible=1\n");
                     }
                 }
+                // A badge is truthful only after the exact atomic
+                // .urrun + .urmatch publisher reports committed success.
+                // An unbound or exhausted result shows NOT SAVED, not PB.
+                ur_baldosa_modern_root_set_run_save_feedback(
+                    published == 1 ? 2u :
+                    g_pending_two_player_match.pending() ? 1u : 3u);
                 std::fprintf(stderr,
                     "UR_BALDOSA_NATIVE_RESULT observed=1 mode=race-2p "
                     "race_host=%llu result_host=%llu riders=%u,%u "

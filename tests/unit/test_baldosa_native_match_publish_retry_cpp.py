@@ -41,6 +41,13 @@ class BaldosaNativeTwoPlayerMatchRetryTests(unittest.TestCase):
                       source)
         self.assertIn("SAVE_ABANDONED=1", source)
         self.assertIn("SAVE_RETRY status=%s", source)
+        self.assertIn("ur_baldosa_modern_root_set_run_save_feedback(", source)
+        root = (ROOT / "tools/baldosa_native_modern_root.cpp").read_text(
+            encoding="utf-8")
+        self.assertIn("stock_result_still_visible", root)
+        self.assertIn("g_handed_off_players == 2u", root)
+        self.assertIn("ur::title::kOrdinaryTwoPlayerRaceResultMenu", root)
+        self.assertIn("render_baldosa_native_run_save_feedback(", root)
         self.assertNotIn("append_multiplayer_match_pair(", source)
         self.assertNotIn("RtlWriteSram(", source)
 

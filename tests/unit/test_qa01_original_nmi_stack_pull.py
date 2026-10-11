@@ -26,7 +26,7 @@ ORIGINAL = (
 # establishes PHA only; there has been no executed return-path trace.
 PULL = (
     "QANMIPULL f=5780 v=225 pc=0085A0 op=68 "
-    "sp0=01DC sp1=01DE width=2 pl0=00 pl1=00 "
+    "sp0=01DC sp1=01DE width=2 e0=0 pl0=00 pl1=00 "
     "a0=0000 a1=4042 dd=42 de=40 "
     "touches_dd=1 touches_de=1 f1=5780\n"
 )
@@ -124,6 +124,10 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(report.expected_pull_width(0x2B, 0x30), 2)
         self.assertEqual(report.expected_pull_width(0xAB, 0), 1)
         self.assertEqual(report.expected_pull_width(0x28, 0), 1)
+        self.assertEqual(report.expected_pull_width(0x68, 0, True), 1)
+        self.assertEqual(report.expected_pull_width(0xFA, 0, True), 1)
+        self.assertEqual(report.expected_pull_width(0x7A, 0, True), 1)
+        self.assertEqual(report.expected_pull_width(0x2B, 0, True), 2)
         with self.assertRaises(ValueError):
             report.expected_pull_width(0x48, 0)
 
@@ -221,11 +225,30 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(result["observed_candidate_stack_pull_count"], 1)
         self.assertFalse(result["saved_a_restoration_observed_in_window"])
 
+    def test_emu_mode_pla_overrides_zeroed_memory_width_bit(self):
+        # Synthetic E-mode state, ensuring the source operator's E override
+        # is not accidentally replaced by status M/X-only heuristics.
+        emu = (PULL.replace("width=2", "width=1")
+               .replace("e0=0", "e0=1")
+               .replace("sp1=01DE", "sp1=01DD")
+               .replace("a0=0000", "a0=4000")
+               .replace("touches_de=1", "touches_de=0"))
+        row = report.summarize(ORIGINAL + emu)["candidate_stack_pull_scopes"][0]
+        self.assertTrue(row["emulation_mode_before_pull"])
+        self.assertEqual(row["architectural_stack_pull_bytes"], 1)
+        self.assertEqual(row["pla_loaded_target_bytes_verified"], 1)
+        self.assertEqual(report.summarize(ORIGINAL + emu)[
+            "candidate_original_saved_a_restore_pairs"], [])
+        # The same byte pull with E=0, M=0 is invalid, not an accepted 8-bit PLA.
+        with self.assertRaises(ValueError):
+            report.summarize(ORIGINAL + emu.replace("e0=1", "e0=0"))
+
     def test_malformed_or_forged_original_nmi_reads_fail_closed(self):
         for log in (
             PULL,  # Not a real original source replay.
             ORIGINAL.replace("QASTACKWRITE ", "QASTACKWROTE ") + PULL,
             ORIGINAL + PULL.replace("width=2", "width=1"),
+            ORIGINAL + PULL.replace("e0=0", "e0=2"),
             ORIGINAL + PULL.replace("sp1=01DE", "sp1=01DD"),
             ORIGINAL + PULL.replace("sp0=01DC", "sp0=01DF"),
             ORIGINAL + PULL.replace("touches_dd=1", "touches_dd=0"),

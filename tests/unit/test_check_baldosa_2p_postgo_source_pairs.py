@@ -9,6 +9,7 @@ import unittest
 
 from tools.check_baldosa_2p_postgo_source_pairs import (
     compare, assess, repeated_viewport_text_colour_witness,
+    original_five_bit_red_add_13_matches, SNES5_TO_RGB8,
     WIDTH, HEIGHT, FRAME,
 )
 from tools.check_baldosa_wide_single_slot_source import HEADER, read_source
@@ -247,6 +248,51 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         out = repeated_viewport_text_colour_witness(original, source, source)
         self.assertEqual(out["upper_source_only_final_rgb_differences"], 0)
         self.assertFalse(out["actual_2208_13_pixels_each_with_red_plus_107"])
+
+    def test_every_relevant_native_5bit_gray_maps_to_plus13_red(self):
+        for source_red5 in (2, 3, 6, 9, 14, 16, 18):
+            src = bytes((SNES5_TO_RGB8[source_red5],
+                         SNES5_TO_RGB8[9], SNES5_TO_RGB8[6]))
+            final = bytes((SNES5_TO_RGB8[source_red5 + 13],
+                           SNES5_TO_RGB8[9], SNES5_TO_RGB8[6]))
+            with self.subTest(source_red5=source_red5):
+                self.assertTrue(original_five_bit_red_add_13_matches(src, final))
+        # The 5-bit transfer produces both +107 and +108 *8-bit*
+        # deltas for the identical native +13 addition.
+        self.assertEqual(SNES5_TO_RGB8[16] - SNES5_TO_RGB8[3], 108)
+        self.assertEqual(SNES5_TO_RGB8[22] - SNES5_TO_RGB8[9], 107)
+
+    def test_altered_green_or_blue_or_unquantized_RGB_is_not_native_add13(self):
+        source = bytes((74, 74, 74))
+        correct = bytes((181, 74, 74))
+        self.assertTrue(original_five_bit_red_add_13_matches(source, correct))
+        self.assertFalse(original_five_bit_red_add_13_matches(
+            source, bytes((181, 82, 74))))
+        self.assertFalse(original_five_bit_red_add_13_matches(
+            source, bytes((181, 74, 82))))
+        self.assertFalse(original_five_bit_red_add_13_matches(
+            source, bytes((180, 74, 74))))
+        self.assertFalse(original_five_bit_red_add_13_matches(
+            bytes((173, 74, 74)), bytes((255, 74, 74))))
+
+    def test_real_stock_rgb_quantization_is_separate_from_source_identity(self):
+        self.original = bytearray(self.original)
+        for slot, x, y in ((98, 125, 70), (96, 135, 182)):
+            # Source uses 247 red and cannot add +13 without overflow.
+            # Replace synthetic source with a genuine 5-bit gray to
+            # probe the physical 5-bit colour-difference analyzer.
+            self.paint(self.sources[slot], x, y, (74, 74, 74, 255))
+            at = 4 * (y * WIDTH + x)
+            self.original[at:at + 4] = bytes((181, 74, 74, 0))
+        self.original = bytes(self.original)
+        self.flush()
+        report = assess(self.root)
+        for slot in (98, 96):
+            row = report["source_rgb_vs_actual_original_final_by_slot"][str(slot)]
+            self.assertEqual(
+                row["native_5bit_red_add_13_green_blue_unchanged_pixels"], 1)
+            self.assertTrue(
+                row["native_5bit_addition_observed_not_ppu_register_attributed"])
 
     def test_invalid_cross_raster_size_fails(self):
         with self.assertRaisesRegex(ValueError, "complete"):

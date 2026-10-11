@@ -69,8 +69,26 @@ def validate_plan(plan: dict) -> None:
         raise ValueError("campaign plan modified or digest invalid")
 
 
+def producer_failure_reason(producer_log: Path | None) -> str:
+    """Expose the decisive bounded error, not the whole diagnostic/ROM log."""
+    if producer_log is None:
+        return ""
+    try:
+        lines = producer_log.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return ""
+    for line in reversed(lines[-200:]):
+        line = line.strip()
+        if ("CompleteEventError:" in line or
+            "error while loading shared libraries:" in line or
+            "ModuleNotFoundError:" in line or
+            "subprocess.TimeoutExpired:" in line):
+            return line[-260:]
+    return ""
+
+
 def classify(case: str, producer_rc: int, producer_path: Path,
-             plan: dict) -> dict:
+             plan: dict, producer_log: Path | None = None) -> dict:
     validate_plan(plan)
     ids = [row["id"] for row in plan["cases"]]
     if case not in ids:
@@ -90,6 +108,9 @@ def classify(case: str, producer_rc: int, producer_path: Path,
     }
     if producer_rc not in (0, 1):
         row["reason"] = "producer process failed, was killed, or timed out"
+        detail = producer_failure_reason(producer_log)
+        if detail:
+            row["reason"] += ": " + detail
         return row
     try:
         report = load_json(producer_path)
@@ -148,6 +169,9 @@ def classify(case: str, producer_rc: int, producer_path: Path,
         }
     except (OSError, ValueError, KeyError, TypeError) as exc:
         row["reason"] = "invalid/missing producer evidence: " + str(exc)
+        detail = producer_failure_reason(producer_log)
+        if detail:
+            row["reason"] += "; cause: " + detail
     return row
 
 
@@ -275,6 +299,7 @@ def main(argv: list[str] | None = None) -> int:
     check.add_argument("--case", required=True, choices=list(CASES))
     check.add_argument("--producer-exit", required=True, type=int)
     check.add_argument("--producer-report", required=True, type=Path)
+    check.add_argument("--producer-log", type=Path)
     check.add_argument("--out", required=True, type=Path)
     agg = sub.add_parser("aggregate")
     agg.add_argument("--plan", required=True, type=Path)
@@ -298,9 +323,13 @@ def main(argv: list[str] | None = None) -> int:
         return 0
     plan = load_json(args.plan)
     if args.mode == "classify":
-        write_json(args.out, classify(args.case, args.producer_exit,
-                                      args.producer_report, plan))
-        return 0
+        row = classify(args.case, args.producer_exit,
+                       args.producer_report, plan, args.producer_log)
+        write_json(args.out, row)
+        # A failed producer is a failed case job. Artifacts and aggregate
+        # still run, but a valid scientific strict divergence is not a
+        # CI infrastructure failure.
+        return 1 if row["disposition"] == "producer_error" else 0
     report, summary = aggregate(plan, args.results_dir)
     write_json(args.out, report)
     args.summary.write_text(summary, encoding="utf-8")

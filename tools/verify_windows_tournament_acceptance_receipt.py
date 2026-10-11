@@ -31,6 +31,8 @@ RECEIPT = re.compile(r"fixture-0\.urfixture\Z")
 MAX_RECEIPT_BYTES = 4096
 MAX_FILE_BYTES = 64 * 1024 * 1024
 MAX_NATIVE_LOG_BYTES = 8 * 1024 * 1024
+# The private project's canonical USA retail ROM identity (tools/verify_rom.py).
+EXPECTED_USA_ROM_SHA256 = "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478"
 EXPECTED_CREATE_MARKERS = (
     "UR_LOCAL_MULTIPLAYER SESSION_READY",
     "UR_LOCAL_TOURNAMENT PANEL_OPENED page=setup",
@@ -167,7 +169,7 @@ def inspect_two_player_pair(run: Path, match: Path) -> dict[str, str]:
     }
     if (run_fields["course"] != "course:01"
             or run_fields["mode"] != "race-2p"
-            or not re.fullmatch(r"[0-9a-fA-F]{64}", run_fields["rom_sha256"])):
+            or run_fields["rom_sha256"] != EXPECTED_USA_ROM_SHA256):
         raise ValueError("stock 2P run has unexpected ROM/course/mode provenance")
     if not re.fullmatch(r"[0-9]+", run_fields["frame_count"]):
         raise ValueError("stock 2P run has invalid frame count")

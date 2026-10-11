@@ -17,7 +17,7 @@ def make_v1_pair() -> tuple[bytes, bytes]:
     run_body = (
         "URRUN 1\n"
         "game uniracers\n"
-        "rom_sha256 " + "d" * 64 + "\n"
+        "rom_sha256 " + "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478" + "\n"
         "build_compat harness\n"
         "course course:01\n"
         "mode race-2p\n"
@@ -170,6 +170,37 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
                         verify(work, candidate, "a" * 40, "b" * 64)
             match.write_bytes(original)
             report.write_text(receipt, encoding="ascii")
+
+    def test_rehashed_noncanonical_usa_rom_identity_is_rejected(self):
+        from tools.verify_windows_tournament_acceptance_receipt import fnv_hex
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, report = self.make(Path(tmp))
+            original_run = run.read_bytes()
+            original_side = match.read_bytes()
+            receipt = report.read_text(encoding="ascii")
+            old_body = original_run.decode("ascii").rsplit("\nchecksum ", 1)[0] + "\n"
+            altered_body = old_body.replace(
+                "rom_sha256 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+                "rom_sha256 " + "0" * 64,
+            )
+            altered_run = (altered_body + "checksum " +
+                           fnv_hex(altered_body.encode()) + "\n").encode()
+            side_body = original_side.decode("ascii").rsplit("\nchecksum ", 1)[0] + "\n"
+            side_body = side_body.replace(
+                "run_checksum " + fnv_hex(old_body.encode()),
+                "run_checksum " + fnv_hex(altered_body.encode()),
+            )
+            altered_side = (side_body + "checksum " +
+                            fnv_hex(side_body.encode()) + "\n").encode()
+            run.write_bytes(altered_run)
+            match.write_bytes(altered_side)
+            report.write_text(
+                receipt.replace(digest(original_run), digest(altered_run))
+                       .replace(digest(original_side), digest(altered_side)),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "unexpected ROM/course/mode"):
+                verify(work, candidate, "a" * 40, "b" * 64)
 
     def test_rehashed_missing_second_input_lane_is_rejected(self):
         from tools.verify_windows_tournament_acceptance_receipt import fnv_hex

@@ -327,6 +327,46 @@ class WindowsTournamentReceiptVerifierTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "missing, linked or oversized"):
                 verify(work, candidate, "a" * 40, "b" * 64)
 
+    def test_rehashed_out_of_order_native_tournament_transition_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, receipt_path = self.make(Path(tmp))
+            log = work / "tournament.log"
+            saved_log = log.read_text(encoding="utf-8")
+            saved_receipt = receipt_path.read_text(encoding="ascii")
+            lines = saved_log.splitlines(keepends=True)
+            self.assertGreater(len(lines), 5)
+            # The strings still exist and the receipt's SHA is re-signed.
+            lines[3], lines[6] = lines[6], lines[3]
+            swapped = "".join(lines)
+            log.write_text(swapped, encoding="utf-8")
+            receipt_path.write_text(
+                saved_receipt.replace(
+                    digest(saved_log.encode()), digest(swapped.encode())),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "impossible tournament event order"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+            log.write_text(saved_log, encoding="utf-8")
+            receipt_path.write_text(saved_receipt, encoding="ascii")
+
+    def test_rehashed_reopen_done_before_restore_is_rejected(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            work, candidate, run, match, fixture, receipt_path = self.make(Path(tmp))
+            log = work / "reopen.log"
+            before = log.read_text(encoding="utf-8")
+            original_receipt = receipt_path.read_text(encoding="ascii")
+            lines = before.splitlines(keepends=True)
+            lines[0], lines[-1] = lines[-1], lines[0]
+            swapped = "".join(lines)
+            log.write_text(swapped, encoding="utf-8")
+            receipt_path.write_text(
+                original_receipt.replace(
+                    digest(before.encode()), digest(swapped.encode())),
+                encoding="ascii",
+            )
+            with self.assertRaisesRegex(ValueError, "reopen completed before restore"):
+                verify(work, candidate, "a" * 40, "b" * 64)
+
     def test_transcript_edits_with_all_expected_markers_still_fail_digest(self):
         with tempfile.TemporaryDirectory() as tmp:
             work, candidate, p, q, f, report = self.make(Path(tmp))

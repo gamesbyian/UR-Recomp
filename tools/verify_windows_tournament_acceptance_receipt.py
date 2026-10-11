@@ -98,6 +98,24 @@ def check_native_log(path: Path, expected: tuple[str, ...]) -> None:
                        "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED"):
             if body.count(marker) != 1:
                 raise ValueError(f"native QA log has duplicate/missing settled event: {marker}")
+        # The original game can only commit a recorded fixture after
+        # a tournament has been created, armed and guest capture tagged.
+        # Check these causal transitions without asserting incidental
+        # frontend UI ordering or whether result notice precedes storage.
+        sequence = (
+            "UR_LOCAL_TOURNAMENT CREATED entrants=2 fixtures=1 courses=2 legs=1",
+            "UR_LOCAL_TOURNAMENT ARMED fixture=0 course=course:01",
+            "UR_LOCAL_TOURNAMENT CAPTURE_TAGGED",
+            "UR_MULTIPLAYER_MATCH CAPTURED",
+            "UR_LOCAL_TOURNAMENT FIXTURE_COMMITTED",
+        )
+        positions = [body.find(marker) for marker in sequence]
+        if positions != sorted(positions) or len(set(positions)) != len(sequence):
+            raise ValueError("native QA log has impossible tournament event order")
+    elif path.name == "reopen.log":
+        if (body.find("UR_LOCAL_TOURNAMENT SESSION_RESTORED") >=
+                body.find("UR_LOCAL_TOURNAMENT_PANEL_ACCEPTANCE DONE mode=reopen")):
+            raise ValueError("native QA log reports reopen completed before restore")
 
 
 def sha256(path: Path) -> str:

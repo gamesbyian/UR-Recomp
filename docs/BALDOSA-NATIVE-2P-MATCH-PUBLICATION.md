@@ -87,3 +87,16 @@ Restart, timeout or exhaustion, the pending result is discarded without
 writing a match or awarding a win. Failure/success is logged as
 `UR_BALDOSA_NATIVE_MATCH SAVE_PENDING / SAVE_RETRY / SAVE_ABANDONED`.
 No 2P save badge is claimed until a separate explicit UI acceptance.
+
+## Hardened named-P2 file admission
+
+A typed profile directory alone does not authorize a participant if
+`host-profile.txt` or `save.srm` is redirected through a live or
+dangling symbolic link. The join's read-only candidate filter refuses
+both substitutions, and the atomic paired match writer independently
+checks **both P1 and P2 raw SRAM file types**, in addition to the
+original real-directory/profile-state checks, before acquiring leases.
+These are bounded entry-type checks, not a general guarantee against
+a privileged filesystem actor racing file replacements. Synthetic
+C++ fixtures verify exact-byte off-root aliases are still refused and
+existing canonical pair history remains unchanged.

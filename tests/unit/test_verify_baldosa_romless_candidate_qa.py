@@ -99,6 +99,19 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertEqual(report["inputs"]["actions_wrapper_sha256"],
                              qa.file_digest(wrapper))
             self.assertEqual(report["subject"]["candidate_zip_sha256"], digest)
+            bound = qa.audit_actions_wrapper(
+                wrapper, source, digest,
+                expected_wrapper_sha=qa.file_digest(wrapper),
+            )
+            self.assertEqual(bound["inputs"]["actions_wrapper_sha256"], qa.file_digest(wrapper))
+            with self.assertRaisesRegex(ValueError, "wrapper bytes differ"):
+                qa.audit_actions_wrapper(
+                    wrapper, source, digest, expected_wrapper_sha="0" * 64
+                )
+            with self.assertRaisesRegex(ValueError, "wrapper nomination"):
+                qa.audit_actions_wrapper(
+                    wrapper, source, digest, expected_wrapper_sha="invalid-sha"
+                )
             with self.assertRaisesRegex(ValueError, "nominated digest|sidecar"):
                 qa.audit_actions_wrapper(wrapper, source, "0" * 64)
 
@@ -168,6 +181,21 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
             self.assertFalse(accepted["metrics"]["finished_native_event_or_new_match_observed"])
             self.assertEqual(accepted["inputs"]["runtime_actions_wrapper_sha256"],
                              qa.file_digest(evidence))
+            bound = qa.check_runtime_actions_wrapper(
+                evidence, qa.audit(inner, source, digest),
+                expected_wrapper_sha=qa.file_digest(evidence),
+            )
+            self.assertEqual(bound["outcome"], "inconclusive")
+            with self.assertRaisesRegex(ValueError, "runtime evidence wrapper differs"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                    expected_wrapper_sha="0" * 64,
+                )
+            with self.assertRaisesRegex(ValueError, "runtime evidence nomination"):
+                qa.check_runtime_actions_wrapper(
+                    evidence, qa.audit(inner, source, digest),
+                    expected_wrapper_sha="not-a-sha",
+                )
 
             # The downloaded real Windows logs are CRLF, not Linux LF.
             pack(one.replace(b"\n", b"\r\n"), two.replace(b"\n", b"\r\n"))

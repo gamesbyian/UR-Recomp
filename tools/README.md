@@ -27,6 +27,15 @@ python3 -m unittest tests.unit.test_audit_three_project_apparatus
 
 An inventoried tool is not a verified original-game or native-execution feature; consult the [three-project synthesis](../docs/THREE-PROJECT-APPARATUS-SYNTHESIS-20261010.md) before adoption.
 
+Upscaling/scaler research trial provenance (no image model installed and no asset approval):
+
+```bash
+python3 tools/art/validate_upscale_trials.py path/to/trial.json --report /tmp/trial-summary.json
+python3 -m unittest tests.unit.test_validate_upscale_trials
+```
+
+The schema/example and controlled model/shader comparison steps are in [HD-UPSCALING-EXPERIMENT-PLAN.md](../docs/HD-UPSCALING-EXPERIMENT-PLAN.md). Output reports cannot mark art shipping-ready.
+
 UI-state helpers:
 
 ```bash

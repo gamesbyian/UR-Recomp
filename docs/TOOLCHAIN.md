@@ -135,6 +135,12 @@ The output is an ensemble of hypotheses about high-resolution contour/edge struc
 
 Prefer offline/image-domain implementations for bulk processing of extracted PNG assets when equivalent output is available. Launch an emulator/frontend only when the result depends on PPU composition, shader passes, aspect/display behavior, NTSC simulation, or another emulator-specific surface.
 
+### Bounded recomp upscaling and generative model comparison
+
+The [HD upscaling experiment plan](HD-UPSCALING-EXPERIMENT-PLAN.md) is the owning reference for selecting four *existing pinned* display treatments and an optional model/atlas pilot. **Do not repin or duplicate `slang-shaders`, RetroArch or bsnes-hd just because another recomp documents similar techniques.** Begin with matched UR captured source and a source-pixel control. RealESRGAN, chaiNNer and paid generative APIs are *catalogued research candidates*, **not installed/islanded tools**. A model/weight is not reproducible merely because its GitHub source revision is known; measure need first, then pin model weights, source, license, interpreter/framework closure, device requirements and an actual offline smoke before adding any tool to `tools/toolchain.json` or `third_party/manifest.json`. DKC2Recomp's Reconstruct source must have its exact shader and runtime interface audited before copying/compiling.
+
+The project-owned offline `tools/art/validate_upscale_trials.py` runs with the Python stdlib, records no shipping approvals, and is independently exercised by `tests/unit/test_validate_upscale_trials.py`. This is intentionally not a second HD art acceptance engine.
+
 ### bsnes-hd
 
 bsnes-hd is pinned as a specialist workbench. Use it selectively for higher-resolution rendering and layer/sprite-isolation experiments where those capabilities answer a concrete graphics question. It is also the explicit execution target for the quarantined `docs/bonus/WIDESCREEN-ROM-HACK.md` experiment, because its widescreen extension can expose additional non-stretched horizontal content when paired with ROM-side fixes and `.bso` configuration. Do not confuse that emulator-assisted bonus architecture with the shipping native widescreen feature. Do not treat HD Mode 7 as a generic sprite upscaler, and do not make bsnes-hd part of routine CI unless a measured workflow demonstrates unique value.

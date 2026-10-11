@@ -38,6 +38,31 @@ class HistoricalArchivedWindowsEvidenceRecordTests(unittest.TestCase):
             self.assertIs(data["metrics"][gate], False)
 
 
+class NewerHistoricalWindowsSmokeRecordTests(unittest.TestCase):
+    def test_snesrecomp_main_windows_zip_evidence_stays_inconclusive(self):
+        from tools.evidence_contract import validate_envelope
+        evidence = Path(__file__).resolve().parents[2] / (
+            "analysis/evidence/windows-smoke-38118616151-archived-consistency.json"
+        )
+        document = json.loads(evidence.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(document), [])
+        self.assertEqual(document["outcome"], "inconclusive")
+        self.assertEqual(document["subject"]["backend"], "snesrecomp")
+        self.assertEqual(document["subject"]["run_id"], 38118616151)
+        self.assertEqual(document["subject"]["source_revision_claim"],
+                         "44b6feb238be9bdf4d982afbdef98634105740be")
+        self.assertEqual(document["subject"]["inner_portable_zip_sha256"],
+                         "795a1d592d601574e42d7dcbe5752ffe800a4db43132bae5777593e2d2601248")
+        self.assertEqual(document["metrics"]["manifest_entries"], 6)
+        self.assertEqual(document["metrics"]["scripted_elapsed_ticks60"], 1714)
+        self.assertEqual(document["metrics"]["qa09_reported_physical_joystick_count"], 0)
+        self.assertTrue(document["metrics"]["qa09_synthetic_pad_observed"])
+        self.assertEqual(document["metrics"]["hosted_sdl_audio"], "dummy")
+        self.assertIs(document["metrics"]["physically_verified_windows"], False)
+        self.assertIs(document["metrics"]["native_baldosa_complete_event_verified"], False)
+        self.assertIs(document["metrics"]["independently_nominated_current_release_candidate"], False)
+
+
 class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
     def prepare(self, root: Path):
         inner = b"example archive only, not a ROM"

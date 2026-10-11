@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "evidence_type": "archived-windows-smoke-artifact-consistency",
+  "producer": "offline independent 2026-10-11 GitHub Actions ZIP/manifest/diagnostic comparison",
+  "subject": {
+    "backend": "snesrecomp",
+    "source_revision_claim": "44b6feb238be9bdf4d982afbdef98634105740be",
+    "run_id": 38118616151,
+    "inner_portable_zip_sha256": "795a1d592d601574e42d7dcbe5752ffe800a4db43132bae5777593e2d2601248"
+  },
+  "inputs": {
+    "portable_artifact_id": 11694703500,
+    "smoke_artifact_id": 11694199389,
+    "portable_transport_sha256": "b5dd01ef58a8b40a58698ee9e343c422f0a734ba772057616e17894e3f1a1246",
+    "smoke_transport_sha256": "cb24265b5eccd0f49d244ba9c93cd5dac95731f803ea667a5ecd2018dd3c50ae",
+    "portable_manifest_sha256": "c53d25ac2ecd754a82a7e5d5c0bab64174fef047cb72368e22051cd88ad92fe4",
+    "portable_executable_sha256": "fe9217a7bac2e0c703310541502f35319d7b9fccfdfc05e655805e268270a581"
+  },
+  "assertions": [
+    {
+      "name": "successful-main-source-build-run",
+      "passed": true
+    },
+    {
+      "name": "both-actions-artifacts-share-identical-inner-zip",
+      "passed": true
+    },
+    {
+      "name": "inner-zip-binds-both-unchanged-sidecars",
+      "passed": true
+    },
+    {
+      "name": "same-manifest-in-portable-zip-and-smoke-artifact",
+      "passed": true
+    },
+    {
+      "name": "six-package-files-match-declared-sizes-and-sha256",
+      "passed": true
+    },
+    {
+      "name": "archived-standalone-powershell-verifier-reported-success",
+      "passed": true
+    },
+    {
+      "name": "packaged-scripted-race-result-record-observed",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "manifest_entries": 6,
+    "executable_uncompressed_bytes": 5384192,
+    "scripted_course": "course:01",
+    "scripted_elapsed_ticks60": 1714,
+    "scripted_input_spans": 65,
+    "qa05_restart_log_count": 5,
+    "qa09_reported_physical_joystick_count": 0,
+    "qa09_synthetic_pad_observed": true,
+    "hosted_sdl_video": "windows",
+    "hosted_sdl_audio": "dummy",
+    "physically_verified_windows": false,
+    "native_baldosa_complete_event_verified": false,
+    "independently_nominated_current_release_candidate": false
+  },
+  "outcome": "inconclusive",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T07:21:00Z",
+    "workflow_run_id": 38118616151,
+    "source": "successful main Windows native build and boot smoke; original hosted zip artifacts independently read as bytes",
+    "scope": "ROM-free receipt of package and historical hosted diagnostics only; no original gameplay or L4/L5 release certification"
+  }
+}

@@ -3,6 +3,8 @@
 #include "multiplayer_match_catalog.hpp"
 #include "multiplayer_match_summary.hpp"
 
+#include <cctype>
+#include <cstdio>
 #include <filesystem>
 #include <system_error>
 #include <utility>
@@ -44,6 +46,55 @@ inspect_baldosa_native_two_player_records_archive(
         out.wins = selected->wins;
         out.losses = selected->losses;
         out.draws = selected->draws;
+        // The catalog has already admitted matching checksummed run+sidecar
+        // artifacts, sorted by the existing canonical filename chronology.
+        // Preserve case-insensitive Windows profile identity and report the
+        // latest match belonging to THIS profile, never an unrelated pair.
+        const auto same_storage_id = [](const std::string& lhs,
+                                        const std::string& rhs) {
+            if (lhs.size() != rhs.size()) return false;
+            for (std::size_t i = 0; i < lhs.size(); ++i) {
+                if (std::tolower(static_cast<unsigned char>(lhs[i])) !=
+                    std::tolower(static_cast<unsigned char>(rhs[i])))
+                    return false;
+            }
+            return true;
+        };
+        for (auto it = admitted.rbegin(); it != admitted.rend(); ++it) {
+            const auto& context = it->match.context;
+            const bool first = same_storage_id(
+                context.match.player1.profile_id, selected_profile_id);
+            const bool second = same_storage_id(
+                context.match.player2.profile_id, selected_profile_id);
+            if (!first && !second) continue;
+            const auto& result = context.match.result;
+            const auto own_hundredths = first
+                ? result.player1_hundredths : result.player2_hundredths;
+            const bool draw = result.outcome ==
+                ur::title::OrdinaryTwoPlayerRaceOutcome::Draw;
+            const bool won = !draw &&
+                (first == (result.outcome ==
+                    ur::title::OrdinaryTwoPlayerRaceOutcome::Player1Win));
+            const char* outcome = draw ? "DRAW" : won ? "WIN" : "LOSS";
+            const auto course = context.course_id;
+            const auto short_course = course.rfind("course:", 0) == 0
+                ? course.substr(7) : course;
+            char line[80]{};
+            if (own_hundredths >=
+                    ur::title::kOrdinaryTwoPlayerNoTimeHundredths) {
+                std::snprintf(line, sizeof(line), "LAST %s %s DNF",
+                    short_course.c_str(), outcome);
+            } else {
+                const unsigned hundredths = own_hundredths;
+                std::snprintf(line, sizeof(line),
+                    "LAST %s %s %02u:%02u.%02u",
+                    short_course.c_str(), outcome,
+                    hundredths / 6000u, (hundredths / 100u) % 60u,
+                    hundredths % 100u);
+            }
+            out.latest_match_line = line;
+            break;
+        }
     }
     return out;
 }

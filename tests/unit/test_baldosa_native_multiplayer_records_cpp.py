@@ -57,6 +57,8 @@ class BaldosaNativeMultiplayerRecordsTests(unittest.TestCase):
             "inspect_baldosa_native_two_player_records_archive(", source)
         self.assertIn("select_records_page(!g_records_two_player)", source)
         self.assertIn("g_records_two_player, true", source)
+        self.assertIn("g_records_two_detail = matches.latest_match_line;", source)
+        self.assertIn("view.records_detail = g_records_detail;", source)
         self.assertNotIn("save_multiplayer_match_record", source)
         for name in ("baldosa_native_multiplayer_records_summary.cpp",
                      "multiplayer_match_catalog.cpp",

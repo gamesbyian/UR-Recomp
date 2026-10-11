@@ -54,6 +54,14 @@ The local [malmazuke symbol query](../tools/README.md) is a read-only join from 
 
 The complementary `tools/report_malmazuke_mapping_gaps.py --domain result` uses those same pinned index inputs to summarize **structural interval gaps**, not runtime coverage. It emits a bounded, source-linked list of existing PAL observations that lack a validated USA mapping. The counters are overlap-aware by domain and do not imply missing mechanics; the current Windows/QA owners decide whether any candidate merits a discriminating original USA probe.
 
+## Baldosa native/interpreted work, as an advisory input
+
+The pinned Baldosa `coverage_iter.sh` script already runs multiple gameplay fixtures through a deterministic Tier-2 capture and `tier2_ingest.py --json` flow. Rather than port that complete code-generation and promotion loop, `tools/report_baldosa_tier2_route_coverage.py` reads the **resulting per-route JSON**. It preserves the exact fixture digest and ROM/program/build/module identity, reports exclusive interpreted instruction costs and M/X variants, and joins exact original USA source names as *external leads*. It refuses to pool distinct build identities or promote unverified source names.
+
+**Current seam: candidate, not a verified live end-to-end capture.** Unit tests cover the report contract, and the nine original Baldosa route files are pinned; a real candidate-bound Tier-2 run from our integrated Windows binary has not been performed as part of this adoption. An upstream route CRC/masked state match is not a QA-01 complete-event pass. To advance the seam, first capture one actual route with pinned backend and complete identity, preserve the raw source witness, and compare a named failure/performance case using existing native/original fixtures. Preserve the full release ledger and independently accepted original-game oracles.
+
+The imported Baldosa material is licensed PolyForm Noncommercial 1.0.0, not MIT. The new analyzer is first-party and uses structured observations and source citations; it does not vendor, execute, or relicense Baldosa's upstream implementation.
+
 ## Useful chains that still need adapters
 
 ### Mesen CDL → disassembly evidence

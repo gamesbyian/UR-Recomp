@@ -57,12 +57,28 @@ def main():
     out = a.output.resolve()
     (out / "stock").mkdir(parents=True,exist_ok=True)
     (out / "authored").mkdir(parents=True,exist_ok=True)
+    # Bind every source alias to an independently proved stock-identical,
+    # hash-approved canonical pose. Direct ID equality is not the only
+    # admissible equivalence, but bytes, palette/player, and approval must agree.
+    canonical_by_pixels = {}
+    for cid, approval in decisions.items():
+        entry = by_id.get(cid)
+        if entry is None:
+            continue
+        candidate, _, _ = authored_candidate_rgba_for_entry(entry)
+        if sha(candidate) != approval["sha256"]:
+            raise ValueError(f"Stale shipping decision: {cid}")
+        stock = build_stock_rgba(rom, entry)
+        canonical_by_pixels.setdefault(
+            (entry["player"], sha(stock), sha(candidate)), []
+        ).append((cid, approval))
+
     frames = []
     cache = {}
     for row in sequence["frames"]:
         rid = row[a.player+"_representation_id"]
-        if rid not in decisions or rid not in by_id:
-            raise ValueError(f"Unapproved / unregistered animation pose {rid}")
+        if rid not in by_id:
+            raise ValueError(f"Unknown animation registration {rid}")
         if rid not in cache:
             entry = by_id[rid]
             if entry["player"] != a.player:
@@ -71,7 +87,13 @@ def main():
             authored, generator, sampler = authored_candidate_rgba_for_entry(entry)
             if len(stock) != 64*64*4 or len(authored) != 256*256*4:
                 raise ValueError("Unexpected raster dimensions")
-            if sha(authored) != decisions[rid]["sha256"]:
+            matches = canonical_by_pixels.get((a.player,sha(stock),sha(authored)),[])
+            if not matches:
+                raise ValueError(f"No approved SAME-PLAYER STOCK-IDENTICAL pose for {rid}")
+            # Prefer exact approved identity, else deterministic canonical alias.
+            matches.sort(key=lambda x: (x[0]!=rid,x[0]))
+            canonical_id, approval = matches[0]
+            if approval["sha256"]!=sha(authored):
                 raise ValueError(f"Approved artwork changed: {rid}")
             if not any(stock[i] for i in range(3,len(stock),4)):
                 raise ValueError("Empty stock raster")
@@ -80,16 +102,18 @@ def main():
             afile = out/"authored"/(token+".png")
             sfile.write_bytes(encode_png_rgba(64,64,stock))
             afile.write_bytes(encode_png_rgba(256,256,authored))
-            cache[rid] = (sfile,afile,generator,sampler,sha(stock))
-        sfile,afile,generator,sampler,stock_sha = cache[rid]
+            cache[rid] = (sfile,afile,generator,sampler,sha(stock),canonical_id,approval)
+        sfile,afile,generator,sampler,stock_sha,canonical_id,approval = cache[rid]
         frames.append({
-            "frame":row["frame"],"representation_id":rid,
+            "frame":row["frame"],"representation_id":canonical_id,
+            "registered_representation_id":rid,
+            "equivalence_proof":"same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
             "stock_png":str(sfile.relative_to(out)),"authored_png":str(afile.relative_to(out)),
             "stock_source":"Canonical USA ROM "+EXPECTED_ROM_SHA256+"; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
             "stock_evidence":"Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
             "stock_rgba_sha256":stock_sha,
             "authored_generator":generator,"native_sampler":sampler,
-            "approval": decisions[rid]
+            "approval": approval
         })
     manifest={"schema_version":1,"kind":"ordered-evidence-backed-editorial-sprite-strip",
         "source_rom_sha256":EXPECTED_ROM_SHA256,"registry_sha256":sha(registry_bytes),

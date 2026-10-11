@@ -38,6 +38,21 @@ low-viewport renderer defect. It highlights a serious HD fidelity risk:
 painting racer art above all final foreground/countdown elements would
 make a hidden racer incorrectly visible through the numeral.
 
+## Already-retained 4× Original density parity
+
+The **same authentic native AOT artifact** also retains complete
+`1368×896` Original 4× fallback frames1856,1872,1888. An independent
+full-RGBA comparison against every corresponding original `342×224`
+stock pixel expanded to one `4×4` square measured **zero physical
+pixel differences across all 3,677,184 output pixels**. In particular,
+the large countdown-blue lower-racer covering stays intact in all
+three 4× source-density captures. The exact three 1× and 4× source
+image SHA pairs and zero-difference counts are retained at
+[`analysis/data/qa08-2p-countdown-original-4x-density-parity-1856-1888.json`](../analysis/data/qa08-2p-countdown-original-4x-density-parity-1856-1888.json).
+This reinforces the existing Original 4× nearest-raster contract; it
+does **not** test separately captured physical `3840×2160`, native
+guest correctness, replacement HD sprite priority or rendered 4K art.
+
 ## Offline reproducibility
 
 Run **without recompiling, replaying guest routes, downloading tools

@@ -148,5 +148,13 @@
     "native_lower_source_96_sha256": "658d79c05524ca40af81f92ce6bb0d49adbe6bbcbc07d599e7e8bcdbdd1eb580",
     "source_positive_and_final_RGB_different": true,
     "hardware_BG_colour_math_owner_unproven": true
-  }
+  },
+  "native5_red_add13_text_source_counts": {
+    "96": 13,
+    "97": 0,
+    "98": 13,
+    "99": 22
+  },
+  "native5_red_add13_total_source_positive_positions_counting_slots": 48,
+  "native5_red_add13_is_candidate_ppu_math_not_register_attestation": true
 }

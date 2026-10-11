@@ -84,6 +84,47 @@ The screenshot visually places the mismatches directly beneath
 text glyphs, supporting a foreground/text interaction rather
 than missing racer source artwork.
 
+### Original SNES 5-bit channel arithmetic, not just an 8-bit RGB delta
+
+Checking all source-positive original bytes against the
+standard SNES 5-bit-to-8-bit channel conversion,
+`expand5(n) = (n << 3) | (n >> 2)`, yields a much
+stronger numeric invariant. Across **48** original
+source-positive slot positions, the final Original PPU
+red value is exactly **13 native 5-bit red levels
+above** the isolated source red value while the
+underlying 5-bit green and blue remain unchanged.
+The source palettes and final composite colours are
+all legal 5-bit-expanded values in these samples:
+
+| Original source slot | Exact native +13 red5 | Other source/final RGB differences |
+| --- | ---: | ---: |
+| Upper front98 | **13** | 0 |
+| Upper rear99 | **22** | 26 (normal differently coloured racer overlap) |
+| Lower front96 | **13** | 0 |
+| Lower rear97 | **0** | 26 (normal differently coloured racer overlap) |
+
+Within upper rear slot99's 22 red-only pixels, **19**
+appear as **+107** in expanded 8-bit red and **3**
+appear as **+108**, because `expand5(3)=24`
+and `expand5(16)=132` differ by108 even though
+their underlying SNES red5 values differ by13.
+For example, `49 → 156` and `74 → 181`
+each correspond to exactly +13 original red5.
+
+This is strong evidence for a **red-channel-addition
+signature consistent with SNES PPU colour math**,
+not a demonstrated value of `CGADSUB`, `CGWSEL`,
+the fixed-colour register or any particular BG/window
+priority stage. Identical output arithmetic is not
+proof of the hardware implementation. The analyser
+checks 5-bit-exact rather than assuming every
+8-bit output offset must be numerically +107;
+tests reject malformed/non-palette RGB and changed
+green/blue. The accepted machine-readable 5-bit
+histograms and source hashes are archived in
+[`analysis/data/qa08-original-2p-postgo-native5-red-add13-2208.json`](../analysis/data/qa08-original-2p-postgo-native5-red-add13-2208.json).
+
 The read-only comparer now reports both 13-pixel RGB delta
 histograms, the coordinate translation, and distinct checks for
 identical support versus identical per-pixel delta. Four

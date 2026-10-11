@@ -643,20 +643,23 @@ def verify_native_named_records_root_log(log: str) -> None:
 
 def verify_native_records_page_handoff(log: str) -> None:
     """Use genuine native SDL page navigation, not a separate QA records UI."""
-    markers = (
-        "UR_BALDOSA_MODERN_ROOT records_opened=1",
-        "UR_BALDOSA_MODERN_ROOT records_page=2p",
-        "UR_BALDOSA_MODERN_ROOT records_page=1p",
-        "UR_BALDOSA_MODERN_ROOT records_closed=1",
+    initial = "UR_BALDOSA_MODERN_ROOT records_page=1p"
+    opened = "UR_BALDOSA_MODERN_ROOT records_opened=1"
+    two = "UR_BALDOSA_MODERN_ROOT records_page=2p"
+    closed = "UR_BALDOSA_MODERN_ROOT records_closed=1"
+    # The initial 1P selection is emitted before the opened diagnostic.
+    # The second 1P selection must follow the physical Down-to-2P edge.
+    if (log.count(initial) != 2 or log.count(two) != 1 or
+            log.count(opened) != 1 or log.count(closed) != 1):
+        raise ValueError("Native Records 1P/2P pages duplicated or missing")
+    positions = (
+        log.find(initial), log.find(opened), log.find(two),
+        log.find(initial, log.find(two) + len(two)), log.find(closed),
     )
-    # Open initializes the 1P page before its existing opened diagnostic.
-    indices = [log.find(marker) for marker in markers]
-    if -1 in indices or indices != sorted(indices):
-        raise ValueError("Native Records 1P/2P SDL page handoff missing or out of order")
-    if log.count("UR_BALDOSA_MODERN_ROOT records_page=2p") != 1 or (
-        log.count("UR_BALDOSA_MODERN_ROOT records_page=1p") != 2
-    ):
-        raise ValueError("Native Records 1P/2P pages duplicated or not returned")
+    if -1 in positions or list(positions) != sorted(positions):
+        raise ValueError(
+            "Native Records 1P/2P SDL page handoff missing or out of order")
+
 
 def run_native_named_records_root(
     exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,

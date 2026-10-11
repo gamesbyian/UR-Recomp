@@ -34,7 +34,7 @@ PULL = (
 
 # Synthetic RTI candidate, not an executed original NMI return address.
 RTI = (
-    "QANMIRTI f=5780 v0=225 v1=225 pc=0085A4 nextpc=82803A pb0=80 pb1=82 "
+    "QANMIRTI f=5780 v0=225 v1=225 pc=0085A4 postpc=82803A pb0=80 pb1=82 "
     "sp0=01E0 sp1=01E4 a0=4042 a1=4042 pl0=05 pl1=00 "
     "cyc0=1000 cyc1=1100 f1=5780\n"
 )
@@ -122,7 +122,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(result["candidate_rti_scope_count"], 1)
         row = result["candidate_rti_scopes"][0]
         self.assertEqual(row["opcode_pc"], "00:85A4")
-        self.assertEqual(row["resumed_guest_pc"], "82:803A")
+        self.assertEqual(row["post_opcode_guest_pc"], "82:803A")
         self.assertEqual(row["architectural_return_frame_bytes"], 4)
         self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
         self.assertTrue(row["same_frame_pha_accumulator_equals_rti_A"])
@@ -133,7 +133,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         for invalid in (
             RTI,
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=01E2"),
-            ORIGINAL + RTI.replace("nextpc=82803A", "nextpc=80803A"),
+            ORIGINAL + RTI.replace("nextpc=82803A", "postpc=80803A"),
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=0200"),
             ORIGINAL + RTI.replace("a1=4042", "a1=4004"),
             ORIGINAL + RTI.replace("f=5780", "f=5760"),

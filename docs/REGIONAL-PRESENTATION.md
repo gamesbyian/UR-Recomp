@@ -1,6 +1,6 @@
 # Regional Presentation Switch
 
-Status: first player-visible Windows x64 Modern consumer shipping-path integrated and density-stable at 1x–4x; transition animation remains evidence-gated.
+Status: first player-visible Windows x64 Modern consumer shipping-path integrated and density-stable at 1x–4x; bidirectional checkerboard-flip transition is approved design but not yet implemented/accepted.
 
 This document owns the regional-presentation feature that lets the shipped game present itself as either the North American **Uniracers** release or the European **Unirally** release without introducing a second authoritative gameplay ruleset.
 
@@ -105,17 +105,34 @@ The profile must not become an implicit permission to fork arbitrary UI, gamepla
 
 ## Switch transition design
 
-A successful regional secret should not hard-cut the title branding if the original frontend already provides a suitable transition language. The preferred product behavior is to make the switch feel like a hidden stock frontend destination rather than a modern settings toggle.
+A successful regional secret should animate the regional title change using a visual treatment drawn from the original main menu's checkerboard motif. It should feel native to the game's graphical vocabulary while remaining an explicitly authored Modern presentation effect rather than a historical stock-transition claim.
 
-Current design order:
+### Approved visual direction: bidirectional diagonal checkerboard tile flip
 
-1. **Prefer an original Uniracers frontend/title transition primitive.** The leading candidate is the stock horizontal menu/title movement already used by the frontend. Reuse its timing, easing, palette behavior and compositing characteristics as literally as practical.
-2. **Direction follows the secret.**
-   - `PAL` / Left Left Left L A should move the current North American presentation **leftward** and reveal Europe / Unirally from the opposite side.
-   - `NTSC` / Right Right Right R A should move the current European presentation **rightward** and reveal North America / Uniracers from the opposite side.
-   This makes the input sequence and visual response share one spatial grammar.
-3. If the matched title-transition evidence shows that the original title-to-menu animation is a better fit than the horizontal menu movement, prefer that exact stock transition instead.
-4. If neither stock transition is safe to replay in isolation, use the smallest faithful fallback already present in the game, such as a brief palette fade. Do not invent a custom modern wipe while an original transition is available.
+The regional-brand switch uses a **menu-derived checkerboard transition**. This is a new, deliberately game-inspired host-presentation effect, **not** a claim that the retail game implemented this particular regional switch or tile flip. It supersedes the previous horizontal-slide/stock-transition preference for this specific hidden regional switch; retain original frontend-motion research as separate evidence about stock behavior.
+
+- **Uniracers → Unirally** (`PAL` / Left Left Left L A): start at the **top-left** of the screen; successive diagonal bands advance **toward bottom-right**. Each square independently appears to **flip diagonally top-left → bottom-right**, replacing the matching region of the Uniracers image with Unirally.
+- **Unirally → Uniracers** (`NTSC` / Right Right Right R A): exact directional reverse. Start at **bottom-right**, progress **toward top-left**, and flip each square **bottom-right → top-left**.
+- Match tile width, height, checker phase, alignment and displayed aspect to the **actual original main-menu checkerboard**. Measure these from retained/captured menu evidence; do not invent nominal square sizes or silently assume square display pixels. Respect the 256×224 logical raster and 7:6 SNES pixel aspect policy where applicable.
+- At the moment a tile turns edge-on and exposes the backing plane, show a **uniform medium grey sampled from the original main-menu background**. Record the measured source location, colour value and colour-space treatment alongside the asset. Never invent a convenient RGB grey as the shipping sample.
+- Each screen pixel is covered by **outgoing artwork, incoming artwork, or the grey backing only**. Sharp tile edges and crisp source pixels; no crossfade/dissolve, blur, glow, interpolated game footage, or falsely simulated in-game motion.
+- Adjacent squares may have short staggered overlapping flip phases, but the leading wave must remain visually diagonal and deterministic. Flip duration and whole-wipe duration are tunable editorial parameters, **not yet accepted historical measurements**.
+- The reverse direction must reuse the **same tile geometry, colour, easing and phase timing**, with only the traversal and per-tile flip direction inverted. Repeated selection of the active region remains a no-op.
+- Apply solely in the **accepted Modern idle-title regional-switch context** and in clearly labeled editorial/promotional versions if requested. Keep the actual regional image source retail-verified, and make neither simulation/guest memory nor title art provenance depend on the animation.
+
+**Implementation/acceptance:** first retain a main-menu screenshot with a checkerboard tile-grid measurement and sampled grey provenance. Then build an isolated deterministic presentation-only animator, including frame exports for start, early wave, midpoint, late wave and final image in **both directions**. Verify complete outgoing/incoming endpoints, mirror symmetry of tile timing/direction, consistent geometry at supported presentation densities, nearest-neighbour/crisp edges, grey-only exposed backing, no gameplay or persistence changes, and unchanged Authentic mode. Do not represent a mockup as actual stock footage or call the effect shipped before its native implementation and checks pass.
+
+### Isolated implementation prototype and upstream reference policy
+
+A **first-party offline prototype** now exists at [`tools/showcase/regional_checkerboard_wipe.py`](../tools/showcase/regional_checkerboard_wipe.py), with usage, menu-calibration schema, islanding decision and acceptance boundaries in [`tools/showcase/REGIONAL-CHECKERBOARD.md`](../tools/showcase/REGIONAL-CHECKERBOARD.md). It produces deterministic reviewed PNGs and SHA-256 manifests for both directions. Synthetic test output is explicitly labeled and proves **only editorial geometry**, not retail measurements, Windows integration or a shipped feature. Native presenter integration is still **unimplemented**.
+
+The existing islanded/pinned graphics/debugging tools (`bsnes-plus`, `snesref`, UI capture/atlas, and existing Pillow media environment) are sufficient; do **not** vendor another emulator or shader framework just for this effect. The gl-transitions `TilesWave` MIT shader and PVSnesLib window/HDMA examples are source-pinned, attributed **advisory references** in `reference/catalog.yml`, with no third-party executable code copied. Promoting any upstream implementation later requires `docs/ISLAND-TOOLCHAIN-PLAN.md` and `docs/THIRD-PARTY-CODE-AUDIT.md` provenance/licensing/closure checks. The offline preview and its test suite require no network and do not modify the game.
+
+**Remaining calibration:** the menu's precise tile width, height, grid offset and backing-grey sample have **not been established by this preview tool**. Obtain a retained source screenshot from the settled `MAIN_MENU` and verify its provenance before describing any rendered preview as menu-matched. Keep the preview geometry in logical pixels; display PAR and host/output density belong to the presenter. Include deterministic both-direction frames, identical source/target endpoints and Authentic/guest-state invariants in the eventual native acceptance.
+
+### Related stock-transition evidence
+
+Existing dense retail title/menu-transition captures and motion analyses remain relevant for understanding historical frontend behavior and possibly inspiring timing. They are **not a prerequisite for adopting the explicitly approved regional tile-flip treatment**, and cannot be used to claim that the invented diagonal flip was part of the original game.
 
 The regional state change itself remains host-owned presentation state. The animation must not reboot or replace the authoritative guest runtime merely to create a visual effect.
 
@@ -142,7 +159,7 @@ For each candidate transition, record:
 - whether replaying the visual primitive can remain presentation-only;
 - whether the same primitive exists identically in both retail regions.
 
-Acceptance criterion: choose the most recognizably stock transition that can be driven by regional presentation state without changing simulation, progression or guest timing. The selected transition must have a deterministic test/retained frame sequence before shipping.
+Acceptance criterion for the **separate stock-motion archaeology**: identify historical behavior without changing simulation, progression or guest timing. The approved regional checkerboard flip has its own deterministic frame-export/acceptance criteria above.
 
 The evidence instrument for that decision now exists without changing the shipping runtime or default comparison workload:
 
@@ -154,7 +171,7 @@ The evidence instrument for that decision now exists without changing the shippi
 - synthetic unit evidence covers known rightward and downward translation, identical frames, exact single-pixel deltas and non-consecutive-frame rejection.
 - `tools/compare_frontend_transition_reports.py` compares the two region reports at the semantic level: changed/not-changed timing plus horizontal and vertical candidate-shift sequences. It intentionally ignores branded pixel values, raw changed-pixel magnitudes and bounding boxes; matching motion signatures therefore support a shared transition rhythm without pretending the Uniracers and Unirally imagery is identical.
 
-A retained real-ROM run is still required before choosing the shipping primitive. This tooling narrows the remaining experiment; it does not declare horizontal motion merely because horizontal motion is the preferred design candidate.
+A retained real-ROM run remains required for claims about the **original** menu transition and for authentic checkerboard/grey sampling. This tooling does not establish a horizontal movement claim or historical precedent for the approved checkerboard flip.
 
 ## Persistence policy
 
@@ -377,7 +394,7 @@ The production host now completes the hidden-switch input and persistence path:
 - `SaveRequired` dispatches through the existing durable host-product store, while save failure leaves the running regional presentation well-defined;
 - native acceptance types `PAL`, proves Europe persistence in a fresh process, requires the presenter to verify and apply the exact retained Unirally raster, then confirms the downstream player-visible Europe crop differs from NorthAmerica; `NTSC` restores NorthAmerica, Authentic with Europe persisted matches canonical NorthAmerica presentation, and WRAM/SRAM/VRAM/CGRAM/OAM are byte-identical at frame 300 across the two Modern regional choices.
 
-The first visible regional consumer is therefore shipped-path complete: NorthAmerica preserves the canonical guest title raster; Europe substitutes the exact proven Unirally crop in host presentation only. The exact stock horizontal/title transition is **not** yet sufficiently characterized and remains the next explicit presentation task rather than being replaced with a new modern effect. Any additional frontend/course/audio differences remain evidence-gated.
+The first visible regional consumer is therefore shipped-path complete: NorthAmerica preserves the canonical guest title raster; Europe substitutes the exact proven Unirally crop in host presentation only. The new bidirectional menu-derived checkerboard flip is an **approved, unimplemented** host-only design. Original stock horizontal/title motion remains an independent archaeology task rather than the shipping regional-switch requirement. Any additional frontend/course/audio differences remain evidence-gated.
 
 ## Implementation phases
 

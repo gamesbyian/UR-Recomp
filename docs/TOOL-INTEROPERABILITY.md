@@ -25,6 +25,12 @@ This chain is **verified** at the producer/consumer seam: the native smoke invok
 
 Keep raw screenshot/state bundles ephemeral unless a particular capture has durable evidence value. The compact manifest, state graph, reverse index, fixtures and reports are the reusable interfaces.
 
+## Menu-calibrated checkerboard flip (candidate handoff, not shipping)
+
+The existing `snesref`/native `MAIN_MENU` capture route and `analysis/ui-capture-manifest.json` provide the source-side observation. A **manually reviewed** grid/grey measurement plus exact source-menu SHA-256 is consumed by the first-party offline `tools/showcase/regional_checkerboard_wipe.py`. The latter accepts separately verified, same-size regional title PNGs and emits deterministic nearest-neighbour frames with per-frame SHA-256/provenance manifest for either diagonal direction. Its runbook is `tools/showcase/REGIONAL-CHECKERBOARD.md`.
+
+**Status: candidate** for original-menu→measurement (no accepted original checkerboard measurement yet) and offline frames→Windows runtime presenter (not implemented). Its synthetic fixture and ROM-free tests verify only the offline algorithm, not an original title-image acquisition chain or native game integration. No external executable shader dependency was adopted, and generated PNG output is not a canonical source image. Reuse this intermediate manifest for eventual media edits rather than adding a second independent grid/timing configuration.
+
 ## Canonical symbol fan-out
 
 `docs/SYMBOLS.md` remains human-owned. `tools/export_symbols.py` generates `analysis/generated/symbols.json`, and `tools/export_symbol_adapters.py` now projects that authority into tool-specific seeds:

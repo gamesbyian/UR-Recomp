@@ -3,6 +3,26 @@ retrieved: 2026-09-28
 project: UR-Recomp
 
 sources:
+  - id: regional-checker-tileswave-glsl
+    title: "gl-transitions TilesWave diagonal flipping-tile shader"
+    type: visual_effect_code_reference
+    url: "https://github.com/gl-transitions/gl-transitions/blob/b2dfdcfbec079af4a05306d32b9366aa495c5155/transitions/TilesWave.glsl"
+    revision: "b2dfdcfbec079af4a05306d32b9366aa495c5155"
+    source_blob_sha: "fb7bb59f90d47d81402c42b018f99ff80815ed9e"
+    retrieved: "2026-10-10"
+    rights: "File header identifies author numb3r23 and MIT; repository LICENSE MIT. Advisory only; no third-party source imported into UR-Recomp."
+    local: "tools/showcase/REGIONAL-CHECKERBOARD.md"
+    relevance: "Per-tile time offsets and isolated flip masks offer a conceptual comparison for the Modern Uniracers/Unirally title-transition preview. Original shader is not a verified SNES effect."
+  - id: regional-checker-pvsneslib-effects
+    title: "PVSnesLib SNES graphics effects and window/HDMA examples"
+    type: snes_graphics_code_reference
+    url: "https://github.com/alekmaul/pvsneslib/tree/e090f001ccffdc0fb69f479a8c9703e30d07f6b1"
+    revision: "e090f001ccffdc0fb69f479a8c9703e30d07f6b1"
+    retrieved: "2026-10-10"
+    rights: "Upstream rights govern source; no code or binaries imported. Reference the maintained upstream examples and documentation, not an unpinned local copy."
+    local: "tools/showcase/REGIONAL-CHECKERBOARD.md"
+    relevance: "SNES original-hardware precedent for window/HDMA and mosaic compositing; neither creates independent diagonal 3D tile flips on its own."
+
   - id: switch-homebrew-public-toolchain
     title: "Nintendo Switch public homebrew toolchain references"
     type: platform_homebrew_reference

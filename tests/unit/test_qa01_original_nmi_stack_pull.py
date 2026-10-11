@@ -36,6 +36,7 @@ PULL = (
 RTI = (
     "QANMIRTI f=5780 v0=225 v1=225 pc=0085A4 postpc=82803A pb0=80 pb1=82 "
     "sp0=01E0 sp1=01E4 a0=4042 a1=4042 pl0=05 pl1=00 "
+    "stack4=1 b1=00 b2=3A b3=80 b4=82 "
     "cyc0=1000 cyc1=1100 f1=5780\n"
 )
 
@@ -124,18 +125,33 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(row["opcode_pc"], "00:85A4")
         self.assertEqual(row["post_opcode_guest_pc"], "82:803A")
         self.assertEqual(row["architectural_return_frame_bytes"], 4)
+        self.assertTrue(row["full_four_byte_stack_image_available"])
+        self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
+        self.assertTrue(row["post_rti_pc_equals_pre_stack_return"])
         self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
         self.assertTrue(row["same_frame_pha_accumulator_equals_rti_A"])
         self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+
+    def test_rti_post_opcode_pc_can_reflect_immediate_interrupt(self):
+        redirected = (RTI.replace("postpc=82803A", "postpc=808584")
+                      .replace("pb1=82", "pb1=80"))
+        result = report.summarize(ORIGINAL + redirected)
+        row = result["candidate_rti_scopes"][0]
+        self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
+        self.assertEqual(row["post_opcode_guest_pc"], "80:8584")
+        self.assertFalse(row["post_rti_pc_equals_pre_stack_return"])
         self.assertEqual(result["release_complete_event_credit"], 0)
 
     def test_rti_scope_rejects_malformed_or_impossible_return(self):
         for invalid in (
             RTI,
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=01E2"),
-            ORIGINAL + RTI.replace("nextpc=82803A", "postpc=80803A"),
+            ORIGINAL + RTI.replace("postpc=82803A", "postpc=80803A"),
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=0200"),
             ORIGINAL + RTI.replace("a1=4042", "a1=4004"),
+            ORIGINAL + RTI.replace("stack4=1", "stack4=0"),
+            ORIGINAL + RTI.replace("b2=3A", "b2=XX"),
             ORIGINAL + RTI.replace("f=5780", "f=5760"),
             ORIGINAL + RTI.replace("v1=225", "v1=300"),
             ORIGINAL + RTI.replace("cyc1=1100", "cyc1=oops"),

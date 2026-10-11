@@ -100,6 +100,8 @@ If you have no project history, do **not** reconstruct priority from chronology,
 45. After broad workflow edits, validate YAML structure and inspect the merged-head Actions fan-out. A workflow filename appearing as a failed run name is a strong signal that GitHub could not parse the workflow definition.
 46. For first-party handwritten C or C ABI seams that touch guest state, guest memory, or machine-shaped values, follow `docs/RECOMP-C-PRACTICES.md`. Treat generated C as disposable; make widths, wrapping, byte order, narrowing and address bounds explicit; avoid undefined or implementation-defined host behavior; and preserve strict GCC/Clang plus sanitizer coverage for portable C seams. Do not apply warning-cleanup churn to vendored/imported C.
 
+**CI changes must close their test-policy loop.** Before publishing a workflow change, inspect *both* targeted workflow tests and `tests/unit/test_ci_trigger_policy.py` for old invariants, especially compile sharing, trigger domains, job summaries and dependency failure paths. Treat a current-head failed assertion as a specific root cause, not an excuse to suppress broad checks. Experiment failure reporting should state `incomplete` when no valid producer output exists; diagnostics may run on failure, but must not present a positive or negative scientific result.
+
 ## Research before reinvention
 
 When a task exposes unfamiliar behavior, a stubborn failure, or a technique the repository does not already own, search the broader retro-development ecosystem before building a bespoke answer.

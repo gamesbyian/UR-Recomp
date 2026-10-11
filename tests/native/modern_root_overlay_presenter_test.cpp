@@ -137,6 +137,27 @@ int main() {
     assert(contains("READ ONLY - NO REPLAY"));
     assert(contains("A/ENTER  B/ESC BACK"));
     painted.clear();
+    // The existing 1P modal is still the default for old consumers.
+    // Native Baldosa alone advertises an explicit 2P page: no invented
+    // match results, only canonical already-paired history and a pad hint.
+    view.read_only_records_pages_available = true;
+    view.read_only_records_two_player = true;
+    view.records_status = "MY 2P 1  UNAVAILABLE 3";
+    view.records_recent = "W 1  L 0  D 0";
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("TWO PLAYER RECORDS"));
+    assert(contains("MY 2P 1  UNAVAILABLE 3"));
+    assert(contains("W 1  L 0  D 0"));
+    assert(contains("UP/DOWN 1P  B BACK"));
+    assert(contains("READ ONLY - NO REPLAY"));
+    painted.clear();
+    view.read_only_records_two_player = false;
+    assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
+                                      old_view,view));
+    assert(contains("STORED RUNS"));
+    assert(contains("UP/DOWN 2P  B BACK"));
+    painted.clear();
     view.read_only_records_open = false;
     assert(render_modern_root_overlay(painter,pixels,256,224,1,240,
                                       old_view,view));

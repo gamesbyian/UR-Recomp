@@ -244,9 +244,13 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
     const fs::path directory = parent / g_verified_native_profile_id;
     const auto safe_directory = [](const fs::path& candidate) {
         std::error_code ec;
-        if (!fs::exists(candidate, ec)) return !ec;
-        return !ec && !fs::is_symlink(candidate, ec) && !ec &&
-               fs::is_directory(candidate, ec) && !ec;
+        // Inspect the entry, not its target: exists() follows a dangling
+        // symlink and wrongly accepts it as an absent first-run directory.
+        const auto status = fs::symlink_status(candidate, ec);
+        if (status.type() == fs::file_type::not_found)
+            return !ec || ec == std::errc::no_such_file_or_directory;
+        return !ec && !fs::is_symlink(status) &&
+               fs::is_directory(status);
     };
     if (!safe_directory(parent) || !safe_directory(directory)) return 0;
 
@@ -269,6 +273,23 @@ extern "C" int ur_baldosa_modern_publish_settled_one_player_run(
         run->inputs.size(), path.c_str());
     std::fflush(stderr);
     return 1;
+}
+
+// The existing product's single shared ordinary-2P match archive is
+// user-rooted (not inside either player's SRAM or 1P run directory).
+// This is read-only from native Records; no 2P publication authority.
+extern "C" const char*
+ur_baldosa_modern_profile_multiplayer_records_directory(void) {
+    static std::string path;
+    if (!activated() || g_verified_native_profile_id.empty() ||
+        g_native_user_root.empty()) return nullptr;
+    path = (g_native_user_root / "multiplayer-runs").string();
+    return path.c_str();
+}
+
+extern "C" const char* ur_baldosa_modern_profile_selected_id(void) {
+    return activated() && !g_verified_native_profile_id.empty()
+        ? g_verified_native_profile_id.c_str() : nullptr;
 }
 
 extern "C" const char* ur_baldosa_modern_profile_records_directory(void) {

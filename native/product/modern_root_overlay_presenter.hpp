@@ -45,6 +45,10 @@ struct ModernRootOverlayView {
     bool read_only_records_open = false;
     std::string_view records_status{};
     std::string_view records_recent{};
+    // Native source-only Records may switch to existing paired 2P history.
+    // All older root callers default to the historical 1P RUNS view.
+    bool read_only_records_two_player = false;
+    bool read_only_records_pages_available = false;
 };
 
 inline bool render_modern_root_overlay(
@@ -186,7 +190,9 @@ inline bool render_modern_root_overlay(
                           bx, by, bw, bh, palette.title_yellow);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 9 * scale,
-                        "STORED RUNS", palette.title_yellow, scale);
+                        view.read_only_records_two_player
+                            ? "TWO PLAYER RECORDS" : "STORED RUNS",
+                        palette.title_yellow, scale);
         // The 216-logical-pixel modal has a 9-pixel text inset on each
         // side. At 8 logical pixels/glyph, 24 cells fit safely. A previous
         // 22-cell limit silently truncated the last run's hundredths digit.
@@ -207,7 +213,12 @@ inline bool render_modern_root_overlay(
                         "READ ONLY - NO REPLAY", palette.cursor_blue, scale);
         paint.draw_text(pixels, stride, surface_height,
                         bx + 9 * scale, by + 114 * scale,
-                        "A/ENTER  B/ESC BACK", 0xFFFFFFFFu, scale);
+                        !view.read_only_records_pages_available
+                            ? "A/ENTER  B/ESC BACK"
+                            : view.read_only_records_two_player
+                                ? "UP/DOWN 1P  B BACK"
+                                : "UP/DOWN 2P  B BACK",
+                        0xFFFFFFFFu, scale);
     }
     return true;
 }

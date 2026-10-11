@@ -122,6 +122,13 @@ def patch_cmake(source: str, root: Path) -> str:
         product / "completed_run_store.cpp",
         product / "completed_run_record.cpp",
         product / "baldosa_native_run_record_admission.cpp",
+        # One established checksum/course-bound 2P catalog and W/L/D
+        # aggregator, consumed read-only by the same native Records modal.
+        product / "baldosa_native_multiplayer_records_summary.cpp",
+        product / "multiplayer_match_catalog.cpp",
+        product / "multiplayer_match_summary.cpp",
+        product / "multiplayer_match_record.cpp",
+        product / "local_multiplayer_match_binding.cpp",
     )
     selected = [bridge, *(product / s for s in SOURCES), *records_sources]
     for path in selected:
@@ -136,6 +143,9 @@ def patch_cmake(source: str, root: Path) -> str:
         product / "output_resolution_policy.cpp",
         product / "host_product_state.cpp",
         product / "completed_run_record.cpp",  # QA-only historical archive seed
+        product / "completed_run_store.cpp",
+        product / "multiplayer_match_record.cpp",
+        product / "local_multiplayer_match_binding.cpp",
         *(product / s for s in SOURCES),
     ))
     return source.rstrip() + (
@@ -144,7 +154,7 @@ def patch_cmake(source: str, root: Path) -> str:
         # Test-only executable, not part of the shipping game target. Uses
         # the SAME Modern product codecs as the real Windows frontend.
         "add_executable(ur-baldosa-modern-profile-fixture " + fixture_args + ")\n"
-        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}")\n'
+        f'target_include_directories(ur-baldosa-modern-profile-fixture PRIVATE "{product.as_posix()}" "{(root / "native/title").resolve().as_posix()}")\n'
         # The supplied Windows clang pack can link a runnable title while a
         # separate C++17 fixture resolves its STL runtime through DLLs that
         # are absent on a clean CI runner (Windows exit 0xC0000135).

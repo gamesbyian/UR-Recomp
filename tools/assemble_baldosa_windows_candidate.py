@@ -51,6 +51,18 @@ def launcher() -> bytes:
         'if (-not [IO.Path]::IsPathRooted($d)) { exit 3 }; '
         '$d = [IO.Path]::GetFullPath($d).TrimEnd(\'\\\'); '
         'if ($d -ieq $p -or $d.StartsWith($p + \'\\\', [StringComparison]::OrdinalIgnoreCase)) { exit 3 }; '
+        # A syntactically external user-data root can still be a Windows
+        # junction/symlink back into this executable directory. Reject all
+        # existing reparse-point ancestors before creating user state, rather
+        # than relying on GetFullPath (which normalizes text, not targets).
+        '$walk = $d; '
+        'while ($walk) { '
+        '$entry = Get-Item -LiteralPath $walk -Force -ErrorAction SilentlyContinue; '
+        'if ($entry -and (($entry.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0)) { exit 3 }; '
+        '$parent = [IO.Path]::GetDirectoryName($walk); '
+        'if (-not $parent -or $parent -eq $walk) { break }; '
+        '$walk = $parent; '
+        '}; '
         'if ((Get-FileHash -LiteralPath $env:UR_BALDOSA_ROM -Algorithm SHA256).Hash '
         f'-ine \'{USA_SHA256}\') {{ exit 2 }}"',
         'if errorlevel 3 (echo UR-BALDOSA-STARTUP-SAVE-ROOT: Invalid or package-local user-data root. 1>&2 & exit /b 3)',
@@ -100,7 +112,8 @@ def readme(revision: str) -> bytes:
         "The launcher refuses a wrong ROM, validates the root, and uses\n"
         "%APPDATA%\\gamesbyian\\UR-Recomp for user state, or the optional\n"
         "absolute UR_RECOMP_USER_DATA_ROOT override. It refuses data paths\n"
-        "inside the extracted package. Saved data is NEVER shipped in a ZIP.\n"
+        "inside the extracted package or through an existing Windows\n"
+        "junction/reparse-point path. Saved data is NEVER shipped in a ZIP.\n"
         "An existing named Modern profile needs a complete valid catalog,\n"
         "host-profile state and 8192-byte native save; otherwise startup\n"
         "refuses the profile instead of writing into another slot.\n"

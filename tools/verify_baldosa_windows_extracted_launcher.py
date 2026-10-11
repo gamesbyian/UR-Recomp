@@ -112,6 +112,31 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
             "package-local user state was created")
     require(not user_root.exists(), "invalid root created valid profile state")
 
+    # On real NTFS a junction *outside* the game folder can point inside.
+    # GetFullPath's lexical check alone cannot detect that alias. Exercise
+    # the actual CMD->PowerShell launcher on the same extracted Windows ZIP.
+    junction = output / "Outside User Root Junction"
+    created = subprocess.run(
+        ["cmd.exe", "/d", "/c", "mklink", "/J", str(junction), str(installed)],
+        cwd=output, capture_output=True, text=True, errors="replace",
+        timeout=timeout,
+    )
+    require(created.returncode == 0 and junction.is_dir(),
+            "Windows junction fixture unavailable: " +
+            (created.stdout + created.stderr)[-900:])
+    junction_root = junction / "Redirected Profile Data"
+    aliased_env = {**env, "UR_RECOMP_USER_DATA_ROOT": str(junction_root)}
+    aliased = invoke_launcher(launcher, aliased_env, args, timeout)
+    require(aliased.returncode == 3 and
+            "UR-BALDOSA-STARTUP-SAVE-ROOT" in aliased.stderr,
+            "junction-backed user-data root bypassed actual launcher preflight")
+    require(not (installed / "Redirected Profile Data").exists(),
+            "reparse alias created mutable state inside immutable extracted ZIP")
+    junction.rmdir()
+    require(not junction.exists(), "test junction was not unlinked")
+    require(not user_root.exists(),
+            "junction refusal unexpectedly initialized genuine user data")
+
     # Real guest execution: options forwarded, Modern root opened and painted,
     # cartridge SRAM written under the same canonical user root.
     good = invoke_launcher(launcher, env, args, timeout)
@@ -169,6 +194,7 @@ def run(archive: Path, personal_rom: Path, output: Path, timeout: int) -> dict:
         "missing_rom_rejected_before_user_data": True,
         "wrong_rom_rejected_before_user_data": True,
         "package_local_and_relative_root_rejected": True,
+        "external_junction_to_package_rejected": True,
         "real_extracted_launcher_accepted": True,
         "exact_native_profile_refusal_code_and_guidance": True,
         "rejected_profile_save_unchanged": True,

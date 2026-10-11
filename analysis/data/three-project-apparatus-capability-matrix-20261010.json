@@ -306,6 +306,69 @@
       ],
       "gap": "Needs accepted baseline to avoid noise",
       "proof": "Reproducible small seeded cases and new regressions"
+    },
+    {
+      "id": "ppu-direct-provenance",
+      "domain": "presentation",
+      "priority": "P1",
+      "decision": "integrated_bounded",
+      "ur": [
+        "tools/report_ppu_direct_write_provenance.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/content/provenance.py"
+      ],
+      "gap": "CPU direct port writes not full PPU",
+      "proof": "Observed source PC/write order on real bounded trace"
+    },
+    {
+      "id": "dma-entry-provenance",
+      "domain": "presentation",
+      "priority": "P1",
+      "decision": "integrated_bounded",
+      "ur": [
+        "tools/report_snes9x_dma_entry_provenance.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "tools/unirally_lab/content/provenance.py"
+      ],
+      "gap": "Entry descriptor not a completed transfer",
+      "proof": "Separate port latch and transfer completion witnesses"
+    },
+    {
+      "id": "rider-oam-hdma",
+      "domain": "presentation",
+      "priority": "P0",
+      "decision": "conditional",
+      "ur": [
+        "tools/check_baldosa_oneplayer_top_oam_sources.py",
+        "tools/compare_active_oam_models.py"
+      ],
+      "baldosa": [
+        "src/main.c"
+      ],
+      "malmazuke": [
+        "tools/unirally_lab/content/ppu.py"
+      ],
+      "gap": "Source sprite visibility not inferred from tile decode",
+      "proof": "P1/P2 original final pixels with source and native observer"
+    },
+    {
+      "id": "widescreen-4k",
+      "domain": "presentation",
+      "priority": "P0",
+      "decision": "keep_existing",
+      "ur": [
+        "tools/check_baldosa_wide_density_parity.py"
+      ],
+      "baldosa": [],
+      "malmazuke": [
+        "src/core/snes_screen.hpp"
+      ],
+      "gap": "UR owns 342-wide/4K policy",
+      "proof": "Logical extra world and real 4K output on exact candidate"
     }
   ]
 }

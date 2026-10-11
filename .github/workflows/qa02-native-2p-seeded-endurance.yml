@@ -34,7 +34,9 @@ jobs:
 
   stress:
     needs: native-candidate
-    runs-on: ubuntu-22.04
+    # Must match the producer's ubuntu-latest libc baseline. 22.04 failed
+    # before executing any guest case: GLIBC_2.38 missing (run 38182883707).
+    runs-on: ubuntu-latest
     timeout-minutes: 145
     strategy:
       fail-fast: false
@@ -62,7 +64,17 @@ jobs:
         run: |
           set -euo pipefail
           tar -xzf "$RUNNER_TEMP/qa02-native-artifact/shared-modern-native.tar.gz" -C "$RUNNER_TEMP"
-          test -x "$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          EXE="$RUNNER_TEMP/shared-modern-native/UniracersSNESRecomp/build/UniracersSNESRecomp"
+          test -x "$EXE"
+          # Prove the uploaded exact ELF can resolve against THIS runner before
+          # spending a 15-120 minute budget on gameplay or calling it a defect.
+          echo "Stress runner libc: $(getconf GNU_LIBC_VERSION)"
+          ldd "$EXE" | tee "$RUNNER_TEMP/native-2p-elf-dependencies.txt"
+          if grep -Eq 'version .+ not found|not found' "$RUNNER_TEMP/native-2p-elf-dependencies.txt"; then
+            echo "Original build and stress runner libc/ELF dependencies differ" >&2
+            exit 1
+          fi
+          test "$(getconf GNU_LIBC_VERSION | awk '{print $2}' | cut -d. -f1)" -ge 2
           python3 -m unittest discover -s tests/unit -p test_qa02_native_2p_seeded_endurance.py
       - name: Exercise hundreds of distinct native 2P input trajectories and ablations
         shell: bash

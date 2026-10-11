@@ -105,7 +105,7 @@ The profile must not become an implicit permission to fork arbitrary UI, gamepla
 
 ## Switch transition design
 
-A successful regional secret should not hard-cut the title branding if the original frontend already provides a suitable transition language. The preferred product behavior is to make the switch feel like a hidden stock frontend destination rather than a modern settings toggle.
+A successful regional secret should animate the regional title change using a visual treatment drawn from the original main menu's checkerboard motif. It should feel native to the game's graphical vocabulary while remaining an explicitly authored Modern presentation effect rather than a historical stock-transition claim.
 
 ### Approved visual direction: bidirectional diagonal checkerboard tile flip
 

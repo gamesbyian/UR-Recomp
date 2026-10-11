@@ -63,7 +63,7 @@ def main():
     # Slide these opaque covers OUTWARD; source plays at native cadence beneath.
     fade = "min(1,max(0,(t-1)/4.5))"
     reveal_graph = (
-        "[0:v]setpts=PTS-STARTPTS,split=3[base][unused1][unused2];"
+        "[0:v]setpts=PTS-STARTPTS[base];"
         "color=c=black:s=242x1080:r=60:d=7.5[left];"
         "color=c=black:s=242x1080:r=60:d=7.5[right];"
         f"[base][left]overlay=x='-242*{fade}':y=0:eval=frame[tmp];"

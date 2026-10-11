@@ -32,6 +32,23 @@ class IndependentBaldosaZipQaTests(unittest.TestCase):
         digest = producer.create_candidate(exe, zip_path, source)
         return zip_path, source, digest
 
+    def test_real_candidate_historical_receipt_is_romfree_inconclusive(self):
+        from evidence_contract import validate_envelope
+        evidence = ROOT / "analysis/evidence/baldosa-romless-windows-38118756830-consistency.json"
+        report = json.loads(evidence.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(report), [])
+        self.assertEqual(report["outcome"], "inconclusive")
+        self.assertEqual(report["subject"]["backend"], "baldosa-aot-provisional")
+        self.assertEqual(report["subject"]["candidate_merge_commit"],
+                         "8f7767444157b49a02b4b502cae01f300e57cda8")
+        self.assertEqual(report["subject"]["producing_pr_head"],
+                         "d20cd31ef86131dd12e611f41956e0106703eddf")
+        self.assertEqual(report["provenance"]["checkout_merge_second_parent"],
+                         report["subject"]["producing_pr_head"])
+        self.assertFalse(report["metrics"]["rom_bundled"])
+        self.assertFalse(report["metrics"]["integrated_fresh_process_1p_2p_records_verified"])
+        self.assertFalse(report["metrics"]["physical_windows_controller_audio_display_verified"])
+
     def test_canonical_unexecuted_candidate_is_only_inconclusive(self):
         with tempfile.TemporaryDirectory() as tmp:
             archive, source, digest = self.make(Path(tmp))

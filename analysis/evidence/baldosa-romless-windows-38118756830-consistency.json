@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "evidence_type": "provisional-baldosa-romless-zip-consistency",
+  "producer": "offline independent ZIP/manifest/PE audit, Python stdlib",
+  "subject": {
+    "backend": "baldosa-aot-provisional",
+    "candidate_merge_commit": "8f7767444157b49a02b4b502cae01f300e57cda8",
+    "producing_pr_head": "d20cd31ef86131dd12e611f41956e0106703eddf",
+    "producing_run_id": 38118756830,
+    "archive_inner_zip_sha256": "5bb9f872fd0e97b5f99fc50d41bb7ee9a04ab00752e7745dbb6bbc5d7f593a78"
+  },
+  "inputs": {
+    "github_actions_artifact_id": 11694498741,
+    "artifact_name": "baldosa-modern-windows-x64-romless-candidate",
+    "wrapper_zip_sha256": "440d317f4a85171fdc76afad0330d0d3488681536055784693ace17a622ac11a",
+    "zip_sha256_sidecar_format": "sha256 *UR-Recomp-Baldosa-Windows-x64-ROMLESS.zip",
+    "inner_manifest_sha256": "c926a4c9ad58222525a47d9603a087a2b42bbba55de09e53e13090c0cfbc04b2"
+  },
+  "assertions": [
+    {
+      "name": "github-actions-run-reports-success",
+      "passed": true
+    },
+    {
+      "name": "source-merge-second-parent-is-pr-head",
+      "passed": true
+    },
+    {
+      "name": "outer-actions-wrapper-matches-two-expected-members",
+      "passed": true
+    },
+    {
+      "name": "inner-zip-matches-shipped-sha256-sidecar",
+      "passed": true
+    },
+    {
+      "name": "four-canonical-romless-zip-members",
+      "passed": true
+    },
+    {
+      "name": "manifest-and-three-immutable-payload-sha256s-match",
+      "passed": true
+    },
+    {
+      "name": "normalized-zip-metadata",
+      "passed": true
+    },
+    {
+      "name": "amd64-pe32-plus-executable-headers",
+      "passed": true
+    }
+  ],
+  "metrics": {
+    "inner_zip_bytes": 5916606,
+    "zip_members": 4,
+    "manifest_immutable_files": 3,
+    "portable_exe_uncompressed_bytes": 19670016,
+    "rom_bundled": false,
+    "mutable_profile_save_or_runs_bundled": false,
+    "external_source_nomination_authenticated": false,
+    "original_event_oracle_verified": false,
+    "integrated_fresh_process_1p_2p_records_verified": false,
+    "physical_windows_controller_audio_display_verified": false
+  },
+  "outcome": "inconclusive",
+  "provenance": {
+    "generated_at_utc": "2026-10-11T06:50:00Z",
+    "workflow_run_id": 38118756830,
+    "workflow_artifact_id": 11694498741,
+    "source": "GitHub Windows feasibility artifact and offline stdlib audit; byte consistency only",
+    "checkout_merge_first_parent": "6b38f84226b78927ded9f997aca8e78e2bab5465",
+    "checkout_merge_second_parent": "d20cd31ef86131dd12e611f41956e0106703eddf"
+  }
+}

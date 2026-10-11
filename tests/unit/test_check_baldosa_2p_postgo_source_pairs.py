@@ -8,7 +8,8 @@ import tempfile
 import unittest
 
 from tools.check_baldosa_2p_postgo_source_pairs import (
-    compare, assess, WIDTH, HEIGHT, FRAME,
+    compare, assess, repeated_viewport_text_colour_witness,
+    WIDTH, HEIGHT, FRAME,
 )
 from tools.check_baldosa_wide_single_slot_source import HEADER, read_source
 
@@ -194,6 +195,58 @@ class OriginalPostGoPairedObjSourceTest(unittest.TestCase):
         self.assertTrue(report["source_paired_upper_to_lower"]
                         ["98->97"]["exact_rgba_split_alias_observed"])
         self.assertFalse(report["postgo_translation_same_across_both_player_pairs"])
+
+    def simulated_repeated_red_foreground(self):
+        original = bytearray(bytes((20, 30, 40, 0)) * WIDTH * HEIGHT)
+        top = bytearray(WIDTH * HEIGHT * 4)
+        bottom = bytearray(WIDTH * HEIGHT * 4)
+        for i in range(13):
+            x, y = 130 + i % 5, 47 + i // 5
+            for plane, py in ((top, y), (bottom, y + 112)):
+                at = 4 * (py * WIDTH + x)
+                plane[at:at + 4] = bytes((49, 49, 49, 255))
+                original[at:at + 4] = bytes((156, 49, 49, 0))
+        return original, top, bottom
+
+    def test_native_shape_screen_fixed_red_channel_signature(self):
+        stock, top, bottom = self.simulated_repeated_red_foreground()
+        out = repeated_viewport_text_colour_witness(stock, top, bottom)
+        self.assertTrue(out["actual_2208_13_pixels_each_with_red_plus_107"])
+        self.assertEqual(out["upper_delta_histogram"], {"107,0,0": 13})
+        self.assertEqual(out["lower_delta_histogram"], {"107,0,0": 13})
+        self.assertEqual(out["matching_diff_xy_offset_from_top_to_bottom"],
+                         [0, 112])
+        self.assertFalse(out["specific_SNES_BG_OBJ_priority_or_colour_math_proven"])
+
+    def test_changed_lower_foreground_red_offset_stays_unverified(self):
+        stock, top, bottom = self.simulated_repeated_red_foreground()
+        at = 4 * (159 * WIDTH + 130)
+        stock[at] = 155
+        out = repeated_viewport_text_colour_witness(stock, top, bottom)
+        self.assertTrue(out["diff_support_exactly_matched_after_screen_translation"])
+        self.assertFalse(out["diff_rgb_delta_exactly_matched_after_screen_translation"])
+        self.assertFalse(out["actual_2208_13_pixels_each_with_red_plus_107"])
+
+    def test_moved_one_lower_mismatch_no_longer_counts_same_text_region(self):
+        stock, top, bottom = self.simulated_repeated_red_foreground()
+        # Remove one source-positive lower pixel without changing stock:
+        # the upper viewport still reports all 13, lower only 12.
+        at = 4 * (159 * WIDTH + 130)
+        bottom[at:at + 4] = bytes(4)
+        out = repeated_viewport_text_colour_witness(stock, top, bottom)
+        self.assertFalse(out["diff_support_exactly_matched_after_screen_translation"])
+        self.assertEqual(out["lower_source_only_final_rgb_differences"], 12)
+
+    def test_unmodified_original_source_has_no_overlay_signature(self):
+        source = bytearray(WIDTH * HEIGHT * 4)
+        original = bytearray(WIDTH * HEIGHT * 4)
+        for y in (47, 159):
+            at = 4 * (y * WIDTH + 130)
+            source[at:at + 4] = bytes((20, 30, 40, 255))
+            original[at:at + 4] = bytes((20, 30, 40, 0))
+        out = repeated_viewport_text_colour_witness(original, source, source)
+        self.assertEqual(out["upper_source_only_final_rgb_differences"], 0)
+        self.assertFalse(out["actual_2208_13_pixels_each_with_red_plus_107"])
 
     def test_invalid_cross_raster_size_fails(self):
         with self.assertRaisesRegex(ValueError, "complete"):

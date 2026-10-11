@@ -5,6 +5,12 @@ on:
     paths: [.github/workflows/one-shot-definitive-review-prep.yml]
 permissions:
   contents: write
+
+# Produces a verified media commit on this branch. Never overlap or cancel writers.
+concurrency:
+  group: definitive-review-prep-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   review:
     runs-on: ubuntu-latest

@@ -94,6 +94,55 @@ def summarize(log: str) -> dict:
     }
 
 
+def corroborate_executed_pla_with_read_bus(
+        result: dict, read_report: dict) -> dict:
+    """Every observed saved-A interpreter pull needs two actual target bytes.
+
+    The pinned interpreter's pullWord calls two byte callbacks in sequence.
+    Only checks frame-local observation and the read logger's post-writer
+    tag; it cannot prove a cross-engine instruction clock or scoring impact.
+    """
+    if (not isinstance(result, dict) or result.get("schema") != SCHEMA
+            or not isinstance(read_report, dict)
+            or read_report.get("schema") != reads.SCHEMA
+            or read_report.get("native_read_observer_armed_by_real_nmi_4004_writer")
+               is not True
+            or not isinstance(read_report.get("native_stack_read_attempts"), list)):
+        raise ValueError("missing authenticated native opcode/bus-read material")
+    records = read_report["native_stack_read_attempts"]
+    qualified_by_frame = {}
+    for lo, hi in zip(records, records[1:]):
+        if (not isinstance(lo, dict) or not isinstance(hi, dict)):
+            raise ValueError("malformed native word-pull bus row")
+        frame = lo.get("native_snes_frame_counter")
+        if (type(frame) is int and frame in (5781, 5782)
+                and hi.get("native_snes_frame_counter") == frame
+                and lo.get("observed_after_4004_writer_callback_started") is True
+                and hi.get("observed_after_4004_writer_callback_started") is True
+                and lo.get("word_start") == "01DD"
+                and hi.get("word_start") == "01DE"
+                and lo.get("bus_read_width") == hi.get("bus_read_width") == 1
+                and lo.get("read_value") == "0004"
+                and hi.get("read_value") == "0040"):
+            qualified_by_frame[frame] = qualified_by_frame.get(frame, 0) + 1
+    observed_by_frame = {}
+    for frame in result.get("native_interpreter_saved_4004_pla_candidate_frames", ()):
+        if type(frame) is not int or frame not in (5781, 5782):
+            raise ValueError("invalid native interpreter saved word candidate frame")
+        observed_by_frame[frame] = observed_by_frame.get(frame, 0) + 1
+    if any(qualified_by_frame.get(frame, 0) < need
+           for frame, need in observed_by_frame.items()):
+        raise ValueError("native interpreter PLA not corroborated by its actual two byte bus reads")
+    result = dict(result)
+    result["interpreter_saved_4004_pla_has_required_target_bus_byte_pair"] = True
+    result["interpreter_saved_4004_pla_byte_pair_count_by_frame"] = {
+        str(frame): qualified_by_frame.get(frame, 0)
+        for frame in sorted(observed_by_frame)
+    }
+    result["corroboration_is_native_bus_shape_not_original_native_phase_proof"] = True
+    return result
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--interp-log", type=Path, required=True)
@@ -112,6 +161,7 @@ def main() -> int:
             or read_report.get("release_complete_event_credit") != 0):
         raise ValueError("native interpreter opcode scope not tied to actual saved-4004 writer")
     result = summarize(args.interp_log.read_text(encoding="utf-8"))
+    result = corroborate_executed_pla_with_read_bus(result, read_report)
     result["independently_authenticated_original_native_pair"] = prov
     result["paired_report_bytes_sha256"] = digest
     args.out.parent.mkdir(parents=True, exist_ok=True)

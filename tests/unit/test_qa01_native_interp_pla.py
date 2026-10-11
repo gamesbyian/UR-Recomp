@@ -90,6 +90,63 @@ class NativeInterpreterPlaTests(unittest.TestCase):
             with self.subTest(case=bad[-100:]), self.assertRaises(ValueError):
                 report.summarize(bad)
 
+    def test_actual_interpreter_pla_needs_corresponding_byte_bus_pair(self):
+        import qa01_native_stack_read_report as read_report
+        arm = (
+            "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
+            "A=4004 S=01DD scope=I_NMI_M1X1\n"
+        )
+        physical_pair = (
+            "QANATIVEREAD f=5781 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
+            "QANATIVEREAD f=5781 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
+        )
+        doc = read_report.summarize(arm + physical_pair)
+        result = report.corroborate_executed_pla_with_read_bus(
+            report.summarize(PLA), doc)
+        self.assertTrue(result[
+            "interpreter_saved_4004_pla_has_required_target_bus_byte_pair"])
+        self.assertEqual(result[
+            "interpreter_saved_4004_pla_byte_pair_count_by_frame"], {"5781": 1})
+        self.assertFalse(result["source_original_and_native_cpu_frame_alignment_proven"])
+        for invalid in (
+            arm,
+            arm + physical_pair.replace("value=0040", "value=0042"),
+            arm + physical_pair.replace("addr=01DE", "addr=01DD"),
+        ):
+            candidate = read_report.summarize(invalid)
+            with self.subTest(bad=invalid[-110:]), self.assertRaises(ValueError):
+                report.corroborate_executed_pla_with_read_bus(
+                    report.summarize(PLA), candidate)
+        # No observed interpreter PLA is a limited, not a causal, negative.
+        empty = report.corroborate_executed_pla_with_read_bus(
+            report.summarize(""), read_report.summarize(arm))
+        self.assertEqual(empty["native_interpreter_saved_4004_pla_candidate_count"], 0)
+        self.assertEqual(empty["release_complete_event_credit"], 0)
+
+    def test_following_frame_interp_pla_requires_following_frame_bus_reads(self):
+        import qa01_native_stack_read_report as read_report
+        arm = (
+            "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
+            "A=4004 S=01DD scope=I_NMI_M1X1\n"
+        )
+        frame82 = (
+            "QANATIVEREAD f=5782 bank=00 addr=01DD width=1 value=0004 "
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
+            "QANATIVEREAD f=5782 bank=00 addr=01DE width=1 value=0040 "
+            "A=0000 S=01DC M=1 scope=InterpPLA\n"
+        )
+        paired = report.corroborate_executed_pla_with_read_bus(
+            report.summarize(PLA.replace("f=5781", "f=5782")),
+            read_report.summarize(arm + frame82))
+        self.assertEqual(paired[
+            "interpreter_saved_4004_pla_byte_pair_count_by_frame"], {"5782": 1})
+        with self.assertRaises(ValueError):
+            report.corroborate_executed_pla_with_read_bus(
+                report.summarize(PLA.replace("f=5781", "f=5782")),
+                read_report.summarize(arm + frame82.replace("f=5782", "f=5781")))
+
     def test_existing_manual_replay_path_only(self):
         workflow = (ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()
         host = (ROOT / "tools/probe_original_event_complete.py").read_text()

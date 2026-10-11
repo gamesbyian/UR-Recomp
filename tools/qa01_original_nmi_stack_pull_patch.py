@@ -30,16 +30,17 @@ def patch(source: str) -> str:
             const uint8 ur_qa_pull_op = Op;
             const uint16 ur_qa_pull_sp0 = Registers.S.W;
             const uint8 ur_qa_pull_pl0 = Registers.PL;
+            const unsigned ur_qa_pull_e0 = (unsigned)(CheckEmulation() != 0);
             const uint16 ur_qa_pull_a0 = Registers.A.W;
             const unsigned ur_qa_pull_f0 = (unsigned)ICPU.Frame;
             const unsigned ur_qa_pull_v0 = (unsigned)CPU.V_Counter;
             unsigned ur_qa_pull_width = 0;
             switch (ur_qa_pull_op) {
               case 0x68: /* PLA: accumulator M bit */
-                ur_qa_pull_width = (ur_qa_pull_pl0 & 0x20) ? 1 : 2; break;
+                ur_qa_pull_width = (ur_qa_pull_e0 || (ur_qa_pull_pl0 & 0x20)) ? 1 : 2; break;
               case 0xFA: /* PLX: index X bit */
               case 0x7A: /* PLY */
-                ur_qa_pull_width = (ur_qa_pull_pl0 & 0x10) ? 1 : 2; break;
+                ur_qa_pull_width = (ur_qa_pull_e0 || (ur_qa_pull_pl0 & 0x10)) ? 1 : 2; break;
               case 0x2B: /* PLD: always 16-bit */
                 ur_qa_pull_width = 2; break;
               case 0xAB: /* PLB: always 8-bit */
@@ -78,11 +79,11 @@ def patch(source: str) -> str:
     after = r"""
             if (ur_qa_pull_gate)
                 fprintf(stderr,
-                    "QANMIPULL f=%u v=%u pc=%06X op=%02X sp0=%04X sp1=%04X width=%u pl0=%02X pl1=%02X a0=%04X a1=%04X dd=%02X de=%02X touches_dd=%u touches_de=%u f1=%u\n",
+                    "QANMIPULL f=%u v=%u pc=%06X op=%02X sp0=%04X sp1=%04X width=%u e0=%u pl0=%02X pl1=%02X a0=%04X a1=%04X dd=%02X de=%02X touches_dd=%u touches_de=%u f1=%u\n",
                     ur_qa_pull_f0, ur_qa_pull_v0, (unsigned)ur_qa_stack_pc,
                     (unsigned)ur_qa_pull_op, (unsigned)ur_qa_pull_sp0,
                     (unsigned)Registers.S.W, ur_qa_pull_width,
-                    (unsigned)ur_qa_pull_pl0, (unsigned)Registers.PL,
+                    ur_qa_pull_e0, (unsigned)ur_qa_pull_pl0, (unsigned)Registers.PL,
                     (unsigned)ur_qa_pull_a0, (unsigned)Registers.A.W,
                     (unsigned)ur_qa_pull_dd0, (unsigned)ur_qa_pull_de0,
                     (unsigned)ur_qa_pull_dd, (unsigned)ur_qa_pull_de,

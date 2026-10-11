@@ -123,6 +123,22 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         data["candidate"]["physical_hardware_verified"] = True
         self.assertEqual(validator.check_registry(data, ROOT), [])
 
+    def test_physical_flag_requires_the_accepted_qa04_hardware_gate(self):
+        data = baseline()
+        data["candidate"]["commit_sha"] = "a" * 40
+        data["candidate"]["zip_sha256"] = "b" * 64
+        data["candidate"]["physical_hardware_verified"] = True
+        problems = validator.check_registry(data, ROOT)
+        self.assertTrue(any("physical hardware claim requires passed QA-04" in x
+                            for x in problems))
+        qa04 = data["gates"][3]
+        qa04["status"] = "waived"
+        qa04["waiver_reason"] = "Review only"
+        qa04["waiver_approved_by"] = "Reviewer"
+        qa04["waiver_approved_at"] = "2026-10-10T20:00:00Z"
+        self.assertTrue(any("physical hardware claim requires passed QA-04" in x
+                            for x in validator.check_registry(data, ROOT)))
+
     def test_evidence_requires_unambiguous_timestamp_and_reviewed_waiver(self):
         data = baseline()
         data["candidate"]["commit_sha"] = "a" * 40

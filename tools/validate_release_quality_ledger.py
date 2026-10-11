@@ -151,6 +151,15 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} witness below required layer {minimum}")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
+    if physical is True:
+        # A bare boolean is not an independent physical witness. QA-04 is
+        # the consumer-hardware gate, and its accepted L5 witness must itself
+        # satisfy the candidate SHA/ZIP constraints above.
+        qa04 = next((gate for gate in gates
+                     if isinstance(gate, dict) and gate.get("id") == "QA-04"), None)
+        if not isinstance(qa04, dict) or qa04.get("status") != "passed":
+            errors.append("physical hardware claim requires passed QA-04 L5 gate")
+
     missing = REQUIRED_IDS - seen
     extra = seen - REQUIRED_IDS
     if missing:

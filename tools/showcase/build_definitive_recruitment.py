@@ -17,7 +17,7 @@ from build_three_source_recruitment import verify as verify_native
 
 TOTAL_SECONDS = 58
 REEL = [
-    ("title", 4, "native Original title, frames 180..419"),
+    ("title", 4, "native Original title, guest frames 330..569, source ordinals 300..539"),
     ("modern", 10, "independent genuine Modern navigation and stock handoff, frames 1..600"),
     ("reveal", 7, "same-capture Original centre uncovered into 342-wide world"),
     ("comparison", 4, "two views of one wide capture, NOT two native runs"),
@@ -140,7 +140,7 @@ def build(args):
     for n,(role,duration,description) in enumerate(REEL):
         idx=source_index[role]
         if role=="title":
-            filt=f"[{idx}:v]trim=start_frame=150:end_frame=390,setpts=PTS-STARTPTS"
+            filt=f"[{idx}:v]trim=start_frame=300:end_frame=540,setpts=PTS-STARTPTS"
         elif role=="cta":
             filt=f"[{idx}:v]trim=duration={duration},setpts=PTS-STARTPTS"
         else:
@@ -181,7 +181,7 @@ def build(args):
             f"format=yuv420p[{out}]"
         )
     graph_v=";".join([
-      mobile(0,2.5,2,"GENUINE ORIGINAL TITLE","m0"),
+      mobile(0,5,2,"GENUINE ORIGINAL TITLE","m0"),
       mobile(1,0,4,"REAL MODERN FRONTEND","m1"),
       mobile(2,1,6,"43 EXTRA WORLD COLUMNS PER SIDE","m2"),
       mobile(7,2,5,"UNINTERRUPTED TWO-PLAYER RACING","m3"),

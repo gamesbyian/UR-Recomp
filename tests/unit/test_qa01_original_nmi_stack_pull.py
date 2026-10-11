@@ -153,6 +153,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         self.assertEqual(row["pre_rti_stack_derived_return_pc"], "82:803A")
         self.assertTrue(row["post_rti_pc_equals_pre_stack_return"])
         self.assertTrue(row["post_return_pc_verified_when_stack_available"])
+        self.assertTrue(row["stacked_processor_status_restored_when_available"])
         self.assertTrue(result["rti_instruction_source_cannot_prove_interrupt_vector"])
         self.assertTrue(row["same_cpu_frame_as_original_nmi_pha"])
         self.assertTrue(row["same_cpu_frame_pha_observed_before_rti"])
@@ -177,7 +178,8 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
         emulated = (RTI.replace("emu0=0", "emu0=1")
                     .replace("sp1=01E4", "sp1=01E3")
                     .replace("postpc=82803A", "postpc=80803A")
-                    .replace("pb1=82", "pb1=80"))
+                    .replace("pb1=82", "pb1=80")
+                    .replace("pl1=00", "pl1=30"))
         row = report.summarize(ORIGINAL + emulated)["candidate_rti_scopes"][0]
         self.assertTrue(row["emulation_mode_before_rti"])
         self.assertEqual(row["architectural_return_frame_bytes"], 3)
@@ -192,6 +194,7 @@ class SwitcherNmiStackPullTests(unittest.TestCase):
             ORIGINAL + RTI.replace("postpc=82803A", "postpc=80803A"),
             ORIGINAL + RTI.replace("sp1=01E4", "sp1=0200"),
             ORIGINAL + RTI.replace("a1=4042", "a1=4004"),
+            ORIGINAL + RTI.replace("pl1=00", "pl1=40"),
             ORIGINAL + RTI.replace("stack4=1", "stack4=0"),
             ORIGINAL + RTI.replace("b2=3A", "b2=XX"),
             ORIGINAL + RTI.replace("f=5780", "f=5760"),

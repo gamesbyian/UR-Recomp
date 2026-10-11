@@ -62,6 +62,18 @@ effort**, not a durable outbox, receipt transaction or a guarantee of saving
 on Quit. It neither bypasses the current profile/selector/catalog locks nor
 awards guest progression. A genuinely failed save is still a player-journey
 QA blocker; independent exact Windows process and crash tests remain needed.
+
+The same stock-density native Modern overlay callback can now display
+**RECORD SAVED** only when the canonical append returns success,
+**RECORD SAVE PENDING** while a verified named profile has an in-memory
+retry receipt, and **RECORD NOT SAVED** when the receipt is exhausted or
+no named archive is authorized. This paints onto a host-owned copy of the
+settled 256x224 result raster; it never changes PPU/OAM, guest WRAM or SRAM.
+The banner clears on any new race, stock menu departure or withdrawn
+1P handoff. This is a real product-state message, but full 4x/widescreen
+composition and hardware-level legibility remain independently unaccepted.
+`tests/unit/test_baldosa_native_run_publish_retry_cpp.py` also exercises
+the reusable painter's text/visibility contract.
 `tests/unit/test_baldosa_native_run_publish_retry_cpp.py` exercises the
 source-scoped retry policy in C++ and checks its live callback binding.
 

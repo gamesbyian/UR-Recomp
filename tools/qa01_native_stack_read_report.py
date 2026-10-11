@@ -21,17 +21,27 @@ ROW = re.compile(
     r" S=([0-9A-F]{4}) M=([01]) scope=([A-Za-z0-9_?]+)$"
 )
 LIMIT = 512
+ARM = "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 A=4004 S=01DD scope=I_NMI_M1X1"
 
 
 def summarize(log: str) -> dict:
     if len(log) > 131072:
         raise ValueError("native read journal exceeds small bounded window")
     lines = log.splitlines()
-    if len(lines) > LIMIT:
-        raise ValueError("native read journal exceeded 512-row cap")
+    if len(lines) > LIMIT + 1:
+        raise ValueError("native read journal exceeded 512 rows and one arm")
     result = []
     last_frame = 5778
+    arm_count = 0
     for raw in lines:
+        if raw == ARM:
+            if last_frame > 5781:
+                raise ValueError("native 4004 writer arming row arrived after later-frame reads")
+            last_frame = 5781
+            arm_count += 1
+            if arm_count > 1:
+                raise ValueError("native read observer writer armed more than once")
+            continue
         m = ROW.fullmatch(raw)
         if not m:
             raise ValueError("malformed native original-result WRAM read row")
@@ -60,6 +70,8 @@ def summarize(log: str) -> dict:
             "target_stack_bytes_touched": touched,
             "register_s_does_not_prove_stack_instruction": True,
         })
+    if arm_count != 1:
+        raise ValueError("native read journal lacks unique actual 4004 NMI writer arming attestation")
     by_addr = {"7E:01DD": 0, "7E:01DE": 0}
     for row in result:
         for address in row["target_stack_bytes_touched"]:
@@ -68,6 +80,7 @@ def summarize(log: str) -> dict:
         "schema": SCHEMA,
         "native_frame_bounds": [5778, 5782],
         "native_bus_read_attempt_count": len(result),
+        "native_read_observer_armed_by_real_nmi_4004_writer": True,
         "native_bus_read_attempts_by_target": by_addr,
         "native_stack_read_attempts": result,
         "zero_count_is_bounded_native_negative_not_no_reader_ever": len(result) == 0,

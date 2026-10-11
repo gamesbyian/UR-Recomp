@@ -38,6 +38,24 @@ def patch(source: str) -> str:
  * Native bus attempts in fresh replay f5778..5782; not instruction-PC parity.
  * Output is optional and bounded. S is register value *at* bus helper call. */
 static int ur_qa01_read_suppressed = 0;
+static FILE *ur_qa01_stack_read_file(void) {
+    static int ready = 0;
+    static FILE *fp = NULL;
+    if (!ready) {
+        const char *out = getenv("UR_QA_NATIVE_STACK_READ_PATH");
+        if (out && out[0]) {
+            fp = fopen(out, "w");
+            if (fp) setvbuf(fp, NULL, _IONBF, 0);
+        }
+        ready = 1;
+    }
+    return fp;
+}
+static void ur_qa01_stack_read_arm(void) {
+    FILE *fp = ur_qa01_stack_read_file();
+    if (fp) fputs("QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004"
+                  " A=4004 S=01DD scope=I_NMI_M1X1\n", fp);
+}
 static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
                               uint16 value, unsigned width) {
     extern int snes_frame_counter;
@@ -48,18 +66,17 @@ static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
     if (!(width == 1 ? (addr == 0x01DDu || addr == 0x01DEu)
           : (addr >= 0x01DCu && addr <= 0x01DEu)))
         return;
-    static int ready = 0;
-    static FILE *fp = NULL;
+    FILE *fp = ur_qa01_stack_read_file();
     static unsigned count = 0;
-    if (!ready) {
-        const char *out = getenv("UR_QA_NATIVE_STACK_READ_PATH");
-        if (out && out[0]) {
-            fp = fopen(out, "w");
-            if (fp) setvbuf(fp, NULL, _IONBF, 0);
-        }
-        ready = 1;
+    if (!fp) return;
+    if (count == 512) {
+        /* A silent cap would falsely certify that all readers were seen.
+         * Emit a distinct overflow row that the strict parser rejects. */
+        fputs("QANATIVEOVERFLOW\n", fp);
+        ++count;
+        return;
     }
-    if (!fp || count >= 512) return;
+    if (count > 512) return;
     ++count;
     fprintf(fp, "QANATIVEREAD f=%d bank=%02X addr=%04X width=%u value=%04X"
             " A=%04X S=%04X M=%u scope=%s\n",
@@ -76,8 +93,14 @@ static void ur_qa01_read_01dd(CpuState *cpu, uint8 bank, uint16 addr,
                             "    ++ur_qa01_read_suppressed;\n"
                             + LOGGER_START, 1)
     source = source.replace(LOGGER_END,
-                            "    --ur_qa01_read_suppressed;\n"
-                            + LOGGER_END, 1)
+                            """    --ur_qa01_read_suppressed;
+    /* Observed exact native PHA writer arms the read journal, even if no
+     * guest reader occurs. Avoid confusing a dead probe with zero reads. */
+    if (snes_frame_counter == 5781 && addr == 0x01DDu && width == 2 &&
+        v == 0x4004u && g_cpu.A == 0x4004u && g_cpu.S == 0x01DDu &&
+        g_last_recomp_func && strcmp(g_last_recomp_func, "I_NMI_M1X1") == 0)
+        ur_qa01_stack_read_arm();
+""" + LOGGER_END, 1)
     source = source.replace(B8, """    if (off >= 0) {
         ur_qa01_read_01dd(cpu, bank, addr, cpu->ram[off], 1);
         return cpu_latch_read8(cpu, cpu->ram[off]);

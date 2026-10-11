@@ -18,6 +18,10 @@ SRC = (
     + patcher.LOGGER_START + patcher.LOGGER_END
     + patcher.B8 + patcher.B16
 )
+ARM = (
+    "QANATIVEARM f=5781 bank=00 addr=01DD width=2 value=4004 "
+    "A=4004 S=01DD scope=I_NMI_M1X1\n"
+)
 VALID = (
     "QANATIVEREAD f=5781 bank=00 addr=01DD width=2 value=4004 "
     "A=0000 S=01DC M=0 scope=I_NMI_M1X1\n"
@@ -37,6 +41,8 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertIn("if (ur_qa01_read_suppressed) return;", x)
         self.assertIn("++ur_qa01_read_suppressed;", x)
         self.assertIn("--ur_qa01_read_suppressed;", x)
+        self.assertIn("ur_qa01_stack_read_arm();", x)
+        self.assertIn("QANATIVEOVERFLOW", x)
         self.assertEqual(x.count("return cpu_latch_read8(cpu, cpu->ram[off]);"), 1)
         self.assertEqual(x.count("return cpu_latch_read16(cpu, (uint16)lo | ((uint16)hi << 8));"), 1)
         with self.assertRaisesRegex(ValueError, "already installed"):
@@ -49,7 +55,7 @@ class NativeStackReadTests(unittest.TestCase):
             patcher.patch(SRC + patcher.LOGGER_START)
 
     def test_real_source_scope_is_attempt_not_result_consumer(self):
-        data = report.summarize(VALID)
+        data = report.summarize(ARM + VALID)
         self.assertEqual(data["native_bus_read_attempt_count"], 2)
         self.assertEqual(data["native_bus_read_attempts_by_target"],
                          {"7E:01DD": 1, "7E:01DE": 2})
@@ -59,10 +65,15 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertEqual(data["native_stack_read_attempts"][0]["read_value"], "4004")
 
     def test_zero_rows_is_only_bounded_negative(self):
-        data = report.summarize("")
+        data = report.summarize(ARM)
         self.assertTrue(data["zero_count_is_bounded_native_negative_not_no_reader_ever"])
         self.assertEqual(data["native_bus_read_attempt_count"], 0)
         self.assertEqual(data["release_complete_event_credit"], 0)
+
+    def test_missing_or_duplicate_writer_attestation_is_not_zero_read_evidence(self):
+        for journal in ("", VALID, ARM + ARM, ARM.replace("A=4004", "A=4042")):
+            with self.subTest(journal=journal[:120]), self.assertRaises(ValueError):
+                report.summarize(journal)
 
     def test_invalid_bus_scope_or_forged_clock_fails_closed(self):
         for bad in (
@@ -78,7 +89,7 @@ class NativeStackReadTests(unittest.TestCase):
             "some garbage row\n",
         ):
             with self.subTest(bad=bad[-100:]), self.assertRaises(ValueError):
-                report.summarize(bad)
+                report.summarize(ARM + bad)
 
     def test_workflow_only_enables_in_manual_paired_guest_and_keeps_calibration_isolated(self):
         wf=(ROOT / ".github/workflows/qa01-switcher-original-2014.yml").read_text()

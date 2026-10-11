@@ -188,7 +188,7 @@ def summarize(log: str, *, first: int = 5778, last: int = 5782) -> dict:
         emu0 = emu0s == "1"
         return_width = 3 if emu0 else 4
         # The original CPU fetches P, PC low/high, and (native mode) PB
-        # from SP+1..SP+4, little endian. Post-RTI CHECK_FOR_IRQ can
+        # from SP+1..SP+4, little endian. Post-RTI CHECK_FOR_IRQ
         # has no active IRQ dispatch in the pinned core (cpuops.h).
         # Hence a complete stack image must reconstruct the actual post-PC.
         expected_stack4 = STACK_LOW <= sp0 <= STACK_HIGH - 4

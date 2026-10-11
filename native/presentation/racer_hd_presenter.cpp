@@ -16,6 +16,8 @@ extern "C" {
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+#include <memory>
+#include <new>
 
 extern "C" {
 extern std::uint8_t g_ram[0x20000];
@@ -303,6 +305,61 @@ std::uint64_t guest_state_digest() noexcept {
     h = fnv1a(g_ppu->highOam, sizeof(g_ppu->highOam), h);
     h = fnv1a(g_ppu->vram, sizeof(g_ppu->vram), h);
     return h;
+}
+
+// QA-08 read-only original PPU raster-register journal, one exact 2P
+// post-GO stock guest frame.  Uses the pinned SNESRecomp PPU's existing
+// line-indexed journal: NO guest/PPU writes, new emulator, sprite removal,
+// HD art admission or background-math guesswork. Diagnostic heap memory
+// is allocated only when the explicit frame opt-in actually fires.
+void dump_postgo_2p_ppu_colour_journal() noexcept {
+    const char* requested = std::getenv(
+        "UR_QA08_PPU_COLOUR_JOURNAL_FRAME");
+    if (!requested || !*requested || !g_ppu ||
+        wide_source_probe_slot() >= 0 ||
+        std::getenv("UR_RACER_HD_WIDE_REMOVE_DIAGNOSTIC") != nullptr)
+        return;
+    char* end = nullptr;
+    const unsigned long target = std::strtoul(requested, &end, 10);
+    if (end == requested || *end != '\0' || target != g_sim_frame)
+        return;
+    static unsigned last_frame = ~0u;
+    if (last_frame == g_sim_frame) return;
+    last_frame = g_sim_frame;
+    constexpr int kJournalBuffer = 524288;
+    std::unique_ptr<char[]> trace(
+        new (std::nothrow) char[kJournalBuffer]);
+    if (!trace) {
+        std::fprintf(stderr,
+            "UR_QA08_PPU_COLOUR_JOURNAL_FAIL guest=%u reason=no-memory\n",
+            g_sim_frame);
+        return;
+    }
+    const std::uint64_t before = guest_state_digest();
+    const int chars = ppu_rasterDebugDump(trace.get(), kJournalBuffer);
+    const std::uint64_t after = guest_state_digest();
+    if (chars <= 0 || chars >= kJournalBuffer - 2 ||
+        trace[0] != '{' ||
+        trace[chars - 1] != '}' || before != after) {
+        std::fprintf(stderr,
+            "UR_QA08_PPU_COLOUR_JOURNAL_FAIL guest=%u "
+            "reason=%s chars=%d\n", g_sim_frame,
+            before != after ? "guest-state-changed" : "incomplete-journal",
+            chars);
+        return;
+    }
+    // A single structured native log record. cgadsub/cgwsel/fixedColor
+    // here describe the sampled end state, *not* their individual values
+    // during HUD pixels y47..78/159..190. Per-line journal events are
+    // kept separately, so no false PPU colour-math ownership is inferred.
+    std::fprintf(stderr,
+        "UR_QA08_PPU_COLOUR_JOURNAL guest=%u guest_unchanged=1 "
+        "cgadsub=%02X cgwsel=%02X fixed15=%04X raster=%s\n",
+        g_sim_frame,
+        static_cast<unsigned>(g_ppu->cgadsub),
+        static_cast<unsigned>(g_ppu->cgwsel),
+        static_cast<unsigned>(g_ppu->fixedColor),
+        trace.get());
 }
 
 void copy_field_scaled(
@@ -824,8 +881,10 @@ int racer_hd_draw_frame(
     int frame_h,
     double
 ) noexcept {
-    if (frame_w == kWideProbeWidth && frame_h == kBaseHeight)
+    if (frame_w == kWideProbeWidth && frame_h == kBaseHeight) {
+        dump_postgo_2p_ppu_colour_journal();
         dump_wide_obj_source();
+    }
     if (!g_frame_active || dst == nullptr || field == nullptr) {
         hd_census_present("original", !g_frame_active ? "not-armed" : "unavailable-output");
         return 0;

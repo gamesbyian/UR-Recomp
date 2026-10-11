@@ -114,6 +114,27 @@ def classify(stock: bytes, front: bytes, rear: bytes, removed_front: bytes) -> d
     }
 
 
+def verify_upper_original_rear_source_mirrors(stock: bytes, exceptions: list[dict]) -> list[dict]:
+    if len(stock) != WIDTH * HEIGHT * 4:
+        raise ValueError("authentic complete Original PPU image required for mirror")
+    mirrors = []
+    for exception in exceptions:
+        x, y = exception["xy"]
+        if not (0 <= x < WIDTH and 113 <= y < HEIGHT):
+            raise ValueError("real lower rear-only source gap cannot have top mirror")
+        at = 4 * ((y - 113) * WIDTH + x)
+        top_rgb = list(stock[at:at + 3])
+        if top_rgb != exception["isolated_rear_source_rgb"]:
+            raise ValueError("upper split-view Original does not corroborate rear source colour")
+        mirrors.append({
+            "upper_mirror_xy": [x, y - 113],
+            "upper_stock_original_rgb": top_rgb,
+            "lower_source_original_rgb": exception["isolated_rear_source_rgb"],
+            "lower_stock_original_rgb": exception["original_stock_rgb"],
+        })
+    return mirrors
+
+
 def assess(root: Path) -> dict:
     stock_path = root / "baldosa-ws342-captures" / "ur-baldosa-ws342-001856.pam"
     removed_path = (root / "baldosa-ws342-counterfactual-slot96-frame1856" /
@@ -168,25 +189,8 @@ def assess(root: Path) -> dict:
          tuple(r["original_stock_rgb"]))
         for r in out["rear_only_source_hidden_by_stock_rgb"]
     )
-    # The original upper split-source counterpart is exactly 113
-    # scanlines above each anomalous lower rear-only pixel. Verify that
-    # the unmodified full Original PPU actually shows the expected
-    # original rear source RGB above, even though it does not below.
-    upper_mirror = []
-    for exception in out["rear_only_source_hidden_by_stock_rgb"]:
-        x, y = exception["xy"]
-        if y < 113:
-            raise ValueError("real lower rear-only source gap cannot have top mirror")
-        at = 4 * ((y - 113) * WIDTH + x)
-        top_rgb = list(stock[at:at + 3])
-        if top_rgb != exception["isolated_rear_source_rgb"]:
-            raise ValueError("upper split-view Original does not corroborate rear source colour")
-        upper_mirror.append({
-            "upper_mirror_xy": [x, y - 113],
-            "upper_stock_original_rgb": top_rgb,
-            "lower_source_original_rgb": exception["isolated_rear_source_rgb"],
-            "lower_stock_original_rgb": exception["original_stock_rgb"],
-        })
+    upper_mirror = verify_upper_original_rear_source_mirrors(
+        stock, out["rear_only_source_hidden_by_stock_rgb"])
     if (counts["front_emitted"] != 319 or counts["rear_emitted"] != 321 or
         counts["front_only"] != 162 or counts["rear_only"] != 164 or
         counts["overlap_different_rgb"] != 143 or

@@ -203,9 +203,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # PR path filters use merge-base (three-dot) diffs.
           git diff --name-only \
-            "${{ github.event.pull_request.base.sha }}" \
-            "${{ github.event.pull_request.head.sha }}" \
+            "${{ github.event.pull_request.base.sha }}...${{ github.event.pull_request.head.sha }}" \
             > "$RUNNER_TEMP/modern-native-changed-paths.txt"
           cat "$RUNNER_TEMP/modern-native-changed-paths.txt"
 
@@ -214,9 +214,25 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 tools/classify_modern_native_ci.py \
+          selection=$(python3 tools/classify_modern_native_ci.py \
             --paths-file "$RUNNER_TEMP/modern-native-changed-paths.txt" \
-            --github-output "$GITHUB_OUTPUT"
+            --github-output "$GITHUB_OUTPUT")
+          echo "$selection"
+          {
+            echo "### Modern native CI route"
+            echo
+            echo "Changed PR paths: $(wc -l < "$RUNNER_TEMP/modern-native-changed-paths.txt")"
+            echo
+            echo "Suite selection: \`$selection\`"
+            echo
+            echo "A canonical native build is shared whenever at least two suites are selected."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # A triggered router with no selected suite means the two path
+          # policies have diverged; report the invariant instead of green no-op.
+          grep -qE '"(shared|onboarding|ui)": true' <<< "$selection" || {
+            echo "::error::native router triggered without an owning suite"
+            exit 1
+          }
 
   build:
     needs: classify

@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <system_error>
+#include <utility>
 #include <vector>
 
 namespace ur::product {
@@ -25,11 +26,12 @@ inspect_baldosa_native_two_player_records_archive(
     if (ec || fs::is_symlink(status) || !fs::is_directory(status))
         return out;
     out.directory_available = true;
-    const auto inspected = inspect_multiplayer_match_artifacts(directory);
+    auto inspected = inspect_multiplayer_match_artifacts(directory);
     std::vector<StoredMultiplayerMatch> admitted;
-    for (const auto& item : inspected) {
+    admitted.reserve(inspected.size());
+    for (auto& item : inspected) {
         if (item.loaded())
-            admitted.push_back(*item.stored);
+            admitted.push_back(std::move(*item.stored));
         else
             ++out.unavailable_pairs;
     }

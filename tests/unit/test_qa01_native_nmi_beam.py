@@ -20,7 +20,7 @@ WRITER = (
 
 class OriginalNativeSwitcherBeamTests(unittest.TestCase):
     def test_disposable_native_log_hook_is_one_shot_and_observational(self):
-        core = ("head\n" + native_gate.MARKER
+        core = (beam_patch.HEADER + "head\n" + native_gate.MARKER
                 + "    fputc('\\n', g_wlog_addr_fp);\n"
                 + "    if (g_wlog_halt_off >= 0) { tail\n")
         with self.assertRaisesRegex(ValueError, "first"):
@@ -32,6 +32,7 @@ class OriginalNativeSwitcherBeamTests(unittest.TestCase):
         self.assertEqual(instrumented.count("    fputc('\\n', g_wlog_addr_fp);"), 1)
         self.assertEqual(instrumented.count(native_gate.MARKER), 1)
         self.assertIn("g_snes->vPos", instrumented)
+        self.assertIn("#include <string.h>", instrumented)
         self.assertIn("g_snes->hPos", instrumented)
         self.assertIn("g_snes->beamMasterLast", instrumented)
         self.assertIn("g_cpu.master_cycles", instrumented)

@@ -1,0 +1,257 @@
+{
+  "schema": "UR-TITLE-EDIT-ORDINAL-IDENTITY/1",
+  "source_sha256": "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3",
+  "note": "25 genuine ordinal-decoded frames, downsized ONLY for diagnostic contact sheet, no invented guest art",
+  "frames": [
+    {
+      "source_ordinal": 60,
+      "guest_frame": 90,
+      "rgb_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fraction_visible_brightness": 0.0
+    },
+    {
+      "source_ordinal": 120,
+      "guest_frame": 150,
+      "rgb_mean": [
+        94.4,
+        79.43,
+        77.43
+      ],
+      "fraction_visible_brightness": 0.7453
+    },
+    {
+      "source_ordinal": 180,
+      "guest_frame": 210,
+      "rgb_mean": [
+        94.4,
+        79.43,
+        77.43
+      ],
+      "fraction_visible_brightness": 0.7453
+    },
+    {
+      "source_ordinal": 210,
+      "guest_frame": 240,
+      "rgb_mean": [
+        94.4,
+        79.43,
+        77.43
+      ],
+      "fraction_visible_brightness": 0.7453
+    },
+    {
+      "source_ordinal": 240,
+      "guest_frame": 270,
+      "rgb_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fraction_visible_brightness": 0.0
+    },
+    {
+      "source_ordinal": 270,
+      "guest_frame": 300,
+      "rgb_mean": [
+        77.83,
+        91.4,
+        108.55
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 285,
+      "guest_frame": 315,
+      "rgb_mean": [
+        77.82,
+        91.4,
+        108.54
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 300,
+      "guest_frame": 330,
+      "rgb_mean": [
+        77.82,
+        91.4,
+        108.55
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 315,
+      "guest_frame": 345,
+      "rgb_mean": [
+        77.82,
+        91.4,
+        108.54
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 330,
+      "guest_frame": 360,
+      "rgb_mean": [
+        77.82,
+        91.4,
+        108.55
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 345,
+      "guest_frame": 375,
+      "rgb_mean": [
+        77.82,
+        91.4,
+        108.54
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 360,
+      "guest_frame": 390,
+      "rgb_mean": [
+        77.81,
+        91.41,
+        108.54
+      ],
+      "fraction_visible_brightness": 0.7267
+    },
+    {
+      "source_ordinal": 375,
+      "guest_frame": 405,
+      "rgb_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fraction_visible_brightness": 0.0
+    },
+    {
+      "source_ordinal": 390,
+      "guest_frame": 420,
+      "rgb_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fraction_visible_brightness": 0.0
+    },
+    {
+      "source_ordinal": 405,
+      "guest_frame": 435,
+      "rgb_mean": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "fraction_visible_brightness": 0.0
+    },
+    {
+      "source_ordinal": 420,
+      "guest_frame": 450,
+      "rgb_mean": [
+        99.02,
+        93.67,
+        87.54
+      ],
+      "fraction_visible_brightness": 0.746
+    },
+    {
+      "source_ordinal": 435,
+      "guest_frame": 465,
+      "rgb_mean": [
+        98.4,
+        93.07,
+        87.28
+      ],
+      "fraction_visible_brightness": 0.7455
+    },
+    {
+      "source_ordinal": 450,
+      "guest_frame": 480,
+      "rgb_mean": [
+        98.69,
+        93.44,
+        87.7
+      ],
+      "fraction_visible_brightness": 0.746
+    },
+    {
+      "source_ordinal": 465,
+      "guest_frame": 495,
+      "rgb_mean": [
+        99.8,
+        94.49,
+        88.7
+      ],
+      "fraction_visible_brightness": 0.7457
+    },
+    {
+      "source_ordinal": 480,
+      "guest_frame": 510,
+      "rgb_mean": [
+        99.76,
+        94.52,
+        88.78
+      ],
+      "fraction_visible_brightness": 0.7461
+    },
+    {
+      "source_ordinal": 510,
+      "guest_frame": 540,
+      "rgb_mean": [
+        99.85,
+        94.61,
+        88.8
+      ],
+      "fraction_visible_brightness": 0.7461
+    },
+    {
+      "source_ordinal": 540,
+      "guest_frame": 570,
+      "rgb_mean": [
+        92.95,
+        91.09,
+        86.24
+      ],
+      "fraction_visible_brightness": 0.7418
+    },
+    {
+      "source_ordinal": 570,
+      "guest_frame": 600,
+      "rgb_mean": [
+        85.71,
+        85.13,
+        82.32
+      ],
+      "fraction_visible_brightness": 0.736
+    },
+    {
+      "source_ordinal": 600,
+      "guest_frame": 630,
+      "rgb_mean": [
+        84.26,
+        83.75,
+        80.92
+      ],
+      "fraction_visible_brightness": 0.7305
+    },
+    {
+      "source_ordinal": 630,
+      "guest_frame": 660,
+      "rgb_mean": [
+        83.62,
+        83.55,
+        80.66
+      ],
+      "fraction_visible_brightness": 0.7353
+    }
+  ]
+}

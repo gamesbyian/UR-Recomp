@@ -1,0 +1,115 @@
+{
+  "audio": "Original deterministic editorial score, not commercial or game audio",
+  "continuous_4k_claim": false,
+  "editorial_acceptance_sha256": "04186ad9a2266a0bb9ed142b779e24968f65acfd42e38fad92aaca46cfa97ccc",
+  "editorial_splices_not_continuous_title_to_race": true,
+  "film_duration_seconds": 58,
+  "finished_beta_claim": false,
+  "fps": "60/1",
+  "original_title_internal_edit": {
+    "faked_gameplay_frames": false,
+    "horizontal_source_ordinals": [
+      [
+        270,
+        359
+      ],
+      [
+        420,
+        569
+      ]
+    ],
+    "purpose": "skip proven black transition between authentic title and menu",
+    "vertical_source_ordinals": [
+      [
+        270,
+        359
+      ],
+      [
+        420,
+        449
+      ]
+    ]
+  },
+  "original_widescreen_verified_2p_native_capture": true,
+  "output_sha256": {
+    "ur-recomp-definitive-recruitment-58s-1080p.mp4": "88f22b68f5aae5466923f315bf924a5f9107472a3dfd262cea258ee10738a2bc",
+    "ur-recomp-recruitment-final-poster.png": "d9bcbda5335a2656f81c79607be1fd540ca7403acba403111ad12f4b4270189a",
+    "ur-recomp-recruitment-vertical-20s-1080x1920.mp4": "f1fc0b8ce1d6cb5383f8e6b63d9ed978d581941f352dede2ff982319c84024f7"
+  },
+  "poster_hud_policy": "Editorial typography on separate top/bottom margins, gameplay fully visible between",
+  "presentation_manifest_sha256": "cadc8b75f5ad302ef2a7a5f5ed23df3247e047afd0500bb253e438859ec35a6d",
+  "remastered_widescreen_claim": false,
+  "schema": "UR-RECRUITMENT-FINAL-MEDIA/1",
+  "source_manifest_sha256": {
+    "modern": "95c8227931b80204bbb08c07b09465a5a568c32b782b26ea902317749f6fae5a",
+    "race": "2c14161830eb282033ff3294b63a8a4d3cce65c35b64d895d0f1ab67db5e9d86",
+    "title": "12db1c5e884ae22674e8b17590d0842286a4a1c5101f8bcf759be0765f1f373c"
+  },
+  "source_sha256": {
+    "archaeology": "c1326b641eb119375bc7708a6780ce7950be81b7f287d4b010c0c11328750e2a",
+    "art": "0ae94aaa407979ec749bef17d245331c7d8d3595d8a76347b2644f655924bfe4",
+    "comparison": "6291abda1f52f47425405757c049c70aa245133a39a138b263a2b4e2bf335e5f",
+    "modern": "e43b1c8b9461e94ac2380d164d850545742c958c0dfef98c99987e40197de7db",
+    "race": "182ef43ccf34f501dea4051312e71bf4d974a53dc6634cd98a5cbf3fae8ac130",
+    "reveal": "92ea56611a18ee001ae101f36bc0f2600dc9ca117581edd8072df9535f831414",
+    "technical": "c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d",
+    "title": "d58e0b0e20226981767dc1c33e0f34d9652e8ecdb6aa97bd914f7d6ddf0f61d3"
+  },
+  "technical_art_segments_are_editorial_not_in_game_graphics": true,
+  "timeline": [
+    {
+      "at_frame": 0,
+      "description": "Original title art ordinals 270..359 then real checkerboard menu ordinals 420..569; deliberate editorial cut across source black transition",
+      "frame_count": 240,
+      "source": "title"
+    },
+    {
+      "at_frame": 240,
+      "description": "independent genuine Modern navigation and stock handoff, frames 1..600",
+      "frame_count": 600,
+      "source": "modern"
+    },
+    {
+      "at_frame": 840,
+      "description": "same-capture Original centre uncovered into 342-wide world",
+      "frame_count": 420,
+      "source": "reveal"
+    },
+    {
+      "at_frame": 1260,
+      "description": "two views of one wide capture, NOT two native runs",
+      "frame_count": 240,
+      "source": "comparison"
+    },
+    {
+      "at_frame": 1500,
+      "description": "approved editorial reconstruction evidence",
+      "frame_count": 540,
+      "source": "technical"
+    },
+    {
+      "at_frame": 2040,
+      "description": "approved 4x artwork demonstration, limited coverage",
+      "frame_count": 300,
+      "source": "art"
+    },
+    {
+      "at_frame": 2340,
+      "description": "approved editorial animation archaeology",
+      "frame_count": 300,
+      "source": "archaeology"
+    },
+    {
+      "at_frame": 2640,
+      "description": "real uninterrupted two-player native 342-wide recording, frames 2100..2699",
+      "frame_count": 600,
+      "source": "race"
+    },
+    {
+      "at_frame": 3240,
+      "description": "editorial invitation to contribute",
+      "frame_count": 240,
+      "source": "cta"
+    }
+  ]
+}

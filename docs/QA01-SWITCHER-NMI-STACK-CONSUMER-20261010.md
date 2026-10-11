@@ -108,3 +108,7 @@ The source-only post-result analyzer now requires a **continuous decoded source 
 ### Separate native writer/read report reconciliation
 
 `tools/qa01_native_stack_read_pair_crosswalk.py` compares the **already authenticated** native writer/beam report and native low-WRAM read-journal report from the same opt-in paired Switcher run. It rejects divergent SHA-256 digests of the actual paired-result JSON, different source provenance, missing writer-arm attestation, wrong `I_NMI_M1X1` saved-word metadata, and inconsistent per-byte read totals. It accepts a *qualified empty* read journal only when the real writer observer armed. The report is additional consistency evidence, not a new replay, a proven `PLA` restore, original/native instruction parity, or USA course acceptance.
+
+### Native stack-address plausibility, not automatic restoration
+
+For each bounded native `01DD/01DE` read, the report now records whether the **bus start address equals the live S register** at the read callback. It separately counts same-native-frame, post-writer-callback, 16-bit reads of `4004` at `01DD` whose `S=01DD` and `M=0` are *consistent with* a 16-bit PLA-style stack load. The broader read count remains available. Neither class identifies the actual generated instruction, proves the PHA value was consumed before it was overwritten, or establishes result-critical liveness. The writer/read cross-report validator checks that the narrower count cannot exceed the broader count; no temporal retiming or event credit follows.

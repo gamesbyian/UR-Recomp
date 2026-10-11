@@ -77,6 +77,7 @@ def summarize(log: str) -> dict:
             # writer's WRAM callback, BEFORE the underlying store returns.
             # This is source order, not guest architectural liveness.
             "observed_after_4004_writer_callback_started": arm_count == 1,
+            "stack_pointer_equals_read_start_at_callback": sp == f"{addr:04X}",
             "register_s_does_not_prove_stack_instruction": True,
         })
     if arm_count != 1:
@@ -88,6 +89,11 @@ def summarize(log: str) -> dict:
         and x["word_start"] == "01DD"
         and x["bus_read_width"] == 2
         and x["read_value"] == "4004"
+    ]
+    stack_position_consistent = [
+        row for row in post_writer_same_frame_word_4004
+        if row["stack_pointer_equals_read_start_at_callback"]
+        and row["memory_width_flag_at_read"] == 0
     ]
     by_addr = {"7E:01DD": 0, "7E:01DE": 0}
     for row in result:
@@ -102,6 +108,9 @@ def summarize(log: str) -> dict:
         "native_stack_read_attempts": result,
         "same_native_frame_post_writer_callback_read_4004_candidate_count":
             len(post_writer_same_frame_word_4004),
+        "same_frame_post_writer_stack_position_consistent_word_4004_count":
+            len(stack_position_consistent),
+        "stack_pointer_matches_bus_start_not_proof_of_pla": True,
         "matched_word_read_is_stack_restore_candidate_not_proof": True,
         "zero_count_is_bounded_native_negative_not_no_reader_ever": len(result) == 0,
         "read_attempt_is_not_proven_original_pha_restore_or_scoring_consumer": True,

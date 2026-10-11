@@ -69,6 +69,22 @@ class NativeStackReadTests(unittest.TestCase):
         self.assertEqual(data[
             "same_native_frame_post_writer_callback_read_4004_candidate_count"], 1)
         self.assertTrue(data["matched_word_read_is_stack_restore_candidate_not_proof"])
+        self.assertEqual(data["same_frame_post_writer_stack_position_consistent_word_4004_count"], 0)
+        self.assertFalse(data["native_stack_read_attempts"][0]
+                         ["stack_pointer_equals_read_start_at_callback"])
+
+    def test_even_stack_pointer_consistent_saved_word_is_only_diagnostic(self):
+        near = VALID.replace("S=01DC", "S=01DD", 1)
+        result = report.summarize(ARM + near)
+        self.assertEqual(result[
+            "same_frame_post_writer_stack_position_consistent_word_4004_count"], 1)
+        self.assertTrue(result["native_stack_read_attempts"][0]
+                        ["stack_pointer_equals_read_start_at_callback"])
+        self.assertTrue(result["stack_pointer_matches_bus_start_not_proof_of_pla"])
+        self.assertEqual(result["release_complete_event_credit"], 0)
+        wrong_mode = near.replace("M=0", "M=1", 1)
+        self.assertEqual(report.summarize(ARM + wrong_mode)[
+            "same_frame_post_writer_stack_position_consistent_word_4004_count"], 0)
 
     def test_read_before_writer_arm_is_not_classified_as_later_restore(self):
         before = (

@@ -46,6 +46,9 @@ READ = {
     }],
     "native_bus_read_attempts_by_target": {"7E:01DD": 1, "7E:01DE": 1},
     "zero_count_is_bounded_native_negative_not_no_reader_ever": False,
+    "same_native_frame_post_writer_callback_read_4004_candidate_count": 1,
+    "same_frame_post_writer_stack_position_consistent_word_4004_count": 0,
+    "stack_pointer_matches_bus_start_not_proof_of_pla": True,
     "release_complete_event_credit": 0,
 }
 
@@ -57,6 +60,8 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
         self.assertEqual(out["native_read_targets_tallied"],
                          {"7E:01DD": 1, "7E:01DE": 1})
         self.assertTrue(out["writer_and_reader_share_pair_bytes"])
+        self.assertEqual(out["native_same_frame_4004_word_read_candidates"], 1)
+        self.assertEqual(out["native_stack_pointer_consistent_4004_word_read_candidates"], 0)
         self.assertFalse(out["native_guest_result_consumer_proven"])
         self.assertFalse(out["source_original_and_native_beam_phase_alignment_proven"])
         self.assertEqual(out["complete_usa_course_credit"], 0)
@@ -67,6 +72,8 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
         doc["native_stack_read_attempts"] = []
         doc["native_bus_read_attempts_by_target"] = {"7E:01DD": 0, "7E:01DE": 0}
         doc["zero_count_is_bounded_native_negative_not_no_reader_ever"] = True
+        doc["same_native_frame_post_writer_callback_read_4004_candidate_count"] = 0
+        doc["same_frame_post_writer_stack_position_consistent_word_4004_count"] = 0
         data = x.summarize(BEAM, doc)
         self.assertEqual(data["native_read_attempt_count"], 0)
         self.assertFalse(data["native_guest_result_consumer_proven"])
@@ -84,6 +91,8 @@ class NativeStackReadPairCrosswalkTests(unittest.TestCase):
             ("read", "native_bus_read_attempts_by_target", {"7E:01DD": 0, "7E:01DE": 1}),
             ("read", "zero_count_is_bounded_native_negative_not_no_reader_ever", True),
             ("read", "release_complete_event_credit", 1),
+            ("read", "same_native_frame_post_writer_callback_read_4004_candidate_count", 0),
+            ("read", "same_frame_post_writer_stack_position_consistent_word_4004_count", 2),
         ):
             writer, reader = copy.deepcopy(BEAM), copy.deepcopy(READ)
             (writer if obj == "beam" else reader)[key] = value

@@ -74,6 +74,12 @@ def summarize(writer: dict, reader: dict) -> dict:
             actual[target] += 1
     if tally != actual:
         raise ValueError("journal read counts disagree with actual declared target bytes")
+    broad = reader.get("same_native_frame_post_writer_callback_read_4004_candidate_count")
+    strict = reader.get("same_frame_post_writer_stack_position_consistent_word_4004_count")
+    if (type(broad) is not int or type(strict) is not int
+            or not 0 <= strict <= broad <= count
+            or reader.get("stack_pointer_matches_bus_start_not_proof_of_pla") is not True):
+        raise ValueError("native 4004 bus-read candidate classification metadata invalid")
     # Source-ordered within the read journal only. The independent write
     # logger samples CPU master cycles at another callback boundary.
     return {
@@ -84,6 +90,8 @@ def summarize(writer: dict, reader: dict) -> dict:
         "writer_01dd_address": "7E:01DD",
         "native_read_attempt_count": count,
         "native_read_targets_tallied": actual,
+        "native_same_frame_4004_word_read_candidates": broad,
+        "native_stack_pointer_consistent_4004_word_read_candidates": strict,
         "writer_and_reader_share_pair_bytes": True,
         "single_physical_writer_event_correlated_by_callbacks_not_cpu_cycle": True,
         "read_callback_after_writer_callback_not_proven_guest_restore": True,

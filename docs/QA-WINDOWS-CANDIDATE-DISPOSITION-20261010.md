@@ -44,3 +44,7 @@ An independently reviewed `waived` status now needs the gate's `candidate_commit
 ## Compact immutable artifact receipt
 
 After the reopened Windows process restores the finished event and verifies byte-identical `.urrun`, matching `.urmatch`, and single `.urfixture`, the existing tournament acceptance script writes `tournament-artifacts.log` beside its run logs. The file contains `schema=ur-windows-tournament-artifacts/1`, source/inner ZIP hashes (or explicit `unbound` when run outside the approved manual workflow), only immutable artifact basenames and three SHA-256 digests, and `fresh_process_reopen=passed`. The existing manual workflow uploads `*.log` as before. A receipt is an independently reviewable **bounded output**, not automatic acceptance of 3+ entrants, second/third legs, real pads, or physical L5 audio and presentation.
+
+## Public release still needs separately recorded human authorization
+
+Even if every applicable gate is independently admitted, `candidate.release_decision=public_release` now additionally requires nonempty `candidate.release_approved_by` and timezone-aware `candidate.release_approved_at`, distinct from tests and individual gate-waiver reviews. The validator checks that the manual decision is explicitly present; it does **not** authenticate reviewer identity and it never grants permission to distribute proprietary ROMs. Physical test results, candidate pins, and owner/legal distribution decisions must be verified outside the bookkeeping validator.

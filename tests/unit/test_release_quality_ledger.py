@@ -190,6 +190,21 @@ class ReleaseQualityLedgerTests(unittest.TestCase):
         self.assertTrue(any("waiver not tied to exact candidate" in x
                             for x in validator.check_registry(data, ROOT)))
 
+    def test_public_release_requires_separately_recorded_human_decision(self):
+        data = baseline()
+        data["candidate"]["release_decision"] = "public_release"
+        errors = validator.check_registry(data, ROOT)
+        self.assertTrue(any("separately recorded human approver" in x
+                            for x in errors))
+        self.assertTrue(any("human approval instant" in x for x in errors))
+        data["candidate"]["release_approved_by"] = "Owner, recorded separately"
+        data["candidate"]["release_approved_at"] = "2026-10-10T21:00:00Z"
+        errors = validator.check_registry(data, ROOT)
+        self.assertFalse(any("human approver" in x or "human approval instant" in x
+                             for x in errors))
+        # The remaining unverified release gates still block approval.
+        self.assertTrue(any("unresolved gates" in x for x in errors))
+
     def test_malformed_beta_gate_status_must_report_not_raise(self):
         data = baseline()
         data["candidate"]["release_decision"] = "beta"

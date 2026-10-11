@@ -153,6 +153,11 @@ def check_registry(registry: object, repo_root: pathlib.Path) -> list[str]:
                 errors.append(f"{name} witness below required layer {minimum}")
         if status != "passed" and witnesses and gate.get("candidate_commit") != commit:
             errors.append(f"{name} witness candidate mismatch")
+    if decision == "public_release":
+        if not isinstance(candidate.get("release_approved_by"), str) or not candidate["release_approved_by"].strip():
+            errors.append("public release requires a separately recorded human approver")
+        if not valid_evidence_timestamp(candidate.get("release_approved_at")):
+            errors.append("public release requires a timezone-aware human approval instant")
     if physical is True:
         # A bare boolean is not an independent physical witness. QA-04 is
         # the consumer-hardware gate, and its accepted L5 witness must itself

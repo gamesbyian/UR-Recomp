@@ -304,7 +304,13 @@ void navigate(int delta) {
 }
 void back() {
     if (g_two_seat_join.open()) {
-        g_two_seat_join.cancel();
+        // Both confirmations may already have queued original stock menu
+        // inputs. B/ESC must cancel that source route as well as the child
+        // panel, rather than silently launching an unbound guest match.
+        if (g_stock_target != -1)
+            stock_route_abort("cancelled");
+        else
+            g_two_seat_join.cancel();
         std::fprintf(stderr, "UR_BALDOSA_MODERN_ROOT join_closed=1\n");
         return;
     }

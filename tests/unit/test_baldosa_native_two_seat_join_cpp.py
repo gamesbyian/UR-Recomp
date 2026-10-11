@@ -60,6 +60,13 @@ class BaldosaNativeTwoSeatJoinTests(unittest.TestCase):
         self.assertIn("g_stock_handed_off", source)
         self.assertIn("g_two_seat_join.cancel();", source)
         self.assertIn("request_stock_route(2);", source)
+        # Back after the second confirm must revoke pending original menu
+        # input as well as the selected identities, before guest handoff.
+        back = source[source.index("void back() {"):
+                      source.index("}  // namespace", source.index("void back() {"))]
+        self.assertIn('if (g_stock_target != -1)' + chr(10) +
+                      '            stock_route_abort("cancelled");',
+                      back)
         self.assertNotIn("g_ram[0x017d] =", source.lower())
         self.assertNotIn("save_multiplayer_match_record(", source)
 

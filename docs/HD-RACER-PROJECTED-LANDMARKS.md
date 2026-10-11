@@ -204,3 +204,36 @@ a claim about 3D camera geometry. Observe the established **7:6
 pixel-aspect correction** when comparing these raw source-pixel
 envelopes against any artist or Blender render. No artistic approval
 is granted by the geometric measurement.
+
+
+## Real 2P alpha-shape changes across those same three source frames
+
+Bounding-box dimensions alone hide important animation differences.
+Re-examining the six independently authenticated PPU source RGBA
+planes as **binary alpha**, first translate each source bbox's
+leftmost opaque X to `x=0` while retaining its **original Y**,
+including the sampled fixed bottom row `y=78`.
+This is an explicit source-space registration, not 3D retargeting.
+The resulting original source-mask Jaccard intersections/unions are:
+
+| Moving native source | 1856→1872 | 1872→1888 | 1856→1888 |
+| --- | ---: | ---: | ---: |
+| Original upper OAM slot98 | 186/460 = **0.404** | 252/397 = **0.635** | 222/423 = **0.525** |
+| Original upper OAM slot99 | 208/441 = **0.472** | 288/364 = **0.791** | 183/458 = **0.400** |
+
+Even with the same projected bottom boundary, genuine rider pose
+silhouettes are not merely translated copies across time.
+A proposed rig-generated replacement pose sequence should be able
+to preserve comparable expressive source-space shape variation at
+normal gameplay viewing sizes, not just hold an immobile detailed
+unicycle above an animated colour field. These numbers are an
+**archaeological comparison reference**, not a target optimization
+loss, hard-coded playback transform, automatically approved 3D pose
+or proof of wheel-contact geometry. They are distinct from the
+**exact +113 Y split-viewport duplication within each frame**.
+
+Numerators, denominators, explicit bbox-left registration and
+all original slot/frame SHA identities are preserved in
+[`analysis/data/qa08-original-2p-three-pose-anchored-alpha-jaccard.json`](../analysis/data/qa08-original-2p-three-pose-anchored-alpha-jaccard.json).
+No copyrighted sprite imagery is included. Original character
+likeness still requires a separate explicit artistic review.

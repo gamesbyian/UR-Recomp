@@ -26,7 +26,8 @@ def approvals():
     for name in LEDGERS:
         path = ROOT / "analysis/data" / name
         ledger = json.loads(path.read_text())
-        if ledger["family_blockers"]:\n            continue
+        if ledger["family_blockers"]:
+            continue
         for d in ledger["decisions"]:
             if not (d["shipping_art_approved"] and d["status"] == "approved" and not d["blocker_codes"]):
                 continue
@@ -54,7 +55,9 @@ def load_pair(spec, approved, base):
         raise ValueError(f"Authored RGBA approval mismatch for {key}: {digest}")
     if not spec.get("stock_source") or not spec.get("stock_evidence"):
         raise ValueError("stock_source and stock_evidence must identify authentic extraction and proof")
-    if spec.get("stock_rgba_sha256") and spec["stock_rgba_sha256"] != sha(stock.tobytes()):\n        raise ValueError("Original ROM sprite RGBA checksum mismatch")\n    if stock.getbbox() is None or authored.getbbox() is None:
+    if spec.get("stock_rgba_sha256") and spec["stock_rgba_sha256"] != sha(stock.tobytes()):
+        raise ValueError("Original ROM sprite RGBA checksum mismatch")
+    if stock.getbbox() is None or authored.getbbox() is None:
         raise ValueError("Empty source artwork")
     return stock, authored, {
         **approved[key], "representation_id": key, "guest_frame": spec.get("frame"),
@@ -115,7 +118,11 @@ def archaeology(pairs, tick):
     im = backdrop("ANIMATION ARCHAEOLOGY","ROM-derived ordered poses | editorial playback")
     d = ImageDraw.Draw(im)
     idx = (tick//8)%len(pairs)
-    # Choose evenly spaced timeline entries rather than treating repeated holds as distinct poses.\n    positions = [round(j*(len(pairs)-1)/7) for j in range(8)]\n    for j, pos in enumerate(positions):\n        stock,authored,meta = pairs[pos]\n        left=120+j*210
+    # Choose evenly spaced timeline entries rather than treating repeated holds as distinct poses.
+    positions = [round(j*(len(pairs)-1)/7) for j in range(8)]
+    for j, pos in enumerate(positions):
+        stock,authored,meta = pairs[pos]
+        left=120+j*210
         d.rectangle((left,295,left+190,490),outline="#405069",width=2)
         artwork(im,stock,(left+15,310,160,160),True)
         text(d,(left+65,510),f"{j+1:02d}",25)
@@ -197,11 +204,16 @@ def main():
     if not shutil.which("ffmpeg"):
         raise SystemExit("FFmpeg required")
     spec=json.loads(a.manifest.read_text())
-    approved=approvals()\n    pairs=[load_pair(x,approved,a.manifest.resolve().parent) for x in spec["frames"]]
+    approved=approvals()
+    pairs=[load_pair(x,approved,a.manifest.resolve().parent) for x in spec["frames"]]
     if len(pairs)<2:
         raise ValueError("Need >=2 verified ordered poses for animation archaeology")
     a.output.mkdir(parents=True,exist_ok=True)
-    clips=[\n        encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210)),210),\n        encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210)),210),\n        encode(a.output,"03-remaster-progress",(montage(pairs,i) for i in range(150)),150),\n    ]
+    clips=[
+        encode(a.output,"01-original-4x-remastered",(comparison(*pairs[0][:2],i) for i in range(210)),210),
+        encode(a.output,"02-animation-archaeology",(archaeology(pairs,i) for i in range(210)),210),
+        encode(a.output,"03-remaster-progress",(montage(pairs,i) for i in range(150)),150),
+    ]
     provenance={"schema_version":1,"format":"1920x1080 h264 yuv420p",
                 "claim":"Verified art demonstrations. Editorial motion, not native gameplay.",
                 "approval_sources":LEDGERS,"assets":[x[2] for x in pairs],"clips":clips}

@@ -1,0 +1,334 @@
+{
+  "schema_version": 1,
+  "kind": "ordered-evidence-backed-editorial-sprite-strip",
+  "source_rom_sha256": "859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478",
+  "registry_sha256": "05372395d04d5403c7b80859c171f06d754f1322a676d66f4ce5d7b3aec948ad",
+  "source": "analysis/data/racer-hd-replacement-prototype.json::motion_review_sequence",
+  "window": [
+    1205,
+    1220
+  ],
+  "player": "p2",
+  "frames": [
+    {
+      "frame": 1205,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-00.png",
+      "authored_png": "authored/p2-00.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1206,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-00.png",
+      "authored_png": "authored/p2-00.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1207,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1208,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1209,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1210,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1211,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1212,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-01.png",
+      "authored_png": "authored/p2-01.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1213,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-00.png",
+      "authored_png": "authored/p2-00.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1214,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0543-p2-adjacent-reference",
+      "registered_representation_id": "ordinary-racer-0x0543-p2-with-p1-057E-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-00.png",
+      "authored_png": "authored/p2-00.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "aea67954e6001377ef418b01b906da4f788c8fbbdcbc0a01060047d36c04e281",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_tenth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0543_p2",
+      "approval": {
+        "sha256": "5942b93279180c25c37ce5714b6563024e35e708ffc25ba2e28e06b88d421927",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1215,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
+      "registered_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-02.png",
+      "authored_png": "authored/p2-02.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "8fb47edca9580b58169ca6f251b5530c7ee33a4b6251f94daa7d0422bf291b11",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0542_p2",
+      "approval": {
+        "sha256": "39175a57accedc5399f50fe7a0ffc675d0977bc9c83d127964f6109f55a3379b",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1216,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
+      "registered_representation_id": "ordinary-racer-0x0542-p2-with-p1-057F-companion-0D4A-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-02.png",
+      "authored_png": "authored/p2-02.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "8fb47edca9580b58169ca6f251b5530c7ee33a4b6251f94daa7d0422bf291b11",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0542_p2",
+      "approval": {
+        "sha256": "39175a57accedc5399f50fe7a0ffc675d0977bc9c83d127964f6109f55a3379b",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1217,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0542-p2-fifth-family-057E-reference",
+      "registered_representation_id": "ordinary-racer-0x0542-p2-with-p1-companion-0D2C-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-03.png",
+      "authored_png": "authored/p2-03.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "8fb47edca9580b58169ca6f251b5530c7ee33a4b6251f94daa7d0422bf291b11",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_ninth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0542_p2",
+      "approval": {
+        "sha256": "39175a57accedc5399f50fe7a0ffc675d0977bc9c83d127964f6109f55a3379b",
+        "ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "run": 37264523402,
+        "artifact": 11325937178
+      }
+    },
+    {
+      "frame": 1218,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
+      "registered_representation_id": "ordinary-racer-0x0541-p2-predecessor-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-04.png",
+      "authored_png": "authored/p2-04.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "6a3d31d29e99e191c4b528cd4faa7ea885731693872d97fc79454e47848bb929",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_eighth_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0541_p2_predecessor",
+      "approval": {
+        "sha256": "f4253fd3a78484b18c18c79fd764e87d6f7444b6658ad2c5738d8d9486e1d484",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    },
+    {
+      "frame": 1219,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0540-p2-fifth-family-057C-reference",
+      "registered_representation_id": "ordinary-racer-0x0540-p2-with-p1-companion-0D2D-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-05.png",
+      "authored_png": "authored/p2-05.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "016822f5c829a8276e4d21c28d443308b139a83f2a758176e390ae977a0e2a9a",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0540_p2_baseline",
+      "approval": {
+        "sha256": "b8245cbe72cbf2c8d591c5ef51bd55c9f12802fa092b4f76f6c9e8dc0597e442",
+        "ledger": "analysis/data/racer-hd-art-approval-1261-1267.json",
+        "run": 37264523402,
+        "artifact": 11325937178
+      }
+    },
+    {
+      "frame": 1220,
+      "player": "p2",
+      "representation_id": "ordinary-racer-0x0540-p2-sync-reference",
+      "registered_representation_id": "ordinary-racer-0x0540-p2-sync-reference",
+      "equivalence_proof": "same-player, same stock RGBA SHA256, same approved authored RGBA SHA256",
+      "stock_png": "stock/p2-06.png",
+      "authored_png": "authored/p2-06.png",
+      "stock_source": "Canonical USA ROM 859ec99fdc25dd9b239d9085bf656e4f49c93a32faa5bb248da83efd68ebd478; tools/prototype_racer_hd_replacement.py::build_stock_rgba",
+      "stock_evidence": "Exact guarded ROM composition in analysis/data/racer-hd-replacement-prototype.json; validated first-family motion sequence, frames 1205..1220",
+      "stock_rgba_sha256": "016822f5c829a8276e4d21c28d443308b139a83f2a758176e390ae977a0e2a9a",
+      "authored_generator": "tools/build_racer_hd_asset_dossier.py::build_seventh_authored_candidate_rgba",
+      "native_sampler": "sample_racer_hd_authored_0540_p2_baseline",
+      "approval": {
+        "sha256": "b8245cbe72cbf2c8d591c5ef51bd55c9f12802fa092b4f76f6c9e8dc0597e442",
+        "ledger": "analysis/data/racer-hd-art-approval.json",
+        "run": 37248763308,
+        "artifact": 11319814239
+      }
+    }
+  ]
+}

@@ -129,5 +129,84 @@
     "completed_original_emulator_event_accepted": false,
     "windows_beta_approved": false
   },
-  "limitations": "This is a derived, bounded machine-readable archival index, not the raw image/CRC source. Authenticate against the original GitHub Actions artifact while retained. Frame cadence is guest simulation, not physical presentation; even motion-rich semantic IDs are not proven source-visible P1 sprites."
+  "limitations": "This is a derived, bounded machine-readable archival index, not the raw image/CRC source. Authenticate against the original GitHub Actions artifact while retained. Frame cadence is guest simulation, not physical presentation; even motion-rich semantic IDs are not proven source-visible P1 sprites. Native slot96/97 source emission at 1P frame2208 is confirmed absent despite physically visible top-viewport riders; do not interpret OAM eligibility counts as source alpha or final ownership.",
+  "source_oam_geometry": {
+    "provenance": {
+      "pr": 1255,
+      "workflow_run": 38094430121,
+      "artifact_id": 11684953572,
+      "report": "baldosa-evidence/ws342_live_1p_oam_visibility_worklist.json"
+    },
+    "post_milestone_sample_frames": 3430,
+    "missing_authored_total": 3355,
+    "missing_authored_source_geometry_eligible": 1844,
+    "missing_authored_original_source_rectangle_absent_or_non_racer": 1511,
+    "source_geometry_eligible_by_semantic": {
+      "08D5": {
+        "eligible": 526,
+        "total": 526
+      },
+      "0895": {
+        "eligible": 515,
+        "total": 515
+      },
+      "0855": {
+        "eligible": 511,
+        "total": 511
+      },
+      "0A4B": {
+        "eligible": 10,
+        "total": 1521
+      }
+    },
+    "original_oam_bank_changes_near_guest_frame": 3640,
+    "source_opaque_obj_emission_proven": false,
+    "screen_final_obj_owner_proven": false,
+    "interpretation": "One-time guest-frame OAM geometry is only an eligibility upper bound; source emission may be empty, and split raster phase differs from beginning-of-frame snapshot."
+  },
+  "native_isolated_oneplayer_bottom_sources": {
+    "provenance": {
+      "pr": 1271,
+      "workflow_run": 38096082799,
+      "artifact_id": 11685889818,
+      "report": "baldosa-evidence/ws342_live_1p_bottom_slot96_97_source.json",
+      "preceding_pr": 1264,
+      "preceding_workflow_run": 38095455347,
+      "preceding_artifact_id": 11685169167
+    },
+    "guest_frame": 2208,
+    "wramside_semantic": "0895",
+    "independent_stock_guest_crc_equal_frames": 5447,
+    "independent_original_1x_4x_exact_source_frames": 7,
+    "slot96": {
+      "native_source_opaque": 0,
+      "bbox": [
+        342,
+        224,
+        -1,
+        -1
+      ]
+    },
+    "slot97": {
+      "native_source_opaque": 0,
+      "bbox": [
+        342,
+        224,
+        -1,
+        -1
+      ]
+    },
+    "each_full_342x224_transparent_rgba_sha256": "9b6357cacc96805cd8a1fcc3edc28d935f47f22b41fd2dbeb21f438b3b7bd58c",
+    "visual_observation": "Both stock unicycles in native Original frame2208 are in the TOP split viewport, above source scanline112; bottom 96/97 pre-BG OBJ alpha empty is a meaningful negative, not missing game graphics.",
+    "next_native_source_test": {
+      "pr": 1276,
+      "slots": [
+        98,
+        99
+      ],
+      "status": "not yet independently accepted"
+    },
+    "source_opaque_top_slot_proven": false,
+    "final_screen_winner_proven": false
+  }
 }

@@ -1,0 +1,194 @@
+{
+  "schema_version": 1,
+  "status": "authentic-native-2p-lower-rear-only-source-three-pixel-original-rgb-gap",
+  "original_native_AOT_success_run_id": 38119117927,
+  "native_artifact_id": 11694649120,
+  "original_guest_frame": 1856,
+  "width": 342,
+  "height": 224,
+  "original_stock_rgba_sha256": "0e956fac212cb7413a32ee2a0de318540e58cfd5f2b7610472c2573ab6719dd9",
+  "original_source_front96_rgba_sha256": "03a5132e5ee0accf438ba1175db660c2227ac429eb32a9d0199d6c14bb99ea08",
+  "original_source_rear97_rgba_sha256": "9fa904eb073185520e8707615c69801ba05364557b20c7c45659280752ecdcc1",
+  "original_final_after_native_front96_removal_sha256": "84581f02f0b3e49b97ffb0654357aa8f9ecb8546329597dfbbc4bc4d13c47f2a",
+  "original_native_front96_removal_guest_CRC_parity_reported": true,
+  "original_source_slot_reports_passed": true,
+  "original_oam_lower_front_slot": 96,
+  "original_oam_lower_rear_slot": 97,
+  "counts": {
+    "front96_alpha_emitted": 319,
+    "rear97_alpha_emitted": 321,
+    "front_only": 162,
+    "rear_only": 164,
+    "overlap_different_rgb": 143,
+    "overlap_same_rgb": 14,
+    "native_front96_removed_final_rgba_changed_pixels": 305,
+    "front_only_changed": 162,
+    "different_rgb_overlap_exact_rear_source_rgb_revealed": 143,
+    "same_rgb_overlap_unchanged": 14,
+    "rear_only_final_rgb_source_matches": 161,
+    "rear_only_final_rgb_source_nonmatches": 3,
+    "rear_only_unchanged_when_front_removed": 164,
+    "changed_outside_original_front96_source": 0,
+    "unexpected_original_source_relationship_pixels": 0
+  },
+  "real_three_rear_only_nonmatching_pixels": [
+    {
+      "xy": [
+        188,
+        156
+      ],
+      "rear_slot97_original_rgb": [
+        49,
+        49,
+        49
+      ],
+      "original_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "original_stock_alpha": 0,
+      "after_front96_removal_rgb": [
+        57,
+        57,
+        255
+      ]
+    },
+    {
+      "xy": [
+        189,
+        156
+      ],
+      "rear_slot97_original_rgb": [
+        74,
+        74,
+        74
+      ],
+      "original_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "original_stock_alpha": 0,
+      "after_front96_removal_rgb": [
+        57,
+        57,
+        255
+      ]
+    },
+    {
+      "xy": [
+        189,
+        157
+      ],
+      "rear_slot97_original_rgb": [
+        16,
+        16,
+        8
+      ],
+      "original_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "original_stock_alpha": 0,
+      "after_front96_removal_rgb": [
+        57,
+        57,
+        255
+      ]
+    }
+  ],
+  "full_original_stock_rgba_alpha_all_zero": true,
+  "exact_bg_obj_window_paint_owner_proven": false,
+  "original_3d_rig_geometry_inferred": false,
+  "safe_for_future_HD_overpaint": false,
+  "limits": "Three rear-only original OAM alpha coordinates do not match stock Original RGB even with higher-priority front OAM source absent. This is a genuine native output compositing/visibility witness, not hardware layer ownership or an authorized generalized mask.",
+  "lower_rear_source_upper_viewport_mirror_translation_rows": 113,
+  "upper_stock_original_exact_source_colour_mirror_witness": [
+    {
+      "upper_original_xy": [
+        188,
+        43
+      ],
+      "upper_stock_rgb": [
+        49,
+        49,
+        49
+      ],
+      "lower_original_xy": [
+        188,
+        156
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        49,
+        49,
+        49
+      ]
+    },
+    {
+      "upper_original_xy": [
+        189,
+        43
+      ],
+      "upper_stock_rgb": [
+        74,
+        74,
+        74
+      ],
+      "lower_original_xy": [
+        189,
+        156
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        74,
+        74,
+        74
+      ]
+    },
+    {
+      "upper_original_xy": [
+        189,
+        44
+      ],
+      "upper_stock_rgb": [
+        16,
+        16,
+        8
+      ],
+      "lower_original_xy": [
+        189,
+        157
+      ],
+      "lower_stock_rgb": [
+        57,
+        57,
+        255
+      ],
+      "lower_rear_source_rgb": [
+        16,
+        16,
+        8
+      ]
+    }
+  ],
+  "all_three_source_rgbs_final_visible_in_mirror_upper_original": true,
+  "upper_lower_pixel_RGB_asymmetry_localized_three_coords": true,
+  "native_4x_original_protected_rear_source_gap_subpixels": 48,
+  "native_4x_original_hidden_rear_gap_overpaint_subpixels": 0,
+  "original_4x_source_guest_frame": 1856,
+  "native_original_4x_sha256": "2c61d698f6922a2724acf550c6a42e185c0f3e1824db824a0aa741a9f06a6535",
+  "native_4x_raster_pixels": 1225728,
+  "full_original_4x_rgba_pixel_mismatches": 0,
+  "hd_candidate_validation_scope": "optional --candidate and --density 1-4 exact original-pixel guard at three masked rear-only coordinates; no general HD approval"
+}

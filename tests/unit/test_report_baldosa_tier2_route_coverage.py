@@ -50,6 +50,7 @@ class BaldosaRouteCoverageTests(unittest.TestCase):
         self.assertTrue(result["top_truncated"])
         self.assertFalse(result["aot_promotion_authorized"])
         self.assertFalse(result["route_qa_acceptance_proven"])
+        self.assertFalse(result["route_capture_binding_verified"])
         self.assertEqual(result["discovery_status_counts"]["unsafe_target"], 1)
         self.assertEqual(canonical_usa_pc(0x7E8050, "lorom"), 0x7E8050)
 

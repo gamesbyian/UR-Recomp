@@ -1,0 +1,128 @@
+name: One-shot final title-cut polish and accepted recruitment encoding
+on:
+  push:
+    branches: [media/definitive-trailer-assembly-20261010]
+    paths: [.github/workflows/one-shot-recruitment-title-polish.yml]
+permissions:
+  contents: write
+concurrency:
+  group: ur-recruitment-title-polish
+  cancel-in-progress: false
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - name: Synchronize previously approved technical and art media from main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git merge --no-edit origin/main
+      - name: Lightweight encoding dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg python3-pil
+      - name: Edit two films from immutable merged original sources
+        run: |
+          set -euo pipefail
+          root=media/showcase/2026-10-10/recruitment
+          art=media/showcase/art-reconstruction/2026-10-10
+          tech=media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4
+          echo 'c213ab1aa5472cb1940d5e35a5601bd30d9c00a9acb1e79cdf6dd1baca5e343d  media/showcase/2026-10-10/technical-motion/04-machine-code-to-native.mp4' | sha256sum -c -
+          python3 tools/showcase/build_definitive_recruitment.py \
+            --title "$root/native-menu/ur-native-title-menu-900f.mp4" \
+            --title-manifest "$root/native-menu/native-title-menu-provenance.json" \
+            --modern "$root/modern-root/ur-modern-root-600f.mp4" \
+            --modern-manifest "$root/modern-root/native-modern-root-provenance.json" \
+            --race "$root/continuous/ur-native-2p-clean-600f.mp4" \
+            --race-manifest "$root/continuous/native-continuous-provenance.json" \
+            --reveal "$root/presentation-edits/authentic-widescreen-reveal-7s.mp4" \
+            --comparison "$root/presentation-edits/same-capture-centre-vs-wide-5s.mp4" \
+            --presentation-manifest "$root/presentation-edits/presentation-provenance.json" \
+            --technical "$tech" \
+            --art "$art/01-original-4x-remastered.mp4" \
+            --archaeology "$art/02-animation-archaeology.mp4" \
+            --editorial-approval "$root/final-approval/approval.json" \
+            --outdir "$root/definitive-film"
+      - name: Independently decode exact selected ordinal frames in ONE pass per video
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          from PIL import Image
+          import hashlib,json,os,subprocess
+          root=Path('media/showcase/2026-10-10/recruitment/definitive-film')
+          manifest=json.loads((root/'definitive-trailer-provenance.json').read_text())
+          assert manifest['schema']=='UR-RECRUITMENT-FINAL-MEDIA/1'
+          assert manifest['film_duration_seconds']==58
+          assert manifest['editorial_splices_not_continuous_title_to_race']
+          assert not manifest['remastered_widescreen_claim'] and not manifest['finished_beta_claim'] and not manifest['continuous_4k_claim']
+          assert len(manifest['timeline'])==9 and sum(x['frame_count'] for x in manifest['timeline'])==3480
+          sha=lambda p:hashlib.sha256(Path(p).read_bytes()).hexdigest()
+          shots={
+            'ur-recomp-definitive-recruitment-58s-1080p.mp4': ((1920,1080),3480,[90,510,1020,1390,1860,2160,2530,3000,3420]),
+            'ur-recomp-recruitment-vertical-20s-1080x1920.mp4': ((1080,1920),1200,[90,420,690,990,1160])
+          }
+          review={}
+          for filename,(dims,count,ordinals) in shots.items():
+            movie=root/filename
+            assert sha(movie)==manifest['output_sha256'][filename]
+            data=json.loads(subprocess.check_output(['ffprobe','-v','error','-count_frames',
+              '-select_streams','v:0','-show_entries','stream=width,height,r_frame_rate,nb_read_frames',
+              '-of','json',str(movie)]))['streams'][0]
+            assert (data['width'],data['height'],data['r_frame_rate'],int(data['nb_read_frames']))==(*dims,'60/1',count),(filename,data)
+            expr='+'.join(f'eq(n\\,{n})' for n in ordinals)
+            temp=root/(filename+'.sample-%02d.png')
+            subprocess.run(['ffmpeg','-nostdin','-hide_banner','-loglevel','error','-y','-i',str(movie),
+              '-vf',f'select={expr}','-vsync','vfr','-frames:v',str(len(ordinals)),
+              '-start_number','0',str(temp)],check=True)
+            for ix,ordinal in enumerate(ordinals):
+              fromfile=root/(filename+f'.sample-{ix:02d}.png')
+              assert fromfile.exists(),(filename,ordinal)
+              tofile=root/(filename.removesuffix('.mp4')+f'-frame-{ordinal:04d}.png')
+              os.replace(fromfile,tofile)
+              with Image.open(tofile) as im:
+                assert im.size==dims
+                if ordinal==90:
+                  if dims==(1920,1080):
+                    assert im.getbbox() is not None, 'Opening cannot be a black source frame'
+                  else:
+                    assert im.crop((140,656,940,1264)).getbbox() is not None, 'Vertical opening original-title content missing'
+                im.verify()
+              assert tofile.stat().st_size>1024
+              review[tofile.name]=sha(tofile)
+          poster=root/'ur-recomp-recruitment-final-poster.png'
+          assert sha(poster)==manifest['output_sha256'][poster.name]
+          with Image.open(poster) as im:
+            assert im.size==(1920,1080); im.verify()
+          (root/'render-review-provenance.json').write_text(json.dumps({
+            'schema':'UR-RECRUITMENT-INDEPENDENT-DECODED-OUTPUT-WITNESSES/1',
+            'review_images_sha256':review,
+            'source_manifest_sha256':sha(root/'definitive-trailer-provenance.json'),
+            'status':'source_checked_pending_independent_final_screening',
+            'source_ordinal_exact_by_select_filter':True,
+            'nonblack_title_opening_verified_both_formats':True,
+            'media_only':True},sort_keys=True,indent=2)+'\n')
+          print('FINAL_AUTHENTIC_TITLE_SOURCE_AND_14_VISUAL_WITNESSES_PASS',manifest['output_sha256'])
+          PY
+      - name: Preserve inspected media evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ur-recruitment-final-title-polish
+          path: media/showcase/2026-10-10/recruitment/definitive-film/
+          if-no-files-found: warn
+          retention-days: 14
+      - name: Commit the corrected films; remove this one-shot workflow
+        run: |
+          set -euo pipefail
+          git add media/showcase/2026-10-10/recruitment/definitive-film/
+          git rm -f .github/workflows/one-shot-recruitment-title-polish.yml
+          git commit -m "media: open on authentic vivid title; publish audited master and social short"
+          git push origin "HEAD:${GITHUB_REF_NAME}"

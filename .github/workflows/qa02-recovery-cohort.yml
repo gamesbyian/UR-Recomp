@@ -59,7 +59,7 @@ jobs:
       - name: Publish one reusable producer executable
         uses: actions/upload-artifact@v4
         with:
-          name: qa02-recovery-shared-binary
+          name: qa02-store-fixture-shared-binary
           path: \${{ runner.temp }}/recovery-binary/
           retention-days: 7
           if-no-files-found: error
@@ -85,7 +85,7 @@ jobs:
       - name: Download exact shared store executable
         uses: actions/download-artifact@v4
         with:
-          name: qa02-recovery-shared-binary
+          name: qa02-store-fixture-shared-binary
           path: \${{ runner.temp }}/recovery-binary/
       - name: Repeat real OS-process faults against isolated user-data roots
         shell: bash

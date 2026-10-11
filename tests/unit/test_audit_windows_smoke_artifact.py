@@ -16,6 +16,28 @@ def _wrap(path: Path, payloads: dict[str, bytes]):
             z.writestr(name, payload)
 
 
+class HistoricalArchivedWindowsEvidenceRecordTests(unittest.TestCase):
+    def test_retained_historical_receipt_is_deliberately_non_releasing(self):
+        from tools.evidence_contract import validate_envelope
+        path = Path(__file__).resolve().parents[2] / (
+            "analysis/evidence/windows-smoke-38095271085-archived-consistency.json"
+        )
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(validate_envelope(data), [])
+        self.assertEqual(data["outcome"], "inconclusive")
+        self.assertEqual(data["subject"]["run_id"], 38095271085)
+        self.assertEqual(data["subject"]["source_revision_claim"],
+                         "1afe05edee2617c6a5b8cf67fce806fbfe939bf2")
+        self.assertEqual(data["subject"]["inner_portable_zip_sha256"],
+                         "f0401d21c9e8286794a5d247a2b50377470a74acb1148faa7b9827cf24b4969e")
+        self.assertEqual(data["metrics"]["reported_real_joysticks"], 0)
+        self.assertEqual(data["metrics"]["reported_sdl_audio_driver"], "dummy")
+        self.assertTrue(data["metrics"]["synthetic_controller_label_observed"])
+        for gate in ("independent_candidate_approved",
+                     "current_native_1p_2p_complete", "physical_hardware_verified"):
+            self.assertIs(data["metrics"][gate], False)
+
+
 class WindowsSmokeArtifactArchiveTests(unittest.TestCase):
     def prepare(self, root: Path):
         inner = b"example archive only, not a ROM"

@@ -641,6 +641,23 @@ def verify_native_named_records_root_log(log: str) -> None:
         raise ValueError("Native named Records used an unverified route")
 
 
+def verify_native_records_page_handoff(log: str) -> None:
+    """Use genuine native SDL page navigation, not a separate QA records UI."""
+    markers = (
+        "UR_BALDOSA_MODERN_ROOT records_opened=1",
+        "UR_BALDOSA_MODERN_ROOT records_page=2p",
+        "UR_BALDOSA_MODERN_ROOT records_page=1p",
+        "UR_BALDOSA_MODERN_ROOT records_closed=1",
+    )
+    # Open initializes the 1P page before its existing opened diagnostic.
+    indices = [log.find(marker) for marker in markers]
+    if -1 in indices or indices != sorted(indices):
+        raise ValueError("Native Records 1P/2P SDL page handoff missing or out of order")
+    if log.count("UR_BALDOSA_MODERN_ROOT records_page=2p") != 1 or (
+        log.count("UR_BALDOSA_MODERN_ROOT records_page=1p") != 2
+    ):
+        raise ValueError("Native Records 1P/2P pages duplicated or not returned")
+
 def run_native_named_records_root(
     exe: Path, rom: Path, root: Path, fixture: Path, seed: Path,
     *, video: str, timeout: int,
@@ -697,6 +714,7 @@ def run_native_named_records_root(
         raise RuntimeError(
             f"Named Records Windows guest rc={process.returncode}: {log[-2500:]}")
     verify_native_named_records_root_log(log)
+    verify_native_records_page_handoff(log)
     verify_named_profile_boot_bytes(log, seed.read_bytes())
     verify_native_profile_checkpoint(
         fixture, user_root, "native-ci-rider", log, timeout)

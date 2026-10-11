@@ -118,6 +118,19 @@ def summarize(two_source: dict, switcher: dict) -> dict:
             or r.get("native_result_guest_relative_frame") != 4702):
         raise ValueError("not the original 5783 same-host result with -2 relative offset")
     rr = phase(*values)
+    # Two original Snes9x contexts do not share a course-entry host:
+    # movie-reset trace (12327..17030) vs fresh calibrated replay
+    # (1079..5783). The extra +1 original-relative frame is a measured
+    # calibration/context difference, not a sanctioned timing waiver.
+    archive_duration = (source["original_movie_result_frame"]
+                        - source["original_movie_course_entry_frame"])
+    if archive_duration != 4703:
+        raise ValueError("original 2014 source movie duration changed")
+    fresh_original_delta_from_movie = rr["original_result_relative"] - archive_duration
+    fresh_native_delta_from_movie = rr["native_result_relative"] - archive_duration
+    if (fresh_original_delta_from_movie != 1
+            or fresh_native_delta_from_movie != -1):
+        raise ValueError("Switcher three-context relative-frame gap changed")
     witnesses.append({
         "kind": "race-b", "course": "course:04",
         "execution_run_id": ex["workflow_run_id"],
@@ -136,6 +149,15 @@ def summarize(two_source: dict, switcher: dict) -> dict:
         "archived_source_qualified_event_family_count": 3,
         "witnesses": witnesses,
         "native_minus_original_scene_relative_terminal_by_family": leads,
+        "switcher_three_context_phase": {
+            "2014_source_movie_relative_frames": archive_duration,
+            "fresh_original_snes9x_relative_frames": rr["original_result_relative"],
+            "fresh_native_baldosa_relative_frames": rr["native_result_relative"],
+            "fresh_original_minus_source_movie_relative_frames": fresh_original_delta_from_movie,
+            "fresh_native_minus_source_movie_relative_frames": fresh_native_delta_from_movie,
+            "original_source_movie_and_fresh_replay_have_different_boot_contexts": True,
+        },
+        "original_reference_vs_source_movie_plus_one_frame_is_observed_not_normalized": True,
         "single_universal_scene_relative_frame_offset_disproven": True,
         "common_absolute_host_terminal_frame_alone_does_not_prove_parity": True,
         "original_movie_frame_is_not_fresh_guest_host_frame": True,

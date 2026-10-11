@@ -31,6 +31,13 @@ class ThreeFamilyResultPhaseTests(unittest.TestCase):
         self.assertFalse(out["guest_cpu_instruction_phase_equivalence_proven"])
         self.assertFalse(out["retroactive_retiming_or_result_phase_waiver_permitted"])
         self.assertEqual(out["official_usa_complete_event_count"], 0)
+        three = out["switcher_three_context_phase"]
+        self.assertEqual(three["2014_source_movie_relative_frames"], 4703)
+        self.assertEqual(three["fresh_original_snes9x_relative_frames"], 4704)
+        self.assertEqual(three["fresh_native_baldosa_relative_frames"], 4702)
+        self.assertEqual(three["fresh_original_minus_source_movie_relative_frames"], 1)
+        self.assertEqual(three["fresh_native_minus_source_movie_relative_frames"], -1)
+        self.assertTrue(three["original_source_movie_and_fresh_replay_have_different_boot_contexts"])
         self.assertEqual(out["official_usa_course_denominator"], 45)
         race = out["witnesses"][-1]["phase"]
         self.assertEqual(race["native_entry_minus_original"], 2)

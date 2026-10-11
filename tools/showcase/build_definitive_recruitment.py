@@ -112,7 +112,7 @@ def build(args):
     presentation = verify_reveals(args.race,args.reveal,args.comparison,args.presentation_manifest)
     gate=json.loads(args.editorial_approval.read_text())
     if gate.get("schema") != "UR-RECRUITMENT-MEDIA-APPROVAL/1" or gate.get("accepted_by") in (None,""):
-        raise ValueError("Final media approval must identify a human reviewer")
+        raise ValueError("Final media approval must identify an accountable reviewer and review method")
     gate["_gate_root"]=args.editorial_approval.parent
     for role in ROLE_LABELS:
         verify_editorial(role,getattr(args,role),gate)

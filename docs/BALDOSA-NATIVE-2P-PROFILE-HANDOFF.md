@@ -91,3 +91,12 @@ must choose those corresponding original riders in the untouched guest
 selection screen. This is only guidance: the result's real original SRAM
 rider indices remain final authority and a mismatch still refuses Records
 publication, without manufacturing a win or changing the guest selection.
+
+## Back during a queued stock 2P transition
+
+P1 B/Escape may arrive after both participants confirm but before the
+original title acknowledges menu 0x3D. It cancels the **pending source
+menu input and the two-seat identity selection together**. Dismissing
+only the child panel would falsely leave a stock 2P launch queued even
+though the player pressed Back. An already acknowledged source handoff
+continues to use the established title return/reentry path.

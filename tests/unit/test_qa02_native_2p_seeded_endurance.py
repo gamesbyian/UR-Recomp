@@ -184,9 +184,9 @@ class SeededNativeInputContractTests(unittest.TestCase):
         # exited before their FIRST guest frame. Keep producer and consumer
         # on the exact same Actions runner generation.
         producer=(ROOT/".github/workflows/modern-shared-native-acceptance.yml").read_text()
-        self.assertIn("  build:\\n    if:",producer)
+        self.assertIn("  build:\n    if:",producer)
         self.assertIn("    runs-on: ubuntu-latest",producer)
-        stress=wf.split("  stress:\\n",1)[1].split("  aggregate:\\n",1)[0]
+        stress=wf.split("  stress:\n",1)[1].split("  aggregate:\n",1)[0]
         self.assertIn("    runs-on: ubuntu-latest",stress)
         self.assertNotIn("    runs-on: ubuntu-22.04",stress)
         self.assertIn('ldd "$EXE" 2>&1',stress)
